@@ -1,0 +1,5 @@
+[run]
+include = sme_ptrf_apps/*
+omit = *migrations*, *tests*
+plugins =
+    django_coverage_plugin
