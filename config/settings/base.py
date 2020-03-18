@@ -83,6 +83,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    "sme_ptrf_apps.core.apps.CoreConfig",
     "sme_ptrf_apps.users.apps.UsersConfig",
     # Your stuff: custom apps go here
 ]
