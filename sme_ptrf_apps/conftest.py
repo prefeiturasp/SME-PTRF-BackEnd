@@ -24,3 +24,8 @@ def request_factory() -> RequestFactory:
 @pytest.fixture
 def tipo_conta():
     return baker.make('TipoConta', nome='Cheque')
+
+
+@pytest.fixture
+def acao():
+    return baker.make('Acao', nome='PTRF')
