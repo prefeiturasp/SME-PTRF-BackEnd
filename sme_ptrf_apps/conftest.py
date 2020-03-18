@@ -29,3 +29,8 @@ def tipo_conta():
 @pytest.fixture
 def acao():
     return baker.make('Acao', nome='PTRF')
+
+
+@pytest.fixture
+def associacao():
+    return baker.make('Associacao', nome='Escola Teste')
