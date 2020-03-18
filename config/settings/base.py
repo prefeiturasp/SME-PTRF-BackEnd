@@ -85,6 +85,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "sme_ptrf_apps.core.apps.CoreConfig",
     "sme_ptrf_apps.users.apps.UsersConfig",
+    "sme_ptrf_apps.despesas.apps.DespesasConfig",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
