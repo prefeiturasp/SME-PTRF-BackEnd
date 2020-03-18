@@ -43,3 +43,12 @@ def conta_associacao(associacao, tipo_conta):
         associacao=associacao,
         tipo_conta=tipo_conta
     )
+
+
+@pytest.fixture
+def acao_associacao(associacao, acao):
+    return baker.make(
+        'AcaoAssociacao',
+        associacao=associacao,
+        acao=acao
+    )

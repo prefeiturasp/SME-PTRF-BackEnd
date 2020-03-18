@@ -11,6 +11,7 @@ def test_instance_model(conta_associacao):
     model = conta_associacao
     assert isinstance(model, ContaAssociacao)
     assert model.associacao
+    assert model.tipo_conta
     assert model.status
     assert model.criado_em
     assert model.alterado_em
