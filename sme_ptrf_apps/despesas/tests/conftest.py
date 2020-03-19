@@ -25,6 +25,16 @@ def tipo_aplicacao_recurso():
 
 
 @pytest.fixture
+def especificacao_material_servico(tipo_aplicacao_recurso, tipo_custeio):
+    return baker.make(
+        'EspecificacaoMaterialServico',
+        descricao='Material elétrico',
+        tipo_aplicacao_recurso=tipo_aplicacao_recurso,
+        tipo_custeio=tipo_custeio,
+    )
+
+
+@pytest.fixture
 def despesa(associacao, tipo_documento, tipo_transacao):
     return baker.make(
         'Despesa',
