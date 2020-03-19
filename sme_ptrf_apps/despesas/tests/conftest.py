@@ -20,6 +20,11 @@ def tipo_transacao():
 
 
 @pytest.fixture
+def tipo_aplicacao_recurso():
+    return baker.make('TipoAplicacaoRecurso', nome='Custeio')
+
+
+@pytest.fixture
 def despesa(associacao, tipo_documento, tipo_transacao):
     return baker.make(
         'Despesa',
