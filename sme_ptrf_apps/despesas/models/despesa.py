@@ -22,8 +22,6 @@ class Despesa(ModeloBase):
         (STATUS_INCOMPLETO, STATUS_NOMES[STATUS_INCOMPLETO]),
     )
 
-
-
     associacao = models.ForeignKey(Associacao, on_delete=models.PROTECT, related_name='despesas', blank=True,
                                    null=True)
 
