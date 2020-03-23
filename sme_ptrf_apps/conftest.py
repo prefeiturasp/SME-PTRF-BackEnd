@@ -6,6 +6,7 @@ from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
 
 from .core.models.conta_associacao import ContaAssociacao
+from .core.models.acao_associacao import AcaoAssociacao
 
 
 @pytest.fixture
@@ -81,4 +82,14 @@ def acao_associacao(associacao, acao):
         'AcaoAssociacao',
         associacao=associacao,
         acao=acao
+    )
+
+
+@pytest.fixture
+def acao_associacao_inativa(associacao, acao):
+    return baker.make(
+        'AcaoAssociacao',
+        associacao=associacao,
+        acao=acao,
+        status=AcaoAssociacao.STATUS_INATIVA
     )

@@ -31,3 +31,11 @@ def test_meta_modelo(acao_associacao):
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[AcaoAssociacao]
+
+
+def test_get_valores(acao_associacao, acao, associacao):
+    assert AcaoAssociacao.get_valores().count() == 1
+
+
+def test_get_valores_com_inativos(acao_associacao, acao_associacao_inativa, conta_associacao_inativa, tipo_conta, associacao):
+    assert AcaoAssociacao.get_valores().count() == 1
