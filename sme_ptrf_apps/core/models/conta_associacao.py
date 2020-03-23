@@ -35,7 +35,7 @@ class ContaAssociacao(ModeloBase):
 
     @classmethod
     def get_valores(cls):
-        return cls.objects.all()
+        return cls.objects.all().filter(status=cls.STATUS_ATIVA)
 
     class Meta:
         verbose_name = "Conta de Associação"

@@ -5,6 +5,8 @@ from model_bakery import baker
 from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
 
+from .core.models.conta_associacao import ContaAssociacao
+
 
 @pytest.fixture
 def fake_user(client, django_user_model):
@@ -60,6 +62,16 @@ def conta_associacao(associacao, tipo_conta):
         'ContaAssociacao',
         associacao=associacao,
         tipo_conta=tipo_conta
+    )
+
+
+@pytest.fixture
+def conta_associacao_inativa(associacao, tipo_conta):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao,
+        tipo_conta=tipo_conta,
+        status=ContaAssociacao.STATUS_INATIVA
     )
 
 
