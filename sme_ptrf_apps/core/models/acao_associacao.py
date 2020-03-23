@@ -33,6 +33,10 @@ class AcaoAssociacao(ModeloBase):
         status = AcaoAssociacao.STATUS_NOMES[self.status]
         return f"{associacao} - Ação {acao} - {status}"
 
+    @classmethod
+    def get_valores(cls):
+        return cls.objects.all()
+
     class Meta:
         verbose_name = "Ação de Associação"
         verbose_name_plural = "Ações de Associações"

@@ -33,6 +33,10 @@ class ContaAssociacao(ModeloBase):
         status = ContaAssociacao.STATUS_NOMES[self.status]
         return f"{associacao} - Conta {tipo_conta} - {status}"
 
+    @classmethod
+    def get_valores(cls):
+        return cls.objects.all()
+
     class Meta:
         verbose_name = "Conta de Associação"
         verbose_name_plural = "Contas de Associações"

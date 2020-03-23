@@ -6,6 +6,24 @@ from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
 
 
+@pytest.fixture
+def fake_user(client, django_user_model):
+    password = 'teste'
+    username = 'fake'
+    user = django_user_model.objects.create_user(username=username, password=password, )
+    client.login(username=username, password=password)
+    return user
+
+
+@pytest.fixture
+def authenticated_client(client, django_user_model):
+    password = 'teste'
+    username = 'fake'
+    django_user_model.objects.create_user(username=username, password=password, )
+    client.login(username=username, password=password)
+    return client
+
+
 @pytest.fixture(autouse=True)
 def media_storage(settings, tmpdir):
     settings.MEDIA_ROOT = tmpdir.strpath

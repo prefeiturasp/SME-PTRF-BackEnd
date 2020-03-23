@@ -70,6 +70,10 @@ class SingletonModel(models.Model):
 
 class ModeloIdNome(ModeloBase, TemNome):
 
+    @classmethod
+    def get_valores(cls):
+        return cls.objects.all().order_by('nome')
+
     def __str__(self):
         return f"{self.nome}"
 
