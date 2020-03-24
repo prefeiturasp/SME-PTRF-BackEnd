@@ -1,6 +1,6 @@
 import pytest
 
-from ...api.serializers.despesa_serializer import (DespesaSerializer)
+from ...api.serializers.despesa_serializer import (DespesaSerializer, DespesaCreateSerializer)
 
 pytestmark = pytest.mark.django_db
 
@@ -21,3 +21,11 @@ def test_serializer(despesa):
     assert serializer.data['data_transacao']
     assert serializer.data['valor_total']
     assert serializer.data['valor_recursos_proprios']
+
+
+def test_create_serializer(despesa, rateio_despesa_capital):
+
+    serializer = DespesaCreateSerializer(despesa)
+
+    assert serializer.data is not None
+

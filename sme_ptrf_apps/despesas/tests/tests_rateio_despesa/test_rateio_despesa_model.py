@@ -13,7 +13,7 @@ def test_instance_model(rateio_despesa_capital):
     assert model.associacao
     assert model.despesa
     assert model.conta_associacao
-    assert model.acao
+    assert model.acao_associacao
     assert model.tipo_aplicacao_recurso
     assert model.tipo_custeio
     assert model.especificacao_material_servico

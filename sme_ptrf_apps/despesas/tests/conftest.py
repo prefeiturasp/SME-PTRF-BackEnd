@@ -53,13 +53,13 @@ def despesa(associacao, tipo_documento, tipo_transacao):
 
 @pytest.fixture
 def rateio_despesa_capital(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso, tipo_custeio,
-                           especificacao_material_servico):
+                           especificacao_material_servico, acao_associacao):
     return baker.make(
         'RateioDespesa',
         despesa=despesa,
         associacao=associacao,
         conta_associacao=conta_associacao,
-        acao=acao,
+        acao_associacao=acao_associacao,
         tipo_aplicacao_recurso=tipo_aplicacao_recurso,
         tipo_custeio=tipo_custeio,
         especificacao_material_servico=especificacao_material_servico,

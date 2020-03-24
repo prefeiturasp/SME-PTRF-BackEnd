@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ..serializers.despesa_serializer import DespesaSerializer
+from ..serializers.despesa_serializer import DespesaSerializer, DespesaCreateSerializer
 from ..serializers.tipo_aplicacao_recurso_serializer import TipoAplicacaoRecursoSerializer
 from ..serializers.tipo_custeio_serializer import TipoCusteioSerializer
 from ..serializers.tipo_documento_serializer import TipoDocumentoSerializer
@@ -31,11 +31,10 @@ class DespesasViewSet(mixins.CreateModelMixin,
         return self.queryset
 
     def get_serializer_class(self):
-        return DespesaSerializer
-        # if self.action in ['retrieve', 'list']:
-        #     return ProponenteSerializer
-        # else:
-        #     return ProponenteCreateSerializer
+        if self.action in ['retrieve', 'list']:
+            return DespesaSerializer
+        else:
+            return DespesaCreateSerializer
 
     @action(detail=False, url_path='tabelas')
     def tabelas(self, request):

@@ -12,7 +12,8 @@ class RateioDespesa(ModeloBase):
     conta_associacao = models.ForeignKey('core.ContaAssociacao', on_delete=models.PROTECT,
                                          related_name='rateios_da_conta', blank=True, null=True)
 
-    acao = models.ForeignKey('core.Acao', on_delete=models.PROTECT, blank=True, null=True)
+    acao_associacao = models.ForeignKey('core.AcaoAssociacao', on_delete=models.PROTECT,
+                                        related_name='rateios_da_associacao', blank=True, null=True)
 
     tipo_aplicacao_recurso = models.ForeignKey('TipoAplicacaoRecurso', on_delete=models.PROTECT, blank=True, null=True)
 
@@ -25,7 +26,8 @@ class RateioDespesa(ModeloBase):
 
     quantidade_itens_capital = models.PositiveSmallIntegerField('Quantidade de itens', default=0)
     valor_item_capital = models.DecimalField('Valor unitário ', max_digits=8, decimal_places=2, default=0)
-    numero_processo_incorporacao_capital = models.CharField('Nº processo incorporação', max_length=100, default='', blank=True)
+    numero_processo_incorporacao_capital = models.CharField('Nº processo incorporação', max_length=100, default='',
+                                                            blank=True)
 
     def __str__(self):
         documento = self.despesa.numero_documento if self.despesa else 'Despesa indefinida'
