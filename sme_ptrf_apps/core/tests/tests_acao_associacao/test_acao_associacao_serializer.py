@@ -10,7 +10,7 @@ def test_serializer(acao_associacao):
     serializer = AcaoAssociacaoSerializer(acao_associacao)
 
     assert serializer.data is not None
-    assert serializer.data['id']
+    assert serializer.data['uuid']
     assert serializer.data['acao']
     assert serializer.data['associacao']
     assert serializer.data['status']

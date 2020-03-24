@@ -12,7 +12,7 @@ class ContaAssociacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ContaAssociacao
-        fields = ('id', 'tipo_conta', 'associacao', 'status')
+        fields = ('uuid', 'tipo_conta', 'associacao', 'status')
 
 
 class ContaAssociacaoLookUpSerializer(serializers.ModelSerializer):
@@ -23,4 +23,4 @@ class ContaAssociacaoLookUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ContaAssociacao
-        fields = ('id', 'nome')
+        fields = ('uuid', 'nome')

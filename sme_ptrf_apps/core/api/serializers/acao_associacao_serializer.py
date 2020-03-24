@@ -12,7 +12,7 @@ class AcaoAssociacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AcaoAssociacao
-        fields = ('id', 'acao', 'associacao', 'status')
+        fields = ('uuid', 'acao', 'associacao', 'status')
 
 
 class AcaoAssociacaoLookUpSerializer(serializers.ModelSerializer):
@@ -23,4 +23,4 @@ class AcaoAssociacaoLookUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AcaoAssociacao
-        fields = ('id', 'nome')
+        fields = ('uuid', 'nome')
