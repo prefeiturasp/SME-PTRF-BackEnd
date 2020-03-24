@@ -3,6 +3,8 @@ import json
 import pytest
 from rest_framework import status
 
+from ...tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL, APLICACAO_NOMES
+
 pytestmark = pytest.mark.django_db
 
 
@@ -14,9 +16,13 @@ def test_api_get_despesas_tabelas(client, tipo_aplicacao_recurso, tipo_custeio, 
     esperado = {
         'tipos_aplicacao_recurso': [
             {
-                'id': tipo_aplicacao_recurso.id,
-                'nome': tipo_aplicacao_recurso.nome
+                'id': APLICACAO_CAPITAL,
+                'nome': APLICACAO_NOMES[APLICACAO_CAPITAL]
             },
+            {
+                'id': APLICACAO_CUSTEIO,
+                'nome': APLICACAO_NOMES[APLICACAO_CUSTEIO]
+            }
         ],
 
         'tipos_custeio': [

@@ -1,7 +1,9 @@
-import pytest
 import datetime
 
+import pytest
 from model_bakery import baker
+
+from ..tipos_aplicacao_recurso import APLICACAO_CUSTEIO
 
 
 @pytest.fixture
@@ -21,7 +23,7 @@ def tipo_transacao():
 
 @pytest.fixture
 def tipo_aplicacao_recurso():
-    return baker.make('TipoAplicacaoRecurso', nome='Custeio')
+    return APLICACAO_CUSTEIO
 
 
 @pytest.fixture
@@ -29,7 +31,7 @@ def especificacao_material_servico(tipo_aplicacao_recurso, tipo_custeio):
     return baker.make(
         'EspecificacaoMaterialServico',
         descricao='Material elétrico',
-        tipo_aplicacao_recurso=tipo_aplicacao_recurso,
+        aplicacao_recurso=tipo_aplicacao_recurso,
         tipo_custeio=tipo_custeio,
     )
 
@@ -60,7 +62,7 @@ def rateio_despesa_capital(associacao, despesa, conta_associacao, acao, tipo_apl
         associacao=associacao,
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
-        tipo_aplicacao_recurso=tipo_aplicacao_recurso,
+        aplicacao_recurso=tipo_aplicacao_recurso,
         tipo_custeio=tipo_custeio,
         especificacao_material_servico=especificacao_material_servico,
         valor_rateio=100.00,

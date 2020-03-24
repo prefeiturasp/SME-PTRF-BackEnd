@@ -1,5 +1,4 @@
 import pytest
-
 from django.contrib import admin
 
 from ...models import EspecificacaoMaterialServico
@@ -11,7 +10,7 @@ def test_instance_model(especificacao_material_servico):
     model = especificacao_material_servico
     assert isinstance(model, EspecificacaoMaterialServico)
     assert model.descricao
-    assert model.tipo_aplicacao_recurso
+    assert model.aplicacao_recurso
     assert model.tipo_custeio
     assert model.criado_em
     assert model.alterado_em

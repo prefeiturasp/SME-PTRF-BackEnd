@@ -12,5 +12,5 @@ def test_serializer(especificacao_material_servico):
     assert serializer.data is not None
     assert serializer.data['id']
     assert serializer.data['descricao']
-    assert serializer.data['tipo_aplicacao_recurso']
+    assert serializer.data['aplicacao_recurso']
     assert serializer.data['tipo_custeio']

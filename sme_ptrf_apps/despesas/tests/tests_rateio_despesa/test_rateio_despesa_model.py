@@ -1,5 +1,4 @@
 import pytest
-
 from django.contrib import admin
 
 from ...models import RateioDespesa
@@ -14,7 +13,7 @@ def test_instance_model(rateio_despesa_capital):
     assert model.despesa
     assert model.conta_associacao
     assert model.acao_associacao
-    assert model.tipo_aplicacao_recurso
+    assert model.aplicacao_recurso
     assert model.tipo_custeio
     assert model.especificacao_material_servico
     assert model.valor_rateio
@@ -25,6 +24,7 @@ def test_instance_model(rateio_despesa_capital):
     assert model.alterado_em
     assert model.uuid
     assert model.id
+    assert model.status == RateioDespesa.STATUS_INCOMPLETO
 
 
 def test_srt_model(rateio_despesa_capital):

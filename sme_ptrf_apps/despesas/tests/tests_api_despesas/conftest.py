@@ -28,7 +28,7 @@ def payload_despesa_valida(
                 "associacao": f'{associacao.uuid}',
                 "conta_associacao": f'{conta_associacao.uuid}',
                 "acao_associacao": f'{acao_associacao.uuid}',
-                "tipo_aplicacao_recurso": tipo_aplicacao_recurso.id,
+                "aplicacao_recurso": tipo_aplicacao_recurso,
                 "tipo_custeio": tipo_custeio.id,
                 "especificacao_material_servico": especificacao_material_servico.id,
                 "valor_rateio": 1000.00,

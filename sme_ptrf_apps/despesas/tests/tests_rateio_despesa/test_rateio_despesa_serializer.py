@@ -15,7 +15,7 @@ def test_serializer(rateio_despesa_capital):
     assert serializer.data['associacao']
     assert serializer.data['conta_associacao']
     assert serializer.data['acao_associacao']
-    assert serializer.data['tipo_aplicacao_recurso']
+    assert serializer.data['aplicacao_recurso']
     assert serializer.data['tipo_custeio']
     assert serializer.data['especificacao_material_servico']
     assert serializer.data['valor_rateio']
