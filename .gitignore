@@ -160,6 +160,9 @@ typings/
 !.vscode/launch.json
 !.vscode/extensions.json
 
+### PyCharm files
+.idea
+
 
 
 
