@@ -1,27 +1,14 @@
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-
-from ...core.models import Associacao
-
 from .validators import cpf_cnpj_validation
+from ..status_cadastro_completo import STATUS_CHOICES, STATUS_INCOMPLETO, STATUS_COMPLETO
+from ...core.models import Associacao
 
 
 class Despesa(ModeloBase):
-    # Status Choice
-    STATUS_COMPLETO = 'COMPLETO'
-    STATUS_INCOMPLETO = 'INCOMPLETO'
-
-    STATUS_NOMES = {
-        STATUS_COMPLETO: 'Completo',
-        STATUS_INCOMPLETO: 'Incompleto',
-    }
-
-    STATUS_CHOICES = (
-        (STATUS_COMPLETO, STATUS_NOMES[STATUS_COMPLETO]),
-        (STATUS_INCOMPLETO, STATUS_NOMES[STATUS_INCOMPLETO]),
-    )
-
     associacao = models.ForeignKey(Associacao, on_delete=models.PROTECT, related_name='despesas', blank=True,
                                    null=True)
 
@@ -63,7 +50,32 @@ class Despesa(ModeloBase):
     def __str__(self):
         return f"{self.numero_documento} - {self.data_documento} - {self.valor_total:.2f}"
 
+    def cadastro_completo(self):
+        completo = self.numero_documento and \
+                   self.tipo_documento and \
+                   self.data_documento and \
+                   self.cpf_cnpj_fornecedor and \
+                   self.nome_fornecedor and \
+                   self.tipo_transacao and \
+                   self.data_transacao and \
+                   self.valor_total > 0
+
+        for rateio in self.rateios.all():
+            completo = completo and rateio.status == STATUS_COMPLETO
+
+        return completo
+
+    def atualiza_status(self):
+        cadastro_completo = self.cadastro_completo()
+        status_completo = self.status == STATUS_COMPLETO
+        if cadastro_completo != status_completo:
+            self.save()  # Força um rec'alculo do status.
+
     class Meta:
         verbose_name = "Despesa"
         verbose_name_plural = "Despesas"
 
+
+@receiver(pre_save, sender=Despesa)
+def proponente_pre_save(instance, **kwargs):
+    instance.status = STATUS_COMPLETO if instance.cadastro_completo else STATUS_INCOMPLETO

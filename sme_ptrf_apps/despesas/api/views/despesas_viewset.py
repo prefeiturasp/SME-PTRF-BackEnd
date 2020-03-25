@@ -8,16 +8,17 @@ from ..serializers.despesa_serializer import DespesaSerializer, DespesaCreateSer
 from ..serializers.tipo_custeio_serializer import TipoCusteioSerializer
 from ..serializers.tipo_documento_serializer import TipoDocumentoSerializer
 from ..serializers.tipo_transacao_serializer import TipoTransacaoSerializer
-from ...models import Despesa, RateioDespesa
+from ...models import Despesa
+from ...tipos_aplicacao_recurso import aplicacoes_recurso_to_json
 from ....core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from ....core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 
 
 class DespesasViewSet(mixins.CreateModelMixin,
-                         mixins.RetrieveModelMixin,
-                         mixins.UpdateModelMixin,
-                         mixins.DestroyModelMixin,
-                         GenericViewSet):
+                      mixins.RetrieveModelMixin,
+                      mixins.UpdateModelMixin,
+                      mixins.DestroyModelMixin,
+                      GenericViewSet):
 
     permission_classes = [AllowAny]
     lookup_field = 'uuid'
@@ -41,7 +42,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
             return serializer(valores, many=True).data if valores else []
 
         result = {
-            'tipos_aplicacao_recurso': RateioDespesa.aplicacoes_recurso_to_json(),
+            'tipos_aplicacao_recurso': aplicacoes_recurso_to_json(),
             'tipos_custeio': get_valores_from(TipoCusteioSerializer),
             'tipos_documento': get_valores_from(TipoDocumentoSerializer),
             'tipos_transacao': get_valores_from(TipoTransacaoSerializer),

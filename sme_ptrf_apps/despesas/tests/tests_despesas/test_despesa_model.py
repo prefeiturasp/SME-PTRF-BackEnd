@@ -1,8 +1,8 @@
 import pytest
-
 from django.contrib import admin
 
 from ...models import Despesa
+from ...status_cadastro_completo import STATUS_COMPLETO
 
 pytestmark = pytest.mark.django_db
 
@@ -24,7 +24,7 @@ def test_instance_model(despesa):
     assert model.alterado_em
     assert model.uuid
     assert model.id
-    assert model.status
+    assert model.status == STATUS_COMPLETO
 
 
 def test_srt_model(despesa):

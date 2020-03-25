@@ -1,26 +1,13 @@
 from django.db import models
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-from ..tipos_aplicacao_recurso import APLICACAO_CHOICES, APLICACAO_CUSTEIO
+from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO
+from ..tipos_aplicacao_recurso import APLICACAO_CHOICES, APLICACAO_CUSTEIO, APLICACAO_CAPITAL
 
 
 class RateioDespesa(ModeloBase):
-    # Status Choice
-    STATUS_COMPLETO = 'COMPLETO'
-    STATUS_INCOMPLETO = 'INCOMPLETO'
-
-    STATUS_NOMES = {
-        STATUS_COMPLETO: 'Completo',
-        STATUS_INCOMPLETO: 'Incompleto',
-    }
-
-    STATUS_CHOICES = (
-        (STATUS_COMPLETO, STATUS_NOMES[STATUS_COMPLETO]),
-        (STATUS_INCOMPLETO, STATUS_NOMES[STATUS_INCOMPLETO]),
-    )
-
     despesa = models.ForeignKey('Despesa', on_delete=models.CASCADE, related_name='rateios', blank=True, null=True)
 
     associacao = models.ForeignKey('core.Associacao', on_delete=models.PROTECT, related_name='rateios_associacao',
@@ -62,17 +49,6 @@ class RateioDespesa(ModeloBase):
         documento = self.despesa.numero_documento if self.despesa else 'Despesa indefinida'
         return f"{documento} - {self.valor_rateio:.2f}"
 
-    @classmethod
-    def aplicacoes_recurso_to_json(cls):
-        result = []
-        for aplicacao in APLICACAO_CHOICES:
-            choice = {
-                'id': aplicacao[0],
-                'nome': aplicacao[1]
-            }
-            result.append(choice)
-        return result
-
     def cadastro_completo(self):
         completo = self.conta_associacao and \
                    self.acao_associacao and \
@@ -80,6 +56,11 @@ class RateioDespesa(ModeloBase):
                    self.tipo_custeio and \
                    self.especificacao_material_servico and \
                    self.valor_rateio
+
+        if self.aplicacao_recurso == APLICACAO_CAPITAL:
+            completo = completo and \
+                       self.quantidade_itens_capital > 0 and \
+                       self.valor_item_capital > 0 and self.numero_processo_incorporacao_capital
 
         return completo
 
@@ -89,10 +70,11 @@ class RateioDespesa(ModeloBase):
 
 
 @receiver(pre_save, sender=RateioDespesa)
-def proponente_pre_save(instance, **kwargs):
-    ...
-    # if instance.status == Proponente.STATUS_INSCRITO and instance.cnpj and cnpj_esta_bloqueado(instance.cnpj):
-    #     instance.status = Proponente.STATUS_BLOQUEADO
-    #
-    # elif instance.status == Proponente.STATUS_BLOQUEADO and instance.cnpj and not cnpj_esta_bloqueado(instance.cnpj):
-    #     instance.status = Proponente.STATUS_INSCRITO
+def rateio_pre_save(instance, **kwargs):
+    instance.status = STATUS_COMPLETO if instance.cadastro_completo else STATUS_INCOMPLETO
+
+
+@receiver(post_save, sender=RateioDespesa)
+def rateio_post_save(instance, created, **kwargs):
+    if instance and instance.despesa:
+        instance.despesa.atualiza_status()

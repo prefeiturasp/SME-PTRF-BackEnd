@@ -3,12 +3,7 @@ import datetime
 import pytest
 from model_bakery import baker
 
-from ..tipos_aplicacao_recurso import APLICACAO_CUSTEIO
-
-
-@pytest.fixture
-def tipo_custeio():
-    return baker.make('TipoCusteio', nome='Material')
+from ..tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
 
 
 @pytest.fixture
@@ -27,12 +22,67 @@ def tipo_aplicacao_recurso():
 
 
 @pytest.fixture
+def tipo_aplicacao_recurso_custeio():
+    return APLICACAO_CUSTEIO
+
+
+@pytest.fixture
+def tipo_aplicacao_recurso_capital():
+    return APLICACAO_CAPITAL
+
+
+@pytest.fixture
+def tipo_custeio():
+    return baker.make('TipoCusteio', nome='Material')
+
+
+@pytest.fixture
+def tipo_custeio_material():
+    return baker.make('TipoCusteio', nome='Material')
+
+
+@pytest.fixture
+def tipo_custeio_servico():
+    return baker.make('TipoCusteio', nome='Servico')
+
+
+@pytest.fixture
 def especificacao_material_servico(tipo_aplicacao_recurso, tipo_custeio):
     return baker.make(
         'EspecificacaoMaterialServico',
         descricao='Material elétrico',
         aplicacao_recurso=tipo_aplicacao_recurso,
         tipo_custeio=tipo_custeio,
+    )
+
+
+@pytest.fixture
+def especificacao_custeio_material(tipo_aplicacao_recurso_custeio, tipo_custeio_material):
+    return baker.make(
+        'EspecificacaoMaterialServico',
+        descricao='Material elétrico',
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_material,
+    )
+
+
+@pytest.fixture
+def especificacao_custeio_servico(tipo_aplicacao_recurso_custeio, tipo_custeio_servico):
+    return baker.make(
+        'EspecificacaoMaterialServico',
+        descricao='Instalação elétrica',
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+    )
+
+
+@pytest.fixture
+def especificacao_capital(tipo_aplicacao_recurso_capital, tipo_custeio_servico):
+    return baker.make(
+        'EspecificacaoMaterialServico',
+        descricao='Instalação elétrica',
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
     )
 
 
