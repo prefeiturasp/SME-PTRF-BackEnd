@@ -5,9 +5,10 @@ from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter, SimpleRouter
 
 from sme_ptrf_apps import __version__
+
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
-from sme_ptrf_apps.users.api.views import UserViewSet
+from sme_ptrf_apps.users.api.views import LoginView, UserViewSet
 
 
 @api_view()
@@ -27,5 +28,6 @@ router.register("especificacoes", EspecificacaoMaterialServicoViewSet)
 app_name = "api"
 urlpatterns = router.urls
 urlpatterns += [
-    path("versao", versao)
+    path("versao", versao),
+    path("login", LoginView.as_view())
 ]

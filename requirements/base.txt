@@ -25,3 +25,6 @@ djangorestframework==3.11.0  # https://github.com/encode/django-rest-framework
 # Para filtros no DRF
 # https://django-filter.readthedocs.io/en/master/#
 django-filter==2.2.0
+
+djangorestframework-jwt==1.11.0  # https://getblimp.github.io/django-rest-framework-jwt/
+
