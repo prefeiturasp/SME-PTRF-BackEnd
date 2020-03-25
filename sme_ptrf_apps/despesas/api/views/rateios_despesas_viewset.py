@@ -1,10 +1,17 @@
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 
 from ..serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ...models import RateioDespesa
+
+
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
 
 
 class RateiosDespesasViewSet(viewsets.ReadOnlyModelViewSet):
@@ -15,6 +22,7 @@ class RateiosDespesasViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data_documento',)
     search_fields = ('uuid', 'id', 'especificacao_material_servico.descricao')
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         return self.queryset
