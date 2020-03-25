@@ -1,11 +1,13 @@
-from rest_framework.routers import DefaultRouter, SimpleRouter
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from django.conf import settings
 from django.urls import path
-from sme_ptrf_apps.users.api.views import UserViewSet
-from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.routers import DefaultRouter, SimpleRouter
+
 from sme_ptrf_apps import __version__
+from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
+from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
+from sme_ptrf_apps.users.api.views import UserViewSet
 
 
 @api_view()
@@ -20,7 +22,7 @@ else:
 
 router.register("users", UserViewSet)
 router.register("despesas", DespesasViewSet)
-
+router.register("especificacoes", EspecificacaoMaterialServicoViewSet)
 
 app_name = "api"
 urlpatterns = router.urls

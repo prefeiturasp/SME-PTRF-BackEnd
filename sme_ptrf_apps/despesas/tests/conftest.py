@@ -77,12 +77,12 @@ def especificacao_custeio_servico(tipo_aplicacao_recurso_custeio, tipo_custeio_s
 
 
 @pytest.fixture
-def especificacao_capital(tipo_aplicacao_recurso_capital, tipo_custeio_servico):
+def especificacao_capital(tipo_aplicacao_recurso_capital):
     return baker.make(
         'EspecificacaoMaterialServico',
-        descricao='Instalação elétrica',
-        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
-        tipo_custeio=tipo_custeio_servico,
+        descricao='Ar condicionado',
+        aplicacao_recurso=tipo_aplicacao_recurso_capital,
+        tipo_custeio=None,
     )
 
 
