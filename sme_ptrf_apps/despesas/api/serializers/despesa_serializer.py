@@ -3,17 +3,14 @@ import logging
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from ...models import Despesa
-
-from ....core.models import Associacao
-
-from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
-
-from ..serializers.rateio_despesa_serializer import RateioDespesaCreateSerializer
-
+from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
 from .rateio_despesa_serializer import RateioDespesaSerializer
 from .tipo_documento_serializer import TipoDocumentoSerializer
 from .tipo_transacao_serializer import TipoTransacaoSerializer
+from ..serializers.rateio_despesa_serializer import RateioDespesaCreateSerializer
+from ...models import Despesa
+from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
+from ....core.models import Associacao
 
 log = logging.getLogger(__name__)
 
@@ -58,6 +55,22 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         log.info("Criação de despesa finalizada!")
 
         return despesa
+
+    def update(self, instance, validated_data):
+        rateios_json = validated_data.pop('rateios')
+        instance.rateios.all().delete()
+
+        rateios_lista = []
+        for rateio_json in rateios_json:
+            rateios_object = RateioDespesaCreateSerializer(
+            ).create(rateio_json)
+            rateios_lista.append(rateios_object)
+
+        update_instance_from_dict(instance, validated_data)
+        instance.rateios.set(rateios_lista)
+        instance.save()
+
+        return instance
 
     class Meta:
         model = Despesa
