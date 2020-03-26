@@ -1,0 +1,1 @@
+from .receita_serializer import ReceitaCreateSerializer
