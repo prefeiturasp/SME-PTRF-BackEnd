@@ -70,3 +70,46 @@ def test_get_tabelas(
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
+
+
+def test_get_receitas(
+    client,
+    tipo_receita,
+    receita,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao):
+    response = client.get('/api/receitas/', content_type='application/json')
+    result = json.loads(response.content)
+
+    results = [
+        {
+            'uuid': str(receita.uuid),
+            'data': '2020-03-26',
+            'valor': '100.00',
+            'tipo_receita': {
+                'id': tipo_receita.id,
+                'nome': tipo_receita.nome
+            },
+            "acao_associacao": {
+                "uuid": str(acao_associacao.uuid),
+                "nome": acao_associacao.acao.nome
+            },
+            'conta_associacao': {
+                "uuid": str(conta_associacao.uuid),
+                "nome": conta_associacao.tipo_conta.nome
+            } 		
+        },
+    ]
+
+    esperado = {
+        'count': 1,
+        'next': None,
+        'previous': None,
+        'results': results
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
