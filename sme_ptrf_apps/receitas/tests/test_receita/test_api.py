@@ -113,3 +113,80 @@ def test_get_receitas(
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
+
+
+def test_update_receita(
+    client,
+    tipo_receita,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    receita,
+    payload_receita
+):
+    response = client.put(f'/api/receitas/{receita.uuid}/', data=json.dumps(payload_receita),
+                          content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    result = json.loads(response.content)
+
+    receita = Receita.objects.get(uuid=result["uuid"])
+
+    assert receita.associacao.uuid == associacao.uuid
+
+
+def test_deleta_receita(
+    client,
+    tipo_receita,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    receita,
+    payload_receita):
+
+    assert Receita.objects.filter(uuid=receita.uuid).exists()
+
+    response = client.delete(f'/api/receitas/{receita.uuid}/', content_type='application/json')
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    assert not Receita.objects.filter(uuid=receita.uuid).exists()
+
+def test_retrive_receitas(
+    client,
+    tipo_receita,
+    receita,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao):
+
+    response = client.get(f'/api/receitas/{receita.uuid}/', content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+            'uuid': str(receita.uuid),
+            'data': '2020-03-26',
+            'valor': '100.00',
+            'tipo_receita': {
+                'id': tipo_receita.id,
+                'nome': tipo_receita.nome
+            },
+            "acao_associacao": {
+                "uuid": str(acao_associacao.uuid),
+                "nome": acao_associacao.acao.nome
+            },
+            'conta_associacao': {
+                "uuid": str(conta_associacao.uuid),
+                "nome": conta_associacao.tipo_conta.nome
+            } 		
+        }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
