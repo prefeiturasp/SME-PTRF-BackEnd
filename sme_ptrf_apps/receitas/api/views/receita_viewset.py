@@ -25,6 +25,7 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 class ReceitaViewSet(mixins.CreateModelMixin,
                      mixins.ListModelMixin,
+                     mixins.UpdateModelMixin,
                      GenericViewSet):
     lookup_field = 'uuid'
     permission_classes = [AllowAny]

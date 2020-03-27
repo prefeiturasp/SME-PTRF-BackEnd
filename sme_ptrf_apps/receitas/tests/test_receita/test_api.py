@@ -113,3 +113,26 @@ def test_get_receitas(
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
+
+
+def test_update_receita(
+    client,
+    tipo_receita,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    receita,
+    payload_receita
+):
+    response = client.put(f'/api/receitas/{receita.uuid}/', data=json.dumps(payload_receita),
+                          content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    result = json.loads(response.content)
+
+    receita = Receita.objects.get(uuid=result["uuid"])
+
+    assert receita.associacao.uuid == associacao.uuid
