@@ -17,7 +17,7 @@ urlpatterns = [
     path("users/", include("sme_ptrf_apps.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)   
 # API URLS
 urlpatterns += [
     # API base url
