@@ -28,3 +28,4 @@ django-filter==2.2.0
 
 djangorestframework-jwt==1.11.0  # https://getblimp.github.io/django-rest-framework-jwt/
 
+django-cors-headers # https://github.com/adamchainz/django-cors-headers
