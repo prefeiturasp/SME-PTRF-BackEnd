@@ -71,7 +71,7 @@ class RateioDespesa(ModeloBase):
 
 @receiver(pre_save, sender=RateioDespesa)
 def rateio_pre_save(instance, **kwargs):
-    instance.status = STATUS_COMPLETO if instance.cadastro_completo else STATUS_INCOMPLETO
+    instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
 
 
 @receiver(post_save, sender=RateioDespesa)

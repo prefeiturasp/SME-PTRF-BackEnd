@@ -78,4 +78,4 @@ class Despesa(ModeloBase):
 
 @receiver(pre_save, sender=Despesa)
 def proponente_pre_save(instance, **kwargs):
-    instance.status = STATUS_COMPLETO if instance.cadastro_completo else STATUS_INCOMPLETO
+    instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
