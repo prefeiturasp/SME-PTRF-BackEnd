@@ -33,12 +33,14 @@ def test_api_get_rateios_despesas(client, despesa, rateio_despesa_capital):
 
     ]
 
-    esperado = {
-        'count': 1,
-        'next': None,
-        'previous': None,
-        'results': results
-    }
+    # TODO Voltar a paginar no back quando front estiver pronto para isso.
+    # esperado = {
+    #     'count': 1,
+    #     'next': None,
+    #     'previous': None,
+    #     'results': results
+    # }
+    esperado = results
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
