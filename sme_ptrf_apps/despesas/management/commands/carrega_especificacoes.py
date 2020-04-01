@@ -1,5 +1,7 @@
 from django.core.management.base import BaseCommand
 
+from ...services.carga_especificacoes_material_servico import carrega_especificacoes
+
 
 class Command(BaseCommand):
     help = 'Carga da tabela de especificações de materiais e serviços'
@@ -10,8 +12,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS('Importando tabela de especificações de materiais e serviços...'))
 
-        contador = 0
+        carrega_especificacoes()
 
-        self.stdout.write(self.style.SUCCESS(
-            'Nenhuma especificação importada.' if contador == 0 else f'Importado {contador} especificações.'))
         self.stdout.write(self.style.SUCCESS('Carga concluída.'))
