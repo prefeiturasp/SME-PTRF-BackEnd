@@ -5,7 +5,6 @@ from .models import TipoTransacao, TipoDocumento, TipoCusteio, EspecificacaoMate
 admin.site.register(TipoTransacao)
 admin.site.register(TipoDocumento)
 admin.site.register(TipoCusteio)
-admin.site.register(EspecificacaoMaterialServico)
 admin.site.register(RateioDespesa)
 
 
@@ -20,5 +19,22 @@ class DespesaAdmin(admin.ModelAdmin):
     ordering = ('-data_documento',)
     search_fields = ('numero_documento', 'nome_fornecedor',)
     list_filter = ('status',)
-    inlines = [RateioDespesaInLine,]
+    inlines = [RateioDespesaInLine, ]
     readonly_fields = ('uuid', 'id')
+
+
+@admin.register(EspecificacaoMaterialServico)
+class EspecificacaoMaterialServicoAdmin(admin.ModelAdmin):
+    list_display = ('id', 'descricao', 'aplicacao_recurso', 'tipo_custeio')
+    ordering = ('descricao',)
+    search_fields = ('descricao',)
+    list_filter = ('aplicacao_recurso', 'tipo_custeio')
+    readonly_fields = ('uuid', 'id')
+    actions = ['importa_especificacoes', ]
+
+    def importa_especificacoes(self, request, queryset):
+        from .services.carga_especificacoes_material_servico import carrega_especificacoes
+        carrega_especificacoes()
+        self.message_user(request, "Especificações carregadas.")
+
+    importa_especificacoes.short_description = 'Fazer carga de especificações.'

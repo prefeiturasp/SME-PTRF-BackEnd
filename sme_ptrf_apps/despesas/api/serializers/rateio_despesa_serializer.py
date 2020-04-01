@@ -74,7 +74,7 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
         return rateio.despesa.data_documento
 
     def get_valor_total(self, rateio):
-        return rateio.despesa.valor_total
+        return rateio.valor_rateio
 
     class Meta:
         model = RateioDespesa
