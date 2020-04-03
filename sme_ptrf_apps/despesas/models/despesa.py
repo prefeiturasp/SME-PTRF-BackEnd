@@ -23,7 +23,7 @@ class Despesa(ModeloBase):
         , blank=True, null=True, default=""
     )
 
-    nome_fornecedor = models.CharField("Nome do fornecedor", max_length=100)
+    nome_fornecedor = models.CharField("Nome do fornecedor", max_length=100, default='', blank=True)
 
     tipo_transacao = models.ForeignKey('TipoTransacao', on_delete=models.PROTECT, blank=True, null=True)
 
