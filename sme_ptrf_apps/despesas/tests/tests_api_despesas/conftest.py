@@ -39,3 +39,56 @@ def payload_despesa_valida(
         ]
     }
     return payload
+
+
+@pytest.fixture
+def payload_despesa_sem_campos_nao_obrigatorios(
+    associacao,
+):
+    payload = {
+        "associacao": f'{associacao.uuid}',
+        "tipo_documento": None,
+        "tipo_transacao": None,
+        "numero_documento": "",
+        "data_documento": None,
+        "cpf_cnpj_fornecedor": "",
+        "nome_fornecedor": "",
+        "data_transacao": None,
+        "valor_total": 0,
+        "valor_recursos_proprios": 0,
+        "rateios": [
+            {
+                "associacao": f'{associacao.uuid}',
+                "conta_associacao": None,
+                "acao_associacao": None,
+                "aplicacao_recurso": None,
+                "tipo_custeio": None,
+                "especificacao_material_servico": None,
+                "valor_rateio": 0,
+                "quantidade_itens_capital": 0,
+                "valor_item_capital": 0,
+                "numero_processo_incorporacao_capital": ""
+            }
+        ]
+    }
+    return payload
+
+
+@pytest.fixture
+def payload_despesa_sem_campos_nao_obrigatorios_sem_rateios(
+    associacao,
+):
+    payload = {
+        "associacao": f'{associacao.uuid}',
+        "tipo_documento": None,
+        "tipo_transacao": None,
+        "numero_documento": "",
+        "data_documento": None,
+        "cpf_cnpj_fornecedor": "",
+        "nome_fornecedor": "",
+        "data_transacao": None,
+        "valor_total": 0,
+        "valor_recursos_proprios": 0,
+        "rateios": []
+    }
+    return payload
