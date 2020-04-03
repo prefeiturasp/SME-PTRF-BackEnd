@@ -23,7 +23,8 @@ class RateioDespesa(ModeloBase):
         'Tipo de aplicação do recurso',
         max_length=15,
         choices=APLICACAO_CHOICES,
-        default=APLICACAO_CUSTEIO
+        default=APLICACAO_CUSTEIO,
+        null=True,
     )
 
     tipo_custeio = models.ForeignKey('TipoCusteio', on_delete=models.PROTECT, blank=True, null=True)

@@ -39,3 +39,16 @@ def test_meta_modelo(despesa):
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[Despesa]
+
+
+def test_nome_fornecedor_pode_ser_nulo(associacao, tipo_documento, tipo_transacao):
+    # Criando sem definir o nome do fornecedor
+    despesa = Despesa(associacao=associacao,
+                      numero_documento='123456',
+                      tipo_documento=tipo_documento,
+                      cpf_cnpj_fornecedor='11.478.276/0001-04',
+                      tipo_transacao=tipo_transacao,
+                      valor_total=100.00,
+                      valor_recursos_proprios=10.00, )
+    despesa.save()
+    assert despesa.numero_documento == '123456'
