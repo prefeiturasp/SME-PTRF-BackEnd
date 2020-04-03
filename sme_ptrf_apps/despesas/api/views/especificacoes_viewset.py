@@ -17,8 +17,5 @@ class EspecificacaoMaterialServicoViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ('uuid', 'id', 'descricao')
     filter_fields = ('aplicacao_recurso', 'tipo_custeio')
 
-    def get_queryset(self):
-        return self.queryset
-
     def get_serializer_class(self):
         return EspecificacaoMaterialServicoLookUpSerializer
