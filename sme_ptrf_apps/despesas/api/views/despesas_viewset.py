@@ -25,9 +25,6 @@ class DespesasViewSet(mixins.CreateModelMixin,
     queryset = Despesa.objects.all()
     serializer_class = DespesaSerializer
 
-    def get_queryset(self):
-        return self.queryset
-
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
             return DespesaSerializer

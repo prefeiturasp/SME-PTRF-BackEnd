@@ -24,8 +24,5 @@ class RateiosDespesasViewSet(viewsets.ReadOnlyModelViewSet):
 
     # pagination_class = StandardResultsSetPagination
 
-    def get_queryset(self):
-        return self.queryset
-
     def get_serializer_class(self):
         return RateioDespesaListaSerializer
