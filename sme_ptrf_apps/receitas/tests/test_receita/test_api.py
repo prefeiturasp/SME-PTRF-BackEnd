@@ -89,6 +89,7 @@ def test_get_receitas(
             'uuid': str(receita.uuid),
             'data': '2020-03-26',
             'valor': '100.00',
+            'descricao': "Uma receita",
             'tipo_receita': {
                 'id': tipo_receita.id,
                 'nome': tipo_receita.nome
@@ -104,12 +105,7 @@ def test_get_receitas(
         },
     ]
 
-    esperado = {
-        'count': 1,
-        'next': None,
-        'previous': None,
-        'results': results
-    }
+    esperado = results
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
@@ -174,6 +170,7 @@ def test_retrive_receitas(
             'uuid': str(receita.uuid),
             'data': '2020-03-26',
             'valor': '100.00',
+            'descricao': "Uma receita",
             'tipo_receita': {
                 'id': tipo_receita.id,
                 'nome': tipo_receita.nome

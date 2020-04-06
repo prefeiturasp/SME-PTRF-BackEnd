@@ -17,12 +17,6 @@ from ..serializers import (ReceitaCreateSerializer, ReceitaListaSerializer,
                            TipoReceitaSerializer)
 
 
-class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 1000
-
-
 class ReceitaViewSet(mixins.CreateModelMixin,
                      mixins.RetrieveModelMixin,
                      mixins.ListModelMixin,
@@ -36,7 +30,6 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data',)
     search_fields = ('uuid', 'id', 'descricao')
-    pagination_class = StandardResultsSetPagination
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:

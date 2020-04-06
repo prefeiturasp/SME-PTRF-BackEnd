@@ -1,7 +1,6 @@
 import logging
 
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 
 from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
 from .rateio_despesa_serializer import RateioDespesaSerializer
@@ -32,15 +31,15 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         required=False,
         queryset=Associacao.objects.all()
     )
-    rateios = RateioDespesaCreateSerializer(many=True)
+    rateios = RateioDespesaCreateSerializer(many=True, required=False)
 
     def create(self, validated_data):
         rateios = validated_data.pop('rateios')
 
-        if not rateios:
-            msgError = "Pelo menos uma linha de rateio deve ser enviada!"
-            log.info(msgError)
-            raise ValidationError(msgError)
+        # if not rateios:
+        #     msgError = "Pelo menos uma linha de rateio deve ser enviada!"
+        #     log.info(msgError)
+        #     raise ValidationError(msgError)
 
         despesa = Despesa.objects.create(**validated_data)
         log.info("Criando despesa com uuid: {}".format(despesa.uuid))

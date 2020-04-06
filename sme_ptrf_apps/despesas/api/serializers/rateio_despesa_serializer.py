@@ -37,13 +37,15 @@ class RateioDespesaCreateSerializer(serializers.ModelSerializer):
     conta_associacao = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
-        queryset=ContaAssociacao.objects.all()
+        queryset=ContaAssociacao.objects.all(),
+        allow_null=True
     )
 
     acao_associacao = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
-        queryset=AcaoAssociacao.objects.all()
+        queryset=AcaoAssociacao.objects.all(),
+        allow_null=True
     )
 
     class Meta:

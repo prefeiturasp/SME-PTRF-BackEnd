@@ -43,6 +43,7 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
             'uuid',
             'data',
             'valor',
+            'descricao',
             'tipo_receita',
             'acao_associacao',
             'conta_associacao'
