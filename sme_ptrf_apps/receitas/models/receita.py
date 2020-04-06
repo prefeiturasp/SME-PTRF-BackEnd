@@ -10,7 +10,7 @@ class Receita(ModeloBase):
 
     data = models.DateField('Data Receita', blank=True, null=True)
 
-    valor = models.DecimalField('Valor Receita', max_digits=8, decimal_places=2, default=0)
+    valor = models.DecimalField('Valor Receita', max_digits=20, decimal_places=2, default=0)
 
     descricao = models.TextField('Descrição', max_length=400, blank=True, null=True)
 
