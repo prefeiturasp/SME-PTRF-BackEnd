@@ -54,9 +54,11 @@ class RateioDespesa(ModeloBase):
         completo = self.conta_associacao and \
                    self.acao_associacao and \
                    self.aplicacao_recurso and \
-                   self.tipo_custeio and \
                    self.especificacao_material_servico and \
                    self.valor_rateio
+
+        if self.aplicacao_recurso == APLICACAO_CUSTEIO:
+            completo = completo and self.tipo_custeio
 
         if self.aplicacao_recurso == APLICACAO_CAPITAL:
             completo = completo and \
