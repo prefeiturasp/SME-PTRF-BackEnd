@@ -2,7 +2,6 @@ import json
 
 import pytest
 from rest_framework import status
-from rest_framework.response import Response
 
 from sme_ptrf_apps.receitas.models import Receita
 
@@ -55,6 +54,7 @@ def test_get_tabelas(
         'acoes_associacao': [
             {
                 'uuid': f'{acao_associacao.uuid}',
+                'id': acao_associacao.id,
                 'nome': acao_associacao.acao.nome
             },
         ],
@@ -96,12 +96,13 @@ def test_get_receitas(
             },
             "acao_associacao": {
                 "uuid": str(acao_associacao.uuid),
+                "id": acao_associacao.id,
                 "nome": acao_associacao.acao.nome
             },
             'conta_associacao': {
                 "uuid": str(conta_associacao.uuid),
                 "nome": conta_associacao.tipo_conta.nome
-            } 		
+            }
         },
     ]
 
@@ -177,12 +178,13 @@ def test_retrive_receitas(
             },
             "acao_associacao": {
                 "uuid": str(acao_associacao.uuid),
+                "id": acao_associacao.id,
                 "nome": acao_associacao.acao.nome
             },
             'conta_associacao': {
                 "uuid": str(conta_associacao.uuid),
                 "nome": conta_associacao.tipo_conta.nome
-            } 		
+            }
         }
 
     assert response.status_code == status.HTTP_200_OK

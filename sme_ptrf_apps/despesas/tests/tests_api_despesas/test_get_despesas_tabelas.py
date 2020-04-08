@@ -49,6 +49,7 @@ def test_api_get_despesas_tabelas(client, tipo_aplicacao_recurso, tipo_custeio, 
         'acoes_associacao': [
             {
                 'uuid': f'{acao_associacao.uuid}',
+                'id': acao_associacao.id,
                 'nome': acao_associacao.acao.nome
             },
         ],
