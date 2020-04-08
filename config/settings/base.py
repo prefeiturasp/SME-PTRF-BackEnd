@@ -82,6 +82,7 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "django_celery_beat",
     "django_filters",
+    "rangefilter",
 ]
 
 LOCAL_APPS = [
