@@ -15,7 +15,7 @@ class RateiosDespesasViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data_documento',)
     search_fields = ('uuid', 'id', 'especificacao_material_servico__descricao')
-    filter_fields = ('aplicacao_recurso', 'acao_associacao', 'despesa__status')
+    filter_fields = ('aplicacao_recurso', 'acao_associacao', 'despesa__status', 'associacao__uuid')
 
     def get_serializer_class(self):
         return RateioDespesaListaSerializer
