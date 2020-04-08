@@ -7,12 +7,6 @@ from ..serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ...models import RateioDespesa
 
 
-# class StandardResultsSetPagination(PageNumberPagination):
-#     page_size = 10
-#     page_size_query_param = 'page_size'
-#     max_page_size = 1000
-
-
 class RateiosDespesasViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = RateioDespesa.objects.all().order_by('-despesa__data_documento')
@@ -20,9 +14,7 @@ class RateiosDespesasViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data_documento',)
-    search_fields = ('uuid', 'id', 'especificacao_material_servico.descricao')
-
-    # pagination_class = StandardResultsSetPagination
+    search_fields = ('uuid', 'id', 'especificacao_material_servico__descricao')
 
     def get_serializer_class(self):
         return RateioDespesaListaSerializer

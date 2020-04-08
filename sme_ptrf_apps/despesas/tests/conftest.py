@@ -77,6 +77,16 @@ def especificacao_custeio_servico(tipo_aplicacao_recurso_custeio, tipo_custeio_s
 
 
 @pytest.fixture
+def especificacao_material_eletrico(especificacao_custeio_material):
+    return especificacao_custeio_material
+
+
+@pytest.fixture
+def especificacao_instalacao_eletrica(especificacao_custeio_servico):
+    return especificacao_custeio_servico
+
+
+@pytest.fixture
 def especificacao_capital(tipo_aplicacao_recurso_capital):
     return baker.make(
         'EspecificacaoMaterialServico',
@@ -119,5 +129,41 @@ def rateio_despesa_capital(associacao, despesa, conta_associacao, acao, tipo_apl
         quantidade_itens_capital=2,
         valor_item_capital=50.00,
         numero_processo_incorporacao_capital='Teste123456'
+
+    )
+
+
+@pytest.fixture
+def rateio_despesa_instalacao_eletrica(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso_custeio,
+                                       tipo_custeio_servico,
+                                       especificacao_instalacao_eletrica, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=100.00,
+
+    )
+
+
+@pytest.fixture
+def rateio_despesa_material_eletrico(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso_custeio,
+                                     tipo_custeio_material,
+                                     especificacao_material_eletrico, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_material,
+        especificacao_material_servico=especificacao_material_eletrico,
+        valor_rateio=100.00,
 
     )
