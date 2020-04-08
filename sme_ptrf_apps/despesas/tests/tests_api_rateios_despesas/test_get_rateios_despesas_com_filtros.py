@@ -18,13 +18,15 @@ def test_api_get_despesas_filtro_por_tipo_aplicacao(client, associacao, despesa,
                                                     rateio_despesa_material_eletrico_role_cultural,
                                                     rateio_despesa_instalacao_eletrica_ptrf,
                                                     rateio_despesa_ar_condicionado_ptrf):
-    response = client.get('/api/rateios-despesas/?aplicacao_recurso=CUSTEIO', content_type='application/json')
+    response = client.get(f'/api/rateios-despesas/?acao__uuid={associacao.uuid}&aplicacao_recurso=CUSTEIO',
+                          content_type='application/json')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 2
 
-    response = client.get('/api/rateios-despesas/?aplicacao_recurso=CAPITAL', content_type='application/json')
+    response = client.get(f'/api/rateios-despesas/?acao__uuid={associacao.uuid}&aplicacao_recurso=CAPITAL',
+                          content_type='application/json')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
@@ -42,15 +44,17 @@ def test_api_get_despesas_filtro_por_acao_associacao(client, associacao, despesa
                                                      rateio_despesa_material_eletrico_role_cultural,
                                                      rateio_despesa_instalacao_eletrica_ptrf,
                                                      rateio_despesa_ar_condicionado_ptrf):
-    response = client.get(f'/api/rateios-despesas/?acao_associacao={acao_associacao_ptrf.id}',
-                          content_type='application/json')
+    response = client.get(
+        f'/api/rateios-despesas/?acao__uuid={associacao.uuid}&acao_associacao={acao_associacao_ptrf.id}',
+        content_type='application/json')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 2
 
-    response = client.get(f'/api/rateios-despesas/?acao_associacao={acao_associacao_role_cultural.id}',
-                          content_type='application/json')
+    response = client.get(
+        f'/api/rateios-despesas/?acao__uuid={associacao.uuid}&acao_associacao={acao_associacao_role_cultural.id}',
+        content_type='application/json')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
@@ -134,13 +138,15 @@ def rateio_despesa_custeio_completo(associacao, despesa, conta_associacao, acao,
 def test_api_get_despesas_filtro_por_status(client, associacao, despesa_incompleta, rateio_despesa_capital_completo,
                                             rateio_despesa_capital_incompleto, despesa,
                                             rateio_despesa_custeio_completo):
-    response = client.get('/api/rateios-despesas/?despesa__status=COMPLETO', content_type='application/json')
+    response = client.get(f'/api/rateios-despesas/?acao__uuid={associacao.uuid}&despesa__status=COMPLETO',
+                          content_type='application/json')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 1
 
-    response = client.get('/api/rateios-despesas/?despesa__status=INCOMPLETO', content_type='application/json')
+    response = client.get(f'/api/rateios-despesas/?acao__uuid={associacao.uuid}&despesa__status=INCOMPLETO',
+                          content_type='application/json')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
