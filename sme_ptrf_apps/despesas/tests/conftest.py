@@ -97,6 +97,11 @@ def especificacao_capital(tipo_aplicacao_recurso_capital):
 
 
 @pytest.fixture
+def especificacao_ar_condicionado(especificacao_capital):
+    return especificacao_capital
+
+
+@pytest.fixture
 def despesa(associacao, tipo_documento, tipo_transacao):
     return baker.make(
         'Despesa',
@@ -134,15 +139,15 @@ def rateio_despesa_capital(associacao, despesa, conta_associacao, acao, tipo_apl
 
 
 @pytest.fixture
-def rateio_despesa_instalacao_eletrica(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso_custeio,
-                                       tipo_custeio_servico,
-                                       especificacao_instalacao_eletrica, acao_associacao):
+def rateio_despesa_instalacao_eletrica_ptrf(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso_custeio,
+                                            tipo_custeio_servico,
+                                            especificacao_instalacao_eletrica, acao_associacao_ptrf):
     return baker.make(
         'RateioDespesa',
         despesa=despesa,
         associacao=associacao,
         conta_associacao=conta_associacao,
-        acao_associacao=acao_associacao,
+        acao_associacao=acao_associacao_ptrf,
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
         tipo_custeio=tipo_custeio_servico,
         especificacao_material_servico=especificacao_instalacao_eletrica,
@@ -152,18 +157,39 @@ def rateio_despesa_instalacao_eletrica(associacao, despesa, conta_associacao, ac
 
 
 @pytest.fixture
-def rateio_despesa_material_eletrico(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso_custeio,
-                                     tipo_custeio_material,
-                                     especificacao_material_eletrico, acao_associacao):
+def rateio_despesa_material_eletrico_role_cultural(associacao, despesa, conta_associacao, acao,
+                                                   tipo_aplicacao_recurso_custeio,
+                                                   tipo_custeio_material,
+                                                   especificacao_material_eletrico, acao_associacao_role_cultural):
     return baker.make(
         'RateioDespesa',
         despesa=despesa,
         associacao=associacao,
         conta_associacao=conta_associacao,
-        acao_associacao=acao_associacao,
+        acao_associacao=acao_associacao_role_cultural,
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
         tipo_custeio=tipo_custeio_material,
         especificacao_material_servico=especificacao_material_eletrico,
         valor_rateio=100.00,
+
+    )
+
+
+@pytest.fixture
+def rateio_despesa_ar_condicionado_ptrf(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso_capital,
+                                        especificacao_ar_condicionado, acao_associacao_ptrf):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_ptrf,
+        aplicacao_recurso=tipo_aplicacao_recurso_capital,
+        tipo_custeio=None,
+        especificacao_material_servico=especificacao_ar_condicionado,
+        valor_rateio=100.00,
+        quantidade_itens_capital=2,
+        valor_item_capital=50.00,
+        numero_processo_incorporacao_capital='Teste123456'
 
     )

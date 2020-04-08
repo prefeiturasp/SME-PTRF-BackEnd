@@ -54,6 +54,16 @@ def acao():
 
 
 @pytest.fixture
+def acao_ptrf(acao):
+    return acao
+
+
+@pytest.fixture
+def acao_role_cultural():
+    return baker.make('Acao', nome='Rolê Cultural')
+
+
+@pytest.fixture
 def associacao():
     return baker.make('Associacao', nome='Escola Teste')
 
@@ -93,6 +103,24 @@ def acao_associacao_inativa(associacao, acao):
         associacao=associacao,
         acao=acao,
         status=AcaoAssociacao.STATUS_INATIVA
+    )
+
+
+@pytest.fixture
+def acao_associacao_ptrf(associacao, acao_ptrf):
+    return baker.make(
+        'AcaoAssociacao',
+        associacao=associacao,
+        acao=acao_ptrf
+    )
+
+
+@pytest.fixture
+def acao_associacao_role_cultural(associacao, acao_role_cultural):
+    return baker.make(
+        'AcaoAssociacao',
+        associacao=associacao,
+        acao=acao_role_cultural
     )
 
 
