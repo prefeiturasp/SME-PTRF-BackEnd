@@ -26,6 +26,7 @@ def test_api_get_rateios_despesas(client, despesa, rateio_despesa_capital):
             "aplicacao_recurso": rateio_despesa_capital.aplicacao_recurso,
             "acao_associacao": {
                 "uuid": f'{rateio_despesa_capital.acao_associacao.uuid}',
+                "id": rateio_despesa_capital.acao_associacao.id,
                 "nome": rateio_despesa_capital.acao_associacao.acao.nome
             },
             "valor_total": despesa.valor_total
