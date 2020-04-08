@@ -1,12 +1,13 @@
+from datetime import date
+
 import pytest
 from django.test import RequestFactory
 from model_bakery import baker
 
 from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
-
-from .core.models.conta_associacao import ContaAssociacao
 from .core.models.acao_associacao import AcaoAssociacao
+from .core.models.conta_associacao import ContaAssociacao
 
 
 @pytest.fixture
@@ -92,4 +93,16 @@ def acao_associacao_inativa(associacao, acao):
         associacao=associacao,
         acao=acao,
         status=AcaoAssociacao.STATUS_INATIVA
+    )
+
+
+@pytest.fixture
+def periodo():
+    return baker.make(
+        'Periodo',
+        data_inicio_realizacao_despesas=date(2019, 9, 1),
+        data_fim_realizacao_despesas=date(2019, 11, 30),
+        data_prevista_repasse=date(2019, 10, 1),
+        data_inicio_prestacao_contas=date(2019, 12, 1),
+        data_fim_prestacao_contas=date(2019, 12, 5)
     )

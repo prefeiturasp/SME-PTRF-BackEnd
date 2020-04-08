@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import TipoConta, Acao, Associacao, ContaAssociacao, AcaoAssociacao
+from .models import TipoConta, Acao, Associacao, ContaAssociacao, AcaoAssociacao, Periodo
 
 admin.site.register(TipoConta)
 admin.site.register(Acao)
@@ -26,4 +26,12 @@ class AcaoAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('uuid', 'acao', 'status')
     search_fields = ('uuid',)
     list_filter = ('status',)
+    readonly_fields = ('uuid', 'id')
+
+
+@admin.register(Periodo)
+class PeriodoAdmin(admin.ModelAdmin):
+    list_display = ('data_inicio_realizacao_despesas', 'data_fim_realizacao_despesas', 'data_prevista_repasse',
+                    'data_inicio_prestacao_contas', 'data_fim_prestacao_contas')
+    search_fields = ('uuid',)
     readonly_fields = ('uuid', 'id')
