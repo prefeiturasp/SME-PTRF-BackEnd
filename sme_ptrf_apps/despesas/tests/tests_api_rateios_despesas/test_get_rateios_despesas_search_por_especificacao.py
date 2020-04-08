@@ -13,7 +13,7 @@ def test_api_get_search_despesas_por_especificacao(client, associacao, despesa, 
                                                    especificacao_material_eletrico,
                                                    rateio_despesa_material_eletrico_role_cultural,
                                                    rateio_despesa_instalacao_eletrica_ptrf):
-    response = client.get(f'/api/rateios-despesas/?acao__uuid={associacao.uuid}&search=elétrico',
+    response = client.get(f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&search=elétrico',
                           content_type='application/json')
     result = json.loads(response.content)
 
