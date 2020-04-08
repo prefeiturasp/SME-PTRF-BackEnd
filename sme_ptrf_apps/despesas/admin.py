@@ -2,11 +2,45 @@ from django.contrib import admin
 
 from .models import TipoTransacao, TipoDocumento, TipoCusteio, EspecificacaoMaterialServico, Despesa, RateioDespesa
 
+from rangefilter.filter import DateRangeFilter
+
 admin.site.register(TipoTransacao)
 admin.site.register(TipoDocumento)
 admin.site.register(TipoCusteio)
-admin.site.register(RateioDespesa)
 
+def customTitledFilter(title):
+   class Wrapper(admin.FieldListFilter):
+       def __new__(cls, *args, **kwargs):
+           instance = admin.FieldListFilter.create(*args, **kwargs)
+           instance.title = title
+           return instance
+   return Wrapper
+
+
+@admin.register(RateioDespesa)
+class RateioDespesaAdmin(admin.ModelAdmin):
+    list_display = ('numero_documento', 'associacao', 'acao', 'valor_rateio', 'quantidade_itens_capital', 'status')
+    search_fields = ('despesa__numero_documento', 'despesa__nome_fornecedor', 'especificacao_material_servico__descricao')
+    list_filter = (
+        ('despesa__data_documento', DateRangeFilter),
+        ('associacao__nome', customTitledFilter('Associação')), 
+        ('acao_associacao__acao__nome', customTitledFilter('Ação')), 
+        ('conta_associacao__tipo_conta__nome', customTitledFilter('Tipo Conta')), 
+        ('despesa__numero_documento', customTitledFilter('Número documento')),
+        ('tipo_custeio', customTitledFilter('Tipo Custeio')),
+        ('despesa__tipo_documento', customTitledFilter('Tipo Documento')),
+        ('despesa__tipo_transacao', customTitledFilter('Tipo Transacao')),
+        ('despesa__nome_fornecedor', customTitledFilter('Nome Fornecedor')),
+        ('especificacao_material_servico__descricao', customTitledFilter('Especificação Material/Serviço')),)
+
+    def numero_documento(self, obj):
+        return obj.despesa.numero_documento
+    
+    def associacao(self, obj):
+        return obj.associacao.nome
+    
+    def acao(self, obj):
+        return obj.acao_associacao.acao.nome
 
 class RateioDespesaInLine(admin.TabularInline):
     model = RateioDespesa
