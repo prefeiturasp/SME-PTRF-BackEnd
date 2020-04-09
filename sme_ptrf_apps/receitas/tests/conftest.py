@@ -47,28 +47,28 @@ def payload_receita(associacao, conta_associacao, acao_associacao, tipo_receita)
 
 
 @pytest.fixture
-def receita_xxx_estorno(associacao, conta_associacao, acao_associacao_ptrf, tipo_receita_estorno):
+def receita_xxx_estorno(associacao, conta_associacao_cheque, acao_associacao_ptrf, tipo_receita_estorno):
     return baker.make(
         'Receita',
         associacao=associacao,
         data=datetime.date(2020, 3, 26),
         valor=100.00,
         descricao="Receita XXX",
-        conta_associacao=conta_associacao,
+        conta_associacao=conta_associacao_cheque,
         acao_associacao=acao_associacao_ptrf,
         tipo_receita=tipo_receita_estorno,
     )
 
 
 @pytest.fixture
-def receita_yyy_repasse(associacao, conta_associacao, acao_associacao_role_cultural, tipo_receita_repasse):
+def receita_yyy_repasse(associacao, conta_associacao_cartao, acao_associacao_role_cultural, tipo_receita_repasse):
     return baker.make(
         'Receita',
         associacao=associacao,
         data=datetime.date(2020, 3, 26),
         valor=100.00,
         descricao="Receita YYY",
-        conta_associacao=conta_associacao,
+        conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
     )

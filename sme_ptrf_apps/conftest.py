@@ -49,6 +49,16 @@ def tipo_conta():
 
 
 @pytest.fixture
+def tipo_conta_cheque(tipo_conta):
+    return tipo_conta
+
+
+@pytest.fixture
+def tipo_conta_cartao():
+    return baker.make('TipoConta', nome='Cartão')
+
+
+@pytest.fixture
 def acao():
     return baker.make('Acao', nome='PTRF')
 
@@ -74,6 +84,24 @@ def conta_associacao(associacao, tipo_conta):
         'ContaAssociacao',
         associacao=associacao,
         tipo_conta=tipo_conta
+    )
+
+
+@pytest.fixture
+def conta_associacao_cheque(associacao, tipo_conta_cheque):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao,
+        tipo_conta=tipo_conta_cheque
+    )
+
+
+@pytest.fixture
+def conta_associacao_cartao(associacao, tipo_conta_cartao):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao,
+        tipo_conta=tipo_conta_cartao
     )
 
 
