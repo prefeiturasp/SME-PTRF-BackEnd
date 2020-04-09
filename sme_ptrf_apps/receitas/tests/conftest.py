@@ -1,6 +1,6 @@
-import pytest
 import datetime
 
+import pytest
 from model_bakery import baker
 
 
@@ -34,3 +34,31 @@ def payload_receita(associacao, conta_associacao, acao_associacao, tipo_receita)
         'tipo_receita': tipo_receita.id
     }
     return payload
+
+
+@pytest.fixture
+def receita_xxx(associacao, conta_associacao, acao_associacao, tipo_receita):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        descricao="Receita XXX",
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
+    )
+
+
+@pytest.fixture
+def receita_yyy(associacao, conta_associacao, acao_associacao, tipo_receita):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        descricao="Receita YYY",
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
+    )
