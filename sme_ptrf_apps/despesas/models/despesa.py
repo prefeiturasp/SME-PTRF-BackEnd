@@ -1,14 +1,19 @@
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-from .validators import cpf_cnpj_validation
-from ..status_cadastro_completo import STATUS_CHOICES, STATUS_INCOMPLETO, STATUS_COMPLETO
+
 from ...core.models import Associacao
+from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO
+from .validators import cpf_cnpj_validation
 
 
 class Despesa(ModeloBase):
+    history = AuditlogHistoryField()
+
     associacao = models.ForeignKey(Associacao, on_delete=models.PROTECT, related_name='despesas', blank=True,
                                    null=True)
 
@@ -79,3 +84,5 @@ class Despesa(ModeloBase):
 @receiver(pre_save, sender=Despesa)
 def proponente_pre_save(instance, **kwargs):
     instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
+
+auditlog.register(Despesa)
