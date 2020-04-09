@@ -193,3 +193,13 @@ def rateio_despesa_ar_condicionado_ptrf(associacao, despesa, conta_associacao, a
         numero_processo_incorporacao_capital='Teste123456'
 
     )
+
+
+@pytest.fixture
+def fornecedor_jose():
+    return baker.make('Fornecedor', nome='José', cpf_cnpj='079.962.460-84')
+
+
+@pytest.fixture
+def fornecedor_industrias_teste():
+    return baker.make('Fornecedor', nome='Indústrias Teste', cpf_cnpj='80.554.237/0001-53')

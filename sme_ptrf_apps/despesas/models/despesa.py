@@ -1,10 +1,14 @@
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.db import models
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+
+from .fornecedor import Fornecedor
+from .validators import cpf_cnpj_validation
+from ..status_cadastro_completo import STATUS_CHOICES, STATUS_INCOMPLETO, STATUS_COMPLETO
 
 from ...core.models import Associacao
 from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO
@@ -85,4 +89,14 @@ class Despesa(ModeloBase):
 def proponente_pre_save(instance, **kwargs):
     instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
 
+    
+@receiver(post_save, sender=Despesa)
+def rateio_post_save(instance, created, **kwargs):
+    # Existe um motivo para o fornecedor não ser uma FK nesse modelo e ele ser atualizado indiretamente
+    # A existência da tabela de fornecedores é apenas para facilitar o preenchimento da despesa pelas associações
+    # Alterações feitas por uma associação no nome de um fornecedor não deve alterar diretamente as despesas de outras
+    if instance and instance.cpf_cnpj_fornecedor and instance.nome_fornecedor:
+        Fornecedor.atualiza_ou_cria(cpf_cnpj=instance.cpf_cnpj_fornecedor, nome=instance.nome_fornecedor)
+
 auditlog.register(Despesa)
+
