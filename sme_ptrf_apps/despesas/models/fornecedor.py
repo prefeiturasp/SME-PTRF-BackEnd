@@ -15,6 +15,13 @@ class Fornecedor(ModeloBase):
     def __str__(self):
         return f"{self.nome} - {self.cpf_cnpj}"
 
+    @classmethod
+    def atualiza_ou_cria(cls, cpf_cnpj, nome):
+        obj, created = cls.objects.update_or_create(
+            nome=nome, cpf_cnpj=cpf_cnpj,
+        )
+        return obj, created
+
     class Meta:
         verbose_name = "Fornecedor"
         verbose_name_plural = "Fornecedores"
