@@ -10,6 +10,16 @@ def tipo_receita():
 
 
 @pytest.fixture
+def tipo_receita_estorno(tipo_receita):
+    return tipo_receita
+
+
+@pytest.fixture
+def tipo_receita_repasse():
+    return baker.make('TipoReceita', nome='Repasse')
+
+
+@pytest.fixture
 def receita(associacao, conta_associacao, acao_associacao, tipo_receita):
     return baker.make(
         'Receita',
@@ -37,7 +47,7 @@ def payload_receita(associacao, conta_associacao, acao_associacao, tipo_receita)
 
 
 @pytest.fixture
-def receita_xxx(associacao, conta_associacao, acao_associacao, tipo_receita):
+def receita_xxx_estorno(associacao, conta_associacao, acao_associacao, tipo_receita_estorno):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -46,12 +56,12 @@ def receita_xxx(associacao, conta_associacao, acao_associacao, tipo_receita):
         descricao="Receita XXX",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
-        tipo_receita=tipo_receita,
+        tipo_receita=tipo_receita_estorno,
     )
 
 
 @pytest.fixture
-def receita_yyy(associacao, conta_associacao, acao_associacao, tipo_receita):
+def receita_yyy_repasse(associacao, conta_associacao, acao_associacao, tipo_receita_repasse):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -60,5 +70,5 @@ def receita_yyy(associacao, conta_associacao, acao_associacao, tipo_receita):
         descricao="Receita YYY",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
-        tipo_receita=tipo_receita,
+        tipo_receita=tipo_receita_repasse,
     )

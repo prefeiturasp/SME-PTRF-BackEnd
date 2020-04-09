@@ -7,7 +7,8 @@ pytestmark = pytest.mark.django_db
 
 
 def test_api_get_search_receitas_por_nome(client, tipo_receita,
-                                          receita_xxx, receita_yyy,
+                                          receita_xxx_estorno,
+                                          receita_yyy_repasse,
                                           acao,
                                           acao_associacao,
                                           associacao,
