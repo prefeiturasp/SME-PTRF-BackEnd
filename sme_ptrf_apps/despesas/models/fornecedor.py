@@ -18,7 +18,8 @@ class Fornecedor(ModeloBase):
     @classmethod
     def atualiza_ou_cria(cls, cpf_cnpj, nome):
         obj, created = cls.objects.update_or_create(
-            nome=nome, cpf_cnpj=cpf_cnpj,
+            cpf_cnpj=cpf_cnpj,
+            defaults={'nome': nome},
         )
         return obj, created
 
