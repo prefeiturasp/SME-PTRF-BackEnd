@@ -2,7 +2,6 @@ from django_filters import rest_framework as filters
 from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -12,7 +11,6 @@ from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import \
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import \
     ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.receitas.models import Receita
-
 from ..serializers import (ReceitaCreateSerializer, ReceitaListaSerializer,
                            TipoReceitaSerializer)
 
@@ -29,7 +27,8 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     serializer_class = ReceitaListaSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data',)
-    search_fields = ('uuid', 'id', 'descricao')
+    search_fields = ('descricao',)
+    filter_fields = ('associacao__uuid',)
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
