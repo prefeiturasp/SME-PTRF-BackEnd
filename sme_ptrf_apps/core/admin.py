@@ -8,8 +8,13 @@ admin.site.register(Acao)
 
 @admin.register(Associacao)
 class AssociacaoAdmin(admin.ModelAdmin):
-    list_display = ('uuid', 'nome')
-    search_fields = ('uuid', 'nome',)
+    def get_nome_escola(self, obj):
+        return obj.nome if obj else ''
+    get_nome_escola.short_description = 'Escola'
+
+    list_display = ('nome', 'cnpj', 'get_nome_escola' )
+    search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome')
+    list_filter = ('unidade__dre',)
     readonly_fields = ('uuid', 'id')
 
 
