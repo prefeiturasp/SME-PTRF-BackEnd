@@ -3,6 +3,7 @@ import pytest
 from django.contrib import admin
 
 from ...models import Associacao
+from ....core.models import Unidade
 
 pytestmark = pytest.mark.django_db
 
@@ -15,6 +16,12 @@ def test_instance_model(associacao):
     assert model.alterado_em
     assert model.uuid
     assert model.id
+    assert model.cnpj
+    assert model.presidente_associacao_nome
+    assert model.presidente_associacao_rf
+    assert model.presidente_conselho_fiscal_nome
+    assert model.presidente_conselho_fiscal_rf
+    assert isinstance(model.unidade, Unidade)
 
 
 def test_srt_model(associacao):

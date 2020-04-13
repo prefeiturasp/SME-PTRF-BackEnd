@@ -6,4 +6,10 @@ from ...models import Associacao
 class AssociacaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Associacao
+        fields ='__all__'
+
+
+class AssociacaoLookupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Associacao
         fields = ('id', 'nome')

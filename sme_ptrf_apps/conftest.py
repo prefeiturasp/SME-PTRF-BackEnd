@@ -72,10 +72,26 @@ def acao_ptrf(acao):
 def acao_role_cultural():
     return baker.make('Acao', nome='Rolê Cultural')
 
+@pytest.fixture
+def dre():
+    return baker.make('Unidade', codigo_eol='99999', tipo_unidade='DRE')
 
 @pytest.fixture
-def associacao():
-    return baker.make('Associacao', nome='Escola Teste')
+def unidade(dre):
+    return baker.make('Unidade', codigo_eol='123456', dre=dre, tipo_unidade='CEU', nome='Escola Teste')
+
+@pytest.fixture
+def associacao(unidade):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste',
+        cnpj='52.302.275/0001-83',
+        unidade=unidade,
+        presidente_associacao_nome='Fulano',
+        presidente_associacao_rf='1234567',
+        presidente_conselho_fiscal_nome='Ciclano',
+        presidente_conselho_fiscal_rf='7654321',
+    )
 
 
 @pytest.fixture
@@ -162,3 +178,4 @@ def periodo():
         data_inicio_prestacao_contas=date(2019, 12, 1),
         data_fim_prestacao_contas=date(2019, 12, 5)
     )
+
