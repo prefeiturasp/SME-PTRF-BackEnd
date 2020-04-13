@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ..serializers.associacao_serializer import AssociacaoSerializer
+from ..serializers.associacao_serializer import AssociacaoSerializer, AssociacaoCreateSerializer
 
 from ...models import Associacao
 
@@ -21,4 +21,4 @@ class AssociacoesViewSet(mixins.RetrieveModelMixin,
         if self.action in ['retrieve', 'list']:
             return AssociacaoSerializer
         else:
-            return AssociacaoSerializer
+            return AssociacaoCreateSerializer
