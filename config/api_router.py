@@ -11,6 +11,7 @@ from sme_ptrf_apps.despesas.api.views.fornecedores_viewset import FornecedoresVi
 from sme_ptrf_apps.despesas.api.views.rateios_despesas_viewset import RateiosDespesasViewSet
 from sme_ptrf_apps.receitas.api.views import ReceitaViewSet
 from sme_ptrf_apps.users.api.views import LoginView, UserViewSet
+from sme_ptrf_apps.core.api.views import AssociacoesViewSet
 
 
 @api_view()
@@ -29,6 +30,7 @@ router.register("especificacoes", EspecificacaoMaterialServicoViewSet)
 router.register("rateios-despesas", RateiosDespesasViewSet)
 router.register("receitas", ReceitaViewSet)
 router.register("fornecedores", FornecedoresViewSet)
+router.register("associacoes", AssociacoesViewSet)
 
 app_name = "api"
 urlpatterns = router.urls
