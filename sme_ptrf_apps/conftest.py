@@ -162,3 +162,11 @@ def periodo():
         data_inicio_prestacao_contas=date(2019, 12, 1),
         data_fim_prestacao_contas=date(2019, 12, 5)
     )
+
+@pytest.fixture
+def dre():
+    return baker.make('Unidade', codigo_eol='99999', tipo_unidade='DRE')
+
+@pytest.fixture
+def unidade(dre):
+    return baker.make('Unidade', codigo_eol='123456', dre=dre, tipo_unidade='CEU', nome='Escola Teste')

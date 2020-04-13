@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import TipoConta, Acao, Associacao, ContaAssociacao, AcaoAssociacao, Periodo
+from .models import TipoConta, Acao, Associacao, ContaAssociacao, AcaoAssociacao, Periodo, Unidade
 
 admin.site.register(TipoConta)
 admin.site.register(Acao)
@@ -35,3 +35,12 @@ class PeriodoAdmin(admin.ModelAdmin):
                     'data_inicio_prestacao_contas', 'data_fim_prestacao_contas')
     search_fields = ('uuid',)
     readonly_fields = ('uuid', 'id')
+
+
+@admin.register(Unidade)
+class UnidadeAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'tipo_unidade', 'codigo_eol', 'sigla', 'dre')
+    ordering = ('nome',)
+    search_fields = ('nome', 'codigo_eol', 'sigla')
+    list_filter = ('tipo_unidade', 'dre')
+    list_display_links = ('nome',)
