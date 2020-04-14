@@ -7,8 +7,8 @@ services:
     env_file: .env
     volumes:
       - ../uniformes-postgres-data:/var/lib/postgresql/data
-    # ports:
-    #   - 5434:5432
+    ports:
+      - 5437:5432
 
   api_ptrf:
     container_name: api-ptrf
@@ -27,15 +27,15 @@ services:
     links:
     - db:db   
     
-  celery_ptrf:
-    build: .
-    container_name: celery-ptrf
-    restart: always
-    # image: api_ptrf
-    command: "celery -A config worker --loglevel=info --concurrency=3 -n worker1@%h"
-    env_file: .env
-    depends_on:
-      - redis_ptrf
+  # celery_ptrf:
+  #   build: .
+  #   container_name: celery-ptrf
+  #   restart: always
+  #   # image: api_ptrf
+  #   command: "celery -A config worker --loglevel=info --concurrency=3 -n worker1@%h"
+  #   env_file: .env
+  #   depends_on:
+  #     - redis_ptrf
 
   redis_ptrf:
     image: redis:5.0

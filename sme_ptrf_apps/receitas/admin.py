@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from sme_ptrf_apps.receitas.models import Receita, TipoReceita
+from sme_ptrf_apps.receitas.models import Receita, TipoReceita, Repasse
 
 from rangefilter.filter import DateRangeFilter
 
@@ -28,3 +28,16 @@ class ReceitaAdmin(admin.ModelAdmin):
         ('conta_associacao__tipo_conta__nome', customTitledFilter('Tipo Conta')),
         ('tipo_receita', customTitledFilter('Tipo Receita')))
     readonly_fields = ('uuid', 'id')
+
+
+@admin.register(Repasse)
+class RepasseAdmin(admin.ModelAdmin):
+    list_display = ('associacao', 'valor_capital', 'valor_custeio')
+    actions = ['importa_repasses',]
+
+    def importa_repasses(self, request, queryset):
+        from sme_ptrf_apps.receitas.services.carga_repasses import carrega_repasses
+        carrega_repasses()
+        self.message_user(request, "Repasses Carregados")
+
+    importa_repasses.short_description = "Fazer carga de repasses."
