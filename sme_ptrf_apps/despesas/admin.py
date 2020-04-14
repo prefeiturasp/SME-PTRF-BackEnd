@@ -27,6 +27,7 @@ class RateioDespesaAdmin(admin.ModelAdmin):
     list_filter = (
         ('despesa__data_documento', DateRangeFilter),
         ('associacao__nome', customTitledFilter('Associação')),
+        ('associacao__unidade__dre', customTitledFilter('DRE')),
         ('acao_associacao__acao__nome', customTitledFilter('Ação')),
         ('conta_associacao__tipo_conta__nome', customTitledFilter('Tipo Conta')),
         ('despesa__numero_documento', customTitledFilter('Número documento')),
