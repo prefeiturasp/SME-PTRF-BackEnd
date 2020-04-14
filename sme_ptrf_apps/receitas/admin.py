@@ -23,7 +23,8 @@ class ReceitaAdmin(admin.ModelAdmin):
     search_fields = ('descricao',)
     list_filter = (
         ('data', DateRangeFilter),
-        ('associacao__nome', customTitledFilter('Associação')), 
+        ('associacao__nome', customTitledFilter('Associação')),
+        ('associacao__unidade__dre', customTitledFilter('DRE')),
         ('acao_associacao__acao__nome', customTitledFilter('Ação')), 
         ('conta_associacao__tipo_conta__nome', customTitledFilter('Tipo Conta')),
         ('tipo_receita', customTitledFilter('Tipo Receita')))
