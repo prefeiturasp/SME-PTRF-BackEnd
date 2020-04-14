@@ -5,3 +5,4 @@ from .conta_associacao import ContaAssociacao
 from .periodo import Periodo
 from .tipo_conta import TipoConta
 from .unidade import Unidade
+from .fechamento_periodo import FechamentoPeriodo, STATUS_ABERTO, STATUS_FECHADO

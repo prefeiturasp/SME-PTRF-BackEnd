@@ -6,8 +6,7 @@ from model_bakery import baker
 
 from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
-from .core.models.acao_associacao import AcaoAssociacao
-from .core.models.conta_associacao import ContaAssociacao
+from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO
 
 
 @pytest.fixture
@@ -179,3 +178,46 @@ def periodo():
         data_fim_prestacao_contas=date(2019, 12, 5)
     )
 
+@pytest.fixture
+def periodo_anterior():
+    return baker.make(
+        'Periodo',
+        data_inicio_realizacao_despesas=date(2019, 1, 1),
+        data_fim_realizacao_despesas=date(2019, 8, 31)
+    )
+
+@pytest.fixture
+def fechamento_periodo_anterior(periodo_anterior, associacao, conta_associacao, acao_associacao,):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo_anterior,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        fechamento_anterior=None,
+        total_receitas_capital=500,
+        total_repasses_capital=450,
+        total_despesas_capital=400,
+        total_receitas_custeio=1000,
+        total_repasses_custeio=900,
+        total_despesas_custeio=800,
+        status=STATUS_FECHADO
+    )
+
+@pytest.fixture
+def fechamento_periodo(periodo, associacao, conta_associacao, acao_associacao, fechamento_periodo_anterior):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        fechamento_anterior=fechamento_periodo_anterior,
+        total_receitas_capital=1000,
+        total_repasses_capital=900,
+        total_despesas_capital=800,
+        total_receitas_custeio=2000,
+        total_repasses_custeio=1800,
+        total_despesas_custeio=1600,
+        status=STATUS_FECHADO
+    )

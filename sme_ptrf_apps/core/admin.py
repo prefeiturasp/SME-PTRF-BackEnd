@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import TipoConta, Acao, Associacao, ContaAssociacao, AcaoAssociacao, Periodo, Unidade
+from .models import TipoConta, Acao, Associacao, ContaAssociacao, AcaoAssociacao, Periodo, Unidade, FechamentoPeriodo
 
 admin.site.register(TipoConta)
 admin.site.register(Acao)
@@ -49,3 +49,11 @@ class UnidadeAdmin(admin.ModelAdmin):
     search_fields = ('nome', 'codigo_eol', 'sigla')
     list_filter = ('tipo_unidade', 'dre')
     list_display_links = ('nome',)
+
+
+@admin.register(FechamentoPeriodo)
+class FechamentoPeriodoAdmin(admin.ModelAdmin):
+    list_display = ('periodo', 'saldo_anterior', 'total_receitas', 'total_despesas', 'saldo_reprogramado', 'status')
+    list_filter = ('status',)
+    list_display_links = ('periodo',)
+    readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio')
