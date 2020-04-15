@@ -72,3 +72,16 @@ def receita_yyy_repasse(associacao, conta_associacao_cartao, acao_associacao_rol
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
     )
+
+
+@pytest.fixture
+def repasse(associacao, conta_associacao, acao_associacao, periodo):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo,
+        valor_custeio=1000.00,
+        valor_capital=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+    )
