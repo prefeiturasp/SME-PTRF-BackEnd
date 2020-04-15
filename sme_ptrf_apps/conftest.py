@@ -168,23 +168,26 @@ def acao_associacao_role_cultural(associacao, acao_role_cultural):
 
 
 @pytest.fixture
-def periodo():
-    return baker.make(
-        'Periodo',
-        data_inicio_realizacao_despesas=date(2019, 9, 1),
-        data_fim_realizacao_despesas=date(2019, 11, 30),
-        data_prevista_repasse=date(2019, 10, 1),
-        data_inicio_prestacao_contas=date(2019, 12, 1),
-        data_fim_prestacao_contas=date(2019, 12, 5)
-    )
-
-@pytest.fixture
 def periodo_anterior():
     return baker.make(
         'Periodo',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 8, 31)
     )
+
+
+@pytest.fixture
+def periodo(periodo_anterior):
+    return baker.make(
+        'Periodo',
+        data_inicio_realizacao_despesas=date(2019, 9, 1),
+        data_fim_realizacao_despesas=date(2019, 11, 30),
+        data_prevista_repasse=date(2019, 10, 1),
+        data_inicio_prestacao_contas=date(2019, 12, 1),
+        data_fim_prestacao_contas=date(2019, 12, 5),
+        periodo_anterior=periodo_anterior
+    )
+
 
 @pytest.fixture
 def fechamento_periodo_anterior(periodo_anterior, associacao, conta_associacao, acao_associacao,):

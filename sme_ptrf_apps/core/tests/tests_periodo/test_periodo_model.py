@@ -30,3 +30,8 @@ def test_meta_modelo(periodo):
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[Periodo]
+
+
+def test_encadeamento_de_periodos(periodo, periodo_anterior):
+    assert periodo.periodo_anterior == periodo_anterior
+    assert periodo_anterior.proximo_periodo == periodo
