@@ -32,8 +32,14 @@ class ReceitaAdmin(admin.ModelAdmin):
 
 @admin.register(Repasse)
 class RepasseAdmin(admin.ModelAdmin):
-    list_display = ('associacao', 'valor_capital', 'valor_custeio')
+    list_display = ('associacao', 'valor_capital', 'valor_custeio', 'tipo_conta', 'acao')
     actions = ['importa_repasses',]
+
+    def tipo_conta(self, obj):
+        return obj.conta_associacao.tipo_conta
+
+    def acao(self, obj):
+        return obj.acao_associacao.acao.nome
 
     def importa_repasses(self, request, queryset):
         from sme_ptrf_apps.receitas.services.carga_repasses import carrega_repasses
