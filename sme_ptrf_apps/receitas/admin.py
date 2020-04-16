@@ -33,7 +33,7 @@ class ReceitaAdmin(admin.ModelAdmin):
 
 @admin.register(Repasse)
 class RepasseAdmin(admin.ModelAdmin):
-    list_display = ('associacao', 'valor_capital', 'valor_custeio', 'tipo_conta', 'acao')
+    list_display = ('associacao', 'valor_capital', 'valor_custeio', 'tipo_conta', 'acao', 'status')
     actions = ['importa_repasses',]
 
     def tipo_conta(self, obj):

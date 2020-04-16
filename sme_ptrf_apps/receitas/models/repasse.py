@@ -1,7 +1,18 @@
+from enum import Enum
+
 from django.db import models
 
 from sme_ptrf_apps.core.models import Associacao, Periodo
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+
+class StatusRepasse(Enum):
+    PENDENTE = 'Pendente'
+    REALIZADO = 'Realizado'
+
+STATUS_CHOICES = (
+    (StatusRepasse.PENDENTE.name, StatusRepasse.PENDENTE.value),
+    (StatusRepasse.REALIZADO.name, StatusRepasse.REALIZADO.value),
+)
 
 
 class Repasse(ModeloBase):
@@ -20,6 +31,12 @@ class Repasse(ModeloBase):
 
     periodo = models.ForeignKey(Periodo, on_delete=models.PROTECT, 
                                 related_name='+', blank=True, null=True)
+
+    status = models.CharField(
+        max_length=15,
+        choices=STATUS_CHOICES,
+        default=StatusRepasse.PENDENTE.value
+    )
 
     class Meta:
         verbose_name = 'Repasse'
