@@ -20,6 +20,9 @@ class TipoContaEnum(enum.Enum):
 
 
 def get_valor(val):
+    if not val:
+        return 0
+
     return float(str(val).replace(',', '.'))
 
 
@@ -93,14 +96,16 @@ def processa_repasse(reader, conta, nome_arquivo):
                 acao_associacao = get_acao_associacao(acao, associacao)
                 conta_associacao = get_conta_associacao(tipo_conta, associacao)
                 periodo = get_periodo(nome_arquivo)
-                Repasse.objects.create(
-                    associacao=associacao,
-                    valor_capital=valor_capital,
-                    valor_custeio=valor_custeio,
-                    conta_associacao=conta_associacao,
-                    acao_associacao=acao_associacao,
-                    periodo=periodo
-                )
+
+                if valor_capital > 0 or valor_custeio > 0:
+                    Repasse.objects.create(
+                        associacao=associacao,
+                        valor_capital=valor_capital,
+                        valor_custeio=valor_custeio,
+                        conta_associacao=conta_associacao,
+                        acao_associacao=acao_associacao,
+                        periodo=periodo
+                    )
             except Exception as e:
                 logger.info("Error %s", str(e))
 
