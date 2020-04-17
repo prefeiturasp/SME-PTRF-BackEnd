@@ -14,6 +14,7 @@ def test_model(repasse):
     assert model.valor_custeio
     assert model.conta_associacao
     assert model.acao_associacao
+    assert model.status == 'PENDENTE'
 
 
 def test_str(repasse):
