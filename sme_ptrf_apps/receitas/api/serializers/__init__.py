@@ -1,2 +1,3 @@
 from .receita_serializer import ReceitaCreateSerializer, ReceitaListaSerializer
-from .tipo_receita_serializer import TipoReceitaSerializer 
+from .tipo_receita_serializer import TipoReceitaSerializer
+from .repasse_serializer import RepasseSerializer

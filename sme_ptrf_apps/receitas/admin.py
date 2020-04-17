@@ -4,7 +4,10 @@ from sme_ptrf_apps.receitas.models import Receita, TipoReceita, Repasse
 
 from rangefilter.filter import DateRangeFilter
 
-admin.site.register(TipoReceita)
+
+@admin.register(TipoReceita)
+class TipoReceitaAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'e_repasse')    
 
 
 def customTitledFilter(title):
@@ -33,7 +36,7 @@ class ReceitaAdmin(admin.ModelAdmin):
 
 @admin.register(Repasse)
 class RepasseAdmin(admin.ModelAdmin):
-    list_display = ('associacao', 'valor_capital', 'valor_custeio', 'tipo_conta', 'acao')
+    list_display = ('associacao', 'valor_capital', 'valor_custeio', 'tipo_conta', 'acao', 'status')
     actions = ['importa_repasses',]
 
     def tipo_conta(self, obj):

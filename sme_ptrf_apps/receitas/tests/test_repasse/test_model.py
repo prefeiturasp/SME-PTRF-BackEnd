@@ -14,7 +14,8 @@ def test_model(repasse):
     assert model.valor_custeio
     assert model.conta_associacao
     assert model.acao_associacao
+    assert model.status == 'PENDENTE'
 
 
 def test_str(repasse):
-    assert str(repasse) == "Repasse<val_capital: 1000.0, val_custeio: 1000.0>"
+    assert str(repasse) == "Repasse<val_capital: 1000.28, val_custeio: 1000.4>"

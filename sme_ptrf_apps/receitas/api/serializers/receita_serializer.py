@@ -1,11 +1,16 @@
+import logging
+
 from rest_framework import serializers
 
 from sme_ptrf_apps.core.models import Associacao, AcaoAssociacao, ContaAssociacao
-from sme_ptrf_apps.receitas.models import Receita
+from sme_ptrf_apps.receitas.models import Receita, Repasse
 from .tipo_receita_serializer import TipoReceitaSerializer
+from ...services import atualiza_repasse_para_realizado
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 
+
+logger = logging.getLogger(__name__)
 
 
 class ReceitaCreateSerializer(serializers.ModelSerializer):
@@ -26,6 +31,13 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
         required=False,
         queryset=AcaoAssociacao.objects.all()
     )
+
+    def create(self, validated_data):
+        if validated_data['tipo_receita'].e_repasse:
+            atualiza_repasse_para_realizado(validated_data)
+
+        receita = Receita.objects.create(**validated_data)
+        return receita
 
     class Meta:
         model = Receita
