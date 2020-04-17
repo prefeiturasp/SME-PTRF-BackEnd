@@ -19,8 +19,8 @@ def test_repasses_pendentes(
     response = client.get(f'/api/repasses/pendentes/?acao-associacao={acao_associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
     esperado = {
-        'valor_capital': '1000.00',
-        'valor_custeio': '1000.00',
+        'valor_capital': '1000.28',
+        'valor_custeio': '1000.40',
         'acao_associacao': {
             'uuid': str(acao_associacao.uuid),
             'id': acao_associacao.id,

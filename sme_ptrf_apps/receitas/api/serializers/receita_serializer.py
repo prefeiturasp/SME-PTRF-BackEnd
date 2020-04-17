@@ -1,12 +1,11 @@
 import logging
-from datetime import datetime
 
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 
 from sme_ptrf_apps.core.models import Associacao, AcaoAssociacao, ContaAssociacao
 from sme_ptrf_apps.receitas.models import Receita, Repasse
 from .tipo_receita_serializer import TipoReceitaSerializer
+from ...services import atualiza_repasse_para_realizado
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 
@@ -35,27 +34,8 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         if validated_data['tipo_receita'].nome == 'Repasse':
-            repasse = Repasse.objects\
-                .filter(acao_associacao__uuid=validated_data['acao_associacao'].uuid, 
-                        status='PENDENTE',
-                        periodo__data_inicio_realizacao_despesas__lte=validated_data['data'],
-                        periodo__data_fim_realizacao_despesas__gte=validated_data['data'])\
-                .order_by('-criado_em').last()
+            atualiza_repasse_para_realizado(validated_data)
 
-            if not repasse:
-                msgError = "Repasse não encontrado."
-                logger.info(msgError)
-                raise ValidationError(msgError)
-
-            valores_iguais = validated_data['valor'] == repasse.valor_total
-
-            if not valores_iguais:
-                msgError = "Valor do payload não é igual ao valor total do repasse."
-                logger.info(msgError)
-                raise ValidationError(msgError)
-
-            repasse.status = 'REALIZADO'
-            repasse.save()
         receita = Receita.objects.create(**validated_data)
         return receita
 

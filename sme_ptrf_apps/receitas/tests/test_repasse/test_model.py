@@ -18,4 +18,4 @@ def test_model(repasse):
 
 
 def test_str(repasse):
-    assert str(repasse) == "Repasse<val_capital: 1000.0, val_custeio: 1000.0>"
+    assert str(repasse) == "Repasse<val_capital: 1000.28, val_custeio: 1000.4>"

@@ -221,6 +221,32 @@ def test_deleta_receita(
 
     assert not Receita.objects.filter(uuid=receita.uuid).exists()
 
+
+def test_deleta_receita_repasse(
+    client,
+    tipo_receita_repasse,
+    acao,
+    acao_associacao_role_cultural,
+    associacao,
+    tipo_conta_cartao,
+    conta_associacao_cartao,
+    receita_yyy_repasse,
+    repasse_realizado
+    ):
+
+    assert Repasse.objects.get(uuid=repasse_realizado.uuid).status == 'REALIZADO'
+
+    assert Receita.objects.filter(uuid=receita_yyy_repasse.uuid).exists()
+
+    response = client.delete(f'/api/receitas/{receita_yyy_repasse.uuid}/', content_type='application/json')
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    assert not Receita.objects.filter(uuid=receita_yyy_repasse.uuid).exists()
+
+    assert Repasse.objects.get(uuid=repasse_realizado.uuid).status == 'PENDENTE'
+
+
 def test_retrive_receitas(
     client,
     tipo_receita,

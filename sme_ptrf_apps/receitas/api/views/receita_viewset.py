@@ -1,5 +1,5 @@
 from django_filters import rest_framework as filters
-from rest_framework import mixins
+from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny
@@ -13,7 +13,7 @@ from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import \
 from sme_ptrf_apps.receitas.models import Receita
 from ..serializers import (ReceitaCreateSerializer, ReceitaListaSerializer,
                            TipoReceitaSerializer)
-
+from ...services import atualiza_repasse_para_pendente
 
 class ReceitaViewSet(mixins.CreateModelMixin,
                      mixins.RetrieveModelMixin,
@@ -50,3 +50,10 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         }
 
         return Response(result)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.tipo_receita.nome == 'Repasse':
+            atualiza_repasse_para_pendente(instance.acao_associacao)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -98,3 +98,16 @@ def repasse(associacao, conta_associacao, acao_associacao, periodo):
         acao_associacao=acao_associacao,
         status='PENDENTE'
     )
+
+@pytest.fixture
+def repasse_realizado(associacao, conta_associacao, acao_associacao_role_cultural, periodo):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo,
+        valor_custeio=1000.40,
+        valor_capital=1000.28,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_role_cultural,
+        status='REALIZADO'
+    )
