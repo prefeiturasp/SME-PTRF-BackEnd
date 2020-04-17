@@ -53,7 +53,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.tipo_receita.nome == 'Repasse':
+        if instance.tipo_receita.e_repasse:
             atualiza_repasse_para_pendente(instance.acao_associacao)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)

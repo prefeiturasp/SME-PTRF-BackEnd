@@ -33,7 +33,7 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
     )
 
     def create(self, validated_data):
-        if validated_data['tipo_receita'].nome == 'Repasse':
+        if validated_data['tipo_receita'].e_repasse:
             atualiza_repasse_para_realizado(validated_data)
 
         receita = Receita.objects.create(**validated_data)

@@ -6,7 +6,7 @@ from model_bakery import baker
 
 @pytest.fixture
 def tipo_receita():
-    return baker.make('TipoReceita', nome='Estorno')
+    return baker.make('TipoReceita', nome='Estorno', e_repasse=False)
 
 
 @pytest.fixture
@@ -16,7 +16,7 @@ def tipo_receita_estorno(tipo_receita):
 
 @pytest.fixture
 def tipo_receita_repasse():
-    return baker.make('TipoReceita', nome='Repasse')
+    return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
 
 
 @pytest.fixture

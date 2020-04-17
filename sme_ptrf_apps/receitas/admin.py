@@ -4,7 +4,10 @@ from sme_ptrf_apps.receitas.models import Receita, TipoReceita, Repasse
 
 from rangefilter.filter import DateRangeFilter
 
-admin.site.register(TipoReceita)
+
+@admin.register(TipoReceita)
+class TipoReceitaAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'e_repasse')    
 
 
 def customTitledFilter(title):
