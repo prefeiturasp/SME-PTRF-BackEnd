@@ -44,3 +44,7 @@ class Repasse(ModeloBase):
 
     def __str__(self):
         return f'Repasse<val_capital: {self.valor_capital}, val_custeio: {self.valor_custeio}>'
+
+    @property
+    def valor_total(self):
+        return self.valor_capital + self.valor_custeio

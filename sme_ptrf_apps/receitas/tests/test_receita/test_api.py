@@ -3,7 +3,7 @@ import json
 import pytest
 from rest_framework import status
 
-from sme_ptrf_apps.receitas.models import Receita
+from sme_ptrf_apps.receitas.models import Receita, Repasse
 
 pytestmark = pytest.mark.django_db
 
@@ -29,6 +29,73 @@ def test_create_receita(
     receita = Receita.objects.get(uuid=result["uuid"])
 
     assert receita.associacao.uuid == associacao.uuid
+
+def test_create_receita_repasse(
+    client,
+    tipo_receita,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    repasse,
+    payload_receita_repasse
+):
+    assert Repasse.objects.get(uuid=repasse.uuid).status == 'PENDENTE'
+
+    response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
+
+    assert response.status_code == status.HTTP_201_CREATED
+
+    result = json.loads(response.content)
+
+    assert Receita.objects.filter(uuid=result["uuid"]).exists()
+
+    receita = Receita.objects.get(uuid=result["uuid"])
+
+    assert receita.associacao.uuid == associacao.uuid
+
+    assert Repasse.objects.get(uuid=repasse.uuid).status == 'REALIZADO'
+
+
+def test_create_receita_repasse_periodo_invalido(
+    client,
+    tipo_receita,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    repasse,
+    payload_receita_repasse
+):
+
+    payload_receita_repasse['data'] = '2020-01-11'
+    response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
+    result = json.loads(response.content)
+
+    assert result == ['Repasse não encontrado.']
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_create_receita_repasse_valor_diferente(
+    client,
+    tipo_receita,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    repasse,
+    payload_receita_repasse
+):
+
+    payload_receita_repasse['valor'] = 2000.67
+    response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
+    result = json.loads(response.content)
+
+    assert result == ['Valor do payload não é igual ao valor total do repasse.']
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def test_get_tabelas(
