@@ -55,6 +55,14 @@ def test_calculo_saldo_anterior(fechamento_periodo):
     assert fechamento_periodo.saldo_anterior == 300
 
 
+def test_calculo_saldo_anterior_custeio(fechamento_periodo):
+    assert fechamento_periodo.saldo_anterior_custeio == 200
+
+
+def test_calculo_saldo_anterior_capital(fechamento_periodo):
+    assert fechamento_periodo.saldo_anterior_capital == 100
+
+
 def test_calculo_total_receitas(fechamento_periodo):
     assert fechamento_periodo.total_receitas == 3000
 

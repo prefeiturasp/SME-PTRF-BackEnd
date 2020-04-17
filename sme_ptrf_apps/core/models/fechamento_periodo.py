@@ -71,6 +71,14 @@ class FechamentoPeriodo(ModeloBase):
     def saldo_anterior(self):
         return self.fechamento_anterior.saldo_reprogramado if self.fechamento_anterior else 0
 
+    @property
+    def saldo_anterior_custeio(self):
+        return self.fechamento_anterior.saldo_reprogramado_custeio if self.fechamento_anterior else 0
+
+    @property
+    def saldo_anterior_capital(self):
+        return self.fechamento_anterior.saldo_reprogramado_capital if self.fechamento_anterior else 0
+
     def __str__(self):
         periodo = f"{self.periodo.data_inicio_realizacao_despesas} - {self.periodo.data_fim_realizacao_despesas}"
         return f"{periodo}  - {self.status}"
@@ -86,6 +94,10 @@ class FechamentoPeriodo(ModeloBase):
         return saldo_anterior \
                + self.total_receitas_custeio \
                - self.total_despesas_custeio
+
+    @classmethod
+    def fechamentos_da_acao_no_periodo(cls, acao_associacao, periodo):
+        return FechamentoPeriodo.objects.filter(acao_associacao=acao_associacao, periodo=periodo).all()
 
     class Meta:
         verbose_name = "Fechamento de período"
