@@ -67,6 +67,16 @@ class RateioDespesa(ModeloBase):
 
         return completo
 
+    @classmethod
+    def rateios_da_acao_associacao_no_periodo(cls, acao_associacao, periodo):
+        if periodo.data_fim_realizacao_despesas:
+            return cls.objects.filter(acao_associacao=acao_associacao).filter(
+                despesa__data_documento__range=(
+                    periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas)).all()
+        else:
+            return cls.objects.filter(acao_associacao=acao_associacao).filter(
+                despesa__data_documento__gte=periodo.data_inicio_realizacao_despesas).all()
+
     class Meta:
         verbose_name = "Rateio de despesa"
         verbose_name_plural = "Rateios de despesas"

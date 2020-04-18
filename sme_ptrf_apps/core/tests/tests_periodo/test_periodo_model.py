@@ -16,10 +16,11 @@ def test_instance_model(periodo):
     assert model.data_fim_prestacao_contas
     assert model.uuid
     assert model.id
+    assert model.referencia
 
 
 def test_srt_model(periodo):
-    assert periodo.__str__() == '2019-09-01 a 2019-11-30'
+    assert periodo.__str__() == '2019.2 - 2019-09-01 a 2019-11-30'
 
 
 def test_meta_modelo(periodo):
@@ -30,3 +31,8 @@ def test_meta_modelo(periodo):
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[Periodo]
+
+
+def test_encadeamento_de_periodos(periodo, periodo_anterior):
+    assert periodo.periodo_anterior == periodo_anterior
+    assert periodo_anterior.proximo_periodo == periodo
