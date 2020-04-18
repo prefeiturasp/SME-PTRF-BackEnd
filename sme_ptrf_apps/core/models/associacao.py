@@ -21,6 +21,11 @@ class Associacao(ModeloIdNome):
     presidente_conselho_fiscal_rf = models.CharField('RF do presidente associação', max_length=10, blank=True,
                                                      default="")
 
+    @classmethod
+    def acoes_da_associacao(cls, associacao_uuid):
+        associacao = cls.objects.filter(uuid=associacao_uuid).first()
+        return associacao.acoes.all() if associacao else []
+
     class Meta:
         verbose_name = "Associação"
         verbose_name_plural = "Associações"

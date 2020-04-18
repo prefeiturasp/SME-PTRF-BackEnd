@@ -31,7 +31,12 @@ class Receita(ModeloBase):
 
     @classmethod
     def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo):
-        return cls.objects.filter(acao_associacao=acao_associacao).filter(
-            data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas)).all()
+        if periodo.data_fim_realizacao_despesas:
+            return cls.objects.filter(acao_associacao=acao_associacao).filter(
+                data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas)).all()
+        else:
+            return cls.objects.filter(acao_associacao=acao_associacao).filter(
+                data__gte=periodo.data_inicio_realizacao_despesas).all()
+
 
 auditlog.register(Receita)

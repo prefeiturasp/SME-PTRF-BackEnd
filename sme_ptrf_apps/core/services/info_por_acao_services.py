@@ -1,4 +1,4 @@
-from ..models import FechamentoPeriodo
+from ..models import FechamentoPeriodo, Associacao
 from ...receitas.models import Receita
 from ...despesas.models import RateioDespesa
 from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
@@ -59,6 +59,9 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo):
     def periodo_aberto_sumarizado_por_acao(periodo, acao_associacao):
         info = resultado_vazio()
 
+        if not periodo or not periodo.periodo_anterior:
+            return info
+
         fechamentos_periodo_anterior = FechamentoPeriodo.fechamentos_da_acao_no_periodo(acao_associacao=acao_associacao,
                                                                                         periodo=periodo.periodo_anterior)
         if fechamentos_periodo_anterior:
@@ -80,3 +83,24 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo):
         return fechamento_sumarizado_por_acao(fechamentos_periodo)
     else:
         return periodo_aberto_sumarizado_por_acao(periodo, acao_associacao)
+
+
+def info_acoes_associacao_no_periodo(associacao_uuid, periodo):
+    acoes_associacao = Associacao.acoes_da_associacao(associacao_uuid=associacao_uuid)
+    result = []
+    for acao_associacao in acoes_associacao:
+        info_acao = info_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo)
+        info = {
+            'acao_associacao_uuid': f'{acao_associacao.uuid}',
+            'acao_associacao_nome': acao_associacao.acao.nome,
+            'saldo_reprogramado': info_acao['saldo_anterior_custeio'] + info_acao['saldo_anterior_capital'],
+            'receitas_no_periodo': info_acao['receitas_no_periodo_custeio'] + info_acao['receitas_no_periodo_capital'],
+            'repasses_no_periodo': info_acao['repasses_no_periodo_custeio'] + info_acao['repasses_no_periodo_capital'],
+            'despesas_no_periodo': info_acao['despesas_no_periodo_custeio'] + info_acao['despesas_no_periodo_capital'],
+            'saldo_atual_custeio': info_acao['saldo_atual_custeio'],
+            'saldo_atual_capital': info_acao['saldo_atual_capital'],
+            'saldo_atual_total': info_acao['saldo_atual_custeio'] + info_acao['saldo_atual_capital'],
+        }
+        result.append(info)
+
+    return result

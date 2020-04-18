@@ -175,6 +175,7 @@ def acao_associacao_role_cultural(associacao, acao_role_cultural):
 def periodo_anterior():
     return baker.make(
         'Periodo',
+        referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 8, 31)
     )
@@ -184,8 +185,22 @@ def periodo_anterior():
 def periodo(periodo_anterior):
     return baker.make(
         'Periodo',
+        referencia='2019.2',
         data_inicio_realizacao_despesas=date(2019, 9, 1),
         data_fim_realizacao_despesas=date(2019, 11, 30),
+        data_prevista_repasse=date(2019, 10, 1),
+        data_inicio_prestacao_contas=date(2019, 12, 1),
+        data_fim_prestacao_contas=date(2019, 12, 5),
+        periodo_anterior=periodo_anterior
+    )
+
+@pytest.fixture
+def periodo_aberto(periodo_anterior):
+    return baker.make(
+        'Periodo',
+        referencia='2019.2',
+        data_inicio_realizacao_despesas=date(2019, 9, 1),
+        data_fim_realizacao_despesas=None,
         data_prevista_repasse=date(2019, 10, 1),
         data_inicio_prestacao_contas=date(2019, 12, 1),
         data_fim_prestacao_contas=date(2019, 12, 5),
@@ -283,7 +298,7 @@ def receita_50_fora_do_periodo(associacao, conta_associacao, acao_associacao, ti
     return baker.make(
         'Receita',
         associacao=associacao,
-        data=periodo.data_fim_realizacao_despesas + timedelta(days=1),
+        data=periodo.data_inicio_realizacao_despesas - timedelta(days=1),
         valor=50.00,
         descricao="Receita 50",
         conta_associacao=conta_associacao,
@@ -431,12 +446,12 @@ def despesa_fora_periodo(associacao, tipo_documento, tipo_transacao, periodo):
         'Despesa',
         associacao=associacao,
         numero_documento='123456',
-        data_documento=periodo.data_fim_realizacao_despesas + timedelta(days=3),
+        data_documento=periodo.data_inicio_realizacao_despesas - timedelta(days=1),
         tipo_documento=tipo_documento,
         cpf_cnpj_fornecedor='11.478.276/0001-04',
         nome_fornecedor='Fornecedor SA',
         tipo_transacao=tipo_transacao,
-        data_transacao=periodo.data_fim_realizacao_despesas + timedelta(days=3),
+        data_transacao=periodo.data_inicio_realizacao_despesas - timedelta(days=1),
         valor_total=50.00,
         valor_recursos_proprios=0,
     )

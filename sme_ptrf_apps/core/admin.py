@@ -36,9 +36,9 @@ class AcaoAssociacaoAdmin(admin.ModelAdmin):
 
 @admin.register(Periodo)
 class PeriodoAdmin(admin.ModelAdmin):
-    list_display = ('data_inicio_realizacao_despesas', 'data_fim_realizacao_despesas', 'data_prevista_repasse',
+    list_display = ('referencia', 'data_inicio_realizacao_despesas', 'data_fim_realizacao_despesas', 'data_prevista_repasse',
                     'data_inicio_prestacao_contas', 'data_fim_prestacao_contas')
-    search_fields = ('uuid',)
+    search_fields = ('uuid', 'referencia')
     readonly_fields = ('uuid', 'id')
 
 
