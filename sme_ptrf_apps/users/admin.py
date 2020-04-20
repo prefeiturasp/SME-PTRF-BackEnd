@@ -15,3 +15,12 @@ class UserAdmin(auth_admin.UserAdmin):
     fieldsets = (("User", {"fields": ("name",)}),) + auth_admin.UserAdmin.fieldsets
     list_display = ["username", "name", "is_superuser"]
     search_fields = ["name"]
+
+    actions = ['importa_usuarios']
+
+    def importa_usuarios(self, request, queryset):
+        from sme_ptrf_apps.users.services.carga_usuarios import carrega_usuarios
+        carrega_usuarios()
+        self.message_user(request, "Usuários Carregados.")
+
+    importa_usuarios.short_description = "Fazer carga de usuários."

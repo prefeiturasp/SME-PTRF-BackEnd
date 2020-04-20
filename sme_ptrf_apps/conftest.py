@@ -11,10 +11,10 @@ from .despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPIT
 
 
 @pytest.fixture
-def fake_user(client, django_user_model):
+def fake_user(client, django_user_model, associacao):
     password = 'teste'
     username = 'fake'
-    user = django_user_model.objects.create_user(username=username, password=password, )
+    user = django_user_model.objects.create_user(username=username, password=password, associacao=associacao)
     client.login(username=username, password=password)
     return user
 
