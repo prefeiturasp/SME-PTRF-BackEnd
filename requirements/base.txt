@@ -39,3 +39,7 @@ django-cors-headers # https://github.com/adamchainz/django-cors-headers
 # Para validação e formatação de CNPJ e CPF
 # https://github.com/poliquin/brazilnum
 brazilnum==0.8.8
+
+# Para melhoria da aparência do Django Admin
+# https://github.com/fabiocaccamo/django-admin-interface
+django-admin-interface==0.12.2

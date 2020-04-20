@@ -72,6 +72,8 @@ DJANGO_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # "django.contrib.humanize", # Handy template tags
+    'admin_interface', # Para o django-admin-interface. Tem que estar antes do django.contrib.admin
+    'colorfield',      # Para o django-admin-interface. Tem que estar antes do django.contrib.admin
     "django.contrib.admin",
     "django.forms",
 ]
