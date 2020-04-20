@@ -53,7 +53,15 @@ class UnidadeAdmin(admin.ModelAdmin):
 
 @admin.register(FechamentoPeriodo)
 class FechamentoPeriodoAdmin(admin.ModelAdmin):
-    list_display = ('periodo', 'saldo_anterior', 'total_receitas', 'total_despesas', 'saldo_reprogramado', 'status')
+    def get_nome_acao(self, obj):
+        return obj.acao_associacao.acao.nome if obj and obj.acao_associacao else ''
+    get_nome_acao.short_description = 'Ação'
+
+    def get_nome_conta(self, obj):
+        return obj.conta_associacao.tipo_conta.nome if obj and obj.conta_associacao else ''
+    get_nome_conta.short_description = 'Conta'
+
+    list_display = ('periodo', 'get_nome_acao', 'get_nome_conta', 'saldo_anterior', 'total_receitas', 'total_despesas', 'saldo_reprogramado', 'status')
     list_filter = ('status',)
     list_display_links = ('periodo',)
     readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio')
