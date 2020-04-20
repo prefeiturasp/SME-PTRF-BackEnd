@@ -83,8 +83,7 @@ class FechamentoPeriodo(ModeloBase):
         return self.fechamento_anterior.saldo_reprogramado_capital if self.fechamento_anterior else 0
 
     def __str__(self):
-        periodo = f"{self.periodo.data_inicio_realizacao_despesas} - {self.periodo.data_fim_realizacao_despesas}"
-        return f"{periodo}  - {self.status}"
+        return f"{self.periodo} - {self.acao_associacao.acao.nome} - {self.conta_associacao.tipo_conta.nome}  - {self.status}"
 
     def calcula_saldo_reprogramado_capital(self):
         saldo_anterior = self.fechamento_anterior.saldo_reprogramado_capital if self.fechamento_anterior else 0

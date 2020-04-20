@@ -20,17 +20,17 @@ class AssociacaoAdmin(admin.ModelAdmin):
 
 @admin.register(ContaAssociacao)
 class ContaAssociacaoAdmin(admin.ModelAdmin):
-    list_display = ('uuid', 'tipo_conta', 'status')
-    search_fields = ('uuid',)
-    list_filter = ('status',)
+    list_display = ('associacao', 'tipo_conta', 'status')
+    search_fields = ('uuid', 'associacao__unidade__codigo_eol')
+    list_filter = ('status', 'associacao', 'tipo_conta')
     readonly_fields = ('uuid', 'id')
 
 
 @admin.register(AcaoAssociacao)
 class AcaoAssociacaoAdmin(admin.ModelAdmin):
-    list_display = ('uuid', 'acao', 'status')
-    search_fields = ('uuid',)
-    list_filter = ('status',)
+    list_display = ('associacao', 'acao', 'status')
+    search_fields = ('uuid', 'associacao__unidade__codigo_eol')
+    list_filter = ('status', 'associacao', 'acao')
     readonly_fields = ('uuid', 'id')
 
 
