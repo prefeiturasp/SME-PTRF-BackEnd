@@ -12,6 +12,14 @@ class AssociacaoAdmin(admin.ModelAdmin):
         return obj.nome if obj else ''
     get_nome_escola.short_description = 'Escola'
 
+    def importa_associacoes(self, request, queryset):
+        from .services.carga_associacoes import carrega_associacoes
+        carrega_associacoes()
+        self.message_user(request, "Associações carregadas.")
+
+    importa_associacoes.short_description = 'Fazer carga de Associações'
+
+    actions = ['importa_associacoes', ]
     list_display = ('nome', 'cnpj', 'get_nome_escola' )
     search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome')
     list_filter = ('unidade__dre',)
