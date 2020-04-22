@@ -20,7 +20,7 @@ class RepasseViewSet(GenericViewSet):
             .order_by('-criado_em').last()
         
         if not repasse:
-            return Response("Repasse não encontrado para não encontrado.", status=HTTP_404_NOT_FOUND)
+            return Response(f"Repasse não encontrado para ação-associação {acao_associacao_uuid}", status=HTTP_404_NOT_FOUND)
 
         serializer = RepasseSerializer(repasse)
         return Response(serializer.data)
