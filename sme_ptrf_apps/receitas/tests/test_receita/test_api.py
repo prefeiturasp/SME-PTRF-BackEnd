@@ -114,7 +114,8 @@ def test_get_tabelas(
         'tipos_receita': [
             {
                 'id': tipo_receita.id,
-                'nome': tipo_receita.nome
+                'nome': tipo_receita.nome,
+                'e_repasse': tipo_receita.e_repasse
             },
         ],
 
@@ -159,7 +160,8 @@ def test_get_receitas(
             'descricao': "Uma receita",
             'tipo_receita': {
                 'id': tipo_receita.id,
-                'nome': tipo_receita.nome
+                'nome': tipo_receita.nome,
+                'e_repasse': tipo_receita.e_repasse
             },
             "acao_associacao": {
                 "uuid": str(acao_associacao.uuid),
@@ -267,7 +269,8 @@ def test_retrive_receitas(
             'descricao': "Uma receita",
             'tipo_receita': {
                 'id': tipo_receita.id,
-                'nome': tipo_receita.nome
+                'nome': tipo_receita.nome,
+                'e_repasse': tipo_receita.e_repasse
             },
             "acao_associacao": {
                 "uuid": str(acao_associacao.uuid),
