@@ -1,4 +1,5 @@
 import logging
+from datetime import date
 
 from rest_framework.exceptions import ValidationError
 
@@ -9,14 +10,24 @@ logger = logging.getLogger(__name__)
 
 def atualiza_repasse_para_realizado(receita_validated_data):
     repasse = Repasse.objects\
-                .filter(acao_associacao__uuid=receita_validated_data['acao_associacao'].uuid, 
+                .filter(acao_associacao__uuid=receita_validated_data['acao_associacao'].uuid,
                         status='PENDENTE',
-                        periodo__data_inicio_realizacao_despesas__lte=receita_validated_data['data'],
-                        periodo__data_fim_realizacao_despesas__gte=receita_validated_data['data'])\
+                        periodo__data_inicio_realizacao_despesas__lte=receita_validated_data['data'])\
                 .order_by('-criado_em').last()
 
     if not repasse:
         msgError = "Repasse não encontrado."
+        logger.info(msgError)
+        raise ValidationError(msgError)
+
+    data_fim_realizacao_despesas = repasse.periodo.data_fim_realizacao_despesas
+    if data_fim_realizacao_despesas and data_fim_realizacao_despesas <= receita_validated_data['data']:
+        msgError = "Data da receita maior que a data fim da realização de despesas."
+        logger.info(msgError)
+        raise ValidationError(msgError)
+
+    if date.today() <= receita_validated_data['data']:
+        msgError = "Data da receita maior que a data atual."
         logger.info(msgError)
         raise ValidationError(msgError)
 

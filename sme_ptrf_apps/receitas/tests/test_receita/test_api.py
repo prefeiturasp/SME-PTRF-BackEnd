@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from freezegun import freeze_time
 from rest_framework import status
 
 from sme_ptrf_apps.receitas.models import Receita, Repasse
@@ -40,22 +41,23 @@ def test_create_receita_repasse(
     conta_associacao,
     repasse,
     payload_receita_repasse
-):
-    assert Repasse.objects.get(uuid=repasse.uuid).status == 'PENDENTE'
+):  
+    with freeze_time('2019-11-29'): 
+        assert Repasse.objects.get(uuid=repasse.uuid).status == 'PENDENTE'
 
-    response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
+        response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
 
-    assert response.status_code == status.HTTP_201_CREATED
+        assert response.status_code == status.HTTP_201_CREATED
 
-    result = json.loads(response.content)
+        result = json.loads(response.content)
 
-    assert Receita.objects.filter(uuid=result["uuid"]).exists()
+        assert Receita.objects.filter(uuid=result["uuid"]).exists()
 
-    receita = Receita.objects.get(uuid=result["uuid"])
+        receita = Receita.objects.get(uuid=result["uuid"])
 
-    assert receita.associacao.uuid == associacao.uuid
+        assert receita.associacao.uuid == associacao.uuid
 
-    assert Repasse.objects.get(uuid=repasse.uuid).status == 'REALIZADO'
+        assert Repasse.objects.get(uuid=repasse.uuid).status == 'REALIZADO'
 
 
 def test_create_receita_repasse_periodo_invalido(
@@ -74,13 +76,14 @@ def test_create_receita_repasse_periodo_invalido(
     response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
     result = json.loads(response.content)
 
-    assert result == ['Repasse não encontrado.']
+    assert result == ["Data da receita maior que a data fim da realização de despesas."]
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def test_create_receita_repasse_valor_diferente(
     client,
     tipo_receita,
+    periodo,
     acao,
     acao_associacao,
     associacao,
@@ -90,12 +93,13 @@ def test_create_receita_repasse_valor_diferente(
     payload_receita_repasse
 ):
 
-    payload_receita_repasse['valor'] = 2000.67
-    response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
-    result = json.loads(response.content)
+    with freeze_time('2019-11-29'):
+        payload_receita_repasse['valor'] = 2000.67
+        response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
+        result = json.loads(response.content)
 
-    assert result == ['Valor do payload não é igual ao valor total do repasse.']
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert result == ['Valor do payload não é igual ao valor total do repasse.']
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def test_get_tabelas(
