@@ -1,7 +1,7 @@
 import csv
 import logging
 import os
-from brazilnum.cnpj import validate_cnpj
+from brazilnum.cnpj import validate_cnpj, format_cnpj
 
 from django.contrib.staticfiles.storage import staticfiles_storage
 
@@ -11,16 +11,15 @@ logger = logging.getLogger(__name__)
 
 __EOL_UE = 0
 __NOME_UE = 1
-__TIPO_UE = 2
-__EOL_DRE = 3
-__NOME_DRE = 4
-__SIGLA_DRE = 5
-__NOME_ASSOCIACAO = 6
-__CNPJ_ASSOCIACAO = 7
-__RF_PRESIDENTE_DIRETORIA = 8
-__NOME_PRESIDENTE_DIRETORIA = 9
-__RF_PRESIDENTE_CONSELHO = 10
-__NOME_PRESIDENTE_CONSELHO = 11
+__EOL_DRE = 2
+__NOME_DRE = 3
+__SIGLA_DRE = 4
+__NOME_ASSOCIACAO = 5
+__CNPJ_ASSOCIACAO = 6
+__RF_PRESIDENTE_DIRETORIA = 7
+__NOME_PRESIDENTE_DIRETORIA = 8
+__RF_PRESIDENTE_CONSELHO = 9
+__NOME_PRESIDENTE_CONSELHO = 10
 
 def carrega_associacoes():
     def cria_ou_atualiza_dre_from_row(row):
@@ -35,14 +34,14 @@ def carrega_associacoes():
             },
         )
         if created:
-            logger.info(f'Criada DRE {dre.nome}')
+            logger.debug(f'Criada DRE {dre.nome}')
 
         return dre
 
     def cria_ou_atualiza_unidade_from_row(row, dre, lin):
         eol_unidade = row[__EOL_UE]
+        tipo_unidade, _, nome_unidade = row[__NOME_UE].partition(" ")
 
-        tipo_unidade = row[__TIPO_UE]
         if (tipo_unidade, tipo_unidade) not in Unidade.TIPOS_CHOICE:
             logger.error(f'Tipo de unidade inválido ({tipo_unidade}) na linha {lin}. Trocado para EMEF.')
             tipo_unidade = 'EMEF'
@@ -53,11 +52,11 @@ def carrega_associacoes():
                 'tipo_unidade': tipo_unidade,
                 'dre': dre,
                 'sigla': '',
-                'nome': row[__NOME_UE]
+                'nome': nome_unidade
             },
         )
         if created:
-            logger.info(f'Criada Unidade {unidade.nome}')
+            logger.debug(f'Criada Unidade {unidade.nome}')
 
         return unidade
 
@@ -65,8 +64,10 @@ def carrega_associacoes():
 
         cnpj = row[__CNPJ_ASSOCIACAO]
         if not validate_cnpj(cnpj):
-            logger.error(f'CNPJ inválido ({cnpj}) na linha {lin}. Deixado vazio.')
-            cnpj=''
+            logger.error(f'CNPJ inválido ({cnpj}) na linha {lin}. Associação não criada.')
+            return None
+
+        cnpj = format_cnpj(cnpj)
 
         associacao, created = Associacao.objects.update_or_create(
             cnpj=cnpj,
@@ -81,7 +82,7 @@ def carrega_associacoes():
         )
 
         if created:
-            logger.info(f'Criada Associacao {associacao.nome}')
+            logger.debug(f'Criada Associacao {associacao.nome}')
 
         return associacao
 
@@ -92,6 +93,8 @@ def carrega_associacoes():
     reader = csv.reader(f, delimiter=',')
 
     lin = 0
+    importadas = 0
+    erros = 0
     for row in reader:
         if lin == 0:
             lin += 1
@@ -101,8 +104,13 @@ def carrega_associacoes():
 
         dre = cria_ou_atualiza_dre_from_row(row)
         unidade = cria_ou_atualiza_unidade_from_row(row, dre, lin)
-        cria_ou_atualiza_associacao_from_row(row, unidade)
+        associacao = cria_ou_atualiza_associacao_from_row(row, unidade)
+
+        if associacao:
+            importadas += 1
+        else:
+            erros += 1
 
     f.close()
 
-    logger.info(f'Importadas {lin-1} associações.')
+    logger.info(f'Importadas {importadas} associações. Erro na importação de {erros} associações.')
