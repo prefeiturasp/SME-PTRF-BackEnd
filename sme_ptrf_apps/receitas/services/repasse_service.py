@@ -26,7 +26,7 @@ def atualiza_repasse_para_realizado(receita_validated_data):
         logger.info(msgError)
         raise ValidationError(msgError)
 
-    if date.today() <= receita_validated_data['data']:
+    if date.today() < receita_validated_data['data']:
         msgError = "Data da receita maior que a data atual."
         logger.info(msgError)
         raise ValidationError(msgError)
