@@ -108,7 +108,7 @@ def processa_repasse(reader, conta, nome_arquivo):
                         conta_associacao=conta_associacao,
                         acao_associacao=acao_associacao,
                         periodo=periodo,
-                        status=StatusRepasse.PENDENTE.value
+                        status=StatusRepasse.PENDENTE.name
                     )
             except Exception as e:
                 logger.info("Error %s", str(e))
