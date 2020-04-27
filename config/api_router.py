@@ -7,9 +7,11 @@ from rest_framework.routers import DefaultRouter, SimpleRouter
 from sme_ptrf_apps import __version__
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
+from sme_ptrf_apps.despesas.api.views.fornecedores_viewset import FornecedoresViewSet
 from sme_ptrf_apps.despesas.api.views.rateios_despesas_viewset import RateiosDespesasViewSet
+from sme_ptrf_apps.receitas.api.views import ReceitaViewSet, RepasseViewSet
 from sme_ptrf_apps.users.api.views import LoginView, UserViewSet
-from sme_ptrf_apps.receitas.api.views import ReceitaViewSet
+from sme_ptrf_apps.core.api.views import AssociacoesViewSet
 
 
 @api_view()
@@ -27,6 +29,9 @@ router.register("despesas", DespesasViewSet)
 router.register("especificacoes", EspecificacaoMaterialServicoViewSet)
 router.register("rateios-despesas", RateiosDespesasViewSet)
 router.register("receitas", ReceitaViewSet)
+router.register("fornecedores", FornecedoresViewSet)
+router.register("associacoes", AssociacoesViewSet)
+router.register("repasses", RepasseViewSet, basename='repasses-pendentes')
 
 app_name = "api"
 urlpatterns = router.urls

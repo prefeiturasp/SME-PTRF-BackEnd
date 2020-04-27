@@ -1,9 +1,8 @@
 from rest_framework import serializers
 
-from ...models import AcaoAssociacao
-
 from ..serializers.acao_serializer import AcaoSerializer
 from ..serializers.associacao_serializer import AssociacaoSerializer
+from ...models import AcaoAssociacao
 
 
 class AcaoAssociacaoSerializer(serializers.ModelSerializer):
@@ -23,4 +22,4 @@ class AcaoAssociacaoLookUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AcaoAssociacao
-        fields = ('uuid', 'nome')
+        fields = ('uuid', 'id', 'nome')

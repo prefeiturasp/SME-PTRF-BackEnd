@@ -6,8 +6,8 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_rateios_despesas(client, despesa, rateio_despesa_capital):
-    response = client.get('/api/rateios-despesas/', content_type='application/json')
+def test_api_get_rateios_despesas(jwt_authenticated_client, despesa, rateio_despesa_capital):
+    response = jwt_authenticated_client.get('/api/rateios-despesas/', content_type='application/json')
     result = json.loads(response.content)
 
     results = [
@@ -26,6 +26,7 @@ def test_api_get_rateios_despesas(client, despesa, rateio_despesa_capital):
             "aplicacao_recurso": rateio_despesa_capital.aplicacao_recurso,
             "acao_associacao": {
                 "uuid": f'{rateio_despesa_capital.acao_associacao.uuid}',
+                "id": rateio_despesa_capital.acao_associacao.id,
                 "nome": rateio_despesa_capital.acao_associacao.acao.nome
             },
             "valor_total": despesa.valor_total

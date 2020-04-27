@@ -46,6 +46,10 @@ class TemChaveExterna(models.Model):
 
 
 class ModeloBase(TemChaveExterna, TemCriadoEm, TemAlteradoEm):
+    @classmethod
+    def get_valores(cls, user=None):
+        return cls.objects.all().order_by('nome')
+    
     class Meta:
         abstract = True
 
@@ -71,7 +75,7 @@ class SingletonModel(models.Model):
 class ModeloIdNome(ModeloBase, TemNome):
 
     @classmethod
-    def get_valores(cls):
+    def get_valores(cls, user=None):
         return cls.objects.all().order_by('nome')
 
     def __str__(self):

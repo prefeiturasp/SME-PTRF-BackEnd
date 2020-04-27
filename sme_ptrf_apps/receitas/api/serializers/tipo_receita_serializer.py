@@ -6,4 +6,4 @@ from sme_ptrf_apps.receitas.models import TipoReceita
 class TipoReceitaSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoReceita
-        fields = ('id', 'nome')
+        fields = ('id', 'nome', 'e_repasse')

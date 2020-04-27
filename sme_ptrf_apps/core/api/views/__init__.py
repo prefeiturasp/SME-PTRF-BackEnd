@@ -1,0 +1,1 @@
+from .associacoes_viewset import AssociacoesViewSet
