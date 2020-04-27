@@ -2,6 +2,7 @@ from datetime import date, timedelta
 
 import pytest
 from django.test import RequestFactory
+from rest_framework.test import APIClient
 from model_bakery import baker
 
 from sme_ptrf_apps.users.models import User
@@ -23,9 +24,39 @@ def fake_user(client, django_user_model, associacao):
 def authenticated_client(client, django_user_model):
     password = 'teste'
     username = 'fake'
-    django_user_model.objects.create_user(username=username, password=password, )
+    django_user_model.objects.create_user(username=username, password=password)
     client.login(username=username, password=password)
     return client
+
+
+@pytest.fixture
+def usuario(associacao):
+    from django.contrib.auth import get_user_model
+    senha = 'Sgp0418'
+    login = '7210418'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, associacao=associacao)
+    return user
+
+
+@pytest.fixture
+def jwt_authenticated_client(client, usuario, associacao):
+    from unittest.mock import Mock, patch
+    api_client = APIClient()
+    with patch('sme_ptrf_apps.users.api.views.login.AutenticacaoService.autentica') as mock_post:
+        data = {
+            "nome": "LUCIA HELENA",
+            "cpf": "62085077072",
+            "email": "luh@gmail.com",
+            "login": "7210418"
+        }
+        mock_post.return_value.ok = True
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = data
+        resp = api_client.post('/api/login', {'login': usuario.username, 'senha': usuario.password}, format='json')
+        resp_data = resp.json()
+        api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
+    return api_client
 
 
 @pytest.fixture(autouse=True)

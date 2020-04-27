@@ -36,11 +36,15 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         else:
             return ReceitaCreateSerializer
 
+    def get_queryset(self):
+        associacao = self.request.user.associacao
+        return Receita.objects.filter(associacao__uuid=associacao.uuid).all().order_by('-data')
+
     @action(detail=False, url_path='tabelas')
     def tabelas(self, request):
 
         def get_valores_from(serializer):
-            valores = serializer.Meta.model.get_valores()
+            valores = serializer.Meta.model.get_valores(user=request.user)
             return serializer(valores, many=True).data if valores else []
 
         result = {

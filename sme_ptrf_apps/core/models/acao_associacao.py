@@ -34,8 +34,11 @@ class AcaoAssociacao(ModeloBase):
         return f"{associacao} - Ação {acao} - {status}"
 
     @classmethod
-    def get_valores(cls):
-        return cls.objects.all().filter(status=cls.STATUS_ATIVA)
+    def get_valores(cls, user=None):
+        query = cls.objects.filter(status=cls.STATUS_ATIVA)
+        if user:
+            query = query.filter(associacao__uuid=user.associacao.uuid)
+        return query.all()
 
     class Meta:
         verbose_name = "Ação de Associação"

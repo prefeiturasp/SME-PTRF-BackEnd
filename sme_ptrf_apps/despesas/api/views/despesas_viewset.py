@@ -35,7 +35,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
     def tabelas(self, request):
 
         def get_valores_from(serializer):
-            valores = serializer.Meta.model.get_valores()
+            valores = serializer.Meta.model.get_valores(user=request.user)
             return serializer(valores, many=True).data if valores else []
 
         result = {
