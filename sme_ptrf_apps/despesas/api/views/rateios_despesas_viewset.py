@@ -17,5 +17,9 @@ class RateiosDespesasViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ('uuid', 'id', 'especificacao_material_servico__descricao')
     filter_fields = ('aplicacao_recurso', 'acao_associacao__uuid', 'despesa__status', 'associacao__uuid')
 
+    def get_queryset(self):
+        associacao = self.request.user.associacao
+        return RateioDespesa.objects.filter(associacao__uuid=associacao.uuid).all().order_by('-despesa__data_documento')
+
     def get_serializer_class(self):
         return RateioDespesaListaSerializer

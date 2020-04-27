@@ -103,7 +103,7 @@ def test_create_receita_repasse_valor_diferente(
 
 
 def test_get_tabelas(
-    client,
+    jwt_authenticated_client,
     tipo_receita,
     acao,
     acao_associacao,
@@ -111,7 +111,7 @@ def test_get_tabelas(
     tipo_conta,
     conta_associacao):
 
-    response = client.get('/api/receitas/tabelas/', content_type='application/json')
+    response = jwt_authenticated_client.get('/api/receitas/tabelas/', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = {
@@ -145,7 +145,7 @@ def test_get_tabelas(
 
 
 def test_get_receitas(
-    client,
+    jwt_authenticated_client,
     tipo_receita,
     receita,
     acao,
@@ -153,7 +153,7 @@ def test_get_receitas(
     associacao,
     tipo_conta,
     conta_associacao):
-    response = client.get('/api/receitas/', content_type='application/json')
+    response = jwt_authenticated_client.get('/api/receitas/', content_type='application/json')
     result = json.loads(response.content)
 
     results = [
@@ -186,7 +186,7 @@ def test_get_receitas(
 
 
 def test_update_receita(
-    client,
+    jwt_authenticated_client,
     tipo_receita,
     acao,
     acao_associacao,
@@ -196,7 +196,7 @@ def test_update_receita(
     receita,
     payload_receita
 ):
-    response = client.put(f'/api/receitas/{receita.uuid}/', data=json.dumps(payload_receita),
+    response = jwt_authenticated_client.put(f'/api/receitas/{receita.uuid}/', data=json.dumps(payload_receita),
                           content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
@@ -209,7 +209,7 @@ def test_update_receita(
 
 
 def test_deleta_receita(
-    client,
+    jwt_authenticated_client,
     tipo_receita,
     acao,
     acao_associacao,
@@ -221,7 +221,7 @@ def test_deleta_receita(
 
     assert Receita.objects.filter(uuid=receita.uuid).exists()
 
-    response = client.delete(f'/api/receitas/{receita.uuid}/', content_type='application/json')
+    response = jwt_authenticated_client.delete(f'/api/receitas/{receita.uuid}/', content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -229,7 +229,7 @@ def test_deleta_receita(
 
 
 def test_deleta_receita_repasse(
-    client,
+    jwt_authenticated_client,
     tipo_receita_repasse,
     acao,
     acao_associacao_role_cultural,
@@ -244,7 +244,7 @@ def test_deleta_receita_repasse(
 
     assert Receita.objects.filter(uuid=receita_yyy_repasse.uuid).exists()
 
-    response = client.delete(f'/api/receitas/{receita_yyy_repasse.uuid}/', content_type='application/json')
+    response = jwt_authenticated_client.delete(f'/api/receitas/{receita_yyy_repasse.uuid}/', content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -254,7 +254,7 @@ def test_deleta_receita_repasse(
 
 
 def test_retrive_receitas(
-    client,
+    jwt_authenticated_client,
     tipo_receita,
     receita,
     acao,
@@ -263,7 +263,7 @@ def test_retrive_receitas(
     tipo_conta,
     conta_associacao):
 
-    response = client.get(f'/api/receitas/{receita.uuid}/', content_type='application/json')
+    response = jwt_authenticated_client.get(f'/api/receitas/{receita.uuid}/', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = {

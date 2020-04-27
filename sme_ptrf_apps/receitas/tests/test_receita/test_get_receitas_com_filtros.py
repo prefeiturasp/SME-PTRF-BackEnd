@@ -6,7 +6,7 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_receitas_por_tipo_receita(client,
+def test_api_get_receitas_por_tipo_receita(jwt_authenticated_client,
                                            tipo_receita_estorno,
                                            tipo_receita_repasse,
                                            receita_xxx_estorno,
@@ -16,7 +16,7 @@ def test_api_get_receitas_por_tipo_receita(client,
                                            associacao,
                                            tipo_conta,
                                            conta_associacao):
-    response = client.get(f'/api/receitas/?tipo_receita={tipo_receita_estorno.id}',
+    response = jwt_authenticated_client.get(f'/api/receitas/?tipo_receita={tipo_receita_estorno.id}',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -24,7 +24,7 @@ def test_api_get_receitas_por_tipo_receita(client,
     assert len(result) == 1
 
 
-def test_api_get_receitas_por_acao_associacao(client,
+def test_api_get_receitas_por_acao_associacao(jwt_authenticated_client,
                                               tipo_receita_estorno,
                                               tipo_receita_repasse,
                                               receita_xxx_estorno,
@@ -35,7 +35,7 @@ def test_api_get_receitas_por_acao_associacao(client,
                                               associacao,
                                               tipo_conta,
                                               conta_associacao):
-    response = client.get(
+    response = jwt_authenticated_client.get(
         f'/api/receitas/?associacao__uuid={associacao.uuid}&acao_associacao__uuid={acao_associacao_ptrf.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -44,7 +44,7 @@ def test_api_get_receitas_por_acao_associacao(client,
     assert len(result) == 1
 
 
-def test_api_get_receitas_por_conta_associacao(client,
+def test_api_get_receitas_por_conta_associacao(jwt_authenticated_client,
                                                tipo_receita_estorno,
                                                tipo_receita_repasse,
                                                receita_xxx_estorno,
@@ -56,7 +56,7 @@ def test_api_get_receitas_por_conta_associacao(client,
                                                tipo_conta,
                                                conta_associacao_cheque,
                                                conta_associacao_cartao):
-    response = client.get(
+    response = jwt_authenticated_client.get(
         f'/api/receitas/?associacao__uuid={associacao.uuid}&conta_associacao__uuid={conta_associacao_cartao.uuid}',
         content_type='application/json')
     result = json.loads(response.content)

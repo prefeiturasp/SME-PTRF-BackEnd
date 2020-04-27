@@ -18,6 +18,9 @@ class TipoContaEnum(enum.Enum):
     CARTAO = 'Cartão'
     CHEQUE = 'Cheque'
 
+class StatusRepasse(enum.Enum):
+    PENDENTE = 'Pendente'
+    REALIZADO = 'Realizado'
 
 def get_valor(val):
     if not val:
@@ -104,7 +107,8 @@ def processa_repasse(reader, conta, nome_arquivo):
                         valor_custeio=valor_custeio,
                         conta_associacao=conta_associacao,
                         acao_associacao=acao_associacao,
-                        periodo=periodo
+                        periodo=periodo,
+                        status=StatusRepasse.PENDENTE.value
                     )
             except Exception as e:
                 logger.info("Error %s", str(e))

@@ -6,7 +6,7 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_search_receitas_por_nome(client, tipo_receita,
+def test_api_get_search_receitas_por_nome(jwt_authenticated_client, tipo_receita,
                                           receita_xxx_estorno,
                                           receita_yyy_repasse,
                                           acao,
@@ -14,7 +14,7 @@ def test_api_get_search_receitas_por_nome(client, tipo_receita,
                                           associacao,
                                           tipo_conta,
                                           conta_associacao):
-    response = client.get(f'/api/receitas/?associacao__uuid={associacao.uuid}&search=xxx',
+    response = jwt_authenticated_client.get(f'/api/receitas/?associacao__uuid={associacao.uuid}&search=xxx',
                           content_type='application/json')
     result = json.loads(response.content)
 
