@@ -30,6 +30,7 @@ class RateioDespesaAdmin(admin.ModelAdmin):
         ('associacao__unidade__dre', customTitledFilter('DRE')),
         ('acao_associacao__acao__nome', customTitledFilter('Ação')),
         ('conta_associacao__tipo_conta__nome', customTitledFilter('Tipo Conta')),
+        ('aplicacao_recurso', customTitledFilter('Tipo Despesa')),
         ('despesa__numero_documento', customTitledFilter('Número documento')),
         ('tipo_custeio', customTitledFilter('Tipo Custeio')),
         ('despesa__tipo_documento', customTitledFilter('Tipo Documento')),
