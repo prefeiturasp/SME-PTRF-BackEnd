@@ -11,7 +11,21 @@ Versão: 0.2.0
 ## Release Notes
 
 ### 0.2.0 - 28/04/2020 - Entregas da Sprint 3
-* 
+* Carga de Associações
+* Carga de Usuários
+* Carga de Repasses
+* Cadastro de Períodos de realização de despesas
+* Registro de alterações (Audit Logs) de Despesas
+* Registro de alterações (Audit Logs) de Receitas
+* Consulta de despesas no Admin
+* Consulta de receitas no Admin
+* Confirmação de repasses pela Associação
+* Alerta na despesa sobre o uso de especificações do Sistema de Bens Patrimoniais Móveis do PMSP
+* Filtros diversos para consulta de despesas
+* Filtros diversos para consulta de receitas
+* Cadastro de Associações
+* Registro de fornecedores usados
+* Consulta de informações para o Painel de Ações da Associação
 
 ### 0.1.0 - 07/04/2020 - Entregas da Sprint 2
 * Autenticação de usuário
