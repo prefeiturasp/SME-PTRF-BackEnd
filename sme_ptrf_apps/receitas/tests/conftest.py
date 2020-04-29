@@ -1,12 +1,22 @@
-import pytest
 import datetime
 
+import pytest
 from model_bakery import baker
 
 
 @pytest.fixture
 def tipo_receita():
-    return baker.make('TipoReceita', nome='Estorno')
+    return baker.make('TipoReceita', nome='Estorno', e_repasse=False)
+
+
+@pytest.fixture
+def tipo_receita_estorno(tipo_receita):
+    return tipo_receita
+
+
+@pytest.fixture
+def tipo_receita_repasse():
+    return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
 
 
 @pytest.fixture
@@ -34,3 +44,70 @@ def payload_receita(associacao, conta_associacao, acao_associacao, tipo_receita)
         'tipo_receita': tipo_receita.id
     }
     return payload
+
+@pytest.fixture
+def payload_receita_repasse(associacao, conta_associacao, acao_associacao, tipo_receita_repasse):
+    payload = {
+        'associacao': str(associacao.uuid),
+        'data': '2019-09-26',
+        'valor': 2000.68,
+        'descricao': 'Uma receita',
+        'conta_associacao': str(conta_associacao.uuid),
+        'acao_associacao': str(acao_associacao.uuid),
+        'tipo_receita': tipo_receita_repasse.id
+    }
+    return payload
+
+@pytest.fixture
+def receita_xxx_estorno(associacao, conta_associacao_cheque, acao_associacao_ptrf, tipo_receita_estorno):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        descricao="Receita XXX",
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao_ptrf,
+        tipo_receita=tipo_receita_estorno,
+    )
+
+
+@pytest.fixture
+def receita_yyy_repasse(associacao, conta_associacao_cartao, acao_associacao_role_cultural, tipo_receita_repasse):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        descricao="Receita YYY",
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        tipo_receita=tipo_receita_repasse,
+    )
+
+
+@pytest.fixture
+def repasse(associacao, conta_associacao, acao_associacao, periodo):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo,
+        valor_custeio=1000.40,
+        valor_capital=1000.28,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE'
+    )
+
+@pytest.fixture
+def repasse_realizado(associacao, conta_associacao, acao_associacao_role_cultural, periodo):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo,
+        valor_custeio=1000.40,
+        valor_capital=1000.28,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_role_cultural,
+        status='REALIZADO'
+    )

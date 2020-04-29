@@ -18,4 +18,4 @@ def test_instance(receita):
 
 
 def test_str(receita):
-    assert str(receita) == "Uma receita - 2020-03-26 - 100.0"
+    assert str(receita) == "RECEITA<Uma receita - 2020-03-26 - 100.0>"

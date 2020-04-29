@@ -12,6 +12,7 @@ def test_instance(tipo_receita):
     assert model.alterado_em
     assert model.uuid
     assert model.id
+    assert not model.e_repasse 
 
 
 def test_srt_model(tipo_receita):

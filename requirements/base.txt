@@ -18,6 +18,7 @@ django-allauth==0.41.0  # https://github.com/pennersr/django-allauth
 django-crispy-forms==1.9.0  # https://github.com/django-crispy-forms/django-crispy-forms
 django-compressor==2.4  # https://github.com/django-compressor/django-compressor
 django-redis==4.11.0  # https://github.com/niwinz/django-redis
+django-admin-rangefilter==0.5.4 # https://github.com/silentsokolov/django-admin-rangefilter
 
 # Django REST Framework
 djangorestframework==3.11.0  # https://github.com/encode/django-rest-framework
@@ -29,3 +30,16 @@ django-filter==2.2.0
 djangorestframework-jwt==1.11.0  # https://getblimp.github.io/django-rest-framework-jwt/
 
 django-cors-headers # https://github.com/adamchainz/django-cors-headers
+
+# Para gravação de log de alterações nos modelos
+# https://django-auditlog.readthedocs.io/en/latest/index.html
+# Pegando última versão diretamente do repositório oficial.
+-e git://github.com/jjkester/django-auditlog.git##egg=auditlog
+
+# Para validação e formatação de CNPJ e CPF
+# https://github.com/poliquin/brazilnum
+brazilnum==0.8.8
+
+# Para melhoria da aparência do Django Admin
+# https://github.com/fabiocaccamo/django-admin-interface
+django-admin-interface==0.12.2

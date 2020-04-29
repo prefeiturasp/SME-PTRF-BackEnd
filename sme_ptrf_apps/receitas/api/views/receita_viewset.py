@@ -1,8 +1,7 @@
 from django_filters import rest_framework as filters
-from rest_framework import mixins
+from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -12,10 +11,9 @@ from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import \
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import \
     ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.receitas.models import Receita
-
 from ..serializers import (ReceitaCreateSerializer, ReceitaListaSerializer,
                            TipoReceitaSerializer)
-
+from ...services import atualiza_repasse_para_pendente
 
 class ReceitaViewSet(mixins.CreateModelMixin,
                      mixins.RetrieveModelMixin,
@@ -29,7 +27,8 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     serializer_class = ReceitaListaSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data',)
-    search_fields = ('uuid', 'id', 'descricao')
+    search_fields = ('descricao',)
+    filter_fields = ('associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid')
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
@@ -37,11 +36,15 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         else:
             return ReceitaCreateSerializer
 
+    def get_queryset(self):
+        associacao = self.request.user.associacao
+        return Receita.objects.filter(associacao__uuid=associacao.uuid).all().order_by('-data')
+
     @action(detail=False, url_path='tabelas')
     def tabelas(self, request):
 
         def get_valores_from(serializer):
-            valores = serializer.Meta.model.get_valores()
+            valores = serializer.Meta.model.get_valores(user=request.user)
             return serializer(valores, many=True).data if valores else []
 
         result = {
@@ -51,3 +54,10 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         }
 
         return Response(result)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.tipo_receita.e_repasse:
+            atualiza_repasse_para_pendente(instance.acao_associacao)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
