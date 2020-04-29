@@ -37,8 +37,8 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             return ReceitaCreateSerializer
 
     def get_queryset(self):
-        associacao = self.request.user.associacao
-        return Receita.objects.filter(associacao__uuid=associacao.uuid).all().order_by('-data')
+        user = self.request.user
+        return Receita.objects.filter(associacao__usuario=user).all().order_by('-data')
 
     @action(detail=False, url_path='tabelas')
     def tabelas(self, request):

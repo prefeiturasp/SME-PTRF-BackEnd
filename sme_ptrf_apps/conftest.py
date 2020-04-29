@@ -12,10 +12,10 @@ from .despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPIT
 
 
 @pytest.fixture
-def fake_user(client, django_user_model, associacao):
+def fake_user(client, django_user_model):
     password = 'teste'
     username = 'fake'
-    user = django_user_model.objects.create_user(username=username, password=password, associacao=associacao)
+    user = django_user_model.objects.create_user(username=username, password=password)
     client.login(username=username, password=password)
     return user
 
@@ -30,17 +30,17 @@ def authenticated_client(client, django_user_model):
 
 
 @pytest.fixture
-def usuario(associacao):
+def usuario():
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
     login = '7210418'
     User = get_user_model()
-    user = User.objects.create_user(username=login, password=senha, associacao=associacao)
+    user = User.objects.create_user(username=login, password=senha)
     return user
 
 
 @pytest.fixture
-def jwt_authenticated_client(client, usuario, associacao):
+def jwt_authenticated_client(client, usuario):
     from unittest.mock import Mock, patch
     api_client = APIClient()
     with patch('sme_ptrf_apps.users.api.views.login.AutenticacaoService.autentica') as mock_post:
@@ -115,7 +115,7 @@ def unidade(dre):
 
 
 @pytest.fixture
-def associacao(unidade):
+def associacao(unidade, usuario):
     return baker.make(
         'Associacao',
         nome='Escola Teste',
@@ -125,6 +125,7 @@ def associacao(unidade):
         presidente_associacao_rf='1234567',
         presidente_conselho_fiscal_nome='Ciclano',
         presidente_conselho_fiscal_rf='7654321',
+        usuario=usuario
     )
 
 

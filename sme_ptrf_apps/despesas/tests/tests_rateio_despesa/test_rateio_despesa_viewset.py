@@ -8,10 +8,7 @@ from ...api.views.rateios_despesas_viewset import RateiosDespesasViewSet
 pytestmark = pytest.mark.django_db
 
 
-def test_view_set(rateio_despesa_capital, fake_user):
-    request = APIRequestFactory().get("")
-    detalhe = RateiosDespesasViewSet.as_view({'get': 'retrieve'})
-    force_authenticate(request, user=fake_user)
-    response = detalhe(request, uuid=rateio_despesa_capital.uuid)
-
+def test_view_set(rateio_despesa_capital, jwt_authenticated_client):
+    response = jwt_authenticated_client.get(f'/api/rateios-despesas/{rateio_despesa_capital.uuid}/')
     assert response.status_code == status.HTTP_200_OK
+
