@@ -8,8 +8,8 @@ from ...tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL, APL
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_despesas_tabelas(jwt_authenticated_client, tipo_aplicacao_recurso, tipo_custeio, tipo_documento, tipo_transacao, acao,
-                                  acao_associacao, associacao, tipo_conta, conta_associacao):
+def test_api_get_despesas_tabelas(associacao, jwt_authenticated_client, tipo_aplicacao_recurso, tipo_custeio, tipo_documento, tipo_transacao, acao,
+                                  acao_associacao, tipo_conta, conta_associacao):
     response = jwt_authenticated_client.get('/api/despesas/tabelas/', content_type='application/json')
     result = json.loads(response.content)
 

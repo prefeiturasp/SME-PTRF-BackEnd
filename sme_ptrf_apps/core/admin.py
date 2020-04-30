@@ -20,7 +20,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
     importa_associacoes.short_description = 'Fazer carga de Associações'
 
     actions = ['importa_associacoes', ]
-    list_display = ('nome', 'cnpj', 'get_nome_escola' )
+    list_display = ('nome', 'cnpj', 'get_nome_escola', 'usuario')
     search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome')
     list_filter = ('unidade__dre',)
     readonly_fields = ('uuid', 'id')

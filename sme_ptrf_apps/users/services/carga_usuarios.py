@@ -19,8 +19,9 @@ def processa_importacao_usuarios(reader):
                 logger.info('Linha %s: %s', index, row)
                 associacao = Associacao.objects.filter(cnpj=row[1].strip()).first()
                 if associacao:
-                    User.objects.update_or_create(username=row[0].strip(),
-                        defaults={'associacao': associacao})
+                    u = User.objects.create(username=row[0].strip())
+                    associacao.usuario = u
+                    associacao.save()
                     logger.info('Usuário para o rf %s criado com sucesso.', row[0].strip())
                     continue
 
