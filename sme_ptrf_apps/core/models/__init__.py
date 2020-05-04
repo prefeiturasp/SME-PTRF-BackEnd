@@ -6,3 +6,4 @@ from .periodo import Periodo
 from .tipo_conta import TipoConta
 from .unidade import Unidade
 from .fechamento_periodo import FechamentoPeriodo, STATUS_ABERTO, STATUS_FECHADO
+from .prestacao_conta import PrestacaoConta, STATUS_ABERTO, STATUS_FECHADO

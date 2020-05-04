@@ -9,7 +9,7 @@ from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
 from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
-
+from .core.models.prestacao_conta import STATUS_FECHADO as PRESTACAO_FECHADA
 
 @pytest.fixture
 def fake_user(client, django_user_model):
@@ -237,6 +237,32 @@ def periodo_aberto(periodo_anterior):
         data_inicio_prestacao_contas=date(2019, 12, 1),
         data_fim_prestacao_contas=date(2019, 12, 5),
         periodo_anterior=periodo_anterior
+    )
+
+
+@pytest.fixture
+def prestacao_conta_anterior(periodo_anterior, associacao, conta_associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_anterior,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        prestacao_de_conta_anterior=None,
+        status=PRESTACAO_FECHADA,
+        conciliado=True
+    )
+
+@pytest.fixture
+def prestacao_conta(periodo, associacao, conta_associacao, prestacao_conta_anterior):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        prestacao_de_conta_anterior=prestacao_conta_anterior,
+        status=PRESTACAO_FECHADA,
+        conciliado=True,
+        observacoes='Teste'
     )
 
 
