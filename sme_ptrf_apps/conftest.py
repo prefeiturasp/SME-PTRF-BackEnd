@@ -1,13 +1,14 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 import pytest
 from django.test import RequestFactory
-from rest_framework.test import APIClient
 from model_bakery import baker
+from rest_framework.test import APIClient
 
 from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
 from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO
+from .core.models.prestacao_conta import STATUS_FECHADO as PRESTACAO_FECHADA
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
 
 
@@ -41,7 +42,7 @@ def usuario():
 
 @pytest.fixture
 def jwt_authenticated_client(client, usuario):
-    from unittest.mock import Mock, patch
+    from unittest.mock import patch
     api_client = APIClient()
     with patch('sme_ptrf_apps.users.api.views.login.AutenticacaoService.autentica') as mock_post:
         data = {
@@ -237,6 +238,34 @@ def periodo_aberto(periodo_anterior):
         data_inicio_prestacao_contas=date(2019, 12, 1),
         data_fim_prestacao_contas=date(2019, 12, 5),
         periodo_anterior=periodo_anterior
+    )
+
+
+@pytest.fixture
+def prestacao_conta_anterior(periodo_anterior, associacao, conta_associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_anterior,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        prestacao_de_conta_anterior=None,
+        status=PRESTACAO_FECHADA,
+        conciliado=True
+    )
+
+@pytest.fixture
+def prestacao_conta(periodo, associacao, conta_associacao, prestacao_conta_anterior):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        prestacao_de_conta_anterior=prestacao_conta_anterior,
+        status=PRESTACAO_FECHADA,
+        conciliado=True,
+        conciliado_em=datetime(2020, 1, 1, 10, 30, 15),
+        observacoes='Teste',
+        motivo_reabertura='Teste'
     )
 
 
