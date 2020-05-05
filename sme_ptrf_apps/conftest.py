@@ -1,15 +1,16 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 import pytest
 from django.test import RequestFactory
-from rest_framework.test import APIClient
 from model_bakery import baker
+from rest_framework.test import APIClient
 
 from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
 from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO
-from .despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
 from .core.models.prestacao_conta import STATUS_FECHADO as PRESTACAO_FECHADA
+from .despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
+
 
 @pytest.fixture
 def fake_user(client, django_user_model):
@@ -41,7 +42,7 @@ def usuario():
 
 @pytest.fixture
 def jwt_authenticated_client(client, usuario):
-    from unittest.mock import Mock, patch
+    from unittest.mock import patch
     api_client = APIClient()
     with patch('sme_ptrf_apps.users.api.views.login.AutenticacaoService.autentica') as mock_post:
         data = {
@@ -262,7 +263,9 @@ def prestacao_conta(periodo, associacao, conta_associacao, prestacao_conta_anter
         prestacao_de_conta_anterior=prestacao_conta_anterior,
         status=PRESTACAO_FECHADA,
         conciliado=True,
-        observacoes='Teste'
+        conciliado_em=datetime(2020, 1, 1, 10, 30, 15),
+        observacoes='Teste',
+        motivo_reabertura='Teste'
     )
 
 

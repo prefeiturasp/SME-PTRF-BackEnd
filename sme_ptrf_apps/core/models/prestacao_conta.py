@@ -39,7 +39,11 @@ class PrestacaoConta(ModeloBase):
 
     conciliado = models.BooleanField('Período Conciliado?', default=False)
 
+    conciliado_em = models.DateTimeField('Última conciliação feita em', blank=True, null=True)
+
     observacoes = models.TextField('observacoes', blank=True, default='')
+
+    motivo_reabertura = models.TextField('Motivo de reabrir a conciliação', blank=True, default='')
 
     def __str__(self):
         nome_conta = self.conta_associacao.tipo_conta.nome if self.conta_associacao else ''
