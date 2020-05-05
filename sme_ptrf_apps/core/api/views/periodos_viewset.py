@@ -13,7 +13,7 @@ class PeriodosViewSet(mixins.ListModelMixin,
                       GenericViewSet):
     permission_classes = [AllowAny]
     lookup_field = 'uuid'
-    queryset = Periodo.objects.all()
+    queryset = Periodo.objects.all().order_by('-referencia')
     serializer_class = PeriodoSerializer
 
     @action(detail=False)
