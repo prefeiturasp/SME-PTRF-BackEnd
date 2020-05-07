@@ -1,1 +1,3 @@
 from .associacoes_viewset import AssociacoesViewSet
+from .periodos_viewset import PeriodosViewSet
+from .prestacoes_contas_viewset import PrestacoesContasViewSet

@@ -23,6 +23,9 @@ STATUS_CHOICES = (
 
 
 class FechamentoPeriodo(ModeloBase):
+    prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE,
+                                        related_name='fechamentos_da_prestacao', blank=True, null=True)
+
     periodo = models.ForeignKey('Periodo', on_delete=models.PROTECT, related_name='fechamentos')
 
     associacao = models.ForeignKey('Associacao', on_delete=models.PROTECT, related_name='fechamentos_associacao',
