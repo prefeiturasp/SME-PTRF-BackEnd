@@ -30,7 +30,17 @@ def receita(associacao, conta_associacao, acao_associacao, tipo_receita):
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
+        conferido=True,
     )
+
+@pytest.fixture
+def receita_conferida(receita):
+    return receita
+
+@pytest.fixture
+def receita_nao_conferida(receita):
+    receita.conferido = False
+    return receita
 
 @pytest.fixture
 def payload_receita(associacao, conta_associacao, acao_associacao, tipo_receita):

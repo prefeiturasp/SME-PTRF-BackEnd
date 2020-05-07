@@ -26,6 +26,8 @@ class Receita(ModeloBase):
 
     tipo_receita = models.ForeignKey('TipoReceita', on_delete=models.PROTECT, blank=True, null=True)
 
+    conferido = models.BooleanField('Conferido?', default=False)
+
     def __str__(self):
         return f'RECEITA<{self.descricao} - {self.data} - {self.valor}>'
 
@@ -37,6 +39,14 @@ class Receita(ModeloBase):
         else:
             return cls.objects.filter(acao_associacao=acao_associacao).filter(
                 data__gte=periodo.data_inicio_realizacao_despesas).all()
+
+    def marcar_conferido(self):
+        self.conferido = True
+        self.save()
+
+    def desmarcar_conferido(self):
+        self.conferido = False
+        self.save()
 
 
 auditlog.register(Receita)
