@@ -133,10 +133,19 @@ def rateio_despesa_capital(associacao, despesa, conta_associacao, acao, tipo_apl
         valor_rateio=100.00,
         quantidade_itens_capital=2,
         valor_item_capital=50.00,
-        numero_processo_incorporacao_capital='Teste123456'
-
+        numero_processo_incorporacao_capital='Teste123456',
+        conferido=True,
     )
 
+
+@pytest.fixture
+def rateio_despesa_conferido(rateio_despesa_capital):
+    return rateio_despesa_capital
+
+@pytest.fixture
+def rateio_despesa_nao_conferido(rateio_despesa_capital):
+    rateio_despesa_capital.conferido = False
+    return rateio_despesa_capital
 
 @pytest.fixture
 def rateio_despesa_instalacao_eletrica_ptrf(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso_custeio,

@@ -46,6 +46,8 @@ class RateioDespesa(ModeloBase):
         default=STATUS_INCOMPLETO
     )
 
+    conferido = models.BooleanField('Conferido?', default=False)
+
     def __str__(self):
         documento = self.despesa.numero_documento if self.despesa else 'Despesa indefinida'
         return f"{documento} - {self.valor_rateio:.2f}"
@@ -76,6 +78,14 @@ class RateioDespesa(ModeloBase):
         else:
             return cls.objects.filter(acao_associacao=acao_associacao).filter(
                 despesa__data_documento__gte=periodo.data_inicio_realizacao_despesas).all()
+
+    def marcar_conferido(self):
+        self.conferido = True
+        self.save()
+
+    def desmarcar_conferido(self):
+        self.conferido = False
+        self.save()
 
     class Meta:
         verbose_name = "Rateio de despesa"
