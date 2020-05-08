@@ -15,7 +15,7 @@ class RateiosDespesasViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data_documento',)
     search_fields = ('uuid', 'id', 'especificacao_material_servico__descricao')
-    filter_fields = ('aplicacao_recurso', 'acao_associacao__uuid', 'despesa__status', 'associacao__uuid')
+    filter_fields = ('aplicacao_recurso', 'acao_associacao__uuid', 'despesa__status', 'associacao__uuid', 'conferido')
 
     def get_queryset(self):
         user = self.request.user
