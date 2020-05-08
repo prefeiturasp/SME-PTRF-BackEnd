@@ -34,15 +34,6 @@ def receita(associacao, conta_associacao, acao_associacao, tipo_receita):
     )
 
 @pytest.fixture
-def receita_conferida(receita):
-    return receita
-
-@pytest.fixture
-def receita_nao_conferida(receita):
-    receita.conferido = False
-    return receita
-
-@pytest.fixture
 def payload_receita(associacao, conta_associacao, acao_associacao, tipo_receita):
     payload = {
         'associacao': str(associacao.uuid),
@@ -79,6 +70,7 @@ def receita_xxx_estorno(associacao, conta_associacao_cheque, acao_associacao_ptr
         conta_associacao=conta_associacao_cheque,
         acao_associacao=acao_associacao_ptrf,
         tipo_receita=tipo_receita_estorno,
+        conferido=True,
     )
 
 
@@ -93,8 +85,16 @@ def receita_yyy_repasse(associacao, conta_associacao_cartao, acao_associacao_rol
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        conferido=False,
     )
 
+@pytest.fixture
+def receita_conferida(receita_xxx_estorno):
+    return receita_xxx_estorno
+
+@pytest.fixture
+def receita_nao_conferida(receita_yyy_repasse):
+    return receita_yyy_repasse
 
 @pytest.fixture
 def repasse(associacao, conta_associacao, acao_associacao, periodo):

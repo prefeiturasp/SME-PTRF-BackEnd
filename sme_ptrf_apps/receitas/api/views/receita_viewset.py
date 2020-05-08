@@ -15,6 +15,7 @@ from ..serializers import (ReceitaCreateSerializer, ReceitaListaSerializer,
                            TipoReceitaSerializer)
 from ...services import atualiza_repasse_para_pendente
 
+
 class ReceitaViewSet(mixins.CreateModelMixin,
                      mixins.RetrieveModelMixin,
                      mixins.ListModelMixin,
@@ -28,7 +29,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data',)
     search_fields = ('descricao',)
-    filter_fields = ('associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid')
+    filter_fields = ('associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid', 'conferido')
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
