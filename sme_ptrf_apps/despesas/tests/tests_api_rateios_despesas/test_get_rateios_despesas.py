@@ -29,18 +29,17 @@ def test_api_get_rateios_despesas(jwt_authenticated_client, despesa, rateio_desp
                 "id": rateio_despesa_capital.acao_associacao.id,
                 "nome": rateio_despesa_capital.acao_associacao.acao.nome
             },
-            "valor_total": despesa.valor_total
+            "valor_total": despesa.valor_total,
+            "conferido": rateio_despesa_capital.conferido,
+            "cpf_cnpj_fornecedor": despesa.cpf_cnpj_fornecedor,
+            "nome_fornecedor": despesa.nome_fornecedor,
+            "tipo_documento_nome": despesa.tipo_documento.nome,
+            "tipo_transacao_nome": despesa.tipo_transacao.nome,
+            "data_transacao": '2020-03-10',
         },
 
     ]
 
-    # TODO Voltar a paginar no back quando front estiver pronto para isso.
-    # esperado = {
-    #     'count': 1,
-    #     'next': None,
-    #     'previous': None,
-    #     'results': results
-    # }
     esperado = results
 
     assert response.status_code == status.HTTP_200_OK
