@@ -49,6 +49,15 @@ class PrestacaoConta(ModeloBase):
         nome_conta = self.conta_associacao.tipo_conta.nome if self.conta_associacao else ''
         return f"{self.periodo} - {nome_conta}  - {self.status}"
 
+    @classmethod
+    def iniciar(cls, conta_associacao, periodo):
+        return PrestacaoConta.objects.create(
+            conta_associacao=conta_associacao,
+            periodo=periodo,
+            associacao=conta_associacao.associacao,
+        )
+
     class Meta:
         verbose_name = "Prestação de conta"
         verbose_name_plural = "Prestações de contas"
+        unique_together = ['conta_associacao', 'periodo']
