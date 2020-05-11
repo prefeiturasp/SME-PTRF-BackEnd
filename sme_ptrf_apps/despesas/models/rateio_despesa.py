@@ -82,10 +82,23 @@ class RateioDespesa(ModeloBase):
     def marcar_conferido(self):
         self.conferido = True
         self.save()
+        return self
 
     def desmarcar_conferido(self):
         self.conferido = False
         self.save()
+        return self
+
+    @classmethod
+    def conciliar(cls, uuid):
+        rateio_despesa = cls.by_uuid(uuid)
+        return rateio_despesa.marcar_conferido()
+
+    @classmethod
+    def desconciliar(cls, uuid):
+        rateio_despesa = cls.by_uuid(uuid)
+        return rateio_despesa.desmarcar_conferido()
+
 
     class Meta:
         verbose_name = "Rateio de despesa"
