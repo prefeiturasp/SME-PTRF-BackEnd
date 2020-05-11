@@ -57,6 +57,15 @@ class PrestacaoConta(ModeloBase):
             associacao=conta_associacao.associacao,
         )
 
+    @classmethod
+    def revisar(cls, uuid, motivo):
+        prestacao_de_conta = cls.by_uuid(uuid=uuid)
+        prestacao_de_conta.motivo_reabertura = motivo
+        prestacao_de_conta.conciliado_em = None
+        prestacao_de_conta.conciliado = False
+        prestacao_de_conta.save()
+        return prestacao_de_conta
+
     class Meta:
         verbose_name = "Prestação de conta"
         verbose_name_plural = "Prestações de contas"

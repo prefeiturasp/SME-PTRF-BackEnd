@@ -15,4 +15,12 @@ def test_iniciar_prestacao_conta_url(authenticated_client, periodo, conta_associ
 
     response = authenticated_client.post(
         f'/api/prestacoes-contas/iniciar/?conta_associacao_uuid={conta_associacao_uuid}&periodo_uuid={periodo_uuid}')
-    assert response.status_code == status.HTTP_201_CREATED
+    assert response.status_code != status.HTTP_404_NOT_FOUND
+
+
+def test_revisar_prestacao_conta_url(authenticated_client, prestacao_conta):
+
+    response = authenticated_client.patch(
+        f'/api/prestacoes-contas/{prestacao_conta.uuid}/revisar/')
+    assert response.status_code != status.HTTP_404_NOT_FOUND
+

@@ -47,6 +47,21 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'mensagem': 'Você não pode iniciar uma prestação de contas que já foi iniciada.'
             }
             return Response(erro, status=status.HTTP_409_CONFLICT)
-        else:
-            return Response(PrestacaoContaLookUpSerializer(nova_prestacao_de_contas, many=False).data,
-                            status=status.HTTP_201_CREATED)
+
+        return Response(PrestacaoContaLookUpSerializer(nova_prestacao_de_contas, many=False).data,
+                        status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['patch'])
+    def revisar(self, request, uuid):
+        motivo = request.data.get('motivo', "")
+
+        if not motivo:
+            result_error = {
+                'erro': 'campo_requerido',
+                'mensagem': 'É necessário enviar o motivo de revisão da conciliação.'
+            }
+            return Response(result_error, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_de_conta_revista = PrestacaoConta.revisar(uuid=uuid, motivo=motivo)
+        return Response(PrestacaoContaLookUpSerializer(prestacao_de_conta_revista, many=False).data,
+                        status=status.HTTP_200_OK)
