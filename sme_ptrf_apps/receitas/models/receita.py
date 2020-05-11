@@ -43,10 +43,21 @@ class Receita(ModeloBase):
     def marcar_conferido(self):
         self.conferido = True
         self.save()
+        return self
 
     def desmarcar_conferido(self):
         self.conferido = False
         self.save()
+        return self
 
+    @classmethod
+    def conciliar(cls, uuid):
+        receita = cls.by_uuid(uuid)
+        return receita.marcar_conferido()
+
+    @classmethod
+    def desconciliar(cls, uuid):
+        receita = cls.by_uuid(uuid)
+        return receita.desmarcar_conferido()
 
 auditlog.register(Receita)
