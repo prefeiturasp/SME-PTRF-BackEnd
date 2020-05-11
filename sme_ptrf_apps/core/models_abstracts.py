@@ -41,6 +41,10 @@ class TemAlteradoEm(models.Model):
 class TemChaveExterna(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
+    @classmethod
+    def by_uuid(cls, uuid):
+        return cls.objects.get(uuid=uuid)
+
     class Meta:
         abstract = True
 
@@ -49,7 +53,7 @@ class ModeloBase(TemChaveExterna, TemCriadoEm, TemAlteradoEm):
     @classmethod
     def get_valores(cls, user=None):
         return cls.objects.all().order_by('nome')
-    
+
     class Meta:
         abstract = True
 

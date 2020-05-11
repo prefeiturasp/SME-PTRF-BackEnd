@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
@@ -49,6 +51,40 @@ class PrestacaoConta(ModeloBase):
         nome_conta = self.conta_associacao.tipo_conta.nome if self.conta_associacao else ''
         return f"{self.periodo} - {nome_conta}  - {self.status}"
 
+    @classmethod
+    def iniciar(cls, conta_associacao, periodo):
+        return PrestacaoConta.objects.create(
+            conta_associacao=conta_associacao,
+            periodo=periodo,
+            associacao=conta_associacao.associacao,
+        )
+
+    @classmethod
+    def revisar(cls, uuid, motivo):
+        prestacao_de_conta = cls.by_uuid(uuid=uuid)
+        prestacao_de_conta.motivo_reabertura = motivo
+        prestacao_de_conta.conciliado_em = None
+        prestacao_de_conta.conciliado = False
+        prestacao_de_conta.save()
+        return prestacao_de_conta
+
+    @classmethod
+    def salvar(cls, uuid, observacoes):
+        prestacao_de_conta = cls.by_uuid(uuid=uuid)
+        prestacao_de_conta.observacoes = observacoes
+        prestacao_de_conta.save()
+        return prestacao_de_conta
+
+    @classmethod
+    def concluir(cls, uuid, observacoes):
+        prestacao_de_conta = cls.by_uuid(uuid=uuid)
+        prestacao_de_conta.observacoes = observacoes
+        prestacao_de_conta.conciliado = True
+        prestacao_de_conta.conciliado_em = datetime.now()
+        prestacao_de_conta.save()
+        return prestacao_de_conta
+
     class Meta:
         verbose_name = "Prestação de conta"
         verbose_name_plural = "Prestações de contas"
+        unique_together = ['conta_associacao', 'periodo']

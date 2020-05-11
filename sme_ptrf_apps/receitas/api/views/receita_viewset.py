@@ -15,6 +15,7 @@ from ..serializers import (ReceitaCreateSerializer, ReceitaListaSerializer,
                            TipoReceitaSerializer)
 from ...services import atualiza_repasse_para_pendente
 
+
 class ReceitaViewSet(mixins.CreateModelMixin,
                      mixins.RetrieveModelMixin,
                      mixins.ListModelMixin,
@@ -28,7 +29,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data',)
     search_fields = ('descricao',)
-    filter_fields = ('associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid')
+    filter_fields = ('associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid', 'conferido')
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
@@ -61,3 +62,15 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             atualiza_repasse_para_pendente(instance.acao_associacao)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['patch'])
+    def conciliar(self, request, uuid):
+        receita_conciliada = Receita.conciliar(uuid=uuid)
+        return Response(ReceitaListaSerializer(receita_conciliada, many=False).data,
+                        status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['patch'])
+    def desconciliar(self, request, uuid):
+        receita_desconciliada = Receita.desconciliar(uuid=uuid)
+        return Response(ReceitaListaSerializer(receita_desconciliada, many=False).data,
+                        status=status.HTTP_200_OK)

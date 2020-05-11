@@ -41,8 +41,8 @@ def test_create_receita_repasse(
     conta_associacao,
     repasse,
     payload_receita_repasse
-):  
-    with freeze_time('2019-11-29'): 
+):
+    with freeze_time('2019-11-29'):
         assert Repasse.objects.get(uuid=repasse.uuid).status == 'PENDENTE'
 
         response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
@@ -175,7 +175,8 @@ def test_get_receitas(
             'conta_associacao': {
                 "uuid": str(conta_associacao.uuid),
                 "nome": conta_associacao.tipo_conta.nome
-            }
+            },
+            'conferido': True,
         },
     ]
 
@@ -284,7 +285,8 @@ def test_retrive_receitas(
             'conta_associacao': {
                 "uuid": str(conta_associacao.uuid),
                 "nome": conta_associacao.tipo_conta.nome
-            }
+            },
+            'conferido': True,
         }
 
     assert response.status_code == status.HTTP_200_OK
