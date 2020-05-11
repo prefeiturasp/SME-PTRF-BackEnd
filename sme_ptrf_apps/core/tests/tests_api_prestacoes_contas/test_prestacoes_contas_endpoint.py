@@ -29,3 +29,9 @@ def test_salvar_prestacao_conta_url(authenticated_client, prestacao_conta_inicia
     response = authenticated_client.patch(
         f'/api/prestacoes-contas/{prestacao_conta_iniciada.uuid}/salvar/')
     assert response.status_code != status.HTTP_404_NOT_FOUND
+
+def test_concluir_prestacao_conta_url(authenticated_client, prestacao_conta_iniciada):
+
+    response = authenticated_client.patch(
+        f'/api/prestacoes-contas/{prestacao_conta_iniciada.uuid}/concluir/')
+    assert response.status_code != status.HTTP_404_NOT_FOUND

@@ -73,3 +73,11 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         prestacao_de_conta_salva = PrestacaoConta.salvar(uuid=uuid, observacoes=observacoes)
         return Response(PrestacaoContaLookUpSerializer(prestacao_de_conta_salva, many=False).data,
                         status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['patch'])
+    def concluir(self, request, uuid):
+        observacoes = request.data.get('observacoes', "")
+
+        prestacao_conta_concluida = PrestacaoConta.concluir(uuid=uuid, observacoes=observacoes)
+        return Response(PrestacaoContaLookUpSerializer(prestacao_conta_concluida, many=False).data,
+                        status=status.HTTP_200_OK)

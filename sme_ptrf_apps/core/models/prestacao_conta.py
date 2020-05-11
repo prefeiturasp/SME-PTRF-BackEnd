@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
@@ -70,6 +72,15 @@ class PrestacaoConta(ModeloBase):
     def salvar(cls, uuid, observacoes):
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
         prestacao_de_conta.observacoes = observacoes
+        prestacao_de_conta.save()
+        return prestacao_de_conta
+
+    @classmethod
+    def concluir(cls, uuid, observacoes):
+        prestacao_de_conta = cls.by_uuid(uuid=uuid)
+        prestacao_de_conta.observacoes = observacoes
+        prestacao_de_conta.conciliado = True
+        prestacao_de_conta.conciliado_em = datetime.now()
         prestacao_de_conta.save()
         return prestacao_de_conta
 
