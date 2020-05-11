@@ -66,6 +66,13 @@ class PrestacaoConta(ModeloBase):
         prestacao_de_conta.save()
         return prestacao_de_conta
 
+    @classmethod
+    def salvar(cls, uuid, observacoes):
+        prestacao_de_conta = cls.by_uuid(uuid=uuid)
+        prestacao_de_conta.observacoes = observacoes
+        prestacao_de_conta.save()
+        return prestacao_de_conta
+
     class Meta:
         verbose_name = "Prestação de conta"
         verbose_name_plural = "Prestações de contas"

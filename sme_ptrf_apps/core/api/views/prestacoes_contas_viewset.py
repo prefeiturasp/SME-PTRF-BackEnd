@@ -65,3 +65,11 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         prestacao_de_conta_revista = PrestacaoConta.revisar(uuid=uuid, motivo=motivo)
         return Response(PrestacaoContaLookUpSerializer(prestacao_de_conta_revista, many=False).data,
                         status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['patch'])
+    def salvar(self, request, uuid):
+        observacoes = request.data.get('observacoes', "")
+
+        prestacao_de_conta_salva = PrestacaoConta.salvar(uuid=uuid, observacoes=observacoes)
+        return Response(PrestacaoContaLookUpSerializer(prestacao_de_conta_salva, many=False).data,
+                        status=status.HTTP_200_OK)
