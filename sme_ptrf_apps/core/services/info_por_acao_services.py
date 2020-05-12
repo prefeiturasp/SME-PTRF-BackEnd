@@ -38,8 +38,12 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo):
         receitas = Receita.receitas_da_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo)
 
         for receita in receitas:
-            info['receitas_no_periodo_custeio'] += receita.valor
-            info['saldo_atual_custeio'] += receita.valor
+            if receita.categoria_receita == APLICACAO_CUSTEIO:
+                info['receitas_no_periodo_custeio'] += receita.valor
+                info['saldo_atual_custeio'] += receita.valor
+            else:
+                info['receitas_no_periodo_capital'] += receita.valor
+                info['saldo_atual_capital'] += receita.valor
 
         return info
 

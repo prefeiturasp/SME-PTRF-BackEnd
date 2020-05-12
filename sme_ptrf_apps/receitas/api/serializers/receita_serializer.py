@@ -66,4 +66,5 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
             'acao_associacao',
             'conta_associacao',
             'conferido',
+            'categoria_receita',
         )

@@ -119,10 +119,21 @@ def test_get_tabelas(
             {
                 'id': tipo_receita.id,
                 'nome': tipo_receita.nome,
-                'e_repasse': tipo_receita.e_repasse
+                'e_repasse': tipo_receita.e_repasse,
+                'aceita_capital': tipo_receita.aceita_capital,
+                'aceita_custeio': tipo_receita.aceita_custeio
             },
         ],
-
+        "categorias_receita": [
+            {
+                "id": "CAPITAL",
+                "nome": "Capital"
+            },
+            {
+                "id": "CUSTEIO",
+                "nome": "Custeio"
+            }
+        ],
         'acoes_associacao': [
             {
                 'uuid': f'{acao_associacao.uuid}',
@@ -165,7 +176,9 @@ def test_get_receitas(
             'tipo_receita': {
                 'id': tipo_receita.id,
                 'nome': tipo_receita.nome,
-                'e_repasse': tipo_receita.e_repasse
+                'e_repasse': tipo_receita.e_repasse,
+                'aceita_capital': tipo_receita.aceita_capital,
+                'aceita_custeio': tipo_receita.aceita_custeio
             },
             "acao_associacao": {
                 "uuid": str(acao_associacao.uuid),
@@ -177,6 +190,7 @@ def test_get_receitas(
                 "nome": conta_associacao.tipo_conta.nome
             },
             'conferido': True,
+            'categoria_receita': receita.categoria_receita
         },
     ]
 
@@ -275,7 +289,9 @@ def test_retrive_receitas(
             'tipo_receita': {
                 'id': tipo_receita.id,
                 'nome': tipo_receita.nome,
-                'e_repasse': tipo_receita.e_repasse
+                'e_repasse': tipo_receita.e_repasse,
+                'aceita_capital': tipo_receita.aceita_capital,
+                'aceita_custeio': tipo_receita.aceita_custeio
             },
             "acao_associacao": {
                 "uuid": str(acao_associacao.uuid),
@@ -287,6 +303,7 @@ def test_retrive_receitas(
                 "nome": conta_associacao.tipo_conta.nome
             },
             'conferido': True,
+            'categoria_receita': 'CUSTEIO',
         }
 
     assert response.status_code == status.HTTP_200_OK

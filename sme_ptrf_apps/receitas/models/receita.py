@@ -4,6 +4,7 @@ from django.db import models
 
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
 
 
 class Receita(ModeloBase):
@@ -27,6 +28,14 @@ class Receita(ModeloBase):
     tipo_receita = models.ForeignKey('TipoReceita', on_delete=models.PROTECT, blank=True, null=True)
 
     conferido = models.BooleanField('Conferido?', default=False)
+
+    categoria_receita = models.CharField(
+        'Categoria da receita',
+        max_length=15,
+        choices=APLICACAO_CHOICES,
+        default=APLICACAO_CUSTEIO,
+        null=True,
+    )
 
     def __str__(self):
         return f'RECEITA<{self.descricao} - {self.data} - {self.valor}>'

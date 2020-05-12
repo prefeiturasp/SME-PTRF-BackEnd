@@ -6,7 +6,7 @@ from model_bakery import baker
 
 @pytest.fixture
 def tipo_receita():
-    return baker.make('TipoReceita', nome='Estorno', e_repasse=False)
+    return baker.make('TipoReceita', nome='Estorno', e_repasse=False, aceita_capital=False, aceita_custeio=False)
 
 
 @pytest.fixture
@@ -16,7 +16,7 @@ def tipo_receita_estorno(tipo_receita):
 
 @pytest.fixture
 def tipo_receita_repasse():
-    return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
+    return baker.make('TipoReceita', nome='Repasse', e_repasse=True, aceita_capital=True, aceita_custeio=True)
 
 
 @pytest.fixture
@@ -31,6 +31,7 @@ def receita(associacao, conta_associacao, acao_associacao, tipo_receita):
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
         conferido=True,
+        categoria_receita='CUSTEIO'
     )
 
 @pytest.fixture
