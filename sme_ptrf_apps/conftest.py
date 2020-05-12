@@ -108,7 +108,7 @@ def acao_role_cultural():
 
 @pytest.fixture
 def dre():
-    return baker.make('Unidade', codigo_eol='99999', tipo_unidade='DRE')
+    return baker.make('Unidade', codigo_eol='99999', tipo_unidade='DRE', nome='DRE teste')
 
 
 @pytest.fixture
@@ -547,6 +547,41 @@ def despesa_no_periodo(associacao, tipo_documento, tipo_transacao, periodo):
         valor_recursos_proprios=0,
     )
 
+@pytest.fixture
+def rateio_despesa_demonstrativo(associacao, despesa_no_periodo, conta_associacao, acao, tipo_aplicacao_recurso_capital, tipo_custeio,
+                           especificacao_material_eletrico, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_no_periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_capital,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=especificacao_material_eletrico,
+        valor_rateio=100.00,
+        quantidade_itens_capital=2,
+        valor_item_capital=50.00,
+        numero_processo_incorporacao_capital='Teste123456'
+    )
+
+@pytest.fixture
+def rateio_despesa_demonstrativo2(associacao, despesa_no_periodo, conta_associacao, acao, tipo_aplicacao_recurso_custeio, tipo_custeio_material,
+                           especificacao_material_eletrico, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_no_periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_material,
+        especificacao_material_servico=especificacao_material_eletrico,
+        valor_rateio=200.00,
+        quantidade_itens_capital=2,
+        valor_item_capital=100.00,
+        numero_processo_incorporacao_capital='Teste654321'
+    )
 
 # rateio_100_custeio
 @pytest.fixture
