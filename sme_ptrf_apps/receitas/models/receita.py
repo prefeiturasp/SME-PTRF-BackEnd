@@ -32,13 +32,18 @@ class Receita(ModeloBase):
         return f'RECEITA<{self.descricao} - {self.data} - {self.valor}>'
 
     @classmethod
-    def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo):
+    def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None):
         if periodo.data_fim_realizacao_despesas:
-            return cls.objects.filter(acao_associacao=acao_associacao).filter(
-                data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas)).all()
+            dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
+                data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
         else:
-            return cls.objects.filter(acao_associacao=acao_associacao).filter(
-                data__gte=periodo.data_inicio_realizacao_despesas).all()
+            dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
+                data__gte=periodo.data_inicio_realizacao_despesas)
+
+        if conferido is not None:
+            dataset = dataset.filter(conferido=conferido)
+
+        return dataset.all()
 
     def marcar_conferido(self):
         self.conferido = True

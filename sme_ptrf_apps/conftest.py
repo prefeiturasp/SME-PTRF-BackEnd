@@ -283,10 +283,10 @@ def prestacao_conta(periodo, associacao, conta_associacao, prestacao_conta_anter
 
 
 @pytest.fixture
-def prestacao_conta_iniciada(periodo, associacao, conta_associacao):
+def prestacao_conta_iniciada(periodo_2020_1, associacao, conta_associacao):
     return baker.make(
         'PrestacaoConta',
-        periodo=periodo,
+        periodo=periodo_2020_1,
         associacao=associacao,
         conta_associacao=conta_associacao,
         status=PRESTACAO_ABERTA,
