@@ -7,8 +7,12 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from ..serializers.prestacao_conta_serializer import PrestacaoContaLookUpSerializer
-from ...models import PrestacaoConta
+from ...models import PrestacaoConta, AcaoAssociacao
 from ...services import iniciar_prestacao_de_contas
+from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
+from ....despesas.models import RateioDespesa
+from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
+from ....receitas.models import Receita
 
 
 class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
@@ -81,3 +85,45 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         prestacao_conta_concluida = PrestacaoConta.concluir(uuid=uuid, observacoes=observacoes)
         return Response(PrestacaoContaLookUpSerializer(prestacao_conta_concluida, many=False).data,
                         status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'])
+    def receitas(self, request, uuid):
+        acao_associacao_uuid = request.query_params.get('acao_associacao_uuid')
+        conferido = request.query_params.get('conferido')
+
+        if acao_associacao_uuid is None or conferido is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da ação da associação e o flag de conferido.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+        acao_associacao = AcaoAssociacao.by_uuid(acao_associacao_uuid)
+
+        receitas = Receita.receitas_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
+                                                                  periodo=prestacao_conta.periodo,
+                                                                  conferido=conferido)
+
+        return Response(ReceitaListaSerializer(receitas, many=True).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'])
+    def despesas(self, request, uuid):
+        acao_associacao_uuid = request.query_params.get('acao_associacao_uuid')
+        conferido = request.query_params.get('conferido')
+
+        if acao_associacao_uuid is None or conferido is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da ação da associação e o flag de conferido.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+        acao_associacao = AcaoAssociacao.by_uuid(acao_associacao_uuid)
+
+        despesas = RateioDespesa.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
+                                                                       periodo=prestacao_conta.periodo,
+                                                                       conferido=conferido)
+
+        return Response(RateioDespesaListaSerializer(despesas, many=True).data, status=status.HTTP_200_OK)
