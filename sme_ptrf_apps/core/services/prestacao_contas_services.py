@@ -7,8 +7,8 @@ def iniciar_prestacao_de_contas(conta_associacao_uuid, periodo_uuid):
 
     return PrestacaoConta.iniciar(conta_associacao=conta_associacao, periodo=periodo)
 
-def concluir_prestacao_de_contas(prestacao_contas_uuid):
-    ...
+def concluir_prestacao_de_contas(prestacao_contas_uuid, observacoes):
+    return PrestacaoConta.concluir(uuid=prestacao_contas_uuid, observacoes=observacoes)
 
 def salvar_prestacao_de_contas(prestacao_contas_uuid):
     ...

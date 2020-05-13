@@ -8,7 +8,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from ..serializers.prestacao_conta_serializer import PrestacaoContaLookUpSerializer
 from ...models import PrestacaoConta, AcaoAssociacao
-from ...services import iniciar_prestacao_de_contas
+from ...services import iniciar_prestacao_de_contas, concluir_prestacao_de_contas
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ....despesas.models import RateioDespesa
 from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
@@ -82,7 +82,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def concluir(self, request, uuid):
         observacoes = request.data.get('observacoes', "")
 
-        prestacao_conta_concluida = PrestacaoConta.concluir(uuid=uuid, observacoes=observacoes)
+        prestacao_conta_concluida = concluir_prestacao_de_contas(prestacao_contas_uuid=uuid, observacoes=observacoes)
         return Response(PrestacaoContaLookUpSerializer(prestacao_conta_concluida, many=False).data,
                         status=status.HTTP_200_OK)
 
