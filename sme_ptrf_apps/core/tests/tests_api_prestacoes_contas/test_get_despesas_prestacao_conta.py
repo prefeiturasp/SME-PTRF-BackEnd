@@ -16,7 +16,9 @@ def test_api_get_despesas_conferidasprestacao_conta(client,
                                                     despesa_2020_1,
                                                     rateio_despesa_2020_role_conferido,
                                                     rateio_despesa_2020_role_nao_conferido,
-                                                    rateio_despesa_2020_ptrf_conferido):
+                                                    rateio_despesa_2020_ptrf_conferido,
+                                                    rateio_despesa_2020_role_cheque_conferido
+                                                    ):
     prestacao_uuid = prestacao_conta_iniciada.uuid
     acao_uuid = acao_associacao_role_cultural.uuid
 

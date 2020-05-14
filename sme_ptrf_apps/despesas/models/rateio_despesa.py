@@ -72,7 +72,7 @@ class RateioDespesa(ModeloBase):
         return completo
 
     @classmethod
-    def rateios_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None):
+    def rateios_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None):
         if periodo.data_fim_realizacao_despesas:
             dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
                 despesa__data_documento__range=(
@@ -83,6 +83,9 @@ class RateioDespesa(ModeloBase):
 
         if conferido is not None:
             dataset = dataset.filter(conferido=conferido)
+
+        if conta_associacao:
+            dataset = dataset.filter(conta_associacao=conta_associacao)
 
         return dataset.all()
 

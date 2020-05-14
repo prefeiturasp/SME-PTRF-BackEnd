@@ -122,7 +122,7 @@ def despesa_2020_1(associacao, tipo_documento, tipo_transacao):
 
 
 @pytest.fixture
-def rateio_despesa_2020_role_conferido(associacao, despesa_2020_1, conta_associacao, acao,
+def rateio_despesa_2020_role_conferido(associacao, despesa_2020_1, conta_associacao_cartao, acao,
                                        tipo_aplicacao_recurso_custeio,
                                        tipo_custeio_servico,
                                        especificacao_instalacao_eletrica, acao_associacao_role_cultural):
@@ -130,7 +130,7 @@ def rateio_despesa_2020_role_conferido(associacao, despesa_2020_1, conta_associa
         'RateioDespesa',
         despesa=despesa_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao,
+        conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
         tipo_custeio=tipo_custeio_servico,
@@ -142,7 +142,27 @@ def rateio_despesa_2020_role_conferido(associacao, despesa_2020_1, conta_associa
 
 
 @pytest.fixture
-def rateio_despesa_2020_role_nao_conferido(associacao, despesa_2020_1, conta_associacao, acao,
+def rateio_despesa_2020_role_cheque_conferido(associacao, despesa_2020_1, conta_associacao_cheque, acao,
+                                              tipo_aplicacao_recurso_custeio,
+                                              tipo_custeio_servico,
+                                              especificacao_instalacao_eletrica, acao_associacao_role_cultural):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=100.00,
+        conferido=True,
+
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_role_nao_conferido(associacao, despesa_2020_1, conta_associacao_cartao, acao,
                                            tipo_aplicacao_recurso_custeio,
                                            tipo_custeio_servico,
                                            especificacao_instalacao_eletrica, acao_associacao_role_cultural):
@@ -150,7 +170,7 @@ def rateio_despesa_2020_role_nao_conferido(associacao, despesa_2020_1, conta_ass
         'RateioDespesa',
         despesa=despesa_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao,
+        conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
         tipo_custeio=tipo_custeio_servico,
@@ -162,7 +182,7 @@ def rateio_despesa_2020_role_nao_conferido(associacao, despesa_2020_1, conta_ass
 
 
 @pytest.fixture
-def rateio_despesa_2020_ptrf_conferido(associacao, despesa_2020_1, conta_associacao, acao,
+def rateio_despesa_2020_ptrf_conferido(associacao, despesa_2020_1, conta_associacao_cartao, acao,
                                        tipo_aplicacao_recurso_custeio,
                                        tipo_custeio_servico,
                                        especificacao_instalacao_eletrica, acao_associacao_ptrf):
@@ -170,7 +190,7 @@ def rateio_despesa_2020_ptrf_conferido(associacao, despesa_2020_1, conta_associa
         'RateioDespesa',
         despesa=despesa_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao,
+        conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_ptrf,
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
         tipo_custeio=tipo_custeio_servico,
@@ -199,7 +219,7 @@ def despesa_2019_2(associacao, tipo_documento, tipo_transacao):
 
 
 @pytest.fixture
-def rateio_despesa_2019_role_conferido(associacao, despesa_2019_2, conta_associacao, acao,
+def rateio_despesa_2019_role_conferido(associacao, despesa_2019_2, conta_associacao_cartao, acao,
                                        tipo_aplicacao_recurso_custeio,
                                        tipo_custeio_servico,
                                        especificacao_instalacao_eletrica, acao_associacao_role_cultural):
@@ -207,7 +227,7 @@ def rateio_despesa_2019_role_conferido(associacao, despesa_2019_2, conta_associa
         'RateioDespesa',
         despesa=despesa_2019_2,
         associacao=associacao,
-        conta_associacao=conta_associacao,
+        conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
         tipo_custeio=tipo_custeio_servico,
