@@ -14,7 +14,9 @@ def test_api_get_receitas_conferidasprestacao_conta(client,
                                                     receita_2019_2_role_repasse_conferida,
                                                     receita_2020_1_role_repasse_conferida,
                                                     receita_2020_1_role_repasse_nao_conferida,
-                                                    receita_2020_1_ptrf_repasse_conferida):
+                                                    receita_2020_1_ptrf_repasse_conferida,
+                                                    receita_2020_1_role_repasse_cheque_conferida
+                                                    ):
     prestacao_uuid = prestacao_conta_iniciada.uuid
     acao_uuid = acao_associacao_role_cultural.uuid
 

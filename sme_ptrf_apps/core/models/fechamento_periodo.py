@@ -101,8 +101,48 @@ class FechamentoPeriodo(ModeloBase):
                - self.total_despesas_custeio
 
     @classmethod
+    def by_periodo_conta_acao(cls, periodo, conta_associacao, acao_associacao):
+        qs = cls.objects.filter(periodo__id=periodo.id,
+                                conta_associacao__id=conta_associacao.id,
+                                acao_associacao__id=acao_associacao.id)
+        if qs.exists():
+            return qs.first()
+        else:
+            return None
+
+    @classmethod
     def fechamentos_da_acao_no_periodo(cls, acao_associacao, periodo):
         return FechamentoPeriodo.objects.filter(acao_associacao=acao_associacao, periodo=periodo).all()
+
+    @classmethod
+    def criar(cls,
+              prestacao_conta,
+              acao_associacao,
+              total_receitas_capital,
+              total_repasses_capital,
+              total_despesas_capital,
+              total_receitas_custeio,
+              total_repasses_custeio,
+              total_despesas_custeio,
+              ):
+        fechamento_anterior = cls.by_periodo_conta_acao(periodo=prestacao_conta.periodo.periodo_anterior,
+                                                        conta_associacao=prestacao_conta.conta_associacao,
+                                                        acao_associacao=acao_associacao)
+        novo_fechamento = cls.objects.create(
+            prestacao_conta=prestacao_conta,
+            periodo=prestacao_conta.periodo,
+            associacao=prestacao_conta.associacao,
+            conta_associacao=prestacao_conta.conta_associacao,
+            acao_associacao=acao_associacao,
+            total_receitas_capital=total_receitas_capital,
+            total_repasses_capital=total_repasses_capital,
+            total_despesas_capital=total_despesas_capital,
+            total_receitas_custeio=total_receitas_custeio,
+            total_repasses_custeio=total_repasses_custeio,
+            total_despesas_custeio=total_despesas_custeio,
+            fechamento_anterior=fechamento_anterior
+        )
+        return novo_fechamento
 
     class Meta:
         verbose_name = "Fechamento de período"
