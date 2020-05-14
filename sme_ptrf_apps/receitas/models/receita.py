@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.db import models
@@ -54,6 +56,31 @@ class Receita(ModeloBase):
 
         return dataset.all()
 
+    @classmethod
+    def totais_por_acao_associacao_no_periodo(cls, acao_associacao, periodo):
+        receitas = cls.receitas_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
+                                                              periodo=periodo)
+        totais = {
+            'total_receitas_capital': Decimal(0.00),
+            'total_repasses_capital': Decimal(0.00),
+            'total_receitas_custeio': Decimal(0.00),
+            'total_repasses_custeio': Decimal(0.00),
+        }
+
+        for receita in receitas:
+            if receita.categoria_receita == APLICACAO_CAPITAL:
+                totais['total_receitas_capital'] += receita.valor
+            else:
+                totais['total_receitas_custeio'] += receita.valor
+
+            if receita.tipo_receita.e_repasse:
+                if receita.categoria_receita == APLICACAO_CAPITAL:
+                    totais['total_repasses_capital'] += receita.valor
+                else:
+                    totais['total_repasses_custeio'] += receita.valor
+
+        return totais
+
     def marcar_conferido(self):
         self.conferido = True
         self.save()
@@ -73,5 +100,6 @@ class Receita(ModeloBase):
     def desconciliar(cls, uuid):
         receita = cls.by_uuid(uuid)
         return receita.desmarcar_conferido()
+
 
 auditlog.register(Receita)
