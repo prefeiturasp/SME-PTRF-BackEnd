@@ -100,10 +100,13 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
         acao_associacao = AcaoAssociacao.by_uuid(acao_associacao_uuid)
+        conta_associacao = prestacao_conta.conta_associacao
 
         receitas = Receita.receitas_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
                                                                   periodo=prestacao_conta.periodo,
-                                                                  conferido=conferido)
+                                                                  conferido=conferido,
+                                                                  conta_associacao=conta_associacao
+                                                                  )
 
         return Response(ReceitaListaSerializer(receitas, many=True).data, status=status.HTTP_200_OK)
 
