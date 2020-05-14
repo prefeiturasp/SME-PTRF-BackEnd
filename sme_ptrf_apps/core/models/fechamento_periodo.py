@@ -102,6 +102,9 @@ class FechamentoPeriodo(ModeloBase):
 
     @classmethod
     def by_periodo_conta_acao(cls, periodo, conta_associacao, acao_associacao):
+        if not periodo:
+            return None
+
         qs = cls.objects.filter(periodo__id=periodo.id,
                                 conta_associacao__id=conta_associacao.id,
                                 acao_associacao__id=acao_associacao.id)
