@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
@@ -104,6 +106,22 @@ class RateioDespesa(ModeloBase):
         rateio_despesa = cls.by_uuid(uuid)
         return rateio_despesa.desmarcar_conferido()
 
+    @classmethod
+    def totais_por_acao_associacao_no_periodo(cls, acao_associacao, periodo):
+        despesas = cls.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
+                                                             periodo=periodo)
+        totais = {
+            'total_despesas_capital': Decimal(0.00),
+            'total_despesas_custeio': Decimal(0.00),
+        }
+
+        for despesa in despesas:
+            if despesa.aplicacao_recurso == APLICACAO_CAPITAL:
+                totais['total_despesas_capital'] += despesa.valor_rateio
+            else:
+                totais['total_despesas_custeio'] += despesa.valor_rateio
+
+        return totais
 
     class Meta:
         verbose_name = "Rateio de despesa"
