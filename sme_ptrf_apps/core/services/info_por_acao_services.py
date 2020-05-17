@@ -1,7 +1,46 @@
-from ..models import FechamentoPeriodo, Associacao
-from ...receitas.models import Receita
+from decimal import Decimal
+
+from ..models import FechamentoPeriodo, Associacao, AcaoAssociacao
 from ...despesas.models import RateioDespesa
-from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
+from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO
+from ...receitas.models import Receita
+
+
+def saldos_insuficientes_para_rateios(rateios, periodo):
+    def sumariza_rateios_por_acao(rateios):
+        totalizador_aplicacoes = {
+            'CUSTEIO': Decimal(0.00),
+            'CAPITAL': Decimal(0.00)
+        }
+        totalizador_acoes = dict()
+        for rateio in rateios:
+            acao_key = rateio['acao_associacao_id']
+            aplicacao = rateio['aplicacao_recurso']
+            if acao_key not in totalizador_acoes:
+                totalizador_acoes[acao_key] = totalizador_aplicacoes
+            totalizador_acoes[acao_key][aplicacao] += rateio['valor_rateio']
+        return totalizador_acoes
+
+    gastos_por_acao = sumariza_rateios_por_acao(rateios)
+
+    saldos_insuficientes = []
+    for acao_associacao_id, gastos_acao_associacao in gastos_por_acao.items():
+        acao_associacao = AcaoAssociacao.by_id(acao_associacao_id)
+        saldos_acao = info_acao_associacao_no_periodo(acao_associacao, periodo)
+
+        for aplicacao, saldo_atual_key in (('CUSTEIO', 'saldo_atual_custeio'), ('CAPITAL', 'saldo_atual_capital')):
+            if not gastos_acao_associacao[aplicacao]: continue
+
+            if saldos_acao[saldo_atual_key] < gastos_acao_associacao[aplicacao]:
+                saldo_insuficiente = {
+                    'acao': acao_associacao.acao.nome,
+                    'aplicacao': aplicacao,
+                    'saldo_disponivel': saldos_acao[saldo_atual_key],
+                    'total_rateios': gastos_acao_associacao[aplicacao]
+                }
+                saldos_insuficientes.append(saldo_insuficiente)
+
+    return saldos_insuficientes
 
 
 def info_acao_associacao_no_periodo(acao_associacao, periodo):
