@@ -6,7 +6,7 @@ from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO
 from ...receitas.models import Receita
 
 
-def saldos_insuficientes_para_rateios(rateios, periodo):
+def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
     def sumariza_rateios_por_acao(rateios):
         totalizador_aplicacoes = {
             'CUSTEIO': Decimal(0.00),
@@ -14,19 +14,19 @@ def saldos_insuficientes_para_rateios(rateios, periodo):
         }
         totalizador_acoes = dict()
         for rateio in rateios:
-            acao_key = rateio['acao_associacao_id']
+            acao_key = rateio['acao_associacao']
             aplicacao = rateio['aplicacao_recurso']
             if acao_key not in totalizador_acoes:
                 totalizador_acoes[acao_key] = totalizador_aplicacoes
-            totalizador_acoes[acao_key][aplicacao] += rateio['valor_rateio']
+            totalizador_acoes[acao_key][aplicacao] += Decimal(rateio['valor_rateio'])
         return totalizador_acoes
 
     gastos_por_acao = sumariza_rateios_por_acao(rateios)
 
     saldos_insuficientes = []
-    for acao_associacao_id, gastos_acao_associacao in gastos_por_acao.items():
-        acao_associacao = AcaoAssociacao.by_id(acao_associacao_id)
-        saldos_acao = info_acao_associacao_no_periodo(acao_associacao, periodo)
+    for acao_associacao_uuid, gastos_acao_associacao in gastos_por_acao.items():
+        acao_associacao = AcaoAssociacao.by_uuid(acao_associacao_uuid)
+        saldos_acao = info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=exclude_despesa)
 
         for aplicacao, saldo_atual_key in (('CUSTEIO', 'saldo_atual_custeio'), ('CAPITAL', 'saldo_atual_capital')):
             if not gastos_acao_associacao[aplicacao]: continue
@@ -43,7 +43,7 @@ def saldos_insuficientes_para_rateios(rateios, periodo):
     return saldos_insuficientes
 
 
-def info_acao_associacao_no_periodo(acao_associacao, periodo):
+def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=None):
     def resultado_vazio():
         return {
             'saldo_anterior_custeio': 0,
@@ -86,8 +86,9 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo):
 
         return info
 
-    def sumariza_despesas_do_periodo_e_acao(periodo, acao_associacao, info):
-        rateios = RateioDespesa.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo)
+    def sumariza_despesas_do_periodo_e_acao(periodo, acao_associacao, info, exclude_despesa=exclude_despesa):
+        rateios = RateioDespesa.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo,
+                                                                      exclude_despesa=exclude_despesa)
 
         for rateio in rateios:
             if rateio.aplicacao_recurso == APLICACAO_CUSTEIO:
