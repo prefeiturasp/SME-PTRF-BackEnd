@@ -1,3 +1,4 @@
+from django.db.models import Sum
 from django_filters import rest_framework as filters
 from rest_framework import mixins
 from rest_framework import status
@@ -77,4 +78,37 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
                 'saldos_insuficientes': []
             }
 
+        return Response(result)
+
+    @action(detail=False, url_path='totais', methods=['get'])
+    def totais(self, request):
+        associacao__uuid = request.query_params.get('associacao__uuid')
+
+        if not associacao__uuid:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da conta da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = self.get_queryset()
+        filtered_queryset = queryset
+        for field in self.filter_fields:
+            filter_value = request.query_params.get(field)
+            if filter_value:
+                filtered_queryset = filtered_queryset.filter(**{field: filter_value})
+
+        search_value = request.query_params.get('search')
+        if search_value:
+            filtered_queryset = filtered_queryset.filter(
+                especificacao_material_servico__descricao__icontains=search_value)
+
+        total_despesas_com_filtro = filtered_queryset.aggregate(Sum('valor_rateio'))['valor_rateio__sum']
+        total_despesas_sem_filtro = queryset.aggregate(Sum('valor_rateio'))['valor_rateio__sum']
+
+        result = {
+            "associacao_uuid": f'{associacao__uuid}',
+            "total_despesas_sem_filtro": total_despesas_sem_filtro,
+            "total_despesas_com_filtro": total_despesas_com_filtro
+        }
         return Response(result)
