@@ -14,7 +14,7 @@ class Periodo(ModeloBase):
                                          blank=True, null=True)
 
     def __str__(self):
-        return f"{self.referencia } - {self.data_inicio_realizacao_despesas} a {self.data_fim_realizacao_despesas}"
+        return f"{self.referencia} - {self.data_inicio_realizacao_despesas} a {self.data_fim_realizacao_despesas}"
 
     @property
     def proximo_periodo(self):
@@ -24,7 +24,12 @@ class Periodo(ModeloBase):
     def periodo_atual(cls):
         return cls.objects.latest('data_inicio_realizacao_despesas') if cls.objects.exists() else None
 
+    @classmethod
+    def da_data(cls, data):
+        periodos_da_data = cls.objects.filter(data_inicio_realizacao_despesas__lte=data).filter(
+            data_fim_realizacao_despesas__gte=data)
+        return periodos_da_data.first() if periodos_da_data else None
+
     class Meta:
         verbose_name = "Período"
         verbose_name_plural = "Períodos"
-

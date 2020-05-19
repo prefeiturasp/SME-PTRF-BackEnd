@@ -54,6 +54,10 @@ class ModeloBase(TemChaveExterna, TemCriadoEm, TemAlteradoEm):
     def get_valores(cls, user=None):
         return cls.objects.all().order_by('nome')
 
+    @classmethod
+    def by_id(cls, id):
+        return cls.objects.get(id=id)
+
     class Meta:
         abstract = True
 

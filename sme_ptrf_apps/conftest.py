@@ -317,6 +317,24 @@ def fechamento_periodo_anterior(periodo_anterior, associacao, conta_associacao, 
 
 
 @pytest.fixture
+def fechamento_periodo_com_saldo(periodo, associacao, conta_associacao, acao_associacao, ):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        fechamento_anterior=None,
+        total_receitas_capital=20000,
+        total_repasses_capital=20000,
+        total_despesas_capital=0,
+        total_receitas_custeio=20000,
+        total_repasses_custeio=20000,
+        total_despesas_custeio=0,
+        status=STATUS_FECHADO
+    )
+
+@pytest.fixture
 def fechamento_periodo(periodo, associacao, conta_associacao, acao_associacao, fechamento_periodo_anterior):
     return baker.make(
         'FechamentoPeriodo',
