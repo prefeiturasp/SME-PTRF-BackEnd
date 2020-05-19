@@ -7,10 +7,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from ..serializers.associacao_serializer import AssociacaoSerializer, AssociacaoCreateSerializer
-
 from ...models import Associacao, Periodo
-
-from ...services import info_acoes_associacao_no_periodo
+from ...services import info_acoes_associacao_no_periodo, status_periodo_associacao
 
 
 class AssociacoesViewSet(mixins.RetrieveModelMixin,
@@ -31,10 +29,14 @@ class AssociacoesViewSet(mixins.RetrieveModelMixin,
     def painel_acoes(self, request, uuid=None):
 
         periodo = Periodo.periodo_atual()
+        periodo_status = status_periodo_associacao(periodo_uuid=periodo.uuid, associacao_uuid=uuid)
         ultima_atualizacao = datetime.datetime.now()
         info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=uuid, periodo=periodo)
+
         result = {
             'associacao': f'{uuid}',
+            'periodo_referencia': periodo.referencia,
+            'periodo_status': periodo_status,
             'data_inicio_realizacao_despesas': f'{periodo.data_inicio_realizacao_despesas if periodo else ""}',
             'data_fim_realizacao_despesas': f'{periodo.data_fim_realizacao_despesas if periodo else ""}',
             'data_prevista_repasse': f'{periodo.data_prevista_repasse if periodo else ""}',

@@ -254,6 +254,33 @@ def periodo_2020_1(periodo):
         periodo_anterior=periodo
     )
 
+
+@pytest.fixture
+def periodo_fim_em_2020_06_30():
+    return baker.make(
+        'Periodo',
+        referencia='2020.1',
+        data_inicio_realizacao_despesas=date(2020, 1, 1),
+        data_fim_realizacao_despesas=date(2020, 6, 30),
+        data_prevista_repasse=date(2020, 1, 1),
+        data_inicio_prestacao_contas=date(2020, 7, 1),
+        data_fim_prestacao_contas=date(2020, 7, 10),
+        periodo_anterior=None
+    )
+
+@pytest.fixture
+def periodo_fim_em_aberto():
+    return baker.make(
+        'Periodo',
+        referencia='2020.1',
+        data_inicio_realizacao_despesas=date(2020, 1, 1),
+        data_fim_realizacao_despesas=None,
+        data_prevista_repasse=date(2020, 1, 1),
+        data_inicio_prestacao_contas=date(2020, 7, 1),
+        data_fim_prestacao_contas=date(2020, 7, 10),
+        periodo_anterior=None
+    )
+
 @pytest.fixture
 def prestacao_conta_anterior(periodo_anterior, associacao, conta_associacao):
     return baker.make(

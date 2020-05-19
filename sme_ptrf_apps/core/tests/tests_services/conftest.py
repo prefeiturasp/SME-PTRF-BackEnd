@@ -324,3 +324,32 @@ def prestacao_conta_2020_1_iniciada(periodo_2020_1, associacao, conta_associacao
         observacoes='',
         motivo_reabertura=''
     )
+
+
+@pytest.fixture
+def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        status=STATUS_ABERTO,
+        conciliado=True,
+        conciliado_em=datetime.date(2020, 7, 1),
+        observacoes='teste',
+        motivo_reabertura=''
+    )
+
+@pytest.fixture
+def prestacao_conta_2020_1_nao_conciliada(periodo_2020_1, associacao, conta_associacao_cartao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        status=STATUS_ABERTO,
+        conciliado=False,
+        conciliado_em=None,
+        observacoes='',
+        motivo_reabertura=''
+    )
