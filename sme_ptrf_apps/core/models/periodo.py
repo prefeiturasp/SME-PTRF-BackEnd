@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
@@ -19,6 +21,10 @@ class Periodo(ModeloBase):
     @property
     def proximo_periodo(self):
         return self.periodo_seguinte.first() if self.periodo_seguinte.exists() else None
+
+    @property
+    def encerrado(self):
+        return  self.data_fim_realizacao_despesas and self.data_fim_realizacao_despesas < datetime.date.today()
 
     @classmethod
     def periodo_atual(cls):
