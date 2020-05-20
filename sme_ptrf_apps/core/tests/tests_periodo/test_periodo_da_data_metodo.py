@@ -34,3 +34,9 @@ def test_periodo_da_data_metodo_nao_encontrando_periodo(periodo, periodo_anterio
     data_consultada = periodo.data_fim_realizacao_despesas + timedelta(days=1)
     periodo_da_data = Periodo.da_data(data_consultada)
     assert periodo_da_data is None
+
+
+def test_periodo_da_data_metodo_periodo_aberto(periodo_fim_em_aberto):
+    data_consultada = periodo_fim_em_aberto.data_inicio_realizacao_despesas + timedelta(days=1)
+    periodo_da_data = Periodo.da_data(data_consultada)
+    assert periodo_da_data == periodo_fim_em_aberto

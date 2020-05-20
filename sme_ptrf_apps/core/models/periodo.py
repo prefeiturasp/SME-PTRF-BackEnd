@@ -1,6 +1,7 @@
 import datetime
 
 from django.db import models
+from django.db.models import Q
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
@@ -33,7 +34,7 @@ class Periodo(ModeloBase):
     @classmethod
     def da_data(cls, data):
         periodos_da_data = cls.objects.filter(data_inicio_realizacao_despesas__lte=data).filter(
-            data_fim_realizacao_despesas__gte=data)
+            Q(data_fim_realizacao_despesas__gte=data) | Q(data_fim_realizacao_despesas__isnull=True))
         return periodos_da_data.first() if periodos_da_data else None
 
     class Meta:
