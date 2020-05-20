@@ -16,9 +16,14 @@ def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
         for rateio in rateios:
             acao_key = rateio['acao_associacao']
             aplicacao = rateio['aplicacao_recurso']
+
+            if not acao_key or not aplicacao: continue
+
             if acao_key not in totalizador_acoes:
                 totalizador_acoes[acao_key] = totalizador_aplicacoes
+
             totalizador_acoes[acao_key][aplicacao] += Decimal(rateio['valor_rateio'])
+
         return totalizador_acoes
 
     gastos_por_acao = sumariza_rateios_por_acao(rateios)
