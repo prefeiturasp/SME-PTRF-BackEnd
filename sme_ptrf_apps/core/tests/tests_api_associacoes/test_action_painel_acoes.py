@@ -16,12 +16,13 @@ def test_action_painel_acoes(
     periodo_anterior,
     periodo, acao_associacao,
     receita_100_no_periodo,
+    receita_300_repasse_no_periodo,
     receita_50_fora_do_periodo,
     despesa_no_periodo,
     rateio_no_periodo_200_capital,
     rateio_no_periodo_100_custeio,
     despesa_fora_periodo,
-    rateio_fora_periodo_50_custeio
+    rateio_fora_periodo_50_custeio,
 ):
     response = client.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/', content_type='application/json')
     result = json.loads(response.content)
@@ -39,12 +40,13 @@ def test_action_painel_acoes(
                 'acao_associacao_uuid': f'{acao_associacao.uuid}',
                 'acao_associacao_nome': acao_associacao.acao.nome,
                 'saldo_reprogramado': 0,
-                'receitas_no_periodo': 100.0,
-                'repasses_no_periodo': 0,
+                'receitas_no_periodo': 400.0,
+                'repasses_no_periodo': 300.0,
+                'outras_receitas_no_periodo': 100.0,
                 'despesas_no_periodo': 300.0,
-                'saldo_atual_custeio': 0.0,
+                'saldo_atual_custeio': 300.0,
                 'saldo_atual_capital': -200.0,
-                'saldo_atual_total': -200.0,
+                'saldo_atual_total': 100.0,
             }
         ]
     }

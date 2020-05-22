@@ -85,9 +85,12 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
             if receita.categoria_receita == APLICACAO_CUSTEIO:
                 info['receitas_no_periodo_custeio'] += receita.valor
                 info['saldo_atual_custeio'] += receita.valor
+                info['repasses_no_periodo_custeio'] += receita.valor if receita.tipo_receita.e_repasse else 0
+
             else:
                 info['receitas_no_periodo_capital'] += receita.valor
                 info['saldo_atual_capital'] += receita.valor
+                info['repasses_no_periodo_capital'] += receita.valor if receita.tipo_receita.e_repasse else 0
 
         return info
 
@@ -144,7 +147,11 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo):
             'acao_associacao_nome': acao_associacao.acao.nome,
             'saldo_reprogramado': info_acao['saldo_anterior_custeio'] + info_acao['saldo_anterior_capital'],
             'receitas_no_periodo': info_acao['receitas_no_periodo_custeio'] + info_acao['receitas_no_periodo_capital'],
-            'repasses_no_periodo': info_acao['repasses_no_periodo_custeio'] + info_acao['repasses_no_periodo_capital'],
+            'repasses_no_periodo': info_acao['repasses_no_periodo_custeio'] + info_acao['repasses_no_periodo_capital'] ,
+            'outras_receitas_no_periodo': info_acao['receitas_no_periodo_custeio'] +
+                                          info_acao['receitas_no_periodo_capital'] -
+                                          info_acao['repasses_no_periodo_custeio'] -
+                                          info_acao['repasses_no_periodo_capital'],
             'despesas_no_periodo': info_acao['despesas_no_periodo_custeio'] + info_acao['despesas_no_periodo_capital'],
             'saldo_atual_custeio': info_acao['saldo_atual_custeio'],
             'saldo_atual_capital': info_acao['saldo_atual_capital'],
