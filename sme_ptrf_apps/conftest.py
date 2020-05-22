@@ -398,6 +398,10 @@ def fechamento_periodo(periodo, associacao, conta_associacao, acao_associacao, f
 def tipo_receita():
     return baker.make('TipoReceita', nome='Estorno')
 
+@pytest.fixture
+def tipo_receita_repasse():
+    return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
+
 
 @pytest.fixture
 def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita, periodo):
@@ -410,6 +414,20 @@ def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_r
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
+    )
+
+
+@pytest.fixture
+def receita_300_repasse_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita_repasse, periodo):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=periodo.data_inicio_realizacao_despesas + timedelta(days=3),
+        valor=300.00,
+        descricao="Receita 200 repasse",
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita_repasse,
     )
 
 
