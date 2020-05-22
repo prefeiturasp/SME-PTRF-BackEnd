@@ -17,3 +17,10 @@ def status_periodo_associacao(periodo_uuid, associacao_uuid):
         status = STATUS_PERIODO_ASSOCIACAO_CONCILIADO
 
     return status
+
+
+def status_aceita_alteracoes_em_transacoes(status):
+    return status in (
+        STATUS_PERIODO_ASSOCIACAO_EM_ANDAMENTO,
+        STATUS_PERIODO_ASSOCIACAO_PENDENTE,
+    )
