@@ -7,7 +7,7 @@ from rest_framework.test import APIClient
 
 from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
-from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO
+from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO
 from .core.models.prestacao_conta import STATUS_ABERTO as PRESTACAO_ABERTA
 from .core.models.prestacao_conta import STATUS_FECHADO as PRESTACAO_FECHADA
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
@@ -340,6 +340,20 @@ def fechamento_periodo_anterior(periodo_anterior, associacao, conta_associacao, 
         total_repasses_custeio=900,
         total_despesas_custeio=800,
         status=STATUS_FECHADO
+    )
+
+@pytest.fixture
+def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        status=STATUS_ABERTO,
+        conciliado=True,
+        conciliado_em=date(2020, 7, 1),
+        observacoes='teste',
+        motivo_reabertura=''
     )
 
 
