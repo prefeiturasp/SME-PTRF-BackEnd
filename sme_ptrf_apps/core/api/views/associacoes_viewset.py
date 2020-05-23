@@ -61,12 +61,18 @@ class AssociacoesViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         periodo = Periodo.da_data(data)
-        periodo_status = status_periodo_associacao(periodo_uuid=periodo.uuid, associacao_uuid=uuid)
-        aceita_alteracoes = status_aceita_alteracoes_em_transacoes(periodo_status)
+        if periodo:
+            periodo_referencia = periodo.referencia
+            periodo_status = status_periodo_associacao(periodo_uuid=periodo.uuid, associacao_uuid=uuid)
+            aceita_alteracoes = status_aceita_alteracoes_em_transacoes(periodo_status)
+        else:
+            periodo_referencia = ''
+            periodo_status = 'PERIODO_NAO_ENCONTRADO'
+            aceita_alteracoes = True
 
         result = {
             'associacao': f'{uuid}',
-            'periodo_referencia': periodo.referencia,
+            'periodo_referencia': periodo_referencia,
             'periodo_status': periodo_status,
             'aceita_alteracoes': aceita_alteracoes,
         }

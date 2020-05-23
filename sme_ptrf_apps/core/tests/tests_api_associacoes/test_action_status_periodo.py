@@ -61,3 +61,34 @@ def test_status_periodo_conciliado(client, associacao, periodo_2020_1, prestacao
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
+
+
+def test_chamada_sem_passar_data(client, associacao, periodo_2020_1, prestacao_conta_2020_1_conciliada):
+    response = client.get(f'/api/associacoes/{associacao.uuid}/status-periodo/',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar a data que você quer consultar o status.'
+            }
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result == esperado
+
+
+def test_chamada_data_sem_periodo(client, associacao, periodo_2020_1):
+    response = client.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2000-01-10',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'associacao': f'{associacao.uuid}',
+        'periodo_referencia': '',
+        'periodo_status': 'PERIODO_NAO_ENCONTRADO',
+        'aceita_alteracoes': True,
+
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
