@@ -30,7 +30,15 @@ class AssociacoesViewSet(mixins.RetrieveModelMixin,
     @action(detail=True, url_path='painel-acoes')
     def painel_acoes(self, request, uuid=None):
 
-        periodo = Periodo.periodo_atual()
+        periodo = None
+
+        periodo_uuid = request.query_params.get('periodo_uuid')
+        if periodo_uuid:
+            periodo = Periodo.by_uuid(periodo_uuid)
+
+        if not periodo:
+            periodo = Periodo.periodo_atual()
+
         periodo_status = status_periodo_associacao(periodo_uuid=periodo.uuid, associacao_uuid=uuid)
         ultima_atualizacao = datetime.datetime.now()
         info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=uuid, periodo=periodo)

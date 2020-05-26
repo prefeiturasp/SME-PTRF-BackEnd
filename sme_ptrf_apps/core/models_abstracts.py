@@ -50,6 +50,9 @@ class TemChaveExterna(models.Model):
 
 
 class ModeloBase(TemChaveExterna, TemCriadoEm, TemAlteradoEm):
+    # Expoe explicitamente o model manager para evitar falsos alertas de Unresolved attribute reference for class Model
+    objects = models.Manager()
+
     @classmethod
     def get_valores(cls, user=None):
         return cls.objects.all().order_by('nome')
