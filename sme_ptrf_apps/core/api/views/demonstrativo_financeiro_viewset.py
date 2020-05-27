@@ -6,6 +6,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from sme_ptrf_apps.core.models import AcaoAssociacao, ContaAssociacao, DemonstrativoFinanceiro, Periodo
 from sme_ptrf_apps.core.services.demonstrativo_financeiro import gerar
+from sme_ptrf_apps.core.services.info_por_acao_services import info_acoes_associacao_no_periodo
 
 
 class DemonstrativoFinanceiroViewSet(GenericViewSet):
@@ -41,3 +42,30 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         return response
+
+    @action(detail=False, methods=['get'])
+    def acoes(self, request):
+        periodo = None
+
+        associacao_uuid = request.query_params.get('associacao_uuid') 
+        periodo_uuid = request.query_params.get('periodo_uuid')
+
+        if not associacao_uuid or not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do período e o uuid da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if periodo_uuid:
+            periodo = Periodo.by_uuid(periodo_uuid)
+
+        if not periodo:
+            periodo = Periodo.periodo_atual()
+
+        info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=associacao_uuid, periodo=periodo)
+        result = {
+            'info_acoes': info_acoes
+        }
+
+        return Response(result)
