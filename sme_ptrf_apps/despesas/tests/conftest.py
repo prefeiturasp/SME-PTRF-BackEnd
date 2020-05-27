@@ -133,8 +133,8 @@ def rateio_despesa_capital(associacao, despesa, conta_associacao, acao, tipo_apl
         valor_rateio=100.00,
         quantidade_itens_capital=2,
         valor_item_capital=50.00,
-        numero_processo_incorporacao_capital='Teste123456'
-
+        numero_processo_incorporacao_capital='Teste123456',
+        conferido=True,
     )
 
 
@@ -152,6 +152,7 @@ def rateio_despesa_instalacao_eletrica_ptrf(associacao, despesa, conta_associaca
         tipo_custeio=tipo_custeio_servico,
         especificacao_material_servico=especificacao_instalacao_eletrica,
         valor_rateio=100.00,
+        conferido=True,
 
     )
 
@@ -171,9 +172,9 @@ def rateio_despesa_material_eletrico_role_cultural(associacao, despesa, conta_as
         tipo_custeio=tipo_custeio_material,
         especificacao_material_servico=especificacao_material_eletrico,
         valor_rateio=100.00,
+        conferido=False,
 
     )
-
 
 @pytest.fixture
 def rateio_despesa_ar_condicionado_ptrf(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso_capital,
@@ -194,6 +195,17 @@ def rateio_despesa_ar_condicionado_ptrf(associacao, despesa, conta_associacao, a
 
     )
 
+@pytest.fixture
+def rateio_despesa_conferido(rateio_despesa_instalacao_eletrica_ptrf):
+    return rateio_despesa_instalacao_eletrica_ptrf
+
+@pytest.fixture
+def rateio_despesa_nao_conferido(rateio_despesa_material_eletrico_role_cultural):
+    return rateio_despesa_material_eletrico_role_cultural
+
+@pytest.fixture
+def rateio_despesa_nao_conferido2(rateio_despesa_ar_condicionado_ptrf):
+    return rateio_despesa_ar_condicionado_ptrf
 
 @pytest.fixture
 def fornecedor_jose():

@@ -6,7 +6,6 @@ pytestmark = pytest.mark.django_db
 
 
 def test_serializer(rateio_despesa_capital):
-
     serializer = RateioDespesaSerializer(rateio_despesa_capital)
 
     assert serializer.data is not None
@@ -27,13 +26,23 @@ def test_serializer(rateio_despesa_capital):
 def test_serializer_lista(rateio_despesa_capital):
     serializer = RateioDespesaListaSerializer(rateio_despesa_capital)
 
+    expected_fields = (
+        'uuid',
+        'despesa',
+        'numero_documento',
+        'status_despesa',
+        'especificacao_material_servico',
+        'data_documento', 'aplicacao_recurso',
+        'acao_associacao',
+        'valor_total',
+        'conferido',
+        'cpf_cnpj_fornecedor',
+        'nome_fornecedor',
+        'tipo_documento_nome',
+        'tipo_transacao_nome',
+        'data_transacao',
+    )
     assert serializer.data is not None
-    assert serializer.data['uuid']
-    assert serializer.data['despesa']
-    assert serializer.data['numero_documento']
-    assert serializer.data['status_despesa']
-    assert serializer.data['especificacao_material_servico']
-    assert serializer.data['data_documento']
-    assert serializer.data['aplicacao_recurso']
-    assert serializer.data['acao_associacao']
-    assert serializer.data['valor_total']
+    for field in expected_fields:
+        assert serializer.data[field]
+

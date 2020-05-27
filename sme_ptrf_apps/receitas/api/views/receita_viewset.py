@@ -6,14 +6,14 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import \
-    AcaoAssociacaoLookUpSerializer
-from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import \
-    ContaAssociacaoLookUpSerializer
+from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
+from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
+from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import aplicacoes_recurso_to_json
 from sme_ptrf_apps.receitas.models import Receita
-from ..serializers import (ReceitaCreateSerializer, ReceitaListaSerializer,
-                           TipoReceitaSerializer)
+
 from ...services import atualiza_repasse_para_pendente
+from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoReceitaSerializer
+
 
 class ReceitaViewSet(mixins.CreateModelMixin,
                      mixins.RetrieveModelMixin,
@@ -28,7 +28,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data',)
     search_fields = ('descricao',)
-    filter_fields = ('associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid')
+    filter_fields = ('associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid', 'conferido')
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
@@ -49,6 +49,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
 
         result = {
             'tipos_receita': get_valores_from(TipoReceitaSerializer),
+            'categorias_receita': aplicacoes_recurso_to_json(),
             'acoes_associacao': get_valores_from(AcaoAssociacaoLookUpSerializer),
             'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer)
         }
@@ -61,3 +62,15 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             atualiza_repasse_para_pendente(instance.acao_associacao)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['patch'])
+    def conciliar(self, request, uuid):
+        receita_conciliada = Receita.conciliar(uuid=uuid)
+        return Response(ReceitaListaSerializer(receita_conciliada, many=False).data,
+                        status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['patch'])
+    def desconciliar(self, request, uuid):
+        receita_desconciliada = Receita.desconciliar(uuid=uuid)
+        return Response(ReceitaListaSerializer(receita_desconciliada, many=False).data,
+                        status=status.HTTP_200_OK)

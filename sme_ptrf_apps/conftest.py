@@ -7,7 +7,8 @@ from rest_framework.test import APIClient
 
 from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
-from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO
+from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO
+from .core.models.prestacao_conta import STATUS_ABERTO as PRESTACAO_ABERTA
 from .core.models.prestacao_conta import STATUS_FECHADO as PRESTACAO_FECHADA
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
 
@@ -240,6 +241,45 @@ def periodo_aberto(periodo_anterior):
         periodo_anterior=periodo_anterior
     )
 
+@pytest.fixture
+def periodo_2020_1(periodo):
+    return baker.make(
+        'Periodo',
+        referencia='2020.1',
+        data_inicio_realizacao_despesas=date(2020, 1, 1),
+        data_fim_realizacao_despesas=date(2020, 6, 30),
+        data_prevista_repasse=date(2020, 1, 1),
+        data_inicio_prestacao_contas=date(2020, 7, 1),
+        data_fim_prestacao_contas=date(2020, 7, 10),
+        periodo_anterior=periodo
+    )
+
+
+@pytest.fixture
+def periodo_fim_em_2020_06_30():
+    return baker.make(
+        'Periodo',
+        referencia='2020.1',
+        data_inicio_realizacao_despesas=date(2020, 1, 1),
+        data_fim_realizacao_despesas=date(2020, 6, 30),
+        data_prevista_repasse=date(2020, 1, 1),
+        data_inicio_prestacao_contas=date(2020, 7, 1),
+        data_fim_prestacao_contas=date(2020, 7, 10),
+        periodo_anterior=None
+    )
+
+@pytest.fixture
+def periodo_fim_em_aberto():
+    return baker.make(
+        'Periodo',
+        referencia='2020.1',
+        data_inicio_realizacao_despesas=date(2020, 1, 1),
+        data_fim_realizacao_despesas=None,
+        data_prevista_repasse=date(2020, 1, 1),
+        data_inicio_prestacao_contas=date(2020, 7, 1),
+        data_fim_prestacao_contas=date(2020, 7, 10),
+        periodo_anterior=None
+    )
 
 @pytest.fixture
 def prestacao_conta_anterior(periodo_anterior, associacao, conta_associacao):
@@ -270,6 +310,21 @@ def prestacao_conta(periodo, associacao, conta_associacao, prestacao_conta_anter
 
 
 @pytest.fixture
+def prestacao_conta_iniciada(periodo_2020_1, associacao, conta_associacao_cartao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        status=PRESTACAO_ABERTA,
+        conciliado=False,
+        conciliado_em=None,
+        observacoes='',
+        motivo_reabertura=''
+    )
+
+
+@pytest.fixture
 def fechamento_periodo_anterior(periodo_anterior, associacao, conta_associacao, acao_associacao, ):
     return baker.make(
         'FechamentoPeriodo',
@@ -287,6 +342,38 @@ def fechamento_periodo_anterior(periodo_anterior, associacao, conta_associacao, 
         status=STATUS_FECHADO
     )
 
+@pytest.fixture
+def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        status=STATUS_ABERTO,
+        conciliado=True,
+        conciliado_em=date(2020, 7, 1),
+        observacoes='teste',
+        motivo_reabertura=''
+    )
+
+
+@pytest.fixture
+def fechamento_periodo_com_saldo(periodo, associacao, conta_associacao, acao_associacao, ):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        fechamento_anterior=None,
+        total_receitas_capital=20000,
+        total_repasses_capital=20000,
+        total_despesas_capital=0,
+        total_receitas_custeio=20000,
+        total_repasses_custeio=20000,
+        total_despesas_custeio=0,
+        status=STATUS_FECHADO
+    )
 
 @pytest.fixture
 def fechamento_periodo(periodo, associacao, conta_associacao, acao_associacao, fechamento_periodo_anterior):
@@ -311,6 +398,10 @@ def fechamento_periodo(periodo, associacao, conta_associacao, acao_associacao, f
 def tipo_receita():
     return baker.make('TipoReceita', nome='Estorno')
 
+@pytest.fixture
+def tipo_receita_repasse():
+    return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
+
 
 @pytest.fixture
 def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita, periodo):
@@ -323,6 +414,20 @@ def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_r
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
+    )
+
+
+@pytest.fixture
+def receita_300_repasse_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita_repasse, periodo):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=periodo.data_inicio_realizacao_despesas + timedelta(days=3),
+        valor=300.00,
+        descricao="Receita 200 repasse",
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita_repasse,
     )
 
 
