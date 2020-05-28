@@ -16,31 +16,15 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
     @action(detail=False, methods=['get'])
     def previa(self, request):
+        response = self._gerar_planilha(request)
+        return response
+
+    @action(detail=False, methods=['get'], url_path='documento-final')
+    def documento_final(self, request):
         acao_associacao_uuid = self.request.query_params.get('acao-associacao')
-        conta_associacao_uuid = self.request.query_params.get('conta-associacao')
-        periodo_uuid = self.request.query_params.get('periodo')
-
-        if not acao_associacao_uuid or not conta_associacao_uuid or not periodo_uuid:
-            erro = {
-                'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid do período, o uuid da ação da associação e o uuid da conta da associação.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
         acao_associacao = AcaoAssociacao.objects.filter(uuid=acao_associacao_uuid).get()
-        conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
-        periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
-
-        stream = gerar(periodo, acao_associacao, conta_associacao)
-
-        from django.http import HttpResponse
-        
-        filename = 'demonstrativo_financeiro.xlsx'
-        response = HttpResponse(
-            stream,
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        DemonstrativoFinanceiro.objects.update_or_create(acao_associacao=acao_associacao)
+        response = self._gerar_planilha(request)
         return response
 
     @action(detail=False, methods=['get'])
@@ -69,3 +53,39 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         }
 
         return Response(result)
+    
+    @action(detail=False, methods=['get'], url_path='demonstrativo-info')
+    def demonstrativo_info(self, request):
+        acao_associacao_uuid = self.request.query_params.get('acao-associacao')
+        demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(acao_associacao__uuid=acao_associacao_uuid).last()
+        msg = str(demonstrativo_financeiro) if demonstrativo_financeiro else 'Documento pendente de geração'
+        return Response(msg)
+
+    def _gerar_planilha(self, request):
+        acao_associacao_uuid = self.request.query_params.get('acao-associacao')
+        conta_associacao_uuid = self.request.query_params.get('conta-associacao')
+        periodo_uuid = self.request.query_params.get('periodo')
+
+        if not acao_associacao_uuid or not conta_associacao_uuid or not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do período, o uuid da ação da associação e o uuid da conta da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        acao_associacao = AcaoAssociacao.objects.filter(uuid=acao_associacao_uuid).get()
+        conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
+        periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
+
+        stream = gerar(periodo, acao_associacao, conta_associacao)
+
+        from django.http import HttpResponse
+        
+        filename = 'demonstrativo_financeiro.xlsx'
+        response = HttpResponse(
+            stream,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        
+        return response
