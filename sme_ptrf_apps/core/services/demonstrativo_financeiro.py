@@ -164,13 +164,13 @@ def pagamentos(worksheet, rateios, acc=0, start_line=21):
         row[ITEM].value = linha + 1
         row[RAZAO_SOCIAL].value = rateio.despesa.nome_fornecedor
         row[CNPJ_CPF].value = rateio.despesa.cpf_cnpj_fornecedor
-        row[TIPO_DOCUMENTO].value = rateio.despesa.tipo_documento.nome
+        row[TIPO_DOCUMENTO].value = rateio.despesa.tipo_documento.nome if rateio.despesa.tipo_documento else '' 
         row[NUMERO_DOCUMENTO].value = rateio.despesa.numero_documento
-        row[ESPECIFICACAO_MATERIAL].value = rateio.especificacao_material_servico.descricao
+        row[ESPECIFICACAO_MATERIAL].value = rateio.especificacao_material_servico.descricao if rateio.especificacao_material_servico else ''
         row[TIPO_DESPESA].value = rateio.aplicacao_recurso
-        row[TIPO_TRANSACAO].value = rateio.despesa.tipo_transacao.nome
-        row[DATA].value = rateio.despesa.data_documento.strftime("%d/%m/%Y")
-        row[DATA_2].value = rateio.despesa.data_documento.strftime("%d/%m/%Y")
+        row[TIPO_TRANSACAO].value = rateio.despesa.tipo_transacao.nome if rateio.despesa.tipo_transacao else ''
+        row[DATA].value = rateio.despesa.data_documento.strftime("%d/%m/%Y") if rateio.despesa.data_documento else ''
+        row[DATA_2].value = rateio.despesa.data_documento.strftime("%d/%m/%Y") if rateio.despesa.data_documento else ''
         row[VALOR].value = rateio.valor_rateio
 
 
