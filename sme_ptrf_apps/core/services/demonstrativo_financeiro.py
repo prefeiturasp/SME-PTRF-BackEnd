@@ -61,7 +61,6 @@ def gerar(periodo, acao_associacao, conta_associacao):
     rateios_nao_conferidos = RateioDespesa.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo, conferido=False)
     receitas_nao_demonstradas = Receita.receitas_da_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo, conferido=False)
     fechamento_periodo = FechamentoPeriodo.objects.filter(acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo).first()
-   
     path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
     nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro.xlsx')
     workbook = load_workbook(nome_arquivo)
@@ -114,24 +113,24 @@ def sintese_receita_despesa(worksheet, fechamento_periodo, rateios_conferidos):
 
     receitas_repasse_capital = receita_q.filter(tipo_receita__e_repasse=True, categoria_receita=APLICACAO_CAPITAL).values_list('valor')
     receitas_repasse_custeio = receita_q.filter(tipo_receita__e_repasse=True, categoria_receita=APLICACAO_CUSTEIO).values_list('valor')
-    outras_receitas_capital = receita_q.filter(tipo_receita__e_repasse=False, categoria_receita=APLICACAO_CAPITAL).values_list('valor')
-    outras_receitas_custeio = receita_q.filter(tipo_receita__e_repasse=False, categoria_receita=APLICACAO_CUSTEIO).values_list('valor')
+    receitas_rendimento = receita_q.filter(tipo_receita__e_rendimento=True).values_list('valor')
+    outras_receitas_capital = receita_q.filter(tipo_receita__e_repasse=False, tipo_receita__e_rendimento=False, categoria_receita=APLICACAO_CAPITAL).values_list('valor')
+    outras_receitas_custeio = receita_q.filter(tipo_receita__e_repasse=False, tipo_receita__e_rendimento=False, categoria_receita=APLICACAO_CUSTEIO).values_list('valor')
 
     valor_receita_repasse_capital = sum(rrc[0] for rrc in receitas_repasse_capital) if receitas_repasse_capital else 0
     valor_receita_repasse_custeio = sum(rrk[0] for rrk in receitas_repasse_custeio) if receitas_repasse_custeio else 0
+    valor_receita_rendimento = sum(ren[0] for ren in receitas_rendimento) if receitas_rendimento else 0
     valor_outras_receitas_capital = sum(orc[0] for orc in outras_receitas_capital) if outras_receitas_capital else 0
     valor_outras_receitas_custeio = sum(ork[0] for ork in outras_receitas_custeio) if outras_receitas_custeio else 0
-
-    rendimento = 0 # Ainda preciso implementar a parte do rendimento
 
     row_capital = list(worksheet.rows)[14]
     row_custeio = list(worksheet.rows)[15]
 
     row_capital[SALDO_ANTERIOR].value = saldo_reprogramado_anterior_capital
     row_capital[REPASSE].value = valor_receita_repasse_capital
-    row_capital[RENDIMENTO].value = rendimento
+    row_capital[RENDIMENTO].value = valor_receita_rendimento
     row_capital[OUTRAS_RECEITAS].value = valor_outras_receitas_capital
-    row_capital[VALOR_TOTAL].value = saldo_reprogramado_anterior_capital + valor_receita_repasse_capital + rendimento + valor_outras_receitas_capital
+    row_capital[VALOR_TOTAL].value = saldo_reprogramado_anterior_capital + valor_receita_repasse_capital + valor_receita_rendimento + valor_outras_receitas_capital
     row_capital[DESPESA_REALIZADA].value = valor_despesas_capital
     row_capital[SALDO_REPROGRAMADO].value = fechamento_periodo.saldo_reprogramado_capital
 
