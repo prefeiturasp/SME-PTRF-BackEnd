@@ -7,6 +7,7 @@ class TipoReceita(ModeloIdNome):
     e_repasse = models.BooleanField("É repasse?", default=False)
     aceita_capital = models.BooleanField('Aceita capital?', default=False)
     aceita_custeio = models.BooleanField('Aceita custeio?', default=False)
+    e_rendimento = models.BooleanField("É rendimento?", default=False)
 
     class Meta:
         verbose_name = 'Tipo de receita'
