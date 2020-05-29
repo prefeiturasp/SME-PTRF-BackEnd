@@ -124,3 +124,18 @@ def test_rateio_despesa_capital_completo(rateio_despesa_capital_completo):
     assert rateio_despesa_capital_completo.status == STATUS_COMPLETO
     despesa = Despesa.objects.get(uuid=rateio_despesa_capital_completo.despesa.uuid)
     assert despesa.status == STATUS_COMPLETO
+
+
+def test_despesa_de_transacao_que_tem_documento_com_documento(despesa_cheque_com_documento_transacao):
+    # Despesa com tipo de transação que exige um documento de transação é completa quando tem o documento
+    assert despesa_cheque_com_documento_transacao.status == STATUS_COMPLETO, "A despesa deveria estar completa"
+
+
+def test_despesa_de_transacao_que_tem_documento_sem_documento(despesa_cheque_sem_documento_transacao):
+    # Despesa com tipo de transação que exige um documento de transação é incompleta quando não tem o documento
+    assert despesa_cheque_sem_documento_transacao.status == STATUS_INCOMPLETO, "A despesa deveria estar incompleta"
+
+
+def test_despesa_de_transacao_que_nao_tem_documento_sem_documento(despesa_boleto_sem_documento_transacao):
+    # Despesa com tipo de transação que não exige um documento de transação é completa mesmo sem o documento
+    assert despesa_boleto_sem_documento_transacao.status == STATUS_COMPLETO, "A despesa deveria estar completa"

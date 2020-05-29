@@ -67,8 +67,12 @@ class Despesa(ModeloBase):
                    self.data_transacao and \
                    self.valor_total > 0
 
-        for rateio in self.rateios.all():
-            completo = completo and rateio.status == STATUS_COMPLETO
+        if completo and self.tipo_transacao.tem_documento:
+            completo = completo and self.documento_transacao
+
+        if completo:
+            for rateio in self.rateios.all():
+                completo = completo and rateio.status == STATUS_COMPLETO
 
         return completo
 
