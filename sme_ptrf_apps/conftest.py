@@ -356,6 +356,26 @@ def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associac
         motivo_reabertura=''
     )
 
+@pytest.fixture
+def fechamento_2020_1(periodo_2020_1, associacao, conta_associacao, acao_associacao, prestacao_conta_2020_1_conciliada):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        fechamento_anterior=None,
+        total_receitas_capital=1000,
+        total_repasses_capital=900,
+        total_despesas_capital=800,
+        total_receitas_custeio=2000,
+        total_repasses_custeio=1800,
+        total_despesas_custeio=1600,
+        status=STATUS_FECHADO,
+        prestacao_conta=prestacao_conta_2020_1_conciliada
+    )
+
+
 
 @pytest.fixture
 def fechamento_periodo_com_saldo(periodo, associacao, conta_associacao, acao_associacao, ):
