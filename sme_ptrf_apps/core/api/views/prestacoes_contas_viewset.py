@@ -8,7 +8,8 @@ from rest_framework.viewsets import GenericViewSet
 
 from ..serializers.prestacao_conta_serializer import PrestacaoContaLookUpSerializer
 from ...models import PrestacaoConta, AcaoAssociacao
-from ...services import iniciar_prestacao_de_contas, concluir_prestacao_de_contas, salvar_prestacao_de_contas
+from ...services import (iniciar_prestacao_de_contas, concluir_prestacao_de_contas, salvar_prestacao_de_contas,
+                         revisar_prestacao_de_contas)
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ....despesas.models import RateioDespesa
 from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
@@ -66,7 +67,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(result_error, status=status.HTTP_400_BAD_REQUEST)
 
-        prestacao_de_conta_revista = PrestacaoConta.revisar(uuid=uuid, motivo=motivo)
+        prestacao_de_conta_revista = revisar_prestacao_de_contas(prestacao_contas_uuid=uuid, motivo=motivo)
         return Response(PrestacaoContaLookUpSerializer(prestacao_de_conta_revista, many=False).data,
                         status=status.HTTP_200_OK)
 

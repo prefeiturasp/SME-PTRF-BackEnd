@@ -59,6 +59,10 @@ class PrestacaoConta(ModeloBase):
             associacao=conta_associacao.associacao,
         )
 
+    def apaga_fechamentos(self):
+        for fechamento in self.fechamentos_da_prestacao.all():
+            fechamento.delete()
+
     @classmethod
     def revisar(cls, uuid, motivo):
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
@@ -66,6 +70,7 @@ class PrestacaoConta(ModeloBase):
         prestacao_de_conta.conciliado_em = None
         prestacao_de_conta.conciliado = False
         prestacao_de_conta.save()
+        prestacao_de_conta.apaga_fechamentos()
         return prestacao_de_conta
 
     @classmethod

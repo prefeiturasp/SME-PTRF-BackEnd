@@ -17,7 +17,7 @@ from openpyxl.cell.cell import Cell, MergedCell
 from openpyxl.utils import column_index_from_string, get_column_letter, range_boundaries
 from openpyxl.utils.cell import coordinate_from_string
 
-from sme_ptrf_apps.core.models import Associacao, FechamentoPeriodo
+from sme_ptrf_apps.core.models import Associacao, FechamentoPeriodo, PrestacaoConta
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 from sme_ptrf_apps.receitas.models import Receita
@@ -61,6 +61,7 @@ def gerar(periodo, acao_associacao, conta_associacao):
     rateios_nao_conferidos = RateioDespesa.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo, conferido=False)
     receitas_nao_demonstradas = Receita.receitas_da_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo, conferido=False)
     fechamento_periodo = FechamentoPeriodo.objects.filter(acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo).first()
+    prestacao_conta = PrestacaoConta.objects.filter(conta_associacao=conta_associacao, periodo=periodo).first()
     path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
     nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro.xlsx')
     workbook = load_workbook(nome_arquivo)
@@ -71,15 +72,14 @@ def gerar(periodo, acao_associacao, conta_associacao):
     sintese_receita_despesa(worksheet, fechamento_periodo, rateios_conferidos)
     pagamentos(worksheet, rateios_conferidos)
     pagamentos(worksheet, rateios_nao_conferidos, acc=len(rateios_conferidos), start_line=26)
-    creditos_nao_demonstrados(worksheet, receitas_nao_demonstradas, acc=len(rateios_conferidos)+len(rateios_nao_conferidos))
-    
-    stream = None
-    with NamedTemporaryFile() as tmp:
-        workbook.save(tmp.name)
-        tmp.seek(0)
-        stream = tmp.read()
 
-    return stream
+    acc = len(rateios_conferidos)-1 if len(rateios_conferidos) > 1 else 0
+    acc += len(rateios_nao_conferidos)-1 if len(rateios_nao_conferidos) > 1 else 0
+    creditos_nao_demonstrados(worksheet, receitas_nao_demonstradas, acc=acc)
+    acc += len(receitas_nao_demonstradas)-1 if len(receitas_nao_demonstradas) > 1 else 0
+    observacoes(worksheet, prestacao_conta, acc=acc)
+
+    return workbook
 
 
 def cabecalho(worksheet, periodo, acao_associacao, conta_associacao):
@@ -176,7 +176,7 @@ def pagamentos(worksheet, rateios, acc=0, start_line=21):
 def creditos_nao_demonstrados(worksheet, receitas, acc=0):
     """BLOCO 5 - PAGAMENTOS EFETUADOS E DEMONSTRADOS"""
 
-    quantidade = acc-2 if acc > 2 else 0
+    quantidade = acc
     last_line = LAST_LINE + quantidade
     start_line = 30
     for linha, receita in enumerate(receitas):
@@ -193,6 +193,14 @@ def creditos_nao_demonstrados(worksheet, receitas, acc=0):
         row[7].value = receita.valor
 
 
+def observacoes(worksheet, prestacao_conta, acc=0):
+    """BLOCO 6 - OBSERVAÇÃO"""
+
+    start_line = 33
+    row = list(worksheet.rows)[start_line+acc-1]
+    row[ITEM].value = prestacao_conta.observacoes if prestacao_conta else ''
+
+
 def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_merged_columns=True):
     """Copia uma linha da planilha para a linha imediatamento abaixo mantendo todos os atributos."""
     CELL_RE  = re.compile("(?P<col>\$?[A-Z]+)(?P<row>\$?\d+)")
@@ -203,6 +211,16 @@ def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_me
         row = int(row.replace("$", ""))
         row += dest_row if row > source_row else 0
         return m.group('col') + prefix + str(row)
+    
+    # Fazendo unmerge das celulas de destino.
+    mergedcells =[]  
+    for group in ws.merged_cells.ranges:
+        mergedcells.append(group)
+
+    for cr in mergedcells:
+        min_col, min_row, max_col, max_row = range_boundaries(str(cr))
+        if max_row == min_row == source_row + 1:
+            ws.unmerge_cells(str(cr))
 
     new_row_idx = source_row + 1
     for row in range(new_row_idx, new_row_idx + dest_row):
@@ -217,7 +235,6 @@ def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_me
             if copy_style:
                 cell._style = copy(source._style)
             if copy_data and not isinstance(cell, MergedCell):
-                s_coor = source.coordinate
                 cell.data_type = source.data_type
                 cell.value = source.value
     
