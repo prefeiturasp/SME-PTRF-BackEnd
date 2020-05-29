@@ -77,13 +77,16 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
         periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
 
-        stream = gerar(periodo, acao_associacao, conta_associacao)
-
+        from io import BytesIO
+        from openpyxl.writer.excel import save_virtual_workbook
         from django.http import HttpResponse
+
+        xlsx = gerar(periodo, acao_associacao, conta_associacao)
+        result = BytesIO(save_virtual_workbook(xlsx))
         
         filename = 'demonstrativo_financeiro.xlsx'
         response = HttpResponse(
-            stream,
+            result,
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
