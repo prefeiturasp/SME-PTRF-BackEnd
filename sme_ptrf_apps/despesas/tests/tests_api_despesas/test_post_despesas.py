@@ -32,4 +32,5 @@ def test_api_post_despesas(
     despesa = Despesa.objects.get(uuid=result["uuid"])
 
     assert despesa.associacao.uuid == associacao.uuid
+    assert despesa.documento_transacao == '123456789'
 
