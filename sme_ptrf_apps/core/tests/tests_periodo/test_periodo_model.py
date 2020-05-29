@@ -1,5 +1,6 @@
 import pytest
 from django.contrib import admin
+from freezegun import freeze_time
 
 from ...models import Periodo
 
@@ -36,3 +37,15 @@ def test_admin():
 def test_encadeamento_de_periodos(periodo, periodo_anterior):
     assert periodo.periodo_anterior == periodo_anterior
     assert periodo_anterior.proximo_periodo == periodo
+
+@freeze_time('2020-07-01 10:11:12')
+def test_periodo_encerrado(periodo_fim_em_2020_06_30):
+    assert periodo_fim_em_2020_06_30.encerrado
+
+@freeze_time('2020-06-30 10:11:12')
+def test_periodo_nao_encerrado(periodo_fim_em_2020_06_30):
+    assert not periodo_fim_em_2020_06_30.encerrado
+
+@freeze_time('2020-12-30 10:11:12')
+def test_periodo_aberto_nao_encerrado(periodo_fim_em_aberto):
+    assert not periodo_fim_em_aberto.encerrado

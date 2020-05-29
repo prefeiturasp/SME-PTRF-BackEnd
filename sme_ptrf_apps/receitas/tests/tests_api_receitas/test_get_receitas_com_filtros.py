@@ -17,7 +17,7 @@ def test_api_get_receitas_por_tipo_receita(jwt_authenticated_client,
                                            tipo_conta,
                                            conta_associacao):
     response = jwt_authenticated_client.get(f'/api/receitas/?tipo_receita={tipo_receita_estorno.id}',
-                          content_type='application/json')
+                                            content_type='application/json')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
@@ -58,6 +58,32 @@ def test_api_get_receitas_por_conta_associacao(jwt_authenticated_client,
                                                conta_associacao_cartao):
     response = jwt_authenticated_client.get(
         f'/api/receitas/?associacao__uuid={associacao.uuid}&conta_associacao__uuid={conta_associacao_cartao.uuid}',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 1
+
+
+def test_api_get_receitas_por_conferido(jwt_authenticated_client,
+                                        associacao,
+                                        receita_conferida,
+                                        receita_nao_conferida):
+    response = jwt_authenticated_client.get(
+        f'/api/receitas/?associacao__uuid={associacao.uuid}&conferido=True',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 1
+
+
+def test_api_get_receitas_por_nao_conferido(jwt_authenticated_client,
+                                            associacao,
+                                            receita_conferida,
+                                            receita_nao_conferida):
+    response = jwt_authenticated_client.get(
+        f'/api/receitas/?associacao__uuid={associacao.uuid}&conferido=False',
         content_type='application/json')
     result = json.loads(response.content)
 

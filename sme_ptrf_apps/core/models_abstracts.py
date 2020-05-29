@@ -41,15 +41,26 @@ class TemAlteradoEm(models.Model):
 class TemChaveExterna(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
+    @classmethod
+    def by_uuid(cls, uuid):
+        return cls.objects.get(uuid=uuid)
+
     class Meta:
         abstract = True
 
 
 class ModeloBase(TemChaveExterna, TemCriadoEm, TemAlteradoEm):
+    # Expoe explicitamente o model manager para evitar falsos alertas de Unresolved attribute reference for class Model
+    objects = models.Manager()
+
     @classmethod
     def get_valores(cls, user=None):
         return cls.objects.all().order_by('nome')
-    
+
+    @classmethod
+    def by_id(cls, id):
+        return cls.objects.get(id=id)
+
     class Meta:
         abstract = True
 

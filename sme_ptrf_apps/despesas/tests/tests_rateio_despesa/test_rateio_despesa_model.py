@@ -26,6 +26,7 @@ def test_instance_model(rateio_despesa_capital):
     assert model.uuid
     assert model.id
     assert model.status == STATUS_COMPLETO
+    assert model.conferido
 
 
 def test_srt_model(rateio_despesa_capital):
@@ -40,3 +41,14 @@ def test_meta_modelo(rateio_despesa_capital):
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[RateioDespesa]
+
+
+def test_marcar_conferido(rateio_despesa_nao_conferido):
+    rateio_despesa_nao_conferido.marcar_conferido()
+    rateio = RateioDespesa.objects.get(id=rateio_despesa_nao_conferido.id)
+    assert rateio.conferido
+
+def test_desmarcar_conferido(rateio_despesa_conferido):
+    rateio_despesa_conferido.desmarcar_conferido()
+    rateio = RateioDespesa.objects.get(id=rateio_despesa_conferido.id)
+    assert not rateio.conferido

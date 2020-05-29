@@ -2,13 +2,12 @@ import logging
 
 from rest_framework import serializers
 
-from sme_ptrf_apps.core.models import Associacao, AcaoAssociacao, ContaAssociacao
-from sme_ptrf_apps.receitas.models import Receita, Repasse
-from .tipo_receita_serializer import TipoReceitaSerializer
-from ...services import atualiza_repasse_para_realizado, atualiza_repasse_para_pendente
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
-
+from sme_ptrf_apps.core.models import Associacao, AcaoAssociacao, ContaAssociacao
+from sme_ptrf_apps.receitas.models import Receita
+from .tipo_receita_serializer import TipoReceitaSerializer
+from ...services import atualiza_repasse_para_realizado, atualiza_repasse_para_pendente
 
 logger = logging.getLogger(__name__)
 
@@ -65,5 +64,7 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
             'descricao',
             'tipo_receita',
             'acao_associacao',
-            'conta_associacao'
+            'conta_associacao',
+            'conferido',
+            'categoria_receita',
         )

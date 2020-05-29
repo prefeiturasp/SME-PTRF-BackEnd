@@ -1,21 +1,23 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 import pytest
 from django.test import RequestFactory
-from rest_framework.test import APIClient
 from model_bakery import baker
+from rest_framework.test import APIClient
 
 from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
-from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO
+from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO
+from .core.models.prestacao_conta import STATUS_ABERTO as PRESTACAO_ABERTA
+from .core.models.prestacao_conta import STATUS_FECHADO as PRESTACAO_FECHADA
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
 
 
 @pytest.fixture
-def fake_user(client, django_user_model, associacao):
+def fake_user(client, django_user_model):
     password = 'teste'
     username = 'fake'
-    user = django_user_model.objects.create_user(username=username, password=password, associacao=associacao)
+    user = django_user_model.objects.create_user(username=username, password=password)
     client.login(username=username, password=password)
     return user
 
@@ -30,18 +32,18 @@ def authenticated_client(client, django_user_model):
 
 
 @pytest.fixture
-def usuario(associacao):
+def usuario():
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
     login = '7210418'
     User = get_user_model()
-    user = User.objects.create_user(username=login, password=senha, associacao=associacao)
+    user = User.objects.create_user(username=login, password=senha)
     return user
 
 
 @pytest.fixture
-def jwt_authenticated_client(client, usuario, associacao):
-    from unittest.mock import Mock, patch
+def jwt_authenticated_client(client, usuario):
+    from unittest.mock import patch
     api_client = APIClient()
     with patch('sme_ptrf_apps.users.api.views.login.AutenticacaoService.autentica') as mock_post:
         data = {
@@ -106,7 +108,7 @@ def acao_role_cultural():
 
 @pytest.fixture
 def dre():
-    return baker.make('Unidade', codigo_eol='99999', tipo_unidade='DRE')
+    return baker.make('Unidade', codigo_eol='99999', tipo_unidade='DRE', nome='DRE teste')
 
 
 @pytest.fixture
@@ -115,7 +117,7 @@ def unidade(dre):
 
 
 @pytest.fixture
-def associacao(unidade):
+def associacao(unidade, usuario):
     return baker.make(
         'Associacao',
         nome='Escola Teste',
@@ -125,6 +127,7 @@ def associacao(unidade):
         presidente_associacao_rf='1234567',
         presidente_conselho_fiscal_nome='Ciclano',
         presidente_conselho_fiscal_rf='7654321',
+        usuario=usuario
     )
 
 
@@ -238,6 +241,88 @@ def periodo_aberto(periodo_anterior):
         periodo_anterior=periodo_anterior
     )
 
+@pytest.fixture
+def periodo_2020_1(periodo):
+    return baker.make(
+        'Periodo',
+        referencia='2020.1',
+        data_inicio_realizacao_despesas=date(2020, 1, 1),
+        data_fim_realizacao_despesas=date(2020, 6, 30),
+        data_prevista_repasse=date(2020, 1, 1),
+        data_inicio_prestacao_contas=date(2020, 7, 1),
+        data_fim_prestacao_contas=date(2020, 7, 10),
+        periodo_anterior=periodo
+    )
+
+
+@pytest.fixture
+def periodo_fim_em_2020_06_30():
+    return baker.make(
+        'Periodo',
+        referencia='2020.1',
+        data_inicio_realizacao_despesas=date(2020, 1, 1),
+        data_fim_realizacao_despesas=date(2020, 6, 30),
+        data_prevista_repasse=date(2020, 1, 1),
+        data_inicio_prestacao_contas=date(2020, 7, 1),
+        data_fim_prestacao_contas=date(2020, 7, 10),
+        periodo_anterior=None
+    )
+
+@pytest.fixture
+def periodo_fim_em_aberto():
+    return baker.make(
+        'Periodo',
+        referencia='2020.1',
+        data_inicio_realizacao_despesas=date(2020, 1, 1),
+        data_fim_realizacao_despesas=None,
+        data_prevista_repasse=date(2020, 1, 1),
+        data_inicio_prestacao_contas=date(2020, 7, 1),
+        data_fim_prestacao_contas=date(2020, 7, 10),
+        periodo_anterior=None
+    )
+
+@pytest.fixture
+def prestacao_conta_anterior(periodo_anterior, associacao, conta_associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_anterior,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        prestacao_de_conta_anterior=None,
+        status=PRESTACAO_FECHADA,
+        conciliado=True
+    )
+
+@pytest.fixture
+def prestacao_conta(periodo, associacao, conta_associacao, prestacao_conta_anterior):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        prestacao_de_conta_anterior=prestacao_conta_anterior,
+        status=PRESTACAO_FECHADA,
+        conciliado=True,
+        conciliado_em=datetime(2020, 1, 1, 10, 30, 15),
+        observacoes='Teste',
+        motivo_reabertura='Teste'
+    )
+
+
+@pytest.fixture
+def prestacao_conta_iniciada(periodo_2020_1, associacao, conta_associacao_cartao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        status=PRESTACAO_ABERTA,
+        conciliado=False,
+        conciliado_em=None,
+        observacoes='',
+        motivo_reabertura=''
+    )
+
 
 @pytest.fixture
 def fechamento_periodo_anterior(periodo_anterior, associacao, conta_associacao, acao_associacao, ):
@@ -257,6 +342,58 @@ def fechamento_periodo_anterior(periodo_anterior, associacao, conta_associacao, 
         status=STATUS_FECHADO
     )
 
+@pytest.fixture
+def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        status=STATUS_ABERTO,
+        conciliado=True,
+        conciliado_em=date(2020, 7, 1),
+        observacoes='teste',
+        motivo_reabertura=''
+    )
+
+@pytest.fixture
+def fechamento_2020_1(periodo_2020_1, associacao, conta_associacao, acao_associacao, prestacao_conta_2020_1_conciliada):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        fechamento_anterior=None,
+        total_receitas_capital=1000,
+        total_repasses_capital=900,
+        total_despesas_capital=800,
+        total_receitas_custeio=2000,
+        total_repasses_custeio=1800,
+        total_despesas_custeio=1600,
+        status=STATUS_FECHADO,
+        prestacao_conta=prestacao_conta_2020_1_conciliada
+    )
+
+
+
+@pytest.fixture
+def fechamento_periodo_com_saldo(periodo, associacao, conta_associacao, acao_associacao, ):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        fechamento_anterior=None,
+        total_receitas_capital=20000,
+        total_repasses_capital=20000,
+        total_despesas_capital=0,
+        total_receitas_custeio=20000,
+        total_repasses_custeio=20000,
+        total_despesas_custeio=0,
+        status=STATUS_FECHADO
+    )
 
 @pytest.fixture
 def fechamento_periodo(periodo, associacao, conta_associacao, acao_associacao, fechamento_periodo_anterior):
@@ -281,6 +418,10 @@ def fechamento_periodo(periodo, associacao, conta_associacao, acao_associacao, f
 def tipo_receita():
     return baker.make('TipoReceita', nome='Estorno')
 
+@pytest.fixture
+def tipo_receita_repasse():
+    return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
+
 
 @pytest.fixture
 def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita, periodo):
@@ -293,6 +434,20 @@ def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_r
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
+    )
+
+
+@pytest.fixture
+def receita_300_repasse_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita_repasse, periodo):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=periodo.data_inicio_realizacao_despesas + timedelta(days=3),
+        valor=300.00,
+        descricao="Receita 200 repasse",
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita_repasse,
     )
 
 
@@ -412,6 +567,41 @@ def despesa_no_periodo(associacao, tipo_documento, tipo_transacao, periodo):
         valor_recursos_proprios=0,
     )
 
+@pytest.fixture
+def rateio_despesa_demonstrativo(associacao, despesa_no_periodo, conta_associacao, acao, tipo_aplicacao_recurso_capital, tipo_custeio,
+                           especificacao_material_eletrico, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_no_periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_capital,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=especificacao_material_eletrico,
+        valor_rateio=100.00,
+        quantidade_itens_capital=2,
+        valor_item_capital=50.00,
+        numero_processo_incorporacao_capital='Teste123456'
+    )
+
+@pytest.fixture
+def rateio_despesa_demonstrativo2(associacao, despesa_no_periodo, conta_associacao, acao, tipo_aplicacao_recurso_custeio, tipo_custeio_material,
+                           especificacao_material_eletrico, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_no_periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_material,
+        especificacao_material_servico=especificacao_material_eletrico,
+        valor_rateio=200.00,
+        quantidade_itens_capital=2,
+        valor_item_capital=100.00,
+        numero_processo_incorporacao_capital='Teste654321'
+    )
 
 # rateio_100_custeio
 @pytest.fixture

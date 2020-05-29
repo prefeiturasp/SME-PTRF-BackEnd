@@ -9,6 +9,6 @@ def test_url_authorized(authenticated_client):
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
-def test_url_tabelas(jwt_authenticated_client):
+def test_url_tabelas(associacao, jwt_authenticated_client):
     response = jwt_authenticated_client.get('/api/despesas/tabelas/')
     assert response.status_code == status.HTTP_200_OK

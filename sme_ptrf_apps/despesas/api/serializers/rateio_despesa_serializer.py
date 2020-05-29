@@ -65,6 +65,11 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
     status_despesa = serializers.SerializerMethodField('get_status_despesa')
     data_documento = serializers.SerializerMethodField('get_data_documento')
     valor_total = serializers.SerializerMethodField('get_valor_total')
+    tipo_documento_nome = serializers.SerializerMethodField('get_tipo_documento_nome')
+    tipo_transacao_nome = serializers.SerializerMethodField('get_tipo_transacao_nome')
+    cpf_cnpj_fornecedor = serializers.SerializerMethodField('get_cpf_cnpj_fornecedor')
+    nome_fornecedor = serializers.SerializerMethodField('get_nome_fornecedor')
+    data_transacao = serializers.SerializerMethodField('get_data_transacao')
 
     def get_numero_documento(self, rateio):
         return rateio.despesa.numero_documento
@@ -78,6 +83,21 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
     def get_valor_total(self, rateio):
         return rateio.valor_rateio
 
+    def get_tipo_documento_nome(self, rateio):
+        return rateio.despesa.tipo_documento.nome if rateio.despesa.tipo_documento else ''
+
+    def get_tipo_transacao_nome(self, rateio):
+        return rateio.despesa.tipo_transacao.nome if rateio.despesa.tipo_transacao else ''
+
+    def get_cpf_cnpj_fornecedor(self, rateio):
+        return rateio.despesa.cpf_cnpj_fornecedor
+
+    def get_nome_fornecedor(self, rateio):
+        return rateio.despesa.nome_fornecedor
+
+    def get_data_transacao(self, rateio):
+        return rateio.despesa.data_transacao
+
     class Meta:
         model = RateioDespesa
         fields = (
@@ -88,5 +108,11 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
             'especificacao_material_servico',
             'data_documento', 'aplicacao_recurso',
             'acao_associacao',
-            'valor_total'
+            'valor_total',
+            'conferido',
+            'cpf_cnpj_fornecedor',
+            'nome_fornecedor',
+            'tipo_documento_nome',
+            'tipo_transacao_nome',
+            'data_transacao',
         )
