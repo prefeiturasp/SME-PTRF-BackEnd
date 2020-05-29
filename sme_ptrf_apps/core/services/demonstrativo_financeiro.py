@@ -71,7 +71,10 @@ def gerar(periodo, acao_associacao, conta_associacao):
     sintese_receita_despesa(worksheet, fechamento_periodo, rateios_conferidos)
     pagamentos(worksheet, rateios_conferidos)
     pagamentos(worksheet, rateios_nao_conferidos, acc=len(rateios_conferidos), start_line=26)
-    creditos_nao_demonstrados(worksheet, receitas_nao_demonstradas, acc=len(rateios_conferidos)+len(rateios_nao_conferidos))
+
+    acc = len(rateios_conferidos)-1 if len(rateios_conferidos) > 1 else 0
+    acc += len(rateios_nao_conferidos)-1 if len(rateios_nao_conferidos) > 1 else 0
+    creditos_nao_demonstrados(worksheet, receitas_nao_demonstradas, acc=acc)
     
     stream = None
     with NamedTemporaryFile() as tmp:
@@ -176,7 +179,7 @@ def pagamentos(worksheet, rateios, acc=0, start_line=21):
 def creditos_nao_demonstrados(worksheet, receitas, acc=0):
     """BLOCO 5 - PAGAMENTOS EFETUADOS E DEMONSTRADOS"""
 
-    quantidade = acc-2 if acc > 2 else 0
+    quantidade = acc
     last_line = LAST_LINE + quantidade
     start_line = 30
     for linha, receita in enumerate(receitas):
@@ -203,6 +206,16 @@ def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_me
         row = int(row.replace("$", ""))
         row += dest_row if row > source_row else 0
         return m.group('col') + prefix + str(row)
+    
+    # Fazendo unmerge das celulas de destino.
+    mergedcells =[]  
+    for group in ws.merged_cells.ranges:
+        mergedcells.append(group)
+
+    for cr in mergedcells:
+        min_col, min_row, max_col, max_row = range_boundaries(str(cr))
+        if max_row == min_row == source_row + 1:
+            ws.unmerge_cells(str(cr))
 
     new_row_idx = source_row + 1
     for row in range(new_row_idx, new_row_idx + dest_row):
@@ -217,7 +230,6 @@ def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_me
             if copy_style:
                 cell._style = copy(source._style)
             if copy_data and not isinstance(cell, MergedCell):
-                s_coor = source.coordinate
                 cell.data_type = source.data_type
                 cell.value = source.value
     
