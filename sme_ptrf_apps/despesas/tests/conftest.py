@@ -15,6 +15,13 @@ def tipo_documento():
 def tipo_transacao():
     return baker.make('TipoTransacao', nome='Boleto')
 
+@pytest.fixture
+def tipo_transacao_cheque_com_documento():
+    return baker.make('TipoTransacao', nome='Cheque', tem_documento=True)
+
+@pytest.fixture
+def tipo_transacao_boleto_sem_documento():
+    return baker.make('TipoTransacao', nome='Boleto', tem_documento=False)
 
 @pytest.fixture
 def tipo_aplicacao_recurso():
@@ -112,11 +119,63 @@ def despesa(associacao, tipo_documento, tipo_transacao):
         cpf_cnpj_fornecedor='11.478.276/0001-04',
         nome_fornecedor='Fornecedor SA',
         tipo_transacao=tipo_transacao,
+        documento_transacao='',
         data_transacao=datetime.date(2020, 3, 10),
         valor_total=100.00,
         valor_recursos_proprios=10.00,
     )
 
+
+@pytest.fixture
+def despesa_cheque_com_documento_transacao(associacao, tipo_documento, tipo_transacao_cheque_com_documento):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao_cheque_com_documento,
+        documento_transacao='123456789',
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=100.00,
+        valor_recursos_proprios=10.00,
+    )
+
+@pytest.fixture
+def despesa_cheque_sem_documento_transacao(associacao, tipo_documento, tipo_transacao_cheque_com_documento):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao_cheque_com_documento,
+        documento_transacao='',
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=100.00,
+        valor_recursos_proprios=10.00,
+    )
+
+@pytest.fixture
+def despesa_boleto_sem_documento_transacao(associacao, tipo_documento, tipo_transacao_boleto_sem_documento):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao_boleto_sem_documento,
+        documento_transacao='',
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=100.00,
+        valor_recursos_proprios=10.00,
+    )
 
 @pytest.fixture
 def rateio_despesa_capital(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso, tipo_custeio,

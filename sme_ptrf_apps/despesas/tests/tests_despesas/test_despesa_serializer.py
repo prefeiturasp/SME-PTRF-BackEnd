@@ -18,6 +18,7 @@ def test_serializer(despesa):
     assert serializer.data['cpf_cnpj_fornecedor']
     assert serializer.data['nome_fornecedor']
     assert serializer.data['tipo_transacao']
+    assert serializer.data['documento_transacao'] is not None
     assert serializer.data['data_transacao']
     assert serializer.data['valor_total']
     assert serializer.data['valor_recursos_proprios']

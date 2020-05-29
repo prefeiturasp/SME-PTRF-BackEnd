@@ -16,6 +16,7 @@ def test_instance_model(despesa):
     assert model.cpf_cnpj_fornecedor
     assert model.nome_fornecedor
     assert model.tipo_transacao
+    assert model.documento_transacao is not None
     assert model.data_transacao
     assert model.valor_total
     assert model.valor_recursos_proprios

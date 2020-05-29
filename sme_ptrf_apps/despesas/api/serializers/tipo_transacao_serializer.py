@@ -6,4 +6,4 @@ from ...models import TipoTransacao
 class TipoTransacaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoTransacao
-        fields = ('id', 'nome')
+        fields = ('id', 'nome', 'tem_documento')

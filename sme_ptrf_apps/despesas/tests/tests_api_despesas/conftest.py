@@ -16,6 +16,7 @@ def payload_despesa_valida(
         "associacao": f'{associacao.uuid}',
         "tipo_documento": tipo_documento.id,
         "tipo_transacao": tipo_transacao.id,
+        "documento_transacao": "123456789",
         "numero_documento": "634767",
         "data_documento": "2020-03-10",
         "cpf_cnpj_fornecedor": "36.352.197/0001-75",

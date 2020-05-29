@@ -4,7 +4,6 @@ from rangefilter.filter import DateRangeFilter
 from .models import TipoTransacao, TipoDocumento, TipoCusteio, EspecificacaoMaterialServico, Despesa, RateioDespesa, \
     Fornecedor
 
-admin.site.register(TipoTransacao)
 admin.site.register(TipoDocumento)
 admin.site.register(TipoCusteio)
 
@@ -57,7 +56,7 @@ class RateioDespesaInLine(admin.TabularInline):
 class DespesaAdmin(admin.ModelAdmin):
     list_display = ('tipo_documento', 'numero_documento', 'data_documento', 'nome_fornecedor', 'valor_total', 'status')
     ordering = ('-data_documento',)
-    search_fields = ('numero_documento', 'nome_fornecedor',)
+    search_fields = ('numero_documento', 'nome_fornecedor', 'documento_transacao')
     list_filter = ('status',)
     inlines = [RateioDespesaInLine, ]
     readonly_fields = ('uuid', 'id')
@@ -85,4 +84,12 @@ class FornecedorAdmin(admin.ModelAdmin):
     list_display = ('nome', 'cpf_cnpj',)
     ordering = ('nome',)
     search_fields = ('nome', 'cpf_cnpj',)
+    readonly_fields = ('uuid', 'id')
+
+
+@admin.register(TipoTransacao)
+class TipoTransacaoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'tem_documento',)
+    ordering = ('nome',)
+    search_fields = ('nome',)
     readonly_fields = ('uuid', 'id')
