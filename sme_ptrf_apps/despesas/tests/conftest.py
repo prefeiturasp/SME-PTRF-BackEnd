@@ -112,6 +112,7 @@ def despesa(associacao, tipo_documento, tipo_transacao):
         cpf_cnpj_fornecedor='11.478.276/0001-04',
         nome_fornecedor='Fornecedor SA',
         tipo_transacao=tipo_transacao,
+        documento_transacao='1234567890',
         data_transacao=datetime.date(2020, 3, 10),
         valor_total=100.00,
         valor_recursos_proprios=10.00,
