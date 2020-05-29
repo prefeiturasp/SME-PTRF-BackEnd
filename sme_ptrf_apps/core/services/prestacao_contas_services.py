@@ -35,3 +35,10 @@ def concluir_prestacao_de_contas(prestacao_contas_uuid, observacoes):
 
 def salvar_prestacao_de_contas(prestacao_contas_uuid, observacoes):
     return PrestacaoConta.salvar(uuid=prestacao_contas_uuid, observacoes=observacoes)
+
+
+def revisar_prestacao_de_contas(prestacao_contas_uuid, motivo):
+
+    prestacao = PrestacaoConta.revisar(uuid=prestacao_contas_uuid, motivo=motivo)
+
+    return prestacao
