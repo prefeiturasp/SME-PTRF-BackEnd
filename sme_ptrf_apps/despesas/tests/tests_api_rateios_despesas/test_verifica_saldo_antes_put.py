@@ -45,6 +45,7 @@ def test_api_verifica_saldo_antes_put_sem_saldo(
     periodo,
     periodo_2020_1,
     fechamento_periodo_com_saldo,
+    fechamento_periodo_com_saldo_outra_acao,
     client,
     tipo_aplicacao_recurso,
     tipo_custeio,

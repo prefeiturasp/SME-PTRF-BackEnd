@@ -118,6 +118,10 @@ class FechamentoPeriodo(ModeloBase):
         return FechamentoPeriodo.objects.filter(acao_associacao=acao_associacao, periodo=periodo).all()
 
     @classmethod
+    def fechamentos_da_conta_no_periodo(cls, conta_associacao, periodo):
+        return FechamentoPeriodo.objects.filter(conta_associacao=conta_associacao, periodo=periodo).all()
+
+    @classmethod
     def criar(cls,
               prestacao_conta,
               acao_associacao,

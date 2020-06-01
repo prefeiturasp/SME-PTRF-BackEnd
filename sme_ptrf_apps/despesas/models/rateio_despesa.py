@@ -93,6 +93,25 @@ class RateioDespesa(ModeloBase):
 
         return dataset.all()
 
+    @classmethod
+    def rateios_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None,
+                                               exclude_despesa=None):
+        if periodo.data_fim_realizacao_despesas:
+            dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+                despesa__data_documento__range=(
+                    periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
+        else:
+            dataset = cls.objects.filter(acao_associacao=conta_associacao).filter(
+                despesa__data_documento__gte=periodo.data_inicio_realizacao_despesas)
+
+        if conferido is not None:
+            dataset = dataset.filter(conferido=conferido)
+
+        if exclude_despesa:
+            dataset = dataset.exclude(despesa__uuid=exclude_despesa)
+
+        return dataset.all()
+
     def marcar_conferido(self):
         self.conferido = True
         self.save()

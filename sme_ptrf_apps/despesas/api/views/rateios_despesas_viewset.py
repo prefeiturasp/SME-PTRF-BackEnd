@@ -56,8 +56,11 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
         if data_documento:
             periodo_despesa = Periodo.da_data(data_documento)
             rateios = despesa['rateios']
-            saldos_insuficientes = saldos_insuficientes_para_rateios(rateios=rateios, periodo=periodo_despesa,
-                                                                     exclude_despesa=despesa_uuid)
+            saldos_insuficientes = saldos_insuficientes_para_rateios(
+                rateios=rateios,
+                periodo=periodo_despesa,
+                exclude_despesa=despesa_uuid
+            )
         else:
             return Response({
                 'situacao_do_saldo': 'impossível_determinar',
@@ -66,18 +69,26 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
                 'aceitar_lancamento': True
             })
 
-        if saldos_insuficientes:
-            result = {
-                'situacao_do_saldo': 'saldo_insuficiente',
-                'mensagem': 'Não há saldo disponível em alguma das ações da despesa.',
-                'saldos_insuficientes': saldos_insuficientes,
-                'aceitar_lancamento': True
-            }
-        else:
-            result = {
+        if not saldos_insuficientes['saldos_insuficientes']:
+            return Response( {
                 'situacao_do_saldo': 'saldo_suficiente',
                 'mensagem': 'Há saldo disponível para cobertura da despesa.',
                 'saldos_insuficientes': [],
+                'aceitar_lancamento': True
+            })
+
+        if saldos_insuficientes['tipo_saldo'] == 'CONTA':
+            result = {
+                'situacao_do_saldo': 'saldo_conta_insuficiente',
+                'mensagem': 'Não há saldo disponível em alguma das contas da despesa.',
+                'saldos_insuficientes': saldos_insuficientes['saldos_insuficientes'],
+                'aceitar_lancamento': False
+            }
+        else:
+            result = {
+                'situacao_do_saldo': 'saldo_insuficiente',
+                'mensagem': 'Não há saldo disponível em alguma das ações da despesa.',
+                'saldos_insuficientes': saldos_insuficientes['saldos_insuficientes'],
                 'aceitar_lancamento': True
             }
 
