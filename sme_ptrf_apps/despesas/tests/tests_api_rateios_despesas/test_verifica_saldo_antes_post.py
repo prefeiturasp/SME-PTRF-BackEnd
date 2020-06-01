@@ -31,7 +31,8 @@ def test_api_verifica_saldo_antes_post_saldo_ok(
     result_esperado = {
         'situacao_do_saldo': 'saldo_suficiente',
         'mensagem': 'Há saldo disponível para cobertura da despesa.',
-        'saldos_insuficientes': []
+        'saldos_insuficientes': [],
+        'aceitar_lancamento': True
     }
     result = json.loads(response.content)
 
@@ -66,7 +67,8 @@ def test_api_verifica_saldo_antes_post_sem_saldo(
                 'saldo_disponivel': 0,
                 'total_rateios': 1000.00
             }
-        ]
+        ],
+        'aceitar_lancamento': True
     }
     result = json.loads(response.content)
 

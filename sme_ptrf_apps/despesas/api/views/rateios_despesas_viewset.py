@@ -62,20 +62,23 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
             return Response({
                 'situacao_do_saldo': 'impossível_determinar',
                 'mensagem': 'Sem informar a data da despesa não há como determinar o saldo disponível.',
-                'saldos_insuficientes': []
+                'saldos_insuficientes': [],
+                'aceitar_lancamento': True
             })
 
         if saldos_insuficientes:
             result = {
                 'situacao_do_saldo': 'saldo_insuficiente',
                 'mensagem': 'Não há saldo disponível em alguma das ações da despesa.',
-                'saldos_insuficientes': saldos_insuficientes
+                'saldos_insuficientes': saldos_insuficientes,
+                'aceitar_lancamento': True
             }
         else:
             result = {
                 'situacao_do_saldo': 'saldo_suficiente',
                 'mensagem': 'Há saldo disponível para cobertura da despesa.',
-                'saldos_insuficientes': []
+                'saldos_insuficientes': [],
+                'aceitar_lancamento': True
             }
 
         return Response(result)
