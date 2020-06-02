@@ -712,3 +712,11 @@ def rateio_fora_periodo_50_custeio(associacao, despesa_fora_periodo, conta_assoc
         valor_rateio=50.00
 
     )
+
+@pytest.fixture
+def parametros():
+    return baker.make(
+        'Parametros',
+        permite_saldo_conta_negativo=True
+    )
+
