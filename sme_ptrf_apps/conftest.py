@@ -735,3 +735,24 @@ def parametros_nao_aceita_saldo_negativo_em_conta():
         'Parametros',
         permite_saldo_conta_negativo=False
     )
+
+@pytest.fixture
+def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
+    return baker.make(
+        'Ata',
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        periodo=prestacao_conta_2020_1_conciliada.periodo,
+        associacao=prestacao_conta_2020_1_conciliada.associacao,
+        conta_associacao=prestacao_conta_2020_1_conciliada.conta_associacao,
+        tipo_ata='APRESENTACAO',
+        tipo_reuniao='ORDINARIA',
+        convocacao='PRIMEIRA',
+        data_reuniao=date(2020, 7, 1),
+        local_reuniao='Escola Teste',
+        presidente_reuniao='José',
+        cargo_presidente_reuniao='Presidente',
+        secretario_reuniao='Ana',
+        cargo_secretaria_reuniao='Secretária',
+        comentarios='Teste',
+        parecer_conselho='APROVADA'
+    )
