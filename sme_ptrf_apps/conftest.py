@@ -720,3 +720,18 @@ def parametros():
         permite_saldo_conta_negativo=True
     )
 
+
+@pytest.fixture
+def parametros_aceita_saldo_negativo_em_conta():
+    return baker.make(
+        'Parametros',
+        permite_saldo_conta_negativo=True
+    )
+
+
+@pytest.fixture
+def parametros_nao_aceita_saldo_negativo_em_conta():
+    return baker.make(
+        'Parametros',
+        permite_saldo_conta_negativo=False
+    )

@@ -10,7 +10,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from ..serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ...models import RateioDespesa
-from ....core.models import Periodo
+from ....core.models import Periodo, Parametros
 from ....core.services import saldos_insuficientes_para_rateios
 
 
@@ -82,7 +82,7 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
                 'situacao_do_saldo': 'saldo_conta_insuficiente',
                 'mensagem': 'Não há saldo disponível em alguma das contas da despesa.',
                 'saldos_insuficientes': saldos_insuficientes['saldos_insuficientes'],
-                'aceitar_lancamento': False
+                'aceitar_lancamento': Parametros.get().permite_saldo_conta_negativo
             }
         else:
             result = {
