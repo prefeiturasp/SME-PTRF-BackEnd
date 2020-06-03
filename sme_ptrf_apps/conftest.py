@@ -136,7 +136,11 @@ def conta_associacao(associacao, tipo_conta):
     return baker.make(
         'ContaAssociacao',
         associacao=associacao,
-        tipo_conta=tipo_conta
+        tipo_conta=tipo_conta,
+        banco_nome='Banco do Brasil',
+        agencia='12345',
+        numero_conta='123456-x',
+        numero_cartao='534653264523'
     )
 
 

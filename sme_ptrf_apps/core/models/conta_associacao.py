@@ -26,6 +26,11 @@ class ContaAssociacao(ModeloBase):
         choices=STATUS_CHOICES,
         default=STATUS_ATIVA
     )
+    banco_nome = models.CharField('Nome do banco', max_length=50, blank=True, default='')
+    agencia = models.CharField('Nº agência',  max_length=15, blank=True, default='')
+    numero_conta = models.CharField('Nº conta', max_length=30, blank=True, default='')
+    numero_cartao = models.CharField('Nº do cartão', max_length=80, blank=True, default='')
+
 
     def __str__(self):
         associacao = self.associacao.nome if self.associacao else 'ACM indefinida'

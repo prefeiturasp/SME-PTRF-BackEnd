@@ -1,5 +1,4 @@
 import pytest
-
 from django.contrib import admin
 
 from ...models import ContaAssociacao
@@ -17,6 +16,10 @@ def test_instance_model(conta_associacao):
     assert model.alterado_em
     assert model.uuid
     assert model.id
+    assert model.banco_nome
+    assert model.agencia
+    assert model.numero_conta
+    assert model.numero_cartao
 
 
 def test_srt_model(conta_associacao):
