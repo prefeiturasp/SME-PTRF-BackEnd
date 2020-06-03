@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ..serializers.prestacao_conta_serializer import PrestacaoContaLookUpSerializer
+from ..serializers import PrestacaoContaLookUpSerializer, AtaLookUpSerializer
 from ...models import PrestacaoConta, AcaoAssociacao
 from ...services import (iniciar_prestacao_de_contas, concluir_prestacao_de_contas, salvar_prestacao_de_contas,
                          revisar_prestacao_de_contas)
@@ -133,3 +133,20 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                                                                        conta_associacao=conta_associacao)
 
         return Response(RateioDespesaListaSerializer(despesas, many=True).data, status=status.HTTP_200_OK)
+
+
+    @action(detail=True, methods=['get'])
+    def ata(self, request, uuid):
+
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        ata = prestacao_conta.ultima_ata()
+
+        if not ata:
+            erro = {
+                'mensagem': 'Ainda não existe uma ata para essa prestação de contas.'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+
+        return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)

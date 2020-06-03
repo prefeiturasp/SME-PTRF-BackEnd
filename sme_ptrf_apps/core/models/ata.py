@@ -115,6 +115,10 @@ class Ata(ModeloBase):
         default=PARECER_APROVADA,
     )
 
+    @property
+    def nome(self):
+        return f'Ata de {self.ATA_NOMES[self.tipo_ata]} da prestação de contas'
+
     @classmethod
     def iniciar(cls, prestacao_conta):
         return Ata.objects.create(

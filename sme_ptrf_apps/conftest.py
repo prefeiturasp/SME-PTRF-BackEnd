@@ -760,3 +760,23 @@ def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
         comentarios='Teste',
         parecer_conselho='APROVADA'
     )
+
+@pytest.fixture
+def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
+    return baker.make(
+        'Ata',
+        prestacao_conta=prestacao_conta_iniciada,
+        periodo=prestacao_conta_iniciada.periodo,
+        associacao=prestacao_conta_iniciada.associacao,
+        conta_associacao=prestacao_conta_iniciada.conta_associacao,
+        tipo_ata='APRESENTACAO',
+        tipo_reuniao='ORDINARIA',
+        convocacao='PRIMEIRA',
+        data_reuniao=date(2020, 7, 1),
+        local_reuniao='Escola Teste',
+        presidente_reuniao='José',
+        cargo_presidente_reuniao='Presidente',
+        secretario_reuniao='Ana',
+        comentarios='Teste',
+        parecer_conselho='APROVADA'
+    )
