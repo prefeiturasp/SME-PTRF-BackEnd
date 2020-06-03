@@ -1,4 +1,6 @@
+import os
 from django.db import models
+from django.dispatch import receiver
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
@@ -17,3 +19,37 @@ class RelacaoBens(ModeloBase):
 
     def __str__(self):
         return f"Documento gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%S')}"
+
+
+@receiver(models.signals.post_delete, sender=RelacaoBens)
+def auto_delete_file_on_delete(sender, instance, **kwargs):
+    """
+    Deleta o arquivo do sistema de arquivos quando
+    o correspondente objeto 'MediaFile' é deletado.
+    """
+    if instance.arquivo:
+        if os.path.isfile(instance.arquivo.path):
+            os.remove(instance.arquivo.path)
+
+
+@receiver(models.signals.pre_save, sender=RelacaoBens)
+def auto_delete_file_on_change(sender, instance, **kwargs):
+    """
+    Deleta o arquivo antigo do sistema de arquivos quando
+    o correspondente objeti 'MediaFile' é atualizado com um
+    novo arquivo.
+    """
+
+    if not instance.pk:
+        return False
+
+    try:
+        old_file = sender.objects.get(pk=instance.pk).arquivo
+    except sender.DoesNotExist:
+        return False
+
+    new_file = instance.arquivo
+    if not old_file == new_file:
+        if os.path.isfile(old_file.path):
+            os.remove(old_file.path)
+

@@ -86,7 +86,6 @@ class RelacaoBensViewSet(GenericViewSet):
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
-        
         return response
 
 
@@ -96,5 +95,4 @@ class RelacaoBensViewSet(GenericViewSet):
         periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
 
         xlsx = gerar(periodo, acao_associacao, conta_associacao)
-        
         return xlsx
