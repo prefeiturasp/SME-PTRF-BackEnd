@@ -5,14 +5,10 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-
 from .fornecedor import Fornecedor
 from .validators import cpf_cnpj_validation
-from ..status_cadastro_completo import STATUS_CHOICES, STATUS_INCOMPLETO, STATUS_COMPLETO
-
-from ...core.models import Associacao
 from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO
-from .validators import cpf_cnpj_validation
+from ...core.models import Associacao
 
 
 class Despesa(ModeloBase):
@@ -35,6 +31,8 @@ class Despesa(ModeloBase):
     nome_fornecedor = models.CharField("Nome do fornecedor", max_length=100, default='', blank=True)
 
     tipo_transacao = models.ForeignKey('TipoTransacao', on_delete=models.PROTECT, blank=True, null=True)
+
+    documento_transacao = models.CharField('Nº doc transação', max_length=100, default='', blank=True)
 
     data_transacao = models.DateField('Data da transacao', blank=True, null=True)
 
@@ -69,8 +67,12 @@ class Despesa(ModeloBase):
                    self.data_transacao and \
                    self.valor_total > 0
 
-        for rateio in self.rateios.all():
-            completo = completo and rateio.status == STATUS_COMPLETO
+        if completo and self.tipo_transacao.tem_documento:
+            completo = completo and self.documento_transacao
+
+        if completo:
+            for rateio in self.rateios.all():
+                completo = completo and rateio.status == STATUS_COMPLETO
 
         return completo
 
@@ -89,7 +91,7 @@ class Despesa(ModeloBase):
 def proponente_pre_save(instance, **kwargs):
     instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
 
-    
+
 @receiver(post_save, sender=Despesa)
 def rateio_post_save(instance, created, **kwargs):
     # Existe um motivo para o fornecedor não ser uma FK nesse modelo e ele ser atualizado indiretamente

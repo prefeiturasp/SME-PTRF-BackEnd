@@ -1,12 +1,13 @@
 from django.contrib import admin
 
 from .models import TipoConta, Acao, Associacao, ContaAssociacao, AcaoAssociacao, Periodo, Unidade, FechamentoPeriodo, \
-    PrestacaoConta, DemonstrativoFinanceiro
+    PrestacaoConta, DemonstrativoFinanceiro, Parametros, RelacaoBens
 
 admin.site.register(TipoConta)
 admin.site.register(Acao)
 admin.site.register(DemonstrativoFinanceiro)
-
+admin.site.register(Parametros)
+admin.site.register(RelacaoBens)
 
 @admin.register(Associacao)
 class AssociacaoAdmin(admin.ModelAdmin):
