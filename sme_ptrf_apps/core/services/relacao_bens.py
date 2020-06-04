@@ -38,16 +38,16 @@ VALOR_RATEIO = 7
 LAST_LINE = 24
 
 
-def gerar(periodo, acao_associacao, conta_associacao):
+def gerar(periodo, conta_associacao):
     LOGGER.info("GERANDO RELAÇÃO DE BENS...")
-    rateios = RateioDespesa.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo, aplicacao_recurso=APLICACAO_CAPITAL)
+    rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(conta_associacao=conta_associacao, periodo=periodo, aplicacao_recurso=APLICACAO_CAPITAL)
     path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
     nome_arquivo = os.path.join(path, 'modelo_relacao_de_bens.xlsx')
     workbook = load_workbook(nome_arquivo)
     worksheet = workbook.active
 
     cabecalho(worksheet, periodo, conta_associacao)
-    identificacao_apm(worksheet, acao_associacao)
+    identificacao_apm(worksheet, conta_associacao)
     pagamentos(worksheet, rateios)
 
     return workbook
@@ -59,9 +59,9 @@ def cabecalho(worksheet, periodo, conta_associacao):
     rows[LINHA_CONTA_CABECALHO][COL_CABECALHO].value = conta_associacao.tipo_conta.nome
 
 
-def identificacao_apm(worksheet, acao_associacao):
+def identificacao_apm(worksheet, conta_associacao):
     """BLOCO 1 - IDENTIFICAÇÃO DA APM/APMSUAC DA UNIDADE EDUCACIONAL"""
-    associacao = acao_associacao.associacao
+    associacao = conta_associacao.associacao
     rows = list(worksheet.rows)
     rows[9][0].value = associacao.nome
     rows[9][4].value = associacao.cnpj
@@ -92,8 +92,8 @@ def pagamentos(worksheet, rateios, acc=0, start_line=15):
 
         row = list(worksheet.rows)[ind-1]
         row[TIPO_DOCUMENTO].value = rateio.despesa.tipo_documento.nome if rateio.despesa.tipo_documento else ''
-        row[NUMERO_DOCUMENTO].value = rateio.despesa.numero_documento #rateio.despesa.nome_fornecedor
-        row[DATA].value = rateio.despesa.data_documento.strftime("%d/%m/%Y") if rateio.despesa.data_documento else '' #rateio.despesa.cpf_cnpj_fornecedor
+        row[NUMERO_DOCUMENTO].value = rateio.despesa.numero_documento
+        row[DATA].value = rateio.despesa.data_documento.strftime("%d/%m/%Y") if rateio.despesa.data_documento else ''
         row[ESPECIFICACAO_MATERIAL].value = rateio.especificacao_material_servico.descricao if rateio.especificacao_material_servico else ''
         row[NUMERO_DOCUMENTO_INCORPORACAO].value = rateio.numero_processo_incorporacao_capital
         row[QUANTIDADE].value = rateio.quantidade_itens_capital
