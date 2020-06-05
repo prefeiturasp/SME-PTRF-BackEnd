@@ -14,30 +14,30 @@ from .despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPIT
 
 
 @pytest.fixture
-def fake_user(client, django_user_model):
+def fake_user(client, django_user_model, associacao):
     password = 'teste'
     username = 'fake'
-    user = django_user_model.objects.create_user(username=username, password=password)
+    user = django_user_model.objects.create_user(username=username, password=password, associacao=associacao)
     client.login(username=username, password=password)
     return user
 
 
 @pytest.fixture
-def authenticated_client(client, django_user_model):
+def authenticated_client(client, django_user_model, associacao):
     password = 'teste'
     username = 'fake'
-    django_user_model.objects.create_user(username=username, password=password)
+    django_user_model.objects.create_user(username=username, password=password, associacao=associacao)
     client.login(username=username, password=password)
     return client
 
 
 @pytest.fixture
-def usuario():
+def usuario(associacao):
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
     login = '7210418'
     User = get_user_model()
-    user = User.objects.create_user(username=login, password=senha)
+    user = User.objects.create_user(username=login, password=senha, associacao=associacao)
     return user
 
 
@@ -117,7 +117,7 @@ def unidade(dre):
 
 
 @pytest.fixture
-def associacao(unidade, usuario):
+def associacao(unidade):
     return baker.make(
         'Associacao',
         nome='Escola Teste',
@@ -126,8 +126,7 @@ def associacao(unidade, usuario):
         presidente_associacao_nome='Fulano',
         presidente_associacao_rf='1234567',
         presidente_conselho_fiscal_nome='Ciclano',
-        presidente_conselho_fiscal_rf='7654321',
-        usuario=usuario
+        presidente_conselho_fiscal_rf='7654321'
     )
 
 
