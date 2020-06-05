@@ -24,11 +24,15 @@ class AssociacaoAdmin(admin.ModelAdmin):
     importa_associacoes.short_description = 'Fazer carga de Associações'
 
     actions = ['importa_associacoes', ]
-    list_display = ('nome', 'cnpj', 'get_nome_escola', 'usuario')
+    list_display = ('nome', 'cnpj', 'get_nome_escola', 'get_usuarios')
     search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome')
     list_filter = ('unidade__dre',)
     readonly_fields = ('uuid', 'id')
 
+    def get_usuarios(self, obj):
+        return ','.join([u.name for u in obj.usuarios.all()]) if obj.usuarios else ''
+
+    get_usuarios.short_description = 'Usuários'
 
 @admin.register(ContaAssociacao)
 class ContaAssociacaoAdmin(admin.ModelAdmin):
