@@ -105,6 +105,16 @@ def especificacao_instalacao_eletrica(tipo_aplicacao_recurso_custeio, tipo_custe
 
 
 @pytest.fixture
+def especificacao_cadeira(tipo_aplicacao_recurso_custeio, tipo_custeio_servico):
+    return baker.make(
+        'EspecificacaoMaterialServico',
+        descricao='Cadeira',
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+    )
+
+
+@pytest.fixture
 def despesa_2020_1(associacao, tipo_documento, tipo_transacao):
     return baker.make(
         'Despesa',
@@ -222,7 +232,7 @@ def despesa_2019_2(associacao, tipo_documento, tipo_transacao):
 def rateio_despesa_2019_role_conferido(associacao, despesa_2019_2, conta_associacao_cartao, acao,
                                        tipo_aplicacao_recurso_custeio,
                                        tipo_custeio_servico,
-                                       especificacao_instalacao_eletrica, acao_associacao_role_cultural):
+                                       especificacao_cadeira, acao_associacao_role_cultural):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_2019_2,
@@ -231,7 +241,7 @@ def rateio_despesa_2019_role_conferido(associacao, despesa_2019_2, conta_associa
         acao_associacao=acao_associacao_role_cultural,
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
         tipo_custeio=tipo_custeio_servico,
-        especificacao_material_servico=especificacao_instalacao_eletrica,
+        especificacao_material_servico=especificacao_cadeira,
         valor_rateio=100.00,
         conferido=True,
 

@@ -67,6 +67,9 @@ class PrestacaoConta(ModeloBase):
         for relacao in self.relacoes_de_bens_da_prestacao.all():
             relacao.delete()
 
+    def ultima_ata(self):
+        return self.atas_da_prestacao.last()
+
     @classmethod
     def revisar(cls, uuid, motivo):
         prestacao_de_conta = cls.by_uuid(uuid=uuid)

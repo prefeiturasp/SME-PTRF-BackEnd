@@ -1,6 +1,7 @@
 from .acao import Acao
 from .acao_associacao import AcaoAssociacao
 from .associacao import Associacao
+from .ata import Ata
 from .conta_associacao import ContaAssociacao
 from .demonstrativo_financeiro import DemonstrativoFinanceiro
 from .fechamento_periodo import FechamentoPeriodo, STATUS_ABERTO, STATUS_FECHADO

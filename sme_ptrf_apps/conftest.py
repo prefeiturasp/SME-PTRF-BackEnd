@@ -135,7 +135,11 @@ def conta_associacao(associacao, tipo_conta):
     return baker.make(
         'ContaAssociacao',
         associacao=associacao,
-        tipo_conta=tipo_conta
+        tipo_conta=tipo_conta,
+        banco_nome='Banco do Brasil',
+        agencia='12345',
+        numero_conta='123456-x',
+        numero_cartao='534653264523'
     )
 
 
@@ -227,6 +231,7 @@ def periodo(periodo_anterior):
         periodo_anterior=periodo_anterior
     )
 
+
 @pytest.fixture
 def periodo_aberto(periodo_anterior):
     return baker.make(
@@ -239,6 +244,7 @@ def periodo_aberto(periodo_anterior):
         data_fim_prestacao_contas=date(2019, 12, 5),
         periodo_anterior=periodo_anterior
     )
+
 
 @pytest.fixture
 def periodo_2020_1(periodo):
@@ -267,6 +273,7 @@ def periodo_fim_em_2020_06_30():
         periodo_anterior=None
     )
 
+
 @pytest.fixture
 def periodo_fim_em_aberto():
     return baker.make(
@@ -280,6 +287,7 @@ def periodo_fim_em_aberto():
         periodo_anterior=None
     )
 
+
 @pytest.fixture
 def prestacao_conta_anterior(periodo_anterior, associacao, conta_associacao):
     return baker.make(
@@ -291,6 +299,7 @@ def prestacao_conta_anterior(periodo_anterior, associacao, conta_associacao):
         status=PRESTACAO_FECHADA,
         conciliado=True
     )
+
 
 @pytest.fixture
 def prestacao_conta(periodo, associacao, conta_associacao, prestacao_conta_anterior):
@@ -341,6 +350,7 @@ def fechamento_periodo_anterior(periodo_anterior, associacao, conta_associacao, 
         status=STATUS_FECHADO
     )
 
+
 @pytest.fixture
 def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associacao):
     return baker.make(
@@ -354,6 +364,7 @@ def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associac
         observacoes='teste',
         motivo_reabertura=''
     )
+
 
 @pytest.fixture
 def fechamento_2020_1(periodo_2020_1, associacao, conta_associacao, acao_associacao, prestacao_conta_2020_1_conciliada):
@@ -370,10 +381,58 @@ def fechamento_2020_1(periodo_2020_1, associacao, conta_associacao, acao_associa
         total_receitas_custeio=2000,
         total_repasses_custeio=1800,
         total_despesas_custeio=1600,
+        total_despesas_nao_conciliadas_capital=8.0,
+        total_despesas_nao_conciliadas_custeio=16.0,
+        total_receitas_nao_conciliadas_capital=10.0,
+        total_receitas_nao_conciliadas_custeio=20.0,
         status=STATUS_FECHADO,
-        prestacao_conta=prestacao_conta_2020_1_conciliada
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        especificacoes_despesas=['cadeira', 'mesa']
     )
 
+
+@pytest.fixture
+def fechamento_periodo_anterior_role(periodo_anterior, associacao, conta_associacao, acao_associacao_role_cultural, ):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo_anterior,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_role_cultural,
+        fechamento_anterior=None,
+        total_receitas_capital=500,
+        total_repasses_capital=450,
+        total_despesas_capital=400,
+        total_receitas_custeio=1000,
+        total_repasses_custeio=900,
+        total_despesas_custeio=800,
+        status=STATUS_FECHADO
+    )
+
+@pytest.fixture
+def fechamento_2020_1_role(periodo_2020_1, associacao, conta_associacao, acao_associacao_role_cultural,
+                           prestacao_conta_2020_1_conciliada,fechamento_periodo_anterior_role):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_role_cultural,
+        fechamento_anterior=fechamento_periodo_anterior_role,
+        total_receitas_capital=2000,
+        total_repasses_capital=1000,
+        total_despesas_capital=200,
+        total_receitas_custeio=1000,
+        total_repasses_custeio=800,
+        total_despesas_custeio=100,
+        total_despesas_nao_conciliadas_capital=20.0,
+        total_despesas_nao_conciliadas_custeio=10.0,
+        total_receitas_nao_conciliadas_capital=20.0,
+        total_receitas_nao_conciliadas_custeio=10.0,
+        status=STATUS_FECHADO,
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        especificacoes_despesas=['ventilador', 'ar condicionado', 'contador']
+    )
 
 
 @pytest.fixture
@@ -394,6 +453,7 @@ def fechamento_periodo_com_saldo(periodo, associacao, conta_associacao, acao_ass
         status=STATUS_FECHADO
     )
 
+
 @pytest.fixture
 def fechamento_periodo_com_saldo_outra_acao(periodo, associacao, conta_associacao, acao_associacao_role_cultural, ):
     return baker.make(
@@ -412,6 +472,7 @@ def fechamento_periodo_com_saldo_outra_acao(periodo, associacao, conta_associaca
         status=STATUS_FECHADO
     )
 
+
 @pytest.fixture
 def fechamento_periodo(periodo, associacao, conta_associacao, acao_associacao, fechamento_periodo_anterior):
     return baker.make(
@@ -427,13 +488,19 @@ def fechamento_periodo(periodo, associacao, conta_associacao, acao_associacao, f
         total_receitas_custeio=2000,
         total_repasses_custeio=1800,
         total_despesas_custeio=1600,
-        status=STATUS_FECHADO
+        total_receitas_nao_conciliadas_capital=10,
+        total_receitas_nao_conciliadas_custeio=20,
+        total_despesas_nao_conciliadas_capital=8,
+        total_despesas_nao_conciliadas_custeio=16,
+        status=STATUS_FECHADO,
+        especificacoes_despesas=['teste1', 'teste2']
     )
 
 
 @pytest.fixture
 def tipo_receita():
     return baker.make('TipoReceita', nome='Estorno')
+
 
 @pytest.fixture
 def tipo_receita_repasse():
@@ -524,6 +591,7 @@ def receita_30_no_periodo_outra_acao(associacao, conta_associacao, acao_associac
         tipo_receita=tipo_receita,
     )
 
+
 @pytest.fixture
 def tipo_documento():
     return baker.make('TipoDocumento', nome='NFe')
@@ -533,21 +601,26 @@ def tipo_documento():
 def tipo_transacao():
     return baker.make('TipoTransacao', nome='Boleto')
 
+
 @pytest.fixture
 def tipo_aplicacao_recurso_custeio():
     return APLICACAO_CUSTEIO
+
 
 @pytest.fixture
 def tipo_aplicacao_recurso_capital():
     return APLICACAO_CAPITAL
 
+
 @pytest.fixture
 def tipo_custeio():
     return baker.make('TipoCusteio', nome='Material')
 
+
 @pytest.fixture
 def tipo_custeio_material():
     return baker.make('TipoCusteio', nome='Material')
+
 
 @pytest.fixture
 def especificacao_material_eletrico(tipo_aplicacao_recurso_custeio, tipo_custeio_material):
@@ -558,6 +631,7 @@ def especificacao_material_eletrico(tipo_aplicacao_recurso_custeio, tipo_custeio
         tipo_custeio=tipo_custeio_material,
     )
 
+
 @pytest.fixture
 def especificacao_ar_condicionado(tipo_aplicacao_recurso_capital):
     return baker.make(
@@ -566,6 +640,7 @@ def especificacao_ar_condicionado(tipo_aplicacao_recurso_capital):
         aplicacao_recurso=tipo_aplicacao_recurso_capital,
         tipo_custeio=None,
     )
+
 
 # despesa_no_periodo
 @pytest.fixture
@@ -584,9 +659,11 @@ def despesa_no_periodo(associacao, tipo_documento, tipo_transacao, periodo):
         valor_recursos_proprios=0,
     )
 
+
 @pytest.fixture
-def rateio_despesa_demonstrativo(associacao, despesa_no_periodo, conta_associacao, acao, tipo_aplicacao_recurso_capital, tipo_custeio,
-                           especificacao_material_eletrico, acao_associacao):
+def rateio_despesa_demonstrativo(associacao, despesa_no_periodo, conta_associacao, acao, tipo_aplicacao_recurso_capital,
+                                 tipo_custeio,
+                                 especificacao_material_eletrico, acao_associacao):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_no_periodo,
@@ -602,9 +679,11 @@ def rateio_despesa_demonstrativo(associacao, despesa_no_periodo, conta_associaca
         numero_processo_incorporacao_capital='Teste123456'
     )
 
+
 @pytest.fixture
-def rateio_despesa_demonstrativo2(associacao, despesa_no_periodo, conta_associacao, acao, tipo_aplicacao_recurso_custeio, tipo_custeio_material,
-                           especificacao_material_eletrico, acao_associacao):
+def rateio_despesa_demonstrativo2(associacao, despesa_no_periodo, conta_associacao, acao,
+                                  tipo_aplicacao_recurso_custeio, tipo_custeio_material,
+                                  especificacao_material_eletrico, acao_associacao):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_no_periodo,
@@ -620,11 +699,13 @@ def rateio_despesa_demonstrativo2(associacao, despesa_no_periodo, conta_associac
         numero_processo_incorporacao_capital='Teste654321'
     )
 
+
 # rateio_100_custeio
 @pytest.fixture
-def rateio_no_periodo_100_custeio(associacao, despesa_no_periodo, conta_associacao, acao, tipo_aplicacao_recurso_custeio,
-                       tipo_custeio_material,
-                       especificacao_material_eletrico, acao_associacao):
+def rateio_no_periodo_100_custeio(associacao, despesa_no_periodo, conta_associacao, acao,
+                                  tipo_aplicacao_recurso_custeio,
+                                  tipo_custeio_material,
+                                  especificacao_material_eletrico, acao_associacao):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_no_periodo,
@@ -641,9 +722,10 @@ def rateio_no_periodo_100_custeio(associacao, despesa_no_periodo, conta_associac
 
 # rateio_200_capital
 @pytest.fixture
-def rateio_no_periodo_200_capital(associacao, despesa_no_periodo, conta_associacao, acao, tipo_aplicacao_recurso_capital,
-                       tipo_custeio,
-                       especificacao_ar_condicionado, acao_associacao):
+def rateio_no_periodo_200_capital(associacao, despesa_no_periodo, conta_associacao, acao,
+                                  tipo_aplicacao_recurso_capital,
+                                  tipo_custeio,
+                                  especificacao_ar_condicionado, acao_associacao):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_no_periodo,
@@ -659,11 +741,14 @@ def rateio_no_periodo_200_capital(associacao, despesa_no_periodo, conta_associac
         numero_processo_incorporacao_capital='Teste123456'
 
     )
+
+
 # rateio_10_custeio_outra_acao
 @pytest.fixture
-def rateio_no_periodo_10_custeio_outra_acao(associacao, despesa_no_periodo, conta_associacao, acao, tipo_aplicacao_recurso_custeio,
-                       tipo_custeio_material,
-                       especificacao_material_eletrico, acao_associacao_role_cultural):
+def rateio_no_periodo_10_custeio_outra_acao(associacao, despesa_no_periodo, conta_associacao, acao,
+                                            tipo_aplicacao_recurso_custeio,
+                                            tipo_custeio_material,
+                                            especificacao_material_eletrico, acao_associacao_role_cultural):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_no_periodo,
@@ -676,6 +761,7 @@ def rateio_no_periodo_10_custeio_outra_acao(associacao, despesa_no_periodo, cont
         valor_rateio=100.00
 
     )
+
 
 # despesa_fora_do_periodo
 @pytest.fixture
@@ -694,11 +780,13 @@ def despesa_fora_periodo(associacao, tipo_documento, tipo_transacao, periodo):
         valor_recursos_proprios=0,
     )
 
+
 # rateio_50_custeio
 @pytest.fixture
-def rateio_fora_periodo_50_custeio(associacao, despesa_fora_periodo, conta_associacao, acao, tipo_aplicacao_recurso_custeio,
-                       tipo_custeio_material,
-                       especificacao_material_eletrico, acao_associacao):
+def rateio_fora_periodo_50_custeio(associacao, despesa_fora_periodo, conta_associacao, acao,
+                                   tipo_aplicacao_recurso_custeio,
+                                   tipo_custeio_material,
+                                   especificacao_material_eletrico, acao_associacao):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_fora_periodo,
@@ -711,6 +799,7 @@ def rateio_fora_periodo_50_custeio(associacao, despesa_fora_periodo, conta_assoc
         valor_rateio=50.00
 
     )
+
 
 @pytest.fixture
 def parametros():
@@ -733,4 +822,47 @@ def parametros_nao_aceita_saldo_negativo_em_conta():
     return baker.make(
         'Parametros',
         permite_saldo_conta_negativo=False
+    )
+
+
+@pytest.fixture
+def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
+    return baker.make(
+        'Ata',
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        periodo=prestacao_conta_2020_1_conciliada.periodo,
+        associacao=prestacao_conta_2020_1_conciliada.associacao,
+        conta_associacao=prestacao_conta_2020_1_conciliada.conta_associacao,
+        tipo_ata='APRESENTACAO',
+        tipo_reuniao='ORDINARIA',
+        convocacao='PRIMEIRA',
+        data_reuniao=date(2020, 7, 1),
+        local_reuniao='Escola Teste',
+        presidente_reuniao='José',
+        cargo_presidente_reuniao='Presidente',
+        secretario_reuniao='Ana',
+        cargo_secretaria_reuniao='Secretária',
+        comentarios='Teste',
+        parecer_conselho='APROVADA'
+    )
+
+
+@pytest.fixture
+def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
+    return baker.make(
+        'Ata',
+        prestacao_conta=prestacao_conta_iniciada,
+        periodo=prestacao_conta_iniciada.periodo,
+        associacao=prestacao_conta_iniciada.associacao,
+        conta_associacao=prestacao_conta_iniciada.conta_associacao,
+        tipo_ata='APRESENTACAO',
+        tipo_reuniao='ORDINARIA',
+        convocacao='PRIMEIRA',
+        data_reuniao=date(2020, 7, 1),
+        local_reuniao='Escola Teste',
+        presidente_reuniao='José',
+        cargo_presidente_reuniao='Presidente',
+        secretario_reuniao='Ana',
+        comentarios='Teste',
+        parecer_conselho='APROVADA'
     )

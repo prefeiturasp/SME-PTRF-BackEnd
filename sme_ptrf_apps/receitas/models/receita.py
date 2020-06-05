@@ -82,6 +82,9 @@ class Receita(ModeloBase):
             'total_repasses_capital': Decimal(0.00),
             'total_receitas_custeio': Decimal(0.00),
             'total_repasses_custeio': Decimal(0.00),
+            'total_receitas_nao_conciliadas_capital': Decimal(0.00),
+            'total_receitas_nao_conciliadas_custeio': Decimal(0.00),
+
         }
 
         for receita in receitas:
@@ -95,6 +98,13 @@ class Receita(ModeloBase):
                     totais['total_repasses_capital'] += receita.valor
                 else:
                     totais['total_repasses_custeio'] += receita.valor
+
+            if not receita.conferido:
+                if receita.categoria_receita == APLICACAO_CAPITAL:
+                    totais['total_receitas_nao_conciliadas_capital'] += receita.valor
+                else:
+                    totais['total_receitas_nao_conciliadas_custeio'] += receita.valor
+
 
         return totais
 

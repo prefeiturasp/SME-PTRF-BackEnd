@@ -6,10 +6,10 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ..serializers.prestacao_conta_serializer import PrestacaoContaLookUpSerializer
-from ...models import PrestacaoConta, AcaoAssociacao
+from ..serializers import PrestacaoContaLookUpSerializer, AtaLookUpSerializer
+from ...models import PrestacaoConta, AcaoAssociacao, Ata
 from ...services import (iniciar_prestacao_de_contas, concluir_prestacao_de_contas, salvar_prestacao_de_contas,
-                         revisar_prestacao_de_contas)
+                         revisar_prestacao_de_contas, informacoes_financeiras_para_atas)
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ....despesas.models import RateioDespesa
 from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
@@ -133,3 +133,46 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                                                                        conta_associacao=conta_associacao)
 
         return Response(RateioDespesaListaSerializer(despesas, many=True).data, status=status.HTTP_200_OK)
+
+
+    @action(detail=True, methods=['get'])
+    def ata(self, request, uuid):
+
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        ata = prestacao_conta.ultima_ata()
+
+        if not ata:
+            erro = {
+                'mensagem': 'Ainda não existe uma ata para essa prestação de contas.'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+
+        return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
+
+
+    @action(detail=True, methods=['post'],url_path='iniciar-ata')
+    def iniciar_ata(self, request, uuid):
+
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        ata = prestacao_conta.ultima_ata()
+
+        if ata:
+            erro = {
+                'erro':  'ata-ja-iniciada',
+                'mensagem': 'Já existe uma ata iniciada para essa prestação de contas.'
+            }
+            return Response(erro, status=status.HTTP_409_CONFLICT)
+
+        ata = Ata.iniciar(prestacao_conta=prestacao_conta)
+
+        return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
+
+
+    @action(detail=True, methods=['get'],  url_path='info-para-ata')
+    def info_para_ata(self, request, uuid):
+        prestacao_conta = self.get_object()
+        result = informacoes_financeiras_para_atas(prestacao_contas=prestacao_conta)
+        return Response(result, status=status.HTTP_200_OK)
