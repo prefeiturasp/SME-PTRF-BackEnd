@@ -112,7 +112,7 @@ class RateioDespesa(ModeloBase):
 
         if exclude_despesa:
             dataset = dataset.exclude(despesa__uuid=exclude_despesa)
-        
+
         if aplicacao_recurso:
             dataset = dataset.filter(aplicacao_recurso=aplicacao_recurso)
 
@@ -129,7 +129,8 @@ class RateioDespesa(ModeloBase):
                                                             exclude_despesa=exclude_despesa)
         especificacoes = set()
         for rateio in rateios:
-            especificacoes.add(rateio.especificacao_material_servico.descricao)
+            if rateio.especificacao_material_servico:
+                especificacoes.add(rateio.especificacao_material_servico.descricao)
 
         return sorted(especificacoes)
 
