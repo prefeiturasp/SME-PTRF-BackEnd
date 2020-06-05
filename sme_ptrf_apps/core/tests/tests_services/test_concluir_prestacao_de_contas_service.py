@@ -107,3 +107,21 @@ def test_fechamentos_devem_ser_vinculados_a_anteriores(fechamento_periodo_2019_2
     fechamento = prestacao.fechamentos_da_prestacao.first()
 
     assert fechamento.fechamento_anterior == fechamento_periodo_2019_2, "Deveria apontar para o fechamento anterior."
+
+
+def test_deve_gravar_lista_de_especificacoes_despesas(prestacao_conta_iniciada,
+                                                      periodo_2020_1,
+                                                      despesa_2020_1,
+                                                      rateio_despesa_2020_role_custeio_conferido,
+                                                      rateio_despesa_2020_role_custeio_nao_conferido,
+                                                      rateio_despesa_2020_role_capital_conferido,
+                                                      despesa_2019_2,
+                                                      rateio_despesa_2019_role_conferido,
+                                                      ):
+    observacoes = "Teste"
+    prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid,
+                                             observacoes=observacoes)
+    assert prestacao.fechamentos_da_prestacao.count() == 1, "Deveriam ter sido criado apenas um fechamento."
+
+    fechamento = prestacao.fechamentos_da_prestacao.first()
+    assert fechamento.especificacoes_despesas == ['Ar condicionado', 'Instalação elétrica']

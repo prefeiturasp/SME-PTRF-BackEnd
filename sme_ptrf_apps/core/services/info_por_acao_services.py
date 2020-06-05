@@ -6,6 +6,18 @@ from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO
 from ...receitas.models import Receita
 
 
+def especificacoes_despesas_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=None, conta=None):
+    fechamentos_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(acao_associacao=acao_associacao,
+                                                                           periodo=periodo, conta_associacao=conta)
+    if fechamentos_periodo:
+        return fechamentos_periodo.first().especificacoes_despesas
+    else:
+        return RateioDespesa.especificacoes_dos_rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
+                                                                                      periodo=periodo,
+                                                                                      conta_associacao=conta,
+                                                                                      exclude_despesa=exclude_despesa)
+
+
 def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
     def sumariza_rateios_por_acao(rateios):
         totalizador_aplicacoes = {
@@ -197,6 +209,8 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
     result = []
     for acao_associacao in acoes_associacao:
         info_acao = info_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo, conta=conta)
+        especificacoes_despesas = especificacoes_despesas_acao_associacao_no_periodo(acao_associacao=acao_associacao,
+                                                                                    periodo=periodo, conta=conta)
         info = {
             'acao_associacao_uuid': f'{acao_associacao.uuid}',
             'acao_associacao_nome': acao_associacao.acao.nome,
@@ -226,17 +240,21 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
             'despesas_no_periodo_capital': info_acao['despesas_no_periodo_capital'],
             'despesas_no_periodo_custeio': info_acao['despesas_no_periodo_custeio'],
 
-            'despesas_nao_conciliadas': info_acao['despesas_nao_conciliadas_custeio'] + info_acao['despesas_nao_conciliadas_capital'],
+            'despesas_nao_conciliadas': info_acao['despesas_nao_conciliadas_custeio'] + info_acao[
+                'despesas_nao_conciliadas_capital'],
             'despesas_nao_conciliadas_capital': info_acao['despesas_nao_conciliadas_capital'],
             'despesas_nao_conciliadas_custeio': info_acao['despesas_nao_conciliadas_custeio'],
 
-            'receitas_nao_conciliadas': info_acao['receitas_nao_conciliadas_custeio'] + info_acao['receitas_nao_conciliadas_capital'],
+            'receitas_nao_conciliadas': info_acao['receitas_nao_conciliadas_custeio'] + info_acao[
+                'receitas_nao_conciliadas_capital'],
             'receitas_nao_conciliadas_capital': info_acao['receitas_nao_conciliadas_capital'],
             'receitas_nao_conciliadas_custeio': info_acao['receitas_nao_conciliadas_custeio'],
 
             'saldo_atual_custeio': info_acao['saldo_atual_custeio'],
             'saldo_atual_capital': info_acao['saldo_atual_capital'],
             'saldo_atual_total': info_acao['saldo_atual_custeio'] + info_acao['saldo_atual_capital'],
+
+            'especificacoes_despesas': especificacoes_despesas,
         }
         result.append(info)
 

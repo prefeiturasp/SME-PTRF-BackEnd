@@ -387,7 +387,8 @@ def fechamento_2020_1(periodo_2020_1, associacao, conta_associacao, acao_associa
         total_receitas_nao_conciliadas_capital=10.0,
         total_receitas_nao_conciliadas_custeio=20.0,
         status=STATUS_FECHADO,
-        prestacao_conta=prestacao_conta_2020_1_conciliada
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        especificacoes_despesas=['cadeira', 'mesa']
     )
 
 
@@ -431,6 +432,7 @@ def fechamento_2020_1_role(periodo_2020_1, associacao, conta_associacao, acao_as
         total_receitas_nao_conciliadas_custeio=10.0,
         status=STATUS_FECHADO,
         prestacao_conta=prestacao_conta_2020_1_conciliada,
+        especificacoes_despesas=['ventilador', 'ar condicionado', 'contador']
     )
 
 
@@ -491,7 +493,8 @@ def fechamento_periodo(periodo, associacao, conta_associacao, acao_associacao, f
         total_receitas_nao_conciliadas_custeio=20,
         total_despesas_nao_conciliadas_capital=8,
         total_despesas_nao_conciliadas_custeio=16,
-        status=STATUS_FECHADO
+        status=STATUS_FECHADO,
+        especificacoes_despesas=['teste1', 'teste2']
     )
 
 

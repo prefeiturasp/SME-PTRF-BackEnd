@@ -112,6 +112,21 @@ class RateioDespesa(ModeloBase):
 
         return dataset.all()
 
+    @classmethod
+    def especificacoes_dos_rateios_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None,
+                                                                 conta_associacao=None,
+                                                                 exclude_despesa=None):
+
+        rateios = cls.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
+                                                            periodo=periodo, conferido=conferido,
+                                                            conta_associacao=conta_associacao,
+                                                            exclude_despesa=exclude_despesa)
+        especificacoes = set()
+        for rateio in rateios:
+            especificacoes.add(rateio.especificacao_material_servico.descricao)
+
+        return sorted(especificacoes)
+
     def marcar_conferido(self):
         self.conferido = True
         self.save()

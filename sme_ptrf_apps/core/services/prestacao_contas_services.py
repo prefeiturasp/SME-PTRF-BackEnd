@@ -21,6 +21,8 @@ def concluir_prestacao_de_contas(prestacao_contas_uuid, observacoes):
     for acao in acoes:
         totais_receitas = Receita.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo)
         totais_despesas = RateioDespesa.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo)
+        especificacoes_despesas = RateioDespesa.especificacoes_dos_rateios_da_acao_associacao_no_periodo(
+            acao_associacao=acao, periodo=periodo)
         FechamentoPeriodo.criar(
             prestacao_conta=prestacao,
             acao_associacao=acao,
@@ -34,6 +36,7 @@ def concluir_prestacao_de_contas(prestacao_contas_uuid, observacoes):
             total_receitas_nao_conciliadas_custeio=totais_receitas['total_receitas_nao_conciliadas_custeio'],
             total_despesas_nao_conciliadas_capital=totais_despesas['total_despesas_nao_conciliadas_capital'],
             total_despesas_nao_conciliadas_custeio=totais_despesas['total_despesas_nao_conciliadas_custeio'],
+            especificacoes_despesas=especificacoes_despesas
         )
 
     return prestacao
