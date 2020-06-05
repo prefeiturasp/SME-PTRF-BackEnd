@@ -8,7 +8,7 @@ from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesa
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_despesas_conferidasprestacao_conta(client,
+def test_api_get_despesas_conferidas_prestacao_conta(client,
                                                     acao_associacao_role_cultural,
                                                     prestacao_conta_iniciada,
                                                     despesa_2019_2,

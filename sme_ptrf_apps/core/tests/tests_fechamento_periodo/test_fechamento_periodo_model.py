@@ -27,7 +27,10 @@ def test_instance_model(fechamento_periodo):
     assert model.uuid
     assert model.id
     assert model.status == STATUS_FECHADO
-
+    assert model.total_receitas_nao_conciliadas_capital
+    assert model.total_receitas_nao_conciliadas_custeio
+    assert model.total_despesas_nao_conciliadas_capital
+    assert model.total_despesas_nao_conciliadas_custeio
 
 def test_srt_model(fechamento_periodo):
     assert fechamento_periodo.__str__() == '2019.2 - 2019-09-01 a 2019-11-30 - PTRF - Cheque  - FECHADO'

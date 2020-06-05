@@ -139,6 +139,8 @@ class RateioDespesa(ModeloBase):
         totais = {
             'total_despesas_capital': Decimal(0.00),
             'total_despesas_custeio': Decimal(0.00),
+            'total_despesas_nao_conciliadas_capital': Decimal(0.00),
+            'total_despesas_nao_conciliadas_custeio': Decimal(0.00),
         }
 
         for despesa in despesas:
@@ -146,6 +148,12 @@ class RateioDespesa(ModeloBase):
                 totais['total_despesas_capital'] += despesa.valor_rateio
             else:
                 totais['total_despesas_custeio'] += despesa.valor_rateio
+
+            if not despesa.conferido:
+                if despesa.aplicacao_recurso == APLICACAO_CAPITAL:
+                    totais['total_despesas_nao_conciliadas_capital'] += despesa.valor_rateio
+                else:
+                    totais['total_despesas_nao_conciliadas_custeio'] += despesa.valor_rateio
 
         return totais
 

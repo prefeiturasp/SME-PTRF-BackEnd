@@ -9,7 +9,7 @@ from rest_framework.viewsets import GenericViewSet
 from ..serializers import PrestacaoContaLookUpSerializer, AtaLookUpSerializer
 from ...models import PrestacaoConta, AcaoAssociacao, Ata
 from ...services import (iniciar_prestacao_de_contas, concluir_prestacao_de_contas, salvar_prestacao_de_contas,
-                         revisar_prestacao_de_contas)
+                         revisar_prestacao_de_contas, informacoes_financeiras_para_atas)
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ....despesas.models import RateioDespesa
 from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
@@ -169,3 +169,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         ata = Ata.iniciar(prestacao_conta=prestacao_conta)
 
         return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
+
+
+    @action(detail=True, methods=['get'],  url_path='info-para-ata')
+    def info_para_ata(self, request, uuid):
+        prestacao_conta = self.get_object()
+        result = informacoes_financeiras_para_atas(prestacao_contas=prestacao_conta)
+        return Response(result, status=status.HTTP_200_OK)

@@ -54,6 +54,17 @@ class FechamentoPeriodo(ModeloBase):
     saldo_reprogramado_custeio = models.DecimalField('Saldo Reprogramado (custeio)', max_digits=12, decimal_places=2,
                                                      default=0)
 
+    total_receitas_nao_conciliadas_capital = models.DecimalField('Receitas não conciliadas (capital)', max_digits=12,
+                                                                 decimal_places=2, default=0)
+    total_receitas_nao_conciliadas_custeio = models.DecimalField('Receitas não conciliadas (custeio)', max_digits=12,
+                                                                 decimal_places=2, default=0)
+
+    total_despesas_nao_conciliadas_capital = models.DecimalField('Despesas não conciliadas (capital)', max_digits=12,
+                                                                 decimal_places=2, default=0)
+
+    total_despesas_nao_conciliadas_custeio = models.DecimalField('Despesas não conciliadas (custeio)', max_digits=12,
+                                                                 decimal_places=2, default=0)
+
     status = models.CharField(
         'status',
         max_length=15,
@@ -131,6 +142,10 @@ class FechamentoPeriodo(ModeloBase):
               total_receitas_custeio,
               total_repasses_custeio,
               total_despesas_custeio,
+              total_receitas_nao_conciliadas_capital,
+              total_receitas_nao_conciliadas_custeio,
+              total_despesas_nao_conciliadas_capital,
+              total_despesas_nao_conciliadas_custeio
               ):
         fechamento_anterior = cls.by_periodo_conta_acao(periodo=prestacao_conta.periodo.periodo_anterior,
                                                         conta_associacao=prestacao_conta.conta_associacao,
@@ -147,6 +162,10 @@ class FechamentoPeriodo(ModeloBase):
             total_receitas_custeio=total_receitas_custeio,
             total_repasses_custeio=total_repasses_custeio,
             total_despesas_custeio=total_despesas_custeio,
+            total_receitas_nao_conciliadas_capital=total_receitas_nao_conciliadas_capital,
+            total_receitas_nao_conciliadas_custeio=total_receitas_nao_conciliadas_custeio,
+            total_despesas_nao_conciliadas_capital=total_despesas_nao_conciliadas_capital,
+            total_despesas_nao_conciliadas_custeio=total_despesas_nao_conciliadas_custeio,
             fechamento_anterior=fechamento_anterior
         )
         return novo_fechamento
