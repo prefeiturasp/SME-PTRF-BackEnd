@@ -53,12 +53,43 @@ def revisar_prestacao_de_contas(prestacao_contas_uuid, motivo):
 
 
 def informacoes_financeiras_para_atas(prestacao_contas):
+    def totaliza_info_acoes(info_acoes):
+        totalizador = {
+            'saldo_reprogramado': 0,
+            'saldo_reprogramado_capital': 0,
+            'saldo_reprogramado_custeio': 0,
+            'receitas_no_periodo': 0,
+            'repasses_no_periodo': 0,
+            'repasses_no_periodo_capital': 0,
+            'repasses_no_periodo_custeio': 0,
+            'outras_receitas_no_periodo': 0,
+            'outras_receitas_no_periodo_capital': 0,
+            'outras_receitas_no_periodo_custeio': 0,
+            'despesas_no_periodo': 0,
+            'despesas_no_periodo_capital': 0,
+            'despesas_no_periodo_custeio': 0,
+            'despesas_nao_conciliadas': 0,
+            'despesas_nao_conciliadas_capital': 0,
+            'despesas_nao_conciliadas_custeio': 0,
+            'receitas_nao_conciliadas': 0,
+            'receitas_nao_conciliadas_capital': 0,
+            'receitas_nao_conciliadas_custeio': 0,
+            'saldo_atual_custeio': 0,
+            'saldo_atual_capital': 0,
+            'saldo_atual_total': 0,
+        }
+        for info_acao in info_acoes:
+            for key in totalizador.keys():
+                totalizador[key] += info_acao[key]
+
+        return totalizador
+
     info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=prestacao_contas.associacao.uuid,
                                                   periodo=prestacao_contas.periodo,
                                                   conta=prestacao_contas.conta_associacao)
     info = {
         'uuid': prestacao_contas.uuid,
         'acoes': info_acoes,
-        'totais': {},
+        'totais': totaliza_info_acoes(info_acoes),
     }
     return info

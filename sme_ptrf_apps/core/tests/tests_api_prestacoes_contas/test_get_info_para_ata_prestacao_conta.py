@@ -79,10 +79,36 @@ def test_api_get_info_para_ata(client,
             'especificacoes_despesas': ['ventilador', 'ar condicionado', 'contador']
         }
     ]
+
+    totais_esperados = {
+        'saldo_reprogramado': 300.0,
+        'saldo_reprogramado_capital': 100.0,
+        'saldo_reprogramado_custeio': 200.0,
+        'receitas_no_periodo': 6000.0,
+        'repasses_no_periodo': 4500.0,
+        'repasses_no_periodo_capital': 1900.0,
+        'repasses_no_periodo_custeio': 2600.0,
+        'outras_receitas_no_periodo': 1500.0,
+        'outras_receitas_no_periodo_capital': 1100.0,
+        'outras_receitas_no_periodo_custeio': 400.0,
+        'despesas_no_periodo': 2700.0,
+        'despesas_no_periodo_capital': 1000.0,
+        'despesas_no_periodo_custeio': 1700.0,
+        'despesas_nao_conciliadas': 54.0,
+        'despesas_nao_conciliadas_capital': 28.0,
+        'despesas_nao_conciliadas_custeio': 26.0,
+        'receitas_nao_conciliadas': 60.0,
+        'receitas_nao_conciliadas_capital': 30.0,
+        'receitas_nao_conciliadas_custeio': 30.0,
+        'saldo_atual_capital': 2100.0,
+        'saldo_atual_custeio': 1500.0,
+        'saldo_atual_total': 3600.0,
+    }
+
     resultado_esperado = {
         'uuid': f'{prestacao_uuid}',
         'acoes': info_acoes_esperadas,
-        'totais': {},
+        'totais': totais_esperados,
     }
 
     assert response.status_code == status.HTTP_200_OK
