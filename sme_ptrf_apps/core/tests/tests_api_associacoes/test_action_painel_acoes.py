@@ -61,7 +61,8 @@ def test_action_painel_acoes(
                 'receitas_nao_conciliadas': 400.0,
                 'receitas_nao_conciliadas_capital': 0,
                 'receitas_nao_conciliadas_custeio': 400.0,
-                'especificacoes_despesas': ['Ar condicionado', 'Material elétrico'],
+                'especificacoes_despesas_capital': ['Ar condicionado',],
+                'especificacoes_despesas_custeio': ['Material elétrico'],
             }
         ]
     }
@@ -123,7 +124,8 @@ def test_action_painel_acoes_por_periodo(
                 'receitas_nao_conciliadas': 0.0,
                 'receitas_nao_conciliadas_capital': 0.0,
                 'receitas_nao_conciliadas_custeio': 0.0,
-                'especificacoes_despesas': [],
+                'especificacoes_despesas_capital': [],
+                'especificacoes_despesas_custeio': [],
             }
         ]
     }

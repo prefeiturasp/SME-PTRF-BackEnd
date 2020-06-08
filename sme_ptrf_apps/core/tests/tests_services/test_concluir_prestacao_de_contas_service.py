@@ -124,4 +124,5 @@ def test_deve_gravar_lista_de_especificacoes_despesas(prestacao_conta_iniciada,
     assert prestacao.fechamentos_da_prestacao.count() == 1, "Deveriam ter sido criado apenas um fechamento."
 
     fechamento = prestacao.fechamentos_da_prestacao.first()
-    assert fechamento.especificacoes_despesas == ['Ar condicionado', 'Instalação elétrica']
+    assert fechamento.especificacoes_despesas_capital == ['Ar condicionado',]
+    assert fechamento.especificacoes_despesas_custeio == ['Instalação elétrica',]

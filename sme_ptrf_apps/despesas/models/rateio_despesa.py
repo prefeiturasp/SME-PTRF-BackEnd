@@ -127,12 +127,19 @@ class RateioDespesa(ModeloBase):
                                                             periodo=periodo, conferido=conferido,
                                                             conta_associacao=conta_associacao,
                                                             exclude_despesa=exclude_despesa)
-        especificacoes = set()
+
+        especificacoes = {
+            APLICACAO_CAPITAL: set(),
+            APLICACAO_CUSTEIO: set()
+        }
         for rateio in rateios:
             if rateio.especificacao_material_servico:
-                especificacoes.add(rateio.especificacao_material_servico.descricao)
+                especificacoes[rateio.aplicacao_recurso].add(rateio.especificacao_material_servico.descricao)
 
-        return sorted(especificacoes)
+        return {
+            APLICACAO_CAPITAL: sorted(especificacoes[APLICACAO_CAPITAL]),
+            APLICACAO_CUSTEIO: sorted(especificacoes[APLICACAO_CUSTEIO])
+        }
 
     def marcar_conferido(self):
         self.conferido = True
