@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from ..models import FechamentoPeriodo, Associacao, AcaoAssociacao, ContaAssociacao
 from ...despesas.models import RateioDespesa
-from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO
+from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
 from ...receitas.models import Receita
 
 
@@ -10,7 +10,12 @@ def especificacoes_despesas_acao_associacao_no_periodo(acao_associacao, periodo,
     fechamentos_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(acao_associacao=acao_associacao,
                                                                            periodo=periodo, conta_associacao=conta)
     if fechamentos_periodo:
-        return fechamentos_periodo.first().especificacoes_despesas
+        fechamento = fechamentos_periodo.first()
+        aplicacoes = {
+            APLICACAO_CAPITAL: fechamento.especificacoes_despesas_capital,
+            APLICACAO_CUSTEIO: fechamento.especificacoes_despesas_custeio,
+        }
+        return aplicacoes
     else:
         return RateioDespesa.especificacoes_dos_rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
                                                                                       periodo=periodo,
@@ -254,7 +259,8 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
             'saldo_atual_capital': info_acao['saldo_atual_capital'],
             'saldo_atual_total': info_acao['saldo_atual_custeio'] + info_acao['saldo_atual_capital'],
 
-            'especificacoes_despesas': especificacoes_despesas,
+            'especificacoes_despesas_capital': especificacoes_despesas['CAPITAL'],
+            'especificacoes_despesas_custeio': especificacoes_despesas['CUSTEIO'],
         }
         result.append(info)
 

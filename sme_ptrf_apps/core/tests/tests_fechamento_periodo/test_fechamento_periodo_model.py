@@ -31,7 +31,8 @@ def test_instance_model(fechamento_periodo):
     assert model.total_receitas_nao_conciliadas_custeio
     assert model.total_despesas_nao_conciliadas_capital
     assert model.total_despesas_nao_conciliadas_custeio
-    assert model.especificacoes_despesas
+    assert model.especificacoes_despesas_capital
+    assert model.especificacoes_despesas_custeio
 
 
 def test_srt_model(fechamento_periodo):

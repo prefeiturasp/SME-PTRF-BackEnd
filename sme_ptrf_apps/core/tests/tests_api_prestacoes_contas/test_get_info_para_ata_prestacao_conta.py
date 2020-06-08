@@ -49,7 +49,8 @@ def test_api_get_info_para_ata(client,
             'saldo_atual_capital': 200.0,
             'saldo_atual_custeio': 400.0,
             'saldo_atual_total': 600.0,
-            'especificacoes_despesas': ['cadeira', 'mesa'],
+            'especificacoes_despesas_capital': ['ar condicionado',],
+            'especificacoes_despesas_custeio': ['cadeira', 'mesa'],
         },
         {
             'acao_associacao_nome': 'Rolê Cultural',
@@ -76,7 +77,8 @@ def test_api_get_info_para_ata(client,
             'saldo_atual_total': 3000.0,
             'saldo_atual_capital': 1900.0,
             'saldo_atual_custeio': 1100.0,
-            'especificacoes_despesas': ['ventilador', 'ar condicionado', 'contador']
+            'especificacoes_despesas_capital': ['ar condicionado',],
+            'especificacoes_despesas_custeio': ['ventilador', 'contador']
         }
     ]
 
