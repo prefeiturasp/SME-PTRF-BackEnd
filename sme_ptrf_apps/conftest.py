@@ -866,6 +866,7 @@ def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
         presidente_reuniao='José',
         cargo_presidente_reuniao='Presidente',
         secretario_reuniao='Ana',
+        cargo_secretaria_reuniao='Secretaria',
         comentarios='Teste',
         parecer_conselho='APROVADA'
     )
