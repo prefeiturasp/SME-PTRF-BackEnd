@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
+from ...api.serializers.unidade_serializer import UnidadeInfoAtaSerializer, UnidadeLookUpSerializer
 from ...models import Associacao, Unidade
 
-from ...api.serializers.unidade_serializer import UnidadeSerializer, UnidadeLookUpSerializer
 
 class AssociacaoSerializer(serializers.ModelSerializer):
     unidade = UnidadeLookUpSerializer(many=False)
@@ -26,3 +26,15 @@ class AssociacaoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Associacao
         fields ='__all__'
+
+
+class AssociacaoInfoAtaSerializer(serializers.ModelSerializer):
+    unidade = UnidadeInfoAtaSerializer(many=False)
+    class Meta:
+        model = Associacao
+        fields =[
+            'uuid',
+            'nome',
+            'cnpj',
+            'unidade',
+        ]
