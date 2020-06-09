@@ -132,3 +132,89 @@ def test_action_painel_acoes_por_periodo(
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
+
+
+@freeze_time('2020-04-18 10:11:12')
+def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
+    client,
+    associacao,
+    periodo_anterior,
+    periodo,
+    acao_associacao,
+    acao_associacao_de_destaque,
+    receita_100_no_periodo,
+    receita_100_no_periodo_acao_de_destaque,
+):
+    response = client.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/', content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'associacao': f'{associacao.uuid}',
+        'periodo_referencia': periodo.referencia,
+        'periodo_status': STATUS_PERIODO_ASSOCIACAO_PENDENTE,
+        'data_inicio_realizacao_despesas': f'{periodo.data_inicio_realizacao_despesas}',
+        'data_fim_realizacao_despesas': f'{periodo.data_fim_realizacao_despesas}',
+        'data_prevista_repasse': f'{periodo.data_prevista_repasse}',
+        'ultima_atualizacao': f'{datetime.datetime(2020, 4, 18, 10, 11, 12)}',
+        'info_acoes': [
+            {
+                'acao_associacao_uuid': f'{acao_associacao_de_destaque.uuid}',
+                'acao_associacao_nome': acao_associacao_de_destaque.acao.nome,
+                'saldo_reprogramado': 0,
+                'saldo_reprogramado_capital': 0,
+                'saldo_reprogramado_custeio': 0,
+                'receitas_no_periodo': 100.0,
+                'repasses_no_periodo': 0,
+                'repasses_no_periodo_capital': 0,
+                'repasses_no_periodo_custeio': 0,
+                'outras_receitas_no_periodo': 100.0,
+                'outras_receitas_no_periodo_capital': 0,
+                'outras_receitas_no_periodo_custeio': 100.0,
+                'despesas_no_periodo': 0,
+                'despesas_no_periodo_capital': 0,
+                'despesas_no_periodo_custeio': 0,
+                'saldo_atual_custeio': 100.0,
+                'saldo_atual_capital': 0,
+                'saldo_atual_total': 100.0,
+                'despesas_nao_conciliadas': 0,
+                'despesas_nao_conciliadas_capital': 0,
+                'despesas_nao_conciliadas_custeio': 0,
+                'receitas_nao_conciliadas': 100.0,
+                'receitas_nao_conciliadas_capital': 0,
+                'receitas_nao_conciliadas_custeio': 100.0,
+                'especificacoes_despesas_capital': [],
+                'especificacoes_despesas_custeio': [],
+            },
+            {
+                'acao_associacao_uuid': f'{acao_associacao.uuid}',
+                'acao_associacao_nome': acao_associacao.acao.nome,
+                'saldo_reprogramado': 0,
+                'saldo_reprogramado_capital': 0,
+                'saldo_reprogramado_custeio': 0,
+                'receitas_no_periodo': 100.0,
+                'repasses_no_periodo': 0,
+                'repasses_no_periodo_capital': 0,
+                'repasses_no_periodo_custeio': 0,
+                'outras_receitas_no_periodo': 100.0,
+                'outras_receitas_no_periodo_capital': 0,
+                'outras_receitas_no_periodo_custeio': 100.0,
+                'despesas_no_periodo': 0,
+                'despesas_no_periodo_capital': 0,
+                'despesas_no_periodo_custeio': 0,
+                'saldo_atual_custeio': 100.0,
+                'saldo_atual_capital': 0,
+                'saldo_atual_total': 100.0,
+                'despesas_nao_conciliadas': 0,
+                'despesas_nao_conciliadas_capital': 0,
+                'despesas_nao_conciliadas_custeio': 0,
+                'receitas_nao_conciliadas': 100.0,
+                'receitas_nao_conciliadas_capital': 0,
+                'receitas_nao_conciliadas_custeio': 100.0,
+                'especificacoes_despesas_capital': [],
+                'especificacoes_despesas_custeio': [],
+            }
+        ]
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
