@@ -95,11 +95,13 @@ def tipo_conta_cartao():
 def acao():
     return baker.make('Acao', nome='PTRF')
 
-
 @pytest.fixture
 def acao_ptrf(acao):
     return acao
 
+@pytest.fixture
+def acao_de_destaque():
+    return baker.make('Acao', nome='ZZZZZ', posicao_nas_pesquisas='AAAAAAAAAA')
 
 @pytest.fixture
 def acao_role_cultural():
@@ -177,6 +179,15 @@ def acao_associacao(associacao, acao):
         'AcaoAssociacao',
         associacao=associacao,
         acao=acao
+    )
+
+
+@pytest.fixture
+def acao_associacao_de_destaque(associacao, acao_de_destaque):
+    return baker.make(
+        'AcaoAssociacao',
+        associacao=associacao,
+        acao=acao_de_destaque
     )
 
 
@@ -523,6 +534,19 @@ def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_r
         tipo_receita=tipo_receita,
     )
 
+
+@pytest.fixture
+def receita_100_no_periodo_acao_de_destaque(associacao, conta_associacao, acao_associacao_de_destaque, tipo_receita, periodo):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=periodo.data_inicio_realizacao_despesas + timedelta(days=3),
+        valor=100.00,
+        descricao="Receita 100",
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_de_destaque,
+        tipo_receita=tipo_receita,
+    )
 
 @pytest.fixture
 def receita_300_repasse_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita_repasse, periodo):
