@@ -39,6 +39,10 @@ class Receita(ModeloBase):
         null=True,
     )
 
+    prestacao_conta = models.ForeignKey('core.PrestacaoConta', on_delete=models.SET_NULL, blank=True, null=True,
+                                        related_name='receitas_conciliadas',
+                                        verbose_name='prestação de contas de conciliação')
+
     def __str__(self):
         return f'RECEITA<{self.descricao} - {self.data} - {self.valor}>'
 
@@ -55,7 +59,7 @@ class Receita(ModeloBase):
             dataset = dataset.filter(conferido=conferido)
 
         if conta_associacao:
-            dataset= dataset.filter(conta_associacao=conta_associacao)
+            dataset = dataset.filter(conta_associacao=conta_associacao)
 
         return dataset.all()
 
@@ -105,23 +109,24 @@ class Receita(ModeloBase):
                 else:
                     totais['total_receitas_nao_conciliadas_custeio'] += receita.valor
 
-
         return totais
 
-    def marcar_conferido(self):
+    def marcar_conferido(self, prestacao_conta=None):
         self.conferido = True
+        self.prestacao_conta=prestacao_conta
         self.save()
         return self
 
     def desmarcar_conferido(self):
         self.conferido = False
+        self.prestacao_conta=None
         self.save()
         return self
 
     @classmethod
-    def conciliar(cls, uuid):
+    def conciliar(cls, uuid, prestacao_conta):
         receita = cls.by_uuid(uuid)
-        return receita.marcar_conferido()
+        return receita.marcar_conferido(prestacao_conta)
 
     @classmethod
     def desconciliar(cls, uuid):
