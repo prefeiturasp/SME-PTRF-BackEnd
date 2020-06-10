@@ -1,51 +1,83 @@
 import json
 
 import pytest
+from model_bakery import baker
 from rest_framework import status
 
 pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def json_especificacao_custeio_material(especificacao_custeio_material):
+def especificacao_custeio_material_eletrico(tipo_aplicacao_recurso_custeio, tipo_custeio_material):
+    return baker.make(
+        'EspecificacaoMaterialServico',
+        descricao='Material elétrico',
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_material,
+    )
+
+
+@pytest.fixture
+def especificacao_custeio_servico_instalacao_eletrica(tipo_aplicacao_recurso_custeio, tipo_custeio_servico):
+    return baker.make(
+        'EspecificacaoMaterialServico',
+        descricao='Instalação elétrica',
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+    )
+
+
+@pytest.fixture
+def especificacao_capital_ar_condicionado(tipo_aplicacao_recurso_capital):
+    return baker.make(
+        'EspecificacaoMaterialServico',
+        descricao='Ar condicionado',
+        aplicacao_recurso=tipo_aplicacao_recurso_capital,
+        tipo_custeio=None,
+    )
+
+
+@pytest.fixture
+def json_especificacao_custeio_material_eletrico(especificacao_custeio_material_eletrico):
     return {
-        'id': especificacao_custeio_material.id,
-        'descricao': especificacao_custeio_material.descricao,
-        'aplicacao_recurso': especificacao_custeio_material.aplicacao_recurso,
-        'tipo_custeio': especificacao_custeio_material.tipo_custeio.id
+        'id': especificacao_custeio_material_eletrico.id,
+        'descricao': especificacao_custeio_material_eletrico.descricao,
+        'aplicacao_recurso': especificacao_custeio_material_eletrico.aplicacao_recurso,
+        'tipo_custeio': especificacao_custeio_material_eletrico.tipo_custeio.id
 
     }
 
 
 @pytest.fixture
-def json_especificacao_custeio_servico(especificacao_custeio_servico):
+def json_especificacao_custeio_servico_instalacao_eletrica(especificacao_custeio_servico_instalacao_eletrica):
     return {
-        'id': especificacao_custeio_servico.id,
-        'descricao': especificacao_custeio_servico.descricao,
-        'aplicacao_recurso': especificacao_custeio_servico.aplicacao_recurso,
-        'tipo_custeio': especificacao_custeio_servico.tipo_custeio.id
+        'id': especificacao_custeio_servico_instalacao_eletrica.id,
+        'descricao': especificacao_custeio_servico_instalacao_eletrica.descricao,
+        'aplicacao_recurso': especificacao_custeio_servico_instalacao_eletrica.aplicacao_recurso,
+        'tipo_custeio': especificacao_custeio_servico_instalacao_eletrica.tipo_custeio.id
     }
 
 
 @pytest.fixture
-def json_especificacao_capital(especificacao_capital):
+def json_especificacao_capital_ar_condicionado(especificacao_capital_ar_condicionado):
     return {
-        'id': especificacao_capital.id,
-        'descricao': especificacao_capital.descricao,
-        'aplicacao_recurso': especificacao_capital.aplicacao_recurso,
+        'id': especificacao_capital_ar_condicionado.id,
+        'descricao': especificacao_capital_ar_condicionado.descricao,
+        'aplicacao_recurso': especificacao_capital_ar_condicionado.aplicacao_recurso,
         'tipo_custeio': None
     }
 
 
-def test_api_get_especificacoes_sem_filtro(client, json_especificacao_custeio_material,
-                                           json_especificacao_custeio_servico, json_especificacao_capital):
+def test_api_get_especificacoes_sem_filtro(client, json_especificacao_custeio_material_eletrico,
+                                           json_especificacao_custeio_servico_instalacao_eletrica,
+                                           json_especificacao_capital_ar_condicionado):
     response = client.get('/api/especificacoes/', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = [
-        json_especificacao_custeio_material,
-        json_especificacao_custeio_servico,
-        json_especificacao_capital,
+        json_especificacao_capital_ar_condicionado,
+        json_especificacao_custeio_servico_instalacao_eletrica,
+        json_especificacao_custeio_material_eletrico,
 
     ]
 
@@ -53,13 +85,14 @@ def test_api_get_especificacoes_sem_filtro(client, json_especificacao_custeio_ma
     assert result == esperado
 
 
-def test_api_get_especificacoes_com_filtro_capital(client, json_especificacao_custeio_material,
-                                                   json_especificacao_custeio_servico, json_especificacao_capital):
+def test_api_get_especificacoes_com_filtro_capital(client, json_especificacao_custeio_material_eletrico,
+                                                   json_especificacao_custeio_servico_instalacao_eletrica,
+                                                   json_especificacao_capital_ar_condicionado):
     response = client.get('/api/especificacoes/?aplicacao_recurso=CAPITAL', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = [
-        json_especificacao_capital,
+        json_especificacao_capital_ar_condicionado,
 
     ]
 
@@ -67,29 +100,31 @@ def test_api_get_especificacoes_com_filtro_capital(client, json_especificacao_cu
     assert result == esperado
 
 
-def test_api_get_especificacoes_com_filtro_custeio(client, json_especificacao_custeio_material,
-                                                   json_especificacao_custeio_servico, json_especificacao_capital):
+def test_api_get_especificacoes_com_filtro_custeio(client, json_especificacao_custeio_material_eletrico,
+                                                   json_especificacao_custeio_servico_instalacao_eletrica,
+                                                   json_especificacao_capital_ar_condicionado):
     response = client.get('/api/especificacoes/?aplicacao_recurso=CUSTEIO', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = [
-        json_especificacao_custeio_material,
-        json_especificacao_custeio_servico,
+        json_especificacao_custeio_servico_instalacao_eletrica,
+        json_especificacao_custeio_material_eletrico,
     ]
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
 
 
-def test_api_get_especificacoes_com_filtro_custeio_servico(client, json_especificacao_custeio_material,
-                                                           json_especificacao_custeio_servico,
-                                                           json_especificacao_capital, tipo_custeio_servico):
+def test_api_get_especificacoes_com_filtro_custeio_servico(client, json_especificacao_custeio_material_eletrico,
+                                                           json_especificacao_custeio_servico_instalacao_eletrica,
+                                                           json_especificacao_capital_ar_condicionado,
+                                                           tipo_custeio_servico):
     response = client.get(f'/api/especificacoes/?aplicacao_recurso=CUSTEIO&tipo_custeio={tipo_custeio_servico.id}',
                           content_type='application/json')
     result = json.loads(response.content)
 
     esperado = [
-        json_especificacao_custeio_servico,
+        json_especificacao_custeio_servico_instalacao_eletrica,
     ]
 
     assert response.status_code == status.HTTP_200_OK
