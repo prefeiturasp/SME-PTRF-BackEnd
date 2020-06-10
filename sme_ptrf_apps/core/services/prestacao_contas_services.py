@@ -117,3 +117,10 @@ def receitas_conciliadas_por_conta_e_acao_no_periodo(conta_associacao, acao_asso
         dataset = dataset.filter(data__gte=periodo.data_inicio_realizacao_despesas)
 
     return dataset.all()
+
+
+def receitas_conciliadas_por_conta_e_acao_na_prestacao_contas(conta_associacao, acao_associacao, prestacao_contas):
+    dataset = prestacao_contas.receitas_conciliadas.filter(conta_associacao=conta_associacao).filter(
+        acao_associacao=acao_associacao)
+
+    return dataset.all()
