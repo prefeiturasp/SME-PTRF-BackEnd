@@ -90,6 +90,22 @@ def receita_2019_2_role_repasse_conferida(associacao, conta_associacao_cartao, a
 
 
 @pytest.fixture
+def receita_2019_2_role_repasse_nao_conferida(associacao, conta_associacao_cartao, acao_associacao_role_cultural,
+                                              tipo_receita_repasse):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2019, 7, 10),
+        valor=100.00,
+        descricao="Receita Role Conferida 2019",
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        tipo_receita=tipo_receita_repasse,
+        conferido=False,
+    )
+
+
+@pytest.fixture
 def tipo_custeio_servico():
     return baker.make('TipoCusteio', nome='Servico')
 
