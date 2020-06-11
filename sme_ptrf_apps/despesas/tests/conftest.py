@@ -179,7 +179,7 @@ def despesa_boleto_sem_documento_transacao(associacao, tipo_documento, tipo_tran
 
 @pytest.fixture
 def rateio_despesa_capital(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso, tipo_custeio,
-                           especificacao_material_servico, acao_associacao):
+                           especificacao_material_servico, acao_associacao, prestacao_conta_iniciada):
     return baker.make(
         'RateioDespesa',
         despesa=despesa,
@@ -194,6 +194,7 @@ def rateio_despesa_capital(associacao, despesa, conta_associacao, acao, tipo_apl
         valor_item_capital=50.00,
         numero_processo_incorporacao_capital='Teste123456',
         conferido=True,
+        prestacao_conta=prestacao_conta_iniciada,
     )
 
 

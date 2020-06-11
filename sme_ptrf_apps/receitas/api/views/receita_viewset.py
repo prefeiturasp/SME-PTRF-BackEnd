@@ -10,9 +10,9 @@ from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAs
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import aplicacoes_recurso_to_json
 from sme_ptrf_apps.receitas.models import Receita
-
-from ...services import atualiza_repasse_para_pendente
 from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoReceitaSerializer
+from ...services import atualiza_repasse_para_pendente
+from ....core.models import PrestacaoConta
 
 
 class ReceitaViewSet(mixins.CreateModelMixin,
@@ -65,7 +65,17 @@ class ReceitaViewSet(mixins.CreateModelMixin,
 
     @action(detail=True, methods=['patch'])
     def conciliar(self, request, uuid):
-        receita_conciliada = Receita.conciliar(uuid=uuid)
+        prestacao_conta_uuid = request.query_params.get('prestacao_conta_uuid')
+
+        if prestacao_conta_uuid is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da prestação de contas onde esta sendo feita a conciliação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_conta = PrestacaoConta.by_uuid(prestacao_conta_uuid)
+        receita_conciliada = Receita.conciliar(uuid=uuid, prestacao_conta=prestacao_conta)
         return Response(ReceitaListaSerializer(receita_conciliada, many=False).data,
                         status=status.HTTP_200_OK)
 

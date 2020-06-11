@@ -9,11 +9,14 @@ from rest_framework.viewsets import GenericViewSet
 from ..serializers import PrestacaoContaLookUpSerializer, AtaLookUpSerializer
 from ...models import PrestacaoConta, AcaoAssociacao, Ata, Periodo
 from ...services import (iniciar_prestacao_de_contas, concluir_prestacao_de_contas, salvar_prestacao_de_contas,
-                         revisar_prestacao_de_contas, informacoes_financeiras_para_atas, info_acoes_associacao_no_periodo)
+                         revisar_prestacao_de_contas, informacoes_financeiras_para_atas,
+                         receitas_conciliadas_por_conta_e_acao_na_prestacao_contas,
+                         receitas_nao_conciliadas_por_conta_e_acao_no_periodo,
+                         despesas_nao_conciliadas_por_conta_e_acao_no_periodo,
+                         info_acoes_associacao_no_periodo,
+                         despesas_conciliadas_por_conta_e_acao_na_prestacao_contas)
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
-from ....despesas.models import RateioDespesa
 from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
-from ....receitas.models import Receita
 
 
 class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
@@ -103,11 +106,14 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         acao_associacao = AcaoAssociacao.by_uuid(acao_associacao_uuid)
         conta_associacao = prestacao_conta.conta_associacao
 
-        receitas = Receita.receitas_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
-                                                                  periodo=prestacao_conta.periodo,
-                                                                  conferido=conferido,
-                                                                  conta_associacao=conta_associacao
-                                                                  )
+        if conferido == 'True':
+            receitas = receitas_conciliadas_por_conta_e_acao_na_prestacao_contas(conta_associacao=conta_associacao,
+                                                                                 acao_associacao=acao_associacao,
+                                                                                 prestacao_contas=prestacao_conta)
+        else:
+            receitas = receitas_nao_conciliadas_por_conta_e_acao_no_periodo(conta_associacao=conta_associacao,
+                                                                            acao_associacao=acao_associacao,
+                                                                            periodo=prestacao_conta.periodo)
 
         return Response(ReceitaListaSerializer(receitas, many=True).data, status=status.HTTP_200_OK)
 
@@ -127,13 +133,16 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         acao_associacao = AcaoAssociacao.by_uuid(acao_associacao_uuid)
         conta_associacao = prestacao_conta.conta_associacao
 
-        despesas = RateioDespesa.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
-                                                                       periodo=prestacao_conta.periodo,
-                                                                       conferido=conferido,
-                                                                       conta_associacao=conta_associacao)
+        if conferido == 'True':
+            despesas = despesas_conciliadas_por_conta_e_acao_na_prestacao_contas(conta_associacao=conta_associacao,
+                                                                                 acao_associacao=acao_associacao,
+                                                                                 prestacao_contas=prestacao_conta)
+        else:
+            despesas = despesas_nao_conciliadas_por_conta_e_acao_no_periodo(conta_associacao=conta_associacao,
+                                                                            acao_associacao=acao_associacao,
+                                                                            periodo=prestacao_conta.periodo)
 
         return Response(RateioDespesaListaSerializer(despesas, many=True).data, status=status.HTTP_200_OK)
-
 
     @action(detail=True, methods=['get'])
     def ata(self, request, uuid):
@@ -148,11 +157,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
-
         return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
 
-
-    @action(detail=True, methods=['post'],url_path='iniciar-ata')
+    @action(detail=True, methods=['post'], url_path='iniciar-ata')
     def iniciar_ata(self, request, uuid):
 
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
@@ -161,7 +168,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         if ata:
             erro = {
-                'erro':  'ata-ja-iniciada',
+                'erro': 'ata-ja-iniciada',
                 'mensagem': 'Já existe uma ata iniciada para essa prestação de contas.'
             }
             return Response(erro, status=status.HTTP_409_CONFLICT)
@@ -170,8 +177,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
 
-
-    @action(detail=True, methods=['get'],  url_path='info-para-ata')
+    @action(detail=True, methods=['get'], url_path='info-para-ata')
     def info_para_ata(self, request, uuid):
         prestacao_conta = self.get_object()
         result = informacoes_financeiras_para_atas(prestacao_contas=prestacao_conta)

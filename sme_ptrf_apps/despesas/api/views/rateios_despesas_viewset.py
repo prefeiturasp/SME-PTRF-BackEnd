@@ -10,7 +10,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from ..serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ...models import RateioDespesa
-from ....core.models import Periodo, Parametros
+from ....core.models import Periodo, Parametros, PrestacaoConta
 from ....core.services import saldos_insuficientes_para_rateios
 
 
@@ -36,7 +36,17 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
 
     @action(detail=True, methods=['patch'])
     def conciliar(self, request, uuid):
-        rateio_despesa_conciliado = RateioDespesa.conciliar(uuid=uuid)
+        prestacao_conta_uuid = request.query_params.get('prestacao_conta_uuid')
+
+        if prestacao_conta_uuid is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da prestação de contas onde esta sendo feita a conciliação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_conta = PrestacaoConta.by_uuid(prestacao_conta_uuid)
+        rateio_despesa_conciliado = RateioDespesa.conciliar(uuid=uuid, prestacao_conta=prestacao_conta)
         return Response(RateioDespesaListaSerializer(rateio_despesa_conciliado, many=False).data,
                         status=status.HTTP_200_OK)
 
