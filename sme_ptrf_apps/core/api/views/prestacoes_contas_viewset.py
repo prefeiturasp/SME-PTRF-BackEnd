@@ -12,9 +12,9 @@ from ...services import (iniciar_prestacao_de_contas, concluir_prestacao_de_cont
                          revisar_prestacao_de_contas, informacoes_financeiras_para_atas,
                          receitas_conciliadas_por_conta_e_acao_na_prestacao_contas,
                          receitas_nao_conciliadas_por_conta_e_acao_no_periodo,
-                         despesas_nao_conciliadas_por_conta_e_acao_no_periodo)
+                         despesas_nao_conciliadas_por_conta_e_acao_no_periodo,
+                         despesas_conciliadas_por_conta_e_acao_na_prestacao_contas)
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
-from ....despesas.models import RateioDespesa
 from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
 
 
@@ -133,10 +133,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         conta_associacao = prestacao_conta.conta_associacao
 
         if conferido == 'True':
-            despesas = RateioDespesa.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
-                                                                           periodo=prestacao_conta.periodo,
-                                                                           conferido=conferido,
-                                                                           conta_associacao=conta_associacao)
+            despesas = despesas_conciliadas_por_conta_e_acao_na_prestacao_contas(conta_associacao=conta_associacao,
+                                                                                 acao_associacao=acao_associacao,
+                                                                                 prestacao_contas=prestacao_conta)
         else:
             despesas = despesas_nao_conciliadas_por_conta_e_acao_no_periodo(conta_associacao=conta_associacao,
                                                                             acao_associacao=acao_associacao,

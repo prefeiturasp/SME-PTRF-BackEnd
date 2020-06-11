@@ -135,3 +135,10 @@ def despesas_nao_conciliadas_por_conta_e_acao_no_periodo(conta_associacao, acao_
         dataset = dataset.filter(despesa__data_documento__lte=periodo.data_fim_realizacao_despesas)
 
     return dataset.all()
+
+
+def despesas_conciliadas_por_conta_e_acao_na_prestacao_contas(conta_associacao, acao_associacao, prestacao_contas):
+    dataset = prestacao_contas.despesas_conciliadas.filter(conta_associacao=conta_associacao).filter(
+        acao_associacao=acao_associacao)
+
+    return dataset.all()
