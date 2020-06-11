@@ -284,3 +284,23 @@ def rateio_despesa_2019_role_conferido(associacao, despesa_2019_2, conta_associa
         conferido=True,
 
     )
+
+
+@pytest.fixture
+def rateio_despesa_2019_role_nao_conferido(associacao, despesa_2019_2, conta_associacao_cartao, acao,
+                                           tipo_aplicacao_recurso_custeio,
+                                           tipo_custeio_servico,
+                                           especificacao_cadeira, acao_associacao_role_cultural):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2019_2,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_cadeira,
+        valor_rateio=100.00,
+        conferido=False,
+
+    )

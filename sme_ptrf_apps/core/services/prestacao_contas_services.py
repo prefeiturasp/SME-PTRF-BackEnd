@@ -124,3 +124,14 @@ def receitas_conciliadas_por_conta_e_acao_na_prestacao_contas(conta_associacao, 
         acao_associacao=acao_associacao)
 
     return dataset.all()
+
+
+def despesas_nao_conciliadas_por_conta_e_acao_no_periodo(conta_associacao, acao_associacao, periodo):
+    dataset = RateioDespesa.objects.filter(conta_associacao=conta_associacao).filter(
+        acao_associacao=acao_associacao).filter(conferido=False)
+
+    # No caso de despesas não conciliadas todas devem ser exibidas até a data limite do período
+    if periodo.data_fim_realizacao_despesas:
+        dataset = dataset.filter(despesa__data_documento__lte=periodo.data_fim_realizacao_despesas)
+
+    return dataset.all()

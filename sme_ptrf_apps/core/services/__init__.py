@@ -2,6 +2,7 @@ from .info_por_acao_services import (info_acao_associacao_no_periodo, info_acoes
                                      saldos_insuficientes_para_rateios)
 from .periodo_associacao_services import status_periodo_associacao, status_aceita_alteracoes_em_transacoes
 from .prestacao_contas_services import concluir_prestacao_de_contas
+from .prestacao_contas_services import despesas_nao_conciliadas_por_conta_e_acao_no_periodo
 from .prestacao_contas_services import informacoes_financeiras_para_atas
 from .prestacao_contas_services import iniciar_prestacao_de_contas
 from .prestacao_contas_services import receitas_conciliadas_por_conta_e_acao_na_prestacao_contas
