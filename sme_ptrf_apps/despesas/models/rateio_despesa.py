@@ -50,6 +50,10 @@ class RateioDespesa(ModeloBase):
 
     conferido = models.BooleanField('Conferido?', default=False)
 
+    prestacao_conta = models.ForeignKey('core.PrestacaoConta', on_delete=models.SET_NULL, blank=True, null=True,
+                                        related_name='despesas_conciliadas',
+                                        verbose_name='prestação de contas de conciliação')
+
     def __str__(self):
         documento = self.despesa.numero_documento if self.despesa else 'Despesa indefinida'
         return f"{documento} - {self.valor_rateio:.2f}"
@@ -141,20 +145,22 @@ class RateioDespesa(ModeloBase):
             APLICACAO_CUSTEIO: sorted(especificacoes[APLICACAO_CUSTEIO])
         }
 
-    def marcar_conferido(self):
+    def marcar_conferido(self, prestacao_conta=None):
         self.conferido = True
+        self.prestacao_conta = prestacao_conta
         self.save()
         return self
 
     def desmarcar_conferido(self):
         self.conferido = False
+        self.prestacao_conta = None
         self.save()
         return self
 
     @classmethod
-    def conciliar(cls, uuid):
+    def conciliar(cls, uuid, prestacao_conta):
         rateio_despesa = cls.by_uuid(uuid)
-        return rateio_despesa.marcar_conferido()
+        return rateio_despesa.marcar_conferido(prestacao_conta)
 
     @classmethod
     def desconciliar(cls, uuid):
