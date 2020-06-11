@@ -7,12 +7,13 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from ..serializers import PrestacaoContaLookUpSerializer, AtaLookUpSerializer
-from ...models import PrestacaoConta, AcaoAssociacao, Ata
+from ...models import PrestacaoConta, AcaoAssociacao, Ata, Periodo
 from ...services import (iniciar_prestacao_de_contas, concluir_prestacao_de_contas, salvar_prestacao_de_contas,
                          revisar_prestacao_de_contas, informacoes_financeiras_para_atas,
                          receitas_conciliadas_por_conta_e_acao_na_prestacao_contas,
                          receitas_nao_conciliadas_por_conta_e_acao_no_periodo,
                          despesas_nao_conciliadas_por_conta_e_acao_no_periodo,
+                         info_acoes_associacao_no_periodo,
                          despesas_conciliadas_por_conta_e_acao_na_prestacao_contas)
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
@@ -181,3 +182,26 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         prestacao_conta = self.get_object()
         result = informacoes_financeiras_para_atas(prestacao_contas=prestacao_conta)
         return Response(result, status=status.HTTP_200_OK)
+
+    
+    @action(detail=False, methods=['get'], url_path='tabela-valores-pendentes')
+    def tabela_valores_pendentes(self, request):
+        periodo_uuid = self.request.query_params.get('periodo')
+
+        if not periodo_uuid or not request.user:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do período e o usuário precisar está logado.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
+            result = info_acoes_associacao_no_periodo(request.user.associacao.uuid, periodo)
+        except Exception as e:
+            erro = {
+                'erro': 'consulta_com_erro',
+                'mensagem': str(e)
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(result)

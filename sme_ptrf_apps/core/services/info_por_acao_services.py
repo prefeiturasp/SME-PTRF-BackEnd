@@ -181,17 +181,18 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
     def periodo_aberto_sumarizado_por_acao(periodo, acao_associacao, conta=None):
         info = resultado_vazio()
 
-        if not periodo or not periodo.periodo_anterior:
+        if not periodo:
             return info
 
-        fechamentos_periodo_anterior = FechamentoPeriodo.fechamentos_da_acao_no_periodo(acao_associacao=acao_associacao,
-                                                                                        periodo=periodo.periodo_anterior)
-        if fechamentos_periodo_anterior:
-            sumario_periodo_anterior = fechamento_sumarizado_por_acao(fechamentos_periodo_anterior, conta=conta)
-            info['saldo_anterior_capital'] = sumario_periodo_anterior['saldo_atual_capital']
-            info['saldo_anterior_custeio'] = sumario_periodo_anterior['saldo_atual_custeio']
-            info['saldo_atual_capital'] = info['saldo_anterior_capital']
-            info['saldo_atual_custeio'] = info['saldo_anterior_custeio']
+        if periodo.periodo_anterior:
+            fechamentos_periodo_anterior = FechamentoPeriodo.fechamentos_da_acao_no_periodo(acao_associacao=acao_associacao,
+                                                                                            periodo=periodo.periodo_anterior)
+            if fechamentos_periodo_anterior:
+                sumario_periodo_anterior = fechamento_sumarizado_por_acao(fechamentos_periodo_anterior, conta=conta)
+                info['saldo_anterior_capital'] = sumario_periodo_anterior['saldo_atual_capital']
+                info['saldo_anterior_custeio'] = sumario_periodo_anterior['saldo_atual_custeio']
+                info['saldo_atual_capital'] = info['saldo_anterior_capital']
+                info['saldo_atual_custeio'] = info['saldo_anterior_custeio']
 
         info = sumariza_receitas_do_periodo_e_acao(periodo=periodo, acao_associacao=acao_associacao, info=info,
                                                    conta=conta)
