@@ -1,8 +1,21 @@
 from django.contrib import admin
 
-from .models import TipoConta, Acao, Associacao, ContaAssociacao, AcaoAssociacao, Periodo, Unidade, FechamentoPeriodo, \
-    PrestacaoConta, DemonstrativoFinanceiro, Parametros, Ata, RelacaoBens
-
+from .models import (
+    Acao,
+    AcaoAssociacao,
+    Arquivo,
+    Associacao,
+    Ata,
+    ContaAssociacao,
+    DemonstrativoFinanceiro,
+    FechamentoPeriodo,
+    Parametros,
+    Periodo,
+    PrestacaoConta,
+    RelacaoBens,
+    TipoConta,
+    Unidade,
+)
 
 admin.site.register(TipoConta)
 admin.site.register(Acao)
@@ -45,7 +58,7 @@ class ContaAssociacaoAdmin(admin.ModelAdmin):
 
 @admin.register(AcaoAssociacao)
 class AcaoAssociacaoAdmin(admin.ModelAdmin):
-    list_display = ('associacao', 'acao', 'status')
+    list_display = ('associacao', 'acao', 'status', 'criado_em')
     search_fields = ('uuid', 'associacao__unidade__codigo_eol')
     list_filter = ('status', 'associacao', 'acao')
     readonly_fields = ('uuid', 'id')
@@ -139,3 +152,16 @@ class AtaAdmin(admin.ModelAdmin):
     list_display_links = ('get_eol_unidade',)
     readonly_fields = ('uuid', id)
     search_fields = ('associacao__unidade__codigo_eol',)
+
+
+@admin.register(Arquivo)
+class ArquivoAdmin(admin.ModelAdmin):
+    list_display = ['identificador', 'conteudo', 'tipo_carga']
+    actions = ['importa_repasses',]
+
+    def importa_repasses(self, request, queryset):
+        from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
+        processa_cargas(queryset)
+        self.message_user(request, "Repasses Carregados")
+
+    importa_repasses.short_description = "Fazer carga de repasses realizados."
