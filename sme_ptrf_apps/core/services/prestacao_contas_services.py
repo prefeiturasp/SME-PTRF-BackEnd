@@ -1,4 +1,4 @@
-from ..models import PrestacaoConta, ContaAssociacao, Periodo, AcaoAssociacao, FechamentoPeriodo
+from ..models import PrestacaoConta, ContaAssociacao, Periodo, AcaoAssociacao, FechamentoPeriodo, Associacao
 from ..services import info_acoes_associacao_no_periodo
 from ...despesas.models import RateioDespesa
 from ...receitas.models import Receita
@@ -142,3 +142,90 @@ def despesas_conciliadas_por_conta_e_acao_na_prestacao_contas(conta_associacao, 
         acao_associacao=acao_associacao)
 
     return dataset.all()
+
+
+def info_conciliacao_acao_associacao_no_periodo(acao_associacao, prestacao_contas):
+    def resultado_vazio():
+        return {
+            'receitas_no_periodo': 0,
+            'despesas_no_periodo': 0,
+            'receitas_nao_conciliadas': 0,
+            'despesas_nao_conciliadas': 0,
+        }
+
+    def sumariza_conciliacao_receitas_do_periodo_e_acao(prestacao_contas, acao_associacao, info):
+
+        receitas_conciliadas = receitas_conciliadas_por_conta_e_acao_na_prestacao_contas(
+            conta_associacao=prestacao_contas.conta_associacao,
+            acao_associacao=acao_associacao,
+            prestacao_contas=prestacao_contas)
+
+        for receita_conciliada in receitas_conciliadas:
+            info['receitas_no_periodo'] += receita_conciliada.valor
+
+        receitas_nao_conciliadas = receitas_nao_conciliadas_por_conta_e_acao_no_periodo(
+            conta_associacao=prestacao_contas.conta_associacao,
+            acao_associacao=acao_associacao,
+            periodo=prestacao_contas.periodo)
+
+        for receita_nao_conciliada in receitas_nao_conciliadas:
+            info['receitas_no_periodo'] += receita_nao_conciliada.valor
+            info['receitas_nao_conciliadas'] += receita_nao_conciliada.valor
+
+        return info
+
+    def sumariza_conciliacao_despesas_do_periodo_e_acao(prestacao_contas, acao_associacao, info, ):
+        rateios_conciliados = despesas_conciliadas_por_conta_e_acao_na_prestacao_contas(
+            conta_associacao=prestacao_contas.conta_associacao,
+            acao_associacao=acao_associacao,
+            prestacao_contas=prestacao_contas)
+
+        for rateio_conciliado in rateios_conciliados:
+            info['despesas_no_periodo'] += rateio_conciliado.valor_rateio
+
+        rateios_nao_conciliados = despesas_nao_conciliadas_por_conta_e_acao_no_periodo(
+            conta_associacao=prestacao_contas.conta_associacao,
+            acao_associacao=acao_associacao,
+            periodo=prestacao_contas.periodo)
+
+        for rateio_nao_conciliado in rateios_nao_conciliados:
+            info['despesas_no_periodo'] += rateio_nao_conciliado.valor_rateio
+            info['despesas_nao_conciliadas'] += rateio_nao_conciliado.valor_rateio
+
+        return info
+
+    info = resultado_vazio()
+
+    info = sumariza_conciliacao_receitas_do_periodo_e_acao(prestacao_contas=prestacao_contas,
+                                                           acao_associacao=acao_associacao,
+                                                           info=info)
+
+    info = sumariza_conciliacao_despesas_do_periodo_e_acao(prestacao_contas=prestacao_contas,
+                                                           acao_associacao=acao_associacao, info=info)
+
+    return info
+
+
+def info_conciliacao_pendente(prestacao_contas):
+    acoes_associacao = Associacao.acoes_da_associacao(associacao_uuid=prestacao_contas.associacao.uuid)
+    result = []
+    for acao_associacao in acoes_associacao:
+        info_acao = info_conciliacao_acao_associacao_no_periodo(acao_associacao=acao_associacao,
+                                                                prestacao_contas=prestacao_contas)
+
+        info = {
+            'acao_associacao_uuid': f'{acao_associacao.uuid}',
+            'acao_associacao_nome': acao_associacao.acao.nome,
+
+            'receitas_no_periodo': info_acao['receitas_no_periodo'],
+
+            'despesas_no_periodo': info_acao['despesas_no_periodo'],
+
+            'despesas_nao_conciliadas': info_acao['despesas_nao_conciliadas'],
+
+            'receitas_nao_conciliadas': info_acao['receitas_nao_conciliadas'],
+
+        }
+        result.append(info)
+
+    return result

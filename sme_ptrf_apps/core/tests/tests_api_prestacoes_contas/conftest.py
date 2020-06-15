@@ -235,7 +235,8 @@ def rateio_despesa_2020_role_nao_conferido(associacao, despesa_2020_1, conta_ass
 def rateio_despesa_2020_ptrf_conferido(associacao, despesa_2020_1, conta_associacao_cartao, acao,
                                        tipo_aplicacao_recurso_custeio,
                                        tipo_custeio_servico,
-                                       especificacao_instalacao_eletrica, acao_associacao_ptrf):
+                                       especificacao_instalacao_eletrica, acao_associacao_ptrf,
+                                       prestacao_conta_iniciada):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_2020_1,
@@ -247,7 +248,7 @@ def rateio_despesa_2020_ptrf_conferido(associacao, despesa_2020_1, conta_associa
         especificacao_material_servico=especificacao_instalacao_eletrica,
         valor_rateio=100.00,
         conferido=True,
-
+        prestacao_conta=prestacao_conta_iniciada
     )
 
 

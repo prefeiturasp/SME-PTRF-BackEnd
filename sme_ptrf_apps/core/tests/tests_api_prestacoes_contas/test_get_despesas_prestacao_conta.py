@@ -46,6 +46,8 @@ def test_api_get_despesas_conferidas_prestacao_conta(client,
     resultado_esperado.append(result_esperado)
 
 
+
+
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado, "Não retornou a lista de despesas esperada."
 

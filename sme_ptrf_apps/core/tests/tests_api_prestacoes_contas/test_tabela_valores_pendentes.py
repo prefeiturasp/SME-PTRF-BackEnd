@@ -2,45 +2,52 @@ import json
 from decimal import Decimal
 
 import pytest
-from rest_framework import status
 
 pytestmark = pytest.mark.django_db
 
 
-def test_tabela_valores_pendentes(jwt_authenticated_client, associacao, periodo, acao_associacao, tipo_receita, receita_100_no_periodo, prestacao_conta_iniciada):
-    response = jwt_authenticated_client.get(f'/api/prestacoes-contas/tabela-valores-pendentes/?periodo={periodo.uuid}', content_type='application/json')
+def test_tabela_valores_pendentes(
+    jwt_authenticated_client,
+    acao_associacao_role_cultural,
+    acao_associacao_ptrf,
+    prestacao_conta_iniciada,
+    receita_2019_2_role_repasse_conferida,
+    receita_2019_2_role_repasse_conferida_na_prestacao,
+    receita_2020_1_role_repasse_conferida,
+    receita_2020_1_role_repasse_nao_conferida,
+    receita_2020_1_ptrf_repasse_conferida,
+    receita_2020_1_role_repasse_cheque_conferida,
+    despesa_2019_2,
+    rateio_despesa_2019_role_conferido,
+    rateio_despesa_2019_role_conferido_na_prestacao,
+    despesa_2020_1,
+    rateio_despesa_2020_role_conferido,
+    rateio_despesa_2020_role_nao_conferido,
+    rateio_despesa_2020_ptrf_conferido,
+    rateio_despesa_2020_role_cheque_conferido
+):
+    response = jwt_authenticated_client.get(
+        f'/api/prestacoes-contas/{prestacao_conta_iniciada.uuid}/tabela-valores-pendentes/',
+        content_type='application/json')
     result = json.loads(response.content)
-    print(result)
-    print(response.data)
-    print(periodo.uuid)
 
     esperado = [
         {
-            'acao_associacao_uuid': str(acao_associacao.uuid), 
-            'acao_associacao_nome': 'PTRF', 
-            'saldo_reprogramado': 0, 
-            'saldo_reprogramado_capital': 0, 
-            'saldo_reprogramado_custeio': 0, 
-            'receitas_no_periodo': Decimal('100.00'), 
-            'repasses_no_periodo': 0, 
-            'repasses_no_periodo_capital': 0, 
-            'repasses_no_periodo_custeio': 0, 
-            'outras_receitas_no_periodo': Decimal('100.00'), 
-            'outras_receitas_no_periodo_capital': 0, 
-            'outras_receitas_no_periodo_custeio': Decimal('100.00'), 
-            'despesas_no_periodo': 0, 
-            'despesas_no_periodo_capital': 0, 
-            'despesas_no_periodo_custeio': 0, 
-            'despesas_nao_conciliadas': 0, 
-            'despesas_nao_conciliadas_capital': 0, 
-            'despesas_nao_conciliadas_custeio': 0, 
-            'receitas_nao_conciliadas': Decimal('100.00'), 
-            'receitas_nao_conciliadas_capital': 0, 
-            'receitas_nao_conciliadas_custeio': Decimal('100.00'), 
-            'saldo_atual_custeio': Decimal('100.00'), 
-            'saldo_atual_capital': 0, 
-            'saldo_atual_total': Decimal('100.00'), 
-            'especificacoes_despesas_capital': [], 
-            'especificacoes_despesas_custeio': []}]
+            'acao_associacao_uuid': str(acao_associacao_role_cultural.uuid),
+            'acao_associacao_nome': 'Rolê Cultural',
+            'receitas_no_periodo': Decimal('300.00'),
+            'despesas_no_periodo': Decimal('300.00'),
+            'despesas_nao_conciliadas': Decimal('100.00'),
+            'receitas_nao_conciliadas': Decimal('100.00')
+        },
+        {
+            'acao_associacao_uuid': str(acao_associacao_ptrf.uuid),
+            'acao_associacao_nome': 'PTRF',
+            'receitas_no_periodo': Decimal('100.00'),
+            'despesas_no_periodo': Decimal('100.00'),
+            'despesas_nao_conciliadas': 0,
+            'receitas_nao_conciliadas': 0
+        },
+    ]
 
     assert result == esperado
