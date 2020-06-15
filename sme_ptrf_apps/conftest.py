@@ -300,6 +300,20 @@ def periodo_fim_em_aberto():
 
 
 @pytest.fixture
+def periodo_futuro():
+    return baker.make(
+        'Periodo',
+        referencia='2020.3',
+        data_inicio_realizacao_despesas=date(2020, 6, 15),
+        data_fim_realizacao_despesas=None,
+        data_prevista_repasse=date(2020, 9, 30),
+        data_inicio_prestacao_contas=date(2020, 12, 1),
+        data_fim_prestacao_contas=date(2020, 12, 5),
+        periodo_anterior=None
+    )
+
+
+@pytest.fixture
 def prestacao_conta_anterior(periodo_anterior, associacao, conta_associacao):
     return baker.make(
         'PrestacaoConta',
