@@ -67,6 +67,13 @@ class PrestacaoConta(ModeloBase):
         for relacao in self.relacoes_de_bens_da_prestacao.all():
             relacao.delete()
 
+    def apaga_demonstrativos_financeiros(self):
+        for demonstrativo in self.demonstrativos_da_prestacao.all():
+            demonstrativo.delete()
+    
+    def ultima_ata(self):
+        return self.atas_da_prestacao.last()
+
     @classmethod
     def revisar(cls, uuid, motivo):
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
@@ -76,6 +83,7 @@ class PrestacaoConta(ModeloBase):
         prestacao_de_conta.save()
         prestacao_de_conta.apaga_fechamentos()
         prestacao_de_conta.apaga_relacao_bens()
+        prestacao_de_conta.apaga_demonstrativos_financeiros()
         return prestacao_de_conta
 
     @classmethod

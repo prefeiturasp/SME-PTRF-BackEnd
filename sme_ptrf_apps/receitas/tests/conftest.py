@@ -20,7 +20,7 @@ def tipo_receita_repasse():
 
 
 @pytest.fixture
-def receita(associacao, conta_associacao, acao_associacao, tipo_receita):
+def receita(associacao, conta_associacao, acao_associacao, tipo_receita, prestacao_conta_iniciada):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -31,7 +31,8 @@ def receita(associacao, conta_associacao, acao_associacao, tipo_receita):
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
         conferido=True,
-        categoria_receita='CUSTEIO'
+        categoria_receita='CUSTEIO',
+        prestacao_conta=prestacao_conta_iniciada,
     )
 
 @pytest.fixture

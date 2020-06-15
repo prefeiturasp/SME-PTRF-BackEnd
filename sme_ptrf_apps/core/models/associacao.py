@@ -2,7 +2,9 @@ from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 from .validators import cnpj_validation
-from sme_ptrf_apps.users.models import User
+
+
+#from sme_ptrf_apps.users.models import User
 
 
 class Associacao(ModeloIdNome):
@@ -22,13 +24,13 @@ class Associacao(ModeloIdNome):
     presidente_conselho_fiscal_rf = models.CharField('RF do presidente associação', max_length=10, blank=True,
                                                      default="")
 
-    usuario = models.ForeignKey(User, on_delete=models.PROTECT, related_name="associacoes",
-                                null=True, blank=True)
+    # usuario = models.ForeignKey(User, on_delete=models.PROTECT, related_name="associacoes",
+    #                             null=True, blank=True)
 
     @classmethod
     def acoes_da_associacao(cls, associacao_uuid):
         associacao = cls.objects.filter(uuid=associacao_uuid).first()
-        return associacao.acoes.all() if associacao else []
+        return associacao.acoes.all().order_by('acao__posicao_nas_pesquisas') if associacao else []
 
     class Meta:
         verbose_name = "Associação"

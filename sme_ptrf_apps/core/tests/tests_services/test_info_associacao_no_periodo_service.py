@@ -2,7 +2,6 @@ import pytest
 
 from ...services import info_acao_associacao_no_periodo
 
-
 pytestmark = pytest.mark.django_db
 
 def test_resultado_periodo_fechado(
@@ -19,6 +18,10 @@ def test_resultado_periodo_fechado(
         'repasses_no_periodo_capital': fechamento_periodo.total_repasses_capital,
         'despesas_no_periodo_capital': fechamento_periodo.total_despesas_capital,
         'saldo_atual_capital': fechamento_periodo.saldo_reprogramado_capital,
+        'despesas_nao_conciliadas_capital': 8.0,
+        'despesas_nao_conciliadas_custeio': 16.0,
+        'receitas_nao_conciliadas_capital': 10.0,
+        'receitas_nao_conciliadas_custeio': 20.0,
     }
     resultado = info_acao_associacao_no_periodo(fechamento_periodo.acao_associacao, fechamento_periodo.periodo)
 
@@ -41,6 +44,10 @@ def test_resultado_periodo_aberto_sem_receitas_sem_despesas(
         'repasses_no_periodo_capital': 0,
         'despesas_no_periodo_capital': 0,
         'saldo_atual_capital': 100,
+        'despesas_nao_conciliadas_capital': 0.0,
+        'despesas_nao_conciliadas_custeio': 0.0,
+        'receitas_nao_conciliadas_capital': 0.0,
+        'receitas_nao_conciliadas_custeio': 0.0,
     }
     resultado = info_acao_associacao_no_periodo(acao_associacao, periodo)
 
@@ -67,6 +74,10 @@ def test_resultado_periodo_aberto_com_receitas_sem_despesas(
         'repasses_no_periodo_capital': 0,
         'despesas_no_periodo_capital': 0,
         'saldo_atual_capital': 100,
+        'despesas_nao_conciliadas_capital': 0.0,
+        'despesas_nao_conciliadas_custeio': 0.0,
+        'receitas_nao_conciliadas_capital': 0.0,
+        'receitas_nao_conciliadas_custeio': 600.0,
     }
     resultado = info_acao_associacao_no_periodo(acao_associacao, periodo)
 
@@ -95,6 +106,10 @@ def test_resultado_periodo_aberto_com_despesas_sem_receitas(
         'repasses_no_periodo_capital': 0,
         'despesas_no_periodo_capital': 200,
         'saldo_atual_capital': -100,
+        'despesas_nao_conciliadas_capital': 200.0,
+        'despesas_nao_conciliadas_custeio': 100.0,
+        'receitas_nao_conciliadas_capital': 0.0,
+        'receitas_nao_conciliadas_custeio': 0.0,
     }
     resultado = info_acao_associacao_no_periodo(acao_associacao, periodo)
 
@@ -127,6 +142,10 @@ def test_resultado_periodo_aberto_com_despesas_e_receitas(
         'repasses_no_periodo_capital': 0,
         'despesas_no_periodo_capital': 200,
         'saldo_atual_capital': -100,
+        'despesas_nao_conciliadas_capital': 200.0,
+        'despesas_nao_conciliadas_custeio': 100.0,
+        'receitas_nao_conciliadas_capital': 0.0,
+        'receitas_nao_conciliadas_custeio': 600.0,
     }
     resultado = info_acao_associacao_no_periodo(acao_associacao, periodo)
 

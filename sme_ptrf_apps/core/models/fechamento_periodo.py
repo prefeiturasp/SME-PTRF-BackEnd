@@ -1,8 +1,10 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 # Status Choice
 STATUS_FECHADO = 'FECHADO'
@@ -20,6 +22,10 @@ STATUS_CHOICES = (
     (STATUS_FECHADO, STATUS_NOMES[STATUS_FECHADO]),
     (STATUS_IMPLANTACAO, STATUS_NOMES[STATUS_IMPLANTACAO]),
 )
+
+
+def get_especificacoes_despesas_default():
+    return []
 
 
 class FechamentoPeriodo(ModeloBase):
@@ -54,6 +60,24 @@ class FechamentoPeriodo(ModeloBase):
     saldo_reprogramado_custeio = models.DecimalField('Saldo Reprogramado (custeio)', max_digits=12, decimal_places=2,
                                                      default=0)
 
+    total_receitas_nao_conciliadas_capital = models.DecimalField('Receitas não conciliadas (capital)', max_digits=12,
+                                                                 decimal_places=2, default=0)
+    total_receitas_nao_conciliadas_custeio = models.DecimalField('Receitas não conciliadas (custeio)', max_digits=12,
+                                                                 decimal_places=2, default=0)
+
+    total_despesas_nao_conciliadas_capital = models.DecimalField('Despesas não conciliadas (capital)', max_digits=12,
+                                                                 decimal_places=2, default=0)
+
+    total_despesas_nao_conciliadas_custeio = models.DecimalField('Despesas não conciliadas (custeio)', max_digits=12,
+                                                                 decimal_places=2, default=0)
+
+    especificacoes_despesas_capital = ArrayField(models.CharField(max_length=200), blank=True,
+                                                 verbose_name='especificações das despesas (capital)',
+                                                 default=get_especificacoes_despesas_default)
+
+    especificacoes_despesas_custeio = ArrayField(models.CharField(max_length=200), blank=True,
+                                                 verbose_name='especificações das despesas (custeio)',
+                                                 default=get_especificacoes_despesas_default)
     status = models.CharField(
         'status',
         max_length=15,
@@ -114,8 +138,13 @@ class FechamentoPeriodo(ModeloBase):
             return None
 
     @classmethod
-    def fechamentos_da_acao_no_periodo(cls, acao_associacao, periodo):
-        return FechamentoPeriodo.objects.filter(acao_associacao=acao_associacao, periodo=periodo).all()
+    def fechamentos_da_acao_no_periodo(cls, acao_associacao, periodo, conta_associacao=None):
+        qs = FechamentoPeriodo.objects.filter(acao_associacao=acao_associacao, periodo=periodo)
+
+        if conta_associacao:
+            qs = qs.filter(conta_associacao=conta_associacao)
+
+        return qs.all()
 
     @classmethod
     def fechamentos_da_conta_no_periodo(cls, conta_associacao, periodo):
@@ -131,6 +160,11 @@ class FechamentoPeriodo(ModeloBase):
               total_receitas_custeio,
               total_repasses_custeio,
               total_despesas_custeio,
+              total_receitas_nao_conciliadas_capital,
+              total_receitas_nao_conciliadas_custeio,
+              total_despesas_nao_conciliadas_capital,
+              total_despesas_nao_conciliadas_custeio,
+              especificacoes_despesas,
               ):
         fechamento_anterior = cls.by_periodo_conta_acao(periodo=prestacao_conta.periodo.periodo_anterior,
                                                         conta_associacao=prestacao_conta.conta_associacao,
@@ -147,7 +181,13 @@ class FechamentoPeriodo(ModeloBase):
             total_receitas_custeio=total_receitas_custeio,
             total_repasses_custeio=total_repasses_custeio,
             total_despesas_custeio=total_despesas_custeio,
-            fechamento_anterior=fechamento_anterior
+            total_receitas_nao_conciliadas_capital=total_receitas_nao_conciliadas_capital,
+            total_receitas_nao_conciliadas_custeio=total_receitas_nao_conciliadas_custeio,
+            total_despesas_nao_conciliadas_capital=total_despesas_nao_conciliadas_capital,
+            total_despesas_nao_conciliadas_custeio=total_despesas_nao_conciliadas_custeio,
+            fechamento_anterior=fechamento_anterior,
+            especificacoes_despesas_capital=especificacoes_despesas[APLICACAO_CAPITAL],
+            especificacoes_despesas_custeio=especificacoes_despesas[APLICACAO_CUSTEIO],
         )
         return novo_fechamento
 

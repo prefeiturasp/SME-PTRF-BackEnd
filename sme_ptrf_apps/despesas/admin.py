@@ -41,10 +41,10 @@ class RateioDespesaAdmin(admin.ModelAdmin):
         return obj.despesa.numero_documento
 
     def associacao(self, obj):
-        return obj.associacao.nome
+        return obj.associacao.nome if obj.associacao else ''
 
     def acao(self, obj):
-        return obj.acao_associacao.acao.nome
+        return obj.acao_associacao.acao.nome if obj.acao_associacao else ''
 
 
 class RateioDespesaInLine(admin.TabularInline):
