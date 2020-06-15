@@ -534,6 +534,21 @@ def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_r
         tipo_receita=tipo_receita,
     )
 
+@pytest.fixture
+def receita_100_nao_conferida_anterior_ao_periodo(associacao, conta_associacao, acao_associacao, tipo_receita, periodo):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=periodo.data_inicio_realizacao_despesas - timedelta(days=3),
+        valor=100.00,
+        descricao="Receita 100",
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
+        conferido=False,
+    )
+
+
 
 @pytest.fixture
 def receita_100_no_periodo_acao_de_destaque(associacao, conta_associacao, acao_associacao_de_destaque, tipo_receita, periodo):
