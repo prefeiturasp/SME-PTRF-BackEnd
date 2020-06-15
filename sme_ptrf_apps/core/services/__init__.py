@@ -10,3 +10,4 @@ from .prestacao_contas_services import receitas_conciliadas_por_conta_e_acao_na_
 from .prestacao_contas_services import receitas_nao_conciliadas_por_conta_e_acao_no_periodo
 from .prestacao_contas_services import revisar_prestacao_de_contas
 from .prestacao_contas_services import salvar_prestacao_de_contas
+from .processa_cargas import processa_cargas
