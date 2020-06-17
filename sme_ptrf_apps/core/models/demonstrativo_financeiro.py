@@ -21,7 +21,7 @@ class DemonstrativoFinanceiro(ModeloBase):
         verbose_name_plural = 'Demonstrativos Financeiros'
 
     def __str__(self):
-        return f"Documento gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%S')}"
+        return f"Documento gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
 
 @receiver(models.signals.post_delete, sender=DemonstrativoFinanceiro)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
