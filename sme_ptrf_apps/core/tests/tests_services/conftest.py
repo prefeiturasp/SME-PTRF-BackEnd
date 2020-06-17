@@ -202,7 +202,7 @@ def rateio_despesa_2020_role_custeio_conferido(associacao, despesa_2020_1, conta
 def rateio_despesa_2020_role_capital_conferido(associacao, despesa_2020_1, conta_associacao, acao,
                                                tipo_aplicacao_recurso_capital,
                                                tipo_custeio_servico,
-                                               especificacao_instalacao_eletrica, acao_associacao_role_cultural):
+                                               especificacao_ar_condicionado, acao_associacao_role_cultural):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_2020_1,
@@ -211,7 +211,7 @@ def rateio_despesa_2020_role_capital_conferido(associacao, despesa_2020_1, conta
         acao_associacao=acao_associacao_role_cultural,
         aplicacao_recurso=tipo_aplicacao_recurso_capital,
         tipo_custeio=tipo_custeio_servico,
-        especificacao_material_servico=especificacao_instalacao_eletrica,
+        especificacao_material_servico=especificacao_ar_condicionado,
         valor_rateio=100.00,
         conferido=True,
 

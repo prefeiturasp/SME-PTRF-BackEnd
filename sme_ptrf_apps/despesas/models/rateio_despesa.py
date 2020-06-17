@@ -50,6 +50,10 @@ class RateioDespesa(ModeloBase):
 
     conferido = models.BooleanField('Conferido?', default=False)
 
+    prestacao_conta = models.ForeignKey('core.PrestacaoConta', on_delete=models.SET_NULL, blank=True, null=True,
+                                        related_name='despesas_conciliadas',
+                                        verbose_name='prestação de contas de conciliação')
+
     def __str__(self):
         documento = self.despesa.numero_documento if self.despesa else 'Despesa indefinida'
         return f"{documento} - {self.valor_rateio:.2f}"
@@ -73,7 +77,7 @@ class RateioDespesa(ModeloBase):
 
     @classmethod
     def rateios_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None,
-                                              exclude_despesa=None):
+                                              exclude_despesa=None, aplicacao_recurso=None):
         if periodo.data_fim_realizacao_despesas:
             dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
                 despesa__data_documento__range=(
@@ -91,22 +95,72 @@ class RateioDespesa(ModeloBase):
         if exclude_despesa:
             dataset = dataset.exclude(despesa__uuid=exclude_despesa)
 
+        if aplicacao_recurso:
+            dataset = dataset.filter(aplicacao_recurso=aplicacao_recurso)
+
         return dataset.all()
 
-    def marcar_conferido(self):
+    @classmethod
+    def rateios_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None,
+                                               exclude_despesa=None, aplicacao_recurso=None):
+        if periodo.data_fim_realizacao_despesas:
+            dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+                despesa__data_documento__range=(
+                    periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
+        else:
+            dataset = cls.objects.filter(acao_associacao=conta_associacao).filter(
+                despesa__data_documento__gte=periodo.data_inicio_realizacao_despesas)
+
+        if conferido is not None:
+            dataset = dataset.filter(conferido=conferido)
+
+        if exclude_despesa:
+            dataset = dataset.exclude(despesa__uuid=exclude_despesa)
+
+        if aplicacao_recurso:
+            dataset = dataset.filter(aplicacao_recurso=aplicacao_recurso)
+
+        return dataset.all()
+
+    @classmethod
+    def especificacoes_dos_rateios_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None,
+                                                                 conta_associacao=None,
+                                                                 exclude_despesa=None):
+
+        rateios = cls.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
+                                                            periodo=periodo, conferido=conferido,
+                                                            conta_associacao=conta_associacao,
+                                                            exclude_despesa=exclude_despesa)
+
+        especificacoes = {
+            APLICACAO_CAPITAL: set(),
+            APLICACAO_CUSTEIO: set()
+        }
+        for rateio in rateios:
+            if rateio.especificacao_material_servico:
+                especificacoes[rateio.aplicacao_recurso].add(rateio.especificacao_material_servico.descricao)
+
+        return {
+            APLICACAO_CAPITAL: sorted(especificacoes[APLICACAO_CAPITAL]),
+            APLICACAO_CUSTEIO: sorted(especificacoes[APLICACAO_CUSTEIO])
+        }
+
+    def marcar_conferido(self, prestacao_conta=None):
         self.conferido = True
+        self.prestacao_conta = prestacao_conta
         self.save()
         return self
 
     def desmarcar_conferido(self):
         self.conferido = False
+        self.prestacao_conta = None
         self.save()
         return self
 
     @classmethod
-    def conciliar(cls, uuid):
+    def conciliar(cls, uuid, prestacao_conta):
         rateio_despesa = cls.by_uuid(uuid)
-        return rateio_despesa.marcar_conferido()
+        return rateio_despesa.marcar_conferido(prestacao_conta)
 
     @classmethod
     def desconciliar(cls, uuid):
@@ -120,6 +174,8 @@ class RateioDespesa(ModeloBase):
         totais = {
             'total_despesas_capital': Decimal(0.00),
             'total_despesas_custeio': Decimal(0.00),
+            'total_despesas_nao_conciliadas_capital': Decimal(0.00),
+            'total_despesas_nao_conciliadas_custeio': Decimal(0.00),
         }
 
         for despesa in despesas:
@@ -127,6 +183,12 @@ class RateioDespesa(ModeloBase):
                 totais['total_despesas_capital'] += despesa.valor_rateio
             else:
                 totais['total_despesas_custeio'] += despesa.valor_rateio
+
+            if not despesa.conferido:
+                if despesa.aplicacao_recurso == APLICACAO_CAPITAL:
+                    totais['total_despesas_nao_conciliadas_capital'] += despesa.valor_rateio
+                else:
+                    totais['total_despesas_nao_conciliadas_custeio'] += despesa.valor_rateio
 
         return totais
 

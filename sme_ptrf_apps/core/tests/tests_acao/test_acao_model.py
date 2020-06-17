@@ -1,5 +1,4 @@
 import pytest
-
 from django.contrib import admin
 
 from ...models import Acao
@@ -15,6 +14,7 @@ def test_instance_model(acao):
     assert model.alterado_em
     assert model.uuid
     assert model.id
+    assert model.posicao_nas_pesquisas
 
 
 def test_srt_model(acao):

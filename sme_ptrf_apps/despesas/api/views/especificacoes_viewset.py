@@ -9,7 +9,7 @@ from ...models import EspecificacaoMaterialServico
 
 class EspecificacaoMaterialServicoViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'id'
-    queryset = EspecificacaoMaterialServico.objects.all()
+    queryset = EspecificacaoMaterialServico.objects.all().order_by('descricao')
     serializer_class = EspecificacaoMaterialServicoLookUpSerializer
     permission_classes = [AllowAny]
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)

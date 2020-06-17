@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -19,3 +21,10 @@ class PeriodosViewSet(mixins.ListModelMixin,
     @action(detail=False)
     def lookup(self, _):
         return Response(PeriodoLookUpSerializer(self.queryset.order_by('-referencia'), many=True).data)
+
+    @action(detail=False, url_path='lookup-until-now')
+    def lookup_until_now(self, _):
+        """Retorna os períodos excluindo os períodos que tem a data de inicio
+        de realização de despesas maiores que a data atual."""
+
+        return Response(PeriodoLookUpSerializer(self.queryset.filter(data_inicio_realizacao_despesas__lte=datetime.today()).order_by('-referencia'), many=True).data)

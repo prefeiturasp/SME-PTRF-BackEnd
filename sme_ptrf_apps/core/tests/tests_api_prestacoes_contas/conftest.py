@@ -11,7 +11,7 @@ def tipo_receita_repasse():
 
 @pytest.fixture
 def receita_2020_1_role_repasse_conferida(associacao, conta_associacao_cartao, acao_associacao_role_cultural,
-                                          tipo_receita_repasse):
+                                          tipo_receita_repasse, prestacao_conta_iniciada):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -22,12 +22,13 @@ def receita_2020_1_role_repasse_conferida(associacao, conta_associacao_cartao, a
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
         conferido=True,
+        prestacao_conta=prestacao_conta_iniciada,
     )
 
 
 @pytest.fixture
 def receita_2020_1_role_repasse_cheque_conferida(associacao, conta_associacao_cheque, acao_associacao_role_cultural,
-                                                 tipo_receita_repasse):
+                                                 tipo_receita_repasse, prestacao_conta_iniciada):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -38,6 +39,7 @@ def receita_2020_1_role_repasse_cheque_conferida(associacao, conta_associacao_ch
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
         conferido=True,
+        prestacao_conta=prestacao_conta_iniciada,
     )
 
 
@@ -54,12 +56,13 @@ def receita_2020_1_role_repasse_nao_conferida(associacao, conta_associacao_carta
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
         conferido=False,
+        prestacao_conta=None,
     )
 
 
 @pytest.fixture
 def receita_2020_1_ptrf_repasse_conferida(associacao, conta_associacao_cartao, acao_associacao_ptrf,
-                                          tipo_receita_repasse):
+                                          tipo_receita_repasse, prestacao_conta_iniciada):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -70,6 +73,7 @@ def receita_2020_1_ptrf_repasse_conferida(associacao, conta_associacao_cartao, a
         acao_associacao=acao_associacao_ptrf,
         tipo_receita=tipo_receita_repasse,
         conferido=True,
+        prestacao_conta=prestacao_conta_iniciada,
     )
 
 
@@ -90,6 +94,40 @@ def receita_2019_2_role_repasse_conferida(associacao, conta_associacao_cartao, a
 
 
 @pytest.fixture
+def receita_2019_2_role_repasse_conferida_na_prestacao(associacao, conta_associacao_cartao,
+                                                       acao_associacao_role_cultural,
+                                                       tipo_receita_repasse, prestacao_conta_iniciada):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2019, 7, 10),
+        valor=100.00,
+        descricao="Receita Role Conferida 2019",
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        tipo_receita=tipo_receita_repasse,
+        conferido=True,
+        prestacao_conta=prestacao_conta_iniciada,
+    )
+
+
+@pytest.fixture
+def receita_2019_2_role_repasse_nao_conferida(associacao, conta_associacao_cartao, acao_associacao_role_cultural,
+                                              tipo_receita_repasse):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2019, 7, 10),
+        valor=100.00,
+        descricao="Receita Role Conferida 2019",
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        tipo_receita=tipo_receita_repasse,
+        conferido=False,
+    )
+
+
+@pytest.fixture
 def tipo_custeio_servico():
     return baker.make('TipoCusteio', nome='Servico')
 
@@ -99,6 +137,16 @@ def especificacao_instalacao_eletrica(tipo_aplicacao_recurso_custeio, tipo_custe
     return baker.make(
         'EspecificacaoMaterialServico',
         descricao='Instalação elétrica',
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+    )
+
+
+@pytest.fixture
+def especificacao_cadeira(tipo_aplicacao_recurso_custeio, tipo_custeio_servico):
+    return baker.make(
+        'EspecificacaoMaterialServico',
+        descricao='Cadeira',
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
         tipo_custeio=tipo_custeio_servico,
     )
@@ -125,7 +173,8 @@ def despesa_2020_1(associacao, tipo_documento, tipo_transacao):
 def rateio_despesa_2020_role_conferido(associacao, despesa_2020_1, conta_associacao_cartao, acao,
                                        tipo_aplicacao_recurso_custeio,
                                        tipo_custeio_servico,
-                                       especificacao_instalacao_eletrica, acao_associacao_role_cultural):
+                                       especificacao_instalacao_eletrica, acao_associacao_role_cultural,
+                                       prestacao_conta_iniciada):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_2020_1,
@@ -137,6 +186,7 @@ def rateio_despesa_2020_role_conferido(associacao, despesa_2020_1, conta_associa
         especificacao_material_servico=especificacao_instalacao_eletrica,
         valor_rateio=100.00,
         conferido=True,
+        prestacao_conta=prestacao_conta_iniciada,
 
     )
 
@@ -185,7 +235,8 @@ def rateio_despesa_2020_role_nao_conferido(associacao, despesa_2020_1, conta_ass
 def rateio_despesa_2020_ptrf_conferido(associacao, despesa_2020_1, conta_associacao_cartao, acao,
                                        tipo_aplicacao_recurso_custeio,
                                        tipo_custeio_servico,
-                                       especificacao_instalacao_eletrica, acao_associacao_ptrf):
+                                       especificacao_instalacao_eletrica, acao_associacao_ptrf,
+                                       prestacao_conta_iniciada):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_2020_1,
@@ -197,7 +248,7 @@ def rateio_despesa_2020_ptrf_conferido(associacao, despesa_2020_1, conta_associa
         especificacao_material_servico=especificacao_instalacao_eletrica,
         valor_rateio=100.00,
         conferido=True,
-
+        prestacao_conta=prestacao_conta_iniciada
     )
 
 
@@ -222,7 +273,7 @@ def despesa_2019_2(associacao, tipo_documento, tipo_transacao):
 def rateio_despesa_2019_role_conferido(associacao, despesa_2019_2, conta_associacao_cartao, acao,
                                        tipo_aplicacao_recurso_custeio,
                                        tipo_custeio_servico,
-                                       especificacao_instalacao_eletrica, acao_associacao_role_cultural):
+                                       especificacao_cadeira, acao_associacao_role_cultural):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_2019_2,
@@ -231,8 +282,52 @@ def rateio_despesa_2019_role_conferido(associacao, despesa_2019_2, conta_associa
         acao_associacao=acao_associacao_role_cultural,
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
         tipo_custeio=tipo_custeio_servico,
-        especificacao_material_servico=especificacao_instalacao_eletrica,
+        especificacao_material_servico=especificacao_cadeira,
         valor_rateio=100.00,
         conferido=True,
+
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2019_role_conferido_na_prestacao(associacao, despesa_2019_2, conta_associacao_cartao, acao,
+                                                    tipo_aplicacao_recurso_custeio,
+                                                    tipo_custeio_servico,
+                                                    especificacao_cadeira,
+                                                    acao_associacao_role_cultural,
+                                                    prestacao_conta_iniciada
+                                                    ):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2019_2,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_cadeira,
+        valor_rateio=100.00,
+        conferido=True,
+        prestacao_conta=prestacao_conta_iniciada,
+
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2019_role_nao_conferido(associacao, despesa_2019_2, conta_associacao_cartao, acao,
+                                           tipo_aplicacao_recurso_custeio,
+                                           tipo_custeio_servico,
+                                           especificacao_cadeira, acao_associacao_role_cultural):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2019_2,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_cadeira,
+        valor_rateio=100.00,
+        conferido=False,
 
     )

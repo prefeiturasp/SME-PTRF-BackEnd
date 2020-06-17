@@ -1,5 +1,4 @@
 import pytest
-
 from django.contrib import admin
 
 from ...models import TipoTransacao
@@ -15,6 +14,7 @@ def test_instance_model(tipo_transacao):
     assert model.alterado_em
     assert model.uuid
     assert model.id
+    assert model.tem_documento is not None
 
 
 def test_srt_model(tipo_transacao):

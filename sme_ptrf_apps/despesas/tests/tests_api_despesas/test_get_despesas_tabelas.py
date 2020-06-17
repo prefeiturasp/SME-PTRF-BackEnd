@@ -42,7 +42,8 @@ def test_api_get_despesas_tabelas(associacao, jwt_authenticated_client, tipo_apl
         'tipos_transacao': [
             {
                 'id': tipo_transacao.id,
-                'nome': tipo_transacao.nome
+                'nome': tipo_transacao.nome,
+                'tem_documento': tipo_transacao.tem_documento
             },
         ],
 

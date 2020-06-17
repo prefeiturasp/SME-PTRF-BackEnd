@@ -1,4 +1,6 @@
 from .associacoes_viewset import AssociacoesViewSet
+from .atas_viewset import AtasViewSet
+from .demonstrativo_financeiro_viewset import DemonstrativoFinanceiroViewSet
 from .periodos_viewset import PeriodosViewSet
 from .prestacoes_contas_viewset import PrestacoesContasViewSet
-from .demonstrativo_financeiro_viewset import DemonstrativoFinanceiroViewSet
+from .relacao_bens_viewset import RelacaoBensViewSet

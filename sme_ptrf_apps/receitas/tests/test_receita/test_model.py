@@ -16,6 +16,7 @@ def test_instance(receita):
     assert model.acao_associacao
     assert model.tipo_receita
     assert model.conferido
+    assert model.prestacao_conta
 
 
 def test_str(receita):

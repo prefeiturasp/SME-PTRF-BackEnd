@@ -20,8 +20,8 @@ def processa_importacao_usuarios(reader):
                 associacao = Associacao.objects.filter(cnpj=row[1].strip()).first()
                 if associacao:
                     u = User.objects.create(username=row[0].strip())
-                    associacao.usuario = u
-                    associacao.save()
+                    u.associacao = associacao
+                    u.save()
                     logger.info('Usuário para o rf %s criado com sucesso.', row[0].strip())
                     continue
 
