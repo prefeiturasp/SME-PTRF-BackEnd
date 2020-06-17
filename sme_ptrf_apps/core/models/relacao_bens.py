@@ -18,7 +18,7 @@ class RelacaoBens(ModeloBase):
         verbose_name_plural = 'Relações de bens'
 
     def __str__(self):
-        return f"Documento gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%S')}"
+        return f"Documento gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
 
 
 @receiver(models.signals.post_delete, sender=RelacaoBens)

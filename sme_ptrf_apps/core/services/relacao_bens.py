@@ -35,6 +35,7 @@ QUANTIDADE = 5
 VALOR_ITEM = 6
 VALOR_RATEIO = 7
 
+BLOCO_3 = 19
 LAST_LINE = 24
 
 
@@ -68,6 +69,17 @@ def identificacao_apm(worksheet, conta_associacao):
     rows[9][5].value = associacao.unidade.codigo_eol
     rows[9][6].value = associacao.unidade.dre.nome
     rows[LAST_LINE-2][3].value = associacao.presidente_associacao_nome if associacao.presidente_associacao_nome else ''
+
+    autenticacao(worksheet, associacao)
+
+
+def autenticacao(worksheet, associacao):
+    """BLOCO 3 - AUTENTICAÇÃO"""
+    mensagem = "Declaro, sob as penas de Lei, que os bens acima relacionados, adquiridos com recursos do PTRF foram doados" \
+        " à Prefeitura do município de São Paulo/ Secretaria Municipal de Educação para serem incorporados ao patrimônio público" \
+        f" e destinados à (ao) {associacao.nome}, responsável por sua guarda e conservação."
+    rows = list(worksheet.rows)
+    rows[BLOCO_3][0].value = mensagem
 
 
 def pagamentos(worksheet, rateios, acc=0, start_line=15):
