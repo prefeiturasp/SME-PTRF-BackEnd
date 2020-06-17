@@ -35,6 +35,7 @@ QUANTIDADE = 5
 VALOR_ITEM = 6
 VALOR_RATEIO = 7
 
+BLOCO_3 = 19
 LAST_LINE = 24
 
 
@@ -78,7 +79,7 @@ def autenticacao(worksheet, associacao):
         " à Prefeitura do município de São Paulo/ Secretaria Municipal de Educação para serem incorporados ao patrimônio público" \
         f" e destinados à (ao) {associacao.nome}, responsável por sua guarda e conservação."
     rows = list(worksheet.rows)
-    rows[19][0].value = mensagem
+    rows[BLOCO_3][0].value = mensagem
 
 
 def pagamentos(worksheet, rateios, acc=0, start_line=15):
