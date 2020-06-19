@@ -119,7 +119,7 @@ def unidade(dre):
 
 
 @pytest.fixture
-def associacao(unidade):
+def associacao(unidade, periodo_anterior):
     return baker.make(
         'Associacao',
         nome='Escola Teste',
@@ -128,7 +128,8 @@ def associacao(unidade):
         presidente_associacao_nome='Fulano',
         presidente_associacao_rf='1234567',
         presidente_conselho_fiscal_nome='Ciclano',
-        presidente_conselho_fiscal_rf='7654321'
+        presidente_conselho_fiscal_rf='7654321',
+        periodo_inicial=periodo_anterior,
     )
 
 

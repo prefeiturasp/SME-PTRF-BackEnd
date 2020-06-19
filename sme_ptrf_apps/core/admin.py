@@ -40,7 +40,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
     actions = ['importa_associacoes', ]
     list_display = ('nome', 'cnpj', 'get_nome_escola', 'get_usuarios')
     search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome')
-    list_filter = ('unidade__dre',)
+    list_filter = ('unidade__dre', 'periodo_inicial')
     readonly_fields = ('uuid', 'id')
 
     def get_usuarios(self, obj):
