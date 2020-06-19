@@ -3,6 +3,8 @@ from datetime import date
 
 from rest_framework.exceptions import ValidationError
 
+from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
+
 from ..models import Repasse
 
 logger = logging.getLogger(__name__)
@@ -30,16 +32,21 @@ def atualiza_repasse_para_realizado(receita_validated_data):
         msgError = "Data da receita maior que a data atual."
         logger.info(msgError)
         raise ValidationError(msgError)
+    
+    if receita_validated_data['categoria_receita'] == APLICACAO_CAPITAL and receita_validated_data['valor'] == repasse.valor_capital:
+        repasse.realizado_capital = True
 
-    valores_iguais = receita_validated_data['valor'] == repasse.valor_total
+    elif receita_validated_data['categoria_receita'] == APLICACAO_CUSTEIO and receita_validated_data['valor'] == repasse.valor_custeio:
+        repasse.realizado_custeio = True
 
-    if not valores_iguais:
-        msgError = "Valor do payload não é igual ao valor total do repasse."
+    else:
+        msgError = f"Valor do payload não é igual ao valor do {receita_validated_data['categoria_receita']}."
         logger.info(msgError)
         raise ValidationError(msgError)
 
-    repasse.status = 'REALIZADO'
-    repasse.save()
+    if repasse.realizado_capital and repasse.realizado_custeio:
+        repasse.status = 'REALIZADO'
+        repasse.save()
 
 
 def atualiza_repasse_para_pendente(acao_associacao):

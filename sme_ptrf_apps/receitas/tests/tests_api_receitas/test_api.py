@@ -57,7 +57,7 @@ def test_create_receita_repasse(
 
         assert receita.associacao.uuid == associacao.uuid
 
-        assert Repasse.objects.get(uuid=repasse.uuid).status == 'REALIZADO'
+        assert Repasse.objects.get(uuid=repasse.uuid).status == 'PENDENTE'
 
 
 def test_create_receita_repasse_periodo_invalido(
@@ -98,7 +98,7 @@ def test_create_receita_repasse_valor_diferente(
         response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
         result = json.loads(response.content)
 
-        assert result == ['Valor do payload não é igual ao valor total do repasse.']
+        assert result == ['Valor do payload não é igual ao valor do CAPITAL.']
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
