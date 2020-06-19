@@ -56,8 +56,3 @@ class Repasse(ModeloBase):
     def valor_total(self):
         return self.valor_capital + self.valor_custeio
 
-
-@receiver(pre_save, sender=Repasse)
-def repasse_pre_save(instance, **kwargs):
-    instance.realizado_capital = (instance.valor_capital == 0)
-    instance.realizado_custeio = (instance.valor_custeio == 0)

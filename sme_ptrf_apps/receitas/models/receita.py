@@ -42,6 +42,9 @@ class Receita(ModeloBase):
     prestacao_conta = models.ForeignKey('core.PrestacaoConta', on_delete=models.SET_NULL, blank=True, null=True,
                                         related_name='receitas_conciliadas',
                                         verbose_name='prestação de contas de conciliação')
+    
+    repasse = models.ForeignKey('Repasse', on_delete=models.PROTECT, related_name='receitas',
+                                   blank=True, null=True)
 
     def __str__(self):
         return f'RECEITA<{self.descricao} - {self.data} - {self.valor}>'

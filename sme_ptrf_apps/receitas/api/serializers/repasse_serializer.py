@@ -27,11 +27,11 @@ class RepasseSerializer(serializers.ModelSerializer):
 
     def get_valor_capital(self, obj):
         """Quando o repasse tiver a receita do tipo capital realizado é retornado zero."""
-        return '0' if obj.realizado_capital else str(obj.valor_capital)
+        return '0.00' if obj.realizado_capital else str(obj.valor_capital)
 
     def get_valor_custeio(self, obj):
         """Quando o repasse tiver a receita do tipo custeio realizado é retornado zero."""
-        return '0' if obj.realizado_custeio else str(obj.valor_custeio)
+        return '0.00' if obj.realizado_custeio else str(obj.valor_custeio)
 
     class Meta:
         model = Repasse
