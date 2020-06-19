@@ -79,7 +79,7 @@ def receita_xxx_estorno(associacao, conta_associacao_cheque, acao_associacao_ptr
 
 
 @pytest.fixture
-def receita_yyy_repasse(associacao, conta_associacao_cartao, acao_associacao_role_cultural, tipo_receita_repasse):
+def receita_yyy_repasse(associacao, conta_associacao_cartao, acao_associacao_role_cultural, tipo_receita_repasse, repasse_realizado):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -90,6 +90,7 @@ def receita_yyy_repasse(associacao, conta_associacao_cartao, acao_associacao_rol
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
         conferido=False,
+        repasse=repasse_realizado
     )
 
 @pytest.fixture

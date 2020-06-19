@@ -72,11 +72,11 @@ def test_create_receita_repasse_periodo_invalido(
     payload_receita_repasse
 ):
 
-    payload_receita_repasse['data'] = '2020-01-11'
+    payload_receita_repasse['data'] = '2020-09-02'
     response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
     result = json.loads(response.content)
 
-    assert result == ["Data da receita maior que a data fim da realização de despesas."]
+    assert result == ["Repasse não encontrado."]
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
