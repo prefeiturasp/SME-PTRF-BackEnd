@@ -1,9 +1,12 @@
 from enum import Enum
 
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models import Associacao, Periodo
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+
 
 class StatusRepasse(Enum):
     PENDENTE = 'Pendente'
@@ -38,6 +41,10 @@ class Repasse(ModeloBase):
         default=StatusRepasse.PENDENTE.value
     )
 
+    realizado_capital = models.BooleanField('Realizado Capital?', default=False)
+
+    realizado_custeio = models.BooleanField('Realizado Custeio?', default=False)
+
     class Meta:
         verbose_name = 'Repasse'
         verbose_name_plural = 'Repasses'
@@ -48,3 +55,9 @@ class Repasse(ModeloBase):
     @property
     def valor_total(self):
         return self.valor_capital + self.valor_custeio
+
+
+@receiver(pre_save, sender=Repasse)
+def repasse_pre_save(instance, **kwargs):
+    instance.realizado_capital = (instance.valor_capital == 0)
+    instance.realizado_custeio = (instance.valor_custeio == 0)
