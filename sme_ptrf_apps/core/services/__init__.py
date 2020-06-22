@@ -1,3 +1,4 @@
+from .implantacao_saldos_services import implantacoes_de_saldo_da_associacao
 from .info_por_acao_services import (info_acao_associacao_no_periodo, info_acoes_associacao_no_periodo,
                                      saldos_insuficientes_para_rateios)
 from .periodo_associacao_services import status_periodo_associacao, status_aceita_alteracoes_em_transacoes

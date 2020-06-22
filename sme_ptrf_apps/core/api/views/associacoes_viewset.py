@@ -7,10 +7,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from ..serializers.associacao_serializer import AssociacaoSerializer, AssociacaoCreateSerializer
+from ..serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
+from ..serializers.periodo_serializer import PeriodoLookUpSerializer
 from ...models import Associacao, Periodo
 from ...services import (info_acoes_associacao_no_periodo, status_periodo_associacao,
-                         status_aceita_alteracoes_em_transacoes)
+                         status_aceita_alteracoes_em_transacoes, implantacoes_de_saldo_da_associacao)
 
 
 class AssociacoesViewSet(mixins.RetrieveModelMixin,
@@ -83,6 +86,46 @@ class AssociacoesViewSet(mixins.RetrieveModelMixin,
             'periodo_referencia': periodo_referencia,
             'periodo_status': periodo_status,
             'aceita_alteracoes': aceita_alteracoes,
+        }
+
+        return Response(result)
+
+
+    @action(detail=True, url_path='implantacao-saldos')
+    def implantacao_saldos(self, request, uuid=None):
+
+        associacao = self.get_object()
+
+        if not associacao.periodo_inicial:
+            erro = {
+                'erro': 'periodo_inicial_nao_definido',
+                'mensagem': 'Período inicial não foi definido para essa associação. Verifique com o administrador.'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+
+        if associacao.prestacoes_de_conta_da_associacao.exists():
+            erro = {
+                'erro': 'prestacao_de_contas_existente',
+                'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
+            }
+            return Response(erro, status=status.HTTP_409_CONFLICT)
+
+        saldos = []
+        implantacoes = implantacoes_de_saldo_da_associacao(associacao=associacao)
+        for implantacao in implantacoes:
+            saldo = {
+                'acao_associacao': AcaoAssociacaoLookUpSerializer(implantacao['acao_associacao']).data,
+                'conta_associacao': ContaAssociacaoLookUpSerializer(implantacao['conta_associacao']).data,
+                'aplicacao': implantacao['aplicacao'],
+                'saldo': implantacao['saldo']
+            }
+            saldos.append(saldo)
+
+        result = {
+            'associacao': f'{uuid}',
+            'periodo': PeriodoLookUpSerializer(associacao.periodo_inicial).data,
+            'saldos': saldos,
         }
 
         return Response(result)
