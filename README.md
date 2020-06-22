@@ -11,7 +11,19 @@ Versão: 0.4.0
 ## Release Notes
 
 ### 0.4.0 - 16/06/2020 - Entregas da Sprint 5
-* Sprint em andamento...
+* Geração do documento Relação de Bens na prestação de contas
+* Adicionado campo "Nº do cheque" no lançamento de despesas
+* Geração da Ata na prestação de contas
+* Adicionada a verificação de suficiência de saldo por conta no lançamento de despesas
+* Exibição de tabela de valores pendentes no processo de conciliação
+* Melhoria na mensagem de validação de consistência de valores no lançamento de despesas
+* Adicionada rotina de carga de dados para valores realizados por associação
+* Seleção de período na prestação de contas não exibe mais períodos futuros
+* Lista de especificações de materiais serviços agora é exibida em ordem alfabética
+* Agora é possível determinar a ordem que as ações serão exibidas no painel de ações e em outras partes da aplicação
+* Adicionado feedback visual (loading) para processos demorados no módulo de receitas
+* Agora a conciliação exibe transações não conciliadas mesmo de períodos anteriores
+* 🐞 Correção de erros
 
 ### 0.3.0 - 28/05/2020 - Entregas da Sprint 4
 * Exibição de referência e status do período no painel de ações

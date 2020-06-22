@@ -79,7 +79,7 @@ def get_periodo(referencia):
         raise Exception("Período não existe")
 
 
-def criar_receita(associacao, conta_associacao, acao_associacao, valor, data, categoria_receita, tipo_receita):
+def criar_receita(associacao, conta_associacao, acao_associacao, valor, data, categoria_receita, tipo_receita, repasse):
     logger.info("Criando receita.")
     Receita.objects.create(
         associacao=associacao,
@@ -90,7 +90,8 @@ def criar_receita(associacao, conta_associacao, acao_associacao, valor, data, ca
         data=data,
         tipo_receita=tipo_receita,
         conferido=True,
-        categoria_receita=categoria_receita
+        categoria_receita=categoria_receita,
+        repasse=repasse
     )
 
 def processa_repasse(reader, conta):
@@ -112,7 +113,7 @@ def processa_repasse(reader, conta):
 
                 if valor_capital > 0 or valor_custeio > 0:
                     logger.info("Criando repasse.")
-                    Repasse.objects.create(
+                    repasse = Repasse.objects.create(
                         associacao=associacao,
                         valor_capital=valor_capital,
                         valor_custeio=valor_custeio,
@@ -138,7 +139,10 @@ def processa_repasse(reader, conta):
                             valor,
                             data,
                             categoria_receita,
-                            tipo_receita)
+                            tipo_receita,
+                            repasse)
+                        
+                        repasse.realizado_capital = True
 
                     if valor_custeio > 0:
                         valor = valor_custeio
@@ -151,8 +155,12 @@ def processa_repasse(reader, conta):
                             valor,
                             data,
                             categoria_receita,
-                            tipo_receita)
-
+                            tipo_receita,
+                            repasse)
+                        
+                        repasse.realizado_custeio = True
+                    
+                    repasse.save()
             except Exception as e:
                 logger.info("Error %s", str(e))
 

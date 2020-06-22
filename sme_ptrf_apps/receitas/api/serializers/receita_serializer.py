@@ -33,16 +33,21 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         if validated_data['tipo_receita'].e_repasse:
-            atualiza_repasse_para_realizado(validated_data)
-
+            repasse = atualiza_repasse_para_realizado(validated_data)
+            validated_data['repasse'] = repasse
+        
         receita = Receita.objects.create(**validated_data)
+        
         return receita
 
     def update(self, instance, validated_data):
-        if validated_data['tipo_receita'].e_repasse:
-            if instance.acao_associacao:
-                atualiza_repasse_para_pendente(instance.acao_associacao)
-            atualiza_repasse_para_realizado(validated_data)
+        if instance.repasse:
+            atualiza_repasse_para_pendente(instance)
+        
+        if validated_data['tipo_receita'].e_repasse:    
+            repasse = atualiza_repasse_para_realizado(validated_data)
+            validated_data['repasse'] = repasse
+            
         return super().update(instance, validated_data)
 
     class Meta:

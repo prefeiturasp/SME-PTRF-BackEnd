@@ -42,6 +42,7 @@ def payload_receita(associacao, conta_associacao, acao_associacao, tipo_receita)
         'data': '2020-03-26',
         'valor': 100.00,
         'descricao': 'Uma receita',
+        'categoria_receita': 'CUSTEIO',
         'conta_associacao': str(conta_associacao.uuid),
         'acao_associacao': str(acao_associacao.uuid),
         'tipo_receita': tipo_receita.id
@@ -53,8 +54,9 @@ def payload_receita_repasse(associacao, conta_associacao, acao_associacao, tipo_
     payload = {
         'associacao': str(associacao.uuid),
         'data': '2019-09-26',
-        'valor': 2000.68,
+        'valor': 1000.28,
         'descricao': 'Uma receita',
+        'categoria_receita': 'CAPITAL',
         'conta_associacao': str(conta_associacao.uuid),
         'acao_associacao': str(acao_associacao.uuid),
         'tipo_receita': tipo_receita_repasse.id
@@ -77,7 +79,7 @@ def receita_xxx_estorno(associacao, conta_associacao_cheque, acao_associacao_ptr
 
 
 @pytest.fixture
-def receita_yyy_repasse(associacao, conta_associacao_cartao, acao_associacao_role_cultural, tipo_receita_repasse):
+def receita_yyy_repasse(associacao, conta_associacao_cartao, acao_associacao_role_cultural, tipo_receita_repasse, repasse_realizado):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -88,6 +90,7 @@ def receita_yyy_repasse(associacao, conta_associacao_cartao, acao_associacao_rol
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
         conferido=False,
+        repasse=repasse_realizado
     )
 
 @pytest.fixture
