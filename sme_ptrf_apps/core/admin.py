@@ -15,6 +15,7 @@ from .models import (
     RelacaoBens,
     TipoConta,
     Unidade,
+    MembroAssociacao
 )
 
 admin.site.register(TipoConta)
@@ -22,6 +23,8 @@ admin.site.register(Acao)
 admin.site.register(DemonstrativoFinanceiro)
 admin.site.register(Parametros)
 admin.site.register(RelacaoBens)
+admin.site.register(MembroAssociacao)
+
 
 @admin.register(Associacao)
 class AssociacaoAdmin(admin.ModelAdmin):

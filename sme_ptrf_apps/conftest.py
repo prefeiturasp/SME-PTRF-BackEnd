@@ -1,4 +1,4 @@
-from datetime import date, timedelta, datetime
+from datetime import date, datetime, timedelta
 
 import pytest
 from django.test import RequestFactory
@@ -8,9 +8,10 @@ from rest_framework.test import APIClient
 from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
 from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO
+from .core.choices import MembroEnum, RepresentacaoCargo
 from .core.models.prestacao_conta import STATUS_ABERTO as PRESTACAO_ABERTA
 from .core.models.prestacao_conta import STATUS_FECHADO as PRESTACAO_FECHADA
-from .despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
+from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 
 @pytest.fixture
@@ -956,4 +957,17 @@ def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
         cargo_secretaria_reuniao='Secretaria',
         comentarios='Teste',
         parecer_conselho='APROVADA'
+    )
+
+
+@pytest.fixture
+def membro_associacao(associacao):
+    return baker.make(
+        'MembroAssociacao',
+        nome='Arthur Nobrega',
+        associacao=associacao,
+        cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value,
+        cargo_educacao='Coordenador',
+        representacao=RepresentacaoCargo.SERVIDOR.value,
+        codigo_identificacao='567432'
     )
