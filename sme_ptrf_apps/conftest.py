@@ -971,3 +971,42 @@ def membro_associacao(associacao):
         representacao=RepresentacaoCargo.SERVIDOR.value,
         codigo_identificacao='567432'
     )
+
+
+@pytest.fixture
+def payload_membro_servidor(associacao):
+    payload = {
+        'nome': "Adriano Imperador",
+        'associacao': str(associacao.uuid),
+        'cargo_associacao': MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value,
+        'cargo_educacao': 'Coordenador',
+        'representacao': RepresentacaoCargo.SERVIDOR.value,
+        'codigo_identificacao': '567432'
+    }
+    return payload
+
+
+@pytest.fixture
+def payload_membro_estudante(associacao):
+    payload = {
+        'nome': "Arthur Oliveira",
+        'associacao': str(associacao.uuid),
+        'cargo_associacao': MembroEnum.VOGAL_1.value,
+        'cargo_educacao': '',
+        'representacao': RepresentacaoCargo.ESTUDANTE.value,
+        'codigo_identificacao': '567431'
+    }
+    return payload
+
+
+@pytest.fixture
+def payload_membro_pai_responsavel(associacao):
+    payload = {
+        'nome': "Lana Oliveira",
+        'associacao': str(associacao.uuid),
+        'cargo_associacao': MembroEnum.VOGAL_3.value,
+        'cargo_educacao': '',
+        'representacao': RepresentacaoCargo.PAI_RESPONSAVEL.value,
+        'codigo_identificacao': ''
+    }
+    return payload
