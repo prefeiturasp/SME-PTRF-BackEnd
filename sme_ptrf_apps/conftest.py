@@ -7,7 +7,7 @@ from rest_framework.test import APIClient
 
 from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
-from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO
+from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO
 from .core.models.prestacao_conta import STATUS_ABERTO as PRESTACAO_ABERTA
 from .core.models.prestacao_conta import STATUS_FECHADO as PRESTACAO_FECHADA
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
@@ -119,7 +119,7 @@ def unidade(dre):
 
 
 @pytest.fixture
-def associacao(unidade):
+def associacao(unidade, periodo_anterior):
     return baker.make(
         'Associacao',
         nome='Escola Teste',
@@ -128,7 +128,22 @@ def associacao(unidade):
         presidente_associacao_nome='Fulano',
         presidente_associacao_rf='1234567',
         presidente_conselho_fiscal_nome='Ciclano',
-        presidente_conselho_fiscal_rf='7654321'
+        presidente_conselho_fiscal_rf='7654321',
+        periodo_inicial=periodo_anterior,
+    )
+
+@pytest.fixture
+def associacao_sem_periodo_inicial(unidade):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste',
+        cnpj='52.302.275/0001-83',
+        unidade=unidade,
+        presidente_associacao_nome='Fulano',
+        presidente_associacao_rf='1234567',
+        presidente_conselho_fiscal_nome='Ciclano',
+        presidente_conselho_fiscal_rf='7654321',
+        periodo_inicial=None,
     )
 
 
@@ -433,6 +448,25 @@ def fechamento_periodo_anterior_role(periodo_anterior, associacao, conta_associa
         total_repasses_custeio=900,
         total_despesas_custeio=800,
         status=STATUS_FECHADO
+    )
+
+
+@pytest.fixture
+def fechamento_periodo_anterior_role_implantado(periodo_anterior, associacao, conta_associacao, acao_associacao_role_cultural, ):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo_anterior,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_role_cultural,
+        fechamento_anterior=None,
+        total_receitas_capital=1000,
+        total_repasses_capital=0,
+        total_despesas_capital=0,
+        total_receitas_custeio=2000,
+        total_repasses_custeio=0,
+        total_despesas_custeio=0,
+        status=STATUS_IMPLANTACAO
     )
 
 @pytest.fixture

@@ -5,7 +5,7 @@ from .associacao import Associacao
 from .ata import Ata
 from .conta_associacao import ContaAssociacao
 from .demonstrativo_financeiro import DemonstrativoFinanceiro
-from .fechamento_periodo import STATUS_ABERTO, STATUS_FECHADO, FechamentoPeriodo
+from .fechamento_periodo import STATUS_ABERTO, STATUS_FECHADO, STATUS_IMPLANTACAO, FechamentoPeriodo
 from .parametros import Parametros
 from .periodo import Periodo
 from .prestacao_conta import STATUS_ABERTO, STATUS_FECHADO, PrestacaoConta
