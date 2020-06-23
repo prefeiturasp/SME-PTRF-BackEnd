@@ -191,6 +191,20 @@ class FechamentoPeriodo(ModeloBase):
         )
         return novo_fechamento
 
+    @classmethod
+    def implanta_saldo(cls, acao_associacao, conta_associacao, aplicacao, saldo):
+        fechamento_implantacao = cls.objects.create(
+            periodo=conta_associacao.associacao.periodo_inicial,
+            associacao=conta_associacao.associacao,
+            conta_associacao=conta_associacao,
+            acao_associacao=acao_associacao,
+            total_receitas_capital=saldo if aplicacao == APLICACAO_CAPITAL else 0,
+            total_receitas_custeio=saldo if aplicacao == APLICACAO_CUSTEIO else 0,
+            fechamento_anterior=None,
+            status=STATUS_IMPLANTACAO,
+        )
+        return fechamento_implantacao
+
     class Meta:
         verbose_name = "Fechamento de período"
         verbose_name_plural = "Fechamentos de períodos"

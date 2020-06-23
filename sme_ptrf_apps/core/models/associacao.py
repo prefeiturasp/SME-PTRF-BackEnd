@@ -27,6 +27,9 @@ class Associacao(ModeloIdNome):
     periodo_inicial = models.ForeignKey('Periodo', on_delete=models.PROTECT, verbose_name='período inicial',
                                         related_name='associacoes_iniciadas_no_periodo', null=True, blank=True)
 
+    def apaga_implantacoes_de_saldo(self):
+        self.fechamentos_associacao.filter(status='IMPLANTACAO').delete()
+
     @classmethod
     def acoes_da_associacao(cls, associacao_uuid):
         associacao = cls.objects.filter(uuid=associacao_uuid).first()
