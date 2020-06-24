@@ -28,7 +28,7 @@ COL_CABECALHO = 9
 LINHA_PERIODO_CABECALHO = 4
 LINHA_ACAO_CABECALHO = 5
 LINHA_CONTA_CABECALHO = 6
-LAST_LINE = 42
+LAST_LINE = 55
 
 # Coluna 2 da planilha 
 SALDO_ANTERIOR = 0
@@ -59,25 +59,26 @@ def gerar(periodo, acao_associacao, conta_associacao):
     LOGGER.info("GERANDO DEMONSTRATIVO...")
     rateios_conferidos = RateioDespesa.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo, conferido=True)
     rateios_nao_conferidos = RateioDespesa.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo, conferido=False)
-    receitas_nao_demonstradas = Receita.receitas_da_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo, conferido=False)
+    receitas_demonstradas = Receita.receitas_da_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo, conferido=True)
     fechamento_periodo = FechamentoPeriodo.objects.filter(acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo).first()
     prestacao_conta = PrestacaoConta.objects.filter(conta_associacao=conta_associacao, periodo=periodo).first()
     path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
-    nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro.xlsx')
+    nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro_novo.xlsx')
     workbook = load_workbook(nome_arquivo)
     worksheet = workbook.active
 
     cabecalho(worksheet, periodo, acao_associacao, conta_associacao)
     identificacao_apm(worksheet, acao_associacao)
-    sintese_receita_despesa(worksheet, fechamento_periodo, rateios_conferidos)
-    pagamentos(worksheet, rateios_conferidos)
-    pagamentos(worksheet, rateios_nao_conferidos, acc=len(rateios_conferidos), start_line=26)
-
-    acc = len(rateios_conferidos)-1 if len(rateios_conferidos) > 1 else 0
-    acc += len(rateios_nao_conferidos)-1 if len(rateios_nao_conferidos) > 1 else 0
-    creditos_nao_demonstrados(worksheet, receitas_nao_demonstradas, acc=acc)
-    acc += len(receitas_nao_demonstradas)-1 if len(receitas_nao_demonstradas) > 1 else 0
-    observacoes(worksheet, prestacao_conta, acc=acc)
+    creditos_demonstrados(worksheet, receitas_demonstradas)
+    #sintese_receita_despesa(worksheet, fechamento_periodo, rateios_conferidos)
+    #pagamentos(worksheet, rateios_conferidos)
+    #pagamentos(worksheet, rateios_nao_conferidos, acc=len(rateios_conferidos), start_line=26)
+#
+    #acc = len(rateios_conferidos)-1 if len(rateios_conferidos) > 1 else 0
+    #acc += len(rateios_nao_conferidos)-1 if len(rateios_nao_conferidos) > 1 else 0
+    #creditos_nao_demonstrados(worksheet, receitas_nao_demonstradas, acc=acc)
+    #acc += len(receitas_nao_demonstradas)-1 if len(receitas_nao_demonstradas) > 1 else 0
+    #observacoes(worksheet, prestacao_conta, acc=acc)
 
     return workbook
 
@@ -143,6 +144,27 @@ def sintese_receita_despesa(worksheet, fechamento_periodo, rateios_conferidos):
 
     row_capital[TOTAL_REPROGRAMADO].value = fechamento_periodo.saldo_reprogramado_custeio + fechamento_periodo.saldo_reprogramado_capital
 
+
+def creditos_demonstrados(worksheet, receitas, acc=0, start_line=21):
+    quantidade = acc
+    last_line = LAST_LINE + quantidade
+    valor_total = sum(receita.valor for r  in receitas)
+    
+    for linha, receita in enumerate(receitas):
+        # Movendo as linhas para baixo antes de inserir os dados novos
+        ind = start_line + quantidade + linha
+        if linha > 0:
+            for row_idx in range(last_line + linha, ind-2, -1):
+                copy_row(worksheet, row_idx, 1, copy_data=True)
+
+        row = list(worksheet.rows)[ind-1]
+        row[ITEM].value = linha + 1
+        row[1].value = receita.tipo_receita.nome
+        row[4].value = 'Detalhamento'
+        row[7].value = receita.data.strftime("%d/%m/%Y")
+        row[9].value = receita.valor
+    
+    row = list(worksheet.rows)
 
 def pagamentos(worksheet, rateios, acc=0, start_line=21):
     """
