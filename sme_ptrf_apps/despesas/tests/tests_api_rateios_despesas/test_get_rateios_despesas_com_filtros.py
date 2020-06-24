@@ -1,3 +1,4 @@
+import datetime
 import json
 
 import pytest
@@ -184,3 +185,104 @@ def test_api_get_despesas_filtro_por_nao_conferido(jwt_authenticated_client, ass
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 2
+
+
+@pytest.fixture
+def despesa_2020_3_10(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        documento_transacao='',
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=100.00,
+        valor_recursos_proprios=10.00,
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_3_10(associacao, despesa_2020_3_10, conta_associacao, acao, tipo_aplicacao_recurso_custeio,
+                             tipo_custeio_servico,
+                             especificacao_instalacao_eletrica, acao_associacao_ptrf):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_3_10,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_ptrf,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=100.00,
+        conferido=True,
+
+    )
+
+
+@pytest.fixture
+def despesa_2020_3_11(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 11),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        documento_transacao='',
+        data_transacao=datetime.date(2020, 3, 11),
+        valor_total=100.00,
+        valor_recursos_proprios=10.00,
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_3_11(associacao, despesa_2020_3_11, conta_associacao, acao, tipo_aplicacao_recurso_custeio,
+                             tipo_custeio_servico,
+                             especificacao_instalacao_eletrica, acao_associacao_ptrf):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_3_11,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_ptrf,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=100.00,
+        conferido=True,
+
+    )
+
+
+def test_api_get_despesas_filtro_por_periodo(jwt_authenticated_client, associacao, despesa_2020_3_10,
+                                             rateio_despesa_2020_3_10, despesa_2020_3_11, rateio_despesa_2020_3_11):
+    response = jwt_authenticated_client.get(
+        f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&data_inicio=2020-03-10&data_fim=2020-03-10',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 1
+
+    response = jwt_authenticated_client.get(
+        f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&data_inicio=2020-03-10&data_fim=2020-03-11',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 2
+
+    response = jwt_authenticated_client.get(
+        f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&data_inicio=2020-03-01&data_fim=2020-03-09',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 0

@@ -29,7 +29,13 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
 
     def get_queryset(self):
         user = self.request.user
-        return RateioDespesa.objects.filter(associacao=user.associacao).all().order_by('-despesa__data_documento')
+        qs = RateioDespesa.objects.filter(associacao=user.associacao).all().order_by('-despesa__data_documento')
+
+        data_inicio = self.request.query_params.get('data_inicio')
+        data_fim = self.request.query_params.get('data_fim')
+        if data_inicio is not None and data_fim is not None:
+            qs = qs.filter(despesa__data_documento__range=[data_inicio, data_fim])
+        return qs
 
     def get_serializer_class(self):
         return RateioDespesaListaSerializer
