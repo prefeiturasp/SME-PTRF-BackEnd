@@ -30,25 +30,25 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
         else:
             return MembroAssociacaoCreateSerializer
 
-
-    @action(detail=False, methods=['get'], url_path='')
+    @action(detail=False, methods=['get'], url_path='codigo-identificacao')
     def consulta_codigo_identificacao(self, request):
         rf = self.request.query_params.get('rf')
-        codigo_eol = self.request.query_params.get('codigo_eol')
-        
+        codigo_eol = self.request.query_params.get('codigo-eol')
+
         if not rf and not codigo_eol:
             erro = {
                 'erro': 'parametros_requeridos',
                 'mensagem': 'É necessário enviar o rf ou código eol.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             if codigo_eol:
                 result = TerceirizadasService.get_informacao_aluno(codigo_eol)
                 return Response(result)
             else:
-                pass
+                result = TerceirizadasService.get_informacao_servidor(rf)
+                return Response(result)
         except TerceirizadasException as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except ReadTimeout:
