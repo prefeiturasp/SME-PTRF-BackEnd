@@ -11,7 +11,7 @@ class RepresentacaoCargo(Enum):
 
     @classmethod
     def choices(cls):
-        return [(key.value, key.name) for key in cls]
+        return [(key.name, key.value) for key in cls]
 
 
 class MembroEnum(Enum):
@@ -32,4 +32,4 @@ class MembroEnum(Enum):
 
     @classmethod
     def choices(cls):
-        return [(key.value, key.name) for key in cls]
+        return [(key.name, key.value) for key in cls]
