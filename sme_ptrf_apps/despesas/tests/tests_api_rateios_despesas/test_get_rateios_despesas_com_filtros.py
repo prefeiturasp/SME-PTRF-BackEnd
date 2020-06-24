@@ -286,3 +286,123 @@ def test_api_get_despesas_filtro_por_periodo(jwt_authenticated_client, associaca
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 0
+
+
+@pytest.fixture
+def despesa_fornecedor_a(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor A graça ARVORE',
+        tipo_transacao=tipo_transacao,
+        documento_transacao='',
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=100.00,
+        valor_recursos_proprios=10.00,
+    )
+
+
+@pytest.fixture
+def rateio_despesa_fornecedor_a(associacao, despesa_fornecedor_a, conta_associacao, acao,
+                                tipo_aplicacao_recurso_custeio,
+                                tipo_custeio_servico,
+                                especificacao_instalacao_eletrica, acao_associacao_ptrf):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_fornecedor_a,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_ptrf,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=100.00,
+        conferido=True,
+
+    )
+
+
+@pytest.fixture
+def despesa_fornecedor_b(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 11),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor B Graca valença',
+        tipo_transacao=tipo_transacao,
+        documento_transacao='',
+        data_transacao=datetime.date(2020, 3, 11),
+        valor_total=100.00,
+        valor_recursos_proprios=10.00,
+    )
+
+
+@pytest.fixture
+def rateio_despesa_fornecedor_b(associacao, despesa_fornecedor_b, conta_associacao, acao,
+                                tipo_aplicacao_recurso_custeio,
+                                tipo_custeio_servico,
+                                especificacao_instalacao_eletrica, acao_associacao_ptrf):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_fornecedor_b,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_ptrf,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=100.00,
+        conferido=True,
+
+    )
+
+
+def test_api_get_despesas_filtro_por_fornecedor(jwt_authenticated_client, associacao, despesa_fornecedor_a,
+                                                rateio_despesa_fornecedor_a, despesa_fornecedor_b,
+                                                rateio_despesa_fornecedor_b):
+    response = jwt_authenticated_client.get(
+        f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&fornecedor=dor a',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 1,'Deve localizar por qualquer parte do nome. Case insensitive.'
+
+    response = jwt_authenticated_client.get(
+        f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&fornecedor=graca',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 2, 'Deve desconsiderar caracteres especiais'
+
+    response = jwt_authenticated_client.get(
+        f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&fornecedor=xpto',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 0
+
+    response = jwt_authenticated_client.get(
+        f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&fornecedor=VALENCA',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 1,'Deve ignorar acentos e ser case insensitive.'
+
+    response = jwt_authenticated_client.get(
+        f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&fornecedor=árvore',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 1,'Deve ignorar acentos e ser case insensitive.'

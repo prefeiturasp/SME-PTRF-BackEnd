@@ -35,6 +35,10 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
         data_fim = self.request.query_params.get('data_fim')
         if data_inicio is not None and data_fim is not None:
             qs = qs.filter(despesa__data_documento__range=[data_inicio, data_fim])
+
+        fornecedor = self.request.query_params.get('fornecedor')
+        if fornecedor is not None:
+            qs = qs.filter(despesa__nome_fornecedor__unaccent__icontains=fornecedor)
         return qs
 
     def get_serializer_class(self):
