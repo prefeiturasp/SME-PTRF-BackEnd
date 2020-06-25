@@ -49,8 +49,12 @@ class Receita(ModeloBase):
     def __str__(self):
         return f'RECEITA<{self.descricao} - {self.data} - {self.valor}>'
 
+    @property
+    def detalhamento(self):
+        return "Detalhamento"
+
     @classmethod
-    def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None):
+    def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None, categoria_receita=None):
         if periodo.data_fim_realizacao_despesas:
             dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
                 data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
@@ -63,6 +67,9 @@ class Receita(ModeloBase):
 
         if conta_associacao:
             dataset = dataset.filter(conta_associacao=conta_associacao)
+
+        if categoria_receita:
+            dataset = dataset.filter(categoria_receita=categoria_receita)
 
         return dataset.all()
 

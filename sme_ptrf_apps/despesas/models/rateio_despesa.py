@@ -145,6 +145,26 @@ class RateioDespesa(ModeloBase):
             APLICACAO_CUSTEIO: sorted(especificacoes[APLICACAO_CUSTEIO])
         }
 
+    @classmethod
+    def rateios_da_acao_associacao_em_qualquer_periodo(cls, acao_associacao, conferido=None, conta_associacao=None,
+                                              exclude_despesa=None, aplicacao_recurso=None):
+        
+        dataset = cls.objects.filter(acao_associacao=acao_associacao)
+
+        if conferido is not None:
+            dataset = dataset.filter(conferido=conferido)
+
+        if exclude_despesa:
+            dataset = dataset.exclude(despesa__uuid=exclude_despesa)
+        
+        if conta_associacao:
+            dataset = dataset.filter(conta_associacao=conta_associacao)
+
+        if aplicacao_recurso:
+            dataset = dataset.filter(aplicacao_recurso=aplicacao_recurso)
+
+        return dataset.all()
+
     def marcar_conferido(self, prestacao_conta=None):
         self.conferido = True
         self.prestacao_conta = prestacao_conta
