@@ -101,6 +101,36 @@ def receita_conferida(receita_xxx_estorno):
 def receita_nao_conferida(receita_yyy_repasse):
     return receita_yyy_repasse
 
+
+@pytest.fixture
+def receita_2020_3_10(associacao, conta_associacao_cheque, acao_associacao_ptrf, tipo_receita_estorno):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 10),
+        valor=100.00,
+        descricao="Receita XXX",
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao_ptrf,
+        tipo_receita=tipo_receita_estorno,
+        conferido=True,
+    )
+
+@pytest.fixture
+def receita_2020_3_11(associacao, conta_associacao_cheque, acao_associacao_ptrf, tipo_receita_estorno):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 11),
+        valor=100.00,
+        descricao="Receita XXX",
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao_ptrf,
+        tipo_receita=tipo_receita_estorno,
+        conferido=True,
+    )
+
+
 @pytest.fixture
 def repasse(associacao, conta_associacao, acao_associacao, periodo):
     return baker.make(
