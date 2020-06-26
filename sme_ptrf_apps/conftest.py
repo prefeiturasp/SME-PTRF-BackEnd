@@ -7,8 +7,8 @@ from rest_framework.test import APIClient
 
 from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
-from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO
 from .core.choices import MembroEnum, RepresentacaoCargo
+from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO
 from .core.models.prestacao_conta import STATUS_ABERTO as PRESTACAO_ABERTA
 from .core.models.prestacao_conta import STATUS_FECHADO as PRESTACAO_FECHADA
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
@@ -125,6 +125,20 @@ def associacao(unidade, periodo_anterior):
         'Associacao',
         nome='Escola Teste',
         cnpj='52.302.275/0001-83',
+        unidade=unidade,
+        presidente_associacao_nome='Fulano',
+        presidente_associacao_rf='1234567',
+        presidente_conselho_fiscal_nome='Ciclano',
+        presidente_conselho_fiscal_rf='7654321',
+        periodo_inicial=periodo_anterior,
+    )
+
+@pytest.fixture
+def outra_associacao(unidade, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Outra',
+        cnpj='52.302.275/0001-99',
         unidade=unidade,
         presidente_associacao_nome='Fulano',
         presidente_associacao_rf='1234567',

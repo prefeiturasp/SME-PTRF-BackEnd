@@ -77,11 +77,18 @@ class DespesasViewSet(mixins.CreateModelMixin,
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        associacao__uuid = request.query_params.get('associacao__uuid')
+        if associacao__uuid is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar a o uuid da associação como parâmetro. Ex: associacao__uuid=GSDHH3434..'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
         despesa_uuid = request.query_params.get('despesa_uuid')
 
         despesa = Despesa.by_documento(tipo_documento=tipo_documento, numero_documento=numero_documento,
-                                       cpf_cnpj_fornecedor=cpf_cnpj_fornecedor)
-
+                                       cpf_cnpj_fornecedor=cpf_cnpj_fornecedor, associacao__uuid=associacao__uuid)
 
         despesa_ja_lancada = despesa is not None and f'{despesa.uuid}' != despesa_uuid
 
