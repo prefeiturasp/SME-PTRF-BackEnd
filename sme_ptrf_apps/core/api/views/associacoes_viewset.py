@@ -9,9 +9,9 @@ from rest_framework.viewsets import GenericViewSet
 
 from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from ..serializers.associacao_serializer import AssociacaoSerializer, AssociacaoCreateSerializer
-from ..serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
+from ..serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer, ContaAssociacaoInfoAtaSerializer
 from ..serializers.periodo_serializer import PeriodoLookUpSerializer
-from ...models import Associacao, Periodo
+from ...models import Associacao, Periodo, ContaAssociacao
 from ...services import (info_acoes_associacao_no_periodo, status_periodo_associacao,
                          status_aceita_alteracoes_em_transacoes, implantacoes_de_saldo_da_associacao,
                          implanta_saldos_da_associacao)
@@ -191,3 +191,11 @@ class AssociacoesViewSet(mixins.RetrieveModelMixin,
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(result, status=status_code)
+
+
+    @action(detail=True, url_path='contas', methods=['get'])
+    def contas(self, request, uuid):
+        associacao = self.get_object()
+        contas = ContaAssociacao.objects.filter(associacao=associacao).all()
+        contas_data = ContaAssociacaoInfoAtaSerializer(contas, many=True).data
+        return Response(contas_data)
