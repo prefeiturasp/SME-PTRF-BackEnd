@@ -72,14 +72,13 @@ def gerar(periodo, acao_associacao, conta_associacao):
 
     cabecalho(worksheet, periodo, acao_associacao, conta_associacao)
     identificacao_apm(worksheet, acao_associacao)
+    observacoes(worksheet, fechamento_periodo)
     sintese_receita_despesa(worksheet, acao_associacao, periodo, fechamento_periodo)
     creditos_demonstrados(worksheet, receitas_demonstradas)
     acc = len(receitas_demonstradas)-1 if len(receitas_demonstradas) > 1 else 0
     pagamentos(worksheet, rateios_conferidos, acc=acc, start_line=28)
-    acc += len(receitas_demonstradas)-1 if len(receitas_demonstradas) > 1 else 0
+    acc += len(rateios_conferidos)-1 if len(rateios_conferidos) > 1 else 0
     pagamentos(worksheet, rateios_nao_conferidos, acc=acc, start_line=35)
-
-    #observacoes(worksheet, prestacao_conta, acc=acc)
 
     return workbook
 
@@ -178,7 +177,7 @@ def creditos_demonstrados(worksheet, receitas, acc=0, start_line=21):
     quantidade = acc
     last_line = LAST_LINE + quantidade
     valor_total = sum(r.valor for r in receitas)
-    ind = 0
+    ind = start_line
 
     for linha, receita in enumerate(receitas):
         # Movendo as linhas para baixo antes de inserir os dados novos
@@ -207,7 +206,7 @@ def pagamentos(worksheet, rateios, acc=0, start_line=28):
     quantidade = acc if acc else 0
     last_line = LAST_LINE + quantidade
     valor_total = sum(r.valor_rateio for r in rateios)
-    ind = 0
+    ind = start_line + quantidade
     for linha, rateio in enumerate(rateios):
         # Movendo as linhas para baixo antes de inserir os dados novos
         ind = start_line + quantidade + linha
@@ -260,12 +259,12 @@ def creditos_nao_demonstrados(worksheet, receitas, acc=0):
         row[7].value = receita.valor
 
 
-def observacoes(worksheet, prestacao_conta, acc=0):
+def observacoes(worksheet, fechamento_periodo):
     """BLOCO 6 - OBSERVAÇÃO"""
 
-    start_line = 33
-    row = list(worksheet.rows)[start_line+acc-1]
-    row[ITEM].value = prestacao_conta.observacoes if prestacao_conta else ''
+    start_line = 39
+    row = list(worksheet.rows)[start_line]
+    row[ITEM].value = fechamento_periodo.observacoes if fechamento_periodo else ''
 
 
 def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_merged_columns=True):

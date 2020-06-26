@@ -47,7 +47,6 @@ def test_get_membro_associacao(
     response = jwt_authenticated_client.get(
         f'/api/membros-associacao/{membro_associacao.uuid}/', content_type='application/json')
     result = json.loads(response.content)
-    print(result)
     esperado = {
         'id': membro_associacao.id,
         'associacao':
