@@ -27,13 +27,13 @@ def test_api_get_receitas_conferidas_prestacao_conta(client,
 
     result = json.loads(response.content)
 
-    resultado_esperado = []
+    resultado_esperado = [None, None]
 
     result_esperado = ReceitaListaSerializer(receita_2019_2_role_repasse_conferida_na_prestacao, many=False).data
-    resultado_esperado.append(result_esperado)
+    resultado_esperado[1] = result_esperado
 
-    result_esperado = ReceitaListaSerializer(receita_2020_1_role_repasse_conferida, many=False).data
-    resultado_esperado.append(result_esperado)
+    result_esperado2 = ReceitaListaSerializer(receita_2020_1_role_repasse_conferida, many=False).data
+    resultado_esperado[0] = result_esperado2
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado, "Não retornou a lista de receitas esperada."
@@ -84,12 +84,12 @@ def test_api_get_receitas_nao_conferidas_traz_periodos_anteriores(client,
 
     result = json.loads(response.content)
 
-    resultado_esperado = []
+    resultado_esperado = [None, None]
     result_esperado = ReceitaListaSerializer(receita_2019_2_role_repasse_nao_conferida, many=False).data
-    resultado_esperado.append(result_esperado)
+    resultado_esperado[1] = result_esperado
 
-    result_esperado = ReceitaListaSerializer(receita_2020_1_role_repasse_nao_conferida, many=False).data
-    resultado_esperado.append(result_esperado)
+    result_esperado2 = ReceitaListaSerializer(receita_2020_1_role_repasse_nao_conferida, many=False).data
+    resultado_esperado[0] = result_esperado2
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado, "Não retornou a lista de receitas esperada. Deve incluir períodos anteriores"
