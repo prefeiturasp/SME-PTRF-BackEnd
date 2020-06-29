@@ -17,6 +17,8 @@ def test_instance(receita):
     assert model.tipo_receita
     assert model.conferido
     assert model.prestacao_conta
+    assert model.detalhe_tipo_receita
+    assert model.detalhe_outros is not None
 
 
 def test_str(receita):

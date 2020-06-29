@@ -42,16 +42,23 @@ class Receita(ModeloBase):
     prestacao_conta = models.ForeignKey('core.PrestacaoConta', on_delete=models.SET_NULL, blank=True, null=True,
                                         related_name='receitas_conciliadas',
                                         verbose_name='prestação de contas de conciliação')
-    
+
     repasse = models.ForeignKey('Repasse', on_delete=models.PROTECT, related_name='receitas',
                                    blank=True, null=True)
+
+    detalhe_tipo_receita = models.ForeignKey('DetalheTipoReceita', on_delete=models.PROTECT, blank=True, null=True)
+    detalhe_outros = models.CharField('Detalhe da despesa (outros)', max_length=160, blank=True, default='')
 
     def __str__(self):
         return f'RECEITA<{self.descricao} - {self.data} - {self.valor}>'
 
     @property
     def detalhamento(self):
-        return "Detalhamento"
+        if self.detalhe_tipo_receita:
+            detalhe = self.detalhe_tipo_receita.nome
+        else:
+            detalhe = self.detalhe_outros
+        return detalhe
 
     @classmethod
     def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None, categoria_receita=None):
