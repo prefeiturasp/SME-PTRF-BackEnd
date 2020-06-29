@@ -1,13 +1,12 @@
 from django.contrib import admin
-
-from sme_ptrf_apps.receitas.models import Receita, TipoReceita, Repasse
-
 from rangefilter.filter import DateRangeFilter
+
+from sme_ptrf_apps.receitas.models import Receita, TipoReceita, Repasse, DetalheTipoReceita
 
 
 @admin.register(TipoReceita)
 class TipoReceitaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'e_repasse')    
+    list_display = ('nome', 'e_repasse')
 
 
 def customTitledFilter(title):
@@ -28,7 +27,7 @@ class ReceitaAdmin(admin.ModelAdmin):
         ('data', DateRangeFilter),
         ('associacao__nome', customTitledFilter('Associação')),
         ('associacao__unidade__dre', customTitledFilter('DRE')),
-        ('acao_associacao__acao__nome', customTitledFilter('Ação')), 
+        ('acao_associacao__acao__nome', customTitledFilter('Ação')),
         ('conta_associacao__tipo_conta__nome', customTitledFilter('Tipo Conta')),
         ('tipo_receita', customTitledFilter('Tipo Receita')))
     readonly_fields = ('uuid', 'id')
@@ -51,3 +50,10 @@ class RepasseAdmin(admin.ModelAdmin):
         self.message_user(request, "Repasses Carregados")
 
     importa_repasses.short_description = "Fazer carga de repasses."
+
+@admin.register(DetalheTipoReceita)
+class DetalheTipoReceitaAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'tipo_receita')
+    readonly_fields = ('uuid', 'id')
+    search_fields = ('nome',)
+    list_filter = ('tipo_receita',)

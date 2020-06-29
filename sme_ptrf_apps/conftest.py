@@ -585,6 +585,11 @@ def tipo_receita_repasse():
 
 
 @pytest.fixture
+def detalhe_tipo_receita(tipo_receita):
+    return baker.make('DetalheTipoReceita', nome='Estorno A', tipo_receita=tipo_receita)
+
+
+@pytest.fixture
 def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita, periodo):
     return baker.make(
         'Receita',
