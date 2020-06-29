@@ -29,7 +29,7 @@ COL_CABECALHO = 9
 LINHA_PERIODO_CABECALHO = 4
 LINHA_ACAO_CABECALHO = 5
 LINHA_CONTA_CABECALHO = 6
-LAST_LINE = 49
+LAST_LINE = 46
 
 # Coluna 2 da planilha
 SALDO_ANTERIOR = 0
@@ -76,9 +76,9 @@ def gerar(periodo, acao_associacao, conta_associacao):
     sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo)
     creditos_demonstrados(worksheet, receitas_demonstradas)
     acc = len(receitas_demonstradas)-1 if len(receitas_demonstradas) > 1 else 0
-    pagamentos(worksheet, rateios_conferidos, acc=acc, start_line=28)
+    pagamentos(worksheet, rateios_conferidos, acc=acc, start_line=27)
     acc += len(rateios_conferidos)-1 if len(rateios_conferidos) > 1 else 0
-    pagamentos(worksheet, rateios_nao_conferidos, acc=acc, start_line=35)
+    pagamentos(worksheet, rateios_nao_conferidos, acc=acc, start_line=33)
 
     return workbook
 
@@ -191,11 +191,11 @@ def creditos_demonstrados(worksheet, receitas, acc=0, start_line=21):
         row[7].value = receita.data.strftime("%d/%m/%Y")
         row[9].value = receita.valor
 
-    row = list(worksheet.rows)[(ind-1) + 2]
+    row = list(worksheet.rows)[(ind-1) + 1]
     row[9].value = valor_total
 
 
-def pagamentos(worksheet, rateios, acc=0, start_line=28):
+def pagamentos(worksheet, rateios, acc=0, start_line=26):
     """
     BLOCO 4 - DESPESAS EFETUADAS NO PERÍODO
     BLOCO 5 - DESPESAS EFETUADAS E NÃO DEMONSTRADAS NO EXTRATO DO PERÍODO (ATUAL E ANTERIORES)
@@ -222,8 +222,8 @@ def pagamentos(worksheet, rateios, acc=0, start_line=28):
         row[TIPO_DESPESA].value = rateio.aplicacao_recurso
 
         tipo_transacao = ''
-        if rateio.despesa.tipo_transacao:
-            if rateio.despesa.tipo_transacao.nome == 'Cheque':
+        if rateio.conta_associacao.tipo_conta:
+            if rateio.conta_associacao.tipo_conta.nome == 'Cheque':
                 tipo_transacao = rateio.despesa.documento_transacao
             else:
                 tipo_transacao = rateio.despesa.tipo_transacao.nome
@@ -233,34 +233,14 @@ def pagamentos(worksheet, rateios, acc=0, start_line=28):
         row[DATA_2].value = rateio.despesa.data_documento.strftime("%d/%m/%Y") if rateio.despesa.data_documento else ''
         row[VALOR].value = rateio.valor_rateio
 
-    row = list(worksheet.rows)[(ind-1) + 2]
+    row = list(worksheet.rows)[(ind-1)+1]
     row[9].value = valor_total
-
-
-def creditos_nao_demonstrados(worksheet, receitas, acc=0):
-    """BLOCO 5 - PAGAMENTOS EFETUADOS E DEMONSTRADOS"""
-
-    quantidade = acc
-    last_line = LAST_LINE + quantidade
-    start_line = 30
-    for linha, receita in enumerate(receitas):
-        # Movendo as linhas para baixo antes de inserir os dados novos
-        ind = start_line + quantidade + linha
-        if linha > 0:
-            for row_idx in range(last_line + linha, ind-2, -1):
-                copy_row(worksheet, row_idx, 1, copy_data=True)
-
-        row = list(worksheet.rows)[ind-1]
-        row[ITEM].value = linha + 1
-        row[1].value = receita.tipo_receita.nome
-        row[5].value = receita.data.strftime("%d/%m/%Y")
-        row[7].value = receita.valor
 
 
 def observacoes(worksheet, fechamento_periodo):
     """BLOCO 6 - OBSERVAÇÃO"""
 
-    start_line = 39
+    start_line = 36
     row = list(worksheet.rows)[start_line]
     row[ITEM].value = fechamento_periodo.observacoes if fechamento_periodo else ''
 
