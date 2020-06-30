@@ -10,7 +10,7 @@ def test_create_serializer(receita):
     assert serializer.data
 
 
-def test_list_serializer(receita):
+def test_list_serializer(receita, detalhe_tipo_receita):
     serializer = ReceitaListaSerializer(receita)
     assert serializer.data
 
@@ -23,6 +23,8 @@ def test_list_serializer(receita):
         'acao_associacao',
         'conta_associacao',
         'conferido',
+        'detalhe_tipo_receita',
+        'detalhe_outros'
     )
 
     for field in expected_fields:

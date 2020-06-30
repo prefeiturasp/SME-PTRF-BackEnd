@@ -12,6 +12,7 @@ pytestmark = pytest.mark.django_db
 def test_create_receita(
     client,
     tipo_receita,
+    detalhe_tipo_receita,
     acao,
     acao_associacao,
     associacao,
@@ -30,6 +31,8 @@ def test_create_receita(
     receita = Receita.objects.get(uuid=result["uuid"])
 
     assert receita.associacao.uuid == associacao.uuid
+    assert receita.detalhe_tipo_receita == detalhe_tipo_receita
+    assert receita.detalhe_outros == 'teste'
 
 
 def test_create_receita_repasse(
@@ -166,6 +169,7 @@ def test_get_tabelas(
 def test_get_receitas(
     jwt_authenticated_client,
     tipo_receita,
+    detalhe_tipo_receita,
     receita,
     acao,
     acao_associacao,
@@ -198,7 +202,12 @@ def test_get_receitas(
                 "nome": conta_associacao.tipo_conta.nome
             },
             'conferido': True,
-            'categoria_receita': receita.categoria_receita
+            'categoria_receita': receita.categoria_receita,
+            'detalhe_tipo_receita': {
+                'id': detalhe_tipo_receita.id,
+                'nome': detalhe_tipo_receita.nome
+            },
+            'detalhe_outros': receita.detalhe_outros
         },
     ]
 
@@ -211,6 +220,7 @@ def test_get_receitas(
 def test_update_receita(
     jwt_authenticated_client,
     tipo_receita,
+    detalhe_tipo_receita,
     acao,
     acao_associacao,
     associacao,
@@ -229,6 +239,8 @@ def test_update_receita(
     receita = Receita.objects.get(uuid=result["uuid"])
 
     assert receita.associacao.uuid == associacao.uuid
+    assert receita.detalhe_tipo_receita == detalhe_tipo_receita
+    assert receita.detalhe_outros == 'teste'
 
 
 def test_deleta_receita(
@@ -278,6 +290,7 @@ def test_deleta_receita_repasse(
 def test_retrive_receitas(
     jwt_authenticated_client,
     tipo_receita,
+    detalhe_tipo_receita,
     receita,
     acao,
     acao_associacao,
@@ -310,6 +323,11 @@ def test_retrive_receitas(
         },
         'conferido': True,
         'categoria_receita': 'CUSTEIO',
+        'detalhe_tipo_receita': {
+            'id': detalhe_tipo_receita.id,
+            'nome': detalhe_tipo_receita.nome
+        },
+        'detalhe_outros': receita.detalhe_outros
     }
 
     assert response.status_code == status.HTTP_200_OK

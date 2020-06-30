@@ -34,11 +34,11 @@ def receita(associacao, conta_associacao, acao_associacao, tipo_receita, prestac
         categoria_receita='CUSTEIO',
         prestacao_conta=prestacao_conta_iniciada,
         detalhe_tipo_receita=detalhe_tipo_receita,
-        detalhe_outros=''
+        detalhe_outros='teste'
     )
 
 @pytest.fixture
-def payload_receita(associacao, conta_associacao, acao_associacao, tipo_receita):
+def payload_receita(associacao, conta_associacao, acao_associacao, tipo_receita, detalhe_tipo_receita):
     payload = {
         'associacao': str(associacao.uuid),
         'data': '2020-03-26',
@@ -47,7 +47,9 @@ def payload_receita(associacao, conta_associacao, acao_associacao, tipo_receita)
         'categoria_receita': 'CUSTEIO',
         'conta_associacao': str(conta_associacao.uuid),
         'acao_associacao': str(acao_associacao.uuid),
-        'tipo_receita': tipo_receita.id
+        'tipo_receita': tipo_receita.id,
+        'detalhe_tipo_receita': detalhe_tipo_receita.id,
+        'detalhe_outros': 'teste',
     }
     return payload
 
