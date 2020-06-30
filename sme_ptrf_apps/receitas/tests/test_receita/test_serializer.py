@@ -18,7 +18,6 @@ def test_list_serializer(receita, detalhe_tipo_receita):
         'uuid',
         'data',
         'valor',
-        'descricao',
         'tipo_receita',
         'acao_associacao',
         'conta_associacao',

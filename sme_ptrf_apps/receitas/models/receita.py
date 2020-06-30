@@ -19,8 +19,6 @@ class Receita(ModeloBase):
 
     valor = models.DecimalField('Valor Receita', max_digits=20, decimal_places=2, default=0)
 
-    descricao = models.TextField('Descrição', max_length=400, blank=True, null=True)
-
     conta_associacao = models.ForeignKey('core.ContaAssociacao', on_delete=models.PROTECT,
                                          related_name='receitas_da_conta', blank=True, null=True)
 
@@ -50,7 +48,7 @@ class Receita(ModeloBase):
     detalhe_outros = models.CharField('Detalhe da despesa (outros)', max_length=160, blank=True, default='')
 
     def __str__(self):
-        return f'RECEITA<{self.descricao} - {self.data} - {self.valor}>'
+        return f'RECEITA<{self.detalhamento} - {self.data} - {self.valor}>'
 
     @property
     def detalhamento(self):
