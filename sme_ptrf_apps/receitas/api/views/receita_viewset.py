@@ -10,7 +10,7 @@ from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAs
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import aplicacoes_recurso_to_json
 from sme_ptrf_apps.receitas.models import Receita
-from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoReceitaSerializer
+from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoReceitaEDetalhesSerializer
 from ...services import atualiza_repasse_para_pendente
 from ....core.models import PrestacaoConta
 
@@ -56,7 +56,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             return serializer(valores, many=True).data if valores else []
 
         result = {
-            'tipos_receita': get_valores_from(TipoReceitaSerializer),
+            'tipos_receita': get_valores_from(TipoReceitaEDetalhesSerializer),
             'categorias_receita': aplicacoes_recurso_to_json(),
             'acoes_associacao': get_valores_from(AcaoAssociacaoLookUpSerializer),
             'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer)
