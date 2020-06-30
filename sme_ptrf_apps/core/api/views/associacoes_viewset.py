@@ -1,20 +1,30 @@
 import datetime
+import logging
 
-from rest_framework import mixins
-from rest_framework import status
+from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from ...models import Associacao, ContaAssociacao, Periodo
+from ...services import (
+    implanta_saldos_da_associacao,
+    implantacoes_de_saldo_da_associacao,
+    info_acoes_associacao_no_periodo,
+    status_aceita_alteracoes_em_transacoes,
+    status_periodo_associacao,
+)
 from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
-from ..serializers.associacao_serializer import AssociacaoSerializer, AssociacaoCreateSerializer
-from ..serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer, ContaAssociacaoInfoAtaSerializer
+from ..serializers.associacao_serializer import AssociacaoCreateSerializer, AssociacaoSerializer
+from ..serializers.conta_associacao_serializer import (
+    ContaAssociacaoCreateSerializer,
+    ContaAssociacaoDadosSerializer,
+    ContaAssociacaoLookUpSerializer,
+)
 from ..serializers.periodo_serializer import PeriodoLookUpSerializer
-from ...models import Associacao, Periodo, ContaAssociacao
-from ...services import (info_acoes_associacao_no_periodo, status_periodo_associacao,
-                         status_aceita_alteracoes_em_transacoes, implantacoes_de_saldo_da_associacao,
-                         implanta_saldos_da_associacao)
+
+logger = logging.getLogger(__name__)
 
 
 class AssociacoesViewSet(mixins.RetrieveModelMixin,
@@ -121,7 +131,6 @@ class AssociacoesViewSet(mixins.RetrieveModelMixin,
 
         return Response(result, status=status.HTTP_200_OK)
 
-
     @action(detail=True, url_path='implantacao-saldos', methods=['get'])
     def implantacao_saldos(self, request, uuid=None):
 
@@ -192,10 +201,53 @@ class AssociacoesViewSet(mixins.RetrieveModelMixin,
 
         return Response(result, status=status_code)
 
-
     @action(detail=True, url_path='contas', methods=['get'])
-    def contas(self, request, uuid):
+    def contas(self, request, uuid=None):
         associacao = self.get_object()
         contas = ContaAssociacao.objects.filter(associacao=associacao).all()
-        contas_data = ContaAssociacaoInfoAtaSerializer(contas, many=True).data
+        contas_data = ContaAssociacaoDadosSerializer(contas, many=True).data
         return Response(contas_data)
+
+    @action(detail=True, url_path='contas-update', methods=['post'])
+    def contas_update(self, request, uuid=None):
+        logger.info("Atualizando Contas da Associação: %s", uuid)
+
+        lista_contas = self.request.data
+
+        if not lista_contas:
+            resultado = {
+                'erro': 'Lista Vazia',
+                'mensagem': 'A lista de contas está vazia.'
+            }
+
+            status_code = status.HTTP_400_BAD_REQUEST
+            logger.info('Erro: %r', resultado)
+
+        for dado_conta in lista_contas:
+            try:
+                conta_associacao = ContaAssociacao.objects.get(uuid=dado_conta['uuid'])
+            except ContaAssociacao.DoesNotExist:
+                resultado = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto conta-associação para o uuid {dado_conta['uuid']} não foi encontrado na base."
+                }
+                status_code = status.HTTP_404_NOT_FOUND
+                logger.info('Erro: %r', resultado)
+
+            conta_serializer = ContaAssociacaoCreateSerializer(conta_associacao, data=dado_conta, partial=True)
+            if conta_serializer.is_valid(raise_exception=False):
+                conta_serializer.save()
+            else:
+                logger.info('Erro: %r', conta_serializer.errors)
+                resultado = {
+                    'erro': 'Erro de validação',
+                    'mensagem': conta_serializer.errors
+                }
+                status_code = status.HTTP_404_NOT_FOUND
+
+            resultado = {
+                'mensagem': 'Contas atualizadas com sucesso'
+            }
+            status_code = status.HTTP_200_OK
+
+        return Response(resultado, status=status_code)
