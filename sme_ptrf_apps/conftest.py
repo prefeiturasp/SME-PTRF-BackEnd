@@ -583,6 +583,14 @@ def tipo_receita():
 def tipo_receita_repasse():
     return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
 
+@pytest.fixture
+def detalhe_tipo_receita_repasse(tipo_receita_repasse):
+    return baker.make('DetalheTipoReceita', nome='Repasse YYY', tipo_receita=tipo_receita_repasse)
+
+@pytest.fixture
+def detalhe_tipo_receita(tipo_receita):
+    return baker.make('DetalheTipoReceita', nome='Estorno A', tipo_receita=tipo_receita)
+
 
 @pytest.fixture
 def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita, periodo):
@@ -591,7 +599,6 @@ def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_r
         associacao=associacao,
         data=periodo.data_inicio_realizacao_despesas + timedelta(days=3),
         valor=100.00,
-        descricao="Receita 100",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
@@ -604,7 +611,6 @@ def receita_100_nao_conferida_anterior_ao_periodo(associacao, conta_associacao, 
         associacao=associacao,
         data=periodo.data_inicio_realizacao_despesas - timedelta(days=3),
         valor=100.00,
-        descricao="Receita 100",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
@@ -620,7 +626,6 @@ def receita_100_no_periodo_acao_de_destaque(associacao, conta_associacao, acao_a
         associacao=associacao,
         data=periodo.data_inicio_realizacao_despesas + timedelta(days=3),
         valor=100.00,
-        descricao="Receita 100",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao_de_destaque,
         tipo_receita=tipo_receita,
@@ -633,7 +638,6 @@ def receita_300_repasse_no_periodo(associacao, conta_associacao, acao_associacao
         associacao=associacao,
         data=periodo.data_inicio_realizacao_despesas + timedelta(days=3),
         valor=300.00,
-        descricao="Receita 200 repasse",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita_repasse,
@@ -647,7 +651,6 @@ def receita_200_no_inicio_do_periodo(associacao, conta_associacao, acao_associac
         associacao=associacao,
         data=periodo.data_inicio_realizacao_despesas,
         valor=200.00,
-        descricao="Receita 200",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
@@ -661,7 +664,6 @@ def receita_300_no_fim_do_periodo(associacao, conta_associacao, acao_associacao,
         associacao=associacao,
         data=periodo.data_fim_realizacao_despesas,
         valor=300.00,
-        descricao="Receita 300",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
@@ -675,7 +677,6 @@ def receita_50_fora_do_periodo(associacao, conta_associacao, acao_associacao, ti
         associacao=associacao,
         data=periodo.data_inicio_realizacao_despesas - timedelta(days=1),
         valor=50.00,
-        descricao="Receita 50",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
@@ -690,7 +691,6 @@ def receita_30_no_periodo_outra_acao(associacao, conta_associacao, acao_associac
         associacao=associacao,
         data=periodo.data_inicio_realizacao_despesas + timedelta(days=3),
         valor=30.00,
-        descricao="Receita 30",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita,
