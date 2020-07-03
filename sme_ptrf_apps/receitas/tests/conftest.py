@@ -39,6 +39,24 @@ def receita(associacao, conta_associacao, acao_associacao, tipo_receita, prestac
 
 
 @pytest.fixture
+def receita_sem_detalhe_tipo_receita(associacao, conta_associacao, acao_associacao, tipo_receita,
+                                     prestacao_conta_iniciada):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
+        conferido=True,
+        categoria_receita='CUSTEIO',
+        prestacao_conta=prestacao_conta_iniciada,
+        detalhe_outros='teste'
+    )
+
+
+@pytest.fixture
 def payload_receita(associacao, conta_associacao, acao_associacao, tipo_receita, detalhe_tipo_receita):
     payload = {
         'associacao': str(associacao.uuid),
