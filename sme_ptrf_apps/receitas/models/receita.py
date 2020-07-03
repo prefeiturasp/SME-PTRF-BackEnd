@@ -3,6 +3,8 @@ from decimal import Decimal
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
@@ -148,5 +150,12 @@ class Receita(ModeloBase):
         receita = cls.by_uuid(uuid)
         return receita.desmarcar_conferido()
 
+
+@receiver(pre_save, sender=Receita)
+def rateio_pre_save(instance, **kwargs):
+    if instance.tipo_receita.tem_detalhamento():
+        instance.detalhe_outros = ""
+    else:
+        instance.detalhe_tipo_receita = None
 
 auditlog.register(Receita)
