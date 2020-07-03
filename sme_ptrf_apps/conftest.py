@@ -300,6 +300,19 @@ def periodo_2020_1(periodo):
         periodo_anterior=periodo
     )
 
+@pytest.fixture
+def periodo_2019_2(periodo):
+    return baker.make(
+        'Periodo',
+        referencia='2019.2',
+        data_inicio_realizacao_despesas=date(2019, 6, 1),
+        data_fim_realizacao_despesas=date(2019, 12, 30),
+        data_prevista_repasse=date(2019, 6, 1),
+        data_inicio_prestacao_contas=date(2020, 1, 1),
+        data_fim_prestacao_contas=date(2020, 1, 10),
+        periodo_anterior=periodo
+    )
+
 
 @pytest.fixture
 def periodo_fim_em_2020_06_30():

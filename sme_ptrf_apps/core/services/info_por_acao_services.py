@@ -3,7 +3,7 @@ from decimal import Decimal
 from ..models import FechamentoPeriodo, Associacao, AcaoAssociacao, ContaAssociacao
 from ...despesas.models import RateioDespesa
 from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
-from ...receitas.models import Receita
+from ...receitas.models import Receita, Repasse
 
 
 def especificacoes_despesas_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=None, conta=None):
@@ -185,8 +185,9 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
             return info
 
         if periodo.periodo_anterior:
-            fechamentos_periodo_anterior = FechamentoPeriodo.fechamentos_da_acao_no_periodo(acao_associacao=acao_associacao,
-                                                                                            periodo=periodo.periodo_anterior)
+            fechamentos_periodo_anterior = FechamentoPeriodo.fechamentos_da_acao_no_periodo(
+                acao_associacao=acao_associacao,
+                periodo=periodo.periodo_anterior)
             if fechamentos_periodo_anterior:
                 sumario_periodo_anterior = fechamento_sumarizado_por_acao(fechamentos_periodo_anterior, conta=conta)
                 info['saldo_anterior_capital'] = sumario_periodo_anterior['saldo_atual_capital']
@@ -210,13 +211,31 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
         return periodo_aberto_sumarizado_por_acao(periodo, acao_associacao, conta=conta)
 
 
+def info_repasses_pendentes_acao_associacao_no_periodo(acao_associacao, periodo, conta=None):
+    repasses_pendentes = Repasse.repasses_pendentes_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
+                                                                                  periodo=periodo,
+                                                                                  conta_associacao=conta)
+
+    total_repasses = {
+        'CAPITAL': 0,
+        'CUSTEIO': 0,
+    }
+    for repasse in repasses_pendentes:
+        total_repasses['CAPITAL'] += repasse.valor_capital if not repasse.realizado_capital else 0
+        total_repasses['CUSTEIO'] += repasse.valor_custeio if not repasse.realizado_custeio else 0
+
+    return total_repasses
+
 def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
     acoes_associacao = Associacao.acoes_da_associacao(associacao_uuid=associacao_uuid)
     result = []
     for acao_associacao in acoes_associacao:
         info_acao = info_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo, conta=conta)
         especificacoes_despesas = especificacoes_despesas_acao_associacao_no_periodo(acao_associacao=acao_associacao,
-                                                                                    periodo=periodo, conta=conta)
+                                                                                     periodo=periodo, conta=conta)
+
+        info_repasses_pendentes = info_repasses_pendentes_acao_associacao_no_periodo(acao_associacao=acao_associacao,
+                                                                                     periodo=periodo, conta=conta)
         info = {
             'acao_associacao_uuid': f'{acao_associacao.uuid}',
             'acao_associacao_nome': acao_associacao.acao.nome,
@@ -262,6 +281,9 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
 
             'especificacoes_despesas_capital': especificacoes_despesas['CAPITAL'],
             'especificacoes_despesas_custeio': especificacoes_despesas['CUSTEIO'],
+
+            'repasses_nao_realizados_capital': info_repasses_pendentes['CAPITAL'],
+            'repasses_nao_realizados_custeio': info_repasses_pendentes['CUSTEIO'],
         }
         result.append(info)
 

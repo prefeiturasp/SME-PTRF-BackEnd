@@ -39,6 +39,24 @@ def receita(associacao, conta_associacao, acao_associacao, tipo_receita, prestac
 
 
 @pytest.fixture
+def receita_sem_detalhe_tipo_receita(associacao, conta_associacao, acao_associacao, tipo_receita,
+                                     prestacao_conta_iniciada):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
+        conferido=True,
+        categoria_receita='CUSTEIO',
+        prestacao_conta=prestacao_conta_iniciada,
+        detalhe_outros='teste'
+    )
+
+
+@pytest.fixture
 def payload_receita(associacao, conta_associacao, acao_associacao, tipo_receita, detalhe_tipo_receita):
     payload = {
         'associacao': str(associacao.uuid),
@@ -150,6 +168,68 @@ def repasse(associacao, conta_associacao, acao_associacao, periodo):
         acao_associacao=acao_associacao,
         status='PENDENTE'
     )
+
+
+@pytest.fixture
+def repasse_2020_1_capital_pendente(associacao, conta_associacao, acao_associacao, periodo_2020_1):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo_2020_1,
+        valor_custeio=1000.00,
+        valor_capital=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE',
+        realizado_capital=False,
+        realizado_custeio=True
+    )
+
+@pytest.fixture
+def repasse_2020_1_custeio_pendente(associacao, conta_associacao, acao_associacao, periodo_2020_1):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo_2020_1,
+        valor_custeio=1000.00,
+        valor_capital=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE',
+        realizado_capital=True,
+        realizado_custeio=False
+    )
+
+@pytest.fixture
+def repasse_2020_1_pendente(associacao, conta_associacao, acao_associacao, periodo_2020_1):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo_2020_1,
+        valor_custeio=1000.00,
+        valor_capital=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE',
+        realizado_capital=False,
+        realizado_custeio=False
+    )
+
+@pytest.fixture
+def repasse_2020_1_realizado(associacao, conta_associacao, acao_associacao, periodo_2020_1):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo_2020_1,
+        valor_custeio=1000.00,
+        valor_capital=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='REALIZADO',
+        realizado_capital=True,
+        realizado_custeio=True
+    )
+
 
 
 @pytest.fixture

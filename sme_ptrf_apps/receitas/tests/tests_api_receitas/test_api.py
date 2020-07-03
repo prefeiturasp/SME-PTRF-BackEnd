@@ -32,7 +32,6 @@ def test_create_receita(
 
     assert receita.associacao.uuid == associacao.uuid
     assert receita.detalhe_tipo_receita == detalhe_tipo_receita
-    assert receita.detalhe_outros == 'teste'
 
 
 def test_create_receita_repasse(
@@ -239,7 +238,6 @@ def test_update_receita(
 
     assert receita.associacao.uuid == associacao.uuid
     assert receita.detalhe_tipo_receita == detalhe_tipo_receita
-    assert receita.detalhe_outros == 'teste'
 
 
 def test_deleta_receita(
