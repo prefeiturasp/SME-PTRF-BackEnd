@@ -1024,3 +1024,13 @@ def payload_membro_pai_responsavel(associacao):
         'codigo_identificacao': ''
     }
     return payload
+
+
+@pytest.fixture
+def observacao(acao_associacao, prestacao_conta):
+    return baker.make(
+        'Observacao',
+        prestacao_conta=prestacao_conta,
+        acao_associacao=acao_associacao,
+        texto="Uma bela observação."
+    )

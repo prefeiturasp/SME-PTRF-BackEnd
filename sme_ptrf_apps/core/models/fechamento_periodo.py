@@ -109,10 +109,6 @@ class FechamentoPeriodo(ModeloBase):
     def saldo_anterior_capital(self):
         return self.fechamento_anterior.saldo_reprogramado_capital if self.fechamento_anterior else 0
 
-    @property
-    def observacoes(self):
-        return "Observações"
-
     def __str__(self):
         return f"{self.periodo} - {self.acao_associacao.acao.nome} - {self.conta_associacao.tipo_conta.nome}  - {self.status}"
 
