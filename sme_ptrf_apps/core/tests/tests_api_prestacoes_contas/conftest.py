@@ -324,3 +324,79 @@ def rateio_despesa_2019_role_nao_conferido(associacao, despesa_2019_2, conta_ass
         conferido=False,
 
     )
+
+@pytest.fixture
+def repasse_2020_1_capital_pendente(associacao, conta_associacao, acao_associacao, periodo_2020_1):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo_2020_1,
+        valor_custeio=1000.00,
+        valor_capital=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE',
+        realizado_capital=False,
+        realizado_custeio=True
+    )
+
+@pytest.fixture
+def repasse_2020_1_custeio_pendente(associacao, conta_associacao, acao_associacao, periodo_2020_1):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo_2020_1,
+        valor_custeio=1000.00,
+        valor_capital=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE',
+        realizado_capital=True,
+        realizado_custeio=False
+    )
+
+@pytest.fixture
+def repasse_2019_2_pendente(associacao, conta_associacao, acao_associacao, periodo_2019_2):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo_2019_2,
+        valor_custeio=1000.00,
+        valor_capital=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE',
+        realizado_capital=False,
+        realizado_custeio=False
+    )
+
+@pytest.fixture
+def repasse_2020_1_pendente(associacao, conta_associacao, acao_associacao, periodo_2020_1):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo_2020_1,
+        valor_custeio=1000.00,
+        valor_capital=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE',
+        realizado_capital=False,
+        realizado_custeio=False
+    )
+
+@pytest.fixture
+def repasse_2020_1_realizado(associacao, conta_associacao, acao_associacao, periodo_2020_1):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo_2020_1,
+        valor_custeio=1000.00,
+        valor_capital=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='REALIZADO',
+        realizado_capital=True,
+        realizado_custeio=True
+    )
+

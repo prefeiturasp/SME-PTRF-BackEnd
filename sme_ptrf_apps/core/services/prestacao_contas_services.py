@@ -77,6 +77,8 @@ def informacoes_financeiras_para_atas(prestacao_contas):
             'saldo_atual_custeio': 0,
             'saldo_atual_capital': 0,
             'saldo_atual_total': 0,
+            'repasses_nao_realizados_capital': 0,
+            'repasses_nao_realizados_custeio': 0
         }
         for info_acao in info_acoes:
             for key in totalizador.keys():
