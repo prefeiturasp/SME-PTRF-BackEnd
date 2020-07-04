@@ -43,8 +43,6 @@ class PrestacaoConta(ModeloBase):
 
     conciliado_em = models.DateTimeField('Última conciliação feita em', blank=True, null=True)
 
-    observacoes = models.TextField('observacoes', blank=True, default='')
-
     motivo_reabertura = models.TextField('Motivo de reabrir a conciliação', blank=True, default='')
 
     def __str__(self):
@@ -87,16 +85,14 @@ class PrestacaoConta(ModeloBase):
         return prestacao_de_conta
 
     @classmethod
-    def salvar(cls, uuid, observacoes):
+    def salvar(cls, uuid):
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
-        prestacao_de_conta.observacoes = observacoes
         prestacao_de_conta.save()
         return prestacao_de_conta
 
     @classmethod
-    def concluir(cls, uuid, observacoes):
+    def concluir(cls, uuid):
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
-        prestacao_de_conta.observacoes = observacoes
         prestacao_de_conta.conciliado = True
         prestacao_de_conta.conciliado_em = datetime.now()
         prestacao_de_conta.save()

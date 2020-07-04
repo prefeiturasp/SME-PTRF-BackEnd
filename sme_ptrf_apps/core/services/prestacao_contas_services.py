@@ -1,4 +1,4 @@
-from ..models import PrestacaoConta, ContaAssociacao, Periodo, AcaoAssociacao, FechamentoPeriodo, Associacao
+from ..models import PrestacaoConta, ContaAssociacao, Periodo, AcaoAssociacao, FechamentoPeriodo, Associacao, Observacao
 from ..services import info_acoes_associacao_no_periodo
 from ...despesas.models import RateioDespesa
 from ...receitas.models import Receita
@@ -12,7 +12,8 @@ def iniciar_prestacao_de_contas(conta_associacao_uuid, periodo_uuid):
 
 
 def concluir_prestacao_de_contas(prestacao_contas_uuid, observacoes):
-    prestacao = PrestacaoConta.concluir(uuid=prestacao_contas_uuid, observacoes=observacoes)
+    prestacao = PrestacaoConta.concluir(uuid=prestacao_contas_uuid)
+    Observacao.criar_atualizar(prestacao, observacoes)
 
     associacao = prestacao.associacao
     periodo = prestacao.periodo
@@ -43,7 +44,10 @@ def concluir_prestacao_de_contas(prestacao_contas_uuid, observacoes):
 
 
 def salvar_prestacao_de_contas(prestacao_contas_uuid, observacoes):
-    return PrestacaoConta.salvar(uuid=prestacao_contas_uuid, observacoes=observacoes)
+    prestacao = PrestacaoConta.salvar(uuid=prestacao_contas_uuid)
+    Observacao.criar_atualizar(prestacao, observacoes)
+
+    return prestacao
 
 
 def revisar_prestacao_de_contas(prestacao_contas_uuid, motivo):

@@ -1,5 +1,6 @@
 from django.db import models
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.core.models import AcaoAssociacao
 
 
 class Observacao(ModeloBase):
@@ -16,4 +17,25 @@ class Observacao(ModeloBase):
         verbose_name_plural = 'observações'
 
     def __str__(self):
-        return text[:30]
+        return self.texto[:30]
+
+    @classmethod
+    def criar_atualizar(cls, prestacao_conta, lista_observacoes=None):
+        if lista_observacoes:
+            for obs_data in lista_observacoes:
+                observacao = cls.objects.filter(
+                    acao_associacao__uuid=obs_data['acao_associacao_uuid'], 
+                    prestacao_conta=prestacao_conta).first()
+                if observacao:
+                    if obs_data['observacao']:
+                        observacao.texto = obs_data['observacao']
+                        observacao.save()
+                    else:
+                        observacao.delete()
+                elif obs_data['observacao']:
+                    cls.objects.create(
+                        prestacao_conta=prestacao_conta,
+                        acao_associacao=AcaoAssociacao.objects.filter(
+                            uuid=obs_data['acao_associacao_uuid']).first(),
+                        texto=obs_data['observacao']
+                    )

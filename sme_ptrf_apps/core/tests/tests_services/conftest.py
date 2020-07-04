@@ -321,7 +321,6 @@ def prestacao_conta_2020_1_iniciada(periodo_2020_1, associacao, conta_associacao
         status=STATUS_ABERTO,
         conciliado=False,
         conciliado_em=None,
-        observacoes='',
         motivo_reabertura=''
     )
 
@@ -336,7 +335,6 @@ def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associac
         status=STATUS_ABERTO,
         conciliado=True,
         conciliado_em=datetime.date(2020, 7, 1),
-        observacoes='teste',
         motivo_reabertura=''
     )
 
@@ -350,6 +348,5 @@ def prestacao_conta_2020_1_nao_conciliada(periodo_2020_1, associacao, conta_asso
         status=STATUS_ABERTO,
         conciliado=False,
         conciliado_em=None,
-        observacoes='',
         motivo_reabertura=''
     )
