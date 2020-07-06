@@ -31,7 +31,7 @@ admin.site.register(Observacao)
 @admin.register(Associacao)
 class AssociacaoAdmin(admin.ModelAdmin):
     def get_nome_escola(self, obj):
-        return obj.nome if obj else ''
+        return obj.unidade.nome if obj else ''
 
     get_nome_escola.short_description = 'Escola'
 
