@@ -76,7 +76,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=True, methods=['patch'])
     def salvar(self, request, uuid):
-        observacoes = request.data.get('observacoes', "")
+        observacoes = request.data.get('observacoes')
 
         prestacao_de_conta_salva = salvar_prestacao_de_contas(prestacao_contas_uuid=uuid, observacoes=observacoes)
         return Response(PrestacaoContaLookUpSerializer(prestacao_de_conta_salva, many=False).data,
@@ -84,7 +84,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=True, methods=['patch'])
     def concluir(self, request, uuid):
-        observacoes = request.data.get('observacoes', "")
+        observacoes = request.data.get('observacoes')
 
         prestacao_conta_concluida = concluir_prestacao_de_contas(prestacao_contas_uuid=uuid, observacoes=observacoes)
         return Response(PrestacaoContaLookUpSerializer(prestacao_conta_concluida, many=False).data,
@@ -188,4 +188,15 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def tabela_valores_pendentes(self, request, uuid):
         prestacao_conta = self.get_object()
         result = info_conciliacao_pendente(prestacao_contas=prestacao_conta)
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='observacoes')
+    def observacoes(self, request, uuid):
+        prestacao_conta = self.get_object()
+        observacoes = prestacao_conta.observacoes_da_prestacao.all()
+        result = []
+        if observacoes:
+            for obs in observacoes:
+                result.append({'acao_associacao_uuid': str(obs.acao_associacao.uuid), 'observacao': obs.texto})
+
         return Response(result, status=status.HTTP_200_OK)

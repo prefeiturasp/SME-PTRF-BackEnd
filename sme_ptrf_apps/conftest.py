@@ -380,7 +380,6 @@ def prestacao_conta(periodo, associacao, conta_associacao, prestacao_conta_anter
         status=PRESTACAO_FECHADA,
         conciliado=True,
         conciliado_em=datetime(2020, 1, 1, 10, 30, 15),
-        observacoes='Teste',
         motivo_reabertura='Teste'
     )
 
@@ -395,7 +394,6 @@ def prestacao_conta_iniciada(periodo_2020_1, associacao, conta_associacao_cartao
         status=PRESTACAO_ABERTA,
         conciliado=False,
         conciliado_em=None,
-        observacoes='',
         motivo_reabertura=''
     )
 
@@ -429,7 +427,6 @@ def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associac
         status=STATUS_ABERTO,
         conciliado=True,
         conciliado_em=date(2020, 7, 1),
-        observacoes='teste',
         motivo_reabertura=''
     )
 
@@ -1037,3 +1034,13 @@ def payload_membro_pai_responsavel(associacao):
         'codigo_identificacao': ''
     }
     return payload
+
+
+@pytest.fixture
+def observacao(acao_associacao, prestacao_conta):
+    return baker.make(
+        'Observacao',
+        prestacao_conta=prestacao_conta,
+        acao_associacao=acao_associacao,
+        texto="Uma bela observação."
+    )

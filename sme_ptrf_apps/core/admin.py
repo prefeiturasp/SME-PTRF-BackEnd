@@ -9,13 +9,14 @@ from .models import (
     ContaAssociacao,
     DemonstrativoFinanceiro,
     FechamentoPeriodo,
+    MembroAssociacao,
+    Observacao,
     Parametros,
     Periodo,
     PrestacaoConta,
     RelacaoBens,
     TipoConta,
     Unidade,
-    MembroAssociacao
 )
 
 admin.site.register(TipoConta)
@@ -24,6 +25,7 @@ admin.site.register(DemonstrativoFinanceiro)
 admin.site.register(Parametros)
 admin.site.register(RelacaoBens)
 admin.site.register(MembroAssociacao)
+admin.site.register(Observacao)
 
 
 @admin.register(Associacao)
