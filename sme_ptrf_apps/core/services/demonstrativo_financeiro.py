@@ -17,7 +17,7 @@ from openpyxl.cell.cell import Cell, MergedCell
 from openpyxl.utils import column_index_from_string, get_column_letter, range_boundaries
 from openpyxl.utils.cell import coordinate_from_string
 
-from sme_ptrf_apps.core.models import Associacao, FechamentoPeriodo, PrestacaoConta, MembroAssociacao
+from sme_ptrf_apps.core.models import Associacao, FechamentoPeriodo, PrestacaoConta, MembroAssociacao, Observacao
 from sme_ptrf_apps.core.choices import MembroEnum
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
@@ -72,7 +72,7 @@ def gerar(periodo, acao_associacao, conta_associacao):
 
     cabecalho(worksheet, periodo, acao_associacao, conta_associacao)
     identificacao_apm(worksheet, acao_associacao)
-    observacoes(worksheet, fechamento_periodo)
+    observacoes(worksheet, acao_associacao)
     sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo)
     creditos_demonstrados(worksheet, receitas_demonstradas)
     acc = len(receitas_demonstradas)-1 if len(receitas_demonstradas) > 1 else 0
@@ -237,12 +237,12 @@ def pagamentos(worksheet, rateios, acc=0, start_line=26):
     row[9].value = valor_total
 
 
-def observacoes(worksheet, fechamento_periodo):
+def observacoes(worksheet, acao_associacao):
     """BLOCO 6 - OBSERVAÇÃO"""
 
     start_line = 36
     row = list(worksheet.rows)[start_line]
-    row[ITEM].value = fechamento_periodo.observacoes if fechamento_periodo else ''
+    row[ITEM].value = Observacao.objetcs.filter(acao_associacao=acao_associacao).first().texto if Observacao.objetcs.filter(acao_associacao=acao_associacao).exists() else ''
 
 
 def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_merged_columns=True):
