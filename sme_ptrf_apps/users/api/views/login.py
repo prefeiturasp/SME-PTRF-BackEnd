@@ -41,10 +41,18 @@ class LoginView(ObtainJSONWebToken):
 
                     request._full_data = {'username': user_dict['login'], 'password': senha}
                     resp = super().post(request, *args, **kwargs)
-                    associacao = user.associacao #Associacao.objects.filter(usuario=user).first()
+                    associacao = user.associacao 
                     if not associacao:
                         associacao = Associacao.objects.first()
-                    associacao_dict = {'uuid': associacao.uuid, 'nome': associacao.nome} if associacao else {'uuid': '', 'nome': ''}
+                    associacao_dict = {
+                        'uuid': associacao.uuid,
+                        'nome': associacao.nome,
+                        'nome_escola': associacao.unidade.nome,
+                        'tipo_escola': associacao.unidade.tipo_unidade} if associacao else {
+                                                                                            'uuid': '',
+                                                                                            'nome': '',
+                                                                                            'nome_escola': '',
+                                                                                            'tipo_escola': ''}
                     user_dict['associacao'] = associacao_dict
                     data = {**user_dict, **resp.data}
                     return Response(data)

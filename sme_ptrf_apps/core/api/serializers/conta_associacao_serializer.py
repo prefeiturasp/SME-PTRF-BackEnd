@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from ..serializers.associacao_serializer import AssociacaoSerializer
 from ..serializers.tipo_conta_serializer import TipoContaSerializer
-from ...models import ContaAssociacao
+from ...models import ContaAssociacao, Associacao
 
 
 class ContaAssociacaoSerializer(serializers.ModelSerializer):
@@ -34,3 +34,17 @@ class ContaAssociacaoInfoAtaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContaAssociacao
         fields = ('uuid', 'nome', 'banco_nome', 'agencia', 'numero_conta', )
+
+
+class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
+    tipo_conta = TipoContaSerializer()
+
+    class Meta:
+        model = ContaAssociacao
+        fields = ('uuid', 'tipo_conta', 'banco_nome', 'agencia', 'numero_conta', )
+
+
+class ContaAssociacaoCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContaAssociacao
+        exclude = ('id',)

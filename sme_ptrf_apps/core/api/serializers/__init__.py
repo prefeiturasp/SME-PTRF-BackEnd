@@ -1,9 +1,17 @@
-from .acao_associacao_serializer import AcaoAssociacaoSerializer, AcaoAssociacaoLookUpSerializer
-from .associacao_serializer import (AssociacaoSerializer, AssociacaoLookupSerializer, AssociacaoCreateSerializer,
-                                    AssociacaoInfoAtaSerializer)
+from .acao_associacao_serializer import AcaoAssociacaoLookUpSerializer, AcaoAssociacaoSerializer
+from .associacao_serializer import (
+    AssociacaoCreateSerializer,
+    AssociacaoInfoAtaSerializer,
+    AssociacaoLookupSerializer,
+    AssociacaoSerializer,
+)
 from .ata_serializer import AtaLookUpSerializer, AtaSerializer
-from .conta_associacao_serializer import (ContaAssociacaoSerializer, ContaAssociacaoLookUpSerializer,
-                                          ContaAssociacaoInfoAtaSerializer)
+from .conta_associacao_serializer import (
+    ContaAssociacaoInfoAtaSerializer,
+    ContaAssociacaoLookUpSerializer,
+    ContaAssociacaoSerializer,
+)
+from .membro_associacao_serializer import MembroAssociacaoCreateSerializer, MembroAssociacaoListSerializer
 from .prestacao_conta_serializer import PrestacaoContaLookUpSerializer
 from .tipo_conta_serializer import TipoContaSerializer
-from .unidade_serializer import UnidadeSerializer, UnidadeLookUpSerializer, UnidadeInfoAtaSerializer
+from .unidade_serializer import UnidadeInfoAtaSerializer, UnidadeLookUpSerializer, UnidadeSerializer

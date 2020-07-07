@@ -5,11 +5,28 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 0.4.0
+Versão: 0.5.0
 
 
 ## Release Notes
 
+### 0.5.0 - 07/07/2020 - Entregas da Sprint 6
+* Confirmação de repasses na entrada de créditos agora considera a classificação da receita em capital ou custeio;
+* Alterada a estrutura do Demonstrativo Financeiro;
+* Lançamento de saldos reprogramados (implantação de saldos);
+* Cadastramento de todos os cargos da Associação;
+* Cadastramento de dados das contas da Associação;
+* Verificação de duplicidade no lançamento de uma despesa;
+* CNPJ/CPF do fornecedor agora é brigatório no lançamento de uma despesa;
+* Períodos futuros não são mais exibidos no painel de ações;
+* Implementadas buscas por data e fornecedor na consulta de despesas;
+* Implementada busca por data na consulta de créditos;
+* Parametrização por tipo de documento para aceitar apenas dígitos no lançamento de despesas;
+* Criado campo para detalhamento de créditos parametrizavel por tipo de crédito;
+* O campo de observação da prestação de contas agora é vinculado à ação da associação;
+* Exibição de valores de créditos futuros na ata da prestação de contas;
+* Exibição do nome da escola abaixo do usuário em vez do nome da associação; 
+  
 ### 0.4.0 - 16/06/2020 - Entregas da Sprint 5
 * Geração do documento Relação de Bens na prestação de contas
 * Adicionado campo "Nº do cheque" no lançamento de despesas

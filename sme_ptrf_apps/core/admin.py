@@ -9,6 +9,8 @@ from .models import (
     ContaAssociacao,
     DemonstrativoFinanceiro,
     FechamentoPeriodo,
+    MembroAssociacao,
+    Observacao,
     Parametros,
     Periodo,
     PrestacaoConta,
@@ -22,11 +24,14 @@ admin.site.register(Acao)
 admin.site.register(DemonstrativoFinanceiro)
 admin.site.register(Parametros)
 admin.site.register(RelacaoBens)
+admin.site.register(MembroAssociacao)
+admin.site.register(Observacao)
+
 
 @admin.register(Associacao)
 class AssociacaoAdmin(admin.ModelAdmin):
     def get_nome_escola(self, obj):
-        return obj.nome if obj else ''
+        return obj.unidade.nome if obj else ''
 
     get_nome_escola.short_description = 'Escola'
 
@@ -40,7 +45,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
     actions = ['importa_associacoes', ]
     list_display = ('nome', 'cnpj', 'get_nome_escola', 'get_usuarios')
     search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome')
-    list_filter = ('unidade__dre',)
+    list_filter = ('unidade__dre', 'periodo_inicial')
     readonly_fields = ('uuid', 'id')
 
     def get_usuarios(self, obj):

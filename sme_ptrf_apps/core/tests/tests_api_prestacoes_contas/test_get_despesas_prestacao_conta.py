@@ -29,21 +29,21 @@ def test_api_get_despesas_conferidas_prestacao_conta(client,
 
     result = json.loads(response.content)
 
-    resultado_esperado = []
+    resultado_esperado = [None, None]
 
     result_esperado = RateioDespesaListaSerializer(rateio_despesa_2020_role_conferido, many=False).data
     # Converto os campos não string em strings para que a comparação funcione
     result_esperado['data_documento'] = f'{result_esperado["data_documento"]}'
     result_esperado['data_transacao'] = f'{result_esperado["data_transacao"]}'
     result_esperado['despesa'] = f'{result_esperado["despesa"]}'
-    resultado_esperado.append(result_esperado)
+    resultado_esperado[0] = result_esperado
 
     result_esperado = RateioDespesaListaSerializer(rateio_despesa_2019_role_conferido_na_prestacao, many=False).data
     # Converto os campos não string em strings para que a comparação funcione
     result_esperado['data_documento'] = f'{result_esperado["data_documento"]}'
     result_esperado['data_transacao'] = f'{result_esperado["data_transacao"]}'
     result_esperado['despesa'] = f'{result_esperado["despesa"]}'
-    resultado_esperado.append(result_esperado)
+    resultado_esperado[1] = result_esperado
 
 
 
@@ -106,20 +106,20 @@ def test_api_get_despesas_nao_conferidas_prestacao_traz_periodos_anteriores(clie
 
     result = json.loads(response.content)
 
-    resultado_esperado = []
+    resultado_esperado = [None, None]
     result_esperado = RateioDespesaListaSerializer(rateio_despesa_2020_role_nao_conferido, many=False).data
     # Converto os campos não string em strings para que a comparação funcione
     result_esperado['data_documento'] = f'{result_esperado["data_documento"]}'
     result_esperado['data_transacao'] = f'{result_esperado["data_transacao"]}'
     result_esperado['despesa'] = f'{result_esperado["despesa"]}'
-    resultado_esperado.append(result_esperado)
+    resultado_esperado[0] = result_esperado
 
     result_esperado = RateioDespesaListaSerializer(rateio_despesa_2019_role_nao_conferido, many=False).data
     # Converto os campos não string em strings para que a comparação funcione
     result_esperado['data_documento'] = f'{result_esperado["data_documento"]}'
     result_esperado['data_transacao'] = f'{result_esperado["data_transacao"]}'
     result_esperado['despesa'] = f'{result_esperado["despesa"]}'
-    resultado_esperado.append(result_esperado)
+    resultado_esperado[1] = result_esperado
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado, "Não retornou a lista de despesas esperada."

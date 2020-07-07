@@ -11,16 +11,17 @@ def test_instance(receita):
     assert model.associacao
     assert model.data
     assert model.valor
-    assert model.descricao
     assert model.conta_associacao
     assert model.acao_associacao
     assert model.tipo_receita
     assert model.conferido
     assert model.prestacao_conta
+    assert model.detalhe_tipo_receita
+    assert model.detalhe_outros is not None
 
 
 def test_str(receita):
-    assert str(receita) == "RECEITA<Uma receita - 2020-03-26 - 100.0>"
+    assert str(receita) == "RECEITA<Estorno A - 2020-03-26 - 100.0>"
 
 def test_marcar_conferido(receita_nao_conferida):
     receita_nao_conferida.marcar_conferido()

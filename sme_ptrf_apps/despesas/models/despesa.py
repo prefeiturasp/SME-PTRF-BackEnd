@@ -82,6 +82,11 @@ class Despesa(ModeloBase):
         if cadastro_completo != status_completo:
             self.save()  # Força um rec'alculo do status.
 
+    @classmethod
+    def by_documento(cls, tipo_documento, numero_documento, cpf_cnpj_fornecedor, associacao__uuid):
+        return cls.objects.filter(associacao__uuid=associacao__uuid).filter(
+            cpf_cnpj_fornecedor=cpf_cnpj_fornecedor).filter(tipo_documento=tipo_documento).filter(
+            numero_documento=numero_documento).first()
     class Meta:
         verbose_name = "Despesa"
         verbose_name_plural = "Despesas"
@@ -100,5 +105,5 @@ def rateio_post_save(instance, created, **kwargs):
     if instance and instance.cpf_cnpj_fornecedor and instance.nome_fornecedor:
         Fornecedor.atualiza_ou_cria(cpf_cnpj=instance.cpf_cnpj_fornecedor, nome=instance.nome_fornecedor)
 
-auditlog.register(Despesa)
 
+auditlog.register(Despesa)
