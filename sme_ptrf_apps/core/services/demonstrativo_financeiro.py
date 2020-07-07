@@ -242,7 +242,7 @@ def observacoes(worksheet, acao_associacao):
 
     start_line = 36
     row = list(worksheet.rows)[start_line]
-    row[ITEM].value = Observacao.objetcs.filter(acao_associacao=acao_associacao).first().texto if Observacao.objetcs.filter(acao_associacao=acao_associacao).exists() else ''
+    row[ITEM].value = Observacao.objects.filter(acao_associacao=acao_associacao).first().texto if Observacao.objects.filter(acao_associacao=acao_associacao).exists() else ''
 
 
 def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_merged_columns=True):
