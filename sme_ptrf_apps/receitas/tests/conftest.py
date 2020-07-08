@@ -93,7 +93,7 @@ def receita_xxx_estorno(associacao, conta_associacao_cheque, acao_associacao_ptr
         associacao=associacao,
         data=datetime.date(2020, 3, 26),
         valor=100.00,
-        detalhe_outros="Receita XXX",
+        detalhe_outros="Receita XXXÇ",
         conta_associacao=conta_associacao_cheque,
         acao_associacao=acao_associacao_ptrf,
         tipo_receita=tipo_receita_estorno,

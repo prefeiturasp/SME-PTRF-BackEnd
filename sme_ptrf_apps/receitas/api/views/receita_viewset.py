@@ -1,4 +1,5 @@
 from django_filters import rest_framework as filters
+from django.db.models import Q
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -27,7 +28,6 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     serializer_class = ReceitaListaSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data',)
-    search_fields = ('detalhe_outros', 'detalhe_tipo_receita__nome')
     filter_fields = ('associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid', 'conferido')
 
     def get_serializer_class(self):
@@ -45,6 +45,11 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         data_fim = self.request.query_params.get('data_fim')
         if data_inicio is not None and data_fim is not None:
             qs = qs.filter(data__range=[data_inicio, data_fim])
+
+        search = self.request.query_params.get('search')
+        if search is not None:
+            qs = qs.filter(Q(detalhe_outros__unaccent__icontains=search) | Q(
+                detalhe_tipo_receita__nome__unaccent__icontains=search))
 
         return qs
 
