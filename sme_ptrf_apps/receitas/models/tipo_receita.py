@@ -15,3 +15,6 @@ class TipoReceita(ModeloIdNome):
 
     def __str__(self):
         return self.nome
+
+    def tem_detalhamento(self):
+        return self.detalhes_tipo_receita.exists()

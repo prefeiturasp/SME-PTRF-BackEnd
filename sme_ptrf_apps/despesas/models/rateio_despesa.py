@@ -1,12 +1,14 @@
+from datetime import date
 from decimal import Decimal
 
 from django.db import models
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+
 from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO
-from ..tipos_aplicacao_recurso import APLICACAO_CHOICES, APLICACAO_CUSTEIO, APLICACAO_CAPITAL
+from ..tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
 
 
 class RateioDespesa(ModeloBase):
@@ -144,6 +146,27 @@ class RateioDespesa(ModeloBase):
             APLICACAO_CAPITAL: sorted(especificacoes[APLICACAO_CAPITAL]),
             APLICACAO_CUSTEIO: sorted(especificacoes[APLICACAO_CUSTEIO])
         }
+
+    @classmethod
+    def rateios_da_acao_associacao_em_qualquer_periodo(cls, acao_associacao, conferido=None, conta_associacao=None,
+                                              exclude_despesa=None, aplicacao_recurso=None):
+        
+        dataset = cls.objects.filter(acao_associacao=acao_associacao,
+                                     despesa__data_documento__lte=date.today())
+
+        if conferido is not None:
+            dataset = dataset.filter(conferido=conferido)
+
+        if exclude_despesa:
+            dataset = dataset.exclude(despesa__uuid=exclude_despesa)
+        
+        if conta_associacao:
+            dataset = dataset.filter(conta_associacao=conta_associacao)
+
+        if aplicacao_recurso:
+            dataset = dataset.filter(aplicacao_recurso=aplicacao_recurso)
+
+        return dataset.all()
 
     def marcar_conferido(self, prestacao_conta=None):
         self.conferido = True

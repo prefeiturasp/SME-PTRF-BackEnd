@@ -5,6 +5,7 @@ from django.db import models
 from sme_ptrf_apps.core.models import Associacao, Periodo
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
+
 class StatusRepasse(Enum):
     PENDENTE = 'Pendente'
     REALIZADO = 'Realizado'
@@ -16,7 +17,7 @@ STATUS_CHOICES = (
 
 
 class Repasse(ModeloBase):
-    associacao = models.ForeignKey(Associacao, on_delete=models.PROTECT, related_name='repasses', 
+    associacao = models.ForeignKey(Associacao, on_delete=models.PROTECT, related_name='repasses',
                                    blank=True, null=True)
 
     valor_capital = models.DecimalField('Valor Capital', max_digits=20, decimal_places=2, default=0)
@@ -29,7 +30,7 @@ class Repasse(ModeloBase):
     acao_associacao = models.ForeignKey('core.AcaoAssociacao', on_delete=models.PROTECT,
                                         related_name='repasses_da_associacao', blank=True, null=True)
 
-    periodo = models.ForeignKey(Periodo, on_delete=models.PROTECT, 
+    periodo = models.ForeignKey(Periodo, on_delete=models.PROTECT,
                                 related_name='+', blank=True, null=True)
 
     status = models.CharField(
@@ -37,6 +38,10 @@ class Repasse(ModeloBase):
         choices=STATUS_CHOICES,
         default=StatusRepasse.PENDENTE.value
     )
+
+    realizado_capital = models.BooleanField('Realizado Capital?', default=False)
+
+    realizado_custeio = models.BooleanField('Realizado Custeio?', default=False)
 
     class Meta:
         verbose_name = 'Repasse'
@@ -48,3 +53,14 @@ class Repasse(ModeloBase):
     @property
     def valor_total(self):
         return self.valor_capital + self.valor_custeio
+
+    @classmethod
+    def repasses_pendentes_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conta_associacao=None):
+
+        dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(status='PENDENTE').filter(periodo=periodo)
+
+        if conta_associacao:
+            dataset = dataset.filter(conta_associacao=conta_associacao)
+
+        return dataset.all()
+

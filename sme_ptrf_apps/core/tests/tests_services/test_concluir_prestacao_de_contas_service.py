@@ -1,20 +1,25 @@
 import pytest
 
 from ...models.prestacao_conta import STATUS_ABERTO
+from ...models import Observacao
 from ...services import concluir_prestacao_de_contas
 
 pytestmark = pytest.mark.django_db
 
 
-def test_prestacao_de_contas_deve_ser_atualizada(prestacao_conta_iniciada):
-    observacoes = "Teste"
+def test_prestacao_de_contas_deve_ser_atualizada(prestacao_conta_iniciada, acao_associacao_ptrf):
+    observacoes = [{
+        "acao_associacao_uuid": str(acao_associacao_ptrf.uuid),
+        "observacao": "Teste"
+    }]
     prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid,
                                              observacoes=observacoes)
 
-    assert prestacao.observacoes == observacoes, "Deveria ter gravado as observações"
     assert prestacao.status == STATUS_ABERTO, "O status deveria continuar como aberto."
     assert prestacao.conciliado, "Deveria ter sido marcada como conciliado."
     assert prestacao.conciliado_em is not None, "Deveria ter gravado a data e hora da última conciliação."
+    assert Observacao.objects.filter(prestacao_conta__uuid=prestacao_conta_iniciada.uuid,
+                                     acao_associacao__uuid=acao_associacao_ptrf.uuid).exists()
 
 
 def test_fechamentos_devem_ser_criados_por_acao(prestacao_conta_iniciada,
@@ -30,12 +35,18 @@ def test_fechamentos_devem_ser_criados_por_acao(prestacao_conta_iniciada,
                                                 rateio_despesa_2020_role_custeio_nao_conferido,
                                                 rateio_despesa_2020_role_capital_conferido,
                                                 despesa_2019_2,
-                                                rateio_despesa_2019_role_conferido):
-    observacoes = "Teste"
+                                                rateio_despesa_2019_role_conferido,
+                                                acao_associacao_ptrf):
+    observacoes = [{
+        "acao_associacao_uuid": str(acao_associacao_ptrf.uuid),
+        "observacao": "Teste"
+    }]
+
     prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid,
                                              observacoes=observacoes)
     assert prestacao.fechamentos_da_prestacao.count() == 2, "Deveriam ter sido criados dois fechamentos, um por ação."
-
+    assert Observacao.objects.filter(prestacao_conta__uuid=prestacao_conta_iniciada.uuid,
+                                     acao_associacao__uuid=acao_associacao_ptrf.uuid).exists()
 
 def test_deve_sumarizar_transacoes_incluindo_nao_conferidas(prestacao_conta_iniciada,
                                                             periodo_2020_1,
@@ -51,7 +62,10 @@ def test_deve_sumarizar_transacoes_incluindo_nao_conferidas(prestacao_conta_inic
                                                             despesa_2019_2,
                                                             rateio_despesa_2019_role_conferido,
                                                             ):
-    observacoes = "Teste"
+    observacoes = [{
+        "acao_associacao_uuid": str(prestacao_conta_iniciada.associacao.acoes.filter(status='ATIVA').first().uuid),
+        "observacao": ""
+    }]
     prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid,
                                              observacoes=observacoes)
     assert prestacao.fechamentos_da_prestacao.count() == 1, "Deveriam ter sido criado apenas um fechamento."
@@ -59,16 +73,16 @@ def test_deve_sumarizar_transacoes_incluindo_nao_conferidas(prestacao_conta_inic
     fechamento = prestacao.fechamentos_da_prestacao.first()
 
     total_receitas_capital_esperado = receita_2020_1_role_repasse_capital_conferida.valor + \
-                                      receita_2020_1_role_repasse_capital_nao_conferida.valor
+        receita_2020_1_role_repasse_capital_nao_conferida.valor
     assert fechamento.total_receitas_capital == total_receitas_capital_esperado
     assert fechamento.total_receitas_nao_conciliadas_capital == receita_2020_1_role_repasse_capital_nao_conferida.valor
 
     total_repasses_capital_esperado = receita_2020_1_role_repasse_capital_conferida.valor + \
-                                      receita_2020_1_role_repasse_capital_nao_conferida.valor
+        receita_2020_1_role_repasse_capital_nao_conferida.valor
     assert fechamento.total_repasses_capital == total_repasses_capital_esperado
 
     total_receitas_custeio_esperado = receita_2020_1_role_rendimento_custeio_conferida.valor + \
-                                      receita_2020_1_role_repasse_custeio_conferida.valor
+        receita_2020_1_role_repasse_custeio_conferida.valor
     assert fechamento.total_receitas_custeio == total_receitas_custeio_esperado
     assert fechamento.total_receitas_nao_conciliadas_custeio == 0
 
@@ -80,7 +94,7 @@ def test_deve_sumarizar_transacoes_incluindo_nao_conferidas(prestacao_conta_inic
     assert fechamento.total_despesas_nao_conciliadas_capital == 0
 
     total_despesas_custeio = rateio_despesa_2020_role_custeio_conferido.valor_rateio + \
-                             rateio_despesa_2020_role_custeio_nao_conferido.valor_rateio
+        rateio_despesa_2020_role_custeio_nao_conferido.valor_rateio
     assert fechamento.total_despesas_custeio == total_despesas_custeio
     assert fechamento.total_despesas_nao_conciliadas_custeio == rateio_despesa_2020_role_custeio_nao_conferido.valor_rateio
 
@@ -99,8 +113,12 @@ def test_fechamentos_devem_ser_vinculados_a_anteriores(fechamento_periodo_2019_2
                                                        rateio_despesa_2020_role_custeio_nao_conferido,
                                                        rateio_despesa_2020_role_capital_conferido,
                                                        despesa_2019_2,
-                                                       rateio_despesa_2019_role_conferido):
-    observacoes = "Teste"
+                                                       rateio_despesa_2019_role_conferido,
+                                                       acao_associacao_ptrf):
+    observacoes = [{
+        "acao_associacao_uuid": str(acao_associacao_ptrf.uuid),
+        "observacao": "Teste"
+    }]
     prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_2020_1_iniciada.uuid,
                                              observacoes=observacoes)
 
@@ -118,11 +136,14 @@ def test_deve_gravar_lista_de_especificacoes_despesas(prestacao_conta_iniciada,
                                                       despesa_2019_2,
                                                       rateio_despesa_2019_role_conferido,
                                                       ):
-    observacoes = "Teste"
+    observacoes = [{
+        "acao_associacao_uuid": str(prestacao_conta_iniciada.associacao.acoes.filter(status='ATIVA').first().uuid),
+        "observacao": "Teste"
+    }]
     prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid,
                                              observacoes=observacoes)
     assert prestacao.fechamentos_da_prestacao.count() == 1, "Deveriam ter sido criado apenas um fechamento."
 
     fechamento = prestacao.fechamentos_da_prestacao.first()
-    assert fechamento.especificacoes_despesas_capital == ['Ar condicionado',]
-    assert fechamento.especificacoes_despesas_custeio == ['Instalação elétrica',]
+    assert fechamento.especificacoes_despesas_capital == ['Ar condicionado', ]
+    assert fechamento.especificacoes_despesas_custeio == ['Instalação elétrica', ]

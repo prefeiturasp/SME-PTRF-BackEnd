@@ -1,4 +1,4 @@
-from datetime import date, timedelta, datetime
+from datetime import date, datetime, timedelta
 
 import pytest
 from django.test import RequestFactory
@@ -7,10 +7,11 @@ from rest_framework.test import APIClient
 
 from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
-from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO
+from .core.choices import MembroEnum, RepresentacaoCargo
+from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO
 from .core.models.prestacao_conta import STATUS_ABERTO as PRESTACAO_ABERTA
 from .core.models.prestacao_conta import STATUS_FECHADO as PRESTACAO_FECHADA
-from .despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
+from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 
 @pytest.fixture
@@ -119,7 +120,7 @@ def unidade(dre):
 
 
 @pytest.fixture
-def associacao(unidade):
+def associacao(unidade, periodo_anterior):
     return baker.make(
         'Associacao',
         nome='Escola Teste',
@@ -128,7 +129,36 @@ def associacao(unidade):
         presidente_associacao_nome='Fulano',
         presidente_associacao_rf='1234567',
         presidente_conselho_fiscal_nome='Ciclano',
-        presidente_conselho_fiscal_rf='7654321'
+        presidente_conselho_fiscal_rf='7654321',
+        periodo_inicial=periodo_anterior,
+    )
+
+@pytest.fixture
+def outra_associacao(unidade, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Outra',
+        cnpj='52.302.275/0001-99',
+        unidade=unidade,
+        presidente_associacao_nome='Fulano',
+        presidente_associacao_rf='1234567',
+        presidente_conselho_fiscal_nome='Ciclano',
+        presidente_conselho_fiscal_rf='7654321',
+        periodo_inicial=periodo_anterior,
+    )
+
+@pytest.fixture
+def associacao_sem_periodo_inicial(unidade):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste',
+        cnpj='52.302.275/0001-83',
+        unidade=unidade,
+        presidente_associacao_nome='Fulano',
+        presidente_associacao_rf='1234567',
+        presidente_conselho_fiscal_nome='Ciclano',
+        presidente_conselho_fiscal_rf='7654321',
+        periodo_inicial=None,
     )
 
 
@@ -270,6 +300,19 @@ def periodo_2020_1(periodo):
         periodo_anterior=periodo
     )
 
+@pytest.fixture
+def periodo_2019_2(periodo):
+    return baker.make(
+        'Periodo',
+        referencia='2019.2',
+        data_inicio_realizacao_despesas=date(2019, 6, 1),
+        data_fim_realizacao_despesas=date(2019, 12, 30),
+        data_prevista_repasse=date(2019, 6, 1),
+        data_inicio_prestacao_contas=date(2020, 1, 1),
+        data_fim_prestacao_contas=date(2020, 1, 10),
+        periodo_anterior=periodo
+    )
+
 
 @pytest.fixture
 def periodo_fim_em_2020_06_30():
@@ -337,7 +380,6 @@ def prestacao_conta(periodo, associacao, conta_associacao, prestacao_conta_anter
         status=PRESTACAO_FECHADA,
         conciliado=True,
         conciliado_em=datetime(2020, 1, 1, 10, 30, 15),
-        observacoes='Teste',
         motivo_reabertura='Teste'
     )
 
@@ -352,7 +394,6 @@ def prestacao_conta_iniciada(periodo_2020_1, associacao, conta_associacao_cartao
         status=PRESTACAO_ABERTA,
         conciliado=False,
         conciliado_em=None,
-        observacoes='',
         motivo_reabertura=''
     )
 
@@ -386,7 +427,6 @@ def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associac
         status=STATUS_ABERTO,
         conciliado=True,
         conciliado_em=date(2020, 7, 1),
-        observacoes='teste',
         motivo_reabertura=''
     )
 
@@ -433,6 +473,25 @@ def fechamento_periodo_anterior_role(periodo_anterior, associacao, conta_associa
         total_repasses_custeio=900,
         total_despesas_custeio=800,
         status=STATUS_FECHADO
+    )
+
+
+@pytest.fixture
+def fechamento_periodo_anterior_role_implantado(periodo_anterior, associacao, conta_associacao, acao_associacao_role_cultural, ):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo_anterior,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_role_cultural,
+        fechamento_anterior=None,
+        total_receitas_capital=1000,
+        total_repasses_capital=0,
+        total_despesas_capital=0,
+        total_receitas_custeio=2000,
+        total_repasses_custeio=0,
+        total_despesas_custeio=0,
+        status=STATUS_IMPLANTACAO
     )
 
 @pytest.fixture
@@ -534,6 +593,14 @@ def tipo_receita():
 def tipo_receita_repasse():
     return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
 
+@pytest.fixture
+def detalhe_tipo_receita_repasse(tipo_receita_repasse):
+    return baker.make('DetalheTipoReceita', nome='Repasse YYY', tipo_receita=tipo_receita_repasse)
+
+@pytest.fixture
+def detalhe_tipo_receita(tipo_receita):
+    return baker.make('DetalheTipoReceita', nome='Estorno A', tipo_receita=tipo_receita)
+
 
 @pytest.fixture
 def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita, periodo):
@@ -542,7 +609,6 @@ def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_r
         associacao=associacao,
         data=periodo.data_inicio_realizacao_despesas + timedelta(days=3),
         valor=100.00,
-        descricao="Receita 100",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
@@ -555,7 +621,6 @@ def receita_100_nao_conferida_anterior_ao_periodo(associacao, conta_associacao, 
         associacao=associacao,
         data=periodo.data_inicio_realizacao_despesas - timedelta(days=3),
         valor=100.00,
-        descricao="Receita 100",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
@@ -571,7 +636,6 @@ def receita_100_no_periodo_acao_de_destaque(associacao, conta_associacao, acao_a
         associacao=associacao,
         data=periodo.data_inicio_realizacao_despesas + timedelta(days=3),
         valor=100.00,
-        descricao="Receita 100",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao_de_destaque,
         tipo_receita=tipo_receita,
@@ -584,7 +648,6 @@ def receita_300_repasse_no_periodo(associacao, conta_associacao, acao_associacao
         associacao=associacao,
         data=periodo.data_inicio_realizacao_despesas + timedelta(days=3),
         valor=300.00,
-        descricao="Receita 200 repasse",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita_repasse,
@@ -598,7 +661,6 @@ def receita_200_no_inicio_do_periodo(associacao, conta_associacao, acao_associac
         associacao=associacao,
         data=periodo.data_inicio_realizacao_despesas,
         valor=200.00,
-        descricao="Receita 200",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
@@ -612,7 +674,6 @@ def receita_300_no_fim_do_periodo(associacao, conta_associacao, acao_associacao,
         associacao=associacao,
         data=periodo.data_fim_realizacao_despesas,
         valor=300.00,
-        descricao="Receita 300",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
@@ -626,7 +687,6 @@ def receita_50_fora_do_periodo(associacao, conta_associacao, acao_associacao, ti
         associacao=associacao,
         data=periodo.data_inicio_realizacao_despesas - timedelta(days=1),
         valor=50.00,
-        descricao="Receita 50",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
@@ -641,7 +701,6 @@ def receita_30_no_periodo_outra_acao(associacao, conta_associacao, acao_associac
         associacao=associacao,
         data=periodo.data_inicio_realizacao_despesas + timedelta(days=3),
         valor=30.00,
-        descricao="Receita 30",
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita,
@@ -922,4 +981,66 @@ def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
         cargo_secretaria_reuniao='Secretaria',
         comentarios='Teste',
         parecer_conselho='APROVADA'
+    )
+
+
+@pytest.fixture
+def membro_associacao(associacao):
+    return baker.make(
+        'MembroAssociacao',
+        nome='Arthur Nobrega',
+        associacao=associacao,
+        cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value,
+        cargo_educacao='Coordenador',
+        representacao=RepresentacaoCargo.SERVIDOR.value,
+        codigo_identificacao='567432'
+    )
+
+
+@pytest.fixture
+def payload_membro_servidor(associacao):
+    payload = {
+        'nome': "Adriano Imperador",
+        'associacao': str(associacao.uuid),
+        'cargo_associacao': MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name,
+        'cargo_educacao': 'Coordenador',
+        'representacao': RepresentacaoCargo.SERVIDOR.name,
+        'codigo_identificacao': '567432'
+    }
+    return payload
+
+
+@pytest.fixture
+def payload_membro_estudante(associacao):
+    payload = {
+        'nome': "Arthur Oliveira",
+        'associacao': str(associacao.uuid),
+        'cargo_associacao': MembroEnum.VOGAL_1.name,
+        'cargo_educacao': '',
+        'representacao': RepresentacaoCargo.ESTUDANTE.name,
+        'codigo_identificacao': '567431'
+    }
+    return payload
+
+
+@pytest.fixture
+def payload_membro_pai_responsavel(associacao):
+    payload = {
+        'nome': "Lana Oliveira",
+        'associacao': str(associacao.uuid),
+        'cargo_associacao': MembroEnum.VOGAL_3.name,
+        'cargo_educacao': '',
+        'representacao': RepresentacaoCargo.PAI_RESPONSAVEL.name,
+        'codigo_identificacao': ''
+    }
+    return payload
+
+
+@pytest.fixture
+def observacao(acao_associacao, prestacao_conta):
+    return baker.make(
+        'Observacao',
+        prestacao_conta=prestacao_conta,
+        acao_associacao=acao_associacao,
+        texto="Uma bela observação."
     )

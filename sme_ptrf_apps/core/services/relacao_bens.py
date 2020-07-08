@@ -16,6 +16,8 @@ from openpyxl.cell.cell import Cell, MergedCell
 from openpyxl.utils import column_index_from_string, get_column_letter, range_boundaries
 from openpyxl.utils.cell import coordinate_from_string
 
+from sme_ptrf_apps.core.choices import MembroEnum
+from sme_ptrf_apps.core.models import MembroAssociacao
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL
 
@@ -41,7 +43,8 @@ LAST_LINE = 24
 
 def gerar(periodo, conta_associacao):
     LOGGER.info("GERANDO RELAÇÃO DE BENS...")
-    rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(conta_associacao=conta_associacao, periodo=periodo, aplicacao_recurso=APLICACAO_CAPITAL)
+    rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
+        conta_associacao=conta_associacao, periodo=periodo, aplicacao_recurso=APLICACAO_CAPITAL)
     path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
     nome_arquivo = os.path.join(path, 'modelo_relacao_de_bens.xlsx')
     workbook = load_workbook(nome_arquivo)
@@ -68,8 +71,10 @@ def identificacao_apm(worksheet, conta_associacao):
     rows[9][4].value = associacao.cnpj
     rows[9][5].value = associacao.unidade.codigo_eol
     rows[9][6].value = associacao.unidade.dre.nome
-    rows[LAST_LINE-2][3].value = associacao.presidente_associacao_nome if associacao.presidente_associacao_nome else ''
+    presidente_diretoria_executiva = MembroAssociacao.objects.filter(associacao=associacao,
+                                                                     cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
 
+    rows[LAST_LINE-2][3].value = presidente_diretoria_executiva.nome if presidente_diretoria_executiva else ''
     autenticacao(worksheet, associacao)
 
 
@@ -91,7 +96,7 @@ def pagamentos(worksheet, rateios, acc=0, start_line=15):
 
     quantidade = acc-1 if acc else 0
     last_line = LAST_LINE + quantidade
-    valor_total = sum(r.valor_rateio for r  in rateios)
+    valor_total = sum(r.valor_rateio for r in rateios)
     row = list(worksheet.rows)[16]
     row[7].value = valor_total
 
@@ -111,11 +116,11 @@ def pagamentos(worksheet, rateios, acc=0, start_line=15):
         row[QUANTIDADE].value = rateio.quantidade_itens_capital
         row[VALOR_ITEM].value = rateio.valor_item_capital
         row[VALOR_RATEIO].value = rateio.valor_rateio
-        
+
 
 def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_merged_columns=True):
     """Copia uma linha da planilha para a linha imediatamento abaixo mantendo todos os atributos."""
-    CELL_RE  = re.compile("(?P<col>\$?[A-Z]+)(?P<row>\$?\d+)")
+    CELL_RE = re.compile("(?P<col>\$?[A-Z]+)(?P<row>\$?\d+)")
 
     def replace(m):
         row = m.group('row')
@@ -123,9 +128,9 @@ def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_me
         row = int(row.replace("$", ""))
         row += dest_row if row > source_row else 0
         return m.group('col') + prefix + str(row)
-    
+
     # Fazendo unmerge das celulas de destino.
-    mergedcells =[]  
+    mergedcells = []
     for group in ws.merged_cells.ranges:
         mergedcells.append(group)
 
@@ -149,7 +154,7 @@ def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_me
             if copy_data and not isinstance(cell, MergedCell):
                 cell.data_type = source.data_type
                 cell.value = source.value
-    
+
     for cr_idx, cr in enumerate(ws.merged_cell_ranges):
         ws.merged_cell_ranges[cr_idx] = CELL_RE.sub(
             replace,

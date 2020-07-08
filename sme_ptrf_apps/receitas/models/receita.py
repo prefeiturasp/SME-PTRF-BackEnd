@@ -3,6 +3,8 @@ from decimal import Decimal
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
@@ -18,8 +20,6 @@ class Receita(ModeloBase):
     data = models.DateField('Data Receita', blank=True, null=True)
 
     valor = models.DecimalField('Valor Receita', max_digits=20, decimal_places=2, default=0)
-
-    descricao = models.TextField('Descrição', max_length=400, blank=True, null=True)
 
     conta_associacao = models.ForeignKey('core.ContaAssociacao', on_delete=models.PROTECT,
                                          related_name='receitas_da_conta', blank=True, null=True)
@@ -43,11 +43,25 @@ class Receita(ModeloBase):
                                         related_name='receitas_conciliadas',
                                         verbose_name='prestação de contas de conciliação')
 
+    repasse = models.ForeignKey('Repasse', on_delete=models.PROTECT, related_name='receitas',
+                                   blank=True, null=True)
+
+    detalhe_tipo_receita = models.ForeignKey('DetalheTipoReceita', on_delete=models.PROTECT, blank=True, null=True)
+    detalhe_outros = models.CharField('Detalhe da despesa (outros)', max_length=160, blank=True, default='')
+
     def __str__(self):
-        return f'RECEITA<{self.descricao} - {self.data} - {self.valor}>'
+        return f'RECEITA<{self.detalhamento} - {self.data} - {self.valor}>'
+
+    @property
+    def detalhamento(self):
+        if self.detalhe_tipo_receita:
+            detalhe = self.detalhe_tipo_receita.nome
+        else:
+            detalhe = self.detalhe_outros
+        return detalhe
 
     @classmethod
-    def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None):
+    def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None, categoria_receita=None):
         if periodo.data_fim_realizacao_despesas:
             dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
                 data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
@@ -60,6 +74,9 @@ class Receita(ModeloBase):
 
         if conta_associacao:
             dataset = dataset.filter(conta_associacao=conta_associacao)
+
+        if categoria_receita:
+            dataset = dataset.filter(categoria_receita=categoria_receita)
 
         return dataset.all()
 
@@ -133,5 +150,12 @@ class Receita(ModeloBase):
         receita = cls.by_uuid(uuid)
         return receita.desmarcar_conferido()
 
+
+@receiver(pre_save, sender=Receita)
+def rateio_pre_save(instance, **kwargs):
+    if instance.tipo_receita.tem_detalhamento():
+        instance.detalhe_outros = ""
+    else:
+        instance.detalhe_tipo_receita = None
 
 auditlog.register(Receita)

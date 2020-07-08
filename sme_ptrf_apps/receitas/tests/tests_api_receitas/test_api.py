@@ -12,6 +12,7 @@ pytestmark = pytest.mark.django_db
 def test_create_receita(
     client,
     tipo_receita,
+    detalhe_tipo_receita,
     acao,
     acao_associacao,
     associacao,
@@ -30,6 +31,8 @@ def test_create_receita(
     receita = Receita.objects.get(uuid=result["uuid"])
 
     assert receita.associacao.uuid == associacao.uuid
+    assert receita.detalhe_tipo_receita == detalhe_tipo_receita
+
 
 def test_create_receita_repasse(
     client,
@@ -45,7 +48,8 @@ def test_create_receita_repasse(
     with freeze_time('2019-11-29'):
         assert Repasse.objects.get(uuid=repasse.uuid).status == 'PENDENTE'
 
-        response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
+        response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse),
+                               content_type='application/json')
 
         assert response.status_code == status.HTTP_201_CREATED
 
@@ -57,7 +61,7 @@ def test_create_receita_repasse(
 
         assert receita.associacao.uuid == associacao.uuid
 
-        assert Repasse.objects.get(uuid=repasse.uuid).status == 'REALIZADO'
+        assert Repasse.objects.get(uuid=repasse.uuid).status == 'PENDENTE'
 
 
 def test_create_receita_repasse_periodo_invalido(
@@ -71,12 +75,11 @@ def test_create_receita_repasse_periodo_invalido(
     repasse,
     payload_receita_repasse
 ):
-
-    payload_receita_repasse['data'] = '2020-01-11'
+    payload_receita_repasse['data'] = '2020-09-02'
     response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
     result = json.loads(response.content)
 
-    assert result == ["Data da receita maior que a data fim da realização de despesas."]
+    assert result == ["Repasse não encontrado."]
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
@@ -92,13 +95,13 @@ def test_create_receita_repasse_valor_diferente(
     repasse,
     payload_receita_repasse
 ):
-
     with freeze_time('2019-11-29'):
         payload_receita_repasse['valor'] = 2000.67
-        response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
+        response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse),
+                               content_type='application/json')
         result = json.loads(response.content)
 
-        assert result == ['Valor do payload não é igual ao valor total do repasse.']
+        assert result == ['Valor do payload não é igual ao valor do CAPITAL.']
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
@@ -109,8 +112,9 @@ def test_get_tabelas(
     acao_associacao,
     associacao,
     tipo_conta,
-    conta_associacao):
-
+    conta_associacao,
+    detalhe_tipo_receita
+):
     response = jwt_authenticated_client.get('/api/receitas/tabelas/', content_type='application/json')
     result = json.loads(response.content)
 
@@ -121,7 +125,13 @@ def test_get_tabelas(
                 'nome': tipo_receita.nome,
                 'e_repasse': tipo_receita.e_repasse,
                 'aceita_capital': tipo_receita.aceita_capital,
-                'aceita_custeio': tipo_receita.aceita_custeio
+                'aceita_custeio': tipo_receita.aceita_custeio,
+                'detalhes_tipo_receita': [
+                    {
+                        'id': detalhe_tipo_receita.id,
+                        'nome': detalhe_tipo_receita.nome
+                    },
+                ]
             },
         ],
         "categorias_receita": [
@@ -158,6 +168,7 @@ def test_get_tabelas(
 def test_get_receitas(
     jwt_authenticated_client,
     tipo_receita,
+    detalhe_tipo_receita,
     receita,
     acao,
     acao_associacao,
@@ -172,7 +183,6 @@ def test_get_receitas(
             'uuid': str(receita.uuid),
             'data': '2020-03-26',
             'valor': '100.00',
-            'descricao': "Uma receita",
             'tipo_receita': {
                 'id': tipo_receita.id,
                 'nome': tipo_receita.nome,
@@ -190,7 +200,12 @@ def test_get_receitas(
                 "nome": conta_associacao.tipo_conta.nome
             },
             'conferido': True,
-            'categoria_receita': receita.categoria_receita
+            'categoria_receita': receita.categoria_receita,
+            'detalhe_tipo_receita': {
+                'id': detalhe_tipo_receita.id,
+                'nome': detalhe_tipo_receita.nome
+            },
+            'detalhe_outros': receita.detalhe_outros
         },
     ]
 
@@ -203,6 +218,7 @@ def test_get_receitas(
 def test_update_receita(
     jwt_authenticated_client,
     tipo_receita,
+    detalhe_tipo_receita,
     acao,
     acao_associacao,
     associacao,
@@ -212,7 +228,7 @@ def test_update_receita(
     payload_receita
 ):
     response = jwt_authenticated_client.put(f'/api/receitas/{receita.uuid}/', data=json.dumps(payload_receita),
-                          content_type='application/json')
+                                            content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -221,6 +237,7 @@ def test_update_receita(
     receita = Receita.objects.get(uuid=result["uuid"])
 
     assert receita.associacao.uuid == associacao.uuid
+    assert receita.detalhe_tipo_receita == detalhe_tipo_receita
 
 
 def test_deleta_receita(
@@ -233,7 +250,6 @@ def test_deleta_receita(
     conta_associacao,
     receita,
     payload_receita):
-
     assert Receita.objects.filter(uuid=receita.uuid).exists()
 
     response = jwt_authenticated_client.delete(f'/api/receitas/{receita.uuid}/', content_type='application/json')
@@ -253,13 +269,13 @@ def test_deleta_receita_repasse(
     conta_associacao_cartao,
     receita_yyy_repasse,
     repasse_realizado
-    ):
-
+):
     assert Repasse.objects.get(uuid=repasse_realizado.uuid).status == 'REALIZADO'
 
     assert Receita.objects.filter(uuid=receita_yyy_repasse.uuid).exists()
 
-    response = jwt_authenticated_client.delete(f'/api/receitas/{receita_yyy_repasse.uuid}/', content_type='application/json')
+    response = jwt_authenticated_client.delete(f'/api/receitas/{receita_yyy_repasse.uuid}/',
+                                               content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -271,40 +287,44 @@ def test_deleta_receita_repasse(
 def test_retrive_receitas(
     jwt_authenticated_client,
     tipo_receita,
+    detalhe_tipo_receita,
     receita,
     acao,
     acao_associacao,
     associacao,
     tipo_conta,
     conta_associacao):
-
     response = jwt_authenticated_client.get(f'/api/receitas/{receita.uuid}/', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = {
-            'uuid': str(receita.uuid),
-            'data': '2020-03-26',
-            'valor': '100.00',
-            'descricao': "Uma receita",
-            'tipo_receita': {
-                'id': tipo_receita.id,
-                'nome': tipo_receita.nome,
-                'e_repasse': tipo_receita.e_repasse,
-                'aceita_capital': tipo_receita.aceita_capital,
-                'aceita_custeio': tipo_receita.aceita_custeio
-            },
-            "acao_associacao": {
-                "uuid": str(acao_associacao.uuid),
-                "id": acao_associacao.id,
-                "nome": acao_associacao.acao.nome
-            },
-            'conta_associacao': {
-                "uuid": str(conta_associacao.uuid),
-                "nome": conta_associacao.tipo_conta.nome
-            },
-            'conferido': True,
-            'categoria_receita': 'CUSTEIO',
-        }
+        'uuid': str(receita.uuid),
+        'data': '2020-03-26',
+        'valor': '100.00',
+        'tipo_receita': {
+            'id': tipo_receita.id,
+            'nome': tipo_receita.nome,
+            'e_repasse': tipo_receita.e_repasse,
+            'aceita_capital': tipo_receita.aceita_capital,
+            'aceita_custeio': tipo_receita.aceita_custeio
+        },
+        "acao_associacao": {
+            "uuid": str(acao_associacao.uuid),
+            "id": acao_associacao.id,
+            "nome": acao_associacao.acao.nome
+        },
+        'conta_associacao': {
+            "uuid": str(conta_associacao.uuid),
+            "nome": conta_associacao.tipo_conta.nome
+        },
+        'conferido': True,
+        'categoria_receita': 'CUSTEIO',
+        'detalhe_tipo_receita': {
+            'id': detalhe_tipo_receita.id,
+            'nome': detalhe_tipo_receita.nome
+        },
+        'detalhe_outros': receita.detalhe_outros
+    }
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado

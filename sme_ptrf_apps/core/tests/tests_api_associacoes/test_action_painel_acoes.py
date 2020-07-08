@@ -63,6 +63,8 @@ def test_action_painel_acoes(
                 'receitas_nao_conciliadas_custeio': 400.0,
                 'especificacoes_despesas_capital': ['Ar condicionado',],
                 'especificacoes_despesas_custeio': ['Material elétrico'],
+                'repasses_nao_realizados_capital': 0.0,
+                'repasses_nao_realizados_custeio': 0.0
             }
         ]
     }
@@ -126,6 +128,8 @@ def test_action_painel_acoes_por_periodo(
                 'receitas_nao_conciliadas_custeio': 0.0,
                 'especificacoes_despesas_capital': [],
                 'especificacoes_despesas_custeio': [],
+                'repasses_nao_realizados_capital': 0.0,
+                'repasses_nao_realizados_custeio': 0.0
             }
         ]
     }
@@ -184,6 +188,8 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
                 'receitas_nao_conciliadas_custeio': 100.0,
                 'especificacoes_despesas_capital': [],
                 'especificacoes_despesas_custeio': [],
+                'repasses_nao_realizados_capital': 0.0,
+                'repasses_nao_realizados_custeio': 0.0
             },
             {
                 'acao_associacao_uuid': f'{acao_associacao.uuid}',
@@ -212,6 +218,8 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
                 'receitas_nao_conciliadas_custeio': 100.0,
                 'especificacoes_despesas_capital': [],
                 'especificacoes_despesas_custeio': [],
+                'repasses_nao_realizados_capital': 0.0,
+                'repasses_nao_realizados_custeio': 0.0
             }
         ]
     }

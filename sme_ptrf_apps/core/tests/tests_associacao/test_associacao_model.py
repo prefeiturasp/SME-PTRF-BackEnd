@@ -1,9 +1,8 @@
 import pytest
-
 from django.contrib import admin
 
 from ...models import Associacao
-from ....core.models import Unidade
+from ....core.models import Unidade, Periodo
 
 pytestmark = pytest.mark.django_db
 
@@ -22,6 +21,7 @@ def test_instance_model(associacao):
     assert model.presidente_conselho_fiscal_nome
     assert model.presidente_conselho_fiscal_rf
     assert isinstance(model.unidade, Unidade)
+    assert isinstance(model.periodo_inicial, Periodo)
 
 
 def test_srt_model(associacao):

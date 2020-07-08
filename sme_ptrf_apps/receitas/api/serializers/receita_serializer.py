@@ -6,6 +6,7 @@ from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAs
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.models import Associacao, AcaoAssociacao, ContaAssociacao
 from sme_ptrf_apps.receitas.models import Receita
+from .detalhe_tipo_receita_serializer import DetalheTipoReceitaSerializer
 from .tipo_receita_serializer import TipoReceitaSerializer
 from ...services import atualiza_repasse_para_realizado, atualiza_repasse_para_pendente
 
@@ -33,16 +34,21 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         if validated_data['tipo_receita'].e_repasse:
-            atualiza_repasse_para_realizado(validated_data)
+            repasse = atualiza_repasse_para_realizado(validated_data)
+            validated_data['repasse'] = repasse
 
         receita = Receita.objects.create(**validated_data)
+
         return receita
 
     def update(self, instance, validated_data):
+        if instance.repasse:
+            atualiza_repasse_para_pendente(instance)
+
         if validated_data['tipo_receita'].e_repasse:
-            if instance.acao_associacao:
-                atualiza_repasse_para_pendente(instance.acao_associacao)
-            atualiza_repasse_para_realizado(validated_data)
+            repasse = atualiza_repasse_para_realizado(validated_data)
+            validated_data['repasse'] = repasse
+
         return super().update(instance, validated_data)
 
     class Meta:
@@ -54,6 +60,7 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
     tipo_receita = TipoReceitaSerializer()
     acao_associacao = AcaoAssociacaoLookUpSerializer()
     conta_associacao = ContaAssociacaoLookUpSerializer()
+    detalhe_tipo_receita = DetalheTipoReceitaSerializer()
 
     class Meta:
         model = Receita
@@ -61,10 +68,11 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
             'uuid',
             'data',
             'valor',
-            'descricao',
             'tipo_receita',
             'acao_associacao',
             'conta_associacao',
             'conferido',
             'categoria_receita',
+            'detalhe_tipo_receita',
+            'detalhe_outros'
         )

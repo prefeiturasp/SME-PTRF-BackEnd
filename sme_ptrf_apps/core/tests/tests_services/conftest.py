@@ -52,7 +52,6 @@ def receita_2020_1_role_repasse_capital_conferida(associacao, conta_associacao_c
         associacao=associacao,
         data=datetime.date(2020, 3, 26),
         valor=100.00,
-        descricao="Receita Role Conferida",
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
@@ -69,7 +68,6 @@ def receita_2020_1_role_repasse_custeio_conferida(associacao, conta_associacao_c
         associacao=associacao,
         data=datetime.date(2020, 3, 26),
         valor=100.00,
-        descricao="Receita Role Conferida",
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
@@ -87,7 +85,6 @@ def receita_2020_1_role_repasse_capital_nao_conferida(associacao, conta_associac
         associacao=associacao,
         data=datetime.date(2020, 3, 26),
         valor=100.00,
-        descricao="Receita Role Não Conferida",
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
@@ -104,7 +101,6 @@ def receita_2020_1_ptrf_repasse_capital_conferida(associacao, conta_associacao_c
         associacao=associacao,
         data=datetime.date(2020, 3, 26),
         valor=100.00,
-        descricao="Receita PTRF Conferida",
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_ptrf,
         tipo_receita=tipo_receita_repasse,
@@ -121,7 +117,6 @@ def receita_2019_2_role_repasse_capital_conferida(associacao, conta_associacao_c
         associacao=associacao,
         data=datetime.date(2019, 7, 10),
         valor=100.00,
-        descricao="Receita Role Conferida 2019",
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
@@ -138,7 +133,6 @@ def receita_2020_1_role_rendimento_custeio_conferida(associacao, conta_associaca
         associacao=associacao,
         data=datetime.date(2020, 3, 26),
         valor=100.00,
-        descricao="Receita Role Conferida",
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_rendimento,
@@ -321,7 +315,6 @@ def prestacao_conta_2020_1_iniciada(periodo_2020_1, associacao, conta_associacao
         status=STATUS_ABERTO,
         conciliado=False,
         conciliado_em=None,
-        observacoes='',
         motivo_reabertura=''
     )
 
@@ -336,7 +329,6 @@ def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associac
         status=STATUS_ABERTO,
         conciliado=True,
         conciliado_em=datetime.date(2020, 7, 1),
-        observacoes='teste',
         motivo_reabertura=''
     )
 
@@ -350,6 +342,5 @@ def prestacao_conta_2020_1_nao_conciliada(periodo_2020_1, associacao, conta_asso
         status=STATUS_ABERTO,
         conciliado=False,
         conciliado_em=None,
-        observacoes='',
         motivo_reabertura=''
     )

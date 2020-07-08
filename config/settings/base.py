@@ -2,8 +2,9 @@
 Base settings to build other settings files upon.
 """
 
-import environ
 import datetime
+
+import environ
 
 ROOT_DIR = (
     environ.Path(__file__) - 3
@@ -76,6 +77,7 @@ DJANGO_APPS = [
     'colorfield',      # Para o django-admin-interface. Tem que estar antes do django.contrib.admin
     "django.contrib.admin",
     "django.forms",
+    "django.contrib.postgres",
 ]
 THIRD_PARTY_APPS = [
     "crispy_forms",
@@ -335,3 +337,6 @@ JWT_AUTH = {
     'JWT_ALLOW_REFRESH': True,
 }
 CORS_ORIGIN_ALLOW_ALL = True
+
+EOL_API_TERCEIRIZADAS_URL = env('EOL_API_TERCEIRIZADAS_URL')
+EOL_API_TERCEIRIZADAS_TOKEN = env('EOL_API_TERCEIRIZADAS_TOKEN')

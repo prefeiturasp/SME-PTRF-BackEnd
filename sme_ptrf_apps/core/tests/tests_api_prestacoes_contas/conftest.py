@@ -17,7 +17,6 @@ def receita_2020_1_role_repasse_conferida(associacao, conta_associacao_cartao, a
         associacao=associacao,
         data=datetime.date(2020, 3, 26),
         valor=100.00,
-        descricao="Receita Role Conferida",
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
@@ -34,7 +33,6 @@ def receita_2020_1_role_repasse_cheque_conferida(associacao, conta_associacao_ch
         associacao=associacao,
         data=datetime.date(2020, 3, 26),
         valor=100.00,
-        descricao="Receita Role Conferida",
         conta_associacao=conta_associacao_cheque,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
@@ -51,7 +49,6 @@ def receita_2020_1_role_repasse_nao_conferida(associacao, conta_associacao_carta
         associacao=associacao,
         data=datetime.date(2020, 3, 26),
         valor=100.00,
-        descricao="Receita Role Não Conferida",
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
@@ -68,7 +65,6 @@ def receita_2020_1_ptrf_repasse_conferida(associacao, conta_associacao_cartao, a
         associacao=associacao,
         data=datetime.date(2020, 3, 26),
         valor=100.00,
-        descricao="Receita PTRF Conferida",
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_ptrf,
         tipo_receita=tipo_receita_repasse,
@@ -85,7 +81,6 @@ def receita_2019_2_role_repasse_conferida(associacao, conta_associacao_cartao, a
         associacao=associacao,
         data=datetime.date(2019, 7, 10),
         valor=100.00,
-        descricao="Receita Role Conferida 2019",
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
@@ -102,7 +97,6 @@ def receita_2019_2_role_repasse_conferida_na_prestacao(associacao, conta_associa
         associacao=associacao,
         data=datetime.date(2019, 7, 10),
         valor=100.00,
-        descricao="Receita Role Conferida 2019",
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
@@ -119,7 +113,6 @@ def receita_2019_2_role_repasse_nao_conferida(associacao, conta_associacao_carta
         associacao=associacao,
         data=datetime.date(2019, 7, 10),
         valor=100.00,
-        descricao="Receita Role Conferida 2019",
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
@@ -331,3 +324,79 @@ def rateio_despesa_2019_role_nao_conferido(associacao, despesa_2019_2, conta_ass
         conferido=False,
 
     )
+
+@pytest.fixture
+def repasse_2020_1_capital_pendente(associacao, conta_associacao, acao_associacao, periodo_2020_1):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo_2020_1,
+        valor_custeio=1000.00,
+        valor_capital=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE',
+        realizado_capital=False,
+        realizado_custeio=True
+    )
+
+@pytest.fixture
+def repasse_2020_1_custeio_pendente(associacao, conta_associacao, acao_associacao, periodo_2020_1):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo_2020_1,
+        valor_custeio=1000.00,
+        valor_capital=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE',
+        realizado_capital=True,
+        realizado_custeio=False
+    )
+
+@pytest.fixture
+def repasse_2019_2_pendente(associacao, conta_associacao, acao_associacao, periodo_2019_2):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo_2019_2,
+        valor_custeio=1000.00,
+        valor_capital=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE',
+        realizado_capital=False,
+        realizado_custeio=False
+    )
+
+@pytest.fixture
+def repasse_2020_1_pendente(associacao, conta_associacao, acao_associacao, periodo_2020_1):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo_2020_1,
+        valor_custeio=1000.00,
+        valor_capital=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE',
+        realizado_capital=False,
+        realizado_custeio=False
+    )
+
+@pytest.fixture
+def repasse_2020_1_realizado(associacao, conta_associacao, acao_associacao, periodo_2020_1):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo_2020_1,
+        valor_custeio=1000.00,
+        valor_capital=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='REALIZADO',
+        realizado_capital=True,
+        realizado_custeio=True
+    )
+
