@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
+
 from .models import (
     Acao,
     AcaoAssociacao,
@@ -162,11 +164,10 @@ class AtaAdmin(admin.ModelAdmin):
 @admin.register(Arquivo)
 class ArquivoAdmin(admin.ModelAdmin):
     list_display = ['identificador', 'conteudo', 'tipo_carga']
-    actions = ['importa_repasses',]
+    actions = ['processa_carga',]
 
-    def importa_repasses(self, request, queryset):
-        from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
+    def processa_carga(self, request, queryset):
         processa_cargas(queryset)
-        self.message_user(request, "Repasses Carregados")
+        self.message_user(request, "Carga Realizada com sucesso.")
 
-    importa_repasses.short_description = "Fazer carga de repasses realizados."
+    processa_carga.short_description = "Realizar Carga dos arquivos."
