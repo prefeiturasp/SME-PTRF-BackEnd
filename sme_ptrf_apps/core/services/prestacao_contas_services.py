@@ -1,7 +1,11 @@
+import logging
+
 from ..models import PrestacaoConta, ContaAssociacao, Periodo, AcaoAssociacao, FechamentoPeriodo, Associacao, Observacao
 from ..services import info_acoes_associacao_no_periodo
 from ...despesas.models import RateioDespesa
 from ...receitas.models import Receita
+
+logger = logging.getLogger(__name__)
 
 
 def iniciar_prestacao_de_contas(conta_associacao_uuid, periodo_uuid):
@@ -18,10 +22,11 @@ def concluir_prestacao_de_contas(prestacao_contas_uuid, observacoes):
     associacao = prestacao.associacao
     periodo = prestacao.periodo
     acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
+    conta = prestacao.conta_associacao
 
     for acao in acoes:
-        totais_receitas = Receita.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo)
-        totais_despesas = RateioDespesa.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo)
+        totais_receitas = Receita.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo, conta=conta)
+        totais_despesas = RateioDespesa.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo, conta=conta)
         especificacoes_despesas = RateioDespesa.especificacoes_dos_rateios_da_acao_associacao_no_periodo(
             acao_associacao=acao, periodo=periodo)
         FechamentoPeriodo.criar(
@@ -90,6 +95,8 @@ def informacoes_financeiras_para_atas(prestacao_contas):
 
         return totalizador
 
+    logger.debug(
+        f'Get info financeiras para ata. Associacao:{prestacao_contas.associacao.uuid} Período:{prestacao_contas.periodo} Conta:{prestacao_contas.conta_associacao}')
     info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=prestacao_contas.associacao.uuid,
                                                   periodo=prestacao_contas.periodo,
                                                   conta=prestacao_contas.conta_associacao)

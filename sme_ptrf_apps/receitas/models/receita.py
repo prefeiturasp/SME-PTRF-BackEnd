@@ -95,9 +95,9 @@ class Receita(ModeloBase):
         return dataset.all()
 
     @classmethod
-    def totais_por_acao_associacao_no_periodo(cls, acao_associacao, periodo):
+    def totais_por_acao_associacao_no_periodo(cls, acao_associacao, periodo, conta=None):
         receitas = cls.receitas_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
-                                                              periodo=periodo)
+                                                              periodo=periodo, conta_associacao=conta)
         totais = {
             'total_receitas_capital': Decimal(0.00),
             'total_repasses_capital': Decimal(0.00),

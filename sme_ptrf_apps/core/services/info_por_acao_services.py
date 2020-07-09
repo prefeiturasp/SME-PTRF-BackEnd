@@ -1,10 +1,12 @@
 from decimal import Decimal
+import logging
 
 from ..models import FechamentoPeriodo, Associacao, AcaoAssociacao, ContaAssociacao
 from ...despesas.models import RateioDespesa
 from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
 from ...receitas.models import Receita, Repasse
 
+logger = logging.getLogger(__name__)
 
 def especificacoes_despesas_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=None, conta=None):
     fechamentos_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(acao_associacao=acao_associacao,
@@ -117,9 +119,14 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
 
     def fechamento_sumarizado_por_acao(fechamentos_periodo, conta=None):
         info = resultado_vazio()
+        logger.debug(f'Buscando fechamentos da conta {conta}...')
         for fechamento_periodo in fechamentos_periodo:
 
-            if conta and fechamento_periodo.conta_associacao != conta: continue
+            if conta and fechamento_periodo.conta_associacao != conta:
+                logger.debug(f'IGNORADO fechamento Período:{fechamento_periodo.periodo} Ação:{fechamento_periodo.acao_associacao} Conta:{fechamento_periodo.conta_associacao}')
+                continue
+
+            logger.debug(f'Somando fechamento Período:{fechamento_periodo.periodo} Ação:{fechamento_periodo.acao_associacao} Conta:{fechamento_periodo.conta_associacao}')
 
             info['saldo_anterior_custeio'] += fechamento_periodo.saldo_anterior_custeio
             info['receitas_no_periodo_custeio'] += fechamento_periodo.total_receitas_custeio
@@ -206,8 +213,10 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
     fechamentos_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(acao_associacao=acao_associacao,
                                                                            periodo=periodo)
     if fechamentos_periodo:
+        logger.debug(f'Get fechamentos sumarizados por ação. Conta:{conta}')
         return fechamento_sumarizado_por_acao(fechamentos_periodo, conta=conta)
     else:
+        logger.debug(f'Get periodo aberto sumarizado por ação. Período:{periodo} Ação:{acao_associacao} Conta:{conta}')
         return periodo_aberto_sumarizado_por_acao(periodo, acao_associacao, conta=conta)
 
 
@@ -230,6 +239,7 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
     acoes_associacao = Associacao.acoes_da_associacao(associacao_uuid=associacao_uuid)
     result = []
     for acao_associacao in acoes_associacao:
+        logger.debug(f'Get info ação no período. Ação:{acao_associacao} Período:{periodo} Conta:{conta}')
         info_acao = info_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo, conta=conta)
         especificacoes_despesas = especificacoes_despesas_acao_associacao_no_periodo(acao_associacao=acao_associacao,
                                                                                      periodo=periodo, conta=conta)
