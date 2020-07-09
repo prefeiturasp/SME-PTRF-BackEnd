@@ -1,4 +1,5 @@
 import pytest
+
 from django.contrib import admin
 
 from ...models import PrestacaoConta, Associacao, Periodo, ContaAssociacao, Ata
@@ -28,6 +29,7 @@ def test_instance_model(ata_2020_1_cheque_aprovada):
     assert model.alterado_em
     assert model.uuid
     assert model.id
+    assert model.preenchida_em is None
 
 
 def test_srt_model(ata_2020_1_cheque_aprovada):
@@ -49,3 +51,10 @@ def test_iniciar_ata(prestacao_conta_2020_1_conciliada):
     assert ata.periodo == prestacao_conta_2020_1_conciliada.periodo
     assert ata.associacao == prestacao_conta_2020_1_conciliada.associacao
     assert ata.conta_associacao == prestacao_conta_2020_1_conciliada.conta_associacao
+
+
+def local_reuniaotest_preenchida_em(ata_prestacao_conta_iniciada):
+    ata_prestacao_conta_iniciada.local_reuniao = 'teste'
+    ata_prestacao_conta_iniciada.save()
+    ata = Ata.by_id(ata_prestacao_conta_iniciada.id)
+    assert ata.preenchida_em is not None
