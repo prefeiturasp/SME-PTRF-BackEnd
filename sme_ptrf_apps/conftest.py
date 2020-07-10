@@ -96,13 +96,16 @@ def tipo_conta_cartao():
 def acao():
     return baker.make('Acao', nome='PTRF')
 
+
 @pytest.fixture
 def acao_ptrf(acao):
     return acao
 
+
 @pytest.fixture
 def acao_de_destaque():
     return baker.make('Acao', nome='ZZZZZ', posicao_nas_pesquisas='AAAAAAAAAA')
+
 
 @pytest.fixture
 def acao_role_cultural():
@@ -133,6 +136,7 @@ def associacao(unidade, periodo_anterior):
         periodo_inicial=periodo_anterior,
     )
 
+
 @pytest.fixture
 def outra_associacao(unidade, periodo_anterior):
     return baker.make(
@@ -146,6 +150,7 @@ def outra_associacao(unidade, periodo_anterior):
         presidente_conselho_fiscal_rf='7654321',
         periodo_inicial=periodo_anterior,
     )
+
 
 @pytest.fixture
 def associacao_sem_periodo_inicial(unidade):
@@ -300,6 +305,7 @@ def periodo_2020_1(periodo):
         periodo_anterior=periodo
     )
 
+
 @pytest.fixture
 def periodo_2019_2(periodo):
     return baker.make(
@@ -432,6 +438,20 @@ def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associac
 
 
 @pytest.fixture
+def prestacao_conta_2020_1_conciliada_outra_conta(periodo_2020_1, associacao, conta_associacao_cartao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        status=STATUS_ABERTO,
+        conciliado=True,
+        conciliado_em=date(2020, 7, 1),
+        motivo_reabertura=''
+    )
+
+
+@pytest.fixture
 def fechamento_2020_1(periodo_2020_1, associacao, conta_associacao, acao_associacao, prestacao_conta_2020_1_conciliada):
     return baker.make(
         'FechamentoPeriodo',
@@ -452,7 +472,34 @@ def fechamento_2020_1(periodo_2020_1, associacao, conta_associacao, acao_associa
         total_receitas_nao_conciliadas_custeio=20.0,
         status=STATUS_FECHADO,
         prestacao_conta=prestacao_conta_2020_1_conciliada,
-        especificacoes_despesas_capital=['ar condicionado',],
+        especificacoes_despesas_capital=['ar condicionado', ],
+        especificacoes_despesas_custeio=['cadeira', 'mesa'],
+    )
+
+
+@pytest.fixture
+def fechamento_2020_1_outra_conta(periodo_2020_1, associacao, conta_associacao_cartao, acao_associacao,
+                                  prestacao_conta_2020_1_conciliada_outra_conta):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao,
+        fechamento_anterior=None,
+        total_receitas_capital=1000,
+        total_repasses_capital=900,
+        total_despesas_capital=800,
+        total_receitas_custeio=2000,
+        total_repasses_custeio=1800,
+        total_despesas_custeio=1600,
+        total_despesas_nao_conciliadas_capital=8.0,
+        total_despesas_nao_conciliadas_custeio=16.0,
+        total_receitas_nao_conciliadas_capital=10.0,
+        total_receitas_nao_conciliadas_custeio=20.0,
+        status=STATUS_FECHADO,
+        prestacao_conta=prestacao_conta_2020_1_conciliada_outra_conta,
+        especificacoes_despesas_capital=['ar condicionado', ],
         especificacoes_despesas_custeio=['cadeira', 'mesa'],
     )
 
@@ -477,7 +524,8 @@ def fechamento_periodo_anterior_role(periodo_anterior, associacao, conta_associa
 
 
 @pytest.fixture
-def fechamento_periodo_anterior_role_implantado(periodo_anterior, associacao, conta_associacao, acao_associacao_role_cultural, ):
+def fechamento_periodo_anterior_role_implantado(periodo_anterior, associacao, conta_associacao,
+                                                acao_associacao_role_cultural, ):
     return baker.make(
         'FechamentoPeriodo',
         periodo=periodo_anterior,
@@ -494,9 +542,10 @@ def fechamento_periodo_anterior_role_implantado(periodo_anterior, associacao, co
         status=STATUS_IMPLANTACAO
     )
 
+
 @pytest.fixture
 def fechamento_2020_1_role(periodo_2020_1, associacao, conta_associacao, acao_associacao_role_cultural,
-                           prestacao_conta_2020_1_conciliada,fechamento_periodo_anterior_role):
+                           prestacao_conta_2020_1_conciliada, fechamento_periodo_anterior_role):
     return baker.make(
         'FechamentoPeriodo',
         periodo=periodo_2020_1,
@@ -516,7 +565,7 @@ def fechamento_2020_1_role(periodo_2020_1, associacao, conta_associacao, acao_as
         total_receitas_nao_conciliadas_custeio=10.0,
         status=STATUS_FECHADO,
         prestacao_conta=prestacao_conta_2020_1_conciliada,
-        especificacoes_despesas_capital=['ar condicionado',],
+        especificacoes_despesas_capital=['ar condicionado', ],
         especificacoes_despesas_custeio=['ventilador', 'contador']
     )
 
@@ -593,9 +642,11 @@ def tipo_receita():
 def tipo_receita_repasse():
     return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
 
+
 @pytest.fixture
 def detalhe_tipo_receita_repasse(tipo_receita_repasse):
-    return baker.make('DetalheTipoReceita', nome='Repasse YYY', tipo_receita=tipo_receita_repasse)
+    return baker.make('DetalheTipoReceita', nome='Repasse YYYÇ', tipo_receita=tipo_receita_repasse)
+
 
 @pytest.fixture
 def detalhe_tipo_receita(tipo_receita):
@@ -614,6 +665,7 @@ def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_r
         tipo_receita=tipo_receita,
     )
 
+
 @pytest.fixture
 def receita_100_nao_conferida_anterior_ao_periodo(associacao, conta_associacao, acao_associacao, tipo_receita, periodo):
     return baker.make(
@@ -628,9 +680,9 @@ def receita_100_nao_conferida_anterior_ao_periodo(associacao, conta_associacao, 
     )
 
 
-
 @pytest.fixture
-def receita_100_no_periodo_acao_de_destaque(associacao, conta_associacao, acao_associacao_de_destaque, tipo_receita, periodo):
+def receita_100_no_periodo_acao_de_destaque(associacao, conta_associacao, acao_associacao_de_destaque, tipo_receita,
+                                            periodo):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -640,6 +692,7 @@ def receita_100_no_periodo_acao_de_destaque(associacao, conta_associacao, acao_a
         acao_associacao=acao_associacao_de_destaque,
         tipo_receita=tipo_receita,
     )
+
 
 @pytest.fixture
 def receita_300_repasse_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita_repasse, periodo):

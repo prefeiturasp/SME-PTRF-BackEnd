@@ -27,16 +27,16 @@ def test_api_get_receitas_conferidas_prestacao_conta(client,
 
     result = json.loads(response.content)
 
-    resultado_esperado = [None, None]
+    receitas_retornadas = set()
+    for receita in result:
+        receitas_retornadas.add(receita['uuid'])
 
-    result_esperado = ReceitaListaSerializer(receita_2019_2_role_repasse_conferida_na_prestacao, many=False).data
-    resultado_esperado[1] = result_esperado
-
-    result_esperado2 = ReceitaListaSerializer(receita_2020_1_role_repasse_conferida, many=False).data
-    resultado_esperado[0] = result_esperado2
+    receitas_esperadas = set()
+    receitas_esperadas.add(f'{receita_2019_2_role_repasse_conferida_na_prestacao.uuid}')
+    receitas_esperadas.add(f'{receita_2020_1_role_repasse_conferida.uuid}')
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado, "Não retornou a lista de receitas esperada."
+    assert receitas_retornadas == receitas_esperadas, "Não retornou a lista de receitas esperada."
 
 
 def test_api_get_receitas_nao_conferidas_prestacao_conta(client,
@@ -84,12 +84,13 @@ def test_api_get_receitas_nao_conferidas_traz_periodos_anteriores(client,
 
     result = json.loads(response.content)
 
-    resultado_esperado = [None, None]
-    result_esperado = ReceitaListaSerializer(receita_2019_2_role_repasse_nao_conferida, many=False).data
-    resultado_esperado[1] = result_esperado
+    receitas_retornadas = set()
+    for receita in result:
+        receitas_retornadas.add(receita['uuid'])
 
-    result_esperado2 = ReceitaListaSerializer(receita_2020_1_role_repasse_nao_conferida, many=False).data
-    resultado_esperado[0] = result_esperado2
+    receitas_esperadas = set()
+    receitas_esperadas.add(f'{receita_2019_2_role_repasse_nao_conferida.uuid}')
+    receitas_esperadas.add(f'{receita_2020_1_role_repasse_nao_conferida.uuid}')
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado, "Não retornou a lista de receitas esperada. Deve incluir períodos anteriores"
+    assert receitas_retornadas == receitas_esperadas, "Não retornou a lista de receitas esperada. Deve incluir períodos anteriores"

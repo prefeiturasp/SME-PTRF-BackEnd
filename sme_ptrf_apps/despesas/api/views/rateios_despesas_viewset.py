@@ -10,7 +10,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from ..serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ...models import RateioDespesa
-from ....core.models import Periodo, Parametros, PrestacaoConta
+from ....core.models import Periodo, Parametros, PrestacaoConta, Associacao
 from ....core.services import saldos_insuficientes_para_rateios
 
 
@@ -24,7 +24,6 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
     permission_classes = [AllowAny]
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data_documento',)
-    search_fields = ('uuid', 'id', 'especificacao_material_servico__descricao')
     filter_fields = ('aplicacao_recurso', 'acao_associacao__uuid', 'despesa__status', 'associacao__uuid', 'conferido')
 
     def get_queryset(self):
@@ -39,6 +38,11 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
         fornecedor = self.request.query_params.get('fornecedor')
         if fornecedor is not None:
             qs = qs.filter(despesa__nome_fornecedor__unaccent__icontains=fornecedor)
+
+        search = self.request.query_params.get('search')
+        if search is not None:
+            qs = qs.filter(especificacao_material_servico__descricao__unaccent__icontains=search)
+
         return qs
 
     def get_serializer_class(self):
@@ -125,17 +129,14 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        queryset = self.get_queryset()
-        filtered_queryset = queryset
+        associacao = Associacao.by_uuid(associacao__uuid)
+
+        queryset = RateioDespesa.objects.filter(associacao=associacao).all().order_by('-despesa__data_documento')
+        filtered_queryset = self.get_queryset()
         for field in self.filter_fields:
             filter_value = request.query_params.get(field)
             if filter_value:
                 filtered_queryset = filtered_queryset.filter(**{field: filter_value})
-
-        search_value = request.query_params.get('search')
-        if search_value:
-            filtered_queryset = filtered_queryset.filter(
-                especificacao_material_servico__descricao__icontains=search_value)
 
         total_despesas_com_filtro = filtered_queryset.aggregate(Sum('valor_rateio'))['valor_rateio__sum']
         total_despesas_sem_filtro = queryset.aggregate(Sum('valor_rateio'))['valor_rateio__sum']

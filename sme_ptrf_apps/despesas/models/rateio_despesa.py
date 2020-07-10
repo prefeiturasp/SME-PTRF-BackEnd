@@ -150,7 +150,7 @@ class RateioDespesa(ModeloBase):
     @classmethod
     def rateios_da_acao_associacao_em_qualquer_periodo(cls, acao_associacao, conferido=None, conta_associacao=None,
                                               exclude_despesa=None, aplicacao_recurso=None):
-        
+
         dataset = cls.objects.filter(acao_associacao=acao_associacao,
                                      despesa__data_documento__lte=date.today())
 
@@ -159,7 +159,7 @@ class RateioDespesa(ModeloBase):
 
         if exclude_despesa:
             dataset = dataset.exclude(despesa__uuid=exclude_despesa)
-        
+
         if conta_associacao:
             dataset = dataset.filter(conta_associacao=conta_associacao)
 
@@ -191,9 +191,9 @@ class RateioDespesa(ModeloBase):
         return rateio_despesa.desmarcar_conferido()
 
     @classmethod
-    def totais_por_acao_associacao_no_periodo(cls, acao_associacao, periodo):
+    def totais_por_acao_associacao_no_periodo(cls, acao_associacao, periodo, conta=None):
         despesas = cls.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
-                                                             periodo=periodo)
+                                                             periodo=periodo, conta_associacao=conta)
         totais = {
             'total_despesas_capital': Decimal(0.00),
             'total_despesas_custeio': Decimal(0.00),
