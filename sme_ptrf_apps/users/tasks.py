@@ -1,11 +1,27 @@
-from django.contrib.auth import get_user_model
+from smtplib import SMTPServerDisconnected
 
-from config import celery_app
+import environ
+from celery import shared_task
 
-User = get_user_model()
+from sme_ptrf_apps.core.services.enviar_email import enviar_email_html
 
+env = environ.Env()
 
-@celery_app.task()
-def get_users_count():
-    """A pointless Celery task to demonstrate usage."""
-    return User.objects.count()
+@shared_task(
+    autoretry_for=(SMTPServerDisconnected,),
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+)
+def enviar_email_redifinicao_senha(email, username, nome, hash_definicao):
+    link = f"http://{env('SERVER_NAME')}/#/login/?hash={hash_definicao}"
+    context = {
+        'url': link,
+        'nome': nome,
+        'login': username
+    }
+    return enviar_email_html(
+        assunto='Solicitação de redefinição de senha',
+        template='email_redefinicao_senha.html',
+        context=context,
+        enviar_para=email
+    )
