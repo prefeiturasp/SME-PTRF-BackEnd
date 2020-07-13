@@ -16,21 +16,32 @@ def test_instance_model(fechamento_periodo):
     assert isinstance(model.fechamento_anterior, FechamentoPeriodo)
     assert model.total_receitas_capital
     assert model.total_receitas_custeio
+    assert model.total_receitas_livre
+
     assert model.total_repasses_capital
     assert model.total_repasses_custeio
+    assert model.total_repasses_livre
+
     assert model.total_despesas_capital
-    assert model.total_repasses_custeio
+    assert model.total_despesas_custeio
+
     assert model.saldo_reprogramado_capital
     assert model.saldo_reprogramado_custeio
+    assert model.saldo_reprogramado_livre
+
     assert model.criado_em
     assert model.alterado_em
     assert model.uuid
     assert model.id
     assert model.status == STATUS_FECHADO
+
     assert model.total_receitas_nao_conciliadas_capital
     assert model.total_receitas_nao_conciliadas_custeio
+    assert model.total_receitas_nao_conciliadas_livre
+
     assert model.total_despesas_nao_conciliadas_capital
     assert model.total_despesas_nao_conciliadas_custeio
+
     assert model.especificacoes_despesas_capital
     assert model.especificacoes_despesas_custeio
 
@@ -70,7 +81,7 @@ def test_calculo_saldo_anterior_capital(fechamento_periodo):
 
 
 def test_calculo_total_receitas(fechamento_periodo):
-    assert fechamento_periodo.total_receitas == 3000
+    assert fechamento_periodo.total_receitas == 6000
 
 
 def test_calculo_total_despesas(fechamento_periodo):
@@ -78,4 +89,4 @@ def test_calculo_total_despesas(fechamento_periodo):
 
 
 def test_calculo_saldo_reprogramado(fechamento_periodo):
-    assert fechamento_periodo.saldo_reprogramado == 900
+    assert fechamento_periodo.saldo_reprogramado == 3900

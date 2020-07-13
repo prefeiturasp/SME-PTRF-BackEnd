@@ -60,10 +60,18 @@ class FechamentoPeriodo(ModeloBase):
     saldo_reprogramado_custeio = models.DecimalField('Saldo Reprogramado (custeio)', max_digits=12, decimal_places=2,
                                                      default=0)
 
+    total_receitas_livre = models.DecimalField('Total Receitas (livre)', max_digits=12, decimal_places=2, default=0)
+    total_repasses_livre = models.DecimalField('Total Repasses (livre)', max_digits=12, decimal_places=2, default=0)
+
+    saldo_reprogramado_livre = models.DecimalField('Saldo Reprogramado (livre)', max_digits=12, decimal_places=2,
+                                                   default=0)
+
     total_receitas_nao_conciliadas_capital = models.DecimalField('Receitas não conciliadas (capital)', max_digits=12,
                                                                  decimal_places=2, default=0)
     total_receitas_nao_conciliadas_custeio = models.DecimalField('Receitas não conciliadas (custeio)', max_digits=12,
                                                                  decimal_places=2, default=0)
+    total_receitas_nao_conciliadas_livre = models.DecimalField('Receitas não conciliadas (livre)', max_digits=12,
+                                                               decimal_places=2, default=0)
 
     total_despesas_nao_conciliadas_capital = models.DecimalField('Despesas não conciliadas (capital)', max_digits=12,
                                                                  decimal_places=2, default=0)
@@ -87,7 +95,7 @@ class FechamentoPeriodo(ModeloBase):
 
     @property
     def total_receitas(self):
-        return self.total_receitas_capital + self.total_receitas_custeio
+        return self.total_receitas_capital + self.total_receitas_custeio + self.total_receitas_livre
 
     @property
     def total_despesas(self):
@@ -95,7 +103,7 @@ class FechamentoPeriodo(ModeloBase):
 
     @property
     def saldo_reprogramado(self):
-        return self.saldo_reprogramado_capital + self.saldo_reprogramado_custeio
+        return self.saldo_reprogramado_capital + self.saldo_reprogramado_custeio + self.saldo_reprogramado_livre
 
     @property
     def saldo_anterior(self):
@@ -108,6 +116,10 @@ class FechamentoPeriodo(ModeloBase):
     @property
     def saldo_anterior_capital(self):
         return self.fechamento_anterior.saldo_reprogramado_capital if self.fechamento_anterior else 0
+
+    @property
+    def saldo_anterior_livre(self):
+        return self.fechamento_anterior.saldo_reprogramado_livre if self.fechamento_anterior else 0
 
     def __str__(self):
         return f"{self.periodo} - {self.acao_associacao.acao.nome} - {self.conta_associacao.tipo_conta.nome}  - {self.status}"
@@ -123,6 +135,11 @@ class FechamentoPeriodo(ModeloBase):
         return saldo_anterior \
                + self.total_receitas_custeio \
                - self.total_despesas_custeio
+
+    def calcula_saldo_reprogramado_livre(self):
+        saldo_anterior = self.fechamento_anterior.saldo_reprogramado_livre if self.fechamento_anterior else 0
+        return saldo_anterior \
+               + self.total_receitas_livre
 
     @classmethod
     def by_periodo_conta_acao(cls, periodo, conta_associacao, acao_associacao):
@@ -214,3 +231,4 @@ class FechamentoPeriodo(ModeloBase):
 def fechamento_pre_save(instance, **kwargs):
     instance.saldo_reprogramado_capital = instance.calcula_saldo_reprogramado_capital()
     instance.saldo_reprogramado_custeio = instance.calcula_saldo_reprogramado_custeio()
+    instance.saldo_reprogramado_livre = instance.calcula_saldo_reprogramado_livre()

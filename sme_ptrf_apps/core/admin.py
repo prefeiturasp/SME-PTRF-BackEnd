@@ -110,7 +110,7 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
                     'total_despesas', 'saldo_reprogramado', 'status')
     list_filter = ('status', 'associacao', 'acao_associacao__acao', 'conta_associacao__tipo_conta')
     list_display_links = ('periodo',)
-    readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio')
+    readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre')
     search_fields = ('associacao__unidade__codigo_eol',)
 
 
