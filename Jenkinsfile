@@ -14,13 +14,14 @@ pipeline {
     stages {
        stage('CheckOut') {
         steps {
-          checkout scm	
+          step([$class: 'GitHubSetCommitStatusBuilder'])
+          checkout scm			
         }
        }
 
        stage('Analise codigo') {
 	       when {
-           branch 'homolog'
+           branch 'develop'
          }
             steps {
                 sh 'sonar-scanner \
@@ -31,7 +32,7 @@ pipeline {
             }
        }
       
-       stage('Deploy DEV') {
+      stage('Docker Build DEV') {
          when {
            branch 'develop'
          }
@@ -54,9 +55,14 @@ pipeline {
               tags: "",
               tailLog: true])
            }
-                
-       
-       
+        }      
+      } 
+
+      stage('Deploy DEV') {
+         when {
+           branch 'develop'
+         }
+        steps { 
        
            //Start JOB de deploy Kubernetes 
           sh 'echo Deploy ambiente desenvolvimento'
@@ -79,19 +85,12 @@ pipeline {
         } 
        }
        
-       stage('Deploy homologacao') {
+      stage('Docker Build HOM') {
          when {
            branch 'homolog'
          }
         steps {
-          timeout(time: 24, unit: "HOURS") {
-          // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
-            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'ebufaino, marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, alessandro_fernandes, anderson_morais'
-          }
-         sh 'echo Deploying ambiente homologacao'
-                
-          // Start JOB para build das imagens Docker e push SME Registry
-      
+          
           script {
             step([$class: "RundeckNotifier",
               includeRundeckLogs: true,
@@ -110,6 +109,18 @@ pipeline {
               tags: "",
               tailLog: true])
           }
+        }
+      }
+
+      stage('Deploy HOM') {
+         when {
+           branch 'homolog'
+         }
+        steps {
+          timeout(time: 24, unit: "HOURS") {
+          // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
+            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'ebufaino, marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, alessandro_fernandes, anderson_morais'
+          }    
           //Start JOB deploy Kubernetes 
          
           script {
@@ -129,20 +140,14 @@ pipeline {
               tailLog: true])
           }
         }
-       }
+      }
 
-       stage('Deploy PROD') {
+      stage('Docker Build PROD') {
          when {
            branch 'master'
          }
         steps {
-          timeout(time: 24, unit: "HOURS") {
-          // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
-            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'ebufaino, marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, alessandro_fernandes, anderson_morais'
-          }
-            sh 'echo Build image docker Produção'
-          // Start JOB para build das imagens Docker e push SME Registry
-      
+          
           script {
             step([$class: "RundeckNotifier",
               includeRundeckLogs: true,
@@ -161,6 +166,18 @@ pipeline {
               tags: "",
               tailLog: true])
           }
+        }
+      }
+
+      stage('Deploy PROD') {
+         when {
+           branch 'master'
+         }
+        steps {
+          timeout(time: 24, unit: "HOURS") {
+          // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
+            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'ebufaino, marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, alessandro_fernandes, anderson_morais'
+          }    
           //Start JOB deploy kubernetes 
          
           script {
@@ -180,27 +197,31 @@ pipeline {
               tailLog: true])
           }
         }
-       }
+      }
     } 
   	   
   post {
-    always {
-      echo 'One way or another, I have finished'
+        always {
+          echo 'One way or another, I have finished'
+        }
+        success {
+	  	    step([$class: 'GitHubCommitStatusSetter'])
+          telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Esta ok !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n\n Uma nova versão da aplicação esta disponivel!!!")
+        }
+        unstable {
+          step([$class: 'GitHubCommitStatusSetter'])
+          telegramSend("O Build ${BUILD_DISPLAY_NAME} <${env.BUILD_URL}> - Esta instavel ...\nConsulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)")
+        }
+        failure {
+          step([$class: 'GitHubCommitStatusSetter'])
+          telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME}  - Quebrou. \nConsulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)")
+        }
+        changed {
+          echo 'Things were different before...'
+        }
+        aborted {
+          step([$class: 'GitHubCommitStatusSetter'])
+          telegramSend("O Build ${BUILD_DISPLAY_NAME} - Foi abortado.\nConsulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)")
+        }
     }
-    success {
-      telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Esta ok !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n\n Uma nova versão da aplicação esta disponivel!!!")
-    }
-    unstable {
-      telegramSend("O Build ${BUILD_DISPLAY_NAME} <${env.BUILD_URL}> - Esta instavel ...\nConsulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)")
-    }
-    failure {
-      telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME}  - Quebrou. \nConsulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)")
-    }
-    changed {
-      echo 'Things were different before...'
-    }
-    aborted {
-      telegramSend("O Build ${BUILD_DISPLAY_NAME} - Foi abortado.\nConsulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)")
-    }
-  }
 }
