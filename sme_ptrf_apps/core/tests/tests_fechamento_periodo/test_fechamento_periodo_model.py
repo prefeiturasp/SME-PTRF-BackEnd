@@ -68,8 +68,12 @@ def test_calculo_saldo_reprogramado_custeio(fechamento_periodo):
     assert fechamento_periodo.saldo_reprogramado_custeio == 600
 
 
+def test_calculo_saldo_reprogramado_livre(fechamento_periodo):
+    assert fechamento_periodo.saldo_reprogramado_livre == 5000
+
+
 def test_calculo_saldo_anterior(fechamento_periodo):
-    assert fechamento_periodo.saldo_anterior == 300
+    assert fechamento_periodo.saldo_anterior == 2300
 
 
 def test_calculo_saldo_anterior_custeio(fechamento_periodo):
@@ -78,6 +82,9 @@ def test_calculo_saldo_anterior_custeio(fechamento_periodo):
 
 def test_calculo_saldo_anterior_capital(fechamento_periodo):
     assert fechamento_periodo.saldo_anterior_capital == 100
+
+def test_calculo_saldo_anterior_livre(fechamento_periodo):
+    assert fechamento_periodo.saldo_anterior_livre == 2000
 
 
 def test_calculo_total_receitas(fechamento_periodo):
@@ -89,4 +96,4 @@ def test_calculo_total_despesas(fechamento_periodo):
 
 
 def test_calculo_saldo_reprogramado(fechamento_periodo):
-    assert fechamento_periodo.saldo_reprogramado == 3900
+    assert fechamento_periodo.saldo_reprogramado == 5900

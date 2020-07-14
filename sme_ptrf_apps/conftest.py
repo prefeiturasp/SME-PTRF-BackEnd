@@ -419,6 +419,8 @@ def fechamento_periodo_anterior(periodo_anterior, associacao, conta_associacao, 
         total_receitas_custeio=1000,
         total_repasses_custeio=900,
         total_despesas_custeio=800,
+        total_receitas_livre=2000,
+        total_repasses_livre=2000,
         status=STATUS_FECHADO
     )
 
