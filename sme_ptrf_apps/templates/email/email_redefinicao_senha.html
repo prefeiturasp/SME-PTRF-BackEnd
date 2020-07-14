@@ -3,18 +3,18 @@
 
 <div class="row">
     <div class="col-12 p-2">
-        <img src="{% static 'images/logo-ptrf-verde.a9a19032.png' %}" style="width: 200px;"/>
-        <p>Olá, {{ nome }},</p>
-        <p>Você acionou a opção "Esqueci minha senha" do PTRF. Para concluir<br/>
-           esta operação, basta clicar no link abaixo ou copiar o endereço do link<br/>
-           e colar no seu navegador. 
-        </p>
-        <p>O seu login continua o mesmo: {{ login }}
-        </p>
+        <p><img src="{{server_name}}/django_static/images/logo-ptrf-verde.a9a19032.png" style="width: 200px;"/></p>
 
-        <p>Clique no link abaixo e defina uma nova senha:</p>
-        <p>{{ url }}</p>
-        <br/>
+        <p>Olá, {{ nome }},</p>
+
+        <p>Você solicitou a criação de nova senha no SIG-Escola em {{ data }}.</p> 
+        <p>Para isso, clique <a href="{{url}}">aqui</a>  ou copie e cole em seu navegador o link abaixo:<br> 
+        {{ url }}
+        </p>
+        
+        <p>O seu login continua o mesmo: {{ login }}</p>
+        
+        <p>Atenciosamente,</p>
         <br/>
     </div>
 </div>
