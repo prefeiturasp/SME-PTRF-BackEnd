@@ -1,3 +1,4 @@
+import logging
 from smtplib import SMTPServerDisconnected
 
 import environ
@@ -7,6 +8,7 @@ from config import celery_app
 from sme_ptrf_apps.core.services.enviar_email import enviar_email_html
 
 env = environ.Env()
+logger = logging.getLogger(__name__)
 
 @shared_task(
     autoretry_for=(SMTPServerDisconnected,),
@@ -14,6 +16,7 @@ env = environ.Env()
     retry_kwargs={'max_retries': 8},
 )
 def enviar_email_redifinicao_senha(email, username, nome, hash_definicao):
+    logger.info("Tarefa de envio de email")
     link = f"https://{env('SERVER_NAME')}/#/login/?hash={hash_definicao}"
     context = {
         'url': link,
