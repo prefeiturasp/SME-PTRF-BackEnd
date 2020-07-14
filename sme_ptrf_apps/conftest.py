@@ -37,8 +37,9 @@ def usuario(associacao):
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
     login = '7210418'
+    email = 'sme@amcom.com.br'
     User = get_user_model()
-    user = User.objects.create_user(username=login, password=senha, associacao=associacao)
+    user = User.objects.create_user(username=login, password=senha, associacao=associacao, email=email)
     return user
 
 

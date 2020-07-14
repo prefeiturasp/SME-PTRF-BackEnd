@@ -85,6 +85,7 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "rest_framework",
+    "des",
     "auditlog",
     "django_celery_beat",
     "django_filters",
@@ -236,12 +237,8 @@ X_FRAME_OPTIONS = "DENY"
 
 # EMAIL
 # ------------------------------------------------------------------------------
-# https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
-EMAIL_BACKEND = env(
-    "DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
-)
-# https://docs.djangoproject.com/en/2.2/ref/settings/#email-timeout
-EMAIL_TIMEOUT = 5
+
+EMAIL_BACKEND = 'des.backends.ConfiguredEmailBackend'
 
 # ADMIN
 # ------------------------------------------------------------------------------
@@ -340,3 +337,5 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 EOL_API_TERCEIRIZADAS_URL = env('EOL_API_TERCEIRIZADAS_URL')
 EOL_API_TERCEIRIZADAS_TOKEN = env('EOL_API_TERCEIRIZADAS_TOKEN')
+
+SME_INTEGRACAO_URL = env('SME_INTEGRACAO_URL')
