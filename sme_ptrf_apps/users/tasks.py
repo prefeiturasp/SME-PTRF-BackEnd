@@ -2,6 +2,7 @@ from smtplib import SMTPServerDisconnected
 
 import environ
 from celery import shared_task
+from config import celery_app
 
 from sme_ptrf_apps.core.services.enviar_email import enviar_email_html
 
@@ -13,7 +14,7 @@ env = environ.Env()
     retry_kwargs={'max_retries': 8},
 )
 def enviar_email_redifinicao_senha(email, username, nome, hash_definicao):
-    link = f"http://{env('SERVER_NAME')}/#/login/?hash={hash_definicao}"
+    link = f"https://{env('SERVER_NAME')}/#/login/?hash={hash_definicao}"
     context = {
         'url': link,
         'nome': nome,
@@ -25,3 +26,10 @@ def enviar_email_redifinicao_senha(email, username, nome, hash_definicao):
         context=context,
         enviar_para=email
     )
+
+
+@celery_app.task()
+def get_users_count():
+    """A pointless Celery task to demonstrate usage."""
+    from django.contrib.auth import get_user_model
+    return get_user_model().objects.count()
