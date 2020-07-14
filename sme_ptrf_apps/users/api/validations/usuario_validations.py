@@ -1,5 +1,8 @@
+import logging
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+
+logger = logging.getLogger(__name__)
 
 
 def senhas_devem_ser_iguais(senha1, senha2):
@@ -22,4 +25,5 @@ def senha_nao_pode_ser_nulo(senha, campo='Senha'):
 def hash_redefinicao_deve_existir(hash):
     existe = get_user_model().objects.filter(hash_redefinicao=hash).exists()
     if not existe:
+        logger.info("Hash não existe")
         raise serializers.ValidationError({'detail': 'Hash de redefinicação não foi encontrado'})
