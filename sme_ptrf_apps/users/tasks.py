@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 )
 def enviar_email_redifinicao_senha(email, username, nome, hash_definicao):
     logger.info("Tarefa de envio de email")
-    link = f"https://{env('SERVER_NAME')}/#/login/?hash={hash_definicao}"
+    link = f"https://{env('SERVER_NAME')}/redefinir-senha/{hash_definicao}"
     context = {
         'url': link,
         'nome': nome,
