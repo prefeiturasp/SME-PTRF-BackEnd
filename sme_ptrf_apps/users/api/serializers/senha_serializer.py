@@ -1,3 +1,4 @@
+import logging
 from django.contrib.auth import get_user_model
 from requests import ConnectTimeout, ReadTimeout
 from rest_framework import serializers, status
@@ -15,10 +16,13 @@ from sme_ptrf_apps.users.tasks import enviar_email_redifinicao_senha
 
 User = get_user_model()
 
+logger = logging.getLogger(__name__)
+
 
 class EsqueciMinhaSenhaSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
+        logging.info("Esqueci minha senha")
         instance.hash_redefinicao = instance.create_hash
         instance.save()
 
