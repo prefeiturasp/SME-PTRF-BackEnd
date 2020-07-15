@@ -43,6 +43,8 @@ class Repasse(ModeloBase):
 
     realizado_custeio = models.BooleanField('Realizado Custeio?', default=False)
 
+    realizado_livre = models.BooleanField('Realizado Livre Aplicação?', default=False)
+
     class Meta:
         verbose_name = 'Repasse'
         verbose_name_plural = 'Repasses'
