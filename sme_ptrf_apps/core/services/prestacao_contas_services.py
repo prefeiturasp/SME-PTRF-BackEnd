@@ -67,27 +67,41 @@ def informacoes_financeiras_para_atas(prestacao_contas):
             'saldo_reprogramado': 0,
             'saldo_reprogramado_capital': 0,
             'saldo_reprogramado_custeio': 0,
+            'saldo_reprogramado_livre': 0,
+
             'receitas_no_periodo': 0,
+
             'repasses_no_periodo': 0,
             'repasses_no_periodo_capital': 0,
             'repasses_no_periodo_custeio': 0,
+            'repasses_no_periodo_livre': 0,
+
             'outras_receitas_no_periodo': 0,
             'outras_receitas_no_periodo_capital': 0,
             'outras_receitas_no_periodo_custeio': 0,
+            'outras_receitas_no_periodo_livre': 0,
+
             'despesas_no_periodo': 0,
             'despesas_no_periodo_capital': 0,
             'despesas_no_periodo_custeio': 0,
+
             'despesas_nao_conciliadas': 0,
             'despesas_nao_conciliadas_capital': 0,
             'despesas_nao_conciliadas_custeio': 0,
+
             'receitas_nao_conciliadas': 0,
             'receitas_nao_conciliadas_capital': 0,
             'receitas_nao_conciliadas_custeio': 0,
+            'receitas_nao_conciliadas_livre': 0,
+
             'saldo_atual_custeio': 0,
             'saldo_atual_capital': 0,
+            'saldo_atual_livre': 0,
             'saldo_atual_total': 0,
+
             'repasses_nao_realizados_capital': 0,
-            'repasses_nao_realizados_custeio': 0
+            'repasses_nao_realizados_custeio': 0,
+            'repasses_nao_realizados_livre': 0
         }
         for info_acao in info_acoes:
             for key in totalizador.keys():
