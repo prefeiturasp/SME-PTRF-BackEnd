@@ -9,6 +9,7 @@ from ...status_periodo_associacao import STATUS_PERIODO_ASSOCIACAO_PENDENTE
 
 pytestmark = pytest.mark.django_db
 
+
 @freeze_time('2020-04-18 10:11:12')
 def test_action_painel_acoes(
     client,
@@ -39,32 +40,48 @@ def test_action_painel_acoes(
             {
                 'acao_associacao_uuid': f'{acao_associacao.uuid}',
                 'acao_associacao_nome': acao_associacao.acao.nome,
+
                 'saldo_reprogramado': 0,
                 'saldo_reprogramado_capital': 0,
                 'saldo_reprogramado_custeio': 0,
+                'saldo_reprogramado_livre': 0,
+
                 'receitas_no_periodo': 400.0,
+
                 'repasses_no_periodo': 300.0,
                 'repasses_no_periodo_capital': 0,
                 'repasses_no_periodo_custeio': 300.0,
+                'repasses_no_periodo_livre': 0,
+
                 'outras_receitas_no_periodo': 100.0,
                 'outras_receitas_no_periodo_capital': 0,
                 'outras_receitas_no_periodo_custeio': 100.0,
+                'outras_receitas_no_periodo_livre': 0,
+
                 'despesas_no_periodo': 300.0,
                 'despesas_no_periodo_capital': 200.0,
                 'despesas_no_periodo_custeio': 100.0,
+
                 'saldo_atual_custeio': 300.0,
                 'saldo_atual_capital': -200.0,
+                'saldo_atual_livre': 0,
                 'saldo_atual_total': 100.0,
+
                 'despesas_nao_conciliadas': 300.0,
                 'despesas_nao_conciliadas_capital': 200.0,
                 'despesas_nao_conciliadas_custeio': 100.0,
+
                 'receitas_nao_conciliadas': 400.0,
                 'receitas_nao_conciliadas_capital': 0,
                 'receitas_nao_conciliadas_custeio': 400.0,
-                'especificacoes_despesas_capital': ['Ar condicionado',],
+                'receitas_nao_conciliadas_livre': 0,
+
+                'especificacoes_despesas_capital': ['Ar condicionado', ],
                 'especificacoes_despesas_custeio': ['Material elétrico'],
+
                 'repasses_nao_realizados_capital': 0.0,
-                'repasses_nao_realizados_custeio': 0.0
+                'repasses_nao_realizados_custeio': 0.0,
+                'repasses_nao_realizados_livre': 0.0
             }
         ]
     }
@@ -89,7 +106,8 @@ def test_action_painel_acoes_por_periodo(
     despesa_fora_periodo,
     rateio_fora_periodo_50_custeio,
 ):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/?periodo_uuid={periodo_anterior.uuid}', content_type='application/json')
+    response = client.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/?periodo_uuid={periodo_anterior.uuid}',
+                          content_type='application/json')
     result = json.loads(response.content)
 
     esperado = {
@@ -104,32 +122,48 @@ def test_action_painel_acoes_por_periodo(
             {
                 'acao_associacao_uuid': f'{acao_associacao.uuid}',
                 'acao_associacao_nome': acao_associacao.acao.nome,
+
                 'saldo_reprogramado': 0.0,
                 'saldo_reprogramado_capital': 0,
                 'saldo_reprogramado_custeio': 0,
+                'saldo_reprogramado_livre': 0,
+
                 'receitas_no_periodo': 1500.0,
+
                 'repasses_no_periodo': 1350.0,
                 'repasses_no_periodo_capital': 450.0,
                 'repasses_no_periodo_custeio': 900.0,
+                'repasses_no_periodo_livre': 2000,
+
                 'outras_receitas_no_periodo': 150.0,
                 'outras_receitas_no_periodo_capital': 50.0,
                 'outras_receitas_no_periodo_custeio': 100.0,
+                'outras_receitas_no_periodo_livre': 0,
+
                 'despesas_no_periodo': 1200.0,
                 'despesas_no_periodo_capital': 400.0,
                 'despesas_no_periodo_custeio': 800.0,
+
                 'saldo_atual_custeio': 200.0,
                 'saldo_atual_capital': 100.0,
-                'saldo_atual_total': 300.0,
+                'saldo_atual_livre': 2000,
+                'saldo_atual_total': 2300.0,
+
                 'despesas_nao_conciliadas': 0.0,
                 'despesas_nao_conciliadas_capital': 0.0,
                 'despesas_nao_conciliadas_custeio': 0.0,
+
                 'receitas_nao_conciliadas': 0.0,
                 'receitas_nao_conciliadas_capital': 0.0,
                 'receitas_nao_conciliadas_custeio': 0.0,
+                'receitas_nao_conciliadas_livre': 0.0,
+
                 'especificacoes_despesas_capital': [],
                 'especificacoes_despesas_custeio': [],
+
                 'repasses_nao_realizados_capital': 0.0,
-                'repasses_nao_realizados_custeio': 0.0
+                'repasses_nao_realizados_custeio': 0.0,
+                'repasses_nao_realizados_livre': 0.0
             }
         ]
     }
@@ -164,62 +198,95 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
             {
                 'acao_associacao_uuid': f'{acao_associacao_de_destaque.uuid}',
                 'acao_associacao_nome': acao_associacao_de_destaque.acao.nome,
+
                 'saldo_reprogramado': 0,
                 'saldo_reprogramado_capital': 0,
                 'saldo_reprogramado_custeio': 0,
+                'saldo_reprogramado_livre': 0,
+
                 'receitas_no_periodo': 100.0,
+
                 'repasses_no_periodo': 0,
                 'repasses_no_periodo_capital': 0,
                 'repasses_no_periodo_custeio': 0,
+                'repasses_no_periodo_livre': 0,
+
                 'outras_receitas_no_periodo': 100.0,
                 'outras_receitas_no_periodo_capital': 0,
                 'outras_receitas_no_periodo_custeio': 100.0,
+                'outras_receitas_no_periodo_livre': 0,
+
                 'despesas_no_periodo': 0,
                 'despesas_no_periodo_capital': 0,
                 'despesas_no_periodo_custeio': 0,
+
                 'saldo_atual_custeio': 100.0,
                 'saldo_atual_capital': 0,
+                'saldo_atual_livre': 0,
                 'saldo_atual_total': 100.0,
+
                 'despesas_nao_conciliadas': 0,
                 'despesas_nao_conciliadas_capital': 0,
                 'despesas_nao_conciliadas_custeio': 0,
+
                 'receitas_nao_conciliadas': 100.0,
                 'receitas_nao_conciliadas_capital': 0,
                 'receitas_nao_conciliadas_custeio': 100.0,
+                'receitas_nao_conciliadas_livre': 0,
+
                 'especificacoes_despesas_capital': [],
                 'especificacoes_despesas_custeio': [],
+
                 'repasses_nao_realizados_capital': 0.0,
-                'repasses_nao_realizados_custeio': 0.0
+                'repasses_nao_realizados_custeio': 0.0,
+                'repasses_nao_realizados_livre': 0.0
             },
             {
                 'acao_associacao_uuid': f'{acao_associacao.uuid}',
                 'acao_associacao_nome': acao_associacao.acao.nome,
+
                 'saldo_reprogramado': 0,
+
                 'saldo_reprogramado_capital': 0,
                 'saldo_reprogramado_custeio': 0,
+                'saldo_reprogramado_livre': 0,
+
                 'receitas_no_periodo': 100.0,
+
                 'repasses_no_periodo': 0,
                 'repasses_no_periodo_capital': 0,
                 'repasses_no_periodo_custeio': 0,
+                'repasses_no_periodo_livre': 0,
+
                 'outras_receitas_no_periodo': 100.0,
                 'outras_receitas_no_periodo_capital': 0,
                 'outras_receitas_no_periodo_custeio': 100.0,
+                'outras_receitas_no_periodo_livre': 0,
+
                 'despesas_no_periodo': 0,
                 'despesas_no_periodo_capital': 0,
                 'despesas_no_periodo_custeio': 0,
+
                 'saldo_atual_custeio': 100.0,
                 'saldo_atual_capital': 0,
+                'saldo_atual_livre': 0,
                 'saldo_atual_total': 100.0,
+
                 'despesas_nao_conciliadas': 0,
                 'despesas_nao_conciliadas_capital': 0,
                 'despesas_nao_conciliadas_custeio': 0,
+
                 'receitas_nao_conciliadas': 100.0,
                 'receitas_nao_conciliadas_capital': 0,
                 'receitas_nao_conciliadas_custeio': 100.0,
+                'receitas_nao_conciliadas_livre': 0,
+
                 'especificacoes_despesas_capital': [],
                 'especificacoes_despesas_custeio': [],
+
                 'repasses_nao_realizados_capital': 0.0,
-                'repasses_nao_realizados_custeio': 0.0
+                'repasses_nao_realizados_custeio': 0.0,
+                'repasses_nao_realizados_livre': 0.0
             }
         ]
     }

@@ -420,6 +420,8 @@ def fechamento_periodo_anterior(periodo_anterior, associacao, conta_associacao, 
         total_receitas_custeio=1000,
         total_repasses_custeio=900,
         total_despesas_custeio=800,
+        total_receitas_livre=2000,
+        total_repasses_livre=2000,
         status=STATUS_FECHADO
     )
 
@@ -624,8 +626,11 @@ def fechamento_periodo(periodo, associacao, conta_associacao, acao_associacao, f
         total_receitas_custeio=2000,
         total_repasses_custeio=1800,
         total_despesas_custeio=1600,
+        total_receitas_livre=3000,
+        total_repasses_livre=3000,
         total_receitas_nao_conciliadas_capital=10,
         total_receitas_nao_conciliadas_custeio=20,
+        total_receitas_nao_conciliadas_livre=30,
         total_despesas_nao_conciliadas_capital=8,
         total_despesas_nao_conciliadas_custeio=16,
         status=STATUS_FECHADO,

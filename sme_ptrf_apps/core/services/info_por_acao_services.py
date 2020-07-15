@@ -8,6 +8,7 @@ from ...receitas.models import Receita, Repasse
 
 logger = logging.getLogger(__name__)
 
+
 def especificacoes_despesas_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=None, conta=None):
     fechamentos_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(acao_associacao=acao_associacao,
                                                                            periodo=periodo, conta_associacao=conta)
@@ -106,15 +107,23 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
             'repasses_no_periodo_custeio': 0,
             'despesas_no_periodo_custeio': 0,
             'saldo_atual_custeio': 0,
+            'receitas_nao_conciliadas_custeio': 0,
+            'despesas_nao_conciliadas_custeio': 0,
+
             'saldo_anterior_capital': 0,
             'receitas_no_periodo_capital': 0,
             'repasses_no_periodo_capital': 0,
             'despesas_no_periodo_capital': 0,
             'saldo_atual_capital': 0,
-            'receitas_nao_conciliadas_custeio': 0,
             'receitas_nao_conciliadas_capital': 0,
-            'despesas_nao_conciliadas_custeio': 0,
             'despesas_nao_conciliadas_capital': 0,
+
+            'saldo_anterior_livre': 0,
+            'receitas_no_periodo_livre': 0,
+            'repasses_no_periodo_livre': 0,
+            'saldo_atual_livre': 0,
+            'receitas_nao_conciliadas_livre': 0,
+
         }
 
     def fechamento_sumarizado_por_acao(fechamentos_periodo, conta=None):
@@ -123,25 +132,34 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
         for fechamento_periodo in fechamentos_periodo:
 
             if conta and fechamento_periodo.conta_associacao != conta:
-                logger.debug(f'IGNORADO fechamento Período:{fechamento_periodo.periodo} Ação:{fechamento_periodo.acao_associacao} Conta:{fechamento_periodo.conta_associacao}')
+                logger.debug(
+                    f'IGNORADO fechamento Período:{fechamento_periodo.periodo} Ação:{fechamento_periodo.acao_associacao} Conta:{fechamento_periodo.conta_associacao}')
                 continue
 
-            logger.debug(f'Somando fechamento Período:{fechamento_periodo.periodo} Ação:{fechamento_periodo.acao_associacao} Conta:{fechamento_periodo.conta_associacao}')
+            logger.debug(
+                f'Somando fechamento Período:{fechamento_periodo.periodo} Ação:{fechamento_periodo.acao_associacao} Conta:{fechamento_periodo.conta_associacao}')
 
             info['saldo_anterior_custeio'] += fechamento_periodo.saldo_anterior_custeio
             info['receitas_no_periodo_custeio'] += fechamento_periodo.total_receitas_custeio
             info['repasses_no_periodo_custeio'] += fechamento_periodo.total_repasses_custeio
             info['despesas_no_periodo_custeio'] += fechamento_periodo.total_despesas_custeio
             info['saldo_atual_custeio'] += fechamento_periodo.saldo_reprogramado_custeio
+            info['receitas_nao_conciliadas_custeio'] += fechamento_periodo.total_receitas_nao_conciliadas_custeio
+            info['despesas_nao_conciliadas_custeio'] += fechamento_periodo.total_despesas_nao_conciliadas_custeio
+
             info['saldo_anterior_capital'] += fechamento_periodo.saldo_anterior_capital
             info['receitas_no_periodo_capital'] += fechamento_periodo.total_receitas_capital
             info['repasses_no_periodo_capital'] += fechamento_periodo.total_repasses_capital
             info['despesas_no_periodo_capital'] += fechamento_periodo.total_despesas_capital
             info['saldo_atual_capital'] += fechamento_periodo.saldo_reprogramado_capital
-            info['receitas_nao_conciliadas_custeio'] += fechamento_periodo.total_receitas_nao_conciliadas_custeio
             info['receitas_nao_conciliadas_capital'] += fechamento_periodo.total_receitas_nao_conciliadas_capital
-            info['despesas_nao_conciliadas_custeio'] += fechamento_periodo.total_despesas_nao_conciliadas_custeio
             info['despesas_nao_conciliadas_capital'] += fechamento_periodo.total_despesas_nao_conciliadas_capital
+
+            info['saldo_anterior_livre'] += fechamento_periodo.saldo_anterior_livre
+            info['receitas_no_periodo_livre'] += fechamento_periodo.total_receitas_livre
+            info['repasses_no_periodo_livre'] += fechamento_periodo.total_repasses_livre
+            info['saldo_atual_livre'] += fechamento_periodo.saldo_reprogramado_livre
+            info['receitas_nao_conciliadas_livre'] += fechamento_periodo.total_receitas_nao_conciliadas_livre
 
         return info
 
@@ -157,11 +175,16 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
                 info['repasses_no_periodo_custeio'] += receita.valor if receita.tipo_receita.e_repasse else 0
                 info['receitas_nao_conciliadas_custeio'] += receita.valor if not receita.conferido else 0
 
-            else:
+            elif receita.categoria_receita == APLICACAO_CAPITAL:
                 info['receitas_no_periodo_capital'] += receita.valor
                 info['saldo_atual_capital'] += receita.valor
                 info['repasses_no_periodo_capital'] += receita.valor if receita.tipo_receita.e_repasse else 0
                 info['receitas_nao_conciliadas_capital'] += receita.valor if not receita.conferido else 0
+            else:
+                info['receitas_no_periodo_livre'] += receita.valor
+                info['saldo_atual_livre'] += receita.valor
+                info['repasses_no_periodo_livre'] += receita.valor if receita.tipo_receita.e_repasse else 0
+                info['receitas_nao_conciliadas_livre'] += receita.valor if not receita.conferido else 0
 
         return info
 
@@ -198,9 +221,11 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
             if fechamentos_periodo_anterior:
                 sumario_periodo_anterior = fechamento_sumarizado_por_acao(fechamentos_periodo_anterior, conta=conta)
                 info['saldo_anterior_capital'] = sumario_periodo_anterior['saldo_atual_capital']
-                info['saldo_anterior_custeio'] = sumario_periodo_anterior['saldo_atual_custeio']
                 info['saldo_atual_capital'] = info['saldo_anterior_capital']
+                info['saldo_anterior_custeio'] = sumario_periodo_anterior['saldo_atual_custeio']
                 info['saldo_atual_custeio'] = info['saldo_anterior_custeio']
+                info['saldo_anterior_livre'] = sumario_periodo_anterior['saldo_atual_livre']
+                info['saldo_atual_livre'] = info['saldo_anterior_livre']
 
         info = sumariza_receitas_do_periodo_e_acao(periodo=periodo, acao_associacao=acao_associacao, info=info,
                                                    conta=conta)
@@ -228,12 +253,15 @@ def info_repasses_pendentes_acao_associacao_no_periodo(acao_associacao, periodo,
     total_repasses = {
         'CAPITAL': 0,
         'CUSTEIO': 0,
+        'LIVRE': 0,
     }
     for repasse in repasses_pendentes:
         total_repasses['CAPITAL'] += repasse.valor_capital if not repasse.realizado_capital else 0
         total_repasses['CUSTEIO'] += repasse.valor_custeio if not repasse.realizado_custeio else 0
+        total_repasses['LIVRE'] += repasse.valor_livre if not repasse.realizado_livre else 0
 
     return total_repasses
+
 
 def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
     acoes_associacao = Associacao.acoes_da_associacao(associacao_uuid=associacao_uuid)
@@ -253,23 +281,30 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
             'saldo_reprogramado': info_acao['saldo_anterior_custeio'] + info_acao['saldo_anterior_capital'],
             'saldo_reprogramado_capital': info_acao['saldo_anterior_capital'],
             'saldo_reprogramado_custeio': info_acao['saldo_anterior_custeio'],
+            'saldo_reprogramado_livre': info_acao['saldo_anterior_livre'],
 
             'receitas_no_periodo': info_acao['receitas_no_periodo_custeio'] + info_acao['receitas_no_periodo_capital'],
 
             'repasses_no_periodo': info_acao['repasses_no_periodo_custeio'] + info_acao['repasses_no_periodo_capital'],
             'repasses_no_periodo_capital': info_acao['repasses_no_periodo_capital'],
             'repasses_no_periodo_custeio': info_acao['repasses_no_periodo_custeio'],
+            'repasses_no_periodo_livre': info_acao['repasses_no_periodo_livre'],
 
             'outras_receitas_no_periodo': info_acao['receitas_no_periodo_custeio'] +
-                                          info_acao['receitas_no_periodo_capital'] -
+                                          info_acao['receitas_no_periodo_capital'] +
+                                          info_acao['receitas_no_periodo_livre'] -
                                           info_acao['repasses_no_periodo_custeio'] -
-                                          info_acao['repasses_no_periodo_capital'],
+                                          info_acao['repasses_no_periodo_capital'] -
+                                          info_acao['repasses_no_periodo_livre'],
 
             'outras_receitas_no_periodo_capital': info_acao['receitas_no_periodo_capital'] -
                                                   info_acao['repasses_no_periodo_capital'],
 
             'outras_receitas_no_periodo_custeio': info_acao['receitas_no_periodo_custeio'] -
                                                   info_acao['repasses_no_periodo_custeio'],
+
+            'outras_receitas_no_periodo_livre': info_acao['receitas_no_periodo_livre'] -
+                                                info_acao['repasses_no_periodo_livre'],
 
             'despesas_no_periodo': info_acao['despesas_no_periodo_custeio'] + info_acao['despesas_no_periodo_capital'],
             'despesas_no_periodo_capital': info_acao['despesas_no_periodo_capital'],
@@ -281,19 +316,23 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
             'despesas_nao_conciliadas_custeio': info_acao['despesas_nao_conciliadas_custeio'],
 
             'receitas_nao_conciliadas': info_acao['receitas_nao_conciliadas_custeio'] + info_acao[
-                'receitas_nao_conciliadas_capital'],
+                'receitas_nao_conciliadas_capital'] + info_acao['receitas_nao_conciliadas_livre'],
             'receitas_nao_conciliadas_capital': info_acao['receitas_nao_conciliadas_capital'],
             'receitas_nao_conciliadas_custeio': info_acao['receitas_nao_conciliadas_custeio'],
+            'receitas_nao_conciliadas_livre': info_acao['receitas_nao_conciliadas_livre'],
 
             'saldo_atual_custeio': info_acao['saldo_atual_custeio'],
             'saldo_atual_capital': info_acao['saldo_atual_capital'],
-            'saldo_atual_total': info_acao['saldo_atual_custeio'] + info_acao['saldo_atual_capital'],
+            'saldo_atual_livre': info_acao['saldo_atual_livre'],
+            'saldo_atual_total': info_acao['saldo_atual_custeio'] + info_acao['saldo_atual_capital'] + info_acao[
+                'saldo_atual_livre'],
 
             'especificacoes_despesas_capital': especificacoes_despesas['CAPITAL'],
             'especificacoes_despesas_custeio': especificacoes_despesas['CUSTEIO'],
 
             'repasses_nao_realizados_capital': info_repasses_pendentes['CAPITAL'],
             'repasses_nao_realizados_custeio': info_repasses_pendentes['CUSTEIO'],
+            'repasses_nao_realizados_livre': info_repasses_pendentes['LIVRE'],
         }
         result.append(info)
 

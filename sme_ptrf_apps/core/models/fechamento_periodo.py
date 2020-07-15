@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models.signals import pre_save
@@ -5,6 +7,8 @@ from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
+
+logger = logging.getLogger(__name__)
 
 # Status Choice
 STATUS_FECHADO = 'FECHADO'
@@ -60,10 +64,18 @@ class FechamentoPeriodo(ModeloBase):
     saldo_reprogramado_custeio = models.DecimalField('Saldo Reprogramado (custeio)', max_digits=12, decimal_places=2,
                                                      default=0)
 
+    total_receitas_livre = models.DecimalField('Total Receitas (livre)', max_digits=12, decimal_places=2, default=0)
+    total_repasses_livre = models.DecimalField('Total Repasses (livre)', max_digits=12, decimal_places=2, default=0)
+
+    saldo_reprogramado_livre = models.DecimalField('Saldo Reprogramado (livre)', max_digits=12, decimal_places=2,
+                                                   default=0)
+
     total_receitas_nao_conciliadas_capital = models.DecimalField('Receitas não conciliadas (capital)', max_digits=12,
                                                                  decimal_places=2, default=0)
     total_receitas_nao_conciliadas_custeio = models.DecimalField('Receitas não conciliadas (custeio)', max_digits=12,
                                                                  decimal_places=2, default=0)
+    total_receitas_nao_conciliadas_livre = models.DecimalField('Receitas não conciliadas (livre)', max_digits=12,
+                                                               decimal_places=2, default=0)
 
     total_despesas_nao_conciliadas_capital = models.DecimalField('Despesas não conciliadas (capital)', max_digits=12,
                                                                  decimal_places=2, default=0)
@@ -87,7 +99,7 @@ class FechamentoPeriodo(ModeloBase):
 
     @property
     def total_receitas(self):
-        return self.total_receitas_capital + self.total_receitas_custeio
+        return self.total_receitas_capital + self.total_receitas_custeio + self.total_receitas_livre
 
     @property
     def total_despesas(self):
@@ -95,7 +107,7 @@ class FechamentoPeriodo(ModeloBase):
 
     @property
     def saldo_reprogramado(self):
-        return self.saldo_reprogramado_capital + self.saldo_reprogramado_custeio
+        return self.saldo_reprogramado_capital + self.saldo_reprogramado_custeio + self.saldo_reprogramado_livre
 
     @property
     def saldo_anterior(self):
@@ -108,6 +120,10 @@ class FechamentoPeriodo(ModeloBase):
     @property
     def saldo_anterior_capital(self):
         return self.fechamento_anterior.saldo_reprogramado_capital if self.fechamento_anterior else 0
+
+    @property
+    def saldo_anterior_livre(self):
+        return self.fechamento_anterior.saldo_reprogramado_livre if self.fechamento_anterior else 0
 
     def __str__(self):
         return f"{self.periodo} - {self.acao_associacao.acao.nome} - {self.conta_associacao.tipo_conta.nome}  - {self.status}"
@@ -123,6 +139,41 @@ class FechamentoPeriodo(ModeloBase):
         return saldo_anterior \
                + self.total_receitas_custeio \
                - self.total_despesas_custeio
+
+    def calcula_saldo_reprogramado_livre(self):
+        saldo_anterior = self.fechamento_anterior.saldo_reprogramado_livre if self.fechamento_anterior else 0
+        return saldo_anterior \
+               + self.total_receitas_livre
+
+    def calcula_saldo_reprogramado(self):
+
+        saldo_reprogramado_custeio = self.calcula_saldo_reprogramado_custeio()
+        saldo_reprogramado_capital = self.calcula_saldo_reprogramado_capital()
+        saldo_reprogramado_livre = self.calcula_saldo_reprogramado_livre()
+
+        logger.debug(f'Saldo Reprogramado (Custeio) antes de aplicar saldo livre:{saldo_reprogramado_custeio:.2f}')
+        logger.debug(f'Saldo Reprogramado (Capital) antes de aplicar saldo livre:{saldo_reprogramado_capital:.2f}')
+        logger.debug(f'Saldo Reprogramado (Livre) antes de aplicar saldo livre:{saldo_reprogramado_livre:.2f}')
+
+        if saldo_reprogramado_custeio < 0:
+            logger.debug(f'Usado saldo de livre aplicação para cobertura de custeio')
+            saldo_reprogramado_livre += saldo_reprogramado_custeio
+            saldo_reprogramado_custeio = 0
+
+        if saldo_reprogramado_capital < 0:
+            logger.debug(f'Usado saldo de livre aplicação para cobertura de capital')
+            saldo_reprogramado_livre += saldo_reprogramado_capital
+            saldo_reprogramado_capital = 0
+
+        logger.debug(f'Saldo Reprogramado (Custeio) depois de aplicar saldo livre:{saldo_reprogramado_custeio:.2f}')
+        logger.debug(f'Saldo Reprogramado (Capital) depois de aplicar saldo livre:{saldo_reprogramado_capital:.2f}')
+        logger.debug(f'Saldo Reprogramado (Livre) depois de aplicar saldo livre:{saldo_reprogramado_livre:.2f}')
+
+        return {
+            'CUSTEIO': saldo_reprogramado_custeio,
+            'CAPITAL': saldo_reprogramado_capital,
+            'LIVRE': saldo_reprogramado_livre,
+        }
 
     @classmethod
     def by_periodo_conta_acao(cls, periodo, conta_associacao, acao_associacao):
@@ -212,5 +263,7 @@ class FechamentoPeriodo(ModeloBase):
 
 @receiver(pre_save, sender=FechamentoPeriodo)
 def fechamento_pre_save(instance, **kwargs):
-    instance.saldo_reprogramado_capital = instance.calcula_saldo_reprogramado_capital()
-    instance.saldo_reprogramado_custeio = instance.calcula_saldo_reprogramado_custeio()
+    saldo_reprogramado = instance.calcula_saldo_reprogramado()
+    instance.saldo_reprogramado_capital = saldo_reprogramado['CAPITAL']
+    instance.saldo_reprogramado_custeio = saldo_reprogramado['CUSTEIO']
+    instance.saldo_reprogramado_livre = saldo_reprogramado['LIVRE']
