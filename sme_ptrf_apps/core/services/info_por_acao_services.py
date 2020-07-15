@@ -62,7 +62,9 @@ def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
         conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
         saldos_conta = info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=exclude_despesa)
 
-        saldo_conta = saldos_conta['saldo_atual_custeio'] + saldos_conta['saldo_atual_capital']
+        saldo_conta = saldos_conta['saldo_atual_custeio'] + saldos_conta['saldo_atual_capital'] + saldos_conta[
+            'saldo_atual_livre']
+
         if saldo_conta < gasto_conta_associacao:
             saldo_insuficiente = {
                 'conta': conta_associacao.tipo_conta.nome,
@@ -84,11 +86,11 @@ def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
         for aplicacao, saldo_atual_key in (('CUSTEIO', 'saldo_atual_custeio'), ('CAPITAL', 'saldo_atual_capital')):
             if not gastos_acao_associacao[aplicacao]: continue
 
-            if saldos_acao[saldo_atual_key] < gastos_acao_associacao[aplicacao]:
+            if saldos_acao[saldo_atual_key] + saldos_acao['saldo_atual_livre']  < gastos_acao_associacao[aplicacao]:
                 saldo_insuficiente = {
                     'acao': acao_associacao.acao.nome,
                     'aplicacao': aplicacao,
-                    'saldo_disponivel': saldos_acao[saldo_atual_key],
+                    'saldo_disponivel': saldos_acao[saldo_atual_key] + saldos_acao['saldo_atual_livre'] ,
                     'total_rateios': gastos_acao_associacao[aplicacao]
                 }
                 saldos_insuficientes.append(saldo_insuficiente)
@@ -347,11 +349,17 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
             'repasses_no_periodo_custeio': 0,
             'despesas_no_periodo_custeio': 0,
             'saldo_atual_custeio': 0,
+
             'saldo_anterior_capital': 0,
             'receitas_no_periodo_capital': 0,
             'repasses_no_periodo_capital': 0,
             'despesas_no_periodo_capital': 0,
             'saldo_atual_capital': 0,
+
+            'saldo_anterior_livre': 0,
+            'receitas_no_periodo_livre': 0,
+            'repasses_no_periodo_livre': 0,
+            'saldo_atual_livre': 0,
         }
 
     def fechamento_sumarizado_por_conta(fechamentos_periodo):
@@ -362,11 +370,18 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
             info['repasses_no_periodo_custeio'] += fechamento_periodo.total_repasses_custeio
             info['despesas_no_periodo_custeio'] += fechamento_periodo.total_despesas_custeio
             info['saldo_atual_custeio'] += fechamento_periodo.saldo_reprogramado_custeio
+
             info['saldo_anterior_capital'] += fechamento_periodo.saldo_anterior_capital
             info['receitas_no_periodo_capital'] += fechamento_periodo.total_receitas_capital
             info['repasses_no_periodo_capital'] += fechamento_periodo.total_repasses_capital
             info['despesas_no_periodo_capital'] += fechamento_periodo.total_despesas_capital
             info['saldo_atual_capital'] += fechamento_periodo.saldo_reprogramado_capital
+
+            info['saldo_anterior_livre'] += fechamento_periodo.saldo_anterior_livre
+            info['receitas_no_periodo_livre'] += fechamento_periodo.total_receitas_livre
+            info['repasses_no_periodo_livre'] += fechamento_periodo.total_repasses_livre
+            info['saldo_atual_livre'] += fechamento_periodo.saldo_reprogramado_livre
+
         return info
 
     def sumariza_receitas_do_periodo_e_conta(periodo, conta_associacao, info):
@@ -378,10 +393,15 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
                 info['saldo_atual_custeio'] += receita.valor
                 info['repasses_no_periodo_custeio'] += receita.valor if receita.tipo_receita.e_repasse else 0
 
-            else:
+            elif receita.categoria_receita == APLICACAO_CAPITAL:
                 info['receitas_no_periodo_capital'] += receita.valor
                 info['saldo_atual_capital'] += receita.valor
                 info['repasses_no_periodo_capital'] += receita.valor if receita.tipo_receita.e_repasse else 0
+
+            else:
+                info['receitas_no_periodo_livre'] += receita.valor
+                info['saldo_atual_livre'] += receita.valor
+                info['repasses_no_periodo_livre'] += receita.valor if receita.tipo_receita.e_repasse else 0
 
         return info
 
@@ -409,16 +429,30 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
         fechamentos_periodo_anterior = FechamentoPeriodo.fechamentos_da_conta_no_periodo(
             conta_associacao=conta_associacao,
             periodo=periodo.periodo_anterior)
+
         if fechamentos_periodo_anterior:
             sumario_periodo_anterior = fechamento_sumarizado_por_conta(fechamentos_periodo_anterior)
+
             info['saldo_anterior_capital'] = sumario_periodo_anterior['saldo_atual_capital']
-            info['saldo_anterior_custeio'] = sumario_periodo_anterior['saldo_atual_custeio']
             info['saldo_atual_capital'] = info['saldo_anterior_capital']
+
+            info['saldo_anterior_custeio'] = sumario_periodo_anterior['saldo_atual_custeio']
             info['saldo_atual_custeio'] = info['saldo_anterior_custeio']
+
+            info['saldo_anterior_livre'] = sumario_periodo_anterior['saldo_atual_livre']
+            info['saldo_atual_livre'] = info['saldo_anterior_livre']
 
         info = sumariza_receitas_do_periodo_e_conta(periodo=periodo, conta_associacao=conta_associacao, info=info)
 
         info = sumariza_despesas_do_periodo_e_conta(periodo=periodo, conta_associacao=conta_associacao, info=info)
+
+        if info['saldo_atual_custeio'] < 0:
+            info['saldo_atual_livre'] += info['saldo_atual_custeio']
+            info['saldo_atual_custeio'] = 0
+
+        if info['saldo_atual_capital'] < 0:
+            info['saldo_atual_livre'] += info['saldo_atual_capital']
+            info['saldo_atual_capital'] = 0
 
         return info
 
