@@ -8,7 +8,7 @@ from sme_ptrf_apps.users.api.serializers import (
     RedefinirSenhaSerializer,
     RedefinirSenhaSerializerCreator,
 )
-from sme_ptrf_apps.users.services.usuario_senha import SmeIntegracaoException
+from sme_ptrf_apps.users.services import SmeIntegracaoException
 User = get_user_model()
 
 
