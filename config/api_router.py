@@ -32,7 +32,7 @@ if settings.DEBUG:
 else:
     router = SimpleRouter()
 
-router.register("users", UserViewSet)
+router.register("usuarios", UserViewSet)
 router.register("despesas", DespesasViewSet)
 router.register("especificacoes", EspecificacaoMaterialServicoViewSet)
 router.register("rateios-despesas", RateiosDespesasViewSet)

@@ -10,8 +10,7 @@ from sme_ptrf_apps.users.api.validations.usuario_validations import (
     senha_nao_pode_ser_nulo,
     senhas_devem_ser_iguais,
 )
-from sme_ptrf_apps.users.services import SmeIntegracaoService
-from sme_ptrf_apps.users.services.usuario_senha import SmeIntegracaoException
+from sme_ptrf_apps.users.services import SmeIntegracaoService, SmeIntegracaoException
 from sme_ptrf_apps.users.tasks import enviar_email_redifinicao_senha
 
 User = get_user_model()
