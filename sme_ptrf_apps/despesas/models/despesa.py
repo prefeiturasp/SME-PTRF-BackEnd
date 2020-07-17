@@ -58,8 +58,7 @@ class Despesa(ModeloBase):
         return f"{self.numero_documento} - {self.data_documento} - {self.valor_total:.2f}"
 
     def cadastro_completo(self):
-        completo = self.numero_documento and \
-                   self.tipo_documento and \
+        completo = self.tipo_documento and \
                    self.data_documento and \
                    self.cpf_cnpj_fornecedor and \
                    self.nome_fornecedor and \
@@ -70,10 +69,13 @@ class Despesa(ModeloBase):
         if completo and self.tipo_transacao.tem_documento:
             completo = completo and self.documento_transacao
 
+        if completo and self.tipo_documento.numero_documento_digitado:
+            completo = completo and self.numero_documento
+        
         if completo:
             for rateio in self.rateios.all():
                 completo = completo and rateio.status == STATUS_COMPLETO
-
+        
         return completo
 
     def atualiza_status(self):
