@@ -126,6 +126,7 @@ def test_get_tabelas(
                 'e_repasse': tipo_receita.e_repasse,
                 'aceita_capital': tipo_receita.aceita_capital,
                 'aceita_custeio': tipo_receita.aceita_custeio,
+                'aceita_livre': tipo_receita.aceita_livre,
                 'detalhes_tipo_receita': [
                     {
                         'id': detalhe_tipo_receita.id,
@@ -192,7 +193,8 @@ def test_get_receitas(
                 'nome': tipo_receita.nome,
                 'e_repasse': tipo_receita.e_repasse,
                 'aceita_capital': tipo_receita.aceita_capital,
-                'aceita_custeio': tipo_receita.aceita_custeio
+                'aceita_custeio': tipo_receita.aceita_custeio,
+                'aceita_livre': tipo_receita.aceita_livre
             },
             "acao_associacao": {
                 "uuid": str(acao_associacao.uuid),
@@ -310,7 +312,8 @@ def test_retrive_receitas(
             'nome': tipo_receita.nome,
             'e_repasse': tipo_receita.e_repasse,
             'aceita_capital': tipo_receita.aceita_capital,
-            'aceita_custeio': tipo_receita.aceita_custeio
+            'aceita_custeio': tipo_receita.aceita_custeio,
+            'aceita_livre': tipo_receita.aceita_livre
         },
         "acao_associacao": {
             "uuid": str(acao_associacao.uuid),
