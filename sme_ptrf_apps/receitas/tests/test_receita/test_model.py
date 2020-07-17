@@ -1,6 +1,7 @@
 import pytest
 
 from sme_ptrf_apps.receitas.models import Receita
+from ...tipos_aplicacao_recurso_receitas import APLICACAO_LIVRE
 
 pytestmark = pytest.mark.django_db
 
@@ -33,3 +34,8 @@ def test_desmarcar_conferido(receita_conferida):
     receita = Receita.objects.get(id=receita_conferida.id)
     assert not receita.conferido
 
+
+def test_receita_livre_utilizacao(receita):
+    receita.categoria_receita = APLICACAO_LIVRE
+    receita.save()
+    assert Receita.by_id(receita.id).categoria_receita == APLICACAO_LIVRE

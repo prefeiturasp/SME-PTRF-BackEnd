@@ -142,6 +142,10 @@ def test_get_tabelas(
             {
                 "id": "CUSTEIO",
                 "nome": "Custeio"
+            },
+            {
+                "id": "LIVRE",
+                "nome": "Livre Aplicação"
             }
         ],
         'acoes_associacao': [

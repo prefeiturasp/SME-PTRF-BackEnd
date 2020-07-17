@@ -8,7 +8,8 @@ from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
+
+from ..tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
 
 
 class Receita(ModeloBase):
