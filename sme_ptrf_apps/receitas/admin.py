@@ -6,7 +6,7 @@ from sme_ptrf_apps.receitas.models import Receita, TipoReceita, Repasse, Detalhe
 
 @admin.register(TipoReceita)
 class TipoReceitaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'e_repasse')
+    list_display = ('nome', 'e_repasse', 'e_rendimento', 'aceita_capital', 'aceita_custeio', 'aceita_livre')
 
 
 def customTitledFilter(title):
