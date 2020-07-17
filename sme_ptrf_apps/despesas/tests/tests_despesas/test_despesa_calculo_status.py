@@ -1,3 +1,4 @@
+import datetime
 import pytest
 from model_bakery import baker
 
@@ -96,12 +97,34 @@ def despesa_incompleta(associacao, tipo_documento, tipo_transacao):
     )
 
 
+@pytest.fixture
+def despesa_incompleta_numero_digitado(associacao, tipo_documento_numero_documento_digitado, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento_numero_documento_digitado,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        documento_transacao='',
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=100.00,
+        valor_recursos_proprios=10.00,
+    )
+
+
 def test_despesa_completa(despesa):
+    assert despesa.cadastro_completo()
     assert despesa.status == STATUS_COMPLETO
 
 
 def test_despesa_incompleta(despesa_incompleta):
     assert despesa_incompleta.status == STATUS_INCOMPLETO
+
+def test_despesa_incompleta_numero_digitado(despesa_incompleta_numero_digitado):
+    assert despesa_incompleta_numero_digitado.status == STATUS_INCOMPLETO
 
 
 def test_rateio_despesa_custeio_completo(rateio_despesa_custeio_completo):
