@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 
 from sme_ptrf_apps.core.models import Acao, AcaoAssociacao, Associacao, ContaAssociacao, Periodo, TipoConta
-from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
+from ..tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 from ..models import Receita, Repasse, TipoReceita
 
@@ -122,7 +122,7 @@ def processa_repasse(reader, conta):
                         periodo=periodo,
                         status=StatusRepasse.REALIZADO.name
                     )
-                    
+
                     data = datetime.strptime(str(row[DATA]).strip(" "), '%d/%m/%Y')
                     tipo_receita = TipoReceita.objects.filter(e_repasse=True).first()
                     valor=0
@@ -131,7 +131,7 @@ def processa_repasse(reader, conta):
                     if valor_capital > 0:
                         valor = valor_capital
                         categoria_receita = APLICACAO_CAPITAL
-                        
+
                         criar_receita(
                             associacao,
                             conta_associacao,
@@ -141,7 +141,7 @@ def processa_repasse(reader, conta):
                             categoria_receita,
                             tipo_receita,
                             repasse)
-                        
+
                         repasse.realizado_capital = True
 
                     if valor_custeio > 0:
@@ -157,9 +157,9 @@ def processa_repasse(reader, conta):
                             categoria_receita,
                             tipo_receita,
                             repasse)
-                        
+
                         repasse.realizado_custeio = True
-                    
+
                     repasse.save()
             except Exception as e:
                 logger.info("Error %s", str(e))

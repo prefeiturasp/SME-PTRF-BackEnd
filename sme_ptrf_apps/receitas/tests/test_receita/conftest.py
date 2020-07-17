@@ -3,7 +3,7 @@ import datetime
 import pytest
 from model_bakery import baker
 
-from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
+from ...tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 
 @pytest.fixture

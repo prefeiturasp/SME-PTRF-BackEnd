@@ -12,6 +12,7 @@ def test_model(repasse):
     assert model.periodo
     assert model.valor_capital
     assert model.valor_custeio
+    assert model.valor_livre == 0
     assert model.conta_associacao
     assert model.acao_associacao
     assert model.status == 'PENDENTE'

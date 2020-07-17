@@ -9,7 +9,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
-from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import aplicacoes_recurso_to_json
+from ...tipos_aplicacao_recurso_receitas import aplicacoes_recurso_to_json
 from sme_ptrf_apps.receitas.models import Receita
 from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoReceitaEDetalhesSerializer
 from ...services import atualiza_repasse_para_pendente
