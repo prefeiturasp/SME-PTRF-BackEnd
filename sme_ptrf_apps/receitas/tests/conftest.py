@@ -211,6 +211,7 @@ def repasse(associacao, conta_associacao, acao_associacao, periodo):
         periodo=periodo,
         valor_custeio=1000.40,
         valor_capital=1000.28,
+        valor_livre=0,
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         status='PENDENTE'

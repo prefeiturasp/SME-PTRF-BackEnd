@@ -54,8 +54,10 @@ class RepasseViewSet(GenericViewSet):
                 resp = serializer.data
                 if receita.categoria_receita == APLICACAO_CAPITAL:
                     resp['valor_capital'] = str(repasse.valor_capital)
-                else:
+                elif receita.categoria_receita == APLICACAO_CUSTEIO:
                     resp['valor_custeio'] = str(repasse.valor_custeio)
+                else:
+                    resp['valor_livre'] = str(repasse.valor_livre)
             except Receita.DoesNotExist as e:
                 return Response("Repasse não encontrado para receita {receita.uuid}.", status=HTTP_400_BAD_REQUEST)
 
