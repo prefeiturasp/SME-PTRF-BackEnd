@@ -5,7 +5,6 @@ import logging
 import os
 
 from sme_ptrf_apps.core.models import Acao, AcaoAssociacao, Associacao, ContaAssociacao, Periodo, TipoConta
-
 from ..models import Repasse
 
 logger = logging.getLogger(__name__)
@@ -111,43 +110,6 @@ def processa_repasse(reader, conta, nome_arquivo):
                     )
             except Exception as e:
                 logger.info("Error %s", str(e))
-
-
-# def carrega_repasses_cartao():
-#     logger.info('Carregando arquivo de repasse para conta cartão.')
-#     path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
-#     try:
-#         nome_arquivo = next(glob.iglob(os.path.join(path, '*_cartao.csv')))
-#     except StopIteration:
-#         logger.info("Arquivo de repasse do tipo cartão não encontrado!")
-#         return
-#
-#     with open(nome_arquivo, 'r') as f:
-#         reader = csv.reader(f, delimiter=',')
-#         processa_repasse(reader, TipoContaEnum.CARTAO.value, nome_arquivo)
-
-
-# def carrega_repasses_cheque():
-#     logger.info('Carregando arquivo de repasse para conta cheque.')
-#     path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
-#     try:
-#         nome_arquivo = next(glob.iglob(os.path.join(path, '*_cheque.csv')))
-#     except StopIteration:
-#         logger.info("Arquivo de repasse do tipo cheque não encontrado!")
-#         return
-#
-#     with open(nome_arquivo, 'r') as f:
-#         reader = csv.reader(f, delimiter=',')
-#         processa_repasse(reader, TipoContaEnum.CHEQUE.value, nome_arquivo)
-
-
-# def carrega_repasses():
-#     logger.info('Carregando arquivo de repasses.')
-#
-#     carrega_repasses_cartao()
-#     carrega_repasses_cheque()
-#
-#     logger.info('Carregamento de arquivos de repasses finalizados.')
 
 
 def carrega_repasses_previstos(arquivo):
