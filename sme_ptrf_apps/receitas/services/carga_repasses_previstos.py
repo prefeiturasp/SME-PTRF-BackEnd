@@ -1,14 +1,10 @@
 import csv
 import datetime
 import enum
-import glob
 import logging
 import os
 
-from django.contrib.staticfiles.storage import staticfiles_storage
-
 from sme_ptrf_apps.core.models import Acao, AcaoAssociacao, Associacao, ContaAssociacao, Periodo, TipoConta
-
 from ..models import Repasse
 
 logger = logging.getLogger(__name__)
@@ -94,17 +90,19 @@ def processa_repasse(reader, conta, nome_arquivo):
             try:
                 valor_capital = get_valor(row[1])
                 valor_custeio = get_valor(row[2])
-                acao = get_acao(row[3])
+                valor_livre = get_valor(row[3])
+                acao = get_acao(row[4])
                 tipo_conta = get_tipo_conta(conta)
                 acao_associacao = get_acao_associacao(acao, associacao)
                 conta_associacao = get_conta_associacao(tipo_conta, associacao)
                 periodo = get_periodo(nome_arquivo)
 
-                if valor_capital > 0 or valor_custeio > 0:
+                if valor_capital > 0 or valor_custeio > 0 or valor_livre > 0:
                     Repasse.objects.create(
                         associacao=associacao,
                         valor_capital=valor_capital,
                         valor_custeio=valor_custeio,
+                        valor_livre=valor_livre,
                         conta_associacao=conta_associacao,
                         acao_associacao=acao_associacao,
                         periodo=periodo,
@@ -114,38 +112,11 @@ def processa_repasse(reader, conta, nome_arquivo):
                 logger.info("Error %s", str(e))
 
 
-def carrega_repasses_cartao():
-    logger.info('Carregando arquivo de repasse para conta cartão.')
-    path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
-    try:
-        nome_arquivo = next(glob.iglob(os.path.join(path, '*_cartao.csv')))
-    except StopIteration:
-        logger.info("Arquivo de repasse do tipo cartão não encontrado!")
-        return
+def carrega_repasses_previstos(arquivo):
+    logger.info("Processando arquivo %s", arquivo.identificador)
+    tipo_conta = TipoContaEnum.CARTAO.value if 'cartao' in arquivo.identificador else TipoContaEnum.CHEQUE.value
 
-    with open(nome_arquivo, 'r') as f:
+    with open(arquivo.conteudo.path, 'r', encoding="utf-8") as f:
         reader = csv.reader(f, delimiter=',')
-        processa_repasse(reader, TipoContaEnum.CARTAO.value, nome_arquivo)
+        processa_repasse(reader, tipo_conta, arquivo.identificador)
 
-
-def carrega_repasses_cheque():
-    logger.info('Carregando arquivo de repasse para conta cheque.')
-    path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
-    try:
-        nome_arquivo = next(glob.iglob(os.path.join(path, '*_cheque.csv')))
-    except StopIteration:
-        logger.info("Arquivo de repasse do tipo cheque não encontrado!")
-        return
-
-    with open(nome_arquivo, 'r') as f:
-        reader = csv.reader(f, delimiter=',')
-        processa_repasse(reader, TipoContaEnum.CHEQUE.value, nome_arquivo)
-
-
-def carrega_repasses():
-    logger.info('Carregando arquivo de repasses.')
-
-    carrega_repasses_cartao()
-    carrega_repasses_cheque()
-
-    logger.info('Carregamento de arquivos de repasses finalizados.')

@@ -33,13 +33,14 @@ class ReceitaAdmin(admin.ModelAdmin):
         ('tipo_receita', customTitledFilter('Tipo Receita')),
         'detalhe_tipo_receita',
         'categoria_receita',
+        'repasse',
     )
     readonly_fields = ('uuid', 'id')
 
 
 @admin.register(Repasse)
 class RepasseAdmin(admin.ModelAdmin):
-    list_display = ('associacao', 'valor_capital', 'valor_custeio', 'tipo_conta', 'acao', 'status')
+    list_display = ('associacao', 'valor_capital', 'valor_custeio', 'valor_livre', 'tipo_conta', 'acao', 'status')
     actions = ['importa_repasses',]
 
     def tipo_conta(self, obj):
@@ -49,7 +50,7 @@ class RepasseAdmin(admin.ModelAdmin):
         return obj.acao_associacao.acao.nome
 
     def importa_repasses(self, request, queryset):
-        from sme_ptrf_apps.receitas.services.carga_repasses import carrega_repasses
+        from sme_ptrf_apps.receitas.services.carga_repasses_previstos import carrega_repasses
         carrega_repasses()
         self.message_user(request, "Repasses Carregados")
 
