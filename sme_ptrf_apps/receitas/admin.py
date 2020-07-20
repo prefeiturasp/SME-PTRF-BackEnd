@@ -50,7 +50,7 @@ class RepasseAdmin(admin.ModelAdmin):
         return obj.acao_associacao.acao.nome
 
     def importa_repasses(self, request, queryset):
-        from sme_ptrf_apps.receitas.services.carga_repasses import carrega_repasses
+        from sme_ptrf_apps.receitas.services.carga_repasses_previstos import carrega_repasses
         carrega_repasses()
         self.message_user(request, "Repasses Carregados")
 
