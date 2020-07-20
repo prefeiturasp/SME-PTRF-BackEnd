@@ -24,7 +24,7 @@ class Repasse(ModeloBase):
 
     valor_custeio = models.DecimalField('Valor Custeio', max_digits=20, decimal_places=2, default=0)
 
-    valor_livre = models.DecimalField('Valor Custeio', max_digits=20, decimal_places=2, default=0)
+    valor_livre = models.DecimalField('Valor Livre Aplicação', max_digits=20, decimal_places=2, default=0)
 
     conta_associacao = models.ForeignKey('core.ContaAssociacao', on_delete=models.PROTECT,
                                          related_name='repasses_da_conta', blank=True, null=True)
