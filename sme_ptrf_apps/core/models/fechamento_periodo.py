@@ -6,7 +6,7 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
+from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 logger = logging.getLogger(__name__)
 
@@ -244,16 +244,19 @@ class FechamentoPeriodo(ModeloBase):
 
     @classmethod
     def implanta_saldo(cls, acao_associacao, conta_associacao, aplicacao, saldo):
-        fechamento_implantacao = cls.objects.create(
+        total_receitas_field = f'total_receitas_{aplicacao.lower()}'
+        fechamento_implantacao = cls.objects.update_or_create(
             periodo=conta_associacao.associacao.periodo_inicial,
             associacao=conta_associacao.associacao,
             conta_associacao=conta_associacao,
             acao_associacao=acao_associacao,
-            total_receitas_capital=saldo if aplicacao == APLICACAO_CAPITAL else 0,
-            total_receitas_custeio=saldo if aplicacao == APLICACAO_CUSTEIO else 0,
-            fechamento_anterior=None,
-            status=STATUS_IMPLANTACAO,
+            defaults={
+                total_receitas_field: saldo,
+                'fechamento_anterior': None,
+                'status': STATUS_IMPLANTACAO,
+            }
         )
+
         return fechamento_implantacao
 
     class Meta:
