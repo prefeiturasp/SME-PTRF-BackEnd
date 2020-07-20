@@ -547,6 +547,27 @@ def fechamento_periodo_anterior_role_implantado(periodo_anterior, associacao, co
 
 
 @pytest.fixture
+def fechamento_periodo_anterior_role_implantado_com_livre_aplicacao(periodo_anterior, associacao, conta_associacao,
+                                                                    acao_associacao_role_cultural, ):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo_anterior,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_role_cultural,
+        fechamento_anterior=None,
+        total_receitas_capital=1000,
+        total_repasses_capital=0,
+        total_despesas_capital=0,
+        total_receitas_custeio=2000,
+        total_repasses_custeio=0,
+        total_despesas_custeio=0,
+        total_receitas_livre=3000,
+        status=STATUS_IMPLANTACAO
+    )
+
+
+@pytest.fixture
 def fechamento_2020_1_role(periodo_2020_1, associacao, conta_associacao, acao_associacao_role_cultural,
                            prestacao_conta_2020_1_conciliada, fechamento_periodo_anterior_role):
     return baker.make(
