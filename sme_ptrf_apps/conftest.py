@@ -427,6 +427,24 @@ def fechamento_periodo_anterior(periodo_anterior, associacao, conta_associacao, 
 
 
 @pytest.fixture
+def fechamento_periodo_anterior_capital_1000_livre_2000(periodo_anterior, associacao, conta_associacao,
+                                                        acao_associacao, ):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo_anterior,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        fechamento_anterior=None,
+        total_receitas_capital=1000,
+        total_repasses_capital=1000,
+        total_receitas_livre=2000,
+        total_repasses_livre=2000,
+        status=STATUS_IMPLANTACAO
+    )
+
+
+@pytest.fixture
 def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associacao):
     return baker.make(
         'PrestacaoConta',
@@ -707,6 +725,7 @@ def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_r
         tipo_receita=tipo_receita,
     )
 
+
 @pytest.fixture
 def receita_1000_no_periodo_livre_aplicacao(associacao, conta_associacao, acao_associacao, tipo_receita, periodo):
     return baker.make(
@@ -720,6 +739,19 @@ def receita_1000_no_periodo_livre_aplicacao(associacao, conta_associacao, acao_a
         categoria_receita='LIVRE'
     )
 
+
+@pytest.fixture
+def receita_100_no_periodo_capital(associacao, conta_associacao, acao_associacao, tipo_receita, periodo):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=periodo.data_inicio_realizacao_despesas + timedelta(days=3),
+        valor=100.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
+        categoria_receita='CAPITAL'
+    )
 
 
 @pytest.fixture
@@ -962,6 +994,29 @@ def rateio_no_periodo_200_capital(associacao, despesa_no_periodo, conta_associac
         valor_rateio=200.00,
         quantidade_itens_capital=1,
         valor_item_capital=200.00,
+        numero_processo_incorporacao_capital='Teste123456'
+
+    )
+
+
+# rateio_200_capital
+@pytest.fixture
+def rateio_no_periodo_1500_capital(associacao, despesa_no_periodo, conta_associacao, acao,
+                                   tipo_aplicacao_recurso_capital,
+                                   tipo_custeio,
+                                   especificacao_ar_condicionado, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_no_periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_capital,
+        tipo_custeio=None,
+        especificacao_material_servico=especificacao_ar_condicionado,
+        valor_rateio=1500.00,
+        quantidade_itens_capital=1,
+        valor_item_capital=1500.00,
         numero_processo_incorporacao_capital='Teste123456'
 
     )

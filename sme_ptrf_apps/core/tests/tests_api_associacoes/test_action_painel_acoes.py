@@ -63,8 +63,8 @@ def test_action_painel_acoes(
                 'despesas_no_periodo_custeio': 100.0,
 
                 'saldo_atual_custeio': 300.0,
-                'saldo_atual_capital': -200.0,
-                'saldo_atual_livre': 0,
+                'saldo_atual_capital': 0.0,
+                'saldo_atual_livre': -200,
                 'saldo_atual_total': 100.0,
 
                 'despesas_nao_conciliadas': 300.0,
