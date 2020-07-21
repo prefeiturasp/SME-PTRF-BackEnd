@@ -57,6 +57,8 @@ class AssociacoesViewSet(mixins.RetrieveModelMixin,
         ultima_atualizacao = datetime.datetime.now()
         info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=uuid, periodo=periodo)
 
+        info_acoes = [info for info in info_acoes if info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+
         result = {
             'associacao': f'{uuid}',
             'periodo_referencia': periodo.referencia,
