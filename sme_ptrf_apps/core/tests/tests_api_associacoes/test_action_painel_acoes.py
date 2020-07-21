@@ -128,9 +128,9 @@ def test_action_painel_acoes_por_periodo(
                 'saldo_reprogramado_custeio': 0,
                 'saldo_reprogramado_livre': 0,
 
-                'receitas_no_periodo': 1500.0,
+                'receitas_no_periodo': 3500.0,
 
-                'repasses_no_periodo': 1350.0,
+                'repasses_no_periodo': 3350.0,
                 'repasses_no_periodo_capital': 450.0,
                 'repasses_no_periodo_custeio': 900.0,
                 'repasses_no_periodo_livre': 2000,
