@@ -63,8 +63,8 @@ def test_action_painel_acoes(
                 'despesas_no_periodo_custeio': 100.0,
 
                 'saldo_atual_custeio': 300.0,
-                'saldo_atual_capital': -200.0,
-                'saldo_atual_livre': 0,
+                'saldo_atual_capital': 0.0,
+                'saldo_atual_livre': -200,
                 'saldo_atual_total': 100.0,
 
                 'despesas_nao_conciliadas': 300.0,
@@ -128,9 +128,9 @@ def test_action_painel_acoes_por_periodo(
                 'saldo_reprogramado_custeio': 0,
                 'saldo_reprogramado_livre': 0,
 
-                'receitas_no_periodo': 1500.0,
+                'receitas_no_periodo': 3500.0,
 
-                'repasses_no_periodo': 1350.0,
+                'repasses_no_periodo': 3350.0,
                 'repasses_no_periodo_capital': 450.0,
                 'repasses_no_periodo_custeio': 900.0,
                 'repasses_no_periodo_livre': 2000,

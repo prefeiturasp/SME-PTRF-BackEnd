@@ -133,14 +133,14 @@ def test_resultado_periodo_aberto_com_despesas_sem_receitas(
         'receitas_no_periodo_capital': 0,
         'repasses_no_periodo_capital': 0,
         'despesas_no_periodo_capital': 200,
-        'saldo_atual_capital': -100,
+        'saldo_atual_capital': -0,
         'despesas_nao_conciliadas_capital': 200.0,
         'receitas_nao_conciliadas_capital': 0.0,
 
         'saldo_anterior_livre': 2000,
         'receitas_no_periodo_livre': 0,
         'repasses_no_periodo_livre': 0,
-        'saldo_atual_livre': 2000,
+        'saldo_atual_livre': 1900,
         'receitas_nao_conciliadas_livre': 0.0,
 
     }
@@ -177,14 +177,51 @@ def test_resultado_periodo_aberto_com_despesas_e_receitas(
         'receitas_no_periodo_capital': 0,
         'repasses_no_periodo_capital': 0,
         'despesas_no_periodo_capital': 200,
-        'saldo_atual_capital': -100,
+        'saldo_atual_capital': 0,
         'despesas_nao_conciliadas_capital': 200.0,
         'receitas_nao_conciliadas_capital': 0.0,
 
         'saldo_anterior_livre': 2000,
         'receitas_no_periodo_livre': 0,
         'repasses_no_periodo_livre': 0,
-        'saldo_atual_livre': 2000,
+        'saldo_atual_livre': 1900,
+        'receitas_nao_conciliadas_livre': 0.0,
+
+    }
+    resultado = info_acao_associacao_no_periodo(acao_associacao, periodo)
+
+    assert resultado == resultado_esperado
+
+
+def test_resultado_periodo_aberto_consumo_do_saldo_livre_aplicacao(
+    periodo,
+    acao_associacao,
+    fechamento_periodo_anterior_capital_1000_livre_2000,
+    despesa_no_periodo,
+    rateio_no_periodo_1500_capital,
+    receita_100_no_periodo_capital
+):
+    resultado_esperado = {
+        'saldo_anterior_custeio': 0,
+        'receitas_no_periodo_custeio': 0,
+        'repasses_no_periodo_custeio': 0,
+        'despesas_no_periodo_custeio': 0,
+        'saldo_atual_custeio': 0,
+        'despesas_nao_conciliadas_custeio': 0.0,
+        'receitas_nao_conciliadas_custeio': 0.0,
+
+        'saldo_anterior_capital': 1000,
+        'receitas_no_periodo_capital': 100,
+        'repasses_no_periodo_capital': 0,
+        'despesas_no_periodo_capital': 1500,
+        'saldo_atual_capital': 0,
+        'despesas_nao_conciliadas_capital': 1500.0,
+        'receitas_nao_conciliadas_capital': 100.0,
+
+        'saldo_anterior_livre': 2000,
+        'receitas_no_periodo_livre': 0,
+        'repasses_no_periodo_livre': 0,
+        'saldo_atual_livre': 1600,
         'receitas_nao_conciliadas_livre': 0.0,
 
     }

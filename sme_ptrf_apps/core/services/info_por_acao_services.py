@@ -235,6 +235,16 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
         info = sumariza_despesas_do_periodo_e_acao(periodo=periodo, acao_associacao=acao_associacao, info=info,
                                                    conta=conta)
 
+        if info['saldo_atual_custeio'] < 0:
+            logger.debug(f'Usado saldo de livre aplicação para cobertura de custeio')
+            info['saldo_atual_livre'] += info['saldo_atual_custeio']
+            info['saldo_atual_custeio'] = 0
+
+        if info['saldo_atual_capital'] < 0:
+            logger.debug(f'Usado saldo de livre aplicação para cobertura de capital')
+            info['saldo_atual_livre'] += info['saldo_atual_capital']
+            info['saldo_atual_capital'] = 0
+
         return info
 
     fechamentos_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(acao_associacao=acao_associacao,
