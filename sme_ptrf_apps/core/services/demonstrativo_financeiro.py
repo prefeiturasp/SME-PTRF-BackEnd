@@ -8,6 +8,7 @@ update: 11/05/2020
 import logging
 import os
 import re
+import locale
 from copy import copy
 from tempfile import NamedTemporaryFile
 
@@ -146,29 +147,29 @@ def sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, period
     row_custeio = list(worksheet.rows)[15]
     row_capital = list(worksheet.rows)[16]
 
-    row_capital[SALDO_ANTERIOR].value = f'K {saldo_reprogramado_anterior_capital}' 
-    row_capital[CREDITO].value = f'K {valor_capital_receitas_demonstradas}'
-    row_capital[DESPESA_REALIZADA].value = f'K {valor_capital_rateios_demonstrados}'
+    row_capital[SALDO_ANTERIOR].value = f'K {formata_valor(saldo_reprogramado_anterior_capital)}' 
+    row_capital[CREDITO].value = f'K {formata_valor(valor_capital_receitas_demonstradas)}'
+    row_capital[DESPESA_REALIZADA].value = f'K {formata_valor(valor_capital_rateios_demonstrados)}'
     valor_saldo_reprogramado_proximo_periodo_capital = saldo_reprogramado_anterior_capital + valor_capital_receitas_demonstradas - valor_capital_rateios_demonstrados
-    row_capital[SALDO_REPROGRAMADO_PROXIMO].value = f'K {valor_saldo_reprogramado_proximo_periodo_capital}'
-    row_capital[DESPESA_NAO_DEMONSTRADA].value = f'K {valor_capital_rateios_nao_demonstrados}'
+    row_capital[SALDO_REPROGRAMADO_PROXIMO].value = f'K {formata_valor(valor_saldo_reprogramado_proximo_periodo_capital)}'
+    row_capital[DESPESA_NAO_DEMONSTRADA].value = f'K {formata_valor(valor_capital_rateios_nao_demonstrados)}'
     valor_saldo_bancario_capital = valor_saldo_reprogramado_proximo_periodo_capital + valor_capital_rateios_nao_demonstrados
-    row_capital[SALDO_BANCARIO].value = f'K {valor_saldo_bancario_capital}'
+    row_capital[SALDO_BANCARIO].value = f'K {formata_valor(valor_saldo_bancario_capital)}'
 
-    row_custeio[SALDO_ANTERIOR].value = f'C {saldo_reprogramado_anterior_custeio}'
-    row_custeio[CREDITO].value = f'C {valor_custeio_receitas_demonstradas}'
-    row_custeio[DESPESA_REALIZADA].value = f'C {valor_custeio_rateios_demonstrados}'
+    row_custeio[SALDO_ANTERIOR].value = f'C {formata_valor(saldo_reprogramado_anterior_custeio)}'
+    row_custeio[CREDITO].value = f'C {formata_valor(valor_custeio_receitas_demonstradas)}'
+    row_custeio[DESPESA_REALIZADA].value = f'C {formata_valor(valor_custeio_rateios_demonstrados)}'
     valor_saldo_reprogramado_proximo_periodo_custeio = saldo_reprogramado_anterior_custeio + valor_custeio_receitas_demonstradas - valor_custeio_rateios_demonstrados
-    row_custeio[SALDO_REPROGRAMADO_PROXIMO].value = f'C {valor_saldo_reprogramado_proximo_periodo_custeio}'
+    row_custeio[SALDO_REPROGRAMADO_PROXIMO].value = f'C {formata_valor(valor_saldo_reprogramado_proximo_periodo_custeio)}'
 
-    row_custeio[TOTAL_REPROGRAMADO_PROXIMO].value = valor_saldo_reprogramado_proximo_periodo_capital + \
-        valor_saldo_reprogramado_proximo_periodo_custeio
+    row_custeio[TOTAL_REPROGRAMADO_PROXIMO].value = formata_valor(valor_saldo_reprogramado_proximo_periodo_capital + \
+        valor_saldo_reprogramado_proximo_periodo_custeio)
 
-    row_custeio[DESPESA_NAO_DEMONSTRADA].value = f'C {valor_custeio_rateios_nao_demonstrados}'
+    row_custeio[DESPESA_NAO_DEMONSTRADA].value = f'C {formata_valor(valor_custeio_rateios_nao_demonstrados)}'
     valor_saldo_bancario_custeio = valor_saldo_reprogramado_proximo_periodo_custeio + valor_custeio_rateios_nao_demonstrados
-    row_custeio[SALDO_BANCARIO].value = f'C {valor_saldo_bancario_custeio}'
+    row_custeio[SALDO_BANCARIO].value = f'C {formata_valor(valor_saldo_bancario_custeio)}'
 
-    row_custeio[TOTAL_SALDO_BANCARIO].value = valor_saldo_bancario_capital + valor_saldo_bancario_custeio
+    row_custeio[TOTAL_SALDO_BANCARIO].value = formata_valor(valor_saldo_bancario_capital + valor_saldo_bancario_custeio)
 
 
 def creditos_demonstrados(worksheet, receitas, acc=0, start_line=21):
@@ -189,10 +190,10 @@ def creditos_demonstrados(worksheet, receitas, acc=0, start_line=21):
         row[1].value = receita.tipo_receita.nome
         row[4].value = receita.detalhamento
         row[7].value = receita.data.strftime("%d/%m/%Y")
-        row[9].value = receita.valor
+        row[9].value = formata_valor(receita.valor)
 
     row = list(worksheet.rows)[(ind-1) + 1]
-    row[9].value = valor_total
+    row[9].value = formata_valor(valor_total)
 
 
 def pagamentos(worksheet, rateios, acc=0, start_line=26):
@@ -231,10 +232,10 @@ def pagamentos(worksheet, rateios, acc=0, start_line=26):
         row[TIPO_TRANSACAO].value = tipo_transacao
         row[DATA].value = rateio.despesa.data_documento.strftime("%d/%m/%Y") if rateio.despesa.data_documento else ''
         row[DATA_2].value = rateio.despesa.data_documento.strftime("%d/%m/%Y") if rateio.despesa.data_documento else ''
-        row[VALOR].value = rateio.valor_rateio
+        row[VALOR].value = formata_valor(rateio.valor_rateio)
 
     row = list(worksheet.rows)[(ind-1)+1]
-    row[9].value = valor_total
+    row[9].value = formata_valor(valor_total)
 
 
 def observacoes(worksheet, acao_associacao):
@@ -295,3 +296,9 @@ def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_me
                 for row in range(new_row_idx, new_row_idx + dest_row):
                     newCellRange = get_column_letter(min_col) + str(row) + ":" + get_column_letter(max_col) + str(row)
                     ws.merge_cells(newCellRange)
+
+
+def formata_valor(valor):
+    locale.setlocale(locale.LC_MONETARY, "pt_BR.UTF-8")
+
+    return locale.currency(valor, grouping=True).split(" ")[1]
