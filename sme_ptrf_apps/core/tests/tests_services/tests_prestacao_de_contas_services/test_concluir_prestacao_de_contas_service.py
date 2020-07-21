@@ -1,8 +1,8 @@
 import pytest
 
-from ...models.prestacao_conta import STATUS_ABERTO
-from ...models import Observacao
-from ...services import concluir_prestacao_de_contas
+from ....models import Observacao
+from ....models.prestacao_conta import STATUS_ABERTO
+from ....services import concluir_prestacao_de_contas
 
 pytestmark = pytest.mark.django_db
 
