@@ -1,6 +1,6 @@
 import pytest
 
-from ...services import info_acao_associacao_no_periodo
+from ....services import info_acao_associacao_no_periodo
 
 pytestmark = pytest.mark.django_db
 
@@ -77,7 +77,8 @@ def test_resultado_periodo_aberto_com_receitas_sem_despesas(
     receita_50_fora_do_periodo,
     receita_100_no_periodo,
     receita_200_no_inicio_do_periodo,
-    receita_300_no_fim_do_periodo
+    receita_300_no_fim_do_periodo,
+    receita_1000_no_periodo_livre_aplicacao
 ):
     resultado_esperado = {
         'saldo_anterior_custeio': 200,
@@ -97,10 +98,10 @@ def test_resultado_periodo_aberto_com_receitas_sem_despesas(
         'receitas_nao_conciliadas_capital': 0.0,
 
         'saldo_anterior_livre': 2000,
-        'receitas_no_periodo_livre': 0,
+        'receitas_no_periodo_livre': 1000,
         'repasses_no_periodo_livre': 0,
-        'saldo_atual_livre': 2000,
-        'receitas_nao_conciliadas_livre': 0.0,
+        'saldo_atual_livre': 3000,
+        'receitas_nao_conciliadas_livre': 1000.0,
 
     }
     resultado = info_acao_associacao_no_periodo(acao_associacao, periodo)

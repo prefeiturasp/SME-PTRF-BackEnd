@@ -1,5 +1,5 @@
-from decimal import Decimal
 import logging
+from decimal import Decimal
 
 from ..models import FechamentoPeriodo, Associacao, AcaoAssociacao, ContaAssociacao
 from ...despesas.models import RateioDespesa
@@ -280,14 +280,20 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
             'acao_associacao_uuid': f'{acao_associacao.uuid}',
             'acao_associacao_nome': acao_associacao.acao.nome,
 
-            'saldo_reprogramado': info_acao['saldo_anterior_custeio'] + info_acao['saldo_anterior_capital'],
+            'saldo_reprogramado': info_acao['saldo_anterior_custeio'] +
+                                  info_acao['saldo_anterior_capital'] +
+                                  info_acao['saldo_anterior_livre'],
             'saldo_reprogramado_capital': info_acao['saldo_anterior_capital'],
             'saldo_reprogramado_custeio': info_acao['saldo_anterior_custeio'],
             'saldo_reprogramado_livre': info_acao['saldo_anterior_livre'],
 
-            'receitas_no_periodo': info_acao['receitas_no_periodo_custeio'] + info_acao['receitas_no_periodo_capital'],
+            'receitas_no_periodo': info_acao['receitas_no_periodo_custeio'] +
+                                   info_acao['receitas_no_periodo_capital'] +
+                                   info_acao['receitas_no_periodo_livre'],
 
-            'repasses_no_periodo': info_acao['repasses_no_periodo_custeio'] + info_acao['repasses_no_periodo_capital'],
+            'repasses_no_periodo': info_acao['repasses_no_periodo_custeio'] +
+                                   info_acao['repasses_no_periodo_capital'] +
+                                   info_acao['repasses_no_periodo_livre'],
             'repasses_no_periodo_capital': info_acao['repasses_no_periodo_capital'],
             'repasses_no_periodo_custeio': info_acao['repasses_no_periodo_custeio'],
             'repasses_no_periodo_livre': info_acao['repasses_no_periodo_livre'],
@@ -308,17 +314,19 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
             'outras_receitas_no_periodo_livre': info_acao['receitas_no_periodo_livre'] -
                                                 info_acao['repasses_no_periodo_livre'],
 
-            'despesas_no_periodo': info_acao['despesas_no_periodo_custeio'] + info_acao['despesas_no_periodo_capital'],
+            'despesas_no_periodo': info_acao['despesas_no_periodo_custeio'] +
+                                   info_acao['despesas_no_periodo_capital'],
             'despesas_no_periodo_capital': info_acao['despesas_no_periodo_capital'],
             'despesas_no_periodo_custeio': info_acao['despesas_no_periodo_custeio'],
 
-            'despesas_nao_conciliadas': info_acao['despesas_nao_conciliadas_custeio'] + info_acao[
-                'despesas_nao_conciliadas_capital'],
+            'despesas_nao_conciliadas': info_acao['despesas_nao_conciliadas_custeio'] +
+                                        info_acao['despesas_nao_conciliadas_capital'],
             'despesas_nao_conciliadas_capital': info_acao['despesas_nao_conciliadas_capital'],
             'despesas_nao_conciliadas_custeio': info_acao['despesas_nao_conciliadas_custeio'],
 
-            'receitas_nao_conciliadas': info_acao['receitas_nao_conciliadas_custeio'] + info_acao[
-                'receitas_nao_conciliadas_capital'] + info_acao['receitas_nao_conciliadas_livre'],
+            'receitas_nao_conciliadas': info_acao['receitas_nao_conciliadas_custeio'] +
+                                        info_acao['receitas_nao_conciliadas_capital'] +
+                                        info_acao['receitas_nao_conciliadas_livre'],
             'receitas_nao_conciliadas_capital': info_acao['receitas_nao_conciliadas_capital'],
             'receitas_nao_conciliadas_custeio': info_acao['receitas_nao_conciliadas_custeio'],
             'receitas_nao_conciliadas_livre': info_acao['receitas_nao_conciliadas_livre'],
@@ -326,8 +334,9 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
             'saldo_atual_custeio': info_acao['saldo_atual_custeio'],
             'saldo_atual_capital': info_acao['saldo_atual_capital'],
             'saldo_atual_livre': info_acao['saldo_atual_livre'],
-            'saldo_atual_total': info_acao['saldo_atual_custeio'] + info_acao['saldo_atual_capital'] + info_acao[
-                'saldo_atual_livre'],
+            'saldo_atual_total': info_acao['saldo_atual_custeio'] +
+                                 info_acao['saldo_atual_capital'] +
+                                 info_acao['saldo_atual_livre'],
 
             'especificacoes_despesas_capital': especificacoes_despesas['CAPITAL'],
             'especificacoes_despesas_custeio': especificacoes_despesas['CUSTEIO'],

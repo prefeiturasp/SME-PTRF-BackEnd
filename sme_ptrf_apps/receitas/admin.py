@@ -40,7 +40,7 @@ class ReceitaAdmin(admin.ModelAdmin):
 
 @admin.register(Repasse)
 class RepasseAdmin(admin.ModelAdmin):
-    list_display = ('associacao', 'valor_capital', 'valor_custeio', 'valor_livre', 'tipo_conta', 'acao', 'status')
+    list_display = ('associacao', 'periodo', 'valor_capital', 'valor_custeio', 'valor_livre', 'tipo_conta', 'acao', 'status')
 
     def tipo_conta(self, obj):
         return obj.conta_associacao.tipo_conta
