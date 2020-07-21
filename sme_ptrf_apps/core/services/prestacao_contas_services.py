@@ -114,6 +114,9 @@ def informacoes_financeiras_para_atas(prestacao_contas):
     info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=prestacao_contas.associacao.uuid,
                                                   periodo=prestacao_contas.periodo,
                                                   conta=prestacao_contas.conta_associacao)
+
+    info_acoes = [info for info in info_acoes if info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+
     info = {
         'uuid': prestacao_contas.uuid,
         'acoes': info_acoes,
