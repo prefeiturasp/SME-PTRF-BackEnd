@@ -105,7 +105,7 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=associacao_uuid, periodo=periodo)
         result = {
-            'info_acoes': info_acoes
+            'info_acoes': [info for info in info_acoes if info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
         }
 
         return Response(result)
