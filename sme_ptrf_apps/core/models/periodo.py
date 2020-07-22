@@ -25,7 +25,7 @@ class Periodo(ModeloBase):
         if self.referencia:
             ano, parte = self.referencia.split('.')
             if parte == 'u':
-                extenso = f"Repasse Único {ano}"
+                extenso = f"Repasse {ano}"
             else:
                 extenso = f"{parte}° repasse de {ano}"
 

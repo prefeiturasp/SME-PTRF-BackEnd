@@ -66,6 +66,7 @@ def test_retrieve_implanta_saldos_saldos_ainda_nao_implantados(client, associaca
             'referencia': '2019.1',
             'data_inicio_realizacao_despesas': '2019-01-01',
             'data_fim_realizacao_despesas': '2019-08-31',
+            'referencia_por_extenso': '1° repasse de 2019',
             'uuid': f'{periodo_anterior.uuid}'
         },
         'saldos': [],
@@ -89,6 +90,7 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados(client, associacao, peri
             'referencia': '2019.1',
             'data_inicio_realizacao_despesas': '2019-01-01',
             'data_fim_realizacao_despesas': '2019-08-31',
+            'referencia_por_extenso': '1° repasse de 2019',
             'uuid': f'{periodo_anterior.uuid}'
         },
         'saldos': [
@@ -193,6 +195,7 @@ def test_post_implanta_saldos_sem_prestacao_contas(client, associacao, periodo_a
                 'periodo': {'data_fim_realizacao_despesas': '2019-08-31',
                             'data_inicio_realizacao_despesas': '2019-01-01',
                             'referencia': '2019.1',
+                            'referencia_por_extenso': '1° repasse de 2019',
                             'uuid': f'{periodo_anterior.uuid}'},
                 'saldos': [
                     {
@@ -245,6 +248,7 @@ def test_post_implanta_saldos_ja_existente(client, associacao, periodo_anterior,
                 'periodo': {'data_fim_realizacao_despesas': '2019-08-31',
                             'data_inicio_realizacao_despesas': '2019-01-01',
                             'referencia': '2019.1',
+                            'referencia_por_extenso': '1° repasse de 2019',
                             'uuid': f'{periodo_anterior.uuid}'},
                 'saldos': [{'acao_associacao': f'{acao_associacao_role_cultural.uuid}',
                             'aplicacao': 'CAPITAL',
@@ -306,6 +310,7 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_livre_aplicacao(client, 
             'referencia': '2019.1',
             'data_inicio_realizacao_despesas': '2019-01-01',
             'data_fim_realizacao_despesas': '2019-08-31',
+            'referencia_por_extenso': '1° repasse de 2019',
             'uuid': f'{periodo_anterior.uuid}'
         },
         'saldos': [
@@ -389,6 +394,7 @@ def test_post_implanta_saldos_sem_prestacao_contas_com_livre_utilizacao(client, 
                 'periodo': {'data_fim_realizacao_despesas': '2019-08-31',
                             'data_inicio_realizacao_despesas': '2019-01-01',
                             'referencia': '2019.1',
+                            'referencia_por_extenso': '1° repasse de 2019',
                             'uuid': f'{periodo_anterior.uuid}'},
                 'saldos': [
                     {

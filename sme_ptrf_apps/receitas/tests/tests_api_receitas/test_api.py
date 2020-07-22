@@ -118,6 +118,14 @@ def test_get_tabelas(
     response = jwt_authenticated_client.get('/api/receitas/tabelas/', content_type='application/json')
     result = json.loads(response.content)
 
+    """
+    'periodos': [{'data_fim_realizacao_despesas': '2019-08-31',
+                  'data_inicio_realizacao_despesas': '2019-01-01',
+                  'referencia': '2019.1',
+                  'referencia_por_extenso': '1° repasse de 2019',
+                  'uuid': '8022449b-86b4-4884-a431-6dd352be5c62'}],
+    """
+
     esperado = {
         'tipos_receita': [
             {
@@ -127,6 +135,7 @@ def test_get_tabelas(
                 'aceita_capital': tipo_receita.aceita_capital,
                 'aceita_custeio': tipo_receita.aceita_custeio,
                 'aceita_livre': tipo_receita.aceita_livre,
+                'e_devolucao': False,
                 'detalhes_tipo_receita': [
                     {
                         'id': detalhe_tipo_receita.id,
@@ -162,8 +171,16 @@ def test_get_tabelas(
                 'uuid': f'{conta_associacao.uuid}',
                 'nome': conta_associacao.tipo_conta.nome
             },
-        ]
+        ],
 
+        'periodos': [
+            {'data_fim_realizacao_despesas': '2019-08-31',
+             'data_inicio_realizacao_despesas': '2019-01-01',
+             'referencia': '2019.1',
+             'referencia_por_extenso': '1° repasse de 2019',
+             'uuid': str(associacao.periodo_inicial.uuid)
+            }
+        ]
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -194,8 +211,10 @@ def test_get_receitas(
                 'e_repasse': tipo_receita.e_repasse,
                 'aceita_capital': tipo_receita.aceita_capital,
                 'aceita_custeio': tipo_receita.aceita_custeio,
-                'aceita_livre': tipo_receita.aceita_livre
+                'aceita_livre': tipo_receita.aceita_livre,
+                'e_devolucao': False,
             },
+            'referencia_devolucao': None,
             "acao_associacao": {
                 "uuid": str(acao_associacao.uuid),
                 "id": acao_associacao.id,
@@ -313,8 +332,10 @@ def test_retrive_receitas(
             'e_repasse': tipo_receita.e_repasse,
             'aceita_capital': tipo_receita.aceita_capital,
             'aceita_custeio': tipo_receita.aceita_custeio,
-            'aceita_livre': tipo_receita.aceita_livre
+            'aceita_livre': tipo_receita.aceita_livre,
+            'e_devolucao': False,
         },
+        'referencia_devolucao': None,
         "acao_associacao": {
             "uuid": str(acao_associacao.uuid),
             "id": acao_associacao.id,
