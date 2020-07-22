@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
-from sme_ptrf_apps.core.models import Associacao
+from sme_ptrf_apps.core.models import Associacao, Periodo
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 from ..tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
@@ -49,6 +49,9 @@ class Receita(ModeloBase):
 
     detalhe_tipo_receita = models.ForeignKey('DetalheTipoReceita', on_delete=models.PROTECT, blank=True, null=True)
     detalhe_outros = models.CharField('Detalhe da despesa (outros)', max_length=160, blank=True, default='')
+
+    referencia_devolucao = models.ForeignKey(Periodo, on_delete=models.PROTECT,
+                                related_name='+', blank=True, null=True)
 
     def __str__(self):
         return f'RECEITA<{self.detalhamento} - {self.data} - {self.valor}>'
