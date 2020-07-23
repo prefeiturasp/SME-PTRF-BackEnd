@@ -16,6 +16,7 @@ def test_instance(tipo_receita):
     assert not model.aceita_capital
     assert not model.aceita_custeio
     assert not model.aceita_livre
+    assert not model.e_devolucao
 
 
 def test_srt_model(tipo_receita):

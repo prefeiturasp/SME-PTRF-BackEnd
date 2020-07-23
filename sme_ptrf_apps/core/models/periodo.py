@@ -20,6 +20,18 @@ class Periodo(ModeloBase):
         return f"{self.referencia} - {self.data_inicio_realizacao_despesas} a {self.data_fim_realizacao_despesas}"
 
     @property
+    def referencia_por_extenso(self):
+        extenso = ""
+        if self.referencia:
+            ano, parte = self.referencia.split('.')
+            if parte == 'u':
+                extenso = f"Repasse {ano}"
+            else:
+                extenso = f"{parte}° repasse de {ano}"
+
+        return extenso
+
+    @property
     def proximo_periodo(self):
         return self.periodo_seguinte.first() if self.periodo_seguinte.exists() else None
 

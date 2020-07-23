@@ -9,6 +9,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
+from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
 from ...tipos_aplicacao_recurso_receitas import aplicacoes_recurso_to_json
 from sme_ptrf_apps.receitas.models import Receita
 from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoReceitaEDetalhesSerializer
@@ -64,7 +65,8 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             'tipos_receita': get_valores_from(TipoReceitaEDetalhesSerializer),
             'categorias_receita': aplicacoes_recurso_to_json(),
             'acoes_associacao': get_valores_from(AcaoAssociacaoLookUpSerializer),
-            'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer)
+            'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer),
+            'periodos': get_valores_from(PeriodoLookUpSerializer),
         }
 
         return Response(result)

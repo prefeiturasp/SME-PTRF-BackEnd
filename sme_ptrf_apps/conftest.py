@@ -261,7 +261,7 @@ def periodo_anterior():
         'Periodo',
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
-        data_fim_realizacao_despesas=date(2019, 8, 31)
+        data_fim_realizacao_despesas=date(2019, 8, 31),
     )
 
 
@@ -275,7 +275,7 @@ def periodo(periodo_anterior):
         data_prevista_repasse=date(2019, 10, 1),
         data_inicio_prestacao_contas=date(2019, 12, 1),
         data_fim_prestacao_contas=date(2019, 12, 5),
-        periodo_anterior=periodo_anterior
+        periodo_anterior=periodo_anterior,
     )
 
 

@@ -6,7 +6,7 @@ from model_bakery import baker
 
 @pytest.fixture
 def tipo_receita():
-    return baker.make('TipoReceita', nome='Estorno', e_repasse=False, aceita_capital=False, aceita_custeio=False)
+    return baker.make('TipoReceita', nome='Estorno', e_repasse=False, aceita_capital=False, aceita_custeio=False, e_devolucao=False)
 
 
 @pytest.fixture
@@ -17,6 +17,11 @@ def tipo_receita_estorno(tipo_receita):
 @pytest.fixture
 def tipo_receita_repasse():
     return baker.make('TipoReceita', nome='Repasse', e_repasse=True, aceita_capital=True, aceita_custeio=True)
+
+
+@pytest.fixture
+def tipo_receita_devolucao():
+    return baker.make('TipoReceita', nome='Devolução', e_devolucao=True, aceita_capital=True, aceita_custeio=True)
 
 
 @pytest.fixture
@@ -35,6 +40,26 @@ def receita(associacao, conta_associacao, acao_associacao, tipo_receita, prestac
         prestacao_conta=prestacao_conta_iniciada,
         detalhe_tipo_receita=detalhe_tipo_receita,
         detalhe_outros='teste'
+    )
+
+
+@pytest.fixture
+def receita_devolucao(associacao, conta_associacao, acao_associacao, tipo_receita_devolucao, prestacao_conta_iniciada,
+            detalhe_tipo_receita, periodo):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita_devolucao,
+        conferido=True,
+        categoria_receita='CUSTEIO',
+        prestacao_conta=prestacao_conta_iniciada,
+        detalhe_tipo_receita=detalhe_tipo_receita,
+        detalhe_outros='teste',
+        referencia_devolucao=periodo,
     )
 
 

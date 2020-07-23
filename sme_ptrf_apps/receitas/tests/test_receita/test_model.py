@@ -20,6 +20,21 @@ def test_instance(receita):
     assert model.detalhe_tipo_receita
     assert model.detalhe_outros is not None
 
+def test_instance_receita_devolucao(receita_devolucao):
+    model = receita_devolucao
+    assert isinstance(model, Receita)
+    assert model.associacao
+    assert model.data
+    assert model.valor
+    assert model.conta_associacao
+    assert model.acao_associacao
+    assert model.tipo_receita
+    assert model.tipo_receita.e_devolucao
+    assert model.conferido
+    assert model.prestacao_conta
+    assert model.referencia_devolucao
+    assert model.detalhe_outros is not None
+
 
 def test_str(receita):
     assert str(receita) == "RECEITA<Estorno A - 2020-03-26 - 100.0>"
