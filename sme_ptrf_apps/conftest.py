@@ -135,6 +135,8 @@ def associacao(unidade, periodo_anterior):
         presidente_conselho_fiscal_nome='Ciclano',
         presidente_conselho_fiscal_rf='7654321',
         periodo_inicial=periodo_anterior,
+        ccm='0.000.00-0',
+        email="ollyverottoboni@gmail.com"
     )
 
 

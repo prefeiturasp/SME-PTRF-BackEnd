@@ -282,3 +282,4 @@ sme_ptrf_apps/media/
 .env
 .envs/*
 !.envs/.local/
+/_material/
