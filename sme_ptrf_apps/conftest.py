@@ -1159,7 +1159,8 @@ def membro_associacao(associacao):
         cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value,
         cargo_educacao='Coordenador',
         representacao=RepresentacaoCargo.SERVIDOR.value,
-        codigo_identificacao='567432'
+        codigo_identificacao='567432',
+        email='ollyverottoboni@gmail.com'
     )
 
 
