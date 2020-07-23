@@ -30,7 +30,7 @@ class MembroAssociacao(ModeloBase):
 
     codigo_identificacao = models.CharField('Código EOL ou RF', max_length=10, blank=True, null=True, default="")
 
-    email = models.EmailField("Email", max_length=254, null=True, blank=True)
+    email = models.EmailField("E-mail", max_length=254, null=True, blank=True)
 
     class Meta:
         verbose_name = "Membro da Associação"
