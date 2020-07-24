@@ -7,7 +7,7 @@ from rest_framework.test import APIClient
 
 from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
-from .core.choices import MembroEnum, RepresentacaoCargo
+from .core.choices import MembroEnum, RepresentacaoCargo, StatusTag
 from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO
 from .core.models.prestacao_conta import STATUS_ABERTO as PRESTACAO_ABERTA
 from .core.models.prestacao_conta import STATUS_FECHADO as PRESTACAO_FECHADA
@@ -1210,4 +1210,13 @@ def observacao(acao_associacao, prestacao_conta):
         prestacao_conta=prestacao_conta,
         acao_associacao=acao_associacao,
         texto="Uma bela observação."
+    )
+
+
+@pytest.fixture
+def tag():
+    return baker.make(
+        'Tag',
+        nome="COVID-19",
+        status=StatusTag.INATIVO.value
     )
