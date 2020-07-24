@@ -501,6 +501,35 @@ def fechamento_2020_1(periodo_2020_1, associacao, conta_associacao, acao_associa
 
 
 @pytest.fixture
+def fechamento_2020_1_com_livre(periodo_2020_1, associacao, conta_associacao, acao_associacao, prestacao_conta_2020_1_conciliada):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        fechamento_anterior=None,
+        total_receitas_capital=1000,
+        total_repasses_capital=900,
+        total_despesas_capital=800,
+        total_receitas_custeio=2000,
+        total_repasses_custeio=1800,
+        total_despesas_custeio=1600,
+        total_receitas_livre=3000,
+        total_repasses_livre=2700,
+        total_despesas_nao_conciliadas_capital=8.0,
+        total_despesas_nao_conciliadas_custeio=16.0,
+        total_receitas_nao_conciliadas_capital=10.0,
+        total_receitas_nao_conciliadas_custeio=20.0,
+        total_receitas_nao_conciliadas_livre=30.0,
+        status=STATUS_FECHADO,
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        especificacoes_despesas_capital=['ar condicionado', ],
+        especificacoes_despesas_custeio=['cadeira', 'mesa'],
+    )
+
+
+@pytest.fixture
 def fechamento_2020_1_outra_conta(periodo_2020_1, associacao, conta_associacao_cartao, acao_associacao,
                                   prestacao_conta_2020_1_conciliada_outra_conta):
     return baker.make(

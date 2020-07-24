@@ -5,10 +5,12 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 0.5.0
+Versão: 0.6.0
 
 
 ## Release Notes
+
+### 0.6.0 - 28/07/2020 - Entregas da Sprint 7
 
 ### 0.5.0 - 07/07/2020 - Entregas da Sprint 6
 * Confirmação de repasses na entrada de créditos agora considera a classificação da receita em capital ou custeio;

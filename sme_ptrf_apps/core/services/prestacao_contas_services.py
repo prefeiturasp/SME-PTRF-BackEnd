@@ -38,8 +38,11 @@ def concluir_prestacao_de_contas(prestacao_contas_uuid, observacoes):
             total_repasses_custeio=totais_receitas['total_repasses_custeio'],
             total_despesas_capital=totais_despesas['total_despesas_capital'],
             total_despesas_custeio=totais_despesas['total_despesas_custeio'],
+            total_receitas_livre=totais_receitas['total_receitas_livre'],
+            total_repasses_livre=totais_receitas['total_repasses_livre'],
             total_receitas_nao_conciliadas_capital=totais_receitas['total_receitas_nao_conciliadas_capital'],
             total_receitas_nao_conciliadas_custeio=totais_receitas['total_receitas_nao_conciliadas_custeio'],
+            total_receitas_nao_conciliadas_livre=totais_receitas['total_receitas_nao_conciliadas_livre'],
             total_despesas_nao_conciliadas_capital=totais_despesas['total_despesas_nao_conciliadas_capital'],
             total_despesas_nao_conciliadas_custeio=totais_despesas['total_despesas_nao_conciliadas_custeio'],
             especificacoes_despesas=especificacoes_despesas
