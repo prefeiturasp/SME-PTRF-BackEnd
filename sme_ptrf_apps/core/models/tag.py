@@ -17,6 +17,11 @@ class Tag(ModeloIdNome):
     def __str__(self):
         return f"<{self.nome}, {self.status}>"
 
+    @classmethod
+    def get_valores(cls, user=None):
+        query = cls.objects.filter(status=StatusTag.ATIVO.value)
+        return query.all()
+
     class Meta:
         verbose_name = "Tag"
         verbose_name_plural = "Tags"

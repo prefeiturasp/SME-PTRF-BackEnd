@@ -43,7 +43,7 @@ class RepasseViewSet(GenericViewSet):
                 if str(repasse.acao_associacao.uuid) != acao_associacao_uuid:
                     """Caso o usuário troque para uma ação associação diferente do que está vinculado a receita
                     que está sendo editada."""
-                    print("Trocou")
+                    
                     repasse = Repasse.objects\
                     .filter(
                         acao_associacao__uuid=acao_associacao_uuid,

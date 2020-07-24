@@ -1220,3 +1220,12 @@ def tag():
         nome="COVID-19",
         status=StatusTag.INATIVO.value
     )
+
+
+@pytest.fixture
+def tag_ativa():
+    return baker.make(
+        'Tag',
+        nome="COVID-19",
+        status=StatusTag.ATIVO.value
+    )
