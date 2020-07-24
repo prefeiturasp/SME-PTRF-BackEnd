@@ -15,6 +15,7 @@ def test_instance_model(membro_associacao):
     assert model.uuid
     assert model.cargo_associacao == MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value
     assert model.representacao == RepresentacaoCargo.SERVIDOR.value
+    assert model.email
 
 
 def test_admin():
