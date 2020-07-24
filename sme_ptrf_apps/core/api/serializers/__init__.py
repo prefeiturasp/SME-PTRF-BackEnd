@@ -15,3 +15,4 @@ from .membro_associacao_serializer import MembroAssociacaoCreateSerializer, Memb
 from .prestacao_conta_serializer import PrestacaoContaLookUpSerializer
 from .tipo_conta_serializer import TipoContaSerializer
 from .unidade_serializer import UnidadeInfoAtaSerializer, UnidadeLookUpSerializer, UnidadeSerializer
+from .tag_serializer import TagLookupSerializer

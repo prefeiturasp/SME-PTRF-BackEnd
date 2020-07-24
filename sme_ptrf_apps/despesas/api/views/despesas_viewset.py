@@ -1,18 +1,18 @@
-from rest_framework import mixins
-from rest_framework import status
+from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ..serializers.despesa_serializer import DespesaSerializer, DespesaCreateSerializer
+from ....core.api.serializers import TagLookupSerializer
+from ....core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
+from ....core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
+from ...models import Despesa
+from ...tipos_aplicacao_recurso import aplicacoes_recurso_to_json
+from ..serializers.despesa_serializer import DespesaCreateSerializer, DespesaSerializer
 from ..serializers.tipo_custeio_serializer import TipoCusteioSerializer
 from ..serializers.tipo_documento_serializer import TipoDocumentoSerializer
 from ..serializers.tipo_transacao_serializer import TipoTransacaoSerializer
-from ...models import Despesa
-from ...tipos_aplicacao_recurso import aplicacoes_recurso_to_json
-from ....core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
-from ....core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 
 
 class DespesasViewSet(mixins.CreateModelMixin,
@@ -44,7 +44,8 @@ class DespesasViewSet(mixins.CreateModelMixin,
             'tipos_documento': get_valores_from(TipoDocumentoSerializer),
             'tipos_transacao': get_valores_from(TipoTransacaoSerializer),
             'acoes_associacao': get_valores_from(AcaoAssociacaoLookUpSerializer),
-            'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer)
+            'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer),
+            'tags': get_valores_from(TagLookupSerializer),
         }
 
         return Response(result)

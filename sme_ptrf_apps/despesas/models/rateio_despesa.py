@@ -6,6 +6,7 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.core.models import Tag
 
 from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO
 from ..tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
@@ -55,6 +56,9 @@ class RateioDespesa(ModeloBase):
     prestacao_conta = models.ForeignKey('core.PrestacaoConta', on_delete=models.SET_NULL, blank=True, null=True,
                                         related_name='despesas_conciliadas',
                                         verbose_name='prestação de contas de conciliação')
+
+    tag = models.ForeignKey(Tag, on_delete=models.SET_NULL, blank=True, 
+                            null=True, related_name='rateios')
 
     def __str__(self):
         documento = self.despesa.numero_documento if self.despesa else 'Despesa indefinida'

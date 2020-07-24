@@ -18,6 +18,7 @@ from .models import (
     RelacaoBens,
     TipoConta,
     Unidade,
+    Tag,
 )
 
 admin.site.register(TipoConta)
@@ -162,3 +163,10 @@ class ArquivoAdmin(admin.ModelAdmin):
         self.message_user(request, "Carga Realizada com sucesso.")
 
     processa_carga.short_description = "Realizar Carga dos arquivos."
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ['uuid', 'nome', 'status']
+    search_fields = ['status']
+    list_filter = ['nome', 'status']

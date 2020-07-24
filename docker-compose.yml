@@ -6,7 +6,7 @@ services:
     restart: always
     env_file: .env
     volumes:
-      - ../uniformes-postgres-data:/var/lib/postgresql/data
+      - ../ptrf-postgres-data:/var/lib/postgresql/data
     # ports:
     #   - 5434:5432
 
