@@ -16,6 +16,10 @@ def test_resultado_periodo_fechado(
         'despesas_nao_conciliadas_custeio': 16.0,
         'receitas_nao_conciliadas_custeio': 20.0,
 
+        'receitas_devolucao_no_periodo_capital': fechamento_periodo.total_receitas_devolucao_capital,
+        'receitas_devolucao_no_periodo_custeio': fechamento_periodo.total_receitas_devolucao_custeio,
+        'receitas_devolucao_no_periodo_livre': fechamento_periodo.total_receitas_devolucao_livre,
+
         'saldo_anterior_capital': fechamento_periodo.saldo_anterior_capital,
         'receitas_no_periodo_capital': fechamento_periodo.total_receitas_capital,
         'repasses_no_periodo_capital': fechamento_periodo.total_repasses_capital,
@@ -49,6 +53,10 @@ def test_resultado_periodo_aberto_sem_receitas_sem_despesas(
         'saldo_atual_custeio': 200,
         'despesas_nao_conciliadas_custeio': 0.0,
         'receitas_nao_conciliadas_custeio': 0.0,
+
+        'receitas_devolucao_no_periodo_capital': 0.0,
+        'receitas_devolucao_no_periodo_custeio': 0.0,
+        'receitas_devolucao_no_periodo_livre': 0.0,
 
         'saldo_anterior_capital': 100,
         'receitas_no_periodo_capital': 0,
@@ -89,6 +97,10 @@ def test_resultado_periodo_aberto_com_receitas_sem_despesas(
         'despesas_nao_conciliadas_custeio': 0.0,
         'receitas_nao_conciliadas_custeio': 600.0,
 
+        'receitas_devolucao_no_periodo_capital': 0.0,
+        'receitas_devolucao_no_periodo_custeio': 0.0,
+        'receitas_devolucao_no_periodo_livre': 0.0,
+
         'saldo_anterior_capital': 100,
         'receitas_no_periodo_capital': 0,
         'repasses_no_periodo_capital': 0,
@@ -128,6 +140,10 @@ def test_resultado_periodo_aberto_com_despesas_sem_receitas(
         'saldo_atual_custeio': 100,
         'despesas_nao_conciliadas_custeio': 100.0,
         'receitas_nao_conciliadas_custeio': 0.0,
+
+        'receitas_devolucao_no_periodo_capital': 0.0,
+        'receitas_devolucao_no_periodo_custeio': 0.0,
+        'receitas_devolucao_no_periodo_livre': 0.0,
 
         'saldo_anterior_capital': 100,
         'receitas_no_periodo_capital': 0,
@@ -173,6 +189,10 @@ def test_resultado_periodo_aberto_com_despesas_e_receitas(
         'despesas_nao_conciliadas_custeio': 100.0,
         'receitas_nao_conciliadas_custeio': 600.0,
 
+        'receitas_devolucao_no_periodo_capital': 0.0,
+        'receitas_devolucao_no_periodo_custeio': 0.0,
+        'receitas_devolucao_no_periodo_livre': 0.0,
+
         'saldo_anterior_capital': 100,
         'receitas_no_periodo_capital': 0,
         'repasses_no_periodo_capital': 0,
@@ -209,6 +229,10 @@ def test_resultado_periodo_aberto_consumo_do_saldo_livre_aplicacao(
         'saldo_atual_custeio': 0,
         'despesas_nao_conciliadas_custeio': 0.0,
         'receitas_nao_conciliadas_custeio': 0.0,
+
+        'receitas_devolucao_no_periodo_capital': 0.0,
+        'receitas_devolucao_no_periodo_custeio': 0.0,
+        'receitas_devolucao_no_periodo_livre': 0.0,
 
         'saldo_anterior_capital': 1000,
         'receitas_no_periodo_capital': 100,

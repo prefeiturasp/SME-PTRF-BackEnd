@@ -53,6 +53,11 @@ def test_action_painel_acoes(
                 'repasses_no_periodo_custeio': 300.0,
                 'repasses_no_periodo_livre': 0,
 
+                'receitas_devolucao_no_periodo': 0,
+                'receitas_devolucao_no_periodo_capital': 0,
+                'receitas_devolucao_no_periodo_custeio': 0,
+                'receitas_devolucao_no_periodo_livre': 0,
+
                 'outras_receitas_no_periodo': 100.0,
                 'outras_receitas_no_periodo_capital': 0,
                 'outras_receitas_no_periodo_custeio': 100.0,
@@ -140,6 +145,11 @@ def test_action_painel_acoes_por_periodo(
                 'outras_receitas_no_periodo_custeio': 100.0,
                 'outras_receitas_no_periodo_livre': 0,
 
+                'receitas_devolucao_no_periodo': 0.0,
+                'receitas_devolucao_no_periodo_capital': 0.0,
+                'receitas_devolucao_no_periodo_custeio': 0.0,
+                'receitas_devolucao_no_periodo_livre': 0.0,
+
                 'despesas_no_periodo': 1200.0,
                 'despesas_no_periodo_capital': 400.0,
                 'despesas_no_periodo_custeio': 800.0,
@@ -211,6 +221,11 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
                 'repasses_no_periodo_custeio': 0,
                 'repasses_no_periodo_livre': 0,
 
+                'receitas_devolucao_no_periodo': 0,
+                'receitas_devolucao_no_periodo_capital': 0,
+                'receitas_devolucao_no_periodo_custeio': 0,
+                'receitas_devolucao_no_periodo_livre': 0,           
+
                 'outras_receitas_no_periodo': 100.0,
                 'outras_receitas_no_periodo_capital': 0,
                 'outras_receitas_no_periodo_custeio': 100.0,
@@ -257,6 +272,11 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
                 'repasses_no_periodo_capital': 0,
                 'repasses_no_periodo_custeio': 0,
                 'repasses_no_periodo_livre': 0,
+
+                'receitas_devolucao_no_periodo': 0,
+                'receitas_devolucao_no_periodo_capital': 0,
+                'receitas_devolucao_no_periodo_custeio': 0,
+                'receitas_devolucao_no_periodo_livre': 0,
 
                 'outras_receitas_no_periodo': 100.0,
                 'outras_receitas_no_periodo_capital': 0,

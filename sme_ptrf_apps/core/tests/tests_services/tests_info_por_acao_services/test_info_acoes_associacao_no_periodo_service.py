@@ -1,5 +1,6 @@
 import pytest
 from model_bakery import baker
+from decimal import Decimal
 
 from ....services import info_acoes_associacao_no_periodo
 from .....core.models import STATUS_FECHADO
@@ -42,35 +43,40 @@ def test_resultado_periodo_fechado(
             'saldo_reprogramado_custeio': 0,
             'saldo_reprogramado_livre': 0,
 
-            'receitas_no_periodo': 60000,
+            'receitas_no_periodo': Decimal('60000.00'),
 
-            'repasses_no_periodo': 30000,
-            'repasses_no_periodo_capital': 5000,
-            'repasses_no_periodo_custeio': 10000,
-            'repasses_no_periodo_livre': 15000,
+            'receitas_devolucao_no_periodo': Decimal('0.00'),
+            'receitas_devolucao_no_periodo_capital': Decimal('0.00'),
+            'receitas_devolucao_no_periodo_custeio': Decimal('0.00'),
+            'receitas_devolucao_no_periodo_livre': Decimal('0.00'),
 
-            'outras_receitas_no_periodo': 30000,
-            'outras_receitas_no_periodo_capital': 5000,
-            'outras_receitas_no_periodo_custeio': 10000,
-            'outras_receitas_no_periodo_livre': 15000,
+            'repasses_no_periodo': Decimal('30000.00'),
+            'repasses_no_periodo_capital': Decimal('5000.00'),
+            'repasses_no_periodo_custeio': Decimal('10000.00'),
+            'repasses_no_periodo_livre': Decimal('15000.00'),
 
-            'despesas_no_periodo': 3000,
-            'despesas_no_periodo_capital': 1000,
-            'despesas_no_periodo_custeio': 2000,
+            'outras_receitas_no_periodo': Decimal('30000.00'),
+            'outras_receitas_no_periodo_capital': Decimal('5000.00'),
+            'outras_receitas_no_periodo_custeio': Decimal('10000.00'),
+            'outras_receitas_no_periodo_livre': Decimal('15000.00'),
 
-            'despesas_nao_conciliadas': 0,
-            'despesas_nao_conciliadas_capital': 0,
-            'despesas_nao_conciliadas_custeio': 0,
+            'despesas_no_periodo': Decimal('3000.00'),
+            'despesas_no_periodo_capital': Decimal('1000.00'),
+            'despesas_no_periodo_custeio': Decimal('2000.00'),
+
+            'despesas_nao_conciliadas': Decimal('0.00'),
+            'despesas_nao_conciliadas_capital': Decimal('0.00'),
+            'despesas_nao_conciliadas_custeio': Decimal('0.00'),
 
             'receitas_nao_conciliadas': 0,
             'receitas_nao_conciliadas_capital': 0,
             'receitas_nao_conciliadas_custeio': 0,
             'receitas_nao_conciliadas_livre': 0,
 
-            'saldo_atual_capital': 9000,
-            'saldo_atual_custeio': 18000,
-            'saldo_atual_livre': 30000,
-            'saldo_atual_total': 57000,
+            'saldo_atual_capital': Decimal('9000.00'),
+            'saldo_atual_custeio': Decimal('18000.00'),
+            'saldo_atual_livre': Decimal('30000.00'),
+            'saldo_atual_total': Decimal('57000.00'),
 
             'especificacoes_despesas_capital': [],
             'especificacoes_despesas_custeio': [],
