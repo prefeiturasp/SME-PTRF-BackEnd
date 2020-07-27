@@ -106,6 +106,7 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
         return {
             'saldo_anterior_custeio': 0,
             'receitas_no_periodo_custeio': 0,
+            'receitas_devolucao_no_periodo_custeio': 0,
             'repasses_no_periodo_custeio': 0,
             'despesas_no_periodo_custeio': 0,
             'saldo_atual_custeio': 0,
@@ -114,6 +115,7 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
 
             'saldo_anterior_capital': 0,
             'receitas_no_periodo_capital': 0,
+            'receitas_devolucao_no_periodo_capital': 0,
             'repasses_no_periodo_capital': 0,
             'despesas_no_periodo_capital': 0,
             'saldo_atual_capital': 0,
@@ -122,6 +124,7 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
 
             'saldo_anterior_livre': 0,
             'receitas_no_periodo_livre': 0,
+            'receitas_devolucao_no_periodo_livre': 0,
             'repasses_no_periodo_livre': 0,
             'saldo_atual_livre': 0,
             'receitas_nao_conciliadas_livre': 0,
@@ -143,6 +146,7 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
 
             info['saldo_anterior_custeio'] += fechamento_periodo.saldo_anterior_custeio
             info['receitas_no_periodo_custeio'] += fechamento_periodo.total_receitas_custeio
+            info['receitas_devolucao_no_periodo_custeio'] += fechamento_periodo.total_receitas_devolucao_custeio
             info['repasses_no_periodo_custeio'] += fechamento_periodo.total_repasses_custeio
             info['despesas_no_periodo_custeio'] += fechamento_periodo.total_despesas_custeio
             info['saldo_atual_custeio'] += fechamento_periodo.saldo_reprogramado_custeio
@@ -151,6 +155,7 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
 
             info['saldo_anterior_capital'] += fechamento_periodo.saldo_anterior_capital
             info['receitas_no_periodo_capital'] += fechamento_periodo.total_receitas_capital
+            info['receitas_devolucao_no_periodo_capital'] += fechamento_periodo.total_receitas_devolucao_capital
             info['repasses_no_periodo_capital'] += fechamento_periodo.total_repasses_capital
             info['despesas_no_periodo_capital'] += fechamento_periodo.total_despesas_capital
             info['saldo_atual_capital'] += fechamento_periodo.saldo_reprogramado_capital
@@ -159,6 +164,7 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
 
             info['saldo_anterior_livre'] += fechamento_periodo.saldo_anterior_livre
             info['receitas_no_periodo_livre'] += fechamento_periodo.total_receitas_livre
+            info['receitas_devolucao_no_periodo_livre'] += fechamento_periodo.total_receitas_devolucao_livre
             info['repasses_no_periodo_livre'] += fechamento_periodo.total_repasses_livre
             info['saldo_atual_livre'] += fechamento_periodo.saldo_reprogramado_livre
             info['receitas_nao_conciliadas_livre'] += fechamento_periodo.total_receitas_nao_conciliadas_livre
@@ -173,17 +179,20 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
 
             if receita.categoria_receita == APLICACAO_CUSTEIO:
                 info['receitas_no_periodo_custeio'] += receita.valor
+                info['receitas_devolucao_no_periodo_custeio'] += receita.valor if receita.tipo_receita.e_devolucao else 0
                 info['saldo_atual_custeio'] += receita.valor
                 info['repasses_no_periodo_custeio'] += receita.valor if receita.tipo_receita.e_repasse else 0
                 info['receitas_nao_conciliadas_custeio'] += receita.valor if not receita.conferido else 0
 
             elif receita.categoria_receita == APLICACAO_CAPITAL:
                 info['receitas_no_periodo_capital'] += receita.valor
+                info['receitas_devolucao_no_periodo_capital'] += receita.valor if receita.tipo_receita.e_devolucao else 0
                 info['saldo_atual_capital'] += receita.valor
                 info['repasses_no_periodo_capital'] += receita.valor if receita.tipo_receita.e_repasse else 0
                 info['receitas_nao_conciliadas_capital'] += receita.valor if not receita.conferido else 0
             else:
                 info['receitas_no_periodo_livre'] += receita.valor
+                info['receitas_devolucao_no_periodo_livre'] += receita.valor if receita.tipo_receita.e_devolucao else 0
                 info['saldo_atual_livre'] += receita.valor
                 info['repasses_no_periodo_livre'] += receita.valor if receita.tipo_receita.e_repasse else 0
                 info['receitas_nao_conciliadas_livre'] += receita.valor if not receita.conferido else 0
@@ -300,6 +309,15 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
             'receitas_no_periodo': info_acao['receitas_no_periodo_custeio'] +
                                    info_acao['receitas_no_periodo_capital'] +
                                    info_acao['receitas_no_periodo_livre'],
+
+            'receitas_devolucao_no_periodo': info_acao['receitas_devolucao_no_periodo_custeio'] +
+                                             info_acao['receitas_devolucao_no_periodo_capital'] + 
+                                             info_acao['receitas_devolucao_no_periodo_livre'],
+
+            'receitas_devolucao_no_periodo_custeio': info_acao['receitas_devolucao_no_periodo_custeio'],
+            'receitas_devolucao_no_periodo_capital': info_acao['receitas_devolucao_no_periodo_capital'],
+            'receitas_devolucao_no_periodo_livre': info_acao['receitas_devolucao_no_periodo_livre'],
+
 
             'repasses_no_periodo': info_acao['repasses_no_periodo_custeio'] +
                                    info_acao['repasses_no_periodo_capital'] +

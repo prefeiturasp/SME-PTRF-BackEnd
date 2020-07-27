@@ -104,8 +104,11 @@ class Receita(ModeloBase):
                                                               periodo=periodo, conta_associacao=conta)
         totais = {
             'total_receitas_capital': Decimal(0.00),
+            'total_receitas_devolucao_capital': Decimal(0.00),
             'total_repasses_capital': Decimal(0.00),
             'total_receitas_custeio': Decimal(0.00),
+            'total_receitas_devolucao_custeio': Decimal(0.00),
+            'total_receitas_devolucao_livre': Decimal(0.00),
             'total_repasses_custeio': Decimal(0.00),
             'total_receitas_livre': Decimal(0.00),
             'total_repasses_livre': Decimal(0.00),
@@ -138,6 +141,14 @@ class Receita(ModeloBase):
                     totais['total_receitas_nao_conciliadas_custeio'] += receita.valor
                 else:
                     totais['total_receitas_nao_conciliadas_livre'] += receita.valor
+            
+            if receita.tipo_receita.e_devolucao:
+                if receita.categoria_receita == APLICACAO_CAPITAL:
+                    totais['total_receitas_devolucao_capital'] += receita.valor
+                elif receita.categoria_receita == APLICACAO_CUSTEIO:
+                    totais['total_receitas_devolucao_custeio'] += receita.valor
+                else:
+                    totais['total_receitas_devolucao_livre'] += receita.valor
 
         return totais
 

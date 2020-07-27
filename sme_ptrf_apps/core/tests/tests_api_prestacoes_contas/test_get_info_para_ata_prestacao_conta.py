@@ -35,15 +35,20 @@ def test_api_get_info_para_ata(client,
 
             'receitas_no_periodo': 3000.0,
 
+            'receitas_devolucao_no_periodo': 0.0,
+            'receitas_devolucao_no_periodo_capital': 0.0,
+            'receitas_devolucao_no_periodo_custeio': 0.0,
+            'receitas_devolucao_no_periodo_livre': 0.0,
+
             'repasses_no_periodo': 2700.0,
             'repasses_no_periodo_capital': 900.0,
             'repasses_no_periodo_custeio': 1800.0,
-            'repasses_no_periodo_livre': 0,
+            'repasses_no_periodo_livre': 0.0,
 
             'outras_receitas_no_periodo': 300.0,
             'outras_receitas_no_periodo_capital': 100.0,
             'outras_receitas_no_periodo_custeio': 200.0,
-            'outras_receitas_no_periodo_livre': 0,
+            'outras_receitas_no_periodo_livre': 0.0,
 
             'despesas_no_periodo': 2400.0,
             'despesas_no_periodo_capital': 800.0,
@@ -55,7 +60,7 @@ def test_api_get_info_para_ata(client,
             'receitas_nao_conciliadas': 30.0,
             'receitas_nao_conciliadas_capital': 10.0,
             'receitas_nao_conciliadas_custeio': 20.0,
-            'receitas_nao_conciliadas_livre': 0,
+            'receitas_nao_conciliadas_livre': 0.0,
 
             'saldo_atual_capital': 200.0,
             'saldo_atual_custeio': 400.0,
@@ -65,9 +70,9 @@ def test_api_get_info_para_ata(client,
             'especificacoes_despesas_capital': ['ar condicionado', ],
             'especificacoes_despesas_custeio': ['cadeira', 'mesa'],
 
-            'repasses_nao_realizados_capital': 0.0,
-            'repasses_nao_realizados_custeio': 0.0,
-            'repasses_nao_realizados_livre': 0.0
+            'repasses_nao_realizados_capital': 0,
+            'repasses_nao_realizados_custeio': 0,
+            'repasses_nao_realizados_livre': 0
         },
         {
             'acao_associacao_nome': 'Rolê Cultural',
@@ -80,6 +85,11 @@ def test_api_get_info_para_ata(client,
 
             'receitas_no_periodo': 3000.0,
 
+            'receitas_devolucao_no_periodo': 0.0,
+            'receitas_devolucao_no_periodo_capital': 0.0,
+            'receitas_devolucao_no_periodo_custeio': 0.0,
+            'receitas_devolucao_no_periodo_livre': 0.0,
+
             'repasses_no_periodo': 1800.0,
             'repasses_no_periodo_capital': 1000.0,
             'repasses_no_periodo_custeio': 800.0,
@@ -88,7 +98,7 @@ def test_api_get_info_para_ata(client,
             'outras_receitas_no_periodo': 1200.0,
             'outras_receitas_no_periodo_capital': 1000.0,
             'outras_receitas_no_periodo_custeio': 200.0,
-            'outras_receitas_no_periodo_livre': 0,
+            'outras_receitas_no_periodo_livre': 0.0,
 
             'despesas_no_periodo': 300.0,
             'despesas_no_periodo_capital': 200.0,
@@ -100,7 +110,7 @@ def test_api_get_info_para_ata(client,
             'receitas_nao_conciliadas': 30.0,
             'receitas_nao_conciliadas_capital': 20.0,
             'receitas_nao_conciliadas_custeio': 10.0,
-            'receitas_nao_conciliadas_livre': 0,
+            'receitas_nao_conciliadas_livre': 0.0,
 
             'saldo_atual_total': 3000.0,
             'saldo_atual_capital': 1900.0,
@@ -123,6 +133,10 @@ def test_api_get_info_para_ata(client,
         'saldo_reprogramado_livre': 0,
 
         'receitas_no_periodo': 6000.0,
+
+        'receitas_devolucao_no_periodo_capital': 0.0,
+        'receitas_devolucao_no_periodo_custeio': 0.0,
+        'receitas_devolucao_no_periodo_livre': 0.0,
 
         'repasses_no_periodo': 4500.0,
         'repasses_no_periodo_capital': 1900.0,
@@ -196,6 +210,11 @@ def test_api_get_info_para_ata_com_repasses_pendentes(client,
 
             'receitas_no_periodo': 3000.0,
 
+            'receitas_devolucao_no_periodo': 0.0,
+            'receitas_devolucao_no_periodo_capital': 0.0,
+            'receitas_devolucao_no_periodo_custeio': 0.0,
+            'receitas_devolucao_no_periodo_livre': 0.0,
+
             'repasses_no_periodo': 2700.0,
             'repasses_no_periodo_capital': 900.0,
             'repasses_no_periodo_custeio': 1800.0,
@@ -241,6 +260,11 @@ def test_api_get_info_para_ata_com_repasses_pendentes(client,
 
             'receitas_no_periodo': 3000.0,
 
+            'receitas_devolucao_no_periodo': 0.0,
+            'receitas_devolucao_no_periodo_capital': 0.0,
+            'receitas_devolucao_no_periodo_custeio': 0.0,
+            'receitas_devolucao_no_periodo_livre': 0.0,
+
             'repasses_no_periodo': 1800.0,
             'repasses_no_periodo_capital': 1000.0,
             'repasses_no_periodo_custeio': 800.0,
@@ -284,6 +308,10 @@ def test_api_get_info_para_ata_com_repasses_pendentes(client,
         'saldo_reprogramado_livre': 0,
 
         'receitas_no_periodo': 6000.0,
+
+        'receitas_devolucao_no_periodo_capital': 0.0,
+        'receitas_devolucao_no_periodo_custeio': 0.0,
+        'receitas_devolucao_no_periodo_livre': 0.0,
 
         'repasses_no_periodo': 4500.0,
         'repasses_no_periodo_capital': 1900.0,
@@ -359,6 +387,11 @@ def test_api_get_info_para_ata_com_repasses_pendentes_custeio(client,
 
             'receitas_no_periodo': 3000.0,
 
+            'receitas_devolucao_no_periodo': 0.0,
+            'receitas_devolucao_no_periodo_capital': 0.0,
+            'receitas_devolucao_no_periodo_custeio': 0.0,
+            'receitas_devolucao_no_periodo_livre': 0.0,
+
             'repasses_no_periodo': 2700.0,
             'repasses_no_periodo_capital': 900.0,
             'repasses_no_periodo_custeio': 1800.0,
@@ -405,6 +438,11 @@ def test_api_get_info_para_ata_com_repasses_pendentes_custeio(client,
 
             'receitas_no_periodo': 3000.0,
 
+            'receitas_devolucao_no_periodo': 0.0,
+            'receitas_devolucao_no_periodo_capital': 0.0,
+            'receitas_devolucao_no_periodo_custeio': 0.0,
+            'receitas_devolucao_no_periodo_livre': 0.0,
+
             'repasses_no_periodo': 1800.0,
             'repasses_no_periodo_capital': 1000.0,
             'repasses_no_periodo_custeio': 800.0,
@@ -449,6 +487,10 @@ def test_api_get_info_para_ata_com_repasses_pendentes_custeio(client,
         'saldo_reprogramado_livre': 0,
 
         'receitas_no_periodo': 6000.0,
+
+        'receitas_devolucao_no_periodo_capital': 0.0,
+        'receitas_devolucao_no_periodo_custeio': 0.0,
+        'receitas_devolucao_no_periodo_livre': 0.0,
 
         'repasses_no_periodo': 4500.0,
         'repasses_no_periodo_capital': 1900.0,
@@ -524,6 +566,11 @@ def test_api_get_info_para_ata_deve_ignorar_outras_contas(client,
 
             'receitas_no_periodo': 3000.0,
 
+            'receitas_devolucao_no_periodo': 0.0,
+            'receitas_devolucao_no_periodo_capital': 0.0,
+            'receitas_devolucao_no_periodo_custeio': 0.0,
+            'receitas_devolucao_no_periodo_livre': 0.0,
+
             'repasses_no_periodo': 2700.0,
             'repasses_no_periodo_capital': 900.0,
             'repasses_no_periodo_custeio': 1800.0,
@@ -570,6 +617,11 @@ def test_api_get_info_para_ata_deve_ignorar_outras_contas(client,
 
             'receitas_no_periodo': 3000.0,
 
+            'receitas_devolucao_no_periodo': 0.0,
+            'receitas_devolucao_no_periodo_capital': 0.0,
+            'receitas_devolucao_no_periodo_custeio': 0.0,
+            'receitas_devolucao_no_periodo_livre': 0.0,
+
             'repasses_no_periodo': 1800.0,
             'repasses_no_periodo_capital': 1000.0,
             'repasses_no_periodo_custeio': 800.0,
@@ -614,6 +666,10 @@ def test_api_get_info_para_ata_deve_ignorar_outras_contas(client,
         'saldo_reprogramado_livre': 0,
 
         'receitas_no_periodo': 6000.0,
+
+        'receitas_devolucao_no_periodo_capital': 0.0,
+        'receitas_devolucao_no_periodo_custeio': 0.0,
+        'receitas_devolucao_no_periodo_livre': 0.0,
 
         'repasses_no_periodo': 4500.0,
         'repasses_no_periodo_capital': 1900.0,
@@ -687,6 +743,11 @@ def test_api_get_info_para_ata_com_livre_aplicacao(client,
 
             'receitas_no_periodo': 6000.0,
 
+            'receitas_devolucao_no_periodo': 0.0,
+            'receitas_devolucao_no_periodo_capital': 0.0,
+            'receitas_devolucao_no_periodo_custeio': 0.0,
+            'receitas_devolucao_no_periodo_livre': 0.0,
+
             'repasses_no_periodo': 5400.0,
             'repasses_no_periodo_capital': 900.0,
             'repasses_no_periodo_custeio': 1800.0,
@@ -732,6 +793,11 @@ def test_api_get_info_para_ata_com_livre_aplicacao(client,
 
             'receitas_no_periodo': 3000.0,
 
+            'receitas_devolucao_no_periodo': 0.0,
+            'receitas_devolucao_no_periodo_capital': 0.0,
+            'receitas_devolucao_no_periodo_custeio': 0.0,
+            'receitas_devolucao_no_periodo_livre': 0.0,
+
             'repasses_no_periodo': 1800.0,
             'repasses_no_periodo_capital': 1000.0,
             'repasses_no_periodo_custeio': 800.0,
@@ -775,6 +841,10 @@ def test_api_get_info_para_ata_com_livre_aplicacao(client,
         'saldo_reprogramado_livre': 0,
 
         'receitas_no_periodo': 9000.0,
+
+        'receitas_devolucao_no_periodo_capital': 0.0,
+        'receitas_devolucao_no_periodo_custeio': 0.0,
+        'receitas_devolucao_no_periodo_livre': 0.0,
 
         'repasses_no_periodo': 7200.0,
         'repasses_no_periodo_capital': 1900.0,
