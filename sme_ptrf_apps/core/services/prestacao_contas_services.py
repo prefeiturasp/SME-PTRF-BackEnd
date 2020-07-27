@@ -76,6 +76,8 @@ def informacoes_financeiras_para_atas(prestacao_contas):
             'saldo_reprogramado_livre': 0,
 
             'receitas_no_periodo': 0,
+            
+            'receitas_devolucao_no_periodo': 0,
             'receitas_devolucao_no_periodo_custeio': 0,
             'receitas_devolucao_no_periodo_capital': 0,
             'receitas_devolucao_no_periodo_livre': 0,
