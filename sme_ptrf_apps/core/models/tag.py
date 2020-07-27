@@ -19,7 +19,7 @@ class Tag(ModeloIdNome):
 
     @classmethod
     def get_valores(cls, user=None):
-        query = cls.objects.filter(status=StatusTag.ATIVO.value)
+        query = cls.objects.filter(status=StatusTag.ATIVO.name)
         return query.all()
 
     class Meta:
