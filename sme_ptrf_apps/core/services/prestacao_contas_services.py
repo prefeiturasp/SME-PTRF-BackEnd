@@ -33,8 +33,11 @@ def concluir_prestacao_de_contas(prestacao_contas_uuid, observacoes):
             prestacao_conta=prestacao,
             acao_associacao=acao,
             total_receitas_capital=totais_receitas['total_receitas_capital'],
+            total_receitas_devolucao_capital=totais_receitas['total_receitas_devolucao_capital'],
             total_repasses_capital=totais_receitas['total_repasses_capital'],
             total_receitas_custeio=totais_receitas['total_receitas_custeio'],
+            total_receitas_devolucao_custeio=totais_receitas['total_receitas_devolucao_custeio'],
+            total_receitas_devolucao_livre=totais_receitas['total_receitas_devolucao_livre'],
             total_repasses_custeio=totais_receitas['total_repasses_custeio'],
             total_despesas_capital=totais_despesas['total_despesas_capital'],
             total_despesas_custeio=totais_despesas['total_despesas_custeio'],
@@ -73,6 +76,9 @@ def informacoes_financeiras_para_atas(prestacao_contas):
             'saldo_reprogramado_livre': 0,
 
             'receitas_no_periodo': 0,
+            'receitas_devolucao_no_periodo_custeio': 0,
+            'receitas_devolucao_no_periodo_capital': 0,
+            'receitas_devolucao_no_periodo_livre': 0,
 
             'repasses_no_periodo': 0,
             'repasses_no_periodo_capital': 0,

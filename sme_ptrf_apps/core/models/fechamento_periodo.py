@@ -51,6 +51,7 @@ class FechamentoPeriodo(ModeloBase):
                                             related_name='proximo_fechamento', null=True, blank=True)
 
     total_receitas_capital = models.DecimalField('Total Receitas (capital)', max_digits=12, decimal_places=2, default=0)
+    total_receitas_devolucao_capital = models.DecimalField('Total Receitas Devolução (capital)', max_digits=12, decimal_places=2, default=0)
     total_repasses_capital = models.DecimalField('Total Repasses (capital)', max_digits=12, decimal_places=2, default=0)
     total_despesas_capital = models.DecimalField('Total Despesas (capital)', max_digits=12, decimal_places=2, default=0)
 
@@ -58,6 +59,7 @@ class FechamentoPeriodo(ModeloBase):
                                                      default=0)
 
     total_receitas_custeio = models.DecimalField('Total Receitas (custeio)', max_digits=12, decimal_places=2, default=0)
+    total_receitas_devolucao_custeio = models.DecimalField('Total Receitas Devolução (custeio)', max_digits=12, decimal_places=2, default=0)
     total_repasses_custeio = models.DecimalField('Total Repasses (custeio)', max_digits=12, decimal_places=2, default=0)
     total_despesas_custeio = models.DecimalField('Total Despesas (custeio)', max_digits=12, decimal_places=2, default=0)
 
@@ -65,6 +67,7 @@ class FechamentoPeriodo(ModeloBase):
                                                      default=0)
 
     total_receitas_livre = models.DecimalField('Total Receitas (livre)', max_digits=12, decimal_places=2, default=0)
+    total_receitas_devolucao_livre = models.DecimalField('Total Receitas Devolução (livre)', max_digits=12, decimal_places=2, default=0)
     total_repasses_livre = models.DecimalField('Total Repasses (livre)', max_digits=12, decimal_places=2, default=0)
 
     saldo_reprogramado_livre = models.DecimalField('Saldo Reprogramado (livre)', max_digits=12, decimal_places=2,
@@ -206,9 +209,12 @@ class FechamentoPeriodo(ModeloBase):
               prestacao_conta,
               acao_associacao,
               total_receitas_capital,
+              total_receitas_devolucao_capital,
               total_repasses_capital,
               total_despesas_capital,
               total_receitas_custeio,
+              total_receitas_devolucao_custeio,
+              total_receitas_devolucao_livre,
               total_repasses_custeio,
               total_despesas_custeio,
               total_receitas_livre,
@@ -230,9 +236,12 @@ class FechamentoPeriodo(ModeloBase):
             conta_associacao=prestacao_conta.conta_associacao,
             acao_associacao=acao_associacao,
             total_receitas_capital=total_receitas_capital,
+            total_receitas_devolucao_capital=total_receitas_devolucao_capital,
             total_repasses_capital=total_repasses_capital,
             total_despesas_capital=total_despesas_capital,
             total_receitas_custeio=total_receitas_custeio,
+            total_receitas_devolucao_custeio=total_receitas_devolucao_custeio,
+            total_receitas_devolucao_livre=total_receitas_devolucao_livre,
             total_repasses_custeio=total_repasses_custeio,
             total_despesas_custeio=total_despesas_custeio,
             total_receitas_livre=total_receitas_livre,
