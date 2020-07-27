@@ -36,6 +36,7 @@ def get_acao(nome):
     if Acao.objects.filter(nome=nome).exists():
         return Acao.objects.filter(nome=nome).get()
 
+    logger.info(f"Ação {nome} não encontrada. Registro será criado.")
     return Acao.objects.create(nome=nome)
 
 
@@ -43,6 +44,7 @@ def get_tipo_conta(nome):
     if TipoConta.objects.filter(nome=nome).exists():
         return TipoConta.objects.filter(nome=nome).get()
 
+    logger.info(f"Tipo de conta {nome} não encontrado. Registro será criado.")
     return TipoConta.objects.create(nome=nome)
 
 
@@ -50,6 +52,7 @@ def get_acao_associacao(acao, associacao):
     if AcaoAssociacao.objects.filter(acao=acao, associacao=associacao).exists():
         return AcaoAssociacao.objects.filter(acao=acao, associacao=associacao).get()
 
+    logger.info(f"Ação Associação {acao.nome} não encontrada. Registro será criado.")
     return AcaoAssociacao.objects.create(acao=acao, associacao=associacao)
 
 
@@ -57,6 +60,7 @@ def get_conta_associacao(tipo_conta, associacao):
     if ContaAssociacao.objects.filter(tipo_conta=tipo_conta, associacao=associacao).exists():
         return ContaAssociacao.objects.filter(tipo_conta=tipo_conta, associacao=associacao).get()
 
+    logger.info(f"Conta Associação {tipo_conta.nome} não encontrada. Registro será criado.")
     return ContaAssociacao.objects.create(tipo_conta=tipo_conta, associacao=associacao)
 
 
@@ -74,6 +78,7 @@ def get_periodo(nome_arquivo):
     if Periodo.objects.filter(data_inicio_realizacao_despesas=start, data_fim_realizacao_despesas=end).exists():
         return Periodo.objects.filter(data_inicio_realizacao_despesas=start, data_fim_realizacao_despesas=end).get()
 
+    logger.info(f"Período {start}-{end} não encontrado. Registro será criado.")
     return Periodo.objects.create(
         data_inicio_realizacao_despesas=start,
         data_fim_realizacao_despesas=end
@@ -86,7 +91,7 @@ def processa_repasse(reader, conta, nome_arquivo):
             logger.info('Linha %s: %s', index, row)
             associacao = get_associacao(row[0])
             if not associacao:
-                logger.info('Associação com código eol: %s', row[0])
+                logger.info('Não encontrada a Associação com código eol: %s', row[0])
             try:
                 valor_capital = get_valor(row[1])
                 valor_custeio = get_valor(row[2])
@@ -108,6 +113,7 @@ def processa_repasse(reader, conta, nome_arquivo):
                         periodo=periodo,
                         status=StatusRepasse.PENDENTE.name
                     )
+                    logger.info(f"Repasse criado. Capital={valor_capital} Custeio={valor_custeio} RLA={valor_livre}")
             except Exception as e:
                 logger.info("Error %s", str(e))
 
@@ -115,7 +121,7 @@ def processa_repasse(reader, conta, nome_arquivo):
 def carrega_repasses_previstos(arquivo):
     logger.info("Processando arquivo %s", arquivo.identificador)
     tipo_conta = TipoContaEnum.CARTAO.value if 'cartao' in arquivo.identificador else TipoContaEnum.CHEQUE.value
-
+    logger.info(f"Tipo de conta do arquivo: {tipo_conta}.")
     with open(arquivo.conteudo.path, 'r', encoding="utf-8") as f:
         reader = csv.reader(f, delimiter=',')
         processa_repasse(reader, tipo_conta, arquivo.identificador)
