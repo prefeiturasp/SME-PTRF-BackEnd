@@ -1247,7 +1247,7 @@ def tag():
     return baker.make(
         'Tag',
         nome="COVID-19",
-        status=StatusTag.INATIVO.value
+        status=StatusTag.INATIVO.name
     )
 
 
@@ -1256,5 +1256,5 @@ def tag_ativa():
     return baker.make(
         'Tag',
         nome="COVID-19",
-        status=StatusTag.ATIVO.value
+        status=StatusTag.ATIVO.name
     )
