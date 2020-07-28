@@ -13,7 +13,7 @@ from copy import copy
 from tempfile import NamedTemporaryFile
 
 from django.contrib.staticfiles.storage import staticfiles_storage
-from openpyxl import load_workbook
+from openpyxl import load_workbook, styles
 from openpyxl.cell.cell import Cell, MergedCell
 from openpyxl.utils import column_index_from_string, get_column_letter, range_boundaries
 from openpyxl.utils.cell import coordinate_from_string
@@ -21,7 +21,7 @@ from openpyxl.utils.cell import coordinate_from_string
 from sme_ptrf_apps.core.models import Associacao, FechamentoPeriodo, PrestacaoConta, MembroAssociacao, Observacao
 from sme_ptrf_apps.core.choices import MembroEnum
 from sme_ptrf_apps.despesas.models import RateioDespesa
-from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
+from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CUSTEIO, APLICACAO_LIVRE
 from sme_ptrf_apps.receitas.models import Receita
 
 LOGGER = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ COL_CABECALHO = 9
 LINHA_PERIODO_CABECALHO = 4
 LINHA_ACAO_CABECALHO = 5
 LINHA_CONTA_CABECALHO = 6
-LAST_LINE = 46
+LAST_LINE = 47
 
 # Coluna 2 da planilha
 SALDO_ANTERIOR = 0
@@ -77,9 +77,9 @@ def gerar(periodo, acao_associacao, conta_associacao):
     sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo)
     creditos_demonstrados(worksheet, receitas_demonstradas)
     acc = len(receitas_demonstradas)-1 if len(receitas_demonstradas) > 1 else 0
-    pagamentos(worksheet, rateios_conferidos, acc=acc, start_line=27)
+    pagamentos(worksheet, rateios_conferidos, acc=acc, start_line=28)
     acc += len(rateios_conferidos)-1 if len(rateios_conferidos) > 1 else 0
-    pagamentos(worksheet, rateios_nao_conferidos, acc=acc, start_line=33)
+    pagamentos(worksheet, rateios_nao_conferidos, acc=acc, start_line=34)
 
     return workbook
 
@@ -113,16 +113,21 @@ def identificacao_apm(worksheet, acao_associacao):
 def sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo):
     saldo_reprogramado_anterior_capital = fechamento_periodo.fechamento_anterior.saldo_reprogramado_capital if fechamento_periodo.fechamento_anterior else 0
     saldo_reprogramado_anterior_custeio = fechamento_periodo.fechamento_anterior.saldo_reprogramado_custeio if fechamento_periodo.fechamento_anterior else 0
+    saldo_reprogramado_anterior_livre = fechamento_periodo.fechamento_anterior.saldo_reprogramado_livre if fechamento_periodo.fechamento_anterior else 0
 
     receitas_demonstradas_capital = Receita.receitas_da_acao_associacao_no_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True, categoria_receita=APLICACAO_CAPITAL).values_list('valor')
     receitas_demonstradas_custeio = Receita.receitas_da_acao_associacao_no_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True, categoria_receita=APLICACAO_CUSTEIO).values_list('valor')
+    receitas_demonstradas_livre = Receita.receitas_da_acao_associacao_no_periodo(
+        acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True, categoria_receita=APLICACAO_LIVRE).values_list('valor')
 
     valor_capital_receitas_demonstradas = sum(
         rrc[0] for rrc in receitas_demonstradas_capital) if receitas_demonstradas_capital else 0
     valor_custeio_receitas_demonstradas = sum(
         rrk[0] for rrk in receitas_demonstradas_custeio) if receitas_demonstradas_custeio else 0
+    valor_livre_receitas_demonstradas = sum(
+        rrl[0] for rrl in receitas_demonstradas_livre) if receitas_demonstradas_livre else 0
 
     rateios_demonstrados_capital = RateioDespesa.rateios_da_acao_associacao_no_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True, aplicacao_recurso=APLICACAO_CAPITAL).values_list('valor_rateio')
@@ -144,35 +149,61 @@ def sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, period
     valor_custeio_rateios_nao_demonstrados = sum(
         rrk[0] for rrk in rateios_nao_conferidos_custeio) if rateios_nao_conferidos_custeio else 0
 
-    row_custeio = list(worksheet.rows)[15]
-    row_capital = list(worksheet.rows)[16]
+    linha = 15
+    row_custeio = list(worksheet.rows)[linha]
+    valor_saldo_reprogramado_proximo_periodo_custeio = 0
+    valor_saldo_bancario_custeio = 0
+    valor_saldo_reprogramado_proximo_periodo_capital = 0
+    valor_saldo_bancario_capital = 0
 
-    row_capital[SALDO_ANTERIOR].value = f'K {formata_valor(saldo_reprogramado_anterior_capital)}' 
-    row_capital[CREDITO].value = f'K {formata_valor(valor_capital_receitas_demonstradas)}'
-    row_capital[DESPESA_REALIZADA].value = f'K {formata_valor(valor_capital_rateios_demonstrados)}'
-    valor_saldo_reprogramado_proximo_periodo_capital = saldo_reprogramado_anterior_capital + valor_capital_receitas_demonstradas - valor_capital_rateios_demonstrados
-    row_capital[SALDO_REPROGRAMADO_PROXIMO].value = f'K {formata_valor(valor_saldo_reprogramado_proximo_periodo_capital)}'
-    row_capital[DESPESA_NAO_DEMONSTRADA].value = f'K {formata_valor(valor_capital_rateios_nao_demonstrados)}'
-    valor_saldo_bancario_capital = valor_saldo_reprogramado_proximo_periodo_capital + valor_capital_rateios_nao_demonstrados
-    row_capital[SALDO_BANCARIO].value = f'K {formata_valor(valor_saldo_bancario_capital)}'
+    if saldo_reprogramado_anterior_custeio or valor_custeio_receitas_demonstradas or valor_custeio_rateios_demonstrados or valor_custeio_rateios_nao_demonstrados:
+        row_custeio[SALDO_ANTERIOR].value = f'C {formata_valor(saldo_reprogramado_anterior_custeio)}'
+        row_custeio[CREDITO].value = f'C {formata_valor(valor_custeio_receitas_demonstradas)}'
+        row_custeio[DESPESA_REALIZADA].value = f'C {formata_valor(valor_custeio_rateios_demonstrados)}'
+        valor_saldo_reprogramado_proximo_periodo_custeio = saldo_reprogramado_anterior_custeio + valor_custeio_receitas_demonstradas - valor_custeio_rateios_demonstrados
+        row_custeio[SALDO_REPROGRAMADO_PROXIMO].value = f'C {formata_valor(valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else 0)}'
+        row_custeio[DESPESA_NAO_DEMONSTRADA].value = f'C {formata_valor(valor_custeio_rateios_nao_demonstrados)}'
+        valor_saldo_bancario_custeio = valor_saldo_reprogramado_proximo_periodo_custeio + valor_custeio_rateios_nao_demonstrados
+        row_custeio[SALDO_BANCARIO].value = f'C {formata_valor(valor_saldo_bancario_custeio)}'
+        linha += 1
 
-    row_custeio[SALDO_ANTERIOR].value = f'C {formata_valor(saldo_reprogramado_anterior_custeio)}'
-    row_custeio[CREDITO].value = f'C {formata_valor(valor_custeio_receitas_demonstradas)}'
-    row_custeio[DESPESA_REALIZADA].value = f'C {formata_valor(valor_custeio_rateios_demonstrados)}'
-    valor_saldo_reprogramado_proximo_periodo_custeio = saldo_reprogramado_anterior_custeio + valor_custeio_receitas_demonstradas - valor_custeio_rateios_demonstrados
-    row_custeio[SALDO_REPROGRAMADO_PROXIMO].value = f'C {formata_valor(valor_saldo_reprogramado_proximo_periodo_custeio)}'
+    row_capital = list(worksheet.rows)[linha]
 
-    row_custeio[TOTAL_REPROGRAMADO_PROXIMO].value = formata_valor(valor_saldo_reprogramado_proximo_periodo_capital + \
-        valor_saldo_reprogramado_proximo_periodo_custeio)
+    if saldo_reprogramado_anterior_capital or valor_capital_receitas_demonstradas or valor_capital_rateios_demonstrados or valor_capital_rateios_nao_demonstrados:
+        row_capital[SALDO_ANTERIOR].value = f'K {formata_valor(saldo_reprogramado_anterior_capital)}' 
+        row_capital[CREDITO].value = f'K {formata_valor(valor_capital_receitas_demonstradas)}'
+        row_capital[DESPESA_REALIZADA].value = f'K {formata_valor(valor_capital_rateios_demonstrados)}'
+        valor_saldo_reprogramado_proximo_periodo_capital = saldo_reprogramado_anterior_capital + valor_capital_receitas_demonstradas - valor_capital_rateios_demonstrados
+        row_capital[SALDO_REPROGRAMADO_PROXIMO].value = f'K {formata_valor(valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else 0)}'
+        row_capital[DESPESA_NAO_DEMONSTRADA].value = f'K {formata_valor(valor_capital_rateios_nao_demonstrados)}'
+        valor_saldo_bancario_capital = valor_saldo_reprogramado_proximo_periodo_capital + valor_capital_rateios_nao_demonstrados
+        row_capital[SALDO_BANCARIO].value = f'K {formata_valor(valor_saldo_bancario_capital)}'
+        linha += 1
 
-    row_custeio[DESPESA_NAO_DEMONSTRADA].value = f'C {formata_valor(valor_custeio_rateios_nao_demonstrados)}'
-    valor_saldo_bancario_custeio = valor_saldo_reprogramado_proximo_periodo_custeio + valor_custeio_rateios_nao_demonstrados
-    row_custeio[SALDO_BANCARIO].value = f'C {formata_valor(valor_saldo_bancario_custeio)}'
+    row_livre = list(worksheet.rows)[linha]
+    if saldo_reprogramado_anterior_livre or valor_livre_receitas_demonstradas:
+        row_livre[SALDO_ANTERIOR].value = f'L {formata_valor(saldo_reprogramado_anterior_livre)}'
+        row_livre[CREDITO].value = f'L {formata_valor(valor_livre_receitas_demonstradas)}'
+        cor_cinza = styles.colors.Color(rgb='808080')
+        fill = styles.fills.PatternFill(patternType='solid', fgColor=cor_cinza)
+        row_livre[DESPESA_REALIZADA].fill = fill
+        row_livre[DESPESA_NAO_DEMONSTRADA].fill = fill 
+        valor_saldo_reprogramado_proximo_periodo_livre = saldo_reprogramado_anterior_livre + valor_livre_receitas_demonstradas
+        valor_saldo_reprogramado_proximo_periodo_livre = valor_saldo_reprogramado_proximo_periodo_livre + valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital < 0 else valor_saldo_reprogramado_proximo_periodo_livre
+        valor_saldo_reprogramado_proximo_periodo_livre = valor_saldo_reprogramado_proximo_periodo_livre + valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio < 0 else valor_saldo_reprogramado_proximo_periodo_livre
+        row_livre[SALDO_REPROGRAMADO_PROXIMO].value = f'L {formata_valor(valor_saldo_reprogramado_proximo_periodo_livre)}'
 
-    row_custeio[TOTAL_SALDO_BANCARIO].value = formata_valor(valor_saldo_bancario_capital + valor_saldo_bancario_custeio)
+    valor_total_reprogramado_proximo = valor_saldo_reprogramado_proximo_periodo_livre
+    valor_total_reprogramado_proximo = valor_total_reprogramado_proximo + valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else valor_total_reprogramado_proximo
+    valor_total_reprogramado_proximo = valor_total_reprogramado_proximo + valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else valor_total_reprogramado_proximo
+    row_livre[SALDO_BANCARIO].value = f'L {formata_valor(valor_saldo_reprogramado_proximo_periodo_livre)}'
+
+    row_custeio[TOTAL_REPROGRAMADO_PROXIMO].value = formata_valor(valor_total_reprogramado_proximo)
+    
+    row_custeio[TOTAL_SALDO_BANCARIO].value = formata_valor(valor_saldo_bancario_capital + valor_saldo_bancario_custeio + valor_saldo_reprogramado_proximo_periodo_livre)
 
 
-def creditos_demonstrados(worksheet, receitas, acc=0, start_line=21):
+def creditos_demonstrados(worksheet, receitas, acc=0, start_line=22):
     quantidade = acc
     last_line = LAST_LINE + quantidade
     valor_total = sum(r.valor for r in receitas)
@@ -241,7 +272,7 @@ def pagamentos(worksheet, rateios, acc=0, start_line=26):
 def observacoes(worksheet, acao_associacao):
     """BLOCO 6 - OBSERVAÇÃO"""
 
-    start_line = 36
+    start_line = 37
     row = list(worksheet.rows)[start_line]
     row[ITEM].value = Observacao.objects.filter(acao_associacao=acao_associacao).first().texto if Observacao.objects.filter(acao_associacao=acao_associacao).exists() else ''
 
