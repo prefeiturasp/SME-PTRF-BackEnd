@@ -6,7 +6,7 @@ services:
     restart: always
     env_file: .env
     volumes:
-      - ../uniformes-postgres-data:/var/lib/postgresql/data
+      - ../ptrf-postgres-data:/var/lib/postgresql/data
     # ports:
     #   - 5434:5432
 
@@ -42,7 +42,7 @@ services:
     container_name: redis-ptrf
     restart: always
     ports:
-        - "6381:6379"
+        - "6379:6379"
 
 networks:
   default:

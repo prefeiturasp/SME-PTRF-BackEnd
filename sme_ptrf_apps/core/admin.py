@@ -1,7 +1,6 @@
 from django.contrib import admin
 
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
-
 from .models import (
     Acao,
     AcaoAssociacao,
@@ -19,6 +18,7 @@ from .models import (
     RelacaoBens,
     TipoConta,
     Unidade,
+    Tag,
 )
 
 admin.site.register(TipoConta)
@@ -37,14 +37,6 @@ class AssociacaoAdmin(admin.ModelAdmin):
 
     get_nome_escola.short_description = 'Escola'
 
-    def importa_associacoes(self, request, queryset):
-        from .services.carga_associacoes import carrega_associacoes
-        carrega_associacoes()
-        self.message_user(request, "Associações carregadas.")
-
-    importa_associacoes.short_description = 'Fazer carga de Associações'
-
-    actions = ['importa_associacoes', ]
     list_display = ('nome', 'cnpj', 'get_nome_escola', 'get_usuarios')
     search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome')
     list_filter = ('unidade__dre', 'periodo_inicial')
@@ -110,7 +102,7 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
                     'total_despesas', 'saldo_reprogramado', 'status')
     list_filter = ('status', 'associacao', 'acao_associacao__acao', 'conta_associacao__tipo_conta')
     list_display_links = ('periodo',)
-    readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio')
+    readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre')
     search_fields = ('associacao__unidade__codigo_eol',)
 
 
@@ -171,3 +163,10 @@ class ArquivoAdmin(admin.ModelAdmin):
         self.message_user(request, "Carga Realizada com sucesso.")
 
     processa_carga.short_description = "Realizar Carga dos arquivos."
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ['uuid', 'nome', 'status']
+    search_fields = ['status']
+    list_filter = ['nome', 'status']

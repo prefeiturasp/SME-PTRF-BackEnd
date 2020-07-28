@@ -15,7 +15,7 @@ def test_get_membros_associacoes(
 
     response = jwt_authenticated_client.get('/api/membros-associacao/', content_type='application/json')
     result = json.loads(response.content)
-    
+
     esperado = [
         {
             'id': membro_associacao.id,
@@ -31,7 +31,8 @@ def test_get_membros_associacoes(
             'cargo_associacao': membro_associacao.cargo_associacao,
             'cargo_educacao': membro_associacao.cargo_educacao,
             'representacao': membro_associacao.representacao,
-            'codigo_identificacao': membro_associacao.codigo_identificacao
+            'codigo_identificacao': membro_associacao.codigo_identificacao,
+            'email': membro_associacao.email
         }
     ]
 
@@ -61,7 +62,8 @@ def test_get_membro_associacao(
         'cargo_associacao': membro_associacao.cargo_associacao,
         'cargo_educacao': membro_associacao.cargo_educacao,
         'representacao': membro_associacao.representacao,
-        'codigo_identificacao': membro_associacao.codigo_identificacao
+        'codigo_identificacao': membro_associacao.codigo_identificacao,
+        'email': membro_associacao.email
     }
 
     assert response.status_code == status.HTTP_200_OK

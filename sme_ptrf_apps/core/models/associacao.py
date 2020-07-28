@@ -27,6 +27,10 @@ class Associacao(ModeloIdNome):
     periodo_inicial = models.ForeignKey('Periodo', on_delete=models.PROTECT, verbose_name='período inicial',
                                         related_name='associacoes_iniciadas_no_periodo', null=True, blank=True)
 
+    ccm = models.CharField('CCM', max_length=15, null=True, blank=True, default="")
+
+    email = models.EmailField("E-mail", max_length=254, null=True, blank=True, default="")
+
     def apaga_implantacoes_de_saldo(self):
         self.fechamentos_associacao.filter(status='IMPLANTACAO').delete()
 

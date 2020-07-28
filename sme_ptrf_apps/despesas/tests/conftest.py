@@ -8,8 +8,11 @@ from ..tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
 
 @pytest.fixture
 def tipo_documento():
-    return baker.make('TipoDocumento', nome='NFe', apenas_digitos=False)
+    return baker.make('TipoDocumento', nome='NFe', apenas_digitos=False, numero_documento_digitado=False)
 
+@pytest.fixture
+def tipo_documento_numero_documento_digitado():
+    return baker.make('TipoDocumento', nome='NFe', apenas_digitos=False, numero_documento_digitado=True)
 
 @pytest.fixture
 def tipo_transacao():

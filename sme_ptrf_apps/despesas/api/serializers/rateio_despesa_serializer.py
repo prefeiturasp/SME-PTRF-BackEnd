@@ -1,13 +1,16 @@
 from rest_framework import serializers
 
-from .especificacao_material_servico_serializer import EspecificacaoMaterialServicoSerializer, \
-    EspecificacaoMaterialServicoLookUpSerializer
-from .tipo_custeio_serializer import TipoCusteioSerializer
-from ...models import RateioDespesa, Despesa
-from ....core.api.serializers.acao_associacao_serializer import AcaoAssociacaoSerializer, AcaoAssociacaoLookUpSerializer
+from ....core.api.serializers import TagLookupSerializer
+from ....core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer, AcaoAssociacaoSerializer
 from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
 from ....core.api.serializers.conta_associacao_serializer import ContaAssociacaoSerializer
-from ....core.models import Associacao, ContaAssociacao, AcaoAssociacao
+from ....core.models import AcaoAssociacao, Associacao, ContaAssociacao, Tag
+from ...models import Despesa, RateioDespesa
+from .especificacao_material_servico_serializer import (
+    EspecificacaoMaterialServicoLookUpSerializer,
+    EspecificacaoMaterialServicoSerializer,
+)
+from .tipo_custeio_serializer import TipoCusteioSerializer
 
 
 class RateioDespesaSerializer(serializers.ModelSerializer):
@@ -21,6 +24,7 @@ class RateioDespesaSerializer(serializers.ModelSerializer):
     acao_associacao = AcaoAssociacaoSerializer()
     especificacao_material_servico = EspecificacaoMaterialServicoSerializer()
     tipo_custeio = TipoCusteioSerializer()
+    tag = TagLookupSerializer()
 
     class Meta:
         model = RateioDespesa
@@ -45,6 +49,13 @@ class RateioDespesaCreateSerializer(serializers.ModelSerializer):
         slug_field='uuid',
         required=False,
         queryset=AcaoAssociacao.objects.all(),
+        allow_null=True
+    )
+
+    tag = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Tag.objects.all(),
         allow_null=True
     )
 

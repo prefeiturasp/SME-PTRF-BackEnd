@@ -6,9 +6,9 @@ from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
-from sme_ptrf_apps.core.models import Associacao
+from sme_ptrf_apps.core.models import Associacao, Periodo
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
+from ..tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
 
 
 class Receita(ModeloBase):
@@ -44,10 +44,13 @@ class Receita(ModeloBase):
                                         verbose_name='prestação de contas de conciliação')
 
     repasse = models.ForeignKey('Repasse', on_delete=models.PROTECT, related_name='receitas',
-                                   blank=True, null=True)
+                                blank=True, null=True)
 
     detalhe_tipo_receita = models.ForeignKey('DetalheTipoReceita', on_delete=models.PROTECT, blank=True, null=True)
     detalhe_outros = models.CharField('Detalhe da despesa (outros)', max_length=160, blank=True, default='')
+
+    referencia_devolucao = models.ForeignKey(Periodo, on_delete=models.PROTECT,
+                                related_name='+', blank=True, null=True)
 
     def __str__(self):
         return f'RECEITA<{self.detalhamento} - {self.data} - {self.valor}>'
@@ -61,7 +64,8 @@ class Receita(ModeloBase):
         return detalhe
 
     @classmethod
-    def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None, categoria_receita=None):
+    def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None,
+                                               categoria_receita=None):
         if periodo.data_fim_realizacao_despesas:
             dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
                 data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
@@ -100,43 +104,63 @@ class Receita(ModeloBase):
                                                               periodo=periodo, conta_associacao=conta)
         totais = {
             'total_receitas_capital': Decimal(0.00),
+            'total_receitas_devolucao_capital': Decimal(0.00),
             'total_repasses_capital': Decimal(0.00),
             'total_receitas_custeio': Decimal(0.00),
+            'total_receitas_devolucao_custeio': Decimal(0.00),
+            'total_receitas_devolucao_livre': Decimal(0.00),
             'total_repasses_custeio': Decimal(0.00),
+            'total_receitas_livre': Decimal(0.00),
+            'total_repasses_livre': Decimal(0.00),
             'total_receitas_nao_conciliadas_capital': Decimal(0.00),
             'total_receitas_nao_conciliadas_custeio': Decimal(0.00),
+            'total_receitas_nao_conciliadas_livre': Decimal(0.00),
 
         }
 
         for receita in receitas:
             if receita.categoria_receita == APLICACAO_CAPITAL:
                 totais['total_receitas_capital'] += receita.valor
-            else:
+            elif receita.categoria_receita == APLICACAO_CUSTEIO:
                 totais['total_receitas_custeio'] += receita.valor
+            else:
+                totais['total_receitas_livre'] += receita.valor
 
             if receita.tipo_receita.e_repasse:
                 if receita.categoria_receita == APLICACAO_CAPITAL:
                     totais['total_repasses_capital'] += receita.valor
-                else:
+                elif receita.categoria_receita == APLICACAO_CUSTEIO:
                     totais['total_repasses_custeio'] += receita.valor
+                else:
+                    totais['total_repasses_livre'] += receita.valor
 
             if not receita.conferido:
                 if receita.categoria_receita == APLICACAO_CAPITAL:
                     totais['total_receitas_nao_conciliadas_capital'] += receita.valor
-                else:
+                elif receita.categoria_receita == APLICACAO_CUSTEIO:
                     totais['total_receitas_nao_conciliadas_custeio'] += receita.valor
+                else:
+                    totais['total_receitas_nao_conciliadas_livre'] += receita.valor
+            
+            if receita.tipo_receita.e_devolucao:
+                if receita.categoria_receita == APLICACAO_CAPITAL:
+                    totais['total_receitas_devolucao_capital'] += receita.valor
+                elif receita.categoria_receita == APLICACAO_CUSTEIO:
+                    totais['total_receitas_devolucao_custeio'] += receita.valor
+                else:
+                    totais['total_receitas_devolucao_livre'] += receita.valor
 
         return totais
 
     def marcar_conferido(self, prestacao_conta=None):
         self.conferido = True
-        self.prestacao_conta=prestacao_conta
+        self.prestacao_conta = prestacao_conta
         self.save()
         return self
 
     def desmarcar_conferido(self):
         self.conferido = False
-        self.prestacao_conta=None
+        self.prestacao_conta = None
         self.save()
         return self
 
@@ -157,5 +181,6 @@ def rateio_pre_save(instance, **kwargs):
         instance.detalhe_outros = ""
     else:
         instance.detalhe_tipo_receita = None
+
 
 auditlog.register(Receita)

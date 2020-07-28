@@ -5,9 +5,11 @@ from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 
 class TipoReceita(ModeloIdNome):
     e_repasse = models.BooleanField("É repasse?", default=False)
+    e_rendimento = models.BooleanField("É rendimento?", default=False)
+    e_devolucao = models.BooleanField("É devolução?", default=False)
     aceita_capital = models.BooleanField('Aceita capital?', default=False)
     aceita_custeio = models.BooleanField('Aceita custeio?', default=False)
-    e_rendimento = models.BooleanField("É rendimento?", default=False)
+    aceita_livre = models.BooleanField('Aceita livre aplicação?', default=False)
 
     class Meta:
         verbose_name = 'Tipo de receita'

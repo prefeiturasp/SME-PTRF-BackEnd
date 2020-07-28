@@ -1,4 +1,7 @@
-from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
+from decimal import Decimal
+
+from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (APLICACAO_CAPITAL, APLICACAO_CUSTEIO,
+                                                                     APLICACAO_LIVRE)
 from ..models import FechamentoPeriodo, AcaoAssociacao, ContaAssociacao
 from ..models.fechamento_periodo import STATUS_IMPLANTACAO
 
@@ -9,7 +12,8 @@ def implantacoes_de_saldo_da_associacao(associacao):
 
     for implantacao in implantacoes:
         for aplicacao, total_aplicacao in [(APLICACAO_CAPITAL, 'total_receitas_capital'),
-                                           (APLICACAO_CUSTEIO, 'total_receitas_custeio')]:
+                                           (APLICACAO_CUSTEIO, 'total_receitas_custeio'),
+                                           (APLICACAO_LIVRE, 'total_receitas_livre')]:
             if not getattr(implantacao, total_aplicacao): continue
 
             saldo = {
@@ -45,14 +49,12 @@ def implanta_saldos_da_associacao(associacao, saldos):
             'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.',
         }
 
-
     if saldos_duplicados(saldos):
         return {
             'saldo_implantado': False,
             'codigo_erro': 'informacoes_repetidas',
             'mensagem': 'Existem valores repetidos de Ação, Conta e Aplicação. Verifique.',
         }
-
 
     associacao.apaga_implantacoes_de_saldo()
 
@@ -63,7 +65,7 @@ def implanta_saldos_da_associacao(associacao, saldos):
             acao_associacao=acao_associacao,
             conta_associacao=conta_associacao,
             aplicacao=saldo['aplicacao'],
-            saldo=saldo['saldo']
+            saldo=Decimal(saldo['saldo'])
         )
 
     return {

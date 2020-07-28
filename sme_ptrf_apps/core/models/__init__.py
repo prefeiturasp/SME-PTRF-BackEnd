@@ -14,3 +14,4 @@ from .prestacao_conta import STATUS_ABERTO, STATUS_FECHADO, PrestacaoConta
 from .relacao_bens import RelacaoBens
 from .tipo_conta import TipoConta
 from .unidade import Unidade
+from .tag import Tag

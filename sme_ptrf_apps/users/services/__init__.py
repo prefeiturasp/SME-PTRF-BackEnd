@@ -1,1 +1,2 @@
 from .carga_usuarios import carrega_usuarios
+from .sme_integracao_service import SmeIntegracaoService, SmeIntegracaoException

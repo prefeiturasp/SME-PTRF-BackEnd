@@ -31,6 +31,7 @@ def test_api_retrieve_ata_associacao(client, associacao, ata_2020_1_cheque_aprov
         'periodo': {'data_fim_realizacao_despesas': '2020-06-30',
                     'data_inicio_realizacao_despesas': '2020-01-01',
                     'referencia': '2020.1',
+                    'referencia_por_extenso': '1° repasse de 2020',
                     'uuid': f'{ata_2020_1_cheque_aprovada.periodo.uuid}'},
         'presidente_reuniao': 'José',
         'prestacao_conta': f'{ata_2020_1_cheque_aprovada.prestacao_conta.uuid}',

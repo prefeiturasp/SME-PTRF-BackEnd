@@ -44,7 +44,8 @@ def test_api_list_periodos_lookup(jwt_authenticated_client, periodo, periodo_ant
             "uuid": f'{p.uuid}',
             "referencia": p.referencia,
             "data_inicio_realizacao_despesas": f'{p.data_inicio_realizacao_despesas}' if p.data_inicio_realizacao_despesas else None,
-            "data_fim_realizacao_despesas": f'{p.data_fim_realizacao_despesas}' if p.data_fim_realizacao_despesas else None
+            "data_fim_realizacao_despesas": f'{p.data_fim_realizacao_despesas}' if p.data_fim_realizacao_despesas else None,
+            "referencia_por_extenso": f"{p.referencia.split('.')[1]}° repasse de {p.referencia.split('.')[0]}"
         }
         expected_results.append(esperado)
 
@@ -65,7 +66,8 @@ def test_api_list_periodos_lookup_until_now(jwt_authenticated_client, periodo, p
             "uuid": f'{p.uuid}',
             "referencia": p.referencia,
             "data_inicio_realizacao_despesas": f'{p.data_inicio_realizacao_despesas}' if p.data_inicio_realizacao_despesas else None,
-            "data_fim_realizacao_despesas": f'{p.data_fim_realizacao_despesas}' if p.data_fim_realizacao_despesas else None
+            "data_fim_realizacao_despesas": f'{p.data_fim_realizacao_despesas}' if p.data_fim_realizacao_despesas else None,
+            "referencia_por_extenso": f"{p.referencia.split('.')[1]}° repasse de {p.referencia.split('.')[0]}"
         }
         expected_results.append(esperado)
 
