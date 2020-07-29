@@ -66,18 +66,25 @@ def gerar(periodo, acao_associacao, conta_associacao):
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True)
     fechamento_periodo = FechamentoPeriodo.objects.filter(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo).first()
+    LOGGER.info("Consulta dos dados terminados.")
     path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
     nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro.xlsx')
+    LOGGER.info('PATH do modelo do demonstrativo_financeiro: %s', nome_arquivo)
     workbook = load_workbook(nome_arquivo)
     worksheet = workbook.active
-
+    LOGGER.info('Workbook do demonstrativo_financeiro carregado.')
     cabecalho(worksheet, periodo, acao_associacao, conta_associacao)
     identificacao_apm(worksheet, acao_associacao)
+    LOGGER.info('Cabeçalho e identificação montados.')
     observacoes(worksheet, acao_associacao)
+    LOGGER.info('Observações montados.')
     sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo)
+    LOGGER.info('Sintese Montada.')
     creditos_demonstrados(worksheet, receitas_demonstradas)
+    LOGGER.info('Créditos Montados.')
     acc = len(receitas_demonstradas)-1 if len(receitas_demonstradas) > 1 else 0
     pagamentos(worksheet, rateios_conferidos, acc=acc, start_line=28)
+    LOGGER.info('Pagametos Montados.')
     acc += len(rateios_conferidos)-1 if len(rateios_conferidos) > 1 else 0
     pagamentos(worksheet, rateios_nao_conferidos, acc=acc, start_line=34)
     LOGGER.info("DEMONSTRATIVO GERADO COM SUCESSO.")
