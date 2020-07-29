@@ -166,16 +166,27 @@ def sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, period
     LOGGER.info('Row')
     if saldo_reprogramado_anterior_custeio or valor_custeio_receitas_demonstradas or valor_custeio_rateios_demonstrados or valor_custeio_rateios_nao_demonstrados:
         LOGGER.info('Custeio')
-        row_custeio[SALDO_ANTERIOR].value = f'C {formata_valor(saldo_reprogramado_anterior_custeio)}'
-        row_custeio[CREDITO].value = f'C {formata_valor(valor_custeio_receitas_demonstradas)}'
-        row_custeio[DESPESA_REALIZADA].value = f'C {formata_valor(valor_custeio_rateios_demonstrados)}'
-        valor_saldo_reprogramado_proximo_periodo_custeio = saldo_reprogramado_anterior_custeio + valor_custeio_receitas_demonstradas - valor_custeio_rateios_demonstrados
-        row_custeio[SALDO_REPROGRAMADO_PROXIMO].value = f'C {formata_valor(valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else 0)}'
-        row_custeio[DESPESA_NAO_DEMONSTRADA].value = f'C {formata_valor(valor_custeio_rateios_nao_demonstrados)}'
-        valor_saldo_bancario_custeio = valor_saldo_reprogramado_proximo_periodo_custeio + valor_custeio_rateios_nao_demonstrados
-        row_custeio[SALDO_BANCARIO].value = f'C {formata_valor(valor_saldo_bancario_custeio)}'
-        linha += 1
-        LOGGER.info('End Custeio')
+        try:
+            row_custeio[SALDO_ANTERIOR].value = f'C {formata_valor(saldo_reprogramado_anterior_custeio)}'
+            LOGGER.info('Custeio 1)
+            row_custeio[CREDITO].value = f'C {formata_valor(valor_custeio_receitas_demonstradas)}'
+            LOGGER.info('Custeio 2')
+            row_custeio[DESPESA_REALIZADA].value = f'C {formata_valor(valor_custeio_rateios_demonstrados)}'
+            LOGGER.info('Custeio 3')
+            valor_saldo_reprogramado_proximo_periodo_custeio = saldo_reprogramado_anterior_custeio + valor_custeio_receitas_demonstradas - valor_custeio_rateios_demonstrados
+            LOGGER.info('Custeio 4')
+            row_custeio[SALDO_REPROGRAMADO_PROXIMO].value = f'C {formata_valor(valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else 0)}'
+            LOGGER.info('Custeio 5')
+            row_custeio[DESPESA_NAO_DEMONSTRADA].value = f'C {formata_valor(valor_custeio_rateios_nao_demonstrados)}'
+            LOGGER.info('Custeio 6')
+            valor_saldo_bancario_custeio = valor_saldo_reprogramado_proximo_periodo_custeio + valor_custeio_rateios_nao_demonstrados
+            LOGGER.info('Custeio 7')
+            row_custeio[SALDO_BANCARIO].value = f'C {formata_valor(valor_saldo_bancario_custeio)}'
+            LOGGER.info('Custeio 8')
+            linha += 1
+        except Exception as e:
+            LOGGER.info("Erro %s", str(e))
+            LOGGER.info('End Custeio')
 
     row_capital = list(worksheet.rows)[linha]
 
