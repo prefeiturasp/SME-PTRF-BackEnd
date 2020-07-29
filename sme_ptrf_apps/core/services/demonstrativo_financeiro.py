@@ -168,7 +168,7 @@ def sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, period
         LOGGER.info('Custeio')
         try:
             row_custeio[SALDO_ANTERIOR].value = f'C {formata_valor(saldo_reprogramado_anterior_custeio)}'
-            LOGGER.info('Custeio 1)
+            LOGGER.info('Custeio 1')
             row_custeio[CREDITO].value = f'C {formata_valor(valor_custeio_receitas_demonstradas)}'
             LOGGER.info('Custeio 2')
             row_custeio[DESPESA_REALIZADA].value = f'C {formata_valor(valor_custeio_rateios_demonstrados)}'
