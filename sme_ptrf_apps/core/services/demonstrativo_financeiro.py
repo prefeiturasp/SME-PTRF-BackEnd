@@ -80,7 +80,7 @@ def gerar(periodo, acao_associacao, conta_associacao):
     pagamentos(worksheet, rateios_conferidos, acc=acc, start_line=28)
     acc += len(rateios_conferidos)-1 if len(rateios_conferidos) > 1 else 0
     pagamentos(worksheet, rateios_nao_conferidos, acc=acc, start_line=34)
-
+    LOGGER.info("DEMONSTRATIVO GERADO COM SUCESSO.")
     return workbook
 
 
