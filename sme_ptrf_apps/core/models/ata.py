@@ -1,4 +1,8 @@
+from datetime import datetime
+
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
@@ -115,6 +119,8 @@ class Ata(ModeloBase):
         default=PARECER_APROVADA,
     )
 
+    preenchida_em = models.DateTimeField("Preenchida em", blank=True, null=True)
+
     @property
     def nome(self):
         return f'Ata de {self.ATA_NOMES[self.tipo_ata]} da prestação de contas'
@@ -134,3 +140,10 @@ class Ata(ModeloBase):
     class Meta:
         verbose_name = "Ata"
         verbose_name_plural = "Atas"
+
+
+@receiver(pre_save, sender=Ata)
+def ata_pre_save(instance, **kwargs):
+    criando_ata = instance._state.adding
+    if not criando_ata:
+        instance.preenchida_em = datetime.now()

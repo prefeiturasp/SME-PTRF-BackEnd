@@ -5,7 +5,8 @@ from model_bakery import baker
 
 from sme_ptrf_apps.core.models.fechamento_periodo import STATUS_FECHADO
 from sme_ptrf_apps.core.models.prestacao_conta import STATUS_ABERTO
-from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
+from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (APLICACAO_CAPITAL, APLICACAO_CUSTEIO,
+                                                                     APLICACAO_LIVRE)
 
 
 @pytest.fixture
@@ -21,6 +22,7 @@ def periodo_2019_2():
         periodo_anterior=None
     )
 
+
 @pytest.fixture
 def periodo_2020_1(periodo_2019_2):
     return baker.make(
@@ -33,6 +35,7 @@ def periodo_2020_1(periodo_2019_2):
         data_fim_prestacao_contas=datetime.date(2020, 7, 10),
         periodo_anterior=periodo_2019_2
     )
+
 
 @pytest.fixture
 def tipo_receita_repasse():
@@ -69,6 +72,39 @@ def receita_2020_1_role_repasse_custeio_conferida(associacao, conta_associacao_c
         data=datetime.date(2020, 3, 26),
         valor=100.00,
         conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        tipo_receita=tipo_receita_repasse,
+        conferido=True,
+        categoria_receita=APLICACAO_CUSTEIO,
+    )
+
+
+@pytest.fixture
+def receita_2020_1_role_repasse_livre_conferida(associacao, conta_associacao_cartao, acao_associacao_role_cultural,
+                                                tipo_receita_repasse):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        tipo_receita=tipo_receita_repasse,
+        conferido=True,
+        categoria_receita=APLICACAO_LIVRE,
+    )
+
+
+@pytest.fixture
+def receita_2020_1_role_repasse_custeio_conferida_outra_conta(associacao, conta_associacao_cheque,
+                                                              acao_associacao_role_cultural,
+                                                              tipo_receita_repasse):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao_cheque,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
         conferido=True,
@@ -142,6 +178,22 @@ def receita_2020_1_role_rendimento_custeio_conferida(associacao, conta_associaca
 
 
 @pytest.fixture
+def receita_2020_1_role_rendimento_livre_conferida(associacao, conta_associacao_cartao, acao_associacao_role_cultural,
+                                                   tipo_receita_rendimento):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        tipo_receita=tipo_receita_rendimento,
+        conferido=True,
+        categoria_receita=APLICACAO_LIVRE,
+    )
+
+
+@pytest.fixture
 def tipo_custeio_servico():
     return baker.make('TipoCusteio', nome='Servico')
 
@@ -174,7 +226,7 @@ def despesa_2020_1(associacao, tipo_documento, tipo_transacao):
 
 
 @pytest.fixture
-def rateio_despesa_2020_role_custeio_conferido(associacao, despesa_2020_1, conta_associacao, acao,
+def rateio_despesa_2020_role_custeio_conferido(associacao, despesa_2020_1, conta_associacao_cartao, acao,
                                                tipo_aplicacao_recurso_custeio,
                                                tipo_custeio_servico,
                                                especificacao_instalacao_eletrica, acao_associacao_role_cultural):
@@ -182,7 +234,7 @@ def rateio_despesa_2020_role_custeio_conferido(associacao, despesa_2020_1, conta
         'RateioDespesa',
         despesa=despesa_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao,
+        conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
         tipo_custeio=tipo_custeio_servico,
@@ -192,8 +244,30 @@ def rateio_despesa_2020_role_custeio_conferido(associacao, despesa_2020_1, conta
 
     )
 
+
 @pytest.fixture
-def rateio_despesa_2020_role_capital_conferido(associacao, despesa_2020_1, conta_associacao, acao,
+def rateio_despesa_2020_role_custeio_conferido_outra_conta(associacao, despesa_2020_1, conta_associacao_cheque, acao,
+                                                           tipo_aplicacao_recurso_custeio,
+                                                           tipo_custeio_servico,
+                                                           especificacao_instalacao_eletrica,
+                                                           acao_associacao_role_cultural):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=100.00,
+        conferido=True,
+
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_role_capital_conferido(associacao, despesa_2020_1, conta_associacao_cartao, acao,
                                                tipo_aplicacao_recurso_capital,
                                                tipo_custeio_servico,
                                                especificacao_ar_condicionado, acao_associacao_role_cultural):
@@ -201,7 +275,7 @@ def rateio_despesa_2020_role_capital_conferido(associacao, despesa_2020_1, conta
         'RateioDespesa',
         despesa=despesa_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao,
+        conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         aplicacao_recurso=tipo_aplicacao_recurso_capital,
         tipo_custeio=tipo_custeio_servico,
@@ -211,8 +285,9 @@ def rateio_despesa_2020_role_capital_conferido(associacao, despesa_2020_1, conta
 
     )
 
+
 @pytest.fixture
-def rateio_despesa_2020_role_custeio_nao_conferido(associacao, despesa_2020_1, conta_associacao, acao,
+def rateio_despesa_2020_role_custeio_nao_conferido(associacao, despesa_2020_1, conta_associacao_cartao, acao,
                                                    tipo_aplicacao_recurso_custeio,
                                                    tipo_custeio_servico,
                                                    especificacao_instalacao_eletrica, acao_associacao_role_cultural):
@@ -220,7 +295,7 @@ def rateio_despesa_2020_role_custeio_nao_conferido(associacao, despesa_2020_1, c
         'RateioDespesa',
         despesa=despesa_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao,
+        conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
         tipo_custeio=tipo_custeio_servico,
@@ -269,7 +344,7 @@ def despesa_2019_2(associacao, tipo_documento, tipo_transacao):
 
 
 @pytest.fixture
-def rateio_despesa_2019_role_conferido(associacao, despesa_2019_2, conta_associacao, acao,
+def rateio_despesa_2019_role_conferido(associacao, despesa_2019_2, conta_associacao_cartao, acao,
                                        tipo_aplicacao_recurso_custeio,
                                        tipo_custeio_servico,
                                        especificacao_instalacao_eletrica, acao_associacao_role_cultural):
@@ -277,7 +352,7 @@ def rateio_despesa_2019_role_conferido(associacao, despesa_2019_2, conta_associa
         'RateioDespesa',
         despesa=despesa_2019_2,
         associacao=associacao,
-        conta_associacao=conta_associacao,
+        conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
         tipo_custeio=tipo_custeio_servico,
@@ -286,6 +361,7 @@ def rateio_despesa_2019_role_conferido(associacao, despesa_2019_2, conta_associa
         conferido=True,
 
     )
+
 
 @pytest.fixture
 def fechamento_periodo_2019_2(periodo_2019_2, associacao, conta_associacao, acao_associacao, ):
@@ -304,6 +380,7 @@ def fechamento_periodo_2019_2(periodo_2019_2, associacao, conta_associacao, acao
         total_despesas_custeio=800,
         status=STATUS_FECHADO
     )
+
 
 @pytest.fixture
 def prestacao_conta_2020_1_iniciada(periodo_2020_1, associacao, conta_associacao):
@@ -331,6 +408,7 @@ def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associac
         conciliado_em=datetime.date(2020, 7, 1),
         motivo_reabertura=''
     )
+
 
 @pytest.fixture
 def prestacao_conta_2020_1_nao_conciliada(periodo_2020_1, associacao, conta_associacao_cartao):

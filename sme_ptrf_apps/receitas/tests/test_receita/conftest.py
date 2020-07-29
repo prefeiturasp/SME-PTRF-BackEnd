@@ -3,7 +3,7 @@ import datetime
 import pytest
 from model_bakery import baker
 
-from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
+from ...tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CUSTEIO, APLICACAO_LIVRE
 
 
 @pytest.fixture
@@ -47,6 +47,21 @@ def receita_2020_1_role_repasse_custeio_conferida(associacao, conta_associacao_c
         categoria_receita=APLICACAO_CUSTEIO,
     )
 
+
+@pytest.fixture
+def receita_2020_1_role_repasse_livre_conferida(associacao, conta_associacao_cartao, acao_associacao_role_cultural,
+                                                  tipo_receita_repasse):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        tipo_receita=tipo_receita_repasse,
+        conferido=True,
+        categoria_receita=APLICACAO_LIVRE,
+    )
 
 @pytest.fixture
 def receita_2020_1_role_repasse_capital_nao_conferida(associacao, conta_associacao_cartao,
@@ -110,4 +125,19 @@ def receita_2020_1_role_rendimento_custeio_conferida(associacao, conta_associaca
         tipo_receita=tipo_receita_rendimento,
         conferido=True,
         categoria_receita=APLICACAO_CUSTEIO,
+    )
+
+@pytest.fixture
+def receita_2020_1_role_rendimento_livre_conferida(associacao, conta_associacao_cartao, acao_associacao_role_cultural,
+                                                     tipo_receita_rendimento):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        tipo_receita=tipo_receita_rendimento,
+        conferido=True,
+        categoria_receita=APLICACAO_LIVRE,
     )

@@ -1,4 +1,5 @@
 from django_filters import rest_framework as filters
+from django.db.models import Q
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -8,7 +9,8 @@ from rest_framework.viewsets import GenericViewSet
 
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
-from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import aplicacoes_recurso_to_json
+from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
+from ...tipos_aplicacao_recurso_receitas import aplicacoes_recurso_to_json
 from sme_ptrf_apps.receitas.models import Receita
 from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoReceitaEDetalhesSerializer
 from ...services import atualiza_repasse_para_pendente
@@ -27,7 +29,6 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     serializer_class = ReceitaListaSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data',)
-    search_fields = ('detalhe_outros', 'detalhe_tipo_receita__nome')
     filter_fields = ('associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid', 'conferido')
 
     def get_serializer_class(self):
@@ -46,6 +47,11 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         if data_inicio is not None and data_fim is not None:
             qs = qs.filter(data__range=[data_inicio, data_fim])
 
+        search = self.request.query_params.get('search')
+        if search is not None:
+            qs = qs.filter(Q(detalhe_outros__unaccent__icontains=search) | Q(
+                detalhe_tipo_receita__nome__unaccent__icontains=search))
+
         return qs
 
     @action(detail=False, url_path='tabelas')
@@ -59,7 +65,8 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             'tipos_receita': get_valores_from(TipoReceitaEDetalhesSerializer),
             'categorias_receita': aplicacoes_recurso_to_json(),
             'acoes_associacao': get_valores_from(AcaoAssociacaoLookUpSerializer),
-            'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer)
+            'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer),
+            'periodos': get_valores_from(PeriodoLookUpSerializer),
         }
 
         return Response(result)

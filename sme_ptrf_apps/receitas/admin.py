@@ -6,7 +6,7 @@ from sme_ptrf_apps.receitas.models import Receita, TipoReceita, Repasse, Detalhe
 
 @admin.register(TipoReceita)
 class TipoReceitaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'e_repasse')
+    list_display = ('nome', 'e_repasse', 'e_rendimento', 'aceita_capital', 'aceita_custeio', 'aceita_livre')
 
 
 def customTitledFilter(title):
@@ -21,7 +21,7 @@ def customTitledFilter(title):
 @admin.register(Receita)
 class ReceitaAdmin(admin.ModelAdmin):
 
-    list_display = ('data', 'valor', 'detalhamento', 'associacao', 'repasse',)
+    list_display = ('data', 'valor', 'categoria_receita', 'detalhamento', 'associacao', 'repasse',)
     ordering = ('-data',)
     search_fields = ('detalhe_tipo_receita__nome', 'detalhe_outros')
     list_filter = (
@@ -31,28 +31,23 @@ class ReceitaAdmin(admin.ModelAdmin):
         ('acao_associacao__acao__nome', customTitledFilter('Ação')),
         ('conta_associacao__tipo_conta__nome', customTitledFilter('Tipo Conta')),
         ('tipo_receita', customTitledFilter('Tipo Receita')),
-        'detalhe_tipo_receita'
+        'detalhe_tipo_receita',
+        'categoria_receita',
+        'repasse',
     )
     readonly_fields = ('uuid', 'id')
 
 
 @admin.register(Repasse)
 class RepasseAdmin(admin.ModelAdmin):
-    list_display = ('associacao', 'valor_capital', 'valor_custeio', 'tipo_conta', 'acao', 'status')
-    actions = ['importa_repasses',]
-
+    list_display = ('associacao', 'periodo', 'valor_capital', 'valor_custeio', 'valor_livre', 'tipo_conta', 'acao', 'status')
+    list_filter = ('associacao', 'periodo', 'conta_associacao', 'acao_associacao', 'status')
     def tipo_conta(self, obj):
         return obj.conta_associacao.tipo_conta
 
     def acao(self, obj):
         return obj.acao_associacao.acao.nome
 
-    def importa_repasses(self, request, queryset):
-        from sme_ptrf_apps.receitas.services.carga_repasses import carrega_repasses
-        carrega_repasses()
-        self.message_user(request, "Repasses Carregados")
-
-    importa_repasses.short_description = "Fazer carga de repasses."
 
 @admin.register(DetalheTipoReceita)
 class DetalheTipoReceitaAdmin(admin.ModelAdmin):

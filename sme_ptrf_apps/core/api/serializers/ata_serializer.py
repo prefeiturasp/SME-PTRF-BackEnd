@@ -8,9 +8,13 @@ from ...models import Ata, PrestacaoConta
 
 class AtaLookUpSerializer(serializers.ModelSerializer):
     nome = serializers.SerializerMethodField('get_nome_conta')
+    alterado_em = serializers.SerializerMethodField('get_alterado_em')
 
     def get_nome_conta(self, obj):
         return obj.nome
+
+    def get_alterado_em(self, obj):
+        return obj.preenchida_em
 
     class Meta:
         model = Ata

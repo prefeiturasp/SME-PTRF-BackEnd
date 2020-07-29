@@ -12,7 +12,7 @@ def test_lookup_serializer(ata_prestacao_conta_iniciada):
     assert serializer.data is not None
     assert serializer.data['uuid']
     assert serializer.data['nome']
-    assert serializer.data['alterado_em']
+    assert serializer.data['alterado_em'] is None
 
 
 def test_serializer(ata_prestacao_conta_iniciada):

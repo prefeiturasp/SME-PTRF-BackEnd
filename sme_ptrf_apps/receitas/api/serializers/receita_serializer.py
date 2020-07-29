@@ -4,7 +4,8 @@ from rest_framework import serializers
 
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
-from sme_ptrf_apps.core.models import Associacao, AcaoAssociacao, ContaAssociacao
+from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
+from sme_ptrf_apps.core.models import Associacao, AcaoAssociacao, ContaAssociacao, Periodo
 from sme_ptrf_apps.receitas.models import Receita
 from .detalhe_tipo_receita_serializer import DetalheTipoReceitaSerializer
 from .tipo_receita_serializer import TipoReceitaSerializer
@@ -30,6 +31,12 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
         slug_field='uuid',
         required=False,
         queryset=AcaoAssociacao.objects.all()
+    )
+
+    referencia_devolucao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Periodo.objects.all()
     )
 
     def create(self, validated_data):
@@ -61,6 +68,7 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
     acao_associacao = AcaoAssociacaoLookUpSerializer()
     conta_associacao = ContaAssociacaoLookUpSerializer()
     detalhe_tipo_receita = DetalheTipoReceitaSerializer()
+    referencia_devolucao = PeriodoLookUpSerializer()
 
     class Meta:
         model = Receita
@@ -74,5 +82,6 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
             'conferido',
             'categoria_receita',
             'detalhe_tipo_receita',
-            'detalhe_outros'
+            'detalhe_outros',
+            'referencia_devolucao',
         )

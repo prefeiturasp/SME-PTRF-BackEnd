@@ -9,7 +9,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_api_get_despesas_tabelas(associacao, jwt_authenticated_client, tipo_aplicacao_recurso, tipo_custeio, tipo_documento, tipo_transacao, acao,
-                                  acao_associacao, tipo_conta, conta_associacao):
+                                  acao_associacao, tipo_conta, conta_associacao, tag_ativa):
     response = jwt_authenticated_client.get('/api/despesas/tabelas/', content_type='application/json')
     result = json.loads(response.content)
 
@@ -36,7 +36,8 @@ def test_api_get_despesas_tabelas(associacao, jwt_authenticated_client, tipo_apl
             {
                 'id': tipo_documento.id,
                 'nome': tipo_documento.nome,
-                'apenas_digitos': tipo_documento.apenas_digitos
+                'apenas_digitos': tipo_documento.apenas_digitos,
+                'numero_documento_digitado': tipo_documento.numero_documento_digitado
             },
         ],
 
@@ -61,8 +62,15 @@ def test_api_get_despesas_tabelas(associacao, jwt_authenticated_client, tipo_apl
                 'uuid': f'{conta_associacao.uuid}',
                 'nome': conta_associacao.tipo_conta.nome
             },
-        ]
+        ],
 
+        'tags': [
+            {
+                'uuid': str(tag_ativa.uuid),
+                'nome': tag_ativa.nome,
+                'status': tag_ativa.status
+            }
+        ]
     }
 
     assert response.status_code == status.HTTP_200_OK

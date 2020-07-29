@@ -21,6 +21,7 @@ class PeriodoSerializer(serializers.ModelSerializer):
 class RepasseSerializer(serializers.ModelSerializer):
     valor_capital = serializers.SerializerMethodField('get_valor_capital')
     valor_custeio = serializers.SerializerMethodField('get_valor_custeio')
+    valor_livre = serializers.SerializerMethodField('get_valor_livre')
     acao_associacao = AcaoAssociacaoLookUpSerializer()
     conta_associacao = ContaAssociacaoLookUpSerializer()
     periodo = PeriodoSerializer()
@@ -33,11 +34,16 @@ class RepasseSerializer(serializers.ModelSerializer):
         """Quando o repasse tiver a receita do tipo custeio realizado é retornado zero."""
         return '0.00' if obj.realizado_custeio else str(obj.valor_custeio)
 
+    def get_valor_livre(self, obj):
+        """Quando o repasse tiver a receita do tipo livre realizado é retornado zero."""
+        return '0.00' if obj.realizado_livre else str(obj.valor_livre)
+
     class Meta:
         model = Repasse
         fields = [
             'valor_capital',
             'valor_custeio',
+            'valor_livre',
             'acao_associacao',
             'conta_associacao',
             'periodo']

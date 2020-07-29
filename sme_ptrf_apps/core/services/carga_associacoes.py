@@ -1,9 +1,7 @@
 import csv
 import logging
-import os
-from brazilnum.cnpj import validate_cnpj, format_cnpj
 
-from django.contrib.staticfiles.storage import staticfiles_storage
+from brazilnum.cnpj import validate_cnpj, format_cnpj
 
 from ..models import Associacao, Unidade
 
@@ -21,7 +19,7 @@ __NOME_PRESIDENTE_DIRETORIA = 8
 __RF_PRESIDENTE_CONSELHO = 9
 __NOME_PRESIDENTE_CONSELHO = 10
 
-def carrega_associacoes():
+def processa_associacoes(reader):
     def cria_ou_atualiza_dre_from_row(row):
         eol_dre = row[__EOL_DRE]
         dre, created = Unidade.objects.update_or_create(
@@ -34,7 +32,7 @@ def carrega_associacoes():
             },
         )
         if created:
-            logger.debug(f'Criada DRE {dre.nome}')
+            logger.info(f'Criada DRE {dre.nome}')
 
         return dre
 
@@ -56,7 +54,7 @@ def carrega_associacoes():
             },
         )
         if created:
-            logger.debug(f'Criada Unidade {unidade.nome}')
+            logger.info(f'Criada Unidade {unidade.nome}')
 
         return unidade
 
@@ -82,24 +80,18 @@ def carrega_associacoes():
         )
 
         if created:
-            logger.debug(f'Criada Associacao {associacao.nome}')
+            logger.info(f'Criada Associacao {associacao.nome}')
 
         return associacao
 
     logger.info(f'Carregando arquivo de associações...')
 
-    f = staticfiles_storage.open(os.path.join('cargas', 'associacoes.csv'), 'r')
-
-    reader = csv.reader(f, delimiter=',')
-
-    lin = 0
     importadas = 0
     erros = 0
-    for row in reader:
+    for lin, row in enumerate(reader):
         if lin == 0:
-            lin += 1
             continue  # Pula cabeçalho.
-        lin += 1
+
         logger.debug(f'Linha {lin}: {row}')
 
         dre = cria_ou_atualiza_dre_from_row(row)
@@ -111,6 +103,13 @@ def carrega_associacoes():
         else:
             erros += 1
 
-    f.close()
-
     logger.info(f'Importadas {importadas} associações. Erro na importação de {erros} associações.')
+
+
+
+def carrega_associacoes(arquivo):
+    logger.info("Processando arquivo %s", arquivo.identificador)
+
+    with open(arquivo.conteudo.path, 'r', encoding="utf-8") as f:
+        reader = csv.reader(f, delimiter=',')
+        processa_associacoes(reader)

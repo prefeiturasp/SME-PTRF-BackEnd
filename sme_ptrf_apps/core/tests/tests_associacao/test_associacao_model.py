@@ -22,6 +22,8 @@ def test_instance_model(associacao):
     assert model.presidente_conselho_fiscal_rf
     assert isinstance(model.unidade, Unidade)
     assert isinstance(model.periodo_inicial, Periodo)
+    assert model.ccm
+    assert model.email
 
 
 def test_srt_model(associacao):

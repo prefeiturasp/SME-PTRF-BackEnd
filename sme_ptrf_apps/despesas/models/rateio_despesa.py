@@ -6,6 +6,7 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.core.models import Tag
 
 from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO
 from ..tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
@@ -55,6 +56,9 @@ class RateioDespesa(ModeloBase):
     prestacao_conta = models.ForeignKey('core.PrestacaoConta', on_delete=models.SET_NULL, blank=True, null=True,
                                         related_name='despesas_conciliadas',
                                         verbose_name='prestação de contas de conciliação')
+
+    tag = models.ForeignKey(Tag, on_delete=models.SET_NULL, blank=True, 
+                            null=True, related_name='rateios')
 
     def __str__(self):
         documento = self.despesa.numero_documento if self.despesa else 'Despesa indefinida'
@@ -150,7 +154,7 @@ class RateioDespesa(ModeloBase):
     @classmethod
     def rateios_da_acao_associacao_em_qualquer_periodo(cls, acao_associacao, conferido=None, conta_associacao=None,
                                               exclude_despesa=None, aplicacao_recurso=None):
-        
+
         dataset = cls.objects.filter(acao_associacao=acao_associacao,
                                      despesa__data_documento__lte=date.today())
 
@@ -159,7 +163,7 @@ class RateioDespesa(ModeloBase):
 
         if exclude_despesa:
             dataset = dataset.exclude(despesa__uuid=exclude_despesa)
-        
+
         if conta_associacao:
             dataset = dataset.filter(conta_associacao=conta_associacao)
 
@@ -191,9 +195,9 @@ class RateioDespesa(ModeloBase):
         return rateio_despesa.desmarcar_conferido()
 
     @classmethod
-    def totais_por_acao_associacao_no_periodo(cls, acao_associacao, periodo):
+    def totais_por_acao_associacao_no_periodo(cls, acao_associacao, periodo, conta=None):
         despesas = cls.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao,
-                                                             periodo=periodo)
+                                                             periodo=periodo, conta_associacao=conta)
         totais = {
             'total_despesas_capital': Decimal(0.00),
             'total_despesas_custeio': Decimal(0.00),

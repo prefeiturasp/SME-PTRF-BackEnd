@@ -55,7 +55,7 @@ class ModeloBase(TemChaveExterna, TemCriadoEm, TemAlteradoEm):
 
     @classmethod
     def get_valores(cls, user=None):
-        return cls.objects.all().order_by('nome')
+        return cls.objects.all()
 
     @classmethod
     def by_id(cls, id):
