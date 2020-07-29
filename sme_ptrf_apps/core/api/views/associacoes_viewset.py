@@ -7,6 +7,15 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
+from ..serializers.associacao_serializer import (AssociacaoCreateSerializer, AssociacaoSerializer,
+                                                 AssociacaoListSerializer)
+from ..serializers.conta_associacao_serializer import (
+    ContaAssociacaoCreateSerializer,
+    ContaAssociacaoDadosSerializer,
+    ContaAssociacaoLookUpSerializer,
+)
+from ..serializers.periodo_serializer import PeriodoLookUpSerializer
 from ...models import Associacao, ContaAssociacao, Periodo
 from ...services import (
     implanta_saldos_da_associacao,
@@ -15,29 +24,24 @@ from ...services import (
     status_aceita_alteracoes_em_transacoes,
     status_periodo_associacao,
 )
-from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
-from ..serializers.associacao_serializer import AssociacaoCreateSerializer, AssociacaoSerializer
-from ..serializers.conta_associacao_serializer import (
-    ContaAssociacaoCreateSerializer,
-    ContaAssociacaoDadosSerializer,
-    ContaAssociacaoLookUpSerializer,
-)
-from ..serializers.periodo_serializer import PeriodoLookUpSerializer
 
 logger = logging.getLogger(__name__)
 
 
-class AssociacoesViewSet(mixins.RetrieveModelMixin,
+class AssociacoesViewSet(mixins.ListModelMixin,
+                         mixins.RetrieveModelMixin,
                          mixins.UpdateModelMixin,
-                         GenericViewSet):
+                         GenericViewSet, ):
     permission_classes = [AllowAny]
     lookup_field = 'uuid'
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
+        if self.action in ['retrieve', ]:
             return AssociacaoSerializer
+        elif self.action in ['list', ]:
+            return AssociacaoListSerializer
         else:
             return AssociacaoCreateSerializer
 
@@ -57,7 +61,8 @@ class AssociacoesViewSet(mixins.RetrieveModelMixin,
         ultima_atualizacao = datetime.datetime.now()
         info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=uuid, periodo=periodo)
 
-        info_acoes = [info for info in info_acoes if info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+        info_acoes = [info for info in info_acoes if
+                      info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
 
         result = {
             'associacao': f'{uuid}',
