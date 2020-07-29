@@ -1,3 +1,4 @@
+import logging
 from io import BytesIO
 from tempfile import NamedTemporaryFile
 
@@ -15,6 +16,9 @@ from sme_ptrf_apps.core.services.demonstrativo_financeiro import gerar
 from sme_ptrf_apps.core.services.info_por_acao_services import info_acoes_associacao_no_periodo
 
 
+logger = logging.getLogger(__name__)
+
+
 class DemonstrativoFinanceiroViewSet(GenericViewSet):
     permission_classes = [AllowAny]
     lookup_field = 'uuid'
@@ -22,6 +26,7 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
     @action(detail=False, methods=['get'])
     def previa(self, request):
+        logger.info("Previa do demonstrativo financeiro")
         acao_associacao_uuid = self.request.query_params.get('acao-associacao')
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
@@ -42,7 +47,7 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
-        
+        logger.info("Previa Pronta. Retornando conteúdo para o frontend")
         return response
 
     @action(detail=False, methods=['get'], url_path='documento-final')
