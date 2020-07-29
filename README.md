@@ -11,6 +11,23 @@ Versão: 0.6.0
 ## Release Notes
 
 ### 0.6.0 - 28/07/2020 - Entregas da Sprint 7
+* Carga de valores reprogramados (implantação de saldos);
+* Novos campos (e-mail e CCM) no cadastro da Associação;
+* Processo de recuperação de senha ("Esqueci minha senha");
+* Perfil do usuário com possibilidade de troca de e-mail e senha;
+* Permitir parametrizar tipos de documento de despesas para pedirem ou não o número do documento;
+* Edição via Admin do texto exibido no "Fique de Olho" em prestações de contas;
+* Em prestações de contas exibir demonstrativos financeiros apenas par ações com saldo ou movimentação;
+* Na Ata exibir apenas ações que tenham saldos ou movimentação no período;
+* Em despesas trazer o automaticamente o valor do rateio quando não houver multiplos rateios;
+* No painel de ações exibir apenas ações que tenham saldo ou movimentação no período;
+* Ajustes na formatação de valores do demonstrativo financeiro;
+* Desconsiderar acentuações no filtro de despesas;
+* Desconsiderar acentuações no filtro de receitas;
+* Pedir período de referência em créditos do tipo devolução;
+* Apresentar na Ata os créditos de devolução;
+* Permitir criar tags e associa-las a uma despesa.  
+* 🐞 Correção de erros diversos.
 
 ### 0.5.0 - 07/07/2020 - Entregas da Sprint 6
 * Confirmação de repasses na entrada de créditos agora considera a classificação da receita em capital ou custeio;
