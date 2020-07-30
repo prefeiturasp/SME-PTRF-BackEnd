@@ -120,7 +120,23 @@ def dre():
 
 @pytest.fixture
 def unidade(dre):
-    return baker.make('Unidade', codigo_eol='123456', dre=dre, tipo_unidade='CEU', nome='Escola Teste')
+    return baker.make(
+        'Unidade',
+        nome='Escola Teste',
+        tipo_unidade='CEU',
+        codigo_eol='123456',
+        dre=dre,
+        sigla='ET',
+        cep='5868120',
+        tipo_logradouro='Travessa',
+        logradouro='dos Testes',
+        bairro='COHAB INSTITUTO ADVENTISTA',
+        numero='200',
+        complemento='fundos',
+        telefone='58212627',
+        email='emefjopfilho@sme.prefeitura.sp.gov.br',
+        qtd_alunos=1000,
+    )
 
 
 @pytest.fixture

@@ -28,6 +28,19 @@ class Unidade(ModeloBase, TemNome):
                             blank=True, null=True, limit_choices_to={'tipo_unidade': 'DRE'})
     sigla = models.CharField(max_length=4, blank=True, default='')
 
+    cep = models.CharField('CEP', max_length=20, blank=True, default='')
+    tipo_logradouro = models.CharField('Tipo de Logradouro', max_length=50, blank=True, default='')
+    logradouro = models.CharField('Logradouro', max_length=255, blank=True, default='')
+    bairro = models.CharField('Bairro', max_length=255, blank=True, default='')
+    numero = models.CharField('Numero', max_length=255, blank=True, default='')
+    complemento = models.CharField('Complemento', max_length=255, blank=True, default='')
+
+    telefone = models.CharField('Telefone', max_length=20, blank=True, default='')
+
+    email = models.EmailField("E-mail", max_length=254, blank=True, default='')
+
+    qtd_alunos = models.PositiveSmallIntegerField('Quantidade de alunos', default=0)
+
     def __str__(self):
         return self.nome
 

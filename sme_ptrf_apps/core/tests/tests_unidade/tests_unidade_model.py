@@ -1,9 +1,8 @@
 import pytest
 from django.contrib import admin
 
+from ...admin import UnidadeAdmin
 from ...models import Unidade
-
-from ..admin import UnidadeAdmin
 
 pytestmark = pytest.mark.django_db
 
@@ -16,6 +15,15 @@ def test_instance_model(unidade):
     assert model.tipo_unidade
     assert model.codigo_eol
     assert model.sigla
+    assert model.cep
+    assert model.tipo_logradouro
+    assert model.logradouro
+    assert model.bairro
+    assert model.numero
+    assert model.complemento
+    assert model.telefone
+    assert model.email
+    assert model.qtd_alunos
 
 
 def test_srt_model(unidade):
