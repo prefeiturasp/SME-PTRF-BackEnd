@@ -1,8 +1,11 @@
 import datetime
 import logging
 
+from django.db.models import Q
+from django_filters import rest_framework as filters
 from rest_framework import mixins, status
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -36,6 +39,8 @@ class AssociacoesViewSet(mixins.ListModelMixin,
     lookup_field = 'uuid'
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer
+    filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
+    filter_fields = ('unidade__dre__uuid', 'status_regularidade', 'unidade__tipo_unidade')
 
     def get_serializer_class(self):
         if self.action in ['retrieve', ]:
@@ -44,6 +49,16 @@ class AssociacoesViewSet(mixins.ListModelMixin,
             return AssociacaoListSerializer
         else:
             return AssociacaoCreateSerializer
+
+    def get_queryset(self):
+        qs = Associacao.objects.all()
+
+        nome = self.request.query_params.get('nome')
+        if nome is not None:
+            qs = qs.filter(Q(nome__unaccent__icontains=nome) | Q(
+                unidade__nome__unaccent__icontains=nome))
+
+        return qs
 
     @action(detail=True, url_path='painel-acoes')
     def painel_acoes(self, request, uuid=None):
