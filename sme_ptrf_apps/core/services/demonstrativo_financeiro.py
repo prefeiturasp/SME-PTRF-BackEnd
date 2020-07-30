@@ -67,19 +67,23 @@ def gerar(periodo, acao_associacao, conta_associacao):
     fechamento_periodo = FechamentoPeriodo.objects.filter(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo).first()
 
+    
     path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
     nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro.xlsx')
     workbook = load_workbook(nome_arquivo)
     worksheet = workbook.active
-    cabecalho(worksheet, periodo, acao_associacao, conta_associacao)
-    identificacao_apm(worksheet, acao_associacao)
-    observacoes(worksheet, acao_associacao)
-    sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo)
-    creditos_demonstrados(worksheet, receitas_demonstradas)
-    acc = len(receitas_demonstradas)-1 if len(receitas_demonstradas) > 1 else 0
-    pagamentos(worksheet, rateios_conferidos, acc=acc, start_line=28)
-    acc += len(rateios_conferidos)-1 if len(rateios_conferidos) > 1 else 0
-    pagamentos(worksheet, rateios_nao_conferidos, acc=acc, start_line=34)
+    try:
+        cabecalho(worksheet, periodo, acao_associacao, conta_associacao)
+        identificacao_apm(worksheet, acao_associacao)
+        observacoes(worksheet, acao_associacao)
+        sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo)
+        creditos_demonstrados(worksheet, receitas_demonstradas)
+        acc = len(receitas_demonstradas)-1 if len(receitas_demonstradas) > 1 else 0
+        pagamentos(worksheet, rateios_conferidos, acc=acc, start_line=28)
+        acc += len(rateios_conferidos)-1 if len(rateios_conferidos) > 1 else 0
+        pagamentos(worksheet, rateios_nao_conferidos, acc=acc, start_line=34)
+    except Exception as e:
+        LOGGER.info("ERRO no Demonstrativo: %s", str(e))
 
     LOGGER.info("DEMONSTRATIVO GERADO")
     return workbook
