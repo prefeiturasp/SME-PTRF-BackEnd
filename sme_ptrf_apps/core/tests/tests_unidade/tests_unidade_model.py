@@ -24,6 +24,7 @@ def test_instance_model(unidade):
     assert model.telefone
     assert model.email
     assert model.qtd_alunos
+    assert model.diretor_nome
 
 
 def test_srt_model(unidade):

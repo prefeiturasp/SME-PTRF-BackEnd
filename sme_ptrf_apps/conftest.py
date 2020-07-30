@@ -136,6 +136,7 @@ def unidade(dre):
         telefone='58212627',
         email='emefjopfilho@sme.prefeitura.sp.gov.br',
         qtd_alunos=1000,
+        diretor_nome='Pedro Amaro'
     )
 
 

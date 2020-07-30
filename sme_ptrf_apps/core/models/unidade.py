@@ -41,6 +41,8 @@ class Unidade(ModeloBase, TemNome):
 
     qtd_alunos = models.PositiveSmallIntegerField('Quantidade de alunos', default=0)
 
+    diretor_nome = models.CharField('Nome do diretor da unidade', max_length=160, blank=True, default='')
+
     def __str__(self):
         return self.nome
 
