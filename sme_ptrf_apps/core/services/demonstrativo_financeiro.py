@@ -67,19 +67,23 @@ def gerar(periodo, acao_associacao, conta_associacao):
     fechamento_periodo = FechamentoPeriodo.objects.filter(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo).first()
 
+    
     path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
     nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro.xlsx')
     workbook = load_workbook(nome_arquivo)
     worksheet = workbook.active
-    cabecalho(worksheet, periodo, acao_associacao, conta_associacao)
-    identificacao_apm(worksheet, acao_associacao)
-    observacoes(worksheet, acao_associacao)
-    sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo)
-    creditos_demonstrados(worksheet, receitas_demonstradas)
-    acc = len(receitas_demonstradas)-1 if len(receitas_demonstradas) > 1 else 0
-    pagamentos(worksheet, rateios_conferidos, acc=acc, start_line=28)
-    acc += len(rateios_conferidos)-1 if len(rateios_conferidos) > 1 else 0
-    pagamentos(worksheet, rateios_nao_conferidos, acc=acc, start_line=34)
+    try:
+        cabecalho(worksheet, periodo, acao_associacao, conta_associacao)
+        identificacao_apm(worksheet, acao_associacao)
+        observacoes(worksheet, acao_associacao)
+        sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo)
+        creditos_demonstrados(worksheet, receitas_demonstradas)
+        acc = len(receitas_demonstradas)-1 if len(receitas_demonstradas) > 1 else 0
+        pagamentos(worksheet, rateios_conferidos, acc=acc, start_line=28)
+        acc += len(rateios_conferidos)-1 if len(rateios_conferidos) > 1 else 0
+        pagamentos(worksheet, rateios_nao_conferidos, acc=acc, start_line=34)
+    except Exception as e:
+        LOGGER.info("ERRO no Demonstrativo: %s", str(e))
 
     LOGGER.info("DEMONSTRATIVO GERADO")
     return workbook
@@ -112,7 +116,6 @@ def identificacao_apm(worksheet, acao_associacao):
 
 
 def sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo):
-    LOGGER.info("SINTESE RECEITA DESPESA")
     saldo_reprogramado_anterior_capital = fechamento_periodo.fechamento_anterior.saldo_reprogramado_capital if fechamento_periodo.fechamento_anterior else 0
     saldo_reprogramado_anterior_custeio = fechamento_periodo.fechamento_anterior.saldo_reprogramado_custeio if fechamento_periodo.fechamento_anterior else 0
     saldo_reprogramado_anterior_livre = fechamento_periodo.fechamento_anterior.saldo_reprogramado_livre if fechamento_periodo.fechamento_anterior else 0
@@ -160,70 +163,56 @@ def sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, period
     valor_saldo_reprogramado_proximo_periodo_livre = 0
 
     if saldo_reprogramado_anterior_custeio or valor_custeio_receitas_demonstradas or valor_custeio_rateios_demonstrados or valor_custeio_rateios_nao_demonstrados:
-        LOGGER.info("SINTESE RECEITA DESPESA CUSTEIO")
-        try:
-            row_custeio[SALDO_ANTERIOR].value = f'C {formata_valor(saldo_reprogramado_anterior_custeio)}'
-            row_custeio[CREDITO].value = f'C {formata_valor(valor_custeio_receitas_demonstradas)}'
-            row_custeio[DESPESA_REALIZADA].value = f'C {formata_valor(valor_custeio_rateios_demonstrados)}'
-            valor_saldo_reprogramado_proximo_periodo_custeio = saldo_reprogramado_anterior_custeio + \
-                valor_custeio_receitas_demonstradas - valor_custeio_rateios_demonstrados
-            row_custeio[SALDO_REPROGRAMADO_PROXIMO].value = f'C {formata_valor(valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else 0)}'
-            row_custeio[DESPESA_NAO_DEMONSTRADA].value = f'C {formata_valor(valor_custeio_rateios_nao_demonstrados)}'
-            valor_saldo_bancario_custeio = valor_saldo_reprogramado_proximo_periodo_custeio + valor_custeio_rateios_nao_demonstrados
-            row_custeio[SALDO_BANCARIO].value = f'C {formata_valor(valor_saldo_bancario_custeio)}'
-            linha += 1
-        except Exception as e:
-            LOGGER.info("ERRO CUSTEIO %s", str(e))
+        row_custeio[SALDO_ANTERIOR].value = f'C {formata_valor(saldo_reprogramado_anterior_custeio)}'
+        row_custeio[CREDITO].value = f'C {formata_valor(valor_custeio_receitas_demonstradas)}'
+        row_custeio[DESPESA_REALIZADA].value = f'C {formata_valor(valor_custeio_rateios_demonstrados)}'
+        valor_saldo_reprogramado_proximo_periodo_custeio = saldo_reprogramado_anterior_custeio + \
+            valor_custeio_receitas_demonstradas - valor_custeio_rateios_demonstrados
+        row_custeio[SALDO_REPROGRAMADO_PROXIMO].value = f'C {formata_valor(valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else 0)}'
+        row_custeio[DESPESA_NAO_DEMONSTRADA].value = f'C {formata_valor(valor_custeio_rateios_nao_demonstrados)}'
+        valor_saldo_bancario_custeio = valor_saldo_reprogramado_proximo_periodo_custeio + valor_custeio_rateios_nao_demonstrados
+        row_custeio[SALDO_BANCARIO].value = f'C {formata_valor(valor_saldo_bancario_custeio)}'
+        linha += 1
 
     row_capital = list(worksheet.rows)[linha]
 
     if saldo_reprogramado_anterior_capital or valor_capital_receitas_demonstradas or valor_capital_rateios_demonstrados or valor_capital_rateios_nao_demonstrados:
-        LOGGER.info("SINTESE RECEITA DESPESA CAPITAL")
-        try:
-            row_capital[SALDO_ANTERIOR].value = f'K {formata_valor(saldo_reprogramado_anterior_capital)}'
-            row_capital[CREDITO].value = f'K {formata_valor(valor_capital_receitas_demonstradas)}'
-            row_capital[DESPESA_REALIZADA].value = f'K {formata_valor(valor_capital_rateios_demonstrados)}'
-            valor_saldo_reprogramado_proximo_periodo_capital = saldo_reprogramado_anterior_capital + \
-                valor_capital_receitas_demonstradas - valor_capital_rateios_demonstrados
-            row_capital[SALDO_REPROGRAMADO_PROXIMO].value = f'K {formata_valor(valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else 0)}'
-            row_capital[DESPESA_NAO_DEMONSTRADA].value = f'K {formata_valor(valor_capital_rateios_nao_demonstrados)}'
-            valor_saldo_bancario_capital = valor_saldo_reprogramado_proximo_periodo_capital + valor_capital_rateios_nao_demonstrados
-            row_capital[SALDO_BANCARIO].value = f'K {formata_valor(valor_saldo_bancario_capital)}'
-            linha += 1
-        except Exception as e:
-            LOGGER.info("ERRO CAPITAL %s", str(e))
+        row_capital[SALDO_ANTERIOR].value = f'K {formata_valor(saldo_reprogramado_anterior_capital)}'
+        row_capital[CREDITO].value = f'K {formata_valor(valor_capital_receitas_demonstradas)}'
+        row_capital[DESPESA_REALIZADA].value = f'K {formata_valor(valor_capital_rateios_demonstrados)}'
+        valor_saldo_reprogramado_proximo_periodo_capital = saldo_reprogramado_anterior_capital + \
+            valor_capital_receitas_demonstradas - valor_capital_rateios_demonstrados
+        row_capital[SALDO_REPROGRAMADO_PROXIMO].value = f'K {formata_valor(valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else 0)}'
+        row_capital[DESPESA_NAO_DEMONSTRADA].value = f'K {formata_valor(valor_capital_rateios_nao_demonstrados)}'
+        valor_saldo_bancario_capital = valor_saldo_reprogramado_proximo_periodo_capital + valor_capital_rateios_nao_demonstrados
+        row_capital[SALDO_BANCARIO].value = f'K {formata_valor(valor_saldo_bancario_capital)}'
+        linha += 1
 
     row_livre = list(worksheet.rows)[linha]
     if saldo_reprogramado_anterior_livre or valor_livre_receitas_demonstradas:
-        LOGGER.info("SINTESE RECEITA DESPESA LIVRE")
-        try:
-            row_livre[SALDO_ANTERIOR].value = f'L {formata_valor(saldo_reprogramado_anterior_livre)}'
-            row_livre[CREDITO].value = f'L {formata_valor(valor_livre_receitas_demonstradas)}'
-            cor_cinza = styles.colors.Color(rgb='808080')
-            fill = styles.fills.PatternFill(patternType='solid', fgColor=cor_cinza)
-            row_livre[DESPESA_REALIZADA].fill = fill
-            row_livre[DESPESA_NAO_DEMONSTRADA].fill = fill
-            valor_saldo_reprogramado_proximo_periodo_livre = saldo_reprogramado_anterior_livre + valor_livre_receitas_demonstradas
-            valor_saldo_reprogramado_proximo_periodo_livre = valor_saldo_reprogramado_proximo_periodo_livre + \
-                valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital < 0 else valor_saldo_reprogramado_proximo_periodo_livre
-            valor_saldo_reprogramado_proximo_periodo_livre = valor_saldo_reprogramado_proximo_periodo_livre + \
-                valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio < 0 else valor_saldo_reprogramado_proximo_periodo_livre
-            row_livre[SALDO_REPROGRAMADO_PROXIMO].value = f'L {formata_valor(valor_saldo_reprogramado_proximo_periodo_livre)}'
-        except Exception as e:
-            LOGGER.info("ERRO LIVRE %s", str(e))
+        row_livre[SALDO_ANTERIOR].value = f'L {formata_valor(saldo_reprogramado_anterior_livre)}'
+        row_livre[CREDITO].value = f'L {formata_valor(valor_livre_receitas_demonstradas)}'
+        cor_cinza = styles.colors.Color(rgb='808080')
+        fill = styles.fills.PatternFill(patternType='solid', fgColor=cor_cinza)
+        row_livre[DESPESA_REALIZADA].fill = fill
+        row_livre[DESPESA_NAO_DEMONSTRADA].fill = fill
+        valor_saldo_reprogramado_proximo_periodo_livre = saldo_reprogramado_anterior_livre + valor_livre_receitas_demonstradas
+        valor_saldo_reprogramado_proximo_periodo_livre = valor_saldo_reprogramado_proximo_periodo_livre + \
+            valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital < 0 else valor_saldo_reprogramado_proximo_periodo_livre
+        valor_saldo_reprogramado_proximo_periodo_livre = valor_saldo_reprogramado_proximo_periodo_livre + \
+            valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio < 0 else valor_saldo_reprogramado_proximo_periodo_livre
+        row_livre[SALDO_REPROGRAMADO_PROXIMO].value = f'L {formata_valor(valor_saldo_reprogramado_proximo_periodo_livre)}'
 
-    try:
-        valor_total_reprogramado_proximo = valor_saldo_reprogramado_proximo_periodo_livre
-        valor_total_reprogramado_proximo = valor_total_reprogramado_proximo + \
-            valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else valor_total_reprogramado_proximo
-        valor_total_reprogramado_proximo = valor_total_reprogramado_proximo + \
-            valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else valor_total_reprogramado_proximo
-        row_livre[SALDO_BANCARIO].value = f'L {formata_valor(valor_saldo_reprogramado_proximo_periodo_livre)}'
-        row_custeio[TOTAL_REPROGRAMADO_PROXIMO].value = formata_valor(valor_total_reprogramado_proximo)
-        row_custeio[TOTAL_SALDO_BANCARIO].value = formata_valor(
-            valor_saldo_bancario_capital + valor_saldo_bancario_custeio + valor_saldo_reprogramado_proximo_periodo_livre)
-    except Exception as e:
-        LOGGER.info("ERRO %s", str(e))
+    valor_total_reprogramado_proximo = valor_saldo_reprogramado_proximo_periodo_livre
+    valor_total_reprogramado_proximo = valor_total_reprogramado_proximo + \
+        valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else valor_total_reprogramado_proximo
+    valor_total_reprogramado_proximo = valor_total_reprogramado_proximo + \
+        valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else valor_total_reprogramado_proximo
+    row_livre[SALDO_BANCARIO].value = f'L {formata_valor(valor_saldo_reprogramado_proximo_periodo_livre)}'
+    row_custeio[TOTAL_REPROGRAMADO_PROXIMO].value = formata_valor(valor_total_reprogramado_proximo)
+    row_custeio[TOTAL_SALDO_BANCARIO].value = formata_valor(
+        valor_saldo_bancario_capital + valor_saldo_bancario_custeio + valor_saldo_reprogramado_proximo_periodo_livre)
+
 
 def creditos_demonstrados(worksheet, receitas, acc=0, start_line=22):
     quantidade = acc
