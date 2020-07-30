@@ -4,10 +4,21 @@ from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 from .validators import cnpj_validation
 
 
-# from sme_ptrf_apps.users.models import User
-
-
 class Associacao(ModeloIdNome):
+    # Status de Regularidade
+    STATUS_REGULARIDADE_PENDENTE = 'PENDENTE'
+    STATUS_REGULARIDADE_REGULAR = 'REGULAR'
+
+    STATUS_REGULARIDADE_NOMES = {
+        STATUS_REGULARIDADE_PENDENTE: 'Pendente',
+        STATUS_REGULARIDADE_REGULAR: 'Regular',
+    }
+
+    STATUS_REGULARIDADE_CHOICES = (
+        (STATUS_REGULARIDADE_PENDENTE, STATUS_REGULARIDADE_NOMES[STATUS_REGULARIDADE_PENDENTE]),
+        (STATUS_REGULARIDADE_REGULAR, STATUS_REGULARIDADE_NOMES[STATUS_REGULARIDADE_REGULAR]),
+    )
+
     unidade = models.ForeignKey('Unidade', on_delete=models.PROTECT, related_name="associacoes", to_field="codigo_eol",
                                 null=True)
 
@@ -30,6 +41,13 @@ class Associacao(ModeloIdNome):
     ccm = models.CharField('CCM', max_length=15, null=True, blank=True, default="")
 
     email = models.EmailField("E-mail", max_length=254, null=True, blank=True, default="")
+
+    status_regularidade = models.CharField(
+        'Status de Regularidade',
+        max_length=15,
+        choices=STATUS_REGULARIDADE_CHOICES,
+        default=STATUS_REGULARIDADE_PENDENTE,
+    )
 
     def apaga_implantacoes_de_saldo(self):
         self.fechamentos_associacao.filter(status='IMPLANTACAO').delete()

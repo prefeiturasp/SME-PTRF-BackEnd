@@ -31,6 +31,10 @@ class Unidade(ModeloBase, TemNome):
     def __str__(self):
         return self.nome
 
+    @property
+    def nome_com_tipo(self):
+        return f'{self.tipo_unidade} {self.nome}'
+
     class Meta:
         verbose_name = 'Unidade'
         verbose_name_plural = 'Unidades'
