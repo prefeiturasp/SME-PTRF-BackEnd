@@ -2,6 +2,7 @@ from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 from .validators import cnpj_validation
+from ..choices import MembroEnum
 
 
 class Associacao(ModeloIdNome):
@@ -42,6 +43,34 @@ class Associacao(ModeloIdNome):
 
     def apaga_implantacoes_de_saldo(self):
         self.fechamentos_associacao.filter(status='IMPLANTACAO').delete()
+
+    @property
+    def presidente_associacao(self):
+        cargo = self.cargos.filter(cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value).get()
+        if cargo:
+            return {
+                'nome': cargo.nome,
+                'email': cargo.email
+            }
+        else:
+            return {
+                'nome': '',
+                'email': ''
+            }
+
+    @property
+    def presidente_conselho_fiscal(self):
+        cargo = self.cargos.filter(cargo_associacao=MembroEnum.PRESIDENTE_CONSELHO_FISCAL.value).get()
+        if cargo:
+            return {
+                'nome': cargo.nome,
+                'email': cargo.email
+            }
+        else:
+            return {
+                'nome': '',
+                'email': ''
+            }
 
     @classmethod
     def acoes_da_associacao(cls, associacao_uuid):

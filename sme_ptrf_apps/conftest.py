@@ -1197,6 +1197,32 @@ def membro_associacao(associacao):
         email='ollyverottoboni@gmail.com'
     )
 
+@pytest.fixture
+def membro_associacao_presidente_conselho(associacao):
+    return baker.make(
+        'MembroAssociacao',
+        nome='Arthur Nobrega',
+        associacao=associacao,
+        cargo_associacao=MembroEnum.PRESIDENTE_CONSELHO_FISCAL.value,
+        cargo_educacao='Coordenador',
+        representacao=RepresentacaoCargo.SERVIDOR.value,
+        codigo_identificacao='567432',
+        email='ollyverottoboni@gmail.com'
+    )
+
+@pytest.fixture
+def membro_associacao_presidente_associacao(associacao):
+    return baker.make(
+        'MembroAssociacao',
+        nome='Arthur Nobrega',
+        associacao=associacao,
+        cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value,
+        cargo_educacao='Coordenador',
+        representacao=RepresentacaoCargo.SERVIDOR.value,
+        codigo_identificacao='567432',
+        email='ollyverottoboni@gmail.com'
+    )
+
 
 @pytest.fixture
 def payload_membro_servidor(associacao):

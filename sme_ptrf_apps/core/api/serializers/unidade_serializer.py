@@ -17,11 +17,28 @@ class UnidadeLookUpSerializer(serializers.ModelSerializer):
 
 
 class UnidadeSerializer(serializers.ModelSerializer):
-    dre = UnidadeLookUpSerializer()
+    dre = DreSerializer()
 
     class Meta:
         model = Unidade
-        fields = '__all__'
+        fields = (
+            'uuid',
+            'codigo_eol',
+            'tipo_unidade',
+            'nome',
+            'sigla',
+            'dre',
+            'email',
+            'telefone',
+            'tipo_logradouro',
+            'logradouro',
+            'numero',
+            'complemento',
+            'bairro',
+            'cep',
+            'qtd_alunos',
+            'diretor_nome',
+        )
 
 
 class UnidadeInfoAtaSerializer(serializers.ModelSerializer):
