@@ -66,28 +66,22 @@ def gerar(periodo, acao_associacao, conta_associacao):
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True)
     fechamento_periodo = FechamentoPeriodo.objects.filter(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo).first()
-    LOGGER.info("Consulta dos dados terminados.")
+
     path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
     nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro.xlsx')
-    LOGGER.info('PATH do modelo do demonstrativo_financeiro: %s', nome_arquivo)
     workbook = load_workbook(nome_arquivo)
     worksheet = workbook.active
-    LOGGER.info('Workbook do demonstrativo_financeiro carregado.')
     cabecalho(worksheet, periodo, acao_associacao, conta_associacao)
     identificacao_apm(worksheet, acao_associacao)
-    LOGGER.info('Cabeçalho e identificação montados.')
     observacoes(worksheet, acao_associacao)
-    LOGGER.info('Observações montados.')
     sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo)
-    LOGGER.info('Sintese Montada.')
     creditos_demonstrados(worksheet, receitas_demonstradas)
-    LOGGER.info('Créditos Montados.')
     acc = len(receitas_demonstradas)-1 if len(receitas_demonstradas) > 1 else 0
     pagamentos(worksheet, rateios_conferidos, acc=acc, start_line=28)
-    LOGGER.info('Pagametos Montados.')
     acc += len(rateios_conferidos)-1 if len(rateios_conferidos) > 1 else 0
     pagamentos(worksheet, rateios_nao_conferidos, acc=acc, start_line=34)
-    LOGGER.info("DEMONSTRATIVO GERADO COM SUCESSO.")
+
+    LOGGER.info("DEMONSTRATIVO GERADO")
     return workbook
 
 
@@ -118,114 +112,103 @@ def identificacao_apm(worksheet, acao_associacao):
 
 
 def sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo):
-    LOGGER.info('Começando sintese.')
     saldo_reprogramado_anterior_capital = fechamento_periodo.fechamento_anterior.saldo_reprogramado_capital if fechamento_periodo.fechamento_anterior else 0
     saldo_reprogramado_anterior_custeio = fechamento_periodo.fechamento_anterior.saldo_reprogramado_custeio if fechamento_periodo.fechamento_anterior else 0
     saldo_reprogramado_anterior_livre = fechamento_periodo.fechamento_anterior.saldo_reprogramado_livre if fechamento_periodo.fechamento_anterior else 0
-    LOGGER.info('Saldos carregados.')
+
     receitas_demonstradas_capital = Receita.receitas_da_acao_associacao_no_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True, categoria_receita=APLICACAO_CAPITAL).values_list('valor')
     receitas_demonstradas_custeio = Receita.receitas_da_acao_associacao_no_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True, categoria_receita=APLICACAO_CUSTEIO).values_list('valor')
     receitas_demonstradas_livre = Receita.receitas_da_acao_associacao_no_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True, categoria_receita=APLICACAO_LIVRE).values_list('valor')
-    LOGGER.info('Receitas.')
+
     valor_capital_receitas_demonstradas = sum(
         rrc[0] for rrc in receitas_demonstradas_capital) if receitas_demonstradas_capital else 0
     valor_custeio_receitas_demonstradas = sum(
         rrk[0] for rrk in receitas_demonstradas_custeio) if receitas_demonstradas_custeio else 0
     valor_livre_receitas_demonstradas = sum(
         rrl[0] for rrl in receitas_demonstradas_livre) if receitas_demonstradas_livre else 0
-    LOGGER.info('Valores.')
+
     rateios_demonstrados_capital = RateioDespesa.rateios_da_acao_associacao_no_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True, aplicacao_recurso=APLICACAO_CAPITAL).values_list('valor_rateio')
     rateios_demonstrados_custeio = RateioDespesa.rateios_da_acao_associacao_no_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True, aplicacao_recurso=APLICACAO_CUSTEIO).values_list('valor_rateio')
-    LOGGER.info('Rateios.')
+
     valor_capital_rateios_demonstrados = sum(
         rrc[0] for rrc in rateios_demonstrados_capital) if rateios_demonstrados_capital else 0
     valor_custeio_rateios_demonstrados = sum(
         rrk[0] for rrk in rateios_demonstrados_custeio) if rateios_demonstrados_custeio else 0
-    LOGGER.info('Valores demonstrados.')
+
     rateios_nao_conferidos_capital = RateioDespesa.rateios_da_acao_associacao_em_qualquer_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, conferido=False, aplicacao_recurso=APLICACAO_CAPITAL).values_list('valor_rateio')
     rateios_nao_conferidos_custeio = RateioDespesa.rateios_da_acao_associacao_em_qualquer_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, conferido=False, aplicacao_recurso=APLICACAO_CUSTEIO).values_list('valor_rateio')
-    LOGGER.info('Rateios conferidos não conferidos.')
+
     valor_capital_rateios_nao_demonstrados = sum(
         rrc[0] for rrc in rateios_nao_conferidos_capital) if rateios_nao_conferidos_capital else 0
     valor_custeio_rateios_nao_demonstrados = sum(
         rrk[0] for rrk in rateios_nao_conferidos_custeio) if rateios_nao_conferidos_custeio else 0
-    LOGGER.info('Valores demonstrados e não demonstrados.')
+
     linha = 15
     row_custeio = list(worksheet.rows)[linha]
     valor_saldo_reprogramado_proximo_periodo_custeio = 0
     valor_saldo_bancario_custeio = 0
     valor_saldo_reprogramado_proximo_periodo_capital = 0
     valor_saldo_bancario_capital = 0
-    LOGGER.info('Row')
+    valor_saldo_reprogramado_proximo_periodo_livre = 0
+
     if saldo_reprogramado_anterior_custeio or valor_custeio_receitas_demonstradas or valor_custeio_rateios_demonstrados or valor_custeio_rateios_nao_demonstrados:
-        LOGGER.info('Custeio')
-        try:
-            row_custeio[SALDO_ANTERIOR].value = f'C {formata_valor(saldo_reprogramado_anterior_custeio)}'
-            LOGGER.info('Custeio 1')
-            row_custeio[CREDITO].value = f'C {formata_valor(valor_custeio_receitas_demonstradas)}'
-            LOGGER.info('Custeio 2')
-            row_custeio[DESPESA_REALIZADA].value = f'C {formata_valor(valor_custeio_rateios_demonstrados)}'
-            LOGGER.info('Custeio 3')
-            valor_saldo_reprogramado_proximo_periodo_custeio = saldo_reprogramado_anterior_custeio + valor_custeio_receitas_demonstradas - valor_custeio_rateios_demonstrados
-            LOGGER.info('Custeio 4')
-            row_custeio[SALDO_REPROGRAMADO_PROXIMO].value = f'C {formata_valor(valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else 0)}'
-            LOGGER.info('Custeio 5')
-            row_custeio[DESPESA_NAO_DEMONSTRADA].value = f'C {formata_valor(valor_custeio_rateios_nao_demonstrados)}'
-            LOGGER.info('Custeio 6')
-            valor_saldo_bancario_custeio = valor_saldo_reprogramado_proximo_periodo_custeio + valor_custeio_rateios_nao_demonstrados
-            LOGGER.info('Custeio 7')
-            row_custeio[SALDO_BANCARIO].value = f'C {formata_valor(valor_saldo_bancario_custeio)}'
-            LOGGER.info('Custeio 8')
-            linha += 1
-        except Exception as e:
-            LOGGER.info("Erro %s", str(e))
-            LOGGER.info('End Custeio')
+        row_custeio[SALDO_ANTERIOR].value = f'C {formata_valor(saldo_reprogramado_anterior_custeio)}'
+        row_custeio[CREDITO].value = f'C {formata_valor(valor_custeio_receitas_demonstradas)}'
+        row_custeio[DESPESA_REALIZADA].value = f'C {formata_valor(valor_custeio_rateios_demonstrados)}'
+        valor_saldo_reprogramado_proximo_periodo_custeio = saldo_reprogramado_anterior_custeio + \
+            valor_custeio_receitas_demonstradas - valor_custeio_rateios_demonstrados
+        row_custeio[SALDO_REPROGRAMADO_PROXIMO].value = f'C {formata_valor(valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else 0)}'
+        row_custeio[DESPESA_NAO_DEMONSTRADA].value = f'C {formata_valor(valor_custeio_rateios_nao_demonstrados)}'
+        valor_saldo_bancario_custeio = valor_saldo_reprogramado_proximo_periodo_custeio + valor_custeio_rateios_nao_demonstrados
+        row_custeio[SALDO_BANCARIO].value = f'C {formata_valor(valor_saldo_bancario_custeio)}'
+        linha += 1
 
     row_capital = list(worksheet.rows)[linha]
 
     if saldo_reprogramado_anterior_capital or valor_capital_receitas_demonstradas or valor_capital_rateios_demonstrados or valor_capital_rateios_nao_demonstrados:
-        LOGGER.info('Capital')
-        row_capital[SALDO_ANTERIOR].value = f'K {formata_valor(saldo_reprogramado_anterior_capital)}' 
+        row_capital[SALDO_ANTERIOR].value = f'K {formata_valor(saldo_reprogramado_anterior_capital)}'
         row_capital[CREDITO].value = f'K {formata_valor(valor_capital_receitas_demonstradas)}'
         row_capital[DESPESA_REALIZADA].value = f'K {formata_valor(valor_capital_rateios_demonstrados)}'
-        valor_saldo_reprogramado_proximo_periodo_capital = saldo_reprogramado_anterior_capital + valor_capital_receitas_demonstradas - valor_capital_rateios_demonstrados
+        valor_saldo_reprogramado_proximo_periodo_capital = saldo_reprogramado_anterior_capital + \
+            valor_capital_receitas_demonstradas - valor_capital_rateios_demonstrados
         row_capital[SALDO_REPROGRAMADO_PROXIMO].value = f'K {formata_valor(valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else 0)}'
         row_capital[DESPESA_NAO_DEMONSTRADA].value = f'K {formata_valor(valor_capital_rateios_nao_demonstrados)}'
         valor_saldo_bancario_capital = valor_saldo_reprogramado_proximo_periodo_capital + valor_capital_rateios_nao_demonstrados
         row_capital[SALDO_BANCARIO].value = f'K {formata_valor(valor_saldo_bancario_capital)}'
         linha += 1
-        LOGGER.info('End Capital')
 
     row_livre = list(worksheet.rows)[linha]
     if saldo_reprogramado_anterior_livre or valor_livre_receitas_demonstradas:
-        LOGGER.info('Livre')
         row_livre[SALDO_ANTERIOR].value = f'L {formata_valor(saldo_reprogramado_anterior_livre)}'
         row_livre[CREDITO].value = f'L {formata_valor(valor_livre_receitas_demonstradas)}'
         cor_cinza = styles.colors.Color(rgb='808080')
         fill = styles.fills.PatternFill(patternType='solid', fgColor=cor_cinza)
         row_livre[DESPESA_REALIZADA].fill = fill
-        row_livre[DESPESA_NAO_DEMONSTRADA].fill = fill 
+        row_livre[DESPESA_NAO_DEMONSTRADA].fill = fill
         valor_saldo_reprogramado_proximo_periodo_livre = saldo_reprogramado_anterior_livre + valor_livre_receitas_demonstradas
-        valor_saldo_reprogramado_proximo_periodo_livre = valor_saldo_reprogramado_proximo_periodo_livre + valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital < 0 else valor_saldo_reprogramado_proximo_periodo_livre
-        valor_saldo_reprogramado_proximo_periodo_livre = valor_saldo_reprogramado_proximo_periodo_livre + valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio < 0 else valor_saldo_reprogramado_proximo_periodo_livre
+        valor_saldo_reprogramado_proximo_periodo_livre = valor_saldo_reprogramado_proximo_periodo_livre + \
+            valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital < 0 else valor_saldo_reprogramado_proximo_periodo_livre
+        valor_saldo_reprogramado_proximo_periodo_livre = valor_saldo_reprogramado_proximo_periodo_livre + \
+            valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio < 0 else valor_saldo_reprogramado_proximo_periodo_livre
         row_livre[SALDO_REPROGRAMADO_PROXIMO].value = f'L {formata_valor(valor_saldo_reprogramado_proximo_periodo_livre)}'
-        LOGGER.info('End Livre')
-    valor_total_reprogramado_proximo = valor_saldo_reprogramado_proximo_periodo_livre
-    valor_total_reprogramado_proximo = valor_total_reprogramado_proximo + valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else valor_total_reprogramado_proximo
-    valor_total_reprogramado_proximo = valor_total_reprogramado_proximo + valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else valor_total_reprogramado_proximo
-    row_livre[SALDO_BANCARIO].value = f'L {formata_valor(valor_saldo_reprogramado_proximo_periodo_livre)}'
 
+    valor_total_reprogramado_proximo = valor_saldo_reprogramado_proximo_periodo_livre
+    valor_total_reprogramado_proximo = valor_total_reprogramado_proximo + \
+        valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else valor_total_reprogramado_proximo
+    valor_total_reprogramado_proximo = valor_total_reprogramado_proximo + \
+        valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else valor_total_reprogramado_proximo
+    row_livre[SALDO_BANCARIO].value = f'L {formata_valor(valor_saldo_reprogramado_proximo_periodo_livre)}'
     row_custeio[TOTAL_REPROGRAMADO_PROXIMO].value = formata_valor(valor_total_reprogramado_proximo)
-    
-    row_custeio[TOTAL_SALDO_BANCARIO].value = formata_valor(valor_saldo_bancario_capital + valor_saldo_bancario_custeio + valor_saldo_reprogramado_proximo_periodo_livre)
-    LOGGER.info('Final sintese')
+    row_custeio[TOTAL_SALDO_BANCARIO].value = formata_valor(
+        valor_saldo_bancario_capital + valor_saldo_bancario_custeio + valor_saldo_reprogramado_proximo_periodo_livre)
+
 
 def creditos_demonstrados(worksheet, receitas, acc=0, start_line=22):
     quantidade = acc
@@ -354,6 +337,5 @@ def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_me
 
 
 def formata_valor(valor):
-    locale.setlocale(locale.LC_MONETARY, "pt_BR.UTF-8")
-
-    return locale.currency(valor, grouping=True).split(" ")[1]
+    from babel.numbers import format_currency
+    return format_currency(valor, 'BRL', locale='pt_BR').split('\xa0')[1]
