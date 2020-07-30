@@ -146,10 +146,6 @@ def associacao(unidade, periodo_anterior):
         nome='Escola Teste',
         cnpj='52.302.275/0001-83',
         unidade=unidade,
-        presidente_associacao_nome='Fulano',
-        presidente_associacao_rf='1234567',
-        presidente_conselho_fiscal_nome='Ciclano',
-        presidente_conselho_fiscal_rf='7654321',
         periodo_inicial=periodo_anterior,
         ccm='0.000.00-0',
         email="ollyverottoboni@gmail.com"
@@ -163,10 +159,6 @@ def outra_associacao(unidade, periodo_anterior):
         nome='Outra',
         cnpj='52.302.275/0001-99',
         unidade=unidade,
-        presidente_associacao_nome='Fulano',
-        presidente_associacao_rf='1234567',
-        presidente_conselho_fiscal_nome='Ciclano',
-        presidente_conselho_fiscal_rf='7654321',
         periodo_inicial=periodo_anterior,
     )
 
@@ -178,10 +170,6 @@ def associacao_sem_periodo_inicial(unidade):
         nome='Escola Teste',
         cnpj='52.302.275/0001-83',
         unidade=unidade,
-        presidente_associacao_nome='Fulano',
-        presidente_associacao_rf='1234567',
-        presidente_conselho_fiscal_nome='Ciclano',
-        presidente_conselho_fiscal_rf='7654321',
         periodo_inicial=None,
     )
 

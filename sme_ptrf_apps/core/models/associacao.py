@@ -26,15 +26,6 @@ class Associacao(ModeloIdNome):
         "CNPJ", max_length=20, validators=[cnpj_validation], blank=True, default="", unique=True
     )
 
-    presidente_associacao_nome = models.CharField('nome do presidente da associação', max_length=70, blank=True,
-                                                  default="")
-    presidente_associacao_rf = models.CharField('RF do presidente associação', max_length=10, blank=True, default="")
-
-    presidente_conselho_fiscal_nome = models.CharField('nome do presidente da associação', max_length=70, blank=True,
-                                                       default="")
-    presidente_conselho_fiscal_rf = models.CharField('RF do presidente associação', max_length=10, blank=True,
-                                                     default="")
-
     periodo_inicial = models.ForeignKey('Periodo', on_delete=models.PROTECT, verbose_name='período inicial',
                                         related_name='associacoes_iniciadas_no_periodo', null=True, blank=True)
 
