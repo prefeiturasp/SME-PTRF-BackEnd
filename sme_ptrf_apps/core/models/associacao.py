@@ -57,6 +57,17 @@ class Associacao(ModeloIdNome):
         associacao = cls.objects.filter(uuid=associacao_uuid).first()
         return associacao.acoes.all().order_by('acao__posicao_nas_pesquisas') if associacao else []
 
+    @classmethod
+    def status_regularidade_to_json(cls):
+        result = []
+        for choice in cls.STATUS_REGULARIDADE_CHOICES:
+            status = {
+                'id': choice[0],
+                'nome': choice[1]
+            }
+            result.append(status)
+        return result
+
     class Meta:
         verbose_name = "Associação"
         verbose_name_plural = "Associações"

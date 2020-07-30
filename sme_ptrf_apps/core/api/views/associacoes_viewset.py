@@ -19,7 +19,7 @@ from ..serializers.conta_associacao_serializer import (
     ContaAssociacaoLookUpSerializer,
 )
 from ..serializers.periodo_serializer import PeriodoLookUpSerializer
-from ...models import Associacao, ContaAssociacao, Periodo
+from ...models import Associacao, ContaAssociacao, Periodo, Unidade
 from ...services import (
     implanta_saldos_da_associacao,
     implantacoes_de_saldo_da_associacao,
@@ -43,9 +43,9 @@ class AssociacoesViewSet(mixins.ListModelMixin,
     filter_fields = ('unidade__dre__uuid', 'status_regularidade', 'unidade__tipo_unidade')
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', ]:
+        if self.action =='retrieve':
             return AssociacaoSerializer
-        elif self.action in ['list', ]:
+        elif self.action == 'list':
             return AssociacaoListSerializer
         else:
             return AssociacaoCreateSerializer
@@ -273,3 +273,11 @@ class AssociacoesViewSet(mixins.ListModelMixin,
             status_code = status.HTTP_200_OK
 
         return Response(resultado, status=status_code)
+
+    @action(detail=False, url_path='tabelas')
+    def tabelas(self, request):
+        result = {
+            'tipos_unidade': Unidade.tipos_unidade_to_json(),
+            'status_regularidade': Associacao.status_regularidade_to_json(),
+        }
+        return Response(result)

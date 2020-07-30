@@ -31,9 +31,6 @@ class UnidadeInfoAtaSerializer(serializers.ModelSerializer):
 
 
 class UnidadeListSerializer(serializers.ModelSerializer):
-    # nome_com_tipo = serializers.SerializerMethodField('get_nome_com_tipo')
-    # def get_nome_com_tipo(self, obj):
-    #     return f'{obj.tipo_unidade} {obj.nome}'
     class Meta:
         model = Unidade
         fields = ('uuid', 'codigo_eol', 'nome_com_tipo',)
