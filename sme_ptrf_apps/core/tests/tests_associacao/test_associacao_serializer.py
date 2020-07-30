@@ -1,7 +1,7 @@
 import pytest
 
 from ...api.serializers.associacao_serializer import (AssociacaoSerializer, AssociacaoLookupSerializer,
-                                                      AssociacaoCreateSerializer)
+                                                      AssociacaoCreateSerializer, AssociacaoListSerializer)
 
 pytestmark = pytest.mark.django_db
 
@@ -40,3 +40,12 @@ def test_create_serializer(associacao):
     assert serializer.data['presidente_associacao_rf']
     assert serializer.data['presidente_conselho_fiscal_nome']
     assert serializer.data['presidente_conselho_fiscal_rf']
+
+def test_list_serializer(associacao):
+    serializer = AssociacaoListSerializer(associacao)
+
+    assert serializer.data is not None
+    assert serializer.data['uuid']
+    assert serializer.data['nome']
+    assert serializer.data['unidade']
+    assert serializer.data['status_regularidade']

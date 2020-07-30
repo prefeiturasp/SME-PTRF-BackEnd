@@ -1,13 +1,25 @@
 import datetime
 import logging
 
+from django.db.models import Q
+from django_filters import rest_framework as filters
 from rest_framework import mixins, status
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ...models import Associacao, ContaAssociacao, Periodo
+from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
+from ..serializers.associacao_serializer import (AssociacaoCreateSerializer, AssociacaoSerializer,
+                                                 AssociacaoListSerializer)
+from ..serializers.conta_associacao_serializer import (
+    ContaAssociacaoCreateSerializer,
+    ContaAssociacaoDadosSerializer,
+    ContaAssociacaoLookUpSerializer,
+)
+from ..serializers.periodo_serializer import PeriodoLookUpSerializer
+from ...models import Associacao, ContaAssociacao, Periodo, Unidade
 from ...services import (
     implanta_saldos_da_associacao,
     implantacoes_de_saldo_da_associacao,
@@ -15,31 +27,38 @@ from ...services import (
     status_aceita_alteracoes_em_transacoes,
     status_periodo_associacao,
 )
-from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
-from ..serializers.associacao_serializer import AssociacaoCreateSerializer, AssociacaoSerializer
-from ..serializers.conta_associacao_serializer import (
-    ContaAssociacaoCreateSerializer,
-    ContaAssociacaoDadosSerializer,
-    ContaAssociacaoLookUpSerializer,
-)
-from ..serializers.periodo_serializer import PeriodoLookUpSerializer
 
 logger = logging.getLogger(__name__)
 
 
-class AssociacoesViewSet(mixins.RetrieveModelMixin,
+class AssociacoesViewSet(mixins.ListModelMixin,
+                         mixins.RetrieveModelMixin,
                          mixins.UpdateModelMixin,
-                         GenericViewSet):
+                         GenericViewSet, ):
     permission_classes = [AllowAny]
     lookup_field = 'uuid'
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer
+    filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
+    filter_fields = ('unidade__dre__uuid', 'status_regularidade', 'unidade__tipo_unidade')
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
+        if self.action =='retrieve':
             return AssociacaoSerializer
+        elif self.action == 'list':
+            return AssociacaoListSerializer
         else:
             return AssociacaoCreateSerializer
+
+    def get_queryset(self):
+        qs = Associacao.objects.all()
+
+        nome = self.request.query_params.get('nome')
+        if nome is not None:
+            qs = qs.filter(Q(nome__unaccent__icontains=nome) | Q(
+                unidade__nome__unaccent__icontains=nome))
+
+        return qs
 
     @action(detail=True, url_path='painel-acoes')
     def painel_acoes(self, request, uuid=None):
@@ -57,7 +76,8 @@ class AssociacoesViewSet(mixins.RetrieveModelMixin,
         ultima_atualizacao = datetime.datetime.now()
         info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=uuid, periodo=periodo)
 
-        info_acoes = [info for info in info_acoes if info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+        info_acoes = [info for info in info_acoes if
+                      info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
 
         result = {
             'associacao': f'{uuid}',
@@ -253,3 +273,11 @@ class AssociacoesViewSet(mixins.RetrieveModelMixin,
             status_code = status.HTTP_200_OK
 
         return Response(resultado, status=status_code)
+
+    @action(detail=False, url_path='tabelas')
+    def tabelas(self, request):
+        result = {
+            'tipos_unidade': Unidade.tipos_unidade_to_json(),
+            'status_regularidade': Associacao.status_regularidade_to_json(),
+        }
+        return Response(result)

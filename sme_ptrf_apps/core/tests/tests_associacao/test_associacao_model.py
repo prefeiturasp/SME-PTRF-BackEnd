@@ -24,6 +24,7 @@ def test_instance_model(associacao):
     assert isinstance(model.periodo_inicial, Periodo)
     assert model.ccm
     assert model.email
+    assert model.status_regularidade
 
 
 def test_srt_model(associacao):

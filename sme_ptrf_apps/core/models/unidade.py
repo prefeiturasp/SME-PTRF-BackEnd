@@ -31,6 +31,21 @@ class Unidade(ModeloBase, TemNome):
     def __str__(self):
         return self.nome
 
+    @property
+    def nome_com_tipo(self):
+        return f'{self.tipo_unidade} {self.nome}'
+
+    @classmethod
+    def tipos_unidade_to_json(cls):
+        result = []
+        for choice in cls.TIPOS_CHOICE:
+            tipo_unidade = {
+                'id': choice[0],
+                'nome': choice[1]
+            }
+            result.append(tipo_unidade)
+        return result
+
     class Meta:
         verbose_name = 'Unidade'
         verbose_name_plural = 'Unidades'
