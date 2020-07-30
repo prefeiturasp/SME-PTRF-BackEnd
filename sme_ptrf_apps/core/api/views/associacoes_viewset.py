@@ -43,9 +43,9 @@ class AssociacoesViewSet(mixins.ListModelMixin,
     filter_fields = ('unidade__dre__uuid', 'status_regularidade', 'unidade__tipo_unidade')
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', ]:
+        if self.action =='retrieve':
             return AssociacaoSerializer
-        elif self.action in ['list', ]:
+        elif self.action == 'list':
             return AssociacaoListSerializer
         else:
             return AssociacaoCreateSerializer
