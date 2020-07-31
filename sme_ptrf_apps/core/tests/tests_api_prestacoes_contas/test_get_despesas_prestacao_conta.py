@@ -29,27 +29,17 @@ def test_api_get_despesas_conferidas_prestacao_conta(client,
 
     result = json.loads(response.content)
 
-    resultado_esperado = [None, None]
+    despesas_retornadas = set()
+    for despesa in result:
+        despesas_retornadas.add(despesa['uuid'])
 
-    result_esperado = RateioDespesaListaSerializer(rateio_despesa_2020_role_conferido, many=False).data
-    # Converto os campos não string em strings para que a comparação funcione
-    result_esperado['data_documento'] = f'{result_esperado["data_documento"]}'
-    result_esperado['data_transacao'] = f'{result_esperado["data_transacao"]}'
-    result_esperado['despesa'] = f'{result_esperado["despesa"]}'
-    resultado_esperado[0] = result_esperado
-
-    result_esperado = RateioDespesaListaSerializer(rateio_despesa_2019_role_conferido_na_prestacao, many=False).data
-    # Converto os campos não string em strings para que a comparação funcione
-    result_esperado['data_documento'] = f'{result_esperado["data_documento"]}'
-    result_esperado['data_transacao'] = f'{result_esperado["data_transacao"]}'
-    result_esperado['despesa'] = f'{result_esperado["despesa"]}'
-    resultado_esperado[1] = result_esperado
-
-
+    despesas_esperadas = set()
+    despesas_esperadas.add(f'{rateio_despesa_2020_role_conferido.uuid}')
+    despesas_esperadas.add(f'{rateio_despesa_2019_role_conferido_na_prestacao.uuid}')
 
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado, "Não retornou a lista de despesas esperada."
+    assert despesas_retornadas == despesas_esperadas, "Não retornou a lista de despesas esperada."
 
 
 def test_api_get_despesas_nao_conferidas_prestacao_conta(client,
@@ -72,17 +62,17 @@ def test_api_get_despesas_nao_conferidas_prestacao_conta(client,
 
     result = json.loads(response.content)
 
-    resultado_esperado = []
-    result_esperado = RateioDespesaListaSerializer(rateio_despesa_2020_role_nao_conferido, many=False).data
-    # Converto os campos não string em strings para que a comparação funcione
-    result_esperado['data_documento'] = f'{result_esperado["data_documento"]}'
-    result_esperado['data_transacao'] = f'{result_esperado["data_transacao"]}'
-    result_esperado['despesa'] = f'{result_esperado["despesa"]}'
+    despesas_retornadas = set()
+    for despesa in result:
+        despesas_retornadas.add(despesa['uuid'])
 
-    resultado_esperado.append(result_esperado)
+
+    despesas_esperadas = set()
+    despesas_esperadas.add(f'{rateio_despesa_2020_role_nao_conferido.uuid}')
+
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado, "Não retornou a lista de despesas esperada."
+    assert despesas_retornadas == despesas_esperadas, "Não retornou a lista de despesas esperada."
 
 
 def test_api_get_despesas_nao_conferidas_prestacao_traz_periodos_anteriores(client,
