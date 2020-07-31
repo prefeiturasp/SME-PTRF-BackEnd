@@ -46,7 +46,7 @@ class Associacao(ModeloIdNome):
 
     @property
     def presidente_associacao(self):
-        cargo = self.cargos.filter(cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value).get()
+        cargo = self.cargos.filter(cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value).first()
         if cargo:
             return {
                 'nome': cargo.nome,
@@ -60,7 +60,7 @@ class Associacao(ModeloIdNome):
 
     @property
     def presidente_conselho_fiscal(self):
-        cargo = self.cargos.filter(cargo_associacao=MembroEnum.PRESIDENTE_CONSELHO_FISCAL.value).get()
+        cargo = self.cargos.filter(cargo_associacao=MembroEnum.PRESIDENTE_CONSELHO_FISCAL.value).first()
         if cargo:
             return {
                 'nome': cargo.nome,
