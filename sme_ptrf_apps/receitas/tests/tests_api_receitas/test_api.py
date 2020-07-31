@@ -230,7 +230,8 @@ def test_get_receitas(
                 'id': detalhe_tipo_receita.id,
                 'nome': detalhe_tipo_receita.nome
             },
-            'detalhe_outros': receita.detalhe_outros
+            'detalhe_outros': receita.detalhe_outros,
+            'notificar_dias_nao_conferido': 0
         },
     ]
 
@@ -351,7 +352,8 @@ def test_retrive_receitas(
             'id': detalhe_tipo_receita.id,
             'nome': detalhe_tipo_receita.nome
         },
-        'detalhe_outros': receita.detalhe_outros
+        'detalhe_outros': receita.detalhe_outros,
+        'notificar_dias_nao_conferido': 0
     }
 
     assert response.status_code == status.HTTP_200_OK

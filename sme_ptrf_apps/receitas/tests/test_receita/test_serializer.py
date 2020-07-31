@@ -23,10 +23,11 @@ def test_list_serializer(receita, detalhe_tipo_receita):
         'conta_associacao',
         'conferido',
         'detalhe_tipo_receita',
+        'notificar_dias_nao_conferido'
     )
 
     for field in expected_fields:
-        assert serializer.data[field], f'Não encontrado o campo {field} no serializer ReceitaLista.'
+        assert serializer.data[field] is not None, f'Não encontrado o campo {field} no serializer ReceitaLista.'
 
 
 def test_list_serializer_sem_detalhe_tipo_receita(receita_sem_detalhe_tipo_receita):

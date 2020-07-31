@@ -1143,6 +1143,21 @@ def parametros_nao_aceita_saldo_negativo_em_conta():
 
 
 @pytest.fixture
+def parametros_tempo_nao_conferido_10_dias():
+    return baker.make(
+        'Parametros',
+        tempo_notificar_nao_demonstrados=10
+    )
+
+@pytest.fixture
+def parametros_tempo_nao_conferido_60_dias():
+    return baker.make(
+        'Parametros',
+        tempo_notificar_nao_demonstrados=60
+    )
+
+
+@pytest.fixture
 def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
     return baker.make(
         'Ata',
