@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 
 from auditlog.models import AuditlogHistoryField
@@ -6,7 +7,7 @@ from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
-from sme_ptrf_apps.core.models import Associacao, Periodo
+from sme_ptrf_apps.core.models import Associacao, Periodo, Parametros
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from ..tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
 
@@ -50,7 +51,7 @@ class Receita(ModeloBase):
     detalhe_outros = models.CharField('Detalhe da despesa (outros)', max_length=160, blank=True, default='')
 
     referencia_devolucao = models.ForeignKey(Periodo, on_delete=models.PROTECT,
-                                related_name='+', blank=True, null=True)
+                                             related_name='+', blank=True, null=True)
 
     def __str__(self):
         return f'RECEITA<{self.detalhamento} - {self.data} - {self.valor}>'
@@ -62,6 +63,20 @@ class Receita(ModeloBase):
         else:
             detalhe = self.detalhe_outros
         return detalhe
+
+    @property
+    def notificar_dias_nao_conferido(self):
+        """
+        Se não conferida, retorna o tempo decorrido desde o lançamento, caso esse tempo seja superior ao parametrizado.
+        Caso contrário, retorna 0
+        :rtype: int
+        """
+        result = 0
+        if not self.conferido:
+            decorrido = (date.today() - self.data).days
+            limite = Parametros.get().tempo_notificar_nao_demonstrados
+            result = decorrido if decorrido >= limite else 0
+        return result
 
     @classmethod
     def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None,
@@ -141,7 +156,7 @@ class Receita(ModeloBase):
                     totais['total_receitas_nao_conciliadas_custeio'] += receita.valor
                 else:
                     totais['total_receitas_nao_conciliadas_livre'] += receita.valor
-            
+
             if receita.tipo_receita.e_devolucao:
                 if receita.categoria_receita == APLICACAO_CAPITAL:
                     totais['total_receitas_devolucao_capital'] += receita.valor

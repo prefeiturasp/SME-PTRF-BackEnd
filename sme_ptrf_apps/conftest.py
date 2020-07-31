@@ -506,7 +506,8 @@ def fechamento_2020_1(periodo_2020_1, associacao, conta_associacao, acao_associa
 
 
 @pytest.fixture
-def fechamento_2020_1_com_livre(periodo_2020_1, associacao, conta_associacao, acao_associacao, prestacao_conta_2020_1_conciliada):
+def fechamento_2020_1_com_livre(periodo_2020_1, associacao, conta_associacao, acao_associacao,
+                                prestacao_conta_2020_1_conciliada):
     return baker.make(
         'FechamentoPeriodo',
         periodo=periodo_2020_1,
@@ -1120,7 +1121,8 @@ def rateio_fora_periodo_50_custeio(associacao, despesa_fora_periodo, conta_assoc
 def parametros():
     return baker.make(
         'Parametros',
-        permite_saldo_conta_negativo=True
+        permite_saldo_conta_negativo=True,
+        fique_de_olho='',
     )
 
 
@@ -1137,6 +1139,21 @@ def parametros_nao_aceita_saldo_negativo_em_conta():
     return baker.make(
         'Parametros',
         permite_saldo_conta_negativo=False
+    )
+
+
+@pytest.fixture
+def parametros_tempo_nao_conferido_10_dias():
+    return baker.make(
+        'Parametros',
+        tempo_notificar_nao_demonstrados=10
+    )
+
+@pytest.fixture
+def parametros_tempo_nao_conferido_60_dias():
+    return baker.make(
+        'Parametros',
+        tempo_notificar_nao_demonstrados=60
     )
 
 
@@ -1197,6 +1214,7 @@ def membro_associacao(associacao):
         email='ollyverottoboni@gmail.com'
     )
 
+
 @pytest.fixture
 def membro_associacao_presidente_conselho(associacao):
     return baker.make(
@@ -1209,6 +1227,7 @@ def membro_associacao_presidente_conselho(associacao):
         codigo_identificacao='567432',
         email='ollyverottoboni@gmail.com'
     )
+
 
 @pytest.fixture
 def membro_associacao_presidente_associacao(associacao):
