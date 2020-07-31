@@ -12,7 +12,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from ..serializers.associacao_serializer import (AssociacaoCreateSerializer, AssociacaoSerializer,
-                                                 AssociacaoListSerializer)
+                                                 AssociacaoListSerializer, AssociacaoCompletoSerializer)
 from ..serializers.conta_associacao_serializer import (
     ContaAssociacaoCreateSerializer,
     ContaAssociacaoDadosSerializer,
@@ -44,7 +44,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
 
     def get_serializer_class(self):
         if self.action =='retrieve':
-            return AssociacaoSerializer
+            return AssociacaoCompletoSerializer
         elif self.action == 'list':
             return AssociacaoListSerializer
         else:

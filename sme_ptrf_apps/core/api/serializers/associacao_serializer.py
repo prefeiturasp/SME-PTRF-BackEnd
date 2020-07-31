@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from ...api.serializers.unidade_serializer import (UnidadeInfoAtaSerializer, UnidadeLookUpSerializer,
-                                                   UnidadeListSerializer)
+                                                   UnidadeListSerializer, UnidadeSerializer)
 from ...models import Associacao, Unidade
 
 
@@ -10,7 +10,16 @@ class AssociacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Associacao
-        fields = '__all__'
+        fields = (
+            'uuid',
+            'ccm',
+            'cnpj',
+            'email',
+            'nome',
+            'status_regularidade',
+            'unidade',
+            'id',
+        )
 
 
 class AssociacaoLookupSerializer(serializers.ModelSerializer):
@@ -54,4 +63,22 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
             'nome',
             'unidade',
             'status_regularidade',
+        ]
+
+
+class AssociacaoCompletoSerializer(serializers.ModelSerializer):
+    unidade = UnidadeSerializer(many=False)
+
+    class Meta:
+        model = Associacao
+        fields = [
+            'uuid',
+            'nome',
+            'unidade',
+            'status_regularidade',
+            'cnpj',
+            'ccm',
+            'email',
+            'presidente_associacao',
+            'presidente_conselho_fiscal',
         ]
