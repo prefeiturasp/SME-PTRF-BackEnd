@@ -36,6 +36,7 @@ def test_api_get_rateios_despesas(jwt_authenticated_client, despesa, rateio_desp
             "tipo_documento_nome": despesa.tipo_documento.nome,
             "tipo_transacao_nome": despesa.tipo_transacao.nome,
             "data_transacao": '2020-03-10',
+            'notificar_dias_nao_conferido': 0,
         },
 
     ]
