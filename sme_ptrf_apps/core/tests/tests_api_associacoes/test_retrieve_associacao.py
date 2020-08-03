@@ -14,7 +14,7 @@ def presidente_associacao(associacao):
         'MembroAssociacao',
         nome='Arthur Nobrega',
         associacao=associacao,
-        cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value,
+        cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name,
         cargo_educacao='Coordenador',
         representacao=RepresentacaoCargo.SERVIDOR.value,
         codigo_identificacao='567432',
@@ -27,7 +27,7 @@ def presidente_conselho_fiscal(associacao):
         'MembroAssociacao',
         nome='José Firmino',
         associacao=associacao,
-        cargo_associacao=MembroEnum.PRESIDENTE_CONSELHO_FISCAL.value,
+        cargo_associacao=MembroEnum.PRESIDENTE_CONSELHO_FISCAL.name,
         cargo_educacao='Coordenador',
         representacao=RepresentacaoCargo.SERVIDOR.value,
         codigo_identificacao='567433',
@@ -49,11 +49,13 @@ def test_api_retrieve_associacao(client, associacao, presidente_associacao, pres
         'status_regularidade': f'{associacao.status_regularidade}',
         'presidente_associacao': {
             'nome': presidente_associacao.nome,
-            'email': presidente_associacao.email
+            'email': presidente_associacao.email,
+            'cargo_educacao': presidente_associacao.cargo_educacao
         },
         'presidente_conselho_fiscal': {
             'nome': presidente_conselho_fiscal.nome,
-            'email': presidente_conselho_fiscal.email
+            'email': presidente_conselho_fiscal.email,
+            'cargo_educacao': presidente_conselho_fiscal.cargo_educacao
         },
         'unidade': {
             'codigo_eol': f'{associacao.unidade.codigo_eol}',
