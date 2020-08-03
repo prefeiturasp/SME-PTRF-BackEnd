@@ -4,6 +4,8 @@ import os
 from django.contrib.staticfiles.storage import staticfiles_storage
 from openpyxl import load_workbook
 
+from ..choices.membro_associacao import RepresentacaoCargo
+
 LOGGER = logging.getLogger(__name__)
 
 # Worksheets
@@ -45,6 +47,12 @@ CARGOS = {
     'CONSELHEIRO_4': 14,
 }
 
+# Colunas Contas da Associação
+BANCO = 0
+TIPO = 1
+AGENCIA = 2
+NUMERO = 3
+
 
 def gerar_planilha(associacao):
     LOGGER.info(f'EXPORTANDO DADOS DA ASSOCIACAO {associacao.nome}...')
@@ -55,6 +63,7 @@ def gerar_planilha(associacao):
 
     dados_basicos(workbook, associacao)
     membros(workbook, associacao)
+    contas(workbook, associacao)
 
     return workbook
 
@@ -77,7 +86,20 @@ def membros(workbook, associacao):
     for membro in membros:
         linha = CARGOS[membro.cargo_associacao]
         rows[linha][NOME_MEMBRO].value = membro.nome
-        rows[linha][REPRESENTACAO].value = membro.representacao
+        rows[linha][REPRESENTACAO].value =  RepresentacaoCargo[membro.representacao].value
         rows[linha][RF_EOL].value = membro.codigo_identificacao
         rows[linha][CARGO_EDUCACAO].value = membro.cargo_educacao
         rows[linha][EMAIL_MEMBRO].value = membro.email
+
+
+def contas(workbook, associacao):
+    contas = associacao.contas.all()
+    worksheet = workbook.worksheets[CONTAS]
+    rows = list(worksheet.rows)
+    linha = 1
+    for conta in contas:
+        rows[linha][BANCO].value = conta.banco_nome
+        rows[linha][TIPO].value = conta.tipo_conta.nome if conta.tipo_conta else ' '
+        rows[linha][AGENCIA].value = conta.agencia
+        rows[linha][NUMERO].value = conta.numero_conta
+        linha += 1
