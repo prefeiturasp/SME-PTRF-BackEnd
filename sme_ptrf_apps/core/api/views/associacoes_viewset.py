@@ -1,8 +1,11 @@
 import datetime
 import logging
+from io import BytesIO
 
 from django.db.models import Q
+from django.http import HttpResponse
 from django_filters import rest_framework as filters
+from openpyxl.writer.excel import save_virtual_workbook
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -26,6 +29,7 @@ from ...services import (
     info_acoes_associacao_no_periodo,
     status_aceita_alteracoes_em_transacoes,
     status_periodo_associacao,
+    gerar_planilha
 )
 
 logger = logging.getLogger(__name__)
@@ -43,7 +47,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
     filter_fields = ('unidade__dre__uuid', 'status_regularidade', 'unidade__tipo_unidade')
 
     def get_serializer_class(self):
-        if self.action =='retrieve':
+        if self.action == 'retrieve':
             return AssociacaoCompletoSerializer
         elif self.action == 'list':
             return AssociacaoListSerializer
@@ -275,9 +279,31 @@ class AssociacoesViewSet(mixins.ListModelMixin,
         return Response(resultado, status=status_code)
 
     @action(detail=False, url_path='tabelas')
-    def tabelas(self, request):
+    def tabelas(self, _):
         result = {
             'tipos_unidade': Unidade.tipos_unidade_to_json(),
             'status_regularidade': Associacao.status_regularidade_to_json(),
         }
         return Response(result)
+
+    @staticmethod
+    def _gerar_planilha(associacao_uuid):
+        associacao = Associacao.by_uuid(associacao_uuid)
+        xlsx = gerar_planilha(associacao)
+        return xlsx
+
+    @action(detail=True, methods=['get'], url_path='exportar')
+    def exportar(self, _, uuid=None):
+
+        xlsx = self._gerar_planilha(uuid)
+
+        result = BytesIO(save_virtual_workbook(xlsx))
+
+        filename = 'associacao.xlsx'
+        response = HttpResponse(
+            result,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
+        return response
