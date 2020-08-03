@@ -41,6 +41,9 @@ class Despesa(ModeloBase):
     valor_recursos_proprios = models.DecimalField('Valor pago com recursos próprios', max_digits=8, decimal_places=2,
                                                   default=0)
 
+    valor_original = models.DecimalField('Valor original', max_digits=8, decimal_places=2,
+                                                  default=0)
+
     status = models.CharField(
         'status',
         max_length=15,
@@ -71,11 +74,11 @@ class Despesa(ModeloBase):
 
         if completo and self.tipo_documento.numero_documento_digitado:
             completo = completo and self.numero_documento
-        
+
         if completo:
             for rateio in self.rateios.all():
                 completo = completo and rateio.status == STATUS_COMPLETO
-        
+
         return completo
 
     def atualiza_status(self):

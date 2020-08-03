@@ -29,6 +29,7 @@ def test_instance_model(rateio_despesa_capital):
     assert model.status == STATUS_COMPLETO
     assert model.conferido
     assert model.prestacao_conta
+    assert model.valor_original
 
 
 def test_srt_model(rateio_despesa_capital):

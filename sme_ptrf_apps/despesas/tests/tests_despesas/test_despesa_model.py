@@ -26,6 +26,7 @@ def test_instance_model(despesa):
     assert model.uuid
     assert model.id
     assert model.status == STATUS_COMPLETO
+    assert model.valor_original
 
 
 def test_srt_model(despesa):
