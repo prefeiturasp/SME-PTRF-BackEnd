@@ -21,6 +21,16 @@ def test_unidade_serializer(unidade):
     assert 'id' not in unidade_serializer.data
     assert unidade_serializer.data['dre']
     assert 'sigla' in unidade_serializer.data
+    assert 'cep' in unidade_serializer.data
+    assert 'tipo_logradouro' in unidade_serializer.data
+    assert 'logradouro' in unidade_serializer.data
+    assert 'bairro' in unidade_serializer.data
+    assert 'numero' in unidade_serializer.data
+    assert 'complemento' in unidade_serializer.data
+    assert 'telefone' in unidade_serializer.data
+    assert 'email' in unidade_serializer.data
+    assert 'qtd_alunos' in unidade_serializer.data
+    assert 'diretor_nome' in unidade_serializer.data
 
 
 def test_unidade_info_ata_serializer(unidade):

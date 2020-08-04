@@ -84,4 +84,5 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
             'detalhe_tipo_receita',
             'detalhe_outros',
             'referencia_devolucao',
+            'notificar_dias_nao_conferido'
         )
