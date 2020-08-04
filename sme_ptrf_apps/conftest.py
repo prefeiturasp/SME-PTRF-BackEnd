@@ -15,31 +15,37 @@ from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTE
 
 
 @pytest.fixture
-def fake_user(client, django_user_model, associacao):
+def fake_user(client, django_user_model, unidade):
     password = 'teste'
     username = 'fake'
-    user = django_user_model.objects.create_user(username=username, password=password, associacao=associacao)
+    user = django_user_model.objects.create_user(username=username, password=password)
     client.login(username=username, password=password)
+    user.unidades.add(unidade)
+    user.save()
     return user
 
 
 @pytest.fixture
-def authenticated_client(client, django_user_model, associacao):
+def authenticated_client(client, django_user_model, unidade):
     password = 'teste'
     username = 'fake'
-    django_user_model.objects.create_user(username=username, password=password, associacao=associacao)
+    user = django_user_model.objects.create_user(username=username, password=password)
     client.login(username=username, password=password)
+    user.unidades.add(unidade)
+    user.save()
     return client
 
 
 @pytest.fixture
-def usuario(associacao):
+def usuario(unidade):
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
     login = '7210418'
     email = 'sme@amcom.com.br'
     User = get_user_model()
-    user = User.objects.create_user(username=login, password=senha, associacao=associacao, email=email)
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(unidade)
+    user.save()
     return user
 
 
@@ -59,6 +65,7 @@ def jwt_authenticated_client(client, usuario):
         mock_post.return_value.json.return_value = data
         resp = api_client.post('/api/login', {'login': usuario.username, 'senha': usuario.password}, format='json')
         resp_data = resp.json()
+        print(resp_data)
         api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
     return api_client
 

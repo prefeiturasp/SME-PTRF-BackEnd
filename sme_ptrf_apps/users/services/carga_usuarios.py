@@ -30,9 +30,9 @@ def processa_importacao_usuarios(reader):
         logging.info('Error: %s', str(e))
 
 
-def carrega_usuarios():
+def carrega_usuarios(arquivo):
     logger.info('Carregando arquivo de usuários.')
 
-    with staticfiles_storage.open(os.path.join('cargas', 'usuarios.csv'), 'r') as f:
+    with open(arquivo.conteudo.path, 'r', encoding="utf-8") as f:
         reader = csv.reader(f, delimiter=',')
         processa_importacao_usuarios(reader)
