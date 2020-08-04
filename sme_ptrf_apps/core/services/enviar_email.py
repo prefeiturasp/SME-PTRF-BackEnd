@@ -24,4 +24,4 @@ def enviar_email_html(assunto, template, context, enviar_para):
         email.content_subtype = 'html'
         email.send()
     except Exception as err:
-        logger.error(str(err))
+        logger.info("Erro email: %s", str(err))

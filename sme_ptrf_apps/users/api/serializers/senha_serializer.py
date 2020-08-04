@@ -25,8 +25,11 @@ class EsqueciMinhaSenhaSerializer(serializers.ModelSerializer):
         instance.hash_redefinicao = instance.create_hash
         instance.save()
 
-        enviar_email_redifinicao_senha.delay(email=instance.email, username=instance.username,
-                                             nome=instance.name, hash_definicao=instance.hash_redefinicao)
+        try:
+            enviar_email_redifinicao_senha(email=instance.email, username=instance.username,
+                                           nome=instance.name, hash_definicao=instance.hash_redefinicao)
+        except Exception as err:
+            logging.info("Erro ao enviar email: %s ", str(err))
 
         return instance
 
