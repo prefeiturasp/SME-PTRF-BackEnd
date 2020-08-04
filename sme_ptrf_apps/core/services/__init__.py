@@ -1,3 +1,4 @@
+from .exporta_associacao import gerar_planilha
 from .implantacao_saldos_services import implanta_saldos_da_associacao, implantacoes_de_saldo_da_associacao
 from .info_por_acao_services import (
     info_acao_associacao_no_periodo,
