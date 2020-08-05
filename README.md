@@ -5,10 +5,13 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 0.6.0
+Versão: 0.7.0
 
 
 ## Release Notes
+
+### 0.7.0 - 20/08/2020 - Entregas da Sprint 8
+* Sprint em andamento...
 
 ### 0.6.0 - 28/07/2020 - Entregas da Sprint 7
 * Carga de valores reprogramados (implantação de saldos);
