@@ -171,6 +171,7 @@ def sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, period
         row_custeio[SALDO_REPROGRAMADO_PROXIMO].value = f'C {formata_valor(valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else 0)}'
         row_custeio[DESPESA_NAO_DEMONSTRADA].value = f'C {formata_valor(valor_custeio_rateios_nao_demonstrados)}'
         valor_saldo_bancario_custeio = valor_saldo_reprogramado_proximo_periodo_custeio + valor_custeio_rateios_nao_demonstrados
+        valor_saldo_bancario_custeio = valor_saldo_bancario_custeio if valor_saldo_bancario_custeio > 0 else 0
         row_custeio[SALDO_BANCARIO].value = f'C {formata_valor(valor_saldo_bancario_custeio)}'
         linha += 1
 
@@ -185,11 +186,12 @@ def sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, period
         row_capital[SALDO_REPROGRAMADO_PROXIMO].value = f'K {formata_valor(valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else 0)}'
         row_capital[DESPESA_NAO_DEMONSTRADA].value = f'K {formata_valor(valor_capital_rateios_nao_demonstrados)}'
         valor_saldo_bancario_capital = valor_saldo_reprogramado_proximo_periodo_capital + valor_capital_rateios_nao_demonstrados
+        valor_saldo_bancario_capital = valor_saldo_bancario_capital if valor_saldo_bancario_capital > 0 else 0
         row_capital[SALDO_BANCARIO].value = f'K {formata_valor(valor_saldo_bancario_capital)}'
         linha += 1
 
     row_livre = list(worksheet.rows)[linha]
-    if saldo_reprogramado_anterior_livre or valor_livre_receitas_demonstradas:
+    if saldo_reprogramado_anterior_livre or valor_livre_receitas_demonstradas or valor_saldo_reprogramado_proximo_periodo_custeio < 0 or valor_saldo_reprogramado_proximo_periodo_capital < 0:
         row_livre[SALDO_ANTERIOR].value = f'L {formata_valor(saldo_reprogramado_anterior_livre)}'
         row_livre[CREDITO].value = f'L {formata_valor(valor_livre_receitas_demonstradas)}'
         cor_cinza = styles.colors.Color(rgb='808080')
@@ -208,7 +210,7 @@ def sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, period
         valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else valor_total_reprogramado_proximo
     valor_total_reprogramado_proximo = valor_total_reprogramado_proximo + \
         valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else valor_total_reprogramado_proximo
-    row_livre[SALDO_BANCARIO].value = f'L {formata_valor(valor_saldo_reprogramado_proximo_periodo_livre)}'
+    row_livre[SALDO_BANCARIO].value = f'L {formata_valor(valor_saldo_reprogramado_proximo_periodo_livre)}' if valor_saldo_reprogramado_proximo_periodo_livre != 0 else ''
     row_custeio[TOTAL_REPROGRAMADO_PROXIMO].value = formata_valor(valor_total_reprogramado_proximo)
     row_custeio[TOTAL_SALDO_BANCARIO].value = formata_valor(
         valor_saldo_bancario_capital + valor_saldo_bancario_custeio + valor_saldo_reprogramado_proximo_periodo_livre)
@@ -342,4 +344,6 @@ def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_me
 
 def formata_valor(valor):
     from babel.numbers import format_currency
-    return format_currency(valor, 'BRL', locale='pt_BR').split('\xa0')[1]
+    sinal, valor_formatado = format_currency(valor, 'BRL', locale='pt_BR').split('\xa0')
+    sinal = '-' if '-' in sinal else ''
+    return f'{sinal}{valor_formatado}'
