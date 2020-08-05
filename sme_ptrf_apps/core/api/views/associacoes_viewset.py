@@ -307,3 +307,9 @@ class AssociacoesViewSet(mixins.ListModelMixin,
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
 
         return response
+
+    @action(detail=True, url_path='periodos-para-prestacao-de-contas', methods=['get'])
+    def periodos_para_prestacao_de_contas(self, request, uuid=None):
+        associacao = self.get_object()
+        periodos = associacao.periodos_para_prestacoes_de_conta()
+        return Response(PeriodoLookUpSerializer(periodos, many=True).data)
