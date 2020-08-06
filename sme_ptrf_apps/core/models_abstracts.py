@@ -54,7 +54,7 @@ class ModeloBase(TemChaveExterna, TemCriadoEm, TemAlteradoEm):
     objects = models.Manager()
 
     @classmethod
-    def get_valores(cls, user=None):
+    def get_valores(cls, user=None, associacao_uuid=None):
         return cls.objects.all()
 
     @classmethod
@@ -86,7 +86,7 @@ class SingletonModel(models.Model):
 class ModeloIdNome(ModeloBase, TemNome):
 
     @classmethod
-    def get_valores(cls, user=None):
+    def get_valores(cls, user=None, associacao_uuid=None):
         return cls.objects.all().order_by('nome')
 
     def __str__(self):

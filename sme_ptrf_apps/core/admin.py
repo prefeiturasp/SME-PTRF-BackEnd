@@ -38,15 +38,10 @@ class AssociacaoAdmin(admin.ModelAdmin):
 
     get_nome_escola.short_description = 'Escola'
 
-    list_display = ('nome', 'cnpj', 'get_nome_escola', 'get_usuarios')
+    list_display = ('nome', 'cnpj', 'get_nome_escola')
     search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome')
     list_filter = ('unidade__dre', 'periodo_inicial')
     readonly_fields = ('uuid', 'id')
-
-    def get_usuarios(self, obj):
-        return ','.join([u.name for u in obj.usuarios.all()]) if obj.usuarios else ''
-
-    get_usuarios.short_description = 'Usuários'
 
 
 @admin.register(ContaAssociacao)

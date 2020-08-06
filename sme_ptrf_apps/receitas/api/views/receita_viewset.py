@@ -38,9 +38,15 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             return ReceitaCreateSerializer
 
     def get_queryset(self):
-        user = self.request.user
+        associacao_uuid = self.request.query_params.get('associacao_uuid') or self.request.query_params.get('associacao__uuid') 
+        if associacao_uuid is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        qs = Receita.objects.filter(associacao=user.associacao).all().order_by('-data')
+        qs = Receita.objects.filter(associacao__uuid=associacao_uuid).all().order_by('-data')
 
         data_inicio = self.request.query_params.get('data_inicio')
         data_fim = self.request.query_params.get('data_fim')
@@ -57,16 +63,25 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     @action(detail=False, url_path='tabelas')
     def tabelas(self, request):
 
-        def get_valores_from(serializer):
-            valores = serializer.Meta.model.get_valores(user=request.user)
+        associacao_uuid = request.query_params.get('associacao_uuid')
+
+        if associacao_uuid is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        def get_valores_from(serializer, associacao_uuid):
+            valores = serializer.Meta.model.get_valores(user=request.user, associacao_uuid=associacao_uuid)
             return serializer(valores, many=True).data if valores else []
 
         result = {
-            'tipos_receita': get_valores_from(TipoReceitaEDetalhesSerializer),
+            'tipos_receita': get_valores_from(TipoReceitaEDetalhesSerializer, associacao_uuid=associacao_uuid),
             'categorias_receita': aplicacoes_recurso_to_json(),
-            'acoes_associacao': get_valores_from(AcaoAssociacaoLookUpSerializer),
-            'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer),
-            'periodos': get_valores_from(PeriodoLookUpSerializer),
+            'acoes_associacao': get_valores_from(AcaoAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid),
+            'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid),
+            'periodos': get_valores_from(PeriodoLookUpSerializer, associacao_uuid=associacao_uuid),
         }
 
         return Response(result)
