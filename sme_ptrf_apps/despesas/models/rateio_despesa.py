@@ -43,6 +43,9 @@ class RateioDespesa(ModeloBase):
     numero_processo_incorporacao_capital = models.CharField('Nº processo incorporação', max_length=100, default='',
                                                             blank=True)
 
+    valor_original = models.DecimalField('Valor original', max_digits=8, decimal_places=2,
+                                         default=0)
+
     status = models.CharField(
         'status',
         max_length=15,
