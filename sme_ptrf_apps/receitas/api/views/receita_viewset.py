@@ -42,7 +42,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         if associacao_uuid is None:
             erro = {
                 'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar o uuid da associação.'
+                'mensagem': 'É necessário enviar o uuid da associação como parâmetro.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -68,7 +68,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         if associacao_uuid is None:
             erro = {
                 'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar o uuid da associação.'
+                'mensagem': 'É necessário enviar o uuid da associação (associacao_uuid) como parâmetro.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 

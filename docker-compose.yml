@@ -1,7 +1,7 @@
 version: "3"
 services:
   db:
-    container_name: database_teste
+    container_name: database
     image: postgres:11.2-alpine
     restart: always
     env_file: .env
@@ -10,39 +10,39 @@ services:
     ports:
       - 5434:5432
 
-  # api_ptrf:
-  #   container_name: api-ptrf
-  #   build: .
-  #   env_file: 
-  #       - .env
-  #   # image: api_ptrf
-  #   command: "gunicorn config.wsgi:application --bind=0.0.0.0:8001 -w 8"
-  #   ports:
-  #     - 8001:8001
-  #   depends_on:
-  #     - db
-  #     - redis_ptrf
-  #   volumes:
-  #     - ./staticfiles:/code/staticfiles
-  #   links:
-  #   - db:db   
+  api_ptrf:
+    container_name: api-ptrf
+    build: .
+    env_file: 
+        - .env
+    # image: api_ptrf
+    command: "gunicorn config.wsgi:application --bind=0.0.0.0:8001 -w 8"
+    ports:
+      - 8001:8001
+    depends_on:
+      - db
+      - redis_ptrf
+    volumes:
+      - ./staticfiles:/code/staticfiles
+    links:
+    - db:db   
     
-  # celery_ptrf:
-  #   build: .
-  #   container_name: celery-ptrf
-  #   restart: always
-  #   # image: api_ptrf
-  #   command: "celery -A config worker --loglevel=info --concurrency=3 -n worker1@%h"
-  #   env_file: .env
-  #   depends_on:
-  #     - redis_ptrf
+  celery_ptrf:
+    build: .
+    container_name: celery-ptrf
+    restart: always
+    # image: api_ptrf
+    command: "celery -A config worker --loglevel=info --concurrency=3 -n worker1@%h"
+    env_file: .env
+    depends_on:
+      - redis_ptrf
 
-  # redis_ptrf:
-  #   image: redis:5.0
-  #   container_name: redis-ptrf
-  #   restart: always
-  #   ports:
-  #       - "6379:6379"
+  redis_ptrf:
+    image: redis:5.0
+    container_name: redis-ptrf
+    restart: always
+    ports:
+        - "6379:6379"
 
 networks:
   default:

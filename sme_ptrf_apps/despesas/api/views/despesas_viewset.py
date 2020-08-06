@@ -34,18 +34,27 @@ class DespesasViewSet(mixins.CreateModelMixin,
     @action(detail=False, url_path='tabelas')
     def tabelas(self, request):
 
-        def get_valores_from(serializer):
-            valores = serializer.Meta.model.get_valores(user=request.user)
+        associacao_uuid = request.query_params.get('associacao_uuid')
+
+        if associacao_uuid is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da associação (associacao_uuid) como parâmetro.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)    
+
+        def get_valores_from(serializer, associacao_uuid):
+            valores = serializer.Meta.model.get_valores(user=request.user, associacao_uuid=associacao_uuid)
             return serializer(valores, many=True).data if valores else []
 
         result = {
             'tipos_aplicacao_recurso': aplicacoes_recurso_to_json(),
-            'tipos_custeio': get_valores_from(TipoCusteioSerializer),
-            'tipos_documento': get_valores_from(TipoDocumentoSerializer),
-            'tipos_transacao': get_valores_from(TipoTransacaoSerializer),
-            'acoes_associacao': get_valores_from(AcaoAssociacaoLookUpSerializer),
-            'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer),
-            'tags': get_valores_from(TagLookupSerializer),
+            'tipos_custeio': get_valores_from(TipoCusteioSerializer, associacao_uuid=associacao_uuid),
+            'tipos_documento': get_valores_from(TipoDocumentoSerializer, associacao_uuid=associacao_uuid),
+            'tipos_transacao': get_valores_from(TipoTransacaoSerializer, associacao_uuid=associacao_uuid),
+            'acoes_associacao': get_valores_from(AcaoAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid),
+            'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid),
+            'tags': get_valores_from(TagLookupSerializer, associacao_uuid=associacao_uuid),
         }
 
         return Response(result)

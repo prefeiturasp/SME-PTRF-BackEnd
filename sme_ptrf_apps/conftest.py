@@ -65,7 +65,6 @@ def jwt_authenticated_client(client, usuario):
         mock_post.return_value.json.return_value = data
         resp = api_client.post('/api/login', {'login': usuario.username, 'senha': usuario.password}, format='json')
         resp_data = resp.json()
-        print(resp_data)
         api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
     return api_client
 

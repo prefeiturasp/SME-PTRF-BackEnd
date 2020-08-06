@@ -18,7 +18,7 @@ class Tag(ModeloIdNome):
         return f"<{self.nome}, {self.status}>"
 
     @classmethod
-    def get_valores(cls, user=None):
+    def get_valores(cls, user=None, associacao_uuid=None):
         query = cls.objects.filter(status=StatusTag.ATIVO.name)
         return query.all()
 
