@@ -41,8 +41,7 @@ class Despesa(ModeloBase):
     valor_recursos_proprios = models.DecimalField('Valor pago com recursos próprios', max_digits=8, decimal_places=2,
                                                   default=0)
 
-    valor_original = models.DecimalField('Valor original', max_digits=8, decimal_places=2,
-                                                  default=0)
+    valor_original = models.DecimalField('Valor original', max_digits=8, decimal_places=2, default=0)
 
     status = models.CharField(
         'status',
