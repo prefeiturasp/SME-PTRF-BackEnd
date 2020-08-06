@@ -1308,3 +1308,12 @@ def tag_ativa():
         nome="COVID-19",
         status=StatusTag.ATIVO.name
     )
+
+@pytest.fixture
+def processo_associacao_123456_2019(associacao):
+    return baker.make(
+        'ProcessoAssociacao',
+        associacao=associacao,
+        numero_processo='123456',
+        ano='2019'
+    )
