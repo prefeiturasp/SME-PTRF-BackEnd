@@ -149,7 +149,8 @@ def associacao(unidade, periodo_anterior):
         unidade=unidade,
         periodo_inicial=periodo_anterior,
         ccm='0.000.00-0',
-        email="ollyverottoboni@gmail.com"
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456'
     )
 
 
