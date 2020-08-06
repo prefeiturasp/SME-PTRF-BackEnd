@@ -4,6 +4,7 @@ from django.contrib.auth import admin as auth_admin
 from django.contrib.auth import get_user_model
 
 from sme_ptrf_apps.users.forms import UserChangeForm, UserCreationForm
+from sme_ptrf_apps.users.models import Visao
 from sme_ptrf_apps.core.models import Unidade
 
 User = get_user_model()
@@ -28,11 +29,4 @@ class UserAdmin(auth_admin.UserAdmin):
     search_fields = ["name"]
     inlines = [UnidadeInline,]
 
-    actions = ['importa_usuarios']
-
-    def importa_usuarios(self, request, queryset):
-        from sme_ptrf_apps.users.services.carga_usuarios import carrega_usuarios
-        carrega_usuarios()
-        self.message_user(request, "Usuários Carregados.")
-
-    importa_usuarios.short_description = "Fazer carga de usuários."
+admin.site.register(Visao)

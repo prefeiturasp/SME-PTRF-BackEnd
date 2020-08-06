@@ -1,11 +1,10 @@
 import csv
 import logging
-import os
 
 from django.contrib.auth import get_user_model
-from django.contrib.staticfiles.storage import staticfiles_storage
 
-from sme_ptrf_apps.core.models import Associacao
+from sme_ptrf_apps.core.models import Unidade
+from sme_ptrf_apps.users.models import Visao
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +16,23 @@ def processa_importacao_usuarios(reader):
         for index, row in enumerate(reader):
             if index != 0:
                 logger.info('Linha %s: %s', index, row)
-                associacao = Associacao.objects.filter(cnpj=row[1].strip()).first()
-                if associacao:
-                    u = User.objects.create(username=row[0].strip())
-                    u.associacao = associacao
+
+                unidade = Unidade.objects.filter(codigo_eol=row[2].strip()).first()
+
+                if unidade:
+                    visao = Visao.objects.filter(nome=row[1].strip()).first()
+                    if not visao:
+                        visao = Visao.objects.create(nome=row[1].strip())
+
+                    u = User.objects.filter(username=row[0].strip()).first()
+                    if not u:
+                        u = User.objects.create(username=row[0].strip())
+
+                    if not u.unidades.filter(codigo_eol=row[2].strip()).first():
+                        u.unidades.add(unidade)
+
+                    if not u.visoes.filter(nome=row[1].strip()).first():
+                        u.visoes.add(visao)
                     u.save()
                     logger.info('Usuário para o rf %s criado com sucesso.', row[0].strip())
                     continue
