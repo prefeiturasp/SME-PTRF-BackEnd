@@ -126,6 +126,7 @@ def despesa(associacao, tipo_documento, tipo_transacao):
         data_transacao=datetime.date(2020, 3, 10),
         valor_total=100.00,
         valor_recursos_proprios=10.00,
+        valor_original=90.00,
     )
 
 
@@ -198,6 +199,7 @@ def rateio_despesa_capital(associacao, despesa, conta_associacao, acao, tipo_apl
         numero_processo_incorporacao_capital='Teste123456',
         conferido=True,
         prestacao_conta=prestacao_conta_iniciada,
+        valor_original=90.00,
     )
 
 
