@@ -170,7 +170,7 @@ def associacao_sem_periodo_inicial(unidade):
     return baker.make(
         'Associacao',
         nome='Escola Teste',
-        cnpj='52.302.275/0001-83',
+        cnpj='44.219.758/0001-90',
         unidade=unidade,
         periodo_inicial=None,
     )
@@ -1318,3 +1318,5 @@ def processo_associacao_123456_2019(associacao):
         numero_processo='123456',
         ano='2019'
     )
+
+

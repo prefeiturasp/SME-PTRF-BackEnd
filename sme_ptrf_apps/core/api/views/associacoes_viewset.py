@@ -22,6 +22,7 @@ from ..serializers.conta_associacao_serializer import (
     ContaAssociacaoLookUpSerializer,
 )
 from ..serializers.periodo_serializer import PeriodoLookUpSerializer
+from ..serializers.processo_associacao_serializer import ProcessoAssociacaoRetrieveSerializer
 from ...models import Associacao, ContaAssociacao, Periodo, Unidade
 from ...services import (
     implanta_saldos_da_associacao,
@@ -313,3 +314,9 @@ class AssociacoesViewSet(mixins.ListModelMixin,
         associacao = self.get_object()
         periodos = associacao.periodos_para_prestacoes_de_conta()
         return Response(PeriodoLookUpSerializer(periodos, many=True).data)
+
+    @action(detail=True, url_path='processos', methods=['get'])
+    def processos_da_associacao(self, request, uuid=None):
+        associacao = self.get_object()
+        processos = associacao.processos.all()
+        return Response(ProcessoAssociacaoRetrieveSerializer(processos, many=True).data)
