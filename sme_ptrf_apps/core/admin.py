@@ -19,6 +19,7 @@ from .models import (
     TipoConta,
     Unidade,
     Tag,
+    ProcessoAssociacao,
 )
 
 admin.site.register(TipoConta)
@@ -46,6 +47,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
         return ','.join([u.name for u in obj.usuarios.all()]) if obj.usuarios else ''
 
     get_usuarios.short_description = 'Usuários'
+
 
 @admin.register(ContaAssociacao)
 class ContaAssociacaoAdmin(admin.ModelAdmin):
@@ -146,9 +148,11 @@ class AtaAdmin(admin.ModelAdmin):
     get_referencia_periodo.short_description = 'Período'
 
     list_display = (
-        'get_eol_unidade', 'get_referencia_periodo', 'get_nome_conta', 'data_reuniao', 'tipo_ata', 'tipo_reuniao', 'convocacao',
+        'get_eol_unidade', 'get_referencia_periodo', 'get_nome_conta', 'data_reuniao', 'tipo_ata', 'tipo_reuniao',
+        'convocacao',
         'parecer_conselho')
-    list_filter = ('parecer_conselho', 'tipo_ata', 'tipo_reuniao', 'convocacao', 'associacao', 'conta_associacao__tipo_conta')
+    list_filter = (
+    'parecer_conselho', 'tipo_ata', 'tipo_reuniao', 'convocacao', 'associacao', 'conta_associacao__tipo_conta')
     list_display_links = ('get_eol_unidade',)
     readonly_fields = ('uuid', id)
     search_fields = ('associacao__unidade__codigo_eol',)
@@ -157,7 +161,7 @@ class AtaAdmin(admin.ModelAdmin):
 @admin.register(Arquivo)
 class ArquivoAdmin(admin.ModelAdmin):
     list_display = ['identificador', 'conteudo', 'tipo_carga']
-    actions = ['processa_carga',]
+    actions = ['processa_carga', ]
 
     def processa_carga(self, request, queryset):
         processa_cargas(queryset)
@@ -171,3 +175,11 @@ class TagAdmin(admin.ModelAdmin):
     list_display = ['uuid', 'nome', 'status']
     search_fields = ['status']
     list_filter = ['nome', 'status']
+
+
+@admin.register(ProcessoAssociacao)
+class ProcessoAssociacaoAdmin(admin.ModelAdmin):
+    list_display = ('associacao', 'numero_processo', 'ano')
+    search_fields = ('uuid', 'numero_processo')
+    list_filter = ('ano', 'associacao',)
+    readonly_fields = ('uuid', 'id')

@@ -57,6 +57,7 @@ def test_api_retrieve_associacao(client, associacao, presidente_associacao, pres
             'email': presidente_conselho_fiscal.email,
             'cargo_educacao': presidente_conselho_fiscal.cargo_educacao
         },
+        'processo_regularidade': '123456',
         'unidade': {
             'codigo_eol': f'{associacao.unidade.codigo_eol}',
             'dre': {

@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.urls import include, path
+from django.urls import path
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter, SimpleRouter
@@ -13,6 +13,7 @@ from sme_ptrf_apps.core.api.views import (
     PeriodosViewSet,
     PrestacoesContasViewSet,
     RelacaoBensViewSet,
+    ProcessosAssociacaoViewSet
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
@@ -48,6 +49,7 @@ router.register("atas-associacao", AtasViewSet)
 router.register("membros-associacao", MembroAssociacaoViewSet)
 router.register("esqueci-minha-senha", EsqueciMinhaSenhaViewSet)
 router.register("redefinir-senha", RedefinirSenhaViewSet)
+router.register("processos-associacao", ProcessosAssociacaoViewSet)
 
 app_name = "api"
 urlpatterns = router.urls

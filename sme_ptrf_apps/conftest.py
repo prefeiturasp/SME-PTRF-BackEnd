@@ -149,7 +149,8 @@ def associacao(unidade, periodo_anterior):
         unidade=unidade,
         periodo_inicial=periodo_anterior,
         ccm='0.000.00-0',
-        email="ollyverottoboni@gmail.com"
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456'
     )
 
 
@@ -169,7 +170,7 @@ def associacao_sem_periodo_inicial(unidade):
     return baker.make(
         'Associacao',
         nome='Escola Teste',
-        cnpj='52.302.275/0001-83',
+        cnpj='44.219.758/0001-90',
         unidade=unidade,
         periodo_inicial=None,
     )
@@ -1308,3 +1309,14 @@ def tag_ativa():
         nome="COVID-19",
         status=StatusTag.ATIVO.name
     )
+
+@pytest.fixture
+def processo_associacao_123456_2019(associacao):
+    return baker.make(
+        'ProcessoAssociacao',
+        associacao=associacao,
+        numero_processo='123456',
+        ano='2019'
+    )
+
+
