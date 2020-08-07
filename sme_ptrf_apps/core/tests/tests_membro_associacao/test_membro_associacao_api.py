@@ -13,7 +13,7 @@ def test_get_membros_associacoes(
         associacao,
         membro_associacao):
 
-    response = jwt_authenticated_client.get('/api/membros-associacao/', content_type='application/json')
+    response = jwt_authenticated_client.get(f'/api/membros-associacao/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = [
@@ -46,7 +46,7 @@ def test_get_membro_associacao(
         membro_associacao):
 
     response = jwt_authenticated_client.get(
-        f'/api/membros-associacao/{membro_associacao.uuid}/', content_type='application/json')
+        f'/api/membros-associacao/{membro_associacao.uuid}/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
     esperado = {
         'id': membro_associacao.id,
@@ -107,7 +107,7 @@ def test_atualizar_membro_associacao_servidor(jwt_authenticated_client, associac
     nome_novo = "Gabriel Nóbrega"
     payload_membro_servidor['nome'] = nome_novo
     response = jwt_authenticated_client.put(
-        f'/api/membros-associacao/{membro_associacao.uuid}/', data=json.dumps(payload_membro_servidor), content_type='application/json')
+        f'/api/membros-associacao/{membro_associacao.uuid}/?associacao_uuid={associacao.uuid}', data=json.dumps(payload_membro_servidor), content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -120,11 +120,11 @@ def test_atualizar_membro_associacao_servidor(jwt_authenticated_client, associac
     assert membro.nome == nome_novo
 
 
-def test_deletar_membro_associacao(jwt_authenticated_client, membro_associacao):
+def test_deletar_membro_associacao(jwt_authenticated_client, associacao, membro_associacao):
     assert MembroAssociacao.objects.filter(uuid=membro_associacao.uuid).exists()
 
     response = jwt_authenticated_client.delete(
-        f'/api/membros-associacao/{membro_associacao.uuid}/', content_type='application/json')
+        f'/api/membros-associacao/{membro_associacao.uuid}/?associacao_uuid={associacao.uuid}', content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 

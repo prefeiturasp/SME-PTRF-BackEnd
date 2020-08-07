@@ -12,7 +12,7 @@ def test_url_authorized(authenticated_client):
 
 
 def test_url_tabelas(associacao, jwt_authenticated_client):
-    response = jwt_authenticated_client.get('/api/despesas/tabelas/')
+    response = jwt_authenticated_client.get(f'/api/despesas/tabelas/?associacao_uuid={associacao.uuid}')
     result = json.loads(response.content)
 
     chaves_esperadas = [

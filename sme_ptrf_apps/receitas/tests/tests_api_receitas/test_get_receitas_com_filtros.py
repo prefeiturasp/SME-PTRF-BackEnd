@@ -16,7 +16,7 @@ def test_api_get_receitas_por_tipo_receita(jwt_authenticated_client,
                                            associacao,
                                            tipo_conta,
                                            conta_associacao):
-    response = jwt_authenticated_client.get(f'/api/receitas/?tipo_receita={tipo_receita_estorno.id}',
+    response = jwt_authenticated_client.get(f'/api/receitas/?tipo_receita={tipo_receita_estorno.id}&associacao_uuid={associacao.uuid}',
                                             content_type='application/json')
     result = json.loads(response.content)
 

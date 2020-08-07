@@ -34,10 +34,10 @@ class AcaoAssociacao(ModeloBase):
         return f"{associacao} - Ação {acao} - {status}"
 
     @classmethod
-    def get_valores(cls, user=None):
+    def get_valores(cls, user=None, associacao_uuid=None):
         query = cls.objects.filter(status=cls.STATUS_ATIVA)
         if user:
-            query = query.filter(associacao=user.associacao)
+            query = query.filter(associacao__uuid=associacao_uuid)
         return query.all()
 
     class Meta:

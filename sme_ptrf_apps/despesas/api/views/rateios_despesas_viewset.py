@@ -27,8 +27,15 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
     filter_fields = ('aplicacao_recurso', 'acao_associacao__uuid', 'despesa__status', 'associacao__uuid', 'conferido')
 
     def get_queryset(self):
-        user = self.request.user
-        qs = RateioDespesa.objects.filter(associacao=user.associacao).all().order_by('-despesa__data_documento')
+        associacao_uuid = self.request.query_params.get('associacao_uuid') or self.request.query_params.get('associacao__uuid') 
+        if associacao_uuid is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da associação como parâmetro..'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        qs = RateioDespesa.objects.filter(associacao__uuid=associacao_uuid).all().order_by('-despesa__data_documento')
 
         data_inicio = self.request.query_params.get('data_inicio')
         data_fim = self.request.query_params.get('data_fim')
