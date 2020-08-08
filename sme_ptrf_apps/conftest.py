@@ -142,7 +142,12 @@ def unidade(dre):
         telefone='58212627',
         email='emefjopfilho@sme.prefeitura.sp.gov.br',
         qtd_alunos=1000,
-        diretor_nome='Pedro Amaro'
+        diretor_nome='Pedro Amaro',
+        dre_cnpj='63.058.286/0001-86',
+        dre_diretor_regional_rf='1234567',
+        dre_diretor_regional_nome='Anthony Edward Stark',
+        dre_designacao_portaria='Portaria nº 0.000',
+        dre_designacao_ano='2017',
     )
 
 

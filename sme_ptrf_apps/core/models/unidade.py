@@ -2,6 +2,7 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 
 from ..models_abstracts import TemNome, ModeloBase
+from .validators import cnpj_validation
 
 
 class Unidade(ModeloBase, TemNome):
@@ -42,6 +43,19 @@ class Unidade(ModeloBase, TemNome):
     qtd_alunos = models.PositiveSmallIntegerField('Quantidade de alunos', default=0)
 
     diretor_nome = models.CharField('Nome do diretor da unidade', max_length=160, blank=True, default='')
+
+    dre_cnpj = models.CharField(
+        "CNPJ da DRE", max_length=20, validators=[cnpj_validation]
+        , blank=True, null=True, default=""
+    )
+
+    dre_diretor_regional_rf = models.CharField('RF do diretor regional ', max_length=10, blank=True, null=True, default="")
+
+    dre_diretor_regional_nome = models.CharField('Nome do diretor regional', max_length=160, blank=True, default='')
+
+    dre_designacao_portaria = models.CharField('Designação portaria', max_length=160, blank=True, default='')
+
+    dre_designacao_ano = models.CharField('Designação ano', max_length=10, blank=True, default='')
 
     def __str__(self):
         return self.nome
