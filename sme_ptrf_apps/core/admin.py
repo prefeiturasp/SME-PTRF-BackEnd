@@ -84,7 +84,6 @@ class UnidadeAdmin(admin.ModelAdmin):
                 'nome',
                 'tipo_unidade',
                 'codigo_eol',
-                'telefone',
                 'dre',
                 'sigla',
                 'cep',
@@ -93,6 +92,8 @@ class UnidadeAdmin(admin.ModelAdmin):
                 'bairro',
                 'numero',
                 'complemento',
+                'telefone',
+                'email',
                 'qtd_alunos',
                 'diretor_nome'
             )
