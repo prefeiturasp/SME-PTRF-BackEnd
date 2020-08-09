@@ -99,7 +99,7 @@ class UnidadeAdmin(admin.ModelAdmin):
             )
         }),
 
-        ('Dados da DRE da Unidade', {
+        ('Dados da Diretoria da Unidade', {
             'fields': (
                 'dre_cnpj',
                 'dre_diretor_regional_rf',
