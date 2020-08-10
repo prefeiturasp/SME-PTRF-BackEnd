@@ -6,6 +6,7 @@ from rest_framework import status
 
 pytestmark = pytest.mark.django_db
 
+
 @pytest.fixture
 def dre_unidade_educacional():
     return baker.make(
