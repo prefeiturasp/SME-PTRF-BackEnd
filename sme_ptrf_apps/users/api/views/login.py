@@ -41,22 +41,37 @@ class LoginView(ObtainJSONWebToken):
 
                     request._full_data = {'username': user_dict['login'], 'password': senha}
                     resp = super().post(request, *args, **kwargs)
-                    unidade = user.unidades.first()
-                    
-                    if not unidade:
+                    unidades = []
+                    for unidade in user.unidades.all():
+                        associacao = Associacao.objects.filter(unidade__uuid=unidade.uuid).first()
+                        unidades.append({
+                            'uuid': unidade.uuid,
+                            'nome': unidade.nome,
+                            'tipo_unidade': unidade.tipo_unidade,
+                            'associacao': {
+                                'uuid': associacao.uuid if associacao else '',
+                                'nome': associacao.nome if associacao else ''
+                            }
+                        })
+
+                    if not unidades:
                         associacao = Associacao.objects.first()
                     else:
-                        associacao = Associacao.objects.filter(unidade=unidade).first()
+                        associacao = Associacao.objects.filter(unidade__uuid=unidades[0]['uuid']).first()
+
+                    # Mantive esse trecho da associação pra não quebrar o front até o mesmo tratar as mudanças de
+                    # visões. Após o front ficar pronto esse trecho deve ser removido.
                     associacao_dict = {
                         'uuid': associacao.uuid,
                         'nome': associacao.nome,
                         'nome_escola': associacao.unidade.nome,
                         'tipo_escola': associacao.unidade.tipo_unidade} if associacao else {
-                                                                                            'uuid': '',
-                                                                                            'nome': '',
-                                                                                            'nome_escola': '',
-                                                                                            'tipo_escola': ''}
+                        'uuid': '',
+                        'nome': '',
+                        'nome_escola': '',
+                        'tipo_escola': ''}
                     user_dict['associacao'] = associacao_dict
+                    user_dict['unidades'] = unidades
                     data = {**user_dict, **resp.data}
                     return Response(data)
             return Response(response.json(), response.status_code)
