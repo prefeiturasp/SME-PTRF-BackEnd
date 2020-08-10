@@ -95,7 +95,8 @@ class UnidadeAdmin(admin.ModelAdmin):
                 'telefone',
                 'email',
                 'qtd_alunos',
-                'diretor_nome'
+                'diretor_nome',
+                'uuid'
             )
         }),
 
