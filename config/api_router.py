@@ -13,7 +13,9 @@ from sme_ptrf_apps.core.api.views import (
     PeriodosViewSet,
     PrestacoesContasViewSet,
     RelacaoBensViewSet,
-    ProcessosAssociacaoViewSet
+    ProcessosAssociacaoViewSet,
+    UnidadesViewSet
+
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
@@ -50,6 +52,7 @@ router.register("membros-associacao", MembroAssociacaoViewSet)
 router.register("esqueci-minha-senha", EsqueciMinhaSenhaViewSet)
 router.register("redefinir-senha", RedefinirSenhaViewSet)
 router.register("processos-associacao", ProcessosAssociacaoViewSet)
+router.register("unidades", UnidadesViewSet)
 
 app_name = "api"
 urlpatterns = router.urls

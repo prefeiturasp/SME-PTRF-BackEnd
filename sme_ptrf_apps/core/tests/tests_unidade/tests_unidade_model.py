@@ -25,6 +25,11 @@ def test_instance_model(unidade):
     assert model.email
     assert model.qtd_alunos
     assert model.diretor_nome
+    assert model.dre_cnpj
+    assert model.dre_diretor_regional_rf
+    assert model.dre_diretor_regional_nome
+    assert model.dre_designacao_portaria
+    assert model.dre_designacao_ano
 
 
 def test_srt_model(unidade):

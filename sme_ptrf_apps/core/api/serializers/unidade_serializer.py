@@ -38,6 +38,11 @@ class UnidadeSerializer(serializers.ModelSerializer):
             'cep',
             'qtd_alunos',
             'diretor_nome',
+            'dre_cnpj',
+            'dre_diretor_regional_rf',
+            'dre_diretor_regional_nome',
+            'dre_designacao_portaria',
+            'dre_designacao_ano',
         )
 
 

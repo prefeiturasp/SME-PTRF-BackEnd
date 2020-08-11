@@ -78,6 +78,40 @@ class UnidadeAdmin(admin.ModelAdmin):
     list_display_links = ('nome',)
     readonly_fields = ('uuid',)
 
+    fieldsets = (
+        ('Dados da Unidade', {
+            'fields': (
+                'nome',
+                'tipo_unidade',
+                'codigo_eol',
+                'dre',
+                'sigla',
+                'cep',
+                'tipo_logradouro',
+                'logradouro',
+                'bairro',
+                'numero',
+                'complemento',
+                'telefone',
+                'email',
+                'qtd_alunos',
+                'diretor_nome',
+                'uuid'
+            )
+        }),
+
+        ('Dados da Diretoria da Unidade', {
+            'fields': (
+                'dre_cnpj',
+                'dre_diretor_regional_rf',
+                'dre_diretor_regional_nome',
+                'dre_designacao_portaria',
+                'dre_designacao_ano'
+            )
+        }),
+    )
+
+
 
 @admin.register(FechamentoPeriodo)
 class FechamentoPeriodoAdmin(admin.ModelAdmin):

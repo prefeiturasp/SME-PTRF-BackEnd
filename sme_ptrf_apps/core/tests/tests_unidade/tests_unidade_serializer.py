@@ -31,6 +31,11 @@ def test_unidade_serializer(unidade):
     assert 'email' in unidade_serializer.data
     assert 'qtd_alunos' in unidade_serializer.data
     assert 'diretor_nome' in unidade_serializer.data
+    assert 'dre_cnpj' in unidade_serializer.data
+    assert 'dre_diretor_regional_rf' in unidade_serializer.data
+    assert 'dre_diretor_regional_nome' in unidade_serializer.data
+    assert 'dre_designacao_portaria' in unidade_serializer.data
+    assert 'dre_designacao_ano' in unidade_serializer.data
 
 
 def test_unidade_info_ata_serializer(unidade):
