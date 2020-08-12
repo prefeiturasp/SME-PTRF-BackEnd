@@ -1,0 +1,1 @@
+from .regularidade_associacao_service import verifica_regularidade_associacao
