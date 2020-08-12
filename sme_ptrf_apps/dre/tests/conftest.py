@@ -22,3 +22,14 @@ def item_verificacao_regularidade_documentos_associacao_cnpj(lista_verificacao_r
         descricao='CNPJ',
         lista=lista_verificacao_regularidade_documentos_associacao
     )
+
+@pytest.fixture
+def verificacao_regularidade_associacao_documento_cnpj(grupo_verificacao_regularidade_documentos, lista_verificacao_regularidade_documentos_associacao,item_verificacao_regularidade_documentos_associacao_cnpj, associacao):
+    return baker.make(
+        'VerificacaoRegularidadeAssociacao',
+        associacao=associacao,
+        grupo_verificacao=grupo_verificacao_regularidade_documentos,
+        lista_verificacao=lista_verificacao_regularidade_documentos_associacao,
+        item_verificacao=item_verificacao_regularidade_documentos_associacao_cnpj,
+        regular=True
+    )
