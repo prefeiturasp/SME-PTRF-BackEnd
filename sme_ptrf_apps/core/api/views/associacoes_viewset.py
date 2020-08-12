@@ -32,6 +32,7 @@ from ...services import (
     status_periodo_associacao,
     gerar_planilha
 )
+from ....dre.services import (verifica_regularidade_associacao)
 
 logger = logging.getLogger(__name__)
 
@@ -320,3 +321,8 @@ class AssociacoesViewSet(mixins.ListModelMixin,
         associacao = self.get_object()
         processos = associacao.processos.all()
         return Response(ProcessoAssociacaoRetrieveSerializer(processos, many=True).data)
+
+    @action(detail=True, url_path='verificacao-regularidade', methods=['get'])
+    def verificacao_regularidade(self, request, uuid=None):
+        verificacao = verifica_regularidade_associacao(uuid)
+        return Response(verificacao)
