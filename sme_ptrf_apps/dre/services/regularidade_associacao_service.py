@@ -2,10 +2,12 @@ import logging
 
 from rest_framework.exceptions import ValidationError
 
-from ..models import (GrupoVerificacaoRegularidade, VerificacaoRegularidadeAssociacao, ItemVerificacaoRegularidade)
+from ..models import (GrupoVerificacaoRegularidade, VerificacaoRegularidadeAssociacao, ItemVerificacaoRegularidade,
+                      ListaVerificacaoRegularidade)
 from ...core.models import Associacao
 
 logger = logging.getLogger(__name__)
+
 
 def verifica_regularidade_associacao(associacao_uuid):
     associacao = Associacao.by_uuid(associacao_uuid)
@@ -95,3 +97,48 @@ def desmarca_item_verificacao_associacao(associacao_uuid, item_verificacao_uuid)
 
     return 'OK' if associacao and item_verificacao else None
 
+
+def marca_lista_verificacao_associacao(associacao_uuid, lista_verificacao_uuid):
+    associacao = Associacao.by_uuid(associacao_uuid)
+
+    if not associacao:
+        msgError = f'Associacao não encontrada. UUID:{associacao_uuid}'
+        logger.info(msgError)
+        raise ValidationError(msgError)
+
+    lista_verificacao = ListaVerificacaoRegularidade.by_uuid(lista_verificacao_uuid)
+
+    if not lista_verificacao:
+        msgError = f'Lista de verificação não encontrada. UUID:{lista_verificacao_uuid}'
+        logger.info(msgError)
+        raise ValidationError(msgError)
+
+    logger.info(f'Marcando itens da lista de verificação...')
+    for item in lista_verificacao.itens_de_verificacao.all():
+        marca_item_verificacao_associacao(associacao_uuid=associacao_uuid, item_verificacao_uuid=item.uuid)
+
+
+    return 'OK' if associacao and lista_verificacao else None
+
+
+def desmarca_lista_verificacao_associacao(associacao_uuid, lista_verificacao_uuid):
+    associacao = Associacao.by_uuid(associacao_uuid)
+
+    if not associacao:
+        msgError = f'Associacao não encontrada. UUID:{associacao_uuid}'
+        logger.info(msgError)
+        raise ValidationError(msgError)
+
+    lista_verificacao = ListaVerificacaoRegularidade.by_uuid(lista_verificacao_uuid)
+
+    if not lista_verificacao:
+        msgError = f'Lista de verificação não encontrada. UUID:{lista_verificacao_uuid}'
+        logger.info(msgError)
+        raise ValidationError(msgError)
+
+    logger.info(f'Desmarcando itens da lista de verificação...')
+    for item in lista_verificacao.itens_de_verificacao.all():
+        desmarca_item_verificacao_associacao(associacao_uuid=associacao_uuid, item_verificacao_uuid=item.uuid)
+
+
+    return 'OK' if associacao and lista_verificacao else None
