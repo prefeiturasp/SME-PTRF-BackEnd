@@ -445,3 +445,35 @@ class AssociacoesViewSet(mixins.ListModelMixin,
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(result, status=status_code)
+
+    @action(detail=True, url_path='atualiza-itens-verificacao', methods=['post'])
+    def atualiza_itens_verificacao(self, request, uuid=None):
+        itens = request.data
+
+        if not itens:
+            result_error = {
+                'erro': 'campo_requerido',
+                'mensagem': 'É necessário enviar os itens de verificacao com o seu status.'
+            }
+            return Response(result_error, status=status.HTTP_400_BAD_REQUEST)
+
+        for item in itens:
+            try:
+                if item['regular']:
+                    marca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'])
+                else:
+                    desmarca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'])
+
+            except ValidationError as e:
+                result = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f'{e}'
+                }
+                status_code = status.HTTP_400_BAD_REQUEST
+
+        result = {
+            'associacao': f'{uuid}',
+            'mensagem': 'Itens de verificação atualizados.'
+        }
+        status_code = status.HTTP_200_OK
+        return Response(result, status=status_code)

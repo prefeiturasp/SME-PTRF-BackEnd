@@ -199,3 +199,43 @@ def test_desmarca_lista_verificacao(client, associacao,
     verificacao = VerificacaoRegularidadeAssociacao.objects.filter(associacao=associacao,
                                                                    lista_verificacao=lista_verificacao_regularidade_documentos_associacao)
     assert verificacao.count() == 0, 'Não deveria haver nenhum itens de verificação.'
+
+
+def test_atualiza_itens_verificacao(client, associacao,
+                                    grupo_verificacao_regularidade_documentos,
+                                    lista_verificacao_regularidade_documentos_associacao,
+                                    item_verificacao_regularidade_documentos_associacao_cnpj,
+                                    item_verificacao_regularidade_documentos_associacao_rais,
+                                    verificacao_regularidade_associacao_documento_cnpj,
+                                    verificacao_regularidade_associacao_documento_rais
+                                    ):
+    payload = [
+        {
+            "uuid": f'{item_verificacao_regularidade_documentos_associacao_cnpj.uuid}',
+            "regular": False
+        },
+        {
+            "uuid": f'{item_verificacao_regularidade_documentos_associacao_rais.uuid}',
+            "regular": True
+        }
+    ]
+    response = client.post(
+        f'/api/associacoes/{associacao.uuid}/atualiza-itens-verificacao/', data=json.dumps(payload),
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'associacao': f'{associacao.uuid}',
+        'mensagem': 'Itens de verificação atualizados.'
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
+
+    verificacao1 = VerificacaoRegularidadeAssociacao.objects.filter(associacao=associacao,
+                                                                   item_verificacao=item_verificacao_regularidade_documentos_associacao_cnpj)
+    assert verificacao1.count() == 0, 'Esse item não deveria existir'
+
+    verificacao2 = VerificacaoRegularidadeAssociacao.objects.filter(associacao=associacao,
+                                                                   item_verificacao=item_verificacao_regularidade_documentos_associacao_rais)
+    assert verificacao2.count() == 1, 'Esse item deveria existir'
