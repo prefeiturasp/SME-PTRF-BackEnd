@@ -33,8 +33,13 @@ from ...services import (
     status_periodo_associacao,
     gerar_planilha
 )
-from ....dre.services import (verifica_regularidade_associacao, marca_item_verificacao_associacao,
-                              desmarca_item_verificacao_associacao)
+from ....dre.services import (
+    verifica_regularidade_associacao,
+    marca_item_verificacao_associacao,
+    desmarca_item_verificacao_associacao,
+    marca_lista_verificacao_associacao,
+    desmarca_lista_verificacao_associacao
+)
 
 logger = logging.getLogger(__name__)
 
@@ -383,4 +388,92 @@ class AssociacoesViewSet(mixins.ListModelMixin,
             }
             status_code = status.HTTP_400_BAD_REQUEST
 
+        return Response(result, status=status_code)
+
+    @action(detail=True, url_path='marca-lista-verificacao', methods=['get'])
+    def marca_lista_verificacao(self, request, uuid=None):
+        lista = request.query_params.get('lista')
+
+        if lista is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da lista de verificação pelo parâmetro lista.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            marca_lista_verificacao_associacao(associacao_uuid=uuid, lista_verificacao_uuid=lista)
+            result = {
+                'associacao': f'{uuid}',
+                'lista_verificacao': f'{lista}',
+                'mensagem': 'Itens da lista de verificação marcados.'
+            }
+            status_code = status.HTTP_200_OK
+        except ValidationError as e:
+            result = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f'{e}'
+            }
+            status_code = status.HTTP_400_BAD_REQUEST
+
+        return Response(result, status=status_code)
+
+    @action(detail=True, url_path='desmarca-lista-verificacao', methods=['get'])
+    def desmarca_lista_verificacao(self, request, uuid=None):
+        lista = request.query_params.get('lista')
+
+        if lista is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da lista de verificação pelo parâmetro lista.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            desmarca_lista_verificacao_associacao(associacao_uuid=uuid, lista_verificacao_uuid=lista)
+            result = {
+                'associacao': f'{uuid}',
+                'lista_verificacao': f'{lista}',
+                'mensagem': 'Itens da lista de verificação desmarcados.'
+            }
+            status_code = status.HTTP_200_OK
+        except ValidationError as e:
+            result = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f'{e}'
+            }
+            status_code = status.HTTP_400_BAD_REQUEST
+
+        return Response(result, status=status_code)
+
+    @action(detail=True, url_path='atualiza-itens-verificacao', methods=['post'])
+    def atualiza_itens_verificacao(self, request, uuid=None):
+        itens = request.data
+
+        if not itens:
+            result_error = {
+                'erro': 'campo_requerido',
+                'mensagem': 'É necessário enviar os itens de verificacao com o seu status.'
+            }
+            return Response(result_error, status=status.HTTP_400_BAD_REQUEST)
+
+        for item in itens:
+            try:
+                if item['regular']:
+                    marca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'])
+                else:
+                    desmarca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'])
+
+            except ValidationError as e:
+                result = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f'{e}'
+                }
+                status_code = status.HTTP_400_BAD_REQUEST
+
+        result = {
+            'associacao': f'{uuid}',
+            'mensagem': 'Itens de verificação atualizados.'
+        }
+        status_code = status.HTTP_200_OK
         return Response(result, status=status_code)
