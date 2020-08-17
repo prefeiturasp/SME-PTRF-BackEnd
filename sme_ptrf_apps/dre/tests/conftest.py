@@ -33,3 +33,13 @@ def verificacao_regularidade_associacao_documento_cnpj(grupo_verificacao_regular
         item_verificacao=item_verificacao_regularidade_documentos_associacao_cnpj,
         regular=True
     )
+
+
+@pytest.fixture
+def tecnico_dre(dre):
+    return baker.make(
+        'TecnicoDre',
+        dre=dre,
+        nome='José Testando',
+        rf='271170',
+    )

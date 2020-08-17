@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import (GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade, ItemVerificacaoRegularidade,
-                     VerificacaoRegularidadeAssociacao)
+                     VerificacaoRegularidadeAssociacao, TecnicoDre)
 
 
 class ListasVerificacaoInline(admin.TabularInline):
@@ -47,4 +47,11 @@ class VerificacaoRegularidadeAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('item_verificacao', 'regular', 'lista_verificacao', 'associacao')
     search_fields = ('uuid', 'item_verificacao__descricao')
     list_filter = ('associacao','lista_verificacao', 'grupo_verificacao', 'item_verificacao')
+    readonly_fields = ('uuid', 'id')
+
+@admin.register(TecnicoDre)
+class TecnicoDreAdmin(admin.ModelAdmin):
+    list_display = ('rf', 'nome', 'dre')
+    search_fields = ('uuid', 'nome', 'rf')
+    list_filter = ('dre',)
     readonly_fields = ('uuid', 'id')
