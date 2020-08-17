@@ -19,6 +19,10 @@ class UnidadeInline(admin.TabularInline):
     model = Unidade.user_set.through
     extra = 1
 
+class VisaoInline(admin.TabularInline):
+    model = Visao.user_set.through
+    extra = 1
+
 @admin.register(User)
 class UserAdmin(auth_admin.UserAdmin):
 
@@ -27,6 +31,6 @@ class UserAdmin(auth_admin.UserAdmin):
     fieldsets = (("User", {"fields": ("name",)}),) + auth_admin.UserAdmin.fieldsets
     list_display = ["uuid", "username", "name", "is_superuser",]
     search_fields = ["name"]
-    inlines = [UnidadeInline,]
+    inlines = [UnidadeInline, VisaoInline]
 
 admin.site.register(Visao)
