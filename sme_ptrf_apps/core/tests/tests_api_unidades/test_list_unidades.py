@@ -108,3 +108,47 @@ def test_api_list_unidades_todas(client, unidade_paulo_camilhier_florencano_dre_
 
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado
+
+
+
+@pytest.fixture
+def tecnico_dre(dre):
+    return baker.make(
+        'TecnicoDre',
+        dre=dre,
+        nome='José Testando',
+        rf='271170',
+    )
+
+
+@pytest.fixture
+def atribuicao(tecnico_dre, unidade, periodo):
+    return baker.make(
+        'Atribuicao',
+        tecnico=tecnico_dre,
+        unidade=unidade,
+        periodo=periodo,
+    )
+
+
+def test_unidades_para_atribuicao(jwt_authenticated_client, unidade, periodo, tecnico_dre, atribuicao):
+    response = jwt_authenticated_client.get(f'/api/unidades/para-atribuicao/?dre_uuid={unidade.dre.uuid}&periodo={periodo.uuid}', content_type='application/json')
+    result = json.loads(response.content)
+
+    resultado_esperado = [
+        {
+            'uuid': str(unidade.uuid), 
+            'codigo_eol': unidade.codigo_eol, 
+            'nome': unidade.nome, 
+            'atribuicao': {
+                'id': atribuicao.id, 
+                'tecnico': {
+                    'uuid': str(tecnico_dre.uuid), 
+                    'rf': tecnico_dre.rf, 
+                    'nome': tecnico_dre.nome
+                }
+            }
+        }]    
+
+    assert response.status_code == 200
+    assert resultado_esperado == result

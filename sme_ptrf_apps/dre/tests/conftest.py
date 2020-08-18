@@ -43,3 +43,13 @@ def tecnico_dre(dre):
         nome='José Testando',
         rf='271170',
     )
+
+
+@pytest.fixture
+def atribuicao(tecnico_dre, unidade, periodo):
+    return baker.make(
+        'Atribuicao',
+        tecnico=tecnico_dre,
+        unidade=unidade,
+        periodo=periodo,
+    )

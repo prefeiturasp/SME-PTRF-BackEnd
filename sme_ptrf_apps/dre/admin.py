@@ -1,7 +1,13 @@
 from django.contrib import admin
 
-from .models import (GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade, ItemVerificacaoRegularidade,
-                     VerificacaoRegularidadeAssociacao, TecnicoDre)
+from .models import (
+    Atribuicao,
+    GrupoVerificacaoRegularidade,
+    ItemVerificacaoRegularidade,
+    ListaVerificacaoRegularidade,
+    TecnicoDre,
+    VerificacaoRegularidadeAssociacao,
+)
 
 
 class ListasVerificacaoInline(admin.TabularInline):
@@ -55,3 +61,17 @@ class TecnicoDreAdmin(admin.ModelAdmin):
     search_fields = ('uuid', 'nome', 'rf')
     list_filter = ('dre',)
     readonly_fields = ('uuid', 'id')
+
+
+@admin.register(Atribuicao)
+class AtribuicaoAdmin(admin.ModelAdmin):
+    list_display = ('get_unidade_codigo_eol', 'get_unidade_nome', 'get_nome_tecnico')
+
+    def get_nome_tecnico(self, obj):
+        return obj.tecnico.nome if obj.tecnico else ''
+
+    def get_unidade_codigo_eol(self, obj):
+        return obj.unidade.codigo_eol if obj.unidade else ''
+    
+    def get_unidade_nome(self, obj):
+        return obj.unidade.nome if obj.unidade else ''
