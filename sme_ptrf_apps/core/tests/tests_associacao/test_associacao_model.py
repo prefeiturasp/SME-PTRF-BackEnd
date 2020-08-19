@@ -21,6 +21,7 @@ def test_instance_model(associacao):
     assert model.ccm
     assert model.email
     assert model.status_regularidade
+    assert model.processo_regularidade is not None
 
 
 def test_srt_model(associacao):

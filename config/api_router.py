@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.urls import include, path
+from django.urls import path
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter, SimpleRouter
@@ -13,11 +13,15 @@ from sme_ptrf_apps.core.api.views import (
     PeriodosViewSet,
     PrestacoesContasViewSet,
     RelacaoBensViewSet,
+    ProcessosAssociacaoViewSet,
+    UnidadesViewSet
+
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
 from sme_ptrf_apps.despesas.api.views.fornecedores_viewset import FornecedoresViewSet
 from sme_ptrf_apps.despesas.api.views.rateios_despesas_viewset import RateiosDespesasViewSet
+from sme_ptrf_apps.dre.api.views import TecnicosDreViewSet
 from sme_ptrf_apps.receitas.api.views import ReceitaViewSet, RepasseViewSet
 from sme_ptrf_apps.users.api.views import EsqueciMinhaSenhaViewSet, LoginView, RedefinirSenhaViewSet, UserViewSet
 
@@ -48,6 +52,9 @@ router.register("atas-associacao", AtasViewSet)
 router.register("membros-associacao", MembroAssociacaoViewSet)
 router.register("esqueci-minha-senha", EsqueciMinhaSenhaViewSet)
 router.register("redefinir-senha", RedefinirSenhaViewSet)
+router.register("processos-associacao", ProcessosAssociacaoViewSet)
+router.register("unidades", UnidadesViewSet)
+router.register("tecnicos-dre", TecnicosDreViewSet)
 
 app_name = "api"
 urlpatterns = router.urls

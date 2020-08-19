@@ -19,6 +19,7 @@ class AssociacaoSerializer(serializers.ModelSerializer):
             'status_regularidade',
             'unidade',
             'id',
+            'processo_regularidade',
         )
 
 
@@ -81,4 +82,5 @@ class AssociacaoCompletoSerializer(serializers.ModelSerializer):
             'email',
             'presidente_associacao',
             'presidente_conselho_fiscal',
+            'processo_regularidade',
         ]

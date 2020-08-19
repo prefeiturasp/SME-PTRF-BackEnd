@@ -16,6 +16,7 @@ def test_serializer(associacao):
     assert serializer.data['unidade']
     assert serializer.data['cnpj']
     assert serializer.data['ccm']
+    assert serializer.data['processo_regularidade']
 
 
 def test_lookup_serializer(associacao):
@@ -34,6 +35,7 @@ def test_create_serializer(associacao):
     assert serializer.data['nome']
     assert serializer.data['unidade']
     assert serializer.data['cnpj']
+    assert serializer.data['processo_regularidade']
 
 
 def test_list_serializer(associacao):
@@ -57,3 +59,4 @@ def test_completo_serializer(associacao, membro_associacao_presidente_associacao
     assert serializer.data['ccm']
     assert serializer.data['presidente_associacao']
     assert serializer.data['presidente_conselho_fiscal']
+    assert serializer.data['processo_regularidade']

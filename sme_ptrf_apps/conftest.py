@@ -15,31 +15,37 @@ from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTE
 
 
 @pytest.fixture
-def fake_user(client, django_user_model, associacao):
+def fake_user(client, django_user_model, unidade):
     password = 'teste'
     username = 'fake'
-    user = django_user_model.objects.create_user(username=username, password=password, associacao=associacao)
+    user = django_user_model.objects.create_user(username=username, password=password)
     client.login(username=username, password=password)
+    user.unidades.add(unidade)
+    user.save()
     return user
 
 
 @pytest.fixture
-def authenticated_client(client, django_user_model, associacao):
+def authenticated_client(client, django_user_model, unidade):
     password = 'teste'
     username = 'fake'
-    django_user_model.objects.create_user(username=username, password=password, associacao=associacao)
+    user = django_user_model.objects.create_user(username=username, password=password)
     client.login(username=username, password=password)
+    user.unidades.add(unidade)
+    user.save()
     return client
 
 
 @pytest.fixture
-def usuario(associacao):
+def usuario(unidade):
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
     login = '7210418'
     email = 'sme@amcom.com.br'
     User = get_user_model()
-    user = User.objects.create_user(username=login, password=senha, associacao=associacao, email=email)
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(unidade)
+    user.save()
     return user
 
 
@@ -136,7 +142,12 @@ def unidade(dre):
         telefone='58212627',
         email='emefjopfilho@sme.prefeitura.sp.gov.br',
         qtd_alunos=1000,
-        diretor_nome='Pedro Amaro'
+        diretor_nome='Pedro Amaro',
+        dre_cnpj='63.058.286/0001-86',
+        dre_diretor_regional_rf='1234567',
+        dre_diretor_regional_nome='Anthony Edward Stark',
+        dre_designacao_portaria='Portaria nº 0.000',
+        dre_designacao_ano='2017',
     )
 
 
@@ -149,7 +160,8 @@ def associacao(unidade, periodo_anterior):
         unidade=unidade,
         periodo_inicial=periodo_anterior,
         ccm='0.000.00-0',
-        email="ollyverottoboni@gmail.com"
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456'
     )
 
 
@@ -169,7 +181,7 @@ def associacao_sem_periodo_inicial(unidade):
     return baker.make(
         'Associacao',
         nome='Escola Teste',
-        cnpj='52.302.275/0001-83',
+        cnpj='44.219.758/0001-90',
         unidade=unidade,
         periodo_inicial=None,
     )
@@ -1308,3 +1320,14 @@ def tag_ativa():
         nome="COVID-19",
         status=StatusTag.ATIVO.name
     )
+
+@pytest.fixture
+def processo_associacao_123456_2019(associacao):
+    return baker.make(
+        'ProcessoAssociacao',
+        associacao=associacao,
+        numero_processo='123456',
+        ano='2019'
+    )
+
+

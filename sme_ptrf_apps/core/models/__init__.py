@@ -11,6 +11,7 @@ from .observacao import Observacao
 from .parametros import Parametros
 from .periodo import Periodo
 from .prestacao_conta import STATUS_ABERTO, STATUS_FECHADO, PrestacaoConta
+from .proccessos_associacao import ProcessoAssociacao
 from .relacao_bens import RelacaoBens
 from .tag import Tag
 from .tipo_conta import TipoConta

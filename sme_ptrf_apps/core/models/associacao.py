@@ -41,6 +41,8 @@ class Associacao(ModeloIdNome):
         default=STATUS_REGULARIDADE_PENDENTE,
     )
 
+    processo_regularidade = models.CharField('Nº processo regularidade', max_length=100, default='', blank=True)
+
     def apaga_implantacoes_de_saldo(self):
         self.fechamentos_associacao.filter(status='IMPLANTACAO').delete()
 

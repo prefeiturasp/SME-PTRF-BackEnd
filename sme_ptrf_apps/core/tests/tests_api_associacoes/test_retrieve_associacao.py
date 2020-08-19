@@ -57,6 +57,7 @@ def test_api_retrieve_associacao(client, associacao, presidente_associacao, pres
             'email': presidente_conselho_fiscal.email,
             'cargo_educacao': presidente_conselho_fiscal.cargo_educacao
         },
+        'processo_regularidade': '123456',
         'unidade': {
             'codigo_eol': f'{associacao.unidade.codigo_eol}',
             'dre': {
@@ -66,6 +67,11 @@ def test_api_retrieve_associacao(client, associacao, presidente_associacao, pres
                 'tipo_unidade': 'DRE',
                 'uuid': f'{associacao.unidade.dre.uuid}'
             },
+            'dre_cnpj': f'{associacao.unidade.dre_cnpj}',
+            'dre_designacao_ano': f'{associacao.unidade.dre_designacao_ano}',
+            'dre_designacao_portaria': f'{associacao.unidade.dre_designacao_portaria}',
+            'dre_diretor_regional_nome': f'{associacao.unidade.dre_diretor_regional_nome}',
+            'dre_diretor_regional_rf': f'{associacao.unidade.dre_diretor_regional_rf}',
             'nome': f'{associacao.unidade.nome}',
             'sigla': f'{associacao.unidade.sigla}',
             'tipo_unidade': f'{associacao.unidade.tipo_unidade}',
