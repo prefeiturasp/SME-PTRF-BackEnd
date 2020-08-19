@@ -9,7 +9,7 @@ class TecnicoDre(ModeloBase):
 
     nome = models.CharField('Nome', max_length=160)
 
-    rf = models.CharField('RF', max_length=10, blank=True, null=True, default="")
+    rf = models.CharField('RF', max_length=10, blank=True, null=True, default="", unique=True)
 
     class Meta:
         verbose_name = "Técnico de DRE"
