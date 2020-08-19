@@ -12,7 +12,7 @@ class TecnicosDreViewSet(viewsets.ModelViewSet):
     queryset = TecnicoDre.objects.all()
     serializer_class = TecnicoDreSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('dre__uuid',)
+    filter_fields = ('dre__uuid', 'rf')
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
             return TecnicoDreSerializer
