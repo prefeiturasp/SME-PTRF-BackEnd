@@ -1,4 +1,3 @@
-import datetime
 import logging
 from io import BytesIO
 
@@ -28,10 +27,10 @@ from ...models import Associacao, ContaAssociacao, Periodo, Unidade
 from ...services import (
     implanta_saldos_da_associacao,
     implantacoes_de_saldo_da_associacao,
-    info_acoes_associacao_no_periodo,
     status_aceita_alteracoes_em_transacoes,
     status_periodo_associacao,
-    gerar_planilha
+    gerar_planilha,
+    info_painel_acoes_por_periodo_e_conta
 )
 from ....dre.services import (
     verifica_regularidade_associacao,
@@ -76,35 +75,12 @@ class AssociacoesViewSet(mixins.ListModelMixin,
     @action(detail=True, url_path='painel-acoes')
     def painel_acoes(self, request, uuid=None):
 
-        periodo = None
-
         periodo_uuid = request.query_params.get('periodo_uuid')
-        if periodo_uuid:
-            periodo = Periodo.by_uuid(periodo_uuid)
 
-        if not periodo:
-            periodo = Periodo.periodo_atual()
+        conta_associacao_uuid = request.query_params.get('conta')
 
-        periodo_status = status_periodo_associacao(periodo_uuid=periodo.uuid, associacao_uuid=uuid)
-        ultima_atualizacao = datetime.datetime.now()
-        info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=uuid, periodo=periodo)
-
-        info_acoes = [info for info in info_acoes if
-                      info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
-
-        info_conta = None
-
-        result = {
-            'associacao': f'{uuid}',
-            'periodo_referencia': periodo.referencia,
-            'periodo_status': periodo_status,
-            'data_inicio_realizacao_despesas': f'{periodo.data_inicio_realizacao_despesas if periodo else ""}',
-            'data_fim_realizacao_despesas': f'{periodo.data_fim_realizacao_despesas if periodo else ""}',
-            'data_prevista_repasse': f'{periodo.data_prevista_repasse if periodo else ""}',
-            'ultima_atualizacao': f'{ultima_atualizacao}',
-            'info_acoes': info_acoes,
-            'info_conta': info_conta
-        }
+        result = info_painel_acoes_por_periodo_e_conta(associacao_uuid=uuid, periodo_uuid=periodo_uuid,
+                                                       conta_associacao_uuid=conta_associacao_uuid)
 
         return Response(result)
 
