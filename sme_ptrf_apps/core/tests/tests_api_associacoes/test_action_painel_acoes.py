@@ -15,7 +15,8 @@ def test_action_painel_acoes(
     client,
     associacao,
     periodo_anterior,
-    periodo, acao_associacao,
+    periodo,
+    acao_associacao,
     receita_100_no_periodo,
     receita_300_repasse_no_periodo,
     receita_50_fora_do_periodo,
@@ -88,7 +89,8 @@ def test_action_painel_acoes(
                 'repasses_nao_realizados_custeio': 0.0,
                 'repasses_nao_realizados_livre': 0.0
             }
-        ]
+        ],
+        'info_conta': None
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -175,7 +177,8 @@ def test_action_painel_acoes_por_periodo(
                 'repasses_nao_realizados_custeio': 0.0,
                 'repasses_nao_realizados_livre': 0.0
             }
-        ]
+        ],
+        'info_conta': None
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -224,7 +227,7 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
                 'receitas_devolucao_no_periodo': 0,
                 'receitas_devolucao_no_periodo_capital': 0,
                 'receitas_devolucao_no_periodo_custeio': 0,
-                'receitas_devolucao_no_periodo_livre': 0,           
+                'receitas_devolucao_no_periodo_livre': 0,
 
                 'outras_receitas_no_periodo': 100.0,
                 'outras_receitas_no_periodo_capital': 0,
@@ -308,7 +311,8 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
                 'repasses_nao_realizados_custeio': 0.0,
                 'repasses_nao_realizados_livre': 0.0
             }
-        ]
+        ],
+        'info_conta': None
     }
 
     assert response.status_code == status.HTTP_200_OK

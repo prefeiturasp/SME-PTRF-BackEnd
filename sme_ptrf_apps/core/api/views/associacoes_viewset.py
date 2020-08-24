@@ -92,6 +92,8 @@ class AssociacoesViewSet(mixins.ListModelMixin,
         info_acoes = [info for info in info_acoes if
                       info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
 
+        info_conta = None
+
         result = {
             'associacao': f'{uuid}',
             'periodo_referencia': periodo.referencia,
@@ -100,7 +102,8 @@ class AssociacoesViewSet(mixins.ListModelMixin,
             'data_fim_realizacao_despesas': f'{periodo.data_fim_realizacao_despesas if periodo else ""}',
             'data_prevista_repasse': f'{periodo.data_prevista_repasse if periodo else ""}',
             'ultima_atualizacao': f'{ultima_atualizacao}',
-            'info_acoes': info_acoes
+            'info_acoes': info_acoes,
+            'info_conta': info_conta
         }
 
         return Response(result)
