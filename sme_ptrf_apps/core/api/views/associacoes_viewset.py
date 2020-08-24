@@ -1,45 +1,77 @@
 import datetime
 import logging
+from io import BytesIO
 
+from django.db.models import Q
+from django.http import HttpResponse
+from django_filters import rest_framework as filters
+from openpyxl.writer.excel import save_virtual_workbook
 from rest_framework import mixins, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ...models import Associacao, ContaAssociacao, Periodo
-from ...services import (
-    implanta_saldos_da_associacao,
-    implantacoes_de_saldo_da_associacao,
-    info_acoes_associacao_no_periodo,
-    status_aceita_alteracoes_em_transacoes,
-    status_periodo_associacao,
-)
 from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
-from ..serializers.associacao_serializer import AssociacaoCreateSerializer, AssociacaoSerializer
+from ..serializers.associacao_serializer import (AssociacaoCreateSerializer, AssociacaoSerializer,
+                                                 AssociacaoListSerializer, AssociacaoCompletoSerializer)
 from ..serializers.conta_associacao_serializer import (
     ContaAssociacaoCreateSerializer,
     ContaAssociacaoDadosSerializer,
     ContaAssociacaoLookUpSerializer,
 )
 from ..serializers.periodo_serializer import PeriodoLookUpSerializer
+from ..serializers.processo_associacao_serializer import ProcessoAssociacaoRetrieveSerializer
+from ...models import Associacao, ContaAssociacao, Periodo, Unidade
+from ...services import (
+    implanta_saldos_da_associacao,
+    implantacoes_de_saldo_da_associacao,
+    info_acoes_associacao_no_periodo,
+    status_aceita_alteracoes_em_transacoes,
+    status_periodo_associacao,
+    gerar_planilha
+)
+from ....dre.services import (
+    verifica_regularidade_associacao,
+    marca_item_verificacao_associacao,
+    desmarca_item_verificacao_associacao,
+    marca_lista_verificacao_associacao,
+    desmarca_lista_verificacao_associacao
+)
 
 logger = logging.getLogger(__name__)
 
 
-class AssociacoesViewSet(mixins.RetrieveModelMixin,
+class AssociacoesViewSet(mixins.ListModelMixin,
+                         mixins.RetrieveModelMixin,
                          mixins.UpdateModelMixin,
-                         GenericViewSet):
+                         GenericViewSet, ):
     permission_classes = [AllowAny]
     lookup_field = 'uuid'
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer
+    filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
+    filter_fields = ('unidade__dre__uuid', 'status_regularidade', 'unidade__tipo_unidade')
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
-            return AssociacaoSerializer
+        if self.action == 'retrieve':
+            return AssociacaoCompletoSerializer
+        elif self.action == 'list':
+            return AssociacaoListSerializer
         else:
             return AssociacaoCreateSerializer
+
+    def get_queryset(self):
+        qs = Associacao.objects.all()
+
+        nome = self.request.query_params.get('nome')
+        if nome is not None:
+            qs = qs.filter(Q(nome__unaccent__icontains=nome) | Q(
+                unidade__nome__unaccent__icontains=nome))
+
+        return qs
 
     @action(detail=True, url_path='painel-acoes')
     def painel_acoes(self, request, uuid=None):
@@ -57,7 +89,8 @@ class AssociacoesViewSet(mixins.RetrieveModelMixin,
         ultima_atualizacao = datetime.datetime.now()
         info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=uuid, periodo=periodo)
 
-        info_acoes = [info for info in info_acoes if info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+        info_acoes = [info for info in info_acoes if
+                      info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
 
         result = {
             'associacao': f'{uuid}',
@@ -253,3 +286,194 @@ class AssociacoesViewSet(mixins.RetrieveModelMixin,
             status_code = status.HTTP_200_OK
 
         return Response(resultado, status=status_code)
+
+    @action(detail=False, url_path='tabelas')
+    def tabelas(self, _):
+        result = {
+            'tipos_unidade': Unidade.tipos_unidade_to_json(),
+            'status_regularidade': Associacao.status_regularidade_to_json(),
+        }
+        return Response(result)
+
+    @staticmethod
+    def _gerar_planilha(associacao_uuid):
+        associacao = Associacao.by_uuid(associacao_uuid)
+        xlsx = gerar_planilha(associacao)
+        return xlsx
+
+    @action(detail=True, methods=['get'], url_path='exportar')
+    def exportar(self, _, uuid=None):
+
+        xlsx = self._gerar_planilha(uuid)
+
+        result = BytesIO(save_virtual_workbook(xlsx))
+
+        filename = 'associacao.xlsx'
+        response = HttpResponse(
+            result,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
+        return response
+
+    @action(detail=True, url_path='periodos-para-prestacao-de-contas', methods=['get'])
+    def periodos_para_prestacao_de_contas(self, request, uuid=None):
+        associacao = self.get_object()
+        periodos = associacao.periodos_para_prestacoes_de_conta()
+        return Response(PeriodoLookUpSerializer(periodos, many=True).data)
+
+    @action(detail=True, url_path='processos', methods=['get'])
+    def processos_da_associacao(self, request, uuid=None):
+        associacao = self.get_object()
+        processos = associacao.processos.all()
+        return Response(ProcessoAssociacaoRetrieveSerializer(processos, many=True).data)
+
+    @action(detail=True, url_path='verificacao-regularidade', methods=['get'])
+    def verificacao_regularidade(self, request, uuid=None):
+        verificacao = verifica_regularidade_associacao(uuid)
+        return Response(verificacao)
+
+    @action(detail=True, url_path='marca-item-verificacao', methods=['get'])
+    def marca_item_verificacao(self, request, uuid=None):
+        item = request.query_params.get('item')
+
+        if item is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid do item de verificação pelo parâmetro item.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            marca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item)
+            result = {
+                'associacao': f'{uuid}',
+                'item_verificacao': f'{item}',
+                'mensagem': 'Item de verificação marcado.'
+            }
+            status_code = status.HTTP_200_OK
+        except ValidationError as e:
+            result = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f'{e}'
+            }
+            status_code = status.HTTP_400_BAD_REQUEST
+
+        return Response(result, status=status_code)
+
+    @action(detail=True, url_path='desmarca-item-verificacao', methods=['get'])
+    def desmarca_item_verificacao(self, request, uuid=None):
+        item = request.query_params.get('item')
+
+        if item is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid do item de verificação pelo parâmetro item.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            desmarca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item)
+            result = {
+                'associacao': f'{uuid}',
+                'item_verificacao': f'{item}',
+                'mensagem': 'Item de verificação desmarcado.'
+            }
+            status_code = status.HTTP_200_OK
+        except ValidationError as e:
+            result = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f'{e}'
+            }
+            status_code = status.HTTP_400_BAD_REQUEST
+
+        return Response(result, status=status_code)
+
+    @action(detail=True, url_path='marca-lista-verificacao', methods=['get'])
+    def marca_lista_verificacao(self, request, uuid=None):
+        lista = request.query_params.get('lista')
+
+        if lista is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da lista de verificação pelo parâmetro lista.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            marca_lista_verificacao_associacao(associacao_uuid=uuid, lista_verificacao_uuid=lista)
+            result = {
+                'associacao': f'{uuid}',
+                'lista_verificacao': f'{lista}',
+                'mensagem': 'Itens da lista de verificação marcados.'
+            }
+            status_code = status.HTTP_200_OK
+        except ValidationError as e:
+            result = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f'{e}'
+            }
+            status_code = status.HTTP_400_BAD_REQUEST
+
+        return Response(result, status=status_code)
+
+    @action(detail=True, url_path='desmarca-lista-verificacao', methods=['get'])
+    def desmarca_lista_verificacao(self, request, uuid=None):
+        lista = request.query_params.get('lista')
+
+        if lista is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da lista de verificação pelo parâmetro lista.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            desmarca_lista_verificacao_associacao(associacao_uuid=uuid, lista_verificacao_uuid=lista)
+            result = {
+                'associacao': f'{uuid}',
+                'lista_verificacao': f'{lista}',
+                'mensagem': 'Itens da lista de verificação desmarcados.'
+            }
+            status_code = status.HTTP_200_OK
+        except ValidationError as e:
+            result = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f'{e}'
+            }
+            status_code = status.HTTP_400_BAD_REQUEST
+
+        return Response(result, status=status_code)
+
+    @action(detail=True, url_path='atualiza-itens-verificacao', methods=['post'])
+    def atualiza_itens_verificacao(self, request, uuid=None):
+        itens = request.data
+
+        if not itens:
+            result_error = {
+                'erro': 'campo_requerido',
+                'mensagem': 'É necessário enviar os itens de verificacao com o seu status.'
+            }
+            return Response(result_error, status=status.HTTP_400_BAD_REQUEST)
+
+        for item in itens:
+            try:
+                if item['regular']:
+                    marca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'])
+                else:
+                    desmarca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'])
+
+            except ValidationError as e:
+                result = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f'{e}'
+                }
+                status_code = status.HTTP_400_BAD_REQUEST
+
+        result = {
+            'associacao': f'{uuid}',
+            'mensagem': 'Itens de verificação atualizados.'
+        }
+        status_code = status.HTTP_200_OK
+        return Response(result, status=status_code)

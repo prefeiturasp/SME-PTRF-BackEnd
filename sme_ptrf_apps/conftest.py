@@ -15,31 +15,37 @@ from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTE
 
 
 @pytest.fixture
-def fake_user(client, django_user_model, associacao):
+def fake_user(client, django_user_model, unidade):
     password = 'teste'
     username = 'fake'
-    user = django_user_model.objects.create_user(username=username, password=password, associacao=associacao)
+    user = django_user_model.objects.create_user(username=username, password=password)
     client.login(username=username, password=password)
+    user.unidades.add(unidade)
+    user.save()
     return user
 
 
 @pytest.fixture
-def authenticated_client(client, django_user_model, associacao):
+def authenticated_client(client, django_user_model, unidade):
     password = 'teste'
     username = 'fake'
-    django_user_model.objects.create_user(username=username, password=password, associacao=associacao)
+    user = django_user_model.objects.create_user(username=username, password=password)
     client.login(username=username, password=password)
+    user.unidades.add(unidade)
+    user.save()
     return client
 
 
 @pytest.fixture
-def usuario(associacao):
+def usuario(unidade):
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
     login = '7210418'
     email = 'sme@amcom.com.br'
     User = get_user_model()
-    user = User.objects.create_user(username=login, password=senha, associacao=associacao, email=email)
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(unidade)
+    user.save()
     return user
 
 
@@ -120,7 +126,29 @@ def dre():
 
 @pytest.fixture
 def unidade(dre):
-    return baker.make('Unidade', codigo_eol='123456', dre=dre, tipo_unidade='CEU', nome='Escola Teste')
+    return baker.make(
+        'Unidade',
+        nome='Escola Teste',
+        tipo_unidade='CEU',
+        codigo_eol='123456',
+        dre=dre,
+        sigla='ET',
+        cep='5868120',
+        tipo_logradouro='Travessa',
+        logradouro='dos Testes',
+        bairro='COHAB INSTITUTO ADVENTISTA',
+        numero='200',
+        complemento='fundos',
+        telefone='58212627',
+        email='emefjopfilho@sme.prefeitura.sp.gov.br',
+        qtd_alunos=1000,
+        diretor_nome='Pedro Amaro',
+        dre_cnpj='63.058.286/0001-86',
+        dre_diretor_regional_rf='1234567',
+        dre_diretor_regional_nome='Anthony Edward Stark',
+        dre_designacao_portaria='Portaria nº 0.000',
+        dre_designacao_ano='2017',
+    )
 
 
 @pytest.fixture
@@ -130,13 +158,10 @@ def associacao(unidade, periodo_anterior):
         nome='Escola Teste',
         cnpj='52.302.275/0001-83',
         unidade=unidade,
-        presidente_associacao_nome='Fulano',
-        presidente_associacao_rf='1234567',
-        presidente_conselho_fiscal_nome='Ciclano',
-        presidente_conselho_fiscal_rf='7654321',
         periodo_inicial=periodo_anterior,
         ccm='0.000.00-0',
-        email="ollyverottoboni@gmail.com"
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456'
     )
 
 
@@ -147,10 +172,6 @@ def outra_associacao(unidade, periodo_anterior):
         nome='Outra',
         cnpj='52.302.275/0001-99',
         unidade=unidade,
-        presidente_associacao_nome='Fulano',
-        presidente_associacao_rf='1234567',
-        presidente_conselho_fiscal_nome='Ciclano',
-        presidente_conselho_fiscal_rf='7654321',
         periodo_inicial=periodo_anterior,
     )
 
@@ -160,12 +181,8 @@ def associacao_sem_periodo_inicial(unidade):
     return baker.make(
         'Associacao',
         nome='Escola Teste',
-        cnpj='52.302.275/0001-83',
+        cnpj='44.219.758/0001-90',
         unidade=unidade,
-        presidente_associacao_nome='Fulano',
-        presidente_associacao_rf='1234567',
-        presidente_conselho_fiscal_nome='Ciclano',
-        presidente_conselho_fiscal_rf='7654321',
         periodo_inicial=None,
     )
 
@@ -501,7 +518,8 @@ def fechamento_2020_1(periodo_2020_1, associacao, conta_associacao, acao_associa
 
 
 @pytest.fixture
-def fechamento_2020_1_com_livre(periodo_2020_1, associacao, conta_associacao, acao_associacao, prestacao_conta_2020_1_conciliada):
+def fechamento_2020_1_com_livre(periodo_2020_1, associacao, conta_associacao, acao_associacao,
+                                prestacao_conta_2020_1_conciliada):
     return baker.make(
         'FechamentoPeriodo',
         periodo=periodo_2020_1,
@@ -1115,7 +1133,8 @@ def rateio_fora_periodo_50_custeio(associacao, despesa_fora_periodo, conta_assoc
 def parametros():
     return baker.make(
         'Parametros',
-        permite_saldo_conta_negativo=True
+        permite_saldo_conta_negativo=True,
+        fique_de_olho='',
     )
 
 
@@ -1132,6 +1151,21 @@ def parametros_nao_aceita_saldo_negativo_em_conta():
     return baker.make(
         'Parametros',
         permite_saldo_conta_negativo=False
+    )
+
+
+@pytest.fixture
+def parametros_tempo_nao_conferido_10_dias():
+    return baker.make(
+        'Parametros',
+        tempo_notificar_nao_demonstrados=10
+    )
+
+@pytest.fixture
+def parametros_tempo_nao_conferido_60_dias():
+    return baker.make(
+        'Parametros',
+        tempo_notificar_nao_demonstrados=60
     )
 
 
@@ -1181,6 +1215,34 @@ def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
 
 @pytest.fixture
 def membro_associacao(associacao):
+    return baker.make(
+        'MembroAssociacao',
+        nome='Arthur Nobrega',
+        associacao=associacao,
+        cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value,
+        cargo_educacao='Coordenador',
+        representacao=RepresentacaoCargo.SERVIDOR.value,
+        codigo_identificacao='567432',
+        email='ollyverottoboni@gmail.com'
+    )
+
+
+@pytest.fixture
+def membro_associacao_presidente_conselho(associacao):
+    return baker.make(
+        'MembroAssociacao',
+        nome='Arthur Nobrega',
+        associacao=associacao,
+        cargo_associacao=MembroEnum.PRESIDENTE_CONSELHO_FISCAL.value,
+        cargo_educacao='Coordenador',
+        representacao=RepresentacaoCargo.SERVIDOR.value,
+        codigo_identificacao='567432',
+        email='ollyverottoboni@gmail.com'
+    )
+
+
+@pytest.fixture
+def membro_associacao_presidente_associacao(associacao):
     return baker.make(
         'MembroAssociacao',
         nome='Arthur Nobrega',
@@ -1258,3 +1320,14 @@ def tag_ativa():
         nome="COVID-19",
         status=StatusTag.ATIVO.name
     )
+
+@pytest.fixture
+def processo_associacao_123456_2019(associacao):
+    return baker.make(
+        'ProcessoAssociacao',
+        associacao=associacao,
+        numero_processo='123456',
+        ano='2019'
+    )
+
+

@@ -16,14 +16,12 @@ def test_instance_model(associacao):
     assert model.uuid
     assert model.id
     assert model.cnpj
-    assert model.presidente_associacao_nome
-    assert model.presidente_associacao_rf
-    assert model.presidente_conselho_fiscal_nome
-    assert model.presidente_conselho_fiscal_rf
     assert isinstance(model.unidade, Unidade)
     assert isinstance(model.periodo_inicial, Periodo)
     assert model.ccm
     assert model.email
+    assert model.status_regularidade
+    assert model.processo_regularidade is not None
 
 
 def test_srt_model(associacao):

@@ -7,16 +7,28 @@ from django.db.models import CharField
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
-from sme_ptrf_apps.core.models import Associacao
+from sme_ptrf_apps.core.models import Associacao, Unidade
+from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
+
+
+class Visao(ModeloIdNome):
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = 'Visão'
+        verbose_name_plural = 'Visões'
 
 
 class User(AbstractUser):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, null=True)
     name = CharField(_("Nome do usuário"), blank=True, max_length=255)
-    associacao = models.ForeignKey(Associacao, on_delete=models.PROTECT, related_name="usuarios",
-                                null=True, blank=True)
     hash_redefinicao = models.TextField(blank=True, default='', 
                                         help_text='Campo utilizado para registrar hash na redefinição de senhas.')
+
+    unidades = models.ManyToManyField(Unidade, blank=True)
+    visoes = models.ManyToManyField(Visao, blank=True)
 
     def get_absolute_url(self):
         return reverse("users:detail", kwargs={"username": self.username})

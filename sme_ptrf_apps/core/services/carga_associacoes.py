@@ -72,10 +72,6 @@ def processa_associacoes(reader):
             defaults={
                 'unidade': unidade,
                 'nome': row[__NOME_ASSOCIACAO],
-                'presidente_associacao_nome': row[__NOME_PRESIDENTE_DIRETORIA],
-                'presidente_associacao_rf': row[__RF_PRESIDENTE_DIRETORIA],
-                'presidente_conselho_fiscal_nome': row[__NOME_PRESIDENTE_CONSELHO],
-                'presidente_conselho_fiscal_rf': row[__RF_PRESIDENTE_CONSELHO],
             },
         )
 

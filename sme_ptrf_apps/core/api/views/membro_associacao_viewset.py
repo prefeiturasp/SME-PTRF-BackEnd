@@ -30,6 +30,21 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
         else:
             return MembroAssociacaoCreateSerializer
 
+
+    def get_queryset(self):
+        associacao_uuid = self.request.query_params.get('associacao_uuid')
+        if associacao_uuid is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da associação como parâmetro..'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        qs = MembroAssociacao.objects.filter(associacao__uuid=associacao_uuid)
+
+        return qs
+
+
     @action(detail=False, methods=['get'], url_path='codigo-identificacao')
     def consulta_codigo_identificacao(self, request):
         rf = self.request.query_params.get('rf')

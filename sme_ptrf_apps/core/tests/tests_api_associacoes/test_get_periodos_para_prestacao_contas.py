@@ -1,0 +1,117 @@
+import json
+from datetime import date
+
+import pytest
+from freezegun import freeze_time
+from model_bakery import baker
+from rest_framework import status
+
+pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture
+def periodo_2019_1():
+    return baker.make(
+        'Periodo',
+        referencia='2019.1',
+        data_inicio_realizacao_despesas=date(2019, 1, 1),
+        data_fim_realizacao_despesas=date(2019, 6, 30),
+        periodo_anterior=None
+    )
+
+
+@pytest.fixture
+def periodo_2019_2(periodo_2019_1):
+    return baker.make(
+        'Periodo',
+        referencia='2019.2',
+        data_inicio_realizacao_despesas=date(2019, 7, 1),
+        data_fim_realizacao_despesas=date(2019, 12, 31),
+        periodo_anterior=periodo_2019_1
+    )
+
+
+@pytest.fixture
+def periodo_2020_1(periodo_2019_2):
+    return baker.make(
+        'Periodo',
+        referencia='2020.1',
+        data_inicio_realizacao_despesas=date(2020, 1, 1),
+        data_fim_realizacao_despesas=date(2020, 6, 30),
+        periodo_anterior=periodo_2019_2
+    )
+
+
+@pytest.fixture
+def periodo_2020_2(periodo_2020_1):
+    return baker.make(
+        'Periodo',
+        referencia='2020.2',
+        data_inicio_realizacao_despesas=date(2020, 7, 1),
+        data_fim_realizacao_despesas=date(2020, 12, 31),
+        periodo_anterior=periodo_2020_1
+    )
+
+
+@pytest.fixture
+def prestacao_conta_2019_2_cartao(periodo_2019_2, associacao, conta_associacao_cartao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2019_2,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+    )
+
+
+@pytest.fixture
+def prestacao_conta_2020_1_cartao(periodo_2020_1, associacao, conta_associacao_cartao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+    )
+
+
+@pytest.fixture
+def prestacao_conta_2020_1_cheque(periodo_2020_1, associacao, conta_associacao_cheque):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cheque,
+    )
+
+
+@freeze_time('2020-06-15')
+def test_get_periodos_prestacao_de_contas_da_associacao(
+    client,
+    associacao,
+    periodo_2019_1,
+    periodo_2019_2,
+    periodo_2020_1,
+    periodo_2020_2,
+    prestacao_conta_2019_2_cartao,
+    prestacao_conta_2020_1_cartao,
+    prestacao_conta_2020_1_cheque
+):
+    response = client.get(f'/api/associacoes/{associacao.uuid}/periodos-para-prestacao-de-contas/',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    periodos_esperados = [periodo_2019_2, periodo_2020_1, periodo_2020_2]
+
+    result_esperado = []
+    for p in periodos_esperados:
+        result_esperado.append(
+            {
+                "uuid": f'{p.uuid}',
+                "referencia": p.referencia,
+                "data_inicio_realizacao_despesas": f'{p.data_inicio_realizacao_despesas}' if p.data_inicio_realizacao_despesas else None,
+                "data_fim_realizacao_despesas": f'{p.data_fim_realizacao_despesas}' if p.data_fim_realizacao_despesas else None,
+                "referencia_por_extenso": f"{p.referencia.split('.')[1]}° repasse de {p.referencia.split('.')[0]}"
+            }
+        )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == result_esperado

@@ -5,9 +5,8 @@ from django.db import models
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
+from sme_ptrf_apps.core.models import Tag, Parametros
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-from sme_ptrf_apps.core.models import Tag
-
 from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO
 from ..tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
 
@@ -44,6 +43,9 @@ class RateioDespesa(ModeloBase):
     numero_processo_incorporacao_capital = models.CharField('Nº processo incorporação', max_length=100, default='',
                                                             blank=True)
 
+    valor_original = models.DecimalField('Valor original', max_digits=8, decimal_places=2,
+                                         default=0)
+
     status = models.CharField(
         'status',
         max_length=15,
@@ -57,7 +59,7 @@ class RateioDespesa(ModeloBase):
                                         related_name='despesas_conciliadas',
                                         verbose_name='prestação de contas de conciliação')
 
-    tag = models.ForeignKey(Tag, on_delete=models.SET_NULL, blank=True, 
+    tag = models.ForeignKey(Tag, on_delete=models.SET_NULL, blank=True,
                             null=True, related_name='rateios')
 
     def __str__(self):
@@ -80,6 +82,21 @@ class RateioDespesa(ModeloBase):
                        self.valor_item_capital > 0 and self.numero_processo_incorporacao_capital
 
         return completo
+
+    @property
+    def notificar_dias_nao_conferido(self):
+        """
+        Se não conferida, retorna o tempo decorrido desde o lançamento, caso esse tempo seja superior ao parametrizado.
+        Caso contrário, retorna 0
+        :rtype: int
+        """
+        result = 0
+        if not self.conferido and self.despesa.data_transacao:
+            decorrido = (date.today() - self.despesa.data_transacao).days
+            limite = Parametros.get().tempo_notificar_nao_demonstrados
+            result = decorrido if decorrido >= limite else 0
+        return result
+
 
     @classmethod
     def rateios_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None,
