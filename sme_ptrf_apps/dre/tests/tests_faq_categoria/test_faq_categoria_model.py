@@ -10,3 +10,7 @@ def test_instance_model(faq_categoria):
     assert model.id
     assert model.uuid
     assert model.nome
+
+
+def test_str_model(faq_categoria):
+    assert faq_categoria.__str__() == 'Geral'
