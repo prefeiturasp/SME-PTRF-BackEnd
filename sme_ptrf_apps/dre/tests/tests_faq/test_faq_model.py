@@ -24,3 +24,6 @@ def test_meta_model(faq):
     assert faq._meta.verbose_name_plural == 'Faqs - Perguntas e Respostas'
 
 
+def test_admin():
+    # pylint: disable=W0212
+    assert admin.site._registry[Faq]
