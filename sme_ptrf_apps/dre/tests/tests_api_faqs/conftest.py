@@ -2,20 +2,44 @@ import pytest
 from model_bakery import baker
 
 @pytest.fixture
-def faq_01():
+def cat_01():
     return baker.make(
-        'Faq',
-        uuid='e7a6e5d7-49ee-45cf-86c7-55be1eadfc15',
-        pergunta='Pergunta 01 - Cat Geral 01',
-        resposta='Esta é a resposta da Pergunta 01',
+        'FaqCategoria',
+        nome='Geral'
     )
 
 
 @pytest.fixture
-def faq_02():
+def cat_02():
+    return baker.make(
+        'FaqCategoria',
+        nome='Associações'
+    )
+
+@pytest.fixture
+def faq_01(cat_01):
     return baker.make(
         'Faq',
-        uuid='86b95b16-6d70-44c8-a3f8-f8ebcabc2b5f',
+        pergunta='Pergunta 01 - Cat Geral 01',
+        resposta='Esta é a resposta da Pergunta 01',
+        categoria=cat_01
+    )
+
+
+@pytest.fixture
+def faq_02(cat_02):
+    return baker.make(
+        'Faq',
         pergunta='Pergunta 02 - Cat Associações 01',
         resposta='Esta é a resposta da Pergunta 02',
+        categoria=cat_02
+    )
+
+
+@pytest.fixture
+def cat_com_uuid():
+    return baker.make(
+        'FaqCategoria',
+        uuid="aa82b8df-a62a-4e13-92d4-bb5e3a72be70",
+        nome='Geral'
     )
