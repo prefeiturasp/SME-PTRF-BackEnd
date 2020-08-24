@@ -15,3 +15,7 @@ def test_instance_model(faq):
     assert model.categoria
 
 
+def test_str_model(faq):
+    assert faq.__str__() == 'Pergunta 01'
+
+
