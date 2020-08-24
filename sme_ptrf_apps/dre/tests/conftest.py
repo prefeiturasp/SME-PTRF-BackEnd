@@ -51,3 +51,13 @@ def faq_categoria():
         'FaqCategoria',
         nome='Geral'
     )
+
+
+@pytest.fixture
+def faq(faq_categoria):
+    return baker.make(
+        'Faq',
+        pergunta='Pergunta 01',
+        resposta='Esta é a resposta da Pergunta 01',
+        categoria=faq_categoria
+    )

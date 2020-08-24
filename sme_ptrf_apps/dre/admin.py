@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import (GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade, ItemVerificacaoRegularidade,
-                     VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria)
+                     VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq)
 
 
 class ListasVerificacaoInline(admin.TabularInline):
@@ -62,4 +62,13 @@ class ListaFaqCategorias(admin.ModelAdmin):
     list_display = ('id', 'nome',)
     list_display_links = ('id', 'nome')
     fields = ['nome', 'uuid']
+    readonly_fields = ('uuid', 'id')
+
+
+@admin.register(Faq)
+class ListaFaq(admin.ModelAdmin):
+    list_display = ('id', 'pergunta', 'resposta', 'categoria',)
+    list_display_links = ('id', 'pergunta')
+    list_filter = ('categoria',)
+    fields = ['pergunta', 'resposta', 'categoria', 'uuid']
     readonly_fields = ('uuid', 'id')
