@@ -11,7 +11,20 @@ Versão: 0.7.0
 ## Release Notes
 
 ### 0.7.0 - 20/08/2020 - Entregas da Sprint 8
-* Sprint em andamento...
+* Exportação de dados da Associação;
+* Gestão de valor realizado nas despesas da Associação;
+* Notificação de transações não demonstradas a mais de certo tempo;
+* Prestação de contas: Permitir selecionar apenas períodos até o próximo período pendente;
+* Atualiza carga de usuários para incluir a visão (UE, DRE ou SME);
+* Menus sensíveis às visões UE e DRE;
+* Permite ao usuário alternar entre visões e unidades (UEs ou DREs);
+* Lista de associações da DRE;
+* Consulta dados de uma associação da DRE;
+* Consulta dados de uma UE da DRE;
+* Cadastro de processos SEI de regularidade e prestação de contas de uma Associação;
+* Checklists de regularidade de uma associação da DRE;
+* Consulta de dados da DRE;
+* Cadastro de técnicos da DRE.
 
 ### 0.6.0 - 28/07/2020 - Entregas da Sprint 7
 * Carga de valores reprogramados (implantação de saldos);
