@@ -24,7 +24,7 @@ from sme_ptrf_apps.despesas.api.views.rateios_despesas_viewset import RateiosDes
 from sme_ptrf_apps.dre.api.views import TecnicosDreViewSet
 from sme_ptrf_apps.receitas.api.views import ReceitaViewSet, RepasseViewSet
 from sme_ptrf_apps.users.api.views import EsqueciMinhaSenhaViewSet, LoginView, RedefinirSenhaViewSet, UserViewSet
-from sme_ptrf_apps.dre.api.views import FaqCategoriasViewSet
+from sme_ptrf_apps.dre.api.views import FaqCategoriasViewSet, FaqsViewSet
 
 
 @api_view()
@@ -57,6 +57,7 @@ router.register("processos-associacao", ProcessosAssociacaoViewSet)
 router.register("unidades", UnidadesViewSet)
 router.register("tecnicos-dre", TecnicosDreViewSet)
 router.register("faq-categorias", FaqCategoriasViewSet)
+router.register("faqs", FaqsViewSet)
 
 app_name = "api"
 urlpatterns = router.urls
