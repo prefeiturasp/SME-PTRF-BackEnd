@@ -3,3 +3,4 @@ from .item_verificacao_regularidade import ItemVerificacaoRegularidade
 from .lista_verificacao_regularidade import ListaVerificacaoRegularidade
 from .tecnico_diretoria import TecnicoDre
 from .verificacao_regularidade_associacao import VerificacaoRegularidadeAssociacao
+from .faq_categoria import FaqCategoria

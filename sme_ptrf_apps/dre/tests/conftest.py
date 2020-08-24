@@ -43,3 +43,11 @@ def tecnico_dre(dre):
         nome='José Testando',
         rf='271170',
     )
+
+
+@pytest.fixture
+def faq_categoria():
+    return baker.make(
+        'FaqCategoria',
+        nome='Geral'
+    )
