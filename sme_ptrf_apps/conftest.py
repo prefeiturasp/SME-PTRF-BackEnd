@@ -1091,6 +1091,28 @@ def rateio_no_periodo_10_custeio_outra_acao(associacao, despesa_no_periodo, cont
     )
 
 
+@pytest.fixture
+def rateio_no_periodo_1500_capital_outra_conta(associacao, despesa_no_periodo, conta_associacao_cartao, acao,
+                                               tipo_aplicacao_recurso_capital,
+                                               tipo_custeio,
+                                               especificacao_ar_condicionado, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_no_periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_capital,
+        tipo_custeio=None,
+        especificacao_material_servico=especificacao_ar_condicionado,
+        valor_rateio=1500.00,
+        quantidade_itens_capital=1,
+        valor_item_capital=1500.00,
+        numero_processo_incorporacao_capital='Teste123456'
+
+    )
+
+
 # despesa_fora_do_periodo
 @pytest.fixture
 def despesa_fora_periodo(associacao, tipo_documento, tipo_transacao, periodo):
@@ -1160,6 +1182,7 @@ def parametros_tempo_nao_conferido_10_dias():
         'Parametros',
         tempo_notificar_nao_demonstrados=10
     )
+
 
 @pytest.fixture
 def parametros_tempo_nao_conferido_60_dias():
@@ -1321,6 +1344,7 @@ def tag_ativa():
         status=StatusTag.ATIVO.name
     )
 
+
 @pytest.fixture
 def processo_associacao_123456_2019(associacao):
     return baker.make(
@@ -1329,5 +1353,3 @@ def processo_associacao_123456_2019(associacao):
         numero_processo='123456',
         ano='2019'
     )
-
-

@@ -81,3 +81,12 @@ def faq_02(faq_categoria_02):
         resposta='Esta é a resposta da Pergunta 02',
         categoria=faq_categoria_02
     )
+
+
+def atribuicao(tecnico_dre, unidade, periodo):
+    return baker.make(
+        'Atribuicao',
+        tecnico=tecnico_dre,
+        unidade=unidade,
+        periodo=periodo,
+    )

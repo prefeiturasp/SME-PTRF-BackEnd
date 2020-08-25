@@ -1,8 +1,6 @@
 from django.contrib import admin
-
-from .models import (GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade, ItemVerificacaoRegularidade,
-                     VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq)
-
+from .models import (Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade, ItemVerificacaoRegularidade,
+                    VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq)
 
 class ListasVerificacaoInline(admin.TabularInline):
     extra = 1
@@ -72,3 +70,18 @@ class ListaFaq(admin.ModelAdmin):
     list_filter = ('categoria',)
     fields = ['pergunta', 'resposta', 'categoria', 'uuid']
     readonly_fields = ('uuid', 'id')
+
+
+@admin.register(Atribuicao)
+class AtribuicaoAdmin(admin.ModelAdmin):
+    list_display = ('codigo_eol_unidade', 'nome_unidade', 'nome_tecnico', 'periodo')
+
+    def nome_tecnico(self, obj):
+        return obj.tecnico.nome if obj.tecnico else ''
+
+    def codigo_eol_unidade(self, obj):
+        return obj.unidade.codigo_eol if obj.unidade else ''
+
+    def nome_unidade(self, obj):
+        return obj.unidade.nome if obj.unidade else ''
+
