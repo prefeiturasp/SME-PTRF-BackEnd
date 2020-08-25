@@ -65,13 +65,13 @@ class TecnicoDreAdmin(admin.ModelAdmin):
 
 @admin.register(Atribuicao)
 class AtribuicaoAdmin(admin.ModelAdmin):
-    list_display = ('get_unidade_codigo_eol', 'get_unidade_nome', 'get_nome_tecnico')
+    list_display = ('codigo_eol_unidade', 'nome_unidade', 'nome_tecnico', 'periodo')
 
-    def get_nome_tecnico(self, obj):
+    def nome_tecnico(self, obj):
         return obj.tecnico.nome if obj.tecnico else ''
 
-    def get_unidade_codigo_eol(self, obj):
+    def codigo_eol_unidade(self, obj):
         return obj.unidade.codigo_eol if obj.unidade else ''
     
-    def get_unidade_nome(self, obj):
+    def nome_unidade(self, obj):
         return obj.unidade.nome if obj.unidade else ''
