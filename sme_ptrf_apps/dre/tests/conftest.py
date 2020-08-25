@@ -15,6 +15,7 @@ def lista_verificacao_regularidade_documentos_associacao(grupo_verificacao_regul
         grupo=grupo_verificacao_regularidade_documentos
     )
 
+
 @pytest.fixture
 def item_verificacao_regularidade_documentos_associacao_cnpj(lista_verificacao_regularidade_documentos_associacao):
     return baker.make(
@@ -22,6 +23,7 @@ def item_verificacao_regularidade_documentos_associacao_cnpj(lista_verificacao_r
         descricao='CNPJ',
         lista=lista_verificacao_regularidade_documentos_associacao
     )
+
 
 @pytest.fixture
 def verificacao_regularidade_associacao_documento_cnpj(grupo_verificacao_regularidade_documentos, lista_verificacao_regularidade_documentos_associacao,item_verificacao_regularidade_documentos_associacao_cnpj, associacao):
@@ -46,6 +48,41 @@ def tecnico_dre(dre):
 
 
 @pytest.fixture
+def faq_categoria():
+    return baker.make(
+        'FaqCategoria',
+        nome='Geral'
+    )
+
+
+@pytest.fixture
+def faq_categoria_02():
+    return baker.make(
+        'FaqCategoria',
+        nome='Associações'
+    )
+
+
+@pytest.fixture
+def faq(faq_categoria):
+    return baker.make(
+        'Faq',
+        pergunta='Pergunta 01 - Cat Geral 01',
+        resposta='Esta é a resposta da Pergunta 01',
+        categoria=faq_categoria
+    )
+
+
+@pytest.fixture
+def faq_02(faq_categoria_02):
+    return baker.make(
+        'Faq',
+        pergunta='Pergunta 02 - Cat Associações 01',
+        resposta='Esta é a resposta da Pergunta 02',
+        categoria=faq_categoria_02
+    )
+
+
 def atribuicao(tecnico_dre, unidade, periodo):
     return baker.make(
         'Atribuicao',

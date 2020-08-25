@@ -1,14 +1,6 @@
 from django.contrib import admin
-
-from .models import (
-    Atribuicao,
-    GrupoVerificacaoRegularidade,
-    ItemVerificacaoRegularidade,
-    ListaVerificacaoRegularidade,
-    TecnicoDre,
-    VerificacaoRegularidadeAssociacao,
-)
-
+from .models import (Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade, ItemVerificacaoRegularidade,
+                    VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq)
 
 class ListasVerificacaoInline(admin.TabularInline):
     extra = 1
@@ -63,6 +55,23 @@ class TecnicoDreAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id')
 
 
+@admin.register(FaqCategoria)
+class ListaFaqCategorias(admin.ModelAdmin):
+    list_display = ('id', 'nome',)
+    list_display_links = ('id', 'nome')
+    fields = ['nome', 'uuid']
+    readonly_fields = ('uuid', 'id')
+
+
+@admin.register(Faq)
+class ListaFaq(admin.ModelAdmin):
+    list_display = ('id', 'pergunta', 'resposta', 'categoria',)
+    list_display_links = ('id', 'pergunta')
+    list_filter = ('categoria',)
+    fields = ['pergunta', 'resposta', 'categoria', 'uuid']
+    readonly_fields = ('uuid', 'id')
+
+
 @admin.register(Atribuicao)
 class AtribuicaoAdmin(admin.ModelAdmin):
     list_display = ('codigo_eol_unidade', 'nome_unidade', 'nome_tecnico', 'periodo')
@@ -72,6 +81,7 @@ class AtribuicaoAdmin(admin.ModelAdmin):
 
     def codigo_eol_unidade(self, obj):
         return obj.unidade.codigo_eol if obj.unidade else ''
-    
+
     def nome_unidade(self, obj):
         return obj.unidade.nome if obj.unidade else ''
+
