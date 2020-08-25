@@ -1,7 +1,9 @@
+import datetime
 import logging
 from decimal import Decimal
 
-from ..models import FechamentoPeriodo, Associacao, AcaoAssociacao, ContaAssociacao
+from ..models import FechamentoPeriodo, Associacao, AcaoAssociacao, ContaAssociacao, Periodo
+from ..services.periodo_associacao_services import status_periodo_associacao
 from ...despesas.models import RateioDespesa
 from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
 from ...receitas.models import Receita, Repasse
@@ -311,7 +313,7 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
                                    info_acao['receitas_no_periodo_livre'],
 
             'receitas_devolucao_no_periodo': info_acao['receitas_devolucao_no_periodo_custeio'] +
-                                             info_acao['receitas_devolucao_no_periodo_capital'] + 
+                                             info_acao['receitas_devolucao_no_periodo_capital'] +
                                              info_acao['receitas_devolucao_no_periodo_livre'],
 
             'receitas_devolucao_no_periodo_custeio': info_acao['receitas_devolucao_no_periodo_custeio'],
@@ -499,3 +501,79 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
         return fechamento_sumarizado_por_conta(fechamentos_periodo)
     else:
         return periodo_aberto_sumarizado_por_conta(periodo, conta_associacao)
+
+
+def info_painel_acoes_por_periodo_e_conta(associacao_uuid, periodo_uuid=None, conta_associacao_uuid=None):
+    if periodo_uuid:
+        try:
+            periodo = Periodo.by_uuid(periodo_uuid)
+        except:
+            return {'erro': 'UUID do período inválido.'}
+    else:
+        periodo = Periodo.periodo_atual()
+
+    periodo_status = status_periodo_associacao(periodo_uuid=periodo.uuid, associacao_uuid=associacao_uuid)
+
+    ultima_atualizacao = datetime.datetime.now()
+
+    try:
+        conta = ContaAssociacao.by_uuid(conta_associacao_uuid) if conta_associacao_uuid else None
+    except:
+        return {'erro': 'UUID da conta inválido.'}
+
+    info_conta = {
+        'conta_associacao_uuid': f'{conta.uuid}',
+        'conta_associacao_nome': conta.tipo_conta.nome,
+
+        'saldo_reprogramado': 0,
+        'saldo_reprogramado_capital': 0,
+        'saldo_reprogramado_custeio': 0,
+        'saldo_reprogramado_livre': 0,
+
+        'receitas_no_periodo': 0,
+
+        'repasses_no_periodo': 0,
+        'repasses_no_periodo_capital': 0,
+        'repasses_no_periodo_custeio': 0,
+        'repasses_no_periodo_livre': 0,
+
+        'outras_receitas_no_periodo': 0,
+        'outras_receitas_no_periodo_capital': 0,
+        'outras_receitas_no_periodo_custeio': 0,
+        'outras_receitas_no_periodo_livre': 0,
+
+        'despesas_no_periodo': 0,
+        'despesas_no_periodo_capital': 0,
+        'despesas_no_periodo_custeio': 0,
+
+        'saldo_atual_custeio': 0,
+        'saldo_atual_capital': 0,
+        'saldo_atual_livre': 0,
+        'saldo_atual_total': 0
+    } if conta else None
+
+
+    info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=associacao_uuid, periodo=periodo, conta=conta)
+
+    info_acoes = [info for info in info_acoes if
+                  info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+
+    if info_conta:
+        for acao in info_acoes:
+            for key, value in acao.items():
+                if key in info_conta:
+                    info_conta[key] += value
+
+    result = {
+        'associacao': f'{associacao_uuid}',
+        'periodo_referencia': periodo.referencia,
+        'periodo_status': periodo_status,
+        'data_inicio_realizacao_despesas': f'{periodo.data_inicio_realizacao_despesas if periodo else ""}',
+        'data_fim_realizacao_despesas': f'{periodo.data_fim_realizacao_despesas if periodo else ""}',
+        'data_prevista_repasse': f'{periodo.data_prevista_repasse if periodo else ""}',
+        'ultima_atualizacao': f'{ultima_atualizacao}',
+        'info_acoes': info_acoes,
+        'info_conta': info_conta
+    }
+
+    return result

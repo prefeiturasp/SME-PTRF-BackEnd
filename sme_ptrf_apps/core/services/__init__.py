@@ -4,6 +4,7 @@ from .info_por_acao_services import (
     info_acao_associacao_no_periodo,
     info_acoes_associacao_no_periodo,
     saldos_insuficientes_para_rateios,
+    info_painel_acoes_por_periodo_e_conta
 )
 from .membro_associacao_service import TerceirizadasException, TerceirizadasService
 from .periodo_associacao_services import status_aceita_alteracoes_em_transacoes, status_periodo_associacao
