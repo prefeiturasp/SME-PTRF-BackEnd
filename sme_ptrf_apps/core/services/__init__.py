@@ -21,3 +21,4 @@ from .prestacao_contas_services import (
     salvar_prestacao_de_contas,
 )
 from .processa_cargas import processa_cargas
+from .unidade_service import monta_unidade_para_atribuicao

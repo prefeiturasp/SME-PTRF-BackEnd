@@ -1,1 +1,2 @@
 from .tecnicos_dre_viewset import TecnicosDreViewSet
+from .atribuicao_viewset import AtribuicaoViewset
