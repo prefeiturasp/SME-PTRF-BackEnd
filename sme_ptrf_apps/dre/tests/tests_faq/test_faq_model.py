@@ -16,7 +16,7 @@ def test_instance_model(faq):
 
 
 def test_str_model(faq):
-    assert faq.__str__() == 'Pergunta 01'
+    assert faq.__str__() == 'Pergunta 01 - Cat Geral 01'
 
 
 def test_meta_model(faq):

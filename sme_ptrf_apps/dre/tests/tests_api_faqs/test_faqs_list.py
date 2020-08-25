@@ -6,15 +6,15 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_api_list_faqs_todos(client, faq_01, faq_02):
+def test_api_list_faqs_todos(client, faq, faq_02):
     response = client.get(f'/api/faqs/', content_type='application/json')
     result = json.loads(response.content)
 
     resultado_esperado = [
         {
-            "uuid": f'{faq_01.uuid}',
-            "pergunta": f'{faq_01.pergunta}',
-            "resposta": f'{faq_01.resposta}',
+            "uuid": f'{faq.uuid}',
+            "pergunta": f'{faq.pergunta}',
+            "resposta": f'{faq.resposta}',
         },
         {
             "uuid": f'{faq_02.uuid}',
@@ -28,15 +28,15 @@ def test_api_list_faqs_todos(client, faq_01, faq_02):
 
 
 
-def test_api_list_faqs_por_categoria(client, faq_01, cat_01):
-    response = client.get(f'/api/faqs/?categoria__uuid={cat_01.uuid}', content_type='application/json')
+def test_api_list_faqs_por_categoria(client, faq, faq_categoria):
+    response = client.get(f'/api/faqs/?categoria__uuid={faq_categoria.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
     resultado_esperado = [
         {
-            "uuid": f'{faq_01.uuid}',
-            "pergunta": f'{faq_01.pergunta}',
-            "resposta": f'{faq_01.resposta}',
+            "uuid": f'{faq.uuid}',
+            "pergunta": f'{faq.pergunta}',
+            "resposta": f'{faq.resposta}',
         },
     ]
 
