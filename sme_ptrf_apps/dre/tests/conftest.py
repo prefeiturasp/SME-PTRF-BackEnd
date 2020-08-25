@@ -83,6 +83,7 @@ def faq_02(faq_categoria_02):
     )
 
 
+@pytest.fixture
 def atribuicao(tecnico_dre, unidade, periodo):
     return baker.make(
         'Atribuicao',
