@@ -13,6 +13,10 @@ class SmeIntegracaoException(Exception):
 
 
 class SmeIntegracaoService:
+    headers = {
+        'accept': 'application/json',
+        'x-api-eol-key': f'{settings.SME_INTEGRACAO_TOKEN}'
+    }
     timeout = 20
 
     @classmethod
@@ -26,7 +30,7 @@ class SmeIntegracaoService:
                 'Usuario': registro_funcional,
                 'Senha': senha
             }
-            response = requests.post(f'{settings.SME_INTEGRACAO_URL}/api/AutenticacaoSgp/AlterarSenha', data=data)
+            response = requests.post(f'{settings.SME_INTEGRACAO_URL}/api/AutenticacaoSgp/AlterarSenha', data=data, headers=cls.headers)
             if response.status_code == status.HTTP_200_OK:
                 result = "OK"
                 return result
@@ -44,7 +48,7 @@ class SmeIntegracaoService:
                 'Usuario': registro_funcional,
                 'Email': email
             }
-            response = requests.post(f'{settings.SME_INTEGRACAO_URL}/api/AutenticacaoSgp/AlterarEmail', data=data)
+            response = requests.post(f'{settings.SME_INTEGRACAO_URL}/api/AutenticacaoSgp/AlterarEmail', data=data, headers=cls.headers)
             if response.status_code == status.HTTP_200_OK:
                 result = "OK"
                 return result
