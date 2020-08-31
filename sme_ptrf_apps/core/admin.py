@@ -20,6 +20,7 @@ from .models import (
     Unidade,
     Tag,
     ProcessoAssociacao,
+    ObservacaoConciliacao
 )
 
 admin.site.register(TipoConta)
@@ -112,7 +113,6 @@ class UnidadeAdmin(admin.ModelAdmin):
     )
 
 
-
 @admin.register(FechamentoPeriodo)
 class FechamentoPeriodoAdmin(admin.ModelAdmin):
     def get_nome_acao(self, obj):
@@ -181,7 +181,7 @@ class AtaAdmin(admin.ModelAdmin):
         'convocacao',
         'parecer_conselho')
     list_filter = (
-    'parecer_conselho', 'tipo_ata', 'tipo_reuniao', 'convocacao', 'associacao', 'conta_associacao__tipo_conta')
+        'parecer_conselho', 'tipo_ata', 'tipo_reuniao', 'convocacao', 'associacao', 'conta_associacao__tipo_conta')
     list_display_links = ('get_eol_unidade',)
     readonly_fields = ('uuid', id)
     search_fields = ('associacao__unidade__codigo_eol',)
@@ -212,3 +212,22 @@ class ProcessoAssociacaoAdmin(admin.ModelAdmin):
     search_fields = ('uuid', 'numero_processo')
     list_filter = ('ano', 'associacao',)
     readonly_fields = ('uuid', 'id')
+
+
+@admin.register(ObservacaoConciliacao)
+class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
+    def get_nome_acao(self, obj):
+        return obj.acao_associacao.acao.nome if obj and obj.acao_associacao else ''
+
+    get_nome_acao.short_description = 'Ação'
+
+    def get_nome_conta(self, obj):
+        return obj.conta_associacao.tipo_conta.nome if obj and obj.conta_associacao else ''
+
+    get_nome_conta.short_description = 'Conta'
+
+    list_display = ('associacao', 'periodo', 'get_nome_acao', 'get_nome_conta', 'texto')
+    list_filter = ('associacao', 'acao_associacao__acao', 'conta_associacao__tipo_conta')
+    list_display_links = ('periodo',)
+    readonly_fields = ('uuid', 'id')
+    search_fields = ('texto',)

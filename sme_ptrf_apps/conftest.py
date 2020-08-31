@@ -1353,3 +1353,15 @@ def processo_associacao_123456_2019(associacao):
         numero_processo='123456',
         ano='2019'
     )
+
+
+@pytest.fixture
+def observacao_conciliacao(acao_associacao, periodo, conta_associacao):
+    return baker.make(
+        'ObservacaoConciliacao',
+        periodo=periodo,
+        associacao=conta_associacao.associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        texto="Uma bela observação."
+    )

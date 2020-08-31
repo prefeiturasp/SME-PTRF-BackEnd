@@ -8,6 +8,7 @@ from .demonstrativo_financeiro import DemonstrativoFinanceiro
 from .fechamento_periodo import STATUS_ABERTO, STATUS_FECHADO, STATUS_IMPLANTACAO, FechamentoPeriodo
 from .membro_associacao import MembroAssociacao
 from .observacao import Observacao
+from .observacao_conciliacao import ObservacaoConciliacao
 from .parametros import Parametros
 from .periodo import Periodo
 from .prestacao_conta import STATUS_ABERTO, STATUS_FECHADO, PrestacaoConta
