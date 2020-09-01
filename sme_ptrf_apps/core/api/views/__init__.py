@@ -1,5 +1,6 @@
 from .associacoes_viewset import AssociacoesViewSet
 from .atas_viewset import AtasViewSet
+from .conciliacoes_viewset import ConciliacoesViewSet
 from .demonstrativo_financeiro_viewset import DemonstrativoFinanceiroViewSet
 from .membro_associacao_viewset import MembroAssociacaoViewSet
 from .periodos_viewset import PeriodosViewSet

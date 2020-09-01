@@ -1,8 +1,9 @@
 import pytest
 from freezegun import freeze_time
 
-from sme_ptrf_apps.receitas.models import Receita
+from ...models import Receita
 from ...tipos_aplicacao_recurso_receitas import APLICACAO_LIVRE
+from ....core.models import Periodo
 
 pytestmark = pytest.mark.django_db
 
@@ -17,7 +18,7 @@ def test_instance(receita):
     assert model.acao_associacao
     assert model.tipo_receita
     assert model.conferido
-    assert model.prestacao_conta
+    assert isinstance(model.periodo_conciliacao, Periodo)
     assert model.detalhe_tipo_receita
     assert model.detalhe_outros is not None
     assert model.notificar_dias_nao_conferido is not None
@@ -34,7 +35,7 @@ def test_instance_receita_devolucao(receita_devolucao):
     assert model.tipo_receita
     assert model.tipo_receita.e_devolucao
     assert model.conferido
-    assert model.prestacao_conta
+    assert isinstance(model.periodo_conciliacao, Periodo)
     assert model.referencia_devolucao
     assert model.detalhe_outros is not None
 

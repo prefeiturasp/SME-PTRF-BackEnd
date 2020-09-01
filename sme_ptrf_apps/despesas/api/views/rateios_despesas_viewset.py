@@ -1,3 +1,5 @@
+import logging
+
 from django.db.models import Sum
 from django_filters import rest_framework as filters
 from rest_framework import mixins
@@ -10,9 +12,10 @@ from rest_framework.viewsets import GenericViewSet
 
 from ..serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ...models import RateioDespesa
-from ....core.models import Periodo, Parametros, PrestacaoConta, Associacao
+from ....core.models import Periodo, Parametros, Associacao
 from ....core.services import saldos_insuficientes_para_rateios
 
+logger = logging.getLogger(__name__)
 
 class RateiosDespesasViewSet(mixins.CreateModelMixin,
                              mixins.ListModelMixin,
@@ -27,7 +30,7 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
     filter_fields = ('aplicacao_recurso', 'acao_associacao__uuid', 'despesa__status', 'associacao__uuid', 'conferido')
 
     def get_queryset(self):
-        associacao_uuid = self.request.query_params.get('associacao_uuid') or self.request.query_params.get('associacao__uuid') 
+        associacao_uuid = self.request.query_params.get('associacao_uuid') or self.request.query_params.get('associacao__uuid')
         if associacao_uuid is None:
             erro = {
                 'erro': 'parametros_requerido',
@@ -57,17 +60,28 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
 
     @action(detail=True, methods=['patch'])
     def conciliar(self, request, uuid):
-        prestacao_conta_uuid = request.query_params.get('prestacao_conta_uuid')
 
-        if prestacao_conta_uuid is None:
+        # Define o período de conciliação
+        periodo_uuid = self.request.query_params.get('periodo')
+
+        if not periodo_uuid:
             erro = {
-                'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar o uuid da prestação de contas onde esta sendo feita a conciliação.'
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do período de conciliação.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        prestacao_conta = PrestacaoConta.by_uuid(prestacao_conta_uuid)
-        rateio_despesa_conciliado = RateioDespesa.conciliar(uuid=uuid, prestacao_conta=prestacao_conta)
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        rateio_despesa_conciliado = RateioDespesa.conciliar(uuid=uuid, periodo_conciliacao=periodo)
         return Response(RateioDespesaListaSerializer(rateio_despesa_conciliado, many=False).data,
                         status=status.HTTP_200_OK)
 

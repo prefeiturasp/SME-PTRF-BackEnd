@@ -14,17 +14,18 @@ from sme_ptrf_apps.core.api.views import (
     PrestacoesContasViewSet,
     RelacaoBensViewSet,
     ProcessosAssociacaoViewSet,
-    UnidadesViewSet
+    UnidadesViewSet,
+    ConciliacoesViewSet
 
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
 from sme_ptrf_apps.despesas.api.views.fornecedores_viewset import FornecedoresViewSet
 from sme_ptrf_apps.despesas.api.views.rateios_despesas_viewset import RateiosDespesasViewSet
+from sme_ptrf_apps.dre.api.views import FaqCategoriasViewSet, FaqsViewSet
 from sme_ptrf_apps.dre.api.views import TecnicosDreViewSet, AtribuicaoViewset
 from sme_ptrf_apps.receitas.api.views import ReceitaViewSet, RepasseViewSet
 from sme_ptrf_apps.users.api.views import EsqueciMinhaSenhaViewSet, LoginView, RedefinirSenhaViewSet, UserViewSet
-from sme_ptrf_apps.dre.api.views import FaqCategoriasViewSet, FaqsViewSet
 
 
 @api_view()
@@ -59,6 +60,7 @@ router.register("tecnicos-dre", TecnicosDreViewSet)
 router.register("faq-categorias", FaqCategoriasViewSet)
 router.register("faqs", FaqsViewSet)
 router.register("atribuicoes", AtribuicaoViewset)
+router.register("conciliacoes", ConciliacoesViewSet, basename='conciliacoes')
 
 app_name = "api"
 urlpatterns = router.urls

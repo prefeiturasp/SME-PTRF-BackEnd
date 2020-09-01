@@ -1,6 +1,9 @@
+#TODO Remover esse modelo. Foi substituido por ObsevacaoConcliacao.
+
 from django.db import models
-from sme_ptrf_apps.core.models_abstracts import ModeloBase
+
 from sme_ptrf_apps.core.models import AcaoAssociacao
+from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
 class Observacao(ModeloBase):
@@ -24,7 +27,7 @@ class Observacao(ModeloBase):
         if lista_observacoes:
             for obs_data in lista_observacoes:
                 observacao = cls.objects.filter(
-                    acao_associacao__uuid=obs_data['acao_associacao_uuid'], 
+                    acao_associacao__uuid=obs_data['acao_associacao_uuid'],
                     prestacao_conta=prestacao_conta).first()
                 if observacao:
                     if obs_data['observacao']:

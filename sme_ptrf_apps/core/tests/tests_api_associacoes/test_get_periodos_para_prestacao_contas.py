@@ -99,19 +99,15 @@ def test_get_periodos_prestacao_de_contas_da_associacao(
                           content_type='application/json')
     result = json.loads(response.content)
 
-    periodos_esperados = [periodo_2019_2, periodo_2020_1, periodo_2020_2]
-
-    result_esperado = []
-    for p in periodos_esperados:
-        result_esperado.append(
-            {
-                "uuid": f'{p.uuid}',
-                "referencia": p.referencia,
-                "data_inicio_realizacao_despesas": f'{p.data_inicio_realizacao_despesas}' if p.data_inicio_realizacao_despesas else None,
-                "data_fim_realizacao_despesas": f'{p.data_fim_realizacao_despesas}' if p.data_fim_realizacao_despesas else None,
-                "referencia_por_extenso": f"{p.referencia.split('.')[1]}° repasse de {p.referencia.split('.')[0]}"
-            }
-        )
+    esperados = {
+        f'{periodo_2019_2.uuid}',
+        f'{periodo_2020_1.uuid}',
+        f'{periodo_2020_2.uuid}'
+    }
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+
+    for p in result:
+        esperados.discard(p['uuid'])
+
+    assert esperados == set()

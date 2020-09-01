@@ -27,7 +27,7 @@ def tipo_receita_devolucao():
 
 @pytest.fixture
 def receita(associacao, conta_associacao, acao_associacao, tipo_receita, prestacao_conta_iniciada,
-            detalhe_tipo_receita):
+            detalhe_tipo_receita, periodo_2020_1):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -38,9 +38,9 @@ def receita(associacao, conta_associacao, acao_associacao, tipo_receita, prestac
         tipo_receita=tipo_receita,
         conferido=True,
         categoria_receita='CUSTEIO',
-        prestacao_conta=prestacao_conta_iniciada,
         detalhe_tipo_receita=detalhe_tipo_receita,
-        detalhe_outros='teste'
+        detalhe_outros='teste',
+        periodo_conciliacao=periodo_2020_1,
     )
 
 
@@ -57,16 +57,16 @@ def receita_devolucao(associacao, conta_associacao, acao_associacao, tipo_receit
         tipo_receita=tipo_receita_devolucao,
         conferido=True,
         categoria_receita='CUSTEIO',
-        prestacao_conta=prestacao_conta_iniciada,
         detalhe_tipo_receita=detalhe_tipo_receita,
         detalhe_outros='teste',
         referencia_devolucao=periodo,
+        periodo_conciliacao=periodo
     )
 
 
 @pytest.fixture
 def receita_sem_detalhe_tipo_receita(associacao, conta_associacao, acao_associacao, tipo_receita,
-                                     prestacao_conta_iniciada):
+                                     periodo_2020_1):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -77,8 +77,8 @@ def receita_sem_detalhe_tipo_receita(associacao, conta_associacao, acao_associac
         tipo_receita=tipo_receita,
         conferido=True,
         categoria_receita='CUSTEIO',
-        prestacao_conta=prestacao_conta_iniciada,
-        detalhe_outros='teste'
+        detalhe_outros='teste',
+        periodo_conciliacao=periodo_2020_1
     )
 
 
