@@ -7,16 +7,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from ..serializers import PrestacaoContaLookUpSerializer, AtaLookUpSerializer
-from ...models import PrestacaoConta, AcaoAssociacao, Ata
-from ...services import (iniciar_prestacao_de_contas, concluir_prestacao_de_contas, salvar_prestacao_de_contas,
-                         revisar_prestacao_de_contas, informacoes_financeiras_para_atas,
-                         receitas_conciliadas_por_conta_e_acao_na_prestacao_contas,
-                         receitas_nao_conciliadas_por_conta_e_acao_no_periodo,
-                         despesas_nao_conciliadas_por_conta_e_acao_no_periodo,
-                         info_conciliacao_pendente,
-                         despesas_conciliadas_por_conta_e_acao_na_prestacao_contas)
-from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
-from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
+from ...models import PrestacaoConta, Ata
+from ...services import (iniciar_prestacao_de_contas, concluir_prestacao_de_contas,
+                         revisar_prestacao_de_contas, informacoes_financeiras_para_atas)
 
 
 class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
@@ -74,13 +67,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaLookUpSerializer(prestacao_de_conta_revista, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'])
-    def salvar(self, request, uuid):
-        observacoes = request.data.get('observacoes')
-
-        prestacao_de_conta_salva = salvar_prestacao_de_contas(prestacao_contas_uuid=uuid, observacoes=observacoes)
-        return Response(PrestacaoContaLookUpSerializer(prestacao_de_conta_salva, many=False).data,
-                        status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['patch'])
     def concluir(self, request, uuid):
@@ -90,59 +76,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaLookUpSerializer(prestacao_conta_concluida, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'])
-    def receitas(self, request, uuid):
-        acao_associacao_uuid = request.query_params.get('acao_associacao_uuid')
-        conferido = request.query_params.get('conferido')
-
-        if acao_associacao_uuid is None or conferido is None:
-            erro = {
-                'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar o uuid da ação da associação e o flag de conferido.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        prestacao_conta = PrestacaoConta.by_uuid(uuid)
-        acao_associacao = AcaoAssociacao.by_uuid(acao_associacao_uuid)
-        conta_associacao = prestacao_conta.conta_associacao
-
-        if conferido == 'True':
-            receitas = receitas_conciliadas_por_conta_e_acao_na_prestacao_contas(conta_associacao=conta_associacao,
-                                                                                 acao_associacao=acao_associacao,
-                                                                                 prestacao_contas=prestacao_conta)
-        else:
-            receitas = receitas_nao_conciliadas_por_conta_e_acao_no_periodo(conta_associacao=conta_associacao,
-                                                                            acao_associacao=acao_associacao,
-                                                                            periodo=prestacao_conta.periodo)
-
-        return Response(ReceitaListaSerializer(receitas, many=True).data, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=['get'])
-    def despesas(self, request, uuid):
-        acao_associacao_uuid = request.query_params.get('acao_associacao_uuid')
-        conferido = request.query_params.get('conferido')
-
-        if acao_associacao_uuid is None or conferido is None:
-            erro = {
-                'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar o uuid da ação da associação e o flag de conferido.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        prestacao_conta = PrestacaoConta.by_uuid(uuid)
-        acao_associacao = AcaoAssociacao.by_uuid(acao_associacao_uuid)
-        conta_associacao = prestacao_conta.conta_associacao
-
-        if conferido == 'True':
-            despesas = despesas_conciliadas_por_conta_e_acao_na_prestacao_contas(conta_associacao=conta_associacao,
-                                                                                 acao_associacao=acao_associacao,
-                                                                                 prestacao_contas=prestacao_conta)
-        else:
-            despesas = despesas_nao_conciliadas_por_conta_e_acao_no_periodo(conta_associacao=conta_associacao,
-                                                                            acao_associacao=acao_associacao,
-                                                                            periodo=prestacao_conta.periodo)
-
-        return Response(RateioDespesaListaSerializer(despesas, many=True).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
     def ata(self, request, uuid):
@@ -183,23 +116,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         result = informacoes_financeiras_para_atas(prestacao_contas=prestacao_conta)
         return Response(result, status=status.HTTP_200_OK)
 
-
-    @action(detail=True, methods=['get'], url_path='tabela-valores-pendentes')
-    def tabela_valores_pendentes(self, request, uuid):
-        prestacao_conta = self.get_object()
-        result = info_conciliacao_pendente(prestacao_contas=prestacao_conta)
-        return Response(result, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=['get'], url_path='observacoes')
-    def observacoes(self, request, uuid):
-        prestacao_conta = self.get_object()
-        observacoes = prestacao_conta.observacoes_da_prestacao.all()
-        result = []
-        if observacoes:
-            for obs in observacoes:
-                result.append({'acao_associacao_uuid': str(obs.acao_associacao.uuid), 'observacao': obs.texto})
-
-        return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='fique-de-olho')
     def fique_de_olho(self, request, uuid=None):

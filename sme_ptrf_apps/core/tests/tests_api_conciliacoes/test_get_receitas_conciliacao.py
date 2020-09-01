@@ -8,20 +8,21 @@ from ....receitas.api.serializers import ReceitaListaSerializer
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_receitas_conferidas_prestacao_conta(client,
-                                                     acao_associacao_role_cultural,
-                                                     prestacao_conta_iniciada,
-                                                     receita_2019_2_role_repasse_conferida,
-                                                     receita_2019_2_role_repasse_conferida_na_prestacao,
-                                                     receita_2020_1_role_repasse_conferida,
-                                                     receita_2020_1_role_repasse_nao_conferida,
-                                                     receita_2020_1_ptrf_repasse_conferida,
-                                                     receita_2020_1_role_repasse_cheque_conferida
-                                                     ):
-    prestacao_uuid = prestacao_conta_iniciada.uuid
+def test_api_get_receitas_conferidas(client,
+                                     acao_associacao_role_cultural,
+                                     receita_2019_2_role_repasse_conferida,
+                                     receita_2019_2_role_repasse_conferida_no_periodo,
+                                     receita_2020_1_role_repasse_conferida,
+                                     receita_2020_1_role_repasse_nao_conferida,
+                                     receita_2020_1_ptrf_repasse_conferida,
+                                     receita_2020_1_role_repasse_cheque_conferida,
+                                     periodo_2020_1,
+                                     conta_associacao_cartao
+                                     ):
+    conta_uuid = conta_associacao_cartao.uuid
     acao_uuid = acao_associacao_role_cultural.uuid
 
-    url = f'/api/prestacoes-contas/{prestacao_uuid}/receitas/?acao_associacao_uuid={acao_uuid}&conferido=True'
+    url = f'/api/conciliacoes/receitas/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&acao_associacao={acao_uuid}&conferido=True'
 
     response = client.get(url, content_type='application/json')
 
@@ -32,7 +33,7 @@ def test_api_get_receitas_conferidas_prestacao_conta(client,
         receitas_retornadas.add(receita['uuid'])
 
     receitas_esperadas = set()
-    receitas_esperadas.add(f'{receita_2019_2_role_repasse_conferida_na_prestacao.uuid}')
+    receitas_esperadas.add(f'{receita_2019_2_role_repasse_conferida_no_periodo.uuid}')
     receitas_esperadas.add(f'{receita_2020_1_role_repasse_conferida.uuid}')
 
     assert response.status_code == status.HTTP_200_OK
@@ -41,17 +42,18 @@ def test_api_get_receitas_conferidas_prestacao_conta(client,
 
 def test_api_get_receitas_nao_conferidas_prestacao_conta(client,
                                                          acao_associacao_role_cultural,
-                                                         prestacao_conta_iniciada,
                                                          receita_2019_2_role_repasse_conferida,
                                                          receita_2020_1_role_repasse_conferida,
                                                          receita_2020_1_role_repasse_nao_conferida,
                                                          receita_2020_1_ptrf_repasse_conferida,
-                                                         receita_2020_1_role_repasse_cheque_conferida
+                                                         receita_2020_1_role_repasse_cheque_conferida,
+                                                         periodo_2020_1,
+                                                         conta_associacao_cartao
                                                          ):
-    prestacao_uuid = prestacao_conta_iniciada.uuid
+    conta_uuid = conta_associacao_cartao.uuid
     acao_uuid = acao_associacao_role_cultural.uuid
 
-    url = f'/api/prestacoes-contas/{prestacao_uuid}/receitas/?acao_associacao_uuid={acao_uuid}&conferido=False'
+    url = f'/api/conciliacoes/receitas/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&acao_associacao={acao_uuid}&conferido=False'
 
     response = client.get(url, content_type='application/json')
 
@@ -67,18 +69,19 @@ def test_api_get_receitas_nao_conferidas_prestacao_conta(client,
 
 def test_api_get_receitas_nao_conferidas_traz_periodos_anteriores(client,
                                                                   acao_associacao_role_cultural,
-                                                                  prestacao_conta_iniciada,
                                                                   receita_2019_2_role_repasse_conferida,
                                                                   receita_2019_2_role_repasse_nao_conferida,
                                                                   receita_2020_1_role_repasse_conferida,
                                                                   receita_2020_1_role_repasse_nao_conferida,
                                                                   receita_2020_1_ptrf_repasse_conferida,
-                                                                  receita_2020_1_role_repasse_cheque_conferida
+                                                                  receita_2020_1_role_repasse_cheque_conferida,
+                                                                  periodo_2020_1,
+                                                                  conta_associacao_cartao
                                                                   ):
-    prestacao_uuid = prestacao_conta_iniciada.uuid
+    conta_uuid = conta_associacao_cartao.uuid
     acao_uuid = acao_associacao_role_cultural.uuid
 
-    url = f'/api/prestacoes-contas/{prestacao_uuid}/receitas/?acao_associacao_uuid={acao_uuid}&conferido=False'
+    url = f'/api/conciliacoes/receitas/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&acao_associacao={acao_uuid}&conferido=False'
 
     response = client.get(url, content_type='application/json')
 

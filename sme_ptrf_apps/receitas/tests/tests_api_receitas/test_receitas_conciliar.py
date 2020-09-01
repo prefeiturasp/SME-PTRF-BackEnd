@@ -9,7 +9,7 @@ from ...models import Receita
 pytestmark = pytest.mark.django_db
 
 
-def test_api_conciliar_receita_sem_prestacao_conta(client, receita_nao_conferida):
+def test_api_conciliar_receita_sem_periodo(client, receita_nao_conferida):
     receita_uuid = receita_nao_conferida.uuid
 
     url = f'/api/receitas/{receita_uuid}/conciliar/'
@@ -20,17 +20,17 @@ def test_api_conciliar_receita_sem_prestacao_conta(client, receita_nao_conferida
 
     esperado = {
         'erro': 'parametros_requerido',
-        'mensagem': 'É necessário enviar o uuid da prestação de contas onde esta sendo feita a conciliação.'
+        'mensagem': 'É necessário enviar o uuid do período onde esta sendo feita a conciliação.'
     }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result == esperado
 
 
-def test_api_conciliar_receita_com_prestacao_conta(client, receita_nao_conferida, prestacao_conta_iniciada):
+def test_api_conciliar_receita_com_periodo(client, receita_nao_conferida, periodo_2020_1):
     receita_uuid = receita_nao_conferida.uuid
 
-    url = f'/api/receitas/{receita_uuid}/conciliar/?prestacao_conta_uuid={prestacao_conta_iniciada.uuid}'
+    url = f'/api/receitas/{receita_uuid}/conciliar/?periodo={periodo_2020_1.uuid}'
 
     response = client.patch(url, content_type='application/json')
 
@@ -47,5 +47,4 @@ def test_api_conciliar_receita_com_prestacao_conta(client, receita_nao_conferida
     assert result == result_esperado
 
     assert receita_conciliada.conferido, "Receita deveria ter sido marcada como conferida."
-    assert receita_conciliada.prestacao_conta == prestacao_conta_iniciada, \
-        "Receita deveria ter sido vinculada à prestacao de contas."
+    assert receita_conciliada.periodo_conciliacao == periodo_2020_1, "Receita deveria ter sido vinculada ao período."

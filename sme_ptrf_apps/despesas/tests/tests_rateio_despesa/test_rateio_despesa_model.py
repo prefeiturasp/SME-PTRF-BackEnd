@@ -4,6 +4,7 @@ from freezegun import freeze_time
 
 from ...models import RateioDespesa
 from ...status_cadastro_completo import STATUS_COMPLETO
+from ....core.models import Periodo
 
 pytestmark = pytest.mark.django_db
 
@@ -28,7 +29,7 @@ def test_instance_model(rateio_despesa_capital):
     assert model.id
     assert model.status == STATUS_COMPLETO
     assert model.conferido
-    assert model.prestacao_conta
+    assert isinstance(model.periodo_conciliacao, Periodo)
     assert model.valor_original
 
 
