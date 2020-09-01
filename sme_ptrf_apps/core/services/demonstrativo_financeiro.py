@@ -2,6 +2,8 @@ import logging
 import os
 import re
 from copy import copy
+from datetime import date
+
 
 from django.contrib.staticfiles.storage import staticfiles_storage
 from openpyxl import load_workbook, styles
@@ -22,7 +24,7 @@ COL_CABECALHO = 9
 LINHA_PERIODO_CABECALHO = 4
 LINHA_ACAO_CABECALHO = 5
 LINHA_CONTA_CABECALHO = 6
-LAST_LINE = 47
+LAST_LINE = 49
 
 # Coluna 2 da planilha
 SALDO_ANTERIOR = 0
@@ -48,7 +50,7 @@ DATA_2 = 9
 VALOR = 10
 
 
-def gerar(periodo, acao_associacao, conta_associacao):
+def gerar(periodo, acao_associacao, conta_associacao, previa=False):
     LOGGER.info("GERANDO DEMONSTRATIVO...")
     rateios_conferidos = RateioDespesa.rateios_da_acao_associacao_no_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True)
@@ -67,6 +69,7 @@ def gerar(periodo, acao_associacao, conta_associacao):
         cabecalho(worksheet, periodo, acao_associacao, conta_associacao)
         identificacao_apm(worksheet, acao_associacao)
         observacoes(worksheet, acao_associacao, periodo, conta_associacao)
+        data_geracao_documento(worksheet, previa)
         sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo)
         creditos_demonstrados(worksheet, receitas_demonstradas)
         acc = len(receitas_demonstradas) - 1 if len(receitas_demonstradas) > 1 else 0
@@ -102,8 +105,15 @@ def identificacao_apm(worksheet, acao_associacao):
     presidente_conselho_fiscal = MembroAssociacao.objects.filter(associacao=associacao,
                                                                  cargo_associacao=MembroEnum.PRESIDENTE_CONSELHO_FISCAL.name).first()
 
-    rows[LAST_LINE - 1][0].value = presidente_diretoria_executiva.nome if presidente_diretoria_executiva else ''
-    rows[LAST_LINE - 1][6].value = presidente_conselho_fiscal.nome if presidente_conselho_fiscal else ''
+    rows[LAST_LINE - 3][0].value = presidente_diretoria_executiva.nome if presidente_diretoria_executiva else ''
+    rows[LAST_LINE - 3][6].value = presidente_conselho_fiscal.nome if presidente_conselho_fiscal else ''
+
+
+def data_geracao_documento(worksheet, previa=False):
+    rows = list(worksheet.rows)
+    data_geracao = date.today().strftime("%d/%m/%Y")
+    texto = f"Documento parcial gerado em: {data_geracao}" if previa else f"Documento final gerado em: {data_geracao}"
+    rows[LAST_LINE - 1][0].value = texto
 
 
 def sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo):
