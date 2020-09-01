@@ -1,6 +1,6 @@
 import logging
 
-from ..models import PrestacaoConta, ContaAssociacao, Periodo, AcaoAssociacao, FechamentoPeriodo, Observacao
+from ..models import PrestacaoConta, ContaAssociacao, Periodo, AcaoAssociacao, FechamentoPeriodo
 from ..services import info_acoes_associacao_no_periodo
 from ...despesas.models import RateioDespesa
 from ...receitas.models import Receita
@@ -15,9 +15,8 @@ def iniciar_prestacao_de_contas(conta_associacao_uuid, periodo_uuid):
     return PrestacaoConta.iniciar(conta_associacao=conta_associacao, periodo=periodo)
 
 
-def concluir_prestacao_de_contas(prestacao_contas_uuid, observacoes):
+def concluir_prestacao_de_contas(prestacao_contas_uuid):
     prestacao = PrestacaoConta.concluir(uuid=prestacao_contas_uuid)
-    Observacao.criar_atualizar(prestacao, observacoes)
 
     associacao = prestacao.associacao
     periodo = prestacao.periodo

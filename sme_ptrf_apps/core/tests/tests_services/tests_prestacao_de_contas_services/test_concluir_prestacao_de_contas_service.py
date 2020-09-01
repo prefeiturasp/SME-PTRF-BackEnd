@@ -1,6 +1,5 @@
 import pytest
 
-from ....models import Observacao
 from ....models.prestacao_conta import STATUS_ABERTO
 from ....services import concluir_prestacao_de_contas
 
@@ -8,18 +7,12 @@ pytestmark = pytest.mark.django_db
 
 
 def test_prestacao_de_contas_deve_ser_atualizada(prestacao_conta_iniciada, acao_associacao_ptrf):
-    observacoes = [{
-        "acao_associacao_uuid": str(acao_associacao_ptrf.uuid),
-        "observacao": "Teste"
-    }]
-    prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid,
-                                             observacoes=observacoes)
+
+    prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid)
 
     assert prestacao.status == STATUS_ABERTO, "O status deveria continuar como aberto."
     assert prestacao.conciliado, "Deveria ter sido marcada como conciliado."
     assert prestacao.conciliado_em is not None, "Deveria ter gravado a data e hora da última conciliação."
-    assert Observacao.objects.filter(prestacao_conta__uuid=prestacao_conta_iniciada.uuid,
-                                     acao_associacao__uuid=acao_associacao_ptrf.uuid).exists()
 
 
 def test_fechamentos_devem_ser_criados_por_acao(prestacao_conta_iniciada,
@@ -37,16 +30,10 @@ def test_fechamentos_devem_ser_criados_por_acao(prestacao_conta_iniciada,
                                                 despesa_2019_2,
                                                 rateio_despesa_2019_role_conferido,
                                                 acao_associacao_ptrf):
-    observacoes = [{
-        "acao_associacao_uuid": str(acao_associacao_ptrf.uuid),
-        "observacao": "Teste"
-    }]
 
-    prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid,
-                                             observacoes=observacoes)
+
+    prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid)
     assert prestacao.fechamentos_da_prestacao.count() == 2, "Deveriam ter sido criados dois fechamentos, um por ação."
-    assert Observacao.objects.filter(prestacao_conta__uuid=prestacao_conta_iniciada.uuid,
-                                     acao_associacao__uuid=acao_associacao_ptrf.uuid).exists()
 
 
 def test_deve_sumarizar_transacoes_incluindo_nao_conferidas(prestacao_conta_iniciada,
@@ -63,12 +50,8 @@ def test_deve_sumarizar_transacoes_incluindo_nao_conferidas(prestacao_conta_inic
                                                             despesa_2019_2,
                                                             rateio_despesa_2019_role_conferido,
                                                             ):
-    observacoes = [{
-        "acao_associacao_uuid": str(prestacao_conta_iniciada.associacao.acoes.filter(status='ATIVA').first().uuid),
-        "observacao": ""
-    }]
-    prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid,
-                                             observacoes=observacoes)
+
+    prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid)
     assert prestacao.fechamentos_da_prestacao.count() == 1, "Deveriam ter sido criado apenas um fechamento."
 
     fechamento = prestacao.fechamentos_da_prestacao.first()
@@ -116,12 +99,8 @@ def test_fechamentos_devem_ser_vinculados_a_anteriores(fechamento_periodo_2019_2
                                                        despesa_2019_2,
                                                        rateio_despesa_2019_role_conferido,
                                                        acao_associacao_ptrf):
-    observacoes = [{
-        "acao_associacao_uuid": str(acao_associacao_ptrf.uuid),
-        "observacao": "Teste"
-    }]
-    prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_2020_1_iniciada.uuid,
-                                             observacoes=observacoes)
+
+    prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_2020_1_iniciada.uuid)
 
     fechamento = prestacao.fechamentos_da_prestacao.first()
 
@@ -137,12 +116,8 @@ def test_deve_gravar_lista_de_especificacoes_despesas(prestacao_conta_iniciada,
                                                       despesa_2019_2,
                                                       rateio_despesa_2019_role_conferido,
                                                       ):
-    observacoes = [{
-        "acao_associacao_uuid": str(prestacao_conta_iniciada.associacao.acoes.filter(status='ATIVA').first().uuid),
-        "observacao": "Teste"
-    }]
-    prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid,
-                                             observacoes=observacoes)
+
+    prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid)
     assert prestacao.fechamentos_da_prestacao.count() == 1, "Deveriam ter sido criado apenas um fechamento."
 
     fechamento = prestacao.fechamentos_da_prestacao.first()
@@ -166,12 +141,8 @@ def test_deve_sumarizar_transacoes_considerando_conta(prestacao_conta_iniciada,
                                                       receita_2020_1_role_repasse_custeio_conferida_outra_conta,
                                                       rateio_despesa_2020_role_custeio_conferido_outra_conta,
                                                       ):
-    observacoes = [{
-        "acao_associacao_uuid": str(prestacao_conta_iniciada.associacao.acoes.filter(status='ATIVA').first().uuid),
-        "observacao": ""
-    }]
-    prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid,
-                                             observacoes=observacoes)
+
+    prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid)
     assert prestacao.fechamentos_da_prestacao.count() == 1, "Deveriam ter sido criado apenas um fechamento."
 
     fechamento = prestacao.fechamentos_da_prestacao.first()
