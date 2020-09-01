@@ -11,7 +11,6 @@ from .models import (
     DemonstrativoFinanceiro,
     FechamentoPeriodo,
     MembroAssociacao,
-    Observacao,
     Parametros,
     Periodo,
     PrestacaoConta,
@@ -29,7 +28,6 @@ admin.site.register(DemonstrativoFinanceiro)
 admin.site.register(Parametros)
 admin.site.register(RelacaoBens)
 admin.site.register(MembroAssociacao)
-admin.site.register(Observacao)
 
 
 @admin.register(Associacao)
