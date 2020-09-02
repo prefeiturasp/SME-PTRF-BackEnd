@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class ConciliacoesViewSet(GenericViewSet):
     permission_classes = [AllowAny]
+    queryset = ObservacaoConciliacao.objects.all()
 
     @action(detail=False, methods=['get'], url_path='tabela-valores-pendentes')
     def tabela_valores_pendentes(self, request):
