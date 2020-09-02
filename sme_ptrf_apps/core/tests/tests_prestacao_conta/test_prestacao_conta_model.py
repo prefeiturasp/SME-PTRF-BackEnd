@@ -19,8 +19,6 @@ def test_instance_model(prestacao_conta, prestacao_conta_anterior):
     assert model.uuid
     assert model.id
     assert model.status == PRESTACAO_FECHADA
-    assert model.motivo_reabertura
-
 
 def test_srt_model(prestacao_conta):
     assert prestacao_conta.__str__() == '2019.2 - 2019-09-01 a 2019-11-30 - Cheque  - FECHADO'

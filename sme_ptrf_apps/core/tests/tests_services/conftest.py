@@ -390,7 +390,6 @@ def prestacao_conta_2020_1_iniciada(periodo_2020_1, associacao, conta_associacao
         associacao=associacao,
         conta_associacao=conta_associacao,
         status=STATUS_ABERTO,
-        motivo_reabertura=''
     )
 
 
@@ -402,7 +401,6 @@ def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associac
         associacao=associacao,
         conta_associacao=conta_associacao,
         status=STATUS_ABERTO,
-        motivo_reabertura=''
     )
 
 
@@ -414,5 +412,4 @@ def prestacao_conta_2020_1_nao_conciliada(periodo_2020_1, associacao, conta_asso
         associacao=associacao,
         conta_associacao=conta_associacao_cartao,
         status=STATUS_ABERTO,
-        motivo_reabertura=''
     )

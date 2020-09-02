@@ -15,4 +15,4 @@ class PrestacaoContaLookUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PrestacaoConta
-        fields = ('uuid', 'periodo_uuid', 'conta_associacao_uuid', 'status', 'motivo_reabertura')
+        fields = ('uuid', 'periodo_uuid', 'conta_associacao_uuid', 'status')

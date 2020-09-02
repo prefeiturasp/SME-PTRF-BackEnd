@@ -34,9 +34,6 @@ def test_api_revisa_prestacao_conta(client, prestacao_conta):
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado, "Não retornou a prestação de contas esperada."
 
-    assert prestacao_atualizada.motivo_reabertura == motivo_reabertura, "Não gravou o motivo da reabertura."
-
-
 
 def test_api_revisa_prestacao_conta_sem_motivo(client, prestacao_conta):
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/revisar/'

@@ -37,8 +37,6 @@ class PrestacaoConta(ModeloBase):
         default=STATUS_ABERTO
     )
 
-    motivo_reabertura = models.TextField('Motivo de reabrir a conciliação', blank=True, default='')
-
     def __str__(self):
         nome_conta = self.conta_associacao.tipo_conta.nome if self.conta_associacao else ''
         return f"{self.periodo} - {nome_conta}  - {self.status}"
@@ -69,7 +67,6 @@ class PrestacaoConta(ModeloBase):
     @classmethod
     def revisar(cls, uuid, motivo):
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
-        prestacao_de_conta.motivo_reabertura = motivo
         prestacao_de_conta.save()
         prestacao_de_conta.apaga_fechamentos()
         prestacao_de_conta.apaga_relacao_bens()
