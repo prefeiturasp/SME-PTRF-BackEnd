@@ -24,9 +24,6 @@ class PrestacaoConta(ModeloBase):
                                    related_name='prestacoes_de_conta_da_associacao',
                                    blank=True, null=True)
 
-    conta_associacao = models.ForeignKey('ContaAssociacao', on_delete=models.PROTECT,
-                                         related_name='prestacoes_de_conta_da_conta', blank=True, null=True)
-
     prestacao_de_conta_anterior = models.ForeignKey('PrestacaoConta', on_delete=models.PROTECT,
                                                     related_name='proxima_prestacao_de_conta', null=True, blank=True)
 
@@ -38,15 +35,13 @@ class PrestacaoConta(ModeloBase):
     )
 
     def __str__(self):
-        nome_conta = self.conta_associacao.tipo_conta.nome if self.conta_associacao else ''
-        return f"{self.periodo} - {nome_conta}  - {self.status}"
+        return f"{self.periodo} - {self.status}"
 
     @classmethod
-    def iniciar(cls, conta_associacao, periodo):
+    def iniciar(cls, periodo, associacao):
         return PrestacaoConta.objects.create(
-            conta_associacao=conta_associacao,
             periodo=periodo,
-            associacao=conta_associacao.associacao,
+            associacao=associacao,
         )
 
     def apaga_fechamentos(self):
@@ -66,6 +61,7 @@ class PrestacaoConta(ModeloBase):
 
     @classmethod
     def revisar(cls, uuid, motivo):
+        #TODO Rever o parâmetro motivo
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
         prestacao_de_conta.save()
         prestacao_de_conta.apaga_fechamentos()
@@ -75,12 +71,14 @@ class PrestacaoConta(ModeloBase):
 
     @classmethod
     def salvar(cls, uuid):
+        #TODO Rever o salvamento de PC
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
         prestacao_de_conta.save()
         return prestacao_de_conta
 
     @classmethod
     def concluir(cls, uuid):
+        #TODO Rever a conclusão de PC
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
         prestacao_de_conta.save()
         return prestacao_de_conta
@@ -88,4 +86,5 @@ class PrestacaoConta(ModeloBase):
     class Meta:
         verbose_name = "Prestação de conta"
         verbose_name_plural = "Prestações de contas"
-        unique_together = ['conta_associacao', 'periodo']
+        #TODO Retornar com Unique Together após migração inicial da nova PC
+        #unique_together = ['associacao', 'periodo']

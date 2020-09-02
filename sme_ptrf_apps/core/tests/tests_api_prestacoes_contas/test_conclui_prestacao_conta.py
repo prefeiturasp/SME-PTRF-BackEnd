@@ -24,7 +24,6 @@ def test_api_conclui_prestacao_conta(client, prestacao_conta_iniciada, acao_asso
         many=False).data
 
     # Converto os campos UUIDs em strings para que a comparação funcione
-    result_esperado['conta_associacao_uuid'] = f'{result_esperado["conta_associacao_uuid"]}'
     result_esperado['periodo_uuid'] = f'{result_esperado["periodo_uuid"]}'
 
     assert response.status_code == status.HTTP_200_OK

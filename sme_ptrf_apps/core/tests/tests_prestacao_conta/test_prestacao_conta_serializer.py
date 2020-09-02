@@ -11,5 +11,4 @@ def test_lookup_serializer(prestacao_conta):
     assert serializer.data is not None
     assert serializer.data['uuid']
     assert serializer.data['periodo_uuid']
-    assert serializer.data['conta_associacao_uuid']
     assert serializer.data['status']

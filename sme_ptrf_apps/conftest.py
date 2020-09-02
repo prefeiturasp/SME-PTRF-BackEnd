@@ -383,36 +383,33 @@ def periodo_futuro():
 
 
 @pytest.fixture
-def prestacao_conta_anterior(periodo_anterior, associacao, conta_associacao):
+def prestacao_conta_anterior(periodo_anterior, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_anterior,
         associacao=associacao,
-        conta_associacao=conta_associacao,
         prestacao_de_conta_anterior=None,
         status=PRESTACAO_FECHADA,
     )
 
 
 @pytest.fixture
-def prestacao_conta(periodo, associacao, conta_associacao, prestacao_conta_anterior):
+def prestacao_conta(periodo, associacao, prestacao_conta_anterior):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo,
         associacao=associacao,
-        conta_associacao=conta_associacao,
         prestacao_de_conta_anterior=prestacao_conta_anterior,
         status=PRESTACAO_FECHADA,
     )
 
 
 @pytest.fixture
-def prestacao_conta_iniciada(periodo_2020_1, associacao, conta_associacao_cartao):
+def prestacao_conta_iniciada(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao_cartao,
         status=PRESTACAO_ABERTA,
     )
 
@@ -457,23 +454,21 @@ def fechamento_periodo_anterior_capital_1000_livre_2000(periodo_anterior, associ
 
 
 @pytest.fixture
-def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associacao):
+def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao,
         status=STATUS_ABERTO,
     )
 
 
 @pytest.fixture
-def prestacao_conta_2020_1_conciliada_outra_conta(periodo_2020_1, associacao, conta_associacao_cartao):
+def prestacao_conta_2020_1_conciliada_outra_conta(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao_cartao,
         status=STATUS_ABERTO,
     )
 
@@ -1180,13 +1175,13 @@ def parametros_tempo_nao_conferido_60_dias():
 
 
 @pytest.fixture
-def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
+def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada, conta_associacao):
     return baker.make(
         'Ata',
         prestacao_conta=prestacao_conta_2020_1_conciliada,
         periodo=prestacao_conta_2020_1_conciliada.periodo,
         associacao=prestacao_conta_2020_1_conciliada.associacao,
-        conta_associacao=prestacao_conta_2020_1_conciliada.conta_associacao,
+        conta_associacao=conta_associacao,
         tipo_ata='APRESENTACAO',
         tipo_reuniao='ORDINARIA',
         convocacao='PRIMEIRA',
@@ -1202,13 +1197,13 @@ def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
 
 
 @pytest.fixture
-def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
+def ata_prestacao_conta_iniciada(prestacao_conta_iniciada, conta_associacao):
     return baker.make(
         'Ata',
         prestacao_conta=prestacao_conta_iniciada,
         periodo=prestacao_conta_iniciada.periodo,
         associacao=prestacao_conta_iniciada.associacao,
-        conta_associacao=prestacao_conta_iniciada.conta_associacao,
+        conta_associacao=conta_associacao,
         tipo_ata='APRESENTACAO',
         tipo_reuniao='ORDINARIA',
         convocacao='PRIMEIRA',

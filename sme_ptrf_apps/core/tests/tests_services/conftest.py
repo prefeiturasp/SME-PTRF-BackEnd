@@ -383,33 +383,30 @@ def fechamento_periodo_2019_2(periodo_2019_2, associacao, conta_associacao, acao
 
 
 @pytest.fixture
-def prestacao_conta_2020_1_iniciada(periodo_2020_1, associacao, conta_associacao):
+def prestacao_conta_2020_1_iniciada(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao,
         status=STATUS_ABERTO,
     )
 
 
 @pytest.fixture
-def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associacao):
+def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao,
         status=STATUS_ABERTO,
     )
 
 
 @pytest.fixture
-def prestacao_conta_2020_1_nao_conciliada(periodo_2020_1, associacao, conta_associacao_cartao):
+def prestacao_conta_2020_1_nao_conciliada(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao_cartao,
         status=STATUS_ABERTO,
     )

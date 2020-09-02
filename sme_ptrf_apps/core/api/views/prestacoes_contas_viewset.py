@@ -1,3 +1,5 @@
+import logging
+
 from django.db.utils import IntegrityError
 from rest_framework import mixins
 from rest_framework import status
@@ -7,10 +9,11 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from ..serializers import PrestacaoContaLookUpSerializer, AtaLookUpSerializer
-from ...models import PrestacaoConta, Ata
+from ...models import PrestacaoConta, Ata, Periodo, Associacao
 from ...services import (iniciar_prestacao_de_contas, concluir_prestacao_de_contas,
                          revisar_prestacao_de_contas, informacoes_financeiras_para_atas)
 
+logger = logging.getLogger(__name__)
 
 class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                               mixins.UpdateModelMixin,
@@ -20,28 +23,54 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     queryset = PrestacaoConta.objects.all()
     serializer_class = PrestacaoContaLookUpSerializer
 
-    @action(detail=False, url_path='por-conta-e-periodo')
-    def por_conta_e_periodo(self, request):
-        conta_associacao_uuid = request.query_params.get('conta_associacao_uuid')
+    @action(detail=False, url_path='por-associacao-e-periodo')
+    def por_associacao_e_periodo(self, request):
+        associacao_uuid = request.query_params.get('associacao_uuid')
         periodo_uuid = request.query_params.get('periodo_uuid')
         return Response(PrestacaoContaLookUpSerializer(
-            self.queryset.filter(conta_associacao__uuid=conta_associacao_uuid).filter(
+            self.queryset.filter(associacao__uuid=associacao_uuid).filter(
                 periodo__uuid=periodo_uuid).first(), many=False).data)
 
     @action(detail=False, methods=['post'])
     def iniciar(self, request):
-        conta_associacao_uuid = request.query_params.get('conta_associacao_uuid')
-        periodo_uuid = request.query_params.get('periodo_uuid')
-
-        if not conta_associacao_uuid or not periodo_uuid:
+        associacao_uuid = request.query_params.get('associacao_uuid')
+        if not associacao_uuid:
             erro = {
-                'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar o uuid do período e o uuid da conta da associação.'
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da associação.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            nova_prestacao_de_contas = iniciar_prestacao_de_contas(conta_associacao_uuid, periodo_uuid)
+            associacao = Associacao.objects.get(uuid=associacao_uuid)
+        except Associacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto associação para o uuid {associacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        periodo_uuid = request.query_params.get('periodo_uuid')
+        if not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do período de conciliação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            nova_prestacao_de_contas = iniciar_prestacao_de_contas(associacao=associacao, periodo=periodo)
         except(IntegrityError):
             erro = {
                 'erro': 'prestacao_ja_iniciada',

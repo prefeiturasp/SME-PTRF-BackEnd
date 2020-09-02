@@ -139,18 +139,13 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
 @admin.register(PrestacaoConta)
 class PrestacaoContaAdmin(admin.ModelAdmin):
 
-    def get_nome_conta(self, obj):
-        return obj.conta_associacao.tipo_conta.nome if obj and obj.conta_associacao else ''
-
-    get_nome_conta.short_description = 'Conta'
-
     def get_eol_unidade(self, obj):
         return obj.associacao.unidade.codigo_eol if obj and obj.associacao and obj.associacao.unidade else ''
 
     get_eol_unidade.short_description = 'EOL'
 
-    list_display = ('get_eol_unidade', 'periodo', 'get_nome_conta', 'status')
-    list_filter = ('status', 'associacao', 'conta_associacao__tipo_conta')
+    list_display = ('get_eol_unidade', 'periodo', 'status')
+    list_filter = ('status', 'associacao')
     list_display_links = ('periodo',)
     readonly_fields = ('uuid',)
     search_fields = ('associacao__unidade__codigo_eol',)
