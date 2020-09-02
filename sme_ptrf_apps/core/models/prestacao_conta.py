@@ -1,4 +1,5 @@
 from django.db import models
+from django.db import transaction
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
@@ -57,9 +58,10 @@ class PrestacaoConta(ModeloBase):
         return self.atas_da_prestacao.last()
 
     @classmethod
-    def revisar(cls, uuid, motivo):
-        #TODO Rever a revisão de PC e confirmar se o parâmetro motivo é necessário
+    @transaction.atomic
+    def reabrir(cls, uuid):
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
+        prestacao_de_conta.status = STATUS_ABERTO
         prestacao_de_conta.save()
         prestacao_de_conta.apaga_fechamentos()
         prestacao_de_conta.apaga_relacao_bens()

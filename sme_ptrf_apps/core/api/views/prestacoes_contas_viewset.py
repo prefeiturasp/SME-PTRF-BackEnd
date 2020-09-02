@@ -11,7 +11,7 @@ from rest_framework.viewsets import GenericViewSet
 from ..serializers import PrestacaoContaLookUpSerializer, AtaLookUpSerializer
 from ...models import PrestacaoConta, Ata, Periodo, Associacao
 from ...services import (iniciar_prestacao_de_contas, concluir_prestacao_de_contas,
-                         revisar_prestacao_de_contas, informacoes_financeiras_para_atas)
+                         reabrir_prestacao_de_contas, informacoes_financeiras_para_atas)
 
 logger = logging.getLogger(__name__)
 
@@ -82,17 +82,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                         status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['patch'])
-    def revisar(self, request, uuid):
-        motivo = request.data.get('motivo', "")
-
-        if not motivo:
-            result_error = {
-                'erro': 'campo_requerido',
-                'mensagem': 'É necessário enviar o motivo de revisão da conciliação.'
-            }
-            return Response(result_error, status=status.HTTP_400_BAD_REQUEST)
-
-        prestacao_de_conta_revista = revisar_prestacao_de_contas(prestacao_contas_uuid=uuid, motivo=motivo)
+    def reabrir(self, request, uuid):
+        prestacao_de_conta_revista = reabrir_prestacao_de_contas(prestacao_contas_uuid=uuid)
         return Response(PrestacaoContaLookUpSerializer(prestacao_de_conta_revista, many=False).data,
                         status=status.HTTP_200_OK)
 

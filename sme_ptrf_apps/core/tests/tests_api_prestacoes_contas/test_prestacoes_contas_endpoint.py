@@ -21,7 +21,7 @@ def test_iniciar_prestacao_conta_url(authenticated_client, periodo, conta_associ
 def test_revisar_prestacao_conta_url(authenticated_client, prestacao_conta):
 
     response = authenticated_client.patch(
-        f'/api/prestacoes-contas/{prestacao_conta.uuid}/revisar/')
+        f'/api/prestacoes-contas/{prestacao_conta.uuid}/reabrir/')
     assert response.status_code != status.HTTP_404_NOT_FOUND
 
 

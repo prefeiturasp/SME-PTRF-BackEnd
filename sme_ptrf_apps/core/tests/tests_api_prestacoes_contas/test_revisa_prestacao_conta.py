@@ -9,15 +9,10 @@ from ...models import PrestacaoConta
 pytestmark = pytest.mark.django_db
 
 
-def test_api_revisa_prestacao_conta(client, prestacao_conta):
-    url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/revisar/'
+def test_api_reabre_prestacao_conta(client, prestacao_conta):
+    url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/reabrir/'
 
-    motivo_reabertura = "Correção de erros em algumas despesas."
-    payload = {
-        "motivo": motivo_reabertura
-    }
-
-    response = client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = client.patch(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -32,40 +27,3 @@ def test_api_revisa_prestacao_conta(client, prestacao_conta):
 
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado, "Não retornou a prestação de contas esperada."
-
-
-def test_api_revisa_prestacao_conta_sem_motivo(client, prestacao_conta):
-    url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/revisar/'
-
-    payload = {
-        "motivo": ""
-    }
-
-    response = client.patch(url, data=json.dumps(payload), content_type='application/json')
-
-    result = json.loads(response.content)
-
-    result_esperado = {
-        'erro': 'campo_requerido',
-        'mensagem': 'É necessário enviar o motivo de revisão da conciliação.'
-    }
-
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST, "Não recusou um motivo vazio."
-    assert result == result_esperado, "Não retornou a mensagem de erro esperada."
-
-
-def test_api_revisa_prestacao_conta_sem_payload(client, prestacao_conta):
-    url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/revisar/'
-
-    response = client.patch(url, content_type='application/json')
-
-    result = json.loads(response.content)
-
-    result_esperado = {
-        'erro': 'campo_requerido',
-        'mensagem': 'É necessário enviar o motivo de revisão da conciliação.'
-    }
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST, "Não recusou um motivo vazio."
-    assert result == result_esperado, "Não retornou a mensagem de erro esperada."

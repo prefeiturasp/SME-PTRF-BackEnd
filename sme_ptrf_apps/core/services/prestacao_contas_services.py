@@ -48,8 +48,8 @@ def concluir_prestacao_de_contas(prestacao_contas_uuid):
     return prestacao
 
 
-def revisar_prestacao_de_contas(prestacao_contas_uuid, motivo):
-    prestacao = PrestacaoConta.revisar(uuid=prestacao_contas_uuid, motivo=motivo)
+def reabrir_prestacao_de_contas(prestacao_contas_uuid):
+    prestacao = PrestacaoConta.reabrir(uuid=prestacao_contas_uuid)
 
     return prestacao
 

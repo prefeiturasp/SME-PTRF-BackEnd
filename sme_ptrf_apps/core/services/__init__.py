@@ -16,7 +16,7 @@ from .prestacao_contas_services import (
     concluir_prestacao_de_contas,
     informacoes_financeiras_para_atas,
     iniciar_prestacao_de_contas,
-    revisar_prestacao_de_contas,
+    reabrir_prestacao_de_contas,
 )
 from .processa_cargas import processa_cargas
 from .unidade_service import monta_unidade_para_atribuicao
