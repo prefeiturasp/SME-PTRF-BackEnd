@@ -67,13 +67,6 @@ class PrestacaoConta(ModeloBase):
         return prestacao_de_conta
 
     @classmethod
-    def salvar(cls, uuid):
-        #TODO Rever o salvamento de PC
-        prestacao_de_conta = cls.by_uuid(uuid=uuid)
-        prestacao_de_conta.save()
-        return prestacao_de_conta
-
-    @classmethod
     def concluir(cls, uuid):
         #TODO Rever a conclusão de PC
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
