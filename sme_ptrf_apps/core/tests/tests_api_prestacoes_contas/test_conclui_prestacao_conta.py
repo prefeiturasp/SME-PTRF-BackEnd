@@ -29,6 +29,3 @@ def test_api_conclui_prestacao_conta(client, prestacao_conta_iniciada, acao_asso
 
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado, "Não retornou a prestação de contas esperada."
-
-    assert prestacao_concluida.conciliado, "Flag conciliado deveria ser True."
-    assert prestacao_concluida.conciliado_em is not None, "Deveria haver data da última conciliação."

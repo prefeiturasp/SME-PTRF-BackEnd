@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 import pytest
 from django.test import RequestFactory
@@ -391,7 +391,6 @@ def prestacao_conta_anterior(periodo_anterior, associacao, conta_associacao):
         conta_associacao=conta_associacao,
         prestacao_de_conta_anterior=None,
         status=PRESTACAO_FECHADA,
-        conciliado=True
     )
 
 
@@ -404,8 +403,6 @@ def prestacao_conta(periodo, associacao, conta_associacao, prestacao_conta_anter
         conta_associacao=conta_associacao,
         prestacao_de_conta_anterior=prestacao_conta_anterior,
         status=PRESTACAO_FECHADA,
-        conciliado=True,
-        conciliado_em=datetime(2020, 1, 1, 10, 30, 15),
         motivo_reabertura='Teste'
     )
 
@@ -418,8 +415,6 @@ def prestacao_conta_iniciada(periodo_2020_1, associacao, conta_associacao_cartao
         associacao=associacao,
         conta_associacao=conta_associacao_cartao,
         status=PRESTACAO_ABERTA,
-        conciliado=False,
-        conciliado_em=None,
         motivo_reabertura=''
     )
 
@@ -471,8 +466,6 @@ def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associac
         associacao=associacao,
         conta_associacao=conta_associacao,
         status=STATUS_ABERTO,
-        conciliado=True,
-        conciliado_em=date(2020, 7, 1),
         motivo_reabertura=''
     )
 
@@ -485,8 +478,6 @@ def prestacao_conta_2020_1_conciliada_outra_conta(periodo_2020_1, associacao, co
         associacao=associacao,
         conta_associacao=conta_associacao_cartao,
         status=STATUS_ABERTO,
-        conciliado=True,
-        conciliado_em=date(2020, 7, 1),
         motivo_reabertura=''
     )
 

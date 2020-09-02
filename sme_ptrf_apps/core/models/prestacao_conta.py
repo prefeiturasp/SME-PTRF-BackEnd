@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
@@ -39,10 +37,6 @@ class PrestacaoConta(ModeloBase):
         default=STATUS_ABERTO
     )
 
-    conciliado = models.BooleanField('Período Conciliado?', default=False)
-
-    conciliado_em = models.DateTimeField('Última conciliação feita em', blank=True, null=True)
-
     motivo_reabertura = models.TextField('Motivo de reabrir a conciliação', blank=True, default='')
 
     def __str__(self):
@@ -60,7 +54,7 @@ class PrestacaoConta(ModeloBase):
     def apaga_fechamentos(self):
         for fechamento in self.fechamentos_da_prestacao.all():
             fechamento.delete()
-    
+
     def apaga_relacao_bens(self):
         for relacao in self.relacoes_de_bens_da_prestacao.all():
             relacao.delete()
@@ -68,7 +62,7 @@ class PrestacaoConta(ModeloBase):
     def apaga_demonstrativos_financeiros(self):
         for demonstrativo in self.demonstrativos_da_prestacao.all():
             demonstrativo.delete()
-    
+
     def ultima_ata(self):
         return self.atas_da_prestacao.last()
 
@@ -76,8 +70,6 @@ class PrestacaoConta(ModeloBase):
     def revisar(cls, uuid, motivo):
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
         prestacao_de_conta.motivo_reabertura = motivo
-        prestacao_de_conta.conciliado_em = None
-        prestacao_de_conta.conciliado = False
         prestacao_de_conta.save()
         prestacao_de_conta.apaga_fechamentos()
         prestacao_de_conta.apaga_relacao_bens()
@@ -93,8 +85,6 @@ class PrestacaoConta(ModeloBase):
     @classmethod
     def concluir(cls, uuid):
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
-        prestacao_de_conta.conciliado = True
-        prestacao_de_conta.conciliado_em = datetime.now()
         prestacao_de_conta.save()
         return prestacao_de_conta
 

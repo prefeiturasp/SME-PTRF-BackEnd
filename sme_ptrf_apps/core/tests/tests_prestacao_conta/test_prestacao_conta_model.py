@@ -19,7 +19,6 @@ def test_instance_model(prestacao_conta, prestacao_conta_anterior):
     assert model.uuid
     assert model.id
     assert model.status == PRESTACAO_FECHADA
-    assert model.conciliado_em
     assert model.motivo_reabertura
 
 

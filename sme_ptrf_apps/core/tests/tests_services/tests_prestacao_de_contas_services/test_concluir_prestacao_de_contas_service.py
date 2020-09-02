@@ -11,8 +11,6 @@ def test_prestacao_de_contas_deve_ser_atualizada(prestacao_conta_iniciada, acao_
     prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid)
 
     assert prestacao.status == STATUS_ABERTO, "O status deveria continuar como aberto."
-    assert prestacao.conciliado, "Deveria ter sido marcada como conciliado."
-    assert prestacao.conciliado_em is not None, "Deveria ter gravado a data e hora da última conciliação."
 
 
 def test_fechamentos_devem_ser_criados_por_acao(prestacao_conta_iniciada,

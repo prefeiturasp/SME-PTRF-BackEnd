@@ -34,9 +34,8 @@ def test_api_revisa_prestacao_conta(client, prestacao_conta):
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado, "Não retornou a prestação de contas esperada."
 
-    assert not prestacao_atualizada.conciliado, "Flag conciliado deveria ter voltado a ser falso."
     assert prestacao_atualizada.motivo_reabertura == motivo_reabertura, "Não gravou o motivo da reabertura."
-    assert prestacao_atualizada.conciliado_em == None, "Não limpou a data da última conciliação."
+
 
 
 def test_api_revisa_prestacao_conta_sem_motivo(client, prestacao_conta):

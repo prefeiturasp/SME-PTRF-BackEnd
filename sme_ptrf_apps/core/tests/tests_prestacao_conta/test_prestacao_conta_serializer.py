@@ -13,6 +13,4 @@ def test_lookup_serializer(prestacao_conta):
     assert serializer.data['periodo_uuid']
     assert serializer.data['conta_associacao_uuid']
     assert serializer.data['status']
-    assert serializer.data['conciliado']
-    assert serializer.data['conciliado_em']
     assert serializer.data['motivo_reabertura']
