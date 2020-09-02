@@ -7,12 +7,11 @@ from ...models.prestacao_conta import STATUS_FECHADO as PRESTACAO_FECHADA
 pytestmark = pytest.mark.django_db
 
 
-def test_instance_model(prestacao_conta, prestacao_conta_anterior):
+def test_instance_model(prestacao_conta):
     model = prestacao_conta
     assert isinstance(model, PrestacaoConta)
     assert isinstance(model.associacao, Associacao)
     assert isinstance(model.periodo, Periodo)
-    assert isinstance(model.prestacao_de_conta_anterior, PrestacaoConta)
     assert model.criado_em
     assert model.alterado_em
     assert model.uuid

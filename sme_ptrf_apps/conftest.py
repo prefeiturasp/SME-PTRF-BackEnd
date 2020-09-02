@@ -388,18 +388,16 @@ def prestacao_conta_anterior(periodo_anterior, associacao):
         'PrestacaoConta',
         periodo=periodo_anterior,
         associacao=associacao,
-        prestacao_de_conta_anterior=None,
         status=PRESTACAO_FECHADA,
     )
 
 
 @pytest.fixture
-def prestacao_conta(periodo, associacao, prestacao_conta_anterior):
+def prestacao_conta(periodo, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo,
         associacao=associacao,
-        prestacao_de_conta_anterior=prestacao_conta_anterior,
         status=PRESTACAO_FECHADA,
     )
 

@@ -24,9 +24,6 @@ class PrestacaoConta(ModeloBase):
                                    related_name='prestacoes_de_conta_da_associacao',
                                    blank=True, null=True)
 
-    prestacao_de_conta_anterior = models.ForeignKey('PrestacaoConta', on_delete=models.PROTECT,
-                                                    related_name='proxima_prestacao_de_conta', null=True, blank=True)
-
     status = models.CharField(
         'status',
         max_length=15,
