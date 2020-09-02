@@ -145,7 +145,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     get_eol_unidade.short_description = 'EOL'
 
     list_display = ('get_eol_unidade', 'periodo', 'status')
-    list_filter = ('status', 'associacao')
+    list_filter = ('status', 'associacao', 'periodo')
     list_display_links = ('periodo',)
     readonly_fields = ('uuid',)
     search_fields = ('associacao__unidade__codigo_eol',)

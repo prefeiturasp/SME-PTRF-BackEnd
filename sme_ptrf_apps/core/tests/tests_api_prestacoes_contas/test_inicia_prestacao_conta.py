@@ -65,8 +65,7 @@ def test_api_inicia_prestacao_conta_sem_associacao(client, periodo, associacao):
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result == result_esperado
 
-#TODO Reabilitar teste quando unique togheter da Prestação de Contas for reativado.
-def _test_api_inicia_prestacao_conta_ja_iniciada(client, prestacao_conta):
+def test_api_inicia_prestacao_conta_ja_iniciada(client, prestacao_conta):
     associacao_uuid = prestacao_conta.associacao.uuid
     periodo_uuid = prestacao_conta.periodo.uuid
 

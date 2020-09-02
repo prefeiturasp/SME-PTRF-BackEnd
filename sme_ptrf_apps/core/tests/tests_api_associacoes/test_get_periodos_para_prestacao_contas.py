@@ -90,7 +90,6 @@ def test_get_periodos_prestacao_de_contas_da_associacao(
     periodo_2020_2,
     prestacao_conta_2019_2_cartao,
     prestacao_conta_2020_1_cartao,
-    prestacao_conta_2020_1_cheque
 ):
     response = client.get(f'/api/associacoes/{associacao.uuid}/periodos-para-prestacao-de-contas/',
                           content_type='application/json')

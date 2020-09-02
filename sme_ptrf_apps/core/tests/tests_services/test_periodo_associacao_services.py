@@ -25,11 +25,3 @@ def test_status_periodo_nao_conciliado(associacao, periodo_2020_1, prestacao_con
     status = status_periodo_associacao(associacao_uuid=associacao.uuid, periodo_uuid=periodo_2020_1.uuid)
     status_esperado = STATUS_PERIODO_ASSOCIACAO_PENDENTE
     assert status == status_esperado, 'períodos com prestações não conciliadas devem ter status pendente.'
-
-
-@freeze_time('2020-12-1 10:00:00')
-def test_status_periodo_nao_conciliado_integralmente(associacao, periodo_2020_1, prestacao_conta_2020_1_nao_conciliada,
-                                                     prestacao_conta_2020_1_conciliada):
-    status = status_periodo_associacao(associacao_uuid=associacao.uuid, periodo_uuid=periodo_2020_1.uuid)
-    status_esperado = STATUS_PERIODO_ASSOCIACAO_PENDENTE
-    assert status == status_esperado, 'períodos com ao menos uma prestação não conciliada devem ter status pendente.'

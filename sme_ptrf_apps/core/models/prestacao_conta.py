@@ -58,7 +58,7 @@ class PrestacaoConta(ModeloBase):
 
     @classmethod
     def revisar(cls, uuid, motivo):
-        #TODO Rever o parâmetro motivo
+        #TODO Rever a revisão de PC e confirmar se o parâmetro motivo é necessário
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
         prestacao_de_conta.save()
         prestacao_de_conta.apaga_fechamentos()
@@ -83,5 +83,4 @@ class PrestacaoConta(ModeloBase):
     class Meta:
         verbose_name = "Prestação de conta"
         verbose_name_plural = "Prestações de contas"
-        #TODO Retornar com Unique Together após migração inicial da nova PC
-        #unique_together = ['associacao', 'periodo']
+        unique_together = ['associacao', 'periodo']
