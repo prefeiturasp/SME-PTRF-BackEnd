@@ -208,6 +208,7 @@ class FechamentoPeriodo(ModeloBase):
     def criar(cls,
               prestacao_conta,
               acao_associacao,
+              conta_associacao,
               total_receitas_capital,
               total_receitas_devolucao_capital,
               total_repasses_capital,
@@ -227,13 +228,13 @@ class FechamentoPeriodo(ModeloBase):
               especificacoes_despesas,
               ):
         fechamento_anterior = cls.by_periodo_conta_acao(periodo=prestacao_conta.periodo.periodo_anterior,
-                                                        conta_associacao=prestacao_conta.conta_associacao,
+                                                        conta_associacao=conta_associacao,
                                                         acao_associacao=acao_associacao)
         novo_fechamento = cls.objects.create(
             prestacao_conta=prestacao_conta,
             periodo=prestacao_conta.periodo,
             associacao=prestacao_conta.associacao,
-            conta_associacao=prestacao_conta.conta_associacao,
+            conta_associacao=conta_associacao,
             acao_associacao=acao_associacao,
             total_receitas_capital=total_receitas_capital,
             total_receitas_devolucao_capital=total_receitas_devolucao_capital,

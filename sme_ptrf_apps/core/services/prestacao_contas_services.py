@@ -1,7 +1,9 @@
 import logging
 
-from ..models import PrestacaoConta
+from ..models import PrestacaoConta, AcaoAssociacao, FechamentoPeriodo, ContaAssociacao
 from ..services import info_acoes_associacao_no_periodo
+from ...despesas.models import RateioDespesa
+from ...receitas.models import Receita
 
 logger = logging.getLogger(__name__)
 
@@ -9,40 +11,49 @@ logger = logging.getLogger(__name__)
 def concluir_prestacao_de_contas(periodo, associacao):
     prestacao = PrestacaoConta.concluir(periodo=periodo, associacao=associacao)
 
-    #TODO Rever serviço Concluir Prestação de Contas. Fazer fechamentos e gerar documentos.
-    #
-    # associacao = prestacao.associacao
-    # periodo = prestacao.periodo
-    # acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
-    # conta = prestacao.conta_associacao
-    #
-    # for acao in acoes:
-    #     totais_receitas = Receita.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo, conta=conta)
-    #     totais_despesas = RateioDespesa.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo, conta=conta)
-    #     especificacoes_despesas = RateioDespesa.especificacoes_dos_rateios_da_acao_associacao_no_periodo(
-    #         acao_associacao=acao, periodo=periodo)
-    #     FechamentoPeriodo.criar(
-    #         prestacao_conta=prestacao,
-    #         acao_associacao=acao,
-    #         total_receitas_capital=totais_receitas['total_receitas_capital'],
-    #         total_receitas_devolucao_capital=totais_receitas['total_receitas_devolucao_capital'],
-    #         total_repasses_capital=totais_receitas['total_repasses_capital'],
-    #         total_receitas_custeio=totais_receitas['total_receitas_custeio'],
-    #         total_receitas_devolucao_custeio=totais_receitas['total_receitas_devolucao_custeio'],
-    #         total_receitas_devolucao_livre=totais_receitas['total_receitas_devolucao_livre'],
-    #         total_repasses_custeio=totais_receitas['total_repasses_custeio'],
-    #         total_despesas_capital=totais_despesas['total_despesas_capital'],
-    #         total_despesas_custeio=totais_despesas['total_despesas_custeio'],
-    #         total_receitas_livre=totais_receitas['total_receitas_livre'],
-    #         total_repasses_livre=totais_receitas['total_repasses_livre'],
-    #         total_receitas_nao_conciliadas_capital=totais_receitas['total_receitas_nao_conciliadas_capital'],
-    #         total_receitas_nao_conciliadas_custeio=totais_receitas['total_receitas_nao_conciliadas_custeio'],
-    #         total_receitas_nao_conciliadas_livre=totais_receitas['total_receitas_nao_conciliadas_livre'],
-    #         total_despesas_nao_conciliadas_capital=totais_despesas['total_despesas_nao_conciliadas_capital'],
-    #         total_despesas_nao_conciliadas_custeio=totais_despesas['total_despesas_nao_conciliadas_custeio'],
-    #         especificacoes_despesas=especificacoes_despesas
-    #     )
+    associacao = prestacao.associacao
+    periodo = prestacao.periodo
+    acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
+    contas = associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
+
+    _criar_fechamentos(acoes, contas, periodo, prestacao)
+
+    #TODO O serviço Concluir PC deve gerar todos os documentos.
+
     return prestacao
+
+
+def _criar_fechamentos(acoes, contas, periodo, prestacao):
+    for conta in contas:
+        for acao in acoes:
+            totais_receitas = Receita.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo,
+                                                                            conta=conta)
+            totais_despesas = RateioDespesa.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo,
+                                                                                  conta=conta)
+            especificacoes_despesas = RateioDespesa.especificacoes_dos_rateios_da_acao_associacao_no_periodo(
+                acao_associacao=acao, periodo=periodo)
+            FechamentoPeriodo.criar(
+                prestacao_conta=prestacao,
+                acao_associacao=acao,
+                conta_associacao=conta,
+                total_receitas_capital=totais_receitas['total_receitas_capital'],
+                total_receitas_devolucao_capital=totais_receitas['total_receitas_devolucao_capital'],
+                total_repasses_capital=totais_receitas['total_repasses_capital'],
+                total_receitas_custeio=totais_receitas['total_receitas_custeio'],
+                total_receitas_devolucao_custeio=totais_receitas['total_receitas_devolucao_custeio'],
+                total_receitas_devolucao_livre=totais_receitas['total_receitas_devolucao_livre'],
+                total_repasses_custeio=totais_receitas['total_repasses_custeio'],
+                total_despesas_capital=totais_despesas['total_despesas_capital'],
+                total_despesas_custeio=totais_despesas['total_despesas_custeio'],
+                total_receitas_livre=totais_receitas['total_receitas_livre'],
+                total_repasses_livre=totais_receitas['total_repasses_livre'],
+                total_receitas_nao_conciliadas_capital=totais_receitas['total_receitas_nao_conciliadas_capital'],
+                total_receitas_nao_conciliadas_custeio=totais_receitas['total_receitas_nao_conciliadas_custeio'],
+                total_receitas_nao_conciliadas_livre=totais_receitas['total_receitas_nao_conciliadas_livre'],
+                total_despesas_nao_conciliadas_capital=totais_despesas['total_despesas_nao_conciliadas_capital'],
+                total_despesas_nao_conciliadas_custeio=totais_despesas['total_despesas_nao_conciliadas_custeio'],
+                especificacoes_despesas=especificacoes_despesas
+            )
 
 
 def reabrir_prestacao_de_contas(prestacao_contas_uuid):
