@@ -1,23 +1,17 @@
-"""
-Módulo responsável pela montagem do arquivo de demonstrativo financeiro.
-
-Autor: Anderson Marques Morais
-update: 02/06/2020
-"""
-
 import logging
 import os
 import re
 from copy import copy
+from tempfile import NamedTemporaryFile
 
 from django.contrib.staticfiles.storage import staticfiles_storage
+from django.core.files import File
 from openpyxl import load_workbook
-from openpyxl.cell.cell import Cell, MergedCell
-from openpyxl.utils import column_index_from_string, get_column_letter, range_boundaries
-from openpyxl.utils.cell import coordinate_from_string
+from openpyxl.cell.cell import MergedCell
+from openpyxl.utils import get_column_letter, range_boundaries
 
 from sme_ptrf_apps.core.choices import MembroEnum
-from sme_ptrf_apps.core.models import MembroAssociacao
+from sme_ptrf_apps.core.models import MembroAssociacao, RelacaoBens
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL
 
@@ -39,6 +33,21 @@ VALOR_RATEIO = 7
 
 BLOCO_3 = 19
 LAST_LINE = 24
+
+
+def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, prestacao):
+    filename = 'relacao_bens.xlsx'
+
+    xlsx = gerar(periodo, conta_associacao)
+
+    with NamedTemporaryFile() as tmp:
+        xlsx.save(tmp.name)
+
+        relacao_bens, _ = RelacaoBens.objects.update_or_create(
+            conta_associacao=conta_associacao,
+            prestacao_conta=prestacao
+        )
+        relacao_bens.arquivo.save(name=filename, content=File(tmp))
 
 
 def gerar(periodo, conta_associacao):
@@ -74,15 +83,15 @@ def identificacao_apm(worksheet, conta_associacao):
     presidente_diretoria_executiva = MembroAssociacao.objects.filter(associacao=associacao,
                                                                      cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
 
-    rows[LAST_LINE-2][3].value = presidente_diretoria_executiva.nome if presidente_diretoria_executiva else ''
+    rows[LAST_LINE - 2][3].value = presidente_diretoria_executiva.nome if presidente_diretoria_executiva else ''
     autenticacao(worksheet, associacao)
 
 
 def autenticacao(worksheet, associacao):
     """BLOCO 3 - AUTENTICAÇÃO"""
     mensagem = "Declaro, sob as penas de Lei, que os bens acima relacionados, adquiridos com recursos do PTRF foram doados" \
-        " à Prefeitura do município de São Paulo/ Secretaria Municipal de Educação para serem incorporados ao patrimônio público" \
-        f" e destinados à (ao) {associacao.nome}, responsável por sua guarda e conservação."
+               " à Prefeitura do município de São Paulo/ Secretaria Municipal de Educação para serem incorporados ao patrimônio público" \
+               f" e destinados à (ao) {associacao.nome}, responsável por sua guarda e conservação."
     rows = list(worksheet.rows)
     rows[BLOCO_3][0].value = mensagem
 
@@ -94,7 +103,7 @@ def pagamentos(worksheet, rateios, acc=0, start_line=15):
     if not rateios:
         return
 
-    quantidade = acc-1 if acc else 0
+    quantidade = acc - 1 if acc else 0
     last_line = LAST_LINE + quantidade
     valor_total = sum(r.valor_rateio for r in rateios)
     row = list(worksheet.rows)[16]
@@ -104,14 +113,15 @@ def pagamentos(worksheet, rateios, acc=0, start_line=15):
         # Movendo as linhas para baixo antes de inserir os dados novos
         ind = start_line + quantidade + linha
         if linha > 0:
-            for row_idx in range(last_line + linha, ind-2, -1):
+            for row_idx in range(last_line + linha, ind - 2, -1):
                 copy_row(worksheet, row_idx, 1, copy_data=True)
 
-        row = list(worksheet.rows)[ind-1]
+        row = list(worksheet.rows)[ind - 1]
         row[TIPO_DOCUMENTO].value = rateio.despesa.tipo_documento.nome if rateio.despesa.tipo_documento else ''
         row[NUMERO_DOCUMENTO].value = rateio.despesa.numero_documento
         row[DATA].value = rateio.despesa.data_documento.strftime("%d/%m/%Y") if rateio.despesa.data_documento else ''
-        row[ESPECIFICACAO_MATERIAL].value = rateio.especificacao_material_servico.descricao if rateio.especificacao_material_servico else ''
+        row[
+            ESPECIFICACAO_MATERIAL].value = rateio.especificacao_material_servico.descricao if rateio.especificacao_material_servico else ''
         row[NUMERO_DOCUMENTO_INCORPORACAO].value = rateio.numero_processo_incorporacao_capital
         row[QUANTIDADE].value = rateio.quantidade_itens_capital
         row[VALOR_ITEM].value = rateio.valor_item_capital
@@ -141,14 +151,14 @@ def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_me
 
     new_row_idx = source_row + 1
     for row in range(new_row_idx, new_row_idx + dest_row):
-        new_rd = copy(ws.row_dimensions[row-1])
+        new_rd = copy(ws.row_dimensions[row - 1])
         new_rd.index = row
         ws.row_dimensions[row] = new_rd
 
         for col in range(ws.max_column):
-            col = get_column_letter(col+1)
+            col = get_column_letter(col + 1)
             cell = ws['%s%d' % (col, row)]
-            source = ws['%s%d' % (col, row-1)]
+            source = ws['%s%d' % (col, row - 1)]
             if copy_style:
                 cell._style = copy(source._style)
             if copy_data and not isinstance(cell, MergedCell):

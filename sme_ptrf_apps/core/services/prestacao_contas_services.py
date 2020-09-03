@@ -3,6 +3,7 @@ import logging
 from ..models import PrestacaoConta, AcaoAssociacao, FechamentoPeriodo, ContaAssociacao
 from ..services import info_acoes_associacao_no_periodo
 from ..services.demonstrativo_financeiro import gerar_arquivo_demonstrativo_financeiro
+from ..services.relacao_bens import gerar_arquivo_relacao_de_bens
 from ...despesas.models import RateioDespesa
 from ...receitas.models import Receita
 
@@ -59,11 +60,10 @@ def _criar_fechamentos(acoes, contas, periodo, prestacao):
 
 def _criar_documentos(acoes, contas, periodo, prestacao):
     for conta in contas:
+        gerar_arquivo_relacao_de_bens(periodo=periodo, conta_associacao=conta, prestacao=prestacao)
         for acao in acoes:
             gerar_arquivo_demonstrativo_financeiro(periodo=periodo, conta_associacao=conta, acao_associacao=acao,
                                                    prestacao=prestacao)
-
-    # TODO O serviço Concluir PC deve gerar os documentos de relação de bens.
 
 
 def reabrir_prestacao_de_contas(prestacao_contas_uuid):

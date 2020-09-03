@@ -246,3 +246,23 @@ def test_demonstrativos_financeiros_devem_ser_criados_por_conta_e_acao(associaca
                                                                        acao_associacao_ptrf):
     prestacao = concluir_prestacao_de_contas(associacao=associacao, periodo=periodo_2020_1)
     assert prestacao.demonstrativos_da_prestacao.count() == 4, "Deveriam ter sido criados quatro, 2 contas x 2 ações."
+
+
+def test_relacoes_de_bens_devem_ser_criadas_por_conta(associacao,
+                                                      periodo_2020_1,
+                                                      receita_2020_1_role_repasse_custeio_conferida,
+                                                      receita_2020_1_ptrf_repasse_capital_conferida,
+                                                      receita_2020_1_role_repasse_capital_nao_conferida,
+                                                      receita_2019_2_role_repasse_capital_conferida,
+                                                      receita_2020_1_role_repasse_capital_conferida,
+                                                      receita_2020_1_role_rendimento_custeio_conferida,
+                                                      receita_2020_1_role_repasse_custeio_conferida_outra_conta,
+                                                      despesa_2020_1,
+                                                      rateio_despesa_2020_role_custeio_conferido,
+                                                      rateio_despesa_2020_role_custeio_nao_conferido,
+                                                      rateio_despesa_2020_role_capital_conferido,
+                                                      despesa_2019_2,
+                                                      rateio_despesa_2019_role_conferido,
+                                                      acao_associacao_ptrf):
+    prestacao = concluir_prestacao_de_contas(associacao=associacao, periodo=periodo_2020_1)
+    assert prestacao.relacoes_de_bens_da_prestacao.count() == 2, "Deveriam ter sido criados dois, 2 contas."
