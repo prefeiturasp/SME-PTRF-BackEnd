@@ -10,8 +10,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from ..serializers import PrestacaoContaLookUpSerializer, AtaLookUpSerializer
 from ...models import PrestacaoConta, Ata, Periodo, Associacao
-from ...services import (iniciar_prestacao_de_contas, concluir_prestacao_de_contas,
-                         reabrir_prestacao_de_contas, informacoes_financeiras_para_atas)
+from ...services import (concluir_prestacao_de_contas, reabrir_prestacao_de_contas, informacoes_financeiras_para_atas)
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +31,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 periodo__uuid=periodo_uuid).first(), many=False).data)
 
     @action(detail=False, methods=['post'])
-    def iniciar(self, request):
+    def concluir(self, request):
         associacao_uuid = request.query_params.get('associacao_uuid')
         if not associacao_uuid:
             erro = {
@@ -70,7 +69,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            nova_prestacao_de_contas = iniciar_prestacao_de_contas(associacao=associacao, periodo=periodo)
+            prestacao_de_contas = concluir_prestacao_de_contas(associacao=associacao, periodo=periodo)
         except(IntegrityError):
             erro = {
                 'erro': 'prestacao_ja_iniciada',
@@ -78,20 +77,13 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(erro, status=status.HTTP_409_CONFLICT)
 
-        return Response(PrestacaoContaLookUpSerializer(nova_prestacao_de_contas, many=False).data,
-                        status=status.HTTP_201_CREATED)
+        return Response(PrestacaoContaLookUpSerializer(prestacao_de_contas, many=False).data,
+                        status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['patch'])
     def reabrir(self, request, uuid):
         prestacao_de_conta_revista = reabrir_prestacao_de_contas(prestacao_contas_uuid=uuid)
         return Response(PrestacaoContaLookUpSerializer(prestacao_de_conta_revista, many=False).data,
-                        status=status.HTTP_200_OK)
-
-
-    @action(detail=True, methods=['patch'])
-    def concluir(self, request, uuid):
-        prestacao_conta_concluida = concluir_prestacao_de_contas(prestacao_contas_uuid=uuid)
-        return Response(PrestacaoContaLookUpSerializer(prestacao_conta_concluida, many=False).data,
                         status=status.HTTP_200_OK)
 
 

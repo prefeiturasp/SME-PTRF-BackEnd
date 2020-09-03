@@ -15,7 +15,6 @@ from .periodo_associacao_services import status_aceita_alteracoes_em_transacoes,
 from .prestacao_contas_services import (
     concluir_prestacao_de_contas,
     informacoes_financeiras_para_atas,
-    iniciar_prestacao_de_contas,
     reabrir_prestacao_de_contas,
 )
 from .processa_cargas import processa_cargas

@@ -1,12 +1,19 @@
 import pytest
 
-from ....models.prestacao_conta import STATUS_ABERTO
+from ....models.prestacao_conta import STATUS_FECHADO
 from ....services import concluir_prestacao_de_contas
 
 pytestmark = pytest.mark.django_db
 
+def test_prestacao_de_contas_deve_ser_criada(associacao, periodo):
 
-def test_prestacao_de_contas_deve_ser_atualizada(prestacao_conta_iniciada, acao_associacao_ptrf):
+    prestacao = concluir_prestacao_de_contas(associacao=associacao, periodo=periodo)
+
+    assert prestacao.status == STATUS_FECHADO, "A PC deveria estar fechada."
+
+
+#TODO Implementar teste para conclusão de PC já ewxistente (Caso de reabertura)
+def _test_prestacao_de_contas_deve_ser_atualizada(prestacao_conta_iniciada, acao_associacao_ptrf):
 
     prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid)
 

@@ -35,13 +35,6 @@ class PrestacaoConta(ModeloBase):
     def __str__(self):
         return f"{self.periodo} - {self.status}"
 
-    @classmethod
-    def iniciar(cls, periodo, associacao):
-        return PrestacaoConta.objects.create(
-            periodo=periodo,
-            associacao=associacao,
-        )
-
     def apaga_fechamentos(self):
         for fechamento in self.fechamentos_da_prestacao.all():
             fechamento.delete()
@@ -69,10 +62,16 @@ class PrestacaoConta(ModeloBase):
         return prestacao_de_conta
 
     @classmethod
-    def concluir(cls, uuid):
-        #TODO Rever a conclusão de PC
-        prestacao_de_conta = cls.by_uuid(uuid=uuid)
+    def concluir(cls, periodo, associacao):
+        prestacao_de_conta = PrestacaoConta.objects.create(
+            periodo=periodo,
+            associacao=associacao,
+            status=STATUS_ABERTO
+        )
+        # TODO Conclusão de PC. Gerar todos os docs antes de alterar o status
+        prestacao_de_conta.status = STATUS_FECHADO
         prestacao_de_conta.save()
+
         return prestacao_de_conta
 
     class Meta:

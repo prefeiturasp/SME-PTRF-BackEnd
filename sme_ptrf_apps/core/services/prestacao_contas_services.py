@@ -6,13 +6,10 @@ from ..services import info_acoes_associacao_no_periodo
 logger = logging.getLogger(__name__)
 
 
-def iniciar_prestacao_de_contas(periodo, associacao):
-    return PrestacaoConta.iniciar(periodo=periodo, associacao=associacao)
+def concluir_prestacao_de_contas(periodo, associacao):
+    prestacao = PrestacaoConta.concluir(periodo=periodo, associacao=associacao)
 
-
-def concluir_prestacao_de_contas(prestacao_contas_uuid):
-    prestacao = PrestacaoConta.concluir(uuid=prestacao_contas_uuid)
-    #TODO Rever serviço Concluir Prestação de Contas
+    #TODO Rever serviço Concluir Prestação de Contas. Fazer fechamentos e gerar documentos.
     #
     # associacao = prestacao.associacao
     # periodo = prestacao.periodo
