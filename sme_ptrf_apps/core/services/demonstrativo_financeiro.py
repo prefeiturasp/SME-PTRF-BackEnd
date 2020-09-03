@@ -2,19 +2,21 @@ import logging
 import os
 import re
 from copy import copy
+from tempfile import NamedTemporaryFile
 
 from django.contrib.staticfiles.storage import staticfiles_storage
+from django.core.files import File
 from openpyxl import load_workbook, styles
 from openpyxl.cell.cell import MergedCell
 from openpyxl.utils import get_column_letter, range_boundaries
 
 from sme_ptrf_apps.core.choices import MembroEnum
-from sme_ptrf_apps.core.models import FechamentoPeriodo, MembroAssociacao, \
-    ObservacaoConciliacao
+from sme_ptrf_apps.core.models import (FechamentoPeriodo, MembroAssociacao, ObservacaoConciliacao,
+                                       DemonstrativoFinanceiro)
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.receitas.models import Receita
-from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CUSTEIO, \
-    APLICACAO_LIVRE
+from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (APLICACAO_CAPITAL, APLICACAO_CUSTEIO,
+                                                                     APLICACAO_LIVRE)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -46,6 +48,22 @@ TIPO_DESPESA = 7
 TIPO_TRANSACAO = 8
 DATA_2 = 9
 VALOR = 10
+
+
+def gerar_arquivo_demonstrativo_financeiro(periodo, acao_associacao, conta_associacao, prestacao):
+    filename = 'demonstrativo_financeiro.xlsx'
+
+    xlsx = gerar(periodo, acao_associacao, conta_associacao)
+
+    with NamedTemporaryFile() as tmp:
+        xlsx.save(tmp.name)
+
+        demonstrativo_financeiro, _ = DemonstrativoFinanceiro.objects.update_or_create(
+            acao_associacao=acao_associacao,
+            conta_associacao=conta_associacao,
+            prestacao_conta=prestacao
+        )
+        demonstrativo_financeiro.arquivo.save(name=filename, content=File(tmp))
 
 
 def gerar(periodo, acao_associacao, conta_associacao):

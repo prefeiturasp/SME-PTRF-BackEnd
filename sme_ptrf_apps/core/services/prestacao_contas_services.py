@@ -2,6 +2,7 @@ import logging
 
 from ..models import PrestacaoConta, AcaoAssociacao, FechamentoPeriodo, ContaAssociacao
 from ..services import info_acoes_associacao_no_periodo
+from ..services.demonstrativo_financeiro import gerar_arquivo_demonstrativo_financeiro
 from ...despesas.models import RateioDespesa
 from ...receitas.models import Receita
 
@@ -18,7 +19,7 @@ def concluir_prestacao_de_contas(periodo, associacao):
 
     _criar_fechamentos(acoes, contas, periodo, prestacao)
 
-    #TODO O serviço Concluir PC deve gerar todos os documentos.
+    _criar_documentos(acoes, contas, periodo, prestacao)
 
     return prestacao
 
@@ -54,6 +55,15 @@ def _criar_fechamentos(acoes, contas, periodo, prestacao):
                 total_despesas_nao_conciliadas_custeio=totais_despesas['total_despesas_nao_conciliadas_custeio'],
                 especificacoes_despesas=especificacoes_despesas
             )
+
+
+def _criar_documentos(acoes, contas, periodo, prestacao):
+    for conta in contas:
+        for acao in acoes:
+            gerar_arquivo_demonstrativo_financeiro(periodo=periodo, conta_associacao=conta, acao_associacao=acao,
+                                                   prestacao=prestacao)
+
+    # TODO O serviço Concluir PC deve gerar os documentos de relação de bens.
 
 
 def reabrir_prestacao_de_contas(prestacao_contas_uuid):
@@ -121,7 +131,8 @@ def informacoes_financeiras_para_atas(prestacao_contas):
                                                   periodo=prestacao_contas.periodo,
                                                   conta=prestacao_contas.conta_associacao)
 
-    info_acoes = [info for info in info_acoes if info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+    info_acoes = [info for info in info_acoes if
+                  info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
 
     info = {
         'uuid': prestacao_contas.uuid,
