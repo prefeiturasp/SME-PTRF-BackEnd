@@ -3,7 +3,7 @@ import logging
 from decimal import Decimal
 
 from ..models import FechamentoPeriodo, Associacao, AcaoAssociacao, ContaAssociacao, Periodo
-from ..services.periodo_associacao_services import status_periodo_associacao
+from ..services.periodo_associacao_services import status_periodo_associacao, status_prestacao_conta_associacao
 from ...despesas.models import RateioDespesa
 from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
 from ...receitas.models import Receita, Repasse
@@ -88,11 +88,11 @@ def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
         for aplicacao, saldo_atual_key in (('CUSTEIO', 'saldo_atual_custeio'), ('CAPITAL', 'saldo_atual_capital')):
             if not gastos_acao_associacao[aplicacao]: continue
 
-            if saldos_acao[saldo_atual_key] + saldos_acao['saldo_atual_livre']  < gastos_acao_associacao[aplicacao]:
+            if saldos_acao[saldo_atual_key] + saldos_acao['saldo_atual_livre'] < gastos_acao_associacao[aplicacao]:
                 saldo_insuficiente = {
                     'acao': acao_associacao.acao.nome,
                     'aplicacao': aplicacao,
-                    'saldo_disponivel': saldos_acao[saldo_atual_key] + saldos_acao['saldo_atual_livre'] ,
+                    'saldo_disponivel': saldos_acao[saldo_atual_key] + saldos_acao['saldo_atual_livre'],
                     'total_rateios': gastos_acao_associacao[aplicacao]
                 }
                 saldos_insuficientes.append(saldo_insuficiente)
@@ -181,14 +181,16 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
 
             if receita.categoria_receita == APLICACAO_CUSTEIO:
                 info['receitas_no_periodo_custeio'] += receita.valor
-                info['receitas_devolucao_no_periodo_custeio'] += receita.valor if receita.tipo_receita.e_devolucao else 0
+                info[
+                    'receitas_devolucao_no_periodo_custeio'] += receita.valor if receita.tipo_receita.e_devolucao else 0
                 info['saldo_atual_custeio'] += receita.valor
                 info['repasses_no_periodo_custeio'] += receita.valor if receita.tipo_receita.e_repasse else 0
                 info['receitas_nao_conciliadas_custeio'] += receita.valor if not receita.conferido else 0
 
             elif receita.categoria_receita == APLICACAO_CAPITAL:
                 info['receitas_no_periodo_capital'] += receita.valor
-                info['receitas_devolucao_no_periodo_capital'] += receita.valor if receita.tipo_receita.e_devolucao else 0
+                info[
+                    'receitas_devolucao_no_periodo_capital'] += receita.valor if receita.tipo_receita.e_devolucao else 0
                 info['saldo_atual_capital'] += receita.valor
                 info['repasses_no_periodo_capital'] += receita.valor if receita.tipo_receita.e_repasse else 0
                 info['receitas_nao_conciliadas_capital'] += receita.valor if not receita.conferido else 0
@@ -319,7 +321,6 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
             'receitas_devolucao_no_periodo_custeio': info_acao['receitas_devolucao_no_periodo_custeio'],
             'receitas_devolucao_no_periodo_capital': info_acao['receitas_devolucao_no_periodo_capital'],
             'receitas_devolucao_no_periodo_livre': info_acao['receitas_devolucao_no_periodo_livre'],
-
 
             'repasses_no_periodo': info_acao['repasses_no_periodo_custeio'] +
                                    info_acao['repasses_no_periodo_capital'] +
@@ -513,7 +514,8 @@ def info_painel_acoes_por_periodo_e_conta(associacao_uuid, periodo_uuid=None, co
         periodo = Periodo.periodo_atual()
 
     periodo_status = status_periodo_associacao(periodo_uuid=periodo.uuid, associacao_uuid=associacao_uuid)
-
+    prestacao_contas_status = status_prestacao_conta_associacao(periodo_uuid=periodo.uuid,
+                                                                associacao_uuid=associacao_uuid)
     ultima_atualizacao = datetime.datetime.now()
 
     try:
@@ -552,7 +554,6 @@ def info_painel_acoes_por_periodo_e_conta(associacao_uuid, periodo_uuid=None, co
         'saldo_atual_total': 0
     } if conta else None
 
-
     info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=associacao_uuid, periodo=periodo, conta=conta)
 
     info_acoes = [info for info in info_acoes if
@@ -568,6 +569,7 @@ def info_painel_acoes_por_periodo_e_conta(associacao_uuid, periodo_uuid=None, co
         'associacao': f'{associacao_uuid}',
         'periodo_referencia': periodo.referencia,
         'periodo_status': periodo_status,
+        'prestacao_contas_status': prestacao_contas_status,
         'data_inicio_realizacao_despesas': f'{periodo.data_inicio_realizacao_despesas if periodo else ""}',
         'data_fim_realizacao_despesas': f'{periodo.data_fim_realizacao_despesas if periodo else ""}',
         'data_prevista_repasse': f'{periodo.data_prevista_repasse if periodo else ""}',

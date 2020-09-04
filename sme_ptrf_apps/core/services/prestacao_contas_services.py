@@ -1,5 +1,7 @@
 import logging
 
+from django.db import transaction
+
 from ..models import PrestacaoConta, AcaoAssociacao, FechamentoPeriodo, ContaAssociacao
 from ..services import info_acoes_associacao_no_periodo
 from ..services.demonstrativo_financeiro import gerar_arquivo_demonstrativo_financeiro
@@ -10,8 +12,11 @@ from ...receitas.models import Receita
 logger = logging.getLogger(__name__)
 
 
+@transaction.atomic
 def concluir_prestacao_de_contas(periodo, associacao):
-    prestacao = PrestacaoConta.concluir(periodo=periodo, associacao=associacao)
+
+    prestacao = PrestacaoConta.abrir(periodo=periodo, associacao=associacao)
+    logger.info(f'Aberta a prestação de contas {prestacao}.')
 
     associacao = prestacao.associacao
     periodo = prestacao.periodo
@@ -19,15 +24,23 @@ def concluir_prestacao_de_contas(periodo, associacao):
     contas = associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
 
     _criar_fechamentos(acoes, contas, periodo, prestacao)
+    logger.info(f'Fechamentos criados para a prestação de contas {prestacao}.')
 
     _criar_documentos(acoes, contas, periodo, prestacao)
+    logger.info(f'Documentos gerados para a prestação de contas {prestacao}.')
+
+    prestacao = prestacao.concluir()
+    logger.info(f'Concluída a prestação de contas {prestacao}.')
 
     return prestacao
 
 
 def _criar_fechamentos(acoes, contas, periodo, prestacao):
+    logger.info(f'Criando fechamentos do período {periodo} e prestacao {prestacao}...')
     for conta in contas:
+        logger.info(f'Criando fechamentos da conta {conta}.')
         for acao in acoes:
+            logger.info(f'Criando fechamentos da ação {acao}.')
             totais_receitas = Receita.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo,
                                                                             conta=conta)
             totais_despesas = RateioDespesa.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo,
@@ -59,14 +72,18 @@ def _criar_fechamentos(acoes, contas, periodo, prestacao):
 
 
 def _criar_documentos(acoes, contas, periodo, prestacao):
+    logger.info(f'Criando documentos do período {periodo} e prestacao {prestacao}...')
     for conta in contas:
+        logger.info(f'Gerando relação de bens da conta {conta}.')
         gerar_arquivo_relacao_de_bens(periodo=periodo, conta_associacao=conta, prestacao=prestacao)
         for acao in acoes:
+            logger.info(f'Gerando demonstrativo financeiro da ação {acao} e conta {conta}.')
             gerar_arquivo_demonstrativo_financeiro(periodo=periodo, conta_associacao=conta, acao_associacao=acao,
                                                    prestacao=prestacao)
 
 
 def reabrir_prestacao_de_contas(prestacao_contas_uuid):
+    logger.info(f'Reabrindo a prestação de contas de uuid {prestacao_contas_uuid}.')
     prestacao = PrestacaoConta.reabrir(uuid=prestacao_contas_uuid)
 
     return prestacao

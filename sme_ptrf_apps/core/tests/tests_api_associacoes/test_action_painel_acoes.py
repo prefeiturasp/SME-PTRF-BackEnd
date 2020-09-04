@@ -90,7 +90,15 @@ def test_action_painel_acoes(
                 'repasses_nao_realizados_livre': 0.0
             }
         ],
-        'info_conta': None
+        'info_conta': None,
+        'prestacao_contas_status': {
+            'documentos_gerados': None,
+            'legenda_cor': 3,
+            'periodo_bloqueado': False,
+            'periodo_encerrado': True,
+            'status_prestacao': 'DOCS_PENDENTES',
+            'texto_status': 'Período finalizado. Documentos pendentes de geração.'
+        }
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -178,7 +186,15 @@ def test_action_painel_acoes_por_periodo(
                 'repasses_nao_realizados_livre': 0.0
             }
         ],
-        'info_conta': None
+        'info_conta': None,
+        'prestacao_contas_status': {
+            'documentos_gerados': None,
+            'legenda_cor': 3,
+            'periodo_bloqueado': False,
+            'periodo_encerrado': True,
+            'status_prestacao': 'DOCS_PENDENTES',
+            'texto_status': 'Período finalizado. Documentos pendentes de geração.'
+        },
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -312,7 +328,15 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
                 'repasses_nao_realizados_livre': 0.0
             }
         ],
-        'info_conta': None
+        'info_conta': None,
+        'prestacao_contas_status': {
+            'documentos_gerados': None,
+            'legenda_cor': 3,
+            'periodo_bloqueado': False,
+            'periodo_encerrado': True,
+            'status_prestacao': 'DOCS_PENDENTES',
+            'texto_status': 'Período finalizado. Documentos pendentes de geração.'
+        },
     }
 
     assert response.status_code == status.HTTP_200_OK

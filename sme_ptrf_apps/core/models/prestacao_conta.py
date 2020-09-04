@@ -3,22 +3,37 @@ from django.db import transaction
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
-# Status Choice
-STATUS_FECHADO = 'FECHADO'
-STATUS_ABERTO = 'ABERTO'
-
-STATUS_NOMES = {
-    STATUS_ABERTO: 'Aberta',
-    STATUS_FECHADO: 'Fechada',
-}
-
-STATUS_CHOICES = (
-    (STATUS_ABERTO, STATUS_NOMES[STATUS_ABERTO]),
-    (STATUS_FECHADO, STATUS_NOMES[STATUS_FECHADO]),
-)
-
 
 class PrestacaoConta(ModeloBase):
+    # Status Choice
+    STATUS_DOCS_PENDENTES = 'DOCS_PENDENTES'
+    STATUS_NAO_RECEBIDA = 'NAO_RECEBIDA'
+    STATUS_RECEBIDA = 'RECEBIDA'
+    STATUS_EM_ANALISE = 'EM_ANALISE'
+    STATUS_DEVOLVIDA = 'DEVOLVIDA'
+    STATUS_APROVADA = 'APROVADA'
+    STATUS_REPROVADA = 'REPROVADA'
+
+    STATUS_NOMES = {
+        STATUS_DOCS_PENDENTES: 'Documentos pendentes',
+        STATUS_NAO_RECEBIDA: 'Não recebida',
+        STATUS_RECEBIDA: 'Recebida',
+        STATUS_EM_ANALISE: 'Em análise',
+        STATUS_DEVOLVIDA: 'Devolvida para acertos',
+        STATUS_APROVADA: 'Aprovada',
+        STATUS_REPROVADA: 'Reprovada'
+    }
+
+    STATUS_CHOICES = (
+        (STATUS_DOCS_PENDENTES, STATUS_NOMES[STATUS_DOCS_PENDENTES]),
+        (STATUS_NAO_RECEBIDA, STATUS_NOMES[STATUS_NAO_RECEBIDA]),
+        (STATUS_RECEBIDA, STATUS_NOMES[STATUS_RECEBIDA]),
+        (STATUS_EM_ANALISE, STATUS_NOMES[STATUS_EM_ANALISE]),
+        (STATUS_DEVOLVIDA, STATUS_NOMES[STATUS_DEVOLVIDA]),
+        (STATUS_APROVADA, STATUS_NOMES[STATUS_APROVADA]),
+        (STATUS_REPROVADA, STATUS_NOMES[STATUS_REPROVADA]),
+    )
+
     periodo = models.ForeignKey('Periodo', on_delete=models.PROTECT, related_name='prestacoes_de_conta')
 
     associacao = models.ForeignKey('Associacao', on_delete=models.PROTECT,
@@ -29,7 +44,7 @@ class PrestacaoConta(ModeloBase):
         'status',
         max_length=15,
         choices=STATUS_CHOICES,
-        default=STATUS_ABERTO
+        default=STATUS_DOCS_PENDENTES
     )
 
     def __str__(self):
@@ -50,11 +65,16 @@ class PrestacaoConta(ModeloBase):
     def ultima_ata(self):
         return self.atas_da_prestacao.last()
 
+    def concluir(self):
+        self.status = self.STATUS_NAO_RECEBIDA
+        self.save()
+        return self
+
     @classmethod
     @transaction.atomic
     def reabrir(cls, uuid):
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
-        prestacao_de_conta.status = STATUS_ABERTO
+        prestacao_de_conta.status = cls.STATUS_DEVOLVIDA
         prestacao_de_conta.save()
         prestacao_de_conta.apaga_fechamentos()
         prestacao_de_conta.apaga_relacao_bens()
@@ -62,17 +82,18 @@ class PrestacaoConta(ModeloBase):
         return prestacao_de_conta
 
     @classmethod
-    def concluir(cls, periodo, associacao):
+    def abrir(cls, periodo, associacao):
         prestacao_de_conta = PrestacaoConta.objects.create(
             periodo=periodo,
             associacao=associacao,
-            status=STATUS_ABERTO
+            status=cls.STATUS_DOCS_PENDENTES
         )
-        # TODO Conclusão de PC. Gerar todos os docs antes de alterar o status
-        prestacao_de_conta.status = STATUS_FECHADO
-        prestacao_de_conta.save()
-
         return prestacao_de_conta
+
+    @classmethod
+    def by_periodo(cls, associacao, periodo):
+        return cls.objects.filter(associacao=associacao, periodo=periodo).first()
+
 
     class Meta:
         verbose_name = "Prestação de conta"

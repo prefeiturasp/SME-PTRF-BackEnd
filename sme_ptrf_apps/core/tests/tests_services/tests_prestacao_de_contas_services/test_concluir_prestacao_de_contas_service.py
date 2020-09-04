@@ -3,7 +3,7 @@ from datetime import date
 import pytest
 from model_bakery import baker
 
-from ....models.prestacao_conta import STATUS_FECHADO
+from ....models import PrestacaoConta
 from ....services import concluir_prestacao_de_contas
 
 pytestmark = pytest.mark.django_db
@@ -12,15 +12,7 @@ pytestmark = pytest.mark.django_db
 def test_prestacao_de_contas_deve_ser_criada(associacao, periodo):
     prestacao = concluir_prestacao_de_contas(associacao=associacao, periodo=periodo)
 
-    assert prestacao.status == STATUS_FECHADO, "A PC deveria estar fechada."
-
-
-# TODO Implementar teste para conclusão de PC já ewxistente (Caso de reabertura)
-def _test_prestacao_de_contas_deve_ser_atualizada(prestacao_conta_iniciada, acao_associacao_ptrf):
-    prestacao = concluir_prestacao_de_contas(prestacao_contas_uuid=prestacao_conta_iniciada.uuid)
-
-    assert prestacao.status == STATUS_ABERTO, "O status deveria continuar como aberto."
-
+    assert prestacao.status == PrestacaoConta.STATUS_NAO_RECEBIDA, "A PC deveria estar como não recebida."
 
 def test_fechamentos_devem_ser_criados_por_acao(associacao,
                                                 periodo_2020_1,
@@ -130,7 +122,6 @@ def _fechamento_2019_2(_periodo_2019_2, associacao, conta_associacao, acao_assoc
         total_receitas_custeio=1000,
         total_repasses_custeio=900,
         total_despesas_custeio=800,
-        status=STATUS_FECHADO
     )
 
 

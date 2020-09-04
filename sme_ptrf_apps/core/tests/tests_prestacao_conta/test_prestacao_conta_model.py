@@ -2,7 +2,6 @@ import pytest
 from django.contrib import admin
 
 from ...models import PrestacaoConta, Associacao, Periodo
-from ...models.prestacao_conta import STATUS_FECHADO as PRESTACAO_FECHADA
 
 pytestmark = pytest.mark.django_db
 
@@ -16,10 +15,10 @@ def test_instance_model(prestacao_conta):
     assert model.alterado_em
     assert model.uuid
     assert model.id
-    assert model.status == PRESTACAO_FECHADA
+    assert model.status
 
 def test_srt_model(prestacao_conta):
-    assert prestacao_conta.__str__() == '2019.2 - 2019-09-01 a 2019-11-30 - FECHADO'
+    assert prestacao_conta.__str__() == '2019.2 - 2019-09-01 a 2019-11-30 - DOCS_PENDENTES'
 
 
 def test_meta_modelo(prestacao_conta):

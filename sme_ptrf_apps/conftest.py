@@ -9,8 +9,6 @@ from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
 from .core.choices import MembroEnum, RepresentacaoCargo, StatusTag
 from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO
-from .core.models.prestacao_conta import STATUS_ABERTO as PRESTACAO_ABERTA
-from .core.models.prestacao_conta import STATUS_FECHADO as PRESTACAO_FECHADA
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 
@@ -388,7 +386,6 @@ def prestacao_conta_anterior(periodo_anterior, associacao):
         'PrestacaoConta',
         periodo=periodo_anterior,
         associacao=associacao,
-        status=PRESTACAO_FECHADA,
     )
 
 
@@ -398,7 +395,6 @@ def prestacao_conta(periodo, associacao):
         'PrestacaoConta',
         periodo=periodo,
         associacao=associacao,
-        status=PRESTACAO_FECHADA,
     )
 
 
@@ -408,7 +404,6 @@ def prestacao_conta_iniciada(periodo_2020_1, associacao):
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        status=PRESTACAO_ABERTA,
     )
 
 

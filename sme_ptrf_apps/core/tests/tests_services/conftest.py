@@ -4,7 +4,6 @@ import pytest
 from model_bakery import baker
 
 from sme_ptrf_apps.core.models.fechamento_periodo import STATUS_FECHADO
-from sme_ptrf_apps.core.models.prestacao_conta import STATUS_ABERTO
 from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (APLICACAO_CAPITAL, APLICACAO_CUSTEIO,
                                                                      APLICACAO_LIVRE)
 
@@ -388,7 +387,6 @@ def prestacao_conta_2020_1_iniciada(periodo_2020_1, associacao):
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        status=STATUS_ABERTO,
     )
 
 
@@ -398,7 +396,6 @@ def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao):
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        status=STATUS_ABERTO,
     )
 
 
@@ -408,5 +405,4 @@ def prestacao_conta_2020_1_nao_conciliada(periodo_2020_1, associacao):
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        status=STATUS_ABERTO,
     )
