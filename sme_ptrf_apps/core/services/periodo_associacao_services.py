@@ -20,16 +20,7 @@ def status_periodo_associacao(periodo_uuid, associacao_uuid):
     return status
 
 
-def status_aceita_alteracoes_em_transacoes(status):
-    # TODO Rever o calculo do Status Aceitação de edição de transações
-    return status in (
-        STATUS_PERIODO_ASSOCIACAO_EM_ANDAMENTO,
-        STATUS_PERIODO_ASSOCIACAO_PENDENTE,
-    )
-
-
 def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
-    # TODO Rever o calculo do Status do Período
     '''
     Status Período	Status Documentos PC	Status PC na DRE	Parte Período	        Parte Prestação de Contas	                    Exibe Cadeado	Cor
     Em andamento	Não gerados	            N/A	                Período em andamento.	 		                                                        1

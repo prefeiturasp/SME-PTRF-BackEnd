@@ -27,8 +27,8 @@ from ...models import Associacao, ContaAssociacao, Periodo, Unidade
 from ...services import (
     implanta_saldos_da_associacao,
     implantacoes_de_saldo_da_associacao,
-    status_aceita_alteracoes_em_transacoes,
     status_periodo_associacao,
+    status_prestacao_conta_associacao,
     gerar_planilha,
     info_painel_acoes_por_periodo_e_conta
 )
@@ -100,17 +100,20 @@ class AssociacoesViewSet(mixins.ListModelMixin,
         if periodo:
             periodo_referencia = periodo.referencia
             periodo_status = status_periodo_associacao(periodo_uuid=periodo.uuid, associacao_uuid=uuid)
-            aceita_alteracoes = status_aceita_alteracoes_em_transacoes(periodo_status)
+            prestacao_conta_status = status_prestacao_conta_associacao(periodo_uuid=periodo.uuid, associacao_uuid=uuid)
+            aceita_alteracoes = not prestacao_conta_status['periodo_bloqueado'] if prestacao_conta_status else True
         else:
             periodo_referencia = ''
             periodo_status = 'PERIODO_NAO_ENCONTRADO'
             aceita_alteracoes = True
+            prestacao_conta_status = {}
 
         result = {
             'associacao': f'{uuid}',
             'periodo_referencia': periodo_referencia,
             'periodo_status': periodo_status,
             'aceita_alteracoes': aceita_alteracoes,
+            'prestacao_contas_status': prestacao_conta_status,
         }
 
         return Response(result)

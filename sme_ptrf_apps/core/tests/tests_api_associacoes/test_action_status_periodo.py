@@ -20,6 +20,14 @@ def test_status_periodo_em_andamento(client, associacao, periodo_fim_em_aberto):
         'periodo_referencia': periodo_fim_em_aberto.referencia,
         'periodo_status': STATUS_PERIODO_ASSOCIACAO_EM_ANDAMENTO,
         'aceita_alteracoes': True,
+        'prestacao_contas_status': {
+            'documentos_gerados': None,
+            'legenda_cor': 1,
+            'periodo_bloqueado': False,
+            'periodo_encerrado': None,
+            'status_prestacao': 'DOCS_PENDENTES',
+            'texto_status': 'Período em andamento. '
+        }
 
     }
 
@@ -38,6 +46,14 @@ def test_status_periodo_pendente(client, associacao, periodo_fim_em_2020_06_30):
         'periodo_referencia': periodo_fim_em_2020_06_30.referencia,
         'periodo_status': STATUS_PERIODO_ASSOCIACAO_PENDENTE,
         'aceita_alteracoes': True,
+        'prestacao_contas_status': {
+            'documentos_gerados': None,
+            'legenda_cor': 3,
+            'periodo_bloqueado': False,
+            'periodo_encerrado': True,
+            'status_prestacao': 'DOCS_PENDENTES',
+            'texto_status': 'Período finalizado. Documentos pendentes de geração.'
+        }
 
     }
 
@@ -51,9 +67,9 @@ def test_chamada_sem_passar_data(client, associacao, periodo_2020_1, prestacao_c
     result = json.loads(response.content)
 
     esperado = {
-                'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar a data que você quer consultar o status.'
-            }
+        'erro': 'parametros_requerido',
+        'mensagem': 'É necessário enviar a data que você quer consultar o status.'
+    }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result == esperado
@@ -69,7 +85,7 @@ def test_chamada_data_sem_periodo(client, associacao, periodo_2020_1):
         'periodo_referencia': '',
         'periodo_status': 'PERIODO_NAO_ENCONTRADO',
         'aceita_alteracoes': True,
-
+        'prestacao_contas_status': {}
     }
 
     assert response.status_code == status.HTTP_200_OK

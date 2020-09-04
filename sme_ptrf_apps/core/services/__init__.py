@@ -11,8 +11,7 @@ from .info_por_acao_services import (
     info_painel_acoes_por_periodo_e_conta
 )
 from .membro_associacao_service import TerceirizadasException, TerceirizadasService
-from .periodo_associacao_services import (status_aceita_alteracoes_em_transacoes, status_periodo_associacao,
-                                          status_prestacao_conta_associacao)
+from .periodo_associacao_services import (status_periodo_associacao, status_prestacao_conta_associacao)
 from .prestacao_contas_services import (
     concluir_prestacao_de_contas,
     informacoes_financeiras_para_atas,
