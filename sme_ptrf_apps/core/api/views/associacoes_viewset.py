@@ -30,7 +30,8 @@ from ...services import (
     status_aceita_alteracoes_em_transacoes,
     status_periodo_associacao,
     gerar_planilha,
-    info_painel_acoes_por_periodo_e_conta
+    info_painel_acoes_por_periodo_e_conta,
+    atualiza_dados_unidade
 )
 from ....dre.services import (
     verifica_regularidade_associacao,
@@ -53,6 +54,12 @@ class AssociacoesViewSet(mixins.ListModelMixin,
     serializer_class = AssociacaoSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
     filter_fields = ('unidade__dre__uuid', 'status_regularidade', 'unidade__tipo_unidade')
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        atualiza_dados_unidade(instance)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
