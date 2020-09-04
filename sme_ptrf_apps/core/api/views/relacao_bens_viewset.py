@@ -35,7 +35,7 @@ class RelacaoBensViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        xlsx = self._gerar_planilha(periodo_uuid, conta_associacao_uuid)
+        xlsx = self._gerar_planilha(periodo_uuid, conta_associacao_uuid, previa=True)
 
         result = BytesIO(save_virtual_workbook(xlsx))
 
@@ -95,10 +95,10 @@ class RelacaoBensViewSet(GenericViewSet):
         msg = str(relacao_bens) if relacao_bens else 'Documento pendente de geração'
         return Response(msg)
 
-    def _gerar_planilha(self, periodo_uuid, conta_associacao_uuid):
+    def _gerar_planilha(self, periodo_uuid, conta_associacao_uuid, previa=False):
         #TODO Remover quando retirar a geração da relação de bens do viewset
         conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
         periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
 
-        xlsx = gerar(periodo, conta_associacao)
+        xlsx = gerar(periodo, conta_associacao, previa=previa)
         return xlsx

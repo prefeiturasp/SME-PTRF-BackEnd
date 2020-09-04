@@ -58,7 +58,6 @@ def copia_atribuicoes_de_um_periodo(dados):
     for unidade in Unidade.objects.filter(dre__uuid=dados.get('dre_uuid')):
         kwargs = {"unidade__uuid": unidade.uuid, "periodo__uuid": dados.get('periodo_copiado')}
         atribuicao = Atribuicao.search(**kwargs).first()
-
         if atribuicao:
             kwargs = {"unidade__uuid": unidade.uuid, "periodo__uuid": dados.get('periodo_atual')}
             atribuicao_atual = Atribuicao.search(**kwargs).first()
@@ -74,3 +73,8 @@ def copia_atribuicoes_de_um_periodo(dados):
                     unidade=atribuicao.unidade,
                     periodo=periodo_atual
                 )
+        else:
+            kwargs = {"unidade__uuid": unidade.uuid, "periodo__uuid": dados.get('periodo_atual')}
+            atribuicao_atual = Atribuicao.search(**kwargs).first()
+            if atribuicao_atual:
+                atribuicao_atual.delete()

@@ -2,7 +2,11 @@ import logging
 import os
 import re
 from copy import copy
+
 from tempfile import NamedTemporaryFile
+
+from datetime import date
+
 
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.files import File
@@ -32,7 +36,7 @@ VALOR_ITEM = 6
 VALOR_RATEIO = 7
 
 BLOCO_3 = 19
-LAST_LINE = 24
+LAST_LINE = 26
 
 
 def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, prestacao):
@@ -50,7 +54,8 @@ def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, prestacao):
         relacao_bens.arquivo.save(name=filename, content=File(tmp))
 
 
-def gerar(periodo, conta_associacao):
+def gerar(periodo, conta_associacao, previa=False):
+
     LOGGER.info("GERANDO RELAÇÃO DE BENS...")
     rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
         conta_associacao=conta_associacao, periodo=periodo, aplicacao_recurso=APLICACAO_CAPITAL)
@@ -61,6 +66,7 @@ def gerar(periodo, conta_associacao):
 
     cabecalho(worksheet, periodo, conta_associacao)
     identificacao_apm(worksheet, conta_associacao)
+    data_geracao_documento(worksheet, previa)
     pagamentos(worksheet, rateios)
 
     return workbook
@@ -82,8 +88,8 @@ def identificacao_apm(worksheet, conta_associacao):
     rows[9][6].value = associacao.unidade.dre.nome
     presidente_diretoria_executiva = MembroAssociacao.objects.filter(associacao=associacao,
                                                                      cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
+    rows[LAST_LINE-4][3].value = presidente_diretoria_executiva.nome if presidente_diretoria_executiva else ''
 
-    rows[LAST_LINE - 2][3].value = presidente_diretoria_executiva.nome if presidente_diretoria_executiva else ''
     autenticacao(worksheet, associacao)
 
 
@@ -94,6 +100,13 @@ def autenticacao(worksheet, associacao):
                f" e destinados à (ao) {associacao.nome}, responsável por sua guarda e conservação."
     rows = list(worksheet.rows)
     rows[BLOCO_3][0].value = mensagem
+
+
+def data_geracao_documento(worksheet, previa=False):
+    rows = list(worksheet.rows)
+    data_geracao = date.today().strftime("%d/%m/%Y")
+    texto = f"Documento parcial gerado em: {data_geracao}" if previa else f"Documento final gerado em: {data_geracao}"
+    rows[LAST_LINE - 1][0].value = texto
 
 
 def pagamentos(worksheet, rateios, acc=0, start_line=15):

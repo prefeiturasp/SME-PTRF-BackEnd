@@ -37,7 +37,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        xlsx = self._gerar_planilha(acao_associacao_uuid, conta_associacao_uuid, periodo_uuid)
+        xlsx = self._gerar_planilha(acao_associacao_uuid, conta_associacao_uuid, periodo_uuid, previa=True)
+
         result = BytesIO(save_virtual_workbook(xlsx))
 
         filename = 'demonstrativo_financeiro.xlsx'
@@ -141,11 +142,11 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         return Response(msg)
 
-    def _gerar_planilha(self, acao_associacao_uuid, conta_associacao_uuid, periodo_uuid):
+    def _gerar_planilha(self, acao_associacao_uuid, conta_associacao_uuid, periodo_uuid, previa=False):
         #TODO Remover esse método quando revisar o endpoint documento-final do demonstrativo financeiro
         acao_associacao = AcaoAssociacao.objects.filter(uuid=acao_associacao_uuid).get()
         conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
         periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
 
-        xlsx = gerar(periodo, acao_associacao, conta_associacao)
+        xlsx = gerar(periodo, acao_associacao, conta_associacao, previa=previa)
         return xlsx
