@@ -1,60 +1,90 @@
 import logging
 
-from ..models import PrestacaoConta, ContaAssociacao, Periodo, AcaoAssociacao, FechamentoPeriodo
+from django.db import transaction
+
+from ..models import PrestacaoConta, AcaoAssociacao, FechamentoPeriodo, ContaAssociacao
 from ..services import info_acoes_associacao_no_periodo
+from ..services.demonstrativo_financeiro import gerar_arquivo_demonstrativo_financeiro
+from ..services.relacao_bens import gerar_arquivo_relacao_de_bens
 from ...despesas.models import RateioDespesa
 from ...receitas.models import Receita
 
 logger = logging.getLogger(__name__)
 
 
-def iniciar_prestacao_de_contas(conta_associacao_uuid, periodo_uuid):
-    conta_associacao = ContaAssociacao.objects.get(uuid=conta_associacao_uuid)
-    periodo = Periodo.by_uuid(periodo_uuid)
+@transaction.atomic
+def concluir_prestacao_de_contas(periodo, associacao):
 
-    return PrestacaoConta.iniciar(conta_associacao=conta_associacao, periodo=periodo)
-
-
-def concluir_prestacao_de_contas(prestacao_contas_uuid):
-    prestacao = PrestacaoConta.concluir(uuid=prestacao_contas_uuid)
+    prestacao = PrestacaoConta.abrir(periodo=periodo, associacao=associacao)
+    logger.info(f'Aberta a prestação de contas {prestacao}.')
 
     associacao = prestacao.associacao
     periodo = prestacao.periodo
     acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
-    conta = prestacao.conta_associacao
+    contas = associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
 
-    for acao in acoes:
-        totais_receitas = Receita.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo, conta=conta)
-        totais_despesas = RateioDespesa.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo, conta=conta)
-        especificacoes_despesas = RateioDespesa.especificacoes_dos_rateios_da_acao_associacao_no_periodo(
-            acao_associacao=acao, periodo=periodo)
-        FechamentoPeriodo.criar(
-            prestacao_conta=prestacao,
-            acao_associacao=acao,
-            total_receitas_capital=totais_receitas['total_receitas_capital'],
-            total_receitas_devolucao_capital=totais_receitas['total_receitas_devolucao_capital'],
-            total_repasses_capital=totais_receitas['total_repasses_capital'],
-            total_receitas_custeio=totais_receitas['total_receitas_custeio'],
-            total_receitas_devolucao_custeio=totais_receitas['total_receitas_devolucao_custeio'],
-            total_receitas_devolucao_livre=totais_receitas['total_receitas_devolucao_livre'],
-            total_repasses_custeio=totais_receitas['total_repasses_custeio'],
-            total_despesas_capital=totais_despesas['total_despesas_capital'],
-            total_despesas_custeio=totais_despesas['total_despesas_custeio'],
-            total_receitas_livre=totais_receitas['total_receitas_livre'],
-            total_repasses_livre=totais_receitas['total_repasses_livre'],
-            total_receitas_nao_conciliadas_capital=totais_receitas['total_receitas_nao_conciliadas_capital'],
-            total_receitas_nao_conciliadas_custeio=totais_receitas['total_receitas_nao_conciliadas_custeio'],
-            total_receitas_nao_conciliadas_livre=totais_receitas['total_receitas_nao_conciliadas_livre'],
-            total_despesas_nao_conciliadas_capital=totais_despesas['total_despesas_nao_conciliadas_capital'],
-            total_despesas_nao_conciliadas_custeio=totais_despesas['total_despesas_nao_conciliadas_custeio'],
-            especificacoes_despesas=especificacoes_despesas
-        )
+    _criar_fechamentos(acoes, contas, periodo, prestacao)
+    logger.info(f'Fechamentos criados para a prestação de contas {prestacao}.')
+
+    _criar_documentos(acoes, contas, periodo, prestacao)
+    logger.info(f'Documentos gerados para a prestação de contas {prestacao}.')
+
+    prestacao = prestacao.concluir()
+    logger.info(f'Concluída a prestação de contas {prestacao}.')
 
     return prestacao
 
 
-def revisar_prestacao_de_contas(prestacao_contas_uuid, motivo):
-    prestacao = PrestacaoConta.revisar(uuid=prestacao_contas_uuid, motivo=motivo)
+def _criar_fechamentos(acoes, contas, periodo, prestacao):
+    logger.info(f'Criando fechamentos do período {periodo} e prestacao {prestacao}...')
+    for conta in contas:
+        logger.info(f'Criando fechamentos da conta {conta}.')
+        for acao in acoes:
+            logger.info(f'Criando fechamentos da ação {acao}.')
+            totais_receitas = Receita.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo,
+                                                                            conta=conta)
+            totais_despesas = RateioDespesa.totais_por_acao_associacao_no_periodo(acao_associacao=acao, periodo=periodo,
+                                                                                  conta=conta)
+            especificacoes_despesas = RateioDespesa.especificacoes_dos_rateios_da_acao_associacao_no_periodo(
+                acao_associacao=acao, periodo=periodo)
+            FechamentoPeriodo.criar(
+                prestacao_conta=prestacao,
+                acao_associacao=acao,
+                conta_associacao=conta,
+                total_receitas_capital=totais_receitas['total_receitas_capital'],
+                total_receitas_devolucao_capital=totais_receitas['total_receitas_devolucao_capital'],
+                total_repasses_capital=totais_receitas['total_repasses_capital'],
+                total_receitas_custeio=totais_receitas['total_receitas_custeio'],
+                total_receitas_devolucao_custeio=totais_receitas['total_receitas_devolucao_custeio'],
+                total_receitas_devolucao_livre=totais_receitas['total_receitas_devolucao_livre'],
+                total_repasses_custeio=totais_receitas['total_repasses_custeio'],
+                total_despesas_capital=totais_despesas['total_despesas_capital'],
+                total_despesas_custeio=totais_despesas['total_despesas_custeio'],
+                total_receitas_livre=totais_receitas['total_receitas_livre'],
+                total_repasses_livre=totais_receitas['total_repasses_livre'],
+                total_receitas_nao_conciliadas_capital=totais_receitas['total_receitas_nao_conciliadas_capital'],
+                total_receitas_nao_conciliadas_custeio=totais_receitas['total_receitas_nao_conciliadas_custeio'],
+                total_receitas_nao_conciliadas_livre=totais_receitas['total_receitas_nao_conciliadas_livre'],
+                total_despesas_nao_conciliadas_capital=totais_despesas['total_despesas_nao_conciliadas_capital'],
+                total_despesas_nao_conciliadas_custeio=totais_despesas['total_despesas_nao_conciliadas_custeio'],
+                especificacoes_despesas=especificacoes_despesas
+            )
+
+
+def _criar_documentos(acoes, contas, periodo, prestacao):
+    logger.info(f'Criando documentos do período {periodo} e prestacao {prestacao}...')
+    for conta in contas:
+        logger.info(f'Gerando relação de bens da conta {conta}.')
+        gerar_arquivo_relacao_de_bens(periodo=periodo, conta_associacao=conta, prestacao=prestacao)
+        for acao in acoes:
+            logger.info(f'Gerando demonstrativo financeiro da ação {acao} e conta {conta}.')
+            gerar_arquivo_demonstrativo_financeiro(periodo=periodo, conta_associacao=conta, acao_associacao=acao,
+                                                   prestacao=prestacao)
+
+
+def reabrir_prestacao_de_contas(prestacao_contas_uuid):
+    logger.info(f'Reabrindo a prestação de contas de uuid {prestacao_contas_uuid}.')
+    prestacao = PrestacaoConta.reabrir(uuid=prestacao_contas_uuid)
 
     return prestacao
 
@@ -118,7 +148,8 @@ def informacoes_financeiras_para_atas(prestacao_contas):
                                                   periodo=prestacao_contas.periodo,
                                                   conta=prestacao_contas.conta_associacao)
 
-    info_acoes = [info for info in info_acoes if info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+    info_acoes = [info for info in info_acoes if
+                  info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
 
     info = {
         'uuid': prestacao_contas.uuid,

@@ -93,36 +93,44 @@ def test_action_painel_acoes_de_uma_conta(
             }
         ],
         'info_conta': {
-                'conta_associacao_uuid': f'{conta_associacao.uuid}',
-                'conta_associacao_nome': conta_associacao.tipo_conta.nome,
+            'conta_associacao_uuid': f'{conta_associacao.uuid}',
+            'conta_associacao_nome': conta_associacao.tipo_conta.nome,
 
-                'saldo_reprogramado': 0,
-                'saldo_reprogramado_capital': 0,
-                'saldo_reprogramado_custeio': 0,
-                'saldo_reprogramado_livre': 0,
+            'saldo_reprogramado': 0,
+            'saldo_reprogramado_capital': 0,
+            'saldo_reprogramado_custeio': 0,
+            'saldo_reprogramado_livre': 0,
 
-                'receitas_no_periodo': 400.0,
+            'receitas_no_periodo': 400.0,
 
-                'repasses_no_periodo': 300.0,
-                'repasses_no_periodo_capital': 0,
-                'repasses_no_periodo_custeio': 300.0,
-                'repasses_no_periodo_livre': 0,
+            'repasses_no_periodo': 300.0,
+            'repasses_no_periodo_capital': 0,
+            'repasses_no_periodo_custeio': 300.0,
+            'repasses_no_periodo_livre': 0,
 
-                'outras_receitas_no_periodo': 100.0,
-                'outras_receitas_no_periodo_capital': 0,
-                'outras_receitas_no_periodo_custeio': 100.0,
-                'outras_receitas_no_periodo_livre': 0,
+            'outras_receitas_no_periodo': 100.0,
+            'outras_receitas_no_periodo_capital': 0,
+            'outras_receitas_no_periodo_custeio': 100.0,
+            'outras_receitas_no_periodo_livre': 0,
 
-                'despesas_no_periodo': 300.0,
-                'despesas_no_periodo_capital': 200.0,
-                'despesas_no_periodo_custeio': 100.0,
+            'despesas_no_periodo': 300.0,
+            'despesas_no_periodo_capital': 200.0,
+            'despesas_no_periodo_custeio': 100.0,
 
-                'saldo_atual_custeio': 300.0,
-                'saldo_atual_capital': 0.0,
-                'saldo_atual_livre': -200,
-                'saldo_atual_total': 100.0
+            'saldo_atual_custeio': 300.0,
+            'saldo_atual_capital': 0.0,
+            'saldo_atual_livre': -200,
+            'saldo_atual_total': 100.0
 
-            }
+        },
+        'prestacao_contas_status': {
+            'documentos_gerados': None,
+            'legenda_cor': 3,
+            'periodo_bloqueado': False,
+            'periodo_encerrado': True,
+            'status_prestacao': 'DOCS_PENDENTES',
+            'texto_status': 'Período finalizado. Documentos pendentes de geração.'
+        },
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -214,40 +222,49 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
             }
         ],
         'info_conta': {
-                'conta_associacao_uuid': f'{conta_associacao.uuid}',
-                'conta_associacao_nome': conta_associacao.tipo_conta.nome,
+            'conta_associacao_uuid': f'{conta_associacao.uuid}',
+            'conta_associacao_nome': conta_associacao.tipo_conta.nome,
 
-                'saldo_reprogramado': 0,
-                'saldo_reprogramado_capital': 0,
-                'saldo_reprogramado_custeio': 0,
-                'saldo_reprogramado_livre': 0,
+            'saldo_reprogramado': 0,
+            'saldo_reprogramado_capital': 0,
+            'saldo_reprogramado_custeio': 0,
+            'saldo_reprogramado_livre': 0,
 
-                'receitas_no_periodo': 400.0,
+            'receitas_no_periodo': 400.0,
 
-                'repasses_no_periodo': 300.0,
-                'repasses_no_periodo_capital': 0,
-                'repasses_no_periodo_custeio': 300.0,
-                'repasses_no_periodo_livre': 0,
+            'repasses_no_periodo': 300.0,
+            'repasses_no_periodo_capital': 0,
+            'repasses_no_periodo_custeio': 300.0,
+            'repasses_no_periodo_livre': 0,
 
-                'outras_receitas_no_periodo': 100.0,
-                'outras_receitas_no_periodo_capital': 0,
-                'outras_receitas_no_periodo_custeio': 100.0,
-                'outras_receitas_no_periodo_livre': 0,
+            'outras_receitas_no_periodo': 100.0,
+            'outras_receitas_no_periodo_capital': 0,
+            'outras_receitas_no_periodo_custeio': 100.0,
+            'outras_receitas_no_periodo_livre': 0,
 
-                'despesas_no_periodo': 300.0,
-                'despesas_no_periodo_capital': 200.0,
-                'despesas_no_periodo_custeio': 100.0,
+            'despesas_no_periodo': 300.0,
+            'despesas_no_periodo_capital': 200.0,
+            'despesas_no_periodo_custeio': 100.0,
 
-                'saldo_atual_custeio': 300.0,
-                'saldo_atual_capital': 0.0,
-                'saldo_atual_livre': -200,
-                'saldo_atual_total': 100.0
+            'saldo_atual_custeio': 300.0,
+            'saldo_atual_capital': 0.0,
+            'saldo_atual_livre': -200,
+            'saldo_atual_total': 100.0
 
-            }
+        },
+        'prestacao_contas_status': {
+            'documentos_gerados': None,
+            'legenda_cor': 3,
+            'periodo_bloqueado': False,
+            'periodo_encerrado': True,
+            'status_prestacao': 'DOCS_PENDENTES',
+            'texto_status': 'Período finalizado. Documentos pendentes de geração.'
+        },
     }
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
+
 
 @freeze_time('2020-04-18 10:11:12')
 def test_action_painel_acoes_de_uma_conta_invalida(
@@ -293,8 +310,9 @@ def test_action_painel_acoes_de_uma_periodo_invalida(
     rateio_fora_periodo_50_custeio,
     conta_associacao
 ):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/?conta={conta_associacao.uuid}&periodo_uuid=INVALIDO',
-                          content_type='application/json')
+    response = client.get(
+        f'/api/associacoes/{associacao.uuid}/painel-acoes/?conta={conta_associacao.uuid}&periodo_uuid=INVALIDO',
+        content_type='application/json')
     result = json.loads(response.content)
 
     esperado = {'erro': 'UUID do período inválido.'}

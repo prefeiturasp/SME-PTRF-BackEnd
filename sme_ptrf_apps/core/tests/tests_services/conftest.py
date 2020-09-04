@@ -4,7 +4,6 @@ import pytest
 from model_bakery import baker
 
 from sme_ptrf_apps.core.models.fechamento_periodo import STATUS_FECHADO
-from sme_ptrf_apps.core.models.prestacao_conta import STATUS_ABERTO
 from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (APLICACAO_CAPITAL, APLICACAO_CUSTEIO,
                                                                      APLICACAO_LIVRE)
 
@@ -383,42 +382,27 @@ def fechamento_periodo_2019_2(periodo_2019_2, associacao, conta_associacao, acao
 
 
 @pytest.fixture
-def prestacao_conta_2020_1_iniciada(periodo_2020_1, associacao, conta_associacao):
+def prestacao_conta_2020_1_iniciada(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao,
-        status=STATUS_ABERTO,
-        conciliado=False,
-        conciliado_em=None,
-        motivo_reabertura=''
     )
 
 
 @pytest.fixture
-def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associacao):
+def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao,
-        status=STATUS_ABERTO,
-        conciliado=True,
-        conciliado_em=datetime.date(2020, 7, 1),
-        motivo_reabertura=''
     )
 
 
 @pytest.fixture
-def prestacao_conta_2020_1_nao_conciliada(periodo_2020_1, associacao, conta_associacao_cartao):
+def prestacao_conta_2020_1_nao_conciliada(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao_cartao,
-        status=STATUS_ABERTO,
-        conciliado=False,
-        conciliado_em=None,
-        motivo_reabertura=''
     )
