@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
+
 from .models import (
     Acao,
     AcaoAssociacao,
@@ -11,22 +12,29 @@ from .models import (
     DemonstrativoFinanceiro,
     FechamentoPeriodo,
     MembroAssociacao,
+    ObservacaoConciliacao,
     Parametros,
     Periodo,
     PrestacaoConta,
-    RelacaoBens,
-    TipoConta,
-    Unidade,
-    Tag,
     ProcessoAssociacao,
-    ObservacaoConciliacao
+    RelacaoBens,
+    Remetente,
+    Tag,
+    TipoConta,
+    TipoNotificacao,
+    Unidade,
+    Categoria,
+    Notificacao
 )
 
 admin.site.register(TipoConta)
+admin.site.register(TipoNotificacao)
 admin.site.register(Acao)
+admin.site.register(Categoria)
 admin.site.register(DemonstrativoFinanceiro)
 admin.site.register(Parametros)
 admin.site.register(RelacaoBens)
+admin.site.register(Remetente)
 admin.site.register(MembroAssociacao)
 
 
@@ -224,3 +232,10 @@ class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
     list_display_links = ('periodo',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('texto',)
+
+
+@admin.register(Notificacao)
+class NotificacaoAdmin(admin.ModelAdmin):
+    list_display = ("uuid", "titulo", "remetente", "categoria", "tipo", "hora")
+    readonly_fields = ('uuid', 'id')
+    list_filter = ("remetente", "categoria", "tipo")
