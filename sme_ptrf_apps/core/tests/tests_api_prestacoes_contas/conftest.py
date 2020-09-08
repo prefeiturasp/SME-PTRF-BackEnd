@@ -20,6 +20,7 @@ def receita_2020_1_role_repasse_conferida(associacao, conta_associacao_cartao, a
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
         periodo_conciliacao=periodo_2020_1,
     )
@@ -36,6 +37,7 @@ def receita_2020_1_role_repasse_cheque_conferida(associacao, conta_associacao_ch
         conta_associacao=conta_associacao_cheque,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
         periodo_conciliacao=periodo_2020_1,
     )
@@ -68,6 +70,7 @@ def receita_2020_1_ptrf_repasse_conferida(associacao, conta_associacao_cartao, a
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_ptrf,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
         periodo_conciliacao=periodo_2020_1,
     )
@@ -84,6 +87,7 @@ def receita_2019_2_role_repasse_conferida(associacao, conta_associacao_cartao, a
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
     )
 

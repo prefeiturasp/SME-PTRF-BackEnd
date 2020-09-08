@@ -32,6 +32,8 @@ class Receita(ModeloBase):
 
     conferido = models.BooleanField('Conferido?', default=False)
 
+    update_conferido = models.BooleanField('Atualiza conferido?', default=False)
+
     categoria_receita = models.CharField(
         'Categoria da receita',
         max_length=15,
@@ -167,12 +169,14 @@ class Receita(ModeloBase):
         return totais
 
     def marcar_conferido(self, periodo_conciliacao=None):
+        self.update_conferido = True
         self.conferido = True
         self.periodo_conciliacao = periodo_conciliacao
         self.save()
         return self
 
     def desmarcar_conferido(self):
+        self.update_conferido = True
         self.conferido = False
         self.periodo_conciliacao = None
         self.save()
@@ -196,5 +200,9 @@ def rateio_pre_save(instance, **kwargs):
     else:
         instance.detalhe_tipo_receita = None
 
+    if not instance.update_conferido:
+        instance.conferido = False
+
+    instance.update_conferido = False
 
 auditlog.register(Receita)
