@@ -57,6 +57,7 @@ def receita_2020_1_role_repasse_capital_conferida(associacao, conta_associacao_c
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_CAPITAL,
     )
@@ -73,6 +74,7 @@ def receita_2020_1_role_repasse_custeio_conferida(associacao, conta_associacao_c
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_CUSTEIO,
     )
@@ -89,6 +91,7 @@ def receita_2020_1_role_repasse_livre_conferida(associacao, conta_associacao_car
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_LIVRE,
     )
@@ -106,6 +109,7 @@ def receita_2020_1_role_repasse_custeio_conferida_outra_conta(associacao, conta_
         conta_associacao=conta_associacao_cheque,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_CUSTEIO,
     )
@@ -123,6 +127,7 @@ def receita_2020_1_role_repasse_capital_nao_conferida(associacao, conta_associac
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=False,
         categoria_receita=APLICACAO_CAPITAL,
     )
@@ -139,6 +144,7 @@ def receita_2020_1_ptrf_repasse_capital_conferida(associacao, conta_associacao_c
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_ptrf,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_CAPITAL,
     )
@@ -155,6 +161,7 @@ def receita_2019_2_role_repasse_capital_conferida(associacao, conta_associacao_c
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_CAPITAL,
     )
@@ -171,6 +178,7 @@ def receita_2020_1_role_rendimento_custeio_conferida(associacao, conta_associaca
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_rendimento,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_CUSTEIO,
     )
@@ -187,6 +195,7 @@ def receita_2020_1_role_rendimento_livre_conferida(associacao, conta_associacao_
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_rendimento,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_LIVRE,
     )

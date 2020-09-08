@@ -76,3 +76,11 @@ def test_notificar_nao_conferido_quando_limite_e_superior(receita_nao_conferida_
 @freeze_time('2020-03-12')
 def test_notificar_nao_conferido_quando_conferido(receita_conferida, parametros_tempo_nao_conferido_10_dias):
     assert receita_conferida.notificar_dias_nao_conferido == 0
+
+
+def test_receita_conferida_quando_editada_deve_volta_para_nao_conferida(receita_conferida):
+    assert receita_conferida.conferido, "Devia iniciar como conferida."
+    receita_conferida.valor = 100
+    receita_conferida.save()
+    receita = Receita.objects.get(id=receita_conferida.id)
+    assert not receita.conferido, "Devia ter passado para não conferida."
