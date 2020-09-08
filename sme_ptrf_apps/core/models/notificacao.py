@@ -11,7 +11,7 @@ class Notificacao(ModeloBase):
     titulo = models.CharField("Título", max_length=100, default='', blank=True)
     descricao = models.CharField("Descrição", max_length=300, default='', blank=True)
     hora = models.TimeField("Hora", editable=False, auto_now_add=True)
-    ativo = models.BooleanField("Foi Lido?", default=False)
+    lido = models.BooleanField("Foi Lido?", default=False)
 
     class Meta:
         verbose_name = "Notificação"

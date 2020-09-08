@@ -17,3 +17,4 @@ from .processo_associacao_serializer import ProcessoAssociacaoRetrieveSerializer
 from .tag_serializer import TagLookupSerializer
 from .tipo_conta_serializer import TipoContaSerializer
 from .unidade_serializer import UnidadeInfoAtaSerializer, UnidadeLookUpSerializer, UnidadeSerializer
+from .notificacao_serializer import NotificacaoSerializer
