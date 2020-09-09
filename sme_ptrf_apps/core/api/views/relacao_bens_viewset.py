@@ -65,7 +65,7 @@ class RelacaoBensViewSet(GenericViewSet):
         conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
         periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
 
-        prestacao_conta = PrestacaoConta.objects.filter(conta_associacao=conta_associacao, periodo=periodo).first()
+        prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao, periodo=periodo).first()
         relacao_bens = RelacaoBens.objects.filter(conta_associacao=conta_associacao, prestacao_conta=prestacao_conta).first()
 
         if not relacao_bens:
