@@ -89,7 +89,7 @@ def gerar(periodo, acao_associacao, conta_associacao, previa=False):
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True)
 
     fechamento_periodo = FechamentoPeriodo.objects.filter(
-        acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo).first()
+        acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo__uuid=periodo.uuid).first()
 
     path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
     nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro.xlsx')
@@ -391,9 +391,9 @@ def observacoes(worksheet, acao_associacao, periodo, conta_associacao):
     row[ITEM].value = ObservacaoConciliacao.objects.filter(
         acao_associacao=acao_associacao,
         conta_associacao=conta_associacao,
-        periodo=periodo
+        periodo__uuid=periodo.uuid
     ).first().texto if ObservacaoConciliacao.objects.filter(
-        acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo
+        acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo__uuid=periodo.uuid
     ).exists() else ''
 
 
