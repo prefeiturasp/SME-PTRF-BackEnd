@@ -11,7 +11,7 @@ def tipo_receita_repasse():
 
 @pytest.fixture
 def receita_2020_1_role_repasse_conferida(associacao, conta_associacao_cartao, acao_associacao_role_cultural,
-                                          tipo_receita_repasse, prestacao_conta_iniciada):
+                                          tipo_receita_repasse, periodo_2020_1):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -20,14 +20,15 @@ def receita_2020_1_role_repasse_conferida(associacao, conta_associacao_cartao, a
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
-        prestacao_conta=prestacao_conta_iniciada,
+        periodo_conciliacao=periodo_2020_1,
     )
 
 
 @pytest.fixture
 def receita_2020_1_role_repasse_cheque_conferida(associacao, conta_associacao_cheque, acao_associacao_role_cultural,
-                                                 tipo_receita_repasse, prestacao_conta_iniciada):
+                                                 tipo_receita_repasse, periodo_2020_1):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -36,8 +37,9 @@ def receita_2020_1_role_repasse_cheque_conferida(associacao, conta_associacao_ch
         conta_associacao=conta_associacao_cheque,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
-        prestacao_conta=prestacao_conta_iniciada,
+        periodo_conciliacao=periodo_2020_1,
     )
 
 
@@ -53,13 +55,13 @@ def receita_2020_1_role_repasse_nao_conferida(associacao, conta_associacao_carta
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
         conferido=False,
-        prestacao_conta=None,
+        periodo_conciliacao=None,
     )
 
 
 @pytest.fixture
 def receita_2020_1_ptrf_repasse_conferida(associacao, conta_associacao_cartao, acao_associacao_ptrf,
-                                          tipo_receita_repasse, prestacao_conta_iniciada):
+                                          tipo_receita_repasse, periodo_2020_1):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -68,8 +70,9 @@ def receita_2020_1_ptrf_repasse_conferida(associacao, conta_associacao_cartao, a
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_ptrf,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
-        prestacao_conta=prestacao_conta_iniciada,
+        periodo_conciliacao=periodo_2020_1,
     )
 
 
@@ -84,14 +87,15 @@ def receita_2019_2_role_repasse_conferida(associacao, conta_associacao_cartao, a
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
     )
 
 
 @pytest.fixture
-def receita_2019_2_role_repasse_conferida_na_prestacao(associacao, conta_associacao_cartao,
+def receita_2019_2_role_repasse_conferida_no_periodo(associacao, conta_associacao_cartao,
                                                        acao_associacao_role_cultural,
-                                                       tipo_receita_repasse, prestacao_conta_iniciada):
+                                                       tipo_receita_repasse, periodo_2020_1):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -101,7 +105,7 @@ def receita_2019_2_role_repasse_conferida_na_prestacao(associacao, conta_associa
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
         conferido=True,
-        prestacao_conta=prestacao_conta_iniciada,
+        periodo_conciliacao=periodo_2020_1,
     )
 
 

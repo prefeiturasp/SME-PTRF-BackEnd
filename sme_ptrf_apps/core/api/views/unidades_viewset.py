@@ -1,11 +1,55 @@
-from rest_framework import viewsets
+from django_filters import rest_framework as filters
+from rest_framework.filters import SearchFilter
+from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from ..serializers import UnidadeSerializer
 from ...models import Unidade
+from ...services import monta_unidade_para_atribuicao
 
 
 class UnidadesViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     lookup_field = 'uuid'
     queryset = Unidade.objects.all()
+    filters = (filters.DjangoFilterBackend, SearchFilter,)
     serializer_class = UnidadeSerializer
+    filter_fields = ('tipo_unidade', 'codigo_eol')
+
+    def get_queryset(self):
+        qs = Unidade.objects.all()
+
+        tipo_unidade = self.request.query_params.get('tipo_unidade')
+        if tipo_unidade:
+            qs = qs.filter(tipo_unidade=tipo_unidade)
+
+        codigo_eol = self.request.query_params.get('codigo_eol')
+        if codigo_eol:
+            qs = qs.filter(codigo_eol=codigo_eol)
+
+        tecnico = self.request.query_params.get('tecnico')
+        if tecnico:
+            qs = qs.filter(atribuicoes__tecnico__uuid=tecnico)
+
+        search = self.request.query_params.get('search')
+        if search is not None:
+            qs = qs.filter(nome__unaccent__icontains=search)
+
+        return qs
+
+
+    @action(detail=False, url_path='para-atribuicao')
+    def para_atribuicao(self, request, *args, **kwargs):
+        dre_uuid = request.query_params.get('dre_uuid')
+        periodo = request.query_params.get('periodo')
+
+        if not dre_uuid or not periodo:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da dre (dre_uuid) e o periodo como parâmetros.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        list_unidades = monta_unidade_para_atribuicao(self.get_queryset(), dre_uuid, periodo)
+        return Response(list_unidades)

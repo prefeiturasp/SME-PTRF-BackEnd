@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 import pytest
 from django.test import RequestFactory
@@ -9,8 +9,6 @@ from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
 from .core.choices import MembroEnum, RepresentacaoCargo, StatusTag
 from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO
-from .core.models.prestacao_conta import STATUS_ABERTO as PRESTACAO_ABERTA
-from .core.models.prestacao_conta import STATUS_FECHADO as PRESTACAO_FECHADA
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 
@@ -383,44 +381,29 @@ def periodo_futuro():
 
 
 @pytest.fixture
-def prestacao_conta_anterior(periodo_anterior, associacao, conta_associacao):
+def prestacao_conta_anterior(periodo_anterior, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_anterior,
         associacao=associacao,
-        conta_associacao=conta_associacao,
-        prestacao_de_conta_anterior=None,
-        status=PRESTACAO_FECHADA,
-        conciliado=True
     )
 
 
 @pytest.fixture
-def prestacao_conta(periodo, associacao, conta_associacao, prestacao_conta_anterior):
+def prestacao_conta(periodo, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo,
         associacao=associacao,
-        conta_associacao=conta_associacao,
-        prestacao_de_conta_anterior=prestacao_conta_anterior,
-        status=PRESTACAO_FECHADA,
-        conciliado=True,
-        conciliado_em=datetime(2020, 1, 1, 10, 30, 15),
-        motivo_reabertura='Teste'
     )
 
 
 @pytest.fixture
-def prestacao_conta_iniciada(periodo_2020_1, associacao, conta_associacao_cartao):
+def prestacao_conta_iniciada(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao_cartao,
-        status=PRESTACAO_ABERTA,
-        conciliado=False,
-        conciliado_em=None,
-        motivo_reabertura=''
     )
 
 
@@ -464,30 +447,22 @@ def fechamento_periodo_anterior_capital_1000_livre_2000(periodo_anterior, associ
 
 
 @pytest.fixture
-def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associacao):
+def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao,
         status=STATUS_ABERTO,
-        conciliado=True,
-        conciliado_em=date(2020, 7, 1),
-        motivo_reabertura=''
     )
 
 
 @pytest.fixture
-def prestacao_conta_2020_1_conciliada_outra_conta(periodo_2020_1, associacao, conta_associacao_cartao):
+def prestacao_conta_2020_1_conciliada_outra_conta(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao_cartao,
         status=STATUS_ABERTO,
-        conciliado=True,
-        conciliado_em=date(2020, 7, 1),
-        motivo_reabertura=''
     )
 
 
@@ -1091,6 +1066,28 @@ def rateio_no_periodo_10_custeio_outra_acao(associacao, despesa_no_periodo, cont
     )
 
 
+@pytest.fixture
+def rateio_no_periodo_1500_capital_outra_conta(associacao, despesa_no_periodo, conta_associacao_cartao, acao,
+                                               tipo_aplicacao_recurso_capital,
+                                               tipo_custeio,
+                                               especificacao_ar_condicionado, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_no_periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_capital,
+        tipo_custeio=None,
+        especificacao_material_servico=especificacao_ar_condicionado,
+        valor_rateio=1500.00,
+        quantidade_itens_capital=1,
+        valor_item_capital=1500.00,
+        numero_processo_incorporacao_capital='Teste123456'
+
+    )
+
+
 # despesa_fora_do_periodo
 @pytest.fixture
 def despesa_fora_periodo(associacao, tipo_documento, tipo_transacao, periodo):
@@ -1161,6 +1158,7 @@ def parametros_tempo_nao_conferido_10_dias():
         tempo_notificar_nao_demonstrados=10
     )
 
+
 @pytest.fixture
 def parametros_tempo_nao_conferido_60_dias():
     return baker.make(
@@ -1170,13 +1168,13 @@ def parametros_tempo_nao_conferido_60_dias():
 
 
 @pytest.fixture
-def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
+def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada, conta_associacao):
     return baker.make(
         'Ata',
         prestacao_conta=prestacao_conta_2020_1_conciliada,
         periodo=prestacao_conta_2020_1_conciliada.periodo,
         associacao=prestacao_conta_2020_1_conciliada.associacao,
-        conta_associacao=prestacao_conta_2020_1_conciliada.conta_associacao,
+        conta_associacao=conta_associacao,
         tipo_ata='APRESENTACAO',
         tipo_reuniao='ORDINARIA',
         convocacao='PRIMEIRA',
@@ -1192,13 +1190,13 @@ def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
 
 
 @pytest.fixture
-def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
+def ata_prestacao_conta_iniciada(prestacao_conta_iniciada, conta_associacao):
     return baker.make(
         'Ata',
         prestacao_conta=prestacao_conta_iniciada,
         periodo=prestacao_conta_iniciada.periodo,
         associacao=prestacao_conta_iniciada.associacao,
-        conta_associacao=prestacao_conta_iniciada.conta_associacao,
+        conta_associacao=conta_associacao,
         tipo_ata='APRESENTACAO',
         tipo_reuniao='ORDINARIA',
         convocacao='PRIMEIRA',
@@ -1321,6 +1319,7 @@ def tag_ativa():
         status=StatusTag.ATIVO.name
     )
 
+
 @pytest.fixture
 def processo_associacao_123456_2019(associacao):
     return baker.make(
@@ -1331,3 +1330,13 @@ def processo_associacao_123456_2019(associacao):
     )
 
 
+@pytest.fixture
+def observacao_conciliacao(acao_associacao, periodo, conta_associacao):
+    return baker.make(
+        'ObservacaoConciliacao',
+        periodo=periodo,
+        associacao=conta_associacao.associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        texto="Uma bela observação."
+    )

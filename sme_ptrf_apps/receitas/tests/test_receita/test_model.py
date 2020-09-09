@@ -1,8 +1,9 @@
 import pytest
 from freezegun import freeze_time
 
-from sme_ptrf_apps.receitas.models import Receita
+from ...models import Receita
 from ...tipos_aplicacao_recurso_receitas import APLICACAO_LIVRE
+from ....core.models import Periodo
 
 pytestmark = pytest.mark.django_db
 
@@ -17,7 +18,7 @@ def test_instance(receita):
     assert model.acao_associacao
     assert model.tipo_receita
     assert model.conferido
-    assert model.prestacao_conta
+    assert isinstance(model.periodo_conciliacao, Periodo)
     assert model.detalhe_tipo_receita
     assert model.detalhe_outros is not None
     assert model.notificar_dias_nao_conferido is not None
@@ -34,7 +35,7 @@ def test_instance_receita_devolucao(receita_devolucao):
     assert model.tipo_receita
     assert model.tipo_receita.e_devolucao
     assert model.conferido
-    assert model.prestacao_conta
+    assert isinstance(model.periodo_conciliacao, Periodo)
     assert model.referencia_devolucao
     assert model.detalhe_outros is not None
 
@@ -75,3 +76,11 @@ def test_notificar_nao_conferido_quando_limite_e_superior(receita_nao_conferida_
 @freeze_time('2020-03-12')
 def test_notificar_nao_conferido_quando_conferido(receita_conferida, parametros_tempo_nao_conferido_10_dias):
     assert receita_conferida.notificar_dias_nao_conferido == 0
+
+
+def test_receita_conferida_quando_editada_deve_volta_para_nao_conferida(receita_conferida):
+    assert receita_conferida.conferido, "Devia iniciar como conferida."
+    receita_conferida.valor = 100
+    receita_conferida.save()
+    receita = Receita.objects.get(id=receita_conferida.id)
+    assert not receita.conferido, "Devia ter passado para não conferida."

@@ -1,5 +1,7 @@
-from django_filters import rest_framework as filters
+import logging
+
 from django.db.models import Q
+from django_filters import rest_framework as filters
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -10,12 +12,13 @@ from rest_framework.viewsets import GenericViewSet
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
-from ...tipos_aplicacao_recurso_receitas import aplicacoes_recurso_to_json
 from sme_ptrf_apps.receitas.models import Receita
 from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoReceitaEDetalhesSerializer
 from ...services import atualiza_repasse_para_pendente
-from ....core.models import PrestacaoConta
+from ...tipos_aplicacao_recurso_receitas import aplicacoes_recurso_to_json
+from ....core.models import Periodo
 
+logger = logging.getLogger(__name__)
 
 class ReceitaViewSet(mixins.CreateModelMixin,
                      mixins.RetrieveModelMixin,
@@ -38,7 +41,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             return ReceitaCreateSerializer
 
     def get_queryset(self):
-        associacao_uuid = self.request.query_params.get('associacao_uuid') or self.request.query_params.get('associacao__uuid') 
+        associacao_uuid = self.request.query_params.get('associacao_uuid') or self.request.query_params.get('associacao__uuid')
         if associacao_uuid is None:
             erro = {
                 'erro': 'parametros_requerido',
@@ -95,17 +98,27 @@ class ReceitaViewSet(mixins.CreateModelMixin,
 
     @action(detail=True, methods=['patch'])
     def conciliar(self, request, uuid):
-        prestacao_conta_uuid = request.query_params.get('prestacao_conta_uuid')
+        periodo_uuid = request.query_params.get('periodo')
 
-        if prestacao_conta_uuid is None:
+        if periodo_uuid is None:
             erro = {
                 'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar o uuid da prestação de contas onde esta sendo feita a conciliação.'
+                'mensagem': 'É necessário enviar o uuid do período onde esta sendo feita a conciliação.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        prestacao_conta = PrestacaoConta.by_uuid(prestacao_conta_uuid)
-        receita_conciliada = Receita.conciliar(uuid=uuid, prestacao_conta=prestacao_conta)
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+
+        receita_conciliada = Receita.conciliar(uuid=uuid, periodo_conciliacao=periodo)
         return Response(ReceitaListaSerializer(receita_conciliada, many=False).data,
                         status=status.HTTP_200_OK)
 
