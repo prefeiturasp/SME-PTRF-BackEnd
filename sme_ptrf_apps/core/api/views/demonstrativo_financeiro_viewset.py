@@ -132,7 +132,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        prestacao_conta = PrestacaoConta.objects.filter(conta_associacao__uuid=conta_associacao_uuid,
+        conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
+        prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao,
                                                         periodo__uuid=periodo_uuid).first()
 
         demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(acao_associacao__uuid=acao_associacao_uuid,

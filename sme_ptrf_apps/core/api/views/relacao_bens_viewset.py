@@ -89,7 +89,8 @@ class RelacaoBensViewSet(GenericViewSet):
     def relacao_bens_info(self, request):
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
-        prestacao_conta = PrestacaoConta.objects.filter(conta_associacao__uuid=conta_associacao_uuid, periodo__uuid=periodo_uuid).first()
+        conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
+        prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao, periodo__uuid=periodo_uuid).first()
         relacao_bens = RelacaoBens.objects.filter(conta_associacao__uuid=conta_associacao_uuid, prestacao_conta=prestacao_conta).first()
 
         msg = str(relacao_bens) if relacao_bens else 'Documento pendente de geração'
