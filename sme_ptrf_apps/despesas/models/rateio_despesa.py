@@ -55,6 +55,8 @@ class RateioDespesa(ModeloBase):
 
     conferido = models.BooleanField('Conferido?', default=False)
 
+    update_conferido = models.BooleanField('Atualiza conferido?', default=False)
+
     tag = models.ForeignKey(Tag, on_delete=models.SET_NULL, blank=True,
                             null=True, related_name='rateios')
 
@@ -188,7 +190,7 @@ class RateioDespesa(ModeloBase):
             dataset = dataset.filter(aplicacao_recurso=aplicacao_recurso)
 
         return dataset.all()
-    
+
     @classmethod
     def rateios_da_acao_associacao_em_periodo_anteriores(cls, acao_associacao, periodo, conferido=None, conta_associacao=None,
                                               exclude_despesa=None, aplicacao_recurso=None):
@@ -211,12 +213,14 @@ class RateioDespesa(ModeloBase):
         return dataset.all()
 
     def marcar_conferido(self, periodo_conciliacao=None):
+        self.update_conferido = True
         self.conferido = True
         self.periodo_conciliacao = periodo_conciliacao
         self.save()
         return self
 
     def desmarcar_conferido(self):
+        self.update_conferido = True
         self.conferido = False
         self.periodo_conciliacao = None
         self.save()
@@ -265,6 +269,11 @@ class RateioDespesa(ModeloBase):
 @receiver(pre_save, sender=RateioDespesa)
 def rateio_pre_save(instance, **kwargs):
     instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
+
+    if not instance.update_conferido:
+        instance.conferido = False
+
+    instance.update_conferido = False
 
 
 @receiver(post_save, sender=RateioDespesa)

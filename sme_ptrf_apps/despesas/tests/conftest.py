@@ -197,6 +197,7 @@ def rateio_despesa_capital(associacao, despesa, conta_associacao, acao, tipo_apl
         quantidade_itens_capital=2,
         valor_item_capital=50.00,
         numero_processo_incorporacao_capital='Teste123456',
+        update_conferido=True,
         conferido=True,
         periodo_conciliacao=periodo_2020_1,
         valor_original=90.00,
@@ -217,6 +218,7 @@ def rateio_despesa_instalacao_eletrica_ptrf(associacao, despesa, conta_associaca
         tipo_custeio=tipo_custeio_servico,
         especificacao_material_servico=especificacao_instalacao_eletrica,
         valor_rateio=100.00,
+        update_conferido=True,
         conferido=True,
 
     )
