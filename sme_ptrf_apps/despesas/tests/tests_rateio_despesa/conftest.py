@@ -51,6 +51,7 @@ def rateio_despesa_2020_role_custeio_conferido(associacao, despesa_2020_1, conta
         tipo_custeio=tipo_custeio_servico,
         especificacao_material_servico=especificacao_instalacao_eletrica,
         valor_rateio=100.00,
+        update_conferido=True,
         conferido=True,
 
     )
@@ -71,6 +72,7 @@ def rateio_despesa_2020_role_capital_conferido(associacao, despesa_2020_1, conta
         tipo_custeio=tipo_custeio_servico,
         especificacao_material_servico=especificacao_instalacao_eletrica,
         valor_rateio=100.00,
+        update_conferido=True,
         conferido=True,
 
     )
@@ -111,6 +113,7 @@ def rateio_despesa_2020_ptrf_conferido(associacao, despesa_2020_1, conta_associa
         tipo_custeio=tipo_custeio_servico,
         especificacao_material_servico=especificacao_instalacao_eletrica,
         valor_rateio=100.00,
+        update_conferido=True,
         conferido=True,
 
     )
@@ -148,6 +151,7 @@ def rateio_despesa_2019_role_conferido(associacao, despesa_2019_2, conta_associa
         tipo_custeio=tipo_custeio_servico,
         especificacao_material_servico=especificacao_instalacao_eletrica,
         valor_rateio=100.00,
+        update_conferido=True,
         conferido=True,
 
     )
@@ -185,6 +189,7 @@ def rateio_despesa_01_03_2020_conferido(associacao, despesa_01_03_2020, conta_as
         tipo_custeio=tipo_custeio_servico,
         especificacao_material_servico=especificacao_instalacao_eletrica,
         valor_rateio=100.00,
+        update_conferido=True,
         conferido=True,
     )
 

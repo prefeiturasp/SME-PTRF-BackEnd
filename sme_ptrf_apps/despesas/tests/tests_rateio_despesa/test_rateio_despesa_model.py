@@ -74,3 +74,11 @@ def test_notificar_nao_conferido_quando_limite_e_superior(rateio_despesa_01_03_2
 def test_notificar_nao_conferido_quando_conferido(rateio_despesa_01_03_2020_conferido,
                                                   parametros_tempo_nao_conferido_10_dias):
     assert rateio_despesa_01_03_2020_conferido.notificar_dias_nao_conferido == 0
+
+
+def test_despesa_conferida_quando_editada_deve_volta_para_nao_conferida(rateio_despesa_conferido):
+    assert rateio_despesa_conferido.conferido, "Devia iniciar como conferida."
+    rateio_despesa_conferido.valor_rateio = 100
+    rateio_despesa_conferido.save()
+    receita = RateioDespesa.objects.get(id=rateio_despesa_conferido.id)
+    assert not receita.conferido, "Devia ter passado para não conferida."
