@@ -59,7 +59,7 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         if periodo.data_fim_realizacao_despesas and datetime.strptime(data_fim, "%Y-%m-%d").date() > periodo.data_fim_realizacao_despesas:
             erro = {
                 'erro': 'erro_nas_datas',
-                'mensagem': 'Data fim não pode ser maior que a data fim da realizaçãod as despesas do periodo.'
+                'mensagem': 'Data fim não pode ser maior que a data fim da realização as despesas do periodo.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 

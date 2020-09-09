@@ -40,7 +40,7 @@ def test_previa_demonstrativo_financeiro_data_fim_maior_que_data_final_periodo(j
     result = response.json()
     esperado = {
         'erro': 'erro_nas_datas',
-        'mensagem': 'Data fim não pode ser maior que a data fim da realizaçãod as despesas do periodo.'
+        'mensagem': 'Data fim não pode ser maior que a data fim da realização as despesas do periodo.'
     }
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result == esperado
