@@ -1,8 +1,6 @@
 import logging
 from io import BytesIO
-from tempfile import NamedTemporaryFile
 
-from django.core.files import File
 from django.http import HttpResponse
 from openpyxl.writer.excel import save_virtual_workbook
 from rest_framework import status
@@ -52,7 +50,6 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
     @action(detail=False, methods=['get'], url_path='documento-final')
     def documento_final(self, request):
-        #TODO O endpoint documento-final não deve mais gerar o documento, vai apenas baixa-lo.
         acao_associacao_uuid = self.request.query_params.get('acao-associacao')
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
@@ -68,21 +65,18 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
         periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
 
-        prestacao_conta = PrestacaoConta.objects.filter(conta_associacao=conta_associacao, periodo=periodo).first()
+        prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao, periodo=periodo).first()
         demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(acao_associacao=acao_associacao,
                                                                           conta_associacao=conta_associacao,
                                                                           prestacao_conta=prestacao_conta).first()
 
         filename = 'demonstrativo_financeiro.xlsx'
         if not demonstrativo_financeiro:
-            xlsx = self._gerar_planilha(acao_associacao_uuid, conta_associacao_uuid, periodo_uuid)
-
-            with NamedTemporaryFile() as tmp:
-                xlsx.save(tmp.name)
-
-                demonstrativo_financeiro, _ = DemonstrativoFinanceiro.objects.update_or_create(
-                    acao_associacao=acao_associacao, conta_associacao=conta_associacao, prestacao_conta=prestacao_conta)
-                demonstrativo_financeiro.arquivo.save(name=filename, content=File(tmp))
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': 'Não existe um arquivo de demostrativo financeiro para download.'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
         response = HttpResponse(
             open(demonstrativo_financeiro.arquivo.path, 'rb'),
