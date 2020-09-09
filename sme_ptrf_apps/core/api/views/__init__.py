@@ -8,3 +8,4 @@ from .prestacoes_contas_viewset import PrestacoesContasViewSet
 from .processos_associacao_viewset import ProcessosAssociacaoViewSet
 from .relacao_bens_viewset import RelacaoBensViewSet
 from .unidades_viewset import UnidadesViewSet
+from .notificacao_viewset import NotificacaoViewSet
