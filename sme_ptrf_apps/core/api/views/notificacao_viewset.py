@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -7,6 +9,8 @@ from sme_ptrf_apps.core.api.serializers import NotificacaoSerializer
 from sme_ptrf_apps.core.api.serializers.notificacao_serializer import TipoNotificacaoSerializer, RemetenteNotificacaoSerializer, CategoriatificacaoSerializer
 from sme_ptrf_apps.core.models import Notificacao
 from sme_ptrf_apps.core.services import formata_data
+
+logger = logging.getLogger(__name__)
 
 
 class NotificacaoViewSet(viewsets.ModelViewSet):
@@ -55,6 +59,39 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
             "quantidade_nao_lidos": quantidade_nao
         }
         return Response(data)
+
+    @action(detail=False, methods=['put'], url_path='marcar-lido')
+    def marcar_como_lido_nao_lido(self, request):
+        dado = self.request.data
+
+        if not dado['uuid'] and dado['lido']:
+            resultado = {
+                'erro': 'Dados incompletos',
+                'mensagem': 'uuid da notificao e marcação de notificação como lida ou não-lida são obrigatórios.'
+            }
+
+            status_code = status.HTTP_400_BAD_REQUEST
+            logger.info('Erro: %r', resultado)
+
+        try:
+            notificacao = Notificacao.objects.filter(uuid=dado['uuid']).first()
+            notificacao.lido = dado['lido']
+            notificacao.save()
+        except Exception as err:
+            resultado = {
+                'erro': 'Erro ao realizar atualização',
+                'mensagem': str(err)
+            }
+
+            status_code = status.HTTP_400_BAD_REQUEST
+            logger.info('Erro: %r', resultado)
+
+        resultado = {
+            'mensagem': 'Notificação atualizada com sucesso'
+        }
+        status_code = status.HTTP_200_OK
+
+        return Response(resultado, status=status_code)
 
     @action(detail=False, url_path='tabelas')
     def tabelas(self, _):
