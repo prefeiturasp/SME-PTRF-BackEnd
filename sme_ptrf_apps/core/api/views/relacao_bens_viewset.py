@@ -1,7 +1,5 @@
 from io import BytesIO
-from tempfile import NamedTemporaryFile
 
-from django.core.files import File
 from django.http import HttpResponse
 from openpyxl.writer.excel import save_virtual_workbook
 from rest_framework import status
@@ -51,7 +49,6 @@ class RelacaoBensViewSet(GenericViewSet):
 
     @action(detail=False, methods=['get'], url_path='documento-final')
     def documento_final(self, request):
-        #TODO O endpoint docomento-final da relação de bens não deve mais gerar o documento, apenas baixa-lo.
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
 
@@ -69,13 +66,11 @@ class RelacaoBensViewSet(GenericViewSet):
         relacao_bens = RelacaoBens.objects.filter(conta_associacao=conta_associacao, prestacao_conta=prestacao_conta).first()
 
         if not relacao_bens:
-            xlsx = self._gerar_planilha(periodo_uuid, conta_associacao_uuid)
-
-            with NamedTemporaryFile() as tmp:
-                xlsx.save(tmp.name)
-
-                relacao_bens, _ = RelacaoBens.objects.update_or_create(conta_associacao=conta_associacao, prestacao_conta=prestacao_conta)
-                relacao_bens.arquivo.save(name='relacao_bens.xlsx', content=File(tmp))
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': 'Não existe um arquivo de relação de bens para download.'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
         filename = 'relacao_bens.xlsx'
         response = HttpResponse(
