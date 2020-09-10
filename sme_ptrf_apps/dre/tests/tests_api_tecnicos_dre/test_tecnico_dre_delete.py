@@ -82,15 +82,31 @@ def atribuicao_unidade_b(tecnico_1, tecnico_2, unidade_b, periodo):
 
 def test_delete_tecnico_dre_transferindo_atribuicoes(jwt_authenticated_client, tecnico_1, tecnico_2, unidade_a,
                                                      unidade_b, atribuicao_unidade_a, atribuicao_unidade_b):
-
-
     assert Atribuicao.objects.filter(tecnico=tecnico_1).exists(), "Deveria iniciar com atribuições para o técnico 1"
-    assert not Atribuicao.objects.filter(tecnico=tecnico_2).exists(), "Não devia iniciar com atribuições para o técnico 2"
+    assert not Atribuicao.objects.filter(
+        tecnico=tecnico_2).exists(), "Não devia iniciar com atribuições para o técnico 2"
 
     response = jwt_authenticated_client.delete(
         f'/api/tecnicos-dre/{tecnico_1.uuid}/?transferir_para={tecnico_2.uuid}', content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
-    assert not Atribuicao.objects.filter(tecnico=tecnico_1).exists(), "Não deveria iniciar haver atribuições para o técnico 1"
+    assert not Atribuicao.objects.filter(
+        tecnico=tecnico_1).exists(), "Não deveria haver atribuições para o técnico 1"
     assert Atribuicao.objects.filter(tecnico=tecnico_2).exists(), "Deveria haver atribuições para o técnico 2"
+
+
+def test_delete_tecnico_dre_nao_transferindo_atribuicoes(jwt_authenticated_client, tecnico_1, tecnico_2, unidade_a,
+                                                         unidade_b, atribuicao_unidade_a, atribuicao_unidade_b):
+    assert Atribuicao.objects.filter(tecnico=tecnico_1).exists(), "Deveria iniciar com atribuições para o técnico 1"
+    assert not Atribuicao.objects.filter(
+        tecnico=tecnico_2).exists(), "Não devia iniciar com atribuições para o técnico 2"
+
+    response = jwt_authenticated_client.delete(
+        f'/api/tecnicos-dre/{tecnico_1.uuid}/', content_type='application/json')
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    assert not Atribuicao.objects.filter(
+        tecnico=tecnico_1).exists(), "Não deveria haver atribuições para o técnico 1"
+    assert not Atribuicao.objects.filter(tecnico=tecnico_2).exists(), "Não deveria haver atribuições para o técnico 2"
