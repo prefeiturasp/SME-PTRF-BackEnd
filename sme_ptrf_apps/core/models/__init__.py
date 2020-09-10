@@ -10,7 +10,7 @@ from .fechamento_periodo import STATUS_ABERTO, STATUS_FECHADO, STATUS_IMPLANTACA
 from .membro_associacao import MembroAssociacao
 from .observacao_conciliacao import ObservacaoConciliacao
 from .parametros import Parametros
-from .periodo import Periodo
+from .periodo import Periodo, PeriodoPrevia
 from .prestacao_conta import PrestacaoConta
 from .proccessos_associacao import ProcessoAssociacao
 from .relacao_bens import RelacaoBens

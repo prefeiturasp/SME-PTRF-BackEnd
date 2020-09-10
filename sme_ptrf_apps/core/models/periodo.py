@@ -52,3 +52,14 @@ class Periodo(ModeloBase):
     class Meta:
         verbose_name = "Período"
         verbose_name_plural = "Períodos"
+
+
+class PeriodoPrevia:
+    def __init__(self, uuid, referencia, data_inicio, data_fim):
+        self.uuid = uuid
+        self.referencia = referencia
+        self.data_inicio_realizacao_despesas = data_inicio
+        self.data_fim_realizacao_despesas = data_fim
+
+    def __str__(self):
+        return f"{self.referencia} - {self.data_inicio_realizacao_despesas} a {self.data_fim_realizacao_despesas}"

@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from io import BytesIO
 
 from django.http import HttpResponse
@@ -9,7 +10,14 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.core.models import AcaoAssociacao, ContaAssociacao, DemonstrativoFinanceiro, Periodo, PrestacaoConta
+from sme_ptrf_apps.core.models import (
+    AcaoAssociacao,
+    ContaAssociacao,
+    DemonstrativoFinanceiro,
+    Periodo,
+    PeriodoPrevia,
+    PrestacaoConta,
+)
 from sme_ptrf_apps.core.services.demonstrativo_financeiro import gerar
 from sme_ptrf_apps.core.services.info_por_acao_services import info_acoes_associacao_no_periodo
 
@@ -26,16 +34,37 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         logger.info("Previa do demonstrativo financeiro")
         acao_associacao_uuid = self.request.query_params.get('acao-associacao')
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
+
         periodo_uuid = self.request.query_params.get('periodo')
 
-        if not acao_associacao_uuid or not conta_associacao_uuid or not periodo_uuid:
+        data_inicio = self.request.query_params.get('data_inicio')
+        data_fim = self.request.query_params.get('data_fim')
+
+        if not acao_associacao_uuid or not conta_associacao_uuid or not periodo_uuid or (not data_inicio or not data_fim):
             erro = {
                 'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid do período, o uuid da ação da associação e o uuid da conta da associação.'
+                'mensagem': 'É necessário enviar o uuid da ação da associação o uuid da conta da associação o periodo_uuid e as datas de inicio e fim do período.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        xlsx = self._gerar_planilha(acao_associacao_uuid, conta_associacao_uuid, periodo_uuid, previa=True)
+        if datetime.strptime(data_fim, "%Y-%m-%d") < datetime.strptime(data_inicio, "%Y-%m-%d"):
+            erro = {
+                'erro': 'erro_nas_datas',
+                'mensagem': 'Data fim não pode ser menor que a data inicio.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
+
+        if periodo.data_fim_realizacao_despesas and datetime.strptime(data_fim, "%Y-%m-%d").date() > periodo.data_fim_realizacao_despesas:
+            erro = {
+                'erro': 'erro_nas_datas',
+                'mensagem': 'Data fim não pode ser maior que a data fim da realização as despesas do periodo.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        periodoPrevia = PeriodoPrevia(periodo.uuid, periodo.referencia, data_inicio, data_fim)
+        xlsx = self._gerar_planilha(acao_associacao_uuid, conta_associacao_uuid, periodoPrevia, previa=True)
 
         result = BytesIO(save_virtual_workbook(xlsx))
 
@@ -137,11 +166,10 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         return Response(msg)
 
-    def _gerar_planilha(self, acao_associacao_uuid, conta_associacao_uuid, periodo_uuid, previa=False):
+    def _gerar_planilha(self, acao_associacao_uuid, conta_associacao_uuid, periodo, previa=False):
         #TODO Remover esse método quando revisar o endpoint documento-final do demonstrativo financeiro
         acao_associacao = AcaoAssociacao.objects.filter(uuid=acao_associacao_uuid).get()
         conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
-        periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
 
         xlsx = gerar(periodo, acao_associacao, conta_associacao, previa=previa)
         return xlsx

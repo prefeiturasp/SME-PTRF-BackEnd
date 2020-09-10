@@ -2,11 +2,8 @@ import logging
 import os
 import re
 from copy import copy
-
-from tempfile import NamedTemporaryFile
-
 from datetime import date
-
+from tempfile import NamedTemporaryFile
 
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.files import File
