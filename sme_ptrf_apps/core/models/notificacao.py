@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 
 from sme_ptrf_apps.core.models import Categoria, Remetente, TipoNotificacao
@@ -12,6 +13,7 @@ class Notificacao(ModeloBase):
     descricao = models.CharField("Descrição", max_length=300, default='', blank=True)
     hora = models.TimeField("Hora", editable=False, auto_now_add=True)
     lido = models.BooleanField("Foi Lido?", default=False)
+    usuario = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, default='', blank=True, null=True)
 
     class Meta:
         verbose_name = "Notificação"

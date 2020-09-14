@@ -43,7 +43,7 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        qs = Notificacao.objects.all().order_by("-criado_em")
+        qs = Notificacao.objects.filter(usuario=self.request.user).all().order_by("-criado_em")
 
         if self.request.query_params.get('lido'):
             qs = qs.filter(lido=(self.request.query_params.get('lido') == 'True'))

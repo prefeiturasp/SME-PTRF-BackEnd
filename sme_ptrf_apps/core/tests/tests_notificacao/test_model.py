@@ -3,6 +3,7 @@ import pytest
 
 from django.contrib import admin
 from model_bakery import baker
+from django.contrib.auth import get_user_model
 from ...models import Categoria, Notificacao, Remetente, TipoNotificacao
 
 pytestmark = pytest.mark.django_db
@@ -21,14 +22,15 @@ def remetente():
     return baker.make('Remetente', nome='SME')
 
 @pytest.fixture
-def notificacao(tipo_notificacao, remetente, categoria):
+def notificacao(tipo_notificacao, remetente, categoria, usuario):
     return baker.make(
         'Notificacao',
         tipo=tipo_notificacao,
         categoria=categoria,
         remetente=remetente,
         titulo="Documentos Faltantes",
-        descricao="Documentos Faltantes na prestação de contas"
+        descricao="Documentos Faltantes na prestação de contas",
+        usuario=usuario
     )
 
 def test_instance_model(notificacao):
@@ -39,6 +41,7 @@ def test_instance_model(notificacao):
     assert isinstance(model.remetente, Remetente)
     assert isinstance(model.tipo, TipoNotificacao)
     assert isinstance(model.categoria, Categoria)
+    assert isinstance(model.usuario, get_user_model())
     assert model.criado_em
     assert model.alterado_em
     assert model.uuid
