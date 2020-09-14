@@ -272,6 +272,7 @@ def rateio_pre_save(instance, **kwargs):
 
     if not instance.update_conferido:
         instance.conferido = False
+        instance.periodo_conciliacao = None
 
     instance.update_conferido = False
 
