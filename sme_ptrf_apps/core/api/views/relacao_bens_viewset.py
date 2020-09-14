@@ -1,7 +1,6 @@
 from io import BytesIO
-from tempfile import NamedTemporaryFile
+from datetime import datetime
 
-from django.core.files import File
 from django.http import HttpResponse
 from openpyxl.writer.excel import save_virtual_workbook
 from rest_framework import status
@@ -13,6 +12,7 @@ from rest_framework.viewsets import GenericViewSet
 from sme_ptrf_apps.core.models import (
     ContaAssociacao,
     Periodo,
+    PeriodoPrevia,
     PrestacaoConta,
     RelacaoBens,
 )
@@ -28,14 +28,35 @@ class RelacaoBensViewSet(GenericViewSet):
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
 
-        if not conta_associacao_uuid or not periodo_uuid:
+        data_inicio = self.request.query_params.get('data_inicio')
+        data_fim = self.request.query_params.get('data_fim')
+
+        if not conta_associacao_uuid or not periodo_uuid or (not data_inicio or not data_fim):
             erro = {
                 'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid do período e o uuid da conta da associação.'
+                'mensagem': 'É necessário enviar o uuid do período o uuid da conta da associação e as datas de inicio e fim do período.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        
+        if datetime.strptime(data_fim, "%Y-%m-%d") < datetime.strptime(data_inicio, "%Y-%m-%d"):
+            erro = {
+                'erro': 'erro_nas_datas',
+                'mensagem': 'Data fim não pode ser menor que a data inicio.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        xlsx = self._gerar_planilha(periodo_uuid, conta_associacao_uuid, previa=True)
+        periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
+
+        if periodo.data_fim_realizacao_despesas and datetime.strptime(data_fim, "%Y-%m-%d").date() > periodo.data_fim_realizacao_despesas:
+            erro = {
+                'erro': 'erro_nas_datas',
+                'mensagem': 'Data fim não pode ser maior que a data fim da realização as despesas do periodo.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        periodoPrevia = PeriodoPrevia(periodo.uuid, periodo.referencia, data_inicio, data_fim)
+
+        xlsx = self._gerar_planilha(periodoPrevia, conta_associacao_uuid, previa=True)
 
         result = BytesIO(save_virtual_workbook(xlsx))
 
@@ -51,7 +72,6 @@ class RelacaoBensViewSet(GenericViewSet):
 
     @action(detail=False, methods=['get'], url_path='documento-final')
     def documento_final(self, request):
-        #TODO O endpoint docomento-final da relação de bens não deve mais gerar o documento, apenas baixa-lo.
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
 
@@ -65,17 +85,15 @@ class RelacaoBensViewSet(GenericViewSet):
         conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
         periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
 
-        prestacao_conta = PrestacaoConta.objects.filter(conta_associacao=conta_associacao, periodo=periodo).first()
+        prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao, periodo=periodo).first()
         relacao_bens = RelacaoBens.objects.filter(conta_associacao=conta_associacao, prestacao_conta=prestacao_conta).first()
 
         if not relacao_bens:
-            xlsx = self._gerar_planilha(periodo_uuid, conta_associacao_uuid)
-
-            with NamedTemporaryFile() as tmp:
-                xlsx.save(tmp.name)
-
-                relacao_bens, _ = RelacaoBens.objects.update_or_create(conta_associacao=conta_associacao, prestacao_conta=prestacao_conta)
-                relacao_bens.arquivo.save(name='relacao_bens.xlsx', content=File(tmp))
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': 'Não existe um arquivo de relação de bens para download.'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
         filename = 'relacao_bens.xlsx'
         response = HttpResponse(
@@ -96,10 +114,9 @@ class RelacaoBensViewSet(GenericViewSet):
         msg = str(relacao_bens) if relacao_bens else 'Documento pendente de geração'
         return Response(msg)
 
-    def _gerar_planilha(self, periodo_uuid, conta_associacao_uuid, previa=False):
+    def _gerar_planilha(self, periodo, conta_associacao_uuid, previa=False):
         #TODO Remover quando retirar a geração da relação de bens do viewset
         conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
-        periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
 
         xlsx = gerar(periodo, conta_associacao, previa=previa)
         return xlsx
