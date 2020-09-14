@@ -161,10 +161,55 @@ def test_api_get_despesas_filtro_por_status(jwt_authenticated_client, associacao
     assert len(result) == 2
 
 
+@pytest.fixture
+def _rateio_despesa_conferido(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso, tipo_custeio,
+                             especificacao_material_servico, acao_associacao, periodo_2020_1):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=especificacao_material_servico,
+        valor_rateio=100.00,
+        quantidade_itens_capital=2,
+        valor_item_capital=50.00,
+        numero_processo_incorporacao_capital='Teste123456',
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
+        valor_original=90.00,
+    )
+
+
+@pytest.fixture
+def _rateio_despesa_nao_conferido(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso, tipo_custeio,
+                                 especificacao_material_servico, acao_associacao, periodo_2020_1):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=especificacao_material_servico,
+        valor_rateio=100.00,
+        quantidade_itens_capital=2,
+        valor_item_capital=50.00,
+        numero_processo_incorporacao_capital='Teste123456',
+        update_conferido=True,
+        conferido=False,
+        periodo_conciliacao=periodo_2020_1,
+        valor_original=90.00,
+    )
+
+
 def test_api_get_despesas_filtro_por_conferido(jwt_authenticated_client, associacao, despesa,
-                                               rateio_despesa_conferido,
-                                               rateio_despesa_nao_conferido,
-                                               rateio_despesa_nao_conferido2):
+                                               _rateio_despesa_conferido,
+                                               _rateio_despesa_nao_conferido):
     response = jwt_authenticated_client.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&conferido=True',
         content_type='application/json')
@@ -373,7 +418,7 @@ def test_api_get_despesas_filtro_por_fornecedor(jwt_authenticated_client, associ
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(result) == 1,'Deve localizar por qualquer parte do nome. Case insensitive.'
+    assert len(result) == 1, 'Deve localizar por qualquer parte do nome. Case insensitive.'
 
     response = jwt_authenticated_client.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&fornecedor=graca',
@@ -397,7 +442,7 @@ def test_api_get_despesas_filtro_por_fornecedor(jwt_authenticated_client, associ
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(result) == 1,'Deve ignorar acentos e ser case insensitive.'
+    assert len(result) == 1, 'Deve ignorar acentos e ser case insensitive.'
 
     response = jwt_authenticated_client.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&fornecedor=árvore',
@@ -405,4 +450,4 @@ def test_api_get_despesas_filtro_por_fornecedor(jwt_authenticated_client, associ
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(result) == 1,'Deve ignorar acentos e ser case insensitive.'
+    assert len(result) == 1, 'Deve ignorar acentos e ser case insensitive.'
