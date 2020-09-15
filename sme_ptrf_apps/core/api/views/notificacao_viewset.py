@@ -93,7 +93,7 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='quantidade-nao-lidos')
     def quantidade_de_nao_lidos(self, request):
-        quantidade_nao = Notificacao.objects.filter(lido=False).count()
+        quantidade_nao = Notificacao.objects.filter(usuario=self.request.user).filter(lido=False).count()
         data = {
             "quantidade_nao_lidos": quantidade_nao
         }
