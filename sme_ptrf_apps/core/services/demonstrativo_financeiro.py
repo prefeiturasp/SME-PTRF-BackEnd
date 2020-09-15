@@ -191,7 +191,7 @@ def sintese_custeio(row_custeio, linha, acao_associacao, conta_associacao, perio
     """
     retorna uma tupla de saldos relacionados aos custeios
     """
-    saldo_reprogramado_anterior_custeio = fechamento_periodo.fechamento_anterior.saldo_reprogramado_custeio if fechamento_periodo.fechamento_anterior else 0
+    saldo_reprogramado_anterior_custeio = fechamento_periodo.fechamento_anterior.saldo_reprogramado_custeio if fechamento_periodo and fechamento_periodo.fechamento_anterior else 0
     # Custeio
     receitas_demonstradas_custeio = Receita.receitas_da_acao_associacao_no_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True,
@@ -242,7 +242,7 @@ def sintese_capital(row_capital, linha, acao_associacao, conta_associacao, perio
     """
     retorna uma tupla de saldos relacionados aos capitais
     """
-    saldo_reprogramado_anterior_capital = fechamento_periodo.fechamento_anterior.saldo_reprogramado_capital if fechamento_periodo.fechamento_anterior else 0
+    saldo_reprogramado_anterior_capital = fechamento_periodo.fechamento_anterior.saldo_reprogramado_capital if fechamento_periodo and fechamento_periodo.fechamento_anterior else 0
     receitas_demonstradas_capital = Receita.receitas_da_acao_associacao_no_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True,
         categoria_receita=APLICACAO_CAPITAL).aggregate(valor=Sum('valor'))
@@ -288,7 +288,7 @@ def sintese_capital(row_capital, linha, acao_associacao, conta_associacao, perio
 def sintese_livre(row_livre, linha, valor_saldo_reprogramado_proximo_periodo_custeio,
                   valor_saldo_reprogramado_proximo_periodo_capital, acao_associacao,
                   conta_associacao, periodo, fechamento_periodo):
-    saldo_reprogramado_anterior_livre = fechamento_periodo.fechamento_anterior.saldo_reprogramado_livre if fechamento_periodo.fechamento_anterior else 0
+    saldo_reprogramado_anterior_livre = fechamento_periodo.fechamento_anterior.saldo_reprogramado_livre if fechamento_periodo and fechamento_periodo.fechamento_anterior else 0
     receitas_demonstradas_livre = Receita.receitas_da_acao_associacao_no_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True,
         categoria_receita=APLICACAO_LIVRE).aggregate(valor=Sum('valor'))
