@@ -130,8 +130,8 @@ def identificacao_apm(worksheet, acao_associacao):
     rows = list(worksheet.rows)
     rows[10][0].value = associacao.nome
     rows[10][6].value = associacao.cnpj
-    rows[10][7].value = associacao.unidade.codigo_eol
-    rows[10][8].value = associacao.unidade.dre.nome
+    rows[10][7].value = associacao.unidade.codigo_eol or ""
+    rows[10][8].value = associacao.unidade.dre.nome if associacao.unidade.dre else ""
 
     presidente_diretoria_executiva = MembroAssociacao.objects.filter(associacao=associacao,
                                                                      cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
