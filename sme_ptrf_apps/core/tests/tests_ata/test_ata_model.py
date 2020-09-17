@@ -43,16 +43,15 @@ def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[Ata]
 
-#TODO Reativar teste quando Atas forem revistas
-def _test_iniciar_ata(prestacao_conta_2020_1_conciliada):
+
+def test_iniciar_ata(prestacao_conta_2020_1_conciliada):
     ata = Ata.iniciar(prestacao_conta_2020_1_conciliada)
     assert ata.prestacao_conta == prestacao_conta_2020_1_conciliada
     assert ata.periodo == prestacao_conta_2020_1_conciliada.periodo
     assert ata.associacao == prestacao_conta_2020_1_conciliada.associacao
-    assert ata.conta_associacao == prestacao_conta_2020_1_conciliada.conta_associacao
 
-#TODO Reativar teste quando Atas forem revistas
-def _test_preenchida_em(ata_prestacao_conta_iniciada):
+
+def test_preenchida_em(ata_prestacao_conta_iniciada):
     ata_prestacao_conta_iniciada.local_reuniao = 'teste'
     ata_prestacao_conta_iniciada.save()
     ata = Ata.by_id(ata_prestacao_conta_iniciada.id)

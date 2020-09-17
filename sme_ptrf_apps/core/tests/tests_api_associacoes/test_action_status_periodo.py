@@ -4,8 +4,6 @@ import pytest
 from freezegun import freeze_time
 from rest_framework import status
 
-from ...status_periodo_associacao import (STATUS_PERIODO_ASSOCIACAO_EM_ANDAMENTO, STATUS_PERIODO_ASSOCIACAO_PENDENTE)
-
 pytestmark = pytest.mark.django_db
 
 
@@ -18,7 +16,6 @@ def test_status_periodo_em_andamento(client, associacao, periodo_fim_em_aberto):
     esperado = {
         'associacao': f'{associacao.uuid}',
         'periodo_referencia': periodo_fim_em_aberto.referencia,
-        'periodo_status': STATUS_PERIODO_ASSOCIACAO_EM_ANDAMENTO,
         'aceita_alteracoes': True,
         'prestacao_contas_status': {
             'documentos_gerados': None,
@@ -44,7 +41,6 @@ def test_status_periodo_pendente(client, associacao, periodo_fim_em_2020_06_30):
     esperado = {
         'associacao': f'{associacao.uuid}',
         'periodo_referencia': periodo_fim_em_2020_06_30.referencia,
-        'periodo_status': STATUS_PERIODO_ASSOCIACAO_PENDENTE,
         'aceita_alteracoes': True,
         'prestacao_contas_status': {
             'documentos_gerados': None,
@@ -83,7 +79,6 @@ def test_chamada_data_sem_periodo(client, associacao, periodo_2020_1):
     esperado = {
         'associacao': f'{associacao.uuid}',
         'periodo_referencia': '',
-        'periodo_status': 'PERIODO_NAO_ENCONTRADO',
         'aceita_alteracoes': True,
         'prestacao_contas_status': {}
     }

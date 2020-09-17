@@ -127,7 +127,6 @@ class Ata(ModeloBase):
     def iniciar(cls, prestacao_conta):
         return Ata.objects.create(
             prestacao_conta=prestacao_conta,
-            conta_associacao=prestacao_conta.conta_associacao,
             periodo=prestacao_conta.periodo,
             associacao=prestacao_conta.associacao,
         )

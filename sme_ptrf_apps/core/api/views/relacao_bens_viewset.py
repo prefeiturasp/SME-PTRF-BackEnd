@@ -1,5 +1,5 @@
-from io import BytesIO
 from datetime import datetime
+from io import BytesIO
 
 from django.http import HttpResponse
 from openpyxl.writer.excel import save_virtual_workbook
@@ -37,7 +37,7 @@ class RelacaoBensViewSet(GenericViewSet):
                 'mensagem': 'É necessário enviar o uuid do período o uuid da conta da associação e as datas de inicio e fim do período.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        
+
         if datetime.strptime(data_fim, "%Y-%m-%d") < datetime.strptime(data_inicio, "%Y-%m-%d"):
             erro = {
                 'erro': 'erro_nas_datas',
@@ -115,7 +115,6 @@ class RelacaoBensViewSet(GenericViewSet):
         return Response(msg)
 
     def _gerar_planilha(self, periodo, conta_associacao_uuid, previa=False):
-        #TODO Remover quando retirar a geração da relação de bens do viewset
         conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
 
         xlsx = gerar(periodo, conta_associacao, previa=previa)

@@ -3,7 +3,7 @@ import logging
 from decimal import Decimal
 
 from ..models import FechamentoPeriodo, Associacao, AcaoAssociacao, ContaAssociacao, Periodo
-from ..services.periodo_associacao_services import status_periodo_associacao, status_prestacao_conta_associacao
+from ..services.periodo_associacao_services import status_prestacao_conta_associacao
 from ...despesas.models import RateioDespesa
 from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
 from ...receitas.models import Receita, Repasse
@@ -513,7 +513,6 @@ def info_painel_acoes_por_periodo_e_conta(associacao_uuid, periodo_uuid=None, co
     else:
         periodo = Periodo.periodo_atual()
 
-    periodo_status = status_periodo_associacao(periodo_uuid=periodo.uuid, associacao_uuid=associacao_uuid)
     prestacao_contas_status = status_prestacao_conta_associacao(periodo_uuid=periodo.uuid,
                                                                 associacao_uuid=associacao_uuid)
     ultima_atualizacao = datetime.datetime.now()
@@ -568,7 +567,6 @@ def info_painel_acoes_por_periodo_e_conta(associacao_uuid, periodo_uuid=None, co
     result = {
         'associacao': f'{associacao_uuid}',
         'periodo_referencia': periodo.referencia,
-        'periodo_status': periodo_status,
         'prestacao_contas_status': prestacao_contas_status,
         'data_inicio_realizacao_despesas': f'{periodo.data_inicio_realizacao_despesas if periodo else ""}',
         'data_fim_realizacao_despesas': f'{periodo.data_fim_realizacao_despesas if periodo else ""}',
