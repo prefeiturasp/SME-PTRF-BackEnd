@@ -55,12 +55,14 @@ class RateioDespesa(ModeloBase):
 
     conferido = models.BooleanField('Conferido?', default=False)
 
-    prestacao_conta = models.ForeignKey('core.PrestacaoConta', on_delete=models.SET_NULL, blank=True, null=True,
-                                        related_name='despesas_conciliadas',
-                                        verbose_name='prestação de contas de conciliação')
+    update_conferido = models.BooleanField('Atualiza conferido?', default=False)
 
     tag = models.ForeignKey(Tag, on_delete=models.SET_NULL, blank=True,
                             null=True, related_name='rateios')
+
+    periodo_conciliacao = models.ForeignKey('core.Periodo', on_delete=models.SET_NULL, blank=True, null=True,
+                                        related_name='despesas_conciliadas_no_periodo',
+                                        verbose_name='período de conciliação')
 
     def __str__(self):
         documento = self.despesa.numero_documento if self.despesa else 'Despesa indefinida'
@@ -189,22 +191,45 @@ class RateioDespesa(ModeloBase):
 
         return dataset.all()
 
-    def marcar_conferido(self, prestacao_conta=None):
+    @classmethod
+    def rateios_da_acao_associacao_em_periodo_anteriores(cls, acao_associacao, periodo, conferido=None, conta_associacao=None,
+                                              exclude_despesa=None, aplicacao_recurso=None):
+
+        dataset = cls.objects.filter(acao_associacao=acao_associacao,
+                                     despesa__data_documento__lte=periodo.data_inicio_realizacao_despesas)
+
+        if conferido is not None:
+            dataset = dataset.filter(conferido=conferido)
+
+        if exclude_despesa:
+            dataset = dataset.exclude(despesa__uuid=exclude_despesa)
+
+        if conta_associacao:
+            dataset = dataset.filter(conta_associacao=conta_associacao)
+
+        if aplicacao_recurso:
+            dataset = dataset.filter(aplicacao_recurso=aplicacao_recurso)
+
+        return dataset.all()
+
+    def marcar_conferido(self, periodo_conciliacao=None):
+        self.update_conferido = True
         self.conferido = True
-        self.prestacao_conta = prestacao_conta
+        self.periodo_conciliacao = periodo_conciliacao
         self.save()
         return self
 
     def desmarcar_conferido(self):
+        self.update_conferido = True
         self.conferido = False
-        self.prestacao_conta = None
+        self.periodo_conciliacao = None
         self.save()
         return self
 
     @classmethod
-    def conciliar(cls, uuid, prestacao_conta):
+    def conciliar(cls, uuid, periodo_conciliacao):
         rateio_despesa = cls.by_uuid(uuid)
-        return rateio_despesa.marcar_conferido(prestacao_conta)
+        return rateio_despesa.marcar_conferido(periodo_conciliacao)
 
     @classmethod
     def desconciliar(cls, uuid):
@@ -244,6 +269,12 @@ class RateioDespesa(ModeloBase):
 @receiver(pre_save, sender=RateioDespesa)
 def rateio_pre_save(instance, **kwargs):
     instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
+
+    if not instance.update_conferido:
+        instance.conferido = False
+        instance.periodo_conciliacao = None
+
+    instance.update_conferido = False
 
 
 @receiver(post_save, sender=RateioDespesa)

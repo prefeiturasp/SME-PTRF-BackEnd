@@ -32,6 +32,8 @@ class Receita(ModeloBase):
 
     conferido = models.BooleanField('Conferido?', default=False)
 
+    update_conferido = models.BooleanField('Atualiza conferido?', default=False)
+
     categoria_receita = models.CharField(
         'Categoria da receita',
         max_length=15,
@@ -39,10 +41,6 @@ class Receita(ModeloBase):
         default=APLICACAO_CUSTEIO,
         null=True,
     )
-
-    prestacao_conta = models.ForeignKey('core.PrestacaoConta', on_delete=models.SET_NULL, blank=True, null=True,
-                                        related_name='receitas_conciliadas',
-                                        verbose_name='prestação de contas de conciliação')
 
     repasse = models.ForeignKey('Repasse', on_delete=models.PROTECT, related_name='receitas',
                                 blank=True, null=True)
@@ -53,6 +51,9 @@ class Receita(ModeloBase):
     referencia_devolucao = models.ForeignKey(Periodo, on_delete=models.PROTECT,
                                              related_name='+', blank=True, null=True)
 
+    periodo_conciliacao = models.ForeignKey('core.Periodo', on_delete=models.SET_NULL, blank=True, null=True,
+                                        related_name='receitas_conciliadas_no_periodo',
+                                        verbose_name='período de conciliação')
     def __str__(self):
         return f'RECEITA<{self.detalhamento} - {self.data} - {self.valor}>'
 
@@ -167,22 +168,24 @@ class Receita(ModeloBase):
 
         return totais
 
-    def marcar_conferido(self, prestacao_conta=None):
+    def marcar_conferido(self, periodo_conciliacao=None):
+        self.update_conferido = True
         self.conferido = True
-        self.prestacao_conta = prestacao_conta
+        self.periodo_conciliacao = periodo_conciliacao
         self.save()
         return self
 
     def desmarcar_conferido(self):
+        self.update_conferido = True
         self.conferido = False
-        self.prestacao_conta = None
+        self.periodo_conciliacao = None
         self.save()
         return self
 
     @classmethod
-    def conciliar(cls, uuid, prestacao_conta):
+    def conciliar(cls, uuid, periodo_conciliacao):
         receita = cls.by_uuid(uuid)
-        return receita.marcar_conferido(prestacao_conta)
+        return receita.marcar_conferido(periodo_conciliacao)
 
     @classmethod
     def desconciliar(cls, uuid):
@@ -197,5 +200,10 @@ def rateio_pre_save(instance, **kwargs):
     else:
         instance.detalhe_tipo_receita = None
 
+    if not instance.update_conferido:
+        instance.conferido = False
+        instance.periodo_conciliacao = None
+
+    instance.update_conferido = False
 
 auditlog.register(Receita)

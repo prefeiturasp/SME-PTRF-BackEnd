@@ -3,27 +3,26 @@ import json
 import pytest
 from rest_framework import status
 
-from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
-
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_despesas_conferidas_prestacao_conta(client,
-                                                     acao_associacao_role_cultural,
-                                                     prestacao_conta_iniciada,
-                                                     despesa_2019_2,
-                                                     rateio_despesa_2019_role_conferido,
-                                                     rateio_despesa_2019_role_conferido_na_prestacao,
-                                                     despesa_2020_1,
-                                                     rateio_despesa_2020_role_conferido,
-                                                     rateio_despesa_2020_role_nao_conferido,
-                                                     rateio_despesa_2020_ptrf_conferido,
-                                                     rateio_despesa_2020_role_cheque_conferido
-                                                     ):
-    prestacao_uuid = prestacao_conta_iniciada.uuid
+def test_api_get_despesas_conferidas(client,
+                                     acao_associacao_role_cultural,
+                                     despesa_2019_2,
+                                     rateio_despesa_2019_role_conferido,
+                                     rateio_despesa_2019_role_conferido_no_periodo,
+                                     despesa_2020_1,
+                                     rateio_despesa_2020_role_conferido,
+                                     rateio_despesa_2020_role_nao_conferido,
+                                     rateio_despesa_2020_ptrf_conferido,
+                                     rateio_despesa_2020_role_cheque_conferido,
+                                     periodo_2020_1,
+                                     conta_associacao_cartao
+                                     ):
+    conta_uuid = conta_associacao_cartao.uuid
     acao_uuid = acao_associacao_role_cultural.uuid
 
-    url = f'/api/prestacoes-contas/{prestacao_uuid}/despesas/?acao_associacao_uuid={acao_uuid}&conferido=True'
+    url = f'/api/conciliacoes/despesas/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&acao_associacao={acao_uuid}&conferido=True'
 
     response = client.get(url, content_type='application/json')
 
@@ -35,8 +34,7 @@ def test_api_get_despesas_conferidas_prestacao_conta(client,
 
     despesas_esperadas = set()
     despesas_esperadas.add(f'{rateio_despesa_2020_role_conferido.uuid}')
-    despesas_esperadas.add(f'{rateio_despesa_2019_role_conferido_na_prestacao.uuid}')
-
+    despesas_esperadas.add(f'{rateio_despesa_2019_role_conferido_no_periodo.uuid}')
 
     assert response.status_code == status.HTTP_200_OK
     assert despesas_retornadas == despesas_esperadas, "Não retornou a lista de despesas esperada."
@@ -44,19 +42,20 @@ def test_api_get_despesas_conferidas_prestacao_conta(client,
 
 def test_api_get_despesas_nao_conferidas_prestacao_conta(client,
                                                          acao_associacao_role_cultural,
-                                                         prestacao_conta_iniciada,
                                                          despesa_2019_2,
                                                          rateio_despesa_2019_role_conferido,
                                                          despesa_2020_1,
                                                          rateio_despesa_2020_role_conferido,
                                                          rateio_despesa_2020_role_nao_conferido,
                                                          rateio_despesa_2020_ptrf_conferido,
-                                                         rateio_despesa_2020_role_cheque_conferido
+                                                         rateio_despesa_2020_role_cheque_conferido,
+                                                         periodo_2020_1,
+                                                         conta_associacao_cartao
                                                          ):
-    prestacao_uuid = prestacao_conta_iniciada.uuid
+    conta_uuid = conta_associacao_cartao.uuid
     acao_uuid = acao_associacao_role_cultural.uuid
 
-    url = f'/api/prestacoes-contas/{prestacao_uuid}/despesas/?acao_associacao_uuid={acao_uuid}&conferido=False'
+    url = f'/api/conciliacoes/despesas/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&acao_associacao={acao_uuid}&conferido=False'
 
     response = client.get(url, content_type='application/json')
 
@@ -66,10 +65,8 @@ def test_api_get_despesas_nao_conferidas_prestacao_conta(client,
     for despesa in result:
         despesas_retornadas.add(despesa['uuid'])
 
-
     despesas_esperadas = set()
     despesas_esperadas.add(f'{rateio_despesa_2020_role_nao_conferido.uuid}')
-
 
     assert response.status_code == status.HTTP_200_OK
     assert despesas_retornadas == despesas_esperadas, "Não retornou a lista de despesas esperada."
@@ -77,7 +74,6 @@ def test_api_get_despesas_nao_conferidas_prestacao_conta(client,
 
 def test_api_get_despesas_nao_conferidas_prestacao_traz_periodos_anteriores(client,
                                                                             acao_associacao_role_cultural,
-                                                                            prestacao_conta_iniciada,
                                                                             despesa_2019_2,
                                                                             rateio_despesa_2019_role_conferido,
                                                                             rateio_despesa_2019_role_nao_conferido,
@@ -85,31 +81,29 @@ def test_api_get_despesas_nao_conferidas_prestacao_traz_periodos_anteriores(clie
                                                                             rateio_despesa_2020_role_conferido,
                                                                             rateio_despesa_2020_role_nao_conferido,
                                                                             rateio_despesa_2020_ptrf_conferido,
-                                                                            rateio_despesa_2020_role_cheque_conferido
+                                                                            rateio_despesa_2020_role_cheque_conferido,
+                                                                            periodo_2020_1,
+                                                                            conta_associacao_cartao
                                                                             ):
-    prestacao_uuid = prestacao_conta_iniciada.uuid
+    conta_uuid = conta_associacao_cartao.uuid
     acao_uuid = acao_associacao_role_cultural.uuid
 
-    url = f'/api/prestacoes-contas/{prestacao_uuid}/despesas/?acao_associacao_uuid={acao_uuid}&conferido=False'
+    url = f'/api/conciliacoes/despesas/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&acao_associacao={acao_uuid}&conferido=False'
 
     response = client.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
-    resultado_esperado = [None, None]
-    result_esperado = RateioDespesaListaSerializer(rateio_despesa_2020_role_nao_conferido, many=False).data
-    # Converto os campos não string em strings para que a comparação funcione
-    result_esperado['data_documento'] = f'{result_esperado["data_documento"]}'
-    result_esperado['data_transacao'] = f'{result_esperado["data_transacao"]}'
-    result_esperado['despesa'] = f'{result_esperado["despesa"]}'
-    resultado_esperado[0] = result_esperado
+    esperado = {
+        f'{rateio_despesa_2020_role_nao_conferido.uuid}',
+        f'{rateio_despesa_2019_role_nao_conferido.uuid}',
 
-    result_esperado = RateioDespesaListaSerializer(rateio_despesa_2019_role_nao_conferido, many=False).data
-    # Converto os campos não string em strings para que a comparação funcione
-    result_esperado['data_documento'] = f'{result_esperado["data_documento"]}'
-    result_esperado['data_transacao'] = f'{result_esperado["data_transacao"]}'
-    result_esperado['despesa'] = f'{result_esperado["despesa"]}'
-    resultado_esperado[1] = result_esperado
+    }
+
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado, "Não retornou a lista de despesas esperada."
+
+    for r in result:
+        esperado.discard(r['uuid'])
+
+    assert esperado == set(), "Não retornou a lista de despesas esperada."

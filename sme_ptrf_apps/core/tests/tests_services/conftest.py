@@ -4,7 +4,6 @@ import pytest
 from model_bakery import baker
 
 from sme_ptrf_apps.core.models.fechamento_periodo import STATUS_FECHADO
-from sme_ptrf_apps.core.models.prestacao_conta import STATUS_ABERTO
 from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (APLICACAO_CAPITAL, APLICACAO_CUSTEIO,
                                                                      APLICACAO_LIVRE)
 
@@ -58,6 +57,7 @@ def receita_2020_1_role_repasse_capital_conferida(associacao, conta_associacao_c
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_CAPITAL,
     )
@@ -74,6 +74,7 @@ def receita_2020_1_role_repasse_custeio_conferida(associacao, conta_associacao_c
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_CUSTEIO,
     )
@@ -90,6 +91,7 @@ def receita_2020_1_role_repasse_livre_conferida(associacao, conta_associacao_car
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_LIVRE,
     )
@@ -107,6 +109,7 @@ def receita_2020_1_role_repasse_custeio_conferida_outra_conta(associacao, conta_
         conta_associacao=conta_associacao_cheque,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_CUSTEIO,
     )
@@ -124,6 +127,7 @@ def receita_2020_1_role_repasse_capital_nao_conferida(associacao, conta_associac
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=False,
         categoria_receita=APLICACAO_CAPITAL,
     )
@@ -140,6 +144,7 @@ def receita_2020_1_ptrf_repasse_capital_conferida(associacao, conta_associacao_c
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_ptrf,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_CAPITAL,
     )
@@ -156,6 +161,7 @@ def receita_2019_2_role_repasse_capital_conferida(associacao, conta_associacao_c
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_CAPITAL,
     )
@@ -172,6 +178,7 @@ def receita_2020_1_role_rendimento_custeio_conferida(associacao, conta_associaca
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_rendimento,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_CUSTEIO,
     )
@@ -188,6 +195,7 @@ def receita_2020_1_role_rendimento_livre_conferida(associacao, conta_associacao_
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_rendimento,
+        update_conferido=True,
         conferido=True,
         categoria_receita=APLICACAO_LIVRE,
     )
@@ -240,6 +248,7 @@ def rateio_despesa_2020_role_custeio_conferido(associacao, despesa_2020_1, conta
         tipo_custeio=tipo_custeio_servico,
         especificacao_material_servico=especificacao_instalacao_eletrica,
         valor_rateio=100.00,
+        update_conferido=True,
         conferido=True,
 
     )
@@ -261,6 +270,7 @@ def rateio_despesa_2020_role_custeio_conferido_outra_conta(associacao, despesa_2
         tipo_custeio=tipo_custeio_servico,
         especificacao_material_servico=especificacao_instalacao_eletrica,
         valor_rateio=100.00,
+        update_conferido=True,
         conferido=True,
 
     )
@@ -281,6 +291,7 @@ def rateio_despesa_2020_role_capital_conferido(associacao, despesa_2020_1, conta
         tipo_custeio=tipo_custeio_servico,
         especificacao_material_servico=especificacao_ar_condicionado,
         valor_rateio=100.00,
+        update_conferido=True,
         conferido=True,
 
     )
@@ -321,6 +332,7 @@ def rateio_despesa_2020_ptrf_conferido(associacao, despesa_2020_1, conta_associa
         tipo_custeio=tipo_custeio_servico,
         especificacao_material_servico=especificacao_instalacao_eletrica,
         valor_rateio=100.00,
+        update_conferido=True,
         conferido=True,
 
     )
@@ -358,6 +370,7 @@ def rateio_despesa_2019_role_conferido(associacao, despesa_2019_2, conta_associa
         tipo_custeio=tipo_custeio_servico,
         especificacao_material_servico=especificacao_instalacao_eletrica,
         valor_rateio=100.00,
+        update_conferido=True,
         conferido=True,
 
     )
@@ -383,42 +396,27 @@ def fechamento_periodo_2019_2(periodo_2019_2, associacao, conta_associacao, acao
 
 
 @pytest.fixture
-def prestacao_conta_2020_1_iniciada(periodo_2020_1, associacao, conta_associacao):
+def prestacao_conta_2020_1_iniciada(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao,
-        status=STATUS_ABERTO,
-        conciliado=False,
-        conciliado_em=None,
-        motivo_reabertura=''
     )
 
 
 @pytest.fixture
-def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao, conta_associacao):
+def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao,
-        status=STATUS_ABERTO,
-        conciliado=True,
-        conciliado_em=datetime.date(2020, 7, 1),
-        motivo_reabertura=''
     )
 
 
 @pytest.fixture
-def prestacao_conta_2020_1_nao_conciliada(periodo_2020_1, associacao, conta_associacao_cartao):
+def prestacao_conta_2020_1_nao_conciliada(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao_cartao,
-        status=STATUS_ABERTO,
-        conciliado=False,
-        conciliado_em=None,
-        motivo_reabertura=''
     )

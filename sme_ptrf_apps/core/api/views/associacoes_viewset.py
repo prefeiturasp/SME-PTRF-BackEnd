@@ -1,4 +1,3 @@
-import datetime
 import logging
 from io import BytesIO
 
@@ -28,10 +27,11 @@ from ...models import Associacao, ContaAssociacao, Periodo, Unidade
 from ...services import (
     implanta_saldos_da_associacao,
     implantacoes_de_saldo_da_associacao,
-    info_acoes_associacao_no_periodo,
-    status_aceita_alteracoes_em_transacoes,
     status_periodo_associacao,
-    gerar_planilha
+    status_prestacao_conta_associacao,
+    gerar_planilha,
+    info_painel_acoes_por_periodo_e_conta,
+    atualiza_dados_unidade
 )
 from ....dre.services import (
     verifica_regularidade_associacao,
@@ -55,6 +55,12 @@ class AssociacoesViewSet(mixins.ListModelMixin,
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
     filter_fields = ('unidade__dre__uuid', 'status_regularidade', 'unidade__tipo_unidade')
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        atualiza_dados_unidade(instance)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return AssociacaoCompletoSerializer
@@ -76,32 +82,12 @@ class AssociacoesViewSet(mixins.ListModelMixin,
     @action(detail=True, url_path='painel-acoes')
     def painel_acoes(self, request, uuid=None):
 
-        periodo = None
-
         periodo_uuid = request.query_params.get('periodo_uuid')
-        if periodo_uuid:
-            periodo = Periodo.by_uuid(periodo_uuid)
 
-        if not periodo:
-            periodo = Periodo.periodo_atual()
+        conta_associacao_uuid = request.query_params.get('conta')
 
-        periodo_status = status_periodo_associacao(periodo_uuid=periodo.uuid, associacao_uuid=uuid)
-        ultima_atualizacao = datetime.datetime.now()
-        info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=uuid, periodo=periodo)
-
-        info_acoes = [info for info in info_acoes if
-                      info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
-
-        result = {
-            'associacao': f'{uuid}',
-            'periodo_referencia': periodo.referencia,
-            'periodo_status': periodo_status,
-            'data_inicio_realizacao_despesas': f'{periodo.data_inicio_realizacao_despesas if periodo else ""}',
-            'data_fim_realizacao_despesas': f'{periodo.data_fim_realizacao_despesas if periodo else ""}',
-            'data_prevista_repasse': f'{periodo.data_prevista_repasse if periodo else ""}',
-            'ultima_atualizacao': f'{ultima_atualizacao}',
-            'info_acoes': info_acoes
-        }
+        result = info_painel_acoes_por_periodo_e_conta(associacao_uuid=uuid, periodo_uuid=periodo_uuid,
+                                                       conta_associacao_uuid=conta_associacao_uuid)
 
         return Response(result)
 
@@ -121,17 +107,20 @@ class AssociacoesViewSet(mixins.ListModelMixin,
         if periodo:
             periodo_referencia = periodo.referencia
             periodo_status = status_periodo_associacao(periodo_uuid=periodo.uuid, associacao_uuid=uuid)
-            aceita_alteracoes = status_aceita_alteracoes_em_transacoes(periodo_status)
+            prestacao_conta_status = status_prestacao_conta_associacao(periodo_uuid=periodo.uuid, associacao_uuid=uuid)
+            aceita_alteracoes = not prestacao_conta_status['periodo_bloqueado'] if prestacao_conta_status else True
         else:
             periodo_referencia = ''
             periodo_status = 'PERIODO_NAO_ENCONTRADO'
             aceita_alteracoes = True
+            prestacao_conta_status = {}
 
         result = {
             'associacao': f'{uuid}',
             'periodo_referencia': periodo_referencia,
             'periodo_status': periodo_status,
             'aceita_alteracoes': aceita_alteracoes,
+            'prestacao_contas_status': prestacao_conta_status,
         }
 
         return Response(result)

@@ -54,32 +54,29 @@ def periodo_2020_2(periodo_2020_1):
 
 
 @pytest.fixture
-def prestacao_conta_2019_2_cartao(periodo_2019_2, associacao, conta_associacao_cartao):
+def prestacao_conta_2019_2_cartao(periodo_2019_2, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2019_2,
         associacao=associacao,
-        conta_associacao=conta_associacao_cartao,
     )
 
 
 @pytest.fixture
-def prestacao_conta_2020_1_cartao(periodo_2020_1, associacao, conta_associacao_cartao):
+def prestacao_conta_2020_1_cartao(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao_cartao,
     )
 
 
 @pytest.fixture
-def prestacao_conta_2020_1_cheque(periodo_2020_1, associacao, conta_associacao_cheque):
+def prestacao_conta_2020_1_cheque(periodo_2020_1, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        conta_associacao=conta_associacao_cheque,
     )
 
 
@@ -93,25 +90,20 @@ def test_get_periodos_prestacao_de_contas_da_associacao(
     periodo_2020_2,
     prestacao_conta_2019_2_cartao,
     prestacao_conta_2020_1_cartao,
-    prestacao_conta_2020_1_cheque
 ):
     response = client.get(f'/api/associacoes/{associacao.uuid}/periodos-para-prestacao-de-contas/',
                           content_type='application/json')
     result = json.loads(response.content)
 
-    periodos_esperados = [periodo_2019_2, periodo_2020_1, periodo_2020_2]
-
-    result_esperado = []
-    for p in periodos_esperados:
-        result_esperado.append(
-            {
-                "uuid": f'{p.uuid}',
-                "referencia": p.referencia,
-                "data_inicio_realizacao_despesas": f'{p.data_inicio_realizacao_despesas}' if p.data_inicio_realizacao_despesas else None,
-                "data_fim_realizacao_despesas": f'{p.data_fim_realizacao_despesas}' if p.data_fim_realizacao_despesas else None,
-                "referencia_por_extenso": f"{p.referencia.split('.')[1]}° repasse de {p.referencia.split('.')[0]}"
-            }
-        )
+    esperados = {
+        f'{periodo_2019_2.uuid}',
+        f'{periodo_2020_1.uuid}',
+        f'{periodo_2020_2.uuid}'
+    }
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+
+    for p in result:
+        esperados.discard(p['uuid'])
+
+    assert esperados == set()

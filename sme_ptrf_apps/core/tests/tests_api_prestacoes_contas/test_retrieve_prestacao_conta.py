@@ -9,11 +9,11 @@ from ...models import PrestacaoConta
 pytestmark = pytest.mark.django_db
 
 
-def test_api_retrieve_prestacao_conta_por_periodo_e_conta(client, prestacao_conta, prestacao_conta_anterior):
-    conta_associacao_uuid = prestacao_conta.conta_associacao.uuid
+def test_api_retrieve_prestacao_conta_por_periodo_e_associacao(client, prestacao_conta, prestacao_conta_anterior):
+    associacao_uuid = prestacao_conta.associacao.uuid
     periodo_uuid = prestacao_conta.periodo.uuid
 
-    url = f'/api/prestacoes-contas/por-conta-e-periodo/?conta_associacao_uuid={conta_associacao_uuid}&periodo_uuid={periodo_uuid}'
+    url = f'/api/prestacoes-contas/por-associacao-e-periodo/?associacao_uuid={associacao_uuid}&periodo_uuid={periodo_uuid}'
 
     response = client.get(url, content_type='application/json')
 
@@ -22,7 +22,6 @@ def test_api_retrieve_prestacao_conta_por_periodo_e_conta(client, prestacao_cont
     result_esperado = PrestacaoContaLookUpSerializer(PrestacaoConta.objects.get(uuid=prestacao_conta.uuid), many=False).data
 
     # Converto os campos UUIDs em strings para que a comparação funcione
-    result_esperado['conta_associacao_uuid'] = f'{result_esperado["conta_associacao_uuid"]}'
     result_esperado['periodo_uuid'] = f'{result_esperado["periodo_uuid"]}'
 
     assert response.status_code == status.HTTP_200_OK
