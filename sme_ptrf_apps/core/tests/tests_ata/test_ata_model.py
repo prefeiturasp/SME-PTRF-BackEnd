@@ -1,7 +1,7 @@
 import pytest
 from django.contrib import admin
 
-from ...models import PrestacaoConta, Associacao, Periodo, ContaAssociacao, Ata
+from ...models import PrestacaoConta, Associacao, Periodo, Ata
 
 pytestmark = pytest.mark.django_db
 
@@ -12,7 +12,6 @@ def test_instance_model(ata_2020_1_cheque_aprovada):
     assert isinstance(model.prestacao_conta, PrestacaoConta)
     assert isinstance(model.associacao, Associacao)
     assert isinstance(model.periodo, Periodo)
-    assert isinstance(model.conta_associacao, ContaAssociacao)
     assert model.tipo_ata
     assert model.tipo_reuniao
     assert model.convocacao
@@ -32,7 +31,7 @@ def test_instance_model(ata_2020_1_cheque_aprovada):
 
 
 def test_srt_model(ata_2020_1_cheque_aprovada):
-    assert ata_2020_1_cheque_aprovada.__str__() == 'Ata 2020.1 - Cheque - ORDINARIA'
+    assert ata_2020_1_cheque_aprovada.__str__() == 'Ata 2020.1 - Apresentação - 2020-07-01'
 
 
 def test_meta_modelo(ata_2020_1_cheque_aprovada):

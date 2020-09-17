@@ -1,16 +1,15 @@
 from rest_framework import serializers
 
 from ...api.serializers import AssociacaoInfoAtaSerializer
-from ...api.serializers.conta_associacao_serializer import ContaAssociacaoInfoAtaSerializer
 from ...api.serializers.periodo_serializer import PeriodoLookUpSerializer
 from ...models import Ata, PrestacaoConta
 
 
 class AtaLookUpSerializer(serializers.ModelSerializer):
-    nome = serializers.SerializerMethodField('get_nome_conta')
+    nome = serializers.SerializerMethodField('get_nome_ata')
     alterado_em = serializers.SerializerMethodField('get_alterado_em')
 
-    def get_nome_conta(self, obj):
+    def get_nome_ata(self, obj):
         return obj.nome
 
     def get_alterado_em(self, obj):
@@ -22,9 +21,8 @@ class AtaLookUpSerializer(serializers.ModelSerializer):
 
 
 class AtaSerializer(serializers.ModelSerializer):
-    nome = serializers.SerializerMethodField('get_nome_conta')
+    nome = serializers.SerializerMethodField('get_nome_ata')
     associacao = AssociacaoInfoAtaSerializer(many=False)
-    conta_associacao = ContaAssociacaoInfoAtaSerializer(many=False)
     periodo = PeriodoLookUpSerializer(many=False)
     prestacao_conta = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -32,7 +30,7 @@ class AtaSerializer(serializers.ModelSerializer):
         queryset=PrestacaoConta.objects.all()
     )
 
-    def get_nome_conta(self, obj):
+    def get_nome_ata(self, obj):
         return obj.nome
 
     class Meta:
@@ -43,7 +41,6 @@ class AtaSerializer(serializers.ModelSerializer):
             'nome',
             'periodo',
             'associacao',
-            'conta_associacao',
             'tipo_ata',
             'tipo_reuniao',
             'convocacao',

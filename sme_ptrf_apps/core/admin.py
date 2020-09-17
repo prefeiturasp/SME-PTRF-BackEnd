@@ -1,7 +1,6 @@
 from django.contrib import admin
 
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
-
 from .models import (
     Acao,
     AcaoAssociacao,
@@ -162,11 +161,6 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
 @admin.register(Ata)
 class AtaAdmin(admin.ModelAdmin):
 
-    def get_nome_conta(self, obj):
-        return obj.conta_associacao.tipo_conta.nome if obj and obj.conta_associacao else ''
-
-    get_nome_conta.short_description = 'Conta'
-
     def get_eol_unidade(self, obj):
         return obj.associacao.unidade.codigo_eol if obj and obj.associacao and obj.associacao.unidade else ''
 
@@ -178,11 +172,11 @@ class AtaAdmin(admin.ModelAdmin):
     get_referencia_periodo.short_description = 'Período'
 
     list_display = (
-        'get_eol_unidade', 'get_referencia_periodo', 'get_nome_conta', 'data_reuniao', 'tipo_ata', 'tipo_reuniao',
+        'get_eol_unidade', 'get_referencia_periodo', 'data_reuniao', 'tipo_ata', 'tipo_reuniao',
         'convocacao',
         'parecer_conselho')
     list_filter = (
-        'parecer_conselho', 'tipo_ata', 'tipo_reuniao', 'convocacao', 'associacao', 'conta_associacao__tipo_conta')
+        'parecer_conselho', 'tipo_ata', 'tipo_reuniao', 'convocacao', 'associacao')
     list_display_links = ('get_eol_unidade',)
     readonly_fields = ('uuid', id)
     search_fields = ('associacao__unidade__codigo_eol',)

@@ -73,8 +73,6 @@ class Ata(ModeloBase):
 
     associacao = models.ForeignKey('Associacao', on_delete=models.PROTECT, related_name='atas_da_associacao')
 
-    conta_associacao = models.ForeignKey('ContaAssociacao', on_delete=models.PROTECT, related_name='atas_da_conta')
-
     tipo_ata = models.CharField(
         'tipo de ata',
         max_length=20,
@@ -135,7 +133,7 @@ class Ata(ModeloBase):
         )
 
     def __str__(self):
-        return f"Ata {self.periodo.referencia} - {self.conta_associacao.tipo_conta.nome} - {self.tipo_reuniao}"
+        return f"Ata {self.periodo.referencia} - {self.ATA_NOMES[self.tipo_ata]} - {self.data_reuniao}"
 
     class Meta:
         verbose_name = "Ata"
