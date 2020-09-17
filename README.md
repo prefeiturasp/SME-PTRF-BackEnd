@@ -5,10 +5,29 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 0.7.0
+Versão: 1.0.0
 
 
 ## Release Notes
+
+### 1.0.0 - 15/09/2020 - Entregas da Sprint 9
+* Entrada em produção (Piloto com algumas Associações)
+* Desacoplamento dos processos de conciliação e prestação de contas;
+* Transações já conciliadas, quando modificadas, voltam ao estado de não conciliadas;
+* Alteração do processo de prestação de contas para incluir todas as contas da Associação em vez de ser uma prestação por conta;
+* Prévias parciais para os relatórios de demonstrativo financeiro e relação de bens da prestação de contas;
+* Melhorias no painel financeiro das associações;
+* Na visão DRE, consulta da situação financeira de uma associação;
+* Central de Notificações;
+* Apoio à Diretoria: FAQ;
+* Demonstrativos financeiros e relações de bens agora incluem a data de geração do documento;
+* Na visão DRE, consulta de dados das Unidades Educacionais trazendo informações do EOL;
+* Atribuições de Técnicos da DRE à Unidades Educacionais;
+* Possibilidade de copiar atribuições de técnicos de um outro período;
+* Transferência de atribuições de um técnico para outro no momento de uma exclusão de técnico;
+* Aprimoramentos no relatório de demonstrativo financeiro;
+* 🐞 Correção de alguns erros.
+
 
 ### 0.7.0 - 20/08/2020 - Entregas da Sprint 8
 * Exportação de dados da Associação;
