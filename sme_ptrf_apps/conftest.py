@@ -9,6 +9,7 @@ from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
 from .core.choices import MembroEnum, RepresentacaoCargo, StatusTag
 from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO
+from .core.models.prestacao_conta import PrestacaoConta
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 
@@ -452,7 +453,7 @@ def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao):
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        status=STATUS_ABERTO,
+        status=PrestacaoConta.STATUS_NAO_RECEBIDA
     )
 
 
