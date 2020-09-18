@@ -14,7 +14,8 @@ from .info_por_acao_services import (
     saldos_insuficientes_para_rateios,
 )
 from .membro_associacao_service import TerceirizadasException, TerceirizadasService
-from .periodo_associacao_services import (status_periodo_associacao, status_prestacao_conta_associacao)
+from .notificacao_service import formata_data
+from .periodo_associacao_services import (status_prestacao_conta_associacao)
 from .prestacao_contas_services import (
     concluir_prestacao_de_contas,
     informacoes_financeiras_para_atas,
@@ -22,4 +23,3 @@ from .prestacao_contas_services import (
 )
 from .processa_cargas import processa_cargas
 from .unidade_service import atualiza_dados_unidade, monta_unidade_para_atribuicao
-from .notificacao_service import formata_data

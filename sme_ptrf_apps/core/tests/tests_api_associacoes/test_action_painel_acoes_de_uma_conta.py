@@ -5,8 +5,6 @@ import pytest
 from freezegun import freeze_time
 from rest_framework import status
 
-from ...status_periodo_associacao import STATUS_PERIODO_ASSOCIACAO_PENDENTE
-
 pytestmark = pytest.mark.django_db
 
 
@@ -34,7 +32,6 @@ def test_action_painel_acoes_de_uma_conta(
     esperado = {
         'associacao': f'{associacao.uuid}',
         'periodo_referencia': periodo.referencia,
-        'periodo_status': STATUS_PERIODO_ASSOCIACAO_PENDENTE,
         'data_inicio_realizacao_despesas': f'{periodo.data_inicio_realizacao_despesas}',
         'data_fim_realizacao_despesas': f'{periodo.data_fim_realizacao_despesas}',
         'data_prevista_repasse': f'{periodo.data_prevista_repasse}',
@@ -163,7 +160,6 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
     esperado = {
         'associacao': f'{associacao.uuid}',
         'periodo_referencia': periodo.referencia,
-        'periodo_status': STATUS_PERIODO_ASSOCIACAO_PENDENTE,
         'data_inicio_realizacao_despesas': f'{periodo.data_inicio_realizacao_despesas}',
         'data_fim_realizacao_despesas': f'{periodo.data_fim_realizacao_despesas}',
         'data_prevista_repasse': f'{periodo.data_prevista_repasse}',

@@ -1168,13 +1168,12 @@ def parametros_tempo_nao_conferido_60_dias():
 
 
 @pytest.fixture
-def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada, conta_associacao):
+def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
     return baker.make(
         'Ata',
         prestacao_conta=prestacao_conta_2020_1_conciliada,
         periodo=prestacao_conta_2020_1_conciliada.periodo,
         associacao=prestacao_conta_2020_1_conciliada.associacao,
-        conta_associacao=conta_associacao,
         tipo_ata='APRESENTACAO',
         tipo_reuniao='ORDINARIA',
         convocacao='PRIMEIRA',
@@ -1190,13 +1189,12 @@ def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada, conta_associac
 
 
 @pytest.fixture
-def ata_prestacao_conta_iniciada(prestacao_conta_iniciada, conta_associacao):
+def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
     return baker.make(
         'Ata',
         prestacao_conta=prestacao_conta_iniciada,
         periodo=prestacao_conta_iniciada.periodo,
         associacao=prestacao_conta_iniciada.associacao,
-        conta_associacao=conta_associacao,
         tipo_ata='APRESENTACAO',
         tipo_reuniao='ORDINARIA',
         convocacao='PRIMEIRA',

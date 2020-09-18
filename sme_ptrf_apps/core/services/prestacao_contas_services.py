@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 @transaction.atomic
 def concluir_prestacao_de_contas(periodo, associacao):
-
     prestacao = PrestacaoConta.abrir(periodo=periodo, associacao=associacao)
     logger.info(f'Aberta a prestação de contas {prestacao}.')
 
@@ -142,18 +141,34 @@ def informacoes_financeiras_para_atas(prestacao_contas):
 
         return totalizador
 
-    logger.debug(
-        f'Get info financeiras para ata. Associacao:{prestacao_contas.associacao.uuid} Período:{prestacao_contas.periodo} Conta:{prestacao_contas.conta_associacao}')
-    info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=prestacao_contas.associacao.uuid,
-                                                  periodo=prestacao_contas.periodo,
-                                                  conta=prestacao_contas.conta_associacao)
+    logger.info(
+        f'Get info financeiras para ata. Associacao:{prestacao_contas.associacao.uuid} Período:{prestacao_contas.periodo}')
 
-    info_acoes = [info for info in info_acoes if
-                  info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+    info_contas = []
+    for fechamento in prestacao_contas.fechamentos_da_prestacao.all():
+        logger.info(
+            f'Get info financeiras por conta para a ata. Associacao:{prestacao_contas.associacao.uuid} Conta:{fechamento.conta_associacao}')
+        info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=prestacao_contas.associacao.uuid,
+                                                      periodo=prestacao_contas.periodo,
+                                                      conta=fechamento.conta_associacao)
 
-    info = {
-        'uuid': prestacao_contas.uuid,
-        'acoes': info_acoes,
-        'totais': totaliza_info_acoes(info_acoes),
-    }
-    return info
+        info_acoes = [info for info in info_acoes if
+                      info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+
+        info_contas.append(
+            {
+                'conta_associacao': {
+                    'uuid': f'{fechamento.conta_associacao.uuid}',
+                    'nome': f'{fechamento.conta_associacao.tipo_conta.nome}',
+                },
+                'acoes': info_acoes,
+                'totais': totaliza_info_acoes(info_acoes),
+            }
+        )
+
+        info = {
+            'uuid': prestacao_contas.uuid,
+            'contas': info_contas,
+        }
+
+        return info

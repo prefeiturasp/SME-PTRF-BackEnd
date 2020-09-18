@@ -167,7 +167,6 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         return Response(msg)
 
     def _gerar_planilha(self, acao_associacao_uuid, conta_associacao_uuid, periodo, previa=False):
-        #TODO Remover esse método quando revisar o endpoint documento-final do demonstrativo financeiro
         acao_associacao = AcaoAssociacao.objects.filter(uuid=acao_associacao_uuid).get()
         conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
 
