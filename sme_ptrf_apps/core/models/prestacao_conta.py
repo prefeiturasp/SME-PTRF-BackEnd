@@ -94,6 +94,30 @@ class PrestacaoConta(ModeloBase):
     def by_periodo(cls, associacao, periodo):
         return cls.objects.filter(associacao=associacao, periodo=periodo).first()
 
+    
+    @classmethod
+    def dashboard(cls, periodo_uuid, dre_uuid):
+        titulos_por_status = {
+            cls.STATUS_NAO_RECEBIDA: "Prestações de contas não recebidas",
+            cls.STATUS_RECEBIDA: "Prestações de contas recebidas aguardando análise",
+            cls.STATUS_EM_ANALISE: "Prestações de contas em análise",
+            cls.STATUS_DEVOLVIDA: "Prestações de conta devolvidas para acertos",
+            cls.STATUS_APROVADA: "Prestações de contas aprovadas",
+            cls.STATUS_REPROVADA: "Prestações de contas reprovadas",
+        }
+
+        cards = []
+        qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid)
+        for status, titulo in titulos_por_status.items():
+            card = {
+                "titulo": titulo,
+                "quantidade_prestacoes": qs.filter(status=status).count(),
+                "status": status
+            }
+            cards.append(card)
+
+        return cards
+
 
     class Meta:
         verbose_name = "Prestação de conta"
