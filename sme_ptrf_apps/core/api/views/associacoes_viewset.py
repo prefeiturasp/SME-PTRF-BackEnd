@@ -23,7 +23,7 @@ from ..serializers.conta_associacao_serializer import (
 )
 from ..serializers.periodo_serializer import PeriodoLookUpSerializer
 from ..serializers.processo_associacao_serializer import ProcessoAssociacaoRetrieveSerializer
-from ...models import Associacao, ContaAssociacao, Periodo, Unidade
+from ...models import Associacao, ContaAssociacao, Periodo, Unidade, PrestacaoConta
 from ...services import (
     implanta_saldos_da_associacao,
     implantacoes_de_saldo_da_associacao,
@@ -92,6 +92,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
 
     @action(detail=True, url_path='status-periodo')
     def status_periodo(self, request, uuid=None):
+        associacao = self.get_object()
 
         data = request.query_params.get('data')
 
@@ -103,10 +104,12 @@ class AssociacoesViewSet(mixins.ListModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         periodo = Periodo.da_data(data)
+        prestacao_conta = None
         if periodo:
             periodo_referencia = periodo.referencia
             prestacao_conta_status = status_prestacao_conta_associacao(periodo_uuid=periodo.uuid, associacao_uuid=uuid)
             aceita_alteracoes = not prestacao_conta_status['periodo_bloqueado'] if prestacao_conta_status else True
+            prestacao_conta = PrestacaoConta.by_periodo(associacao=associacao, periodo=periodo)
         else:
             periodo_referencia = ''
             aceita_alteracoes = True
@@ -117,6 +120,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
             'periodo_referencia': periodo_referencia,
             'aceita_alteracoes': aceita_alteracoes,
             'prestacao_contas_status': prestacao_conta_status,
+            'prestacao_conta': prestacao_conta.uuid if prestacao_conta else '',
         }
 
         return Response(result)
