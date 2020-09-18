@@ -70,10 +70,12 @@ def test_api_get_info_para_ata(client,
 
     info_contas_esperadas = [
         {
-            'conta_associacao': {
-                'nome': 'Cheque',
-                'uuid': f'{conta_associacao.uuid}'
-            },
+
+            'conta_associacao': {'agencia': '12345',
+                                 'banco_nome': 'Banco do Brasil',
+                                 'nome': 'Cheque',
+                                 'numero_conta': '123456-x',
+                                 'uuid': f'{conta_associacao.uuid}'},
             'acoes': [
                 {
                     'acao_associacao_nome': 'PTRF',
@@ -234,10 +236,11 @@ def test_api_get_info_para_ata_com_repasses_pendentes(client,
 
     info_contas_esperadas = [
         {
-            'conta_associacao': {
-                'nome': 'Cheque',
-                'uuid': f'{conta_associacao.uuid}'
-            },
+            'conta_associacao': {'agencia': '12345',
+                                 'banco_nome': 'Banco do Brasil',
+                                 'nome': 'Cheque',
+                                 'numero_conta': '123456-x',
+                                 'uuid': f'{conta_associacao.uuid}'},
             'acoes': [
                 {
                     'acao_associacao_nome': 'PTRF',
@@ -400,10 +403,11 @@ def test_api_get_info_para_ata_com_repasses_pendentes_custeio(client,
 
     info_contas_esperadas = [
         {
-            'conta_associacao': {
-                'nome': 'Cheque',
-                'uuid': f'{conta_associacao.uuid}'
-            },
+            'conta_associacao': {'agencia': '12345',
+                                 'banco_nome': 'Banco do Brasil',
+                                 'nome': 'Cheque',
+                                 'numero_conta': '123456-x',
+                                 'uuid': f'{conta_associacao.uuid}'},
             'acoes': [
                 {
                     'acao_associacao_nome': 'PTRF',
@@ -516,159 +520,6 @@ def test_api_get_info_para_ata_com_livre_aplicacao(client,
 
     result = json.loads(response.content)
 
-    # info_acoes_esperadas = [
-    #     {
-    #         'acao_associacao_nome': 'PTRF',
-    #         'acao_associacao_uuid': f'{acao_associacao.uuid}',
-    #
-    #         'saldo_reprogramado': 0,
-    #         'saldo_reprogramado_capital': 0,
-    #         'saldo_reprogramado_custeio': 0,
-    #         'saldo_reprogramado_livre': 0,
-    #
-    #         'receitas_no_periodo': 6000.0,
-    #
-    #         'receitas_devolucao_no_periodo': 0.0,
-    #         'receitas_devolucao_no_periodo_capital': 0.0,
-    #         'receitas_devolucao_no_periodo_custeio': 0.0,
-    #         'receitas_devolucao_no_periodo_livre': 0.0,
-    #
-    #         'repasses_no_periodo': 5400.0,
-    #         'repasses_no_periodo_capital': 900.0,
-    #         'repasses_no_periodo_custeio': 1800.0,
-    #         'repasses_no_periodo_livre': 2700.0,
-    #
-    #         'outras_receitas_no_periodo': 600.0,
-    #         'outras_receitas_no_periodo_capital': 100.0,
-    #         'outras_receitas_no_periodo_custeio': 200.0,
-    #         'outras_receitas_no_periodo_livre': 300.0,
-    #
-    #         'despesas_no_periodo': 2400.0,
-    #         'despesas_no_periodo_capital': 800.0,
-    #         'despesas_no_periodo_custeio': 1600.0,
-    #         'despesas_nao_conciliadas': 24.0,
-    #         'despesas_nao_conciliadas_capital': 8.0,
-    #         'despesas_nao_conciliadas_custeio': 16.0,
-    #
-    #         'receitas_nao_conciliadas': 60.0,
-    #         'receitas_nao_conciliadas_capital': 10.0,
-    #         'receitas_nao_conciliadas_custeio': 20.0,
-    #         'receitas_nao_conciliadas_livre': 30.0,
-    #
-    #         'saldo_atual_capital': 200.0,
-    #         'saldo_atual_custeio': 400.0,
-    #         'saldo_atual_livre': 3000.0,
-    #         'saldo_atual_total': 3600.0,
-    #
-    #         'especificacoes_despesas_capital': ['ar condicionado', ],
-    #         'especificacoes_despesas_custeio': ['cadeira', 'mesa'],
-    #
-    #         'repasses_nao_realizados_capital': 0.0,
-    #         'repasses_nao_realizados_custeio': 0.0,
-    #         'repasses_nao_realizados_livre': 0.0
-    #     },
-    #     {
-    #         'acao_associacao_nome': 'Rolê Cultural',
-    #         'acao_associacao_uuid': f'{acao_associacao_role_cultural.uuid}',
-    #
-    #         'saldo_reprogramado': 300.0,
-    #         'saldo_reprogramado_capital': 100,
-    #         'saldo_reprogramado_custeio': 200,
-    #         'saldo_reprogramado_livre': 0,
-    #
-    #         'receitas_no_periodo': 3000.0,
-    #
-    #         'receitas_devolucao_no_periodo': 0.0,
-    #         'receitas_devolucao_no_periodo_capital': 0.0,
-    #         'receitas_devolucao_no_periodo_custeio': 0.0,
-    #         'receitas_devolucao_no_periodo_livre': 0.0,
-    #
-    #         'repasses_no_periodo': 1800.0,
-    #         'repasses_no_periodo_capital': 1000.0,
-    #         'repasses_no_periodo_custeio': 800.0,
-    #         'repasses_no_periodo_livre': 0,
-    #
-    #         'outras_receitas_no_periodo': 1200.0,
-    #         'outras_receitas_no_periodo_capital': 1000.0,
-    #         'outras_receitas_no_periodo_custeio': 200.0,
-    #         'outras_receitas_no_periodo_livre': 0,
-    #
-    #         'despesas_no_periodo': 300.0,
-    #         'despesas_no_periodo_capital': 200.0,
-    #         'despesas_no_periodo_custeio': 100.0,
-    #         'despesas_nao_conciliadas': 30.0,
-    #         'despesas_nao_conciliadas_capital': 20.0,
-    #         'despesas_nao_conciliadas_custeio': 10.0,
-    #
-    #         'receitas_nao_conciliadas': 30.0,
-    #         'receitas_nao_conciliadas_capital': 20.0,
-    #         'receitas_nao_conciliadas_custeio': 10.0,
-    #         'receitas_nao_conciliadas_livre': 0,
-    #
-    #         'saldo_atual_total': 3000.0,
-    #         'saldo_atual_capital': 1900.0,
-    #         'saldo_atual_custeio': 1100.0,
-    #         'saldo_atual_livre': 0,
-    #
-    #         'especificacoes_despesas_capital': ['ar condicionado', ],
-    #         'especificacoes_despesas_custeio': ['ventilador', 'contador'],
-    #
-    #         'repasses_nao_realizados_capital': 0.0,
-    #         'repasses_nao_realizados_custeio': 0.0,
-    #         'repasses_nao_realizados_livre': 0.0
-    #     }
-    # ]
-    #
-    # totais_esperados = {
-    #     'saldo_reprogramado': 300.0,
-    #     'saldo_reprogramado_capital': 100.0,
-    #     'saldo_reprogramado_custeio': 200.0,
-    #     'saldo_reprogramado_livre': 0,
-    #
-    #     'receitas_no_periodo': 9000.0,
-    #
-    #     'receitas_devolucao_no_periodo': 0.0,
-    #     'receitas_devolucao_no_periodo_capital': 0.0,
-    #     'receitas_devolucao_no_periodo_custeio': 0.0,
-    #     'receitas_devolucao_no_periodo_livre': 0.0,
-    #
-    #     'repasses_no_periodo': 7200.0,
-    #     'repasses_no_periodo_capital': 1900.0,
-    #     'repasses_no_periodo_custeio': 2600.0,
-    #     'repasses_no_periodo_livre': 2700.0,
-    #
-    #     'outras_receitas_no_periodo': 1800.0,
-    #     'outras_receitas_no_periodo_capital': 1100.0,
-    #     'outras_receitas_no_periodo_custeio': 400.0,
-    #     'outras_receitas_no_periodo_livre': 300.0,
-    #
-    #     'despesas_no_periodo': 2700.0,
-    #     'despesas_no_periodo_capital': 1000.0,
-    #     'despesas_no_periodo_custeio': 1700.0,
-    #     'despesas_nao_conciliadas': 54.0,
-    #     'despesas_nao_conciliadas_capital': 28.0,
-    #     'despesas_nao_conciliadas_custeio': 26.0,
-    #
-    #     'receitas_nao_conciliadas': 90.0,
-    #     'receitas_nao_conciliadas_capital': 30.0,
-    #     'receitas_nao_conciliadas_custeio': 30.0,
-    #     'receitas_nao_conciliadas_livre': 30.0,
-    #
-    #     'saldo_atual_capital': 2100.0,
-    #     'saldo_atual_custeio': 1500.0,
-    #     'saldo_atual_livre': 3000.0,
-    #     'saldo_atual_total': 6600.0,
-    #
-    #     'repasses_nao_realizados_capital': 0.0,
-    #     'repasses_nao_realizados_custeio': 0.0,
-    #     'repasses_nao_realizados_livre': 0.0
-    # }
-    #
-    # resultado_esperado = {
-    #     'uuid': f'{prestacao_uuid}',
-    #     'acoes': info_acoes_esperadas,
-    #     'totais': totais_esperados,
-    # }
     totais_esperados = {
         'saldo_reprogramado': 300.0,
         'saldo_reprogramado_capital': 100.0,
@@ -716,10 +567,11 @@ def test_api_get_info_para_ata_com_livre_aplicacao(client,
 
     info_contas_esperadas = [
         {
-            'conta_associacao': {
-                'nome': 'Cheque',
-                'uuid': f'{conta_associacao.uuid}'
-            },
+            'conta_associacao': {'agencia': '12345',
+                                 'banco_nome': 'Banco do Brasil',
+                                 'nome': 'Cheque',
+                                 'numero_conta': '123456-x',
+                                 'uuid': f'{conta_associacao.uuid}'},
             'acoes': [
                 {
                     'acao_associacao_nome': 'PTRF',
