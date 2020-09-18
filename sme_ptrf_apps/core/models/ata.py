@@ -53,18 +53,15 @@ class Ata(ModeloBase):
     # Parecer Choice
     PARECER_APROVADA = 'APROVADA'
     PARECER_REJEITADA = 'REJEITADA'
-    PARECER_RESSALVAS = 'RESSALVAS'
 
     PARECER_NOMES = {
         PARECER_APROVADA: 'Aprovada',
         PARECER_REJEITADA: 'Rejeitada',
-        PARECER_RESSALVAS: 'Aprovada com ressalvas'
     }
 
     PARECER_CHOICES = (
         (PARECER_APROVADA, PARECER_NOMES[PARECER_APROVADA]),
         (PARECER_REJEITADA, PARECER_NOMES[PARECER_REJEITADA]),
-        (PARECER_RESSALVAS, PARECER_NOMES[PARECER_RESSALVAS]),
     )
 
     prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE, related_name='atas_da_prestacao')
