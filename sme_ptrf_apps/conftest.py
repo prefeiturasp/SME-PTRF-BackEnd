@@ -638,6 +638,33 @@ def fechamento_2020_1_role(periodo_2020_1, associacao, conta_associacao, acao_as
 
 
 @pytest.fixture
+def fechamento_2020_1_role_cartao(periodo_2020_1, associacao, conta_associacao_cartao, acao_associacao_role_cultural,
+                                  prestacao_conta_2020_1_conciliada, fechamento_periodo_anterior_role):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        fechamento_anterior=fechamento_periodo_anterior_role,
+        total_receitas_capital=2000,
+        total_repasses_capital=1000,
+        total_despesas_capital=200,
+        total_receitas_custeio=1000,
+        total_repasses_custeio=800,
+        total_despesas_custeio=100,
+        total_despesas_nao_conciliadas_capital=20.0,
+        total_despesas_nao_conciliadas_custeio=10.0,
+        total_receitas_nao_conciliadas_capital=20.0,
+        total_receitas_nao_conciliadas_custeio=10.0,
+        status=STATUS_FECHADO,
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        especificacoes_despesas_capital=['ar condicionado', ],
+        especificacoes_despesas_custeio=['ventilador', 'contador']
+    )
+
+
+@pytest.fixture
 def fechamento_periodo_com_saldo(periodo, associacao, conta_associacao, acao_associacao, ):
     return baker.make(
         'FechamentoPeriodo',

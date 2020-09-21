@@ -145,12 +145,12 @@ def informacoes_financeiras_para_atas(prestacao_contas):
         f'Get info financeiras para ata. Associacao:{prestacao_contas.associacao.uuid} Período:{prestacao_contas.periodo}')
 
     info_contas = []
-    for fechamento in prestacao_contas.fechamentos_da_prestacao.all():
+    for conta_associacao in prestacao_contas.associacao.contas.all():
         logger.info(
-            f'Get info financeiras por conta para a ata. Associacao:{prestacao_contas.associacao.uuid} Conta:{fechamento.conta_associacao}')
+            f'Get info financeiras por conta para a ata. Associacao:{prestacao_contas.associacao.uuid} Conta:{conta_associacao}')
         info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=prestacao_contas.associacao.uuid,
                                                       periodo=prestacao_contas.periodo,
-                                                      conta=fechamento.conta_associacao)
+                                                      conta=conta_associacao)
 
         info_acoes = [info for info in info_acoes if
                       info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
@@ -158,20 +158,20 @@ def informacoes_financeiras_para_atas(prestacao_contas):
         info_contas.append(
             {
                 'conta_associacao': {
-                    'uuid': f'{fechamento.conta_associacao.uuid}',
-                    'nome': f'{fechamento.conta_associacao.tipo_conta.nome}',
-                    'banco_nome': f'{fechamento.conta_associacao.banco_nome}',
-                    'agencia': f'{fechamento.conta_associacao.agencia}',
-                    'numero_conta': f'{fechamento.conta_associacao.numero_conta}',
+                    'uuid': f'{conta_associacao.uuid}',
+                    'nome': f'{conta_associacao.tipo_conta.nome}',
+                    'banco_nome': f'{conta_associacao.banco_nome}',
+                    'agencia': f'{conta_associacao.agencia}',
+                    'numero_conta': f'{conta_associacao.numero_conta}',
                 },
                 'acoes': info_acoes,
                 'totais': totaliza_info_acoes(info_acoes),
             }
         )
 
-        info = {
-            'uuid': prestacao_contas.uuid,
-            'contas': info_contas,
-        }
+    info = {
+        'uuid': prestacao_contas.uuid,
+        'contas': info_contas,
+    }
 
-        return info
+    return info
