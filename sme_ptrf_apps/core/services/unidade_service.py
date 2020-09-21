@@ -55,14 +55,14 @@ def atualiza_dados_pessoais_unidade(unidade: Unidade) -> None:
         resultado = list(filter(lambda d: d['cd_unidade_educacao'] == unidade.codigo_eol, results))
         if resultado:
             unidade_retorno = resultado[0]
-            unidade.nome = unidade_retorno['nm_unidade_educacao']
-            unidade.email = unidade_retorno['email']
-            unidade.telefone = unidade_retorno['tel1']
-            unidade.numero = unidade_retorno['cd_nr_endereco']
-            unidade.tipo_logradouro = unidade_retorno['dc_tp_logradouro']
-            unidade.logradouro = unidade_retorno['nm_logradouro']
-            unidade.bairro = unidade_retorno['nm_bairro']
-            unidade.cep = f"{unidade_retorno['cd_cep']:0>8}"
+            unidade.nome = unidade_retorno.get('nm_unidade_educacao') or ''
+            unidade.email = unidade_retorno.get('email') or ''
+            unidade.telefone = unidade_retorno.get('tel1') or ''
+            unidade.numero = unidade_retorno.get('cd_nr_endereco') or ''
+            unidade.tipo_logradouro = unidade_retorno.get('dc_tp_logradouro') or ''
+            unidade.logradouro = unidade_retorno.get('nm_logradouro') or ''
+            unidade.bairro = unidade_retorno.get('nm_bairro') or ''
+            unidade.cep = f"{unidade_retorno['cd_cep']:0>8}" or ''
             unidade.save()
     except Exception as err:
         logger.info("Erro ao Atualizar dados pessoais da unidade %s", err)
@@ -82,7 +82,7 @@ def atualiza_diretor_unidade(unidade: Unidade) -> None:
                                 headers=headers_sgp, timeout=timeout)
         resultado = response.json()
         if resultado:
-            unidade.diretor_nome = resultado[0]['nomeServidor']
+            unidade.diretor_nome = resultado[0].get('nomeServidor') or ''
         logger.info(response.json())
     except Exception as err:
         logger.info("Erro ao atualizar diretor: %s", err)
