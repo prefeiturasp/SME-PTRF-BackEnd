@@ -1,6 +1,6 @@
 import pytest
 from django.contrib import admin
-
+from model_bakery import baker
 from ...models import PrestacaoConta, Associacao, Periodo
 
 pytestmark = pytest.mark.django_db
@@ -29,3 +29,52 @@ def test_meta_modelo(prestacao_conta):
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[PrestacaoConta]
+
+
+@pytest.fixture
+def prestacao_conta1(periodo, associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo,
+        associacao=associacao,
+        status="EM_ANALISE"
+    )
+
+@pytest.fixture
+def prestacao_conta2(periodo, outra_associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo,
+        associacao=outra_associacao,
+        status="APROVADA"
+    )
+
+def test_dash_board(prestacao_conta1, prestacao_conta2, periodo, dre):
+    esperado = [
+        {
+            'titulo': 'Prestações de contas não recebidas',
+            'quantidade_prestacoes': 0,
+            'status': 'NAO_RECEBIDA'},
+        {
+            'titulo': 'Prestações de contas recebidas aguardando análise',
+            'quantidade_prestacoes': 0,
+            'status': 'RECEBIDA'},
+        {
+            'titulo': 'Prestações de contas em análise',
+            'quantidade_prestacoes': 1,
+            'status': 'EM_ANALISE'},
+        {
+            'titulo': 'Prestações de conta devolvidas para acertos',
+            'quantidade_prestacoes': 0,
+            'status': 'DEVOLVIDA'},
+        {
+            'titulo': 'Prestações de contas aprovadas',
+            'quantidade_prestacoes': 1,
+            'status': 'APROVADA'},
+        {
+            'titulo': 'Prestações de contas reprovadas',
+            'quantidade_prestacoes': 0,
+            'status': 'REPROVADA'}
+    ]
+
+    assert esperado == prestacao_conta1.dashboard(periodo.uuid, dre.uuid)

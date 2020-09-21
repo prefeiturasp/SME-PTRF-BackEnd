@@ -132,3 +132,26 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         fique_de_olho = Parametros.get().fique_de_olho
 
         return Response({'detail': fique_de_olho}, status=status.HTTP_200_OK)
+    
+
+    @action(detail=False ,methods=['get'], url_path="dashboard")
+    def dashboard(self, request):
+        dre_uuid = request.query_params.get('dre_uuid')
+        periodo = request.query_params.get('periodo')
+
+        if not dre_uuid or not periodo:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da dre (dre_uuid) e o periodo como parâmetros.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        
+        total_associacoes_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).count()
+
+        cards = PrestacaoConta.dashboard(periodo, dre_uuid)
+        dashboard = {
+            "total_associacoes_dre": total_associacoes_dre,
+            "cards": cards
+        }
+
+        return Response(dashboard)
