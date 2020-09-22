@@ -1,5 +1,6 @@
 import logging
 
+from django.db.models import Q
 from django.db.utils import IntegrityError
 from django_filters import rest_framework as filters
 from rest_framework import mixins
@@ -26,6 +27,16 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     serializer_class = PrestacaoContaLookUpSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
     filter_fields = ('associacao__unidade__dre__uuid', 'periodo__uuid', 'status')
+
+    def get_queryset(self):
+        qs = PrestacaoConta.objects.all()
+
+        nome = self.request.query_params.get('nome')
+        if nome is not None:
+            qs = qs.filter(Q(associacao__nome__unaccent__icontains=nome) | Q(
+                associacao__unidade__nome__unaccent__icontains=nome))
+
+        return qs
 
     def get_serializer_class(self):
         if self.action == 'list':
