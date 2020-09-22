@@ -26,7 +26,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     queryset = PrestacaoConta.objects.all()
     serializer_class = PrestacaoContaLookUpSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
-    filter_fields = ('associacao__unidade__dre__uuid', 'periodo__uuid', 'status')
+    filter_fields = ('associacao__unidade__dre__uuid', 'periodo__uuid', 'status', 'associacao__unidade__tipo_unidade')
 
     def get_queryset(self):
         qs = PrestacaoConta.objects.all()
