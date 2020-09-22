@@ -2,6 +2,7 @@ from django.db import models
 from django.db import transaction
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.dre.models import Atribuicao
 
 
 class PrestacaoConta(ModeloBase):
@@ -12,6 +13,7 @@ class PrestacaoConta(ModeloBase):
     STATUS_EM_ANALISE = 'EM_ANALISE'
     STATUS_DEVOLVIDA = 'DEVOLVIDA'
     STATUS_APROVADA = 'APROVADA'
+    STATUS_APROVADA_RESSALVA = 'APROVADA_RESSALVA'
     STATUS_REPROVADA = 'REPROVADA'
 
     STATUS_NOMES = {
@@ -21,6 +23,7 @@ class PrestacaoConta(ModeloBase):
         STATUS_EM_ANALISE: 'Em análise',
         STATUS_DEVOLVIDA: 'Devolvida para acertos',
         STATUS_APROVADA: 'Aprovada',
+        STATUS_APROVADA_RESSALVA: 'Aprovada com ressalvas',
         STATUS_REPROVADA: 'Reprovada'
     }
 
@@ -31,6 +34,7 @@ class PrestacaoConta(ModeloBase):
         (STATUS_EM_ANALISE, STATUS_NOMES[STATUS_EM_ANALISE]),
         (STATUS_DEVOLVIDA, STATUS_NOMES[STATUS_DEVOLVIDA]),
         (STATUS_APROVADA, STATUS_NOMES[STATUS_APROVADA]),
+        (STATUS_APROVADA_RESSALVA, STATUS_NOMES[STATUS_APROVADA_RESSALVA]),
         (STATUS_REPROVADA, STATUS_NOMES[STATUS_REPROVADA]),
     )
 
@@ -46,6 +50,21 @@ class PrestacaoConta(ModeloBase):
         choices=STATUS_CHOICES,
         default=STATUS_DOCS_PENDENTES
     )
+
+    data_recebimento = models.DateField('data de recebimento pela DRE', blank=True, null=True)
+
+    data_ultima_analise = models.DateField('data da última análise pela DRE', blank=True, null=True)
+
+    devolucao_tesouro = models.BooleanField('há devolução ao tesouro', blank=True, null=True, default=False)
+
+    @property
+    def tecnico_responsavel(self):
+        atribuicoes = Atribuicao.search(
+            **{'unidade__uuid': self.associacao.unidade.uuid, 'periodo__uuid': self.periodo.uuid})
+        if atribuicoes.exists():
+            return atribuicoes.first().tecnico
+        else:
+            return None
 
     def __str__(self):
         return f"{self.periodo} - {self.status}"
@@ -94,6 +113,28 @@ class PrestacaoConta(ModeloBase):
     def by_periodo(cls, associacao, periodo):
         return cls.objects.filter(associacao=associacao, periodo=periodo).first()
 
+    @classmethod
+    def dashboard(cls, periodo_uuid, dre_uuid):
+        titulos_por_status = {
+            cls.STATUS_NAO_RECEBIDA: "Prestações de contas não recebidas",
+            cls.STATUS_RECEBIDA: "Prestações de contas recebidas aguardando análise",
+            cls.STATUS_EM_ANALISE: "Prestações de contas em análise",
+            cls.STATUS_DEVOLVIDA: "Prestações de conta devolvidas para acertos",
+            cls.STATUS_APROVADA: "Prestações de contas aprovadas",
+            cls.STATUS_REPROVADA: "Prestações de contas reprovadas",
+        }
+
+        cards = []
+        qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid)
+        for status, titulo in titulos_por_status.items():
+            card = {
+                "titulo": titulo,
+                "quantidade_prestacoes": qs.filter(status=status).count(),
+                "status": status
+            }
+            cards.append(card)
+
+        return cards
 
     class Meta:
         verbose_name = "Prestação de conta"

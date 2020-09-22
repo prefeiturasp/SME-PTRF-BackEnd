@@ -1,9 +1,10 @@
 from django_filters import rest_framework as filters
-from rest_framework.filters import SearchFilter
 from rest_framework import viewsets, status
-from rest_framework.permissions import AllowAny
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+
 from ..serializers import UnidadeSerializer
 from ...models import Unidade
 from ...services import monta_unidade_para_atribuicao

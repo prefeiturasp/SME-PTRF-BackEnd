@@ -2,10 +2,11 @@ from .associacoes_viewset import AssociacoesViewSet
 from .atas_viewset import AtasViewSet
 from .conciliacoes_viewset import ConciliacoesViewSet
 from .demonstrativo_financeiro_viewset import DemonstrativoFinanceiroViewSet
+from .dres_viewset import DresViewSet
 from .membro_associacao_viewset import MembroAssociacaoViewSet
+from .notificacao_viewset import NotificacaoViewSet
 from .periodos_viewset import PeriodosViewSet
 from .prestacoes_contas_viewset import PrestacoesContasViewSet
 from .processos_associacao_viewset import ProcessosAssociacaoViewSet
 from .relacao_bens_viewset import RelacaoBensViewSet
 from .unidades_viewset import UnidadesViewSet
-from .notificacao_viewset import NotificacaoViewSet

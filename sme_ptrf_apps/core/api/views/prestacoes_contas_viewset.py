@@ -1,26 +1,48 @@
 import logging
 
+from django.db.models import Q
 from django.db.utils import IntegrityError
+from django_filters import rest_framework as filters
 from rest_framework import mixins
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ..serializers import PrestacaoContaLookUpSerializer
-from ...models import PrestacaoConta, Periodo, Associacao
-from ...services import (concluir_prestacao_de_contas, reabrir_prestacao_de_contas)
+from ..serializers import PrestacaoContaLookUpSerializer, PrestacaoContaListSerializer, AtaLookUpSerializer
+from ...models import PrestacaoConta, Periodo, Associacao, Ata
+from ...services import (concluir_prestacao_de_contas, reabrir_prestacao_de_contas, informacoes_financeiras_para_atas)
 
 logger = logging.getLogger(__name__)
 
 class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                               mixins.UpdateModelMixin,
+                              mixins.ListModelMixin,
                               GenericViewSet):
     permission_classes = [AllowAny]
     lookup_field = 'uuid'
     queryset = PrestacaoConta.objects.all()
     serializer_class = PrestacaoContaLookUpSerializer
+    filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
+    filter_fields = ('associacao__unidade__dre__uuid', 'periodo__uuid', 'status', 'associacao__unidade__tipo_unidade')
+
+    def get_queryset(self):
+        qs = PrestacaoConta.objects.all()
+
+        nome = self.request.query_params.get('nome')
+        if nome is not None:
+            qs = qs.filter(Q(associacao__nome__unaccent__icontains=nome) | Q(
+                associacao__unidade__nome__unaccent__icontains=nome))
+
+        return qs
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return PrestacaoContaListSerializer
+        else:
+            return PrestacaoContaLookUpSerializer
 
     @action(detail=False, url_path='por-associacao-e-periodo')
     def por_associacao_e_periodo(self, request):
@@ -89,54 +111,41 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=True, methods=['get'])
     def ata(self, request, uuid):
-        #TODO Rever endpoint ata
-        return self._funcionalidade_ata_inativa()
-        #
-        # prestacao_conta = PrestacaoConta.by_uuid(uuid)
-        #
-        # ata = prestacao_conta.ultima_ata()
-        #
-        # if not ata:
-        #     erro = {
-        #         'mensagem': 'Ainda não existe uma ata para essa prestação de contas.'
-        #     }
-        #     return Response(erro, status=status.HTTP_404_NOT_FOUND)
-        #
-        # return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
 
-    def _funcionalidade_ata_inativa(self):
-        #TODO Remover método após rever a funcionalidade de ata
-        erro = {
-            'mensagem': 'Sistema em manutenção. Funcionalidade inativa provisoriamente.'
-        }
-        return Response(erro, status=status.HTTP_404_NOT_FOUND)
+        ata = prestacao_conta.ultima_ata()
+
+        if not ata:
+            erro = {
+                'mensagem': 'Ainda não existe uma ata para essa prestação de contas.'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
+
 
     @action(detail=True, methods=['post'], url_path='iniciar-ata')
     def iniciar_ata(self, request, uuid):
-        #TODO Rever endpoint iniciar-ata
-        return self._funcionalidade_ata_inativa()
-        # prestacao_conta = PrestacaoConta.by_uuid(uuid)
-        #
-        # ata = prestacao_conta.ultima_ata()
-        #
-        # if ata:
-        #     erro = {
-        #         'erro': 'ata-ja-iniciada',
-        #         'mensagem': 'Já existe uma ata iniciada para essa prestação de contas.'
-        #     }
-        #     return Response(erro, status=status.HTTP_409_CONFLICT)
-        #
-        # ata = Ata.iniciar(prestacao_conta=prestacao_conta)
-        #
-        # return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        ata = prestacao_conta.ultima_ata()
+
+        if ata:
+            erro = {
+                'erro': 'ata-ja-iniciada',
+                'mensagem': 'Já existe uma ata iniciada para essa prestação de contas.'
+            }
+            return Response(erro, status=status.HTTP_409_CONFLICT)
+
+        ata = Ata.iniciar(prestacao_conta=prestacao_conta)
+
+        return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], url_path='info-para-ata')
     def info_para_ata(self, request, uuid):
-        #TODO Rever endpoint info-para-ata
-        return self._funcionalidade_ata_inativa()
-        # prestacao_conta = self.get_object()
-        # result = informacoes_financeiras_para_atas(prestacao_contas=prestacao_conta)
-        # return Response(result, status=status.HTTP_200_OK)
+        prestacao_conta = self.get_object()
+        result = informacoes_financeiras_para_atas(prestacao_contas=prestacao_conta)
+        return Response(result, status=status.HTTP_200_OK)
 
 
     @action(detail=False, methods=['get'], url_path='fique-de-olho')
@@ -145,3 +154,26 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         fique_de_olho = Parametros.get().fique_de_olho
 
         return Response({'detail': fique_de_olho}, status=status.HTTP_200_OK)
+
+
+    @action(detail=False ,methods=['get'], url_path="dashboard")
+    def dashboard(self, request):
+        dre_uuid = request.query_params.get('dre_uuid')
+        periodo = request.query_params.get('periodo')
+
+        if not dre_uuid or not periodo:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da dre (dre_uuid) e o periodo como parâmetros.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        total_associacoes_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).count()
+
+        cards = PrestacaoConta.dashboard(periodo, dre_uuid)
+        dashboard = {
+            "total_associacoes_dre": total_associacoes_dre,
+            "cards": cards
+        }
+
+        return Response(dashboard)

@@ -12,9 +12,9 @@ from .conta_associacao_serializer import (
     ContaAssociacaoSerializer,
 )
 from .membro_associacao_serializer import MembroAssociacaoCreateSerializer, MembroAssociacaoListSerializer
-from .prestacao_conta_serializer import PrestacaoContaLookUpSerializer
+from .notificacao_serializer import NotificacaoSerializer
+from .prestacao_conta_serializer import PrestacaoContaLookUpSerializer, PrestacaoContaListSerializer
 from .processo_associacao_serializer import ProcessoAssociacaoRetrieveSerializer, ProcessoAssociacaoCreateSerializer
 from .tag_serializer import TagLookupSerializer
 from .tipo_conta_serializer import TipoContaSerializer
 from .unidade_serializer import UnidadeInfoAtaSerializer, UnidadeLookUpSerializer, UnidadeSerializer
-from .notificacao_serializer import NotificacaoSerializer

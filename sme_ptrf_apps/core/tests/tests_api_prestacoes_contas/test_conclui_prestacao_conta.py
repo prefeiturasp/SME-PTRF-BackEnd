@@ -65,7 +65,6 @@ def test_api_conclui_prestacao_conta_sem_associacao(client, periodo, associacao)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result == result_esperado
 
-#TODO Rever situação de conclusão da PC quando a PC já existe (Não é Nova).
 def test_api_conclui_prestacao_conta_ja_existente(client, prestacao_conta):
     associacao_uuid = prestacao_conta.associacao.uuid
     periodo_uuid = prestacao_conta.periodo.uuid

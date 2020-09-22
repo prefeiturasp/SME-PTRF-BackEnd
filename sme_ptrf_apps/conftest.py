@@ -9,6 +9,7 @@ from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
 from .core.choices import MembroEnum, RepresentacaoCargo, StatusTag
 from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO
+from .core.models.prestacao_conta import PrestacaoConta
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 
@@ -395,6 +396,9 @@ def prestacao_conta(periodo, associacao):
         'PrestacaoConta',
         periodo=periodo,
         associacao=associacao,
+        data_recebimento=date(2020, 10, 1),
+        data_ultima_analise=date(2020, 10, 1),
+        devolucao_tesouro=True
     )
 
 
@@ -452,7 +456,7 @@ def prestacao_conta_2020_1_conciliada(periodo_2020_1, associacao):
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
-        status=STATUS_ABERTO,
+        status=PrestacaoConta.STATUS_NAO_RECEBIDA
     )
 
 
@@ -617,6 +621,33 @@ def fechamento_2020_1_role(periodo_2020_1, associacao, conta_associacao, acao_as
         periodo=periodo_2020_1,
         associacao=associacao,
         conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_role_cultural,
+        fechamento_anterior=fechamento_periodo_anterior_role,
+        total_receitas_capital=2000,
+        total_repasses_capital=1000,
+        total_despesas_capital=200,
+        total_receitas_custeio=1000,
+        total_repasses_custeio=800,
+        total_despesas_custeio=100,
+        total_despesas_nao_conciliadas_capital=20.0,
+        total_despesas_nao_conciliadas_custeio=10.0,
+        total_receitas_nao_conciliadas_capital=20.0,
+        total_receitas_nao_conciliadas_custeio=10.0,
+        status=STATUS_FECHADO,
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        especificacoes_despesas_capital=['ar condicionado', ],
+        especificacoes_despesas_custeio=['ventilador', 'contador']
+    )
+
+
+@pytest.fixture
+def fechamento_2020_1_role_cartao(periodo_2020_1, associacao, conta_associacao_cartao, acao_associacao_role_cultural,
+                                  prestacao_conta_2020_1_conciliada, fechamento_periodo_anterior_role):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         fechamento_anterior=fechamento_periodo_anterior_role,
         total_receitas_capital=2000,
@@ -1168,13 +1199,12 @@ def parametros_tempo_nao_conferido_60_dias():
 
 
 @pytest.fixture
-def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada, conta_associacao):
+def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
     return baker.make(
         'Ata',
         prestacao_conta=prestacao_conta_2020_1_conciliada,
         periodo=prestacao_conta_2020_1_conciliada.periodo,
         associacao=prestacao_conta_2020_1_conciliada.associacao,
-        conta_associacao=conta_associacao,
         tipo_ata='APRESENTACAO',
         tipo_reuniao='ORDINARIA',
         convocacao='PRIMEIRA',
@@ -1190,13 +1220,12 @@ def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada, conta_associac
 
 
 @pytest.fixture
-def ata_prestacao_conta_iniciada(prestacao_conta_iniciada, conta_associacao):
+def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
     return baker.make(
         'Ata',
         prestacao_conta=prestacao_conta_iniciada,
         periodo=prestacao_conta_iniciada.periodo,
         associacao=prestacao_conta_iniciada.associacao,
-        conta_associacao=conta_associacao,
         tipo_ata='APRESENTACAO',
         tipo_reuniao='ORDINARIA',
         convocacao='PRIMEIRA',

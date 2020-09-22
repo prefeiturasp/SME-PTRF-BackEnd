@@ -4,8 +4,6 @@ import pytest
 from freezegun import freeze_time
 from rest_framework import status
 
-from ...status_periodo_associacao import (STATUS_PERIODO_ASSOCIACAO_EM_ANDAMENTO, STATUS_PERIODO_ASSOCIACAO_PENDENTE)
-
 pytestmark = pytest.mark.django_db
 
 
@@ -18,7 +16,6 @@ def test_status_periodo_em_andamento(client, associacao, periodo_fim_em_aberto):
     esperado = {
         'associacao': f'{associacao.uuid}',
         'periodo_referencia': periodo_fim_em_aberto.referencia,
-        'periodo_status': STATUS_PERIODO_ASSOCIACAO_EM_ANDAMENTO,
         'aceita_alteracoes': True,
         'prestacao_contas_status': {
             'documentos_gerados': None,
@@ -26,8 +23,9 @@ def test_status_periodo_em_andamento(client, associacao, periodo_fim_em_aberto):
             'periodo_bloqueado': False,
             'periodo_encerrado': None,
             'status_prestacao': 'DOCS_PENDENTES',
-            'texto_status': 'Período em andamento. '
-        }
+            'texto_status': 'Período em andamento. ',
+        },
+        'prestacao_conta': '',
 
     }
 
@@ -44,7 +42,6 @@ def test_status_periodo_pendente(client, associacao, periodo_fim_em_2020_06_30):
     esperado = {
         'associacao': f'{associacao.uuid}',
         'periodo_referencia': periodo_fim_em_2020_06_30.referencia,
-        'periodo_status': STATUS_PERIODO_ASSOCIACAO_PENDENTE,
         'aceita_alteracoes': True,
         'prestacao_contas_status': {
             'documentos_gerados': None,
@@ -52,8 +49,9 @@ def test_status_periodo_pendente(client, associacao, periodo_fim_em_2020_06_30):
             'periodo_bloqueado': False,
             'periodo_encerrado': True,
             'status_prestacao': 'DOCS_PENDENTES',
-            'texto_status': 'Período finalizado. Documentos pendentes de geração.'
-        }
+            'texto_status': 'Período finalizado. Documentos pendentes de geração.',
+        },
+        'prestacao_conta': '',
 
     }
 
@@ -83,10 +81,39 @@ def test_chamada_data_sem_periodo(client, associacao, periodo_2020_1):
     esperado = {
         'associacao': f'{associacao.uuid}',
         'periodo_referencia': '',
-        'periodo_status': 'PERIODO_NAO_ENCONTRADO',
         'aceita_alteracoes': True,
-        'prestacao_contas_status': {}
+        'prestacao_contas_status': {},
+        'prestacao_conta': '',
     }
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
+
+
+@freeze_time('2020-07-10 10:20:00')
+def test_status_periodo_finalizado(client, associacao, prestacao_conta_2020_1_conciliada):
+    periodo = prestacao_conta_2020_1_conciliada.periodo
+
+    response = client.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo.data_inicio_realizacao_despesas}',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'associacao': f'{associacao.uuid}',
+        'periodo_referencia': periodo.referencia,
+        'aceita_alteracoes': False,
+        'prestacao_contas_status': {
+            'documentos_gerados': True,
+            'legenda_cor': 2,
+            'periodo_bloqueado': True,
+            'periodo_encerrado': True,
+            'status_prestacao': 'NAO_RECEBIDA',
+            'texto_status': 'Período finalizado. Prestação de contas ainda não recebida pela DRE.',
+        },
+        'prestacao_conta': f'{prestacao_conta_2020_1_conciliada.uuid}',
+
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
+
