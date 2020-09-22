@@ -1,14 +1,17 @@
 import logging
 
+from django.db.models import Q
 from django.db.utils import IntegrityError
+from django_filters import rest_framework as filters
 from rest_framework import mixins
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ..serializers import PrestacaoContaLookUpSerializer, AtaLookUpSerializer
+from ..serializers import PrestacaoContaLookUpSerializer, PrestacaoContaListSerializer, AtaLookUpSerializer
 from ...models import PrestacaoConta, Periodo, Associacao, Ata
 from ...services import (concluir_prestacao_de_contas, reabrir_prestacao_de_contas, informacoes_financeiras_para_atas)
 
@@ -16,11 +19,30 @@ logger = logging.getLogger(__name__)
 
 class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                               mixins.UpdateModelMixin,
+                              mixins.ListModelMixin,
                               GenericViewSet):
     permission_classes = [AllowAny]
     lookup_field = 'uuid'
     queryset = PrestacaoConta.objects.all()
     serializer_class = PrestacaoContaLookUpSerializer
+    filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
+    filter_fields = ('associacao__unidade__dre__uuid', 'periodo__uuid', 'status', 'associacao__unidade__tipo_unidade')
+
+    def get_queryset(self):
+        qs = PrestacaoConta.objects.all()
+
+        nome = self.request.query_params.get('nome')
+        if nome is not None:
+            qs = qs.filter(Q(associacao__nome__unaccent__icontains=nome) | Q(
+                associacao__unidade__nome__unaccent__icontains=nome))
+
+        return qs
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return PrestacaoContaListSerializer
+        else:
+            return PrestacaoContaLookUpSerializer
 
     @action(detail=False, url_path='por-associacao-e-periodo')
     def por_associacao_e_periodo(self, request):
@@ -132,7 +154,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         fique_de_olho = Parametros.get().fique_de_olho
 
         return Response({'detail': fique_de_olho}, status=status.HTTP_200_OK)
-    
+
 
     @action(detail=False ,methods=['get'], url_path="dashboard")
     def dashboard(self, request):
@@ -145,7 +167,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'mensagem': 'É necessário enviar o uuid da dre (dre_uuid) e o periodo como parâmetros.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        
+
         total_associacoes_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).count()
 
         cards = PrestacaoConta.dashboard(periodo, dre_uuid)

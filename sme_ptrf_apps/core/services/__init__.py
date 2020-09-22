@@ -19,7 +19,7 @@ from .periodo_associacao_services import (status_prestacao_conta_associacao)
 from .prestacao_contas_services import (
     concluir_prestacao_de_contas,
     informacoes_financeiras_para_atas,
-    reabrir_prestacao_de_contas,
+    reabrir_prestacao_de_contas
 )
 from .processa_cargas import processa_cargas
 from .unidade_service import atualiza_dados_unidade, monta_unidade_para_atribuicao

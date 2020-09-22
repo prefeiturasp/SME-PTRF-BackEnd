@@ -2,6 +2,7 @@ from django.db import models
 from django.db import transaction
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.dre.models import Atribuicao
 
 
 class PrestacaoConta(ModeloBase):
@@ -50,6 +51,21 @@ class PrestacaoConta(ModeloBase):
         default=STATUS_DOCS_PENDENTES
     )
 
+    data_recebimento = models.DateField('data de recebimento pela DRE', blank=True, null=True)
+
+    data_ultima_analise = models.DateField('data da última análise pela DRE', blank=True, null=True)
+
+    devolucao_tesouro = models.BooleanField('há devolução ao tesouro', blank=True, null=True, default=False)
+
+    @property
+    def tecnico_responsavel(self):
+        atribuicoes = Atribuicao.search(
+            **{'unidade__uuid': self.associacao.unidade.uuid, 'periodo__uuid': self.periodo.uuid})
+        if atribuicoes.exists():
+            return atribuicoes.first().tecnico
+        else:
+            return None
+
     def __str__(self):
         return f"{self.periodo} - {self.status}"
 
@@ -97,7 +113,6 @@ class PrestacaoConta(ModeloBase):
     def by_periodo(cls, associacao, periodo):
         return cls.objects.filter(associacao=associacao, periodo=periodo).first()
 
-    
     @classmethod
     def dashboard(cls, periodo_uuid, dre_uuid):
         titulos_por_status = {
@@ -120,7 +135,6 @@ class PrestacaoConta(ModeloBase):
             cards.append(card)
 
         return cards
-
 
     class Meta:
         verbose_name = "Prestação de conta"
