@@ -1,6 +1,7 @@
 import pytest
 from django.contrib import admin
 from model_bakery import baker
+
 from ...models import PrestacaoConta, Associacao, Periodo
 
 pytestmark = pytest.mark.django_db
@@ -16,6 +17,9 @@ def test_instance_model(prestacao_conta):
     assert model.uuid
     assert model.id
     assert model.status
+    assert model.data_recebimento
+    assert model.data_ultima_analise
+    assert model.devolucao_tesouro
 
 def test_srt_model(prestacao_conta):
     assert prestacao_conta.__str__() == '2019.2 - 2019-09-01 a 2019-11-30 - DOCS_PENDENTES'

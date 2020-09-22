@@ -18,3 +18,9 @@ class ProcessoAssociacao(ModeloBase):
 
     def __str__(self):
         return f"<Processo: {self.numero_processo}, Ano: {self.ano}>"
+
+    @classmethod
+    def by_associacao_periodo(cls, associacao, periodo):
+        ano = periodo.referencia[0:4]
+        processos = cls.objects.filter(associacao=associacao, ano=ano)
+        return processos.first().numero_processo if processos.exists() else ""
