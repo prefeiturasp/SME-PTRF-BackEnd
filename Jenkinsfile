@@ -27,7 +27,7 @@ pipeline {
                     -Dsonar.projectKey=SME-PTRF-BackEnd \
                     -Dsonar.sources=. \
                     -Dsonar.host.url=http://sonar.sme.prefeitura.sp.gov.br \
-                    -Dsonar.login=ffafbae5272c7d33d1ac386c910b3457c46b28e4'
+                    -Dsonar.login=0091e06f1e1b2888df54e200dc9403b1aa6b8280'
             }
        }
       
