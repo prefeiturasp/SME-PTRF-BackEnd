@@ -1,4 +1,5 @@
 import json
+from datetime import date
 
 import pytest
 from model_bakery import baker
@@ -104,6 +105,7 @@ def _prestacao_conta_2020_1_unidade_a_dre1(periodo_2020_1, _unidade_a_dre_1, _as
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=_associacao_a_dre_1,
+        data_recebimento=date(2020, 1, 1)
     )
 
 
@@ -113,6 +115,7 @@ def _prestacao_conta_2020_1_unidade_c_dre1(periodo_2020_1, _unidade_c_dre_1_ceu,
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=_associacao_c_dre_1,
+        data_recebimento=date(2020, 1, 3)
     )
 
 
@@ -122,6 +125,7 @@ def _prestacao_conta_2019_2_unidade_a_dre1(periodo_2019_2, _unidade_a_dre_1, _as
         'PrestacaoConta',
         periodo=periodo_2019_2,
         associacao=_associacao_a_dre_1,
+        data_recebimento=date(2019, 1, 1)
     )
 
 
@@ -131,12 +135,12 @@ def _prestacao_conta_2020_1_unidade_b_dre2(periodo_2020_1, _unidade_b_dre_2, _as
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=_associacao_b_dre_2,
+        data_recebimento=date(2020, 1, 2)
     )
 
 
 def test_api_list_prestacoes_conta_por_periodo_e_dre(client,
                                                      _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
-                                                     _prestacao_conta_2020_1_unidade_c_dre1,  # Entra
                                                      _prestacao_conta_2019_2_unidade_a_dre1,  # Não entra
                                                      _prestacao_conta_2020_1_unidade_b_dre2,  # Não entra
                                                      _dre_01,
@@ -153,7 +157,7 @@ def test_api_list_prestacoes_conta_por_periodo_e_dre(client,
     result_esperado = [
         {
             'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
+            'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'DOCS_PENDENTES',
@@ -163,18 +167,6 @@ def test_api_list_prestacoes_conta_por_periodo_e_dre(client,
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}'
         },
-        {
-            'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
-            'data_ultima_analise': None,
-            'processo_sei': '',
-            'status': 'DOCS_PENDENTES',
-            'tecnico_responsavel': '',
-            'unidade_eol': '000102',
-            'unidade_nome': 'Codorna',
-            'uuid': f'{_prestacao_conta_2020_1_unidade_c_dre1.uuid}',
-            'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_c_dre1.associacao.uuid}'
-        }
     ]
 
     assert response.status_code == status.HTTP_200_OK
@@ -198,7 +190,7 @@ def test_api_list_prestacoes_conta_por_nome_unidade(client,
     result_esperado = [
         {
             'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
+            'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'DOCS_PENDENTES',
@@ -210,7 +202,7 @@ def test_api_list_prestacoes_conta_por_nome_unidade(client,
         },
         {
             'periodo_uuid': f'{periodo_2019_2.uuid}',
-            'data_recebimento': None,
+            'data_recebimento': '2019-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'DOCS_PENDENTES',
@@ -244,7 +236,7 @@ def test_api_list_prestacoes_conta_por_nome_associacao(client,
     result_esperado = [
         {
             'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
+            'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'DOCS_PENDENTES',
@@ -256,7 +248,7 @@ def test_api_list_prestacoes_conta_por_nome_associacao(client,
         },
         {
             'periodo_uuid': f'{periodo_2019_2.uuid}',
-            'data_recebimento': None,
+            'data_recebimento': '2019-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'DOCS_PENDENTES',
@@ -290,7 +282,7 @@ def test_api_list_prestacoes_conta_por_tipo_unidade(client,
     result_esperado = [
         {
             'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
+            'data_recebimento': '2020-01-03',
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'DOCS_PENDENTES',
@@ -371,7 +363,7 @@ def test_api_list_prestacoes_conta_por_tecnico(client,
     result_esperado = [
         {
             'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
+            'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'DOCS_PENDENTES',
@@ -381,6 +373,39 @@ def test_api_list_prestacoes_conta_por_tecnico(client,
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}'
         },
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == result_esperado
+
+
+def test_api_list_prestacoes_conta_por_data_recebimento(client,
+                                                        _prestacao_conta_2020_1_unidade_a_dre1,  # Não Entra
+                                                        _prestacao_conta_2020_1_unidade_c_dre1,  # Não Entra
+                                                        _prestacao_conta_2019_2_unidade_a_dre1,  # Não entra
+                                                        _prestacao_conta_2020_1_unidade_b_dre2,  # Entra
+                                                        _dre_01,
+                                                        periodo_2020_1):
+
+    url = f'/api/prestacoes-contas/?data_inicio=2020-01-02&data_fim=2020-01-02'
+
+    response = client.get(url, content_type='application/json')
+
+    result = json.loads(response.content)
+
+    result_esperado = [
+        {
+            'periodo_uuid': f'{periodo_2020_1.uuid}',
+            'data_recebimento': '2020-01-02',
+            'data_ultima_analise': None,
+            'processo_sei': '',
+            'status': 'DOCS_PENDENTES',
+            'tecnico_responsavel': '',
+            'unidade_eol': '000201',
+            'unidade_nome': 'Bentivi',
+            'uuid': f'{_prestacao_conta_2020_1_unidade_b_dre2.uuid}',
+            'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_b_dre2.associacao.uuid}'
+        }
     ]
 
     assert response.status_code == status.HTTP_200_OK

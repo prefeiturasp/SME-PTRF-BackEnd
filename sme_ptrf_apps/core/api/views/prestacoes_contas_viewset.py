@@ -81,6 +81,11 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
             qs = qs.filter(associacao__unidade__codigo_eol__in=atribuicoes)
 
+        data_inicio = self.request.query_params.get('data_inicio')
+        data_fim = self.request.query_params.get('data_fim')
+        if data_inicio is not None and data_fim is not None:
+            qs = qs.filter(data_recebimento__range=[data_inicio, data_fim])
+
         return qs
 
     def get_serializer_class(self):
