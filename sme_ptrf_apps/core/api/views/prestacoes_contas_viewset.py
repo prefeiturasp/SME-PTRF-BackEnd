@@ -28,10 +28,18 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     queryset = PrestacaoConta.objects.all()
     serializer_class = PrestacaoContaLookUpSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
-    filter_fields = ('associacao__unidade__dre__uuid', 'periodo__uuid', 'status', 'associacao__unidade__tipo_unidade')
+    filter_fields = ('associacao__unidade__dre__uuid', 'periodo__uuid', 'associacao__unidade__tipo_unidade')
 
     def get_queryset(self):
         qs = PrestacaoConta.objects.all()
+
+        status = self.request.query_params.get('status')
+        if status is not None:
+            if status in ['APROVADA', 'APROVADA_RESSALVA']:
+                qs = qs.filter(Q(status='APROVADA') | Q(status='APROVADA_RESSALVA'))
+            else:
+                 qs = qs.filter(status=status)
+
 
         nome = self.request.query_params.get('nome')
         if nome is not None:
@@ -223,3 +231,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         }
 
         return Response(dashboard)
+
+    @action(detail=False, url_path='tabelas')
+    def tabelas(self, _):
+        result = {
+            'status': PrestacaoConta.status_to_json(),
+        }
+        return Response(result)

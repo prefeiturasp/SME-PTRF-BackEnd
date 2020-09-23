@@ -136,6 +136,17 @@ class PrestacaoConta(ModeloBase):
 
         return cards
 
+    @classmethod
+    def status_to_json(cls):
+        result = []
+        for choice in cls.STATUS_CHOICES:
+            status = {
+                'id': choice[0],
+                'nome': choice[1]
+            }
+            result.append(status)
+        return result
+
     class Meta:
         verbose_name = "Prestação de conta"
         verbose_name_plural = "Prestações de contas"

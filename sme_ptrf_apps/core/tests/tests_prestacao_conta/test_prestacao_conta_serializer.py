@@ -55,3 +55,4 @@ def test_list_serializer(prestacao_conta, atribuicao, processo_associacao_2019):
     assert serializer.data['processo_sei'] == processo_associacao_2019.numero_processo
     assert serializer.data['data_recebimento']
     assert serializer.data['data_ultima_analise']
+    assert serializer.data['devolucao_ao_tesouro']
