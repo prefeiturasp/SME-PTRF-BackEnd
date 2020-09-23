@@ -223,3 +223,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         }
 
         return Response(dashboard)
+
+    @action(detail=False, url_path='tabelas')
+    def tabelas(self, _):
+        result = {
+            'status': PrestacaoConta.status_to_json(),
+        }
+        return Response(result)
