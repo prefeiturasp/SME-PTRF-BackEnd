@@ -5,9 +5,9 @@ from model_bakery import baker
 
 
 @pytest.fixture
-def tipo_receita():
+def tipo_receita(tipo_conta):
     return baker.make('TipoReceita', nome='Estorno', e_repasse=False, aceita_capital=False, aceita_custeio=False,
-                      e_devolucao=False)
+                      e_devolucao=False, tipos_conta=[tipo_conta])
 
 
 @pytest.fixture
@@ -16,13 +16,13 @@ def tipo_receita_estorno(tipo_receita):
 
 
 @pytest.fixture
-def tipo_receita_repasse():
-    return baker.make('TipoReceita', nome='Repasse', e_repasse=True, aceita_capital=True, aceita_custeio=True)
+def tipo_receita_repasse(tipo_conta):
+    return baker.make('TipoReceita', nome='Repasse', e_repasse=True, aceita_capital=True, aceita_custeio=True, tipos_conta=[tipo_conta])
 
 
 @pytest.fixture
-def tipo_receita_devolucao():
-    return baker.make('TipoReceita', nome='Devolução', e_devolucao=True, aceita_capital=True, aceita_custeio=True)
+def tipo_receita_devolucao(tipo_conta):
+    return baker.make('TipoReceita', nome='Devolução', e_devolucao=True, aceita_capital=True, aceita_custeio=True, tipos_conta=[tipo_conta])
 
 
 @pytest.fixture
@@ -86,7 +86,7 @@ def receita_sem_detalhe_tipo_receita(associacao, conta_associacao, acao_associac
 
 
 @pytest.fixture
-def payload_receita(associacao, conta_associacao, acao_associacao, tipo_receita, detalhe_tipo_receita):
+def payload_receita(associacao, conta_associacao, acao_associacao, tipo_conta, tipo_receita, detalhe_tipo_receita):
     payload = {
         'associacao': str(associacao.uuid),
         'data': '2020-03-26',
