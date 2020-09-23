@@ -157,7 +157,7 @@ def test_api_list_prestacoes_conta_por_periodo_e_dre(client,
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'DOCS_PENDENTES',
-            'tecnico_responsavel': None,
+            'tecnico_responsavel': '',
             'unidade_eol': '000101',
             'unidade_nome': 'Andorinha',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
@@ -169,7 +169,7 @@ def test_api_list_prestacoes_conta_por_periodo_e_dre(client,
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'DOCS_PENDENTES',
-            'tecnico_responsavel': None,
+            'tecnico_responsavel': '',
             'unidade_eol': '000102',
             'unidade_nome': 'Codorna',
             'uuid': f'{_prestacao_conta_2020_1_unidade_c_dre1.uuid}',
@@ -202,7 +202,7 @@ def test_api_list_prestacoes_conta_por_nome_unidade(client,
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'DOCS_PENDENTES',
-            'tecnico_responsavel': None,
+            'tecnico_responsavel': '',
             'unidade_eol': '000101',
             'unidade_nome': 'Andorinha',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
@@ -214,7 +214,7 @@ def test_api_list_prestacoes_conta_por_nome_unidade(client,
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'DOCS_PENDENTES',
-            'tecnico_responsavel': None,
+            'tecnico_responsavel': '',
             'unidade_eol': '000101',
             'unidade_nome': 'Andorinha',
             'uuid': f'{_prestacao_conta_2019_2_unidade_a_dre1.uuid}',
@@ -248,7 +248,7 @@ def test_api_list_prestacoes_conta_por_nome_associacao(client,
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'DOCS_PENDENTES',
-            'tecnico_responsavel': None,
+            'tecnico_responsavel': '',
             'unidade_eol': '000101',
             'unidade_nome': 'Andorinha',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
@@ -260,7 +260,7 @@ def test_api_list_prestacoes_conta_por_nome_associacao(client,
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'DOCS_PENDENTES',
-            'tecnico_responsavel': None,
+            'tecnico_responsavel': '',
             'unidade_eol': '000101',
             'unidade_nome': 'Andorinha',
             'uuid': f'{_prestacao_conta_2019_2_unidade_a_dre1.uuid}',
@@ -294,11 +294,61 @@ def test_api_list_prestacoes_conta_por_tipo_unidade(client,
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'DOCS_PENDENTES',
-            'tecnico_responsavel': None,
+            'tecnico_responsavel': '',
             'unidade_eol': '000102',
             'unidade_nome': 'Codorna',
             'uuid': f'{_prestacao_conta_2020_1_unidade_c_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_c_dre1.associacao.uuid}'
+        },
+
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == result_esperado
+
+
+@pytest.fixture
+def _tecnico_dre1(_dre_01):
+    return baker.make(
+        'TecnicoDre',
+        dre=_dre_01,
+        nome='José Testando',
+        rf='271170',
+    )
+
+@pytest.fixture
+def _atribuicao_unidade_a_dre1(_tecnico_dre1, _unidade_a_dre_1, periodo_2020_1):
+    return baker.make(
+        'Atribuicao',
+        tecnico=_tecnico_dre1,
+        unidade=_unidade_a_dre_1,
+        periodo=periodo_2020_1,
+    )
+
+def test_api_list_prestacoes_conta_exibe_tecnico_responsavel(client,
+                                                             _prestacao_conta_2020_1_unidade_a_dre1,
+                                                             _dre_01,
+                                                             periodo_2020_1,
+                                                             _atribuicao_unidade_a_dre1
+                                                             ):
+    url = f'/api/prestacoes-contas/'
+
+    response = client.get(url, content_type='application/json')
+
+    result = json.loads(response.content)
+
+    result_esperado = [
+        {
+            'periodo_uuid': f'{periodo_2020_1.uuid}',
+            'data_recebimento': None,
+            'data_ultima_analise': None,
+            'processo_sei': '',
+            'status': 'DOCS_PENDENTES',
+            'tecnico_responsavel': 'José Testando',
+            'unidade_eol': '000101',
+            'unidade_nome': 'Andorinha',
+            'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
+            'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}'
         },
 
     ]
