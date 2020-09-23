@@ -106,7 +106,8 @@ def _prestacao_conta_2020_1_unidade_a_dre1(periodo_2020_1, _unidade_a_dre_1, _as
         periodo=periodo_2020_1,
         associacao=_associacao_a_dre_1,
         data_recebimento=date(2020, 1, 1),
-        devolucao_tesouro=True
+        devolucao_tesouro=True,
+        status='APROVADA'
     )
 
 
@@ -116,7 +117,8 @@ def _prestacao_conta_2020_1_unidade_c_dre1(periodo_2020_1, _unidade_c_dre_1_ceu,
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=_associacao_c_dre_1,
-        data_recebimento=date(2020, 1, 3)
+        data_recebimento=date(2020, 1, 3),
+        status='RECEBIDA'
     )
 
 
@@ -127,6 +129,7 @@ def _prestacao_conta_2019_2_unidade_a_dre1(periodo_2019_2, _unidade_a_dre_1, _as
         periodo=periodo_2019_2,
         associacao=_associacao_a_dre_1,
         data_recebimento=date(2019, 1, 1),
+        status='APROVADA_RESSALVA'
     )
 
 
@@ -161,7 +164,7 @@ def test_api_list_prestacoes_conta_por_periodo_e_dre(client,
             'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
-            'status': 'DOCS_PENDENTES',
+            'status': 'APROVADA',
             'tecnico_responsavel': '',
             'unidade_eol': '000101',
             'unidade_nome': 'Andorinha',
@@ -195,7 +198,7 @@ def test_api_list_prestacoes_conta_por_nome_unidade(client,
             'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
-            'status': 'DOCS_PENDENTES',
+            'status': 'APROVADA',
             'tecnico_responsavel': '',
             'unidade_eol': '000101',
             'unidade_nome': 'Andorinha',
@@ -208,7 +211,7 @@ def test_api_list_prestacoes_conta_por_nome_unidade(client,
             'data_recebimento': '2019-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
-            'status': 'DOCS_PENDENTES',
+            'status': 'APROVADA_RESSALVA',
             'tecnico_responsavel': '',
             'unidade_eol': '000101',
             'unidade_nome': 'Andorinha',
@@ -244,7 +247,7 @@ def test_api_list_prestacoes_conta_por_nome_associacao(client,
             'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
-            'status': 'DOCS_PENDENTES',
+            'status': 'APROVADA',
             'tecnico_responsavel': '',
             'unidade_eol': '000101',
             'unidade_nome': 'Andorinha',
@@ -257,7 +260,7 @@ def test_api_list_prestacoes_conta_por_nome_associacao(client,
             'data_recebimento': '2019-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
-            'status': 'DOCS_PENDENTES',
+            'status': 'APROVADA_RESSALVA',
             'tecnico_responsavel': '',
             'unidade_eol': '000101',
             'unidade_nome': 'Andorinha',
@@ -292,7 +295,7 @@ def test_api_list_prestacoes_conta_por_tipo_unidade(client,
             'data_recebimento': '2020-01-03',
             'data_ultima_analise': None,
             'processo_sei': '',
-            'status': 'DOCS_PENDENTES',
+            'status': 'RECEBIDA',
             'tecnico_responsavel': '',
             'unidade_eol': '000102',
             'unidade_nome': 'Codorna',
@@ -374,7 +377,7 @@ def test_api_list_prestacoes_conta_por_tecnico(client,
             'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
-            'status': 'DOCS_PENDENTES',
+            'status': 'APROVADA',
             'tecnico_responsavel': 'José Testando',
             'unidade_eol': '000101',
             'unidade_nome': 'Andorinha',
@@ -415,6 +418,98 @@ def test_api_list_prestacoes_conta_por_data_recebimento(client,
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_b_dre2.associacao.uuid}',
             'devolucao_ao_tesouro': 'Não'
         }
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == result_esperado
+
+
+def test_api_list_prestacoes_conta_por_status_aprovada_e_aprovada_ressalva(client,
+                                                                           _prestacao_conta_2020_1_unidade_a_dre1,
+                                                                           # Entra
+                                                                           _prestacao_conta_2020_1_unidade_c_dre1,
+                                                                           # Não entra
+                                                                           _prestacao_conta_2019_2_unidade_a_dre1,
+                                                                           # Entra
+                                                                           _prestacao_conta_2020_1_unidade_b_dre2,
+                                                                           # Não entra
+                                                                           _dre_01,
+                                                                           periodo_2020_1,
+                                                                           periodo_2019_2):
+    url = f'/api/prestacoes-contas/?status=APROVADA'
+
+    response = client.get(url, content_type='application/json')
+
+    result = json.loads(response.content)
+
+    result_esperado = [
+        {
+            'periodo_uuid': f'{periodo_2020_1.uuid}',
+            'data_recebimento': '2020-01-01',
+            'data_ultima_analise': None,
+            'processo_sei': '',
+            'status': 'APROVADA',
+            'tecnico_responsavel': '',
+            'unidade_eol': '000101',
+            'unidade_nome': 'Andorinha',
+            'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
+            'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
+            'devolucao_ao_tesouro': '999,99'
+        },
+        {
+            'periodo_uuid': f'{periodo_2019_2.uuid}',
+            'data_recebimento': '2019-01-01',
+            'data_ultima_analise': None,
+            'processo_sei': '',
+            'status': 'APROVADA_RESSALVA',
+            'tecnico_responsavel': '',
+            'unidade_eol': '000101',
+            'unidade_nome': 'Andorinha',
+            'uuid': f'{_prestacao_conta_2019_2_unidade_a_dre1.uuid}',
+            'associacao_uuid': f'{_prestacao_conta_2019_2_unidade_a_dre1.associacao.uuid}',
+            'devolucao_ao_tesouro': 'Não'
+
+        },
+
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == result_esperado
+
+
+def test_api_list_prestacoes_conta_por_status_recebida(client,
+                                                       _prestacao_conta_2020_1_unidade_a_dre1,
+                                                       # Não entra
+                                                       _prestacao_conta_2020_1_unidade_c_dre1,
+                                                       # Entra
+                                                       _prestacao_conta_2019_2_unidade_a_dre1,
+                                                       # Não entra
+                                                       _prestacao_conta_2020_1_unidade_b_dre2,
+                                                       # Não entra
+                                                       _dre_01,
+                                                       periodo_2020_1,
+                                                       periodo_2019_2):
+    url = f'/api/prestacoes-contas/?status=RECEBIDA'
+
+    response = client.get(url, content_type='application/json')
+
+    result = json.loads(response.content)
+
+    result_esperado = [
+        {
+            'periodo_uuid': f'{periodo_2020_1.uuid}',
+            'data_recebimento': '2020-01-03',
+            'data_ultima_analise': None,
+            'processo_sei': '',
+            'status': 'RECEBIDA',
+            'tecnico_responsavel': '',
+            'unidade_eol': '000102',
+            'unidade_nome': 'Codorna',
+            'uuid': f'{_prestacao_conta_2020_1_unidade_c_dre1.uuid}',
+            'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_c_dre1.associacao.uuid}',
+            'devolucao_ao_tesouro': 'Não'
+        },
+
     ]
 
     assert response.status_code == status.HTTP_200_OK
