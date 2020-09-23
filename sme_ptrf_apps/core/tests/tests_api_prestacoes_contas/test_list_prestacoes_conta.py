@@ -308,7 +308,7 @@ def test_api_list_prestacoes_conta_por_tipo_unidade(client,
 
 
 @pytest.fixture
-def _tecnico_dre1(_dre_01):
+def _tecnico_a_dre1(_dre_01):
     return baker.make(
         'TecnicoDre',
         dre=_dre_01,
@@ -316,22 +316,53 @@ def _tecnico_dre1(_dre_01):
         rf='271170',
     )
 
+
 @pytest.fixture
-def _atribuicao_unidade_a_dre1(_tecnico_dre1, _unidade_a_dre_1, periodo_2020_1):
+def _atribuicao_unidade_a_dre1(_tecnico_a_dre1, _unidade_a_dre_1, periodo_2020_1):
     return baker.make(
         'Atribuicao',
-        tecnico=_tecnico_dre1,
+        tecnico=_tecnico_a_dre1,
         unidade=_unidade_a_dre_1,
         periodo=periodo_2020_1,
     )
 
-def test_api_list_prestacoes_conta_exibe_tecnico_responsavel(client,
-                                                             _prestacao_conta_2020_1_unidade_a_dre1,
-                                                             _dre_01,
-                                                             periodo_2020_1,
-                                                             _atribuicao_unidade_a_dre1
-                                                             ):
-    url = f'/api/prestacoes-contas/'
+
+@pytest.fixture
+def _tecnico_b_dre1(_dre_01):
+    return baker.make(
+        'TecnicoDre',
+        dre=_dre_01,
+        nome='Ana Testando',
+        rf='271171',
+    )
+
+
+@pytest.fixture
+def _atribuicao_unidade_c_dre1(_tecnico_b_dre1, _unidade_c_dre_1_ceu, periodo_2020_1):
+    return baker.make(
+        'Atribuicao',
+        tecnico=_tecnico_b_dre1,
+        unidade=_unidade_c_dre_1_ceu,
+        periodo=periodo_2020_1,
+    )
+
+
+def test_api_list_prestacoes_conta_por_tecnico(client,
+                                               _tecnico_a_dre1,
+                                               _tecnico_b_dre1,
+                                               _atribuicao_unidade_a_dre1,
+                                               _atribuicao_unidade_c_dre1,
+                                               _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
+                                               _prestacao_conta_2020_1_unidade_c_dre1,  # Não entra
+                                               _prestacao_conta_2019_2_unidade_a_dre1,  # Não entra
+                                               _prestacao_conta_2020_1_unidade_b_dre2,  # Não entra
+                                               _dre_01,
+                                               periodo_2020_1):
+    dre_uuid = _dre_01.uuid
+    periodo_uuid = periodo_2020_1.uuid
+    tecnico_uuid = _tecnico_a_dre1.uuid
+
+    url = f'/api/prestacoes-contas/?associacao__unidade__dre__uuid={dre_uuid}&periodo__uuid={periodo_uuid}&tecnico={tecnico_uuid}'
 
     response = client.get(url, content_type='application/json')
 
@@ -350,7 +381,6 @@ def test_api_list_prestacoes_conta_exibe_tecnico_responsavel(client,
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}'
         },
-
     ]
 
     assert response.status_code == status.HTTP_200_OK

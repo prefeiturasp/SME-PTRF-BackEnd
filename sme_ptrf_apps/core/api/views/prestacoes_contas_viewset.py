@@ -12,10 +12,12 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from ..serializers import PrestacaoContaLookUpSerializer, PrestacaoContaListSerializer, AtaLookUpSerializer
-from ...models import PrestacaoConta, Periodo, Associacao, Ata
+from ...models import PrestacaoConta, Periodo, Associacao, Ata, Unidade
 from ...services import (concluir_prestacao_de_contas, reabrir_prestacao_de_contas, informacoes_financeiras_para_atas)
+from ....dre.models import TecnicoDre, Atribuicao
 
 logger = logging.getLogger(__name__)
+
 
 class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                               mixins.UpdateModelMixin,
@@ -35,6 +37,49 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if nome is not None:
             qs = qs.filter(Q(associacao__nome__unaccent__icontains=nome) | Q(
                 associacao__unidade__nome__unaccent__icontains=nome))
+
+        dre_uuid = self.request.query_params.get('associacao__unidade__dre__uuid')
+        periodo_uuid = self.request.query_params.get('periodo__uuid')
+        tecnico_uuid = self.request.query_params.get('tecnico')
+        if tecnico_uuid and dre_uuid and periodo_uuid:
+
+            try:
+                dre = Unidade.dres.get(uuid=dre_uuid)
+            except Unidade.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                periodo = Periodo.objects.get(uuid=periodo_uuid)
+            except Periodo.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                tecnico = TecnicoDre.objects.get(uuid=tecnico_uuid)
+            except TecnicoDre.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto tecnico_dre para o uuid {tecnico_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+            atribuicoes = Atribuicao.objects.filter(
+                tecnico=tecnico,
+                periodo=periodo,
+                unidade__dre=dre
+            ).values_list('unidade__codigo_eol', flat=True)
+
+            qs = qs.filter(associacao__unidade__codigo_eol__in=atribuicoes)
 
         return qs
 
@@ -108,7 +153,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaLookUpSerializer(prestacao_de_conta_revista, many=False).data,
                         status=status.HTTP_200_OK)
 
-
     @action(detail=True, methods=['get'])
     def ata(self, request, uuid):
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
@@ -122,7 +166,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
         return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
-
 
     @action(detail=True, methods=['post'], url_path='iniciar-ata')
     def iniciar_ata(self, request, uuid):
@@ -147,7 +190,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         result = informacoes_financeiras_para_atas(prestacao_contas=prestacao_conta)
         return Response(result, status=status.HTTP_200_OK)
 
-
     @action(detail=False, methods=['get'], url_path='fique-de-olho')
     def fique_de_olho(self, request, uuid=None):
         from sme_ptrf_apps.core.models import Parametros
@@ -155,8 +197,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response({'detail': fique_de_olho}, status=status.HTTP_200_OK)
 
-
-    @action(detail=False ,methods=['get'], url_path="dashboard")
+    @action(detail=False, methods=['get'], url_path="dashboard")
     def dashboard(self, request):
         dre_uuid = request.query_params.get('dre_uuid')
         periodo = request.query_params.get('periodo')
