@@ -63,7 +63,7 @@ def test_api_retrieve_dre(client, _dre1, _dre2, _unidade1_dre_1, _unidade2_dre_1
 
     result_esperado = {
         "uuid": f'{_dre1.uuid}',
-        "qtd-unidades": 2,
+        "qtd_unidades": 2,
     }
 
     assert response.status_code == status.HTTP_200_OK

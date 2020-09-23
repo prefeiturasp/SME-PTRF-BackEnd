@@ -46,7 +46,7 @@ class PrestacaoConta(ModeloBase):
 
     status = models.CharField(
         'status',
-        max_length=15,
+        max_length=20,
         choices=STATUS_CHOICES,
         default=STATUS_DOCS_PENDENTES
     )
