@@ -51,7 +51,7 @@ def test_list_serializer(prestacao_conta, atribuicao, processo_associacao_2019):
     assert serializer.data['unidade_eol']
     assert serializer.data['unidade_nome']
     assert serializer.data['status']
-    assert serializer.data['tecnico_responsavel'] == atribuicao.tecnico
+    assert serializer.data['tecnico_responsavel'] == atribuicao.tecnico.nome
     assert serializer.data['processo_sei'] == processo_associacao_2019.numero_processo
     assert serializer.data['data_recebimento']
     assert serializer.data['data_ultima_analise']

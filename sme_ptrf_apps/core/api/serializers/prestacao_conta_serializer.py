@@ -21,6 +21,7 @@ class PrestacaoContaListSerializer(serializers.ModelSerializer):
     processo_sei = serializers.SerializerMethodField('get_processo_sei')
     periodo_uuid = serializers.SerializerMethodField('get_periodo_uuid')
     associacao_uuid = serializers.SerializerMethodField('get_associacao_uuid')
+    tecnico_responsavel = serializers.SerializerMethodField('get_tecnico_responsavel')
 
     def get_unidade_eol(self, obj):
         return obj.associacao.unidade.codigo_eol if obj.associacao and obj.associacao.unidade else ''
@@ -36,6 +37,10 @@ class PrestacaoContaListSerializer(serializers.ModelSerializer):
 
     def get_associacao_uuid(self, obj):
         return obj.associacao.uuid if obj.associacao else ''
+
+    def get_tecnico_responsavel(self, obj):
+        return obj.tecnico_responsavel.nome if obj.tecnico_responsavel else ''
+
 
     class Meta:
         model = PrestacaoConta
