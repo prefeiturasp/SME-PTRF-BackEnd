@@ -22,6 +22,7 @@ class PrestacaoContaListSerializer(serializers.ModelSerializer):
     periodo_uuid = serializers.SerializerMethodField('get_periodo_uuid')
     associacao_uuid = serializers.SerializerMethodField('get_associacao_uuid')
     tecnico_responsavel = serializers.SerializerMethodField('get_tecnico_responsavel')
+    devolucao_ao_tesouro = serializers.SerializerMethodField('get_devolucao_ao_tesouro')
 
     def get_unidade_eol(self, obj):
         return obj.associacao.unidade.codigo_eol if obj.associacao and obj.associacao.unidade else ''
@@ -41,9 +42,13 @@ class PrestacaoContaListSerializer(serializers.ModelSerializer):
     def get_tecnico_responsavel(self, obj):
         return obj.tecnico_responsavel.nome if obj.tecnico_responsavel else ''
 
+    # TODO Rever método ao implementar devolução ao tesouro
+    def get_devolucao_ao_tesouro(self, obj):
+        return '999,99' if obj.devolucao_tesouro else 'Não'
+
 
     class Meta:
         model = PrestacaoConta
         fields = (
         'uuid', 'unidade_eol', 'unidade_nome', 'status', 'tecnico_responsavel', 'processo_sei', 'data_recebimento',
-        'data_ultima_analise', 'periodo_uuid', 'associacao_uuid')
+        'data_ultima_analise', 'periodo_uuid', 'associacao_uuid', 'devolucao_ao_tesouro')
