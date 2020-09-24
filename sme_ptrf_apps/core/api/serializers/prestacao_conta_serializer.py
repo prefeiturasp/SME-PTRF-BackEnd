@@ -57,12 +57,23 @@ class PrestacaoContaListSerializer(serializers.ModelSerializer):
 
 
 class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
+
+    # O serializer do técnico responsável foi criado aqui porque estava
+    # ocorrendo erro de importação ao tentar-se importar o serializer
+    # criado no módulo DRE.
+    class TecnicoResponsavelSerializer(serializers.ModelSerializer):
+        class Meta:
+            from ....dre.models import TecnicoDre
+            model = TecnicoDre
+            fields = ('uuid', 'rf', 'nome',)
+
     associacao = AssociacaoCompletoSerializer(many=False)
     periodo_uuid = serializers.SerializerMethodField('get_periodo_uuid')
+    tecnico_responsavel = TecnicoResponsavelSerializer(many=False)
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
 
     class Meta:
         model = PrestacaoConta
-        fields = ('uuid', 'status', 'associacao', 'periodo_uuid')
+        fields = ('uuid', 'status', 'associacao', 'periodo_uuid', 'tecnico_responsavel')
