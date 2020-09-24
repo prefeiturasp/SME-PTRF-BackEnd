@@ -4,6 +4,8 @@ from .associacao_serializer import (
     AssociacaoInfoAtaSerializer,
     AssociacaoLookupSerializer,
     AssociacaoSerializer,
+    AssociacaoCompletoSerializer,
+    AssociacaoListSerializer
 )
 from .ata_serializer import AtaLookUpSerializer, AtaSerializer
 from .conta_associacao_serializer import (
@@ -13,7 +15,9 @@ from .conta_associacao_serializer import (
 )
 from .membro_associacao_serializer import MembroAssociacaoCreateSerializer, MembroAssociacaoListSerializer
 from .notificacao_serializer import NotificacaoSerializer
-from .prestacao_conta_serializer import PrestacaoContaLookUpSerializer, PrestacaoContaListSerializer
+from .periodo_serializer import PeriodoLookUpSerializer, PeriodoSerializer
+from .prestacao_conta_serializer import (PrestacaoContaLookUpSerializer, PrestacaoContaListSerializer,
+                                         PrestacaoContaRetrieveSerializer)
 from .processo_associacao_serializer import ProcessoAssociacaoRetrieveSerializer, ProcessoAssociacaoCreateSerializer
 from .tag_serializer import TagLookupSerializer
 from .tipo_conta_serializer import TipoContaSerializer
