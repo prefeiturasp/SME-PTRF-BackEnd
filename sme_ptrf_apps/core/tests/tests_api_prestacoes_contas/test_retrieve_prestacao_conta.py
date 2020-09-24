@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from model_bakery import baker
 from rest_framework import status
 
 from ...api.serializers import PrestacaoContaLookUpSerializer
@@ -29,7 +30,27 @@ def test_api_retrieve_prestacao_conta_por_periodo_e_associacao(client, prestacao
     assert result == result_esperado
 
 
-def test_api_retrieve_prestacao_conta_por_uuid(client, prestacao_conta, prestacao_conta_anterior):
+@pytest.fixture
+def _tecnico_dre(dre):
+    return baker.make(
+        'TecnicoDre',
+        dre=dre,
+        nome='José Testando',
+        rf='271170',
+    )
+
+
+@pytest.fixture
+def _atribuicao(_tecnico_dre, unidade, periodo):
+    return baker.make(
+        'Atribuicao',
+        tecnico=_tecnico_dre,
+        unidade=unidade,
+        periodo=periodo,
+    )
+
+
+def test_api_retrieve_prestacao_conta_por_uuid(client, prestacao_conta, prestacao_conta_anterior, _atribuicao):
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/'
 
     response = client.get(url, content_type='application/json')
@@ -87,7 +108,13 @@ def test_api_retrieve_prestacao_conta_por_uuid(client, prestacao_conta, prestaca
         },
         'periodo_uuid': f'{prestacao_conta.periodo.uuid}',
         'status': 'DOCS_PENDENTES',
-        'uuid': f'{prestacao_conta.uuid}'
+        'uuid': f'{prestacao_conta.uuid}',
+        'tecnico_responsavel': {
+            'nome': 'José Testando',
+            'rf': '271170',
+            'uuid': f'{_atribuicao.tecnico.uuid}'
+        },
+        'data_recebimento': '2020-10-01'
     }
 
     assert response.status_code == status.HTTP_200_OK
