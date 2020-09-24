@@ -1369,3 +1369,22 @@ def observacao_conciliacao(acao_associacao, periodo, conta_associacao):
         acao_associacao=acao_associacao,
         texto="Uma bela observação."
     )
+
+
+@pytest.fixture
+def cobranca_prestacao_recebimento(prestacao_conta_2020_1_conciliada):
+    return baker.make(
+        'CobrancaPrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        tipo='RECEBIMENTO',
+        data=date(2020, 7, 1),
+    )
+
+@pytest.fixture
+def cobranca_prestacao_devolucao(prestacao_conta_2020_1_conciliada):
+    return baker.make(
+        'CobrancaPrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        tipo='DEVOLUCAO',
+        data=date(2020, 7, 1),
+    )

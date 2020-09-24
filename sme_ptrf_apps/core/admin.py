@@ -23,7 +23,8 @@ from .models import (
     TipoNotificacao,
     Unidade,
     Categoria,
-    Notificacao
+    Notificacao,
+    CobrancaPrestacaoConta
 )
 
 admin.site.register(TipoConta)
@@ -233,3 +234,25 @@ class NotificacaoAdmin(admin.ModelAdmin):
     list_display = ("uuid", "titulo", "remetente", "categoria", "tipo", "hora")
     readonly_fields = ('uuid', 'id')
     list_filter = ("remetente", "categoria", "tipo")
+
+
+@admin.register(CobrancaPrestacaoConta)
+class CobrancaPrestacaoContaAdmin(admin.ModelAdmin):
+
+    def get_associacao(self, obj):
+        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''
+
+    get_associacao.short_description = 'Associação'
+
+    def get_referencia_periodo(self, obj):
+        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
+
+    get_referencia_periodo.short_description = 'Período'
+
+    list_display = (
+        'get_associacao', 'get_referencia_periodo', 'data', 'tipo')
+    list_filter = ('tipo', 'prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
+    list_display_links = ('get_associacao',)
+    readonly_fields = ('uuid', id)
+    search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
+                     'prestacao_conta__associacao__nome')
