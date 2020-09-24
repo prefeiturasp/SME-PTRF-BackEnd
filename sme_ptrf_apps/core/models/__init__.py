@@ -1,3 +1,6 @@
+from .remetente import Remetente
+from .unidade import Unidade
+from .tipo_notificacao import TipoNotificacao
 from .acao import Acao
 from .acao_associacao import AcaoAssociacao
 from .arquivo import Arquivo
@@ -16,8 +19,5 @@ from .periodo import Periodo, PeriodoPrevia
 from .prestacao_conta import PrestacaoConta
 from .proccessos_associacao import ProcessoAssociacao
 from .relacao_bens import RelacaoBens
-from .remetente import Remetente
 from .tag import Tag
 from .tipo_conta import TipoConta
-from .tipo_notificacao import TipoNotificacao
-from .unidade import Unidade
