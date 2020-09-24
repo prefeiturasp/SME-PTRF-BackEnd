@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from ..serializers import AssociacaoCompletoSerializer
 from ...models import PrestacaoConta
 from ...services.processos_services import get_processo_sei_da_prestacao
 
@@ -52,3 +53,16 @@ class PrestacaoContaListSerializer(serializers.ModelSerializer):
         fields = (
         'uuid', 'unidade_eol', 'unidade_nome', 'status', 'tecnico_responsavel', 'processo_sei', 'data_recebimento',
         'data_ultima_analise', 'periodo_uuid', 'associacao_uuid', 'devolucao_ao_tesouro')
+
+
+
+class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
+    associacao = AssociacaoCompletoSerializer(many=False)
+    periodo_uuid = serializers.SerializerMethodField('get_periodo_uuid')
+
+    def get_periodo_uuid(self, obj):
+        return obj.periodo.uuid
+
+    class Meta:
+        model = PrestacaoConta
+        fields = ('uuid', 'status', 'associacao', 'periodo_uuid')

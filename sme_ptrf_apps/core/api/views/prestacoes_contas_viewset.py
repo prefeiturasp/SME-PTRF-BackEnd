@@ -11,7 +11,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ..serializers import PrestacaoContaLookUpSerializer, PrestacaoContaListSerializer, AtaLookUpSerializer
+from ..serializers import (PrestacaoContaLookUpSerializer, PrestacaoContaListSerializer,
+                           PrestacaoContaRetrieveSerializer, AtaLookUpSerializer)
 from ...models import PrestacaoConta, Periodo, Associacao, Ata, Unidade
 from ...services import (concluir_prestacao_de_contas, reabrir_prestacao_de_contas, informacoes_financeiras_para_atas)
 from ....dre.models import TecnicoDre, Atribuicao
@@ -38,8 +39,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             if status in ['APROVADA', 'APROVADA_RESSALVA']:
                 qs = qs.filter(Q(status='APROVADA') | Q(status='APROVADA_RESSALVA'))
             else:
-                 qs = qs.filter(status=status)
-
+                qs = qs.filter(status=status)
 
         nome = self.request.query_params.get('nome')
         if nome is not None:
@@ -99,6 +99,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def get_serializer_class(self):
         if self.action == 'list':
             return PrestacaoContaListSerializer
+        elif self.action == 'retrieve':
+            return PrestacaoContaRetrieveSerializer
         else:
             return PrestacaoContaLookUpSerializer
 
