@@ -8,6 +8,7 @@ from .associacao_serializer import (
     AssociacaoListSerializer
 )
 from .ata_serializer import AtaLookUpSerializer, AtaSerializer
+from .cobranca_prestacao_conta_serializer import CobrancaPrestacaoContaListSerializer
 from .conta_associacao_serializer import (
     ContaAssociacaoInfoAtaSerializer,
     ContaAssociacaoLookUpSerializer,
