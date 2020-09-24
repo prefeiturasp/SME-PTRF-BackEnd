@@ -61,6 +61,7 @@ def test_list_serializer(prestacao_conta, atribuicao, processo_associacao_2019):
     assert serializer.data['devolucao_ao_tesouro']
 
 
+
 def test_retrieve_serializer(prestacao_conta, atribuicao):
     serializer = PrestacaoContaRetrieveSerializer(prestacao_conta)
 
@@ -70,3 +71,4 @@ def test_retrieve_serializer(prestacao_conta, atribuicao):
     assert serializer.data['status']
     assert serializer.data['associacao']
     assert serializer.data['tecnico_responsavel']
+    assert serializer.data['data_recebimento']

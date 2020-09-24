@@ -114,6 +114,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(client, prestacao_conta, prestaca
             'rf': '271170',
             'uuid': f'{_atribuicao.tecnico.uuid}'
         },
+        'data_recebimento': '2020-10-01'
     }
 
     assert response.status_code == status.HTTP_200_OK

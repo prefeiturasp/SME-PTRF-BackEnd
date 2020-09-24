@@ -76,4 +76,4 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PrestacaoConta
-        fields = ('uuid', 'status', 'associacao', 'periodo_uuid', 'tecnico_responsavel')
+        fields = ('uuid', 'status', 'associacao', 'periodo_uuid', 'tecnico_responsavel', 'data_recebimento')
