@@ -92,6 +92,12 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
+    def receber(self, data_recebimento):
+        self.data_recebimento = data_recebimento
+        self.status = self.STATUS_RECEBIDA
+        self.save()
+        return self
+
     @classmethod
     @transaction.atomic
     def reabrir(cls, uuid):

@@ -178,6 +178,23 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=True, methods=['patch'])
+    def receber(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        data_recebimento = request.data.get('data_recebimento', None)
+        if not data_recebimento:
+            response = {
+                'uuid': f'{uuid}',
+                'mensagem': 'Faltou informar a data de recebimento da Prestação de Contas.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_recebida = prestacao_conta.receber(data_recebimento=data_recebimento)
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_recebida, many=False).data,
+                        status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['get'])
     def ata(self, request, uuid):
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
