@@ -162,10 +162,37 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaLookUpSerializer(prestacao_de_contas, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'])
+    @action(detail=True, methods=['delete'])
     def reabrir(self, request, uuid):
-        prestacao_de_conta_revista = reabrir_prestacao_de_contas(prestacao_contas_uuid=uuid)
-        return Response(PrestacaoContaLookUpSerializer(prestacao_de_conta_revista, many=False).data,
+        reaberta = reabrir_prestacao_de_contas(prestacao_contas_uuid=uuid)
+        if reaberta:
+            response = {
+                'uuid': f'{uuid}',
+                'mensagem': 'Prestação de contas reaberta com sucesso. Todos os seus registros foram apagados.'
+            }
+            return Response(response, status=status.HTTP_204_NO_CONTENT)
+        else:
+            response = {
+                'uuid': f'{uuid}',
+                'mensagem': 'Houve algum erro ao tentar reabrir a prestação de contas.'
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['patch'])
+    def receber(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        data_recebimento = request.data.get('data_recebimento', None)
+        if not data_recebimento:
+            response = {
+                'uuid': f'{uuid}',
+                'mensagem': 'Faltou informar a data de recebimento da Prestação de Contas.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_recebida = prestacao_conta.receber(data_recebimento=data_recebimento)
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_recebida, many=False).data,
                         status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
