@@ -83,9 +83,16 @@ def _criar_documentos(acoes, contas, periodo, prestacao):
 
 def reabrir_prestacao_de_contas(prestacao_contas_uuid):
     logger.info(f'Reabrindo a prestação de contas de uuid {prestacao_contas_uuid}.')
-    prestacao = PrestacaoConta.reabrir(uuid=prestacao_contas_uuid)
+    concluido = PrestacaoConta.reabrir(uuid=prestacao_contas_uuid)
+    if concluido:
+        logger.info(f'Prestação de contas de uuid {prestacao_contas_uuid} foi reaberta. Seus registros foram apagados.')
+    return concluido
 
+def devolver_prestacao_de_contas(prestacao_contas_uuid):
+    logger.info(f'Devolvendo a prestação de contas de uuid {prestacao_contas_uuid}.')
+    prestacao = PrestacaoConta.devolver(uuid=prestacao_contas_uuid)
     return prestacao
+
 
 
 def informacoes_financeiras_para_atas(prestacao_contas):

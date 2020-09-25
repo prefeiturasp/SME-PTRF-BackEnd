@@ -1,9 +1,12 @@
+import logging
+
 from django.db import models
 from django.db import transaction
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.dre.models import Atribuicao
 
+logger = logging.getLogger(__name__)
 
 class PrestacaoConta(ModeloBase):
     # Status Choice
@@ -92,6 +95,22 @@ class PrestacaoConta(ModeloBase):
     @classmethod
     @transaction.atomic
     def reabrir(cls, uuid):
+        logger.info(f'Apagando a prestação de contas de uuid {uuid}.')
+        try:
+            prestacao_de_conta = cls.by_uuid(uuid=uuid)
+            prestacao_de_conta.apaga_fechamentos()
+            prestacao_de_conta.apaga_relacao_bens()
+            prestacao_de_conta.apaga_demonstrativos_financeiros()
+            prestacao_de_conta.delete()
+            logger.info(f'Prestação de contas de uuid {uuid} foi apagada.')
+            return True
+        except:
+            logger.error(f'Houve algum erro ao tentar apagar a PC de uuid {uuid}.')
+            return False
+
+    @classmethod
+    @transaction.atomic
+    def devolver(cls, uuid):
         prestacao_de_conta = cls.by_uuid(uuid=uuid)
         prestacao_de_conta.status = cls.STATUS_DEVOLVIDA
         prestacao_de_conta.save()
