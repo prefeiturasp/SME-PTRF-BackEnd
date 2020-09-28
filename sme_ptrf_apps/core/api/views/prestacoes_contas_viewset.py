@@ -227,6 +227,25 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
                         status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['patch'], url_path='analisar')
+    def analisar(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        if prestacao_conta.status != PrestacaoConta.STATUS_RECEBIDA:
+            response = {
+                'uuid': f'{prestacao_conta.uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'analisar',
+                'mensagem': 'Você não pode analisar uma prestação de contas com status diferente de RECEBIDA.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_atualizada = prestacao_conta.analisar()
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
+                        status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['get'])
     def ata(self, request, uuid):
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
