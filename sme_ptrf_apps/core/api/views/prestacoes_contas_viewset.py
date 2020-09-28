@@ -186,7 +186,20 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if not data_recebimento:
             response = {
                 'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'receber',
                 'mensagem': 'Faltou informar a data de recebimento da Prestação de Contas.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+        if prestacao_conta.status != PrestacaoConta.STATUS_NAO_RECEBIDA:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'receber',
+                'mensagem': 'Você não pode receber uma prestação de contas com status diferente de NAO_RECEBIDA.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -202,8 +215,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if prestacao_conta.status != PrestacaoConta.STATUS_RECEBIDA:
             response = {
                 'uuid': f'{prestacao_conta.uuid}',
+                'erro': 'status_nao_permite_operacao',
                 'status': prestacao_conta.status,
-                'erro': 'operacao_nao_permitida',
+                'operacao': 'desfazer-recebimento',
                 'mensagem': 'Impossível desfazer recebimento de uma PC com status diferente de RECEBIDA.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
