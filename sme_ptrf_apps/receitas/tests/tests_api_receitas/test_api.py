@@ -34,6 +34,25 @@ def test_create_receita(
     assert receita.detalhe_tipo_receita == detalhe_tipo_receita
 
 
+def test_criar_receita_com_conta_do_tipo_invalido(
+    client,
+    tipo_receita,
+    detalhe_tipo_receita,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    conta_associacao_cartao,
+    payload_receita
+):
+    payload_receita['conta_associacao'] = str(conta_associacao_cartao.uuid)
+    response = client.post('/api/receitas/', data=json.dumps(payload_receita), content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == ['O tipo de receita Estorno não permite salvar créditos com contas do tipo Cartão']
+
+
 def test_create_receita_repasse(
     client,
     tipo_receita,
@@ -115,7 +134,8 @@ def test_get_tabelas(
     conta_associacao,
     detalhe_tipo_receita
 ):
-    response = jwt_authenticated_client.get(f'/api/receitas/tabelas/?associacao_uuid={associacao.uuid}', content_type='application/json')
+    response = jwt_authenticated_client.get(
+        f'/api/receitas/tabelas/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
     """
@@ -136,6 +156,7 @@ def test_get_tabelas(
                 'aceita_custeio': tipo_receita.aceita_custeio,
                 'aceita_livre': tipo_receita.aceita_livre,
                 'e_devolucao': False,
+                'tipos_conta': [{'id': tipo_conta.id, 'nome': tipo_conta.nome}],
                 'detalhes_tipo_receita': [
                     {
                         'id': detalhe_tipo_receita.id,
@@ -179,7 +200,7 @@ def test_get_tabelas(
              'referencia': '2019.1',
              'referencia_por_extenso': '1° repasse de 2019',
              'uuid': str(associacao.periodo_inicial.uuid)
-            }
+             }
         ]
     }
 
@@ -188,16 +209,17 @@ def test_get_tabelas(
 
 
 def test_get_receitas(
-    jwt_authenticated_client,
-    tipo_receita,
-    detalhe_tipo_receita,
-    receita,
-    acao,
-    acao_associacao,
-    associacao,
-    tipo_conta,
-    conta_associacao):
-    response = jwt_authenticated_client.get(f'/api/receitas/?associacao_uuid={associacao.uuid}', content_type='application/json')
+        jwt_authenticated_client,
+        tipo_receita,
+        detalhe_tipo_receita,
+        receita,
+        acao,
+        acao_associacao,
+        associacao,
+        tipo_conta,
+        conta_associacao):
+    response = jwt_authenticated_client.get(
+        f'/api/receitas/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
     results = [
@@ -266,19 +288,41 @@ def test_update_receita(
     assert receita.detalhe_tipo_receita == detalhe_tipo_receita
 
 
-def test_deleta_receita(
+def test_update_receita_com_conta_invalida(
     jwt_authenticated_client,
     tipo_receita,
+    detalhe_tipo_receita,
     acao,
     acao_associacao,
     associacao,
     tipo_conta,
     conta_associacao,
     receita,
-    payload_receita):
+    conta_associacao_cartao,
+    payload_receita
+):
+    payload_receita['conta_associacao'] = str(conta_associacao_cartao.uuid)
+    response = jwt_authenticated_client.put(f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', data=json.dumps(payload_receita),
+                                            content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == ['O tipo de receita Estorno não permite salvar créditos com contas do tipo Cartão']
+
+
+def test_deleta_receita(
+        jwt_authenticated_client,
+        tipo_receita,
+        acao,
+        acao_associacao,
+        associacao,
+        tipo_conta,
+        conta_associacao,
+        receita,
+        payload_receita):
     assert Receita.objects.filter(uuid=receita.uuid).exists()
 
-    response = jwt_authenticated_client.delete(f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', content_type='application/json')
+    response = jwt_authenticated_client.delete(
+        f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -311,16 +355,17 @@ def test_deleta_receita_repasse(
 
 
 def test_retrive_receitas(
-    jwt_authenticated_client,
-    tipo_receita,
-    detalhe_tipo_receita,
-    receita,
-    acao,
-    acao_associacao,
-    associacao,
-    tipo_conta,
-    conta_associacao):
-    response = jwt_authenticated_client.get(f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', content_type='application/json')
+        jwt_authenticated_client,
+        tipo_receita,
+        detalhe_tipo_receita,
+        receita,
+        acao,
+        acao_associacao,
+        associacao,
+        tipo_conta,
+        conta_associacao):
+    response = jwt_authenticated_client.get(
+        f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = {

@@ -39,7 +39,7 @@ class DresViewSet(mixins.ListModelMixin,
         quantidade = dre.unidades_da_dre.count()
         result = {
             "uuid": f'{uuid}',
-            "qtd-unidades": quantidade,
+            "qtd_unidades": quantidade,
         }
 
         return Response(result)

@@ -11,11 +11,14 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ..serializers import PrestacaoContaLookUpSerializer, PrestacaoContaListSerializer, AtaLookUpSerializer
-from ...models import PrestacaoConta, Periodo, Associacao, Ata
+from ..serializers import (PrestacaoContaLookUpSerializer, PrestacaoContaListSerializer,
+                           PrestacaoContaRetrieveSerializer, AtaLookUpSerializer)
+from ...models import PrestacaoConta, Periodo, Associacao, Ata, Unidade
 from ...services import (concluir_prestacao_de_contas, reabrir_prestacao_de_contas, informacoes_financeiras_para_atas)
+from ....dre.models import TecnicoDre, Atribuicao
 
 logger = logging.getLogger(__name__)
+
 
 class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                               mixins.UpdateModelMixin,
@@ -26,21 +29,78 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     queryset = PrestacaoConta.objects.all()
     serializer_class = PrestacaoContaLookUpSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
-    filter_fields = ('associacao__unidade__dre__uuid', 'periodo__uuid', 'status', 'associacao__unidade__tipo_unidade')
+    filter_fields = ('associacao__unidade__dre__uuid', 'periodo__uuid', 'associacao__unidade__tipo_unidade')
 
     def get_queryset(self):
         qs = PrestacaoConta.objects.all()
+
+        status = self.request.query_params.get('status')
+        if status is not None:
+            if status in ['APROVADA', 'APROVADA_RESSALVA']:
+                qs = qs.filter(Q(status='APROVADA') | Q(status='APROVADA_RESSALVA'))
+            else:
+                qs = qs.filter(status=status)
 
         nome = self.request.query_params.get('nome')
         if nome is not None:
             qs = qs.filter(Q(associacao__nome__unaccent__icontains=nome) | Q(
                 associacao__unidade__nome__unaccent__icontains=nome))
 
+        dre_uuid = self.request.query_params.get('associacao__unidade__dre__uuid')
+        periodo_uuid = self.request.query_params.get('periodo__uuid')
+        tecnico_uuid = self.request.query_params.get('tecnico')
+        if tecnico_uuid and dre_uuid and periodo_uuid:
+
+            try:
+                dre = Unidade.dres.get(uuid=dre_uuid)
+            except Unidade.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                periodo = Periodo.objects.get(uuid=periodo_uuid)
+            except Periodo.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                tecnico = TecnicoDre.objects.get(uuid=tecnico_uuid)
+            except TecnicoDre.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto tecnico_dre para o uuid {tecnico_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+            atribuicoes = Atribuicao.objects.filter(
+                tecnico=tecnico,
+                periodo=periodo,
+                unidade__dre=dre
+            ).values_list('unidade__codigo_eol', flat=True)
+
+            qs = qs.filter(associacao__unidade__codigo_eol__in=atribuicoes)
+
+        data_inicio = self.request.query_params.get('data_inicio')
+        data_fim = self.request.query_params.get('data_fim')
+        if data_inicio is not None and data_fim is not None:
+            qs = qs.filter(data_recebimento__range=[data_inicio, data_fim])
+
         return qs
 
     def get_serializer_class(self):
         if self.action == 'list':
             return PrestacaoContaListSerializer
+        elif self.action == 'retrieve':
+            return PrestacaoContaRetrieveSerializer
         else:
             return PrestacaoContaLookUpSerializer
 
@@ -102,12 +162,38 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaLookUpSerializer(prestacao_de_contas, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'])
+    @action(detail=True, methods=['delete'])
     def reabrir(self, request, uuid):
-        prestacao_de_conta_revista = reabrir_prestacao_de_contas(prestacao_contas_uuid=uuid)
-        return Response(PrestacaoContaLookUpSerializer(prestacao_de_conta_revista, many=False).data,
-                        status=status.HTTP_200_OK)
+        reaberta = reabrir_prestacao_de_contas(prestacao_contas_uuid=uuid)
+        if reaberta:
+            response = {
+                'uuid': f'{uuid}',
+                'mensagem': 'Prestação de contas reaberta com sucesso. Todos os seus registros foram apagados.'
+            }
+            return Response(response, status=status.HTTP_204_NO_CONTENT)
+        else:
+            response = {
+                'uuid': f'{uuid}',
+                'mensagem': 'Houve algum erro ao tentar reabrir a prestação de contas.'
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=True, methods=['patch'])
+    def receber(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        data_recebimento = request.data.get('data_recebimento', None)
+        if not data_recebimento:
+            response = {
+                'uuid': f'{uuid}',
+                'mensagem': 'Faltou informar a data de recebimento da Prestação de Contas.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_recebida = prestacao_conta.receber(data_recebimento=data_recebimento)
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_recebida, many=False).data,
+                        status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
     def ata(self, request, uuid):
@@ -122,7 +208,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
         return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
-
 
     @action(detail=True, methods=['post'], url_path='iniciar-ata')
     def iniciar_ata(self, request, uuid):
@@ -147,7 +232,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         result = informacoes_financeiras_para_atas(prestacao_contas=prestacao_conta)
         return Response(result, status=status.HTTP_200_OK)
 
-
     @action(detail=False, methods=['get'], url_path='fique-de-olho')
     def fique_de_olho(self, request, uuid=None):
         from sme_ptrf_apps.core.models import Parametros
@@ -155,8 +239,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response({'detail': fique_de_olho}, status=status.HTTP_200_OK)
 
-
-    @action(detail=False ,methods=['get'], url_path="dashboard")
+    @action(detail=False, methods=['get'], url_path="dashboard")
     def dashboard(self, request):
         dre_uuid = request.query_params.get('dre_uuid')
         periodo = request.query_params.get('periodo')
@@ -177,3 +260,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         }
 
         return Response(dashboard)
+
+    @action(detail=False, url_path='tabelas')
+    def tabelas(self, _):
+        result = {
+            'status': PrestacaoConta.status_to_json(),
+        }
+        return Response(result)

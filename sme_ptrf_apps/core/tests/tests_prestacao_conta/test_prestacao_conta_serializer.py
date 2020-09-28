@@ -1,7 +1,8 @@
 import pytest
 from model_bakery import baker
 
-from ...api.serializers.prestacao_conta_serializer import PrestacaoContaLookUpSerializer, PrestacaoContaListSerializer
+from ...api.serializers.prestacao_conta_serializer import (PrestacaoContaLookUpSerializer, PrestacaoContaListSerializer,
+                                                           PrestacaoContaRetrieveSerializer)
 
 pytestmark = pytest.mark.django_db
 
@@ -34,6 +35,7 @@ def atribuicao(tecnico_dre, unidade, periodo):
         periodo=periodo,
     )
 
+
 @pytest.fixture
 def processo_associacao_2019(associacao):
     return baker.make(
@@ -43,6 +45,7 @@ def processo_associacao_2019(associacao):
         ano='2019'
     )
 
+
 def test_list_serializer(prestacao_conta, atribuicao, processo_associacao_2019):
     serializer = PrestacaoContaListSerializer(prestacao_conta)
 
@@ -51,7 +54,21 @@ def test_list_serializer(prestacao_conta, atribuicao, processo_associacao_2019):
     assert serializer.data['unidade_eol']
     assert serializer.data['unidade_nome']
     assert serializer.data['status']
-    assert serializer.data['tecnico_responsavel'] == atribuicao.tecnico
+    assert serializer.data['tecnico_responsavel'] == atribuicao.tecnico.nome
     assert serializer.data['processo_sei'] == processo_associacao_2019.numero_processo
     assert serializer.data['data_recebimento']
     assert serializer.data['data_ultima_analise']
+    assert serializer.data['devolucao_ao_tesouro']
+
+
+
+def test_retrieve_serializer(prestacao_conta, atribuicao):
+    serializer = PrestacaoContaRetrieveSerializer(prestacao_conta)
+
+    assert serializer.data is not None
+    assert serializer.data['uuid']
+    assert serializer.data['periodo_uuid']
+    assert serializer.data['status']
+    assert serializer.data['associacao']
+    assert serializer.data['tecnico_responsavel']
+    assert serializer.data['data_recebimento']
