@@ -186,13 +186,64 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if not data_recebimento:
             response = {
                 'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'receber',
                 'mensagem': 'Faltou informar a data de recebimento da Prestação de Contas.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+        if prestacao_conta.status != PrestacaoConta.STATUS_NAO_RECEBIDA:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'receber',
+                'mensagem': 'Você não pode receber uma prestação de contas com status diferente de NAO_RECEBIDA.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         prestacao_recebida = prestacao_conta.receber(data_recebimento=data_recebimento)
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_recebida, many=False).data,
+                        status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['patch'], url_path='desfazer-recebimento')
+    def desfazer_recebimento(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        if prestacao_conta.status != PrestacaoConta.STATUS_RECEBIDA:
+            response = {
+                'uuid': f'{prestacao_conta.uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'desfazer-recebimento',
+                'mensagem': 'Impossível desfazer recebimento de uma PC com status diferente de RECEBIDA.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_atualizada = prestacao_conta.desfazer_recebimento()
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
+                        status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['patch'], url_path='analisar')
+    def analisar(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        if prestacao_conta.status != PrestacaoConta.STATUS_RECEBIDA:
+            response = {
+                'uuid': f'{prestacao_conta.uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'analisar',
+                'mensagem': 'Você não pode analisar uma prestação de contas com status diferente de RECEBIDA.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_atualizada = prestacao_conta.analisar()
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
                         status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
