@@ -47,4 +47,4 @@ class ContaAssociacao(ModeloBase):
 
     class Meta:
         verbose_name = "Conta de Associação"
-        verbose_name_plural = "Contas de Associações"
+        verbose_name_plural = "07.1) Contas de Associações"

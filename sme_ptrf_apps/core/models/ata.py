@@ -133,7 +133,7 @@ class Ata(ModeloBase):
 
     class Meta:
         verbose_name = "Ata"
-        verbose_name_plural = "Atas"
+        verbose_name_plural = "09.4) Atas"
 
 
 @receiver(pre_save, sender=Ata)

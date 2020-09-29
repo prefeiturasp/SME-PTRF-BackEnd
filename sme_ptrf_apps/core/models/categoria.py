@@ -5,4 +5,4 @@ class Categoria(ModeloIdNome):
 
     class Meta:
         verbose_name = "Categoria"
-        verbose_name_plural = "Categorias"
+        verbose_name_plural = "05.3) Categorias de notificação"

@@ -25,11 +25,6 @@ def test_srt_model(prestacao_conta):
     assert prestacao_conta.__str__() == '2019.2 - 2019-09-01 a 2019-11-30 - DOCS_PENDENTES'
 
 
-def test_meta_modelo(prestacao_conta):
-    assert prestacao_conta._meta.verbose_name == 'Prestação de conta'
-    assert prestacao_conta._meta.verbose_name_plural == 'Prestações de contas'
-
-
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[PrestacaoConta]

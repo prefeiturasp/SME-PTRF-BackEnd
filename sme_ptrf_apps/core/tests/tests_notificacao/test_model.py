@@ -52,11 +52,6 @@ def test_srt_model(notificacao):
     assert str(notificacao) == "Documentos Faltantes"
 
 
-def test_meta_modelo(notificacao):
-    assert notificacao._meta.verbose_name == 'Notificação'
-    assert notificacao._meta.verbose_name_plural == 'Notificações'
-
-
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[Notificacao]

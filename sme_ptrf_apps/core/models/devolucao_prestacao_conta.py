@@ -16,4 +16,4 @@ class DevolucaoPrestacaoConta(ModeloBase):
 
     class Meta:
         verbose_name = "Devolução de prestação de contas"
-        verbose_name_plural = "Devoluções de prestações de contas"
+        verbose_name_plural = "09.7) Devoluções de prestações de contas"

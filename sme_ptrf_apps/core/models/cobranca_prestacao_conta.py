@@ -35,4 +35,4 @@ class CobrancaPrestacaoConta(ModeloBase):
 
     class Meta:
         verbose_name = "Cobrança de prestação de contas"
-        verbose_name_plural = "Cobranças de prestações de contas"
+        verbose_name_plural = "09.6) Cobranças de prestações de contas"
