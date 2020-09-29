@@ -21,3 +21,4 @@ from .proccessos_associacao import ProcessoAssociacao
 from .relacao_bens import RelacaoBens
 from .tag import Tag
 from .tipo_conta import TipoConta
+from .devolucao_prestacao_conta import DevolucaoPrestacaoConta
