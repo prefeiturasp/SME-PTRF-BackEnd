@@ -1391,6 +1391,16 @@ def cobranca_prestacao_recebimento(prestacao_conta_2020_1_conciliada):
     )
 
 @pytest.fixture
+def cobranca_prestacao_devolucao(prestacao_conta_2020_1_conciliada, devolucao_prestacao_conta_2020_1):
+    return baker.make(
+        'CobrancaPrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        tipo='DEVOLUCAO',
+        data=date(2020, 7, 1),
+        devolucao_prestacao=devolucao_prestacao_conta_2020_1
+    )
+
+@pytest.fixture
 def cobranca_prestacao_devolucao(prestacao_conta_2020_1_conciliada):
     return baker.make(
         'CobrancaPrestacaoConta',

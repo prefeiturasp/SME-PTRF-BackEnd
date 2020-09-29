@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
@@ -30,9 +32,19 @@ class CobrancaPrestacaoConta(ModeloBase):
         default=TIPO_RECEBIMENTO
     )
 
+    devolucao_prestacao = models.ForeignKey('DevolucaoPrestacaoConta', on_delete=models.CASCADE,
+                                            related_name='cobrancas_da_devolucao', null=True, blank=True)
+
     def __str__(self):
         return f"{self.data} - {self.tipo}"
 
     class Meta:
         verbose_name = "Cobrança de prestação de contas"
         verbose_name_plural = "09.6) Cobranças de prestações de contas"
+
+
+@receiver(pre_save, sender=CobrancaPrestacaoConta)
+def cobranca_pre_save(instance, **kwargs):
+    if instance.tipo == TIPO_DEVOLUCAO and instance.prestacao_conta:
+        ultima_devolucao = instance.prestacao_conta.devolucoes_da_prestacao.order_by('-data').first()
+        instance.devolucao_prestacao = ultima_devolucao
