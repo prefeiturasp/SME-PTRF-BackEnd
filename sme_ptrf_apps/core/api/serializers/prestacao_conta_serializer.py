@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
-from ..serializers import AssociacaoCompletoSerializer
-from ...models import PrestacaoConta
-from ...services.processos_services import get_processo_sei_da_prestacao
+from sme_ptrf_apps.core.models import PrestacaoConta
+from sme_ptrf_apps.core.api.serializers import AssociacaoCompletoSerializer, DevolucaoPrestacaoContaRetrieveSerializer
+from sme_ptrf_apps.core.services.processos_services import get_processo_sei_da_prestacao
 
 
 class PrestacaoContaLookUpSerializer(serializers.ModelSerializer):
@@ -47,17 +47,14 @@ class PrestacaoContaListSerializer(serializers.ModelSerializer):
     def get_devolucao_ao_tesouro(self, obj):
         return '999,99' if obj.devolucao_tesouro else 'Não'
 
-
     class Meta:
         model = PrestacaoConta
         fields = (
-        'uuid', 'unidade_eol', 'unidade_nome', 'status', 'tecnico_responsavel', 'processo_sei', 'data_recebimento',
-        'data_ultima_analise', 'periodo_uuid', 'associacao_uuid', 'devolucao_ao_tesouro')
-
+            'uuid', 'unidade_eol', 'unidade_nome', 'status', 'tecnico_responsavel', 'processo_sei', 'data_recebimento',
+            'data_ultima_analise', 'periodo_uuid', 'associacao_uuid', 'devolucao_ao_tesouro')
 
 
 class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
-
     # O serializer do técnico responsável foi criado aqui porque estava
     # ocorrendo erro de importação ao tentar-se importar o serializer
     # criado no módulo DRE.
@@ -70,10 +67,12 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     associacao = AssociacaoCompletoSerializer(many=False)
     periodo_uuid = serializers.SerializerMethodField('get_periodo_uuid')
     tecnico_responsavel = TecnicoResponsavelSerializer(many=False)
+    devolucoes_da_prestacao = DevolucaoPrestacaoContaRetrieveSerializer(many=True)
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
 
     class Meta:
         model = PrestacaoConta
-        fields = ('uuid', 'status', 'associacao', 'periodo_uuid', 'tecnico_responsavel', 'data_recebimento')
+        fields = ('uuid', 'status', 'associacao', 'periodo_uuid', 'tecnico_responsavel', 'data_recebimento',
+                  'devolucoes_da_prestacao')
