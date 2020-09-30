@@ -117,4 +117,4 @@ class Associacao(ModeloIdNome):
 
     class Meta:
         verbose_name = "Associação"
-        verbose_name_plural = "Associações"
+        verbose_name_plural = "07.0) Associações"

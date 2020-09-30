@@ -109,6 +109,12 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
+    def desfazer_analise(self):
+        self.data_ultima_analise = None
+        self.status = self.STATUS_RECEBIDA
+        self.save()
+        return self
+
     @classmethod
     @transaction.atomic
     def reabrir(cls, uuid):
@@ -185,5 +191,5 @@ class PrestacaoConta(ModeloBase):
 
     class Meta:
         verbose_name = "Prestação de conta"
-        verbose_name_plural = "Prestações de contas"
+        verbose_name_plural = "09.0) Prestações de contas"
         unique_together = ['associacao', 'periodo']

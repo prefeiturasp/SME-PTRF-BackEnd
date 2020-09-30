@@ -14,7 +14,7 @@ class ProcessoAssociacao(ModeloBase):
 
     class Meta:
         verbose_name = "Processo de prestação de contas"
-        verbose_name_plural = "Processos de prestação de contas"
+        verbose_name_plural = "07.1) Processos de prestação de contas"
 
     def __str__(self):
         return f"<Processo: {self.numero_processo}, Ano: {self.ano}>"

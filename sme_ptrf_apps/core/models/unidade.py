@@ -85,4 +85,4 @@ class Unidade(ModeloBase, TemNome):
 
     class Meta:
         verbose_name = 'Unidade'
-        verbose_name_plural = 'Unidades'
+        verbose_name_plural = '06.0) Unidades'

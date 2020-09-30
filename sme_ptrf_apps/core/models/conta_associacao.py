@@ -49,8 +49,8 @@ class ContaAssociacao(ModeloBase):
 
     class Meta:
         verbose_name = "Conta de Associação"
-        verbose_name_plural = "Contas de Associações"
 
+        verbose_name_plural = "07.1) Contas de Associações"
 
 @receiver(pre_save, sender=ContaAssociacao)
 def conta_associacao_pre_save(instance, **kwargs):
@@ -65,3 +65,4 @@ def conta_associacao_pre_save(instance, **kwargs):
 
     if instance.tipo_conta.numero_cartao and not instance.numero_cartao:
         instance.numero_cartao = instance.tipo_conta.numero_cartao
+

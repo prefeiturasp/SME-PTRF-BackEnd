@@ -21,11 +21,6 @@ def test_srt_model(acao):
     assert acao.__str__() == 'PTRF'
 
 
-def test_meta_modelo(acao):
-    assert acao._meta.verbose_name == 'Ação'
-    assert acao._meta.verbose_name_plural == 'Ações'
-
-
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[Acao]

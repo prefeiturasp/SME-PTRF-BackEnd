@@ -17,7 +17,7 @@ class Notificacao(ModeloBase):
 
     class Meta:
         verbose_name = "Notificação"
-        verbose_name_plural = "Notificações"
+        verbose_name_plural = "05.0) Notificações"
 
     def __str__(self):
         return self.titulo

@@ -1,6 +1,8 @@
 import json
-
 import pytest
+
+from datetime import date
+
 from model_bakery import baker
 from rest_framework import status
 
@@ -50,7 +52,39 @@ def _atribuicao(_tecnico_dre, unidade, periodo):
     )
 
 
-def test_api_retrieve_prestacao_conta_por_uuid(client, prestacao_conta, prestacao_conta_anterior, _atribuicao):
+@pytest.fixture
+def _devolucao_prestacao_conta(prestacao_conta):
+    return baker.make(
+        'DevolucaoPrestacaoConta',
+        prestacao_conta=prestacao_conta,
+        data=date(2020, 7, 1),
+        data_limite_ue=date(2020, 8, 1),
+    )
+
+
+@pytest.fixture
+def _cobranca_prestacao_devolucao(prestacao_conta, _devolucao_prestacao_conta):
+    return baker.make(
+        'CobrancaPrestacaoConta',
+        prestacao_conta=prestacao_conta,
+        tipo='DEVOLUCAO',
+        data=date(2020, 7, 1),
+        devolucao_prestacao=_devolucao_prestacao_conta
+    )
+
+@pytest.fixture
+def _processo_associacao_prestacao_conta(associacao):
+    return baker.make(
+        'ProcessoAssociacao',
+        associacao=associacao,
+        numero_processo='123456',
+        ano='2019'
+    )
+
+
+def test_api_retrieve_prestacao_conta_por_uuid(client, prestacao_conta, prestacao_conta_anterior, _atribuicao,
+                                               _devolucao_prestacao_conta, _cobranca_prestacao_devolucao,
+                                               _processo_associacao_prestacao_conta):
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/'
 
     response = client.get(url, content_type='application/json')
@@ -114,7 +148,26 @@ def test_api_retrieve_prestacao_conta_por_uuid(client, prestacao_conta, prestaca
             'rf': '271170',
             'uuid': f'{_atribuicao.tecnico.uuid}'
         },
-        'data_recebimento': '2020-10-01'
+        'data_recebimento': '2020-10-01',
+        'devolucoes_da_prestacao': [
+            {
+                'cobrancas_da_devolucao': [
+                    {
+                        'data': '2020-07-01',
+                        'prestacao_conta': f'{prestacao_conta.uuid}',
+                        'tipo': 'DEVOLUCAO',
+                        'uuid': f'{_cobranca_prestacao_devolucao.uuid}'
+                    }
+                ],
+                'data': '2020-07-01',
+                'data_limite_ue': '2020-08-01',
+                'prestacao_conta': f'{prestacao_conta.uuid}',
+                'uuid': f'{_devolucao_prestacao_conta.uuid}'
+            }
+        ],
+        'processo_sei': '123456',
+        'data_ultima_analise': f'{prestacao_conta.data_ultima_analise}',
+        'devolucao_ao_tesouro': '999,99'
     }
 
     assert response.status_code == status.HTTP_200_OK

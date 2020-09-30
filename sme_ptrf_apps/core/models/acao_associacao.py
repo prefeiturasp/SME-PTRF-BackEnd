@@ -42,4 +42,4 @@ class AcaoAssociacao(ModeloBase):
 
     class Meta:
         verbose_name = "Ação de Associação"
-        verbose_name_plural = "Ações de Associações"
+        verbose_name_plural = "07.2) Ações de Associações"

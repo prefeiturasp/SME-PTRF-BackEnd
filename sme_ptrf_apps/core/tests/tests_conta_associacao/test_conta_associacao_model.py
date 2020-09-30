@@ -35,11 +35,6 @@ def test_srt_model(conta_associacao):
     assert conta_associacao.__str__() == 'Escola Teste - Conta Cheque - Ativa'
 
 
-def test_meta_modelo(conta_associacao):
-    assert conta_associacao._meta.verbose_name == 'Conta de Associação'
-    assert conta_associacao._meta.verbose_name_plural == 'Contas de Associações'
-
-
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[ContaAssociacao]

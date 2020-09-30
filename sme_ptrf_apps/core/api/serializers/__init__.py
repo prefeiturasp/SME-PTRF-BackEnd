@@ -1,3 +1,5 @@
+from .cobranca_prestacao_conta_serializer import CobrancaPrestacaoContaListSerializer
+from .devolucao_prestacao_conta_serializer import DevolucaoPrestacaoContaRetrieveSerializer
 from .acao_associacao_serializer import AcaoAssociacaoLookUpSerializer, AcaoAssociacaoSerializer
 from .associacao_serializer import (
     AssociacaoCreateSerializer,
@@ -8,7 +10,6 @@ from .associacao_serializer import (
     AssociacaoListSerializer
 )
 from .ata_serializer import AtaLookUpSerializer, AtaSerializer
-from .cobranca_prestacao_conta_serializer import CobrancaPrestacaoContaListSerializer
 from .conta_associacao_serializer import (
     ContaAssociacaoInfoAtaSerializer,
     ContaAssociacaoLookUpSerializer,

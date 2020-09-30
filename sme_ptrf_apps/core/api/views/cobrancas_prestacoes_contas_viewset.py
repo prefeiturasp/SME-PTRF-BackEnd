@@ -12,4 +12,4 @@ class CobrancasPrestacoesContasViewSet(viewsets.ModelViewSet):
     serializer_class = CobrancaPrestacaoContaListSerializer
     queryset = CobrancaPrestacaoConta.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('prestacao_conta__uuid', 'tipo')
+    filter_fields = ('prestacao_conta__uuid', 'tipo', 'devolucao_prestacao__uuid')
