@@ -15,6 +15,10 @@ def test_instance_model(tipo_conta):
     assert model.alterado_em
     assert model.uuid
     assert model.id
+    assert model.banco_nome
+    assert model.agencia
+    assert model.numero_conta
+    assert model.numero_cartao
 
 
 def test_srt_model(tipo_conta):

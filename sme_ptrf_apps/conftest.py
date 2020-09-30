@@ -85,7 +85,13 @@ def request_factory() -> RequestFactory:
 
 @pytest.fixture
 def tipo_conta():
-    return baker.make('TipoConta', nome='Cheque')
+    return baker.make(
+        'TipoConta', 
+        nome='Cheque',
+        banco_nome='Banco do Inter',
+        agencia='67945',
+        numero_conta='935556-x',
+        numero_cartao='987644164221')
 
 
 @pytest.fixture
