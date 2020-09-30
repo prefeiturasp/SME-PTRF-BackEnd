@@ -109,6 +109,12 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
+    def desfazer_analise(self):
+        self.data_ultima_analise = None
+        self.status = self.STATUS_RECEBIDA
+        self.save()
+        return self
+
     @classmethod
     @transaction.atomic
     def reabrir(cls, uuid):

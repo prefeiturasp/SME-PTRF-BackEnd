@@ -227,6 +227,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
                         status=status.HTTP_200_OK)
 
+
     @action(detail=True, methods=['patch'], url_path='analisar')
     def analisar(self, request, uuid):
         prestacao_conta = self.get_object()
@@ -245,6 +246,27 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
                         status=status.HTTP_200_OK)
+
+
+    @action(detail=True, methods=['patch'], url_path='desfazer-analise')
+    def desfazer_analise(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        if prestacao_conta.status != PrestacaoConta.STATUS_EM_ANALISE:
+            response = {
+                'uuid': f'{prestacao_conta.uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'desfazer-analise',
+                'mensagem': 'Impossível desfazer análise de uma PC com status diferente de EM_ANALISE.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_atualizada = prestacao_conta.desfazer_analise()
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
+                        status=status.HTTP_200_OK)
+
 
     @action(detail=True, methods=['get'])
     def ata(self, request, uuid):
