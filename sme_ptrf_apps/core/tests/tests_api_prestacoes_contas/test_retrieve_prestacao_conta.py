@@ -166,7 +166,8 @@ def test_api_retrieve_prestacao_conta_por_uuid(client, prestacao_conta, prestaca
             }
         ],
         'processo_sei': '123456',
-        'data_ultima_analise': f'{prestacao_conta.data_ultima_analise}'
+        'data_ultima_analise': f'{prestacao_conta.data_ultima_analise}',
+        'devolucao_ao_tesouro': '999,99'
     }
 
     assert response.status_code == status.HTTP_200_OK

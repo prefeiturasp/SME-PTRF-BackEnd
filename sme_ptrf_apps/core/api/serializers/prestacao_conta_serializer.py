@@ -69,6 +69,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     tecnico_responsavel = TecnicoResponsavelSerializer(many=False)
     devolucoes_da_prestacao = DevolucaoPrestacaoContaRetrieveSerializer(many=True)
     processo_sei = serializers.SerializerMethodField('get_processo_sei')
+    devolucao_ao_tesouro = serializers.SerializerMethodField('get_devolucao_ao_tesouro')
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
@@ -76,8 +77,12 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     def get_processo_sei(self, obj):
         return get_processo_sei_da_prestacao(prestacao_contas=obj)
 
+    # TODO Rever método ao implementar devolução ao tesouro
+    def get_devolucao_ao_tesouro(self, obj):
+        return '999,99' if obj.devolucao_tesouro else 'Não'
+
 
     class Meta:
         model = PrestacaoConta
         fields = ('uuid', 'status', 'associacao', 'periodo_uuid', 'tecnico_responsavel', 'data_recebimento',
-                  'devolucoes_da_prestacao', 'processo_sei', 'data_ultima_analise')
+                  'devolucoes_da_prestacao', 'processo_sei', 'data_ultima_analise', 'devolucao_ao_tesouro')
