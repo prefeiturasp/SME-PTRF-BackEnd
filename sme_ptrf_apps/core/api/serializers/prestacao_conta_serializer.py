@@ -68,11 +68,16 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     periodo_uuid = serializers.SerializerMethodField('get_periodo_uuid')
     tecnico_responsavel = TecnicoResponsavelSerializer(many=False)
     devolucoes_da_prestacao = DevolucaoPrestacaoContaRetrieveSerializer(many=True)
+    processo_sei = serializers.SerializerMethodField('get_processo_sei')
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
 
+    def get_processo_sei(self, obj):
+        return get_processo_sei_da_prestacao(prestacao_contas=obj)
+
+
     class Meta:
         model = PrestacaoConta
         fields = ('uuid', 'status', 'associacao', 'periodo_uuid', 'tecnico_responsavel', 'data_recebimento',
-                  'devolucoes_da_prestacao')
+                  'devolucoes_da_prestacao', 'processo_sei')

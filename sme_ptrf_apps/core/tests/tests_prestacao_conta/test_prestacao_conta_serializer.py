@@ -74,7 +74,7 @@ def devolucao_prestacao_conta_2020_1(prestacao_conta):
     )
 
 
-def test_retrieve_serializer(prestacao_conta, devolucao_prestacao_conta_2020_1, atribuicao):
+def test_retrieve_serializer(prestacao_conta, devolucao_prestacao_conta_2020_1, atribuicao, processo_associacao_2019):
     serializer = PrestacaoContaRetrieveSerializer(prestacao_conta)
 
     assert serializer.data is not None
@@ -85,3 +85,4 @@ def test_retrieve_serializer(prestacao_conta, devolucao_prestacao_conta_2020_1, 
     assert serializer.data['tecnico_responsavel']
     assert serializer.data['data_recebimento']
     assert serializer.data['devolucoes_da_prestacao']
+    assert serializer.data['processo_sei'] == processo_associacao_2019.numero_processo

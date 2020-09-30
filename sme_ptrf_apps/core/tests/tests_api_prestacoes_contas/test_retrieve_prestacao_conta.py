@@ -72,9 +72,19 @@ def _cobranca_prestacao_devolucao(prestacao_conta, _devolucao_prestacao_conta):
         devolucao_prestacao=_devolucao_prestacao_conta
     )
 
+@pytest.fixture
+def _processo_associacao_prestacao_conta(associacao):
+    return baker.make(
+        'ProcessoAssociacao',
+        associacao=associacao,
+        numero_processo='123456',
+        ano='2019'
+    )
+
 
 def test_api_retrieve_prestacao_conta_por_uuid(client, prestacao_conta, prestacao_conta_anterior, _atribuicao,
-                                               _devolucao_prestacao_conta, _cobranca_prestacao_devolucao):
+                                               _devolucao_prestacao_conta, _cobranca_prestacao_devolucao,
+                                               _processo_associacao_prestacao_conta):
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/'
 
     response = client.get(url, content_type='application/json')
@@ -155,6 +165,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(client, prestacao_conta, prestaca
                 'uuid': f'{_devolucao_prestacao_conta.uuid}'
             }
         ],
+        'processo_sei': '123456',
     }
 
     assert response.status_code == status.HTTP_200_OK
