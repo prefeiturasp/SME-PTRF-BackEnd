@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
@@ -48,3 +50,18 @@ class ContaAssociacao(ModeloBase):
     class Meta:
         verbose_name = "Conta de Associação"
         verbose_name_plural = "Contas de Associações"
+
+
+@receiver(pre_save, sender=ContaAssociacao)
+def conta_associacao_pre_save(instance, **kwargs):
+    if instance.tipo_conta.banco_nome and not instance.banco_nome:
+        instance.banco_nome = instance.tipo_conta.banco_nome
+
+    if instance.tipo_conta.agencia and not instance.agencia:
+        instance.agencia = instance.tipo_conta.agencia
+
+    if instance.tipo_conta.numero_conta and not instance.numero_conta:
+        instance.numero_conta = instance.tipo_conta.numero_conta
+
+    if instance.tipo_conta.numero_cartao and not instance.numero_cartao:
+        instance.numero_cartao = instance.tipo_conta.numero_cartao
