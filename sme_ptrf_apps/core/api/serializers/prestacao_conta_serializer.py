@@ -80,4 +80,4 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = PrestacaoConta
         fields = ('uuid', 'status', 'associacao', 'periodo_uuid', 'tecnico_responsavel', 'data_recebimento',
-                  'devolucoes_da_prestacao', 'processo_sei')
+                  'devolucoes_da_prestacao', 'processo_sei', 'data_ultima_analise')

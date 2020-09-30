@@ -86,3 +86,4 @@ def test_retrieve_serializer(prestacao_conta, devolucao_prestacao_conta_2020_1, 
     assert serializer.data['data_recebimento']
     assert serializer.data['devolucoes_da_prestacao']
     assert serializer.data['processo_sei'] == processo_associacao_2019.numero_processo
+    assert serializer.data['data_ultima_analise']
