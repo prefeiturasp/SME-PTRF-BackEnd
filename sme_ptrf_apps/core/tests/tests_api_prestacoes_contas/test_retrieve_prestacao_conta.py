@@ -198,7 +198,8 @@ def test_api_retrieve_prestacao_conta_por_uuid(client, prestacao_conta, prestaca
                 'saldo_extrato': '100.00',
                 'uuid': f'{_analise_conta_prestacao_conta_2020_1.uuid}'
             }
-        ]
+        ],
+        'ressalvas_aprovacao': 'Texto ressalva'
     }
 
     assert response.status_code == status.HTTP_200_OK
