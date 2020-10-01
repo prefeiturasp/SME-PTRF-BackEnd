@@ -72,6 +72,7 @@ def _cobranca_prestacao_devolucao(prestacao_conta, _devolucao_prestacao_conta):
         devolucao_prestacao=_devolucao_prestacao_conta
     )
 
+
 @pytest.fixture
 def _processo_associacao_prestacao_conta(associacao):
     return baker.make(
@@ -82,9 +83,21 @@ def _processo_associacao_prestacao_conta(associacao):
     )
 
 
+@pytest.fixture
+def _analise_conta_prestacao_conta_2020_1(prestacao_conta, conta_associacao_cheque):
+    return baker.make(
+        'AnaliseContaPrestacaoConta',
+        prestacao_conta=prestacao_conta,
+        conta_associacao=conta_associacao_cheque,
+        data_extrato=date(2020, 7, 1),
+        saldo_extrato=100.00,
+    )
+
+
 def test_api_retrieve_prestacao_conta_por_uuid(client, prestacao_conta, prestacao_conta_anterior, _atribuicao,
                                                _devolucao_prestacao_conta, _cobranca_prestacao_devolucao,
-                                               _processo_associacao_prestacao_conta):
+                                               _processo_associacao_prestacao_conta,
+                                               _analise_conta_prestacao_conta_2020_1, conta_associacao_cheque):
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/'
 
     response = client.get(url, content_type='application/json')
@@ -167,7 +180,25 @@ def test_api_retrieve_prestacao_conta_por_uuid(client, prestacao_conta, prestaca
         ],
         'processo_sei': '123456',
         'data_ultima_analise': f'{prestacao_conta.data_ultima_analise}',
-        'devolucao_ao_tesouro': '999,99'
+        'devolucao_ao_tesouro': '999,99',
+        'analises_de_conta_da_prestacao': [
+            {
+                'conta_associacao': {
+                    'agencia': '67945',
+                    'banco_nome': 'Banco do Inter',
+                    'numero_conta': '935556-x',
+                    'tipo_conta': {
+                        'id': conta_associacao_cheque.tipo_conta.id,
+                        'nome': 'Cheque'
+                    },
+                    'uuid': f'{_analise_conta_prestacao_conta_2020_1.conta_associacao.uuid}'
+                },
+                'data_extrato': '2020-07-01',
+                'prestacao_conta': f'{prestacao_conta.uuid}',
+                'saldo_extrato': '100.00',
+                'uuid': f'{_analise_conta_prestacao_conta_2020_1.uuid}'
+            }
+        ]
     }
 
     assert response.status_code == status.HTTP_200_OK

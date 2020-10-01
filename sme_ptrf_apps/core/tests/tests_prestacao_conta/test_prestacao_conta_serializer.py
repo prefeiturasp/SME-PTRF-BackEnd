@@ -63,7 +63,6 @@ def test_list_serializer(prestacao_conta, atribuicao, processo_associacao_2019):
     assert serializer.data['devolucao_ao_tesouro']
 
 
-
 @pytest.fixture
 def devolucao_prestacao_conta_2020_1(prestacao_conta):
     return baker.make(
@@ -74,7 +73,19 @@ def devolucao_prestacao_conta_2020_1(prestacao_conta):
     )
 
 
-def test_retrieve_serializer(prestacao_conta, devolucao_prestacao_conta_2020_1, atribuicao, processo_associacao_2019):
+@pytest.fixture
+def _analise_conta_prestacao_conta_2020_1(prestacao_conta, conta_associacao_cheque):
+    return baker.make(
+        'AnaliseContaPrestacaoConta',
+        prestacao_conta=prestacao_conta,
+        conta_associacao=conta_associacao_cheque,
+        data_extrato=date(2020, 7, 1),
+        saldo_extrato=100.00,
+    )
+
+
+def test_retrieve_serializer(prestacao_conta, devolucao_prestacao_conta_2020_1, atribuicao, processo_associacao_2019,
+                             _analise_conta_prestacao_conta_2020_1):
     serializer = PrestacaoContaRetrieveSerializer(prestacao_conta)
 
     assert serializer.data is not None
@@ -88,3 +99,4 @@ def test_retrieve_serializer(prestacao_conta, devolucao_prestacao_conta_2020_1, 
     assert serializer.data['processo_sei'] == processo_associacao_2019.numero_processo
     assert serializer.data['data_ultima_analise']
     assert serializer.data['devolucao_ao_tesouro']
+    assert serializer.data['analises_de_conta_da_prestacao']

@@ -14,10 +14,12 @@ from .conta_associacao_serializer import (
     ContaAssociacaoInfoAtaSerializer,
     ContaAssociacaoLookUpSerializer,
     ContaAssociacaoSerializer,
+    ContaAssociacaoDadosSerializer
 )
 from .membro_associacao_serializer import MembroAssociacaoCreateSerializer, MembroAssociacaoListSerializer
 from .notificacao_serializer import NotificacaoSerializer
 from .periodo_serializer import PeriodoLookUpSerializer, PeriodoSerializer
+from .analise_conta_prestacao_conta_serializer import AnaliseContaPrestacaoContaRetrieveSerializer
 from .prestacao_conta_serializer import (PrestacaoContaLookUpSerializer, PrestacaoContaListSerializer,
                                          PrestacaoContaRetrieveSerializer)
 from .processo_associacao_serializer import ProcessoAssociacaoRetrieveSerializer, ProcessoAssociacaoCreateSerializer
