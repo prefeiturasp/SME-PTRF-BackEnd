@@ -121,7 +121,8 @@ class PrestacaoConta(ModeloBase):
         return self
 
     @transaction.atomic
-    def salvar_analise(self, devolucao_tesouro, analises_de_conta_da_prestacao, resultado_analise=None, ressalvas_aprovacao=''):
+    def salvar_analise(self, devolucao_tesouro, analises_de_conta_da_prestacao, resultado_analise=None,
+                       ressalvas_aprovacao=''):
         from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
         from ..models.conta_associacao import ContaAssociacao
 
@@ -147,12 +148,29 @@ class PrestacaoConta(ModeloBase):
 
         return self
 
+    @transaction.atomic
+    def devolver(self, data_limite_ue):
+        from ..models import DevolucaoPrestacaoConta
+        DevolucaoPrestacaoConta.objects.create(
+            prestacao_conta=self,
+            data=date.today(),
+            data_limite_ue=data_limite_ue
+        )
+        self.apaga_fechamentos()
+        self.apaga_relacao_bens()
+        self.apaga_demonstrativos_financeiros()
+        return self
+
+    @transaction.atomic
     def concluir_analise(self, resultado_analise, devolucao_tesouro, analises_de_conta_da_prestacao,
-                         ressalvas_aprovacao):
+                         ressalvas_aprovacao, data_limite_ue):
         prestacao_atualizada = self.salvar_analise(resultado_analise=resultado_analise,
                                                    devolucao_tesouro=devolucao_tesouro,
                                                    analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
                                                    ressalvas_aprovacao=ressalvas_aprovacao)
+
+        if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
+            prestacao_atualizada = prestacao_atualizada.devolver(data_limite_ue=data_limite_ue)
 
         return prestacao_atualizada
 
@@ -172,16 +190,6 @@ class PrestacaoConta(ModeloBase):
             logger.error(f'Houve algum erro ao tentar apagar a PC de uuid {uuid}.')
             return False
 
-    @classmethod
-    @transaction.atomic
-    def devolver(cls, uuid):
-        prestacao_de_conta = cls.by_uuid(uuid=uuid)
-        prestacao_de_conta.status = cls.STATUS_DEVOLVIDA
-        prestacao_de_conta.save()
-        prestacao_de_conta.apaga_fechamentos()
-        prestacao_de_conta.apaga_relacao_bens()
-        prestacao_de_conta.apaga_demonstrativos_financeiros()
-        return prestacao_de_conta
 
     @classmethod
     def abrir(cls, periodo, associacao):

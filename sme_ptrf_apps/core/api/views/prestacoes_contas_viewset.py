@@ -370,11 +370,24 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
+        data_limite_ue = request.data.get('data_limite_ue', None)
+
+        if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA and not data_limite_ue:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'concluir-analise',
+                'mensagem': 'Para concluir como DEVOLVIDA é necessário informar o campo data_limite_ue.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
         prestacao_salva = prestacao_conta.concluir_analise(
             resultado_analise=resultado_analise,
             devolucao_tesouro=devolucao_tesouro,
             analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
-            ressalvas_aprovacao=ressalvas_aprovacao
+            ressalvas_aprovacao=ressalvas_aprovacao,
+            data_limite_ue=data_limite_ue
         )
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
