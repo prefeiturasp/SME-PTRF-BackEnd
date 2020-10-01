@@ -304,6 +304,68 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['patch'], url_path='concluir-analise')
+    def concluir_analise(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        resultado_analise = request.data.get('resultado_analise', None)
+        if resultado_analise is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'concluir-analise',
+                'mensagem': 'Faltou informar o campo resultado_analise.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        if resultado_analise not in [PrestacaoConta.STATUS_APROVADA, PrestacaoConta.STATUS_APROVADA_RESSALVA,
+                                     PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_REPROVADA]:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'resultado_analise_invalido',
+                'status': resultado_analise,
+                'operacao': 'concluir-analise',
+                'mensagem': 'Resultado inválido. Resultados possíveis: APROVADA, APROVADA_RESSALVA, REPROVADA, DEVOLVIDA.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        devolucao_tesouro = request.data.get('devolucao_tesouro', None)
+        if devolucao_tesouro is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'concluir-analise',
+                'mensagem': 'Faltou informar o campo devolucao_tesouro.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        analises_de_conta_da_prestacao = request.data.get('analises_de_conta_da_prestacao', None)
+        if analises_de_conta_da_prestacao is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'concluir-analise',
+                'mensagem': 'Faltou informar o campo analises_de_conta_da_prestacao.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        if prestacao_conta.status != PrestacaoConta.STATUS_EM_ANALISE:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'concluir-analise',
+                'mensagem': 'Você não pode concluir análise de uma prestação de contas com status diferente de EM_ANALISE.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_salva = prestacao_conta.concluir_analise(resultado_analise=resultado_analise,
+                                                          devolucao_tesouro=devolucao_tesouro,
+                                                          analises_de_conta_da_prestacao=analises_de_conta_da_prestacao)
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
+                        status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['get'])
     def ata(self, request, uuid):
         prestacao_conta = PrestacaoConta.by_uuid(uuid)

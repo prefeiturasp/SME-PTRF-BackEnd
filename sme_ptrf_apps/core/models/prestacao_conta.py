@@ -10,6 +10,7 @@ from sme_ptrf_apps.dre.models import Atribuicao
 
 logger = logging.getLogger(__name__)
 
+
 class PrestacaoConta(ModeloBase):
     # Status Choice
     STATUS_DOCS_PENDENTES = 'DOCS_PENDENTES'
@@ -118,12 +119,16 @@ class PrestacaoConta(ModeloBase):
         return self
 
     @transaction.atomic
-    def salvar_analise(self, devolucao_tesouro, analises_de_conta_da_prestacao):
+    def salvar_analise(self, devolucao_tesouro, analises_de_conta_da_prestacao, resultado_analise=None):
         from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
         from ..models.conta_associacao import ContaAssociacao
 
         self.devolucao_tesouro = devolucao_tesouro
         self.data_ultima_analise = date.today()
+
+        if resultado_analise:
+            self.status = resultado_analise
+
         self.save()
 
         self.analises_de_conta_da_prestacao.all().delete()
@@ -138,6 +143,12 @@ class PrestacaoConta(ModeloBase):
 
         return self
 
+    def concluir_analise(self, resultado_analise, devolucao_tesouro, analises_de_conta_da_prestacao):
+        prestacao_atualizada = self.salvar_analise(resultado_analise=resultado_analise,
+                                                   devolucao_tesouro=devolucao_tesouro,
+                                                   analises_de_conta_da_prestacao=analises_de_conta_da_prestacao)
+
+        return prestacao_atualizada
 
     @classmethod
     @transaction.atomic
