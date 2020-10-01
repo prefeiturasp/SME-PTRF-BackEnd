@@ -24,7 +24,7 @@ def prestacao_conta_em_analise(periodo, associacao):
 
 
 @freeze_time('2020-09-01')
-def test_api_salva_analise_prestacao_conta(client, prestacao_conta_em_analise, conta_associacao):
+def test_api_salva_analise_prestacao_conta(jwt_authenticated_client, prestacao_conta_em_analise, conta_associacao):
     payload = {
         'devolucao_tesouro': True,
         'analises_de_conta_da_prestacao': [
@@ -38,7 +38,7 @@ def test_api_salva_analise_prestacao_conta(client, prestacao_conta_em_analise, c
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/salvar-analise/'
 
-    response = client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -52,10 +52,10 @@ def test_api_salva_analise_prestacao_conta(client, prestacao_conta_em_analise, c
     assert prestacao_atualizada.analises_de_conta_da_prestacao.first().saldo_extrato == 100.00, 'Não atualizou a saldo do extrato.'
 
 
-def test_api_salvar_prestacao_conta_exige_devolucao_tesouro(client, prestacao_conta_em_analise):
+def test_api_salvar_prestacao_conta_exige_devolucao_tesouro(jwt_authenticated_client, prestacao_conta_em_analise):
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/salvar-analise/'
 
-    response = client.patch(url, content_type='application/json')
+    response = jwt_authenticated_client.patch(url, content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -71,14 +71,15 @@ def test_api_salvar_prestacao_conta_exige_devolucao_tesouro(client, prestacao_co
     assert result == result_esperado, "Deveria ter retornado erro falta_de_informacoes."
 
 
-def test_api_salvar_prestacao_conta_exige_analises_de_conta_da_prestacao(client, prestacao_conta_em_analise):
+def test_api_salvar_prestacao_conta_exige_analises_de_conta_da_prestacao(jwt_authenticated_client,
+                                                                         prestacao_conta_em_analise):
     payload = {
         'devolucao_tesouro': True,
     }
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/salvar-analise/'
 
-    response = client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -104,7 +105,8 @@ def prestacao_conta_recebida(periodo, associacao):
         status=PrestacaoConta.STATUS_RECEBIDA
     )
 
-def test_api_salva_analise_prestacao_conta_nao_pode_aceitar_status_diferente_de_nao_recebida(client,
+
+def test_api_salva_analise_prestacao_conta_nao_pode_aceitar_status_diferente_de_nao_recebida(jwt_authenticated_client,
                                                                                              prestacao_conta_recebida,
                                                                                              conta_associacao):
     payload = {
@@ -119,7 +121,7 @@ def test_api_salva_analise_prestacao_conta_nao_pode_aceitar_status_diferente_de_
     }
     url = f'/api/prestacoes-contas/{prestacao_conta_recebida.uuid}/salvar-analise/'
 
-    response = client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 

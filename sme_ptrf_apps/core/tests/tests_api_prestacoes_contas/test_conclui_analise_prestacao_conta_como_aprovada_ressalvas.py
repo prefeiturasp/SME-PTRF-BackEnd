@@ -24,7 +24,8 @@ def prestacao_conta_em_analise(periodo, associacao):
 
 
 @freeze_time('2020-09-01')
-def test_api_conclui_analise_prestacao_conta_aprovada_ressalvas(client, prestacao_conta_em_analise, conta_associacao):
+def test_api_conclui_analise_prestacao_conta_aprovada_ressalvas(jwt_authenticated_client, prestacao_conta_em_analise,
+                                                                conta_associacao):
     payload = {
         'devolucao_tesouro': True,
         'analises_de_conta_da_prestacao': [
@@ -40,7 +41,7 @@ def test_api_conclui_analise_prestacao_conta_aprovada_ressalvas(client, prestaca
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
 
-    response = client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -49,7 +50,7 @@ def test_api_conclui_analise_prestacao_conta_aprovada_ressalvas(client, prestaca
     assert prestacao_atualizada.ressalvas_aprovacao == 'Texto da ressalva.', 'Não gravou a ressalva.'
 
 
-def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_ressalva(client,
+def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_ressalva(jwt_authenticated_client,
                                                                               prestacao_conta_em_analise,
                                                                               conta_associacao):
     payload = {
@@ -65,7 +66,7 @@ def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_ressalva(cl
     }
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
 
-    response = client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 

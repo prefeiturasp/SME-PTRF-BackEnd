@@ -24,7 +24,8 @@ def prestacao_conta_em_analise(periodo, associacao):
 
 
 @freeze_time('2020-09-01')
-def test_api_conclui_analise_prestacao_conta_devolvida(client, prestacao_conta_em_analise, conta_associacao):
+def test_api_conclui_analise_prestacao_conta_devolvida(jwt_authenticated_client, prestacao_conta_em_analise,
+                                                       conta_associacao):
     payload = {
         'devolucao_tesouro': True,
         'analises_de_conta_da_prestacao': [
@@ -40,7 +41,7 @@ def test_api_conclui_analise_prestacao_conta_devolvida(client, prestacao_conta_e
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
 
-    response = client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -51,7 +52,7 @@ def test_api_conclui_analise_prestacao_conta_devolvida(client, prestacao_conta_e
                                                                                        21), 'Não gravou a data limite.'
 
 
-def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_data_limite(client,
+def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_data_limite(jwt_authenticated_client,
                                                                                  prestacao_conta_em_analise,
                                                                                  conta_associacao):
     payload = {
@@ -67,7 +68,7 @@ def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_data_limite
     }
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
 
-    response = client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 

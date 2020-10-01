@@ -94,13 +94,14 @@ def _analise_conta_prestacao_conta_2020_1(prestacao_conta, conta_associacao_cheq
     )
 
 
-def test_api_retrieve_prestacao_conta_por_uuid(client, prestacao_conta, prestacao_conta_anterior, _atribuicao,
+def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client, prestacao_conta, prestacao_conta_anterior,
+                                               _atribuicao,
                                                _devolucao_prestacao_conta, _cobranca_prestacao_devolucao,
                                                _processo_associacao_prestacao_conta,
                                                _analise_conta_prestacao_conta_2020_1, conta_associacao_cheque):
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
