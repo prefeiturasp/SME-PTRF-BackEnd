@@ -1,5 +1,7 @@
 import logging
 
+from datetime import date
+
 from django.db import models
 from django.db import transaction
 
@@ -114,6 +116,28 @@ class PrestacaoConta(ModeloBase):
         self.status = self.STATUS_RECEBIDA
         self.save()
         return self
+
+    @transaction.atomic
+    def salvar_analise(self, devolucao_tesouro, analises_de_conta_da_prestacao):
+        from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
+        from ..models.conta_associacao import ContaAssociacao
+
+        self.devolucao_tesouro = devolucao_tesouro
+        self.data_ultima_analise = date.today()
+        self.save()
+
+        self.analises_de_conta_da_prestacao.all().delete()
+        for analise in analises_de_conta_da_prestacao:
+            conta_associacao = ContaAssociacao.by_uuid(analise['conta_associacao'])
+            AnaliseContaPrestacaoConta.objects.create(
+                prestacao_conta=self,
+                conta_associacao=conta_associacao,
+                data_extrato=analise['data_extrato'],
+                saldo_extrato=analise['saldo_extrato']
+            )
+
+        return self
+
 
     @classmethod
     @transaction.atomic

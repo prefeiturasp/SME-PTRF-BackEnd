@@ -192,7 +192,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-
         if prestacao_conta.status != PrestacaoConta.STATUS_NAO_RECEBIDA:
             response = {
                 'uuid': f'{uuid}',
@@ -227,7 +226,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
                         status=status.HTTP_200_OK)
 
-
     @action(detail=True, methods=['patch'], url_path='analisar')
     def analisar(self, request, uuid):
         prestacao_conta = self.get_object()
@@ -246,7 +244,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
                         status=status.HTTP_200_OK)
-
 
     @action(detail=True, methods=['patch'], url_path='desfazer-analise')
     def desfazer_analise(self, request, uuid):
@@ -267,6 +264,45 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
                         status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['patch'], url_path='salvar-analise')
+    def salvar_analise(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        devolucao_tesouro = request.data.get('devolucao_tesouro', None)
+        if devolucao_tesouro is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'salvar-analise',
+                'mensagem': 'Faltou informar o campo devolucao_tesouro.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        analises_de_conta_da_prestacao = request.data.get('analises_de_conta_da_prestacao', None)
+        if analises_de_conta_da_prestacao is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'salvar-analise',
+                'mensagem': 'Faltou informar o campo analises_de_conta_da_prestacao.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        if prestacao_conta.status != PrestacaoConta.STATUS_EM_ANALISE:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'salvar-analise',
+                'mensagem': 'Você não pode salvar análise de uma prestação de contas com status diferente de EM_ANALISE.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_salva = prestacao_conta.salvar_analise(devolucao_tesouro=devolucao_tesouro,
+                                                         analises_de_conta_da_prestacao=analises_de_conta_da_prestacao)
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
+                        status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
     def ata(self, request, uuid):
