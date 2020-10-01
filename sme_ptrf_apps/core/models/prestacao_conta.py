@@ -63,6 +63,8 @@ class PrestacaoConta(ModeloBase):
 
     devolucao_tesouro = models.BooleanField('há devolução ao tesouro', blank=True, null=True, default=False)
 
+    ressalvas_aprovacao = models.TextField('Ressalvas na aprovação pela DRE', blank=True, default='')
+
     @property
     def tecnico_responsavel(self):
         atribuicoes = Atribuicao.search(
@@ -119,7 +121,7 @@ class PrestacaoConta(ModeloBase):
         return self
 
     @transaction.atomic
-    def salvar_analise(self, devolucao_tesouro, analises_de_conta_da_prestacao, resultado_analise=None):
+    def salvar_analise(self, devolucao_tesouro, analises_de_conta_da_prestacao, resultado_analise=None, ressalvas_aprovacao=''):
         from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
         from ..models.conta_associacao import ContaAssociacao
 
@@ -128,6 +130,8 @@ class PrestacaoConta(ModeloBase):
 
         if resultado_analise:
             self.status = resultado_analise
+
+        self.ressalvas_aprovacao = ressalvas_aprovacao
 
         self.save()
 
@@ -143,10 +147,12 @@ class PrestacaoConta(ModeloBase):
 
         return self
 
-    def concluir_analise(self, resultado_analise, devolucao_tesouro, analises_de_conta_da_prestacao):
+    def concluir_analise(self, resultado_analise, devolucao_tesouro, analises_de_conta_da_prestacao,
+                         ressalvas_aprovacao):
         prestacao_atualizada = self.salvar_analise(resultado_analise=resultado_analise,
                                                    devolucao_tesouro=devolucao_tesouro,
-                                                   analises_de_conta_da_prestacao=analises_de_conta_da_prestacao)
+                                                   analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
+                                                   ressalvas_aprovacao=ressalvas_aprovacao)
 
         return prestacao_atualizada
 

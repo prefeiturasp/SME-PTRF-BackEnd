@@ -404,7 +404,8 @@ def prestacao_conta(periodo, associacao):
         associacao=associacao,
         data_recebimento=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
-        devolucao_tesouro=True
+        devolucao_tesouro=True,
+        ressalvas_aprovacao='Texto ressalva'
     )
 
 

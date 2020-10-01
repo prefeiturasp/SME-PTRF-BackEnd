@@ -359,9 +359,23 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        prestacao_salva = prestacao_conta.concluir_analise(resultado_analise=resultado_analise,
-                                                          devolucao_tesouro=devolucao_tesouro,
-                                                          analises_de_conta_da_prestacao=analises_de_conta_da_prestacao)
+        ressalvas_aprovacao = request.data.get('ressalvas_aprovacao', '')
+
+        if resultado_analise == PrestacaoConta.STATUS_APROVADA_RESSALVA and not ressalvas_aprovacao:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'concluir-analise',
+                'mensagem': 'Para concluir como APROVADO_RESSALVA é necessário informar o campo ressalvas_aprovacao.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_salva = prestacao_conta.concluir_analise(
+            resultado_analise=resultado_analise,
+            devolucao_tesouro=devolucao_tesouro,
+            analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
+            ressalvas_aprovacao=ressalvas_aprovacao
+        )
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
