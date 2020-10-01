@@ -1274,12 +1274,12 @@ def membro_associacao(associacao):
 def membro_associacao_presidente_conselho(associacao):
     return baker.make(
         'MembroAssociacao',
-        nome='Arthur Nobrega',
+        nome='Arthur Nobrega Junior',
         associacao=associacao,
         cargo_associacao=MembroEnum.PRESIDENTE_CONSELHO_FISCAL.value,
         cargo_educacao='Coordenador',
         representacao=RepresentacaoCargo.SERVIDOR.value,
-        codigo_identificacao='567432',
+        codigo_identificacao='967499',
         email='ollyverottoboni@gmail.com'
     )
 
@@ -1288,12 +1288,12 @@ def membro_associacao_presidente_conselho(associacao):
 def membro_associacao_presidente_associacao(associacao):
     return baker.make(
         'MembroAssociacao',
-        nome='Arthur Nobrega',
+        nome='Arthur Nobrega Silva',
         associacao=associacao,
         cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value,
         cargo_educacao='Coordenador',
         representacao=RepresentacaoCargo.SERVIDOR.value,
-        codigo_identificacao='567432',
+        codigo_identificacao='567411',
         email='ollyverottoboni@gmail.com'
     )
 

@@ -62,6 +62,44 @@ def test_consulta_codigo_identificacao_rf(jwt_authenticated_client):
         assert result == data
 
 
+def test_consulta_nome_responsavel(jwt_authenticated_client):
+    nome = 'Eren Jeager'
+    response = jwt_authenticated_client.get(f'/api/membros-associacao/nome-responsavel/?nome={nome}')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == {'detail': 'Pode ser cadastrado.'}
+
+
+def test_consulta_codigo_identificacao_rf_com_membro_ja_cadastrado(jwt_authenticated_client, membro_associacao):
+    rf = membro_associacao.codigo_identificacao
+    response = jwt_authenticated_client.get(f'/api/membros-associacao/codigo-identificacao/?rf={rf}')
+    result = response.json()
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result == {"detail": "Membro já cadastrado."}
+
+
+def test_consulta_codigo_eol_com_membro_ja_cadastrado(jwt_authenticated_client, membro_associacao):
+
+    cod_eol = membro_associacao.codigo_identificacao
+    response = jwt_authenticated_client.get(f'/api/membros-associacao/codigo-identificacao/?codigo-eol={cod_eol}')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result == {"detail": "Membro já cadastrado."}
+
+
+def test_consulta_nome_responsavel_com_membro_ja_cadastrado(jwt_authenticated_client, membro_associacao):
+
+    nome = membro_associacao.nome
+    response = jwt_authenticated_client.get(f'/api/membros-associacao/nome-responsavel/?nome={nome}')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result == {"detail": "Membro já cadastrado."}
+
+
 def test_consulta_codigo_identificacao_sem_rf(jwt_authenticated_client):
     response = jwt_authenticated_client.get(f'/api/membros-associacao/codigo-identificacao/?rf=')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
