@@ -22,10 +22,10 @@ def prestacao_conta_recebida(periodo, associacao):
     )
 
 
-def test_api_analisar_prestacao_conta(client, prestacao_conta_recebida):
+def test_api_analisar_prestacao_conta(jwt_authenticated_client, prestacao_conta_recebida):
     url = f'/api/prestacoes-contas/{prestacao_conta_recebida.uuid}/analisar/'
 
-    response = client.patch(url, content_type='application/json')
+    response = jwt_authenticated_client.patch(url, content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -44,11 +44,11 @@ def prestacao_conta_aprovada(periodo, associacao):
     )
 
 
-def test_api_analisar_prestacao_conta_nao_pode_aceitar_status_diferente_de_recebida(client,
+def test_api_analisar_prestacao_conta_nao_pode_aceitar_status_diferente_de_recebida(jwt_authenticated_client,
                                                                                     prestacao_conta_aprovada):
     url = f'/api/prestacoes-contas/{prestacao_conta_aprovada.uuid}/analisar/'
 
-    response = client.patch(url, content_type='application/json')
+    response = jwt_authenticated_client.patch(url, content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 

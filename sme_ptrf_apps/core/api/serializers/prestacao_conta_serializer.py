@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
 from sme_ptrf_apps.core.models import PrestacaoConta
-from sme_ptrf_apps.core.api.serializers import AssociacaoCompletoSerializer, DevolucaoPrestacaoContaRetrieveSerializer
+from sme_ptrf_apps.core.api.serializers import (AssociacaoCompletoSerializer, DevolucaoPrestacaoContaRetrieveSerializer,
+                                                AnaliseContaPrestacaoContaRetrieveSerializer)
 from sme_ptrf_apps.core.services.processos_services import get_processo_sei_da_prestacao
 
 
@@ -70,6 +71,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     devolucoes_da_prestacao = DevolucaoPrestacaoContaRetrieveSerializer(many=True)
     processo_sei = serializers.SerializerMethodField('get_processo_sei')
     devolucao_ao_tesouro = serializers.SerializerMethodField('get_devolucao_ao_tesouro')
+    analises_de_conta_da_prestacao = AnaliseContaPrestacaoContaRetrieveSerializer(many=True)
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
@@ -81,8 +83,8 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     def get_devolucao_ao_tesouro(self, obj):
         return '999,99' if obj.devolucao_tesouro else 'Não'
 
-
     class Meta:
         model = PrestacaoConta
         fields = ('uuid', 'status', 'associacao', 'periodo_uuid', 'tecnico_responsavel', 'data_recebimento',
-                  'devolucoes_da_prestacao', 'processo_sei', 'data_ultima_analise', 'devolucao_ao_tesouro')
+                  'devolucoes_da_prestacao', 'processo_sei', 'data_ultima_analise', 'devolucao_ao_tesouro',
+                  'analises_de_conta_da_prestacao', 'ressalvas_aprovacao')

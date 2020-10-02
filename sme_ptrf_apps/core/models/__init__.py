@@ -22,3 +22,4 @@ from .relacao_bens import RelacaoBens
 from .tag import Tag
 from .tipo_conta import TipoConta
 from .devolucao_prestacao_conta import DevolucaoPrestacaoConta
+from .analise_conta_prestacao_conta import AnaliseContaPrestacaoConta

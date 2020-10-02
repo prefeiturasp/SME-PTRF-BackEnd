@@ -86,7 +86,7 @@ def request_factory() -> RequestFactory:
 @pytest.fixture
 def tipo_conta():
     return baker.make(
-        'TipoConta', 
+        'TipoConta',
         nome='Cheque',
         banco_nome='Banco do Inter',
         agencia='67945',
@@ -404,7 +404,8 @@ def prestacao_conta(periodo, associacao):
         associacao=associacao,
         data_recebimento=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
-        devolucao_tesouro=True
+        devolucao_tesouro=True,
+        ressalvas_aprovacao='Texto ressalva'
     )
 
 
@@ -1423,4 +1424,15 @@ def devolucao_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada):
         prestacao_conta=prestacao_conta_2020_1_conciliada,
         data=date(2020, 7, 1),
         data_limite_ue=date(2020, 8, 1),
+    )
+
+
+@pytest.fixture
+def analise_conta_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, conta_associacao_cheque):
+    return baker.make(
+        'AnaliseContaPrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        conta_associacao=conta_associacao_cheque,
+        data_extrato=date(2020, 7, 1),
+        saldo_extrato=100.00,
     )

@@ -1,5 +1,7 @@
 import logging
 
+from datetime import date
+
 from django.db import models
 from django.db import transaction
 
@@ -7,6 +9,7 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.dre.models import Atribuicao
 
 logger = logging.getLogger(__name__)
+
 
 class PrestacaoConta(ModeloBase):
     # Status Choice
@@ -59,6 +62,8 @@ class PrestacaoConta(ModeloBase):
     data_ultima_analise = models.DateField('data da última análise pela DRE', blank=True, null=True)
 
     devolucao_tesouro = models.BooleanField('há devolução ao tesouro', blank=True, null=True, default=False)
+
+    ressalvas_aprovacao = models.TextField('Ressalvas na aprovação pela DRE', blank=True, default='')
 
     @property
     def tecnico_responsavel(self):
@@ -115,6 +120,60 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
+    @transaction.atomic
+    def salvar_analise(self, devolucao_tesouro, analises_de_conta_da_prestacao, resultado_analise=None,
+                       ressalvas_aprovacao=''):
+        from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
+        from ..models.conta_associacao import ContaAssociacao
+
+        self.devolucao_tesouro = devolucao_tesouro
+        self.data_ultima_analise = date.today()
+
+        if resultado_analise:
+            self.status = resultado_analise
+
+        self.ressalvas_aprovacao = ressalvas_aprovacao
+
+        self.save()
+
+        self.analises_de_conta_da_prestacao.all().delete()
+        for analise in analises_de_conta_da_prestacao:
+            conta_associacao = ContaAssociacao.by_uuid(analise['conta_associacao'])
+            AnaliseContaPrestacaoConta.objects.create(
+                prestacao_conta=self,
+                conta_associacao=conta_associacao,
+                data_extrato=analise['data_extrato'],
+                saldo_extrato=analise['saldo_extrato']
+            )
+
+        return self
+
+    @transaction.atomic
+    def devolver(self, data_limite_ue):
+        from ..models import DevolucaoPrestacaoConta
+        DevolucaoPrestacaoConta.objects.create(
+            prestacao_conta=self,
+            data=date.today(),
+            data_limite_ue=data_limite_ue
+        )
+        self.apaga_fechamentos()
+        self.apaga_relacao_bens()
+        self.apaga_demonstrativos_financeiros()
+        return self
+
+    @transaction.atomic
+    def concluir_analise(self, resultado_analise, devolucao_tesouro, analises_de_conta_da_prestacao,
+                         ressalvas_aprovacao, data_limite_ue):
+        prestacao_atualizada = self.salvar_analise(resultado_analise=resultado_analise,
+                                                   devolucao_tesouro=devolucao_tesouro,
+                                                   analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
+                                                   ressalvas_aprovacao=ressalvas_aprovacao)
+
+        if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
+            prestacao_atualizada = prestacao_atualizada.devolver(data_limite_ue=data_limite_ue)
+
+        return prestacao_atualizada
+
     @classmethod
     @transaction.atomic
     def reabrir(cls, uuid):
@@ -131,16 +190,6 @@ class PrestacaoConta(ModeloBase):
             logger.error(f'Houve algum erro ao tentar apagar a PC de uuid {uuid}.')
             return False
 
-    @classmethod
-    @transaction.atomic
-    def devolver(cls, uuid):
-        prestacao_de_conta = cls.by_uuid(uuid=uuid)
-        prestacao_de_conta.status = cls.STATUS_DEVOLVIDA
-        prestacao_de_conta.save()
-        prestacao_de_conta.apaga_fechamentos()
-        prestacao_de_conta.apaga_relacao_bens()
-        prestacao_de_conta.apaga_demonstrativos_financeiros()
-        return prestacao_de_conta
 
     @classmethod
     def abrir(cls, periodo, associacao):

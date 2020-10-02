@@ -22,14 +22,14 @@ def prestacao_conta_nao_recebida(periodo, associacao):
     )
 
 
-def test_api_recebe_prestacao_conta(client, prestacao_conta_nao_recebida):
+def test_api_recebe_prestacao_conta(jwt_authenticated_client, prestacao_conta_nao_recebida):
     payload = {
         'data_recebimento': '2020-10-01',
     }
 
     url = f'/api/prestacoes-contas/{prestacao_conta_nao_recebida.uuid}/receber/'
 
-    response = client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -38,11 +38,10 @@ def test_api_recebe_prestacao_conta(client, prestacao_conta_nao_recebida):
     assert prestacao_atualizada.data_recebimento == date(2020, 10, 1), 'Data de recebimento não atualizada.'
 
 
-def test_api_recebe_prestacao_conta_exige_data_recebimento(client, prestacao_conta_nao_recebida):
-
+def test_api_recebe_prestacao_conta_exige_data_recebimento(jwt_authenticated_client, prestacao_conta_nao_recebida):
     url = f'/api/prestacoes-contas/{prestacao_conta_nao_recebida.uuid}/receber/'
 
-    response = client.patch(url, content_type='application/json')
+    response = jwt_authenticated_client.patch(url, content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -50,7 +49,7 @@ def test_api_recebe_prestacao_conta_exige_data_recebimento(client, prestacao_con
 
     result_esperado = {
         'uuid': f'{prestacao_conta_nao_recebida.uuid}',
-        'erro':'falta_de_informacoes',
+        'erro': 'falta_de_informacoes',
         'operacao': 'receber',
         'mensagem': 'Faltou informar a data de recebimento da Prestação de Contas.'
     }
@@ -72,7 +71,7 @@ def prestacao_conta_em_analise(periodo, associacao):
     )
 
 
-def test_api_recebe_prestacao_conta_nao_pode_aceitar_status_diferente_de_nao_recebida(client,
+def test_api_recebe_prestacao_conta_nao_pode_aceitar_status_diferente_de_nao_recebida(jwt_authenticated_client,
                                                                                       prestacao_conta_em_analise):
     payload = {
         'data_recebimento': '2020-10-01',
@@ -80,7 +79,7 @@ def test_api_recebe_prestacao_conta_nao_pode_aceitar_status_diferente_de_nao_rec
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/receber/'
 
-    response = client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -88,7 +87,7 @@ def test_api_recebe_prestacao_conta_nao_pode_aceitar_status_diferente_de_nao_rec
 
     result_esperado = {
         'uuid': f'{prestacao_conta_em_analise.uuid}',
-        'erro':'status_nao_permite_operacao',
+        'erro': 'status_nao_permite_operacao',
         'status': PrestacaoConta.STATUS_EM_ANALISE,
         'operacao': 'receber',
         'mensagem': 'Você não pode receber uma prestação de contas com status diferente de NAO_RECEBIDA.'
