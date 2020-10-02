@@ -381,7 +381,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-
         prestacao_salva = prestacao_conta.concluir_analise(
             resultado_analise=resultado_analise,
             devolucao_tesouro=devolucao_tesouro,
@@ -391,6 +390,26 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         )
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
+                        status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['patch'], url_path='desfazer-conclusao-analise')
+    def desfazer_conclusao_analise(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        if prestacao_conta.status not in [PrestacaoConta.STATUS_APROVADA, PrestacaoConta.STATUS_APROVADA_RESSALVA,
+                                          PrestacaoConta.STATUS_REPROVADA]:
+            response = {
+                'uuid': f'{prestacao_conta.uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'desfazer-conclusao-analise',
+                'mensagem': 'Impossível desfazer conclusão de análise de uma PC com status diferente de APROVADA, APROVADA_RESSALVA ou REPROVADA.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_atualizada = prestacao_conta.desfazer_conclusao_analise()
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
                         status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])

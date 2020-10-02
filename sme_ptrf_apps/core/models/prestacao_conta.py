@@ -174,6 +174,12 @@ class PrestacaoConta(ModeloBase):
 
         return prestacao_atualizada
 
+    def desfazer_conclusao_analise(self):
+        self.ressalvas_aprovacao = ''
+        self.status = self.STATUS_EM_ANALISE
+        self.save()
+        return self
+
     @classmethod
     @transaction.atomic
     def reabrir(cls, uuid):
