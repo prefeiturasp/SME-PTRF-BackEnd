@@ -30,7 +30,6 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
         else:
             return MembroAssociacaoCreateSerializer
 
-
     def get_queryset(self):
         associacao_uuid = self.request.query_params.get('associacao_uuid')
         if associacao_uuid is None:
@@ -43,7 +42,6 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
         qs = MembroAssociacao.objects.filter(associacao__uuid=associacao_uuid)
 
         return qs
-
 
     @action(detail=False, methods=['get'], url_path='codigo-identificacao')
     def consulta_codigo_identificacao(self, request):
@@ -59,9 +57,11 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
 
         try:
             if codigo_eol:
+                self.membro_ja_cadastrado(**{"codigo_identificacao__iexact": codigo_eol})
                 result = TerceirizadasService.get_informacao_aluno(codigo_eol)
                 return Response(result)
             else:
+                self.membro_ja_cadastrado(**{"codigo_identificacao__iexact": rf})
                 result = TerceirizadasService.get_informacao_servidor(rf)
                 return Response(result)
         except TerceirizadasException as e:
@@ -70,3 +70,25 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
         except ConnectTimeout:
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='nome-responsavel')
+    def consulta_nome_responsavel(self, request):
+        nome = self.request.query_params.get('nome')
+
+        if not nome:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o nome do responsável.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            self.membro_ja_cadastrado(**{"nome__iexact": nome})
+
+            return Response({'detail': "Pode ser cadastrado."}, status.HTTP_200_OK)
+        except TerceirizadasException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def membro_ja_cadastrado(self, **kwargs):
+        if MembroAssociacao.objects.filter(**kwargs).exists():
+            raise TerceirizadasException('Membro já cadastrado.')

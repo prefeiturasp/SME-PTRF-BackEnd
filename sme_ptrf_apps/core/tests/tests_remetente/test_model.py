@@ -27,11 +27,6 @@ def test_srt_model(remetente):
     assert str(remetente) == 'SME'
 
 
-def test_meta_modelo(remetente):
-    assert remetente._meta.verbose_name == 'Remetente'
-    assert remetente._meta.verbose_name_plural == 'Remetentes'
-
-
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[Remetente]

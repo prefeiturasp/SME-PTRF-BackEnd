@@ -27,11 +27,6 @@ def test_srt_model(categoria):
     assert str(categoria) == 'Prestações de conta'
 
 
-def test_meta_modelo(categoria):
-    assert categoria._meta.verbose_name == 'Categoria'
-    assert categoria._meta.verbose_name_plural == 'Categorias'
-
-
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[Categoria]

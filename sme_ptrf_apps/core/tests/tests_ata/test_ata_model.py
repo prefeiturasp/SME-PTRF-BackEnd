@@ -34,11 +34,6 @@ def test_srt_model(ata_2020_1_cheque_aprovada):
     assert ata_2020_1_cheque_aprovada.__str__() == 'Ata 2020.1 - Apresentação - 2020-07-01'
 
 
-def test_meta_modelo(ata_2020_1_cheque_aprovada):
-    assert ata_2020_1_cheque_aprovada._meta.verbose_name == 'Ata'
-    assert ata_2020_1_cheque_aprovada._meta.verbose_name_plural == 'Atas'
-
-
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[Ata]

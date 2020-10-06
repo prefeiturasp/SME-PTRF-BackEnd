@@ -11,7 +11,7 @@ class TipoReceita(ModeloIdNome):
     aceita_custeio = models.BooleanField('Aceita custeio?', default=False)
     aceita_livre = models.BooleanField('Aceita livre aplicação?', default=False)
 
-    tipos_conta = models.ManyToManyField(TipoConta, blank=True, null=True)
+    tipos_conta = models.ManyToManyField(TipoConta, blank=True)
 
     class Meta:
         verbose_name = 'Tipo de receita'

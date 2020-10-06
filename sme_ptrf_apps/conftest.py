@@ -85,7 +85,13 @@ def request_factory() -> RequestFactory:
 
 @pytest.fixture
 def tipo_conta():
-    return baker.make('TipoConta', nome='Cheque')
+    return baker.make(
+        'TipoConta',
+        nome='Cheque',
+        banco_nome='Banco do Inter',
+        agencia='67945',
+        numero_conta='935556-x',
+        numero_cartao='987644164221')
 
 
 @pytest.fixture
@@ -398,7 +404,8 @@ def prestacao_conta(periodo, associacao):
         associacao=associacao,
         data_recebimento=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
-        devolucao_tesouro=True
+        devolucao_tesouro=True,
+        ressalvas_aprovacao='Texto ressalva'
     )
 
 
@@ -1268,12 +1275,12 @@ def membro_associacao(associacao):
 def membro_associacao_presidente_conselho(associacao):
     return baker.make(
         'MembroAssociacao',
-        nome='Arthur Nobrega',
+        nome='Arthur Nobrega Junior',
         associacao=associacao,
         cargo_associacao=MembroEnum.PRESIDENTE_CONSELHO_FISCAL.value,
         cargo_educacao='Coordenador',
         representacao=RepresentacaoCargo.SERVIDOR.value,
-        codigo_identificacao='567432',
+        codigo_identificacao='967499',
         email='ollyverottoboni@gmail.com'
     )
 
@@ -1282,12 +1289,12 @@ def membro_associacao_presidente_conselho(associacao):
 def membro_associacao_presidente_associacao(associacao):
     return baker.make(
         'MembroAssociacao',
-        nome='Arthur Nobrega',
+        nome='Arthur Nobrega Silva',
         associacao=associacao,
         cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value,
         cargo_educacao='Coordenador',
         representacao=RepresentacaoCargo.SERVIDOR.value,
-        codigo_identificacao='567432',
+        codigo_identificacao='567411',
         email='ollyverottoboni@gmail.com'
     )
 
@@ -1391,10 +1398,41 @@ def cobranca_prestacao_recebimento(prestacao_conta_2020_1_conciliada):
     )
 
 @pytest.fixture
+def cobranca_prestacao_devolucao(prestacao_conta_2020_1_conciliada, devolucao_prestacao_conta_2020_1):
+    return baker.make(
+        'CobrancaPrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        tipo='DEVOLUCAO',
+        data=date(2020, 7, 1),
+        devolucao_prestacao=devolucao_prestacao_conta_2020_1
+    )
+
+@pytest.fixture
 def cobranca_prestacao_devolucao(prestacao_conta_2020_1_conciliada):
     return baker.make(
         'CobrancaPrestacaoConta',
         prestacao_conta=prestacao_conta_2020_1_conciliada,
         tipo='DEVOLUCAO',
         data=date(2020, 7, 1),
+    )
+
+
+@pytest.fixture
+def devolucao_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada):
+    return baker.make(
+        'DevolucaoPrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        data=date(2020, 7, 1),
+        data_limite_ue=date(2020, 8, 1),
+    )
+
+
+@pytest.fixture
+def analise_conta_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, conta_associacao_cheque):
+    return baker.make(
+        'AnaliseContaPrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        conta_associacao=conta_associacao_cheque,
+        data_extrato=date(2020, 7, 1),
+        saldo_extrato=100.00,
     )

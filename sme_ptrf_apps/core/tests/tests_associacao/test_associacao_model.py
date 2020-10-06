@@ -28,11 +28,6 @@ def test_srt_model(associacao):
     assert associacao.__str__() == 'Escola Teste'
 
 
-def test_meta_modelo(associacao):
-    assert associacao._meta.verbose_name == 'Associação'
-    assert associacao._meta.verbose_name_plural == 'Associações'
-
-
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[Associacao]
