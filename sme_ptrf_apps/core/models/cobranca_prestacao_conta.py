@@ -46,5 +46,5 @@ class CobrancaPrestacaoConta(ModeloBase):
 @receiver(pre_save, sender=CobrancaPrestacaoConta)
 def cobranca_pre_save(instance, **kwargs):
     if instance.tipo == TIPO_DEVOLUCAO and instance.prestacao_conta:
-        ultima_devolucao = instance.prestacao_conta.devolucoes_da_prestacao.order_by('-data').first()
+        ultima_devolucao = instance.prestacao_conta.devolucoes_da_prestacao.order_by('-id').first()
         instance.devolucao_prestacao = ultima_devolucao

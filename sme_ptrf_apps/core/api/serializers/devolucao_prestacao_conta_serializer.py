@@ -15,4 +15,5 @@ class DevolucaoPrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DevolucaoPrestacaoConta
+        order_by = 'id'
         fields = ('uuid', 'prestacao_conta', 'data', 'data_limite_ue', 'cobrancas_da_devolucao')
