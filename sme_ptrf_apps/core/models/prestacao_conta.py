@@ -199,11 +199,14 @@ class PrestacaoConta(ModeloBase):
 
     @classmethod
     def abrir(cls, periodo, associacao):
-        prestacao_de_conta = PrestacaoConta.objects.create(
-            periodo=periodo,
-            associacao=associacao,
-            status=cls.STATUS_DOCS_PENDENTES
-        )
+        prestacao_de_conta = cls.by_periodo(associacao=associacao, periodo=periodo)
+
+        if not prestacao_de_conta:
+            prestacao_de_conta = PrestacaoConta.objects.create(
+                periodo=periodo,
+                associacao=associacao,
+                status=cls.STATUS_DOCS_PENDENTES
+            )
         return prestacao_de_conta
 
     @classmethod
