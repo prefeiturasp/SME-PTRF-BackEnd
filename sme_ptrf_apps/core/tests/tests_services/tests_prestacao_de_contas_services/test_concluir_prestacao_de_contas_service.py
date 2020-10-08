@@ -256,4 +256,4 @@ def test_relacoes_de_bens_devem_ser_criadas_por_conta(associacao,
                                                       rateio_despesa_2019_role_conferido,
                                                       acao_associacao_ptrf):
     prestacao = concluir_prestacao_de_contas(associacao=associacao, periodo=periodo_2020_1)
-    assert prestacao.relacoes_de_bens_da_prestacao.count() == 2, "Deveriam ter sido criados dois, 2 contas."
+    assert prestacao.relacoes_de_bens_da_prestacao.count() == 1, "Deveriam ter sido criados uma, 1 conta."
