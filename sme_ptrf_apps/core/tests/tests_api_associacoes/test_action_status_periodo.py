@@ -1,8 +1,13 @@
 import json
-
 import pytest
+
+from datetime import date
+
 from freezegun import freeze_time
+from model_bakery import baker
 from rest_framework import status
+
+from ...models import PrestacaoConta
 
 pytestmark = pytest.mark.django_db
 
@@ -117,3 +122,43 @@ def test_status_periodo_finalizado(client, associacao, prestacao_conta_2020_1_co
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
 
+
+
+@pytest.fixture
+def _prestacao_conta_devolvida(periodo, associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo,
+        associacao=associacao,
+        data_recebimento=date(2020, 10, 1),
+        data_ultima_analise=date(2020, 10, 1),
+        status=PrestacaoConta.STATUS_DEVOLVIDA
+    )
+
+
+@freeze_time('2020-07-10 10:20:00')
+def test_status_periodo_devolvido_para_acertos(client, associacao, _prestacao_conta_devolvida):
+    periodo = _prestacao_conta_devolvida.periodo
+
+    response = client.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo.data_inicio_realizacao_despesas}',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'associacao': f'{associacao.uuid}',
+        'periodo_referencia': periodo.referencia,
+        'aceita_alteracoes': True,
+        'prestacao_contas_status': {
+            'documentos_gerados': False,
+            'legenda_cor': 3,
+            'periodo_bloqueado': False,
+            'periodo_encerrado': True,
+            'status_prestacao': 'DEVOLVIDA',
+            'texto_status': 'Período finalizado. Prestação de contas devolvida para ajustes.',
+        },
+        'prestacao_conta': f'{_prestacao_conta_devolvida.uuid}',
+
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
