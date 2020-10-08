@@ -1,5 +1,6 @@
 from ..models import Associacao, Periodo, PrestacaoConta
 
+
 def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     '''
     Status Período	Status Documentos PC	Status PC na DRE	Parte Período	        Parte Prestação de Contas	                    Exibe Cadeado	Cor
@@ -56,12 +57,15 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
             mensagem_prestacao = ''
             cor = LEGENDA_COR[STATUS_PERIODO_EM_ANDAMENTO]
 
+    periodo_bloqueado = True if prestacao and prestacao.status != PrestacaoConta.STATUS_DEVOLVIDA else False
+
     status = {
         'periodo_encerrado': periodo.encerrado,
-        'documentos_gerados': prestacao and prestacao.status != PrestacaoConta.STATUS_DOCS_PENDENTES,
+        'documentos_gerados': prestacao and prestacao.status not in (
+        PrestacaoConta.STATUS_DOCS_PENDENTES, PrestacaoConta.STATUS_DEVOLVIDA),
         'status_prestacao': prestacao.status if prestacao else PrestacaoConta.STATUS_DOCS_PENDENTES,
         'texto_status': mensagem_periodo + ' ' + mensagem_prestacao,
-        'periodo_bloqueado': prestacao is not None,
+        'periodo_bloqueado': periodo_bloqueado,
         'legenda_cor': cor
     }
 
