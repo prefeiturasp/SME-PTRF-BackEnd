@@ -25,6 +25,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         PrestacaoConta.STATUS_EM_ANALISE: 'Prestação de contas em análise pela DRE.',
         PrestacaoConta.STATUS_DEVOLVIDA: 'Prestação de contas devolvida para ajustes.',
         PrestacaoConta.STATUS_APROVADA: 'Prestação de contas aprovada pela DRE.',
+        PrestacaoConta.STATUS_APROVADA_RESSALVA: 'Prestação de contas aprovada com ressalvas pela DRE.',
         PrestacaoConta.STATUS_REPROVADA: 'Prestação de contas reprovada pela DRE.'
     }
 
@@ -37,6 +38,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         PrestacaoConta.STATUS_EM_ANALISE: 4,
         PrestacaoConta.STATUS_DEVOLVIDA: 3,
         PrestacaoConta.STATUS_APROVADA: 5,
+        PrestacaoConta.STATUS_APROVADA_RESSALVA: 5,
         PrestacaoConta.STATUS_REPROVADA: 3
     }
 
