@@ -21,7 +21,7 @@ class ObservacaoConciliacao(ModeloBase):
 
     class Meta:
         verbose_name = 'observação de conciliação'
-        verbose_name_plural = 'observações de conciliação'
+        verbose_name_plural = '09.5) Observações de conciliação'
 
     def __str__(self):
         return self.texto[:30]

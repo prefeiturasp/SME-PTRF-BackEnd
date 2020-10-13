@@ -24,7 +24,6 @@ def test_serializer(ata_prestacao_conta_iniciada):
     assert serializer.data['prestacao_conta']
     assert serializer.data['periodo']
     assert serializer.data['associacao']
-    assert serializer.data['conta_associacao']
     assert serializer.data['tipo_ata']
     assert serializer.data['tipo_reuniao']
     assert serializer.data['convocacao']

@@ -53,18 +53,15 @@ class Ata(ModeloBase):
     # Parecer Choice
     PARECER_APROVADA = 'APROVADA'
     PARECER_REJEITADA = 'REJEITADA'
-    PARECER_RESSALVAS = 'RESSALVAS'
 
     PARECER_NOMES = {
         PARECER_APROVADA: 'Aprovada',
         PARECER_REJEITADA: 'Rejeitada',
-        PARECER_RESSALVAS: 'Aprovada com ressalvas'
     }
 
     PARECER_CHOICES = (
         (PARECER_APROVADA, PARECER_NOMES[PARECER_APROVADA]),
         (PARECER_REJEITADA, PARECER_NOMES[PARECER_REJEITADA]),
-        (PARECER_RESSALVAS, PARECER_NOMES[PARECER_RESSALVAS]),
     )
 
     prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE, related_name='atas_da_prestacao')
@@ -72,8 +69,6 @@ class Ata(ModeloBase):
     periodo = models.ForeignKey('Periodo', on_delete=models.PROTECT, related_name='+')
 
     associacao = models.ForeignKey('Associacao', on_delete=models.PROTECT, related_name='atas_da_associacao')
-
-    conta_associacao = models.ForeignKey('ContaAssociacao', on_delete=models.PROTECT, related_name='atas_da_conta')
 
     tipo_ata = models.CharField(
         'tipo de ata',
@@ -129,17 +124,16 @@ class Ata(ModeloBase):
     def iniciar(cls, prestacao_conta):
         return Ata.objects.create(
             prestacao_conta=prestacao_conta,
-            conta_associacao=prestacao_conta.conta_associacao,
             periodo=prestacao_conta.periodo,
             associacao=prestacao_conta.associacao,
         )
 
     def __str__(self):
-        return f"Ata {self.periodo.referencia} - {self.conta_associacao.tipo_conta.nome} - {self.tipo_reuniao}"
+        return f"Ata {self.periodo.referencia} - {self.ATA_NOMES[self.tipo_ata]} - {self.data_reuniao}"
 
     class Meta:
         verbose_name = "Ata"
-        verbose_name_plural = "Atas"
+        verbose_name_plural = "09.4) Atas"
 
 
 @receiver(pre_save, sender=Ata)

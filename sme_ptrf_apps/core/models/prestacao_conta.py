@@ -1,7 +1,14 @@
+import logging
+
+from datetime import date
+
 from django.db import models
 from django.db import transaction
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.dre.models import Atribuicao
+
+logger = logging.getLogger(__name__)
 
 
 class PrestacaoConta(ModeloBase):
@@ -12,6 +19,7 @@ class PrestacaoConta(ModeloBase):
     STATUS_EM_ANALISE = 'EM_ANALISE'
     STATUS_DEVOLVIDA = 'DEVOLVIDA'
     STATUS_APROVADA = 'APROVADA'
+    STATUS_APROVADA_RESSALVA = 'APROVADA_RESSALVA'
     STATUS_REPROVADA = 'REPROVADA'
 
     STATUS_NOMES = {
@@ -21,6 +29,7 @@ class PrestacaoConta(ModeloBase):
         STATUS_EM_ANALISE: 'Em análise',
         STATUS_DEVOLVIDA: 'Devolvida para acertos',
         STATUS_APROVADA: 'Aprovada',
+        STATUS_APROVADA_RESSALVA: 'Aprovada com ressalvas',
         STATUS_REPROVADA: 'Reprovada'
     }
 
@@ -31,6 +40,7 @@ class PrestacaoConta(ModeloBase):
         (STATUS_EM_ANALISE, STATUS_NOMES[STATUS_EM_ANALISE]),
         (STATUS_DEVOLVIDA, STATUS_NOMES[STATUS_DEVOLVIDA]),
         (STATUS_APROVADA, STATUS_NOMES[STATUS_APROVADA]),
+        (STATUS_APROVADA_RESSALVA, STATUS_NOMES[STATUS_APROVADA_RESSALVA]),
         (STATUS_REPROVADA, STATUS_NOMES[STATUS_REPROVADA]),
     )
 
@@ -42,10 +52,27 @@ class PrestacaoConta(ModeloBase):
 
     status = models.CharField(
         'status',
-        max_length=15,
+        max_length=20,
         choices=STATUS_CHOICES,
         default=STATUS_DOCS_PENDENTES
     )
+
+    data_recebimento = models.DateField('data de recebimento pela DRE', blank=True, null=True)
+
+    data_ultima_analise = models.DateField('data da última análise pela DRE', blank=True, null=True)
+
+    devolucao_tesouro = models.BooleanField('há devolução ao tesouro', blank=True, null=True, default=False)
+
+    ressalvas_aprovacao = models.TextField('Ressalvas na aprovação pela DRE', blank=True, default='')
+
+    @property
+    def tecnico_responsavel(self):
+        atribuicoes = Atribuicao.search(
+            **{'unidade__uuid': self.associacao.unidade.uuid, 'periodo__uuid': self.periodo.uuid})
+        if atribuicoes.exists():
+            return atribuicoes.first().tecnico
+        else:
+            return None
 
     def __str__(self):
         return f"{self.periodo} - {self.status}"
@@ -70,32 +97,157 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
+    def receber(self, data_recebimento):
+        self.data_recebimento = data_recebimento
+        self.status = self.STATUS_RECEBIDA
+        self.save()
+        return self
+
+    def desfazer_recebimento(self):
+        self.data_recebimento = None
+        self.status = self.STATUS_NAO_RECEBIDA
+        self.save()
+        return self
+
+    def analisar(self):
+        self.status = self.STATUS_EM_ANALISE
+        self.save()
+        return self
+
+    def desfazer_analise(self):
+        self.data_ultima_analise = None
+        self.status = self.STATUS_RECEBIDA
+        self.save()
+        return self
+
+    @transaction.atomic
+    def salvar_analise(self, devolucao_tesouro, analises_de_conta_da_prestacao, resultado_analise=None,
+                       ressalvas_aprovacao=''):
+        from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
+        from ..models.conta_associacao import ContaAssociacao
+
+        self.devolucao_tesouro = devolucao_tesouro
+        self.data_ultima_analise = date.today()
+
+        if resultado_analise:
+            self.status = resultado_analise
+
+        self.ressalvas_aprovacao = ressalvas_aprovacao
+
+        self.save()
+
+        self.analises_de_conta_da_prestacao.all().delete()
+        for analise in analises_de_conta_da_prestacao:
+            conta_associacao = ContaAssociacao.by_uuid(analise['conta_associacao'])
+            AnaliseContaPrestacaoConta.objects.create(
+                prestacao_conta=self,
+                conta_associacao=conta_associacao,
+                data_extrato=analise['data_extrato'],
+                saldo_extrato=analise['saldo_extrato']
+            )
+
+        return self
+
+    @transaction.atomic
+    def devolver(self, data_limite_ue):
+        from ..models import DevolucaoPrestacaoConta
+        DevolucaoPrestacaoConta.objects.create(
+            prestacao_conta=self,
+            data=date.today(),
+            data_limite_ue=data_limite_ue
+        )
+        self.apaga_fechamentos()
+        self.apaga_relacao_bens()
+        self.apaga_demonstrativos_financeiros()
+        return self
+
+    @transaction.atomic
+    def concluir_analise(self, resultado_analise, devolucao_tesouro, analises_de_conta_da_prestacao,
+                         ressalvas_aprovacao, data_limite_ue):
+        prestacao_atualizada = self.salvar_analise(resultado_analise=resultado_analise,
+                                                   devolucao_tesouro=devolucao_tesouro,
+                                                   analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
+                                                   ressalvas_aprovacao=ressalvas_aprovacao)
+
+        if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
+            prestacao_atualizada = prestacao_atualizada.devolver(data_limite_ue=data_limite_ue)
+
+        return prestacao_atualizada
+
+    def desfazer_conclusao_analise(self):
+        self.ressalvas_aprovacao = ''
+        self.status = self.STATUS_EM_ANALISE
+        self.save()
+        return self
+
     @classmethod
     @transaction.atomic
     def reabrir(cls, uuid):
-        prestacao_de_conta = cls.by_uuid(uuid=uuid)
-        prestacao_de_conta.status = cls.STATUS_DEVOLVIDA
-        prestacao_de_conta.save()
-        prestacao_de_conta.apaga_fechamentos()
-        prestacao_de_conta.apaga_relacao_bens()
-        prestacao_de_conta.apaga_demonstrativos_financeiros()
-        return prestacao_de_conta
+        logger.info(f'Apagando a prestação de contas de uuid {uuid}.')
+        try:
+            prestacao_de_conta = cls.by_uuid(uuid=uuid)
+            prestacao_de_conta.apaga_fechamentos()
+            prestacao_de_conta.apaga_relacao_bens()
+            prestacao_de_conta.apaga_demonstrativos_financeiros()
+            prestacao_de_conta.delete()
+            logger.info(f'Prestação de contas de uuid {uuid} foi apagada.')
+            return True
+        except:
+            logger.error(f'Houve algum erro ao tentar apagar a PC de uuid {uuid}.')
+            return False
+
 
     @classmethod
     def abrir(cls, periodo, associacao):
-        prestacao_de_conta = PrestacaoConta.objects.create(
-            periodo=periodo,
-            associacao=associacao,
-            status=cls.STATUS_DOCS_PENDENTES
-        )
+        prestacao_de_conta = cls.by_periodo(associacao=associacao, periodo=periodo)
+
+        if not prestacao_de_conta:
+            prestacao_de_conta = PrestacaoConta.objects.create(
+                periodo=periodo,
+                associacao=associacao,
+                status=cls.STATUS_DOCS_PENDENTES
+            )
         return prestacao_de_conta
 
     @classmethod
     def by_periodo(cls, associacao, periodo):
         return cls.objects.filter(associacao=associacao, periodo=periodo).first()
 
+    @classmethod
+    def dashboard(cls, periodo_uuid, dre_uuid):
+        titulos_por_status = {
+            cls.STATUS_NAO_RECEBIDA: "Prestações de contas não recebidas",
+            cls.STATUS_RECEBIDA: "Prestações de contas recebidas aguardando análise",
+            cls.STATUS_EM_ANALISE: "Prestações de contas em análise",
+            cls.STATUS_DEVOLVIDA: "Prestações de conta devolvidas para acertos",
+            cls.STATUS_APROVADA: "Prestações de contas aprovadas",
+            cls.STATUS_REPROVADA: "Prestações de contas reprovadas",
+        }
+
+        cards = []
+        qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid)
+        for status, titulo in titulos_por_status.items():
+            card = {
+                "titulo": titulo,
+                "quantidade_prestacoes": qs.filter(status=status).count(),
+                "status": status
+            }
+            cards.append(card)
+
+        return cards
+
+    @classmethod
+    def status_to_json(cls):
+        result = []
+        for choice in cls.STATUS_CHOICES:
+            status = {
+                'id': choice[0],
+                'nome': choice[1]
+            }
+            result.append(status)
+        return result
 
     class Meta:
         verbose_name = "Prestação de conta"
-        verbose_name_plural = "Prestações de contas"
+        verbose_name_plural = "09.0) Prestações de contas"
         unique_together = ['associacao', 'periodo']

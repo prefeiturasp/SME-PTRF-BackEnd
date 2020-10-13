@@ -23,11 +23,6 @@ def test_srt_model(acao_associacao):
     assert acao_associacao.__str__() == 'Escola Teste - Ação PTRF - Ativa'
 
 
-def test_meta_modelo(acao_associacao):
-    assert acao_associacao._meta.verbose_name == 'Ação de Associação'
-    assert acao_associacao._meta.verbose_name_plural == 'Ações de Associações'
-
-
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[AcaoAssociacao]

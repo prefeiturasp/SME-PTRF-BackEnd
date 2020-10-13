@@ -57,3 +57,19 @@ def test_previa_relacao_bens_sem_data_inicio_e_data_fim(jwt_authenticated_client
         'mensagem': 'É necessário enviar o uuid do período o uuid da conta da associação e as datas de inicio e fim do período.'}
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result == esperado
+
+
+def test_relacoes_info_sem_bens_adquiridos(jwt_authenticated_client, periodo, conta_associacao):
+    url = f"/api/relacao-bens/relacao-bens-info/?conta-associacao={conta_associacao.uuid}&periodo={periodo.uuid}"
+    response = jwt_authenticated_client.get(url)
+    result = response.json()
+
+    assert result == "Não houve bem adquirido ou produzido no referido período."
+
+
+def test_relacoes_info_documento_pendente_geracao(jwt_authenticated_client, periodo, conta_associacao, rateio_despesa_demonstrativo):
+    url = f"/api/relacao-bens/relacao-bens-info/?conta-associacao={conta_associacao.uuid}&periodo={periodo.uuid}"
+    response = jwt_authenticated_client.get(url)
+    result = response.json()
+
+    assert result == "Documento pendente de geração"

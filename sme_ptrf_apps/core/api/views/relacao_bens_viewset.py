@@ -1,5 +1,5 @@
-from io import BytesIO
 from datetime import datetime
+from io import BytesIO
 
 from django.http import HttpResponse
 from openpyxl.writer.excel import save_virtual_workbook
@@ -16,6 +16,8 @@ from sme_ptrf_apps.core.models import (
     PrestacaoConta,
     RelacaoBens,
 )
+from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL
+from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.core.services.relacao_bens import gerar
 
 
@@ -37,7 +39,7 @@ class RelacaoBensViewSet(GenericViewSet):
                 'mensagem': 'É necessário enviar o uuid do período o uuid da conta da associação e as datas de inicio e fim do período.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        
+
         if datetime.strptime(data_fim, "%Y-%m-%d") < datetime.strptime(data_inicio, "%Y-%m-%d"):
             erro = {
                 'erro': 'erro_nas_datas',
@@ -107,15 +109,25 @@ class RelacaoBensViewSet(GenericViewSet):
     def relacao_bens_info(self, request):
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
+        periodo = Periodo.by_uuid(periodo_uuid)
         conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
         prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao, periodo__uuid=periodo_uuid).first()
         relacao_bens = RelacaoBens.objects.filter(conta_associacao__uuid=conta_associacao_uuid, prestacao_conta=prestacao_conta).first()
 
-        msg = str(relacao_bens) if relacao_bens else 'Documento pendente de geração'
+        msg = ""
+        if not relacao_bens:
+            rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
+                conta_associacao=conta_associacao, periodo=periodo, aplicacao_recurso=APLICACAO_CAPITAL)
+            if rateios:
+                msg = 'Documento pendente de geração'
+            else:
+                msg = "Não houve bem adquirido ou produzido no referido período."
+        else:
+            msg = str(relacao_bens)
+
         return Response(msg)
 
     def _gerar_planilha(self, periodo, conta_associacao_uuid, previa=False):
-        #TODO Remover quando retirar a geração da relação de bens do viewset
         conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
 
         xlsx = gerar(periodo, conta_associacao, previa=previa)

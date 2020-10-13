@@ -1,7 +1,6 @@
 from django.contrib import admin
 
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
-
 from .models import (
     Acao,
     AcaoAssociacao,
@@ -24,7 +23,10 @@ from .models import (
     TipoNotificacao,
     Unidade,
     Categoria,
-    Notificacao
+    Notificacao,
+    CobrancaPrestacaoConta,
+    DevolucaoPrestacaoConta,
+    AnaliseContaPrestacaoConta
 )
 
 admin.site.register(TipoConta)
@@ -162,11 +164,6 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
 @admin.register(Ata)
 class AtaAdmin(admin.ModelAdmin):
 
-    def get_nome_conta(self, obj):
-        return obj.conta_associacao.tipo_conta.nome if obj and obj.conta_associacao else ''
-
-    get_nome_conta.short_description = 'Conta'
-
     def get_eol_unidade(self, obj):
         return obj.associacao.unidade.codigo_eol if obj and obj.associacao and obj.associacao.unidade else ''
 
@@ -178,11 +175,11 @@ class AtaAdmin(admin.ModelAdmin):
     get_referencia_periodo.short_description = 'Período'
 
     list_display = (
-        'get_eol_unidade', 'get_referencia_periodo', 'get_nome_conta', 'data_reuniao', 'tipo_ata', 'tipo_reuniao',
+        'get_eol_unidade', 'get_referencia_periodo', 'data_reuniao', 'tipo_ata', 'tipo_reuniao',
         'convocacao',
         'parecer_conselho')
     list_filter = (
-        'parecer_conselho', 'tipo_ata', 'tipo_reuniao', 'convocacao', 'associacao', 'conta_associacao__tipo_conta')
+        'parecer_conselho', 'tipo_ata', 'tipo_reuniao', 'convocacao', 'associacao')
     list_display_links = ('get_eol_unidade',)
     readonly_fields = ('uuid', id)
     search_fields = ('associacao__unidade__codigo_eol',)
@@ -239,3 +236,69 @@ class NotificacaoAdmin(admin.ModelAdmin):
     list_display = ("uuid", "titulo", "remetente", "categoria", "tipo", "hora")
     readonly_fields = ('uuid', 'id')
     list_filter = ("remetente", "categoria", "tipo")
+
+
+@admin.register(CobrancaPrestacaoConta)
+class CobrancaPrestacaoContaAdmin(admin.ModelAdmin):
+
+    def get_associacao(self, obj):
+        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''
+
+    get_associacao.short_description = 'Associação'
+
+    def get_referencia_periodo(self, obj):
+        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
+
+    get_referencia_periodo.short_description = 'Período'
+
+    list_display = (
+        'get_associacao', 'get_referencia_periodo', 'data', 'tipo')
+    list_filter = ('tipo', 'prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
+    list_display_links = ('get_associacao',)
+    readonly_fields = ('uuid', id)
+    search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
+                     'prestacao_conta__associacao__nome')
+
+
+@admin.register(DevolucaoPrestacaoConta)
+class DevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
+
+    def get_associacao(self, obj):
+        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''
+
+    get_associacao.short_description = 'Associação'
+
+    def get_referencia_periodo(self, obj):
+        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
+
+    get_referencia_periodo.short_description = 'Período'
+
+    list_display = (
+        'get_associacao', 'get_referencia_periodo', 'data', 'data_limite_ue')
+    list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
+    list_display_links = ('get_associacao',)
+    readonly_fields = ('uuid', id)
+    search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
+                     'prestacao_conta__associacao__nome')
+
+
+@admin.register(AnaliseContaPrestacaoConta)
+class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
+
+    def get_associacao(self, obj):
+        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''
+
+    get_associacao.short_description = 'Associação'
+
+    def get_referencia_periodo(self, obj):
+        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
+
+    get_referencia_periodo.short_description = 'Período'
+
+    list_display = (
+        'get_associacao', 'get_referencia_periodo', 'data_extrato', 'saldo_extrato')
+    list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
+    list_display_links = ('get_associacao',)
+    readonly_fields = ('uuid', id)
+    search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
+                     'prestacao_conta__associacao__nome')

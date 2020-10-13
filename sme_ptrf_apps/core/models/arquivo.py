@@ -38,7 +38,7 @@ class Arquivo(ModeloBase):
 
     class Meta:
         verbose_name = "arquivo de carga"
-        verbose_name_plural = "arquivos de carga"
+        verbose_name_plural = "02.0) Arquivos de carga"
 
     def __str__(self):
         return self.identificador

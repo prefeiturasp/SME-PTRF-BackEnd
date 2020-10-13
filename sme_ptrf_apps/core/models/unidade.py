@@ -1,8 +1,13 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from ..models_abstracts import TemNome, ModeloBase
 from .validators import cnpj_validation
+from ..models_abstracts import TemNome, ModeloBase
+
+
+class DresManager(models.Manager):
+    def get_queryset(self):
+        return super(DresManager, self).get_queryset().filter(tipo_unidade='DRE')
 
 
 class Unidade(ModeloBase, TemNome):
@@ -57,6 +62,9 @@ class Unidade(ModeloBase, TemNome):
 
     dre_designacao_ano = models.CharField('Designação ano', max_length=10, blank=True, default='')
 
+    objects = models.Manager()  # Manager Padrão
+    dres = DresManager()
+
     def __str__(self):
         return self.nome
 
@@ -77,4 +85,4 @@ class Unidade(ModeloBase, TemNome):
 
     class Meta:
         verbose_name = 'Unidade'
-        verbose_name_plural = 'Unidades'
+        verbose_name_plural = '06.0) Unidades'

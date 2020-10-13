@@ -5,4 +5,4 @@ class TipoNotificacao(ModeloIdNome):
 
     class Meta:
         verbose_name = "Tipo de notificação"
-        verbose_name_plural = "Tipos de notificação"
+        verbose_name_plural = "05.1) Tipos de notificação"

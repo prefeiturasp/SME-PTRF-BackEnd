@@ -22,13 +22,17 @@ def test_instance_model(conta_associacao):
     assert model.numero_cartao
 
 
+def test_criacao_modelo_com_valores_default(associacao, tipo_conta):
+    conta = ContaAssociacao.objects.create(associacao=associacao, tipo_conta=tipo_conta, banco_nome="Banco BRB")
+
+    assert conta.banco_nome == 'Banco BRB'
+    assert conta.agencia == '67945'
+    assert conta.numero_conta == '935556-x'
+    assert conta.numero_cartao == '987644164221'
+
+
 def test_srt_model(conta_associacao):
     assert conta_associacao.__str__() == 'Escola Teste - Conta Cheque - Ativa'
-
-
-def test_meta_modelo(conta_associacao):
-    assert conta_associacao._meta.verbose_name == 'Conta de Associação'
-    assert conta_associacao._meta.verbose_name_plural == 'Contas de Associações'
 
 
 def test_admin():

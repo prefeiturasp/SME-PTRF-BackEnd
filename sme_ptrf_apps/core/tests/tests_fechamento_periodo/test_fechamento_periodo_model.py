@@ -50,11 +50,6 @@ def test_srt_model(fechamento_periodo):
     assert fechamento_periodo.__str__() == '2019.2 - 2019-09-01 a 2019-11-30 - PTRF - Cheque  - FECHADO'
 
 
-def test_meta_modelo(fechamento_periodo):
-    assert fechamento_periodo._meta.verbose_name == 'Fechamento de período'
-    assert fechamento_periodo._meta.verbose_name_plural == 'Fechamentos de períodos'
-
-
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[FechamentoPeriodo]

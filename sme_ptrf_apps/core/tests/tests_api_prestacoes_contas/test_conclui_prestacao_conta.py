@@ -65,22 +65,3 @@ def test_api_conclui_prestacao_conta_sem_associacao(client, periodo, associacao)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result == result_esperado
 
-#TODO Rever situação de conclusão da PC quando a PC já existe (Não é Nova).
-def test_api_conclui_prestacao_conta_ja_existente(client, prestacao_conta):
-    associacao_uuid = prestacao_conta.associacao.uuid
-    periodo_uuid = prestacao_conta.periodo.uuid
-
-    url = f'/api/prestacoes-contas/concluir/?associacao_uuid={associacao_uuid}&periodo_uuid={periodo_uuid}'
-
-
-    response = client.post(url, content_type='application/json')
-
-    result = json.loads(response.content)
-
-    result_esperado = {
-        'erro': 'prestacao_ja_iniciada',
-        'mensagem': 'Você não pode iniciar uma prestação de contas que já foi iniciada.'
-    }
-
-    assert response.status_code == status.HTTP_409_CONFLICT
-    assert result == result_esperado

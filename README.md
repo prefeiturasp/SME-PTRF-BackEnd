@@ -5,10 +5,24 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.0.0
+Versão: 1.1.0
 
 
 ## Release Notes
+
+### 1.1.0 - 09/10/2020 - Entregas da Sprint 10
+* Parametrização de tipos de crédito por conta
+* Ata consolidada por prestação de contas (todos as contas)
+* Excluida opção de aprovação com ressalva de uma ata
+* Uso de campos default na criação de uma conta
+* Mensagem de tempo de transação não demonstrada na conciliação agora é em meses
+* Validação de cadastros repetidos de membros da Associação
+* O cadastro de crédito agora só confirma a saida da edição se tiver ocorrido alguma alteração
+* Relação de bens agora só é gerada quando há aquisição de bens no período
+* Dashboard da DRE para acompanhamento de prestações de contas
+* Lista de prestações de contas por status
+* Workflow de acompanhamento de prestações de contas pela DRE
+* 🐞 Correção de alguns bugs.
 
 ### 1.0.0 - 15/09/2020 - Entregas da Sprint 9
 * Entrada em produção (Piloto com algumas Associações)

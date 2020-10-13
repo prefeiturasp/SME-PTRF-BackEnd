@@ -54,10 +54,6 @@ def test_api_get_atas_tabelas(client, ata_2020_1_cheque_aprovada):
             {
                 'id': Ata.PARECER_REJEITADA,
                 'nome': Ata.PARECER_NOMES[Ata.PARECER_REJEITADA]
-            },
-            {
-                'id': Ata.PARECER_RESSALVAS,
-                'nome': Ata.PARECER_NOMES[Ata.PARECER_RESSALVAS]
             }
         ]
     }

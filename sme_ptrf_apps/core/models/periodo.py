@@ -51,7 +51,7 @@ class Periodo(ModeloBase):
 
     class Meta:
         verbose_name = "Período"
-        verbose_name_plural = "Períodos"
+        verbose_name_plural = "08.0) Períodos"
 
 
 class PeriodoPrevia:

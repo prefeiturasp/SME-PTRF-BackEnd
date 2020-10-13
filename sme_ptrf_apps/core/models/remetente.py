@@ -5,4 +5,4 @@ class Remetente(ModeloIdNome):
 
     class Meta:
         verbose_name = "Remetente"
-        verbose_name_plural = "Remetentes"
+        verbose_name_plural = "05.2) Remetentes de notificações"

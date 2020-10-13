@@ -1,23 +1,4 @@
 from ..models import Associacao, Periodo, PrestacaoConta
-from ..status_periodo_associacao import (STATUS_PERIODO_ASSOCIACAO_EM_ANDAMENTO, STATUS_PERIODO_ASSOCIACAO_PENDENTE,
-                                         STATUS_PERIODO_ASSOCIACAO_CONCILIADO)
-
-
-def status_periodo_associacao(periodo_uuid, associacao_uuid):
-    #TODO Mantido para compatibilidade. Remover quando o painel da associação for alterado para o novo status.
-    periodo = Periodo.by_uuid(periodo_uuid)
-    associacao = Associacao.by_uuid(associacao_uuid)
-
-    if periodo.encerrado:
-        status = STATUS_PERIODO_ASSOCIACAO_PENDENTE
-    else:
-        status = STATUS_PERIODO_ASSOCIACAO_EM_ANDAMENTO
-
-    prestacoes_de_conta = PrestacaoConta.objects.filter(associacao=associacao, periodo=periodo)
-    if prestacoes_de_conta.exists():
-        status = STATUS_PERIODO_ASSOCIACAO_CONCILIADO
-
-    return status
 
 
 def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
@@ -44,6 +25,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         PrestacaoConta.STATUS_EM_ANALISE: 'Prestação de contas em análise pela DRE.',
         PrestacaoConta.STATUS_DEVOLVIDA: 'Prestação de contas devolvida para ajustes.',
         PrestacaoConta.STATUS_APROVADA: 'Prestação de contas aprovada pela DRE.',
+        PrestacaoConta.STATUS_APROVADA_RESSALVA: 'Prestação de contas aprovada com ressalvas pela DRE.',
         PrestacaoConta.STATUS_REPROVADA: 'Prestação de contas reprovada pela DRE.'
     }
 
@@ -56,6 +38,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         PrestacaoConta.STATUS_EM_ANALISE: 4,
         PrestacaoConta.STATUS_DEVOLVIDA: 3,
         PrestacaoConta.STATUS_APROVADA: 5,
+        PrestacaoConta.STATUS_APROVADA_RESSALVA: 5,
         PrestacaoConta.STATUS_REPROVADA: 3
     }
 
@@ -76,12 +59,15 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
             mensagem_prestacao = ''
             cor = LEGENDA_COR[STATUS_PERIODO_EM_ANDAMENTO]
 
+    periodo_bloqueado = True if prestacao and prestacao.status != PrestacaoConta.STATUS_DEVOLVIDA else False
+
     status = {
         'periodo_encerrado': periodo.encerrado,
-        'documentos_gerados': prestacao and prestacao.status != PrestacaoConta.STATUS_DOCS_PENDENTES,
+        'documentos_gerados': prestacao and prestacao.status not in (
+        PrestacaoConta.STATUS_DOCS_PENDENTES, PrestacaoConta.STATUS_DEVOLVIDA),
         'status_prestacao': prestacao.status if prestacao else PrestacaoConta.STATUS_DOCS_PENDENTES,
         'texto_status': mensagem_periodo + ' ' + mensagem_prestacao,
-        'periodo_bloqueado': prestacao is not None,
+        'periodo_bloqueado': periodo_bloqueado,
         'legenda_cor': cor
     }
 

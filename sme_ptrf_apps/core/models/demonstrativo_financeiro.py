@@ -7,10 +7,10 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 class DemonstrativoFinanceiro(ModeloBase):
     arquivo = models.FileField(blank=True, null=True)
-    
+
     conta_associacao = models.ForeignKey('ContaAssociacao', on_delete=models.PROTECT,
                                          related_name='demonstrativos_financeiros', blank=True, null=True)
-    
+
     prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE,
                                         related_name='demonstrativos_da_prestacao', blank=True, null=True)
 
@@ -18,7 +18,7 @@ class DemonstrativoFinanceiro(ModeloBase):
                                         related_name='demonstrativos_financeiros', blank=True, null=True)
     class Meta:
         verbose_name = 'Demonstrativo Financeiro'
-        verbose_name_plural = 'Demonstrativos Financeiros'
+        verbose_name_plural = '09.2) Demonstrativos Financeiros'
 
     def __str__(self):
         return f"Documento gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"

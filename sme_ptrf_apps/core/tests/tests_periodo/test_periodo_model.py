@@ -24,11 +24,6 @@ def test_srt_model(periodo):
     assert periodo.__str__() == '2019.2 - 2019-09-01 a 2019-11-30'
 
 
-def test_meta_modelo(periodo):
-    assert periodo._meta.verbose_name == 'Período'
-    assert periodo._meta.verbose_name_plural == 'Períodos'
-
-
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[Periodo]

@@ -1,7 +1,7 @@
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
-
+from sme_ptrf_apps.core.models import TipoConta
 
 class TipoReceita(ModeloIdNome):
     e_repasse = models.BooleanField("É repasse?", default=False)
@@ -10,6 +10,8 @@ class TipoReceita(ModeloIdNome):
     aceita_capital = models.BooleanField('Aceita capital?', default=False)
     aceita_custeio = models.BooleanField('Aceita custeio?', default=False)
     aceita_livre = models.BooleanField('Aceita livre aplicação?', default=False)
+
+    tipos_conta = models.ManyToManyField(TipoConta, blank=True)
 
     class Meta:
         verbose_name = 'Tipo de receita'

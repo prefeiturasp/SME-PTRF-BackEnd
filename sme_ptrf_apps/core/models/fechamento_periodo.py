@@ -277,7 +277,7 @@ class FechamentoPeriodo(ModeloBase):
 
     class Meta:
         verbose_name = "Fechamento de período"
-        verbose_name_plural = "Fechamentos de períodos"
+        verbose_name_plural = "09.1) Fechamentos de períodos"
 
 
 @receiver(pre_save, sender=FechamentoPeriodo)
