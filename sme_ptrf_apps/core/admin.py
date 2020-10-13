@@ -26,7 +26,8 @@ from .models import (
     Notificacao,
     CobrancaPrestacaoConta,
     DevolucaoPrestacaoConta,
-    AnaliseContaPrestacaoConta
+    AnaliseContaPrestacaoConta,
+    TipoDevolucaoAoTesouro
 )
 
 admin.site.register(TipoConta)
@@ -302,3 +303,10 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', id)
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
+
+
+@admin.register(TipoDevolucaoAoTesouro)
+class TipoDevolucaoTesouroAdmin(admin.ModelAdmin):
+    list_display = ['uuid', 'nome']
+    search_fields = ['nome']
+    list_filter = ['nome',]
