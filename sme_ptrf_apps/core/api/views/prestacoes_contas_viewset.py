@@ -352,6 +352,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
+        devolucoes_ao_tesouro_da_prestacao = request.data.get('devolucoes_ao_tesouro_da_prestacao', [])
+
         if prestacao_conta.status != PrestacaoConta.STATUS_EM_ANALISE:
             response = {
                 'uuid': f'{uuid}',
@@ -389,7 +391,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             devolucao_tesouro=devolucao_tesouro,
             analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
             ressalvas_aprovacao=ressalvas_aprovacao,
-            data_limite_ue=data_limite_ue
+            data_limite_ue=data_limite_ue,
+            devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao
         )
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,

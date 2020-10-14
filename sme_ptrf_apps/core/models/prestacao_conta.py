@@ -180,11 +180,12 @@ class PrestacaoConta(ModeloBase):
 
     @transaction.atomic
     def concluir_analise(self, resultado_analise, devolucao_tesouro, analises_de_conta_da_prestacao,
-                         ressalvas_aprovacao, data_limite_ue):
+                         ressalvas_aprovacao, data_limite_ue, devolucoes_ao_tesouro_da_prestacao=[]):
         prestacao_atualizada = self.salvar_analise(resultado_analise=resultado_analise,
                                                    devolucao_tesouro=devolucao_tesouro,
                                                    analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
-                                                   ressalvas_aprovacao=ressalvas_aprovacao)
+                                                   ressalvas_aprovacao=ressalvas_aprovacao,
+                                                   devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
 
         if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
             prestacao_atualizada = prestacao_atualizada.devolver(data_limite_ue=data_limite_ue)
