@@ -122,9 +122,12 @@ class PrestacaoConta(ModeloBase):
 
     @transaction.atomic
     def salvar_analise(self, devolucao_tesouro, analises_de_conta_da_prestacao, resultado_analise=None,
-                       ressalvas_aprovacao=''):
+                       ressalvas_aprovacao='', devolucoes_ao_tesouro_da_prestacao=[]):
         from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
+        from ..models.devolucao_ao_tesouro import DevolucaoAoTesouro
         from ..models.conta_associacao import ContaAssociacao
+        from ..models.tipo_devolucao_ao_tesouro import TipoDevolucaoAoTesouro
+        from ...despesas.models.despesa import Despesa
 
         self.devolucao_tesouro = devolucao_tesouro
         self.data_ultima_analise = date.today()
@@ -144,6 +147,20 @@ class PrestacaoConta(ModeloBase):
                 conta_associacao=conta_associacao,
                 data_extrato=analise['data_extrato'],
                 saldo_extrato=analise['saldo_extrato']
+            )
+
+        self.devolucoes_ao_tesouro_da_prestacao.all().delete()
+        for devolucao in devolucoes_ao_tesouro_da_prestacao:
+            tipo_devolucao = TipoDevolucaoAoTesouro.by_uuid(devolucao['tipo'])
+            despesa = Despesa.by_uuid(devolucao['despesa'])
+            DevolucaoAoTesouro.objects.create(
+                prestacao_conta=self,
+                tipo=tipo_devolucao,
+                despesa=despesa,
+                data=devolucao['data'],
+                devolucao_total=devolucao['devolucao_total'],
+                motivo=devolucao['motivo'],
+                valor=devolucao['valor']
             )
 
         return self
