@@ -217,7 +217,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client, prestac
         ],
         'processo_sei': '123456',
         'data_ultima_analise': f'{prestacao_conta.data_ultima_analise}',
-        'devolucao_ao_tesouro': '999,99',
+        'devolucao_ao_tesouro': '100,00',
         'analises_de_conta_da_prestacao': [
             {
                 'conta_associacao': {

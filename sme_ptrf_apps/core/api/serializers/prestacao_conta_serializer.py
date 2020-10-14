@@ -45,9 +45,8 @@ class PrestacaoContaListSerializer(serializers.ModelSerializer):
     def get_tecnico_responsavel(self, obj):
         return obj.tecnico_responsavel.nome if obj.tecnico_responsavel else ''
 
-    # TODO Rever método ao implementar devolução ao tesouro
     def get_devolucao_ao_tesouro(self, obj):
-        return '999,99' if obj.devolucao_tesouro else 'Não'
+        return _str_devolucao_ao_tesouro(obj)
 
     class Meta:
         model = PrestacaoConta
@@ -81,12 +80,15 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     def get_processo_sei(self, obj):
         return get_processo_sei_da_prestacao(prestacao_contas=obj)
 
-    # TODO Rever método ao implementar devolução ao tesouro
     def get_devolucao_ao_tesouro(self, obj):
-        return '999,99' if obj.devolucao_tesouro else 'Não'
+        return _str_devolucao_ao_tesouro(obj)
 
     class Meta:
         model = PrestacaoConta
         fields = ('uuid', 'status', 'associacao', 'periodo_uuid', 'tecnico_responsavel', 'data_recebimento',
                   'devolucoes_da_prestacao', 'processo_sei', 'data_ultima_analise', 'devolucao_ao_tesouro',
                   'analises_de_conta_da_prestacao', 'ressalvas_aprovacao', 'devolucoes_ao_tesouro_da_prestacao')
+
+
+def _str_devolucao_ao_tesouro(obj):
+    return f'{obj.total_devolucao_ao_tesouro:.2f}'.replace('.', ',') if obj.devolucao_tesouro else 'Não'

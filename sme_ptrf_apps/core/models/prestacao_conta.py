@@ -4,6 +4,7 @@ from datetime import date
 
 from django.db import models
 from django.db import transaction
+from django.db.models.aggregates import Sum
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.dre.models import Atribuicao
@@ -73,6 +74,10 @@ class PrestacaoConta(ModeloBase):
             return atribuicoes.first().tecnico
         else:
             return None
+
+    @property
+    def total_devolucao_ao_tesouro(self):
+        return self.devolucoes_ao_tesouro_da_prestacao.all().aggregate(Sum('valor'))['valor__sum'] or 0.00
 
     def __str__(self):
         return f"{self.periodo} - {self.status}"
