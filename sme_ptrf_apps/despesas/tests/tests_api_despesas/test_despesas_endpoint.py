@@ -8,7 +8,7 @@ pytestmark = pytest.mark.django_db
 
 def test_url_authorized(authenticated_client):
     response = authenticated_client.get('/api/despesas/')
-    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    assert response.status_code == status.HTTP_200_OK
 
 
 def test_url_tabelas(associacao, jwt_authenticated_client):
