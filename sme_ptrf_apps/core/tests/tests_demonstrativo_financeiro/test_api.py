@@ -57,3 +57,16 @@ def test_previa_demonstrativo_financeiro_sem_data_inicio_e_data_fim(jwt_authenti
         'mensagem': 'É necessário enviar o uuid da ação da associação o uuid da conta da associação o periodo_uuid e as datas de inicio e fim do período.'}
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result == esperado
+
+
+def test_acoes_demonstrativo_financeiro(jwt_authenticated_client, periodo, conta_associacao, associacao, conta_associacao_cheque, fechamento_periodo):
+    url = f"/api/demonstrativo-financeiro/acoes/?associacao_uuid={associacao.uuid}&conta-associacao={conta_associacao.uuid}&periodo_uuid={periodo.uuid}"
+    response = jwt_authenticated_client.get(url)
+    result_cartao = response.json()
+
+    url = f"/api/demonstrativo-financeiro/acoes/?associacao_uuid={associacao.uuid}&conta-associacao={conta_associacao_cheque.uuid}&periodo_uuid={periodo.uuid}"
+    response = jwt_authenticated_client.get(url)
+    result_cheque = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result_cartao != result_cheque
