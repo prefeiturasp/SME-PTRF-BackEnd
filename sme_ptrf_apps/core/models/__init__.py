@@ -23,3 +23,5 @@ from .tag import Tag
 from .tipo_conta import TipoConta
 from .devolucao_prestacao_conta import DevolucaoPrestacaoConta
 from .analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
+from .tipo_devolucao_ao_tesouro import TipoDevolucaoAoTesouro
+from .devolucao_ao_tesouro import DevolucaoAoTesouro

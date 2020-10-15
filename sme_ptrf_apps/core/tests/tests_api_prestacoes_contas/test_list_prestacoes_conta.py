@@ -170,7 +170,7 @@ def test_api_list_prestacoes_conta_por_periodo_e_dre(client,
             'unidade_nome': 'Andorinha',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '999,99'
+            'devolucao_ao_tesouro': '0,00'
         },
     ]
 
@@ -204,7 +204,7 @@ def test_api_list_prestacoes_conta_por_nome_unidade(client,
             'unidade_nome': 'Andorinha',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '999,99'
+            'devolucao_ao_tesouro': '0,00'
         },
         {
             'periodo_uuid': f'{periodo_2019_2.uuid}',
@@ -253,7 +253,7 @@ def test_api_list_prestacoes_conta_por_nome_associacao(client,
             'unidade_nome': 'Andorinha',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '999,99'
+            'devolucao_ao_tesouro': '0,00'
         },
         {
             'periodo_uuid': f'{periodo_2019_2.uuid}',
@@ -383,7 +383,7 @@ def test_api_list_prestacoes_conta_por_tecnico(client,
             'unidade_nome': 'Andorinha',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '999,99'
+            'devolucao_ao_tesouro': '0,00'
         },
     ]
 
@@ -454,7 +454,7 @@ def test_api_list_prestacoes_conta_por_status_aprovada_e_aprovada_ressalva(clien
             'unidade_nome': 'Andorinha',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '999,99'
+            'devolucao_ao_tesouro': '0,00'
         },
         {
             'periodo_uuid': f'{periodo_2019_2.uuid}',

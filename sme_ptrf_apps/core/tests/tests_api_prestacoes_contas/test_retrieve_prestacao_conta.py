@@ -94,11 +94,47 @@ def _analise_conta_prestacao_conta_2020_1(prestacao_conta, conta_associacao_cheq
     )
 
 
+@pytest.fixture
+def despesa(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        data_transacao=date(2020, 3, 10),
+        valor_total=100.00,
+    )
+
+
+@pytest.fixture
+def tipo_devolucao_ao_tesouro():
+    return baker.make('TipoDevolucaoAoTesouro', nome='Teste')
+
+
+@pytest.fixture
+def devolucao_ao_tesouro(prestacao_conta, tipo_devolucao_ao_tesouro, despesa):
+    return baker.make(
+        'DevolucaoAoTesouro',
+        prestacao_conta=prestacao_conta,
+        tipo=tipo_devolucao_ao_tesouro,
+        data=date(2020, 7, 1),
+        despesa=despesa,
+        devolucao_total=True,
+        valor=100.00,
+        motivo='teste'
+    )
+
+
 def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client, prestacao_conta, prestacao_conta_anterior,
                                                _atribuicao,
                                                _devolucao_prestacao_conta, _cobranca_prestacao_devolucao,
                                                _processo_associacao_prestacao_conta,
-                                               _analise_conta_prestacao_conta_2020_1, conta_associacao_cheque):
+                                               _analise_conta_prestacao_conta_2020_1, conta_associacao_cheque,
+                                               devolucao_ao_tesouro):
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/'
 
     response = jwt_authenticated_client.get(url, content_type='application/json')
@@ -181,7 +217,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client, prestac
         ],
         'processo_sei': '123456',
         'data_ultima_analise': f'{prestacao_conta.data_ultima_analise}',
-        'devolucao_ao_tesouro': '999,99',
+        'devolucao_ao_tesouro': '100,00',
         'analises_de_conta_da_prestacao': [
             {
                 'conta_associacao': {
@@ -200,7 +236,35 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client, prestac
                 'uuid': f'{_analise_conta_prestacao_conta_2020_1.uuid}'
             }
         ],
-        'ressalvas_aprovacao': 'Texto ressalva'
+        'ressalvas_aprovacao': 'Texto ressalva',
+        'devolucoes_ao_tesouro_da_prestacao': [
+            {
+                'data': '2020-07-01',
+                'despesa': {
+                    'associacao': f'{prestacao_conta.associacao.uuid}',
+                    'cpf_cnpj_fornecedor': '11.478.276/0001-04',
+                    'data_documento': '2020-03-10',
+                    'nome_fornecedor': 'Fornecedor '
+                                       'SA',
+                    'numero_documento': '123456',
+                    'tipo_documento': {
+                        'id': devolucao_ao_tesouro.despesa.tipo_documento.id,
+                        'nome': 'NFe'
+                    },
+                    'uuid': f'{devolucao_ao_tesouro.despesa.uuid}',
+                    'valor_ptrf': 100.0,
+                    'valor_total': '100.00'
+                },
+                'devolucao_total': True,
+                'motivo': 'teste',
+                'prestacao_conta': f'{prestacao_conta.uuid}',
+                'tipo': {
+                    'id': devolucao_ao_tesouro.tipo.id, 'nome': 'Teste'
+                },
+                'uuid': f'{devolucao_ao_tesouro.uuid}',
+                'valor': '100.00'
+            }
+        ],
     }
 
     assert response.status_code == status.HTTP_200_OK

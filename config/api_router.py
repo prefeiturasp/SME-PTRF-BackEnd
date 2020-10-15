@@ -19,6 +19,7 @@ from sme_ptrf_apps.core.api.views import (
     NotificacaoViewSet,
     DresViewSet,
     CobrancasPrestacoesContasViewSet,
+    TiposDevolucaoAoTesouroViewSet,
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
@@ -66,6 +67,7 @@ router.register("conciliacoes", ConciliacoesViewSet, basename='conciliacoes')
 router.register("notificacoes", NotificacaoViewSet)
 router.register("dres", DresViewSet)
 router.register("cobrancas-prestacoes-contas", CobrancasPrestacoesContasViewSet)
+router.register("tipos-devolucao-ao-tesouro", TiposDevolucaoAoTesouroViewSet)
 
 app_name = "api"
 urlpatterns = router.urls

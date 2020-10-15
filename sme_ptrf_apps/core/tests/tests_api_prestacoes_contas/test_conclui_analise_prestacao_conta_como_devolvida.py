@@ -22,10 +22,30 @@ def prestacao_conta_em_analise(periodo, associacao):
         status=PrestacaoConta.STATUS_EM_ANALISE
     )
 
+@pytest.fixture
+def despesa(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        data_transacao=date(2020, 3, 10),
+        valor_total=100.00,
+    )
+
+
+@pytest.fixture
+def tipo_devolucao_ao_tesouro():
+    return baker.make('TipoDevolucaoAoTesouro', nome='Teste')
+
 
 @freeze_time('2020-09-01')
 def test_api_conclui_analise_prestacao_conta_devolvida(jwt_authenticated_client, prestacao_conta_em_analise,
-                                                       conta_associacao):
+                                                       conta_associacao, despesa, tipo_devolucao_ao_tesouro):
     payload = {
         'devolucao_tesouro': True,
         'analises_de_conta_da_prestacao': [
@@ -36,7 +56,17 @@ def test_api_conclui_analise_prestacao_conta_devolvida(jwt_authenticated_client,
             },
         ],
         'resultado_analise': PrestacaoConta.STATUS_DEVOLVIDA,
-        'data_limite_ue': '2020-07-21'
+        'data_limite_ue': '2020-07-21',
+        'devolucoes_ao_tesouro_da_prestacao': [
+            {
+                'data': '2020-07-01',
+                'devolucao_total': True,
+                'motivo': 'teste',
+                'valor': 100.00,
+                'tipo': f'{tipo_devolucao_ao_tesouro.uuid}',
+                'despesa': f'{despesa.uuid}'
+            }
+        ]
     }
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
@@ -50,7 +80,7 @@ def test_api_conclui_analise_prestacao_conta_devolvida(jwt_authenticated_client,
     assert prestacao_atualizada.devolucoes_da_prestacao.exists(), 'Não gravou o registro de devolução da PC.'
     assert prestacao_atualizada.devolucoes_da_prestacao.first().data_limite_ue == date(2020, 7,
                                                                                        21), 'Não gravou a data limite.'
-
+    assert prestacao_atualizada.devolucoes_ao_tesouro_da_prestacao.exists(), 'Não gravou as devoluções ao tesouro'
 
 def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_data_limite(jwt_authenticated_client,
                                                                                  prestacao_conta_em_analise,
