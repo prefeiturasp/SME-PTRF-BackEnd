@@ -120,11 +120,12 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         associacao_uuid = request.query_params.get('associacao_uuid')
         periodo_uuid = request.query_params.get('periodo_uuid')
+        conta_associacao_uuid = self.request.query_params.get('conta-associacao')
 
-        if not associacao_uuid or not periodo_uuid:
+        if not conta_associacao_uuid or not associacao_uuid or not periodo_uuid:
             erro = {
                 'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid do período e o uuid da associação.'
+                'mensagem': 'É necessário enviar o uuid do período, uuid da associação e o uuid da conta da associação.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -134,7 +135,9 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         if not periodo:
             periodo = Periodo.periodo_atual()
 
-        info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=associacao_uuid, periodo=periodo)
+        conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
+
+        info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=associacao_uuid, periodo=periodo, conta=conta_associacao)
         result = {
             'info_acoes': [info for info in info_acoes if
                            info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
