@@ -118,11 +118,20 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
         logger.info("Retornando dados do arquivo: %s", demonstrativo_financeiro.arquivo.path)
-        response = HttpResponse(
-            open(demonstrativo_financeiro.arquivo.path, 'rb'),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        
+        try:
+            response = HttpResponse(
+                open(demonstrativo_financeiro.arquivo.path, 'rb'),
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        except Exception as err:
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': str(err)
+            }
+            logger.info("Erro: %s", str(err))
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
         return response
 
