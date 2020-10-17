@@ -79,6 +79,7 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
     @action(detail=False, methods=['get'], url_path='documento-final')
     def documento_final(self, request):
+        logger.info("Download do documento Final.")
         acao_associacao_uuid = self.request.query_params.get('acao-associacao')
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
@@ -90,15 +91,25 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        acao_associacao = AcaoAssociacao.objects.filter(uuid=acao_associacao_uuid).get()
-        conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
-        periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
+        logger.info("Consultando dados da acao_associacao: %s, da conta_associacao: %s e do periodo %s.", acao_associacao_uuid, conta_associacao_uuid, periodo_uuid)
+        try:
+            acao_associacao = AcaoAssociacao.objects.filter(uuid=acao_associacao_uuid).get()
+            conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
+            periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
+        except Exception as err:
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': str(err)
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
+        
         prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao, periodo=periodo).first()
         demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(acao_associacao=acao_associacao,
                                                                           conta_associacao=conta_associacao,
                                                                           prestacao_conta=prestacao_conta).first()
 
+        logger.info("Prestacao de conta: %s, Demonstrativo Financeiro: %s", str(prestacao_conta), str(demonstrativo_financeiro))
         filename = 'demonstrativo_financeiro.xlsx'
         if not demonstrativo_financeiro:
             erro = {
@@ -112,6 +123,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
+        logger.info("Retornando dados do arquivo: %s", demonstrativo_financeiro.arquivo.path)
         return response
 
     @action(detail=False, methods=['get'])
