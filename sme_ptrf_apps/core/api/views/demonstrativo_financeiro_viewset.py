@@ -117,14 +117,13 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
                 'mensagem': 'Não existe um arquivo de demostrativo financeiro para download.'
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
-
+        logger.info("Retornando dados do arquivo: %s", demonstrativo_financeiro.arquivo.path)
         response = HttpResponse(
             open(demonstrativo_financeiro.arquivo.path, 'rb'),
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
 
-        logger.info("Retornando dados do arquivo: %s", demonstrativo_financeiro.arquivo.path)
         return response
 
     @action(detail=False, methods=['get'])
