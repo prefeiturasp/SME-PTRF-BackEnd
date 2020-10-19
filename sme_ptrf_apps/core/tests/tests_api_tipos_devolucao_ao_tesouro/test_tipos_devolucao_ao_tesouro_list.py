@@ -19,7 +19,8 @@ def test_api_list_devolucoes_ao_tesouro(jwt_authenticated_client, tipo_devolucao
     resultado_esperado = [
         {
             'id': tipo_devolucao_ao_tesouro.id,
-            'nome': 'Teste'
+            'nome': 'Teste',
+            'uuid': f'{tipo_devolucao_ao_tesouro.uuid}'
         }
     ]
 

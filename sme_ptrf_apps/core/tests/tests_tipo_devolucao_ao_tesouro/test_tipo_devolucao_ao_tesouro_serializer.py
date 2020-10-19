@@ -17,3 +17,4 @@ def test_serializer(tipo_devolucao_ao_tesouro):
     assert serializer.data is not None
     assert serializer.data['id']
     assert serializer.data['nome']
+    assert serializer.data['uuid']
