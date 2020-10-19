@@ -35,17 +35,3 @@ def test_list_comentarios_analise_prestacao(client, prestacao_conta_2020_1_conci
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado, "Não retornou o resultado esperado"
-
-
-def test_list_comentarios_analise_prestacao_nao_existe(client, prestacao_conta_2020_1_conciliada, comentario_analise_prestacao):
-    uuid_prestacao_inexistemte = comentario_analise_prestacao.uuid
-
-    response = client.get(f'/api/comentarios-de-analise/?prestacao_conta__uuid={uuid_prestacao_inexistemte}',
-                          content_type='application/json')
-
-    result = json.loads(response.content)
-
-    esperado = []
-
-    assert response.status_code == status.HTTP_200_OK
-    assert result == esperado, "Deveria ter retornado uma lista vazia."
