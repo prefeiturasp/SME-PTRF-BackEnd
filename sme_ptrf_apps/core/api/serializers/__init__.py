@@ -27,3 +27,4 @@ from .prestacao_conta_serializer import (PrestacaoContaLookUpSerializer, Prestac
 from .processo_associacao_serializer import ProcessoAssociacaoRetrieveSerializer, ProcessoAssociacaoCreateSerializer
 from .tipo_conta_serializer import TipoContaSerializer
 from .unidade_serializer import UnidadeInfoAtaSerializer, UnidadeLookUpSerializer, UnidadeSerializer
+from .comentario_analise_prestacao_serializer import ComentarioAnalisePrestacaoRetrieveSerializer
