@@ -131,3 +131,21 @@ def test_api_get_despesas_campos(jwt_authenticated_client, associacao, despesa_f
     ]
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado, 'Não retornou o esperado.'
+
+
+def test_api_get_despesas_filtro_por_tipo_documento_id(jwt_authenticated_client, associacao, despesa_fornecedor_a,
+                                                       despesa_fornecedor_b, tipo_documento):
+    url = f'/api/despesas/?tipo_documento__id={tipo_documento.id}'
+    response = jwt_authenticated_client.get(url, content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 2, 'Deve localizar pelo Tipo de documento.'
+
+    response = jwt_authenticated_client.get(
+        f'/api/despesas/?tipo_documento__id=87878',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 0, 'Não deveria ter achado nada'

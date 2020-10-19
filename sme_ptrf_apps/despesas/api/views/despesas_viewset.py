@@ -27,7 +27,8 @@ class DespesasViewSet(mixins.CreateModelMixin,
     queryset = Despesa.objects.all()
     serializer_class = DespesaSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('associacao__uuid', 'cpf_cnpj_fornecedor', 'tipo_documento__uuid', 'numero_documento')
+    filter_fields = (
+    'associacao__uuid', 'cpf_cnpj_fornecedor', 'tipo_documento__uuid', 'numero_documento', 'tipo_documento__id')
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
