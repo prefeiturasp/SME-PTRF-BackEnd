@@ -6,4 +6,4 @@ from ...models import TipoDevolucaoAoTesouro
 class TipoDevolucaoAoTesouroSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoDevolucaoAoTesouro
-        fields = ('id', 'nome')
+        fields = ('id', 'nome', 'uuid')

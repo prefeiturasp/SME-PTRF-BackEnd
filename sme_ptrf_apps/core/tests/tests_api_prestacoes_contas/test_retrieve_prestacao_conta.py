@@ -259,7 +259,9 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client, prestac
                 'motivo': 'teste',
                 'prestacao_conta': f'{prestacao_conta.uuid}',
                 'tipo': {
-                    'id': devolucao_ao_tesouro.tipo.id, 'nome': 'Teste'
+                    'id': devolucao_ao_tesouro.tipo.id,
+                    'nome': 'Teste',
+                    'uuid': f'{devolucao_ao_tesouro.tipo.uuid}',
                 },
                 'uuid': f'{devolucao_ao_tesouro.uuid}',
                 'valor': '100.00'
