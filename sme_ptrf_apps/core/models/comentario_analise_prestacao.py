@@ -1,4 +1,5 @@
 from django.db import models
+from django.db import transaction
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
@@ -13,6 +14,14 @@ class ComentarioAnalisePrestacao(ModeloBase):
 
     def __str__(self):
         return f"{self.ordem} - {self.comentario}"
+
+    @classmethod
+    @transaction.atomic
+    def reordenar_comentarios(cls, novas_ordens_comentarios):
+        for nova_ordem in novas_ordens_comentarios:
+            comentario = cls.by_uuid(nova_ordem['uuid'])
+            comentario.ordem = nova_ordem['ordem']
+            comentario.save()
 
     class Meta:
         verbose_name = "Observação de análise de prestação de contas"
