@@ -2,18 +2,19 @@ import logging
 
 from django.db.models import Sum
 from django_filters import rest_framework as filters
-from rest_framework import mixins
-from rest_framework import status
+from rest_framework import mixins, status
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework.permissions import AllowAny
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ..serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
-from ...models import RateioDespesa
-from ....core.models import Periodo, Parametros, Associacao
+from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+
+from ....core.models import Associacao, Parametros, Periodo
 from ....core.services import saldos_insuficientes_para_rateios
+from ...models import RateioDespesa
+from ..serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
     lookup_field = 'uuid'
     queryset = RateioDespesa.objects.all().order_by('-despesa__data_documento')
     serializer_class = RateioDespesaListaSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated & PermissaoCRUD]
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data_documento',)
     filter_fields = ('aplicacao_recurso', 'acao_associacao__uuid', 'despesa__status', 'associacao__uuid', 'conferido')

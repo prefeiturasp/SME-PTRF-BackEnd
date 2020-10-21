@@ -1,30 +1,37 @@
 import datetime
 
 import pytest
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
 from model_bakery import baker
 
-from ..tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
+from ..tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 
 @pytest.fixture
 def tipo_documento():
     return baker.make('TipoDocumento', nome='NFe', apenas_digitos=False, numero_documento_digitado=False)
 
+
 @pytest.fixture
 def tipo_documento_numero_documento_digitado():
     return baker.make('TipoDocumento', nome='NFe', apenas_digitos=False, numero_documento_digitado=True)
+
 
 @pytest.fixture
 def tipo_transacao():
     return baker.make('TipoTransacao', nome='Boleto')
 
+
 @pytest.fixture
 def tipo_transacao_cheque_com_documento():
     return baker.make('TipoTransacao', nome='Cheque', tem_documento=True)
 
+
 @pytest.fixture
 def tipo_transacao_boleto_sem_documento():
     return baker.make('TipoTransacao', nome='Boleto', tem_documento=False)
+
 
 @pytest.fixture
 def tipo_aplicacao_recurso():
@@ -147,6 +154,7 @@ def despesa_cheque_com_documento_transacao(associacao, tipo_documento, tipo_tran
         valor_recursos_proprios=10.00,
     )
 
+
 @pytest.fixture
 def despesa_cheque_sem_documento_transacao(associacao, tipo_documento, tipo_transacao_cheque_com_documento):
     return baker.make(
@@ -164,6 +172,7 @@ def despesa_cheque_sem_documento_transacao(associacao, tipo_documento, tipo_tran
         valor_recursos_proprios=10.00,
     )
 
+
 @pytest.fixture
 def despesa_boleto_sem_documento_transacao(associacao, tipo_documento, tipo_transacao_boleto_sem_documento):
     return baker.make(
@@ -180,6 +189,7 @@ def despesa_boleto_sem_documento_transacao(associacao, tipo_documento, tipo_tran
         valor_total=100.00,
         valor_recursos_proprios=10.00,
     )
+
 
 @pytest.fixture
 def rateio_despesa_capital(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso, tipo_custeio,
@@ -243,6 +253,7 @@ def rateio_despesa_material_eletrico_role_cultural(associacao, despesa, conta_as
 
     )
 
+
 @pytest.fixture
 def rateio_despesa_ar_condicionado_ptrf(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso_capital,
                                         especificacao_ar_condicionado, acao_associacao_ptrf):
@@ -262,17 +273,21 @@ def rateio_despesa_ar_condicionado_ptrf(associacao, despesa, conta_associacao, a
 
     )
 
+
 @pytest.fixture
 def rateio_despesa_conferido(rateio_despesa_instalacao_eletrica_ptrf):
     return rateio_despesa_instalacao_eletrica_ptrf
+
 
 @pytest.fixture
 def rateio_despesa_nao_conferido(rateio_despesa_material_eletrico_role_cultural):
     return rateio_despesa_material_eletrico_role_cultural
 
+
 @pytest.fixture
 def rateio_despesa_nao_conferido2(rateio_despesa_ar_condicionado_ptrf):
     return rateio_despesa_ar_condicionado_ptrf
+
 
 @pytest.fixture
 def fornecedor_jose():
@@ -282,3 +297,117 @@ def fornecedor_jose():
 @pytest.fixture
 def fornecedor_industrias_teste():
     return baker.make('Fornecedor', nome='Indústrias Teste', cpf_cnpj='80.554.237/0001-53')
+
+
+@pytest.fixture
+def permissoes_despesa():
+    permissoes = [
+        Permission.objects.filter(codename='add_despesa').first(),
+        Permission.objects.filter(codename='view_despesa').first(),
+        Permission.objects.filter(codename='change_despesa').first(),
+        Permission.objects.filter(codename='delete_despesa').first()
+    ]
+
+    return permissoes
+
+@pytest.fixture
+def permissoes_rateios():
+    permissoes = [
+        Permission.objects.filter(codename='add_rateiodespesa').first(),
+        Permission.objects.filter(codename='view_rateiodespesa').first(),
+        Permission.objects.filter(codename='change_rateiodespesa').first(),
+        Permission.objects.filter(codename='delete_rateiodespesa').first()
+    ]
+
+    return permissoes
+
+@pytest.fixture
+def grupo_despesa(permissoes_despesa, permissoes_rateios):
+    g = Group.objects.create(name="despesa")
+    g.permissions.add(*permissoes_despesa, *permissoes_rateios)
+    return g
+
+
+@pytest.fixture
+def usuario_permissao_despesa(unidade, grupo_despesa):
+    from django.contrib.auth import get_user_model
+    senha = 'Sgp0418'
+    login = '7210418'
+    email = 'sme@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(unidade)
+    user.groups.add(grupo_despesa)
+    user.save()
+    return user
+
+
+@pytest.fixture
+def jwt_authenticated_client_d(client, usuario_permissao_despesa):
+    from unittest.mock import patch
+
+    from rest_framework.test import APIClient
+    api_client = APIClient()
+    with patch('sme_ptrf_apps.users.api.views.login.AutenticacaoService.autentica') as mock_post:
+        data = {
+            "nome": "LUCIA HELENA",
+            "cpf": "62085077072",
+            "email": "luh@gmail.com",
+            "login": "7210418"
+        }
+        mock_post.return_value.ok = True
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = data
+        resp = api_client.post('/api/login', {'login': usuario_permissao_despesa.username,
+                                              'senha': usuario_permissao_despesa.password}, format='json')
+        resp_data = resp.json()
+        api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
+    return api_client
+
+
+
+@pytest.fixture
+def grupo_sem_permissao_criar_receita():
+    content_type = ContentType.objects.filter(model='despesa').first()
+    g = Group.objects.create(name="despesa")
+    g.permissions.add(
+        Permission.objects.create(codename='algo_despesa', name='Can Algo', content_type=content_type)
+    )
+    return g
+
+
+@pytest.fixture
+def usuario_sem_permissao(unidade, grupo_sem_permissao_criar_receita):
+    from django.contrib.auth import get_user_model
+    senha = 'Sgp0418'
+    login = '7210418'
+    email = 'sme@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(unidade)
+    user.groups.add(grupo_sem_permissao_criar_receita)
+    user.save()
+    return user
+
+
+@pytest.fixture
+def jwt_authenticated_client_sem_permissao(client, usuario_sem_permissao):
+    from unittest.mock import patch
+
+    from rest_framework.test import APIClient
+    api_client = APIClient()
+    with patch('sme_ptrf_apps.users.api.views.login.AutenticacaoService.autentica') as mock_post:
+        data = {
+            "nome": "LUCIA HELENA",
+            "cpf": "62085077072",
+            "email": "luh@gmail.com",
+            "login": "7210418"
+        }
+        mock_post.return_value.ok = True
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = data
+        resp = api_client.post('/api/login', {'login': usuario_sem_permissao.username,
+                                              'senha': usuario_sem_permissao.password}, format='json')
+        resp_data = resp.json()
+        api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
+    return api_client
