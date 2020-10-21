@@ -2,6 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth import admin as auth_admin
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 
 from sme_ptrf_apps.users.forms import UserChangeForm, UserCreationForm
 from sme_ptrf_apps.users.models import Visao
@@ -34,3 +35,4 @@ class UserAdmin(auth_admin.UserAdmin):
     inlines = [UnidadeInline, VisaoInline]
 
 admin.site.register(Visao)
+admin.site.register(Permission)
