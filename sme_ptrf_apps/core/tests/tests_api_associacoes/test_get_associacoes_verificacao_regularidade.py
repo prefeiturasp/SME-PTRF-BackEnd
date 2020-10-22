@@ -45,13 +45,13 @@ def verificacao_regularidade_associacao_documento_cnpj(grupo_verificacao_regular
     )
 
 
-def test_api_get_associacoes_verificacao_regularidade(client, associacao,
+def test_api_get_associacoes_verificacao_regularidade(jwt_authenticated_client_a, associacao,
                                                       grupo_verificacao_regularidade_documentos,
                                                       lista_verificacao_regularidade_documentos_associacao,
                                                       item_verificacao_regularidade_documentos_associacao_cnpj,
                                                       verificacao_regularidade_associacao_documento_cnpj
                                                       ):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/verificacao-regularidade/',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/verificacao-regularidade/',
                           content_type='application/json')
     result = json.loads(response.content)
 

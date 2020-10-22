@@ -9,13 +9,35 @@ from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+
+from ....dre.services import (
+    desmarca_item_verificacao_associacao,
+    desmarca_lista_verificacao_associacao,
+    marca_item_verificacao_associacao,
+    marca_lista_verificacao_associacao,
+    verifica_regularidade_associacao,
+)
+from ...models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade
+from ...services import (
+    atualiza_dados_unidade,
+    gerar_planilha,
+    implanta_saldos_da_associacao,
+    implantacoes_de_saldo_da_associacao,
+    info_painel_acoes_por_periodo_e_conta,
+    status_prestacao_conta_associacao,
+)
 from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
-from ..serializers.associacao_serializer import (AssociacaoCreateSerializer, AssociacaoSerializer,
-                                                 AssociacaoListSerializer, AssociacaoCompletoSerializer)
+from ..serializers.associacao_serializer import (
+    AssociacaoCompletoSerializer,
+    AssociacaoCreateSerializer,
+    AssociacaoListSerializer,
+    AssociacaoSerializer,
+)
 from ..serializers.conta_associacao_serializer import (
     ContaAssociacaoCreateSerializer,
     ContaAssociacaoDadosSerializer,
@@ -23,22 +45,6 @@ from ..serializers.conta_associacao_serializer import (
 )
 from ..serializers.periodo_serializer import PeriodoLookUpSerializer
 from ..serializers.processo_associacao_serializer import ProcessoAssociacaoRetrieveSerializer
-from ...models import Associacao, ContaAssociacao, Periodo, Unidade, PrestacaoConta
-from ...services import (
-    implanta_saldos_da_associacao,
-    implantacoes_de_saldo_da_associacao,
-    status_prestacao_conta_associacao,
-    gerar_planilha,
-    info_painel_acoes_por_periodo_e_conta,
-    atualiza_dados_unidade
-)
-from ....dre.services import (
-    verifica_regularidade_associacao,
-    marca_item_verificacao_associacao,
-    desmarca_item_verificacao_associacao,
-    marca_lista_verificacao_associacao,
-    desmarca_lista_verificacao_associacao
-)
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +53,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
                          mixins.RetrieveModelMixin,
                          mixins.UpdateModelMixin,
                          GenericViewSet, ):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated & PermissaoCRUD]
     lookup_field = 'uuid'
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer

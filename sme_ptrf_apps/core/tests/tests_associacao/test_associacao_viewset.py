@@ -11,17 +11,17 @@ from ...api.views.associacoes_viewset import AssociacoesViewSet
 pytestmark = pytest.mark.django_db
 
 
-def test_view_set(associacao, fake_user):
+def test_view_set(associacao, usuario_permissao_associacao):
     request = APIRequestFactory().get("")
     detalhe = AssociacoesViewSet.as_view({'get': 'retrieve'})
-    force_authenticate(request, user=fake_user)
+    force_authenticate(request, user=usuario_permissao_associacao)
     response = detalhe(request, uuid=associacao.uuid)
 
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_get_contas_associacoes(jwt_authenticated_client, associacao, conta_associacao, conta_associacao_cartao, conta_associacao_cheque):
-    response = jwt_authenticated_client.get(
+def test_get_contas_associacoes(jwt_authenticated_client_a, associacao, conta_associacao, conta_associacao_cartao, conta_associacao_cheque):
+    response = jwt_authenticated_client_a.get(
         f'/api/associacoes/{associacao.uuid}/contas/', content_type='application/json')
     result = json.loads(response.content)
 
@@ -30,7 +30,7 @@ def test_get_contas_associacoes(jwt_authenticated_client, associacao, conta_asso
     assert str(conta_associacao_cheque.uuid) in [c['uuid'] for c in result]
 
 
-def test_update_contas_associacoes(jwt_authenticated_client, associacao, tipo_conta_cartao, tipo_conta_cheque, conta_associacao, conta_associacao_cartao, conta_associacao_cheque):
+def test_update_contas_associacoes(jwt_authenticated_client_a, associacao, tipo_conta_cartao, tipo_conta_cheque, conta_associacao, conta_associacao_cartao, conta_associacao_cheque):
     payload =  [
         {
             "uuid": str(conta_associacao_cartao.uuid),
@@ -48,7 +48,7 @@ def test_update_contas_associacoes(jwt_authenticated_client, associacao, tipo_co
         }
     ]
 
-    response = jwt_authenticated_client.post(
+    response = jwt_authenticated_client_a.post(
         f'/api/associacoes/{associacao.uuid}/contas-update/', data=json.dumps(payload), content_type='application/json')
 
     conta_cartao = ContaAssociacao.objects.filter(uuid=conta_associacao_cartao.uuid).get()
