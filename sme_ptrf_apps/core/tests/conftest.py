@@ -134,6 +134,18 @@ def permissoes_tipo_devolucao():
     ]
 
     return permissoes
+    
+
+@pytest.fixture
+def permissoes_unidades():
+    permissoes = [
+        Permission.objects.filter(codename='add_unidade').first(),
+        Permission.objects.filter(codename='view_unidade').first(),
+        Permission.objects.filter(codename='change_unidade').first(),
+        Permission.objects.filter(codename='delete_unidade').first()
+    ]
+
+    return permissoes
 
 
 @pytest.fixture
@@ -214,6 +226,13 @@ def grupo_tipo_devolucao(permissoes_tipo_devolucao):
 
 
 @pytest.fixture
+def grupo_unidades(permissoes_unidades):
+    g = Group.objects.create(name="unidades")
+    g.permissions.add(*permissoes_unidades)
+    return g
+
+
+@pytest.fixture
 def usuario_permissao_associacao(
         unidade,
         grupo_associacao,
@@ -226,7 +245,8 @@ def usuario_permissao_associacao(
         grupo_prestacoes_conta,
         grupo_processo_associacao,
         grupo_relacoes_bens,
-        grupo_tipo_devolucao):
+        grupo_tipo_devolucao,
+        grupo_unidades):
 
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
@@ -246,7 +266,8 @@ def usuario_permissao_associacao(
         grupo_prestacoes_conta,
         grupo_processo_associacao,
         grupo_relacoes_bens,
-        grupo_tipo_devolucao)
+        grupo_tipo_devolucao,
+        grupo_unidades)
     user.save()
     return user
 

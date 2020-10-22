@@ -2,18 +2,20 @@ from django_filters import rest_framework as filters
 from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ..serializers import UnidadeSerializer
+from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+
 from ...models import Unidade
+from ..serializers import UnidadeSerializer
 
 
 class DresViewSet(mixins.ListModelMixin,
                   mixins.RetrieveModelMixin,
                   GenericViewSet, ):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated & PermissaoCRUD]
     lookup_field = 'uuid'
     queryset = Unidade.dres.all()
     filters = (filters.DjangoFilterBackend, SearchFilter,)
