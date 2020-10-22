@@ -41,6 +41,18 @@ def permissoes_cobrancas_prestacoes():
 
 
 @pytest.fixture
+def permissoes_observacoes_conciliacao():
+    permissoes = [
+        Permission.objects.filter(codename='add_observacaoconciliacao').first(),
+        Permission.objects.filter(codename='view_observacaoconciliacao').first(),
+        Permission.objects.filter(codename='change_observacaoconciliacao').first(),
+        Permission.objects.filter(codename='delete_observacaoconciliacao').first()
+    ]
+
+    return permissoes
+
+
+@pytest.fixture
 def grupo_associacao(permissoes_associacao):
     g = Group.objects.create(name="associacao")
     g.permissions.add(*permissoes_associacao)
@@ -62,7 +74,20 @@ def grupo_cobrancas_prestacoes(permissoes_cobrancas_prestacoes):
 
 
 @pytest.fixture
-def usuario_permissao_associacao(unidade, grupo_associacao, grupo_ata, grupo_cobrancas_prestacoes):
+def grupo_observacoes_conciliacao(permissoes_observacoes_conciliacao):
+    g = Group.objects.create(name="observacoes_conciliacao")
+    g.permissions.add(*permissoes_observacoes_conciliacao)
+    return g
+
+
+@pytest.fixture
+def usuario_permissao_associacao(
+    unidade, 
+    grupo_associacao, 
+    grupo_ata, 
+    grupo_cobrancas_prestacoes, 
+    grupo_observacoes_conciliacao):
+    
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
     login = '7210418'
@@ -70,7 +95,7 @@ def usuario_permissao_associacao(unidade, grupo_associacao, grupo_ata, grupo_cob
     User = get_user_model()
     user = User.objects.create_user(username=login, password=senha, email=email)
     user.unidades.add(unidade)
-    user.groups.add(grupo_associacao, grupo_ata, grupo_cobrancas_prestacoes)
+    user.groups.add(grupo_associacao, grupo_ata, grupo_cobrancas_prestacoes, grupo_observacoes_conciliacao)
     user.save()
     return user
 
