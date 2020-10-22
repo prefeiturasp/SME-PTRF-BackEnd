@@ -47,11 +47,34 @@ def unidade_paulo_camilhier_florencano_dre_1(dre_01):
     )
 
 
-def test_api_list_unidades_dres_todas(jwt_authenticated_client_a, unidade_paulo_camilhier_florencano_dre_1, dre_01):
+def test_api_list_unidades_dres_todas(jwt_authenticated_client_a, unidade_paulo_camilhier_florencano_dre_1, dre_01, dre):
     response = jwt_authenticated_client_a.get(f'/api/dres/', content_type='application/json')
     result = json.loads(response.content)
 
     result_esperado = [
+        {
+            'bairro': '',
+            'cep': '',
+            'codigo_eol': '99999',
+            'complemento': '',
+            'diretor_nome': '',
+            'dre': None,
+            'dre_cnpj': '',
+            'dre_designacao_ano': '',
+            'dre_designacao_portaria': '',
+            'dre_diretor_regional_nome': '',
+            'dre_diretor_regional_rf': '',
+            'email': '',
+            'logradouro': '',
+            'nome': 'DRE teste',
+            'numero': '',
+            'qtd_alunos': 0,
+            'sigla': '',
+            'telefone': '',
+            'tipo_logradouro': '',
+            'tipo_unidade': 'DRE',
+            'uuid': str(dre.uuid)
+        },
         {
             "uuid": f'{dre_01.uuid}',
             "codigo_eol": f'{dre_01.codigo_eol}',

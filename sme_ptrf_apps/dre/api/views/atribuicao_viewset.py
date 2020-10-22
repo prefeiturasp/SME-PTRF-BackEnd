@@ -1,6 +1,6 @@
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from sme_ptrf_apps.dre.api.serializers.atribuicao_serializer import AtribuicaoSerializer, AtribuicaoCreateSerializer
@@ -11,12 +11,13 @@ from sme_ptrf_apps.dre.services.atribuicao_service import (
     troca_atribuicao_em_lote,
     copia_atribuicoes_de_um_periodo
 )
+from sme_ptrf_apps.users.permissoes import PermissaoCRUD
 
 
 class AtribuicaoViewset(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = Atribuicao.objects.all()
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated & PermissaoCRUD]
     serializer_class = AtribuicaoSerializer
 
     def get_serializer_class(self):

@@ -1,19 +1,20 @@
 import logging
 
 from django_filters import rest_framework as filters
-from rest_framework import status
-from rest_framework import viewsets
-from rest_framework.permissions import AllowAny
+from rest_framework import status, viewsets
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from ..serializers.tecnico_dre_serializer import TecnicoDreSerializer, TecnicoDreCreateSerializer
+from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+
 from ...models import TecnicoDre
 from ...services.atribuicao_service import troca_atribuicao_em_lote
+from ..serializers.tecnico_dre_serializer import TecnicoDreCreateSerializer, TecnicoDreSerializer
 
 logger = logging.getLogger(__name__)
 
 class TecnicosDreViewSet(viewsets.ModelViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated & PermissaoCRUD]
     lookup_field = 'uuid'
     queryset = TecnicoDre.objects.all()
     serializer_class = TecnicoDreSerializer
