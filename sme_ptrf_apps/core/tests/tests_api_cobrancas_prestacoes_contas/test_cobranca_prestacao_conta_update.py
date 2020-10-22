@@ -16,7 +16,7 @@ def payload_troca_data_cobranca(cobranca_prestacao_devolucao):
     return payload
 
 
-def test_update_processo_associacao(client, cobranca_prestacao_devolucao, payload_troca_data_cobranca):
+def test_update_processo_associacao(jwt_authenticated_client_a, cobranca_prestacao_devolucao, payload_troca_data_cobranca):
 
     assert CobrancaPrestacaoConta.objects.filter(uuid=cobranca_prestacao_devolucao.uuid).exists()
 
@@ -24,7 +24,7 @@ def test_update_processo_associacao(client, cobranca_prestacao_devolucao, payloa
 
     assert cobranca_anterior.data == date(2020, 7, 1), "Não é data inicial esperada"
 
-    response = client.patch(
+    response = jwt_authenticated_client_a.patch(
         f'/api/cobrancas-prestacoes-contas/{cobranca_prestacao_devolucao.uuid}/',
         data=json.dumps(payload_troca_data_cobranca),
         content_type='application/json')
