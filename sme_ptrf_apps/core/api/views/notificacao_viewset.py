@@ -7,9 +7,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from sme_ptrf_apps.core.api.serializers import NotificacaoSerializer
-from sme_ptrf_apps.core.api.serializers.notificacao_serializer import TipoNotificacaoSerializer, RemetenteNotificacaoSerializer, CategoriatificacaoSerializer
+from sme_ptrf_apps.core.api.serializers.notificacao_serializer import (
+    CategoriatificacaoSerializer,
+    RemetenteNotificacaoSerializer,
+    TipoNotificacaoSerializer,
+)
 from sme_ptrf_apps.core.models import Notificacao
 from sme_ptrf_apps.core.services import formata_data
+from sme_ptrf_apps.users.permissoes import PermissaoCRUD
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +42,7 @@ class CustomPagination(PageNumberPagination):
 
 class NotificacaoViewSet(viewsets.ModelViewSet):
     lookup_field = "uuid"
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [IsAuthenticated & PermissaoCRUD]
     queryset = Notificacao.objects.all()
     serializer_class = NotificacaoSerializer
     pagination_class = CustomPagination

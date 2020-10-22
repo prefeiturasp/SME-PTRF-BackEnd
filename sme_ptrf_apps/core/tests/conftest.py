@@ -65,6 +65,30 @@ def permissoes_demonstrativo_finaceiro():
 
 
 @pytest.fixture
+def permissoes_membro_associacao():
+    permissoes = [
+        Permission.objects.filter(codename='add_membroassociacao').first(),
+        Permission.objects.filter(codename='view_membroassociacao').first(),
+        Permission.objects.filter(codename='change_membroassociacao').first(),
+        Permission.objects.filter(codename='delete_membroassociacao').first()
+    ]
+
+    return permissoes
+
+
+@pytest.fixture
+def permissoes_notificacao():
+    permissoes = [
+        Permission.objects.filter(codename='add_notificacao').first(),
+        Permission.objects.filter(codename='view_notificacao').first(),
+        Permission.objects.filter(codename='change_notificacao').first(),
+        Permission.objects.filter(codename='delete_notificacao').first()
+    ]
+
+    return permissoes
+
+
+@pytest.fixture
 def grupo_associacao(permissoes_associacao):
     g = Group.objects.create(name="associacao")
     g.permissions.add(*permissoes_associacao)
@@ -100,13 +124,29 @@ def grupo_demonstrativo_finaceiro(permissoes_demonstrativo_finaceiro):
 
 
 @pytest.fixture
+def grupo_membros_associacao(permissoes_membro_associacao):
+    g = Group.objects.create(name="membro_associacao")
+    g.permissions.add(*permissoes_membro_associacao)
+    return g
+
+
+@pytest.fixture
+def grupo_notificacao(permissoes_notificacao):
+    g = Group.objects.create(name="notificacao")
+    g.permissions.add(*permissoes_notificacao)
+    return g
+
+
+@pytest.fixture
 def usuario_permissao_associacao(
     unidade, 
     grupo_associacao, 
     grupo_ata, 
     grupo_cobrancas_prestacoes, 
     grupo_observacoes_conciliacao,
-    grupo_demonstrativo_finaceiro):
+    grupo_demonstrativo_finaceiro,
+    grupo_membros_associacao,
+    grupo_notificacao):
     
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
@@ -120,7 +160,9 @@ def usuario_permissao_associacao(
         grupo_ata, 
         grupo_cobrancas_prestacoes, 
         grupo_observacoes_conciliacao,
-        grupo_demonstrativo_finaceiro)
+        grupo_demonstrativo_finaceiro,
+        grupo_membros_associacao,
+        grupo_notificacao)
     user.save()
     return user
 

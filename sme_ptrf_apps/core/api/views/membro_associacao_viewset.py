@@ -1,15 +1,14 @@
 from requests import ConnectTimeout, ReadTimeout
-
-from rest_framework import mixins
+from rest_framework import mixins, status
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework import status
 
 from sme_ptrf_apps.core.api.serializers import MembroAssociacaoCreateSerializer, MembroAssociacaoListSerializer
 from sme_ptrf_apps.core.models import MembroAssociacao
 from sme_ptrf_apps.core.services import TerceirizadasException, TerceirizadasService
+from sme_ptrf_apps.users.permissoes import PermissaoCRUD
 
 
 class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
@@ -20,7 +19,7 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
                               GenericViewSet):
 
     lookup_field = 'uuid'
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated & PermissaoCRUD]
     serializer_class = MembroAssociacaoListSerializer
     queryset = MembroAssociacao.objects.all()
 
