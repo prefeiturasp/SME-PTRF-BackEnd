@@ -6,9 +6,11 @@ from django.http import HttpResponse
 from openpyxl.writer.excel import save_virtual_workbook
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+
+from sme_ptrf_apps.users.permissoes import PermissaoCRUD
 
 from sme_ptrf_apps.core.models import (
     AcaoAssociacao,
@@ -25,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class DemonstrativoFinanceiroViewSet(GenericViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated & PermissaoCRUD]
     lookup_field = 'uuid'
     queryset = DemonstrativoFinanceiro.objects.all()
 
