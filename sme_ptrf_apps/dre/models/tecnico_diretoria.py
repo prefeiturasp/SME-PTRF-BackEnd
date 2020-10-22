@@ -11,6 +11,8 @@ class TecnicoDre(ModeloBase):
 
     rf = models.CharField('RF', max_length=10, blank=True, null=True, default="", unique=True)
 
+    email = models.EmailField("E-mail", max_length=254, blank=True, default='')
+
     class Meta:
         verbose_name = "Técnico de DRE"
         verbose_name_plural = "Técnicos de DREs"

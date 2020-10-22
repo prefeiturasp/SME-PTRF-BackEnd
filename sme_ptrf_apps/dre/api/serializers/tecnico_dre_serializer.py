@@ -10,14 +10,14 @@ class TecnicoDreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TecnicoDre
-        fields = ('uuid', 'rf', 'nome', 'dre')
+        fields = ('uuid', 'rf', 'nome', 'dre', 'email')
 
 
 class TecnicoDreLookUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TecnicoDre
-        fields = ('uuid', 'rf', 'nome',)
+        fields = ('uuid', 'rf', 'nome', 'email')
 
 
 

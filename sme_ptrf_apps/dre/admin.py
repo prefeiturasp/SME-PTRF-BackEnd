@@ -49,7 +49,7 @@ class VerificacaoRegularidadeAssociacaoAdmin(admin.ModelAdmin):
 
 @admin.register(TecnicoDre)
 class TecnicoDreAdmin(admin.ModelAdmin):
-    list_display = ('rf', 'nome', 'dre')
+    list_display = ('rf', 'nome', 'dre', 'email')
     search_fields = ('uuid', 'nome', 'rf')
     list_filter = ('dre',)
     readonly_fields = ('uuid', 'id')

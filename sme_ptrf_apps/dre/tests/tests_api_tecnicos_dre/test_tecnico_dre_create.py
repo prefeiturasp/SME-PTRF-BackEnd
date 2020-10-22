@@ -13,7 +13,8 @@ def payload_tecnico_dre(dre_butantan):
     payload = {
         'dre': f'{dre_butantan.uuid}',
         'rf': '1234567',
-        'nome': 'Pedro Antunes'
+        'nome': 'Pedro Antunes',
+        'email': 'tecnico.sobrenome@sme.prefeitura.sp.gov.br',
     }
     return payload
 
@@ -34,7 +35,8 @@ def payload_tecnico_dre_rf_ja_existente(dre_butantan, tecnico_maria_dre_butantan
     payload = {
         'dre': f'{dre_butantan.uuid}',
         'rf': tecnico_maria_dre_butantan.rf,
-        'nome': 'Pedro Antunes'
+        'nome': 'Pedro Antunes',
+        'email': tecnico_maria_dre_butantan.email
     }
     return payload
 

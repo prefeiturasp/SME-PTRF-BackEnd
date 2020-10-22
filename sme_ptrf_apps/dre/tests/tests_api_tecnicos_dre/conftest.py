@@ -30,6 +30,7 @@ def tecnico_jose_dre_ipiranga(dre_ipiranga):
         dre=dre_ipiranga,
         nome='José',
         rf='271170',
+        email='tecnico.sobrenome@sme.prefeitura.sp.gov.br',
     )
 
 @pytest.fixture
@@ -39,4 +40,5 @@ def tecnico_maria_dre_butantan(dre_butantan):
         dre=dre_butantan,
         nome='Maria',
         rf='190889',
+        email='tecnico.sobrenome@sme.prefeitura.sp.gov.br',
     )

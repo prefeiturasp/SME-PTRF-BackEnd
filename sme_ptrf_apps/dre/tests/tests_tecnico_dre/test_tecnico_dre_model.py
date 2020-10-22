@@ -14,6 +14,7 @@ def test_instance_model(tecnico_dre):
     assert model.rf
     assert model.id
     assert model.uuid
+    assert model.email
 
 
 def test_srt_model(tecnico_dre):

@@ -173,7 +173,8 @@ def test_unidades_para_atribuicao(jwt_authenticated_client, unidade, periodo, te
                 'tecnico': {
                     'uuid': str(tecnico_dre.uuid),
                     'rf': tecnico_dre.rf,
-                    'nome': tecnico_dre.nome
+                    'nome': tecnico_dre.nome,
+                    'email': tecnico_dre.email
                 }
             }
         }]
@@ -197,7 +198,8 @@ def test_unidades_para_atribuicao_filtro_tipo_unidade(jwt_authenticated_client, 
                 'tecnico': {
                     'uuid': str(tecnico_dre.uuid),
                     'rf': tecnico_dre.rf,
-                    'nome': tecnico_dre.nome
+                    'nome': tecnico_dre.nome,
+                    'email': tecnico_dre.email
                 }
             }
         }]
