@@ -15,6 +15,19 @@ def permissoes_associacao():
 
     return permissoes
 
+
+@pytest.fixture
+def permissoes_ata():
+    permissoes = [
+        Permission.objects.filter(codename='add_ata').first(),
+        Permission.objects.filter(codename='view_ata').first(),
+        Permission.objects.filter(codename='change_ata').first(),
+        Permission.objects.filter(codename='delete_ata').first()
+    ]
+
+    return permissoes
+
+
 @pytest.fixture
 def grupo_associacao(permissoes_associacao):
     g = Group.objects.create(name="associacao")
@@ -23,7 +36,14 @@ def grupo_associacao(permissoes_associacao):
 
 
 @pytest.fixture
-def usuario_permissao_associacao(unidade, grupo_associacao):
+def grupo_ata(permissoes_ata):
+    g = Group.objects.create(name="ata")
+    g.permissions.add(*permissoes_ata)
+    return g
+
+
+@pytest.fixture
+def usuario_permissao_associacao(unidade, grupo_associacao, grupo_ata):
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
     login = '7210418'
@@ -31,7 +51,7 @@ def usuario_permissao_associacao(unidade, grupo_associacao):
     User = get_user_model()
     user = User.objects.create_user(username=login, password=senha, email=email)
     user.unidades.add(unidade)
-    user.groups.add(grupo_associacao)
+    user.groups.add(grupo_associacao, grupo_ata)
     user.save()
     return user
 

@@ -6,8 +6,8 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_api_retrieve_ata_associacao(client, associacao, ata_2020_1_cheque_aprovada):
-    response = client.get(f'/api/atas-associacao/{ata_2020_1_cheque_aprovada.uuid}/', content_type='application/json')
+def test_api_retrieve_ata_associacao(jwt_authenticated_client_a, associacao, ata_2020_1_cheque_aprovada):
+    response = jwt_authenticated_client_a.get(f'/api/atas-associacao/{ata_2020_1_cheque_aprovada.uuid}/', content_type='application/json')
     result = json.loads(response.content)
 
     result_esperado = {

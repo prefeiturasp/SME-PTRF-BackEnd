@@ -1,18 +1,20 @@
 from rest_framework import mixins
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ..serializers import AtaSerializer
-from ...models import Ata
+from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+
 from ....utils.choices_to_json import choices_to_json
+from ...models import Ata
+from ..serializers import AtaSerializer
 
 
 class AtasViewSet(mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   GenericViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated & PermissaoCRUD]
     lookup_field = 'uuid'
     queryset = Ata.objects.all()
     serializer_class = AtaSerializer
