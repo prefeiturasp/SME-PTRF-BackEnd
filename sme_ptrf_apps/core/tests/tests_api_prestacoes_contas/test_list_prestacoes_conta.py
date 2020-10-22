@@ -143,7 +143,7 @@ def _prestacao_conta_2020_1_unidade_b_dre2(periodo_2020_1, _unidade_b_dre_2, _as
     )
 
 
-def test_api_list_prestacoes_conta_por_periodo_e_dre(client,
+def test_api_list_prestacoes_conta_por_periodo_e_dre(jwt_authenticated_client_a,
                                                      _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
                                                      _prestacao_conta_2019_2_unidade_a_dre1,  # Não entra
                                                      _prestacao_conta_2020_1_unidade_b_dre2,  # Não entra
@@ -154,7 +154,7 @@ def test_api_list_prestacoes_conta_por_periodo_e_dre(client,
 
     url = f'/api/prestacoes-contas/?associacao__unidade__dre__uuid={dre_uuid}&periodo__uuid={periodo_uuid}'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -178,7 +178,7 @@ def test_api_list_prestacoes_conta_por_periodo_e_dre(client,
     assert result == result_esperado
 
 
-def test_api_list_prestacoes_conta_por_nome_unidade(client,
+def test_api_list_prestacoes_conta_por_nome_unidade(jwt_authenticated_client_a,
                                                     _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
                                                     _prestacao_conta_2020_1_unidade_c_dre1,  # Não entra
                                                     _prestacao_conta_2019_2_unidade_a_dre1,  # Entra
@@ -188,7 +188,7 @@ def test_api_list_prestacoes_conta_por_nome_unidade(client,
                                                     periodo_2019_2):
     url = f'/api/prestacoes-contas/?nome=andorinha'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -227,7 +227,7 @@ def test_api_list_prestacoes_conta_por_nome_unidade(client,
     assert result == result_esperado
 
 
-def test_api_list_prestacoes_conta_por_nome_associacao(client,
+def test_api_list_prestacoes_conta_por_nome_associacao(jwt_authenticated_client_a,
                                                        _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
                                                        _prestacao_conta_2020_1_unidade_c_dre1,  # Não entra
                                                        _prestacao_conta_2019_2_unidade_a_dre1,  # Entra
@@ -237,7 +237,7 @@ def test_api_list_prestacoes_conta_por_nome_associacao(client,
                                                        periodo_2019_2):
     url = f'/api/prestacoes-contas/?nome=america'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -275,7 +275,7 @@ def test_api_list_prestacoes_conta_por_nome_associacao(client,
     assert result == result_esperado
 
 
-def test_api_list_prestacoes_conta_por_tipo_unidade(client,
+def test_api_list_prestacoes_conta_por_tipo_unidade(jwt_authenticated_client_a,
                                                     _prestacao_conta_2020_1_unidade_a_dre1,  # Não entra
                                                     _prestacao_conta_2020_1_unidade_c_dre1,  # Entra
                                                     _prestacao_conta_2019_2_unidade_a_dre1,  # Não Entra
@@ -285,7 +285,7 @@ def test_api_list_prestacoes_conta_por_tipo_unidade(client,
                                                     periodo_2019_2):
     url = f'/api/prestacoes-contas/?associacao__unidade__tipo_unidade=CEU'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -350,7 +350,7 @@ def _atribuicao_unidade_c_dre1(_tecnico_b_dre1, _unidade_c_dre_1_ceu, periodo_20
     )
 
 
-def test_api_list_prestacoes_conta_por_tecnico(client,
+def test_api_list_prestacoes_conta_por_tecnico(jwt_authenticated_client_a,
                                                _tecnico_a_dre1,
                                                _tecnico_b_dre1,
                                                _atribuicao_unidade_a_dre1,
@@ -367,7 +367,7 @@ def test_api_list_prestacoes_conta_por_tecnico(client,
 
     url = f'/api/prestacoes-contas/?associacao__unidade__dre__uuid={dre_uuid}&periodo__uuid={periodo_uuid}&tecnico={tecnico_uuid}'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -391,7 +391,7 @@ def test_api_list_prestacoes_conta_por_tecnico(client,
     assert result == result_esperado
 
 
-def test_api_list_prestacoes_conta_por_data_recebimento(client,
+def test_api_list_prestacoes_conta_por_data_recebimento(jwt_authenticated_client_a,
                                                         _prestacao_conta_2020_1_unidade_a_dre1,  # Não Entra
                                                         _prestacao_conta_2020_1_unidade_c_dre1,  # Não Entra
                                                         _prestacao_conta_2019_2_unidade_a_dre1,  # Não entra
@@ -400,7 +400,7 @@ def test_api_list_prestacoes_conta_por_data_recebimento(client,
                                                         periodo_2020_1):
     url = f'/api/prestacoes-contas/?data_inicio=2020-01-02&data_fim=2020-01-02'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -424,7 +424,7 @@ def test_api_list_prestacoes_conta_por_data_recebimento(client,
     assert result == result_esperado
 
 
-def test_api_list_prestacoes_conta_por_status_aprovada_e_aprovada_ressalva(client,
+def test_api_list_prestacoes_conta_por_status_aprovada_e_aprovada_ressalva(jwt_authenticated_client_a,
                                                                            _prestacao_conta_2020_1_unidade_a_dre1,
                                                                            # Entra
                                                                            _prestacao_conta_2020_1_unidade_c_dre1,
@@ -438,7 +438,7 @@ def test_api_list_prestacoes_conta_por_status_aprovada_e_aprovada_ressalva(clien
                                                                            periodo_2019_2):
     url = f'/api/prestacoes-contas/?status=APROVADA'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -477,7 +477,7 @@ def test_api_list_prestacoes_conta_por_status_aprovada_e_aprovada_ressalva(clien
     assert result == result_esperado
 
 
-def test_api_list_prestacoes_conta_por_status_recebida(client,
+def test_api_list_prestacoes_conta_por_status_recebida(jwt_authenticated_client_a,
                                                        _prestacao_conta_2020_1_unidade_a_dre1,
                                                        # Não entra
                                                        _prestacao_conta_2020_1_unidade_c_dre1,
@@ -491,7 +491,7 @@ def test_api_list_prestacoes_conta_por_status_recebida(client,
                                                        periodo_2019_2):
     url = f'/api/prestacoes-contas/?status=RECEBIDA'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 

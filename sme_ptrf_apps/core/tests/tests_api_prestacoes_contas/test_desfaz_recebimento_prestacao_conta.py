@@ -23,10 +23,10 @@ def _prestacao_conta_recebida(periodo, associacao):
     )
 
 
-def test_api_recebe_prestacao_conta(jwt_authenticated_client, _prestacao_conta_recebida):
+def test_api_recebe_prestacao_conta(jwt_authenticated_client_a, _prestacao_conta_recebida):
     url = f'/api/prestacoes-contas/{_prestacao_conta_recebida.uuid}/desfazer-recebimento/'
 
-    response = jwt_authenticated_client.patch(url, content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -47,10 +47,10 @@ def _prestacao_conta_em_analise(periodo, associacao):
     )
 
 
-def test_api_recebe_prestacao_conta_erro_se_nao_recebida(jwt_authenticated_client, _prestacao_conta_em_analise):
+def test_api_recebe_prestacao_conta_erro_se_nao_recebida(jwt_authenticated_client_a, _prestacao_conta_em_analise):
     url = f'/api/prestacoes-contas/{_prestacao_conta_em_analise.uuid}/desfazer-recebimento/'
 
-    response = jwt_authenticated_client.patch(url, content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
 
     result = json.loads(response.content)
 

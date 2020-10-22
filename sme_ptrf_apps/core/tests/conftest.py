@@ -89,6 +89,19 @@ def permissoes_notificacao():
 
 
 @pytest.fixture
+def permissoes_prestacoes_conta():
+    permissoes = [
+        Permission.objects.filter(codename='add_prestacaoconta').first(),
+        Permission.objects.filter(codename='view_prestacaoconta').first(),
+        Permission.objects.filter(codename='change_prestacaoconta').first(),
+        Permission.objects.filter(codename='delete_prestacaoconta').first()
+    ]
+
+    return permissoes
+
+
+
+@pytest.fixture
 def grupo_associacao(permissoes_associacao):
     g = Group.objects.create(name="associacao")
     g.permissions.add(*permissoes_associacao)
@@ -138,6 +151,13 @@ def grupo_notificacao(permissoes_notificacao):
 
 
 @pytest.fixture
+def grupo_prestacoes_conta(permissoes_prestacoes_conta):
+    g = Group.objects.create(name="prestacoes_conta")
+    g.permissions.add(*permissoes_prestacoes_conta)
+    return g
+
+
+@pytest.fixture
 def usuario_permissao_associacao(
     unidade, 
     grupo_associacao, 
@@ -146,7 +166,8 @@ def usuario_permissao_associacao(
     grupo_observacoes_conciliacao,
     grupo_demonstrativo_finaceiro,
     grupo_membros_associacao,
-    grupo_notificacao):
+    grupo_notificacao,
+    grupo_prestacoes_conta):
     
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
@@ -162,7 +183,8 @@ def usuario_permissao_associacao(
         grupo_observacoes_conciliacao,
         grupo_demonstrativo_finaceiro,
         grupo_membros_associacao,
-        grupo_notificacao)
+        grupo_notificacao,
+        grupo_prestacoes_conta)
     user.save()
     return user
 

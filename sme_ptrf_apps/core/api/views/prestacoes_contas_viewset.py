@@ -3,19 +3,24 @@ import logging
 from django.db.models import Q
 from django.db.utils import IntegrityError
 from django_filters import rest_framework as filters
-from rest_framework import mixins
-from rest_framework import status
+from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ..serializers import (PrestacaoContaLookUpSerializer, PrestacaoContaListSerializer,
-                           PrestacaoContaRetrieveSerializer, AtaLookUpSerializer)
-from ...models import PrestacaoConta, Periodo, Associacao, Ata, Unidade
-from ...services import (concluir_prestacao_de_contas, reabrir_prestacao_de_contas, informacoes_financeiras_para_atas)
-from ....dre.models import TecnicoDre, Atribuicao
+from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+
+from ....dre.models import Atribuicao, TecnicoDre
+from ...models import Associacao, Ata, Periodo, PrestacaoConta, Unidade
+from ...services import concluir_prestacao_de_contas, informacoes_financeiras_para_atas, reabrir_prestacao_de_contas
+from ..serializers import (
+    AtaLookUpSerializer,
+    PrestacaoContaListSerializer,
+    PrestacaoContaLookUpSerializer,
+    PrestacaoContaRetrieveSerializer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +29,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                               mixins.UpdateModelMixin,
                               mixins.ListModelMixin,
                               GenericViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated & PermissaoCRUD]
     lookup_field = 'uuid'
     queryset = PrestacaoConta.objects.all()
     serializer_class = PrestacaoContaLookUpSerializer
