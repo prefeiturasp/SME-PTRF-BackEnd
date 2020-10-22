@@ -15,6 +15,7 @@ def test_serializer(tecnico_dre):
     assert serializer.data['rf']
     assert serializer.data['nome']
     assert serializer.data['email']
+    assert serializer.data['telefone']
 
 
 def test_lookup_serializer(tecnico_dre):
@@ -25,6 +26,7 @@ def test_lookup_serializer(tecnico_dre):
     assert serializer.data['rf']
     assert serializer.data['nome']
     assert serializer.data['email']
+    assert serializer.data['telefone']
 
 def test_create_serializer(tecnico_dre):
     serializer = TecnicoDreCreateSerializer(tecnico_dre)
@@ -35,4 +37,5 @@ def test_create_serializer(tecnico_dre):
     assert serializer.data['rf']
     assert serializer.data['nome']
     assert serializer.data['email']
+    assert serializer.data['telefone']
 

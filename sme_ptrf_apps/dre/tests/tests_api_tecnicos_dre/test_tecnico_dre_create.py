@@ -15,6 +15,7 @@ def payload_tecnico_dre(dre_butantan):
         'rf': '1234567',
         'nome': 'Pedro Antunes',
         'email': 'tecnico.sobrenome@sme.prefeitura.sp.gov.br',
+        'telefone': '1259275127'
     }
     return payload
 
@@ -36,7 +37,8 @@ def payload_tecnico_dre_rf_ja_existente(dre_butantan, tecnico_maria_dre_butantan
         'dre': f'{dre_butantan.uuid}',
         'rf': tecnico_maria_dre_butantan.rf,
         'nome': 'Pedro Antunes',
-        'email': tecnico_maria_dre_butantan.email
+        'email': tecnico_maria_dre_butantan.email,
+        'telefone': tecnico_maria_dre_butantan.telefone
     }
     return payload
 

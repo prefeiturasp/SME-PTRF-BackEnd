@@ -16,6 +16,7 @@ def test_api_list_tecnicos_dre_todos(client, tecnico_jose_dre_ipiranga, tecnico_
             "nome": tecnico_jose_dre_ipiranga.nome,
             "rf": tecnico_jose_dre_ipiranga.rf,
             "email": tecnico_jose_dre_ipiranga.email,
+            "telefone": tecnico_jose_dre_ipiranga.telefone,
             "dre": {
                 'uuid': f'{tecnico_jose_dre_ipiranga.dre.uuid}',
                 'codigo_eol': f'{tecnico_jose_dre_ipiranga.dre.codigo_eol}',
@@ -29,6 +30,7 @@ def test_api_list_tecnicos_dre_todos(client, tecnico_jose_dre_ipiranga, tecnico_
             "nome": tecnico_maria_dre_butantan.nome,
             "rf": tecnico_maria_dre_butantan.rf,
             "email": tecnico_maria_dre_butantan.email,
+            "telefone": tecnico_maria_dre_butantan.telefone,
             "dre": {
                 'uuid': f'{tecnico_maria_dre_butantan.dre.uuid}',
                 'codigo_eol': f'{tecnico_maria_dre_butantan.dre.codigo_eol}',
@@ -54,6 +56,7 @@ def test_api_list_tecnicos_dre_ipiranga(client, tecnico_jose_dre_ipiranga, tecni
             "nome": tecnico_jose_dre_ipiranga.nome,
             "rf": tecnico_jose_dre_ipiranga.rf,
             "email": tecnico_jose_dre_ipiranga.email,
+            "telefone": tecnico_jose_dre_ipiranga.telefone,
             "dre": {
                 'uuid': f'{tecnico_jose_dre_ipiranga.dre.uuid}',
                 'codigo_eol': f'{tecnico_jose_dre_ipiranga.dre.codigo_eol}',
@@ -79,6 +82,7 @@ def test_api_list_tecnicos_dre_por_rf(client, tecnico_jose_dre_ipiranga, tecnico
             "nome": tecnico_jose_dre_ipiranga.nome,
             "rf": tecnico_jose_dre_ipiranga.rf,
             "email": tecnico_jose_dre_ipiranga.email,
+            "telefone": tecnico_jose_dre_ipiranga.telefone,
             "dre": {
                 'uuid': f'{tecnico_jose_dre_ipiranga.dre.uuid}',
                 'codigo_eol': f'{tecnico_jose_dre_ipiranga.dre.codigo_eol}',
