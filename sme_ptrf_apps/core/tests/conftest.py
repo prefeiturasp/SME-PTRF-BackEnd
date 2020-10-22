@@ -113,6 +113,30 @@ def permissoes_processo_associacao():
 
 
 @pytest.fixture
+def permissoes_relacoes_bens():
+    permissoes = [
+        Permission.objects.filter(codename='add_relacaobens').first(),
+        Permission.objects.filter(codename='view_relacaobens').first(),
+        Permission.objects.filter(codename='change_relacaobens').first(),
+        Permission.objects.filter(codename='delete_relacaobens').first()
+    ]
+
+    return permissoes
+
+
+@pytest.fixture
+def permissoes_tipo_devolucao():
+    permissoes = [
+        Permission.objects.filter(codename='add_tipodevolucaoaotesouro').first(),
+        Permission.objects.filter(codename='view_tipodevolucaoaotesouro').first(),
+        Permission.objects.filter(codename='change_tipodevolucaoaotesouro').first(),
+        Permission.objects.filter(codename='delete_tipodevolucaoaotesouro').first()
+    ]
+
+    return permissoes
+
+
+@pytest.fixture
 def grupo_associacao(permissoes_associacao):
     g = Group.objects.create(name="associacao")
     g.permissions.add(*permissoes_associacao)
@@ -176,18 +200,34 @@ def grupo_processo_associacao(permissoes_processo_associacao):
 
 
 @pytest.fixture
+def grupo_relacoes_bens(permissoes_relacoes_bens):
+    g = Group.objects.create(name="relacoes_bens")
+    g.permissions.add(*permissoes_relacoes_bens)
+    return g
+
+
+@pytest.fixture
+def grupo_tipo_devolucao(permissoes_tipo_devolucao):
+    g = Group.objects.create(name="tipo_devolucao")
+    g.permissions.add(*permissoes_tipo_devolucao)
+    return g
+
+
+@pytest.fixture
 def usuario_permissao_associacao(
-    unidade, 
-    grupo_associacao, 
-    grupo_ata, 
-    grupo_cobrancas_prestacoes, 
-    grupo_observacoes_conciliacao,
-    grupo_demonstrativo_finaceiro,
-    grupo_membros_associacao,
-    grupo_notificacao,
-    grupo_prestacoes_conta,
-    grupo_processo_associacao):
-    
+        unidade,
+        grupo_associacao,
+        grupo_ata,
+        grupo_cobrancas_prestacoes,
+        grupo_observacoes_conciliacao,
+        grupo_demonstrativo_finaceiro,
+        grupo_membros_associacao,
+        grupo_notificacao,
+        grupo_prestacoes_conta,
+        grupo_processo_associacao,
+        grupo_relacoes_bens,
+        grupo_tipo_devolucao):
+
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
     login = '7210418'
@@ -196,15 +236,17 @@ def usuario_permissao_associacao(
     user = User.objects.create_user(username=login, password=senha, email=email)
     user.unidades.add(unidade)
     user.groups.add(
-        grupo_associacao, 
-        grupo_ata, 
-        grupo_cobrancas_prestacoes, 
+        grupo_associacao,
+        grupo_ata,
+        grupo_cobrancas_prestacoes,
         grupo_observacoes_conciliacao,
         grupo_demonstrativo_finaceiro,
         grupo_membros_associacao,
         grupo_notificacao,
         grupo_prestacoes_conta,
-        grupo_processo_associacao)
+        grupo_processo_associacao,
+        grupo_relacoes_bens,
+        grupo_tipo_devolucao)
     user.save()
     return user
 
