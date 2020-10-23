@@ -7,7 +7,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
 
 from sme_ptrf_apps.core.models import Periodo
-from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+from sme_ptrf_apps.users.permissoes import PermissaoReceita
 
 from ...models import Receita, Repasse
 from ...tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
@@ -16,7 +16,7 @@ from ..serializers import RepasseSerializer
 
 class RepasseViewSet(GenericViewSet):
     queryset = Repasse.objects.all()
-    permission_classes = [IsAuthenticated & PermissaoCRUD]
+    permission_classes = [IsAuthenticated & PermissaoReceita]
 
     @action(detail=False, methods=['GET'])
     def pendentes(self, request, *args, **kwargs):

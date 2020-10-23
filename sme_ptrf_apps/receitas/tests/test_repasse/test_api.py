@@ -1,7 +1,8 @@
 import json
 
 import pytest
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Permission
+from sme_ptrf_apps.users.models import Grupo
 from django.contrib.contenttypes.models import ContentType
 from rest_framework.status import HTTP_200_OK, HTTP_403_FORBIDDEN
 
@@ -83,7 +84,7 @@ def test_repasses_pendentes_livre_aplicacao(
 @pytest.fixture
 def grupo_sem_permissao_criar_receita():
     content_type = ContentType.objects.filter(model='receita').first()
-    g = Group.objects.create(name="receita")
+    g = Grupo.objects.create(name="receita")
     g.permissions.add(
         Permission.objects.create(codename='algo_receita', name='Can Algo', content_type=content_type)
     )

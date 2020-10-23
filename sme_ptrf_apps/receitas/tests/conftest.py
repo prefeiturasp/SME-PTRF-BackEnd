@@ -2,8 +2,9 @@ import datetime
 
 import pytest
 from model_bakery import baker
-from django.contrib.auth.models import Permission, Group
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from sme_ptrf_apps.users.models import Grupo
 
 
 @pytest.fixture
@@ -391,21 +392,11 @@ def permissoes_receitas():
 
     return permissoes
 
-@pytest.fixture
-def permissoes_repasses():
-    permissoes = [
-        Permission.objects.filter(codename='add_repasse').first(),
-        Permission.objects.filter(codename='view_repasse').first(),
-        Permission.objects.filter(codename='change_repasse').first(),
-        Permission.objects.filter(codename='delete_repasse').first()
-    ]
-
-    return permissoes
 
 @pytest.fixture
-def grupo_receita(permissoes_receitas, permissoes_repasses):
-    g = Group.objects.create(name="receita")
-    g.permissions.add(*permissoes_receitas, *permissoes_repasses)
+def grupo_receita(permissoes_receitas):
+    g = Grupo.objects.create(name="receita")
+    g.permissions.add(*permissoes_receitas)
     return g
 
 

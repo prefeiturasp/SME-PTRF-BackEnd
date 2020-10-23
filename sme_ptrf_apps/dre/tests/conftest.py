@@ -1,6 +1,7 @@
 import pytest
 from model_bakery import baker
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Permission
+from sme_ptrf_apps.users.models import Grupo
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -123,14 +124,14 @@ def permissoes_tecnico_dre():
 
 @pytest.fixture
 def grupo_atribuicao(permissoes_atribuicao):
-    g = Group.objects.create(name="atribuicao")
+    g = Grupo.objects.create(name="atribuicao")
     g.permissions.add(*permissoes_atribuicao)
     return g
 
 
 @pytest.fixture
 def grupo_tecnico_dre(permissoes_tecnico_dre):
-    g = Group.objects.create(name="tecnico_dre")
+    g = Grupo.objects.create(name="tecnico_dre")
     g.permissions.add(*permissoes_tecnico_dre)
     return g
 

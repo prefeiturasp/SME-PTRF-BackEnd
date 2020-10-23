@@ -13,7 +13,7 @@ from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAs
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
 from sme_ptrf_apps.receitas.models import Receita
-from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+from sme_ptrf_apps.users.permissoes import PermissaoReceita
 from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoReceitaEDetalhesSerializer
 from ...services import atualiza_repasse_para_pendente
 from ...tipos_aplicacao_recurso_receitas import aplicacoes_recurso_to_json
@@ -34,7 +34,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data',)
     filter_fields = ('associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid', 'conferido')
-    permission_classes = [IsAuthenticated & PermissaoCRUD]
+    permission_classes = [IsAuthenticated & PermissaoReceita]
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:

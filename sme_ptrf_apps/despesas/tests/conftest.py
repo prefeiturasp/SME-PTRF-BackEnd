@@ -1,7 +1,8 @@
 import datetime
 
 import pytest
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Permission
+from sme_ptrf_apps.users.models import Grupo
 from django.contrib.contenttypes.models import ContentType
 from model_bakery import baker
 
@@ -323,7 +324,7 @@ def permissoes_rateios():
 
 @pytest.fixture
 def grupo_despesa(permissoes_despesa, permissoes_rateios):
-    g = Group.objects.create(name="despesa")
+    g = Grupo.objects.create(name="despesa")
     g.permissions.add(*permissoes_despesa, *permissoes_rateios)
     return g
 
@@ -369,7 +370,7 @@ def jwt_authenticated_client_d(client, usuario_permissao_despesa):
 @pytest.fixture
 def grupo_sem_permissao_criar_receita():
     content_type = ContentType.objects.filter(model='despesa').first()
-    g = Group.objects.create(name="despesa")
+    g = Grupo.objects.create(name="despesa")
     g.permissions.add(
         Permission.objects.create(codename='algo_despesa', name='Can Algo', content_type=content_type)
     )

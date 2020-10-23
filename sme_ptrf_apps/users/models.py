@@ -9,6 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from sme_ptrf_apps.core.models import Associacao, Unidade
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
+from django.contrib.auth.models import Group
 
 
 class Visao(ModeloIdNome):
@@ -21,6 +22,11 @@ class Visao(ModeloIdNome):
         verbose_name_plural = 'Visões'
 
 
+class Grupo(Group):
+    descricao = models.TextField(blank=True, default='')
+    visoes = models.ManyToManyField(Visao, blank=True)
+
+
 class User(AbstractUser):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, null=True)
     name = CharField(_("Nome do usuário"), blank=True, max_length=255)
@@ -29,6 +35,17 @@ class User(AbstractUser):
 
     unidades = models.ManyToManyField(Unidade, blank=True)
     visoes = models.ManyToManyField(Visao, blank=True)
+    groups = models.ManyToManyField(
+        Grupo,
+        verbose_name=_('grupos'),
+        blank=True,
+        help_text=_(
+            'The groups this user belongs to. A user will get all permissions '
+            'granted to each of their groups.'
+        ),
+        related_name="user_set",
+        related_query_name="user",
+    )
 
     def get_absolute_url(self):
         return reverse("users:detail", kwargs={"username": self.username})

@@ -1,6 +1,7 @@
 import pytest
 
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Permission
+from sme_ptrf_apps.users.models import Grupo
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -150,84 +151,84 @@ def permissoes_unidades():
 
 @pytest.fixture
 def grupo_associacao(permissoes_associacao):
-    g = Group.objects.create(name="associacao")
+    g = Grupo.objects.create(name="associacao")
     g.permissions.add(*permissoes_associacao)
     return g
 
 
 @pytest.fixture
 def grupo_ata(permissoes_ata):
-    g = Group.objects.create(name="ata")
+    g = Grupo.objects.create(name="ata")
     g.permissions.add(*permissoes_ata)
     return g
 
 
 @pytest.fixture
 def grupo_cobrancas_prestacoes(permissoes_cobrancas_prestacoes):
-    g = Group.objects.create(name="cobrancas_prestacoes")
+    g = Grupo.objects.create(name="cobrancas_prestacoes")
     g.permissions.add(*permissoes_cobrancas_prestacoes)
     return g
 
 
 @pytest.fixture
 def grupo_observacoes_conciliacao(permissoes_observacoes_conciliacao):
-    g = Group.objects.create(name="observacoes_conciliacao")
+    g = Grupo.objects.create(name="observacoes_conciliacao")
     g.permissions.add(*permissoes_observacoes_conciliacao)
     return g
 
 
 @pytest.fixture
 def grupo_demonstrativo_finaceiro(permissoes_demonstrativo_finaceiro):
-    g = Group.objects.create(name="demonstrativo_finaceiro")
+    g = Grupo.objects.create(name="demonstrativo_finaceiro")
     g.permissions.add(*permissoes_demonstrativo_finaceiro)
     return g
 
 
 @pytest.fixture
 def grupo_membros_associacao(permissoes_membro_associacao):
-    g = Group.objects.create(name="membro_associacao")
+    g = Grupo.objects.create(name="membro_associacao")
     g.permissions.add(*permissoes_membro_associacao)
     return g
 
 
 @pytest.fixture
 def grupo_notificacao(permissoes_notificacao):
-    g = Group.objects.create(name="notificacao")
+    g = Grupo.objects.create(name="notificacao")
     g.permissions.add(*permissoes_notificacao)
     return g
 
 
 @pytest.fixture
 def grupo_prestacoes_conta(permissoes_prestacoes_conta):
-    g = Group.objects.create(name="prestacoes_conta")
+    g = Grupo.objects.create(name="prestacoes_conta")
     g.permissions.add(*permissoes_prestacoes_conta)
     return g
 
 
 @pytest.fixture
 def grupo_processo_associacao(permissoes_processo_associacao):
-    g = Group.objects.create(name="processo_associacao")
+    g = Grupo.objects.create(name="processo_associacao")
     g.permissions.add(*permissoes_processo_associacao)
     return g
 
 
 @pytest.fixture
 def grupo_relacoes_bens(permissoes_relacoes_bens):
-    g = Group.objects.create(name="relacoes_bens")
+    g = Grupo.objects.create(name="relacoes_bens")
     g.permissions.add(*permissoes_relacoes_bens)
     return g
 
 
 @pytest.fixture
 def grupo_tipo_devolucao(permissoes_tipo_devolucao):
-    g = Group.objects.create(name="tipo_devolucao")
+    g = Grupo.objects.create(name="tipo_devolucao")
     g.permissions.add(*permissoes_tipo_devolucao)
     return g
 
 
 @pytest.fixture
 def grupo_unidades(permissoes_unidades):
-    g = Group.objects.create(name="unidades")
+    g = Grupo.objects.create(name="unidades")
     g.permissions.add(*permissoes_unidades)
     return g
 

@@ -1,5 +1,6 @@
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework import exceptions
+from sme_ptrf_apps.receitas.models import Receita
 
 
 class PermissaoCRUD(BasePermission):
@@ -49,3 +50,39 @@ class PermissaoCRUD(BasePermission):
     def has_permission(self, request, view):
         perms = self.get_required_permissions(request.method, view.queryset.model)
         return self.has_perms(perms, request.user)
+
+
+class PermissaoReceita(PermissaoCRUD):
+    perms_map = {
+        'GET': ['view_%(model_name)s'],
+        'OPTIONS': ['view_%(model_name)s'],
+        'HEAD': ['view_%(model_name)s'],
+        'POST': ['add_%(model_name)s'],
+        'PUT': ['change_%(model_name)s'],
+        'PATCH': ['change_%(model_name)s'],
+        'DELETE': ['delete_%(model_name)s'],
+    }
+
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            perms = self.get_required_permissions(request.method, Receita)
+            return self.has_perms(perms, request.user)
+        return True
+
+
+class PermissaoDespesa(PermissaoCRUD):
+    perms_map = {
+        'GET': ['view_%(model_name)s'],
+        'OPTIONS': ['view_%(model_name)s'],
+        'HEAD': ['view_%(model_name)s'],
+        'POST': ['add_%(model_name)s'],
+        'PUT': ['change_%(model_name)s'],
+        'PATCH': ['change_%(model_name)s'],
+        'DELETE': ['delete_%(model_name)s'],
+    }
+
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            perms = self.get_required_permissions(request.method, Receita)
+            return self.has_perms(perms, request.user)
+        return True
