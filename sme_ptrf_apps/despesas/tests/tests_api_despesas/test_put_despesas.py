@@ -33,23 +33,3 @@ def test_api_post_despesas(
     despesa = Despesa.objects.get(uuid=result["uuid"])
 
     assert despesa.cpf_cnpj_fornecedor == payload_despesa_valida['cpf_cnpj_fornecedor']
-
-
-def test_api_put_despesas_sem_permissao(
-    jwt_authenticated_client_sem_permissao,
-    tipo_aplicacao_recurso,
-    tipo_custeio,
-    tipo_documento,
-    tipo_transacao,
-    acao,
-    acao_associacao,
-    associacao,
-    tipo_conta,
-    conta_associacao,
-    despesa,
-    rateio_despesa_capital,
-    payload_despesa_valida
-):
-    response = jwt_authenticated_client_sem_permissao.put(f'/api/despesas/{despesa.uuid}/', data=json.dumps(payload_despesa_valida),
-                content_type='application/json')
-    assert response.status_code == status.HTTP_403_FORBIDDEN

@@ -62,21 +62,3 @@ def test_api_post_despesas_com_rateio_com_tag(
 
     assert despesa.associacao.uuid == associacao.uuid
     assert despesa.documento_transacao == '123456789'
-
-
-def test_api_post_despesas_sem_permissao(
-    jwt_authenticated_client_sem_permissao,
-    tipo_aplicacao_recurso,
-    tipo_custeio,
-    tipo_documento,
-    tipo_transacao,
-    acao,
-    acao_associacao,
-    associacao,
-    tipo_conta,
-    conta_associacao,
-    payload_despesa_valida
-):
-    response = jwt_authenticated_client_sem_permissao.post('/api/despesas/', data=json.dumps(payload_despesa_valida), content_type='application/json')
-
-    assert response.status_code == status.HTTP_403_FORBIDDEN

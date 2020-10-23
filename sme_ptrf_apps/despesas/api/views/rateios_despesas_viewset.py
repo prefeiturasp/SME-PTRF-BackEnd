@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+from sme_ptrf_apps.users.permissoes import PermissaoDespesa
 
 from ....core.models import Associacao, Parametros, Periodo
 from ....core.services import saldos_insuficientes_para_rateios
@@ -25,7 +25,7 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
     lookup_field = 'uuid'
     queryset = RateioDespesa.objects.all().order_by('-despesa__data_documento')
     serializer_class = RateioDespesaListaSerializer
-    permission_classes = [IsAuthenticated & PermissaoCRUD]
+    permission_classes = [IsAuthenticated & PermissaoDespesa]
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data_documento',)
     filter_fields = ('aplicacao_recurso', 'acao_associacao__uuid', 'despesa__status', 'associacao__uuid', 'conferido')
