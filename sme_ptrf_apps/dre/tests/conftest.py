@@ -44,6 +44,8 @@ def tecnico_dre(dre):
         dre=dre,
         nome='José Testando',
         rf='271170',
+        email='tecnico.sobrenome@sme.prefeitura.sp.gov.br',
+        telefone='1259275127'
     )
 
 

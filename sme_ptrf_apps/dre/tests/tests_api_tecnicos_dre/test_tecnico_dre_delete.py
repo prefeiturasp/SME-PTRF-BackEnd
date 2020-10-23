@@ -25,6 +25,8 @@ def tecnico_1(dre):
         dre=dre,
         nome='Tecnico 1',
         rf='111111',
+        email='tecnico.sobrenome@sme.prefeitura.sp.gov.br',
+        telefone='1259275127'
     )
 
 
@@ -35,6 +37,8 @@ def tecnico_2(dre):
         dre=dre,
         nome='Tecnico 2',
         rf='222222',
+        email='tecnico.sobrenome@sme.prefeitura.sp.gov.br',
+        telefone='1259275127'
     )
 
 
