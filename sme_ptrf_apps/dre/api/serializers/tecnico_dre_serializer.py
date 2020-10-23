@@ -20,7 +20,6 @@ class TecnicoDreLookUpSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'rf', 'nome', 'email', 'telefone')
 
 
-
 class TecnicoDreCreateSerializer(serializers.ModelSerializer):
     dre = serializers.SlugRelatedField(
         slug_field='uuid',
