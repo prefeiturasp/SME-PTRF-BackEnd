@@ -1180,6 +1180,7 @@ def parametros():
         'Parametros',
         permite_saldo_conta_negativo=True,
         fique_de_olho='',
+        fique_de_olho_relatorio_dre='',
     )
 
 
