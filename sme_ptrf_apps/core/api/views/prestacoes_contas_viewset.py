@@ -455,6 +455,37 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         result = informacoes_financeiras_para_atas(prestacao_contas=prestacao_conta)
         return Response(result, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['get'], url_path='ata-retificacao')
+    def ata_retificacao(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        ata = prestacao_conta.ultima_ata_retificacao()
+
+        if not ata:
+            erro = {
+                'mensagem': 'Ainda não existe uma ata de retificação para essa prestação de contas.'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='iniciar-ata-retificacao')
+    def iniciar_ata_retificacao(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        ata = prestacao_conta.ultima_ata_retificacao()
+
+        if ata:
+            erro = {
+                'erro': 'ata-ja-iniciada',
+                'mensagem': 'Já existe uma ata de retificação iniciada para essa prestação de contas.'
+            }
+            return Response(erro, status=status.HTTP_409_CONFLICT)
+
+        ata = Ata.iniciar(prestacao_conta=prestacao_conta, retificacao=True)
+
+        return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['get'], url_path='fique-de-olho')
     def fique_de_olho(self, request, uuid=None):
         from sme_ptrf_apps.core.models import Parametros

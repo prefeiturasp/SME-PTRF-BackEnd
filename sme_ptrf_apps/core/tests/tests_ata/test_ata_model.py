@@ -29,6 +29,11 @@ def test_instance_model(ata_2020_1_cheque_aprovada):
     assert model.id
     assert model.preenchida_em is None
 
+def test_instance_mode_ata_retificacao(ata_2020_1_retificacao):
+    model = ata_2020_1_retificacao
+    assert isinstance(model, Ata)
+    assert model.retificacoes
+
 
 def test_srt_model(ata_2020_1_cheque_aprovada):
     assert ata_2020_1_cheque_aprovada.__str__() == 'Ata 2020.1 - Apresentação - 2020-07-01'
