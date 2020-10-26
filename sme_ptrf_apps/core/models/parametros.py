@@ -7,6 +7,7 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase, SingletonModel
 class Parametros(SingletonModel, ModeloBase):
     permite_saldo_conta_negativo = models.BooleanField('Permite saldo negativo em contas?', default=True)
     fique_de_olho = RichTextField(null=True)
+    fique_de_olho_relatorio_dre = RichTextField(null=True, verbose_name='Fique de olho (Relatório DRE)')
     tempo_notificar_nao_demonstrados = models.PositiveSmallIntegerField(
         'Tempo para notificação de transações não demonstradas (dias)', default=0)
 
