@@ -1276,6 +1276,25 @@ def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
         parecer_conselho='APROVADA'
     )
 
+@pytest.fixture
+def ata_retificacao_prestacao_conta_iniciada(prestacao_conta_iniciada):
+    return baker.make(
+        'Ata',
+        prestacao_conta=prestacao_conta_iniciada,
+        periodo=prestacao_conta_iniciada.periodo,
+        associacao=prestacao_conta_iniciada.associacao,
+        tipo_ata='RETIFICACAO',
+        tipo_reuniao='ORDINARIA',
+        convocacao='PRIMEIRA',
+        data_reuniao=date(2020, 7, 1),
+        local_reuniao='Escola Teste',
+        presidente_reuniao='José',
+        cargo_presidente_reuniao='Presidente',
+        secretario_reuniao='Ana',
+        cargo_secretaria_reuniao='Secretaria',
+        comentarios='Teste',
+        parecer_conselho='APROVADA'
+    )
 
 @pytest.fixture
 def membro_associacao(associacao):

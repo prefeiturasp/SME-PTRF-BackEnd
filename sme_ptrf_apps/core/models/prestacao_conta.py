@@ -95,7 +95,10 @@ class PrestacaoConta(ModeloBase):
             demonstrativo.delete()
 
     def ultima_ata(self):
-        return self.atas_da_prestacao.last()
+        return self.atas_da_prestacao.filter(tipo_ata='APRESENTACAO').last()
+
+    def ultima_ata_retificacao(self):
+        return self.atas_da_prestacao.filter(tipo_ata='RETIFICACAO').last()
 
     def concluir(self):
         self.status = self.STATUS_NAO_RECEBIDA
