@@ -8,7 +8,7 @@ from rest_framework.viewsets import GenericViewSet
 from sme_ptrf_apps.core.api.serializers import MembroAssociacaoCreateSerializer, MembroAssociacaoListSerializer
 from sme_ptrf_apps.core.models import MembroAssociacao
 from sme_ptrf_apps.core.services import TerceirizadasException, TerceirizadasService
-from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+from sme_ptrf_apps.users.permissoes import PermissaoAssociacao
 
 
 class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
@@ -19,7 +19,7 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
                               GenericViewSet):
 
     lookup_field = 'uuid'
-    permission_classes = [IsAuthenticated & PermissaoCRUD]
+    permission_classes = [IsAuthenticated & PermissaoAssociacao]
     serializer_class = MembroAssociacaoListSerializer
     queryset = MembroAssociacao.objects.all()
 

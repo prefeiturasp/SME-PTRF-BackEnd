@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+from sme_ptrf_apps.users.permissoes import PermissaoAssociacao
 
 from ....dre.services import (
     desmarca_item_verificacao_associacao,
@@ -53,7 +53,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
                          mixins.RetrieveModelMixin,
                          mixins.UpdateModelMixin,
                          GenericViewSet, ):
-    permission_classes = [IsAuthenticated & PermissaoCRUD]
+    permission_classes = [IsAuthenticated & PermissaoAssociacao]
     lookup_field = 'uuid'
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer

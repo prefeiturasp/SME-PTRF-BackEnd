@@ -66,30 +66,6 @@ def permissoes_demonstrativo_finaceiro():
 
 
 @pytest.fixture
-def permissoes_membro_associacao():
-    permissoes = [
-        Permission.objects.filter(codename='add_membroassociacao').first(),
-        Permission.objects.filter(codename='view_membroassociacao').first(),
-        Permission.objects.filter(codename='change_membroassociacao').first(),
-        Permission.objects.filter(codename='delete_membroassociacao').first()
-    ]
-
-    return permissoes
-
-
-@pytest.fixture
-def permissoes_notificacao():
-    permissoes = [
-        Permission.objects.filter(codename='add_notificacao').first(),
-        Permission.objects.filter(codename='view_notificacao').first(),
-        Permission.objects.filter(codename='change_notificacao').first(),
-        Permission.objects.filter(codename='delete_notificacao').first()
-    ]
-
-    return permissoes
-
-
-@pytest.fixture
 def permissoes_prestacoes_conta():
     permissoes = [
         Permission.objects.filter(codename='add_prestacaoconta').first(),
@@ -185,20 +161,6 @@ def grupo_demonstrativo_finaceiro(permissoes_demonstrativo_finaceiro):
 
 
 @pytest.fixture
-def grupo_membros_associacao(permissoes_membro_associacao):
-    g = Grupo.objects.create(name="membro_associacao")
-    g.permissions.add(*permissoes_membro_associacao)
-    return g
-
-
-@pytest.fixture
-def grupo_notificacao(permissoes_notificacao):
-    g = Grupo.objects.create(name="notificacao")
-    g.permissions.add(*permissoes_notificacao)
-    return g
-
-
-@pytest.fixture
 def grupo_prestacoes_conta(permissoes_prestacoes_conta):
     g = Grupo.objects.create(name="prestacoes_conta")
     g.permissions.add(*permissoes_prestacoes_conta)
@@ -241,8 +203,6 @@ def usuario_permissao_associacao(
         grupo_cobrancas_prestacoes,
         grupo_observacoes_conciliacao,
         grupo_demonstrativo_finaceiro,
-        grupo_membros_associacao,
-        grupo_notificacao,
         grupo_prestacoes_conta,
         grupo_processo_associacao,
         grupo_relacoes_bens,
@@ -262,8 +222,6 @@ def usuario_permissao_associacao(
         grupo_cobrancas_prestacoes,
         grupo_observacoes_conciliacao,
         grupo_demonstrativo_finaceiro,
-        grupo_membros_associacao,
-        grupo_notificacao,
         grupo_prestacoes_conta,
         grupo_processo_associacao,
         grupo_relacoes_bens,

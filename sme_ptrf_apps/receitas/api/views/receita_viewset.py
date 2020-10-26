@@ -13,7 +13,7 @@ from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAs
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
 from sme_ptrf_apps.receitas.models import Receita
-from sme_ptrf_apps.users.permissoes import PermissaoReceita
+from sme_ptrf_apps.users.permissoes import PermissaoReceita, PermissaoAssociacao
 from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoReceitaEDetalhesSerializer
 from ...services import atualiza_repasse_para_pendente
 from ...tipos_aplicacao_recurso_receitas import aplicacoes_recurso_to_json
@@ -65,7 +65,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
 
         return qs
 
-    @action(detail=False, url_path='tabelas')
+    @action(detail=False, url_path='tabelas', permission_classes=[PermissaoReceita | PermissaoAssociacao])
     def tabelas(self, request):
 
         associacao_uuid = request.query_params.get('associacao_uuid')
