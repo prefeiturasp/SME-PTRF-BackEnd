@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade, ItemVerificacaoRegularidade,
-                    VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq)
+                    VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq, RelatorioConsolidadoDRE)
 
 class ListasVerificacaoInline(admin.TabularInline):
     extra = 1
@@ -85,3 +85,22 @@ class AtribuicaoAdmin(admin.ModelAdmin):
     def nome_unidade(self, obj):
         return obj.unidade.nome if obj.unidade else ''
 
+
+@admin.register(RelatorioConsolidadoDRE)
+class RelatorioConsolidadoDREAdmin(admin.ModelAdmin):
+
+    def get_nome_dre(self, obj):
+        return obj.dre.nome if obj and obj.dre else ''
+
+    get_nome_dre.short_description = 'DRE'
+
+    def get_nome_tipo_conta(self, obj):
+        return obj.tipo_conta.nome if obj and obj.tipo_conta else ''
+
+    get_nome_tipo_conta.short_description = 'Tipo de conta'
+
+    list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'status')
+    list_filter = ('status', 'dre', 'periodo', 'tipo_conta')
+    list_display_links = ('get_nome_dre',)
+    readonly_fields = ('uuid', 'id')
+    search_fields = ('dre__nome',)
