@@ -8,11 +8,11 @@ from rest_framework.response import Response
 from ..serializers import UnidadeSerializer
 from ...models import Unidade
 from ...services import monta_unidade_para_atribuicao
-from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+from sme_ptrf_apps.users.permissoes import PermissaoDadosDiretoriaDre
 
 
 class UnidadesViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated & PermissaoCRUD]
+    permission_classes = [IsAuthenticated & PermissaoDadosDiretoriaDre]
     lookup_field = 'uuid'
     queryset = Unidade.objects.all()
     filters = (filters.DjangoFilterBackend, SearchFilter,)

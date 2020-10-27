@@ -99,48 +99,28 @@ def atribuicao(tecnico_dre, unidade, periodo):
 
 
 @pytest.fixture
-def permissoes_atribuicao():
+def permissoes_dadosdiretoria_dre():
     permissoes = [
-        Permission.objects.filter(codename='add_atribuicao').first(),
-        Permission.objects.filter(codename='view_atribuicao').first(),
-        Permission.objects.filter(codename='change_atribuicao').first(),
-        Permission.objects.filter(codename='delete_atribuicao').first()
+        Permission.objects.create(
+            name="visualizar dados diretoria dre", 
+            codename='view_dadosdiretoria_dre', 
+            content_type=ContentType.objects.filter(app_label="auth").first()
+        ),
     ]
 
     return permissoes
 
-
 @pytest.fixture
-def permissoes_tecnico_dre():
-    permissoes = [
-        Permission.objects.filter(codename='add_tecnicodre').first(),
-        Permission.objects.filter(codename='view_tecnicodre').first(),
-        Permission.objects.filter(codename='change_tecnicodre').first(),
-        Permission.objects.filter(codename='delete_tecnicodre').first()
-    ]
-
-    return permissoes
-
-
-@pytest.fixture
-def grupo_atribuicao(permissoes_atribuicao):
-    g = Grupo.objects.create(name="atribuicao")
-    g.permissions.add(*permissoes_atribuicao)
-    return g
-
-
-@pytest.fixture
-def grupo_tecnico_dre(permissoes_tecnico_dre):
-    g = Grupo.objects.create(name="tecnico_dre")
-    g.permissions.add(*permissoes_tecnico_dre)
+def grupo_dados_diretoria_dre(permissoes_dadosdiretoria_dre):
+    g = Grupo.objects.create(name="dados_diretoria_dre")
+    g.permissions.add(*permissoes_dadosdiretoria_dre)
     return g
 
 
 @pytest.fixture
 def usuario_permissao_atribuicao(
         unidade,
-        grupo_atribuicao,
-        grupo_tecnico_dre):
+        grupo_dados_diretoria_dre):
 
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
@@ -149,7 +129,7 @@ def usuario_permissao_atribuicao(
     User = get_user_model()
     user = User.objects.create_user(username=login, password=senha, email=email)
     user.unidades.add(unidade)
-    user.groups.add(grupo_atribuicao, grupo_tecnico_dre)
+    user.groups.add(grupo_dados_diretoria_dre)
     user.save()
     return user
 

@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+from sme_ptrf_apps.users.permissoes import PermissaoPrestacaoConta
 
 from sme_ptrf_apps.core.models import (
     AcaoAssociacao,
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class DemonstrativoFinanceiroViewSet(GenericViewSet):
-    permission_classes = [IsAuthenticated & PermissaoCRUD]
+    permission_classes = [IsAuthenticated & PermissaoPrestacaoConta]
     lookup_field = 'uuid'
     queryset = DemonstrativoFinanceiro.objects.all()
 

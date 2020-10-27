@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoDespesa
+from sme_ptrf_apps.users.permissoes import PermissaoDespesa, PermissaoDashboardDre
 
 from ....core.api.serializers import TagLookupSerializer
 from ....core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
@@ -24,7 +24,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
                       mixins.DestroyModelMixin,
                       mixins.ListModelMixin,
                       GenericViewSet):
-    permission_classes = [IsAuthenticated & PermissaoDespesa]
+    permission_classes = [IsAuthenticated & (PermissaoDespesa | PermissaoDashboardDre)]
     lookup_field = 'uuid'
     queryset = Despesa.objects.all()
     serializer_class = DespesaSerializer

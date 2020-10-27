@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoAssociacao
+from sme_ptrf_apps.users.permissoes import PermissaoAssociacao, PermissaoAssociacaoDre
 
 from ....dre.services import (
     desmarca_item_verificacao_associacao,
@@ -53,7 +53,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
                          mixins.RetrieveModelMixin,
                          mixins.UpdateModelMixin,
                          GenericViewSet, ):
-    permission_classes = [IsAuthenticated & PermissaoAssociacao]
+    permission_classes = [IsAuthenticated & (PermissaoAssociacao | PermissaoAssociacaoDre)]
     lookup_field = 'uuid'
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer
@@ -282,7 +282,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
 
         return Response(resultado, status=status_code)
 
-    @action(detail=False, url_path='tabelas')
+    @action(detail=False, url_path='tabelas', permission_classes=[IsAuthenticated])
     def tabelas(self, _):
         result = {
             'tipos_unidade': Unidade.tipos_unidade_to_json(),

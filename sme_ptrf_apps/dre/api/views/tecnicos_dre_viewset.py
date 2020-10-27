@@ -5,7 +5,7 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+from sme_ptrf_apps.users.permissoes import PermissaoDashboardDre, PermissaoDadosDiretoriaDre
 
 from ...models import TecnicoDre
 from ...services.atribuicao_service import troca_atribuicao_em_lote
@@ -14,7 +14,7 @@ from ..serializers.tecnico_dre_serializer import TecnicoDreCreateSerializer, Tec
 logger = logging.getLogger(__name__)
 
 class TecnicosDreViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated & PermissaoCRUD]
+    permission_classes = [IsAuthenticated & (PermissaoDashboardDre | PermissaoDadosDiretoriaDre)]
     lookup_field = 'uuid'
     queryset = TecnicoDre.objects.all()
     serializer_class = TecnicoDreSerializer

@@ -8,22 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 @pytest.fixture
 def permissoes_associacao():
     permissoes = [
-        Permission.objects.filter(codename='add_associacao').first(),
         Permission.objects.filter(codename='view_associacao').first(),
-        Permission.objects.filter(codename='change_associacao').first(),
-        Permission.objects.filter(codename='delete_associacao').first()
-    ]
-
-    return permissoes
-
-
-@pytest.fixture
-def permissoes_ata():
-    permissoes = [
-        Permission.objects.filter(codename='add_ata').first(),
-        Permission.objects.filter(codename='view_ata').first(),
-        Permission.objects.filter(codename='change_ata').first(),
-        Permission.objects.filter(codename='delete_ata').first()
     ]
 
     return permissoes
@@ -32,10 +17,7 @@ def permissoes_ata():
 @pytest.fixture
 def permissoes_cobrancas_prestacoes():
     permissoes = [
-        Permission.objects.filter(codename='add_cobrancaprestacaoconta').first(),
         Permission.objects.filter(codename='view_cobrancaprestacaoconta').first(),
-        Permission.objects.filter(codename='change_cobrancaprestacaoconta').first(),
-        Permission.objects.filter(codename='delete_cobrancaprestacaoconta').first()
     ]
 
     return permissoes
@@ -44,22 +26,7 @@ def permissoes_cobrancas_prestacoes():
 @pytest.fixture
 def permissoes_observacoes_conciliacao():
     permissoes = [
-        Permission.objects.filter(codename='add_observacaoconciliacao').first(),
         Permission.objects.filter(codename='view_observacaoconciliacao').first(),
-        Permission.objects.filter(codename='change_observacaoconciliacao').first(),
-        Permission.objects.filter(codename='delete_observacaoconciliacao').first()
-    ]
-
-    return permissoes
-
-
-@pytest.fixture
-def permissoes_demonstrativo_finaceiro():
-    permissoes = [
-        Permission.objects.filter(codename='add_demonstrativofinanceiro').first(),
-        Permission.objects.filter(codename='view_demonstrativofinanceiro').first(),
-        Permission.objects.filter(codename='change_demonstrativofinanceiro').first(),
-        Permission.objects.filter(codename='delete_demonstrativofinanceiro').first()
     ]
 
     return permissoes
@@ -68,10 +35,7 @@ def permissoes_demonstrativo_finaceiro():
 @pytest.fixture
 def permissoes_prestacoes_conta():
     permissoes = [
-        Permission.objects.filter(codename='add_prestacaoconta').first(),
         Permission.objects.filter(codename='view_prestacaoconta').first(),
-        Permission.objects.filter(codename='change_prestacaoconta').first(),
-        Permission.objects.filter(codename='delete_prestacaoconta').first()
     ]
 
     return permissoes
@@ -80,22 +44,7 @@ def permissoes_prestacoes_conta():
 @pytest.fixture
 def permissoes_processo_associacao():
     permissoes = [
-        Permission.objects.filter(codename='add_processoassociacao').first(),
         Permission.objects.filter(codename='view_processoassociacao').first(),
-        Permission.objects.filter(codename='change_processoassociacao').first(),
-        Permission.objects.filter(codename='delete_processoassociacao').first()
-    ]
-
-    return permissoes
-
-
-@pytest.fixture
-def permissoes_relacoes_bens():
-    permissoes = [
-        Permission.objects.filter(codename='add_relacaobens').first(),
-        Permission.objects.filter(codename='view_relacaobens').first(),
-        Permission.objects.filter(codename='change_relacaobens').first(),
-        Permission.objects.filter(codename='delete_relacaobens').first()
     ]
 
     return permissoes
@@ -104,10 +53,7 @@ def permissoes_relacoes_bens():
 @pytest.fixture
 def permissoes_tipo_devolucao():
     permissoes = [
-        Permission.objects.filter(codename='add_tipodevolucaoaotesouro').first(),
         Permission.objects.filter(codename='view_tipodevolucaoaotesouro').first(),
-        Permission.objects.filter(codename='change_tipodevolucaoaotesouro').first(),
-        Permission.objects.filter(codename='delete_tipodevolucaoaotesouro').first()
     ]
 
     return permissoes
@@ -116,10 +62,46 @@ def permissoes_tipo_devolucao():
 @pytest.fixture
 def permissoes_unidades():
     permissoes = [
-        Permission.objects.filter(codename='add_unidade').first(),
         Permission.objects.filter(codename='view_unidade').first(),
-        Permission.objects.filter(codename='change_unidade').first(),
-        Permission.objects.filter(codename='delete_unidade').first()
+    ]
+
+    return permissoes
+
+
+@pytest.fixture
+def permissoes_dashboard_dre():
+    permissoes = [
+        Permission.objects.create(
+            name="visualizar dados dre", 
+            codename='view_dashboard_dre', 
+            content_type=ContentType.objects.filter(app_label="auth").first()
+        ),
+    ]
+
+    return permissoes
+
+
+@pytest.fixture
+def permissoes_associacoes_dre():
+    permissoes = [
+        Permission.objects.create(
+            name="visualizar associacoes dre", 
+            codename='view_associacao_dre', 
+            content_type=ContentType.objects.filter(app_label="auth").first()
+        ),
+    ]
+
+    return permissoes
+
+
+@pytest.fixture
+def permissoes_dadosdiretoria_dre():
+    permissoes = [
+        Permission.objects.create(
+            name="visualizar dados diretoria dre", 
+            codename='view_dadosdiretoria_dre', 
+            content_type=ContentType.objects.filter(app_label="auth").first()
+        ),
     ]
 
     return permissoes
@@ -129,13 +111,6 @@ def permissoes_unidades():
 def grupo_associacao(permissoes_associacao):
     g = Grupo.objects.create(name="associacao")
     g.permissions.add(*permissoes_associacao)
-    return g
-
-
-@pytest.fixture
-def grupo_ata(permissoes_ata):
-    g = Grupo.objects.create(name="ata")
-    g.permissions.add(*permissoes_ata)
     return g
 
 
@@ -154,13 +129,6 @@ def grupo_observacoes_conciliacao(permissoes_observacoes_conciliacao):
 
 
 @pytest.fixture
-def grupo_demonstrativo_finaceiro(permissoes_demonstrativo_finaceiro):
-    g = Grupo.objects.create(name="demonstrativo_finaceiro")
-    g.permissions.add(*permissoes_demonstrativo_finaceiro)
-    return g
-
-
-@pytest.fixture
 def grupo_prestacoes_conta(permissoes_prestacoes_conta):
     g = Grupo.objects.create(name="prestacoes_conta")
     g.permissions.add(*permissoes_prestacoes_conta)
@@ -171,13 +139,6 @@ def grupo_prestacoes_conta(permissoes_prestacoes_conta):
 def grupo_processo_associacao(permissoes_processo_associacao):
     g = Grupo.objects.create(name="processo_associacao")
     g.permissions.add(*permissoes_processo_associacao)
-    return g
-
-
-@pytest.fixture
-def grupo_relacoes_bens(permissoes_relacoes_bens):
-    g = Grupo.objects.create(name="relacoes_bens")
-    g.permissions.add(*permissoes_relacoes_bens)
     return g
 
 
@@ -196,18 +157,39 @@ def grupo_unidades(permissoes_unidades):
 
 
 @pytest.fixture
+def grupo_dashboard_dre(permissoes_dashboard_dre):
+    g = Grupo.objects.create(name="dashboard_dre")
+    g.permissions.add(*permissoes_dashboard_dre)
+    return g
+
+
+@pytest.fixture
+def grupo_associacao_dre(permissoes_associacoes_dre):
+    g = Grupo.objects.create(name="associacao_dre")
+    g.permissions.add(*permissoes_associacoes_dre)
+    return g
+
+
+@pytest.fixture
+def grupo_dadosdiretoria_dre(permissoes_dadosdiretoria_dre):
+    g = Grupo.objects.create(name="dadosdiretoria_dre")
+    g.permissions.add(*permissoes_dadosdiretoria_dre)
+    return g
+
+
+@pytest.fixture
 def usuario_permissao_associacao(
         unidade,
         grupo_associacao,
-        grupo_ata,
         grupo_cobrancas_prestacoes,
         grupo_observacoes_conciliacao,
-        grupo_demonstrativo_finaceiro,
         grupo_prestacoes_conta,
         grupo_processo_associacao,
-        grupo_relacoes_bens,
         grupo_tipo_devolucao,
-        grupo_unidades):
+        grupo_unidades,
+        grupo_dashboard_dre,
+        grupo_associacao_dre,
+        grupo_dadosdiretoria_dre):
 
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
@@ -218,15 +200,15 @@ def usuario_permissao_associacao(
     user.unidades.add(unidade)
     user.groups.add(
         grupo_associacao,
-        grupo_ata,
         grupo_cobrancas_prestacoes,
         grupo_observacoes_conciliacao,
-        grupo_demonstrativo_finaceiro,
         grupo_prestacoes_conta,
         grupo_processo_associacao,
-        grupo_relacoes_bens,
         grupo_tipo_devolucao,
-        grupo_unidades)
+        grupo_unidades,
+        grupo_dashboard_dre,
+        grupo_associacao_dre,
+        grupo_dadosdiretoria_dre)
     user.save()
     return user
 

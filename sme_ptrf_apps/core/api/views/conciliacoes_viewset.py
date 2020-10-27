@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+from sme_ptrf_apps.users.permissoes import PermissaoPrestacaoConta
 
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class ConciliacoesViewSet(GenericViewSet):
-    permission_classes = [IsAuthenticated & PermissaoCRUD]
+    permission_classes = [IsAuthenticated & PermissaoPrestacaoConta]
     queryset = ObservacaoConciliacao.objects.all()
 
     @action(detail=False, methods=['get'], url_path='tabela-valores-pendentes')

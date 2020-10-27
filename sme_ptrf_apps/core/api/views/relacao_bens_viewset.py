@@ -13,11 +13,11 @@ from sme_ptrf_apps.core.models import ContaAssociacao, Periodo, PeriodoPrevia, P
 from sme_ptrf_apps.core.services.relacao_bens import gerar
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL
-from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+from sme_ptrf_apps.users.permissoes import PermissaoPrestacaoConta
 
 
 class RelacaoBensViewSet(GenericViewSet):
-    permission_classes = [IsAuthenticated & PermissaoCRUD]
+    permission_classes = [IsAuthenticated & PermissaoPrestacaoConta]
     queryset = RelacaoBens.objects.all()
 
     @action(detail=False, methods=['get'])

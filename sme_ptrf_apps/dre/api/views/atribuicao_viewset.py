@@ -11,13 +11,13 @@ from sme_ptrf_apps.dre.services.atribuicao_service import (
     troca_atribuicao_em_lote,
     copia_atribuicoes_de_um_periodo
 )
-from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+from sme_ptrf_apps.users.permissoes import PermissaoDadosDiretoriaDre
 
 
 class AtribuicaoViewset(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = Atribuicao.objects.all()
-    permission_classes = [IsAuthenticated & PermissaoCRUD]
+    permission_classes = [IsAuthenticated & PermissaoDadosDiretoriaDre]
     serializer_class = AtribuicaoSerializer
 
     def get_serializer_class(self):

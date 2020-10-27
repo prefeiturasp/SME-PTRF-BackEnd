@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoCRUD
+from sme_ptrf_apps.users.permissoes import PermissaoDashboardDre
 
 from ...models import Unidade
 from ..serializers import UnidadeSerializer
@@ -15,7 +15,7 @@ from ..serializers import UnidadeSerializer
 class DresViewSet(mixins.ListModelMixin,
                   mixins.RetrieveModelMixin,
                   GenericViewSet, ):
-    permission_classes = [IsAuthenticated & PermissaoCRUD]
+    permission_classes = [IsAuthenticated & PermissaoDashboardDre]
     lookup_field = 'uuid'
     queryset = Unidade.dres.all()
     filters = (filters.DjangoFilterBackend, SearchFilter,)
