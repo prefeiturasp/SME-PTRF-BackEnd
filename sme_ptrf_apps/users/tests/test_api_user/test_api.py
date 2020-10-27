@@ -1,0 +1,268 @@
+import pytest
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+from model_bakery import baker
+
+from sme_ptrf_apps.users.models import Grupo
+
+pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture
+def visao_ue():
+    return baker.make('Visao', nome='UE')
+
+
+@pytest.fixture
+def visao_dre():
+    return baker.make('Visao', nome='DRE')
+
+
+@pytest.fixture
+def visao_sme():
+    return baker.make('Visao', nome='SME')
+
+
+@pytest.fixture
+def permissao1():
+    return Permission.objects.filter(codename='view_tipodevolucaoaotesouro').first()
+    
+
+@pytest.fixture
+def permissao2():
+    return Permission.objects.filter(codename='view_unidade').first()
+
+
+@pytest.fixture
+def grupo_1(permissao1, visao_ue):
+    g = Grupo.objects.create(name="grupo1")
+    g.permissions.add(permissao1)
+    g.visoes.add(visao_ue)
+    g.descricao = "Descrição grupo 1"
+    g.save()
+    return g
+
+
+@pytest.fixture
+def grupo_2(permissao2, visao_dre):
+    g = Grupo.objects.create(name="grupo2")
+    g.permissions.add(permissao2)
+    g.visoes.add(visao_dre)
+    g.descricao = "Descrição grupo 2"
+    g.save()
+    return g
+
+
+@pytest.fixture
+def usuario_para_teste(
+        unidade,
+        grupo_1,
+        visao_ue):
+
+    from django.contrib.auth import get_user_model
+    senha = 'Sgp0418'
+    login = '7210418'
+    email = 'sme@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(unidade)
+    user.groups.add(grupo_1)
+    user.visoes.add(visao_ue)
+    user.save()
+    return user
+
+
+@pytest.fixture
+def jwt_authenticated_client_u(client, usuario_para_teste):
+    from unittest.mock import patch
+
+    from rest_framework.test import APIClient
+    api_client = APIClient()
+    with patch('sme_ptrf_apps.users.api.views.login.AutenticacaoService.autentica') as mock_post:
+        data = {
+            "nome": "LUCIA HELENA",
+            "cpf": "62085077072",
+            "email": "luh@gmail.com",
+            "login": "7210418"
+        }
+        mock_post.return_value.ok = True
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = data
+        resp = api_client.post('/api/login', {'login': usuario_para_teste.username,
+                                              'senha': usuario_para_teste.password}, format='json')
+        resp_data = resp.json()
+        api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
+    return api_client
+
+
+@pytest.fixture
+def usuario_2(
+        unidade,
+        grupo_2,
+        visao_dre,
+        visao_sme):
+
+    from django.contrib.auth import get_user_model
+    senha = 'Sgp1981'
+    login = '7211981'
+    email = 'sme1981@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(unidade)
+    user.groups.add(grupo_2)
+    user.visoes.add(visao_dre, visao_sme)
+    user.save()
+    return user
+
+
+@pytest.fixture
+def usuario_3(
+        unidade,
+        grupo_2,
+        visao_dre,
+        visao_ue):
+
+    from django.contrib.auth import get_user_model
+    senha = 'Sgp8198'
+    login = '7218198'
+    email = 'sme8198@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email, name="Arthur Marques")
+    user.unidades.add(unidade)
+    user.groups.add(grupo_2)
+    user.visoes.add(visao_dre, visao_ue)
+    user.save()
+    return user
+
+
+@pytest.fixture
+def jwt_authenticated_client_u2(client, usuario_2):
+    from unittest.mock import patch
+
+    from rest_framework.test import APIClient
+    api_client = APIClient()
+    with patch('sme_ptrf_apps.users.api.views.login.AutenticacaoService.autentica') as mock_post:
+        data = {
+            "nome": "LUCIA HELENA",
+            "cpf": "62085077072",
+            "email": "luh@gmail.com",
+            "login": usuario_2.username
+        }
+        mock_post.return_value.ok = True
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = data
+        resp = api_client.post('/api/login', {'login': usuario_2.username,
+                                              'senha': usuario_2.password}, format='json')
+        resp_data = resp.json()
+        api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
+    return api_client
+
+
+def test_consulta_grupos(
+    jwt_authenticated_client_u, 
+    usuario_para_teste,
+    visao_ue,
+    visao_dre,
+    visao_sme,
+    permissao1,
+    permissao2,
+    grupo_1,
+    grupo_2):
+
+    response = jwt_authenticated_client_u.get("/api/usuarios/grupos/", content_type='application/json')
+    result = response.json()
+    esperado = [
+        {
+            "id": str(grupo_1.id),
+            "nome": grupo_1.name,
+            "descricao": grupo_1.descricao
+        }]
+
+    assert result == esperado
+
+
+def test_lista_usuarios(
+    jwt_authenticated_client_u, 
+    usuario_para_teste,
+    usuario_3,
+    visao_ue,
+    visao_dre,
+    visao_sme,
+    permissao1,
+    permissao2,
+    grupo_1,
+    grupo_2):
+
+    response = jwt_authenticated_client_u.get("/api/usuarios/", content_type='application/json')
+    result = response.json()
+    esperado = [
+        {   
+            'id': usuario_3.id,
+            'username': usuario_3.username,
+            'email': usuario_3.email,
+            'name': usuario_3.name,
+            'url': f'http://testserver/api/esqueci-minha-senha/{usuario_3.username}/', 
+            'groups': [{'id': grupo_2.id, 'name': grupo_2.name, 'descricao': grupo_2.descricao}]
+        }
+    ]
+    assert result == esperado
+
+
+def test_filtro_por_grupo_lista_usuarios(
+    jwt_authenticated_client_u2, 
+    usuario_2,
+    usuario_3,
+    visao_ue,
+    visao_dre,
+    visao_sme,
+    permissao1,
+    permissao2,
+    grupo_1,
+    grupo_2):
+
+    response = jwt_authenticated_client_u2.get(f"/api/usuarios/?groups__id={grupo_2.id}", content_type='application/json')
+    result = response.json()
+    esperado = [
+        {'id': usuario_3.id, 
+        'username': '7218198', 
+        'email': 'sme8198@amcom.com.br', 
+        'name': 'Arthur Marques', 
+        'url': 'http://testserver/api/esqueci-minha-senha/7218198/', 
+        'groups': [
+            {
+                'id': grupo_2.id, 
+                'name': 'grupo2', 
+                'descricao': 'Descrição grupo 2'}]
+            }
+        ]
+    assert result == esperado
+
+
+def test_filtro_por_nome_lista_usuarios(
+    jwt_authenticated_client_u2, 
+    usuario_2,
+    usuario_3,
+    visao_ue,
+    visao_dre,
+    visao_sme,
+    permissao1,
+    permissao2,
+    grupo_1,
+    grupo_2):
+
+    response = jwt_authenticated_client_u2.get(f"/api/usuarios/?search=Arth", content_type='application/json')
+    result = response.json()
+    esperado = [
+        {'id': usuario_3.id, 
+        'username': '7218198', 
+        'email': 'sme8198@amcom.com.br', 
+        'name': 'Arthur Marques', 
+        'url': 'http://testserver/api/esqueci-minha-senha/7218198/', 
+        'groups': [
+            {
+                'id': grupo_2.id, 
+                'name': 'grupo2', 
+                'descricao': 'Descrição grupo 2'}]
+            }
+        ]
+    assert result == esperado

@@ -12,15 +12,23 @@ from sme_ptrf_apps.users.api.validations.usuario_validations import (
     senhas_devem_ser_iguais,
 )
 from sme_ptrf_apps.users.services import SmeIntegracaoException, SmeIntegracaoService
+from sme_ptrf_apps.users.models import Grupo
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
+class GrupoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Grupo
+        fields = ['id', 'name', 'descricao']
+
 class UserSerializer(serializers.ModelSerializer):
+    groups = GrupoSerializer(many=True)
+
     class Meta:
         model = User
-        fields = ["username", "email", "name", "url"]
+        fields = ["id", "username", "email", "name", "url", "groups"]
 
         extra_kwargs = {
             "url": {"view_name": "api:user-detail", "lookup_field": "username"}
