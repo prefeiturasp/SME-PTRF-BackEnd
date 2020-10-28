@@ -1,4 +1,6 @@
 import pytest
+from freezegun import freeze_time
+from django.core.files.uploadedfile import SimpleUploadedFile
 from model_bakery import baker
 from django.contrib.auth.models import Permission
 from sme_ptrf_apps.users.models import Grupo
@@ -97,6 +99,22 @@ def atribuicao(tecnico_dre, unidade, periodo):
         periodo=periodo,
     )
 
+@pytest.fixture
+def arquivo():
+    return SimpleUploadedFile(f'arquivo.txt', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding="utf-8"))
+
+
+@pytest.fixture
+@freeze_time('2020-10-27 13:59:00')
+def relatorio_dre_consolidado_gerado_total(periodo, dre, tipo_conta_cartao, arquivo):
+    return baker.make(
+        'RelatorioConsolidadoDre',
+        dre=dre,
+        tipo_conta=tipo_conta_cartao,
+        periodo=periodo,
+        arquivo=arquivo,
+        status='GERADO_TOTAL'
+    )
 
 @pytest.fixture
 def permissoes_dadosdiretoria_dre():
@@ -155,3 +173,4 @@ def jwt_authenticated_client_dre(client, usuario_permissao_atribuicao):
         resp_data = resp.json()
         api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
     return api_client
+
