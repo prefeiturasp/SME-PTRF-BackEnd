@@ -22,7 +22,7 @@ def remetente():
     return baker.make('Remetente', nome='SME')
 
 @pytest.fixture
-def notificacao(tipo_notificacao, remetente, categoria, usuario):
+def notificacao(tipo_notificacao, remetente, categoria, usuario_permissao_associacao):
     return baker.make(
         'Notificacao',
         tipo=tipo_notificacao,
@@ -30,7 +30,7 @@ def notificacao(tipo_notificacao, remetente, categoria, usuario):
         remetente=remetente,
         titulo="Documentos Faltantes",
         descricao="Documentos Faltantes na prestação de contas",
-        usuario=usuario
+        usuario=usuario_permissao_associacao
     )
 
 def test_instance_model(notificacao):

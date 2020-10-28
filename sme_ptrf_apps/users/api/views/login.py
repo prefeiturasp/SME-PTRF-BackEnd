@@ -72,8 +72,17 @@ class LoginView(ObtainJSONWebToken):
                         'tipo_escola': ''}
                     user_dict['associacao'] = associacao_dict
                     user_dict['unidades'] = unidades
+                    user_dict['permissoes'] = self.get_user_permissions(user)
                     data = {**user_dict, **resp.data}
                     return Response(data)
             return Response(response.json(), response.status_code)
         except Exception as e:
             return Response({'data': {'detail': f'ERROR - {e}'}}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get_user_permissions(self, user):
+        perms = []
+        for group in user.groups.all():
+            for permission in group.permissions.all():
+                perms.append(permission.codename)
+        
+        return perms

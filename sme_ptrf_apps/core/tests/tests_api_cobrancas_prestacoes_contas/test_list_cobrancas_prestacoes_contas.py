@@ -77,14 +77,14 @@ def _cobranca_prestacao_2019_2_devolucao(prestacao_conta_2019_2_conciliada):
     )
 
 
-def test_list_cobrancas_prestacoes_contas_recebimento(client,
+def test_list_cobrancas_prestacoes_contas_recebimento(jwt_authenticated_client_a,
                                                       _cobranca_prestacao_2020_1_devolucao,
                                                       _cobranca_prestacao_2020_1_recebimento,
                                                       _cobranca_prestacao_2019_2_devolucao,
                                                       _cobranca_prestacao_2019_2_recebimento):
     prestacao_uuid = _cobranca_prestacao_2020_1_recebimento.prestacao_conta.uuid
 
-    response = client.get(f'/api/cobrancas-prestacoes-contas/?prestacao_conta__uuid={prestacao_uuid}&tipo=RECEBIMENTO',
+    response = jwt_authenticated_client_a.get(f'/api/cobrancas-prestacoes-contas/?prestacao_conta__uuid={prestacao_uuid}&tipo=RECEBIMENTO',
                           content_type='application/json')
 
     result = json.loads(response.content)
@@ -102,7 +102,7 @@ def test_list_cobrancas_prestacoes_contas_recebimento(client,
     assert result == esperado
 
 
-def test_list_cobrancas_prestacoes_contas_por_devolucao(client,
+def test_list_cobrancas_prestacoes_contas_por_devolucao(jwt_authenticated_client_a,
                                                         _cobranca_prestacao_2020_1_devolucao,
                                                         _cobranca_prestacao_2020_1_recebimento,
                                                         _cobranca_prestacao_2019_2_devolucao,
@@ -113,7 +113,7 @@ def test_list_cobrancas_prestacoes_contas_por_devolucao(client,
 
     devolucao_uuid = _cobranca_prestacao_2020_1_devolucao_2.devolucao_prestacao.uuid
 
-    response = client.get(f'/api/cobrancas-prestacoes-contas/?prestacao_conta__uuid={prestacao_uuid}&tipo=DEVOLUCAO&devolucao_prestacao__uuid={devolucao_uuid}',
+    response = jwt_authenticated_client_a.get(f'/api/cobrancas-prestacoes-contas/?prestacao_conta__uuid={prestacao_uuid}&tipo=DEVOLUCAO&devolucao_prestacao__uuid={devolucao_uuid}',
                           content_type='application/json')
 
     result = json.loads(response.content)

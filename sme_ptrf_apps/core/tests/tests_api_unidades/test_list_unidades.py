@@ -47,11 +47,61 @@ def unidade_paulo_camilhier_florencano_dre_1(dre_01):
     )
 
 
-def test_api_list_unidades_todas(client, unidade_paulo_camilhier_florencano_dre_1, dre_01):
-    response = client.get(f'/api/unidades/', content_type='application/json')
+def test_api_list_unidades_todas(jwt_authenticated_client_a, unidade_paulo_camilhier_florencano_dre_1, dre_01, dre, unidade):
+    response = jwt_authenticated_client_a.get(f'/api/unidades/', content_type='application/json')
     result = json.loads(response.content)
 
     result_esperado = [
+        {
+            'bairro': '',
+            'cep': '',
+            'codigo_eol': '99999',
+            'complemento': '',
+            'diretor_nome': '',
+            'dre': None,
+            'dre_cnpj': '',
+            'dre_designacao_ano': '',
+            'dre_designacao_portaria': '',
+            'dre_diretor_regional_nome': '',
+            'dre_diretor_regional_rf': '',
+            'email': '',
+            'logradouro': '',
+            'nome': 'DRE teste',
+            'numero': '',
+            'qtd_alunos': 0,
+            'sigla': '',
+            'telefone': '',
+            'tipo_logradouro': '',
+            'tipo_unidade': 'DRE',
+            'uuid': str(dre.uuid)
+        },
+        {
+            'bairro': 'COHAB INSTITUTO ADVENTISTA',
+            'cep': '5868120',
+            'codigo_eol': '123456',
+            'complemento': 'fundos',
+            'diretor_nome': 'Pedro Amaro',
+            'dre': {'codigo_eol': '99999',
+                    'nome': 'DRE teste',
+                    'sigla': '',
+                    'tipo_unidade': 'DRE',
+                    'uuid': str(dre.uuid)},
+            'dre_cnpj': '63.058.286/0001-86',
+            'dre_designacao_ano': '2017',
+            'dre_designacao_portaria': 'Portaria nº 0.000',
+            'dre_diretor_regional_nome': 'Anthony Edward Stark',
+            'dre_diretor_regional_rf': '1234567',
+            'email': 'emefjopfilho@sme.prefeitura.sp.gov.br',
+            'logradouro': 'dos Testes',
+            'nome': 'Escola Teste',
+            'numero': '200',
+            'qtd_alunos': 1000,
+            'sigla': 'ET',
+            'telefone': '58212627',
+            'tipo_logradouro': 'Travessa',
+            'tipo_unidade': 'CEU',
+            'uuid': str(unidade.uuid)
+        },
         {
             "uuid": f'{dre_01.uuid}',
             "codigo_eol": f'{dre_01.codigo_eol}',
@@ -158,8 +208,8 @@ def unidade_2(dre):
     )
 
 
-def test_unidades_para_atribuicao(jwt_authenticated_client, unidade, periodo, tecnico_dre, atribuicao):
-    response = jwt_authenticated_client.get(
+def test_unidades_para_atribuicao(jwt_authenticated_client_a, unidade, periodo, tecnico_dre, atribuicao):
+    response = jwt_authenticated_client_a.get(
         f'/api/unidades/para-atribuicao/?dre_uuid={unidade.dre.uuid}&periodo={periodo.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
@@ -184,8 +234,8 @@ def test_unidades_para_atribuicao(jwt_authenticated_client, unidade, periodo, te
     assert resultado_esperado == result
 
 
-def test_unidades_para_atribuicao_filtro_tipo_unidade(jwt_authenticated_client, unidade, unidade_2, periodo, tecnico_dre, atribuicao):
-    response = jwt_authenticated_client.get(
+def test_unidades_para_atribuicao_filtro_tipo_unidade(jwt_authenticated_client_a, unidade, unidade_2, periodo, tecnico_dre, atribuicao):
+    response = jwt_authenticated_client_a.get(
         f'/api/unidades/para-atribuicao/?dre_uuid={unidade.dre.uuid}&periodo={periodo.uuid}&tipo_unidade={unidade.tipo_unidade}', content_type='application/json')
     result = json.loads(response.content)
 
@@ -210,8 +260,8 @@ def test_unidades_para_atribuicao_filtro_tipo_unidade(jwt_authenticated_client, 
     assert resultado_esperado == result
 
 
-def test_unidades_para_atribuicao_filtro_nome_unidade_qualquer_termo(jwt_authenticated_client, unidade, unidade_2, periodo, tecnico_dre, atribuicao):
-    response = jwt_authenticated_client.get(
+def test_unidades_para_atribuicao_filtro_nome_unidade_qualquer_termo(jwt_authenticated_client_a, unidade, unidade_2, periodo, tecnico_dre, atribuicao):
+    response = jwt_authenticated_client_a.get(
         f'/api/unidades/para-atribuicao/?dre_uuid={unidade.dre.uuid}&periodo={periodo.uuid}&search=Unid', content_type='application/json')
     result = json.loads(response.content)
 

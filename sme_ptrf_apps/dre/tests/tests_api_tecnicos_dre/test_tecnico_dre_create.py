@@ -20,8 +20,8 @@ def payload_tecnico_dre(dre_butantan):
     return payload
 
 
-def test_create_tecnico_dre(jwt_authenticated_client, dre, payload_tecnico_dre):
-    response = jwt_authenticated_client.post(
+def test_create_tecnico_dre(jwt_authenticated_client_dre, dre, payload_tecnico_dre):
+    response = jwt_authenticated_client_dre.post(
         '/api/tecnicos-dre/', data=json.dumps(payload_tecnico_dre), content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -43,9 +43,9 @@ def payload_tecnico_dre_rf_ja_existente(dre_butantan, tecnico_maria_dre_butantan
     return payload
 
 
-def test_create_tecnico_dre_repetido(jwt_authenticated_client, dre, tecnico_maria_dre_butantan,
+def test_create_tecnico_dre_repetido(jwt_authenticated_client_dre, dre, tecnico_maria_dre_butantan,
                                      payload_tecnico_dre_rf_ja_existente):
-    response = jwt_authenticated_client.post(
+    response = jwt_authenticated_client_dre.post(
         '/api/tecnicos-dre/', data=json.dumps(payload_tecnico_dre_rf_ja_existente), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST

@@ -2,16 +2,17 @@ from django_filters import rest_framework as filters
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from ..serializers import UnidadeSerializer
 from ...models import Unidade
 from ...services import monta_unidade_para_atribuicao
+from sme_ptrf_apps.users.permissoes import PermissaoDadosDiretoriaDre
 
 
 class UnidadesViewSet(viewsets.ModelViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated & PermissaoDadosDiretoriaDre]
     lookup_field = 'uuid'
     queryset = Unidade.objects.all()
     filters = (filters.DjangoFilterBackend, SearchFilter,)

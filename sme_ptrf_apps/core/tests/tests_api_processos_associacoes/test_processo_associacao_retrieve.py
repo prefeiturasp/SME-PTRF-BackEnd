@@ -6,10 +6,10 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 def test_retrieve_processo_associacao(
-        jwt_authenticated_client,
+        jwt_authenticated_client_a,
         processo_associacao_123456_2019):
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_a.get(
         f'/api/processos-associacao/{processo_associacao_123456_2019.uuid}/', content_type='application/json')
     result = json.loads(response.content)
     esperado = {

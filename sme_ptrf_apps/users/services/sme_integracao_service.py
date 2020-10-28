@@ -57,3 +57,18 @@ class SmeIntegracaoService:
                 raise SmeIntegracaoException('Erro ao redefinir email')
         except Exception as err:
             raise SmeIntegracaoException(str(err))
+
+    
+    @classmethod
+    def informacao_usuario_sgp(cls, login):
+        logger.info('Consultando informação de %s.', login)
+        try:
+            response = requests.get(f'{settings.SME_INTEGRACAO_URL}/api/AutenticacaoSgp/{login}/dados', headers=cls.headers)
+            if response.status_code == status.HTTP_200_OK:
+                return response.json()
+            else:
+                logger.info("Dados não encontrados: %s", response)
+                raise SmeIntegracaoException('Dados não encontrados.')
+        except Exception as err:
+            logger.info("Erro ao consultar informação: %s", str(err))
+            raise SmeIntegracaoException(str(err))

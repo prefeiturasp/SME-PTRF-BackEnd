@@ -24,7 +24,7 @@ def prestacao_conta_em_analise(periodo, associacao):
 
 
 @freeze_time('2020-09-01')
-def test_api_conclui_analise_prestacao_conta_aprovada(jwt_authenticated_client, prestacao_conta_em_analise,
+def test_api_conclui_analise_prestacao_conta_aprovada(jwt_authenticated_client_a, prestacao_conta_em_analise,
                                                       conta_associacao):
     payload = {
         'devolucao_tesouro': True,
@@ -40,7 +40,7 @@ def test_api_conclui_analise_prestacao_conta_aprovada(jwt_authenticated_client, 
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
 
-    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 

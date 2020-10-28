@@ -9,12 +9,12 @@ from ...models import RateioDespesa
 pytestmark = pytest.mark.django_db
 
 
-def test_api_rateio_desconciliar_despesa(client, rateio_despesa_conferido):
+def test_api_rateio_desconciliar_despesa(jwt_authenticated_client_d, rateio_despesa_conferido):
     rateio_uuid = rateio_despesa_conferido.uuid
 
     url = f'/api/rateios-despesas/{rateio_uuid}/desconciliar/'
 
-    response = client.patch(url, content_type='application/json')
+    response = jwt_authenticated_client_d.patch(url, content_type='application/json')
 
     result = json.loads(response.content)
 

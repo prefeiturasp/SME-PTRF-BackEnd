@@ -18,7 +18,7 @@ def dre_unidade_educacional():
         sigla='G'
     )
 
-
+from datetime import datetime
 @pytest.fixture
 def unidade_educacional(dre_unidade_educacional):
     return baker.make(
@@ -44,11 +44,12 @@ def unidade_educacional(dre_unidade_educacional):
         dre_diretor_regional_nome='Anthony Edward Stark',
         dre_designacao_portaria='Portaria nº 0.000',
         dre_designacao_ano='2017',
+        criado_em=datetime.now()
     )
 
 
-def test_api_retrieve_unidade(client, unidade_educacional):
-    response = client.get(f'/api/unidades/{unidade_educacional.uuid}/', content_type='application/json')
+def test_api_retrieve_unidade(jwt_authenticated_client_a, unidade_educacional):
+    response = jwt_authenticated_client_a.get(f'/api/unidades/{unidade_educacional.uuid}/', content_type='application/json')
     result = json.loads(response.content)
 
     result_esperado = {

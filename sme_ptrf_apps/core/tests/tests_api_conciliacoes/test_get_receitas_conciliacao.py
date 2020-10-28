@@ -8,7 +8,7 @@ from ....receitas.api.serializers import ReceitaListaSerializer
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_receitas_conferidas(client,
+def test_api_get_receitas_conferidas(jwt_authenticated_client_a,
                                      acao_associacao_role_cultural,
                                      receita_2019_2_role_repasse_conferida,
                                      receita_2019_2_role_repasse_conferida_no_periodo,
@@ -24,7 +24,7 @@ def test_api_get_receitas_conferidas(client,
 
     url = f'/api/conciliacoes/receitas/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&acao_associacao={acao_uuid}&conferido=True'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -40,7 +40,7 @@ def test_api_get_receitas_conferidas(client,
     assert receitas_retornadas == receitas_esperadas, "Não retornou a lista de receitas esperada."
 
 
-def test_api_get_receitas_nao_conferidas_prestacao_conta(client,
+def test_api_get_receitas_nao_conferidas_prestacao_conta(jwt_authenticated_client_a,
                                                          acao_associacao_role_cultural,
                                                          receita_2019_2_role_repasse_conferida,
                                                          receita_2020_1_role_repasse_conferida,
@@ -55,7 +55,7 @@ def test_api_get_receitas_nao_conferidas_prestacao_conta(client,
 
     url = f'/api/conciliacoes/receitas/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&acao_associacao={acao_uuid}&conferido=False'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -67,7 +67,7 @@ def test_api_get_receitas_nao_conferidas_prestacao_conta(client,
     assert result == resultado_esperado, "Não retornou a lista de receitas não conferidas."
 
 
-def test_api_get_receitas_nao_conferidas_traz_periodos_anteriores(client,
+def test_api_get_receitas_nao_conferidas_traz_periodos_anteriores(jwt_authenticated_client_a,
                                                                   acao_associacao_role_cultural,
                                                                   receita_2019_2_role_repasse_conferida,
                                                                   receita_2019_2_role_repasse_nao_conferida,
@@ -83,7 +83,7 @@ def test_api_get_receitas_nao_conferidas_traz_periodos_anteriores(client,
 
     url = f'/api/conciliacoes/receitas/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&acao_associacao={acao_uuid}&conferido=False'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 

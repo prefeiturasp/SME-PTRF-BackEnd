@@ -10,7 +10,7 @@ def test_api_verifica_saldo_antes_post_saldo_ok(
     periodo,
     periodo_2020_1,
     fechamento_periodo_com_saldo,
-    jwt_authenticated_client,
+    jwt_authenticated_client_d,
     tipo_aplicacao_recurso,
     tipo_custeio,
     tipo_documento,
@@ -22,7 +22,7 @@ def test_api_verifica_saldo_antes_post_saldo_ok(
     conta_associacao,
     payload_despesa_valida
 ):
-    response = jwt_authenticated_client.post('/api/rateios-despesas/verificar-saldos/',
+    response = jwt_authenticated_client_d.post('/api/rateios-despesas/verificar-saldos/',
                                              data=json.dumps(payload_despesa_valida),
                                              content_type='application/json')
 
@@ -40,7 +40,7 @@ def test_api_verifica_saldo_antes_post_saldo_ok(
 
 
 def test_api_verifica_saldo_antes_post_sem_saldo(
-    client,
+    jwt_authenticated_client_d,
     periodo,
     periodo_2020_1,
     fechamento_periodo_com_saldo_outra_acao,
@@ -55,7 +55,7 @@ def test_api_verifica_saldo_antes_post_sem_saldo(
     conta_associacao,
     payload_despesa_valida
 ):
-    response = client.post('/api/rateios-despesas/verificar-saldos/', data=json.dumps(payload_despesa_valida),
+    response = jwt_authenticated_client_d.post('/api/rateios-despesas/verificar-saldos/', data=json.dumps(payload_despesa_valida),
                            content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
@@ -79,7 +79,7 @@ def test_api_verifica_saldo_antes_post_sem_saldo(
 
 
 def test_api_verifica_saldo_antes_post_com_saldo_considerando_livre_aplicacao(
-    client,
+    jwt_authenticated_client_d,
     periodo,
     periodo_2020_1,
     fechamento_periodo_com_saldo_livre_aplicacao,
@@ -94,7 +94,7 @@ def test_api_verifica_saldo_antes_post_com_saldo_considerando_livre_aplicacao(
     conta_associacao,
     payload_despesa_valida
 ):
-    response = client.post('/api/rateios-despesas/verificar-saldos/', data=json.dumps(payload_despesa_valida),
+    response = jwt_authenticated_client_d.post('/api/rateios-despesas/verificar-saldos/', data=json.dumps(payload_despesa_valida),
                            content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
@@ -111,7 +111,7 @@ def test_api_verifica_saldo_antes_post_com_saldo_considerando_livre_aplicacao(
 
 
 def test_api_verifica_saldo_antes_post_sem_saldo_na_conta_com_parametro_nao_aceita_negativo(
-    client,
+    jwt_authenticated_client_d,
     tipo_aplicacao_recurso,
     tipo_custeio,
     tipo_documento,
@@ -124,7 +124,7 @@ def test_api_verifica_saldo_antes_post_sem_saldo_na_conta_com_parametro_nao_acei
     payload_despesa_valida,
     parametros_nao_aceita_saldo_negativo_em_conta
 ):
-    response = client.post('/api/rateios-despesas/verificar-saldos/', data=json.dumps(payload_despesa_valida),
+    response = jwt_authenticated_client_d.post('/api/rateios-despesas/verificar-saldos/', data=json.dumps(payload_despesa_valida),
                            content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
@@ -147,7 +147,7 @@ def test_api_verifica_saldo_antes_post_sem_saldo_na_conta_com_parametro_nao_acei
 
 
 def test_api_verifica_saldo_antes_post_sem_saldo_na_conta_com_parametro_aceita_negativo(
-    client,
+    jwt_authenticated_client_d,
     tipo_aplicacao_recurso,
     tipo_custeio,
     tipo_documento,
@@ -160,7 +160,7 @@ def test_api_verifica_saldo_antes_post_sem_saldo_na_conta_com_parametro_aceita_n
     payload_despesa_valida,
     parametros_aceita_saldo_negativo_em_conta
 ):
-    response = client.post('/api/rateios-despesas/verificar-saldos/', data=json.dumps(payload_despesa_valida),
+    response = jwt_authenticated_client_d.post('/api/rateios-despesas/verificar-saldos/', data=json.dumps(payload_despesa_valida),
                            content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
@@ -183,7 +183,7 @@ def test_api_verifica_saldo_antes_post_sem_saldo_na_conta_com_parametro_aceita_n
 
 
 def test_api_verifica_saldo_antes_post_com_saldo_na_conta_considerando_recursos_livre_aplicacao(
-    client,
+    jwt_authenticated_client_d,
     tipo_aplicacao_recurso,
     tipo_custeio,
     tipo_documento,
@@ -198,7 +198,7 @@ def test_api_verifica_saldo_antes_post_com_saldo_na_conta_considerando_recursos_
     periodo_2020_1,
     fechamento_periodo_com_saldo_livre_aplicacao,
 ):
-    response = client.post('/api/rateios-despesas/verificar-saldos/', data=json.dumps(payload_despesa_valida),
+    response = jwt_authenticated_client_d.post('/api/rateios-despesas/verificar-saldos/', data=json.dumps(payload_despesa_valida),
                            content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK

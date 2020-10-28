@@ -18,8 +18,8 @@ def payload_cobranca(prestacao_conta_2020_1_conciliada):
     return payload
 
 
-def test_create_cobranca_prestacao_conta(client, associacao, payload_cobranca, devolucao_prestacao_conta_2020_1):
-    response = client.post(
+def test_create_cobranca_prestacao_conta(jwt_authenticated_client_a, associacao, payload_cobranca, devolucao_prestacao_conta_2020_1):
+    response = jwt_authenticated_client_a.post(
         '/api/cobrancas-prestacoes-contas/', data=json.dumps(payload_cobranca), content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -43,10 +43,10 @@ def payload_cobranca_devolucao(prestacao_conta_2020_1_conciliada):
     return payload
 
 
-def test_create_cobranca_prestacao_conta_devolucao(client, associacao, payload_cobranca_devolucao,
+def test_create_cobranca_prestacao_conta_devolucao(jwt_authenticated_client_a, associacao, payload_cobranca_devolucao,
                                                    prestacao_conta_2020_1_conciliada,
                                                    devolucao_prestacao_conta_2020_1):
-    response = client.post(
+    response = jwt_authenticated_client_a.post(
         '/api/cobrancas-prestacoes-contas/', data=json.dumps(payload_cobranca_devolucao), content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED

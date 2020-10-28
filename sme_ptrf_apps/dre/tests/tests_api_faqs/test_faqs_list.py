@@ -6,8 +6,8 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_api_list_faqs_todos(client, faq, faq_02):
-    response = client.get(f'/api/faqs/', content_type='application/json')
+def test_api_list_faqs_todos(jwt_authenticated_client, faq, faq_02):
+    response = jwt_authenticated_client.get(f'/api/faqs/', content_type='application/json')
     result = json.loads(response.content)
 
     resultado_esperado = [
@@ -28,8 +28,8 @@ def test_api_list_faqs_todos(client, faq, faq_02):
 
 
 
-def test_api_list_faqs_por_categoria(client, faq, faq_categoria):
-    response = client.get(f'/api/faqs/?categoria__uuid={faq_categoria.uuid}', content_type='application/json')
+def test_api_list_faqs_por_categoria(jwt_authenticated_client, faq, faq_categoria):
+    response = jwt_authenticated_client.get(f'/api/faqs/?categoria__uuid={faq_categoria.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
     resultado_esperado = [

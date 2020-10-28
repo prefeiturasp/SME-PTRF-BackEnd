@@ -9,11 +9,11 @@ pytestmark = pytest.mark.django_db
 
 
 def test_get_membros_associacoes(
-        jwt_authenticated_client,
+        jwt_authenticated_client_a,
         associacao,
         membro_associacao):
 
-    response = jwt_authenticated_client.get(f'/api/membros-associacao/?associacao_uuid={associacao.uuid}', content_type='application/json')
+    response = jwt_authenticated_client_a.get(f'/api/membros-associacao/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = [
@@ -41,11 +41,11 @@ def test_get_membros_associacoes(
 
 
 def test_get_membro_associacao(
-        jwt_authenticated_client,
+        jwt_authenticated_client_a,
         associacao,
         membro_associacao):
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_a.get(
         f'/api/membros-associacao/{membro_associacao.uuid}/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
     esperado = {
@@ -70,8 +70,8 @@ def test_get_membro_associacao(
     assert result == esperado
 
 
-def test_criar_membro_associacao_servidor(jwt_authenticated_client, associacao, payload_membro_servidor):
-    response = jwt_authenticated_client.post(
+def test_criar_membro_associacao_servidor(jwt_authenticated_client_a, associacao, payload_membro_servidor):
+    response = jwt_authenticated_client_a.post(
         '/api/membros-associacao/', data=json.dumps(payload_membro_servidor), content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -81,8 +81,8 @@ def test_criar_membro_associacao_servidor(jwt_authenticated_client, associacao, 
     assert MembroAssociacao.objects.filter(uuid=result['uuid']).exists()
 
 
-def test_criar_membro_associacao_estudante(jwt_authenticated_client, associacao, payload_membro_estudante):
-    response = jwt_authenticated_client.post(
+def test_criar_membro_associacao_estudante(jwt_authenticated_client_a, associacao, payload_membro_estudante):
+    response = jwt_authenticated_client_a.post(
         '/api/membros-associacao/', data=json.dumps(payload_membro_estudante), content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -92,8 +92,8 @@ def test_criar_membro_associacao_estudante(jwt_authenticated_client, associacao,
     assert MembroAssociacao.objects.filter(uuid=result['uuid']).exists()
 
 
-def test_criar_membro_associacao_pai_responsavel(jwt_authenticated_client, associacao, payload_membro_pai_responsavel):
-    response = jwt_authenticated_client.post(
+def test_criar_membro_associacao_pai_responsavel(jwt_authenticated_client_a, associacao, payload_membro_pai_responsavel):
+    response = jwt_authenticated_client_a.post(
         '/api/membros-associacao/', data=json.dumps(payload_membro_pai_responsavel), content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -103,10 +103,10 @@ def test_criar_membro_associacao_pai_responsavel(jwt_authenticated_client, assoc
     assert MembroAssociacao.objects.filter(uuid=result['uuid']).exists()
 
 
-def test_atualizar_membro_associacao_servidor(jwt_authenticated_client, associacao, membro_associacao, payload_membro_servidor):
+def test_atualizar_membro_associacao_servidor(jwt_authenticated_client_a, associacao, membro_associacao, payload_membro_servidor):
     nome_novo = "Gabriel Nóbrega"
     payload_membro_servidor['nome'] = nome_novo
-    response = jwt_authenticated_client.put(
+    response = jwt_authenticated_client_a.put(
         f'/api/membros-associacao/{membro_associacao.uuid}/?associacao_uuid={associacao.uuid}', data=json.dumps(payload_membro_servidor), content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
@@ -120,10 +120,10 @@ def test_atualizar_membro_associacao_servidor(jwt_authenticated_client, associac
     assert membro.nome == nome_novo
 
 
-def test_deletar_membro_associacao(jwt_authenticated_client, associacao, membro_associacao):
+def test_deletar_membro_associacao(jwt_authenticated_client_a, associacao, membro_associacao):
     assert MembroAssociacao.objects.filter(uuid=membro_associacao.uuid).exists()
 
-    response = jwt_authenticated_client.delete(
+    response = jwt_authenticated_client_a.delete(
         f'/api/membros-associacao/{membro_associacao.uuid}/?associacao_uuid={associacao.uuid}', content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT

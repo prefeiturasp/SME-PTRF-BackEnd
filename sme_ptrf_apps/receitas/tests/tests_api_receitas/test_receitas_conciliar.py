@@ -9,12 +9,12 @@ from ...models import Receita
 pytestmark = pytest.mark.django_db
 
 
-def test_api_conciliar_receita_sem_periodo(client, receita_nao_conferida):
+def test_api_conciliar_receita_sem_periodo(jwt_authenticated_client_p, receita_nao_conferida):
     receita_uuid = receita_nao_conferida.uuid
 
     url = f'/api/receitas/{receita_uuid}/conciliar/'
 
-    response = client.patch(url, content_type='application/json')
+    response = jwt_authenticated_client_p.patch(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -27,12 +27,12 @@ def test_api_conciliar_receita_sem_periodo(client, receita_nao_conferida):
     assert result == esperado
 
 
-def test_api_conciliar_receita_com_periodo(client, receita_nao_conferida, periodo_2020_1):
+def test_api_conciliar_receita_com_periodo(jwt_authenticated_client_p, receita_nao_conferida, periodo_2020_1):
     receita_uuid = receita_nao_conferida.uuid
 
     url = f'/api/receitas/{receita_uuid}/conciliar/?periodo={periodo_2020_1.uuid}'
 
-    response = client.patch(url, content_type='application/json')
+    response = jwt_authenticated_client_p.patch(url, content_type='application/json')
 
     result = json.loads(response.content)
 

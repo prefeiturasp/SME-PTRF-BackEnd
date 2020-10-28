@@ -17,9 +17,9 @@ def processo_de_outra_associacao(associacao_sem_periodo_inicial):
     )
 
 
-def test_list_processos_da_associacao(client, associacao, processo_associacao_123456_2019,
+def test_list_processos_da_associacao(jwt_authenticated_client_a, associacao, processo_associacao_123456_2019,
                                        processo_de_outra_associacao):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/processos/',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/processos/',
                           content_type='application/json')
     result = json.loads(response.content)
 

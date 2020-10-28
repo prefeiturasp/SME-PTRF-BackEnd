@@ -68,10 +68,10 @@ def json_especificacao_capital_ar_condicionado(especificacao_capital_ar_condicio
     }
 
 
-def test_api_get_especificacoes_sem_filtro(client, json_especificacao_custeio_material_eletrico,
+def test_api_get_especificacoes_sem_filtro(jwt_authenticated_client, json_especificacao_custeio_material_eletrico,
                                            json_especificacao_custeio_servico_instalacao_eletrica,
                                            json_especificacao_capital_ar_condicionado):
-    response = client.get('/api/especificacoes/', content_type='application/json')
+    response = jwt_authenticated_client.get('/api/especificacoes/', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = [
@@ -85,10 +85,10 @@ def test_api_get_especificacoes_sem_filtro(client, json_especificacao_custeio_ma
     assert result == esperado
 
 
-def test_api_get_especificacoes_com_filtro_capital(client, json_especificacao_custeio_material_eletrico,
+def test_api_get_especificacoes_com_filtro_capital(jwt_authenticated_client, json_especificacao_custeio_material_eletrico,
                                                    json_especificacao_custeio_servico_instalacao_eletrica,
                                                    json_especificacao_capital_ar_condicionado):
-    response = client.get('/api/especificacoes/?aplicacao_recurso=CAPITAL', content_type='application/json')
+    response = jwt_authenticated_client.get('/api/especificacoes/?aplicacao_recurso=CAPITAL', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = [
@@ -100,10 +100,10 @@ def test_api_get_especificacoes_com_filtro_capital(client, json_especificacao_cu
     assert result == esperado
 
 
-def test_api_get_especificacoes_com_filtro_custeio(client, json_especificacao_custeio_material_eletrico,
+def test_api_get_especificacoes_com_filtro_custeio(jwt_authenticated_client, json_especificacao_custeio_material_eletrico,
                                                    json_especificacao_custeio_servico_instalacao_eletrica,
                                                    json_especificacao_capital_ar_condicionado):
-    response = client.get('/api/especificacoes/?aplicacao_recurso=CUSTEIO', content_type='application/json')
+    response = jwt_authenticated_client.get('/api/especificacoes/?aplicacao_recurso=CUSTEIO', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = [
@@ -115,11 +115,11 @@ def test_api_get_especificacoes_com_filtro_custeio(client, json_especificacao_cu
     assert result == esperado
 
 
-def test_api_get_especificacoes_com_filtro_custeio_servico(client, json_especificacao_custeio_material_eletrico,
+def test_api_get_especificacoes_com_filtro_custeio_servico(jwt_authenticated_client, json_especificacao_custeio_material_eletrico,
                                                            json_especificacao_custeio_servico_instalacao_eletrica,
                                                            json_especificacao_capital_ar_condicionado,
                                                            tipo_custeio_servico):
-    response = client.get(f'/api/especificacoes/?aplicacao_recurso=CUSTEIO&tipo_custeio={tipo_custeio_servico.id}',
+    response = jwt_authenticated_client.get(f'/api/especificacoes/?aplicacao_recurso=CUSTEIO&tipo_custeio={tipo_custeio_servico.id}',
                           content_type='application/json')
     result = json.loads(response.content)
 

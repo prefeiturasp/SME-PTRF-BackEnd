@@ -12,8 +12,8 @@ def tipo_devolucao_ao_tesouro():
     return baker.make('TipoDevolucaoAoTesouro', nome='Teste')
 
 
-def test_api_list_devolucoes_ao_tesouro(jwt_authenticated_client, tipo_devolucao_ao_tesouro):
-    response = jwt_authenticated_client.get(f'/api/tipos-devolucao-ao-tesouro/', content_type='application/json')
+def test_api_list_devolucoes_ao_tesouro(jwt_authenticated_client_a, tipo_devolucao_ao_tesouro):
+    response = jwt_authenticated_client_a.get(f'/api/tipos-devolucao-ao-tesouro/', content_type='application/json')
     result = json.loads(response.content)
 
     resultado_esperado = [

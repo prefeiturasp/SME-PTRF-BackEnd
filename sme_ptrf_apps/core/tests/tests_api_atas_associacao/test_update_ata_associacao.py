@@ -9,7 +9,7 @@ from ...models import Ata
 pytestmark = pytest.mark.django_db
 
 
-def test_api_update_ata_associacao(client, ata_2020_1_cheque_aprovada):
+def test_api_update_ata_associacao(jwt_authenticated_client_a, ata_2020_1_cheque_aprovada):
 
     payload = {
         "tipo_reuniao": "EXTRAORDINARIA",
@@ -24,7 +24,7 @@ def test_api_update_ata_associacao(client, ata_2020_1_cheque_aprovada):
         "comentarios": "TesteXXX",
     }
 
-    response = client.patch(f'/api/atas-associacao/{ata_2020_1_cheque_aprovada.uuid}/', data=json.dumps(payload),
+    response = jwt_authenticated_client_a.patch(f'/api/atas-associacao/{ata_2020_1_cheque_aprovada.uuid}/', data=json.dumps(payload),
                             content_type='application/json')
 
     registro_alterado = Ata.by_uuid(uuid=ata_2020_1_cheque_aprovada.uuid)

@@ -44,7 +44,7 @@ def tipo_devolucao_ao_tesouro():
 
 
 @freeze_time('2020-09-01')
-def test_api_conclui_analise_prestacao_conta_devolvida(jwt_authenticated_client, prestacao_conta_em_analise,
+def test_api_conclui_analise_prestacao_conta_devolvida(jwt_authenticated_client_a, prestacao_conta_em_analise,
                                                        conta_associacao, despesa, tipo_devolucao_ao_tesouro):
     payload = {
         'devolucao_tesouro': True,
@@ -71,7 +71,7 @@ def test_api_conclui_analise_prestacao_conta_devolvida(jwt_authenticated_client,
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
 
-    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -82,7 +82,7 @@ def test_api_conclui_analise_prestacao_conta_devolvida(jwt_authenticated_client,
                                                                                        21), 'Não gravou a data limite.'
     assert prestacao_atualizada.devolucoes_ao_tesouro_da_prestacao.exists(), 'Não gravou as devoluções ao tesouro'
 
-def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_data_limite(jwt_authenticated_client,
+def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_data_limite(jwt_authenticated_client_a,
                                                                                  prestacao_conta_em_analise,
                                                                                  conta_associacao):
     payload = {
@@ -98,7 +98,7 @@ def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_data_limite
     }
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
 
-    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
