@@ -128,6 +128,29 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
+
+    @transaction.atomic
+    def salvar_devolucoes_ao_tesouro(self, devolucoes_ao_tesouro_da_prestacao=[]):
+        from ..models.devolucao_ao_tesouro import DevolucaoAoTesouro
+        from ..models.tipo_devolucao_ao_tesouro import TipoDevolucaoAoTesouro
+        from ...despesas.models.despesa import Despesa
+
+        self.devolucoes_ao_tesouro_da_prestacao.all().delete()
+        for devolucao in devolucoes_ao_tesouro_da_prestacao:
+            tipo_devolucao = TipoDevolucaoAoTesouro.by_uuid(devolucao['tipo'])
+            despesa = Despesa.by_uuid(devolucao['despesa'])
+            DevolucaoAoTesouro.objects.create(
+                prestacao_conta=self,
+                tipo=tipo_devolucao,
+                despesa=despesa,
+                data=devolucao['data'],
+                devolucao_total=devolucao['devolucao_total'],
+                motivo=devolucao['motivo'],
+                valor=devolucao['valor']
+            )
+
+        return self
+
     @transaction.atomic
     def salvar_analise(self, devolucao_tesouro, analises_de_conta_da_prestacao, resultado_analise=None,
                        ressalvas_aprovacao='', devolucoes_ao_tesouro_da_prestacao=[]):

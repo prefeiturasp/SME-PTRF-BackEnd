@@ -307,6 +307,36 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['patch'], url_path='salvar-devolucoes-ao-tesouro')
+    def salvar_devolucoes_ao_tesouro(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        devolucoes_ao_tesouro_da_prestacao = request.data.get('devolucoes_ao_tesouro_da_prestacao', [])
+        if not devolucoes_ao_tesouro_da_prestacao:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'salvar-devolucoes-ao-tesouro',
+                'mensagem': 'Faltou informar o campo devolucoes_ao_tesouro_da_prestacao.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        if prestacao_conta.status not in [PrestacaoConta.STATUS_EM_ANALISE, PrestacaoConta.STATUS_DEVOLVIDA]:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'salvar-devolucoes-ao-tesouro',
+                'mensagem': 'Você não pode salvar devoluções ao tesouro de uma prestação de contas com status diferente de EM_ANALISE ou DEVOLVIDA.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_salva = prestacao_conta.salvar_devolucoes_ao_tesouro(
+            devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
+                        status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['patch'], url_path='concluir-analise')
     def concluir_analise(self, request, uuid):
         prestacao_conta = self.get_object()
