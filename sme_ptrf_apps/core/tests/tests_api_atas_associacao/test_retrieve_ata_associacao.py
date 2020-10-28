@@ -40,8 +40,8 @@ def test_api_retrieve_ata_associacao(jwt_authenticated_client_a, associacao, ata
     assert result == result_esperado
 
 
-def test_api_retrieve_ata_retificacao_associacao(client, associacao, ata_2020_1_retificacao):
-    response = client.get(f'/api/atas-associacao/{ata_2020_1_retificacao.uuid}/', content_type='application/json')
+def test_api_retrieve_ata_retificacao_associacao(jwt_authenticated_client_a, associacao, ata_2020_1_retificacao):
+    response = jwt_authenticated_client_a.get(f'/api/atas-associacao/{ata_2020_1_retificacao.uuid}/', content_type='application/json')
     result = json.loads(response.content)
 
     result_esperado = {

@@ -8,7 +8,7 @@ from ...api.serializers import AtaLookUpSerializer
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_ata_retificacao_existente(client,
+def test_api_get_ata_retificacao_existente(jwt_authenticated_client_a,
                                            prestacao_conta_iniciada,
                                            ata_retificacao_prestacao_conta_iniciada,
                                            ata_prestacao_conta_iniciada,
@@ -17,7 +17,7 @@ def test_api_get_ata_retificacao_existente(client,
 
     url = f'/api/prestacoes-contas/{prestacao_uuid}/ata-retificacao/'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -27,7 +27,7 @@ def test_api_get_ata_retificacao_existente(client,
     assert result == result_esperado, "Não retornou a ata esperada."
     assert result['nome'] == 'Ata de Retificação da prestação de contas'
 
-def test_api_get_ata_retificacao_nao_existente(client,
+def test_api_get_ata_retificacao_nao_existente(jwt_authenticated_client_a,
                                                prestacao_conta_iniciada,
                                                ata_prestacao_conta_iniciada,
                                                ):
@@ -35,7 +35,7 @@ def test_api_get_ata_retificacao_nao_existente(client,
 
     url = f'/api/prestacoes-contas/{prestacao_uuid}/ata-retificacao/'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
