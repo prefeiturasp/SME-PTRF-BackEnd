@@ -57,8 +57,8 @@ def _unidade3_dre_2(_dre2):
         dre=_dre2,
     )
 
-def test_api_retrieve_dre(client, _dre1, _dre2, _unidade1_dre_1, _unidade2_dre_1, _unidade3_dre_2):
-    response = client.get(f'/api/dres/{_dre1.uuid}/qtd-unidades/', content_type='application/json')
+def test_api_retrieve_dre(jwt_authenticated_client_a, _dre1, _dre2, _unidade1_dre_1, _unidade2_dre_1, _unidade3_dre_2):
+    response = jwt_authenticated_client_a.get(f'/api/dres/{_dre1.uuid}/qtd-unidades/', content_type='application/json')
     result = json.loads(response.content)
 
     result_esperado = {

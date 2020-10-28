@@ -6,7 +6,7 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_observacoes_lista_vazia(client,
+def test_api_get_observacoes_lista_vazia(jwt_authenticated_client_a,
                                          periodo_2020_1,
                                          conta_associacao_cartao
                                          ):
@@ -14,7 +14,7 @@ def test_api_get_observacoes_lista_vazia(client,
 
     url = f'/api/conciliacoes/observacoes/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -22,7 +22,7 @@ def test_api_get_observacoes_lista_vazia(client,
     assert result == []
 
 
-def test_api_get_observacoes(client,
+def test_api_get_observacoes(jwt_authenticated_client_a,
                              periodo,
                              conta_associacao,
                              observacao_conciliacao
@@ -31,7 +31,7 @@ def test_api_get_observacoes(client,
 
     url = f'/api/conciliacoes/observacoes/?periodo={periodo.uuid}&conta_associacao={conta_uuid}'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 

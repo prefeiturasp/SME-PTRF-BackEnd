@@ -24,7 +24,7 @@ def prestacao_conta_em_analise(periodo, associacao):
 
 
 @freeze_time('2020-09-01')
-def test_api_conclui_analise_prestacao_conta_aprovada_ressalvas(jwt_authenticated_client, prestacao_conta_em_analise,
+def test_api_conclui_analise_prestacao_conta_aprovada_ressalvas(jwt_authenticated_client_a, prestacao_conta_em_analise,
                                                                 conta_associacao):
     payload = {
         'devolucao_tesouro': True,
@@ -41,7 +41,7 @@ def test_api_conclui_analise_prestacao_conta_aprovada_ressalvas(jwt_authenticate
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
 
-    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -50,7 +50,7 @@ def test_api_conclui_analise_prestacao_conta_aprovada_ressalvas(jwt_authenticate
     assert prestacao_atualizada.ressalvas_aprovacao == 'Texto da ressalva.', 'Não gravou a ressalva.'
 
 
-def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_ressalva(jwt_authenticated_client,
+def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_ressalva(jwt_authenticated_client_a,
                                                                               prestacao_conta_em_analise,
                                                                               conta_associacao):
     payload = {
@@ -66,7 +66,7 @@ def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_ressalva(jw
     }
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
 
-    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 

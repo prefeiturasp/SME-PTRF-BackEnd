@@ -10,7 +10,7 @@ def test_api_verifica_saldo_antes_put_saldo_ok(
     periodo,
     periodo_2020_1,
     fechamento_periodo_com_saldo,
-    client,
+    jwt_authenticated_client_d,
     tipo_aplicacao_recurso,
     tipo_custeio,
     tipo_documento,
@@ -24,7 +24,7 @@ def test_api_verifica_saldo_antes_put_saldo_ok(
     rateio_despesa_capital,
     payload_despesa_valida
 ):
-    response = client.post(f'/api/rateios-despesas/verificar-saldos/?despesa_uuid={despesa.uuid}',
+    response = jwt_authenticated_client_d.post(f'/api/rateios-despesas/verificar-saldos/?despesa_uuid={despesa.uuid}',
                           data=json.dumps(payload_despesa_valida),
                           content_type='application/json')
 
@@ -46,7 +46,7 @@ def test_api_verifica_saldo_antes_put_sem_saldo(
     periodo_2020_1,
     fechamento_periodo_com_saldo,
     fechamento_periodo_com_saldo_outra_acao,
-    client,
+    jwt_authenticated_client_d,
     tipo_aplicacao_recurso,
     tipo_custeio,
     tipo_documento,
@@ -63,7 +63,7 @@ def test_api_verifica_saldo_antes_put_sem_saldo(
     # Altera o valor da despesa para um valor além do limite de saldos
     payload_despesa_valida['rateios'][0]['valor_rateio'] = 90000.00
 
-    response = client.post(f'/api/rateios-despesas/verificar-saldos/?despesa_uuid={despesa.uuid}',
+    response = jwt_authenticated_client_d.post(f'/api/rateios-despesas/verificar-saldos/?despesa_uuid={despesa.uuid}',
                           data=json.dumps(payload_despesa_valida),
                           content_type='application/json')
 

@@ -44,9 +44,9 @@ def despesa_fornecedor_b(associacao, tipo_documento, tipo_transacao):
     )
 
 
-def test_api_get_despesas_filtro_por_cnpj_cpf_fornecedor(jwt_authenticated_client, associacao, despesa_fornecedor_a,
+def test_api_get_despesas_filtro_por_cnpj_cpf_fornecedor(jwt_authenticated_client_d, associacao, despesa_fornecedor_a,
                                                          despesa_fornecedor_b):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/despesas/?associacao__uuid={associacao.uuid}&cpf_cnpj_fornecedor=11.478.276/0001-04',
         content_type='application/json')
     result = json.loads(response.content)
@@ -54,7 +54,7 @@ def test_api_get_despesas_filtro_por_cnpj_cpf_fornecedor(jwt_authenticated_clien
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 1, 'Deve localizar pelo CNPJ.'
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/despesas/?associacao__uuid={associacao.uuid}&cpf_cnpj_fornecedor=517.870.110-03',
         content_type='application/json')
     result = json.loads(response.content)
@@ -62,7 +62,7 @@ def test_api_get_despesas_filtro_por_cnpj_cpf_fornecedor(jwt_authenticated_clien
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 1, 'Deve localizar pelo CPF'
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&cpf_cnpj_fornecedor=343646',
         content_type='application/json')
     result = json.loads(response.content)
@@ -71,16 +71,16 @@ def test_api_get_despesas_filtro_por_cnpj_cpf_fornecedor(jwt_authenticated_clien
     assert len(result) == 0, 'Não deveria ter achado nada'
 
 
-def test_api_get_despesas_filtro_por_tipo_documento(jwt_authenticated_client, associacao, despesa_fornecedor_a,
+def test_api_get_despesas_filtro_por_tipo_documento(jwt_authenticated_client_d, associacao, despesa_fornecedor_a,
                                                     despesa_fornecedor_b, tipo_documento):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/despesas/?tipo_documento__uuid={tipo_documento.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 2, 'Deve localizar pelo Tipo de documento.'
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/despesas/?tipo_documento__uuid={despesa_fornecedor_b.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -89,16 +89,16 @@ def test_api_get_despesas_filtro_por_tipo_documento(jwt_authenticated_client, as
     assert len(result) == 0, 'Não deveria ter achado nada'
 
 
-def test_api_get_despesas_filtro_por_numero_documento(jwt_authenticated_client, associacao, despesa_fornecedor_a,
+def test_api_get_despesas_filtro_por_numero_documento(jwt_authenticated_client_d, associacao, despesa_fornecedor_a,
                                                       despesa_fornecedor_b, tipo_documento):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/despesas/?numero_documento=123456', content_type='application/json')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 1, 'Deve localizar pelo número do documento.'
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/despesas/?numero_documento=999999',
         content_type='application/json')
     result = json.loads(response.content)
@@ -107,9 +107,9 @@ def test_api_get_despesas_filtro_por_numero_documento(jwt_authenticated_client, 
     assert len(result) == 0, 'Não deveria ter achado nada'
 
 
-def test_api_get_despesas_campos(jwt_authenticated_client, associacao, despesa_fornecedor_a,
+def test_api_get_despesas_campos(jwt_authenticated_client_d, associacao, despesa_fornecedor_a,
                                  despesa_fornecedor_b, tipo_documento):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/despesas/?numero_documento=123456', content_type='application/json')
     result = json.loads(response.content)
 
@@ -133,16 +133,16 @@ def test_api_get_despesas_campos(jwt_authenticated_client, associacao, despesa_f
     assert result == esperado, 'Não retornou o esperado.'
 
 
-def test_api_get_despesas_filtro_por_tipo_documento_id(jwt_authenticated_client, associacao, despesa_fornecedor_a,
+def test_api_get_despesas_filtro_por_tipo_documento_id(jwt_authenticated_client_d, associacao, despesa_fornecedor_a,
                                                        despesa_fornecedor_b, tipo_documento):
     url = f'/api/despesas/?tipo_documento__id={tipo_documento.id}'
-    response = jwt_authenticated_client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_d.get(url, content_type='application/json')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 2, 'Deve localizar pelo Tipo de documento.'
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/despesas/?tipo_documento__id=87878',
         content_type='application/json')
     result = json.loads(response.content)

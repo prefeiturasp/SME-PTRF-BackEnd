@@ -8,8 +8,8 @@ from ...models import Ata
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_atas_tabelas(client, ata_2020_1_cheque_aprovada):
-    response = client.get('/api/atas-associacao/tabelas/', content_type='application/json')
+def test_api_get_atas_tabelas(jwt_authenticated_client_a, ata_2020_1_cheque_aprovada):
+    response = jwt_authenticated_client_a.get('/api/atas-associacao/tabelas/', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = {

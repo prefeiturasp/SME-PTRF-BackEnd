@@ -23,7 +23,7 @@ def prestacao_conta_em_analise(periodo, associacao):
     )
 
 
-def test_api_conclui_analise_prestacao_conta_exige_resultado_analise(jwt_authenticated_client,
+def test_api_conclui_analise_prestacao_conta_exige_resultado_analise(jwt_authenticated_client_a,
                                                                      prestacao_conta_em_analise,
                                                                      conta_associacao):
     payload = {
@@ -39,7 +39,7 @@ def test_api_conclui_analise_prestacao_conta_exige_resultado_analise(jwt_authent
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
 
-    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -55,7 +55,7 @@ def test_api_conclui_analise_prestacao_conta_exige_resultado_analise(jwt_authent
     assert result == result_esperado, "Deveria ter retornado erro falta_de_informacoes."
 
 
-def test_api_conclui_analise_prestacao_conta_exige_devolucao_tesouro(jwt_authenticated_client,
+def test_api_conclui_analise_prestacao_conta_exige_devolucao_tesouro(jwt_authenticated_client_a,
                                                                      prestacao_conta_em_analise,
                                                                      conta_associacao):
     payload = {
@@ -71,7 +71,7 @@ def test_api_conclui_analise_prestacao_conta_exige_devolucao_tesouro(jwt_authent
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
 
-    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -87,7 +87,7 @@ def test_api_conclui_analise_prestacao_conta_exige_devolucao_tesouro(jwt_authent
     assert result == result_esperado, "Deveria ter retornado erro falta_de_informacoes."
 
 
-def test_api_conclui_analise_prestacao_conta_exige_analises_de_conta_da_prestacao(jwt_authenticated_client,
+def test_api_conclui_analise_prestacao_conta_exige_analises_de_conta_da_prestacao(jwt_authenticated_client_a,
                                                                                   prestacao_conta_em_analise):
     payload = {
         'devolucao_tesouro': True,
@@ -96,7 +96,7 @@ def test_api_conclui_analise_prestacao_conta_exige_analises_de_conta_da_prestaca
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
 
-    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -123,7 +123,7 @@ def prestacao_conta_recebida(periodo, associacao):
     )
 
 
-def test_api_conclui_analise_prestacao_conta_status_diferente_de_nao_recebida(jwt_authenticated_client,
+def test_api_conclui_analise_prestacao_conta_status_diferente_de_nao_recebida(jwt_authenticated_client_a,
                                                                               prestacao_conta_recebida,
                                                                               conta_associacao):
     payload = {
@@ -140,7 +140,7 @@ def test_api_conclui_analise_prestacao_conta_status_diferente_de_nao_recebida(jw
 
     url = f'/api/prestacoes-contas/{prestacao_conta_recebida.uuid}/concluir-analise/'
 
-    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -157,7 +157,7 @@ def test_api_conclui_analise_prestacao_conta_status_diferente_de_nao_recebida(jw
     assert result == result_esperado, "Deveria ter retornado erro status_nao_permite_operacao."
 
 
-def test_api_conclui_analise_prestacao_conta_valida_resultado_aanalise(jwt_authenticated_client,
+def test_api_conclui_analise_prestacao_conta_valida_resultado_aanalise(jwt_authenticated_client_a,
                                                                        prestacao_conta_recebida,
                                                                        conta_associacao):
     payload = {
@@ -174,7 +174,7 @@ def test_api_conclui_analise_prestacao_conta_valida_resultado_aanalise(jwt_authe
 
     url = f'/api/prestacoes-contas/{prestacao_conta_recebida.uuid}/concluir-analise/'
 
-    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 

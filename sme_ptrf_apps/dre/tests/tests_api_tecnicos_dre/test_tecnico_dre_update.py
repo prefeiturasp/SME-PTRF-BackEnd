@@ -16,10 +16,10 @@ def payload_tecnico_altera_nome_para_pedro(dre_butantan):
     return payload
 
 
-def test_update_tecnico_dre(jwt_authenticated_client, dre_butantan, tecnico_maria_dre_butantan,
+def test_update_tecnico_dre(jwt_authenticated_client_dre, dre_butantan, tecnico_maria_dre_butantan,
                             payload_tecnico_altera_nome_para_pedro):
 
-    response = jwt_authenticated_client.put(
+    response = jwt_authenticated_client_dre.put(
         f'/api/tecnicos-dre/{tecnico_maria_dre_butantan.uuid}/',
         data=json.dumps(payload_tecnico_altera_nome_para_pedro),
         content_type='application/json')

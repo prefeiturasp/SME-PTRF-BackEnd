@@ -9,7 +9,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_api_post_despesas(
-    client,
+    jwt_authenticated_client_d,
     tipo_aplicacao_recurso,
     tipo_custeio,
     tipo_documento,
@@ -23,7 +23,7 @@ def test_api_post_despesas(
     rateio_despesa_capital,
     payload_despesa_valida
 ):
-    response = client.put(f'/api/despesas/{despesa.uuid}/', data=json.dumps(payload_despesa_valida),
+    response = jwt_authenticated_client_d.put(f'/api/despesas/{despesa.uuid}/', data=json.dumps(payload_despesa_valida),
                           content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK

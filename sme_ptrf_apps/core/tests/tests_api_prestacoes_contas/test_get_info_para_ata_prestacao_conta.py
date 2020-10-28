@@ -6,7 +6,7 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_info_para_ata(client,
+def test_api_get_info_para_ata(jwt_authenticated_client_a,
                                conta_associacao,
                                acao_associacao,
                                acao_associacao_role_cultural,
@@ -19,7 +19,7 @@ def test_api_get_info_para_ata(client,
 
     url = f'/api/prestacoes-contas/{prestacao_uuid}/info-para-ata/'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -172,7 +172,7 @@ def test_api_get_info_para_ata(client,
     assert result == resultado_esperado, "Não retornou as informações esperadas."
 
 
-def test_api_get_info_para_ata_com_repasses_pendentes(client,
+def test_api_get_info_para_ata_com_repasses_pendentes(jwt_authenticated_client_a,
                                                       conta_associacao,
                                                       acao_associacao,
                                                       acao_associacao_role_cultural,
@@ -186,7 +186,7 @@ def test_api_get_info_para_ata_com_repasses_pendentes(client,
 
     url = f'/api/prestacoes-contas/{prestacao_uuid}/info-para-ata/'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
     totais_esperados = {
@@ -337,7 +337,7 @@ def test_api_get_info_para_ata_com_repasses_pendentes(client,
     assert result == resultado_esperado, "Não retornou as informações esperadas."
 
 
-def test_api_get_info_para_ata_com_repasses_pendentes_custeio(client,
+def test_api_get_info_para_ata_com_repasses_pendentes_custeio(jwt_authenticated_client_a,
                                                               conta_associacao,
                                                               acao_associacao,
                                                               acao_associacao_role_cultural,
@@ -352,7 +352,7 @@ def test_api_get_info_para_ata_com_repasses_pendentes_custeio(client,
 
     url = f'/api/prestacoes-contas/{prestacao_uuid}/info-para-ata/'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -503,7 +503,7 @@ def test_api_get_info_para_ata_com_repasses_pendentes_custeio(client,
     assert result == resultado_esperado, "Não retornou as informações esperadas."
 
 
-def test_api_get_info_para_ata_com_livre_aplicacao(client,
+def test_api_get_info_para_ata_com_livre_aplicacao(jwt_authenticated_client_a,
                                                    conta_associacao,
                                                    acao_associacao,
                                                    acao_associacao_role_cultural,
@@ -516,7 +516,7 @@ def test_api_get_info_para_ata_com_livre_aplicacao(client,
 
     url = f'/api/prestacoes-contas/{prestacao_uuid}/info-para-ata/'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -667,7 +667,7 @@ def test_api_get_info_para_ata_com_livre_aplicacao(client,
     assert result == resultado_esperado, "Não retornou as informações esperadas."
 
 
-def test_api_get_info_para_ata_com_duas_contas(client,
+def test_api_get_info_para_ata_com_duas_contas(jwt_authenticated_client_a,
                                                conta_associacao,
                                                conta_associacao_cartao,
                                                acao_associacao_role_cultural,
@@ -679,7 +679,7 @@ def test_api_get_info_para_ata_com_duas_contas(client,
 
     url = f'/api/prestacoes-contas/{prestacao_uuid}/info-para-ata/'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 

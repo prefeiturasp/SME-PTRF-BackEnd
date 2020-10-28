@@ -7,7 +7,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_tabela_valores_pendentes(
-    jwt_authenticated_client,
+    jwt_authenticated_client_a,
     acao_associacao_role_cultural,
     acao_associacao_ptrf,
     conta_associacao_cartao,
@@ -28,7 +28,7 @@ def test_tabela_valores_pendentes(
     rateio_despesa_2020_role_cheque_conferido,
 
 ):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_a.get(
         f'/api/conciliacoes/tabela-valores-pendentes/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_associacao_cartao.uuid}', content_type='application/json')
     result = json.loads(response.content)
 

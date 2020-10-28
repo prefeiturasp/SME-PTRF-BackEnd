@@ -7,7 +7,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_api_delete_despesas(
-    client,
+    jwt_authenticated_client_d,
     tipo_aplicacao_recurso,
     tipo_custeio,
     tipo_documento,
@@ -22,7 +22,7 @@ def test_api_delete_despesas(
 ):
     assert Despesa.objects.filter(uuid=despesa.uuid).exists()
 
-    response = client.delete(f'/api/despesas/{despesa.uuid}/', content_type='application/json')
+    response = jwt_authenticated_client_d.delete(f'/api/despesas/{despesa.uuid}/', content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 

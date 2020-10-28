@@ -18,11 +18,11 @@ def payload_processo_associacao(associacao):
     return payload
 
 
-def test_update_processo_associacao(jwt_authenticated_client, associacao, processo_associacao_123456_2019,
+def test_update_processo_associacao(jwt_authenticated_client_a, associacao, processo_associacao_123456_2019,
                                     payload_processo_associacao):
     numero_processo_novo = "190889"
     payload_processo_associacao['numero_processo'] = numero_processo_novo
-    response = jwt_authenticated_client.put(
+    response = jwt_authenticated_client_a.put(
         f'/api/processos-associacao/{processo_associacao_123456_2019.uuid}/',
         data=json.dumps(payload_processo_associacao),
         content_type='application/json')

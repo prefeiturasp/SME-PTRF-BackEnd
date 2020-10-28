@@ -17,8 +17,8 @@ def payload_processo_associacao(associacao):
     return payload
 
 
-def test_create_processo_associacao_servidor(jwt_authenticated_client, associacao, payload_processo_associacao):
-    response = jwt_authenticated_client.post(
+def test_create_processo_associacao_servidor(jwt_authenticated_client_a, associacao, payload_processo_associacao):
+    response = jwt_authenticated_client_a.post(
         '/api/processos-associacao/', data=json.dumps(payload_processo_associacao), content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED

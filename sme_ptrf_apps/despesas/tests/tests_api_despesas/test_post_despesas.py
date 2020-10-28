@@ -9,7 +9,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_api_post_despesas(
-    client,
+    jwt_authenticated_client_d,
     tipo_aplicacao_recurso,
     tipo_custeio,
     tipo_documento,
@@ -21,7 +21,7 @@ def test_api_post_despesas(
     conta_associacao,
     payload_despesa_valida
 ):
-    response = client.post('/api/despesas/', data=json.dumps(payload_despesa_valida), content_type='application/json')
+    response = jwt_authenticated_client_d.post('/api/despesas/', data=json.dumps(payload_despesa_valida), content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED
 
@@ -37,7 +37,7 @@ def test_api_post_despesas(
 
 
 def test_api_post_despesas_com_rateio_com_tag(
-    client,
+    jwt_authenticated_client_d,
     tipo_aplicacao_recurso,
     tipo_custeio,
     tipo_documento,
@@ -50,7 +50,7 @@ def test_api_post_despesas_com_rateio_com_tag(
     tag_ativa,
     payload_despesa_valida_rateio_com_tag
 ):
-    response = client.post('/api/despesas/', data=json.dumps(payload_despesa_valida_rateio_com_tag), content_type='application/json')
+    response = jwt_authenticated_client_d.post('/api/despesas/', data=json.dumps(payload_despesa_valida_rateio_com_tag), content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED
 

@@ -12,13 +12,13 @@ from ...models import PrestacaoConta
 pytestmark = pytest.mark.django_db
 
 
-def test_api_retrieve_prestacao_conta_por_periodo_e_associacao(client, prestacao_conta, prestacao_conta_anterior):
+def test_api_retrieve_prestacao_conta_por_periodo_e_associacao(jwt_authenticated_client_a, prestacao_conta, prestacao_conta_anterior):
     associacao_uuid = prestacao_conta.associacao.uuid
     periodo_uuid = prestacao_conta.periodo.uuid
 
     url = f'/api/prestacoes-contas/por-associacao-e-periodo/?associacao_uuid={associacao_uuid}&periodo_uuid={periodo_uuid}'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -129,7 +129,7 @@ def devolucao_ao_tesouro(prestacao_conta, tipo_devolucao_ao_tesouro, despesa):
     )
 
 
-def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client, prestacao_conta, prestacao_conta_anterior,
+def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prestacao_conta, prestacao_conta_anterior,
                                                _atribuicao,
                                                _devolucao_prestacao_conta, _cobranca_prestacao_devolucao,
                                                _processo_associacao_prestacao_conta,
@@ -137,7 +137,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client, prestac
                                                devolucao_ao_tesouro):
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/'
 
-    response = jwt_authenticated_client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 

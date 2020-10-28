@@ -1,7 +1,7 @@
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 
 from ..serializers.especificacao_material_servico_serializer import EspecificacaoMaterialServicoLookUpSerializer
 from ...models import EspecificacaoMaterialServico
@@ -11,7 +11,7 @@ class EspecificacaoMaterialServicoViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'id'
     queryset = EspecificacaoMaterialServico.objects.all().order_by('descricao')
     serializer_class = EspecificacaoMaterialServicoLookUpSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('descricao',)
     search_fields = ('uuid', 'id', 'descricao')

@@ -10,7 +10,7 @@ pytestmark = pytest.mark.django_db
 
 @freeze_time('2020-04-18 10:11:12')
 def test_action_painel_acoes(
-    client,
+    jwt_authenticated_client_a,
     associacao,
     periodo_anterior,
     periodo,
@@ -24,7 +24,7 @@ def test_action_painel_acoes(
     despesa_fora_periodo,
     rateio_fora_periodo_50_custeio,
 ):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/', content_type='application/json')
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = {
@@ -104,7 +104,7 @@ def test_action_painel_acoes(
 
 @freeze_time('2020-04-18 10:11:12')
 def test_action_painel_acoes_por_periodo(
-    client,
+    jwt_authenticated_client_a,
     associacao,
     periodo_anterior,
     fechamento_periodo_anterior,
@@ -118,7 +118,7 @@ def test_action_painel_acoes_por_periodo(
     despesa_fora_periodo,
     rateio_fora_periodo_50_custeio,
 ):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/?periodo_uuid={periodo_anterior.uuid}',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/?periodo_uuid={periodo_anterior.uuid}',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -199,7 +199,7 @@ def test_action_painel_acoes_por_periodo(
 
 @freeze_time('2020-04-18 10:11:12')
 def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
-    client,
+    jwt_authenticated_client_a,
     associacao,
     periodo_anterior,
     periodo,
@@ -208,7 +208,7 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
     receita_100_no_periodo,
     receita_100_no_periodo_acao_de_destaque,
 ):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/', content_type='application/json')
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = {
