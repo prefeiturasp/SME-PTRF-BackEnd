@@ -1,6 +1,7 @@
 import logging
 
 from django.contrib.auth import get_user_model
+from requests import ConnectTimeout, ReadTimeout
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -14,6 +15,7 @@ from sme_ptrf_apps.users.api.serializers import (
     UserSerializer,
 )
 from sme_ptrf_apps.users.models import Grupo
+from sme_ptrf_apps.users.services import SmeIntegracaoException, SmeIntegracaoService
 
 User = get_user_model()
 
@@ -90,3 +92,20 @@ class UserViewSet(ModelViewSet):
             }
             logging.info("Erro ao buscar grupos do usuário %s", erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['get'], url_path='consultar')
+    def consulta_servidor_sgp(self, request):
+        username = self.request.query_params.get('username')
+
+        if not username:
+            return Response("Parâmetro username obrigatório.", status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            result = SmeIntegracaoService.informacao_usuario_sgp(username)
+            return Response(result, status=status.HTTP_200_OK)
+        except SmeIntegracaoException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except ReadTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+        except ConnectTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)

@@ -1,8 +1,10 @@
 import json
+from unittest.mock import patch
+
 import pytest
 from django.contrib.auth.models import Permission
-from rest_framework import status
 from model_bakery import baker
+from rest_framework import status
 
 from sme_ptrf_apps.core.choices import RepresentacaoCargo
 from sme_ptrf_apps.users.models import Grupo
@@ -337,3 +339,45 @@ def test_atualizar_usuario_servidor(
     }
 
     assert result == esperado
+
+
+def test_deletar_usuario_servidor(
+        jwt_authenticated_client_u,
+        usuario_3
+):
+    
+    from django.contrib.auth import get_user_model
+    
+    User = get_user_model()
+    assert User.objects.filter(id=usuario_3.id).exists()
+
+    response = jwt_authenticated_client_u.delete(
+        f"/api/usuarios/{usuario_3.id}/", content_type='application/json')
+    assert not User.objects.filter(id=usuario_3.id).exists()
+
+
+def test_consulta_informacao_usuario(jwt_authenticated_client_u):
+    path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.informacao_usuario_sgp'
+    with patch(path) as mock_get:
+        data = {
+            'cpf': '12808888813',
+            'nome': 'LUCIMARA CARDOSO RODRIGUES',
+            'codigoRf': '7210418',
+            'email': 'tutu@gmail.com',
+            'emailValido': True
+        }
+
+        mock_get.return_value = data
+
+        username = '7210418'
+        response = jwt_authenticated_client_u.get(f'/api/usuarios/consultar/?username={7210418}')
+        result = json.loads(response.content)
+        assert response.status_code == status.HTTP_200_OK
+        assert result == data
+
+
+def test_consulta_informacao_usuario_sem_username(jwt_authenticated_client_u):
+    response = jwt_authenticated_client_u.get(f'/api/usuarios/consultar/?username=')
+    result = json.loads(response.content)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result == "Parâmetro username obrigatório."
