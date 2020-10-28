@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+from rest_framework import status
 
 from sme_ptrf_apps.core.models import (
     Unidade,
@@ -20,6 +21,12 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
     permission_classes = [AllowAny]
     queryset = RelatorioConsolidadoDRE.objects.all()
+
+    @action(detail=False, methods=['get'], url_path='fique-de-olho')
+    def fique_de_olho(self, request, uuid=None):
+        from sme_ptrf_apps.core.models import Parametros
+        fique_de_olho = Parametros.get().fique_de_olho_relatorio_dre
+        return Response({'detail': fique_de_olho}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='status-relatorio')
     def status_relatorio(self, request):
