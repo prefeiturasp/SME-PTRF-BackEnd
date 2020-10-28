@@ -1,15 +1,15 @@
 import base64
 import uuid
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
 from django.db.models import CharField
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
+from sme_ptrf_apps.core.choices import RepresentacaoCargo
 from sme_ptrf_apps.core.models import Associacao, Unidade
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
-from django.contrib.auth.models import Group
 
 
 class Visao(ModeloIdNome):
@@ -46,6 +46,14 @@ class User(AbstractUser):
         related_name="user_set",
         related_query_name="user",
     )
+
+    tipo_usuario = models.CharField(
+        'Tipo Usuário',
+        max_length=25,
+        choices=RepresentacaoCargo.choices(),
+        default=RepresentacaoCargo.SERVIDOR.value
+    )
+
 
     def get_absolute_url(self):
         return reverse("users:detail", kwargs={"username": self.username})
