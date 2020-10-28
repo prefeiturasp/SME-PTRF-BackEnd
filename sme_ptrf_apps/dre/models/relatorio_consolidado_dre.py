@@ -12,9 +12,9 @@ class RelatorioConsolidadoDRE(ModeloBase):
     STATUS_GERADO_TOTAL = 'GERADO_TOTAL'
 
     STATUS_NOMES = {
-        STATUS_NAO_GERADO: 'Não gerado',
-        STATUS_GERADO_PARCIAL: 'Gerado Parcial',
-        STATUS_GERADO_TOTAL: 'Gerado Total',
+        STATUS_NAO_GERADO: 'Relatório não gerado',
+        STATUS_GERADO_PARCIAL: 'Relatório parcial gerado',
+        STATUS_GERADO_TOTAL: 'Relatório final gerado',
     }
 
     STATUS_CHOICES = (
