@@ -82,7 +82,7 @@ class UserViewSet(ModelViewSet):
         logger.info("Buscando grupos para usuario: %s", request.user)
         usuario = request.user
         try:
-            grupos = Grupo.objects.filter(visoes__nome__in=[v.nome for v in usuario.visoes.all()]).all()
+            grupos = Grupo.objects.filter(visoes__nome__in=[v.nome for v in usuario.visoes.all()]).all().distinct()
 
             return Response([{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao} for grupo in grupos])
         except Exception as err:
