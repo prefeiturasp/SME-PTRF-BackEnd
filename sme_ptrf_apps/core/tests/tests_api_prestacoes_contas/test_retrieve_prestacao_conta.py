@@ -226,7 +226,8 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                     'numero_conta': '935556-x',
                     'tipo_conta': {
                         'id': conta_associacao_cheque.tipo_conta.id,
-                        'nome': 'Cheque'
+                        'nome': 'Cheque',
+                        'apenas_leitura': False
                     },
                     'uuid': f'{_analise_conta_prestacao_conta_2020_1.conta_associacao.uuid}'
                 },
