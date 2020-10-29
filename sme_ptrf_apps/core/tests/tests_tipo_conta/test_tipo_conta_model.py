@@ -19,6 +19,7 @@ def test_instance_model(tipo_conta):
     assert model.agencia
     assert model.numero_conta
     assert model.numero_cartao
+    assert not model.apenas_leitura
 
 
 def test_srt_model(tipo_conta):
