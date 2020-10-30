@@ -1478,10 +1478,13 @@ def analise_conta_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, cont
     )
 
 @pytest.fixture
-def previsao_repasse_sme(periodo, associacao):
+def previsao_repasse_sme(periodo, associacao, conta_associacao):
     return baker.make(
         'PrevisaoRepasseSme',
         periodo=periodo,
         associacao=associacao,
-        valor=10000.50,
+        conta_associacao=conta_associacao,
+        valor_custeio=10000.50,
+        valor_capital=10000.50,
+        valor_livre=10000.50,
     )

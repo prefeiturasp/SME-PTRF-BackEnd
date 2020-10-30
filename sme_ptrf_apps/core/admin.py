@@ -363,8 +363,8 @@ class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
 @admin.register(PrevisaoRepasseSme)
 class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
 
-    list_display = ('associacao', 'periodo', 'valor')
-    list_filter = ('associacao', 'periodo')
+    list_display = ('associacao', 'conta_associacao', 'periodo', 'valor_capital', 'valor_custeio', 'valor_livre')
+    list_filter = ('associacao', 'periodo', 'conta_associacao')
     list_display_links = ('associacao',)
     readonly_fields = ('uuid',)
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome')
