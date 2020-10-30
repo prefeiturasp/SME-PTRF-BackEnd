@@ -29,7 +29,8 @@ from .models import (
     AnaliseContaPrestacaoConta,
     TipoDevolucaoAoTesouro,
     DevolucaoAoTesouro,
-    ComentarioAnalisePrestacao
+    ComentarioAnalisePrestacao,
+    PrevisaoRepasseSme,
 )
 
 admin.site.register(TipoConta)
@@ -358,3 +359,12 @@ class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', id)
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome', 'ordem', 'comentario')
+
+@admin.register(PrevisaoRepasseSme)
+class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
+
+    list_display = ('associacao', 'periodo', 'valor')
+    list_filter = ('associacao', 'periodo')
+    list_display_links = ('associacao',)
+    readonly_fields = ('uuid',)
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome')

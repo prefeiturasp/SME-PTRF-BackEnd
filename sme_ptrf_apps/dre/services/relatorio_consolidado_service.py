@@ -1,5 +1,9 @@
+import logging
+
 from sme_ptrf_apps.core.models import PrestacaoConta
 from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE
+
+logger = logging.getLogger(__name__)
 
 def status_de_geracao_do_relatorio(dre, periodo, tipo_conta):
     '''
@@ -44,5 +48,81 @@ def status_de_geracao_do_relatorio(dre, periodo, tipo_conta):
         'status_txt': status_txt_geracao,
         'cor_idx': cor_idx,
     }
-
     return status
+
+
+def informacoes_execucao_financeira(dre, periodo, tipo_conta):
+    #TODO Implementar informacoes_execucao_financeira
+    # Informações sumarizadas devem considerar apenas Prestações de Conta concluídas
+    info = {
+        'saldo_reprogramado_periodo_anterior_custeio': 0,
+        'saldo_reprogramado_periodo_anterior_capital': 0,
+        'saldo_reprogramado_periodo_anterior_livre': 0,
+        'saldo_reprogramado_periodo_anterior_total': 0,
+
+        'repasses_previstos_sme_custeio': 0,
+        'repasses_previstos_sme_capital': 0,
+        'repasses_previstos_sme_livre': 0,
+        'repasses_previstos_sme_total': 0,
+
+        'repasses_no_periodo_custeio': 0,
+        'repasses_no_periodo_capital': 0,
+        'repasses_no_periodo_livre': 0,
+        'repasses_no_periodo_total': 0,
+
+        'receitas_rendimento_no_periodo_custeio': 0,
+        'receitas_rendimento_no_periodo_capital': 0,
+        'receitas_rendimento_no_periodo_livre': 0,
+        'receitas_rendimento_no_periodo_total': 0,
+
+        'receitas_devolucao_no_periodo_custeio': 0,
+        'receitas_devolucao_no_periodo_capital': 0,
+        'receitas_devolucao_no_periodo_livre': 0,
+        'receitas_devolucao_no_periodo_total': 0,
+
+        'demais_creditos_no_periodo_custeio': 0,
+        'demais_creditos_no_periodo_capital': 0,
+        'demais_creditos_no_periodo_livre': 0,
+        'demais_creditos_no_periodo_total': 0,
+
+        'receitas_totais_no_periodo_custeio': 0,
+        'receitas_totais_no_periodo_capital': 0,
+        'receitas_totais_no_periodo_livre': 0,
+        'receitas_totais_no_periodo_total': 0,
+
+        'despesas_no_periodo_custeio': 0,
+        'despesas_no_periodo_capital': 0,
+        'despesas_no_periodo_total': 0,
+
+        'saldo_reprogramado_proximo_periodo_custeio': 0,
+        'saldo_reprogramado_proximo_periodo_capital': 0,
+        'saldo_reprogramado_proximo_periodo_livre': 0,
+        'saldo_reprogramado_proximo_periodo_total': 0,
+
+        'devolucoes_ao_tesouro_no_periodo_total': 0,
+    }
+
+    return info
+
+
+
+def informacoes_devolucoes_a_conta_ptrf(dre, periodo, tipo_conta):
+    #TODO Implementar informacoes_devolucoes_a_conta_ptrf
+    info = [
+        {'tipo': 'Devolução à conta tipo 1', 'ocorrencias': 999, 'valor': 3000.00},
+        {'tipo': 'Devolução à conta tipo 2', 'ocorrencias': 100, 'valor': 2000.00},
+        {'tipo': 'Devolução à conta tipo 3', 'ocorrencias': 200, 'valor': 1000.00},
+    ]
+
+    return info
+
+
+def informacoes_devolucoes_ao_tesouro(dre, periodo, tipo_conta):
+    #TODO Implementar informacoes_devolucoes_ao_tesouro
+    info = [
+        {'tipo': 'Devolução ao tesouro tipo 1', 'ocorrencias': 999, 'valor': 3000.00},
+        {'tipo': 'Devolução ao tesouro tipo 2', 'ocorrencias': 100, 'valor': 2000.00},
+        {'tipo': 'Devolução ao tesouro tipo 3', 'ocorrencias': 200, 'valor': 1000.00},
+    ]
+
+    return info
