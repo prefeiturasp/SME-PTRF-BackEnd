@@ -2,6 +2,7 @@ import json
 from unittest.mock import patch
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from model_bakery import baker
 from rest_framework import status
@@ -56,6 +57,15 @@ def grupo_2(permissao2, visao_dre):
     g.save()
     return g
 
+@pytest.fixture
+def grupo_3(permissao1, permissao2, visao_dre, visao_sme):
+    g = Grupo.objects.create(name="grupo3")
+    g.permissions.add(permissao1 , permissao2)
+    g.visoes.add(visao_dre, visao_sme)
+    g.descricao = "Descrição grupo 3"
+    g.save()
+    return g
+
 
 @pytest.fixture
 def usuario_para_teste(
@@ -63,7 +73,6 @@ def usuario_para_teste(
         grupo_1,
         visao_ue):
 
-    from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
     login = '7210418'
     email = 'sme@amcom.com.br'
@@ -103,17 +112,17 @@ def jwt_authenticated_client_u(client, usuario_para_teste):
 def usuario_2(
         unidade,
         grupo_2,
+        grupo_3,
         visao_dre,
         visao_sme):
 
-    from django.contrib.auth import get_user_model
     senha = 'Sgp1981'
     login = '7211981'
     email = 'sme1981@amcom.com.br'
     User = get_user_model()
     user = User.objects.create_user(username=login, password=senha, email=email)
     user.unidades.add(unidade)
-    user.groups.add(grupo_2)
+    user.groups.add(grupo_2, grupo_3)
     user.visoes.add(visao_dre, visao_sme)
     user.save()
     return user
@@ -126,7 +135,6 @@ def usuario_3(
         visao_dre,
         visao_ue):
 
-    from django.contrib.auth import get_user_model
     senha = 'Sgp8198'
     login = '7218198'
     email = 'sme8198@amcom.com.br'
@@ -163,23 +171,29 @@ def jwt_authenticated_client_u2(client, usuario_2):
 
 
 def test_consulta_grupos(
-        jwt_authenticated_client_u,
-        usuario_para_teste,
+        jwt_authenticated_client_u2,
+        usuario_2,
         visao_ue,
         visao_dre,
         visao_sme,
         permissao1,
         permissao2,
         grupo_1,
-        grupo_2):
+        grupo_2,
+        grupo_3):
 
-    response = jwt_authenticated_client_u.get("/api/usuarios/grupos/", content_type='application/json')
+    response = jwt_authenticated_client_u2.get("/api/usuarios/grupos/?visao=DRE", content_type='application/json')
     result = response.json()
     esperado = [
         {
-            "id": str(grupo_1.id),
-            "nome": grupo_1.name,
-            "descricao": grupo_1.descricao
+            "id": str(grupo_2.id),
+            "nome": grupo_2.name,
+            "descricao": grupo_2.descricao
+        },
+        {
+            "id": str(grupo_3.id),
+            "nome": grupo_3.name,
+            "descricao": grupo_3.descricao
         }]
 
     assert result == esperado
@@ -197,7 +211,7 @@ def test_lista_usuarios(
         grupo_1,
         grupo_2):
 
-    response = jwt_authenticated_client_u.get("/api/usuarios/", content_type='application/json')
+    response = jwt_authenticated_client_u.get("/api/usuarios/?visao=DRE", content_type='application/json')
     result = response.json()
     esperado = [
         {
@@ -226,7 +240,7 @@ def test_filtro_por_grupo_lista_usuarios(
         grupo_2):
 
     response = jwt_authenticated_client_u2.get(
-        f"/api/usuarios/?groups__id={grupo_2.id}", content_type='application/json')
+        f"/api/usuarios/?visao=DRE&groups__id={grupo_2.id}", content_type='application/json')
     result = response.json()
     esperado = [
         {
@@ -240,7 +254,9 @@ def test_filtro_por_grupo_lista_usuarios(
                 {
                    'id': grupo_2.id,
                    'name': 'grupo2',
-                   'descricao': 'Descrição grupo 2'}]
+                   'descricao': 'Descrição grupo 2'
+                }
+            ]
         }
     ]
     assert result == esperado
@@ -258,7 +274,7 @@ def test_filtro_por_nome_lista_usuarios(
         grupo_1,
         grupo_2):
 
-    response = jwt_authenticated_client_u2.get(f"/api/usuarios/?search=Arth", content_type='application/json')
+    response = jwt_authenticated_client_u2.get(f"/api/usuarios/?visao=DRE&search=Arth", content_type='application/json')
     result = response.json()
     esperado = [
         {'id': usuario_3.id,
@@ -280,13 +296,15 @@ def test_filtro_por_nome_lista_usuarios(
 def test_criar_usuario_servidor(
         jwt_authenticated_client_u,
         grupo_1,
-        grupo_2):
+        grupo_2,
+        visao_dre):
 
     payload = {
         'tipo_usuario': RepresentacaoCargo.SERVIDOR.name,
         'username': "9876543",
         'name': "Lukaku Silva",
         'email': 'lukaku@gmail.com',
+        'visao': "DRE",
         'groups': [
             grupo_1.id,
             grupo_2.id
@@ -303,6 +321,45 @@ def test_criar_usuario_servidor(
         'tipo_usuario': RepresentacaoCargo.SERVIDOR.name,
         'groups': [grupo_1.id, grupo_2.id]
     }
+    User = get_user_model()
+    u = User.objects.filter(username='9876543').first()
+    
+    assert len(u.visoes.all()) > 0
+    assert response.status_code == status.HTTP_201_CREATED
+    assert result == esperado
+
+
+def test_criar_usuario_servidor_sem_email_e_sem_nome(
+        jwt_authenticated_client_u,
+        grupo_1,
+        grupo_2,
+        visao_dre):
+
+    payload = {
+        'tipo_usuario': RepresentacaoCargo.SERVIDOR.name,
+        'username': "9876543",
+        'name': "",
+        'email': "",
+        'visao': "DRE",
+        'groups': [
+            grupo_1.id,
+            grupo_2.id
+        ]
+    }
+    response = jwt_authenticated_client_u.post(
+        "/api/usuarios/", data=json.dumps(payload), content_type='application/json')
+    result = response.json()
+    esperado = {
+        'username': '9876543',
+        'email': '',
+        'name': '',
+        'tipo_usuario': RepresentacaoCargo.SERVIDOR.name,
+        'groups': [grupo_1.id, grupo_2.id]
+    }
+    User = get_user_model()
+    u = User.objects.filter(username='9876543').first()
+    
+    assert len(u.visoes.all()) > 0
     assert response.status_code == status.HTTP_201_CREATED
     assert result == esperado
 
@@ -310,34 +367,39 @@ def test_criar_usuario_servidor(
 def test_atualizar_usuario_servidor(
         jwt_authenticated_client_u,
         usuario_3,
+        usuario_2,
         visao_ue,
         visao_dre,
         visao_sme,
         grupo_1,
         grupo_2):
 
+    assert not usuario_2.visoes.filter(nome='UE').first()
+
     payload = {
         'tipo_usuario': RepresentacaoCargo.SERVIDOR.name,
-        'username': usuario_3.username,
-        'name': usuario_3.name,
+        'username': usuario_2.username,
+        'name': usuario_2.name,
         'email': 'novoEmail@gmail.com',
+        'visao': "UE",
         'groups': [
             grupo_1.id
         ]
     }
 
     response = jwt_authenticated_client_u.put(
-        f"/api/usuarios/{usuario_3.id}/", data=json.dumps(payload), content_type='application/json')
+        f"/api/usuarios/{usuario_2.id}/", data=json.dumps(payload), content_type='application/json')
     result = response.json()
 
     esperado = {
-        'username': usuario_3.username,
+        'username': usuario_2.username,
         'email': 'novoEmail@gmail.com',
-        'name': usuario_3.name,
+        'name': usuario_2.name,
         'tipo_usuario': RepresentacaoCargo.SERVIDOR.name,
         'groups': [grupo_1.id]
     }
 
+    assert usuario_2.visoes.filter(nome='UE').first()
     assert result == esperado
 
 

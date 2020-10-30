@@ -12,7 +12,7 @@ from sme_ptrf_apps.users.api.validations.usuario_validations import (
     senhas_devem_ser_iguais,
 )
 from sme_ptrf_apps.users.services import SmeIntegracaoException, SmeIntegracaoService
-from sme_ptrf_apps.users.models import Grupo
+from sme_ptrf_apps.users.models import Grupo, Visao
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -36,9 +36,33 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
+    visao = serializers.CharField(write_only=True)
+
     class Meta:
         model = User
-        fields = ["username", "email", "name", "tipo_usuario", "groups"]
+        fields = ["username", "email", "name", "tipo_usuario", "visao", "groups"]
+
+    def create(self, validated_data):
+        visao = validated_data.pop('visao')
+        groups = validated_data.pop('groups')
+        user = User.objects.create(**validated_data)
+        visao_obj = Visao.objects.filter(nome=visao).first()
+        user.visoes.add(visao_obj)
+        user.groups.add(*groups)
+        user.save()
+
+        return user
+
+
+    def update(self, instance, validated_data):
+        visao = validated_data.pop('visao')
+        
+        if not instance.visoes.filter(nome=visao).first():
+            visao_obj = Visao.objects.filter(nome=visao).first()
+            instance.visoes.add(visao_obj)
+            instance.save()
+
+        return super().update(instance, validated_data)
 
 
 class AlteraEmailSerializer(serializers.ModelSerializer):

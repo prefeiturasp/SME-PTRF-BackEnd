@@ -37,8 +37,11 @@ class UserViewSet(ModelViewSet):
 
     def get_queryset(self, *args, **kwargs):
         qs = self.queryset
-        qs = qs.filter(visoes__nome__in=[v.nome for v in self.request.user.visoes.all()]
-                       ).exclude(id=self.request.user.id).all()
+
+        visao = self.request.query_params.get('visao')
+
+        if visao:
+            qs = qs.filter(visoes__nome=visao).exclude(id=self.request.user.id).all()
 
         groups__id = self.request.query_params.get('groups__id')
         if groups__id:
@@ -81,8 +84,13 @@ class UserViewSet(ModelViewSet):
     def grupos(self, request):
         logger.info("Buscando grupos para usuario: %s", request.user)
         usuario = request.user
+        visao = request.query_params.get('visao')
+
+        if not visao:
+            return Response("Parâmetro visão é obrigatório.", status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            grupos = Grupo.objects.filter(visoes__nome__in=[v.nome for v in usuario.visoes.all()]).all().distinct()
+            grupos = Grupo.objects.filter(visoes__nome=visao).all()
 
             return Response([{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao} for grupo in grupos])
         except Exception as err:
