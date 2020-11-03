@@ -91,7 +91,8 @@ def tipo_conta():
         banco_nome='Banco do Inter',
         agencia='67945',
         numero_conta='935556-x',
-        numero_cartao='987644164221')
+        numero_cartao='987644164221'
+    )
 
 
 @pytest.fixture

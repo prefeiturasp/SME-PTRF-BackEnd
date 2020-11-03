@@ -33,7 +33,6 @@ from .models import (
     PrevisaoRepasseSme,
 )
 
-admin.site.register(TipoConta)
 admin.site.register(TipoNotificacao)
 admin.site.register(Acao)
 admin.site.register(Categoria)
@@ -368,3 +367,11 @@ class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
     list_display_links = ('associacao',)
     readonly_fields = ('uuid',)
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome')
+
+
+@admin.register(TipoConta)
+class TipoContaAdmin(admin.ModelAdmin):
+    list_display = ['uuid', 'nome']
+    search_fields = ['nome']
+    list_filter = ['nome', ]
+    readonly_fields = ('id', 'uuid',)
