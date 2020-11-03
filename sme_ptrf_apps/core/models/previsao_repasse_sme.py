@@ -19,6 +19,10 @@ class PrevisaoRepasseSme(ModeloBase):
     conta_associacao = models.ForeignKey('ContaAssociacao', on_delete=models.PROTECT,
                                          related_name='previsoes_de_repasse_sme_para_a_conta', blank=True, null=True)
 
+    @property
+    def valor_total(self):
+        return self.valor_custeio + self.valor_capital + self.valor_livre
+
     def __str__(self):
         return f"{self.periodo.referencia} - {self.associacao}"
 
