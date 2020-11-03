@@ -225,6 +225,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                     'banco_nome': 'Banco do Inter',
                     'numero_conta': '935556-x',
                     'tipo_conta': {
+                        'uuid': f'{conta_associacao_cheque.tipo_conta.uuid}',
                         'id': conta_associacao_cheque.tipo_conta.id,
                         'nome': 'Cheque',
                         'apenas_leitura': False

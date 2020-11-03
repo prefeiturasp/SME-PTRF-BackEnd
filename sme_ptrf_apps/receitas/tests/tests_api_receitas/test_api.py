@@ -158,7 +158,12 @@ def test_get_tabelas(
                 'aceita_custeio': tipo_receita.aceita_custeio,
                 'aceita_livre': tipo_receita.aceita_livre,
                 'e_devolucao': False,
-                'tipos_conta': [{'id': tipo_conta.id, 'nome': tipo_conta.nome, 'apenas_leitura': False}],
+                'tipos_conta': [{
+                    'uuid': f'{tipo_conta.uuid}',
+                    'id': tipo_conta.id,
+                    'nome': tipo_conta.nome,
+                    'apenas_leitura': False
+                }],
                 'detalhes_tipo_receita': [
                     {
                         'id': detalhe_tipo_receita.id,
