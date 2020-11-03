@@ -51,7 +51,8 @@ class FechamentoPeriodo(ModeloBase):
                                             related_name='proximo_fechamento', null=True, blank=True)
 
     total_receitas_capital = models.DecimalField('Total Receitas (capital)', max_digits=12, decimal_places=2, default=0)
-    total_receitas_devolucao_capital = models.DecimalField('Total Receitas Devolução (capital)', max_digits=12, decimal_places=2, default=0)
+    total_receitas_devolucao_capital = models.DecimalField('Total Receitas Devolução (capital)', max_digits=12,
+                                                           decimal_places=2, default=0)
     total_repasses_capital = models.DecimalField('Total Repasses (capital)', max_digits=12, decimal_places=2, default=0)
     total_despesas_capital = models.DecimalField('Total Despesas (capital)', max_digits=12, decimal_places=2, default=0)
 
@@ -59,7 +60,8 @@ class FechamentoPeriodo(ModeloBase):
                                                      default=0)
 
     total_receitas_custeio = models.DecimalField('Total Receitas (custeio)', max_digits=12, decimal_places=2, default=0)
-    total_receitas_devolucao_custeio = models.DecimalField('Total Receitas Devolução (custeio)', max_digits=12, decimal_places=2, default=0)
+    total_receitas_devolucao_custeio = models.DecimalField('Total Receitas Devolução (custeio)', max_digits=12,
+                                                           decimal_places=2, default=0)
     total_repasses_custeio = models.DecimalField('Total Repasses (custeio)', max_digits=12, decimal_places=2, default=0)
     total_despesas_custeio = models.DecimalField('Total Despesas (custeio)', max_digits=12, decimal_places=2, default=0)
 
@@ -67,7 +69,8 @@ class FechamentoPeriodo(ModeloBase):
                                                      default=0)
 
     total_receitas_livre = models.DecimalField('Total Receitas (livre)', max_digits=12, decimal_places=2, default=0)
-    total_receitas_devolucao_livre = models.DecimalField('Total Receitas Devolução (livre)', max_digits=12, decimal_places=2, default=0)
+    total_receitas_devolucao_livre = models.DecimalField('Total Receitas Devolução (livre)', max_digits=12,
+                                                         decimal_places=2, default=0)
     total_repasses_livre = models.DecimalField('Total Repasses (livre)', max_digits=12, decimal_places=2, default=0)
 
     saldo_reprogramado_livre = models.DecimalField('Saldo Reprogramado (livre)', max_digits=12, decimal_places=2,
@@ -101,8 +104,16 @@ class FechamentoPeriodo(ModeloBase):
     )
 
     @property
+    def total_receitas_devolucao(self):
+        return self.total_receitas_devolucao_capital + self.total_receitas_devolucao_custeio + self.total_receitas_devolucao_livre
+
+    @property
     def total_receitas(self):
         return self.total_receitas_capital + self.total_receitas_custeio + self.total_receitas_livre
+
+    @property
+    def total_repasses(self):
+        return self.total_repasses_capital + self.total_repasses_custeio + self.total_repasses_livre
 
     @property
     def total_despesas(self):

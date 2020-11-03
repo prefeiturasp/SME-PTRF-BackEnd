@@ -107,7 +107,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
         return Response(status)
 
     @action(detail=False, methods=['get'], url_path='info-execucao-financeira')
-    def info_relatorio(self, request):
+    def info_execucao_financeira(self, request):
         from rest_framework import status
         # Determina a DRE
         dre_uuid = self.request.query_params.get('dre')
