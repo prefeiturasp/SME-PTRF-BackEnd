@@ -7,12 +7,12 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_list_comentarios_analise_prestacao(client, justificativa_relatorio_dre_consolidado):
+def test_list_comentarios_analise_prestacao(jwt_authenticated_client, justificativa_relatorio_dre_consolidado):
     dre_uuid = justificativa_relatorio_dre_consolidado.dre.uuid
     periodo_uuid = justificativa_relatorio_dre_consolidado.periodo.uuid
     tipo_conta_uuid = justificativa_relatorio_dre_consolidado.tipo_conta.uuid
 
-    response = client.get(f'/api/justificativas-relatorios-consolidados-dre/?dre__uuid={dre_uuid}&periodo__uuid={periodo_uuid}&tipo_conta__uuid={tipo_conta_uuid}',
+    response = jwt_authenticated_client.get(f'/api/justificativas-relatorios-consolidados-dre/?dre__uuid={dre_uuid}&periodo__uuid={periodo_uuid}&tipo_conta__uuid={tipo_conta_uuid}',
                           content_type='application/json')
 
     result = json.loads(response.content)

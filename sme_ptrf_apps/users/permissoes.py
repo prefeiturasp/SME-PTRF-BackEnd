@@ -48,7 +48,7 @@ class PermissaoCRUD(BasePermission):
         Return True if the user has each of the specified permissions. If
         object is passed, check if the user has all required perms for it.
         """
-        return all(self.has_perm(perm, obj) for perm in perm_list)
+        return any(self.has_perm(perm, obj) for perm in perm_list)
 
     def has_permission(self, request, view):
         perms = self.get_required_permissions(request.method, view.queryset.model)
@@ -96,17 +96,15 @@ class PermissaoAssociacao(PermissaoCRUD):
         'GET': ['view_%(model_name)s'],
         'OPTIONS': ['view_%(model_name)s'],
         'HEAD': ['view_%(model_name)s'],
-        'POST': ['add_%(model_name)s'],
+        'POST': ['add_%(model_name)s', 'change_%(model_name)s'],
         'PUT': ['change_%(model_name)s'],
         'PATCH': ['change_%(model_name)s'],
-        'DELETE': ['delete_%(model_name)s'],
+        'DELETE': ['delete_%(model_name)s', 'change_%(model_name)s'],
     }
 
     def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            perms = self.get_required_permissions(request.method, Associacao)
-            return self.has_perms(perms, request.user)
-        return True
+        perms = self.get_required_permissions(request.method, Associacao)
+        return self.has_perms(perms, request.user)
 
 
 class PermissaoPrestacaoConta(PermissaoCRUD):
