@@ -1,5 +1,7 @@
 import logging
 
+from django.db.models import Count, Sum, F
+
 from sme_ptrf_apps.core.models import PrestacaoConta, FechamentoPeriodo, PrevisaoRepasseSme, DevolucaoAoTesouro
 from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE
 from sme_ptrf_apps.receitas.models import Receita
@@ -249,7 +251,7 @@ def informacoes_devolucoes_a_conta_ptrf(dre, periodo, tipo_conta):
     return info
 
 
-def informacoes_devolucoes_ao_tesouro(dre, periodo, tipo_conta):
+def informacoes_devolucoes_ao_tesouro(dre, periodo):
     # TODO Implementar informacoes_devolucoes_ao_tesouro
     info = [
         {'tipo': 'Devolução ao tesouro tipo 1', 'ocorrencias': 999, 'valor': 3000.00},
@@ -257,4 +259,11 @@ def informacoes_devolucoes_ao_tesouro(dre, periodo, tipo_conta):
         {'tipo': 'Devolução ao tesouro tipo 3', 'ocorrencias': 200, 'valor': 1000.00},
     ]
 
-    return info
+    # Devoluções ao tesouro de PCs de Associações da DRE, no período da conta e concluídas
+    devolucoes = DevolucaoAoTesouro.objects.filter(
+        prestacao_conta__periodo=periodo,
+        prestacao_conta__associacao__unidade__dre=dre,
+        prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
+    ).values('tipo__nome').annotate(ocorrencias=Count('uuid'), valor=Sum('valor'))
+
+    return devolucoes
