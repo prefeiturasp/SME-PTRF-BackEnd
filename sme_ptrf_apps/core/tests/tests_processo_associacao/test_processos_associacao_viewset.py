@@ -8,10 +8,10 @@ from ...api.views.processos_associacao_viewset import ProcessosAssociacaoViewSet
 pytestmark = pytest.mark.django_db
 
 
-def test_view_set(processo_associacao_123456_2019, fake_user):
+def test_view_set(processo_associacao_123456_2019, usuario_permissao_associacao):
     request = APIRequestFactory().get("")
     detalhe = ProcessosAssociacaoViewSet.as_view({'get': 'retrieve'})
-    force_authenticate(request, user=fake_user)
+    force_authenticate(request, user=usuario_permissao_associacao)
     response = detalhe(request, uuid=processo_associacao_123456_2019.uuid)
 
     assert response.status_code == status.HTTP_200_OK

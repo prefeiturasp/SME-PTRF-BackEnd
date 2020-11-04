@@ -6,7 +6,7 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_despesas_conferidas(client,
+def test_api_get_despesas_conferidas(jwt_authenticated_client_a,
                                      acao_associacao_role_cultural,
                                      despesa_2019_2,
                                      rateio_despesa_2019_role_conferido,
@@ -24,7 +24,7 @@ def test_api_get_despesas_conferidas(client,
 
     url = f'/api/conciliacoes/despesas/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&acao_associacao={acao_uuid}&conferido=True'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -40,7 +40,7 @@ def test_api_get_despesas_conferidas(client,
     assert despesas_retornadas == despesas_esperadas, "Não retornou a lista de despesas esperada."
 
 
-def test_api_get_despesas_nao_conferidas_prestacao_conta(client,
+def test_api_get_despesas_nao_conferidas_prestacao_conta(jwt_authenticated_client_a,
                                                          acao_associacao_role_cultural,
                                                          despesa_2019_2,
                                                          rateio_despesa_2019_role_conferido,
@@ -57,7 +57,7 @@ def test_api_get_despesas_nao_conferidas_prestacao_conta(client,
 
     url = f'/api/conciliacoes/despesas/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&acao_associacao={acao_uuid}&conferido=False'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -72,7 +72,7 @@ def test_api_get_despesas_nao_conferidas_prestacao_conta(client,
     assert despesas_retornadas == despesas_esperadas, "Não retornou a lista de despesas esperada."
 
 
-def test_api_get_despesas_nao_conferidas_prestacao_traz_periodos_anteriores(client,
+def test_api_get_despesas_nao_conferidas_prestacao_traz_periodos_anteriores(jwt_authenticated_client_a,
                                                                             acao_associacao_role_cultural,
                                                                             despesa_2019_2,
                                                                             rateio_despesa_2019_role_conferido,
@@ -90,7 +90,7 @@ def test_api_get_despesas_nao_conferidas_prestacao_traz_periodos_anteriores(clie
 
     url = f'/api/conciliacoes/despesas/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&acao_associacao={acao_uuid}&conferido=False'
 
-    response = client.get(url, content_type='application/json')
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 

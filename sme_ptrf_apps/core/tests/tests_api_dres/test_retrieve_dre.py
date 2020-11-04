@@ -18,8 +18,9 @@ def _dre():
         sigla='G'
     )
 
-def test_api_retrieve_dre(client, _dre):
-    response = client.get(f'/api/dres/{_dre.uuid}/', content_type='application/json')
+
+def test_api_retrieve_dre(jwt_authenticated_client_a, _dre):
+    response = jwt_authenticated_client_a.get(f'/api/dres/{_dre.uuid}/', content_type='application/json')
     result = json.loads(response.content)
 
     result_esperado = {

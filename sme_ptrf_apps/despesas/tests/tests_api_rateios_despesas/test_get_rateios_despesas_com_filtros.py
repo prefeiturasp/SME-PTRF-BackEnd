@@ -8,7 +8,7 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_despesas_filtro_por_tipo_aplicacao(jwt_authenticated_client, associacao, despesa, conta_associacao,
+def test_api_get_despesas_filtro_por_tipo_aplicacao(jwt_authenticated_client_d, associacao, despesa, conta_associacao,
                                                     acao,
                                                     tipo_aplicacao_recurso_custeio,
                                                     tipo_custeio_servico,
@@ -20,7 +20,7 @@ def test_api_get_despesas_filtro_por_tipo_aplicacao(jwt_authenticated_client, as
                                                     rateio_despesa_material_eletrico_role_cultural,
                                                     rateio_despesa_instalacao_eletrica_ptrf,
                                                     rateio_despesa_ar_condicionado_ptrf):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&aplicacao_recurso=CUSTEIO',
         content_type='application/json')
     result = json.loads(response.content)
@@ -28,7 +28,7 @@ def test_api_get_despesas_filtro_por_tipo_aplicacao(jwt_authenticated_client, as
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 2
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&aplicacao_recurso=CAPITAL',
         content_type='application/json')
     result = json.loads(response.content)
@@ -37,7 +37,7 @@ def test_api_get_despesas_filtro_por_tipo_aplicacao(jwt_authenticated_client, as
     assert len(result) == 1
 
 
-def test_api_get_despesas_filtro_por_acao_associacao(jwt_authenticated_client, associacao, despesa, conta_associacao,
+def test_api_get_despesas_filtro_por_acao_associacao(jwt_authenticated_client_d, associacao, despesa, conta_associacao,
                                                      acao,
                                                      tipo_aplicacao_recurso_custeio,
                                                      tipo_custeio_servico,
@@ -49,7 +49,7 @@ def test_api_get_despesas_filtro_por_acao_associacao(jwt_authenticated_client, a
                                                      rateio_despesa_material_eletrico_role_cultural,
                                                      rateio_despesa_instalacao_eletrica_ptrf,
                                                      rateio_despesa_ar_condicionado_ptrf):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&acao_associacao__uuid={acao_associacao_ptrf.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -57,7 +57,7 @@ def test_api_get_despesas_filtro_por_acao_associacao(jwt_authenticated_client, a
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 2
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&acao_associacao__uuid={acao_associacao_role_cultural.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -140,11 +140,11 @@ def rateio_despesa_custeio_completo(associacao, despesa, conta_associacao, acao,
     )
 
 
-def test_api_get_despesas_filtro_por_status(jwt_authenticated_client, associacao, despesa_incompleta,
+def test_api_get_despesas_filtro_por_status(jwt_authenticated_client_d, associacao, despesa_incompleta,
                                             rateio_despesa_capital_completo,
                                             rateio_despesa_capital_incompleto, despesa,
                                             rateio_despesa_custeio_completo):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&despesa__status=COMPLETO',
         content_type='application/json')
     result = json.loads(response.content)
@@ -152,7 +152,7 @@ def test_api_get_despesas_filtro_por_status(jwt_authenticated_client, associacao
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 1
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&despesa__status=INCOMPLETO',
         content_type='application/json')
     result = json.loads(response.content)
@@ -207,10 +207,10 @@ def _rateio_despesa_nao_conferido(associacao, despesa, conta_associacao, acao, t
     )
 
 
-def test_api_get_despesas_filtro_por_conferido(jwt_authenticated_client, associacao, despesa,
+def test_api_get_despesas_filtro_por_conferido(jwt_authenticated_client_d, associacao, despesa,
                                                _rateio_despesa_conferido,
                                                _rateio_despesa_nao_conferido):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&conferido=True',
         content_type='application/json')
     result = json.loads(response.content)
@@ -219,11 +219,11 @@ def test_api_get_despesas_filtro_por_conferido(jwt_authenticated_client, associa
     assert len(result) == 1
 
 
-def test_api_get_despesas_filtro_por_nao_conferido(jwt_authenticated_client, associacao, despesa,
+def test_api_get_despesas_filtro_por_nao_conferido(jwt_authenticated_client_d, associacao, despesa,
                                                    rateio_despesa_conferido,
                                                    rateio_despesa_nao_conferido,
                                                    rateio_despesa_nao_conferido2):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&conferido=False',
         content_type='application/json')
     result = json.loads(response.content)
@@ -306,9 +306,9 @@ def rateio_despesa_2020_3_11(associacao, despesa_2020_3_11, conta_associacao, ac
     )
 
 
-def test_api_get_despesas_filtro_por_periodo(jwt_authenticated_client, associacao, despesa_2020_3_10,
+def test_api_get_despesas_filtro_por_periodo(jwt_authenticated_client_d, associacao, despesa_2020_3_10,
                                              rateio_despesa_2020_3_10, despesa_2020_3_11, rateio_despesa_2020_3_11):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&data_inicio=2020-03-10&data_fim=2020-03-10',
         content_type='application/json')
     result = json.loads(response.content)
@@ -316,7 +316,7 @@ def test_api_get_despesas_filtro_por_periodo(jwt_authenticated_client, associaca
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 1
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&data_inicio=2020-03-10&data_fim=2020-03-11',
         content_type='application/json')
     result = json.loads(response.content)
@@ -324,7 +324,7 @@ def test_api_get_despesas_filtro_por_periodo(jwt_authenticated_client, associaca
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 2
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&data_inicio=2020-03-01&data_fim=2020-03-09',
         content_type='application/json')
     result = json.loads(response.content)
@@ -409,10 +409,10 @@ def rateio_despesa_fornecedor_b(associacao, despesa_fornecedor_b, conta_associac
     )
 
 
-def test_api_get_despesas_filtro_por_fornecedor(jwt_authenticated_client, associacao, despesa_fornecedor_a,
+def test_api_get_despesas_filtro_por_fornecedor(jwt_authenticated_client_d, associacao, despesa_fornecedor_a,
                                                 rateio_despesa_fornecedor_a, despesa_fornecedor_b,
                                                 rateio_despesa_fornecedor_b):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&fornecedor=dor a',
         content_type='application/json')
     result = json.loads(response.content)
@@ -420,7 +420,7 @@ def test_api_get_despesas_filtro_por_fornecedor(jwt_authenticated_client, associ
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 1, 'Deve localizar por qualquer parte do nome. Case insensitive.'
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&fornecedor=graca',
         content_type='application/json')
     result = json.loads(response.content)
@@ -428,7 +428,7 @@ def test_api_get_despesas_filtro_por_fornecedor(jwt_authenticated_client, associ
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 2, 'Deve desconsiderar caracteres especiais'
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&fornecedor=xpto',
         content_type='application/json')
     result = json.loads(response.content)
@@ -436,7 +436,7 @@ def test_api_get_despesas_filtro_por_fornecedor(jwt_authenticated_client, associ
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 0
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&fornecedor=VALENCA',
         content_type='application/json')
     result = json.loads(response.content)
@@ -444,7 +444,7 @@ def test_api_get_despesas_filtro_por_fornecedor(jwt_authenticated_client, associ
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 1, 'Deve ignorar acentos e ser case insensitive.'
 
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_d.get(
         f'/api/rateios-despesas/?associacao__uuid={associacao.uuid}&fornecedor=árvore',
         content_type='application/json')
     result = json.loads(response.content)

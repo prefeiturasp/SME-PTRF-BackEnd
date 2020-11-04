@@ -27,8 +27,8 @@ def prestacao_conta2(periodo, outra_associacao):
     )
 
 
-def test_dashboard(jwt_authenticated_client, prestacao_conta1, prestacao_conta2, periodo, dre):
-    response = jwt_authenticated_client.get(
+def test_dashboard(jwt_authenticated_client_a, prestacao_conta1, prestacao_conta2, periodo, dre):
+    response = jwt_authenticated_client_a.get(
         f"/api/prestacoes-contas/dashboard/?periodo={periodo.uuid}&dre_uuid={dre.uuid}")
     result = response.json()
 
@@ -66,8 +66,8 @@ def test_dashboard(jwt_authenticated_client, prestacao_conta1, prestacao_conta2,
     assert esperado == result
 
 
-def test_dashboard_erro(jwt_authenticated_client, prestacao_conta1, prestacao_conta2, periodo, dre):
-    response = jwt_authenticated_client.get(f"/api/prestacoes-contas/dashboard/?periodo=&dre_uuid=")
+def test_dashboard_erro(jwt_authenticated_client_a, prestacao_conta1, prestacao_conta2, periodo, dre):
+    response = jwt_authenticated_client_a.get(f"/api/prestacoes-contas/dashboard/?periodo=&dre_uuid=")
     result = response.json()
 
     erro_esperado = {
@@ -79,8 +79,8 @@ def test_dashboard_erro(jwt_authenticated_client, prestacao_conta1, prestacao_co
     assert erro_esperado == result
 
 
-def test_dashboard_outro_periodo(jwt_authenticated_client, prestacao_conta1, prestacao_conta2, periodo_2020_1, dre):
-    response = jwt_authenticated_client.get(
+def test_dashboard_outro_periodo(jwt_authenticated_client_a, prestacao_conta1, prestacao_conta2, periodo_2020_1, dre):
+    response = jwt_authenticated_client_a.get(
         f"/api/prestacoes-contas/dashboard/?periodo={periodo_2020_1.uuid}&dre_uuid={dre.uuid}")
     result = response.json()
 

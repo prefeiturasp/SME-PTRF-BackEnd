@@ -11,3 +11,6 @@ from .prestacoes_contas_viewset import PrestacoesContasViewSet
 from .processos_associacao_viewset import ProcessosAssociacaoViewSet
 from .relacao_bens_viewset import RelacaoBensViewSet
 from .unidades_viewset import UnidadesViewSet
+from .tipos_devolucao_ao_tesouro_viewset import TiposDevolucaoAoTesouroViewSet
+from .tipo_conta_viewset import TiposContaViewSet
+from .comentarios_analises_prestacoes_viewset import ComentariosAnalisesPrestacoesViewSet

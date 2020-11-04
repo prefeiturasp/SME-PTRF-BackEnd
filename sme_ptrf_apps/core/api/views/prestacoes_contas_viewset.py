@@ -3,19 +3,24 @@ import logging
 from django.db.models import Q
 from django.db.utils import IntegrityError
 from django_filters import rest_framework as filters
-from rest_framework import mixins
-from rest_framework import status
+from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ..serializers import (PrestacaoContaLookUpSerializer, PrestacaoContaListSerializer,
-                           PrestacaoContaRetrieveSerializer, AtaLookUpSerializer)
-from ...models import PrestacaoConta, Periodo, Associacao, Ata, Unidade
-from ...services import (concluir_prestacao_de_contas, reabrir_prestacao_de_contas, informacoes_financeiras_para_atas)
-from ....dre.models import TecnicoDre, Atribuicao
+from sme_ptrf_apps.users.permissoes import PermissaoPrestacaoConta, PermissaoDashboardDre
+
+from ....dre.models import Atribuicao, TecnicoDre
+from ...models import Associacao, Ata, Periodo, PrestacaoConta, Unidade
+from ...services import concluir_prestacao_de_contas, informacoes_financeiras_para_atas, reabrir_prestacao_de_contas
+from ..serializers import (
+    AtaLookUpSerializer,
+    PrestacaoContaListSerializer,
+    PrestacaoContaLookUpSerializer,
+    PrestacaoContaRetrieveSerializer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +29,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                               mixins.UpdateModelMixin,
                               mixins.ListModelMixin,
                               GenericViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated & (PermissaoPrestacaoConta | PermissaoDashboardDre)]
     lookup_field = 'uuid'
     queryset = PrestacaoConta.objects.all()
     serializer_class = PrestacaoContaLookUpSerializer
@@ -288,6 +293,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
+        devolucoes_ao_tesouro_da_prestacao = request.data.get('devolucoes_ao_tesouro_da_prestacao', [])
+
         if prestacao_conta.status != PrestacaoConta.STATUS_EM_ANALISE:
             response = {
                 'uuid': f'{uuid}',
@@ -299,7 +306,38 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         prestacao_salva = prestacao_conta.salvar_analise(devolucao_tesouro=devolucao_tesouro,
-                                                         analises_de_conta_da_prestacao=analises_de_conta_da_prestacao)
+                                                         analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
+                                                         devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
+                        status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['patch'], url_path='salvar-devolucoes-ao-tesouro')
+    def salvar_devolucoes_ao_tesouro(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        devolucoes_ao_tesouro_da_prestacao = request.data.get('devolucoes_ao_tesouro_da_prestacao', [])
+        if not devolucoes_ao_tesouro_da_prestacao:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'salvar-devolucoes-ao-tesouro',
+                'mensagem': 'Faltou informar o campo devolucoes_ao_tesouro_da_prestacao.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        if prestacao_conta.status not in [PrestacaoConta.STATUS_EM_ANALISE, PrestacaoConta.STATUS_DEVOLVIDA]:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'salvar-devolucoes-ao-tesouro',
+                'mensagem': 'Você não pode salvar devoluções ao tesouro de uma prestação de contas com status diferente de EM_ANALISE ou DEVOLVIDA.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_salva = prestacao_conta.salvar_devolucoes_ao_tesouro(
+            devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
@@ -349,6 +387,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
+        devolucoes_ao_tesouro_da_prestacao = request.data.get('devolucoes_ao_tesouro_da_prestacao', [])
+
         if prestacao_conta.status != PrestacaoConta.STATUS_EM_ANALISE:
             response = {
                 'uuid': f'{uuid}',
@@ -386,7 +426,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             devolucao_tesouro=devolucao_tesouro,
             analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
             ressalvas_aprovacao=ressalvas_aprovacao,
-            data_limite_ue=data_limite_ue
+            data_limite_ue=data_limite_ue,
+            devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao
         )
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
@@ -448,6 +489,37 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         prestacao_conta = self.get_object()
         result = informacoes_financeiras_para_atas(prestacao_contas=prestacao_conta)
         return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='ata-retificacao')
+    def ata_retificacao(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        ata = prestacao_conta.ultima_ata_retificacao()
+
+        if not ata:
+            erro = {
+                'mensagem': 'Ainda não existe uma ata de retificação para essa prestação de contas.'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='iniciar-ata-retificacao')
+    def iniciar_ata_retificacao(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        ata = prestacao_conta.ultima_ata_retificacao()
+
+        if ata:
+            erro = {
+                'erro': 'ata-ja-iniciada',
+                'mensagem': 'Já existe uma ata de retificação iniciada para essa prestação de contas.'
+            }
+            return Response(erro, status=status.HTTP_409_CONFLICT)
+
+        ata = Ata.iniciar(prestacao_conta=prestacao_conta, retificacao=True)
+
+        return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='fique-de-olho')
     def fique_de_olho(self, request, uuid=None):

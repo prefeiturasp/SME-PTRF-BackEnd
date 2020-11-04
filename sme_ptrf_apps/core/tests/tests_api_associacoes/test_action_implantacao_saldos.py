@@ -8,8 +8,8 @@ from ...models import Associacao
 pytestmark = pytest.mark.django_db
 
 
-def test_get_permite_implantacao_ok(client, associacao, periodo_anterior):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/permite-implantacao-saldos/',
+def test_get_permite_implantacao_ok(jwt_authenticated_client_a, associacao, periodo_anterior):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/permite-implantacao-saldos/',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -23,9 +23,9 @@ def test_get_permite_implantacao_ok(client, associacao, periodo_anterior):
     assert result == esperado
 
 
-def test_get_permite_implantacao_sem_periodo_inicial_definido(client, associacao_sem_periodo_inicial,
+def test_get_permite_implantacao_sem_periodo_inicial_definido(jwt_authenticated_client_a, associacao_sem_periodo_inicial,
                                                               periodo_anterior):
-    response = client.get(f'/api/associacoes/{associacao_sem_periodo_inicial.uuid}/permite-implantacao-saldos/',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao_sem_periodo_inicial.uuid}/permite-implantacao-saldos/',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -39,9 +39,9 @@ def test_get_permite_implantacao_sem_periodo_inicial_definido(client, associacao
     assert result == esperado
 
 
-def test_get_permite_implantacao_com_prestacao_contas(client, associacao, periodo_anterior, prestacao_conta_iniciada,
+def test_get_permite_implantacao_com_prestacao_contas(jwt_authenticated_client_a, associacao, periodo_anterior, prestacao_conta_iniciada,
                                                       acao_associacao_role_cultural, conta_associacao):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/permite-implantacao-saldos/',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/permite-implantacao-saldos/',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -55,8 +55,8 @@ def test_get_permite_implantacao_com_prestacao_contas(client, associacao, period
     assert result == esperado
 
 
-def test_retrieve_implanta_saldos_saldos_ainda_nao_implantados(client, associacao, periodo_anterior):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/implantacao-saldos/',
+def test_retrieve_implanta_saldos_saldos_ainda_nao_implantados(jwt_authenticated_client_a, associacao, periodo_anterior):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/implantacao-saldos/',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -76,11 +76,11 @@ def test_retrieve_implanta_saldos_saldos_ainda_nao_implantados(client, associaca
     assert result == esperado
 
 
-def test_retrieve_implanta_saldos_saldos_ja_implantados(client, associacao, periodo_anterior,
+def test_retrieve_implanta_saldos_saldos_ja_implantados(jwt_authenticated_client_a, associacao, periodo_anterior,
                                                         fechamento_periodo_anterior_role_implantado,
                                                         acao_associacao_role_cultural,
                                                         conta_associacao):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/implantacao-saldos/',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/implantacao-saldos/',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -127,9 +127,9 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados(client, associacao, peri
     assert result == esperado
 
 
-def test_retrieve_implanta_saldos_sem_periodo_inicial_definido(client, associacao_sem_periodo_inicial,
+def test_retrieve_implanta_saldos_sem_periodo_inicial_definido(jwt_authenticated_client_a, associacao_sem_periodo_inicial,
                                                                periodo_anterior):
-    response = client.get(f'/api/associacoes/{associacao_sem_periodo_inicial.uuid}/implantacao-saldos/',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao_sem_periodo_inicial.uuid}/implantacao-saldos/',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -142,7 +142,7 @@ def test_retrieve_implanta_saldos_sem_periodo_inicial_definido(client, associaca
     assert result == esperado
 
 
-def test_post_implanta_saldos_com_prestacao_contas(client, associacao, periodo_anterior, prestacao_conta_iniciada,
+def test_post_implanta_saldos_com_prestacao_contas(jwt_authenticated_client_a, associacao, periodo_anterior, prestacao_conta_iniciada,
                                                    acao_associacao_role_cultural, conta_associacao):
     payload = {
         'saldos': [
@@ -155,7 +155,7 @@ def test_post_implanta_saldos_com_prestacao_contas(client, associacao, periodo_a
         ],
     }
 
-    response = client.post(f'/api/associacoes/{associacao.uuid}/implanta-saldos/', data=json.dumps(payload),
+    response = jwt_authenticated_client_a.post(f'/api/associacoes/{associacao.uuid}/implanta-saldos/', data=json.dumps(payload),
                            content_type='application/json')
     result = json.loads(response.content)
 
@@ -168,7 +168,7 @@ def test_post_implanta_saldos_com_prestacao_contas(client, associacao, periodo_a
     assert result == esperado
 
 
-def test_post_implanta_saldos_sem_prestacao_contas(client, associacao, periodo_anterior, acao_associacao_role_cultural,
+def test_post_implanta_saldos_sem_prestacao_contas(jwt_authenticated_client_a, associacao, periodo_anterior, acao_associacao_role_cultural,
                                                    conta_associacao):
     payload = {
         'saldos': [
@@ -187,7 +187,7 @@ def test_post_implanta_saldos_sem_prestacao_contas(client, associacao, periodo_a
         ],
     }
 
-    response = client.post(f'/api/associacoes/{associacao.uuid}/implanta-saldos/', data=json.dumps(payload),
+    response = jwt_authenticated_client_a.post(f'/api/associacoes/{associacao.uuid}/implanta-saldos/', data=json.dumps(payload),
                            content_type='application/json')
     result = json.loads(response.content)
 
@@ -227,7 +227,7 @@ def test_post_implanta_saldos_sem_prestacao_contas(client, associacao, periodo_a
     assert implantacao.saldo_reprogramado_custeio == 2000.0
 
 
-def test_post_implanta_saldos_ja_existente(client, associacao, periodo_anterior, acao_associacao_role_cultural,
+def test_post_implanta_saldos_ja_existente(jwt_authenticated_client_a, associacao, periodo_anterior, acao_associacao_role_cultural,
                                            conta_associacao, fechamento_periodo_anterior_role_implantado):
     payload = {
         'saldos': [
@@ -240,7 +240,7 @@ def test_post_implanta_saldos_ja_existente(client, associacao, periodo_anterior,
         ],
     }
 
-    response = client.post(f'/api/associacoes/{associacao.uuid}/implanta-saldos/', data=json.dumps(payload),
+    response = jwt_authenticated_client_a.post(f'/api/associacoes/{associacao.uuid}/implanta-saldos/', data=json.dumps(payload),
                            content_type='application/json')
     result = json.loads(response.content)
 
@@ -262,7 +262,7 @@ def test_post_implanta_saldos_ja_existente(client, associacao, periodo_anterior,
     assert Associacao.by_uuid(associacao.uuid).fechamentos_associacao.count() == 1
 
 
-def test_post_implanta_saldos_duplicados(client, associacao, periodo_anterior, acao_associacao_role_cultural,
+def test_post_implanta_saldos_duplicados(jwt_authenticated_client_a, associacao, periodo_anterior, acao_associacao_role_cultural,
                                          conta_associacao):
     payload = {
         'saldos': [
@@ -281,7 +281,7 @@ def test_post_implanta_saldos_duplicados(client, associacao, periodo_anterior, a
         ],
     }
 
-    response = client.post(f'/api/associacoes/{associacao.uuid}/implanta-saldos/', data=json.dumps(payload),
+    response = jwt_authenticated_client_a.post(f'/api/associacoes/{associacao.uuid}/implanta-saldos/', data=json.dumps(payload),
                            content_type='application/json')
     result = json.loads(response.content)
 
@@ -296,11 +296,11 @@ def test_post_implanta_saldos_duplicados(client, associacao, periodo_anterior, a
     assert Associacao.by_uuid(associacao.uuid).fechamentos_associacao.count() == 0
 
 
-def test_retrieve_implanta_saldos_saldos_ja_implantados_livre_aplicacao(client, associacao, periodo_anterior,
+def test_retrieve_implanta_saldos_saldos_ja_implantados_livre_aplicacao(jwt_authenticated_client_a, associacao, periodo_anterior,
                                                                         fechamento_periodo_anterior_role_implantado_com_livre_aplicacao,
                                                                         acao_associacao_role_cultural,
                                                                         conta_associacao):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/implantacao-saldos/',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/implantacao-saldos/',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -360,7 +360,7 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_livre_aplicacao(client, 
     assert result == esperado
 
 
-def test_post_implanta_saldos_sem_prestacao_contas_com_livre_utilizacao(client, associacao, periodo_anterior,
+def test_post_implanta_saldos_sem_prestacao_contas_com_livre_utilizacao(jwt_authenticated_client_a, associacao, periodo_anterior,
                                                                         acao_associacao_role_cultural,
                                                                         conta_associacao):
     payload = {
@@ -386,7 +386,7 @@ def test_post_implanta_saldos_sem_prestacao_contas_com_livre_utilizacao(client, 
         ],
     }
 
-    response = client.post(f'/api/associacoes/{associacao.uuid}/implanta-saldos/', data=json.dumps(payload),
+    response = jwt_authenticated_client_a.post(f'/api/associacoes/{associacao.uuid}/implanta-saldos/', data=json.dumps(payload),
                            content_type='application/json')
     result = json.loads(response.content)
 

@@ -10,6 +10,7 @@ pytestmark = pytest.mark.django_db
 def test_instance_model(tipo_conta):
     model = tipo_conta
     assert isinstance(model, TipoConta)
+    assert model.uuid
     assert model.nome
     assert model.criado_em
     assert model.alterado_em
@@ -19,6 +20,7 @@ def test_instance_model(tipo_conta):
     assert model.agencia
     assert model.numero_conta
     assert model.numero_cartao
+    assert not model.apenas_leitura
 
 
 def test_srt_model(tipo_conta):

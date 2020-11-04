@@ -9,12 +9,12 @@ from ...models import Receita
 pytestmark = pytest.mark.django_db
 
 
-def test_api_desconciliar_receita(client, receita_conferida):
+def test_api_desconciliar_receita(jwt_authenticated_client_p, receita_conferida):
     receita_uuid = receita_conferida.uuid
 
     url = f'/api/receitas/{receita_uuid}/desconciliar/'
 
-    response = client.patch(url, content_type='application/json')
+    response = jwt_authenticated_client_p.patch(url, content_type='application/json')
 
     result = json.loads(response.content)
 

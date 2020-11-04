@@ -50,7 +50,7 @@ def atualiza_repasse_para_realizado(receita_validated_data):
         logger.info(msgError)
         raise ValidationError(msgError)
 
-    if repasse.realizado_capital and repasse.realizado_custeio and repasse.realizado_livre:
+    if (repasse.realizado_capital or repasse.valor_capital == 0) and (repasse.realizado_custeio or repasse.valor_custeio == 0) and (repasse.realizado_livre or repasse.valor_livre == 0):
         repasse.status = 'REALIZADO'
 
     repasse.save()
@@ -66,6 +66,9 @@ def atualiza_repasse_para_pendente(receita):
         repasse.status = 'PENDENTE'
         if receita.categoria_receita == 'CAPITAL':
             repasse.realizado_capital = False
-        else:
+        elif receita.categoria_receita == 'CUSTEIO':
             repasse.realizado_custeio = False
+        else:
+            repasse.realizado_livre = False
+
         repasse.save()

@@ -1,5 +1,10 @@
 import pytest
+from freezegun import freeze_time
+from django.core.files.uploadedfile import SimpleUploadedFile
 from model_bakery import baker
+from django.contrib.auth.models import Permission
+from sme_ptrf_apps.users.models import Grupo
+from django.contrib.contenttypes.models import ContentType
 
 
 @pytest.fixture
@@ -44,6 +49,8 @@ def tecnico_dre(dre):
         dre=dre,
         nome='José Testando',
         rf='271170',
+        email='tecnico.sobrenome@sme.prefeitura.sp.gov.br',
+        telefone='1259275127'
     )
 
 
@@ -91,3 +98,79 @@ def atribuicao(tecnico_dre, unidade, periodo):
         unidade=unidade,
         periodo=periodo,
     )
+
+@pytest.fixture
+def arquivo():
+    return SimpleUploadedFile(f'arquivo.txt', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding="utf-8"))
+
+
+@pytest.fixture
+@freeze_time('2020-10-27 13:59:00')
+def relatorio_dre_consolidado_gerado_total(periodo, dre, tipo_conta_cartao, arquivo):
+    return baker.make(
+        'RelatorioConsolidadoDre',
+        dre=dre,
+        tipo_conta=tipo_conta_cartao,
+        periodo=periodo,
+        arquivo=arquivo,
+        status='GERADO_TOTAL'
+    )
+
+@pytest.fixture
+def permissoes_dadosdiretoria_dre():
+    permissoes = [
+        Permission.objects.create(
+            name="visualizar dados diretoria dre", 
+            codename='view_dadosdiretoria_dre', 
+            content_type=ContentType.objects.filter(app_label="auth").first()
+        ),
+    ]
+
+    return permissoes
+
+@pytest.fixture
+def grupo_dados_diretoria_dre(permissoes_dadosdiretoria_dre):
+    g = Grupo.objects.create(name="dados_diretoria_dre")
+    g.permissions.add(*permissoes_dadosdiretoria_dre)
+    return g
+
+
+@pytest.fixture
+def usuario_permissao_atribuicao(
+        unidade,
+        grupo_dados_diretoria_dre):
+
+    from django.contrib.auth import get_user_model
+    senha = 'Sgp0418'
+    login = '7210418'
+    email = 'sme@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(unidade)
+    user.groups.add(grupo_dados_diretoria_dre)
+    user.save()
+    return user
+
+
+@pytest.fixture
+def jwt_authenticated_client_dre(client, usuario_permissao_atribuicao):
+    from unittest.mock import patch
+
+    from rest_framework.test import APIClient
+    api_client = APIClient()
+    with patch('sme_ptrf_apps.users.api.views.login.AutenticacaoService.autentica') as mock_post:
+        data = {
+            "nome": "LUCIA HELENA",
+            "cpf": "62085077072",
+            "email": "luh@gmail.com",
+            "login": "7210418"
+        }
+        mock_post.return_value.ok = True
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = data
+        resp = api_client.post('/api/login', {'login': usuario_permissao_atribuicao.username,
+                                              'senha': usuario_permissao_atribuicao.password}, format='json')
+        resp_data = resp.json()
+        api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
+    return api_client
+

@@ -49,9 +49,9 @@ def associacao_pinheiros_emef_mendes_dre_2(emef_mendes_dre_2, periodo_anterior):
     )
 
 
-def test_api_list_associacoes_todas(client, associacao_valenca_ceu_vassouras_dre_1,
+def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valenca_ceu_vassouras_dre_1,
                                     associacao_pinheiros_emef_mendes_dre_2):
-    response = client.get(f'/api/associacoes/', content_type='application/json')
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/', content_type='application/json')
     result = json.loads(response.content)
 
     result_esperado = [
@@ -81,9 +81,9 @@ def test_api_list_associacoes_todas(client, associacao_valenca_ceu_vassouras_dre
     assert result == result_esperado
 
 
-def test_api_list_associacoes_de_uma_dre(client, associacao_valenca_ceu_vassouras_dre_1,
+def test_api_list_associacoes_de_uma_dre(jwt_authenticated_client_a, associacao_valenca_ceu_vassouras_dre_1,
                                          associacao_pinheiros_emef_mendes_dre_2):
-    response = client.get(
+    response = jwt_authenticated_client_a.get(
         f'/api/associacoes/?unidade__dre__uuid={associacao_valenca_ceu_vassouras_dre_1.unidade.dre.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -105,9 +105,9 @@ def test_api_list_associacoes_de_uma_dre(client, associacao_valenca_ceu_vassoura
     assert result == result_esperado
 
 
-def test_api_list_associacoes_pelo_nome_associacao_ignorando_acentos(client, associacao_valenca_ceu_vassouras_dre_1,
+def test_api_list_associacoes_pelo_nome_associacao_ignorando_acentos(jwt_authenticated_client_a, associacao_valenca_ceu_vassouras_dre_1,
                                                                      associacao_pinheiros_emef_mendes_dre_2):
-    response = client.get(f'/api/associacoes/?nome=valenca', content_type='application/json')
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/?nome=valenca', content_type='application/json')
     result = json.loads(response.content)
 
     result_esperado = [
@@ -127,9 +127,9 @@ def test_api_list_associacoes_pelo_nome_associacao_ignorando_acentos(client, ass
     assert result == result_esperado
 
 
-def test_api_list_associacoes_pelo_nome_escola(client, associacao_valenca_ceu_vassouras_dre_1,
+def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a, associacao_valenca_ceu_vassouras_dre_1,
                                                associacao_pinheiros_emef_mendes_dre_2):
-    response = client.get(f'/api/associacoes/?nome=vassouras', content_type='application/json')
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/?nome=vassouras', content_type='application/json')
     result = json.loads(response.content)
 
     result_esperado = [
@@ -149,9 +149,9 @@ def test_api_list_associacoes_pelo_nome_escola(client, associacao_valenca_ceu_va
     assert result == result_esperado
 
 
-def test_api_list_associacoes_pelo_status_regularidade(client, associacao_valenca_ceu_vassouras_dre_1,
+def test_api_list_associacoes_pelo_status_regularidade(jwt_authenticated_client_a, associacao_valenca_ceu_vassouras_dre_1,
                                                        associacao_pinheiros_emef_mendes_dre_2):
-    response = client.get(f'/api/associacoes/?status_regularidade=PENDENTE', content_type='application/json')
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/?status_regularidade=PENDENTE', content_type='application/json')
     result = json.loads(response.content)
 
     result_esperado = [
@@ -171,9 +171,9 @@ def test_api_list_associacoes_pelo_status_regularidade(client, associacao_valenc
     assert result == result_esperado
 
 
-def test_api_list_associacoes_pelo_tipo_unidade(client, associacao_valenca_ceu_vassouras_dre_1,
+def test_api_list_associacoes_pelo_tipo_unidade(jwt_authenticated_client_a, associacao_valenca_ceu_vassouras_dre_1,
                                                 associacao_pinheiros_emef_mendes_dre_2):
-    response = client.get(f'/api/associacoes/?unidade__tipo_unidade=CEU', content_type='application/json')
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/?unidade__tipo_unidade=CEU', content_type='application/json')
     result = json.loads(response.content)
 
     result_esperado = [

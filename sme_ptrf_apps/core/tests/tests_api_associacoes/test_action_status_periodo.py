@@ -13,8 +13,8 @@ pytestmark = pytest.mark.django_db
 
 
 @freeze_time('2020-01-10 10:11:12')
-def test_status_periodo_em_andamento(client, associacao, periodo_fim_em_aberto):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-10',
+def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, periodo_fim_em_aberto):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-10',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -39,8 +39,8 @@ def test_status_periodo_em_andamento(client, associacao, periodo_fim_em_aberto):
 
 
 @freeze_time('2020-07-10 10:20:00')
-def test_status_periodo_pendente(client, associacao, periodo_fim_em_2020_06_30):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-10',
+def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo_fim_em_2020_06_30):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-10',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -64,8 +64,8 @@ def test_status_periodo_pendente(client, associacao, periodo_fim_em_2020_06_30):
     assert result == esperado
 
 
-def test_chamada_sem_passar_data(client, associacao, periodo_2020_1, prestacao_conta_2020_1_conciliada):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/status-periodo/',
+def test_chamada_sem_passar_data(jwt_authenticated_client_a, associacao, periodo_2020_1, prestacao_conta_2020_1_conciliada):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -78,8 +78,8 @@ def test_chamada_sem_passar_data(client, associacao, periodo_2020_1, prestacao_c
     assert result == esperado
 
 
-def test_chamada_data_sem_periodo(client, associacao, periodo_2020_1):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2000-01-10',
+def test_chamada_data_sem_periodo(jwt_authenticated_client_a, associacao, periodo_2020_1):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2000-01-10',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -96,10 +96,10 @@ def test_chamada_data_sem_periodo(client, associacao, periodo_2020_1):
 
 
 @freeze_time('2020-07-10 10:20:00')
-def test_status_periodo_finalizado(client, associacao, prestacao_conta_2020_1_conciliada):
+def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prestacao_conta_2020_1_conciliada):
     periodo = prestacao_conta_2020_1_conciliada.periodo
 
-    response = client.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo.data_inicio_realizacao_despesas}',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo.data_inicio_realizacao_despesas}',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -137,10 +137,10 @@ def _prestacao_conta_devolvida(periodo, associacao):
 
 
 @freeze_time('2020-07-10 10:20:00')
-def test_status_periodo_devolvido_para_acertos(client, associacao, _prestacao_conta_devolvida):
+def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, associacao, _prestacao_conta_devolvida):
     periodo = _prestacao_conta_devolvida.periodo
 
-    response = client.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo.data_inicio_realizacao_despesas}',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo.data_inicio_realizacao_despesas}',
                           content_type='application/json')
     result = json.loads(response.content)
 

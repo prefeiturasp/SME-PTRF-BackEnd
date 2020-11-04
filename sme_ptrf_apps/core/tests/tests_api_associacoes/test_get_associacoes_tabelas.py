@@ -8,8 +8,8 @@ from ...models import Associacao, Unidade
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_associacoes_tabelas(client):
-    response = client.get('/api/associacoes/tabelas/', content_type='application/json')
+def test_api_get_associacoes_tabelas(jwt_authenticated_client_a):
+    response = jwt_authenticated_client_a.get('/api/associacoes/tabelas/', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = {

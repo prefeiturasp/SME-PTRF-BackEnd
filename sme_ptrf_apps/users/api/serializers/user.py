@@ -2,7 +2,7 @@ import logging
 
 from django.contrib.auth import get_user_model
 from requests import ConnectTimeout, ReadTimeout
-from rest_framework import serializers, status
+from rest_framework import serializers, status, exceptions
 from rest_framework.response import Response
 
 from sme_ptrf_apps.users.api.validations.usuario_validations import (
@@ -12,19 +12,57 @@ from sme_ptrf_apps.users.api.validations.usuario_validations import (
     senhas_devem_ser_iguais,
 )
 from sme_ptrf_apps.users.services import SmeIntegracaoException, SmeIntegracaoService
+from sme_ptrf_apps.users.models import Grupo, Visao
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
+class GrupoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Grupo
+        fields = ['id', 'name', 'descricao']
+
 class UserSerializer(serializers.ModelSerializer):
+    groups = GrupoSerializer(many=True)
+
     class Meta:
         model = User
-        fields = ["username", "email", "name", "url"]
+        fields = ["id", "username", "email", "name", "url", "tipo_usuario", "groups"]
 
         extra_kwargs = {
             "url": {"view_name": "api:user-detail", "lookup_field": "username"}
         }
+
+
+class UserCreateSerializer(serializers.ModelSerializer):
+    visao = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ["username", "email", "name", "tipo_usuario", "visao", "groups"]
+
+    def create(self, validated_data):
+        visao = validated_data.pop('visao')
+        groups = validated_data.pop('groups')
+        user = User.objects.create(**validated_data)
+        visao_obj = Visao.objects.filter(nome=visao).first()
+        user.visoes.add(visao_obj)
+        user.groups.add(*groups)
+        user.save()
+
+        return user
+
+
+    def update(self, instance, validated_data):
+        visao = validated_data.pop('visao')
+        
+        if not instance.visoes.filter(nome=visao).first():
+            visao_obj = Visao.objects.filter(nome=visao).first()
+            instance.visoes.add(visao_obj)
+            instance.save()
+
+        return super().update(instance, validated_data)
 
 
 class AlteraEmailSerializer(serializers.ModelSerializer):

@@ -13,7 +13,8 @@ class TipoConta(ModeloIdNome):
     agencia = models.CharField('Nº agência',  max_length=15, blank=True, default='')
     numero_conta = models.CharField('Nº conta', max_length=30, blank=True, default='')
     numero_cartao = models.CharField('Nº do cartão', max_length=80, blank=True, default='')
-
+    apenas_leitura = models.BooleanField("Apenas Leitura?", default=False)
+    
     class Meta:
         verbose_name = "Tipo de conta"
         verbose_name_plural = "04.0) Tipos de conta"

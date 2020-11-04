@@ -36,10 +36,10 @@ def presidente_conselho_fiscal(associacao):
 
 
 
-def test_api_retrieve_associacao(client, associacao, presidente_associacao, presidente_conselho_fiscal):
+def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, presidente_associacao, presidente_conselho_fiscal):
     from unittest.mock import patch
     with patch('sme_ptrf_apps.core.api.views.associacoes_viewset.atualiza_dados_unidade') as mock_patch:
-        response = client.get(f'/api/associacoes/{associacao.uuid}/', content_type='application/json')
+        response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/', content_type='application/json')
         result = json.loads(response.content)
 
         mock_patch.return_value = None

@@ -23,8 +23,30 @@ def prestacao_conta_em_analise(periodo, associacao):
     )
 
 
+@pytest.fixture
+def despesa(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        data_transacao=date(2020, 3, 10),
+        valor_total=100.00,
+    )
+
+
+@pytest.fixture
+def tipo_devolucao_ao_tesouro():
+    return baker.make('TipoDevolucaoAoTesouro', nome='Teste')
+
+
 @freeze_time('2020-09-01')
-def test_api_salva_analise_prestacao_conta(jwt_authenticated_client, prestacao_conta_em_analise, conta_associacao):
+def test_api_salva_analise_prestacao_conta(jwt_authenticated_client_a, prestacao_conta_em_analise, conta_associacao,
+                                           tipo_devolucao_ao_tesouro, despesa):
     payload = {
         'devolucao_tesouro': True,
         'analises_de_conta_da_prestacao': [
@@ -34,11 +56,21 @@ def test_api_salva_analise_prestacao_conta(jwt_authenticated_client, prestacao_c
                 'saldo_extrato': 100.00,
             },
         ],
+        'devolucoes_ao_tesouro_da_prestacao': [
+            {
+                'data': '2020-07-01',
+                'devolucao_total': True,
+                'motivo': 'teste',
+                'valor': 100.00,
+                'tipo': f'{tipo_devolucao_ao_tesouro.uuid}',
+                'despesa': f'{despesa.uuid}'
+            }
+        ]
     }
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/salvar-analise/'
 
-    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -50,12 +82,12 @@ def test_api_salva_analise_prestacao_conta(jwt_authenticated_client, prestacao_c
     assert prestacao_atualizada.analises_de_conta_da_prestacao.first().data_extrato == date(2020, 7,
                                                                                             1), 'Não atualizou a data do extrato.'
     assert prestacao_atualizada.analises_de_conta_da_prestacao.first().saldo_extrato == 100.00, 'Não atualizou a saldo do extrato.'
+    assert prestacao_atualizada.devolucoes_ao_tesouro_da_prestacao.exists(), 'Não gravou as devoluções ao tesouro'
 
-
-def test_api_salvar_prestacao_conta_exige_devolucao_tesouro(jwt_authenticated_client, prestacao_conta_em_analise):
+def test_api_salvar_prestacao_conta_exige_devolucao_tesouro(jwt_authenticated_client_a, prestacao_conta_em_analise):
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/salvar-analise/'
 
-    response = jwt_authenticated_client.patch(url, content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -71,7 +103,7 @@ def test_api_salvar_prestacao_conta_exige_devolucao_tesouro(jwt_authenticated_cl
     assert result == result_esperado, "Deveria ter retornado erro falta_de_informacoes."
 
 
-def test_api_salvar_prestacao_conta_exige_analises_de_conta_da_prestacao(jwt_authenticated_client,
+def test_api_salvar_prestacao_conta_exige_analises_de_conta_da_prestacao(jwt_authenticated_client_a,
                                                                          prestacao_conta_em_analise):
     payload = {
         'devolucao_tesouro': True,
@@ -79,7 +111,7 @@ def test_api_salvar_prestacao_conta_exige_analises_de_conta_da_prestacao(jwt_aut
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/salvar-analise/'
 
-    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -106,7 +138,7 @@ def prestacao_conta_recebida(periodo, associacao):
     )
 
 
-def test_api_salva_analise_prestacao_conta_nao_pode_aceitar_status_diferente_de_nao_recebida(jwt_authenticated_client,
+def test_api_salva_analise_prestacao_conta_nao_pode_aceitar_status_diferente_de_nao_recebida(jwt_authenticated_client_a,
                                                                                              prestacao_conta_recebida,
                                                                                              conta_associacao):
     payload = {
@@ -121,7 +153,7 @@ def test_api_salva_analise_prestacao_conta_nao_pode_aceitar_status_diferente_de_
     }
     url = f'/api/prestacoes-contas/{prestacao_conta_recebida.uuid}/salvar-analise/'
 
-    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
