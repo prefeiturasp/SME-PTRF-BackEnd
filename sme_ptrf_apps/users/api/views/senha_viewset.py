@@ -8,6 +8,7 @@ from sme_ptrf_apps.users.api.serializers import (
     RedefinirSenhaSerializer,
     RedefinirSenhaSerializerCreator,
 )
+from sme_ptrf_apps.users.api.serializers.senha_serializer import EmailNaoCadastrado, ProblemaEnvioEmail
 from sme_ptrf_apps.users.services import SmeIntegracaoException
 User = get_user_model()
 
@@ -17,6 +18,15 @@ class EsqueciMinhaSenhaViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     permission_classes = [AllowAny]
     serializer_class = EsqueciMinhaSenhaSerializer
+
+
+    def update(self, request, *args, **kwargs):
+        try:
+            return super().update(request, args, kwargs)
+        except EmailNaoCadastrado as err_email:
+            return Response({'detail': str(err_email)}, status=status.HTTP_400_BAD_REQUEST)
+        except ProblemaEnvioEmail as err_envio:
+            return Response({'detail': str(err_envio)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RedefinirSenhaViewSet(viewsets.ModelViewSet):
