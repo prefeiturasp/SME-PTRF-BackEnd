@@ -120,8 +120,8 @@ def relatorio_dre_consolidado_gerado_total(periodo, dre, tipo_conta_cartao, arqu
 def permissoes_dadosdiretoria_dre():
     permissoes = [
         Permission.objects.create(
-            name="visualizar dados diretoria dre", 
-            codename='view_dadosdiretoria_dre', 
+            name="visualizar dados diretoria dre",
+            codename='view_dadosdiretoria_dre',
             content_type=ContentType.objects.filter(app_label="auth").first()
         ),
     ]
@@ -174,3 +174,11 @@ def jwt_authenticated_client_dre(client, usuario_permissao_atribuicao):
         api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
     return api_client
 
+@pytest.fixture
+def justificativa_relatorio_dre_consolidado(periodo, dre, tipo_conta_cartao):
+    return baker.make(
+        'JustificativaRelatorioConsolidadoDre',
+        dre=dre,
+        tipo_conta=tipo_conta_cartao,
+        texto='Teste'
+    )

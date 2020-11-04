@@ -1,6 +1,9 @@
 from django.contrib import admin
-from .models import (Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade, ItemVerificacaoRegularidade,
-                    VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq, RelatorioConsolidadoDRE)
+from .models import (Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade,
+                     ItemVerificacaoRegularidade,
+                     VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq, RelatorioConsolidadoDRE,
+                     JustificativaRelatorioConsolidadoDRE)
+
 
 class ListasVerificacaoInline(admin.TabularInline):
     extra = 1
@@ -40,12 +43,14 @@ class ItemVerificacaoRegularidadeAdmin(admin.ModelAdmin):
     list_filter = ('lista', 'lista__grupo')
     readonly_fields = ('uuid', 'id')
 
+
 @admin.register(VerificacaoRegularidadeAssociacao)
 class VerificacaoRegularidadeAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('item_verificacao', 'regular', 'lista_verificacao', 'associacao')
     search_fields = ('uuid', 'item_verificacao__descricao')
-    list_filter = ('associacao','lista_verificacao', 'grupo_verificacao', 'item_verificacao')
+    list_filter = ('associacao', 'lista_verificacao', 'grupo_verificacao', 'item_verificacao')
     readonly_fields = ('uuid', 'id')
+
 
 @admin.register(TecnicoDre)
 class TecnicoDreAdmin(admin.ModelAdmin):
@@ -104,3 +109,23 @@ class RelatorioConsolidadoDREAdmin(admin.ModelAdmin):
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome',)
+
+
+@admin.register(JustificativaRelatorioConsolidadoDRE)
+class JustificativaRelatorioConsolidadoDREAdmin(admin.ModelAdmin):
+
+    def get_nome_dre(self, obj):
+        return obj.dre.nome if obj and obj.dre else ''
+
+    get_nome_dre.short_description = 'DRE'
+
+    def get_nome_tipo_conta(self, obj):
+        return obj.tipo_conta.nome if obj and obj.tipo_conta else ''
+
+    get_nome_tipo_conta.short_description = 'Tipo de conta'
+
+    list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'texto')
+    list_filter = ('dre', 'periodo', 'tipo_conta')
+    list_display_links = ('get_nome_dre',)
+    readonly_fields = ('uuid', 'id')
+    search_fields = ('dre__nome', 'texto')
