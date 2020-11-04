@@ -7,3 +7,4 @@ from .verificacao_regularidade_associacao import VerificacaoRegularidadeAssociac
 from .faq_categoria import FaqCategoria
 from .faq import Faq
 from .relatorio_consolidado_dre import RelatorioConsolidadoDRE
+from .justificativa_relatorio_consolidado_dre import JustificativaRelatorioConsolidadoDRE

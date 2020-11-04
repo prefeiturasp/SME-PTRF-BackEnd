@@ -1,5 +1,7 @@
 import logging
 
+from django.db.models import Count, Sum, F
+
 from sme_ptrf_apps.core.models import PrestacaoConta, FechamentoPeriodo, PrevisaoRepasseSme, DevolucaoAoTesouro
 from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE
 from sme_ptrf_apps.receitas.models import Receita
@@ -239,22 +241,29 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta):
 
 
 def informacoes_devolucoes_a_conta_ptrf(dre, periodo, tipo_conta):
-    # TODO Implementar informacoes_devolucoes_a_conta_ptrf
-    info = [
-        {'tipo': 'Devolução à conta tipo 1', 'ocorrencias': 999, 'valor': 3000.00},
-        {'tipo': 'Devolução à conta tipo 2', 'ocorrencias': 100, 'valor': 2000.00},
-        {'tipo': 'Devolução à conta tipo 3', 'ocorrencias': 200, 'valor': 1000.00},
-    ]
+    # Devoluções à conta referente ao período e tipo_conta de Associações da DRE concluídas
+    associacoes_com_pc_concluidas = PrestacaoConta.objects.filter(
+        periodo=periodo,
+        associacao__unidade__dre=dre,
+        status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
+    ).values_list('associacao__uuid')
 
-    return info
+    devolucoes = Receita.objects.filter(
+        referencia_devolucao=periodo,
+        tipo_receita__e_devolucao=True,
+        conta_associacao__tipo_conta=tipo_conta,
+        associacao__uuid__in=associacoes_com_pc_concluidas,
+    ).values('detalhe_tipo_receita__nome').annotate(ocorrencias=Count('uuid'), valor=Sum('valor'))
+
+    return devolucoes
 
 
-def informacoes_devolucoes_ao_tesouro(dre, periodo, tipo_conta):
-    # TODO Implementar informacoes_devolucoes_ao_tesouro
-    info = [
-        {'tipo': 'Devolução ao tesouro tipo 1', 'ocorrencias': 999, 'valor': 3000.00},
-        {'tipo': 'Devolução ao tesouro tipo 2', 'ocorrencias': 100, 'valor': 2000.00},
-        {'tipo': 'Devolução ao tesouro tipo 3', 'ocorrencias': 200, 'valor': 1000.00},
-    ]
+def informacoes_devolucoes_ao_tesouro(dre, periodo):
+    # Devoluções ao tesouro de PCs de Associações da DRE, no período da conta e concluídas
+    devolucoes = DevolucaoAoTesouro.objects.filter(
+        prestacao_conta__periodo=periodo,
+        prestacao_conta__associacao__unidade__dre=dre,
+        prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
+    ).values('tipo__nome').annotate(ocorrencias=Count('uuid'), valor=Sum('valor'))
 
-    return info
+    return devolucoes
