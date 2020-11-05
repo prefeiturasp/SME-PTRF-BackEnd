@@ -542,7 +542,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         total_associacoes_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).count()
 
-        cards = PrestacaoConta.dashboard(periodo, dre_uuid)
+        par_add_aprovados_ressalva = request.query_params.get('add_aprovadas_ressalva')
+        add_aprovados_ressalva = par_add_aprovados_ressalva == 'SIM'
+        cards = PrestacaoConta.dashboard(periodo, dre_uuid, add_aprovado_ressalva=add_aprovados_ressalva)
         dashboard = {
             "total_associacoes_dre": total_associacoes_dre,
             "cards": cards
