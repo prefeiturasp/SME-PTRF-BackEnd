@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoAssociacao, PermissaoAssociacaoDre
+from sme_ptrf_apps.users.permissoes import PermissaoAssociacao, PermissaoAssociacaoDre, PermissaoExportarDadosAssociacao
 
 from ....dre.services import (
     desmarca_item_verificacao_associacao,
@@ -296,7 +296,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
         xlsx = gerar_planilha(associacao)
         return xlsx
 
-    @action(detail=True, methods=['get'], url_path='exportar')
+    @action(detail=True, methods=['get'], url_path='exportar', permission_classes=[IsAuthenticated & PermissaoExportarDadosAssociacao])
     def exportar(self, _, uuid=None):
 
         xlsx = self._gerar_planilha(uuid)
