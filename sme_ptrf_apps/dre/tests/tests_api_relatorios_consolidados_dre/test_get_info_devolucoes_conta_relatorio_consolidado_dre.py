@@ -64,7 +64,7 @@ def receita_devolucao_1(associacao, conta_associacao, acao_associacao, tipo_rece
     return baker.make(
         'Receita',
         associacao=associacao,
-        data=date(2019, 3, 26),
+        data=date(2019, 9, 26),
         valor=100.00,
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
@@ -73,7 +73,6 @@ def receita_devolucao_1(associacao, conta_associacao, acao_associacao, tipo_rece
         conferido=True,
         categoria_receita='CUSTEIO',
         detalhe_tipo_receita=detalhe_tipo_receita,
-        referencia_devolucao=periodo,
     )
 
 
@@ -83,7 +82,7 @@ def receita_devolucao_2(associacao, conta_associacao, acao_associacao, tipo_rece
     return baker.make(
         'Receita',
         associacao=associacao,
-        data=date(2019, 3, 26),
+        data=date(2019, 9, 26),
         valor=100.00,
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
@@ -92,7 +91,6 @@ def receita_devolucao_2(associacao, conta_associacao, acao_associacao, tipo_rece
         conferido=True,
         categoria_receita='CUSTEIO',
         detalhe_tipo_receita=detalhe_tipo_receita,
-        referencia_devolucao=periodo,
     )
 
 
