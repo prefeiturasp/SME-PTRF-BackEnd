@@ -125,6 +125,30 @@ class PermissaoPrestacaoConta(PermissaoCRUD):
         return True
 
 
+class PermissaoExportarDadosAssociacao(PermissaoCRUD):
+    perms_map = {
+        'GET': ['export_dados_associacao'],
+        'OPTIONS': [],
+        'HEAD': [],
+        'POST': [],
+        'PUT': [],
+        'PATCH': [],
+        'DELETE': [],
+    }
+
+    def get_required_permissions(self, method):
+        if method not in self.perms_map:
+            raise exceptions.MethodNotAllowed(method)
+
+        return [perm for perm in self.perms_map[method]]
+
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            perms = self.get_required_permissions(request.method)
+            return self.has_perms(perms, request.user)
+        return False
+
+
 class PermissaoDashboardDre(PermissaoCRUD):
     perms_map = {
         'GET': ['view_dashboard_dre'],
