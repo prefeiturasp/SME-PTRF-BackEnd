@@ -248,8 +248,14 @@ def informacoes_devolucoes_a_conta_ptrf(dre, periodo, tipo_conta):
         status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
     ).values_list('associacao__uuid')
 
-    devolucoes = Receita.objects.filter(
-        referencia_devolucao=periodo,
+    if periodo.data_fim_realizacao_despesas:
+        receitas_periodo = Receita.objects.filter(
+            data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
+    else:
+        receitas_periodo = Receita.objects.filter(
+            data__gte=periodo.data_inicio_realizacao_despesas)
+
+    devolucoes = receitas_periodo.filter(
         tipo_receita__e_devolucao=True,
         conta_associacao__tipo_conta=tipo_conta,
         associacao__uuid__in=associacoes_com_pc_concluidas,
