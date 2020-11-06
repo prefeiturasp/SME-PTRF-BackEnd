@@ -192,6 +192,7 @@ class AtaAdmin(admin.ModelAdmin):
 class ArquivoAdmin(admin.ModelAdmin):
     list_display = ['identificador', 'conteudo', 'tipo_carga']
     actions = ['processa_carga', ]
+    readonly_fields = ['ultima_execucao', 'status', 'log']
 
     def processa_carga(self, request, queryset):
         processa_cargas(queryset)

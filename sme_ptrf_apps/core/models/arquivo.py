@@ -39,6 +39,26 @@ DELIMITADOR_CHOICES = (
     (DELIMITADOR_VIRGULA, DELIMITADOR_NOMES[DELIMITADOR_VIRGULA]),
 )
 
+# status processamento
+PENDENTE = 'PENDENTE'
+SUCESSO = 'SUCESSO'
+ERRO = 'ERRO'
+PROCESSADO_COM_ERRO = 'PROCESSADO_COM_ERRO'
+
+STATUS_PROCESSMENTO = {
+    PENDENTE: 'Pendente',
+    SUCESSO: 'Sucesso',
+    ERRO: 'Erro',
+    PROCESSADO_COM_ERRO: 'Processado com erro'
+}
+
+STATUS_PROCESSMENTO_CHOICES = (
+    (PENDENTE, STATUS_PROCESSMENTO[PENDENTE]),
+    (SUCESSO, STATUS_PROCESSMENTO[SUCESSO]),
+    (ERRO, STATUS_PROCESSMENTO[ERRO]),
+    (PROCESSADO_COM_ERRO, STATUS_PROCESSMENTO[PROCESSADO_COM_ERRO]),
+)
+
 
 class Arquivo(ModeloBase):
     identificador = models.SlugField(unique=True)
@@ -55,6 +75,14 @@ class Arquivo(ModeloBase):
         choices=DELIMITADOR_CHOICES,
         default=DELIMITADOR_VIRGULA
     )
+    status = models.CharField(
+        'status',
+        max_length=35,
+        choices=STATUS_PROCESSMENTO_CHOICES,
+        default=PENDENTE
+    )
+    log = models.TextField(blank=True, null=True)
+    ultima_execucao = models.DateTimeField("Ultima execução", blank=True, null=True)
 
     class Meta:
         verbose_name = "arquivo de carga"
