@@ -190,13 +190,13 @@ class AtaAdmin(admin.ModelAdmin):
 
 @admin.register(Arquivo)
 class ArquivoAdmin(admin.ModelAdmin):
-    list_display = ['identificador', 'conteudo', 'tipo_carga']
+    list_display = ['identificador', 'conteudo', 'tipo_carga', 'status', 'ultima_execucao']
     actions = ['processa_carga', ]
     readonly_fields = ['ultima_execucao', 'status', 'log']
 
     def processa_carga(self, request, queryset):
         processa_cargas(queryset)
-        self.message_user(request, "Carga Realizada com sucesso.")
+        self.message_user(request, f"Processo Terminado. Verifique o status do processo.")
 
     processa_carga.short_description = "Realizar Carga dos arquivos."
 
