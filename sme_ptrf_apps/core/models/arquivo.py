@@ -25,6 +25,20 @@ CARGA_CHOICES = (
     (CARGA_USUARIOS, CARGA_NOMES[CARGA_USUARIOS]),
 )
 
+# Delimitador do arquivo csv
+DELIMITADOR_PONTO_VIRGULA = 'DELIMITADOR_PONTO_VIRGULA'
+DELIMITADOR_VIRGULA = 'DELIMITADOR_VIRGULA'
+
+DELIMITADOR_NOMES = {
+    DELIMITADOR_PONTO_VIRGULA: 'Delimitador ponto e vírgula',
+    DELIMITADOR_VIRGULA: 'Delimitador vírgula'
+}
+
+DELIMITADOR_CHOICES = (
+    (DELIMITADOR_PONTO_VIRGULA, DELIMITADOR_NOMES[DELIMITADOR_PONTO_VIRGULA]),
+    (DELIMITADOR_VIRGULA, DELIMITADOR_NOMES[DELIMITADOR_VIRGULA]),
+)
+
 
 class Arquivo(ModeloBase):
     identificador = models.SlugField(unique=True)
@@ -34,6 +48,12 @@ class Arquivo(ModeloBase):
         max_length=35,
         choices=CARGA_CHOICES,
         default=CARGA_REPASSE_REALIZADO
+    )
+    tipo_delimitador = models.CharField(
+        'tipo delimitador',
+        max_length=35,
+        choices=DELIMITADOR_CHOICES,
+        default=DELIMITADOR_VIRGULA
     )
 
     class Meta:
