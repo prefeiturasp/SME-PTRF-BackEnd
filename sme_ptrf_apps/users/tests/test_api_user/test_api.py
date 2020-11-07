@@ -57,10 +57,11 @@ def grupo_2(permissao2, visao_dre):
     g.save()
     return g
 
+
 @pytest.fixture
 def grupo_3(permissao1, permissao2, visao_dre, visao_sme):
     g = Grupo.objects.create(name="grupo3")
-    g.permissions.add(permissao1 , permissao2)
+    g.permissions.add(permissao1, permissao2)
     g.visoes.add(visao_dre, visao_sme)
     g.descricao = "Descrição grupo 3"
     g.save()
@@ -323,7 +324,7 @@ def test_criar_usuario_servidor(
     }
     User = get_user_model()
     u = User.objects.filter(username='9876543').first()
-    
+
     assert len(u.visoes.all()) > 0
     assert response.status_code == status.HTTP_201_CREATED
     assert result == esperado
@@ -358,7 +359,7 @@ def test_criar_usuario_servidor_sem_email_e_sem_nome(
     }
     User = get_user_model()
     u = User.objects.filter(username='9876543').first()
-    
+
     assert len(u.visoes.all()) > 0
     assert response.status_code == status.HTTP_201_CREATED
     assert result == esperado
@@ -407,9 +408,9 @@ def test_deletar_usuario_servidor(
         jwt_authenticated_client_u,
         usuario_3
 ):
-    
+
     from django.contrib.auth import get_user_model
-    
+
     User = get_user_model()
     assert User.objects.filter(id=usuario_3.id).exists()
 

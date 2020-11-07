@@ -182,6 +182,7 @@ def outra_associacao(unidade, periodo_anterior):
     )
 
 
+
 @pytest.fixture
 def associacao_sem_periodo_inicial(unidade):
     return baker.make(

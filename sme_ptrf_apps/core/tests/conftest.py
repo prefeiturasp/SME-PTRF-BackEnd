@@ -9,6 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 def permissoes_associacao():
     permissoes = [
         Permission.objects.filter(codename='view_associacao').first(),
+        Permission.objects.filter(codename='change_associacao').first()
     ]
 
     return permissoes

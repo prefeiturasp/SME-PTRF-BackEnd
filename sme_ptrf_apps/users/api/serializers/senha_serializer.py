@@ -18,6 +18,14 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
+class EmailNaoCadastrado(Exception):
+    pass
+
+
+class ProblemaEnvioEmail(Exception):
+    pass
+
+
 class EsqueciMinhaSenhaSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
@@ -25,11 +33,17 @@ class EsqueciMinhaSenhaSerializer(serializers.ModelSerializer):
         instance.hash_redefinicao = instance.create_hash
         instance.save()
 
+        result = SmeIntegracaoService.informacao_usuario_sgp(instance.username)
+        if not result['email']:
+            raise EmailNaoCadastrado(
+                "Você não tem e-mail cadastrado e por isso a redefinição não é possível. Você deve procurar apoio na sua Diretoria Regional de Educação.")
+
         try:
             enviar_email_redifinicao_senha(email=instance.email, username=instance.username,
                                            nome=instance.name, hash_definicao=instance.hash_redefinicao)
         except Exception as err:
-            logging.info("Erro ao enviar email: %s ", str(err))
+            logger.info("Erro ao enviar email: %s", str(err))
+            raise ProblemaEnvioEmail("Problema ao enviar email.")
 
         return instance
 

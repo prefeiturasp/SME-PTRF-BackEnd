@@ -263,7 +263,7 @@ class PrestacaoConta(ModeloBase):
         return cls.objects.filter(associacao=associacao, periodo=periodo).first()
 
     @classmethod
-    def dashboard(cls, periodo_uuid, dre_uuid):
+    def dashboard(cls, periodo_uuid, dre_uuid, add_aprovado_ressalva=False):
         titulos_por_status = {
             cls.STATUS_NAO_RECEBIDA: "Prestações de contas não recebidas",
             cls.STATUS_RECEBIDA: "Prestações de contas recebidas aguardando análise",
@@ -272,6 +272,9 @@ class PrestacaoConta(ModeloBase):
             cls.STATUS_APROVADA: "Prestações de contas aprovadas",
             cls.STATUS_REPROVADA: "Prestações de contas reprovadas",
         }
+
+        if add_aprovado_ressalva:
+            titulos_por_status[cls.STATUS_APROVADA_RESSALVA] = "Prestações de contas aprovadas com ressalvas"
 
         cards = []
         qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid)

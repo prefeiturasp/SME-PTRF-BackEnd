@@ -13,7 +13,7 @@ class ComentariosAnalisesPrestacoesViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     permission_classes = [AllowAny]
     serializer_class = ComentarioAnalisePrestacaoRetrieveSerializer
-    queryset = ComentarioAnalisePrestacao.objects.all()
+    queryset = ComentarioAnalisePrestacao.objects.all().order_by('ordem')
     filter_backends = (filters.DjangoFilterBackend,)
     filter_fields = ('prestacao_conta__uuid',)
 

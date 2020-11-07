@@ -1,21 +1,90 @@
 import json
 import pytest
 
+from datetime import date
+
+from model_bakery import baker
+
 from rest_framework import status
 
 pytestmark = pytest.mark.django_db
 
+@pytest.fixture
+def prestacao_conta(periodo, associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo,
+        associacao=associacao,
+        data_recebimento=date(2020, 10, 1),
+        data_ultima_analise=date(2020, 10, 1),
+        devolucao_tesouro=True,
+        status='APROVADA',
+    )
 
-def test_api_get_info_devolucoes_ao_tesouro_relatorio(jwt_authenticated_client, dre, periodo, tipo_conta):
+@pytest.fixture
+def despesa(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=date(2019, 9, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        data_transacao=date(2019, 9, 10),
+        valor_total=100.00,
+    )
+
+
+@pytest.fixture
+def tipo_devolucao_ao_tesouro():
+    return baker.make('TipoDevolucaoAoTesouro', nome='Teste')
+
+
+@pytest.fixture
+def devolucao_ao_tesouro_1(prestacao_conta, tipo_devolucao_ao_tesouro, despesa):
+    return baker.make(
+        'DevolucaoAoTesouro',
+        prestacao_conta=prestacao_conta,
+        tipo=tipo_devolucao_ao_tesouro,
+        data=date(2020, 7, 1),
+        despesa=despesa,
+        devolucao_total=True,
+        valor=100.00,
+        motivo='teste 1'
+    )
+
+@pytest.fixture
+def devolucao_ao_tesouro_2(prestacao_conta, tipo_devolucao_ao_tesouro, despesa):
+    return baker.make(
+        'DevolucaoAoTesouro',
+        prestacao_conta=prestacao_conta,
+        tipo=tipo_devolucao_ao_tesouro,
+        data=date(2020, 7, 1),
+        despesa=despesa,
+        devolucao_total=True,
+        valor=100.00,
+        motivo='teste 2'
+    )
+
+def test_api_get_info_devolucoes_ao_tesouro_relatorio(
+    jwt_authenticated_client,
+    dre,
+    periodo,
+    tipo_conta,
+    prestacao_conta,
+    tipo_devolucao_ao_tesouro,
+    devolucao_ao_tesouro_1,
+    devolucao_ao_tesouro_2,
+):
     response = jwt_authenticated_client.get(
         f'/api/relatorios-consolidados-dre/info-devolucoes-ao-tesouro/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
 
     resultado_esperado = [
-        {'tipo': 'Devolução ao tesouro tipo 1', 'ocorrencias': 999, 'valor': 3000.00},
-        {'tipo': 'Devolução ao tesouro tipo 2', 'ocorrencias': 100, 'valor': 2000.00},
-        {'tipo': 'Devolução ao tesouro tipo 3', 'ocorrencias': 200, 'valor': 1000.00},
+        {'tipo__nome': f'{tipo_devolucao_ao_tesouro.nome}', 'ocorrencias': 2, 'valor': 200.00},
     ]
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado
