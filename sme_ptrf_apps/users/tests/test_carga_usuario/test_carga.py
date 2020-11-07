@@ -9,7 +9,6 @@ from sme_ptrf_apps.core.models.arquivo import (
     CARGA_USUARIOS,
     DELIMITADOR_PONTO_VIRGULA, 
     DELIMITADOR_VIRGULA,
-    SUCESSO,
     ERRO,
     PROCESSADO_COM_ERRO)
 
@@ -70,7 +69,6 @@ def test_carga_com_erro_formatacao(arquivoCarga):
 
 def test_carga_com_erro(arquivoCargaVirgula):
     carrega_usuarios(arquivoCargaVirgula)
-    print(arquivoCargaVirgula.log)
     msg = """\nAssociação para o CNPJ UE não encontrado. linha: 1
 Associação para o CNPJ DRE não encontrado. linha: 2
 Associação para o CNPJ UE não encontrado. linha: 3
@@ -83,7 +81,6 @@ Importados 0 usuários. Erro na importação de 5 usuários."""
 
 def test_carga_processado_com_erro(arquivoCargaVirgulaProcessado, unidade):
     carrega_usuarios(arquivoCargaVirgulaProcessado)
-    print(arquivoCargaVirgulaProcessado.log)
     msg = """\nAssociação para o CNPJ DRE não encontrado. linha: 2
 Associação para o CNPJ UE não encontrado. linha: 3
 Associação para o CNPJ UE não encontrado. linha: 4
