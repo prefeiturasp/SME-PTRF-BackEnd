@@ -69,11 +69,11 @@ def test_carga_com_erro_formatacao(arquivoCarga):
 
 def test_carga_com_erro(arquivoCargaVirgula):
     carrega_usuarios(arquivoCargaVirgula)
-    msg = """\nAssociação para o CNPJ UE não encontrado. linha: 1
-Associação para o CNPJ DRE não encontrado. linha: 2
-Associação para o CNPJ UE não encontrado. linha: 3
-Associação para o CNPJ UE não encontrado. linha: 4
-Associação para o CNPJ UE não encontrado. linha: 5
+    msg = """\nAssociação para o código eol 200256 não encontrado. linha: 1
+Associação para o código eol 108100 não encontrado. linha: 2
+Associação para o código eol 200237 não encontrado. linha: 3
+Associação para o código eol 200188 não encontrado. linha: 4
+Associação para o código eol 200197 não encontrado. linha: 5
 Importados 0 usuários. Erro na importação de 5 usuários."""
     assert arquivoCargaVirgula.log == msg
     assert arquivoCargaVirgula.status == ERRO
@@ -81,10 +81,10 @@ Importados 0 usuários. Erro na importação de 5 usuários."""
 
 def test_carga_processado_com_erro(arquivoCargaVirgulaProcessado, unidade):
     carrega_usuarios(arquivoCargaVirgulaProcessado)
-    msg = """\nAssociação para o CNPJ DRE não encontrado. linha: 2
-Associação para o CNPJ UE não encontrado. linha: 3
-Associação para o CNPJ UE não encontrado. linha: 4
-Associação para o CNPJ UE não encontrado. linha: 5
+    msg = """\nAssociação para o código eol 108100 não encontrado. linha: 2
+Associação para o código eol 200237 não encontrado. linha: 3
+Associação para o código eol 200188 não encontrado. linha: 4
+Associação para o código eol 200197 não encontrado. linha: 5
 Importados 1 usuários. Erro na importação de 4 usuários."""
     assert arquivoCargaVirgulaProcessado.log == msg
     assert arquivoCargaVirgulaProcessado.status == PROCESSADO_COM_ERRO

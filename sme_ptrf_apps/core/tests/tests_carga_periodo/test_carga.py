@@ -2,7 +2,7 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from model_bakery import baker
 
-from sme_ptrf_apps.core.services.periodo_inicial import  carrega_periodo_inicial
+from sme_ptrf_apps.core.services.periodo_inicial import carrega_periodo_inicial
 
 
 from sme_ptrf_apps.core.models.arquivo import (
