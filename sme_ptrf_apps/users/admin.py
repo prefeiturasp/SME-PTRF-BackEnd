@@ -35,7 +35,30 @@ class UserAdmin(auth_admin.UserAdmin):
     inlines = [UnidadeInline, VisaoInline]
 
 
+@admin.register(Permission)
+class PermissaoAdmin(admin.ModelAdmin):
+    list_display = ["name", "nome_permissao", "nome_plicativo", "nome_modelo"]
+    search_fields = ["name"]
+
+    def nome_plicativo(self, obj):
+        return obj.content_type.app_label
+    
+    def nome_modelo(self, obj):
+        return obj.content_type
+
+    def nome_permissao(self, obj):
+        return obj.codename
+
+
+@admin.register(Grupo)
+class GrupoAdmin(admin.ModelAdmin):
+    list_display = ["name"]
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(GrupoAdmin, self).get_form(request, obj, **kwargs)
+        print(form.__dict__)
+        form.base_fields['permissions'].queryset = Permission.objects.filter(name__contains='Pode')
+        return form
+
 admin.site.register(Visao)
-admin.site.register(Permission)
-admin.site.register(Grupo)
 admin.site.unregister(Group)
