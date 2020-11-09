@@ -98,7 +98,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['patch'])
+    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
     def conciliar(self, request, uuid):
         periodo_uuid = request.query_params.get('periodo')
 
@@ -124,7 +124,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         return Response(ReceitaListaSerializer(receita_conciliada, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'])
+    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
     def desconciliar(self, request, uuid):
         receita_desconciliada = Receita.desconciliar(uuid=uuid)
         return Response(ReceitaListaSerializer(receita_desconciliada, many=False).data,

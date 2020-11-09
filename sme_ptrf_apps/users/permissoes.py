@@ -67,10 +67,9 @@ class PermissaoReceita(PermissaoCRUD):
     }
 
     def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            perms = self.get_required_permissions(request.method, Receita)
-            return self.has_perms(perms, request.user)
-        return True
+        perms = self.get_required_permissions(request.method, Receita)
+        return self.has_perms(perms, request.user)
+
 
 
 class PermissaoDespesa(PermissaoCRUD):
@@ -176,12 +175,12 @@ class PermissaoDashboardDre(PermissaoCRUD):
 class PermissaoAssociacaoDre(PermissaoCRUD):
     perms_map = {
         'GET': ['view_associacao_dre'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': [],
-        'PUT': [],
-        'PATCH': [],
-        'DELETE': [],
+        'OPTIONS': ['view_associacao_dre'],
+        'HEAD': ['view_associacao_dre'],
+        'POST': ['view_associacao_dre'],
+        'PUT': ['view_associacao_dre'],
+        'PATCH': ['view_associacao_dre'],
+        'DELETE': ['view_associacao_dre'],
     }
 
     def get_required_permissions(self, method):
@@ -191,10 +190,8 @@ class PermissaoAssociacaoDre(PermissaoCRUD):
         return [perm for perm in self.perms_map[method]]
 
     def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            perms = self.get_required_permissions(request.method)
-            return self.has_perms(perms, request.user)
-        return True
+        perms = self.get_required_permissions(request.method)
+        return self.has_perms(perms, request.user)
 
 
 class PermissaoDadosDiretoriaDre(PermissaoCRUD):

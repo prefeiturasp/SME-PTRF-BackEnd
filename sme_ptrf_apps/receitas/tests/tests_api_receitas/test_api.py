@@ -3,6 +3,9 @@ from datetime import timedelta
 
 import pytest
 from freezegun import freeze_time
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+from sme_ptrf_apps.users.models import Grupo
 from model_bakery import baker
 from rest_framework import status
 
