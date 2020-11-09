@@ -96,7 +96,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
 
         return Response(result)
 
-    @action(detail=True, url_path='status-periodo')
+    @action(detail=True, url_path='status-periodo', permission_classes=[IsAuthenticated])
     def status_periodo(self, request, uuid=None):
         associacao = self.get_object()
 
