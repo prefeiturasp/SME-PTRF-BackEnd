@@ -59,7 +59,7 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
     def get_serializer_class(self):
         return RateioDespesaListaSerializer
 
-    @action(detail=True, methods=['patch'])
+    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
     def conciliar(self, request, uuid):
 
         # Define o período de conciliação
@@ -86,13 +86,13 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
         return Response(RateioDespesaListaSerializer(rateio_despesa_conciliado, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'])
+    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
     def desconciliar(self, request, uuid):
         rateio_despesa_desconciliado = RateioDespesa.desconciliar(uuid=uuid)
         return Response(RateioDespesaListaSerializer(rateio_despesa_desconciliado, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=False, url_path='verificar-saldos', methods=['post'])
+    @action(detail=False, url_path='verificar-saldos', methods=['post'], permission_classes=[IsAuthenticated])
     def verificar_saldos(self, request):
         despesa_uuid = request.query_params.get('despesa_uuid')
 
