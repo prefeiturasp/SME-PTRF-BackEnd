@@ -68,7 +68,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
         return Response(result)
 
-    @action(detail=False, url_path='ja-lancada')
+    @action(detail=False, url_path='ja-lancada', permission_classes=[IsAuthenticated])
     def ja_lancada(self, request):
 
         tipo_documento = request.query_params.get('tipo_documento')
