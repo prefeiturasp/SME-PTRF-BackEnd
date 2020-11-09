@@ -1,15 +1,20 @@
 import csv
 import datetime
 import enum
-
 import logging
-
 from datetime import datetime
 
 from sme_ptrf_apps.core.models import Acao, AcaoAssociacao, Associacao, ContaAssociacao, Periodo, TipoConta
-from ..tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CUSTEIO, APLICACAO_LIVRE
+from sme_ptrf_apps.core.models.arquivo import (
+    DELIMITADOR_PONTO_VIRGULA,
+    DELIMITADOR_VIRGULA,
+    ERRO,
+    PROCESSADO_COM_ERRO,
+    SUCESSO,
+)
 
 from ..models import Receita, Repasse, TipoReceita
+from ..tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CUSTEIO, APLICACAO_LIVRE
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +25,7 @@ VALOR_LIVRE = 3
 ACAO = 4
 DATA = 5
 PERIODO = 6
+__DELIMITADORES = {',': DELIMITADOR_VIRGULA, ';': DELIMITADOR_PONTO_VIRGULA}
 
 
 class TipoContaEnum(enum.Enum):
@@ -97,14 +103,21 @@ def criar_receita(associacao, conta_associacao, acao_associacao, valor, data, ca
     )
 
 
-def processa_repasse(reader, conta):
+def processa_repasse(reader, conta, arquivo):
+    logs = ""
+    importados = 0
+    erros = 0
     for index, row in enumerate(reader):
         if index != 0:
             logger.info('Linha %s: %s', index, row)
             associacao = get_associacao(row[CODIGO_EOL])
             if not associacao:
-                logger.info('Associação com código eol: %s não encontrado.', row[CODIGO_EOL])
+                msg_erro = f'Associação com código eol: {row[CODIGO_EOL]} não encontrado. Linha {index}'
+                logger.info(msg_erro)
+                logs = f"{logs}\n{msg_erro}"
+                erros += 1
                 continue
+
             try:
                 periodo = get_periodo(str(row[PERIODO]).strip())
                 valor_capital = get_valor(row[VALOR_CAPITAL])
@@ -182,14 +195,43 @@ def processa_repasse(reader, conta):
                         repasse.realizado_livre = True
 
                     repasse.save()
+                    importados += 1    
             except Exception as e:
                 logger.info("Error %s", str(e))
+                arquivo.log = f'{logs}\nError: {str(e)}'
+                arquivo.status = ERRO
+                erros += 1
+                arquivo.save()
+
+    if importados > 0 and erros > 0:
+        arquivo.status = PROCESSADO_COM_ERRO
+    elif importados == 0:
+        arquivo.status = ERRO
+    else:
+        arquivo.status = SUCESSO
+    
+    logs = f"{logs}\nForam criados {importados} repasses. Erro na importação de {erros} repasses."
+    logger.info(f'Foram criados {importados} repasses. Erro na importação de {erros} repasses.')
+    
+    arquivo.log = logs
+    arquivo.save()
 
 
 def carrega_repasses_realizados(arquivo):
     logger.info("Processando arquivo %s", arquivo.identificador)
     tipo_conta = TipoContaEnum.CARTAO.value if 'cartao' in arquivo.identificador else TipoContaEnum.CHEQUE.value
+    arquivo.ultima_execucao = datetime.now()
 
     with open(arquivo.conteudo.path, 'r', encoding="utf-8") as f:
-        reader = csv.reader(f, delimiter=',')
-        processa_repasse(reader, tipo_conta)
+        sniffer = csv.Sniffer().sniff(f.read(1024))
+        f.seek(0)
+        if  __DELIMITADORES[sniffer.delimiter] != arquivo.tipo_delimitador:
+            msg_erro = f"Formato definido ({arquivo.tipo_delimitador}) é diferente do formato do arquivo csv ({__DELIMITADORES[sniffer.delimiter]})"
+            logger.info(msg_erro)
+            arquivo.status = ERRO
+            arquivo.log = msg_erro
+            arquivo.save()
+            return
+
+        reader = csv.reader(f, delimiter=sniffer.delimiter)
+        processa_repasse(reader, tipo_conta, arquivo)
