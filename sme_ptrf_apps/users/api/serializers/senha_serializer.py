@@ -44,7 +44,9 @@ class EsqueciMinhaSenhaSerializer(serializers.ModelSerializer):
         except Exception as err:
             logger.info("Erro ao enviar email: %s", str(err))
             raise ProblemaEnvioEmail("Problema ao enviar email.")
-
+        
+        instance.email = result['email'].strip()
+        instance.save()
         return instance
 
     class Meta:
