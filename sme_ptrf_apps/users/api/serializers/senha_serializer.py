@@ -39,12 +39,14 @@ class EsqueciMinhaSenhaSerializer(serializers.ModelSerializer):
                 "Você não tem e-mail cadastrado e por isso a redefinição não é possível. Você deve procurar apoio na sua Diretoria Regional de Educação.")
 
         try:
-            enviar_email_redifinicao_senha(email=instance.email, username=instance.username,
+            enviar_email_redifinicao_senha(email=result['email'].strip(), username=instance.username,
                                            nome=instance.name, hash_definicao=instance.hash_redefinicao)
         except Exception as err:
             logger.info("Erro ao enviar email: %s", str(err))
             raise ProblemaEnvioEmail("Problema ao enviar email.")
-
+        
+        instance.email = result['email'].strip()
+        instance.save()
         return instance
 
     class Meta:
