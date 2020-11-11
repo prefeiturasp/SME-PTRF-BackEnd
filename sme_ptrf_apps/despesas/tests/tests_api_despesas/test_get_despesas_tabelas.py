@@ -8,9 +8,9 @@ from ...tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL, APL
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_despesas_tabelas(associacao, jwt_authenticated_client, tipo_aplicacao_recurso, tipo_custeio, tipo_documento, tipo_transacao, acao,
+def test_api_get_despesas_tabelas(associacao, jwt_authenticated_client_d, tipo_aplicacao_recurso, tipo_custeio, tipo_documento, tipo_transacao, acao,
                                   acao_associacao, tipo_conta, conta_associacao, tag_ativa):
-    response = jwt_authenticated_client.get(f'/api/despesas/tabelas/?associacao_uuid={associacao.uuid}', content_type='application/json')
+    response = jwt_authenticated_client_d.get(f'/api/despesas/tabelas/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
     esperado = {
@@ -75,3 +75,10 @@ def test_api_get_despesas_tabelas(associacao, jwt_authenticated_client, tipo_apl
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
+
+
+def test_api_get_despesas_tabelas_sem_permissao(associacao, jwt_authenticated_client_sem_permissao, tipo_aplicacao_recurso, tipo_custeio, tipo_documento, tipo_transacao, acao,
+                                  acao_associacao, tipo_conta, conta_associacao, tag_ativa):
+    response = jwt_authenticated_client_sem_permissao.get(f'/api/despesas/tabelas/?associacao_uuid={associacao.uuid}', content_type='application/json')
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN

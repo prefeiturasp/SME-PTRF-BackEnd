@@ -91,7 +91,8 @@ def tipo_conta():
         banco_nome='Banco do Inter',
         agencia='67945',
         numero_conta='935556-x',
-        numero_cartao='987644164221')
+        numero_cartao='987644164221'
+    )
 
 
 @pytest.fixture
@@ -179,6 +180,7 @@ def outra_associacao(unidade, periodo_anterior):
         unidade=unidade,
         periodo_inicial=periodo_anterior,
     )
+
 
 
 @pytest.fixture
@@ -1180,6 +1182,7 @@ def parametros():
         'Parametros',
         permite_saldo_conta_negativo=True,
         fique_de_olho='',
+        fique_de_olho_relatorio_dre='',
     )
 
 
@@ -1235,6 +1238,26 @@ def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
         parecer_conselho='APROVADA'
     )
 
+@pytest.fixture
+def ata_2020_1_retificacao(prestacao_conta_2020_1_conciliada):
+    return baker.make(
+        'Ata',
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        periodo=prestacao_conta_2020_1_conciliada.periodo,
+        associacao=prestacao_conta_2020_1_conciliada.associacao,
+        tipo_ata='RETIFICACAO',
+        tipo_reuniao='ORDINARIA',
+        convocacao='PRIMEIRA',
+        data_reuniao=date(2020, 7, 1),
+        local_reuniao='Escola Teste',
+        presidente_reuniao='José',
+        cargo_presidente_reuniao='Presidente',
+        secretario_reuniao='Ana',
+        cargo_secretaria_reuniao='Secretária',
+        comentarios='Teste',
+        parecer_conselho='APROVADA',
+        retificacoes='Teste'
+    )
 
 @pytest.fixture
 def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
@@ -1256,6 +1279,25 @@ def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
         parecer_conselho='APROVADA'
     )
 
+@pytest.fixture
+def ata_retificacao_prestacao_conta_iniciada(prestacao_conta_iniciada):
+    return baker.make(
+        'Ata',
+        prestacao_conta=prestacao_conta_iniciada,
+        periodo=prestacao_conta_iniciada.periodo,
+        associacao=prestacao_conta_iniciada.associacao,
+        tipo_ata='RETIFICACAO',
+        tipo_reuniao='ORDINARIA',
+        convocacao='PRIMEIRA',
+        data_reuniao=date(2020, 7, 1),
+        local_reuniao='Escola Teste',
+        presidente_reuniao='José',
+        cargo_presidente_reuniao='Presidente',
+        secretario_reuniao='Ana',
+        cargo_secretaria_reuniao='Secretaria',
+        comentarios='Teste',
+        parecer_conselho='APROVADA'
+    )
 
 @pytest.fixture
 def membro_associacao(associacao):
@@ -1435,4 +1477,16 @@ def analise_conta_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, cont
         conta_associacao=conta_associacao_cheque,
         data_extrato=date(2020, 7, 1),
         saldo_extrato=100.00,
+    )
+
+@pytest.fixture
+def previsao_repasse_sme(periodo, associacao, conta_associacao):
+    return baker.make(
+        'PrevisaoRepasseSme',
+        periodo=periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        valor_custeio=10000.50,
+        valor_capital=10000.50,
+        valor_livre=10000.50,
     )

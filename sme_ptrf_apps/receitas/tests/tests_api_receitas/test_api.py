@@ -1,7 +1,12 @@
 import json
+from datetime import timedelta
 
 import pytest
 from freezegun import freeze_time
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+from sme_ptrf_apps.users.models import Grupo
+from model_bakery import baker
 from rest_framework import status
 
 from sme_ptrf_apps.receitas.models import Receita, Repasse
@@ -10,7 +15,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_create_receita(
-    client,
+    jwt_authenticated_client_p,
     tipo_receita,
     detalhe_tipo_receita,
     acao,
@@ -20,7 +25,7 @@ def test_create_receita(
     conta_associacao,
     payload_receita
 ):
-    response = client.post('/api/receitas/', data=json.dumps(payload_receita), content_type='application/json')
+    response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita), content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED
 
@@ -35,7 +40,7 @@ def test_create_receita(
 
 
 def test_criar_receita_com_conta_do_tipo_invalido(
-    client,
+    jwt_authenticated_client_p,
     tipo_receita,
     detalhe_tipo_receita,
     acao,
@@ -47,14 +52,14 @@ def test_criar_receita_com_conta_do_tipo_invalido(
     payload_receita
 ):
     payload_receita['conta_associacao'] = str(conta_associacao_cartao.uuid)
-    response = client.post('/api/receitas/', data=json.dumps(payload_receita), content_type='application/json')
+    response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == ['O tipo de receita Estorno não permite salvar créditos com contas do tipo Cartão']
 
 
 def test_create_receita_repasse(
-    client,
+    jwt_authenticated_client_p,
     tipo_receita,
     acao,
     acao_associacao,
@@ -67,7 +72,7 @@ def test_create_receita_repasse(
     with freeze_time('2019-11-29'):
         assert Repasse.objects.get(uuid=repasse.uuid).status == 'PENDENTE'
 
-        response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse),
+        response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita_repasse),
                                content_type='application/json')
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -84,7 +89,7 @@ def test_create_receita_repasse(
 
 
 def test_create_receita_repasse_periodo_invalido(
-    client,
+    jwt_authenticated_client_p,
     tipo_receita,
     acao,
     acao_associacao,
@@ -95,7 +100,7 @@ def test_create_receita_repasse_periodo_invalido(
     payload_receita_repasse
 ):
     payload_receita_repasse['data'] = '2020-09-02'
-    response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
+    response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
     result = json.loads(response.content)
 
     assert result == ["Repasse não encontrado."]
@@ -103,7 +108,7 @@ def test_create_receita_repasse_periodo_invalido(
 
 
 def test_create_receita_repasse_valor_diferente(
-    client,
+    jwt_authenticated_client_p,
     tipo_receita,
     periodo,
     acao,
@@ -116,7 +121,7 @@ def test_create_receita_repasse_valor_diferente(
 ):
     with freeze_time('2019-11-29'):
         payload_receita_repasse['valor'] = 2000.67
-        response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse),
+        response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita_repasse),
                                content_type='application/json')
         result = json.loads(response.content)
 
@@ -125,7 +130,7 @@ def test_create_receita_repasse_valor_diferente(
 
 
 def test_get_tabelas(
-    jwt_authenticated_client,
+    jwt_authenticated_client_p,
     tipo_receita,
     acao,
     acao_associacao,
@@ -134,7 +139,7 @@ def test_get_tabelas(
     conta_associacao,
     detalhe_tipo_receita
 ):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_p.get(
         f'/api/receitas/tabelas/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
@@ -156,7 +161,12 @@ def test_get_tabelas(
                 'aceita_custeio': tipo_receita.aceita_custeio,
                 'aceita_livre': tipo_receita.aceita_livre,
                 'e_devolucao': False,
-                'tipos_conta': [{'id': tipo_conta.id, 'nome': tipo_conta.nome}],
+                'tipos_conta': [{
+                    'uuid': f'{tipo_conta.uuid}',
+                    'id': tipo_conta.id,
+                    'nome': tipo_conta.nome,
+                    'apenas_leitura': False
+                }],
                 'detalhes_tipo_receita': [
                     {
                         'id': detalhe_tipo_receita.id,
@@ -209,7 +219,7 @@ def test_get_tabelas(
 
 
 def test_get_receitas(
-        jwt_authenticated_client,
+        jwt_authenticated_client_p,
         tipo_receita,
         detalhe_tipo_receita,
         receita,
@@ -218,7 +228,7 @@ def test_get_receitas(
         associacao,
         tipo_conta,
         conta_associacao):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_p.get(
         f'/api/receitas/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
@@ -264,7 +274,7 @@ def test_get_receitas(
 
 
 def test_update_receita(
-    jwt_authenticated_client,
+    jwt_authenticated_client_p,
     tipo_receita,
     detalhe_tipo_receita,
     acao,
@@ -275,7 +285,7 @@ def test_update_receita(
     receita,
     payload_receita
 ):
-    response = jwt_authenticated_client.put(f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', data=json.dumps(payload_receita),
+    response = jwt_authenticated_client_p.put(f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', data=json.dumps(payload_receita),
                                             content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
@@ -289,7 +299,7 @@ def test_update_receita(
 
 
 def test_update_receita_com_conta_invalida(
-    jwt_authenticated_client,
+    jwt_authenticated_client_p,
     tipo_receita,
     detalhe_tipo_receita,
     acao,
@@ -302,7 +312,7 @@ def test_update_receita_com_conta_invalida(
     payload_receita
 ):
     payload_receita['conta_associacao'] = str(conta_associacao_cartao.uuid)
-    response = jwt_authenticated_client.put(f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', data=json.dumps(payload_receita),
+    response = jwt_authenticated_client_p.put(f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', data=json.dumps(payload_receita),
                                             content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -310,7 +320,7 @@ def test_update_receita_com_conta_invalida(
 
 
 def test_deleta_receita(
-        jwt_authenticated_client,
+        jwt_authenticated_client_p,
         tipo_receita,
         acao,
         acao_associacao,
@@ -321,7 +331,7 @@ def test_deleta_receita(
         payload_receita):
     assert Receita.objects.filter(uuid=receita.uuid).exists()
 
-    response = jwt_authenticated_client.delete(
+    response = jwt_authenticated_client_p.delete(
         f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -330,7 +340,7 @@ def test_deleta_receita(
 
 
 def test_deleta_receita_repasse(
-    jwt_authenticated_client,
+    jwt_authenticated_client_p,
     tipo_receita_repasse,
     acao,
     acao_associacao_role_cultural,
@@ -344,7 +354,7 @@ def test_deleta_receita_repasse(
 
     assert Receita.objects.filter(uuid=receita_yyy_repasse.uuid).exists()
 
-    response = jwt_authenticated_client.delete(f'/api/receitas/{receita_yyy_repasse.uuid}/?associacao_uuid={associacao.uuid}',
+    response = jwt_authenticated_client_p.delete(f'/api/receitas/{receita_yyy_repasse.uuid}/?associacao_uuid={associacao.uuid}',
                                                content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -355,7 +365,7 @@ def test_deleta_receita_repasse(
 
 
 def test_retrive_receitas(
-        jwt_authenticated_client,
+        jwt_authenticated_client_p,
         tipo_receita,
         detalhe_tipo_receita,
         receita,
@@ -364,7 +374,7 @@ def test_retrive_receitas(
         associacao,
         tipo_conta,
         conta_associacao):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_p.get(
         f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
@@ -406,7 +416,7 @@ def test_retrive_receitas(
 
 
 def test_create_receita_livre_aplicacao(
-    client,
+    jwt_authenticated_client_p,
     tipo_receita,
     detalhe_tipo_receita,
     acao,
@@ -416,7 +426,7 @@ def test_create_receita_livre_aplicacao(
     conta_associacao,
     payload_receita_livre_aplicacao
 ):
-    response = client.post('/api/receitas/', data=json.dumps(payload_receita_livre_aplicacao),
+    response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita_livre_aplicacao),
                            content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -432,7 +442,7 @@ def test_create_receita_livre_aplicacao(
 
 
 def test_create_receita_repasse_livre_aplicacao(
-    client,
+    jwt_authenticated_client_p,
     tipo_receita,
     acao,
     acao_associacao,
@@ -445,7 +455,7 @@ def test_create_receita_repasse_livre_aplicacao(
     with freeze_time('2020-03-29'):
         assert Repasse.objects.get(uuid=repasse_2020_1_livre_aplicacao_pendente.uuid).status == 'PENDENTE'
 
-        response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse_livre_aplicacao),
+        response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita_repasse_livre_aplicacao),
                                content_type='application/json')
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -463,7 +473,7 @@ def test_create_receita_repasse_livre_aplicacao(
 
 @freeze_time('2020-03-29')
 def test_create_receita_repasse_livre_aplicacao_valor_diferente(
-    client,
+    jwt_authenticated_client_p,
     tipo_receita,
     periodo,
     acao,
@@ -476,7 +486,7 @@ def test_create_receita_repasse_livre_aplicacao_valor_diferente(
 ):
 
     payload_receita_repasse_livre_aplicacao['valor'] = 2000.67
-    response = client.post('/api/receitas/', data=json.dumps(payload_receita_repasse_livre_aplicacao),
+    response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita_repasse_livre_aplicacao),
                            content_type='application/json')
     result = json.loads(response.content)
 
@@ -485,7 +495,7 @@ def test_create_receita_repasse_livre_aplicacao_valor_diferente(
 
 
 def test_deleta_receita_repasse_livre_aplicacao(
-    jwt_authenticated_client,
+    jwt_authenticated_client_p,
     tipo_receita_repasse,
     acao,
     acao_associacao_role_cultural,
@@ -499,7 +509,7 @@ def test_deleta_receita_repasse_livre_aplicacao(
 
     assert Receita.objects.filter(uuid=receita_repasse_livre_aplicacao.uuid).exists()
 
-    response = jwt_authenticated_client.delete(f'/api/receitas/{receita_repasse_livre_aplicacao.uuid}/?associacao_uuid={associacao.uuid}',
+    response = jwt_authenticated_client_p.delete(f'/api/receitas/{receita_repasse_livre_aplicacao.uuid}/?associacao_uuid={associacao.uuid}',
                                                content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -507,3 +517,232 @@ def test_deleta_receita_repasse_livre_aplicacao(
     assert not Receita.objects.filter(uuid=receita_repasse_livre_aplicacao.uuid).exists()
 
     assert Repasse.objects.get(uuid=repasse_realizado_livre_aplicacao.uuid).status == 'PENDENTE'
+
+
+@pytest.fixture
+def repasse_so_capital(associacao, conta_associacao, acao_associacao, periodo):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo,
+        valor_custeio=0,
+        valor_capital=1000.28,
+        valor_livre=0,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE'
+    )
+
+
+def test_create_receita_repasse_capital_com_valores_custeio_e_livre_aplicacao_zerados(
+    jwt_authenticated_client_p,
+    tipo_receita_repasse,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    repasse_so_capital,
+):
+    payload = {
+        'associacao': str(associacao.uuid),
+        'data': '2019-09-26',
+        'valor': 1000.28,
+        'categoria_receita': 'CAPITAL',
+        'conta_associacao': str(conta_associacao.uuid),
+        'acao_associacao': str(acao_associacao.uuid),
+        'tipo_receita': tipo_receita_repasse.id
+    }
+    with freeze_time('2019-11-29'):
+        assert Repasse.objects.get(uuid=repasse_so_capital.uuid).status == 'PENDENTE'
+
+        response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload),
+                                                 content_type='application/json')
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        result = json.loads(response.content)
+
+        assert Receita.objects.filter(uuid=result["uuid"]).exists()
+
+        receita = Receita.objects.get(uuid=result["uuid"])
+
+        assert receita.associacao.uuid == associacao.uuid
+
+        assert Repasse.objects.get(uuid=repasse_so_capital.uuid).status == 'REALIZADO'
+
+
+@pytest.fixture
+def repasse_so_custeio(associacao, conta_associacao, acao_associacao, periodo):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo,
+        valor_custeio=1000.28,
+        valor_capital=0,
+        valor_livre=0,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE'
+    )
+
+
+def test_create_receita_repasse_custeio_com_valores_capital_e_livre_aplicacao_zerados(
+    jwt_authenticated_client_p,
+    tipo_receita_repasse,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    repasse_so_custeio,
+):
+    payload = {
+        'associacao': str(associacao.uuid),
+        'data': '2019-09-26',
+        'valor': 1000.28,
+        'categoria_receita': 'CUSTEIO',
+        'conta_associacao': str(conta_associacao.uuid),
+        'acao_associacao': str(acao_associacao.uuid),
+        'tipo_receita': tipo_receita_repasse.id
+    }
+    with freeze_time('2019-11-29'):
+        assert Repasse.objects.get(uuid=repasse_so_custeio.uuid).status == 'PENDENTE'
+
+        response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload),
+                                                 content_type='application/json')
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        result = json.loads(response.content)
+
+        assert Receita.objects.filter(uuid=result["uuid"]).exists()
+
+        receita = Receita.objects.get(uuid=result["uuid"])
+
+        assert receita.associacao.uuid == associacao.uuid
+
+        assert Repasse.objects.get(uuid=repasse_so_custeio.uuid).status == 'REALIZADO'
+
+
+@pytest.fixture
+def repasse_so_livre(associacao, conta_associacao, acao_associacao, periodo):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo,
+        valor_custeio=0,
+        valor_capital=0,
+        valor_livre=1000.28,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE'
+    )
+
+
+def test_create_receita_repasse_livre_aplicacao_com_valores_capital_e_custeio(
+    jwt_authenticated_client_p,
+    tipo_receita_repasse,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    repasse_so_livre,
+):
+    payload = {
+        'associacao': str(associacao.uuid),
+        'data': '2019-09-26',
+        'valor': 1000.28,
+        'categoria_receita': 'LIVRE',
+        'conta_associacao': str(conta_associacao.uuid),
+        'acao_associacao': str(acao_associacao.uuid),
+        'tipo_receita': tipo_receita_repasse.id
+    }
+    with freeze_time('2019-11-29'):
+        assert Repasse.objects.get(uuid=repasse_so_livre.uuid).status == 'PENDENTE'
+
+        response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload),
+                                                 content_type='application/json')
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        result = json.loads(response.content)
+
+        assert Receita.objects.filter(uuid=result["uuid"]).exists()
+
+        receita = Receita.objects.get(uuid=result["uuid"])
+
+        assert receita.associacao.uuid == associacao.uuid
+
+        assert Repasse.objects.get(uuid=repasse_so_livre.uuid).status == 'REALIZADO'
+
+
+@pytest.fixture
+def repasse_teste(associacao, conta_associacao, acao_associacao, periodo):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo,
+        valor_custeio=0,
+        valor_capital=0,
+        valor_livre=1000.28,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE'
+    )
+
+
+@pytest.fixture
+def receita_teste(associacao, conta_associacao, acao_associacao, tipo_receita, periodo, repasse_teste):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=periodo.data_inicio_realizacao_despesas + timedelta(days=3),
+        valor=1000.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
+        repasse=repasse_teste
+    )
+
+
+def test_update_receita_repasse_livre_aplicacao_com_valores_capital_e_custeio(
+    jwt_authenticated_client_p,
+    tipo_receita_repasse,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    repasse_teste,
+    receita_teste
+):
+    payload = {
+        'associacao': str(associacao.uuid),
+        'data': '2019-09-26',
+        'valor': 1000.28,
+        'categoria_receita': 'LIVRE',
+        'conta_associacao': str(conta_associacao.uuid),
+        'acao_associacao': str(acao_associacao.uuid),
+        'tipo_receita': tipo_receita_repasse.id
+    }
+    with freeze_time('2019-11-29'):
+        assert Repasse.objects.get(uuid=repasse_teste.uuid).status == 'PENDENTE'
+
+        response = jwt_authenticated_client_p.put(
+            f'/api/receitas/{receita_teste.uuid}/?associacao_uuid={associacao.uuid}',
+            data=json.dumps(payload),
+            content_type='application/json')
+
+        assert response.status_code == status.HTTP_200_OK
+
+        result = json.loads(response.content)
+
+        assert Receita.objects.filter(uuid=result["uuid"]).exists()
+
+        receita = Receita.objects.get(uuid=result["uuid"])
+
+        assert receita.associacao.uuid == associacao.uuid
+
+        assert Repasse.objects.get(uuid=repasse_teste.uuid).status == 'REALIZADO'

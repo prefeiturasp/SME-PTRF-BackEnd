@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
 from .rateio_despesa_serializer import RateioDespesaSerializer
-from .tipo_documento_serializer import TipoDocumentoSerializer
+from .tipo_documento_serializer import TipoDocumentoSerializer, TipoDocumentoListSerializer
 from .tipo_transacao_serializer import TipoTransacaoSerializer
 from ..serializers.rateio_despesa_serializer import RateioDespesaCreateSerializer
 from ...models import Despesa
@@ -74,3 +74,18 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Despesa
         exclude = ('id',)
+
+
+class DespesaListSerializer(serializers.ModelSerializer):
+    associacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Associacao.objects.all()
+    )
+
+    tipo_documento = TipoDocumentoListSerializer()
+
+    class Meta:
+        model = Despesa
+        fields = ('uuid', 'associacao', 'numero_documento', 'tipo_documento', 'data_documento', 'cpf_cnpj_fornecedor',
+                  'nome_fornecedor', 'valor_total', 'valor_ptrf')

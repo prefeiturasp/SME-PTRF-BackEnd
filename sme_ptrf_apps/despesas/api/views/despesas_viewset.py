@@ -1,15 +1,18 @@
+from django_filters import rest_framework as filters
 from rest_framework import mixins, status
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+
+from sme_ptrf_apps.users.permissoes import PermissaoDespesa, PermissaoDashboardDre
 
 from ....core.api.serializers import TagLookupSerializer
 from ....core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from ....core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from ...models import Despesa
 from ...tipos_aplicacao_recurso import aplicacoes_recurso_to_json
-from ..serializers.despesa_serializer import DespesaCreateSerializer, DespesaSerializer
+from ..serializers.despesa_serializer import DespesaCreateSerializer, DespesaListSerializer, DespesaSerializer
 from ..serializers.tipo_custeio_serializer import TipoCusteioSerializer
 from ..serializers.tipo_documento_serializer import TipoDocumentoSerializer
 from ..serializers.tipo_transacao_serializer import TipoTransacaoSerializer
@@ -19,15 +22,21 @@ class DespesasViewSet(mixins.CreateModelMixin,
                       mixins.RetrieveModelMixin,
                       mixins.UpdateModelMixin,
                       mixins.DestroyModelMixin,
+                      mixins.ListModelMixin,
                       GenericViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated & (PermissaoDespesa | PermissaoDashboardDre)]
     lookup_field = 'uuid'
     queryset = Despesa.objects.all()
     serializer_class = DespesaSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_fields = (
+    'associacao__uuid', 'cpf_cnpj_fornecedor', 'tipo_documento__uuid', 'numero_documento', 'tipo_documento__id')
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
+        if self.action == 'retrieve':
             return DespesaSerializer
+        elif self.action == 'list':
+            return DespesaListSerializer
         else:
             return DespesaCreateSerializer
 
@@ -41,7 +50,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
                 'erro': 'parametros_requerido',
                 'mensagem': 'É necessário enviar o uuid da associação (associacao_uuid) como parâmetro.'
             }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)    
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         def get_valores_from(serializer, associacao_uuid):
             valores = serializer.Meta.model.get_valores(user=request.user, associacao_uuid=associacao_uuid)
@@ -59,7 +68,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
         return Response(result)
 
-    @action(detail=False, url_path='ja-lancada')
+    @action(detail=False, url_path='ja-lancada', permission_classes=[IsAuthenticated])
     def ja_lancada(self, request):
 
         tipo_documento = request.query_params.get('tipo_documento')

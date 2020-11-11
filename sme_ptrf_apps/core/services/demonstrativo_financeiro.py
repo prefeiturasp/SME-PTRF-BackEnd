@@ -58,7 +58,7 @@ VALOR = 10
 
 
 def gerar_arquivo_demonstrativo_financeiro(periodo, acao_associacao, conta_associacao, prestacao):
-    filename = 'demonstrativo_financeiro.xlsx'
+    filename = 'demonstrativo_financeiro_%s.xlsx'
 
     xlsx = gerar(periodo, acao_associacao, conta_associacao)
 
@@ -70,7 +70,7 @@ def gerar_arquivo_demonstrativo_financeiro(periodo, acao_associacao, conta_assoc
             conta_associacao=conta_associacao,
             prestacao_conta=prestacao
         )
-        demonstrativo_financeiro.arquivo.save(name=filename, content=File(tmp))
+        demonstrativo_financeiro.arquivo.save(name=filename % demonstrativo_financeiro.pk, content=File(tmp))
 
 
 def gerar(periodo, acao_associacao, conta_associacao, previa=False):

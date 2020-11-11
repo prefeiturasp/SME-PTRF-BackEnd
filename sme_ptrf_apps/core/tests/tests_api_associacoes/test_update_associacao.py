@@ -8,12 +8,12 @@ from ...models import Associacao
 pytestmark = pytest.mark.django_db
 
 
-def test_api_update_associacao(client, associacao):
+def test_api_update_associacao(jwt_authenticated_client_a, associacao):
     payload = {
         "nome": "Nome alterado",
         "processo_regularidade": "123456"
     }
-    response = client.put(f'/api/associacoes/{associacao.uuid}/', data=json.dumps(payload),
+    response = jwt_authenticated_client_a.put(f'/api/associacoes/{associacao.uuid}/', data=json.dumps(payload),
                           content_type='application/json')
 
     registro_alterado = Associacao.objects.get(uuid=associacao.uuid)

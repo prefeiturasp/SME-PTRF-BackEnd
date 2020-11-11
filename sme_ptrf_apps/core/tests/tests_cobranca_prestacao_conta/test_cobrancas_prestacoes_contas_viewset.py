@@ -8,10 +8,10 @@ from ...api.views.cobrancas_prestacoes_contas_viewset import CobrancasPrestacoes
 pytestmark = pytest.mark.django_db
 
 
-def test_view_set(cobranca_prestacao_devolucao, fake_user):
+def test_view_set(cobranca_prestacao_devolucao, usuario_permissao_associacao):
     request = APIRequestFactory().get("")
     detalhe = CobrancasPrestacoesContasViewSet.as_view({'get': 'retrieve'})
-    force_authenticate(request, user=fake_user)
+    force_authenticate(request, user=usuario_permissao_associacao)
     response = detalhe(request, uuid=cobranca_prestacao_devolucao.uuid)
 
     assert response.status_code == status.HTTP_200_OK

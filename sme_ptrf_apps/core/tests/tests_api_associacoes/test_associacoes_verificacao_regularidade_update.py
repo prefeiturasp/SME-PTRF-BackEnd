@@ -71,12 +71,12 @@ def verificacao_regularidade_associacao_documento_rais(grupo_verificacao_regular
     )
 
 
-def test_marca_item_verificacao_quando_sem_verificacao_ja_feita(client, associacao,
+def test_marca_item_verificacao_quando_sem_verificacao_ja_feita(jwt_authenticated_client_a, associacao,
                                                                 grupo_verificacao_regularidade_documentos,
                                                                 lista_verificacao_regularidade_documentos_associacao,
                                                                 item_verificacao_regularidade_documentos_associacao_cnpj,
                                                                 ):
-    response = client.get(
+    response = jwt_authenticated_client_a.get(
         f'/api/associacoes/{associacao.uuid}/marca-item-verificacao/?item={item_verificacao_regularidade_documentos_associacao_cnpj.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -95,13 +95,13 @@ def test_marca_item_verificacao_quando_sem_verificacao_ja_feita(client, associac
     assert verificacao.regular
 
 
-def test_marca_item_verificacao_quando_com_verificacao_ja_feita(client, associacao,
+def test_marca_item_verificacao_quando_com_verificacao_ja_feita(jwt_authenticated_client_a, associacao,
                                                                 grupo_verificacao_regularidade_documentos,
                                                                 lista_verificacao_regularidade_documentos_associacao,
                                                                 item_verificacao_regularidade_documentos_associacao_cnpj,
                                                                 verificacao_regularidade_associacao_documento_cnpj
                                                                 ):
-    response = client.get(
+    response = jwt_authenticated_client_a.get(
         f'/api/associacoes/{associacao.uuid}/marca-item-verificacao/?item={item_verificacao_regularidade_documentos_associacao_cnpj.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -124,13 +124,13 @@ def test_marca_item_verificacao_quando_com_verificacao_ja_feita(client, associac
     assert verificacoes.count() == 1, 'Deve continuar havendo apenas uma verificação.'
 
 
-def test_desmarca_item_verificacao_quando_com_verificacao_ja_feita(client, associacao,
+def test_desmarca_item_verificacao_quando_com_verificacao_ja_feita(jwt_authenticated_client_a, associacao,
                                                                    grupo_verificacao_regularidade_documentos,
                                                                    lista_verificacao_regularidade_documentos_associacao,
                                                                    item_verificacao_regularidade_documentos_associacao_cnpj,
                                                                    verificacao_regularidade_associacao_documento_cnpj
                                                                    ):
-    response = client.get(
+    response = jwt_authenticated_client_a.get(
         f'/api/associacoes/{associacao.uuid}/desmarca-item-verificacao/?item={item_verificacao_regularidade_documentos_associacao_cnpj.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -149,13 +149,13 @@ def test_desmarca_item_verificacao_quando_com_verificacao_ja_feita(client, assoc
     assert verificacoes.count() == 0, 'A verificação deveria ter sido removida.'
 
 
-def test_marca_lista_verificacao_quando_sem_verificacao_ja_feita(client, associacao,
+def test_marca_lista_verificacao_quando_sem_verificacao_ja_feita(jwt_authenticated_client_a, associacao,
                                                                  grupo_verificacao_regularidade_documentos,
                                                                  lista_verificacao_regularidade_documentos_associacao,
                                                                  item_verificacao_regularidade_documentos_associacao_cnpj,
                                                                  item_verificacao_regularidade_documentos_associacao_rais
                                                                  ):
-    response = client.get(
+    response = jwt_authenticated_client_a.get(
         f'/api/associacoes/{associacao.uuid}/marca-lista-verificacao/?lista={lista_verificacao_regularidade_documentos_associacao.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -174,7 +174,7 @@ def test_marca_lista_verificacao_quando_sem_verificacao_ja_feita(client, associa
     assert verificacao.count() == 2, 'Deveriam haver dois itens de verificação criados.'
 
 
-def test_desmarca_lista_verificacao(client, associacao,
+def test_desmarca_lista_verificacao(jwt_authenticated_client_a, associacao,
                                     grupo_verificacao_regularidade_documentos,
                                     lista_verificacao_regularidade_documentos_associacao,
                                     item_verificacao_regularidade_documentos_associacao_cnpj,
@@ -182,7 +182,7 @@ def test_desmarca_lista_verificacao(client, associacao,
                                     verificacao_regularidade_associacao_documento_cnpj,
                                     verificacao_regularidade_associacao_documento_rais
                                     ):
-    response = client.get(
+    response = jwt_authenticated_client_a.get(
         f'/api/associacoes/{associacao.uuid}/desmarca-lista-verificacao/?lista={lista_verificacao_regularidade_documentos_associacao.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -201,7 +201,7 @@ def test_desmarca_lista_verificacao(client, associacao,
     assert verificacao.count() == 0, 'Não deveria haver nenhum itens de verificação.'
 
 
-def test_atualiza_itens_verificacao(client, associacao,
+def test_atualiza_itens_verificacao(jwt_authenticated_client_a, associacao,
                                     grupo_verificacao_regularidade_documentos,
                                     lista_verificacao_regularidade_documentos_associacao,
                                     item_verificacao_regularidade_documentos_associacao_cnpj,
@@ -219,7 +219,7 @@ def test_atualiza_itens_verificacao(client, associacao,
             "regular": True
         }
     ]
-    response = client.post(
+    response = jwt_authenticated_client_a.post(
         f'/api/associacoes/{associacao.uuid}/atualiza-itens-verificacao/', data=json.dumps(payload),
         content_type='application/json')
     result = json.loads(response.content)

@@ -76,7 +76,7 @@ def atribuicao2(tecnico_dre, unidade_2, periodo):
     )
 
 
-def test_criar_atribuicoes_em_lote(jwt_authenticated_client, unidade, unidade_2, periodo, tecnico_dre):
+def test_criar_atribuicoes_em_lote(jwt_authenticated_client_dre, unidade, unidade_2, periodo, tecnico_dre):
     payload = {
         "periodo": str(periodo.uuid),
         "tecnico": str(tecnico_dre.uuid),
@@ -86,7 +86,7 @@ def test_criar_atribuicoes_em_lote(jwt_authenticated_client, unidade, unidade_2,
         ]
     }
 
-    response = jwt_authenticated_client.post(
+    response = jwt_authenticated_client_dre.post(
         '/api/atribuicoes/lote/', data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -94,7 +94,7 @@ def test_criar_atribuicoes_em_lote(jwt_authenticated_client, unidade, unidade_2,
     assert Atribuicao.objects.filter(unidade__uuid=unidade_2.uuid).first()
 
 
-def test_desatribuir_atribuicoes_em_lote(jwt_authenticated_client, unidade, unidade_2, periodo, tecnico_dre, atribuicao1, atribuicao2):
+def test_desatribuir_atribuicoes_em_lote(jwt_authenticated_client_dre, unidade, unidade_2, periodo, tecnico_dre, atribuicao1, atribuicao2):
     payload = {
         "periodo": str(periodo.uuid),
         "unidades": [
@@ -103,7 +103,7 @@ def test_desatribuir_atribuicoes_em_lote(jwt_authenticated_client, unidade, unid
         ]
     }
 
-    response = jwt_authenticated_client.post(
+    response = jwt_authenticated_client_dre.post(
         '/api/atribuicoes/desfazer-lote/', data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
@@ -111,13 +111,13 @@ def test_desatribuir_atribuicoes_em_lote(jwt_authenticated_client, unidade, unid
     assert not Atribuicao.objects.filter(unidade__uuid=unidade_2.uuid).first()
 
 
-def test_troca_atribuicoes_em_lote(jwt_authenticated_client, unidade, unidade_2, periodo, tecnico_dre, tecnico_dre2, atribuicao1, atribuicao2):
+def test_troca_atribuicoes_em_lote(jwt_authenticated_client_dre, unidade, unidade_2, periodo, tecnico_dre, tecnico_dre2, atribuicao1, atribuicao2):
     payload = {
         "tecnico_atual": str(tecnico_dre.uuid),
         "tecnico_novo": str(tecnico_dre2.uuid),
     }
 
-    response = jwt_authenticated_client.post(
+    response = jwt_authenticated_client_dre.post(
         '/api/atribuicoes/troca-lote/', data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
@@ -125,14 +125,14 @@ def test_troca_atribuicoes_em_lote(jwt_authenticated_client, unidade, unidade_2,
     assert Atribuicao.objects.filter(tecnico__uuid=tecnico_dre2.uuid).exists()
 
 
-def test_copiar_atribuicoes(jwt_authenticated_client, unidade, unidade_2, periodo, periodo_2020_1, tecnico_dre, tecnico_dre2, atribuicao1, atribuicao2):
+def test_copiar_atribuicoes(jwt_authenticated_client_dre, unidade, unidade_2, periodo, periodo_2020_1, tecnico_dre, tecnico_dre2, atribuicao1, atribuicao2):
     payload = {
         "periodo_atual": str(periodo_2020_1.uuid),
         "periodo_copiado": str(periodo.uuid),
         "dre_uuid": str(unidade.dre.uuid)
     }
 
-    response = jwt_authenticated_client.post(
+    response = jwt_authenticated_client_dre.post(
         '/api/atribuicoes/copia-periodo/', data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK

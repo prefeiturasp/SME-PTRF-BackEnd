@@ -116,16 +116,19 @@ class Ata(ModeloBase):
 
     preenchida_em = models.DateTimeField("Preenchida em", blank=True, null=True)
 
+    retificacoes = models.TextField('Retificações', blank=True, default='')
+
     @property
     def nome(self):
         return f'Ata de {self.ATA_NOMES[self.tipo_ata]} da prestação de contas'
 
     @classmethod
-    def iniciar(cls, prestacao_conta):
+    def iniciar(cls, prestacao_conta, retificacao=False):
         return Ata.objects.create(
             prestacao_conta=prestacao_conta,
             periodo=prestacao_conta.periodo,
             associacao=prestacao_conta.associacao,
+            tipo_ata='RETIFICACAO' if retificacao else 'APRESENTACAO'
         )
 
     def __str__(self):

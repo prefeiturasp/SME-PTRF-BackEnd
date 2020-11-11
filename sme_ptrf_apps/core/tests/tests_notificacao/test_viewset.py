@@ -40,7 +40,7 @@ def remetente1():
 
 
 @pytest.fixture
-def notificacao(tipo_notificacao, remetente, categoria, usuario):
+def notificacao(tipo_notificacao, remetente, categoria, usuario_permissao_associacao):
     return baker.make(
         'Notificacao',
         tipo=tipo_notificacao,
@@ -48,12 +48,12 @@ def notificacao(tipo_notificacao, remetente, categoria, usuario):
         remetente=remetente,
         titulo="Documentos Faltantes",
         descricao="Documentos Faltantes na prestação de contas",
-        usuario=usuario
+        usuario=usuario_permissao_associacao
     )
 
 
 @pytest.fixture
-def notificacao2(tipo_notificacao1, remetente1, categoria1, usuario):
+def notificacao2(tipo_notificacao1, remetente1, categoria1, usuario_permissao_associacao):
     return baker.make(
         'Notificacao',
         tipo=tipo_notificacao1,
@@ -62,19 +62,19 @@ def notificacao2(tipo_notificacao1, remetente1, categoria1, usuario):
         lido=True,
         titulo="Documentos Faltantes 2",
         descricao="Documentos Faltantes na prestação de contas 2",
-        usuario=usuario
+        usuario=usuario_permissao_associacao
     )
 
 
-def test_quantidade_de_nao_lidos(jwt_authenticated_client, notificacao):
-    response = jwt_authenticated_client.get(
+def test_quantidade_de_nao_lidos(jwt_authenticated_client_a, notificacao):
+    response = jwt_authenticated_client_a.get(
         f'/api/notificacoes/quantidade-nao-lidos/', content_type='application/json')
     result = json.loads(response.content)
     assert result['quantidade_nao_lidos'] == 1
 
 
-def test_lista_notificacoes(jwt_authenticated_client, notificacao):
-    response = jwt_authenticated_client.get(
+def test_lista_notificacoes(jwt_authenticated_client_a, notificacao):
+    response = jwt_authenticated_client_a.get(
         f'/api/notificacoes/', content_type='application/json')
     result = json.loads(response.content)
     esperado = {
@@ -105,8 +105,8 @@ def test_lista_notificacoes(jwt_authenticated_client, notificacao):
     assert result == esperado
 
 
-def test_filtro_lido(jwt_authenticated_client, notificacao, notificacao2):
-    response = jwt_authenticated_client.get(
+def test_filtro_lido(jwt_authenticated_client_a, notificacao, notificacao2):
+    response = jwt_authenticated_client_a.get(
         f'/api/notificacoes/?lido=True', content_type='application/json')
     result = json.loads(response.content)
     esperado = {
@@ -138,8 +138,8 @@ def test_filtro_lido(jwt_authenticated_client, notificacao, notificacao2):
     assert result == esperado
 
 
-def test_filtro_tipo(jwt_authenticated_client, notificacao, notificacao2):
-    response = jwt_authenticated_client.get(
+def test_filtro_tipo(jwt_authenticated_client_a, notificacao, notificacao2):
+    response = jwt_authenticated_client_a.get(
         f'/api/notificacoes/?tipo={notificacao2.tipo.id}', content_type='application/json')
     result = json.loads(response.content)
     esperado = {

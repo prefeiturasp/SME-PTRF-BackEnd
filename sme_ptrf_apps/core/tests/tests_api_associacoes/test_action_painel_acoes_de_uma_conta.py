@@ -10,7 +10,7 @@ pytestmark = pytest.mark.django_db
 
 @freeze_time('2020-04-18 10:11:12')
 def test_action_painel_acoes_de_uma_conta(
-    client,
+    jwt_authenticated_client_a,
     associacao,
     periodo_anterior,
     periodo,
@@ -25,7 +25,7 @@ def test_action_painel_acoes_de_uma_conta(
     rateio_fora_periodo_50_custeio,
     conta_associacao
 ):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/?conta={conta_associacao.uuid}',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/?conta={conta_associacao.uuid}',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -136,7 +136,7 @@ def test_action_painel_acoes_de_uma_conta(
 
 @freeze_time('2020-04-18 10:11:12')
 def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
-    client,
+    jwt_authenticated_client_a,
     associacao,
     periodo_anterior,
     periodo,
@@ -153,7 +153,7 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
     conta_associacao_cartao,
     rateio_no_periodo_1500_capital_outra_conta
 ):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/?conta={conta_associacao.uuid}',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/?conta={conta_associacao.uuid}',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -264,7 +264,7 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
 
 @freeze_time('2020-04-18 10:11:12')
 def test_action_painel_acoes_de_uma_conta_invalida(
-    client,
+    jwt_authenticated_client_a,
     associacao,
     periodo_anterior,
     periodo,
@@ -279,7 +279,7 @@ def test_action_painel_acoes_de_uma_conta_invalida(
     rateio_fora_periodo_50_custeio,
     conta_associacao
 ):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/?conta=NAOEXISTE',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/?conta=NAOEXISTE',
                           content_type='application/json')
     result = json.loads(response.content)
 
@@ -291,7 +291,7 @@ def test_action_painel_acoes_de_uma_conta_invalida(
 
 @freeze_time('2020-04-18 10:11:12')
 def test_action_painel_acoes_de_uma_periodo_invalida(
-    client,
+    jwt_authenticated_client_a,
     associacao,
     periodo_anterior,
     periodo,
@@ -306,7 +306,7 @@ def test_action_painel_acoes_de_uma_periodo_invalida(
     rateio_fora_periodo_50_custeio,
     conta_associacao
 ):
-    response = client.get(
+    response = jwt_authenticated_client_a.get(
         f'/api/associacoes/{associacao.uuid}/painel-acoes/?conta={conta_associacao.uuid}&periodo_uuid=INVALIDO',
         content_type='application/json')
     result = json.loads(response.content)

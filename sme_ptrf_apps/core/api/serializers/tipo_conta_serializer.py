@@ -6,4 +6,4 @@ from ...models import TipoConta
 class TipoContaSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoConta
-        fields = ('id', 'nome')
+        fields = ('uuid', 'id', 'nome', 'apenas_leitura')

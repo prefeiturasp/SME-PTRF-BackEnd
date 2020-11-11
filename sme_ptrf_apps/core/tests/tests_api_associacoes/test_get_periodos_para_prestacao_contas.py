@@ -82,7 +82,7 @@ def prestacao_conta_2020_1_cheque(periodo_2020_1, associacao):
 
 @freeze_time('2020-06-15')
 def test_get_periodos_prestacao_de_contas_da_associacao(
-    client,
+    jwt_authenticated_client_a,
     associacao,
     periodo_2019_1,
     periodo_2019_2,
@@ -91,7 +91,7 @@ def test_get_periodos_prestacao_de_contas_da_associacao(
     prestacao_conta_2019_2_cartao,
     prestacao_conta_2020_1_cartao,
 ):
-    response = client.get(f'/api/associacoes/{associacao.uuid}/periodos-para-prestacao-de-contas/',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/periodos-para-prestacao-de-contas/',
                           content_type='application/json')
     result = json.loads(response.content)
 

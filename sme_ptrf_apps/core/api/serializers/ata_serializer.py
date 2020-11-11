@@ -51,5 +51,6 @@ class AtaSerializer(serializers.ModelSerializer):
             'secretario_reuniao',
             'cargo_secretaria_reuniao',
             'comentarios',
-            'parecer_conselho'
+            'parecer_conselho',
+            'retificacoes'
         )
