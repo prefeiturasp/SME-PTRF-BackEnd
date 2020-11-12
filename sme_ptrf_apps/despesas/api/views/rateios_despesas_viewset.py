@@ -160,12 +160,6 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
             if filter_value:
                 filtered_queryset = filtered_queryset.filter(**{field: filter_value})
 
-
-        data_inicio = self.request.query_params.get('data_inicio')
-        data_fim = self.request.query_params.get('data_fim')
-        if data_inicio is not None and data_fim is not None:
-            filtered_queryset  = filtered_queryset .filter(despesa__data_documento__range=[data_inicio, data_fim])
-
         total_despesas_com_filtro = filtered_queryset.aggregate(Sum('valor_rateio'))['valor_rateio__sum']
         total_despesas_sem_filtro = queryset.aggregate(Sum('valor_rateio'))['valor_rateio__sum']
 
