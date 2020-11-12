@@ -81,6 +81,9 @@ def marca_item_verificacao_associacao(associacao_uuid, item_verificacao_uuid):
         }
     ) if associacao and item_verificacao else None
 
+    if associacao:
+        atualiza_status_regularidade(associacao)
+
     logger.info(f'Item de verificação marcado {result}')
 
     return result
@@ -95,7 +98,20 @@ def desmarca_item_verificacao_associacao(associacao_uuid, item_verificacao_uuid)
         item_verificacao=item_verificacao
     ).delete()
 
+    if associacao:
+        atualiza_status_regularidade(associacao)
+
     return 'OK' if associacao and item_verificacao else None
+
+
+def atualiza_status_regularidade(associacao):
+    status = Associacao.STATUS_REGULARIDADE_PENDENTE
+    if associacao.verificacoes_regularidade.count() == ItemVerificacaoRegularidade.objects.count():
+        if all(associacao.verificacoes_regularidade.values_list('regular', flat=True)):
+            status = Associacao.STATUS_REGULARIDADE_REGULAR
+
+    associacao.status_regularidade = status
+    associacao.save()
 
 
 def marca_lista_verificacao_associacao(associacao_uuid, lista_verificacao_uuid):
