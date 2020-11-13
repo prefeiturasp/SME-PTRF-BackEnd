@@ -395,6 +395,18 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        info = informacoes_execucao_financeira_unidades(dre=dre, periodo=periodo, tipo_conta=tipo_conta)
+        # Pega filtros
+        nome = self.request.query_params.get('nome')
+        tipo_unidade = self.request.query_params.get('tipo_unidade')
+        status = self.request.query_params.get('status')
+
+        info = informacoes_execucao_financeira_unidades(
+            dre=dre,
+            periodo=periodo,
+            tipo_conta=tipo_conta,
+            filtro_nome=nome,
+            filtro_tipo_unidade=tipo_unidade,
+            filtro_status=status,
+        )
 
         return Response(info)

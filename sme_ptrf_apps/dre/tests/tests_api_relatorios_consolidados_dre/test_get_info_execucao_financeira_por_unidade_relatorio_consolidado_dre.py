@@ -222,8 +222,8 @@ def associacao_outra_dre(unidade_outro_dre, periodo_anterior):
 def unidade_que_nao_apresentou_prestacao(dre):
     return baker.make(
         'Unidade',
-        nome='Escola Teste que não apresentou PC',
-        tipo_unidade='CEU',
+        nome='EscolaSemPC que não apresentou PC',
+        tipo_unidade='EMEI',
         codigo_eol='123444',
         dre=dre,
     )
@@ -233,39 +233,16 @@ def unidade_que_nao_apresentou_prestacao(dre):
 def associacao_que_nao_apresentou_prestacao(unidade_que_nao_apresentou_prestacao, periodo_anterior):
     return baker.make(
         'Associacao',
-        nome='Escola que não apresentou PC',
+        nome='AssociaçãoSemPC',
         cnpj='52.302.275/0001-77',
         unidade=unidade_que_nao_apresentou_prestacao,
         periodo_inicial=periodo_anterior,
     )
 
 
-def test_api_get_info_execucao_financeira_por_unidade(
-    jwt_authenticated_client,
-    dre,
-    outra_dre,
-    periodo,
-    tipo_conta_cheque,
-    prestacao_conta,
-    fechamento_conta_cartao,
-    fechamento_conta_cheque,
-    fechamento_conta_cheque_anterior,
-    devolucao_ao_tesouro,
-    receita_rendimento,
-    conta_associacao_cheque,
-    acao_associacao,
-    previsao_repasse_sme_conta_cartao,
-    previsao_repasse_sme_conta_cheque,
-    associacao,
-    associacao_outra_dre,
-    associacao_que_nao_apresentou_prestacao,
-):
-    response = jwt_authenticated_client.get(
-        f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}',
-        content_type='application/json')
-    result = json.loads(response.content)
-
-    totais_esperados = {
+@pytest.fixture
+def totais_esperados_associacao():
+    return {
         'saldo_reprogramado_periodo_anterior_custeio': 500,
         'saldo_reprogramado_periodo_anterior_capital': 500,
         'saldo_reprogramado_periodo_anterior_livre': 1000,
@@ -313,7 +290,9 @@ def test_api_get_info_execucao_financeira_por_unidade(
         'devolucoes_ao_tesouro_no_periodo_total': 100,
     }
 
-    totais_zerados = {
+@pytest.fixture
+def totais_esperados_associacao_que_nao_apresentou_pc():
+    return {
         'saldo_reprogramado_periodo_anterior_custeio': 0,
         'saldo_reprogramado_periodo_anterior_capital': 0,
         'saldo_reprogramado_periodo_anterior_livre': 0,
@@ -361,6 +340,34 @@ def test_api_get_info_execucao_financeira_por_unidade(
         'devolucoes_ao_tesouro_no_periodo_total': 0,
     }
 
+
+def test_api_get_info_execucao_financeira_por_unidade(
+    jwt_authenticated_client,
+    dre,
+    outra_dre,
+    periodo,
+    tipo_conta_cheque,
+    prestacao_conta,
+    fechamento_conta_cartao,
+    fechamento_conta_cheque,
+    fechamento_conta_cheque_anterior,
+    devolucao_ao_tesouro,
+    receita_rendimento,
+    conta_associacao_cheque,
+    acao_associacao,
+    previsao_repasse_sme_conta_cartao,
+    previsao_repasse_sme_conta_cheque,
+    associacao,
+    associacao_outra_dre,
+    associacao_que_nao_apresentou_prestacao,
+    totais_esperados_associacao,
+    totais_esperados_associacao_que_nao_apresentou_pc
+):
+    response = jwt_authenticated_client.get(
+        f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}',
+        content_type='application/json')
+    result = json.loads(response.content)
+
     resultado_associacao_com_pc = {
         'unidade': {
             'uuid': f'{prestacao_conta.associacao.unidade.uuid}',
@@ -371,7 +378,7 @@ def test_api_get_info_execucao_financeira_por_unidade(
         },
 
         'status_prestacao_contas': 'APROVADA',
-        'valores': totais_esperados,
+        'valores': totais_esperados_associacao,
     }
 
     resultado_associacao_sem_pc = {
@@ -384,97 +391,203 @@ def test_api_get_info_execucao_financeira_por_unidade(
         },
 
         'status_prestacao_contas': 'NAO_APRESENTADA',
-        'valores': totais_zerados,
+        'valores': totais_esperados_associacao_que_nao_apresentou_pc,
     }
     resultado_esperado = [
         resultado_associacao_sem_pc,
         resultado_associacao_com_pc,
     ]
 
-
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado
 
 
-def test_api_get_info_execucao_financeira_por_unidade_quando_nao_apresentada_a_pc(
+def test_api_get_info_execucao_financeira_por_unidade_filtro_por_nome_escola(
     jwt_authenticated_client,
     dre,
+    outra_dre,
     periodo,
     tipo_conta_cheque,
+    prestacao_conta,
+    fechamento_conta_cartao,
+    fechamento_conta_cheque,
+    fechamento_conta_cheque_anterior,
+    devolucao_ao_tesouro,
     receita_rendimento,
     conta_associacao_cheque,
     acao_associacao,
     previsao_repasse_sme_conta_cartao,
     previsao_repasse_sme_conta_cheque,
-    associacao
+    associacao,
+    associacao_outra_dre,
+    associacao_que_nao_apresentou_prestacao,
+    totais_esperados_associacao,
+    totais_esperados_associacao_que_nao_apresentou_pc
 ):
     response = jwt_authenticated_client.get(
-        f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}',
+        f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}&nome=escolasempc',
         content_type='application/json')
     result = json.loads(response.content)
 
-    totais_esperados = {
-        'saldo_reprogramado_periodo_anterior_custeio': 0,
-        'saldo_reprogramado_periodo_anterior_capital': 0,
-        'saldo_reprogramado_periodo_anterior_livre': 0,
-        'saldo_reprogramado_periodo_anterior_total': 0,
 
-        'repasses_previstos_sme_custeio': 1000,
-        'repasses_previstos_sme_capital': 2000,
-        'repasses_previstos_sme_livre': 3000,
-        'repasses_previstos_sme_total': 6000,
+    resultado_associacao_sem_pc = {
+        'unidade': {
+            'uuid': f'{associacao_que_nao_apresentou_prestacao.unidade.uuid}',
+            'codigo_eol': associacao_que_nao_apresentou_prestacao.unidade.codigo_eol,
+            'tipo_unidade': associacao_que_nao_apresentou_prestacao.unidade.tipo_unidade,
+            'nome': associacao_que_nao_apresentou_prestacao.unidade.nome,
+            'sigla': associacao_que_nao_apresentou_prestacao.unidade.sigla,
+        },
 
-        'repasses_no_periodo_custeio': 0,
-        'repasses_no_periodo_capital': 0,
-        'repasses_no_periodo_livre': 0,
-        'repasses_no_periodo_total': 0,
-
-        'receitas_rendimento_no_periodo_custeio': 0,
-        'receitas_rendimento_no_periodo_capital': 0,
-        'receitas_rendimento_no_periodo_livre': 0,
-        'receitas_rendimento_no_periodo_total': 0,
-
-        'receitas_devolucao_no_periodo_custeio': 0,
-        'receitas_devolucao_no_periodo_capital': 0,
-        'receitas_devolucao_no_periodo_livre': 0,
-        'receitas_devolucao_no_periodo_total': 0,
-
-        'demais_creditos_no_periodo_custeio': 0,
-        'demais_creditos_no_periodo_capital': 0,
-        'demais_creditos_no_periodo_livre': 0,
-        'demais_creditos_no_periodo_total': 0,
-
-        'receitas_totais_no_periodo_custeio': 0,
-        'receitas_totais_no_periodo_capital': 0,
-        'receitas_totais_no_periodo_livre': 0,
-        'receitas_totais_no_periodo_total': 0,
-
-        'despesas_no_periodo_custeio': 0,
-        'despesas_no_periodo_capital': 0,
-        'despesas_no_periodo_total': 0,
-
-        'saldo_reprogramado_proximo_periodo_custeio': 0,
-        'saldo_reprogramado_proximo_periodo_capital': 0,
-        'saldo_reprogramado_proximo_periodo_livre': 0,
-        'saldo_reprogramado_proximo_periodo_total': 0,
-
-        'devolucoes_ao_tesouro_no_periodo_total': 0,
+        'status_prestacao_contas': 'NAO_APRESENTADA',
+        'valores': totais_esperados_associacao_que_nao_apresentou_pc,
     }
-
     resultado_esperado = [
-        {
-            'unidade': {
-                'uuid': f'{associacao.unidade.uuid}',
-                'codigo_eol': associacao.unidade.codigo_eol,
-                'tipo_unidade': associacao.unidade.tipo_unidade,
-                'nome': associacao.unidade.nome,
-                'sigla': associacao.unidade.sigla,
-            },
+        resultado_associacao_sem_pc,
+    ]
 
-            'status_prestacao_contas': 'NAO_APRESENTADA',
-            'valores': totais_esperados,
+    assert response.status_code == status.HTTP_200_OK
+    assert result == resultado_esperado
 
-        }
+def test_api_get_info_execucao_financeira_por_unidade_filtro_por_nome_associacao(
+    jwt_authenticated_client,
+    dre,
+    outra_dre,
+    periodo,
+    tipo_conta_cheque,
+    prestacao_conta,
+    fechamento_conta_cartao,
+    fechamento_conta_cheque,
+    fechamento_conta_cheque_anterior,
+    devolucao_ao_tesouro,
+    receita_rendimento,
+    conta_associacao_cheque,
+    acao_associacao,
+    previsao_repasse_sme_conta_cartao,
+    previsao_repasse_sme_conta_cheque,
+    associacao,
+    associacao_outra_dre,
+    associacao_que_nao_apresentou_prestacao,
+    totais_esperados_associacao,
+    totais_esperados_associacao_que_nao_apresentou_pc
+):
+    response = jwt_authenticated_client.get(
+        f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}&nome=associacaosempc',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+
+    resultado_associacao_sem_pc = {
+        'unidade': {
+            'uuid': f'{associacao_que_nao_apresentou_prestacao.unidade.uuid}',
+            'codigo_eol': associacao_que_nao_apresentou_prestacao.unidade.codigo_eol,
+            'tipo_unidade': associacao_que_nao_apresentou_prestacao.unidade.tipo_unidade,
+            'nome': associacao_que_nao_apresentou_prestacao.unidade.nome,
+            'sigla': associacao_que_nao_apresentou_prestacao.unidade.sigla,
+        },
+
+        'status_prestacao_contas': 'NAO_APRESENTADA',
+        'valores': totais_esperados_associacao_que_nao_apresentou_pc,
+    }
+    resultado_esperado = [
+        resultado_associacao_sem_pc,
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == resultado_esperado
+
+
+def test_api_get_info_execucao_financeira_por_unidade_filtro_por_tipo_unidade(
+    jwt_authenticated_client,
+    dre,
+    outra_dre,
+    periodo,
+    tipo_conta_cheque,
+    prestacao_conta,
+    fechamento_conta_cartao,
+    fechamento_conta_cheque,
+    fechamento_conta_cheque_anterior,
+    devolucao_ao_tesouro,
+    receita_rendimento,
+    conta_associacao_cheque,
+    acao_associacao,
+    previsao_repasse_sme_conta_cartao,
+    previsao_repasse_sme_conta_cheque,
+    associacao,
+    associacao_outra_dre,
+    associacao_que_nao_apresentou_prestacao,
+    totais_esperados_associacao,
+    totais_esperados_associacao_que_nao_apresentou_pc
+):
+    response = jwt_authenticated_client.get(
+        f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}&tipo_unidade=EMEI',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+
+    resultado_associacao_sem_pc = {
+        'unidade': {
+            'uuid': f'{associacao_que_nao_apresentou_prestacao.unidade.uuid}',
+            'codigo_eol': associacao_que_nao_apresentou_prestacao.unidade.codigo_eol,
+            'tipo_unidade': associacao_que_nao_apresentou_prestacao.unidade.tipo_unidade,
+            'nome': associacao_que_nao_apresentou_prestacao.unidade.nome,
+            'sigla': associacao_que_nao_apresentou_prestacao.unidade.sigla,
+        },
+
+        'status_prestacao_contas': 'NAO_APRESENTADA',
+        'valores': totais_esperados_associacao_que_nao_apresentou_pc,
+    }
+    resultado_esperado = [
+        resultado_associacao_sem_pc,
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == resultado_esperado
+
+
+
+def test_api_get_info_execucao_financeira_por_unidade_filtro_por_status(
+    jwt_authenticated_client,
+    dre,
+    outra_dre,
+    periodo,
+    tipo_conta_cheque,
+    prestacao_conta,
+    fechamento_conta_cartao,
+    fechamento_conta_cheque,
+    fechamento_conta_cheque_anterior,
+    devolucao_ao_tesouro,
+    receita_rendimento,
+    conta_associacao_cheque,
+    acao_associacao,
+    previsao_repasse_sme_conta_cartao,
+    previsao_repasse_sme_conta_cheque,
+    associacao,
+    associacao_outra_dre,
+    associacao_que_nao_apresentou_prestacao,
+    totais_esperados_associacao,
+    totais_esperados_associacao_que_nao_apresentou_pc
+):
+    response = jwt_authenticated_client.get(
+        f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}&status=NAO_APRESENTADA',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+
+    resultado_associacao_sem_pc = {
+        'unidade': {
+            'uuid': f'{associacao_que_nao_apresentou_prestacao.unidade.uuid}',
+            'codigo_eol': associacao_que_nao_apresentou_prestacao.unidade.codigo_eol,
+            'tipo_unidade': associacao_que_nao_apresentou_prestacao.unidade.tipo_unidade,
+            'nome': associacao_que_nao_apresentou_prestacao.unidade.nome,
+            'sigla': associacao_que_nao_apresentou_prestacao.unidade.sigla,
+        },
+
+        'status_prestacao_contas': 'NAO_APRESENTADA',
+        'valores': totais_esperados_associacao_que_nao_apresentou_pc,
+    }
+    resultado_esperado = [
+        resultado_associacao_sem_pc,
     ]
 
     assert response.status_code == status.HTTP_200_OK

@@ -1,6 +1,6 @@
 import logging
 
-from django.db.models import Count, Sum, F
+from django.db.models import Count, Sum, F, Q
 
 from sme_ptrf_apps.core.models import (
     PrestacaoConta,
@@ -280,7 +280,14 @@ def informacoes_devolucoes_ao_tesouro(dre, periodo):
     return devolucoes
 
 
-def informacoes_execucao_financeira_unidades(dre, periodo, tipo_conta):
+def informacoes_execucao_financeira_unidades(
+    dre,
+    periodo,
+    tipo_conta,
+    filtro_nome=None, filtro_tipo_unidade=None, filtro_status=None
+):
+    from sme_ptrf_apps.core.models import Associacao
+
     def _totalizador_zerado():
         return {
             'saldo_reprogramado_periodo_anterior_custeio': 0,
@@ -447,16 +454,25 @@ def informacoes_execucao_financeira_unidades(dre, periodo, tipo_conta):
 
         return totais
 
-
     resultado = []
-    for unidade in dre.unidades_da_dre.all():
-        associacao = unidade.associacoes.exclude(cnpj__exact='').first()
-        if not associacao:
-            continue
+
+    associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by('nome')
+
+    if filtro_nome is not None:
+        associacoes_da_dre = associacoes_da_dre.filter(Q(nome__unaccent__icontains=filtro_nome) | Q(
+            unidade__nome__unaccent__icontains=filtro_nome))
+
+    if filtro_tipo_unidade is not None:
+        associacoes_da_dre = associacoes_da_dre.filter(unidade__tipo_unidade=filtro_tipo_unidade)
+
+    for associacao in associacoes_da_dre.all():
 
         prestacao_conta = associacao.prestacoes_de_conta_da_associacao.filter(periodo=periodo).first()
 
         status_prestacao_conta = prestacao_conta.status if prestacao_conta else 'NAO_APRESENTADA'
+
+        if filtro_status and status_prestacao_conta != filtro_status:
+            continue
 
         totais = _totalizador_zerado()
 
@@ -470,11 +486,11 @@ def informacoes_execucao_financeira_unidades(dre, periodo, tipo_conta):
         resultado.append(
             {
                 'unidade': {
-                    'uuid': f'{unidade.uuid}',
-                    'codigo_eol': unidade.codigo_eol,
-                    'tipo_unidade': unidade.tipo_unidade,
-                    'nome': unidade.nome,
-                    'sigla': unidade.sigla,
+                    'uuid': f'{associacao.unidade.uuid}',
+                    'codigo_eol': associacao.unidade.codigo_eol,
+                    'tipo_unidade': associacao.unidade.tipo_unidade,
+                    'nome': associacao.unidade.nome,
+                    'sigla': associacao.unidade.sigla,
                 },
 
                 'status_prestacao_contas': status_prestacao_conta,
