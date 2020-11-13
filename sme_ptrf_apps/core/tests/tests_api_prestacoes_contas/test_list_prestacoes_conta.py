@@ -410,7 +410,7 @@ def test_api_list_prestacoes_conta_por_data_recebimento(jwt_authenticated_client
             'data_recebimento': '2020-01-02',
             'data_ultima_analise': None,
             'processo_sei': '',
-            'status': 'DOCS_PENDENTES',
+            'status': 'NAO_APRESENTADA',
             'tecnico_responsavel': '',
             'unidade_eol': '000201',
             'unidade_nome': 'Bentivi',

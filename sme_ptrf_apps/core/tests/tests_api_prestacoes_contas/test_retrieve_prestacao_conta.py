@@ -191,7 +191,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
             'uuid': f'{prestacao_conta.associacao.uuid}'
         },
         'periodo_uuid': f'{prestacao_conta.periodo.uuid}',
-        'status': 'DOCS_PENDENTES',
+        'status': 'NAO_APRESENTADA',
         'uuid': f'{prestacao_conta.uuid}',
         'tecnico_responsavel': {
             'nome': 'José Testando',

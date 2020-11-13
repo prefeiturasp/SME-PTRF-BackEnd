@@ -19,7 +19,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     prestacao = PrestacaoConta.by_periodo(associacao=associacao, periodo=periodo)
 
     STATUS_PRESTACAO = {
-        PrestacaoConta.STATUS_DOCS_PENDENTES: 'Documentos pendentes de geração.',
+        PrestacaoConta.STATUS_NAO_APRESENTADA: 'Documentos pendentes de geração.',
         PrestacaoConta.STATUS_NAO_RECEBIDA: 'Prestação de contas ainda não recebida pela DRE.',
         PrestacaoConta.STATUS_RECEBIDA: 'Prestação de contas recebida pela DRE.',
         PrestacaoConta.STATUS_EM_ANALISE: 'Prestação de contas em análise pela DRE.',
@@ -32,7 +32,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     STATUS_PERIODO_EM_ANDAMENTO = 'PERIODO_EM_ANDAMENTO'
     LEGENDA_COR = {
         STATUS_PERIODO_EM_ANDAMENTO: 1,
-        PrestacaoConta.STATUS_DOCS_PENDENTES: 3,
+        PrestacaoConta.STATUS_NAO_APRESENTADA: 3,
         PrestacaoConta.STATUS_NAO_RECEBIDA: 2,
         PrestacaoConta.STATUS_RECEBIDA: 4,
         PrestacaoConta.STATUS_EM_ANALISE: 4,
@@ -49,8 +49,8 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
             mensagem_prestacao = STATUS_PRESTACAO[prestacao.status]
             cor = LEGENDA_COR[prestacao.status]
         else:
-            mensagem_prestacao = STATUS_PRESTACAO[PrestacaoConta.STATUS_DOCS_PENDENTES]
-            cor = LEGENDA_COR[PrestacaoConta.STATUS_DOCS_PENDENTES]
+            mensagem_prestacao = STATUS_PRESTACAO[PrestacaoConta.STATUS_NAO_APRESENTADA]
+            cor = LEGENDA_COR[PrestacaoConta.STATUS_NAO_APRESENTADA]
     else:
         if prestacao and prestacao.status == PrestacaoConta.STATUS_NAO_RECEBIDA:
             mensagem_prestacao = 'Documentos gerados para prestação de contas.'
@@ -64,8 +64,8 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     status = {
         'periodo_encerrado': periodo.encerrado,
         'documentos_gerados': prestacao and prestacao.status not in (
-        PrestacaoConta.STATUS_DOCS_PENDENTES, PrestacaoConta.STATUS_DEVOLVIDA),
-        'status_prestacao': prestacao.status if prestacao else PrestacaoConta.STATUS_DOCS_PENDENTES,
+        PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_DEVOLVIDA),
+        'status_prestacao': prestacao.status if prestacao else PrestacaoConta.STATUS_NAO_APRESENTADA,
         'texto_status': mensagem_periodo + ' ' + mensagem_prestacao,
         'periodo_bloqueado': periodo_bloqueado,
         'legenda_cor': cor
