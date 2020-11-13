@@ -125,7 +125,7 @@ def test_action_painel_acoes_de_uma_conta(
             'legenda_cor': 3,
             'periodo_bloqueado': False,
             'periodo_encerrado': True,
-            'status_prestacao': 'DOCS_PENDENTES',
+            'status_prestacao': 'NAO_APRESENTADA',
             'texto_status': 'Período finalizado. Documentos pendentes de geração.'
         },
     }
@@ -253,7 +253,7 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
             'legenda_cor': 3,
             'periodo_bloqueado': False,
             'periodo_encerrado': True,
-            'status_prestacao': 'DOCS_PENDENTES',
+            'status_prestacao': 'NAO_APRESENTADA',
             'texto_status': 'Período finalizado. Documentos pendentes de geração.'
         },
     }

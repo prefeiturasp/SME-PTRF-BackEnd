@@ -23,7 +23,7 @@ def test_instance_model(prestacao_conta):
     assert model.ressalvas_aprovacao
 
 def test_srt_model(prestacao_conta):
-    assert prestacao_conta.__str__() == '2019.2 - 2019-09-01 a 2019-11-30 - DOCS_PENDENTES'
+    assert prestacao_conta.__str__() == '2019.2 - 2019-09-01 a 2019-11-30 - NAO_APRESENTADA'
 
 
 def test_admin():

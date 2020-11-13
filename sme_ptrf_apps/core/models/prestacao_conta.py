@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class PrestacaoConta(ModeloBase):
     # Status Choice
-    STATUS_DOCS_PENDENTES = 'DOCS_PENDENTES'
+    STATUS_NAO_APRESENTADA= 'NAO_APRESENTADA'
     STATUS_NAO_RECEBIDA = 'NAO_RECEBIDA'
     STATUS_RECEBIDA = 'RECEBIDA'
     STATUS_EM_ANALISE = 'EM_ANALISE'
@@ -24,7 +24,7 @@ class PrestacaoConta(ModeloBase):
     STATUS_REPROVADA = 'REPROVADA'
 
     STATUS_NOMES = {
-        STATUS_DOCS_PENDENTES: 'Documentos pendentes',
+        STATUS_NAO_APRESENTADA: 'Não apresentada',
         STATUS_NAO_RECEBIDA: 'Não recebida',
         STATUS_RECEBIDA: 'Recebida',
         STATUS_EM_ANALISE: 'Em análise',
@@ -35,7 +35,7 @@ class PrestacaoConta(ModeloBase):
     }
 
     STATUS_CHOICES = (
-        (STATUS_DOCS_PENDENTES, STATUS_NOMES[STATUS_DOCS_PENDENTES]),
+        (STATUS_NAO_APRESENTADA, STATUS_NOMES[STATUS_NAO_APRESENTADA]),
         (STATUS_NAO_RECEBIDA, STATUS_NOMES[STATUS_NAO_RECEBIDA]),
         (STATUS_RECEBIDA, STATUS_NOMES[STATUS_RECEBIDA]),
         (STATUS_EM_ANALISE, STATUS_NOMES[STATUS_EM_ANALISE]),
@@ -55,7 +55,7 @@ class PrestacaoConta(ModeloBase):
         'status',
         max_length=20,
         choices=STATUS_CHOICES,
-        default=STATUS_DOCS_PENDENTES
+        default=STATUS_NAO_APRESENTADA
     )
 
     data_recebimento = models.DateField('data de recebimento pela DRE', blank=True, null=True)
@@ -254,7 +254,7 @@ class PrestacaoConta(ModeloBase):
             prestacao_de_conta = PrestacaoConta.objects.create(
                 periodo=periodo,
                 associacao=associacao,
-                status=cls.STATUS_DOCS_PENDENTES
+                status=cls.STATUS_NAO_APRESENTADA
             )
         return prestacao_de_conta
 
