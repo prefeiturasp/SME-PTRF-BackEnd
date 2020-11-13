@@ -182,3 +182,31 @@ def justificativa_relatorio_dre_consolidado(periodo, dre, tipo_conta_cartao):
         tipo_conta=tipo_conta_cartao,
         texto='Teste'
     )
+
+@pytest.fixture
+def tipo_devolucao_ao_tesouro():
+    return baker.make('TipoDevolucaoAoTesouro', nome='Teste')
+
+
+@pytest.fixture
+def obs_devolucao_tesouro_relatorio_dre_consolidado(periodo, dre, tipo_conta_cartao, tipo_devolucao_ao_tesouro):
+    return baker.make(
+        'ObsDevolucaoRelatorioConsolidadoDre',
+        dre=dre,
+        tipo_conta=tipo_conta_cartao,
+        tipo_devolucao='TESOURO',
+        tipo_devolucao_ao_tesouro=tipo_devolucao_ao_tesouro,
+        observacao='Teste devolução ao tesouro'
+    )
+
+
+@pytest.fixture
+def obs_devolucao_conta_relatorio_dre_consolidado(periodo, dre, tipo_conta_cartao, detalhe_tipo_receita):
+    return baker.make(
+        'ObsDevolucaoRelatorioConsolidadoDre',
+        dre=dre,
+        tipo_conta=tipo_conta_cartao,
+        tipo_devolucao='CONTA',
+        tipo_devolucao_a_conta=detalhe_tipo_receita,
+        observacao='Teste devolução à conta'
+    )
