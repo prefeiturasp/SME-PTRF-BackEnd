@@ -109,7 +109,12 @@ def test_api_get_info_devolucoes_conta_relatorio(
     result = json.loads(response.content)
 
     resultado_esperado = [
-        {'detalhe_tipo_receita__nome': 'Teste 1', 'ocorrencias': 2, 'valor': 200.00},
+        {
+            'detalhe_tipo_receita__nome': 'Teste 1',
+            'detalhe_tipo_receita__uuid': f'{receita_devolucao_1.detalhe_tipo_receita.uuid}',
+            'ocorrencias': 2,
+            'valor': 200.00
+        },
     ]
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado

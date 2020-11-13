@@ -84,7 +84,12 @@ def test_api_get_info_devolucoes_ao_tesouro_relatorio(
     result = json.loads(response.content)
 
     resultado_esperado = [
-        {'tipo__nome': f'{tipo_devolucao_ao_tesouro.nome}', 'ocorrencias': 2, 'valor': 200.00},
+        {
+            'tipo__nome': f'{tipo_devolucao_ao_tesouro.nome}',
+            'tipo__uuid': f'{tipo_devolucao_ao_tesouro.uuid}',
+            'ocorrencias': 2,
+            'valor': 200.00
+        },
     ]
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado

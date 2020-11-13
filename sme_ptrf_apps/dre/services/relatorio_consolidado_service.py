@@ -264,7 +264,7 @@ def informacoes_devolucoes_a_conta_ptrf(dre, periodo, tipo_conta):
         tipo_receita__e_devolucao=True,
         conta_associacao__tipo_conta=tipo_conta,
         associacao__uuid__in=associacoes_com_pc_concluidas,
-    ).values('detalhe_tipo_receita__nome').annotate(ocorrencias=Count('uuid'), valor=Sum('valor'))
+    ).values('detalhe_tipo_receita__nome', 'detalhe_tipo_receita__uuid').annotate(ocorrencias=Count('uuid'), valor=Sum('valor'))
 
     return devolucoes
 
@@ -275,7 +275,7 @@ def informacoes_devolucoes_ao_tesouro(dre, periodo):
         prestacao_conta__periodo=periodo,
         prestacao_conta__associacao__unidade__dre=dre,
         prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
-    ).values('tipo__nome').annotate(ocorrencias=Count('uuid'), valor=Sum('valor'))
+    ).values('tipo__nome', 'tipo__uuid').annotate(ocorrencias=Count('uuid'), valor=Sum('valor'))
 
     return devolucoes
 
