@@ -322,7 +322,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        info = informacoes_devolucoes_ao_tesouro(dre=dre, periodo=periodo)
+        info = informacoes_devolucoes_ao_tesouro(dre=dre, periodo=periodo, tipo_conta=tipo_conta)
 
         return Response(info)
 
