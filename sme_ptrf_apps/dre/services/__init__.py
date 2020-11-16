@@ -10,5 +10,6 @@ from .relatorio_consolidado_service import (
     informacoes_execucao_financeira,
     informacoes_devolucoes_a_conta_ptrf,
     informacoes_devolucoes_ao_tesouro,
-    informacoes_execucao_financeira_unidades
+    informacoes_execucao_financeira_unidades,
+    update_observacao_devolucao
 )

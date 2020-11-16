@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import (Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade,
                      ItemVerificacaoRegularidade,
                      VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq, RelatorioConsolidadoDRE,
-                     JustificativaRelatorioConsolidadoDRE)
+                     JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE)
 
 
 class ListasVerificacaoInline(admin.TabularInline):
@@ -129,3 +129,24 @@ class JustificativaRelatorioConsolidadoDREAdmin(admin.ModelAdmin):
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome', 'texto')
+
+
+@admin.register(ObsDevolucaoRelatorioConsolidadoDRE)
+class JObsDevolucaoRelatorioConsolidadoDREAdmin(admin.ModelAdmin):
+
+    def get_nome_dre(self, obj):
+        return obj.dre.nome if obj and obj.dre else ''
+
+    get_nome_dre.short_description = 'DRE'
+
+    def get_nome_tipo_conta(self, obj):
+        return obj.tipo_conta.nome if obj and obj.tipo_conta else ''
+
+    get_nome_tipo_conta.short_description = 'Tipo de conta'
+
+    list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'tipo_devolucao', 'observacao')
+    list_filter = (
+    'dre', 'periodo', 'tipo_conta', 'tipo_devolucao', 'tipo_devolucao_a_conta', 'tipo_devolucao_ao_tesouro')
+    list_display_links = ('get_nome_dre',)
+    readonly_fields = ('uuid', 'id')
+    search_fields = ('dre__nome', 'observacao')

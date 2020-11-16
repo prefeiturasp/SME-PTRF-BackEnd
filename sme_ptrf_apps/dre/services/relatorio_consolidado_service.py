@@ -8,7 +8,7 @@ from sme_ptrf_apps.core.models import (
     PrevisaoRepasseSme,
     DevolucaoAoTesouro,
 )
-from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE
+from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE
 from sme_ptrf_apps.receitas.models import Receita
 
 logger = logging.getLogger(__name__)
@@ -245,6 +245,40 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta):
     return totais
 
 
+def add_obs_devolucoes_dre(devolucoes, tipo_devolucao, dre, periodo, tipo_conta):
+    result = []
+    for dev in devolucoes:
+
+        if tipo_devolucao == 'CONTA':
+            registro_obs = ObsDevolucaoRelatorioConsolidadoDRE.objects.filter(
+                dre=dre,
+                periodo=periodo,
+                tipo_conta=tipo_conta,
+                tipo_devolucao=tipo_devolucao,
+                tipo_devolucao_a_conta__uuid=dev['detalhe_tipo_receita__uuid']
+            ).first()
+        else:
+
+            registro_obs = ObsDevolucaoRelatorioConsolidadoDRE.objects.filter(
+                dre=dre,
+                periodo=periodo,
+                tipo_conta=tipo_conta,
+                tipo_devolucao=tipo_devolucao,
+                tipo_devolucao_ao_tesouro__uuid=dev['tipo__uuid']
+            ).first()
+
+        result.append(
+            {
+                'tipo_nome': dev['detalhe_tipo_receita__nome'] if tipo_devolucao == 'CONTA' else dev['tipo__nome'],
+                'tipo_uuid': dev['detalhe_tipo_receita__uuid'] if tipo_devolucao == 'CONTA' else dev['tipo__uuid'],
+                'ocorrencias': dev['ocorrencias'],
+                'valor': dev['valor'],
+                'observacao': registro_obs.observacao if registro_obs else '',
+            }
+        )
+    return result
+
+
 def informacoes_devolucoes_a_conta_ptrf(dre, periodo, tipo_conta):
     # Devoluções à conta referente ao período e tipo_conta de Associações da DRE concluídas
     associacoes_com_pc_concluidas = PrestacaoConta.objects.filter(
@@ -264,20 +298,23 @@ def informacoes_devolucoes_a_conta_ptrf(dre, periodo, tipo_conta):
         tipo_receita__e_devolucao=True,
         conta_associacao__tipo_conta=tipo_conta,
         associacao__uuid__in=associacoes_com_pc_concluidas,
-    ).values('detalhe_tipo_receita__nome').annotate(ocorrencias=Count('uuid'), valor=Sum('valor'))
+    ).values('detalhe_tipo_receita__nome', 'detalhe_tipo_receita__uuid').annotate(ocorrencias=Count('uuid'),
+                                                                                  valor=Sum('valor'))
 
-    return devolucoes
+    return add_obs_devolucoes_dre(devolucoes=devolucoes, tipo_devolucao='CONTA', dre=dre, periodo=periodo,
+                                  tipo_conta=tipo_conta)
 
 
-def informacoes_devolucoes_ao_tesouro(dre, periodo):
+def informacoes_devolucoes_ao_tesouro(dre, periodo, tipo_conta):
     # Devoluções ao tesouro de PCs de Associações da DRE, no período da conta e concluídas
     devolucoes = DevolucaoAoTesouro.objects.filter(
         prestacao_conta__periodo=periodo,
         prestacao_conta__associacao__unidade__dre=dre,
         prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
-    ).values('tipo__nome').annotate(ocorrencias=Count('uuid'), valor=Sum('valor'))
+    ).values('tipo__nome', 'tipo__uuid').annotate(ocorrencias=Count('uuid'), valor=Sum('valor'))
 
-    return devolucoes
+    return add_obs_devolucoes_dre(devolucoes, 'TESOURO', dre=dre, periodo=periodo,
+                                  tipo_conta=tipo_conta)
 
 
 def informacoes_execucao_financeira_unidades(
@@ -497,5 +534,43 @@ def informacoes_execucao_financeira_unidades(
                 'valores': totais,
             }
         )
+
+    return resultado
+
+
+def update_observacao_devolucao(dre, tipo_conta, periodo, tipo_devolucao, subtipo_devolucao, observacao):
+    if not observacao:
+        ObsDevolucaoRelatorioConsolidadoDRE.objects.filter(
+            dre=dre,
+            tipo_conta=tipo_conta,
+            periodo=periodo,
+            tipo_devolucao=tipo_devolucao,
+            tipo_devolucao_a_conta=subtipo_devolucao if tipo_devolucao == 'CONTA' else None,
+            tipo_devolucao_ao_tesouro=subtipo_devolucao if tipo_devolucao == 'TESOURO' else None,
+        ).delete()
+
+        return {
+            'tipo_nome': f'{subtipo_devolucao.nome}',
+            'tipo_uuid': f'{subtipo_devolucao.uuid}',
+            'observacao': '',
+            'mensagem': 'Observação apagada com sucesso.'
+        }
+
+    obj, created = ObsDevolucaoRelatorioConsolidadoDRE.objects.update_or_create(
+        dre=dre,
+        tipo_conta=tipo_conta,
+        periodo=periodo,
+        tipo_devolucao=tipo_devolucao,
+        tipo_devolucao_a_conta=subtipo_devolucao if tipo_devolucao == 'CONTA' else None,
+        tipo_devolucao_ao_tesouro=subtipo_devolucao if tipo_devolucao == 'TESOURO' else None,
+        defaults={'observacao': observacao},
+    )
+
+    resultado = {
+        'tipo_nome': f'{subtipo_devolucao.nome}',
+        'tipo_uuid': f'{subtipo_devolucao.uuid}',
+        'observacao': observacao,
+        'mensagem': 'Observação criada com sucesso.' if created else 'Observação atualizada com sucesso.'
+    }
 
     return resultado
