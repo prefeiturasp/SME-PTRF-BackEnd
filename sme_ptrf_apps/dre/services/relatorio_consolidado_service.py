@@ -55,6 +55,7 @@ def status_de_geracao_do_relatorio(dre, periodo, tipo_conta):
         'status_geracao': status_relatorio,
         'status_txt': status_txt_geracao,
         'cor_idx': cor_idx,
+        'status_arquivo': 'Documento pendente de geração' if status_relatorio == 'NAO_GERADO' else relatorio.__str__()
     }
     return status
 
