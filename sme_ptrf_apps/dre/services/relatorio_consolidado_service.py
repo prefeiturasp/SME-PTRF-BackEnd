@@ -536,3 +536,41 @@ def informacoes_execucao_financeira_unidades(
         )
 
     return resultado
+
+
+def update_observacao_devolucao(dre, tipo_conta, periodo, tipo_devolucao, subtipo_devolucao, observacao):
+    if not observacao:
+        ObsDevolucaoRelatorioConsolidadoDRE.objects.filter(
+            dre=dre,
+            tipo_conta=tipo_conta,
+            periodo=periodo,
+            tipo_devolucao=tipo_devolucao,
+            tipo_devolucao_a_conta=subtipo_devolucao if tipo_devolucao == 'CONTA' else None,
+            tipo_devolucao_ao_tesouro=subtipo_devolucao if tipo_devolucao == 'TESOURO' else None,
+        ).delete()
+
+        return {
+            'tipo_nome': f'{subtipo_devolucao.nome}',
+            'tipo_uuid': f'{subtipo_devolucao.uuid}',
+            'observacao': '',
+            'mensagem': 'Observação apagada com sucesso.'
+        }
+
+    obj, created = ObsDevolucaoRelatorioConsolidadoDRE.objects.update_or_create(
+        dre=dre,
+        tipo_conta=tipo_conta,
+        periodo=periodo,
+        tipo_devolucao=tipo_devolucao,
+        tipo_devolucao_a_conta=subtipo_devolucao if tipo_devolucao == 'CONTA' else None,
+        tipo_devolucao_ao_tesouro=subtipo_devolucao if tipo_devolucao == 'TESOURO' else None,
+        defaults={'observacao': observacao},
+    )
+
+    resultado = {
+        'tipo_nome': f'{subtipo_devolucao.nome}',
+        'tipo_uuid': f'{subtipo_devolucao.uuid}',
+        'observacao': observacao,
+        'mensagem': 'Observação criada com sucesso.' if created else 'Observação atualizada com sucesso.'
+    }
+
+    return resultado

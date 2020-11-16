@@ -10,6 +10,7 @@ from sme_ptrf_apps.core.models import (
     Unidade,
     Periodo,
     TipoConta,
+    TipoDevolucaoAoTesouro
 )
 from ...models import RelatorioConsolidadoDRE
 
@@ -18,7 +19,8 @@ from ...services import (
     informacoes_execucao_financeira,
     informacoes_devolucoes_a_conta_ptrf,
     informacoes_devolucoes_ao_tesouro,
-    informacoes_execucao_financeira_unidades
+    informacoes_execucao_financeira_unidades,
+    update_observacao_devolucao
 )
 
 logger = logging.getLogger(__name__)
@@ -408,5 +410,103 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             filtro_tipo_unidade=tipo_unidade,
             filtro_status=status,
         )
+
+        return Response(info)
+
+    @action(detail=False, methods=['put'], url_path='update-observacao-devolucoes-ao-tesouro')
+    def update_observacao_devolucoes_ao_tesouro(self, request):
+        from rest_framework import status
+        # Determina a DRE
+        dre_uuid = self.request.query_params.get('dre')
+
+        if not dre_uuid:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'operacao': 'update-observacao-devolucoes-ao-tesouro',
+                'mensagem': 'Faltou informar o uuid da dre. ?dre=uuid_da_dre'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            dre = Unidade.dres.get(uuid=dre_uuid)
+        except Unidade.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Determina o tipo de conta
+        tipo_conta_uuid = self.request.query_params.get('tipo_conta')
+
+        if not tipo_conta_uuid:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'operacao': 'update-observacao-devolucoes-ao-tesouro',
+                'mensagem': 'Faltou informar o uuid do tipo de conta. ?tipo_conta=uuid_do_tipo_conta'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            tipo_conta = TipoConta.objects.get(uuid=tipo_conta_uuid)
+        except TipoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto tipo de conta para o uuid {tipo_conta_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Determina o período
+        periodo_uuid = self.request.query_params.get('periodo')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'operacao': 'update-observacao-devolucoes-ao-tesouro',
+                'mensagem': 'Faltou informar o uuid do período. ?periodo=uuid_do_periodo'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Determina o tipo de devolução ao tesouro
+        tipo_uuid = self.request.query_params.get('tipo_devolucao')
+
+        if not tipo_uuid:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'operacao': 'update-observacao-devolucoes-ao-tesouro',
+                'mensagem': 'Faltou informar o uuid do tipo de devolução ao tesouro. ?tipo_devolucao=tipo_uuid'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            tipo_devolucao = TipoDevolucaoAoTesouro.objects.get(uuid=tipo_uuid)
+        except TipoDevolucaoAoTesouro.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto tipo devolução ao tesouro para o uuid {tipo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        observacao = request.data.get('observacao', '')
+
+        info = update_observacao_devolucao(dre=dre, tipo_conta=tipo_conta, periodo=periodo, tipo_devolucao='TESOURO',
+                                           subtipo_devolucao=tipo_devolucao, observacao=observacao)
 
         return Response(info)
