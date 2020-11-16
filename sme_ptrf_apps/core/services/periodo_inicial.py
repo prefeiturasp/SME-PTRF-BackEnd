@@ -74,18 +74,23 @@ def carrega_periodo_inicial(arquivo):
     logger.info("Executando Carga de Período inicial para associações.")
     arquivo.ultima_execucao = datetime.datetime.now()
 
-    with open(arquivo.conteudo.path, 'r') as f:
-        sniffer = csv.Sniffer().sniff(f.read(1024))
-        f.seek(0)
-        if  __DELIMITADORES[sniffer.delimiter] != arquivo.tipo_delimitador:
-            msg_erro = f"Formato definido ({arquivo.tipo_delimitador}) é diferente do formato do arquivo csv ({__DELIMITADORES[sniffer.delimiter]})"
-            logger.info(msg_erro)
-            arquivo.status = ERRO
-            arquivo.log = msg_erro
-            arquivo.save()
-            return
+    try:
+        with open(arquivo.conteudo.path, 'r') as f:
+            sniffer = csv.Sniffer().sniff(f.readline())
+            f.seek(0)
+            if  __DELIMITADORES[sniffer.delimiter] != arquivo.tipo_delimitador:
+                msg_erro = f"Formato definido ({arquivo.tipo_delimitador}) é diferente do formato do arquivo csv ({__DELIMITADORES[sniffer.delimiter]})"
+                logger.info(msg_erro)
+                arquivo.status = ERRO
+                arquivo.log = msg_erro
+                arquivo.save()
+                return
 
-        reader = csv.reader(f, delimiter=sniffer.delimiter)
-        processa_periodo_inicial(reader, arquivo)
+            reader = csv.reader(f, delimiter=sniffer.delimiter)
+            processa_periodo_inicial(reader, arquivo)
 
-    logger.info("Carga de Períodos efetuada com sucesso.")
+        logger.info("Carga de Períodos efetuada com sucesso.")
+    except Exception as err:
+        logger.info("Erro ao processar períodos: %s", str(err))
+        arquivo.log = "Erro ao processar períodos."
+        arquivo.save()
