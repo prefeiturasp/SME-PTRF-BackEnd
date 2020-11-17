@@ -45,7 +45,7 @@ class RelatorioConsolidadoDRE(ModeloBase):
         verbose_name_plural = 'Relatórios consolidados DREs'
 
     def __str__(self):
-        return f"Documento gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
+        return f"Documento {'final' if self.status == 'GERADO_TOTAL' else 'parcial'} gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
 
 
 @receiver(models.signals.post_delete, sender=RelatorioConsolidadoDRE)
