@@ -329,9 +329,12 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
     get_referencia_periodo.short_description = 'Período'
 
     list_display = (
-        'get_associacao', 'get_referencia_periodo', 'data', 'tipo', 'devolucao_total', 'valor')
+        'get_associacao', 'get_referencia_periodo', 'data', 'tipo', 'devolucao_total', 'valor', 'visao_criacao')
+
     list_filter = (
-    'prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta', 'tipo', 'devolucao_total')
+        'prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta', 'tipo', 'devolucao_total',
+        'visao_criacao')
+
     list_display_links = ('get_associacao',)
     readonly_fields = ('uuid', id)
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
@@ -354,15 +357,15 @@ class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
     list_display = (
         'get_associacao', 'get_referencia_periodo', 'ordem', 'comentario')
     list_filter = (
-    'prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
+        'prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
     list_display_links = ('get_associacao',)
     readonly_fields = ('uuid', id)
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome', 'ordem', 'comentario')
 
+
 @admin.register(PrevisaoRepasseSme)
 class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
-
     list_display = ('associacao', 'conta_associacao', 'periodo', 'valor_capital', 'valor_custeio', 'valor_livre')
     list_filter = ('associacao', 'periodo', 'conta_associacao')
     list_display_links = ('associacao',)
