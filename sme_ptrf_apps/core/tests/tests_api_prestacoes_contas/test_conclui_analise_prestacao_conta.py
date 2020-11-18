@@ -1,7 +1,6 @@
 import json
 import pytest
 
-from freezegun import freeze_time
 from datetime import date
 
 from model_bakery import baker

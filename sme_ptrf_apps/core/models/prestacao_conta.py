@@ -145,7 +145,8 @@ class PrestacaoConta(ModeloBase):
                 data=devolucao['data'],
                 devolucao_total=devolucao['devolucao_total'],
                 motivo=devolucao['motivo'],
-                valor=devolucao['valor']
+                valor=devolucao['valor'],
+                visao_criacao=devolucao['visao_criacao'],
             )
 
         return self
@@ -190,7 +191,8 @@ class PrestacaoConta(ModeloBase):
                 data=devolucao['data'],
                 devolucao_total=devolucao['devolucao_total'],
                 motivo=devolucao['motivo'],
-                valor=devolucao['valor']
+                valor=devolucao['valor'],
+                visao_criacao=devolucao['visao_criacao'],
             )
 
         return self
