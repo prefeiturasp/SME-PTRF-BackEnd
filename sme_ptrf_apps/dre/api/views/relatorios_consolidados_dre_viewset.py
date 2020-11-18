@@ -1,7 +1,7 @@
 import logging
 
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 class RelatoriosConsolidadosDREViewSet(GenericViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     queryset = RelatorioConsolidadoDRE.objects.all()
 
     @action(detail=False, methods=['get'], url_path='fique-de-olho')
