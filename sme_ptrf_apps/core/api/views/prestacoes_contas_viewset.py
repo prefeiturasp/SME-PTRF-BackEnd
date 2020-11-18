@@ -545,7 +545,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        total_associacoes_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).count()
+        total_associacoes_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
 
         par_add_aprovados_ressalva = request.query_params.get('add_aprovadas_ressalva')
         add_aprovados_ressalva = par_add_aprovados_ressalva == 'SIM'

@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class PrestacaoConta(ModeloBase):
     # Status Choice
-    STATUS_NAO_APRESENTADA= 'NAO_APRESENTADA'
+    STATUS_NAO_APRESENTADA = 'NAO_APRESENTADA'
     STATUS_NAO_RECEBIDA = 'NAO_RECEBIDA'
     STATUS_RECEBIDA = 'RECEBIDA'
     STATUS_EM_ANALISE = 'EM_ANALISE'
@@ -127,7 +127,6 @@ class PrestacaoConta(ModeloBase):
         self.status = self.STATUS_RECEBIDA
         self.save()
         return self
-
 
     @transaction.atomic
     def salvar_devolucoes_ao_tesouro(self, devolucoes_ao_tesouro_da_prestacao=[]):
@@ -245,7 +244,6 @@ class PrestacaoConta(ModeloBase):
             logger.error(f'Houve algum erro ao tentar apagar a PC de uuid {uuid}.')
             return False
 
-
     @classmethod
     def abrir(cls, periodo, associacao):
         prestacao_de_conta = cls.by_periodo(associacao=associacao, periodo=periodo)
@@ -264,6 +262,12 @@ class PrestacaoConta(ModeloBase):
 
     @classmethod
     def dashboard(cls, periodo_uuid, dre_uuid, add_aprovado_ressalva=False):
+        '''
+        :param add_aprovado_ressalva: True para retornar a quantidade de aprovados com ressalva separadamente ou
+        False para retornar a quantidade de aprovadas com ressalva somada a quantidade de aprovadas
+        '''
+        from ..models import Associacao
+
         titulos_por_status = {
             cls.STATUS_NAO_RECEBIDA: "Prestações de contas não recebidas",
             cls.STATUS_RECEBIDA: "Prestações de contas recebidas aguardando análise",
@@ -278,13 +282,34 @@ class PrestacaoConta(ModeloBase):
 
         cards = []
         qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid)
+
+        quantidade_pcs_apresentadas = 0
         for status, titulo in titulos_por_status.items():
+            if status == cls.STATUS_NAO_RECEBIDA:
+                continue
+
+            quantidade_status = qs.filter(status=status).count()
+
+            if status == cls.STATUS_APROVADA and not add_aprovado_ressalva:
+                quantidade_status += qs.filter(status=cls.STATUS_APROVADA_RESSALVA).count()
+
+            quantidade_pcs_apresentadas += quantidade_status
+
             card = {
                 "titulo": titulo,
-                "quantidade_prestacoes": qs.filter(status=status).count(),
+                "quantidade_prestacoes": quantidade_status,
                 "status": status
             }
             cards.append(card)
+
+        quantidade_unidades_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
+        quantidade_pcs_nao_apresentadas = quantidade_unidades_dre - quantidade_pcs_apresentadas
+        card_nao_recebidas = {
+            "titulo": titulos_por_status['NAO_RECEBIDA'],
+            "quantidade_prestacoes": quantidade_pcs_nao_apresentadas,
+            "status": 'NAO_RECEBIDA'
+        }
+        cards.append(card_nao_recebidas)
 
         return cards
 

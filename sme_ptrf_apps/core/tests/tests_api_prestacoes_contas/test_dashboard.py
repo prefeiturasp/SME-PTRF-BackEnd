@@ -8,7 +8,7 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def prestacao_conta1(periodo, associacao):
+def prestacao_conta_em_analise(periodo, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo,
@@ -18,7 +18,7 @@ def prestacao_conta1(periodo, associacao):
 
 
 @pytest.fixture
-def prestacao_conta2(periodo, outra_associacao):
+def prestacao_conta_aprovada(periodo, outra_associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo,
@@ -39,7 +39,7 @@ def associacao_3(unidade, periodo_anterior):
 
 
 @pytest.fixture
-def prestacao_conta3(periodo, associacao_3):
+def prestacao_conta_aprovada_ressalva(periodo, associacao_3):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo,
@@ -48,25 +48,79 @@ def prestacao_conta3(periodo, associacao_3):
     )
 
 
+@pytest.fixture
+def _unidade_que_nao_apresentou_pc(dre):
+    return baker.make(
+        'Unidade',
+        codigo_eol="000102",
+        tipo_unidade="CEU",
+        nome="Codorna",
+        sigla="",
+        dre=dre,
+    )
+
+
+@pytest.fixture
+def _unidade_c_dre_1_ceu(dre):
+    return baker.make(
+        'Unidade',
+        codigo_eol="000545",
+        tipo_unidade="CEU",
+        nome="Codorna",
+        sigla="",
+        dre=dre,
+    )
+
+
+@pytest.fixture
+def _associacao_c_dre_1(_unidade_c_dre_1_ceu, periodo, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Cuba',
+        cnpj='88.102.703/0001-55',
+        unidade=_unidade_c_dre_1_ceu,
+        periodo_inicial=periodo_anterior
+    )
+
+
+@pytest.fixture
+def prestacao_conta_nao_recebida(periodo, _associacao_c_dre_1):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo,
+        associacao=_associacao_c_dre_1,
+        status="NAO_RECEBIDA"
+    )
+
+
+@pytest.fixture
+def _associacao_que_nao_apresentou_pc1(_unidade_que_nao_apresentou_pc, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Cuba',
+        cnpj='88.102.703/0001-79',
+        unidade=_unidade_que_nao_apresentou_pc,
+        periodo_inicial=periodo_anterior
+    )
+
+
 def test_dashboard(
     jwt_authenticated_client_a,
-    prestacao_conta1,
-    prestacao_conta2,
-    prestacao_conta3,
+    prestacao_conta_aprovada,
+    prestacao_conta_em_analise,
+    prestacao_conta_aprovada_ressalva,
+    prestacao_conta_nao_recebida,
     periodo,
-    dre
+    dre,
+    _associacao_que_nao_apresentou_pc1
 ):
     response = jwt_authenticated_client_a.get(
         f"/api/prestacoes-contas/dashboard/?periodo={periodo.uuid}&dre_uuid={dre.uuid}")
     result = response.json()
 
     esperado = {
-        'total_associacoes_dre': 3,
+        'total_associacoes_dre': 5,
         'cards': [
-            {
-                'titulo': 'Prestações de contas não recebidas',
-                'quantidade_prestacoes': 0,
-                'status': 'NAO_RECEBIDA'},
             {
                 'titulo': 'Prestações de contas recebidas aguardando análise',
                 'quantidade_prestacoes': 0,
@@ -81,38 +135,41 @@ def test_dashboard(
                 'status': 'DEVOLVIDA'},
             {
                 'titulo': 'Prestações de contas aprovadas',
-                'quantidade_prestacoes': 1,
+                'quantidade_prestacoes': 2,  # Aprovada + Aprovada com ressalva
                 'status': 'APROVADA'},
             {
                 'titulo': 'Prestações de contas reprovadas',
                 'quantidade_prestacoes': 0,
-                'status': 'REPROVADA'}
+                'status': 'REPROVADA'},
+
+            {
+                'titulo': 'Prestações de contas não recebidas',
+                'quantidade_prestacoes': 2,  # Uma PC não recebida + Uma Associação sem PC.
+                'status': 'NAO_RECEBIDA'}
         ]
     }
 
     assert response.status_code == status.HTTP_200_OK
-    assert esperado == result
+    assert result == esperado
 
 
 def test_dashboard_add_aprovada_ressalva(
     jwt_authenticated_client_a,
-    prestacao_conta1,
-    prestacao_conta2,
-    prestacao_conta3,
+    prestacao_conta_aprovada,
+    prestacao_conta_em_analise,
+    prestacao_conta_aprovada_ressalva,
+    prestacao_conta_nao_recebida,
     periodo,
-    dre
+    dre,
+    _associacao_que_nao_apresentou_pc1
 ):
     response = jwt_authenticated_client_a.get(
         f"/api/prestacoes-contas/dashboard/?periodo={periodo.uuid}&dre_uuid={dre.uuid}&add_aprovadas_ressalva=SIM")
     result = response.json()
 
     esperado = {
-        'total_associacoes_dre': 3,
+        'total_associacoes_dre': 5,
         'cards': [
-            {
-                'titulo': 'Prestações de contas não recebidas',
-                'quantidade_prestacoes': 0,
-                'status': 'NAO_RECEBIDA'},
             {
                 'titulo': 'Prestações de contas recebidas aguardando análise',
                 'quantidade_prestacoes': 0,
@@ -136,7 +193,11 @@ def test_dashboard_add_aprovada_ressalva(
             {
                 'titulo': 'Prestações de contas aprovadas com ressalvas',
                 'quantidade_prestacoes': 1,
-                'status': 'APROVADA_RESSALVA'}
+                'status': 'APROVADA_RESSALVA'},
+            {
+                'titulo': 'Prestações de contas não recebidas',
+                'quantidade_prestacoes': 2,
+                'status': 'NAO_RECEBIDA'}
         ]
     }
 
@@ -144,7 +205,7 @@ def test_dashboard_add_aprovada_ressalva(
     assert result == esperado
 
 
-def test_dashboard_erro(jwt_authenticated_client_a, prestacao_conta1, prestacao_conta2, periodo, dre):
+def test_dashboard_erro(jwt_authenticated_client_a, prestacao_conta_aprovada, prestacao_conta_em_analise, periodo, dre):
     response = jwt_authenticated_client_a.get(f"/api/prestacoes-contas/dashboard/?periodo=&dre_uuid=")
     result = response.json()
 
@@ -157,7 +218,8 @@ def test_dashboard_erro(jwt_authenticated_client_a, prestacao_conta1, prestacao_
     assert erro_esperado == result
 
 
-def test_dashboard_outro_periodo(jwt_authenticated_client_a, prestacao_conta1, prestacao_conta2, periodo_2020_1, dre):
+def test_dashboard_outro_periodo(jwt_authenticated_client_a, prestacao_conta_aprovada, prestacao_conta_em_analise,
+                                 periodo_2020_1, dre):
     response = jwt_authenticated_client_a.get(
         f"/api/prestacoes-contas/dashboard/?periodo={periodo_2020_1.uuid}&dre_uuid={dre.uuid}")
     result = response.json()
@@ -165,10 +227,6 @@ def test_dashboard_outro_periodo(jwt_authenticated_client_a, prestacao_conta1, p
     esperado = {
         'total_associacoes_dre': 2,
         'cards': [
-            {
-                'titulo': 'Prestações de contas não recebidas',
-                'quantidade_prestacoes': 0,
-                'status': 'NAO_RECEBIDA'},
             {
                 'titulo': 'Prestações de contas recebidas aguardando análise',
                 'quantidade_prestacoes': 0,
@@ -188,7 +246,11 @@ def test_dashboard_outro_periodo(jwt_authenticated_client_a, prestacao_conta1, p
             {
                 'titulo': 'Prestações de contas reprovadas',
                 'quantidade_prestacoes': 0,
-                'status': 'REPROVADA'}
+                'status': 'REPROVADA'},
+            {
+                'titulo': 'Prestações de contas não recebidas',
+                'quantidade_prestacoes': 2,
+                'status': 'NAO_RECEBIDA'}
         ]
     }
 
