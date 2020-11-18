@@ -24,7 +24,8 @@ from ...services import (
     informacoes_devolucoes_a_conta_ptrf,
     informacoes_devolucoes_ao_tesouro,
     informacoes_execucao_financeira_unidades,
-    update_observacao_devolucao
+    update_observacao_devolucao,
+    gera_relatorio_dre
 )
 
 logger = logging.getLogger(__name__)
@@ -698,3 +699,59 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         return response
+
+    @action(detail=False, url_path="gerar-relatorio", methods=['post'])
+    def gerar_relatorio(self, request):
+        dados = request.data
+
+        if not dados or not dados['dre_uuid'] or not dados['periodo_uuid'] or not dados['tipo_conta_uuid']:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar os uuids da dre, período e conta.'
+            }
+            logger.info('Erro ao gerar relatório consolidado: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        
+        dre_uuid, periodo_uuid, tipo_conta_uuid = dados['dre_uuid'], dados['periodo_uuid'], dados['tipo_conta_uuid']
+        
+        try:
+            dre = Unidade.dres.get(uuid=dre_uuid)
+        except Unidade.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            tipo_conta = TipoConta.objects.get(uuid=tipo_conta_uuid)
+        except TipoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto tipo de conta para o uuid {tipo_conta_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            relatorio_consolidado_dre = gera_relatorio_dre(dre, periodo, tipo_conta)
+        except Exception as err:
+            erro = {
+                'erro': 'problem_geracao_relatorio',
+                'mensagem': 'Ao gerar relatório.'
+            }
+            logger.info("Erro ao gerar relatório: %s", str(err))
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"OK": "Relatório Gerado."}, status=status.HTTP_201_CREATED)
