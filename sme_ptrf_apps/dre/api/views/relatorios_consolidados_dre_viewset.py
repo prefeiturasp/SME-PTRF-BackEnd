@@ -704,10 +704,10 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
     def gerar_relatorio(self, request):
         dados = request.data
 
-        if not dados or not dados['dre_uuid'] or not dados['periodo_uuid'] or not dados['tipo_conta_uuid']:
+        if not dados or not dados.get('dre_uuid') or not dados.get('periodo_uuid') or not dados.get('tipo_conta_uuid') or (dados.get('parcial') is None):
             erro = {
                 'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar os uuids da dre, período e conta.'
+                'mensagem': 'É necessário enviar os uuids da dre, período, conta e parcial.'
             }
             logger.info('Erro ao gerar relatório consolidado: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -745,13 +745,13 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            relatorio_consolidado_dre = gera_relatorio_dre(dre, periodo, tipo_conta)
+            gera_relatorio_dre(dre, periodo, tipo_conta, dados['parcial'])
         except Exception as err:
             erro = {
                 'erro': 'problem_geracao_relatorio',
                 'mensagem': 'Ao gerar relatório.'
             }
-            logger.info("Erro ao gerar relatório: %s", str(err))
+            logger.info("Erro ao gerar relatório consolidado: %s", str(err))
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"OK": "Relatório Gerado."}, status=status.HTTP_201_CREATED)
+        return Response({"OK": "Relatório Consolidado Gerado."}, status=status.HTTP_201_CREATED)
