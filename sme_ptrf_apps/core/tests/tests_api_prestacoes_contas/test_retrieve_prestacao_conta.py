@@ -266,7 +266,8 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                     'uuid': f'{devolucao_ao_tesouro.tipo.uuid}',
                 },
                 'uuid': f'{devolucao_ao_tesouro.uuid}',
-                'valor': '100.00'
+                'valor': '100.00',
+                'visao_criacao': 'DRE'
             }
         ],
     }

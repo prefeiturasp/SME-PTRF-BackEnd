@@ -38,7 +38,8 @@ def devolucao_ao_tesouro(prestacao_conta_2020_1_conciliada, tipo_devolucao_ao_te
         despesa=despesa,
         devolucao_total=True,
         valor=100.00,
-        motivo='teste'
+        motivo='teste',
+        visao_criacao='DRE'
     )
 
 
@@ -52,6 +53,7 @@ def test_instance_model(devolucao_ao_tesouro):
     assert model.devolucao_total
     assert model.valor
     assert model.motivo
+    assert model.visao_criacao
 
 
 def test_srt_model(devolucao_ao_tesouro):

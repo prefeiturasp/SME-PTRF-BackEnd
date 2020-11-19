@@ -55,7 +55,8 @@ def test_api_salva_devolucoes_ao_tesouro(jwt_authenticated_client, prestacao_con
                 'motivo': 'teste',
                 'valor': 100.00,
                 'tipo': f'{tipo_devolucao_ao_tesouro.uuid}',
-                'despesa': f'{despesa.uuid}'
+                'despesa': f'{despesa.uuid}',
+                'visao_criacao': 'UE'
             }
         ]
     }
@@ -68,6 +69,7 @@ def test_api_salva_devolucoes_ao_tesouro(jwt_authenticated_client, prestacao_con
 
     prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_em_analise.uuid)
     assert prestacao_atualizada.devolucoes_ao_tesouro_da_prestacao.exists(), 'Não gravou as devoluções ao tesouro'
+    assert prestacao_atualizada.devolucoes_ao_tesouro_da_prestacao.first().visao_criacao == 'UE'
 
 def test_api_salvar_devolucoes_ao_tesouro_exige_devolucao_tesouro(jwt_authenticated_client, prestacao_conta_em_analise):
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/salvar-devolucoes-ao-tesouro/'
