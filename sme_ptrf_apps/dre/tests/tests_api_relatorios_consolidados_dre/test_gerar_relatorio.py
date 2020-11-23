@@ -17,7 +17,7 @@ def test_api_geracao_relatorio_final(jwt_authenticated_client_dre, periodo, dre,
     }
 
     response = jwt_authenticated_client_dre.post(
-        f'/api/relatorios-consolidados-dre/gerar-relatorio/',
+        '/api/relatorios-consolidados-dre/gerar-relatorio/',
         data=json.dumps(payload),
         content_type='application/json')
 
