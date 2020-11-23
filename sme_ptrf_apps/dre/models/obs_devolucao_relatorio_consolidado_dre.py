@@ -49,7 +49,6 @@ class ObsDevolucaoRelatorioConsolidadoDRE(ModeloBase):
     class Meta:
         verbose_name = 'Observação sobre devoluções de relatório consolidado DRE'
         verbose_name_plural = 'Observações sobre devoluções em relatórios consolidados DREs'
-        unique_together = ['dre', 'tipo_conta', 'periodo', 'tipo_devolucao']
 
     def __str__(self):
         return self.observacao
