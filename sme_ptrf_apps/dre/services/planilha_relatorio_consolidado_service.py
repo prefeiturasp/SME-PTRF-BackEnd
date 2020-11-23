@@ -8,10 +8,12 @@ Esse script tem as seguintes funções:
     * gerar - Função inicial para gerar a planilha.
     * cabecalho - Preenche o cabeçalho da planilha.
     * identificacao_dre - Preenche o bloco de identificação da DRE da planilha.
+    * assinatura_dre - Preenche o bloco de assinaturas.
     * data_geracao_documento - Preenche a data de geração do documento.
     * execucao_financeira - Preenche o bloco de execuções financeiras. 
     * execucao_fisica - Preenche o bloco de execuções fisicas.
     * associacoes_nao_regularizadas - Preenche as associações não regularizadas do bloco de execuções físicas.
+    * dados_fisicos_financeiros - Dadis físicos finceiros do bloco 4 da planiha.
 """
 
 import logging
@@ -21,13 +23,18 @@ from tempfile import NamedTemporaryFile
 
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.files import File
-from openpyxl import load_workbook, styles
+from openpyxl import load_workbook
 
-from sme_ptrf_apps.core.models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade
-from sme_ptrf_apps.core.services.xlsx_copy_row import copy_row
+from sme_ptrf_apps.core.models import Associacao, PrestacaoConta
+from sme_ptrf_apps.core.services.xlsx_copy_row import copy_row, copy_row_direct
 from sme_ptrf_apps.dre.models import JustificativaRelatorioConsolidadoDRE, RelatorioConsolidadoDRE
 
-from .relatorio_consolidado_service import informacoes_execucao_financeira
+from .relatorio_consolidado_service import (
+    informacoes_devolucoes_a_conta_ptrf,
+    informacoes_devolucoes_ao_tesouro,
+    informacoes_execucao_financeira,
+    informacoes_execucao_financeira_unidades,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -90,7 +97,7 @@ def gera_relatorio_dre(dre, periodo, tipo_conta, parcial=False):
 
 def gerar(dre, periodo, tipo_conta, parcial=False):
     LOGGER.info("GERANDO RELATÓRIO CONSOLIDADO...")
-    
+
     path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
     nome_arquivo = os.path.join(path, 'modelo_relatorio_dre_sme.xlsx')
     workbook = load_workbook(nome_arquivo)
@@ -98,9 +105,17 @@ def gerar(dre, periodo, tipo_conta, parcial=False):
     try:
         cabecalho(worksheet, periodo, tipo_conta, parcial)
         identificacao_dre(worksheet, dre)
+        assinatura_dre(worksheet, dre)
         data_geracao_documento(worksheet, parcial)
         execucao_financeira(worksheet, dre, periodo, tipo_conta)
         execucao_fisica(worksheet, dre, periodo)
+
+        associacoes_pendentes = Associacao.objects.filter(
+            unidade__dre=dre, status_regularidade=Associacao.STATUS_REGULARIDADE_PENDENTE).exclude(cnpj__exact='')
+
+        associacoes_nao_regularizadas(worksheet, associacoes_pendentes)
+        acc = len(associacoes_pendentes) - 1 if len(associacoes_pendentes) > 1 else 0
+        dados_fisicos_financeiros(worksheet, dre, periodo, tipo_conta, acc=acc)
     except Exception as err:
         LOGGER.info("Erro %s", str(err))
         raise err
@@ -124,7 +139,22 @@ def identificacao_dre(worksheet, dre):
     rows[LINHA_IDENTIFICACAO][COL_IDENTIFICACAO_CNPJ].value = dre.dre_cnpj
 
 
+def assinatura_dre(worksheet, dre):
+    """Bloco 5 - Autenticação: Parte de assinaturas"""
+
+    rows = list(worksheet.rows)
+    rows[53][0].value = f"""________________________________________
+    Assinatura e carimbo do responsável pela área contábil da DRE {dre.nome}"""
+
+    rows[53][4].value = f"""________________________________________
+    Assinatura e carimbo do responsável do Presidente da Comissão Específica da DRE {dre.nome}"""
+
+    rows[53][8].value = f"""________________________________________
+    Assinatura e carimbo do Diretor Regional de Educação da DRE {dre.nome}"""
+
+
 def execucao_financeira(worksheet, dre, periodo, tipo_conta):
+    """BLOCO 2 - EXECUÇÃO FINANCEIRA"""
     rows = list(worksheet.rows)
     info = informacoes_execucao_financeira(dre, periodo, tipo_conta)
 
@@ -191,6 +221,7 @@ def execucao_financeira(worksheet, dre, periodo, tipo_conta):
 
 
 def execucao_fisica(worksheet, dre, periodo):
+    """BLOCO 3 - EXECUÇÃO FÍSICA"""
     rows = list(worksheet.rows)
 
     rows[LINHA_EXECUCAO_FISICA][0].value = dre.unidades_da_dre.count()
@@ -219,10 +250,6 @@ def execucao_fisica(worksheet, dre, periodo):
     rows[LINHA_EXECUCAO_FISICA][10].value = quantidade_devida
     rows[LINHA_EXECUCAO_FISICA][11].value = quantidade_aprovada + quantidade_devida
 
-    associacoes_pendentes = Associacao.objects.filter(
-        unidade__dre=dre, status_regularidade=Associacao.STATUS_REGULARIDADE_PENDENTE).exclude(cnpj__exact='')
-    associacoes_nao_regularizadas(worksheet, associacoes_pendentes)
-
 
 def associacoes_nao_regularizadas(worksheet, associacoes_pendetes, acc=0, start_line=29):
     quantidade = acc
@@ -240,6 +267,191 @@ def associacoes_nao_regularizadas(worksheet, associacoes_pendetes, acc=0, start_
         row = rows[ind - 1]
         row[0].value = linha + 1
         row[1].value = associacao.nome
+
+
+def dados_fisicos_financeiros(worksheet, dre, periodo, tipo_conta, acc=0, start_line=34):
+    """Dados Físicos financeiros do bloco 4."""
+    quantidade = acc
+    last_line = LAST_LINE + quantidade
+    ind = start_line + quantidade
+    lin = ind
+
+    last = last_line + 1
+    start = 35 + quantidade
+
+    total_saldo_reprogramado_anterior_custeio = 0
+    total_repasse_custeio = 0
+    total_devolucao_custeio = 0
+    total_demais_creditos_custeio = 0
+    total_despesas_custeio = 0
+    total_saldo_custeio = 0
+
+    total_saldo_reprogramado_anterior_capital = 0
+    total_repasse_capital = 0
+    total_devolucao_capital = 0
+    total_demais_creditos_capital = 0
+    total_despesas_capital = 0
+    total_saldo_capital = 0
+
+    total_saldo_reprogramado_anterior_livre = 0
+    total_repasse_livre = 0
+    total_receita_rendimento_livre = 0
+    total_devolucao_livre = 0
+    total_demais_creditos_livre = 0
+    total_saldo_livre = 0
+
+    informacao_unidades = informacoes_execucao_financeira_unidades(dre, periodo, tipo_conta)
+    for linha, info in enumerate(informacao_unidades):
+        if linha > 0:
+            for i in range(3):
+                for inx in range(last, start, -1):
+                    copy_row_direct(worksheet, inx, inx+1, copy_data=True)
+                last += 1
+                start += 1
+
+            for x in range(ind, ind+3):
+               copy_row_direct(worksheet, x, x+3, copy_data=True)
+            ind += 3
+
+        saldo_custeio = 0
+        saldo_capital = 0
+        saldo_livre = 0
+
+        for index in range(3):
+            if index == 0:
+                rows = list(worksheet.rows)
+                row = rows[lin - 1]
+                saldo_reprogramado_anterior_custeio = info.get("valores").get(
+                    'saldo_reprogramado_periodo_anterior_custeio')
+                repasse_custeio = info.get("valores").get('repasses_no_periodo_custeio')
+                devolucao_custeio = info.get("valores").get('receitas_devolucao_no_periodo_custeio')
+                demais_creditos_custeio = info.get("valores").get('demais_creditos_no_periodo_custeio')
+                despesas_custeio = info.get("valores").get('despesas_no_periodo_custeio')
+                saldo_custeio = saldo_reprogramado_anterior_custeio + repasse_custeio + devolucao_custeio + \
+                    demais_creditos_custeio + despesas_custeio
+
+                row[3].value = formata_valor(saldo_reprogramado_anterior_custeio)
+                row[4].value = formata_valor(repasse_custeio)
+                row[6].value = formata_valor(devolucao_custeio)
+                row[7].value = formata_valor(demais_creditos_custeio)
+                row[8].value = formata_valor(despesas_custeio)
+                row[9].value = formata_valor(saldo_custeio)
+
+                total_saldo_reprogramado_anterior_custeio += saldo_reprogramado_anterior_custeio
+                total_repasse_custeio += repasse_custeio
+                total_devolucao_custeio += devolucao_custeio
+                total_demais_creditos_custeio += demais_creditos_custeio
+                total_despesas_custeio += despesas_custeio
+                total_saldo_custeio += saldo_custeio
+            elif index == 1:
+                row = rows[lin - 1]
+                saldo_reprogramado_anterior_capital = info.get("valores").get(
+                    'saldo_reprogramado_periodo_anterior_capital')
+                repasse_capital = info.get("valores").get('repasses_no_periodo_capital')
+                devolucao_capital = info.get("valores").get('receitas_devolucao_no_periodo_capital')
+                demais_creditos_capital = info.get("valores").get('demais_creditos_no_periodo_capital')
+                despesas_capital = info.get("valores").get('despesas_no_periodo_capital')
+                saldo_capital = saldo_reprogramado_anterior_capital + repasse_capital + devolucao_capital + \
+                    demais_creditos_capital + despesas_capital
+
+                row[0].value = linha + 1
+                row[1].value = info["unidade"]["nome"]
+                row[3].value = formata_valor(saldo_reprogramado_anterior_capital)
+                row[4].value = formata_valor(repasse_capital)
+                row[6].value = formata_valor(devolucao_capital)
+                row[7].value = formata_valor(demais_creditos_capital)
+                row[8].value = formata_valor(despesas_capital)
+                row[9].value = formata_valor(saldo_capital)
+
+                total_saldo_reprogramado_anterior_capital += saldo_reprogramado_anterior_capital
+                total_repasse_capital += repasse_capital
+                total_devolucao_capital += devolucao_capital
+                total_demais_creditos_capital += demais_creditos_capital
+                total_despesas_capital += despesas_capital
+                total_saldo_capital += saldo_capital
+            else:
+                rows = list(worksheet.rows)
+                row = rows[lin - 1]
+
+                saldo_reprogramado_anterior_livre = info.get("valores").get('saldo_reprogramado_periodo_anterior_livre')
+                repasse_livre = info.get("valores").get('repasses_no_periodo_livre')
+                receita_rendimento_livre = info.get("valores").get('receitas_rendimento_no_periodo_livre')
+                devolucao_livre = info.get("valores").get('receitas_devolucao_no_periodo_livre')
+                demais_creditos_livre = info.get("valores").get('demais_creditos_no_periodo_livre')
+                saldo_livre = saldo_reprogramado_anterior_livre + repasse_livre + devolucao_livre + \
+                    demais_creditos_livre + receita_rendimento_livre
+
+                row[3].value = formata_valor(saldo_reprogramado_anterior_livre)
+                row[4].value = formata_valor(repasse_livre)
+                row[5].value = formata_valor(receita_rendimento_livre)
+                row[6].value = formata_valor(devolucao_livre)
+                row[7].value = formata_valor(demais_creditos_livre)
+                row[9].value = formata_valor(saldo_livre)
+
+                total_saldo_reprogramado_anterior_custeio += saldo_reprogramado_anterior_livre
+                total_repasse_custeio += repasse_livre
+                total_receita_rendimento_livre += receita_rendimento_livre
+                total_devolucao_custeio += devolucao_livre
+                total_demais_creditos_custeio += demais_creditos_livre
+                total_saldo_custeio += saldo_livre
+            lin += 1
+
+    rows = list(worksheet.rows)
+    row = rows[lin - 1]
+    row[3].value = formata_valor(total_saldo_reprogramado_anterior_custeio)
+    row[4].value = formata_valor(total_repasse_custeio)
+    row[6].value = formata_valor(total_devolucao_custeio)
+    row[7].value = formata_valor(total_demais_creditos_custeio)
+    row[8].value = formata_valor(total_despesas_custeio)
+    row[9].value = formata_valor(total_saldo_custeio)
+
+    row = rows[lin]
+    row[3].value = formata_valor(total_saldo_reprogramado_anterior_capital)
+    row[4].value = formata_valor(total_repasse_capital)
+    row[6].value = formata_valor(total_devolucao_capital)
+    row[7].value = formata_valor(total_demais_creditos_capital)
+    row[8].value = formata_valor(total_despesas_capital)
+    row[9].value = formata_valor(total_saldo_capital)
+
+    row = rows[lin + 1]
+    row[3].value = formata_valor(total_saldo_reprogramado_anterior_livre)
+    row[4].value = formata_valor(total_repasse_livre)
+    row[5].value = formata_valor(total_receita_rendimento_livre)
+    row[6].value = formata_valor(total_devolucao_livre)
+    row[7].value = formata_valor(total_demais_creditos_livre)
+    row[9].value = formata_valor(total_saldo_livre)
+
+    devolucoes_ao_tesouro = informacoes_devolucoes_ao_tesouro(dre, periodo, tipo_conta)
+    for linha, devolucao in enumerate(devolucoes_ao_tesouro):
+        ind = lin + 6
+        if linha > 0:
+            for row_idx in range(last + linha, ind - 2, -1):
+                copy_row(worksheet, row_idx, 1, copy_data=True)
+            last += 1
+
+        rows = list(worksheet.rows)
+
+        row = rows[ind - 1]
+        row[0].value = devolucao['tipo_nome']
+        row[0].value = devolucao['tipo_nome']
+        row[2].value = devolucao['ocorrencias']
+        row[4].value = formata_valor(devolucao['valor'])
+        row[6].value = devolucao['observacao']
+        lin += 1
+
+    for linha, info_devolucao in enumerate(informacoes_devolucoes_a_conta_ptrf(dre, periodo, tipo_conta)):
+        ind = lin + (8 if devolucoes_ao_tesouro else 9)
+        if linha > 0:
+            for row_idx in range(last + linha, ind - 2, -1):
+                copy_row(worksheet, row_idx, 1, copy_data=True)
+
+        rows = list(worksheet.rows)
+        row = rows[ind-1]
+        row[0].value = info_devolucao['tipo_nome']
+        row[2].value = info_devolucao['ocorrencias']
+        row[4].value = formata_valor(info_devolucao['valor'])
+        row[6].value = info_devolucao['observacao']
+        lin += 1
 
 
 def data_geracao_documento(worksheet, parcial=False):
