@@ -27,3 +27,4 @@ from .tipo_devolucao_ao_tesouro import TipoDevolucaoAoTesouro
 from .devolucao_ao_tesouro import DevolucaoAoTesouro
 from .comentario_analise_prestacao import ComentarioAnalisePrestacao
 from .previsao_repasse_sme import PrevisaoRepasseSme
+from .censo import Censo

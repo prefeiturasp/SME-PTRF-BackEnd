@@ -31,6 +31,7 @@ from .models import (
     DevolucaoAoTesouro,
     ComentarioAnalisePrestacao,
     PrevisaoRepasseSme,
+    Censo
 )
 
 admin.site.register(TipoNotificacao)
@@ -379,3 +380,9 @@ class TipoContaAdmin(admin.ModelAdmin):
     search_fields = ['nome']
     list_filter = ['nome', ]
     readonly_fields = ('id', 'uuid',)
+
+
+@admin.register(Censo)
+class CensoAdmin(admin.ModelAdmin):
+    list_display = ['uuid', 'unidade', 'quantidade_alunos', 'ano']
+    list_filter = ['ano', ]
