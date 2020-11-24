@@ -206,7 +206,9 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                         'data': '2020-07-01',
                         'prestacao_conta': f'{prestacao_conta.uuid}',
                         'tipo': 'DEVOLUCAO',
-                        'uuid': f'{_cobranca_prestacao_devolucao.uuid}'
+                        'uuid': f'{_cobranca_prestacao_devolucao.uuid}',
+                        'associacao': f'{_cobranca_prestacao_devolucao.associacao.uuid}',
+                        'periodo': f'{_cobranca_prestacao_devolucao.periodo.uuid}',
                     }
                 ],
                 'data': '2020-07-01',

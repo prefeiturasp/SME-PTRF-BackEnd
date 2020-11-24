@@ -21,7 +21,16 @@ TIPOS_CHOICES = (
 
 class CobrancaPrestacaoConta(ModeloBase):
     prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE,
-                                        related_name='cobrancas_da_prestacao')
+                                        related_name='cobrancas_da_prestacao',
+                                        blank=True, null=True)
+
+    periodo = models.ForeignKey('Periodo', on_delete=models.PROTECT,
+                                related_name='cobrancas_prestacoes_de_conta_no_periodo',
+                                blank=True, null=True)
+
+    associacao = models.ForeignKey('Associacao', on_delete=models.PROTECT,
+                                   related_name='cobrancas_prestacoes_de_conta_da_associacao',
+                                   blank=True, null=True)
 
     data = models.DateField('data da cobrança')
 
@@ -48,3 +57,7 @@ def cobranca_pre_save(instance, **kwargs):
     if instance.tipo == TIPO_DEVOLUCAO and instance.prestacao_conta:
         ultima_devolucao = instance.prestacao_conta.devolucoes_da_prestacao.order_by('-id').first()
         instance.devolucao_prestacao = ultima_devolucao
+
+    if instance.prestacao_conta:
+        instance.associacao = instance.prestacao_conta.associacao
+        instance.periodo = instance.prestacao_conta.periodo
