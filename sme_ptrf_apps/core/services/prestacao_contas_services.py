@@ -202,15 +202,21 @@ def lista_prestacoes_de_conta_nao_recebidas(
 
     prestacoes = []
     for associacao in associacoes_da_dre:
-        prestacao_conta = PrestacaoConta.objects.filter(associacao=associacao, periodo=periodo,
-                                                        status__in=[PrestacaoConta.STATUS_NAO_APRESENTADA,
-                                                                    PrestacaoConta.STATUS_NAO_RECEBIDA]).first()
+        prestacao_conta = PrestacaoConta.objects.filter(associacao=associacao, periodo=periodo).first()
 
-        if filtro_status == PrestacaoConta.STATUS_NAO_RECEBIDA and not prestacao_conta:
+        # Devem entrar apenas Prestações de contas não apresentadas ou não recebidas
+        if prestacao_conta and prestacao_conta.status not in [PrestacaoConta.STATUS_NAO_APRESENTADA,
+                                                              PrestacaoConta.STATUS_NAO_RECEBIDA]:
             continue
 
-        if filtro_status == PrestacaoConta.STATUS_NAO_APRESENTADA and prestacao_conta:
-            continue
+
+        # Aplica o filtro por status
+        if filtro_status == PrestacaoConta.STATUS_NAO_RECEBIDA:
+            if not prestacao_conta or prestacao_conta.status != PrestacaoConta.STATUS_NAO_RECEBIDA:
+                continue
+        elif filtro_status == PrestacaoConta.STATUS_NAO_APRESENTADA:
+            if prestacao_conta and prestacao_conta.status != PrestacaoConta.STATUS_NAO_APRESENTADA:
+                continue
 
         info_prestacao = {
             'periodo_uuid': f'{periodo.uuid}',

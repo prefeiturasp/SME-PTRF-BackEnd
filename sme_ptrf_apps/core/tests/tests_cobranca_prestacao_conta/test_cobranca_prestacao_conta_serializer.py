@@ -12,3 +12,5 @@ def test_cobranca_prestacao_conta_list_serializer(cobranca_prestacao_recebimento
     assert serializer.data['prestacao_conta']
     assert serializer.data['data']
     assert serializer.data['tipo']
+    assert serializer.data['associacao']
+    assert serializer.data['periodo']
