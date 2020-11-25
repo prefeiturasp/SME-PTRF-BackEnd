@@ -37,7 +37,6 @@ def unidade_paulo_camilhier_florencano_dre_1(dre_01):
         complemento="",
         bairro="",
         cep="",
-        qtd_alunos=0,
         diretor_nome="",
         dre_cnpj="",
         dre_diretor_regional_rf="",

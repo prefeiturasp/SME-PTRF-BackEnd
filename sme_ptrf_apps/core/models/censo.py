@@ -14,4 +14,4 @@ class Censo(ModeloBase):
 
     class Meta:
         verbose_name = "Censo"
-        verbose_name_plural = 'Censos'
+        verbose_name_plural = '13.0) Censos'

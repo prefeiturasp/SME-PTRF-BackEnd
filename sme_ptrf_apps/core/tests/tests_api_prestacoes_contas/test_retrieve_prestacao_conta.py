@@ -181,7 +181,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                 'logradouro': 'dos Testes',
                 'nome': 'Escola Teste',
                 'numero': '200',
-                'qtd_alunos': 1000,
+                'qtd_alunos': 0,
                 'sigla': 'ET',
                 'telefone': '58212627',
                 'tipo_logradouro': 'Travessa',

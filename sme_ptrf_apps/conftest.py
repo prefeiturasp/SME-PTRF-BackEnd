@@ -147,7 +147,6 @@ def unidade(dre):
         complemento='fundos',
         telefone='58212627',
         email='emefjopfilho@sme.prefeitura.sp.gov.br',
-        qtd_alunos=1000,
         diretor_nome='Pedro Amaro',
         dre_cnpj='63.058.286/0001-86',
         dre_diretor_regional_rf='1234567',
