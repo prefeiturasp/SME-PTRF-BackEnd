@@ -84,7 +84,7 @@ class PeriodoAdmin(admin.ModelAdmin):
 
 @admin.register(Unidade)
 class UnidadeAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'tipo_unidade', 'codigo_eol', 'sigla', 'dre')
+    list_display = ('nome', 'tipo_unidade', 'codigo_eol', 'sigla', 'dre', 'qtd_alunos')
     ordering = ('nome',)
     search_fields = ('nome', 'codigo_eol', 'sigla')
     list_filter = ('tipo_unidade', 'dre')
@@ -107,7 +107,6 @@ class UnidadeAdmin(admin.ModelAdmin):
                 'complemento',
                 'telefone',
                 'email',
-                'qtd_alunos',
                 'diretor_nome',
                 'uuid'
             )
