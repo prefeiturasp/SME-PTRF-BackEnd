@@ -35,8 +35,17 @@ def presidente_conselho_fiscal(associacao):
     )
 
 
+@pytest.fixture
+def censo(unidade):
+    return baker.make(
+        'Censo',
+        unidade=unidade,
+        quantidade_alunos=1000,
+        ano='2020'
+    )
 
-def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, presidente_associacao, presidente_conselho_fiscal):
+
+def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, presidente_associacao, presidente_conselho_fiscal, censo):
     from unittest.mock import patch
     with patch('sme_ptrf_apps.core.api.views.associacoes_viewset.atualiza_dados_unidade') as mock_patch:
         response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/', content_type='application/json')

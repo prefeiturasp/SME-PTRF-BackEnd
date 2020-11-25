@@ -23,7 +23,7 @@ def test_instance_model(unidade):
     assert model.complemento
     assert model.telefone
     assert model.email
-    assert model.qtd_alunos
+    assert not model.qtd_alunos
     assert model.diretor_nome
     assert model.dre_cnpj
     assert model.dre_diretor_regional_rf
