@@ -46,7 +46,7 @@ def test_admin():
     model_admin = UnidadeAdmin(Unidade, admin.site)
     # pylint: disable=W0212
     assert admin.site._registry[Unidade]
-    assert model_admin.list_display == ('nome', 'tipo_unidade', 'codigo_eol', 'sigla', 'dre')
+    assert model_admin.list_display == ('nome', 'tipo_unidade', 'codigo_eol', 'sigla', 'dre', 'qtd_alunos')
     assert model_admin.ordering == ('nome',)
     assert model_admin.search_fields == ('nome', 'codigo_eol', 'sigla')
     assert model_admin.list_filter == ('tipo_unidade', 'dre')
