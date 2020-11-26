@@ -82,7 +82,7 @@ def processa_previsoes_repasse(reader, arquivo):
     for lin, row in enumerate(reader):
         if lin != 0:
             logger.info('Linha %s: %s', lin, row)
-            if not all(row):
+            if not any(row):
                 logger.info("Pulando linha %s que está vazia.", lin)
                 continue
 
@@ -133,12 +133,12 @@ def processa_previsoes_repasse(reader, arquivo):
                         valor_custeio=valor_custeio,
                         valor_livre=valor_livre
                     )
-                    importadas += 1
+                    importados += 1
                     logger.info("Previsão repasse criada com sucesso: %s", previsao_repasse)
                 else:
-                    previsao_repasse.valor_capital += valor_capital
-                    previsao_repasse.valor_custeio += valor_custeio
-                    previsao_repasse.valor_livre += valor_livre
+                    previsao_repasse.valor_capital = float(previsao_repasse.valor_capital) + valor_capital
+                    previsao_repasse.valor_custeio = float(previsao_repasse.valor_custeio) + valor_custeio
+                    previsao_repasse.valor_livre = float(previsao_repasse.valor_livre) + valor_livre
                     previsao_repasse.save()
                     logger.info("Previsão repasse atualizada com sucesso: %s", previsao_repasse)
             else:
@@ -147,20 +147,20 @@ def processa_previsoes_repasse(reader, arquivo):
                 logs = f"{logs}\n{msg_erro}"
                 erros += 1
 
-    if importadas > 0 and erros > 0:
+    if importados > 0 and erros > 0:
         arquivo.status = PROCESSADO_COM_ERRO
-    elif importadas == 0:
+    elif importados == 0:
         arquivo.status = ERRO
     else:
         arquivo.status = SUCESSO
 
-    logs = f"{logs}\nImportadas {importadas} dados de censo. Erro na importação de {erros} dados do censo."
-    logger.info(f'Importadas {importadas} dados de censo. Erro na importação de {erros} dados do censo.')
+    logs = f"{logs}\nImportados {importados} previsões de repasse. Erro na importação de {erros} previsões."
+    logger.info(f'Importados {importados} previsões de repasse. Erro na importação de {erros} previsões.')
     
     arquivo.log = logs
     arquivo.save()
     logs = ""
-    return importadas, erros
+    return importados, erros
 
 
 def carrega_previsoes_repasses(arquivo):
