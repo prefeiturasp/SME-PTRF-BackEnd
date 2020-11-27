@@ -46,6 +46,7 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
     def consulta_codigo_identificacao(self, request):
         rf = self.request.query_params.get('rf')
         codigo_eol = self.request.query_params.get('codigo-eol')
+        associacao_uuid = self.request.query_params.get('associacao_uuid')
 
         if not rf and not codigo_eol:
             erro = {
@@ -55,12 +56,18 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            filtro = {}
+            if associacao_uuid:
+                filtro['associacao__uuid'] = associacao_uuid
+
             if codigo_eol:
-                self.membro_ja_cadastrado(**{"codigo_identificacao__iexact": codigo_eol})
+                filtro["codigo_identificacao__iexact"] = codigo_eol
+                self.membro_ja_cadastrado(**filtro)
                 result = TerceirizadasService.get_informacao_aluno(codigo_eol)
                 return Response(result)
             else:
-                self.membro_ja_cadastrado(**{"codigo_identificacao__iexact": rf})
+                filtro["codigo_identificacao__iexact"] = rf
+                self.membro_ja_cadastrado(**filtro)
                 result = TerceirizadasService.get_informacao_servidor(rf)
                 return Response(result)
         except TerceirizadasException as e:
@@ -73,6 +80,7 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
     @action(detail=False, methods=['get'], url_path='nome-responsavel')
     def consulta_nome_responsavel(self, request):
         nome = self.request.query_params.get('nome')
+        associacao_uuid = self.request.query_params.get('associacao_uuid')
 
         if not nome:
             erro = {
@@ -82,7 +90,12 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            self.membro_ja_cadastrado(**{"nome__iexact": nome})
+            filtro = {}
+            if associacao_uuid:
+                filtro['associacao__uuid'] = associacao_uuid
+
+            filtro["nome__iexact"] = nome    
+            self.membro_ja_cadastrado(**filtro)
 
             return Response({'detail': "Pode ser cadastrado."}, status.HTTP_200_OK)
         except TerceirizadasException as e:

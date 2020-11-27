@@ -38,7 +38,7 @@ class MembroAssociacao(ModeloBase):
 
     email = models.EmailField("E-mail", max_length=254, null=True, blank=True)
 
-    usuario = models.OneToOneField(User, on_delete=models.PROTECT, related_name='membro', blank=True, null=True)
+    usuario = models.ForeignKey(User, on_delete=models.PROTECT, related_name='membro', blank=True, null=True)
 
     class Meta:
         verbose_name = "Membro da Associação"
