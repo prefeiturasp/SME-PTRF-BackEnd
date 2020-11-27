@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
 from django.db.models.signals import pre_save
@@ -5,6 +6,8 @@ from django.dispatch import receiver
 
 from sme_ptrf_apps.core.choices import MembroEnum, RepresentacaoCargo
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+
+User = get_user_model()
 
 
 class MembroAssociacao(ModeloBase):
@@ -34,6 +37,8 @@ class MembroAssociacao(ModeloBase):
     codigo_identificacao = models.CharField('Código EOL ou RF', max_length=10, blank=True, null=True, default="")
 
     email = models.EmailField("E-mail", max_length=254, null=True, blank=True)
+
+    usuario = models.OneToOneField(User, on_delete=models.PROTECT, related_name='membro', blank=True, null=True)
 
     class Meta:
         verbose_name = "Membro da Associação"

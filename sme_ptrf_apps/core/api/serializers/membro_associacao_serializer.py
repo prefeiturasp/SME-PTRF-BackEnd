@@ -2,6 +2,10 @@ from rest_framework import serializers
 
 from sme_ptrf_apps.core.api.serializers import AssociacaoLookupSerializer
 from sme_ptrf_apps.core.models import MembroAssociacao, Associacao
+from sme_ptrf_apps.users.api.serializers import UserSerializer
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class MembroAssociacaoCreateSerializer(serializers.ModelSerializer):
@@ -11,12 +15,20 @@ class MembroAssociacaoCreateSerializer(serializers.ModelSerializer):
         queryset=Associacao.objects.all()
     )
 
+    usuario = serializers.PrimaryKeyRelatedField(
+        required=False,
+        queryset=User.objects.all(),
+        allow_null=True
+    )
+
     class Meta:
         model = MembroAssociacao
         exclude = ('id',)
 
+
 class MembroAssociacaoListSerializer(serializers.ModelSerializer):
     associacao = AssociacaoLookupSerializer()
+    usuario = UserSerializer()
 
     class Meta:
         model = MembroAssociacao
