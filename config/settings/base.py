@@ -5,6 +5,8 @@ Base settings to build other settings files upon.
 import datetime
 
 import environ
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 ROOT_DIR = (
     environ.Path(__file__) - 3
@@ -407,3 +409,10 @@ CKEDITOR_CONFIGS = {
         ]),
     }
 }
+
+
+# SENTRY
+sentry_sdk.init(
+    dsn=env('SENTRY_URL'),
+    integrations=[DjangoIntegration()]
+)
