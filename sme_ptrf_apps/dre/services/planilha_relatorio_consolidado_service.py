@@ -10,7 +10,7 @@ Esse script tem as seguintes funções:
     * identificacao_dre - Preenche o bloco de identificação da DRE da planilha.
     * assinatura_dre - Preenche o bloco de assinaturas.
     * data_geracao_documento - Preenche a data de geração do documento.
-    * execucao_financeira - Preenche o bloco de execuções financeiras. 
+    * execucao_financeira - Preenche o bloco de execuções financeiras.
     * execucao_fisica - Preenche o bloco de execuções fisicas.
     * associacoes_nao_regularizadas - Preenche as associações não regularizadas do bloco de execuções físicas.
     * dados_fisicos_financeiros - Dadis físicos finceiros do bloco 4 da planiha.
@@ -93,6 +93,13 @@ def gera_relatorio_dre(dre, periodo, tipo_conta, parcial=False):
         relatorio_consolidado.arquivo.save(name=filename % relatorio_consolidado.pk, content=File(tmp))
         LOGGER.info("Relatório Consolidado Gerado: uuid: %s, status: %s",
                     relatorio_consolidado.uuid, relatorio_consolidado.status)
+
+
+def gera_previa_relatorio_dre(dre, periodo, tipo_conta, parcial=False):
+
+    xlsx = gerar(dre, periodo, tipo_conta, parcial=parcial)
+
+    return xlsx
 
 
 def gerar(dre, periodo, tipo_conta, parcial=False):

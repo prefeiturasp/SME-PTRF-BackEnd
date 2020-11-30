@@ -1,5 +1,7 @@
 import logging
 
+from io import BytesIO
+from openpyxl.writer.excel import save_virtual_workbook
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -25,13 +27,15 @@ from ...services import (
     informacoes_devolucoes_ao_tesouro,
     informacoes_execucao_financeira_unidades,
     update_observacao_devolucao,
-    gera_relatorio_dre
+    gera_relatorio_dre,
+    gera_previa_relatorio_dre
 )
 
 logger = logging.getLogger(__name__)
 
 
 class RelatoriosConsolidadosDREViewSet(GenericViewSet):
+
     permission_classes = [IsAuthenticated]
     queryset = RelatorioConsolidadoDRE.objects.all()
 
@@ -711,9 +715,9 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             }
             logger.info('Erro ao gerar relatório consolidado: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        
+
         dre_uuid, periodo_uuid, tipo_conta_uuid = dados['dre_uuid'], dados['periodo_uuid'], dados['tipo_conta_uuid']
-        
+
         try:
             dre = Unidade.dres.get(uuid=dre_uuid)
         except Unidade.DoesNotExist:
@@ -755,3 +759,71 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"OK": "Relatório Consolidado Gerado."}, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, url_path="previa", methods=['get'])
+    def previa(self, request):
+        dados = request.data
+
+        if not dados or not dados.get('dre_uuid') or not dados.get('periodo_uuid') or not dados.get(
+            'tipo_conta_uuid') or (dados.get('parcial') is None):
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar os uuids da dre, período, conta e parcial.'
+            }
+            logger.info('Erro ao gerar relatório consolidado: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        dre_uuid, periodo_uuid, tipo_conta_uuid = dados['dre_uuid'], dados['periodo_uuid'], dados['tipo_conta_uuid']
+
+        try:
+            dre = Unidade.dres.get(uuid=dre_uuid)
+        except Unidade.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            tipo_conta = TipoConta.objects.get(uuid=tipo_conta_uuid)
+        except TipoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto tipo de conta para o uuid {tipo_conta_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            xlsx = gera_previa_relatorio_dre(dre, periodo, tipo_conta, dados['parcial'])
+
+            result = BytesIO(save_virtual_workbook(xlsx))
+
+            filename = 'relatorio_consolidado_dre.xlsx'
+            response = HttpResponse(
+                result,
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = f'attachment; filename={filename}'
+
+            return response
+
+        except Exception as err:
+            erro = {
+                'erro': 'problema_geracao_previa_relatorio',
+                'mensagem': 'Ao gerar prévia do relatório.'
+            }
+            logger.info("Erro ao gerar prévia do relatório consolidado: %s", str(err))
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
