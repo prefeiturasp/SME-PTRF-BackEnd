@@ -1,4 +1,4 @@
-from .planilha_relatorio_consolidado_service import gera_relatorio_dre
+from .planilha_relatorio_consolidado_service import gera_relatorio_dre, gera_previa_relatorio_dre
 from .regularidade_associacao_service import (
     desmarca_item_verificacao_associacao,
     desmarca_lista_verificacao_associacao,
@@ -12,5 +12,5 @@ from .relatorio_consolidado_service import (
     informacoes_execucao_financeira,
     informacoes_execucao_financeira_unidades,
     status_de_geracao_do_relatorio,
-    update_observacao_devolucao,
+    update_observacao_devolucao
 )
