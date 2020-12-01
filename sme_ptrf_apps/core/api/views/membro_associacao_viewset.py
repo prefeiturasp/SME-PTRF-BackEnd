@@ -77,15 +77,15 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
         except ConnectTimeout:
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['get'], url_path='nome-responsavel')
-    def consulta_nome_responsavel(self, request):
-        nome = self.request.query_params.get('nome')
+    @action(detail=False, methods=['get'], url_path='cpf-responsavel')
+    def consulta_cpf_responsavel(self, request):
+        cpf = self.request.query_params.get('cpf')
         associacao_uuid = self.request.query_params.get('associacao_uuid')
 
-        if not nome:
+        if not cpf:
             erro = {
                 'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o nome do responsável.'
+                'mensagem': 'É necessário enviar o cpf do responsável.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -94,7 +94,7 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
             if associacao_uuid:
                 filtro['associacao__uuid'] = associacao_uuid
 
-            filtro["nome__iexact"] = nome    
+            filtro["cpf__iexact"] = cpf
             self.membro_ja_cadastrado(**filtro)
 
             return Response({'detail': "Pode ser cadastrado."}, status.HTTP_200_OK)

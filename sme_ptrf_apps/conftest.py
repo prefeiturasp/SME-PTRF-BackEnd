@@ -1308,7 +1308,8 @@ def membro_associacao(associacao):
         cargo_educacao='Coordenador',
         representacao=RepresentacaoCargo.SERVIDOR.value,
         codigo_identificacao='567432',
-        email='ollyverottoboni@gmail.com'
+        email='ollyverottoboni@gmail.com',
+        cpf='148.712.970-04'
     )
 
 

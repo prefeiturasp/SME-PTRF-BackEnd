@@ -16,16 +16,7 @@ def test_instance_model(membro_associacao):
     assert model.cargo_associacao == MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value
     assert model.representacao == RepresentacaoCargo.SERVIDOR.value
     assert model.email
-
-
-def test_nao_criar_novo_membro_caso_exista_pelo_nome(membro_associacao):
-    with pytest.raises(ValueError):
-        MembroAssociacao.objects.create(nome=membro_associacao.nome)
-
-
-def test_nao_criar_novo_membro_caso_exista_pelo_codigo_identificaca0(membro_associacao):
-    with pytest.raises(ValueError):
-        MembroAssociacao.objects.create(codigo_identificacao=membro_associacao.codigo_identificacao)
+    assert model.cpf
 
 
 def test_admin():

@@ -62,9 +62,9 @@ def test_consulta_codigo_identificacao_rf(jwt_authenticated_client_a):
         assert result == data
 
 
-def test_consulta_nome_responsavel(jwt_authenticated_client_a):
-    nome = 'Eren Jeager'
-    response = jwt_authenticated_client_a.get(f'/api/membros-associacao/nome-responsavel/?nome={nome}')
+def test_consulta_cpf_responsavel(jwt_authenticated_client_a):
+    cpf = '148.712.970-04'
+    response = jwt_authenticated_client_a.get(f'/api/membros-associacao/cpf-responsavel/?cpf={cpf}')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
@@ -90,10 +90,10 @@ def test_consulta_codigo_eol_com_membro_ja_cadastrado(jwt_authenticated_client_a
     assert result == {"detail": "Membro já cadastrado."}
 
 
-def test_consulta_nome_responsavel_com_membro_ja_cadastrado(jwt_authenticated_client_a, membro_associacao):
+def test_consulta_cpf_responsavel_com_membro_ja_cadastrado(jwt_authenticated_client_a, membro_associacao):
 
-    nome = membro_associacao.nome
-    response = jwt_authenticated_client_a.get(f'/api/membros-associacao/nome-responsavel/?nome={nome}')
+    cpf = membro_associacao.cpf
+    response = jwt_authenticated_client_a.get(f'/api/membros-associacao/cpf-responsavel/?cpf={cpf}')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
