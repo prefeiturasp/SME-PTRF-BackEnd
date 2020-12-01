@@ -15,7 +15,7 @@ def test_geracao_e_download_relatorio_previa(jwt_authenticated_client_dre, perio
         'parcial': True
     }
 
-    response = jwt_authenticated_client_dre.get(
+    response = jwt_authenticated_client_dre.post(
         f'/api/relatorios-consolidados-dre/previa/',
         data=json.dumps(payload),
         content_type='application/json')
@@ -35,7 +35,7 @@ def test_api_geracao_relatorio_previa_sem_dre_uuid(jwt_authenticated_client_dre,
         'parcial': False
     }
 
-    response = jwt_authenticated_client_dre.get(
+    response = jwt_authenticated_client_dre.post(
         f'/api/relatorios-consolidados-dre/previa/',
         data=json.dumps(payload),
         content_type='application/json')
@@ -58,7 +58,7 @@ def test_api_geracao_relatorio_previa_sem_periodo_uuid(jwt_authenticated_client_
         'parcial': False
     }
 
-    response = jwt_authenticated_client_dre.get(
+    response = jwt_authenticated_client_dre.post(
         f'/api/relatorios-consolidados-dre/previa/',
         data=json.dumps(payload),
         content_type='application/json')

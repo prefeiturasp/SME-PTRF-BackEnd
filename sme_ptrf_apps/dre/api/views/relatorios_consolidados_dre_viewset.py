@@ -760,7 +760,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response({"OK": "Relatório Consolidado Gerado."}, status=status.HTTP_201_CREATED)
 
-    @action(detail=False, url_path="previa", methods=['get'])
+    @action(detail=False, url_path="previa", methods=['post'])
     def previa(self, request):
         dados = request.data
 
