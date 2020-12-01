@@ -40,7 +40,8 @@ def test_get_membros_associacoes(
             'representacao': membro_associacao.representacao,
             'codigo_identificacao': membro_associacao.codigo_identificacao,
             'usuario': None,
-            'email': membro_associacao.email
+            'email': membro_associacao.email,
+            'cpf': membro_associacao.cpf
         }
     ]
 
@@ -72,6 +73,7 @@ def test_get_membro_associacao(
         'representacao': membro_associacao.representacao,
         'codigo_identificacao': membro_associacao.codigo_identificacao,
         'email': membro_associacao.email,
+        'cpf': membro_associacao.cpf,
         'usuario': None,
     }
 

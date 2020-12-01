@@ -40,6 +40,8 @@ class MembroAssociacao(ModeloBase):
 
     usuario = models.ForeignKey(User, on_delete=models.PROTECT, related_name='membro', blank=True, null=True)
 
+    cpf = models.CharField("CPF Responsável", max_length=14, blank=True, null=True, default="")
+
     class Meta:
         verbose_name = "Membro da Associação"
         verbose_name_plural = "07.3) Membros das Associações"
@@ -48,12 +50,3 @@ class MembroAssociacao(ModeloBase):
         return f"<Nome: {self.nome}, Representacao: {self.representacao}>"
 
 
-@receiver(pre_save, sender=MembroAssociacao)
-def membro_pre_save(instance, **kwargs):
-    """Deve garantir que um membro da associação NÃO seja cadastrado mais de uma vez."""
-
-    membro = MembroAssociacao.objects.filter(Q(nome__iexact=(instance.nome or None)) | Q(
-        codigo_identificacao__exact=(instance.codigo_identificacao or None))).first()
-
-    if membro and membro.id != instance.id:
-        raise ValueError("Membro já cadastrado")
