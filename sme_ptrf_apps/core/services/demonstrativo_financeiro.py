@@ -74,38 +74,48 @@ def gerar_arquivo_demonstrativo_financeiro(periodo, acao_associacao, conta_assoc
 
 
 def gerar(periodo, acao_associacao, conta_associacao, previa=False):
-
-    LOGGER.info("GERANDO DEMONSTRATIVO...")
-    rateios_conferidos = RateioDespesa.rateios_da_acao_associacao_no_periodo(
-        acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True)
-
-    rateios_nao_conferidos = RateioDespesa.rateios_da_acao_associacao_no_periodo(
-        acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=False)
-
-    rateios_nao_conferidos_em_periodos_anteriores = RateioDespesa.rateios_da_acao_associacao_em_periodo_anteriores(
-        acao_associacao=acao_associacao, periodo=periodo, conta_associacao=conta_associacao, conferido=False)
-
-    receitas_demonstradas = Receita.receitas_da_acao_associacao_no_periodo(
-        acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True)
-
-    fechamento_periodo = FechamentoPeriodo.objects.filter(
-        acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo__uuid=periodo.uuid).first()
-
-    path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
-    nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro.xlsx')
-    workbook = load_workbook(nome_arquivo)
-    worksheet = workbook.active
     try:
+        LOGGER.info("GERANDO DEMONSTRATIVO...")
+        rateios_conferidos = RateioDespesa.rateios_da_acao_associacao_no_periodo(
+            acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True)
+        LOGGER.info("raterios não conferidos")
+        rateios_nao_conferidos = RateioDespesa.rateios_da_acao_associacao_no_periodo(
+            acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=False)
+        LOGGER.info("raterios não conferidos em períodos anteriores")
+        rateios_nao_conferidos_em_periodos_anteriores = RateioDespesa.rateios_da_acao_associacao_em_periodo_anteriores(
+            acao_associacao=acao_associacao, periodo=periodo, conta_associacao=conta_associacao, conferido=False)
+        LOGGER.info("receitas demonstradas")
+        receitas_demonstradas = Receita.receitas_da_acao_associacao_no_periodo(
+            acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True)
+        LOGGER.info("fechamento período")
+        fechamento_periodo = FechamentoPeriodo.objects.filter(
+            acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo__uuid=periodo.uuid).first()
+        LOGGER.info("bucando path")
+        path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
+        LOGGER.info("path: %s", path)
+        nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro.xlsx')
+        LOGGER.info("nome arquivo: %s", nome_arquivo)
+        workbook = load_workbook(nome_arquivo)
+        worksheet = workbook.active
+        LOGGER.info("Cabeçalho")
         cabecalho(worksheet, periodo, acao_associacao, conta_associacao, previa)
+        LOGGER.info("Identificação APM")
         identificacao_apm(worksheet, acao_associacao)
+        LOGGER.info("Observações")
         observacoes(worksheet, acao_associacao, periodo, conta_associacao)
+        LOGGER.info("Data geração de documento")
         data_geracao_documento(worksheet, previa)
+        LOGGER.info("Sintese Receita")
         sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo)
+        LOGGER.info("creditos demonstrados")
         creditos_demonstrados(worksheet, receitas_demonstradas)
+        LOGGER.info("pagamentos 1")
         acc = len(receitas_demonstradas) - 1 if len(receitas_demonstradas) > 1 else 0
         pagamentos(worksheet, rateios_conferidos, acc=acc, start_line=28)
+        LOGGER.info("pagamentos 2")
         acc += len(rateios_conferidos) - 1 if len(rateios_conferidos) > 1 else 0
         pagamentos(worksheet, rateios_nao_conferidos, acc=acc, start_line=34)
+        LOGGER.info("pagamentos 3")
         acc += len(rateios_nao_conferidos) - 1 if len(rateios_nao_conferidos) > 1 else 0
         pagamentos(worksheet, rateios_nao_conferidos_em_periodos_anteriores, acc=acc, start_line=40)
     except Exception as e:
