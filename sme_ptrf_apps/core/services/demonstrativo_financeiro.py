@@ -96,16 +96,25 @@ def gerar(periodo, acao_associacao, conta_associacao, previa=False):
     workbook = load_workbook(nome_arquivo)
     worksheet = workbook.active
     try:
+        LOGGER.info("Cabeçalho")
         cabecalho(worksheet, periodo, acao_associacao, conta_associacao, previa)
+        LOGGER.info("Identificação APM")
         identificacao_apm(worksheet, acao_associacao)
+        LOGGER.info("Observações")
         observacoes(worksheet, acao_associacao, periodo, conta_associacao)
+        LOGGER.info("Data geração de documento")
         data_geracao_documento(worksheet, previa)
+        LOGGER.info("Sintese Receita")
         sintese_receita_despesa(worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo)
+        LOGGER.info("creditos demonstrados")
         creditos_demonstrados(worksheet, receitas_demonstradas)
+        LOGGER.info("pagamentos 1")
         acc = len(receitas_demonstradas) - 1 if len(receitas_demonstradas) > 1 else 0
         pagamentos(worksheet, rateios_conferidos, acc=acc, start_line=28)
+        LOGGER.info("pagamentos 2")
         acc += len(rateios_conferidos) - 1 if len(rateios_conferidos) > 1 else 0
         pagamentos(worksheet, rateios_nao_conferidos, acc=acc, start_line=34)
+        LOGGER.info("pagamentos 3")
         acc += len(rateios_nao_conferidos) - 1 if len(rateios_nao_conferidos) > 1 else 0
         pagamentos(worksheet, rateios_nao_conferidos_em_periodos_anteriores, acc=acc, start_line=40)
     except Exception as e:
