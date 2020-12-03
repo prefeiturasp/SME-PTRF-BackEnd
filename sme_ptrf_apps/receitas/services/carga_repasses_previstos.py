@@ -160,16 +160,21 @@ def carrega_repasses_previstos(arquivo):
     logger.info(f"Tipo de conta do arquivo: {tipo_conta}.")
     arquivo.ultima_execucao = datetime.datetime.now()
 
-    with open(arquivo.conteudo.path, 'r', encoding="utf-8") as f:
-        sniffer = csv.Sniffer().sniff(f.read(1024))
-        f.seek(0)
-        if  __DELIMITADORES[sniffer.delimiter] != arquivo.tipo_delimitador:
-            msg_erro = f"Formato definido ({arquivo.tipo_delimitador}) é diferente do formato do arquivo csv ({__DELIMITADORES[sniffer.delimiter]})"
-            logger.info(msg_erro)
-            arquivo.status = ERRO
-            arquivo.log = msg_erro
-            arquivo.save()
-            return
-        
-        reader = csv.reader(f, delimiter=sniffer.delimiter)
-        processa_repasse(reader, tipo_conta, arquivo)
+    try:
+        with open(arquivo.conteudo.path, 'r', encoding="utf-8") as f:
+            sniffer = csv.Sniffer().sniff(f.readline())
+            f.seek(0)
+            if  __DELIMITADORES[sniffer.delimiter] != arquivo.tipo_delimitador:
+                msg_erro = f"Formato definido ({arquivo.tipo_delimitador}) é diferente do formato do arquivo csv ({__DELIMITADORES[sniffer.delimiter]})"
+                logger.info(msg_erro)
+                arquivo.status = ERRO
+                arquivo.log = msg_erro
+                arquivo.save()
+                return
+
+            reader = csv.reader(f, delimiter=sniffer.delimiter)
+            processa_repasse(reader, tipo_conta, arquivo)
+    except Exception as err:
+        logger.info("Erro ao processar repasses previstos: %s", str(err))
+        arquivo.log = "Erro ao processar repasses previstos."
+        arquivo.save()

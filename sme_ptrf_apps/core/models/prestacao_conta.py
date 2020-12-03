@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class PrestacaoConta(ModeloBase):
     # Status Choice
-    STATUS_DOCS_PENDENTES = 'DOCS_PENDENTES'
+    STATUS_NAO_APRESENTADA = 'NAO_APRESENTADA'
     STATUS_NAO_RECEBIDA = 'NAO_RECEBIDA'
     STATUS_RECEBIDA = 'RECEBIDA'
     STATUS_EM_ANALISE = 'EM_ANALISE'
@@ -22,20 +22,22 @@ class PrestacaoConta(ModeloBase):
     STATUS_APROVADA = 'APROVADA'
     STATUS_APROVADA_RESSALVA = 'APROVADA_RESSALVA'
     STATUS_REPROVADA = 'REPROVADA'
+    STATUS_EM_PROCESSAMENTO = 'EM_PROCESSAMENTO'
 
     STATUS_NOMES = {
-        STATUS_DOCS_PENDENTES: 'Documentos pendentes',
+        STATUS_NAO_APRESENTADA: 'Não apresentada',
         STATUS_NAO_RECEBIDA: 'Não recebida',
         STATUS_RECEBIDA: 'Recebida',
         STATUS_EM_ANALISE: 'Em análise',
         STATUS_DEVOLVIDA: 'Devolvida para acertos',
         STATUS_APROVADA: 'Aprovada',
         STATUS_APROVADA_RESSALVA: 'Aprovada com ressalvas',
-        STATUS_REPROVADA: 'Reprovada'
+        STATUS_REPROVADA: 'Reprovada',
+        STATUS_EM_PROCESSAMENTO: 'Em processmento'
     }
 
     STATUS_CHOICES = (
-        (STATUS_DOCS_PENDENTES, STATUS_NOMES[STATUS_DOCS_PENDENTES]),
+        (STATUS_NAO_APRESENTADA, STATUS_NOMES[STATUS_NAO_APRESENTADA]),
         (STATUS_NAO_RECEBIDA, STATUS_NOMES[STATUS_NAO_RECEBIDA]),
         (STATUS_RECEBIDA, STATUS_NOMES[STATUS_RECEBIDA]),
         (STATUS_EM_ANALISE, STATUS_NOMES[STATUS_EM_ANALISE]),
@@ -43,6 +45,7 @@ class PrestacaoConta(ModeloBase):
         (STATUS_APROVADA, STATUS_NOMES[STATUS_APROVADA]),
         (STATUS_APROVADA_RESSALVA, STATUS_NOMES[STATUS_APROVADA_RESSALVA]),
         (STATUS_REPROVADA, STATUS_NOMES[STATUS_REPROVADA]),
+        (STATUS_EM_PROCESSAMENTO, STATUS_NOMES[STATUS_EM_PROCESSAMENTO]),
     )
 
     periodo = models.ForeignKey('Periodo', on_delete=models.PROTECT, related_name='prestacoes_de_conta')
@@ -55,7 +58,7 @@ class PrestacaoConta(ModeloBase):
         'status',
         max_length=20,
         choices=STATUS_CHOICES,
-        default=STATUS_DOCS_PENDENTES
+        default=STATUS_NAO_APRESENTADA
     )
 
     data_recebimento = models.DateField('data de recebimento pela DRE', blank=True, null=True)
@@ -128,7 +131,6 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
-
     @transaction.atomic
     def salvar_devolucoes_ao_tesouro(self, devolucoes_ao_tesouro_da_prestacao=[]):
         from ..models.devolucao_ao_tesouro import DevolucaoAoTesouro
@@ -146,7 +148,8 @@ class PrestacaoConta(ModeloBase):
                 data=devolucao['data'],
                 devolucao_total=devolucao['devolucao_total'],
                 motivo=devolucao['motivo'],
-                valor=devolucao['valor']
+                valor=devolucao['valor'],
+                visao_criacao=devolucao['visao_criacao'],
             )
 
         return self
@@ -191,7 +194,8 @@ class PrestacaoConta(ModeloBase):
                 data=devolucao['data'],
                 devolucao_total=devolucao['devolucao_total'],
                 motivo=devolucao['motivo'],
-                valor=devolucao['valor']
+                valor=devolucao['valor'],
+                visao_criacao=devolucao['visao_criacao'],
             )
 
         return self
@@ -245,7 +249,6 @@ class PrestacaoConta(ModeloBase):
             logger.error(f'Houve algum erro ao tentar apagar a PC de uuid {uuid}.')
             return False
 
-
     @classmethod
     def abrir(cls, periodo, associacao):
         prestacao_de_conta = cls.by_periodo(associacao=associacao, periodo=periodo)
@@ -254,7 +257,7 @@ class PrestacaoConta(ModeloBase):
             prestacao_de_conta = PrestacaoConta.objects.create(
                 periodo=periodo,
                 associacao=associacao,
-                status=cls.STATUS_DOCS_PENDENTES
+                status=cls.STATUS_NAO_APRESENTADA
             )
         return prestacao_de_conta
 
@@ -264,6 +267,12 @@ class PrestacaoConta(ModeloBase):
 
     @classmethod
     def dashboard(cls, periodo_uuid, dre_uuid, add_aprovado_ressalva=False):
+        '''
+        :param add_aprovado_ressalva: True para retornar a quantidade de aprovados com ressalva separadamente ou
+        False para retornar a quantidade de aprovadas com ressalva somada a quantidade de aprovadas
+        '''
+        from ..models import Associacao
+
         titulos_por_status = {
             cls.STATUS_NAO_RECEBIDA: "Prestações de contas não recebidas",
             cls.STATUS_RECEBIDA: "Prestações de contas recebidas aguardando análise",
@@ -278,13 +287,34 @@ class PrestacaoConta(ModeloBase):
 
         cards = []
         qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid)
+
+        quantidade_pcs_apresentadas = 0
         for status, titulo in titulos_por_status.items():
+            if status == cls.STATUS_NAO_RECEBIDA:
+                continue
+
+            quantidade_status = qs.filter(status=status).count()
+
+            if status == cls.STATUS_APROVADA and not add_aprovado_ressalva:
+                quantidade_status += qs.filter(status=cls.STATUS_APROVADA_RESSALVA).count()
+
+            quantidade_pcs_apresentadas += quantidade_status
+
             card = {
                 "titulo": titulo,
-                "quantidade_prestacoes": qs.filter(status=status).count(),
+                "quantidade_prestacoes": quantidade_status,
                 "status": status
             }
             cards.append(card)
+
+        quantidade_unidades_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
+        quantidade_pcs_nao_apresentadas = quantidade_unidades_dre - quantidade_pcs_apresentadas
+        card_nao_recebidas = {
+            "titulo": titulos_por_status['NAO_RECEBIDA'],
+            "quantidade_prestacoes": quantidade_pcs_nao_apresentadas,
+            "status": 'NAO_RECEBIDA'
+        }
+        cards.append(card_nao_recebidas)
 
         return cards
 

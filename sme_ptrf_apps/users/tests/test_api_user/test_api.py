@@ -14,6 +14,32 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
+def unidade_diferente(dre):
+    return baker.make(
+        'Unidade',
+        nome='Escola Unidade Diferente',
+        tipo_unidade='EMEI',
+        codigo_eol='123459',
+        dre=dre,
+        sigla='ET2',
+        cep='5868120',
+        tipo_logradouro='Travessa',
+        logradouro='dos Testes',
+        bairro='COHAB INSTITUTO ADVENTISTA',
+        numero='100',
+        complemento='fundos',
+        telefone='99212627',
+        email='emeijopfilho@sme.prefeitura.sp.gov.br',
+        diretor_nome='Amaro Pedro',
+        dre_cnpj='63.058.286/0001-86',
+        dre_diretor_regional_rf='1234567',
+        dre_diretor_regional_nome='Anthony Edward Stark',
+        dre_designacao_portaria='Portaria nº 0.000',
+        dre_designacao_ano='2017',
+    )
+
+
+@pytest.fixture
 def visao_ue():
     return baker.make('Visao', nome='UE')
 
@@ -111,7 +137,7 @@ def jwt_authenticated_client_u(client, usuario_para_teste):
 
 @pytest.fixture
 def usuario_2(
-        unidade,
+        unidade_diferente,
         grupo_2,
         grupo_3,
         visao_dre,
@@ -122,7 +148,7 @@ def usuario_2(
     email = 'sme1981@amcom.com.br'
     User = get_user_model()
     user = User.objects.create_user(username=login, password=senha, email=email)
-    user.unidades.add(unidade)
+    user.unidades.add(unidade_diferente)
     user.groups.add(grupo_2, grupo_3)
     user.visoes.add(visao_dre, visao_sme)
     user.save()
@@ -444,3 +470,48 @@ def test_consulta_informacao_usuario_sem_username(jwt_authenticated_client_u):
     result = json.loads(response.content)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result == "Parâmetro username obrigatório."
+
+
+def test_lista_usuarios_por_unidade(
+        jwt_authenticated_client_u,
+        usuario_para_teste,
+        usuario_2,
+        usuario_3,
+        associacao,
+        grupo_1,
+        grupo_2):
+
+    response = jwt_authenticated_client_u.get(f"/api/usuarios/?associacao_uuid={associacao.uuid}", content_type='application/json')
+    result = response.json()
+    esperado = [
+       {    
+            'id': usuario_para_teste.id,
+            'name': 'LUCIA HELENA',
+            'tipo_usuario': 'Servidor',
+            'url': 'http://testserver/api/esqueci-minha-senha/7210418/',
+            'username': '7210418',
+            'email': 'luh@gmail.com',
+            'groups': [
+                {
+                    'descricao': 'Descrição grupo 1',
+                    'id': grupo_1.id,
+                    'name': 'grupo1'
+                }],
+       },
+      { 
+            'id': usuario_3.id,
+            'name': 'Arthur Marques',
+            'tipo_usuario': 'Servidor',
+            'url': 'http://testserver/api/esqueci-minha-senha/7218198/',
+            'username': '7218198',
+            'email': 'sme8198@amcom.com.br',
+            'groups': [
+                {   
+                    'descricao': 'Descrição grupo 2',
+                    'id': grupo_2.id,
+                    'name': 'grupo2'
+                }],
+       }
+    ]
+    print(result)
+    assert result == esperado

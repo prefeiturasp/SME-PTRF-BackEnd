@@ -37,7 +37,7 @@ django-cors-headers # https://github.com/adamchainz/django-cors-headers
 # Para gravação de log de alterações nos modelos
 # https://django-auditlog.readthedocs.io/en/latest/index.html
 # Pegando última versão diretamente do repositório oficial.
--e git://github.com/jjkester/django-auditlog.git##egg=auditlog
+-e git://github.com/jjkester/django-auditlog.git##egg=django-auditlog
 
 # Para validação e formatação de CNPJ e CPF
 # https://github.com/poliquin/brazilnum
@@ -46,3 +46,4 @@ brazilnum==0.8.8
 # Para melhoria da aparência do Django Admin
 # https://github.com/fabiocaccamo/django-admin-interface
 django-admin-interface==0.12.2
+sentry-sdk==0.14.2  # https://github.com/getsentry/sentry-python

@@ -36,7 +36,8 @@ def devolucao_ao_tesouro(prestacao_conta_2020_1_conciliada, tipo_devolucao_ao_te
         despesa=despesa,
         devolucao_total=True,
         valor=100.00,
-        motivo='teste'
+        motivo='teste',
+        visao_criacao='DRE'
     )
 
 
@@ -51,3 +52,4 @@ def test_devolucao_ao_tesouro_retrieve_serializer(devolucao_ao_tesouro):
     assert serializer.data['devolucao_total']
     assert serializer.data['valor']
     assert serializer.data['motivo']
+    assert serializer.data['visao_criacao']

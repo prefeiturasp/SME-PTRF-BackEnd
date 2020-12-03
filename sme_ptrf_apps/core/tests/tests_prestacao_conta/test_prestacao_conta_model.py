@@ -22,8 +22,9 @@ def test_instance_model(prestacao_conta):
     assert model.devolucao_tesouro
     assert model.ressalvas_aprovacao
 
+
 def test_srt_model(prestacao_conta):
-    assert prestacao_conta.__str__() == '2019.2 - 2019-09-01 a 2019-11-30 - DOCS_PENDENTES'
+    assert prestacao_conta.__str__() == '2019.2 - 2019-09-01 a 2019-11-30 - NAO_APRESENTADA'
 
 
 def test_admin():
@@ -40,6 +41,7 @@ def prestacao_conta1(periodo, associacao):
         status="EM_ANALISE"
     )
 
+
 @pytest.fixture
 def prestacao_conta2(periodo, outra_associacao):
     return baker.make(
@@ -49,12 +51,9 @@ def prestacao_conta2(periodo, outra_associacao):
         status="APROVADA"
     )
 
+
 def test_dash_board(prestacao_conta1, prestacao_conta2, periodo, dre):
     esperado = [
-        {
-            'titulo': 'Prestações de contas não recebidas',
-            'quantidade_prestacoes': 0,
-            'status': 'NAO_RECEBIDA'},
         {
             'titulo': 'Prestações de contas recebidas aguardando análise',
             'quantidade_prestacoes': 0,
@@ -74,7 +73,11 @@ def test_dash_board(prestacao_conta1, prestacao_conta2, periodo, dre):
         {
             'titulo': 'Prestações de contas reprovadas',
             'quantidade_prestacoes': 0,
-            'status': 'REPROVADA'}
+            'status': 'REPROVADA'},
+        {
+            'titulo': 'Prestações de contas não recebidas',
+            'quantidade_prestacoes': 0,
+            'status': 'NAO_RECEBIDA'}
     ]
 
     assert esperado == prestacao_conta1.dashboard(periodo.uuid, dre.uuid)

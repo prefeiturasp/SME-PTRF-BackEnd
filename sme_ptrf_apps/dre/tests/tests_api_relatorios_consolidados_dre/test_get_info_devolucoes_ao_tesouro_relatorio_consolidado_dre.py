@@ -68,6 +68,18 @@ def devolucao_ao_tesouro_2(prestacao_conta, tipo_devolucao_ao_tesouro, despesa):
         motivo='teste 2'
     )
 
+@pytest.fixture
+def obs_devolucao_tesouro_relatorio_dre_consolidado(periodo, dre, tipo_conta, tipo_devolucao_ao_tesouro):
+    return baker.make(
+        'ObsDevolucaoRelatorioConsolidadoDre',
+        dre=dre,
+        tipo_conta=tipo_conta,
+        periodo=periodo,
+        tipo_devolucao='TESOURO',
+        tipo_devolucao_ao_tesouro=tipo_devolucao_ao_tesouro,
+        observacao='Teste devolução ao tesouro'
+    )
+
 def test_api_get_info_devolucoes_ao_tesouro_relatorio(
     jwt_authenticated_client,
     dre,
@@ -77,6 +89,7 @@ def test_api_get_info_devolucoes_ao_tesouro_relatorio(
     tipo_devolucao_ao_tesouro,
     devolucao_ao_tesouro_1,
     devolucao_ao_tesouro_2,
+    obs_devolucao_tesouro_relatorio_dre_consolidado
 ):
     response = jwt_authenticated_client.get(
         f'/api/relatorios-consolidados-dre/info-devolucoes-ao-tesouro/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
@@ -84,7 +97,13 @@ def test_api_get_info_devolucoes_ao_tesouro_relatorio(
     result = json.loads(response.content)
 
     resultado_esperado = [
-        {'tipo__nome': f'{tipo_devolucao_ao_tesouro.nome}', 'ocorrencias': 2, 'valor': 200.00},
+        {
+            'tipo_nome': f'{tipo_devolucao_ao_tesouro.nome}',
+            'tipo_uuid': f'{tipo_devolucao_ao_tesouro.uuid}',
+            'ocorrencias': 2,
+            'valor': 200.00,
+            'observacao': 'Teste devolução ao tesouro',
+        },
     ]
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado

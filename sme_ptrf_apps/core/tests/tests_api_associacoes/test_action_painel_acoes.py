@@ -93,7 +93,7 @@ def test_action_painel_acoes(
             'legenda_cor': 3,
             'periodo_bloqueado': False,
             'periodo_encerrado': True,
-            'status_prestacao': 'DOCS_PENDENTES',
+            'status_prestacao': 'NAO_APRESENTADA',
             'texto_status': 'Período finalizado. Documentos pendentes de geração.'
         }
     }
@@ -188,7 +188,7 @@ def test_action_painel_acoes_por_periodo(
             'legenda_cor': 3,
             'periodo_bloqueado': False,
             'periodo_encerrado': True,
-            'status_prestacao': 'DOCS_PENDENTES',
+            'status_prestacao': 'NAO_APRESENTADA',
             'texto_status': 'Período finalizado. Documentos pendentes de geração.'
         },
     }
@@ -329,7 +329,7 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
             'legenda_cor': 3,
             'periodo_bloqueado': False,
             'periodo_encerrado': True,
-            'status_prestacao': 'DOCS_PENDENTES',
+            'status_prestacao': 'NAO_APRESENTADA',
             'texto_status': 'Período finalizado. Documentos pendentes de geração.'
         },
     }
