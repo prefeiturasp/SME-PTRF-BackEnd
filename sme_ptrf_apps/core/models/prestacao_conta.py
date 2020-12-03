@@ -33,7 +33,7 @@ class PrestacaoConta(ModeloBase):
         STATUS_APROVADA: 'Aprovada',
         STATUS_APROVADA_RESSALVA: 'Aprovada com ressalvas',
         STATUS_REPROVADA: 'Reprovada',
-        STATUS_EM_PROCESSAMENTO: 'Em processmento'
+        STATUS_EM_PROCESSAMENTO: 'Em processamento'
     }
 
     STATUS_CHOICES = (
@@ -128,6 +128,11 @@ class PrestacaoConta(ModeloBase):
     def desfazer_analise(self):
         self.data_ultima_analise = None
         self.status = self.STATUS_RECEBIDA
+        self.save()
+        return self
+
+    def em_processamento(self):
+        self.status = self.STATUS_EM_PROCESSAMENTO
         self.save()
         return self
 
