@@ -92,12 +92,10 @@ def gerar(periodo, acao_associacao, conta_associacao, previa=False):
             acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo__uuid=periodo.uuid).first()
 
         path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
-
         nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro.xlsx')
-
         workbook = load_workbook(nome_arquivo)
         worksheet = workbook.active
-
+        
         cabecalho(worksheet, periodo, acao_associacao, conta_associacao, previa)
         identificacao_apm(worksheet, acao_associacao)
         observacoes(worksheet, acao_associacao, periodo, conta_associacao)
