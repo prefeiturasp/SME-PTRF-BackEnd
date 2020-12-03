@@ -10,6 +10,7 @@ from ..services.relacao_bens import gerar_arquivo_relacao_de_bens
 from ..services.processos_services import get_processo_sei_da_prestacao
 from ...despesas.models import RateioDespesa
 from ...receitas.models import Receita
+from ..tasks import concluir_prestacao_de_contas_async
 
 logger = logging.getLogger(__name__)
 
@@ -19,19 +20,9 @@ def concluir_prestacao_de_contas(periodo, associacao):
     prestacao = PrestacaoConta.abrir(periodo=periodo, associacao=associacao)
     logger.info(f'Aberta a prestação de contas {prestacao}.')
 
-    associacao = prestacao.associacao
-    periodo = prestacao.periodo
-    acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
-    contas = associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
-
-    _criar_fechamentos(acoes, contas, periodo, prestacao)
-    logger.info(f'Fechamentos criados para a prestação de contas {prestacao}.')
-
-    _criar_documentos(acoes, contas, periodo, prestacao)
-    logger.info(f'Documentos gerados para a prestação de contas {prestacao}.')
-
-    prestacao = prestacao.concluir()
-    logger.info(f'Concluída a prestação de contas {prestacao}.')
+    prestacao.em_processamento()
+    logger.info(f'Prestação de contas em processamento {prestacao}.')
+    concluir_prestacao_de_contas_async.delay(periodo.uuid, associacao.uuid)
 
     return prestacao
 
