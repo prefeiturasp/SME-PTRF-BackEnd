@@ -312,6 +312,7 @@ class PrestacaoConta(ModeloBase):
             }
             cards.append(card)
 
+
         quantidade_unidades_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
         quantidade_pcs_nao_apresentadas = quantidade_unidades_dre - quantidade_pcs_apresentadas
         card_nao_recebidas = {
@@ -319,8 +320,7 @@ class PrestacaoConta(ModeloBase):
             "quantidade_prestacoes": quantidade_pcs_nao_apresentadas,
             "status": 'NAO_RECEBIDA'
         }
-        cards.append(card_nao_recebidas)
-
+        cards.insert(0, card_nao_recebidas)
         return cards
 
     @classmethod
