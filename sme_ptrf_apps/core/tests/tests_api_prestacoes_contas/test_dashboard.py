@@ -122,6 +122,10 @@ def test_dashboard(
         'total_associacoes_dre': 5,
         'cards': [
             {
+                'titulo': 'Prestações de contas não recebidas',
+                'quantidade_prestacoes': 2,  # Uma PC não recebida + Uma Associação sem PC.
+                'status': 'NAO_RECEBIDA'},
+            {
                 'titulo': 'Prestações de contas recebidas aguardando análise',
                 'quantidade_prestacoes': 0,
                 'status': 'RECEBIDA'},
@@ -140,12 +144,7 @@ def test_dashboard(
             {
                 'titulo': 'Prestações de contas reprovadas',
                 'quantidade_prestacoes': 0,
-                'status': 'REPROVADA'},
-
-            {
-                'titulo': 'Prestações de contas não recebidas',
-                'quantidade_prestacoes': 2,  # Uma PC não recebida + Uma Associação sem PC.
-                'status': 'NAO_RECEBIDA'}
+                'status': 'REPROVADA'}
         ]
     }
 
@@ -171,6 +170,10 @@ def test_dashboard_add_aprovada_ressalva(
         'total_associacoes_dre': 5,
         'cards': [
             {
+                'titulo': 'Prestações de contas não recebidas',
+                'quantidade_prestacoes': 2,
+                'status': 'NAO_RECEBIDA'},
+            {
                 'titulo': 'Prestações de contas recebidas aguardando análise',
                 'quantidade_prestacoes': 0,
                 'status': 'RECEBIDA'},
@@ -193,11 +196,7 @@ def test_dashboard_add_aprovada_ressalva(
             {
                 'titulo': 'Prestações de contas aprovadas com ressalvas',
                 'quantidade_prestacoes': 1,
-                'status': 'APROVADA_RESSALVA'},
-            {
-                'titulo': 'Prestações de contas não recebidas',
-                'quantidade_prestacoes': 2,
-                'status': 'NAO_RECEBIDA'}
+                'status': 'APROVADA_RESSALVA'}
         ]
     }
 
@@ -228,6 +227,10 @@ def test_dashboard_outro_periodo(jwt_authenticated_client_a, prestacao_conta_apr
         'total_associacoes_dre': 2,
         'cards': [
             {
+                'titulo': 'Prestações de contas não recebidas',
+                'quantidade_prestacoes': 2,
+                'status': 'NAO_RECEBIDA'},
+            {
                 'titulo': 'Prestações de contas recebidas aguardando análise',
                 'quantidade_prestacoes': 0,
                 'status': 'RECEBIDA'},
@@ -246,11 +249,7 @@ def test_dashboard_outro_periodo(jwt_authenticated_client_a, prestacao_conta_apr
             {
                 'titulo': 'Prestações de contas reprovadas',
                 'quantidade_prestacoes': 0,
-                'status': 'REPROVADA'},
-            {
-                'titulo': 'Prestações de contas não recebidas',
-                'quantidade_prestacoes': 2,
-                'status': 'NAO_RECEBIDA'}
+                'status': 'REPROVADA'}
         ]
     }
 
