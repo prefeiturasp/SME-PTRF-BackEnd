@@ -322,14 +322,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         prestacao_conta = self.get_object()
 
         devolucoes_ao_tesouro_da_prestacao = request.data.get('devolucoes_ao_tesouro_da_prestacao', [])
-        if not devolucoes_ao_tesouro_da_prestacao:
-            response = {
-                'uuid': f'{uuid}',
-                'erro': 'falta_de_informacoes',
-                'operacao': 'salvar-devolucoes-ao-tesouro',
-                'mensagem': 'Faltou informar o campo devolucoes_ao_tesouro_da_prestacao.'
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         if prestacao_conta.status not in [PrestacaoConta.STATUS_EM_ANALISE, PrestacaoConta.STATUS_DEVOLVIDA]:
             response = {
