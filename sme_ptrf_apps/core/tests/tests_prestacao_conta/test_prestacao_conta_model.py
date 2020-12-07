@@ -55,6 +55,10 @@ def prestacao_conta2(periodo, outra_associacao):
 def test_dash_board(prestacao_conta1, prestacao_conta2, periodo, dre):
     esperado = [
         {
+            'titulo': 'Prestações de contas não recebidas',
+            'quantidade_prestacoes': 0,
+            'status': 'NAO_RECEBIDA'},
+        {
             'titulo': 'Prestações de contas recebidas aguardando análise',
             'quantidade_prestacoes': 0,
             'status': 'RECEBIDA'},
@@ -73,11 +77,7 @@ def test_dash_board(prestacao_conta1, prestacao_conta2, periodo, dre):
         {
             'titulo': 'Prestações de contas reprovadas',
             'quantidade_prestacoes': 0,
-            'status': 'REPROVADA'},
-        {
-            'titulo': 'Prestações de contas não recebidas',
-            'quantidade_prestacoes': 0,
-            'status': 'NAO_RECEBIDA'}
+            'status': 'REPROVADA'}
     ]
 
     assert esperado == prestacao_conta1.dashboard(periodo.uuid, dre.uuid)

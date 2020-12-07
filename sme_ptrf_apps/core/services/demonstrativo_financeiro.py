@@ -74,28 +74,28 @@ def gerar_arquivo_demonstrativo_financeiro(periodo, acao_associacao, conta_assoc
 
 
 def gerar(periodo, acao_associacao, conta_associacao, previa=False):
-
-    LOGGER.info("GERANDO DEMONSTRATIVO...")
-    rateios_conferidos = RateioDespesa.rateios_da_acao_associacao_no_periodo(
-        acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True)
-
-    rateios_nao_conferidos = RateioDespesa.rateios_da_acao_associacao_no_periodo(
-        acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=False)
-
-    rateios_nao_conferidos_em_periodos_anteriores = RateioDespesa.rateios_da_acao_associacao_em_periodo_anteriores(
-        acao_associacao=acao_associacao, periodo=periodo, conta_associacao=conta_associacao, conferido=False)
-
-    receitas_demonstradas = Receita.receitas_da_acao_associacao_no_periodo(
-        acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True)
-
-    fechamento_periodo = FechamentoPeriodo.objects.filter(
-        acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo__uuid=periodo.uuid).first()
-
-    path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
-    nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro.xlsx')
-    workbook = load_workbook(nome_arquivo)
-    worksheet = workbook.active
     try:
+        LOGGER.info("GERANDO DEMONSTRATIVO...")
+        rateios_conferidos = RateioDespesa.rateios_da_acao_associacao_no_periodo(
+            acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True)
+
+        rateios_nao_conferidos = RateioDespesa.rateios_da_acao_associacao_no_periodo(
+            acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=False)
+
+        rateios_nao_conferidos_em_periodos_anteriores = RateioDespesa.rateios_da_acao_associacao_em_periodo_anteriores(
+            acao_associacao=acao_associacao, periodo=periodo, conta_associacao=conta_associacao, conferido=False)
+
+        receitas_demonstradas = Receita.receitas_da_acao_associacao_no_periodo(
+            acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True)
+
+        fechamento_periodo = FechamentoPeriodo.objects.filter(
+            acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo__uuid=periodo.uuid).first()
+
+        path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
+        nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro.xlsx')
+        workbook = load_workbook(nome_arquivo)
+        worksheet = workbook.active
+        
         cabecalho(worksheet, periodo, acao_associacao, conta_associacao, previa)
         identificacao_apm(worksheet, acao_associacao)
         observacoes(worksheet, acao_associacao, periodo, conta_associacao)

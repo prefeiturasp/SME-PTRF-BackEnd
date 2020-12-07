@@ -33,7 +33,7 @@ class PrestacaoConta(ModeloBase):
         STATUS_APROVADA: 'Aprovada',
         STATUS_APROVADA_RESSALVA: 'Aprovada com ressalvas',
         STATUS_REPROVADA: 'Reprovada',
-        STATUS_EM_PROCESSAMENTO: 'Em processmento'
+        STATUS_EM_PROCESSAMENTO: 'Em processamento'
     }
 
     STATUS_CHOICES = (
@@ -128,6 +128,11 @@ class PrestacaoConta(ModeloBase):
     def desfazer_analise(self):
         self.data_ultima_analise = None
         self.status = self.STATUS_RECEBIDA
+        self.save()
+        return self
+
+    def em_processamento(self):
+        self.status = self.STATUS_EM_PROCESSAMENTO
         self.save()
         return self
 
@@ -307,6 +312,7 @@ class PrestacaoConta(ModeloBase):
             }
             cards.append(card)
 
+
         quantidade_unidades_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
         quantidade_pcs_nao_apresentadas = quantidade_unidades_dre - quantidade_pcs_apresentadas
         card_nao_recebidas = {
@@ -314,8 +320,7 @@ class PrestacaoConta(ModeloBase):
             "quantidade_prestacoes": quantidade_pcs_nao_apresentadas,
             "status": 'NAO_RECEBIDA'
         }
-        cards.append(card_nao_recebidas)
-
+        cards.insert(0, card_nao_recebidas)
         return cards
 
     @classmethod
