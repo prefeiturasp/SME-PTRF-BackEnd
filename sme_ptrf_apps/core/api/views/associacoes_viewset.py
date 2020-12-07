@@ -13,7 +13,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoAssociacao, PermissaoAssociacaoDre, PermissaoExportarDadosAssociacao
+from sme_ptrf_apps.users.permissoes import (
+    PermissaoAssociacao,
+    PermissaoAssociacaoDre,
+    PermissaoDadosUnidadeDre,
+    PermissaoExportarDadosAssociacao,
+)
 
 from ....dre.services import (
     desmarca_item_verificacao_associacao,
@@ -53,7 +58,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
                          mixins.RetrieveModelMixin,
                          mixins.UpdateModelMixin,
                          GenericViewSet, ):
-    permission_classes = [IsAuthenticated & (PermissaoAssociacao | PermissaoAssociacaoDre)]
+    permission_classes = [IsAuthenticated & (PermissaoAssociacao | PermissaoAssociacaoDre | PermissaoDadosUnidadeDre)]
     lookup_field = 'uuid'
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer

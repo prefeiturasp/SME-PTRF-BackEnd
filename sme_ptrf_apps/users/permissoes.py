@@ -190,6 +190,28 @@ class PermissaoAssociacaoDre(PermissaoCRUD):
         return self.has_perms(perms, request.user)
 
 
+class PermissaoDadosUnidadeDre(PermissaoCRUD):
+    perms_map = {
+        'GET': ['view_dados_unidade_dre'],
+        'OPTIONS': ['view_dados_unidade_dre'],
+        'HEAD': ['view_dados_unidade_dre'],
+        'POST': ['view_dados_unidade_dre'],
+        'PUT': ['view_dados_unidade_dre'],
+        'PATCH': ['view_dados_unidade_dre'],
+        'DELETE': ['view_dados_unidade_dre'],
+    }
+
+    def get_required_permissions(self, method):
+        if method not in self.perms_map:
+            raise exceptions.MethodNotAllowed(method)
+
+        return [perm for perm in self.perms_map[method]]
+
+    def has_permission(self, request, view):
+        perms = self.get_required_permissions(request.method)
+        return self.has_perms(perms, request.user)
+
+
 class PermissaoDadosDiretoriaDre(PermissaoCRUD):
     perms_map = {
         'GET': ['view_dadosdiretoria_dre'],
