@@ -109,6 +109,19 @@ def permissoes_dadosdiretoria_dre():
 
 
 @pytest.fixture
+def permissoes_regularidade_dre():
+    permissoes = [
+        Permission.objects.create(
+            name="visualizar regularidade dre", 
+            codename='view_regularidade_dre', 
+            content_type=ContentType.objects.filter(app_label="auth").first()
+        ),
+    ]
+
+    return permissoes
+
+
+@pytest.fixture
 def grupo_associacao(permissoes_associacao):
     g = Grupo.objects.create(name="associacao")
     g.permissions.add(*permissoes_associacao)
@@ -179,6 +192,13 @@ def grupo_dadosdiretoria_dre(permissoes_dadosdiretoria_dre):
 
 
 @pytest.fixture
+def grupo_regularidade_dre(permissoes_regularidade_dre):
+    g = Grupo.objects.create(name="gruporegulariade_dre")
+    g.permissions.add(*permissoes_regularidade_dre)
+    return g
+
+
+@pytest.fixture
 def usuario_permissao_associacao(
         unidade,
         grupo_associacao,
@@ -190,7 +210,8 @@ def usuario_permissao_associacao(
         grupo_unidades,
         grupo_dashboard_dre,
         grupo_associacao_dre,
-        grupo_dadosdiretoria_dre):
+        grupo_dadosdiretoria_dre,
+        grupo_regularidade_dre):
 
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
@@ -209,7 +230,8 @@ def usuario_permissao_associacao(
         grupo_unidades,
         grupo_dashboard_dre,
         grupo_associacao_dre,
-        grupo_dadosdiretoria_dre)
+        grupo_dadosdiretoria_dre,
+        grupo_regularidade_dre)
     user.save()
     return user
 
