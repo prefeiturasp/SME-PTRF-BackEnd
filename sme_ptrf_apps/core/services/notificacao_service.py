@@ -36,7 +36,7 @@ def notificar_usuario(dado):
     remetente = Remetente.objects.filter(nome="DRE").first()
     titulo = f"Comentário feito em sua prestação de contas de {periodo.referencia}."
 
-    cargos = [MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value, MembroEnum.VICE_PRESIDENTE_DIRETORIA_EXECUTIVA.value]
+    cargos = [MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name, MembroEnum.VICE_PRESIDENTE_DIRETORIA_EXECUTIVA.name]
     membros = associacao.cargos.filter(cargo_associacao__in=cargos)
 
     for membro in membros:
