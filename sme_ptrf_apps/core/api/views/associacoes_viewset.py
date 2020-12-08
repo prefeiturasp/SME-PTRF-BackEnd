@@ -13,7 +13,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoAssociacao, PermissaoAssociacaoDre, PermissaoExportarDadosAssociacao
+from sme_ptrf_apps.users.permissoes import (
+    PermissaoAssociacao,
+    PermissaoAssociacaoDre,
+    PermissaoDadosUnidadeDre,
+    PermissaoExportarDadosAssociacao,
+    PermissaoRegularidadeDre,
+    PermissaoSituacaoFinanceira
+)
 
 from ....dre.services import (
     desmarca_item_verificacao_associacao,
@@ -53,7 +60,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
                          mixins.RetrieveModelMixin,
                          mixins.UpdateModelMixin,
                          GenericViewSet, ):
-    permission_classes = [IsAuthenticated & (PermissaoAssociacao | PermissaoAssociacaoDre)]
+    permission_classes = [IsAuthenticated & (PermissaoAssociacao | PermissaoAssociacaoDre | PermissaoDadosUnidadeDre | PermissaoSituacaoFinanceira)]
     lookup_field = 'uuid'
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer
@@ -324,12 +331,12 @@ class AssociacoesViewSet(mixins.ListModelMixin,
         processos = associacao.processos.all()
         return Response(ProcessoAssociacaoRetrieveSerializer(processos, many=True).data)
 
-    @action(detail=True, url_path='verificacao-regularidade', methods=['get'])
+    @action(detail=True, url_path='verificacao-regularidade', methods=['get'], permission_classes=[IsAuthenticated & ((PermissaoAssociacaoDre & PermissaoRegularidadeDre))])
     def verificacao_regularidade(self, request, uuid=None):
         verificacao = verifica_regularidade_associacao(uuid)
         return Response(verificacao)
 
-    @action(detail=True, url_path='marca-item-verificacao', methods=['get'])
+    @action(detail=True, url_path='marca-item-verificacao', methods=['get'], permission_classes=[IsAuthenticated & ((PermissaoAssociacaoDre & PermissaoRegularidadeDre))])
     def marca_item_verificacao(self, request, uuid=None):
         item = request.query_params.get('item')
 
@@ -357,7 +364,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
 
         return Response(result, status=status_code)
 
-    @action(detail=True, url_path='desmarca-item-verificacao', methods=['get'])
+    @action(detail=True, url_path='desmarca-item-verificacao', methods=['get'], permission_classes=[IsAuthenticated & ((PermissaoAssociacaoDre & PermissaoRegularidadeDre))])
     def desmarca_item_verificacao(self, request, uuid=None):
         item = request.query_params.get('item')
 
@@ -385,7 +392,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
 
         return Response(result, status=status_code)
 
-    @action(detail=True, url_path='marca-lista-verificacao', methods=['get'])
+    @action(detail=True, url_path='marca-lista-verificacao', methods=['get'], permission_classes=[IsAuthenticated & ((PermissaoAssociacaoDre & PermissaoRegularidadeDre))])
     def marca_lista_verificacao(self, request, uuid=None):
         lista = request.query_params.get('lista')
 
@@ -413,7 +420,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
 
         return Response(result, status=status_code)
 
-    @action(detail=True, url_path='desmarca-lista-verificacao', methods=['get'])
+    @action(detail=True, url_path='desmarca-lista-verificacao', methods=['get'], permission_classes=[IsAuthenticated & ((PermissaoAssociacaoDre & PermissaoRegularidadeDre))])
     def desmarca_lista_verificacao(self, request, uuid=None):
         lista = request.query_params.get('lista')
 
@@ -441,7 +448,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
 
         return Response(result, status=status_code)
 
-    @action(detail=True, url_path='atualiza-itens-verificacao', methods=['post'])
+    @action(detail=True, url_path='atualiza-itens-verificacao', methods=['post'], permission_classes=[IsAuthenticated & (PermissaoAssociacaoDre & PermissaoRegularidadeDre)])
     def atualiza_itens_verificacao(self, request, uuid=None):
         itens = request.data
 
