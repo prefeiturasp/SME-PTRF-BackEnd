@@ -11,7 +11,29 @@ Versão: 1.3.0
 ## Release Notes
 
 ### 1.3.0 - 08/12/2020 - Entregas da Sprint 12
-* Em andamento...
+* Carga de previsões de repasse da SME;
+* Carga de quantidade de alunos do último celso;
+* Vínculo de membros da associação a seus usuários no sistema;
+* Uso do CPF para identificar membros de associação que são pais ou responsáveis;
+* Configurado monitoramento de erros (Sentry);
+* Dashboard da DRE movido para o ítem de menu 'Acompanhamento';
+* Melhoria no texto da mensagem de alerta sobre períodos bloqueados para alteração;
+* Melhorias na navegação entre informações na consulta de Associações pela DRE;
+* Uso de perfis de acesso nas ações da consulta de Associações pela DRE;
+* Aplicação de máscara na digitação do processo SEI de regularidade da Associação;
+* Mensagem de confirmação de gravação ao atualizar dados da DRE;
+* Geração de documentos de prestação de contas de forma assíncrona;
+* Relatório Consolidado DRE (Parte 2);
+* Mudança no critério de 'Prestações de Contas Não Recebidas' no painel da DRE;
+* No painel da DRE, o total de associações passa a desconsiderar associações sem CNPJ;
+* Geração de notificações para o presidente e vice-presidente da associação, sobre comentários feitos pela DRE na análise de uma prestação de contas;  
+* Bloqueio de conciliação de lançamentos em períodos fechados;
+* Restrições de edição para a associação em devoluções ao tesouro registradas pela DRE;
+* Na inclusão/edição de despesas, mensagem de confirmação ao sair, apenas quando houver mudanças;
+* Expiração de acesso do usuário após 10 horas de logado;  
+* Ajustes menores em textos e labels;
+* 🐞 Correção de alguns bugs.
+
 
 ### 1.2.0 - 10/11/2020 - Entregas da Sprint 11
 * Gestão de perfis de acesso às funcionalidades do sistema
