@@ -51,6 +51,10 @@ class UserViewSet(ModelViewSet):
         if search is not None:
             qs = qs.filter(name__unaccent__icontains=search)
 
+        associacao_uuid = self.request.query_params.get('associacao_uuid')
+        if associacao_uuid:
+            qs = qs.filter(unidades__associacoes__uuid=associacao_uuid)
+
         return qs
 
     @action(detail=False, methods=["GET"])

@@ -1,6 +1,9 @@
 from .base import *  # noqa
 from .base import env
 
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
@@ -144,3 +147,9 @@ LOGGING = {
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+# SENTRY
+sentry_sdk.init(
+    dsn=env('SENTRY_URL'),
+    integrations=[DjangoIntegration()]
+)

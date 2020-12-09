@@ -239,3 +239,36 @@ def test_atualiza_itens_verificacao(jwt_authenticated_client_a, associacao,
     verificacao2 = VerificacaoRegularidadeAssociacao.objects.filter(associacao=associacao,
                                                                    item_verificacao=item_verificacao_regularidade_documentos_associacao_rais)
     assert verificacao2.count() == 1, 'Esse item deveria existir'
+
+
+def test_atualiza_itens_verificacao_associacao_regular(jwt_authenticated_client_a, associacao,
+                                    grupo_verificacao_regularidade_documentos,
+                                    lista_verificacao_regularidade_documentos_associacao,
+                                    item_verificacao_regularidade_documentos_associacao_cnpj,
+                                    item_verificacao_regularidade_documentos_associacao_rais
+                                    ):
+    payload = [
+        {
+            "uuid": f'{item_verificacao_regularidade_documentos_associacao_cnpj.uuid}',
+            "regular": True
+        },
+        {
+            "uuid": f'{item_verificacao_regularidade_documentos_associacao_rais.uuid}',
+            "regular": True
+        }
+    ]
+    response = jwt_authenticated_client_a.post(
+        f'/api/associacoes/{associacao.uuid}/atualiza-itens-verificacao/', data=json.dumps(payload),
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'associacao': f'{associacao.uuid}',
+        'mensagem': 'Itens de verificação atualizados.'
+    }
+
+    from sme_ptrf_apps.core.models import Associacao
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
+    assert Associacao.objects.get(uuid=associacao.uuid).status_regularidade == "REGULAR"

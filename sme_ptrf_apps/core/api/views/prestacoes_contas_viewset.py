@@ -14,7 +14,12 @@ from sme_ptrf_apps.users.permissoes import PermissaoPrestacaoConta, PermissaoDas
 
 from ....dre.models import Atribuicao, TecnicoDre
 from ...models import Associacao, Ata, Periodo, PrestacaoConta, Unidade
-from ...services import concluir_prestacao_de_contas, informacoes_financeiras_para_atas, reabrir_prestacao_de_contas
+from ...services import (
+    concluir_prestacao_de_contas,
+    informacoes_financeiras_para_atas,
+    reabrir_prestacao_de_contas,
+    lista_prestacoes_de_conta_nao_recebidas,
+)
 from ..serializers import (
     AtaLookUpSerializer,
     PrestacaoContaListSerializer,
@@ -317,14 +322,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         prestacao_conta = self.get_object()
 
         devolucoes_ao_tesouro_da_prestacao = request.data.get('devolucoes_ao_tesouro_da_prestacao', [])
-        if not devolucoes_ao_tesouro_da_prestacao:
-            response = {
-                'uuid': f'{uuid}',
-                'erro': 'falta_de_informacoes',
-                'operacao': 'salvar-devolucoes-ao-tesouro',
-                'mensagem': 'Faltou informar o campo devolucoes_ao_tesouro_da_prestacao.'
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         if prestacao_conta.status not in [PrestacaoConta.STATUS_EM_ANALISE, PrestacaoConta.STATUS_DEVOLVIDA]:
             response = {
@@ -540,7 +537,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        total_associacoes_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).count()
+        total_associacoes_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
 
         par_add_aprovados_ressalva = request.query_params.get('add_aprovadas_ressalva')
         add_aprovados_ressalva = par_add_aprovados_ressalva == 'SIM'
@@ -557,4 +554,73 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         result = {
             'status': PrestacaoConta.status_to_json(),
         }
+        return Response(result)
+
+    @action(detail=False, url_path='nao-recebidas')
+    def nao_recebidas(self, _):
+        # Determina a DRE
+        dre_uuid = self.request.query_params.get('associacao__unidade__dre__uuid')
+
+        if not dre_uuid:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'operacao': 'nao-recebidas',
+                'mensagem': 'Faltou informar o uuid da dre. ?associacao__unidade__dre__uuid=uuid_da_dre'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            dre = Unidade.dres.get(uuid=dre_uuid)
+        except Unidade.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Determina o período
+        periodo_uuid = self.request.query_params.get('periodo__uuid')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'operacao': 'nao-recebidas',
+                'mensagem': 'Faltou informar o uuid do período. ?periodo__uuid=uuid_do_periodo'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Pega filtros
+        nome = self.request.query_params.get('nome')
+        tipo_unidade = self.request.query_params.get('tipo_unidade')
+        status_pc = self.request.query_params.get('status')
+
+        if status_pc and status_pc not in [PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_NAO_RECEBIDA]:
+            erro = {
+                'erro': 'status-invalido',
+                'operacao': 'nao-recebidas',
+                'mensagem': 'Só é possível filtrar não recebidas pelos status NAO_APRESENTADA e NAO_RECEBIDA.'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+
+        result = lista_prestacoes_de_conta_nao_recebidas(dre=dre,
+                                                         periodo=periodo,
+                                                         filtro_nome=nome,
+                                                         filtro_tipo_unidade=tipo_unidade,
+                                                         filtro_status=status_pc
+                                                         )
         return Response(result)

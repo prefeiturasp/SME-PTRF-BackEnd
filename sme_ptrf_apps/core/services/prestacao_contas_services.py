@@ -1,13 +1,16 @@
 import logging
 
 from django.db import transaction
+from django.db.models import Q
 
-from ..models import PrestacaoConta, AcaoAssociacao, FechamentoPeriodo, ContaAssociacao
+from ..models import PrestacaoConta, AcaoAssociacao, FechamentoPeriodo, ContaAssociacao, Associacao
 from ..services import info_acoes_associacao_no_periodo
 from ..services.demonstrativo_financeiro import gerar_arquivo_demonstrativo_financeiro
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens
+from ..services.processos_services import get_processo_sei_da_prestacao
 from ...despesas.models import RateioDespesa
 from ...receitas.models import Receita
+from ..tasks import concluir_prestacao_de_contas_async
 
 logger = logging.getLogger(__name__)
 
@@ -17,19 +20,9 @@ def concluir_prestacao_de_contas(periodo, associacao):
     prestacao = PrestacaoConta.abrir(periodo=periodo, associacao=associacao)
     logger.info(f'Aberta a prestação de contas {prestacao}.')
 
-    associacao = prestacao.associacao
-    periodo = prestacao.periodo
-    acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
-    contas = associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
-
-    _criar_fechamentos(acoes, contas, periodo, prestacao)
-    logger.info(f'Fechamentos criados para a prestação de contas {prestacao}.')
-
-    _criar_documentos(acoes, contas, periodo, prestacao)
-    logger.info(f'Documentos gerados para a prestação de contas {prestacao}.')
-
-    prestacao = prestacao.concluir()
-    logger.info(f'Concluída a prestação de contas {prestacao}.')
+    prestacao.em_processamento()
+    logger.info(f'Prestação de contas em processamento {prestacao}.')
+    concluir_prestacao_de_contas_async.delay(periodo.uuid, associacao.uuid)
 
     return prestacao
 
@@ -88,11 +81,11 @@ def reabrir_prestacao_de_contas(prestacao_contas_uuid):
         logger.info(f'Prestação de contas de uuid {prestacao_contas_uuid} foi reaberta. Seus registros foram apagados.')
     return concluido
 
+
 def devolver_prestacao_de_contas(prestacao_contas_uuid):
     logger.info(f'Devolvendo a prestação de contas de uuid {prestacao_contas_uuid}.')
     prestacao = PrestacaoConta.devolver(uuid=prestacao_contas_uuid)
     return prestacao
-
 
 
 def informacoes_financeiras_para_atas(prestacao_contas):
@@ -182,3 +175,54 @@ def informacoes_financeiras_para_atas(prestacao_contas):
     }
 
     return info
+
+
+def lista_prestacoes_de_conta_nao_recebidas(
+    dre,
+    periodo,
+    filtro_nome=None, filtro_tipo_unidade=None, filtro_status=None
+):
+    associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by('nome')
+
+    if filtro_nome is not None:
+        associacoes_da_dre = associacoes_da_dre.filter(Q(nome__unaccent__icontains=filtro_nome) | Q(
+            unidade__nome__unaccent__icontains=filtro_nome))
+
+    if filtro_tipo_unidade is not None:
+        associacoes_da_dre = associacoes_da_dre.filter(unidade__tipo_unidade=filtro_tipo_unidade)
+
+    prestacoes = []
+    for associacao in associacoes_da_dre:
+        prestacao_conta = PrestacaoConta.objects.filter(associacao=associacao, periodo=periodo).first()
+
+        # Devem entrar apenas Prestações de contas não apresentadas ou não recebidas
+        if prestacao_conta and prestacao_conta.status not in [PrestacaoConta.STATUS_NAO_APRESENTADA,
+                                                              PrestacaoConta.STATUS_NAO_RECEBIDA]:
+            continue
+
+
+        # Aplica o filtro por status
+        if filtro_status == PrestacaoConta.STATUS_NAO_RECEBIDA:
+            if not prestacao_conta or prestacao_conta.status != PrestacaoConta.STATUS_NAO_RECEBIDA:
+                continue
+        elif filtro_status == PrestacaoConta.STATUS_NAO_APRESENTADA:
+            if prestacao_conta and prestacao_conta.status != PrestacaoConta.STATUS_NAO_APRESENTADA:
+                continue
+
+        info_prestacao = {
+            'periodo_uuid': f'{periodo.uuid}',
+            'data_recebimento': None,
+            'data_ultima_analise': None,
+            'processo_sei': get_processo_sei_da_prestacao(prestacao_contas=prestacao_conta) if prestacao_conta else '',
+            'status': prestacao_conta.status if prestacao_conta else PrestacaoConta.STATUS_NAO_APRESENTADA,
+            'tecnico_responsavel': '',
+            'unidade_eol': associacao.unidade.codigo_eol,
+            'unidade_nome': associacao.unidade.nome,
+            'uuid': f'{prestacao_conta.uuid}' if prestacao_conta else '',
+            'associacao_uuid': f'{associacao.uuid}',
+            'devolucao_ao_tesouro': '0,00'
+        }
+
+        prestacoes.append(info_prestacao)
+
+    return prestacoes

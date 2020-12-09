@@ -181,7 +181,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                 'logradouro': 'dos Testes',
                 'nome': 'Escola Teste',
                 'numero': '200',
-                'qtd_alunos': 1000,
+                'qtd_alunos': 0,
                 'sigla': 'ET',
                 'telefone': '58212627',
                 'tipo_logradouro': 'Travessa',
@@ -191,7 +191,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
             'uuid': f'{prestacao_conta.associacao.uuid}'
         },
         'periodo_uuid': f'{prestacao_conta.periodo.uuid}',
-        'status': 'DOCS_PENDENTES',
+        'status': 'NAO_APRESENTADA',
         'uuid': f'{prestacao_conta.uuid}',
         'tecnico_responsavel': {
             'nome': 'José Testando',
@@ -206,7 +206,9 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                         'data': '2020-07-01',
                         'prestacao_conta': f'{prestacao_conta.uuid}',
                         'tipo': 'DEVOLUCAO',
-                        'uuid': f'{_cobranca_prestacao_devolucao.uuid}'
+                        'uuid': f'{_cobranca_prestacao_devolucao.uuid}',
+                        'associacao': f'{_cobranca_prestacao_devolucao.associacao.uuid}',
+                        'periodo': f'{_cobranca_prestacao_devolucao.periodo.uuid}',
                     }
                 ],
                 'data': '2020-07-01',
@@ -266,7 +268,8 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                     'uuid': f'{devolucao_ao_tesouro.tipo.uuid}',
                 },
                 'uuid': f'{devolucao_ao_tesouro.uuid}',
-                'valor': '100.00'
+                'valor': '100.00',
+                'visao_criacao': 'DRE'
             }
         ],
     }

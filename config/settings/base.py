@@ -6,6 +6,7 @@ import datetime
 
 import environ
 
+
 ROOT_DIR = (
     environ.Path(__file__) - 3
 )  # (sme_ptrf_apps/config/settings/base.py - 3 = sme_ptrf_apps/)

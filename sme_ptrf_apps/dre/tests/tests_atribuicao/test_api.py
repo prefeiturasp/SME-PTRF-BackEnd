@@ -46,7 +46,6 @@ def unidade_2(dre):
         complemento='fundos',
         telefone='99212627',
         email='emeijopfilho@sme.prefeitura.sp.gov.br',
-        qtd_alunos=1200,
         diretor_nome='Amaro Pedro',
         dre_cnpj='63.058.286/0001-86',
         dre_diretor_regional_rf='1234567',

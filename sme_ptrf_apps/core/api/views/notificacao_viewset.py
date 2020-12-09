@@ -13,7 +13,7 @@ from sme_ptrf_apps.core.api.serializers.notificacao_serializer import (
     TipoNotificacaoSerializer,
 )
 from sme_ptrf_apps.core.models import Notificacao
-from sme_ptrf_apps.core.services import formata_data
+from sme_ptrf_apps.core.services import formata_data, notificar_usuario
 
 logger = logging.getLogger(__name__)
 
@@ -149,3 +149,29 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
         }
 
         return Response(result)
+
+    @action(detail=False, url_path="notificar", methods=['post'])
+    def notificar(self, request):
+        dado = self.request.data
+
+        if not dado.get('associacao') or not dado.get('periodo') or not dado.get('comentarios'):
+            resultado = {
+                'erro': 'Dados incompletos',
+                'mensagem': 'uuid da associação, do período e lista uuids de comentários são obrigatórios.'
+            }
+
+            status_code = status.HTTP_400_BAD_REQUEST
+            logger.info('Erro: %r', resultado)
+            return Response(resultado, status=status_code)
+
+        try:
+            notificar_usuario(dado)
+        except Exception as err:
+            logger.info("Erro no processo de notificação: %s", str(err))
+            resultado = {
+                'erro': 'Problema no processo de notificar usuário',
+                'mensagem': "Erro no processo de notificacao"
+            }
+            return Response(resultado, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"mensagem": "Processo de notificação enviado com sucesso."})

@@ -2,6 +2,9 @@ import json
 
 import pytest
 
+from freezegun import freeze_time
+from django.core.files.uploadedfile import SimpleUploadedFile
+
 from datetime import date
 from model_bakery import baker
 from rest_framework import status
@@ -19,7 +22,8 @@ def test_api_get_status_relatorio_analise_completa_rel_nao_gerado(jwt_authentica
         'pcs_em_analise': False,
         'status_geracao': 'NAO_GERADO',
         'status_txt': 'Análise de prestações de contas das associações completa. Relatório não gerado.',
-        'cor_idx': 2
+        'cor_idx': 2,
+        'status_arquivo': 'Documento pendente de geração',
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -48,7 +52,8 @@ def test_api_get_status_relatorio_analise_pendente_rel_nao_gerado(jwt_authentica
         'pcs_em_analise': True,
         'status_geracao': 'NAO_GERADO',
         'status_txt': 'Ainda constam prestações de contas das associações em análise. Relatório não gerado.',
-        'cor_idx': 0
+        'cor_idx': 0,
+        'status_arquivo': 'Documento pendente de geração'
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -56,13 +61,20 @@ def test_api_get_status_relatorio_analise_pendente_rel_nao_gerado(jwt_authentica
 
 
 @pytest.fixture
-def relatorio_dre_consolidado_gerado_parcial(periodo, dre, tipo_conta, arquivo):
+@freeze_time('2020-10-27 13:59:00')
+def arquivo_gerado_em_2020_10_27_13_59_00():
+    return SimpleUploadedFile(f'arquivo.txt', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding="utf-8"))
+
+
+@pytest.fixture
+@freeze_time('2020-10-27 13:59:00')
+def relatorio_dre_consolidado_gerado_parcial_em_2020_10_27_13_59_00(periodo, dre, tipo_conta, arquivo_gerado_em_2020_10_27_13_59_00):
     return baker.make(
         'RelatorioConsolidadoDre',
         dre=dre,
         tipo_conta=tipo_conta,
         periodo=periodo,
-        arquivo=arquivo,
+        arquivo=arquivo_gerado_em_2020_10_27_13_59_00,
         status='GERADO_PARCIAL'
     )
 
@@ -70,7 +82,7 @@ def relatorio_dre_consolidado_gerado_parcial(periodo, dre, tipo_conta, arquivo):
 def test_api_get_status_relatorio_analise_pendente_rel_parcial_gerado(jwt_authenticated_client, dre, periodo,
                                                                       tipo_conta,
                                                                       prestacao_conta_em_analise,
-                                                                      relatorio_dre_consolidado_gerado_parcial):
+                                                                      relatorio_dre_consolidado_gerado_parcial_em_2020_10_27_13_59_00):
     response = jwt_authenticated_client.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
@@ -80,7 +92,8 @@ def test_api_get_status_relatorio_analise_pendente_rel_parcial_gerado(jwt_authen
         'pcs_em_analise': True,
         'status_geracao': 'GERADO_PARCIAL',
         'status_txt': 'Ainda constam prestações de contas das associações em análise. Relatório parcial gerado.',
-        'cor_idx': 1
+        'cor_idx': 1,
+        'status_arquivo': 'Documento parcial gerado dia 27/10/2020 13:59'
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -89,7 +102,7 @@ def test_api_get_status_relatorio_analise_pendente_rel_parcial_gerado(jwt_authen
 
 def test_api_get_status_relatorio_analise_completa_rel_parcial_gerado(jwt_authenticated_client, dre, periodo,
                                                                       tipo_conta,
-                                                                      relatorio_dre_consolidado_gerado_parcial):
+                                                                      relatorio_dre_consolidado_gerado_parcial_em_2020_10_27_13_59_00):
     response = jwt_authenticated_client.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
@@ -99,7 +112,8 @@ def test_api_get_status_relatorio_analise_completa_rel_parcial_gerado(jwt_authen
         'pcs_em_analise': False,
         'status_geracao': 'GERADO_PARCIAL',
         'status_txt': 'Análise de prestações de contas das associações completa. Relatório parcial gerado.',
-        'cor_idx': 2
+        'cor_idx': 2,
+        'status_arquivo': 'Documento parcial gerado dia 27/10/2020 13:59'
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -107,20 +121,21 @@ def test_api_get_status_relatorio_analise_completa_rel_parcial_gerado(jwt_authen
 
 
 @pytest.fixture
-def relatorio_dre_consolidado_gerado_total(periodo, dre, tipo_conta, arquivo):
+@freeze_time('2020-10-27 13:59:00')
+def relatorio_dre_consolidado_gerado_total_em_2020_10_27_13_59_00(periodo, dre, tipo_conta, arquivo_gerado_em_2020_10_27_13_59_00):
     return baker.make(
         'RelatorioConsolidadoDre',
         dre=dre,
         tipo_conta=tipo_conta,
         periodo=periodo,
-        arquivo=arquivo,
+        arquivo=arquivo_gerado_em_2020_10_27_13_59_00,
         status='GERADO_TOTAL'
     )
 
 
 def test_api_get_status_relatorio_analise_completa_rel_final_gerado(jwt_authenticated_client, dre, periodo,
                                                                     tipo_conta,
-                                                                    relatorio_dre_consolidado_gerado_total):
+                                                                    relatorio_dre_consolidado_gerado_total_em_2020_10_27_13_59_00):
     response = jwt_authenticated_client.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
@@ -130,7 +145,8 @@ def test_api_get_status_relatorio_analise_completa_rel_final_gerado(jwt_authenti
         'pcs_em_analise': False,
         'status_geracao': 'GERADO_TOTAL',
         'status_txt': 'Análise de prestações de contas das associações completa. Relatório final gerado.',
-        'cor_idx': 3
+        'cor_idx': 3,
+        'status_arquivo': 'Documento final gerado dia 27/10/2020 13:59'
     }
 
     assert response.status_code == status.HTTP_200_OK

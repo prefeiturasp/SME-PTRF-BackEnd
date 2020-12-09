@@ -75,7 +75,7 @@ def carrega_periodo_inicial(arquivo):
     arquivo.ultima_execucao = datetime.datetime.now()
 
     try:
-        with open(arquivo.conteudo.path, 'r') as f:
+        with open(arquivo.conteudo.path, 'r', encoding="utf-8") as f:
             sniffer = csv.Sniffer().sniff(f.readline())
             f.seek(0)
             if  __DELIMITADORES[sniffer.delimiter] != arquivo.tipo_delimitador:

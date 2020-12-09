@@ -64,7 +64,8 @@ def test_api_conclui_analise_prestacao_conta_devolvida(jwt_authenticated_client_
                 'motivo': 'teste',
                 'valor': 100.00,
                 'tipo': f'{tipo_devolucao_ao_tesouro.uuid}',
-                'despesa': f'{despesa.uuid}'
+                'despesa': f'{despesa.uuid}',
+                'visao_criacao': 'UE',
             }
         ]
     }

@@ -45,8 +45,6 @@ class Unidade(ModeloBase, TemNome):
 
     email = models.EmailField("E-mail", max_length=254, blank=True, default='')
 
-    qtd_alunos = models.PositiveSmallIntegerField('Quantidade de alunos', default=0)
-
     diretor_nome = models.CharField('Nome do diretor da unidade', max_length=160, blank=True, default='')
 
     dre_cnpj = models.CharField(
@@ -82,6 +80,11 @@ class Unidade(ModeloBase, TemNome):
             }
             result.append(tipo_unidade)
         return result
+
+    @property
+    def qtd_alunos(self):
+        censo = self.censos.order_by('-ano').first()
+        return censo.quantidade_alunos if censo else 0
 
     class Meta:
         verbose_name = 'Unidade'

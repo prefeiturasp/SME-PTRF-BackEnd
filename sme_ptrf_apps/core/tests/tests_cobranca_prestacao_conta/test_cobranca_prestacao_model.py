@@ -5,7 +5,7 @@ from datetime import date
 from django.contrib import admin
 from model_bakery import baker
 
-from ...models import PrestacaoConta, CobrancaPrestacaoConta, DevolucaoPrestacaoConta
+from ...models import PrestacaoConta, CobrancaPrestacaoConta, DevolucaoPrestacaoConta, Associacao, Periodo
 
 pytestmark = pytest.mark.django_db
 
@@ -27,6 +27,27 @@ def test_instance_model(_cobranca_prestacao_devolucao):
     assert model.tipo
     assert model.data
     assert isinstance(model.devolucao_prestacao, DevolucaoPrestacaoConta)
+
+
+@pytest.fixture
+def _cobranca_prestacao_recebimento_sem_pc(associacao, periodo):
+    return baker.make(
+        'CobrancaPrestacaoConta',
+        associacao=associacao,
+        periodo=periodo,
+        tipo='RECEBIMENTO',
+        data=date(2020, 7, 1),
+    )
+
+
+def test_instance_model_sem_pc(_cobranca_prestacao_recebimento_sem_pc):
+    model = _cobranca_prestacao_recebimento_sem_pc
+    assert isinstance(model, CobrancaPrestacaoConta)
+    assert isinstance(model.associacao, Associacao)
+    assert isinstance(model.periodo, Periodo)
+    assert model.prestacao_conta is None
+    assert model.tipo
+    assert model.data
 
 
 def test_srt_model(cobranca_prestacao_recebimento):
