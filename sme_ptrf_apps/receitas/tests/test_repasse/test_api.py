@@ -29,7 +29,8 @@ def test_repasses_pendentes(
         'acao_associacao': {
             'uuid': str(acao_associacao.uuid),
             'id': acao_associacao.id,
-            'nome': acao_associacao.acao.nome
+            'nome': acao_associacao.acao.nome,
+            'e_recursos_proprios': False
         },
         'conta_associacao': {
             'uuid': str(conta_associacao.uuid),
@@ -65,7 +66,8 @@ def test_repasses_pendentes_livre_aplicacao(
         'acao_associacao': {
             'uuid': str(acao_associacao.uuid),
             'id': acao_associacao.id,
-            'nome': acao_associacao.acao.nome
+            'nome': acao_associacao.acao.nome,
+            'e_recursos_proprios': False
         },
         'conta_associacao': {
             'uuid': str(conta_associacao.uuid),

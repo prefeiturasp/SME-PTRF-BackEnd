@@ -161,6 +161,7 @@ def test_get_tabelas(
                 'aceita_custeio': tipo_receita.aceita_custeio,
                 'aceita_livre': tipo_receita.aceita_livre,
                 'e_devolucao': False,
+                'e_recursos_proprios': False,
                 'tipos_conta': [{
                     'uuid': f'{tipo_conta.uuid}',
                     'id': tipo_conta.id,
@@ -193,7 +194,8 @@ def test_get_tabelas(
             {
                 'uuid': f'{acao_associacao.uuid}',
                 'id': acao_associacao.id,
-                'nome': acao_associacao.acao.nome
+                'nome': acao_associacao.acao.nome,
+                'e_recursos_proprios': False
             },
         ],
 
@@ -245,12 +247,14 @@ def test_get_receitas(
                 'aceita_custeio': tipo_receita.aceita_custeio,
                 'aceita_livre': tipo_receita.aceita_livre,
                 'e_devolucao': False,
+                'e_recursos_proprios': False
             },
             'referencia_devolucao': None,
             "acao_associacao": {
                 "uuid": str(acao_associacao.uuid),
                 "id": acao_associacao.id,
-                "nome": acao_associacao.acao.nome
+                "nome": acao_associacao.acao.nome,
+                'e_recursos_proprios': False
             },
             'conta_associacao': {
                 "uuid": str(conta_associacao.uuid),
@@ -390,12 +394,14 @@ def test_retrive_receitas(
             'aceita_custeio': tipo_receita.aceita_custeio,
             'aceita_livre': tipo_receita.aceita_livre,
             'e_devolucao': False,
+            'e_recursos_proprios': False
         },
         'referencia_devolucao': None,
         "acao_associacao": {
             "uuid": str(acao_associacao.uuid),
             "id": acao_associacao.id,
-            "nome": acao_associacao.acao.nome
+            "nome": acao_associacao.acao.nome,
+            'e_recursos_proprios': False
         },
         'conta_associacao': {
             "uuid": str(conta_associacao.uuid),

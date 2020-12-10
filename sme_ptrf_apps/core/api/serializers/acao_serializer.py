@@ -6,4 +6,4 @@ from ...models import Acao
 class AcaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Acao
-        fields = ('id', 'nome')
+        fields = ('id', 'nome', 'e_recursos_proprios')

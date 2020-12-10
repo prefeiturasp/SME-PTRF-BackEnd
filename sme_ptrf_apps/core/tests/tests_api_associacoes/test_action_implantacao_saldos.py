@@ -98,7 +98,8 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados(jwt_authenticated_client
                 'acao_associacao': {
                     'id': acao_associacao_role_cultural.id,
                     'uuid': f'{acao_associacao_role_cultural.uuid}',
-                    'nome': acao_associacao_role_cultural.acao.nome
+                    'nome': acao_associacao_role_cultural.acao.nome,
+                    'e_recursos_proprios': False
                 },
                 'conta_associacao': {
                     'uuid': f'{conta_associacao.uuid}',
@@ -111,7 +112,8 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados(jwt_authenticated_client
                 'acao_associacao': {
                     'id': acao_associacao_role_cultural.id,
                     'uuid': f'{acao_associacao_role_cultural.uuid}',
-                    'nome': acao_associacao_role_cultural.acao.nome
+                    'nome': acao_associacao_role_cultural.acao.nome,
+                    'e_recursos_proprios': False
                 },
                 'conta_associacao': {
                     'uuid': f'{conta_associacao.uuid}',
@@ -318,7 +320,8 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_livre_aplicacao(jwt_auth
                 'acao_associacao': {
                     'id': acao_associacao_role_cultural.id,
                     'uuid': f'{acao_associacao_role_cultural.uuid}',
-                    'nome': acao_associacao_role_cultural.acao.nome
+                    'nome': acao_associacao_role_cultural.acao.nome,
+                    'e_recursos_proprios': False
                 },
                 'conta_associacao': {
                     'uuid': f'{conta_associacao.uuid}',
@@ -331,7 +334,8 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_livre_aplicacao(jwt_auth
                 'acao_associacao': {
                     'id': acao_associacao_role_cultural.id,
                     'uuid': f'{acao_associacao_role_cultural.uuid}',
-                    'nome': acao_associacao_role_cultural.acao.nome
+                    'nome': acao_associacao_role_cultural.acao.nome,
+                    'e_recursos_proprios': False
                 },
                 'conta_associacao': {
                     'uuid': f'{conta_associacao.uuid}',
@@ -344,7 +348,8 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_livre_aplicacao(jwt_auth
                 'acao_associacao': {
                     'id': acao_associacao_role_cultural.id,
                     'uuid': f'{acao_associacao_role_cultural.uuid}',
-                    'nome': acao_associacao_role_cultural.acao.nome
+                    'nome': acao_associacao_role_cultural.acao.nome,
+                    'e_recursos_proprios': False
                 },
                 'conta_associacao': {
                     'uuid': f'{conta_associacao.uuid}',

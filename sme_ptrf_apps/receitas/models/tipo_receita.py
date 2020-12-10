@@ -10,6 +10,7 @@ class TipoReceita(ModeloIdNome):
     aceita_capital = models.BooleanField('Aceita capital?', default=False)
     aceita_custeio = models.BooleanField('Aceita custeio?', default=False)
     aceita_livre = models.BooleanField('Aceita livre aplicação?', default=False)
+    e_recursos_proprios = models.BooleanField("Aceita recursos próprios?", default=False)
 
     tipos_conta = models.ManyToManyField(TipoConta, blank=True)
 
