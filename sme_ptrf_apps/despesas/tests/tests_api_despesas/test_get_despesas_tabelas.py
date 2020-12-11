@@ -53,7 +53,9 @@ def test_api_get_despesas_tabelas(associacao, jwt_authenticated_client_d, tipo_a
             {
                 'uuid': f'{acao_associacao.uuid}',
                 'id': acao_associacao.id,
-                'nome': acao_associacao.acao.nome
+                'nome': acao_associacao.acao.nome,
+                'e_recursos_proprios': False
+                
             },
         ],
 

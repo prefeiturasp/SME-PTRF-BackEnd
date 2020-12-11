@@ -15,6 +15,7 @@ def test_instance_model(acao):
     assert model.uuid
     assert model.id
     assert model.posicao_nas_pesquisas
+    assert not model.e_recursos_proprios
 
 
 def test_srt_model(acao):
