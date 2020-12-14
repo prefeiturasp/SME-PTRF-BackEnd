@@ -1,5 +1,6 @@
 import logging
 import json
+import uuid
 
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, status
@@ -11,6 +12,18 @@ from sme_ptrf_apps.core.models import Associacao
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
+
+# Constante que representa o UUID da unidade Secretaria Municipal de Educação
+UUID_SME = uuid.uuid4()
+UNIDADE_SME = {
+    'uuid': UUID_SME,
+    'nome': 'Secretaria Municipal de Educação',
+    'tipo_unidade': 'SME',
+    'associacao': {
+        'uuid': '',
+        'nome': ''
+    }
+}
 
 
 class LoginView(ObtainJSONWebToken):
@@ -37,7 +50,8 @@ class LoginView(ObtainJSONWebToken):
                         user.save()
                     except User.DoesNotExist as e:
                         logger.info("Usuário %s não encontrado.", login)
-                        return Response({'data': {'detail': 'Usuário não encontrado.'}}, status=status.HTTP_401_UNAUTHORIZED)
+                        return Response({'data': {'detail': 'Usuário não encontrado.'}},
+                                        status=status.HTTP_401_UNAUTHORIZED)
 
                     request._full_data = {'username': user_dict['login'], 'password': senha}
                     resp = super().post(request, *args, **kwargs)
@@ -54,11 +68,18 @@ class LoginView(ObtainJSONWebToken):
                             }
                         })
 
+                    '''
+                    Como a visão SME não tem uma Unidade real, crio a unidade caso o usuário tenha essa visão
+                    '''
+                    if user.visoes.filter(nome='SME').exists():
+                        unidades.append(UNIDADE_SME)
+
                     if not unidades:
                         associacao = Associacao.objects.first()
                     else:
                         associacao = Associacao.objects.filter(unidade__uuid=unidades[0]['uuid']).first()
 
+                    #TODO Rever esse bloco
                     # Mantive esse trecho da associação pra não quebrar o front até o mesmo tratar as mudanças de
                     # visões. Após o front ficar pronto esse trecho deve ser removido.
                     associacao_dict = {
@@ -84,5 +105,5 @@ class LoginView(ObtainJSONWebToken):
         for group in user.groups.all():
             for permission in group.permissions.all():
                 perms.append(permission.codename)
-        
+
         return perms

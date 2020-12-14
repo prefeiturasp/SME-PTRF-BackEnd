@@ -8,7 +8,7 @@ from ...models import TipoReceita
 class TipoReceitaSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoReceita
-        fields = ('id', 'nome', 'e_repasse', 'aceita_capital', 'aceita_custeio', 'aceita_livre', 'e_devolucao')
+        fields = ('id', 'nome', 'e_repasse', 'aceita_capital', 'aceita_custeio', 'aceita_livre', 'e_devolucao', 'e_recursos_proprios')
 
 
 class TipoReceitaEDetalhesSerializer(serializers.ModelSerializer):
@@ -17,4 +17,4 @@ class TipoReceitaEDetalhesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipoReceita
-        fields = ('id', 'nome', 'e_repasse', 'aceita_capital', 'aceita_custeio', 'aceita_livre', 'detalhes_tipo_receita', 'tipos_conta', 'e_devolucao')
+        fields = ('id', 'nome', 'e_repasse', 'aceita_capital', 'aceita_custeio', 'aceita_livre', 'detalhes_tipo_receita', 'tipos_conta', 'e_devolucao', 'e_recursos_proprios')
