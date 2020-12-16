@@ -40,13 +40,21 @@ class ReceitaAdmin(admin.ModelAdmin):
 
 @admin.register(Repasse)
 class RepasseAdmin(admin.ModelAdmin):
+    search_fields = ('associacao__nome', 'associacao__unidade__codigo_eol')
     list_display = ('associacao', 'periodo', 'valor_capital', 'valor_custeio', 'valor_livre', 'tipo_conta', 'acao', 'status')
-    list_filter = ('associacao', 'periodo', 'conta_associacao', 'acao_associacao', 'status')
+    list_filter = ('periodo', 'status')
+    # Campos tipo autocomplete substituem o componente padrão de seleção de chaves extrangeiras e são bem mais rápidos.
+    autocomplete_fields = ['associacao', 'periodo', 'conta_associacao', 'acao_associacao']
+
     def tipo_conta(self, obj):
         return obj.conta_associacao.tipo_conta
 
     def acao(self, obj):
         return obj.acao_associacao.acao.nome
+
+    def get_queryset(self, request):
+        return super(RepasseAdmin, self).get_queryset(request).select_related(
+            'conta_associacao', 'acao_associacao', 'periodo', 'associacao')
 
 
 @admin.register(DetalheTipoReceita)
