@@ -7,6 +7,7 @@ from sme_ptrf_apps.core.models import (
     FechamentoPeriodo,
     PrevisaoRepasseSme,
     DevolucaoAoTesouro,
+    Unidade
 )
 from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE
 from sme_ptrf_apps.receitas.models import Receita
@@ -575,3 +576,103 @@ def update_observacao_devolucao(dre, tipo_conta, periodo, tipo_devolucao, subtip
     }
 
     return resultado
+
+
+def dashboard_sme(periodo):
+    def add_card_dashboard(dashboard, status, quantidade):
+        titulos_por_status = {
+            PrestacaoConta.STATUS_NAO_APRESENTADA: "Prestações de contas não apresentadas",
+            PrestacaoConta.STATUS_NAO_RECEBIDA: "Prestações de contas não recebidas",
+            PrestacaoConta.STATUS_RECEBIDA: "Prestações de contas recebidas aguardando análise",
+            PrestacaoConta.STATUS_EM_ANALISE: "Prestações de contas em análise",
+            PrestacaoConta.STATUS_DEVOLVIDA: "Prestações de conta devolvidas para acertos",
+            PrestacaoConta.STATUS_APROVADA: "Prestações de contas aprovadas",
+            PrestacaoConta.STATUS_APROVADA_RESSALVA: "Prestações de contas aprovadas com ressalvas",
+            PrestacaoConta.STATUS_REPROVADA: "Prestações de contas reprovadas",
+            'TOTAL_UNIDADES': "Total de unidades educacionais",
+        }
+        dashboard.append(
+            {
+                "titulo": titulos_por_status[status],
+                "quantidade_prestacoes": quantidade,
+                "status": status
+            }
+        )
+
+    qtd_status = PrestacaoConta.quantidade_por_status_sme(periodo_uuid=periodo.uuid)
+
+    cards_dashboard = []
+
+    add_card_dashboard(cards_dashboard, 'TOTAL_UNIDADES', qtd_status['TOTAL_UNIDADES'])
+
+    if (
+        qtd_status[PrestacaoConta.STATUS_NAO_RECEBIDA] > 0
+        or qtd_status[PrestacaoConta.STATUS_RECEBIDA] > 0
+        or qtd_status[PrestacaoConta.STATUS_EM_ANALISE] > 0
+        or qtd_status[PrestacaoConta.STATUS_DEVOLVIDA] > 0
+    ):
+
+        add_card_dashboard(
+            cards_dashboard,
+            PrestacaoConta.STATUS_NAO_RECEBIDA,
+            qtd_status[PrestacaoConta.STATUS_NAO_RECEBIDA] + qtd_status[PrestacaoConta.STATUS_NAO_APRESENTADA]
+        )
+
+        add_card_dashboard(
+            cards_dashboard,
+            PrestacaoConta.STATUS_RECEBIDA,
+            qtd_status[PrestacaoConta.STATUS_RECEBIDA]
+        )
+
+        add_card_dashboard(
+            cards_dashboard,
+            PrestacaoConta.STATUS_EM_ANALISE,
+            qtd_status[PrestacaoConta.STATUS_EM_ANALISE]
+        )
+
+        add_card_dashboard(
+            cards_dashboard,
+            PrestacaoConta.STATUS_DEVOLVIDA,
+            qtd_status[PrestacaoConta.STATUS_DEVOLVIDA]
+        )
+
+        status_periodo = {
+            'status_txt': 'Período em andamento para DREs e aberto para validações.',
+            'cor_idx': 0,
+        }
+    else:
+        add_card_dashboard(
+            cards_dashboard,
+            PrestacaoConta.STATUS_NAO_APRESENTADA,
+            qtd_status[PrestacaoConta.STATUS_NAO_APRESENTADA]
+        )
+
+        status_periodo = {
+            'status_txt': 'Período concluído.',
+            'cor_idx': 1,
+        }
+
+    add_card_dashboard(
+        cards_dashboard,
+        PrestacaoConta.STATUS_APROVADA,
+        qtd_status[PrestacaoConta.STATUS_APROVADA]
+    )
+
+    add_card_dashboard(
+        cards_dashboard,
+        PrestacaoConta.STATUS_APROVADA_RESSALVA,
+        qtd_status[PrestacaoConta.STATUS_APROVADA_RESSALVA]
+    )
+
+    add_card_dashboard(
+        cards_dashboard,
+        PrestacaoConta.STATUS_REPROVADA,
+        qtd_status[PrestacaoConta.STATUS_REPROVADA]
+    )
+
+    dashboard = {
+        "status": status_periodo,
+        "cards": cards_dashboard
+    }
+
+    return dashboard
