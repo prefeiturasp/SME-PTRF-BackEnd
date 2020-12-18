@@ -638,7 +638,7 @@ def dashboard_sme(periodo):
 
         status_periodo = {
             'status_txt': 'Período em andamento para DREs e aberto para validações.',
-            'cor_idx': 0,
+            'cor_idx': 1,
         }
     else:
         add_card_dashboard(
@@ -649,7 +649,7 @@ def dashboard_sme(periodo):
 
         status_periodo = {
             'status_txt': 'Período concluído.',
-            'cor_idx': 1,
+            'cor_idx': 2,
         }
 
     add_card_dashboard(
