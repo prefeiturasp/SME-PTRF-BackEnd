@@ -324,6 +324,41 @@ class PrestacaoConta(ModeloBase):
         return cards
 
     @classmethod
+    def quantidade_por_status_sme(cls, periodo_uuid):
+
+        from ..models import Associacao
+
+        qtd_por_status = {
+            cls.STATUS_NAO_RECEBIDA: 0,
+            cls.STATUS_RECEBIDA: 0,
+            cls.STATUS_EM_ANALISE: 0,
+            cls.STATUS_DEVOLVIDA: 0,
+            cls.STATUS_APROVADA: 0,
+            cls.STATUS_APROVADA_RESSALVA: 0,
+            cls.STATUS_REPROVADA: 0,
+            cls.STATUS_NAO_APRESENTADA: 0,
+            'TOTAL_UNIDADES': 0
+        }
+
+        qs = cls.objects.filter(periodo__uuid=periodo_uuid)
+
+        quantidade_pcs_apresentadas = 0
+        qtd_por_status['TOTAL_UNIDADES'] = Associacao.objects.exclude(cnpj__exact='').count()
+
+        for status in qtd_por_status.keys():
+            if status == 'TOTAL_UNIDADES' or status == cls.STATUS_NAO_APRESENTADA:
+                continue
+
+            quantidade_status = qs.filter(status=status).count()
+            quantidade_pcs_apresentadas += quantidade_status
+            qtd_por_status[status] = quantidade_status
+
+        quantidade_pcs_nao_apresentadas = qtd_por_status['TOTAL_UNIDADES'] - quantidade_pcs_apresentadas
+        qtd_por_status[cls.STATUS_NAO_APRESENTADA] = quantidade_pcs_nao_apresentadas
+
+        return qtd_por_status
+
+    @classmethod
     def status_to_json(cls):
         result = []
         for choice in cls.STATUS_CHOICES:

@@ -20,6 +20,7 @@ from ...services import (
     reabrir_prestacao_de_contas,
     lista_prestacoes_de_conta_nao_recebidas,
 )
+from ....dre.services import (dashboard_sme)
 from ..serializers import (
     AtaLookUpSerializer,
     PrestacaoContaListSerializer,
@@ -616,7 +617,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-
         result = lista_prestacoes_de_conta_nao_recebidas(dre=dre,
                                                          periodo=periodo,
                                                          filtro_nome=nome,
@@ -624,3 +624,31 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                                                          filtro_status=status_pc
                                                          )
         return Response(result)
+
+    @action(detail=False, methods=['get'], url_path="dashboard-sme")
+    def dashboard_sme(self, request):
+        # Determina o período
+        periodo_uuid = self.request.query_params.get('periodo')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'operacao': 'dashboard-sme',
+                'mensagem': 'Faltou informar o uuid do período. ?periodo=uuid_do_periodo'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        dashboard = dashboard_sme(periodo=periodo)
+
+        return Response(dashboard)
