@@ -312,7 +312,6 @@ class PrestacaoConta(ModeloBase):
             }
             cards.append(card)
 
-
         quantidade_unidades_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
         quantidade_pcs_nao_apresentadas = quantidade_unidades_dre - quantidade_pcs_apresentadas
         card_nao_recebidas = {
@@ -357,6 +356,66 @@ class PrestacaoConta(ModeloBase):
         qtd_por_status[cls.STATUS_NAO_APRESENTADA] = quantidade_pcs_nao_apresentadas
 
         return qtd_por_status
+
+    @classmethod
+    def quantidade_por_status_por_dre(cls, periodo_uuid):
+
+        from ...core.models import Unidade
+        from ..models import Associacao
+
+        qtd_por_status_dre = []
+        for dre in Unidade.dres.all():
+
+            qtd_por_status = {
+                cls.STATUS_NAO_RECEBIDA: 0,
+                cls.STATUS_RECEBIDA: 0,
+                cls.STATUS_EM_ANALISE: 0,
+                cls.STATUS_DEVOLVIDA: 0,
+                cls.STATUS_APROVADA: 0,
+                cls.STATUS_APROVADA_RESSALVA: 0,
+                cls.STATUS_REPROVADA: 0,
+                cls.STATUS_NAO_APRESENTADA: 0,
+                'TOTAL_UNIDADES': 0
+            }
+
+            qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre.uuid)
+
+            quantidade_pcs_apresentadas = 0
+            qtd_por_status['TOTAL_UNIDADES'] = Associacao.objects.filter(unidade__dre__uuid=dre.uuid).exclude(cnpj__exact='').count()
+
+            for status in qtd_por_status.keys():
+                if status == 'TOTAL_UNIDADES' or status == cls.STATUS_NAO_APRESENTADA:
+                    continue
+
+                quantidade_status = qs.filter(status=status).count()
+                quantidade_pcs_apresentadas += quantidade_status
+                qtd_por_status[status] = quantidade_status
+
+            quantidade_pcs_nao_apresentadas = qtd_por_status['TOTAL_UNIDADES'] - quantidade_pcs_apresentadas
+            qtd_por_status[cls.STATUS_NAO_APRESENTADA] = quantidade_pcs_nao_apresentadas
+
+            periodo_completo = (
+                qtd_por_status[PrestacaoConta.STATUS_NAO_RECEBIDA] == 0
+                and qtd_por_status[PrestacaoConta.STATUS_RECEBIDA] == 0
+                and qtd_por_status[PrestacaoConta.STATUS_EM_ANALISE] == 0
+                and qtd_por_status[PrestacaoConta.STATUS_DEVOLVIDA] == 0
+            )
+
+            qtd_por_status[PrestacaoConta.STATUS_NAO_RECEBIDA] += qtd_por_status[cls.STATUS_NAO_APRESENTADA]
+
+            qtd_por_status_dre.append(
+                {
+                    'dre': {
+                        'uuid': dre.uuid,
+                        'sigla': dre.sigla,
+                        'nome': dre.nome
+                    },
+                    'cards': qtd_por_status,
+                    'periodo_completo': periodo_completo
+                }
+            )
+
+        return qtd_por_status_dre
 
     @classmethod
     def status_to_json(cls):

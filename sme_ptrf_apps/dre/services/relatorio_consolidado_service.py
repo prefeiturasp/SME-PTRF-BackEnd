@@ -670,9 +670,12 @@ def dashboard_sme(periodo):
         qtd_status[PrestacaoConta.STATUS_REPROVADA]
     )
 
+    resumo_por_dre = PrestacaoConta.quantidade_por_status_por_dre(periodo_uuid=periodo.uuid)
+
     dashboard = {
         "status": status_periodo,
-        "cards": cards_dashboard
+        "cards": cards_dashboard,
+        "resumo_por_dre": resumo_por_dre
     }
 
     return dashboard

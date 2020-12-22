@@ -127,7 +127,7 @@ def acao_role_cultural():
 
 @pytest.fixture
 def dre():
-    return baker.make('Unidade', codigo_eol='99999', tipo_unidade='DRE', nome='DRE teste')
+    return baker.make('Unidade', codigo_eol='99999', tipo_unidade='DRE', nome='DRE teste', sigla='TT')
 
 
 @pytest.fixture
