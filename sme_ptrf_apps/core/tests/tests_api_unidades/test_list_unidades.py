@@ -82,7 +82,7 @@ def test_api_list_unidades_todas(jwt_authenticated_client_a, unidade_paulo_camil
             'diretor_nome': 'Pedro Amaro',
             'dre': {'codigo_eol': '99999',
                     'nome': 'DRE teste',
-                    'sigla': '',
+                    'sigla': 'TT',
                     'tipo_unidade': 'DRE',
                     'uuid': str(dre.uuid)},
             'dre_cnpj': '63.058.286/0001-86',
