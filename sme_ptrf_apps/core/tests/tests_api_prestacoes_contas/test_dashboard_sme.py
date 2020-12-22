@@ -248,25 +248,6 @@ def test_dashboard_sme(
         },
         'resumo_por_dre': [
             {
-                'dre': {
-                    'uuid': f'{_prestacao_conta_aprovada.associacao.unidade.dre.uuid}',
-                    'sigla': 'TT',
-                    'nome': 'DRE teste'
-                },
-                'cards': {
-                    'APROVADA': 1,
-                    'APROVADA_RESSALVA': 1,
-                    'DEVOLVIDA': 0,
-                    'EM_ANALISE': 1,
-                    'NAO_APRESENTADA': 1,
-                    'NAO_RECEBIDA': 2,
-                    'RECEBIDA': 0,
-                    'REPROVADA': 0,
-                    'TOTAL_UNIDADES': 5
-                },
-                'periodo_completo': False,
-            },
-            {
                 'cards': {
                     'APROVADA': 0,
                     'APROVADA_RESSALVA': 0,
@@ -284,7 +265,27 @@ def test_dashboard_sme(
                     'nome': 'DRE 2',
                 },
                 'periodo_completo': True
+            },
+            {
+                'dre': {
+                    'uuid': f'{_prestacao_conta_aprovada.associacao.unidade.dre.uuid}',
+                    'sigla': 'TT',
+                    'nome': 'DRE teste'
+                },
+                'cards': {
+                    'APROVADA': 1,
+                    'APROVADA_RESSALVA': 1,
+                    'DEVOLVIDA': 0,
+                    'EM_ANALISE': 1,
+                    'NAO_APRESENTADA': 1,
+                    'NAO_RECEBIDA': 2,
+                    'RECEBIDA': 0,
+                    'REPROVADA': 0,
+                    'TOTAL_UNIDADES': 5
+                },
+                'periodo_completo': False,
             }
+
         ]
     }
 

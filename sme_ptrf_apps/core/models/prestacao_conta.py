@@ -364,7 +364,7 @@ class PrestacaoConta(ModeloBase):
         from ..models import Associacao
 
         qtd_por_status_dre = []
-        for dre in Unidade.dres.all():
+        for dre in Unidade.dres.all().order_by('sigla'):
 
             qtd_por_status = {
                 cls.STATUS_NAO_RECEBIDA: 0,
