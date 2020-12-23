@@ -12,8 +12,8 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_status_relatorio_analise_completa_rel_nao_gerado(jwt_authenticated_client, dre, periodo, tipo_conta):
-    response = jwt_authenticated_client.get(
+def test_api_get_status_relatorio_analise_completa_rel_nao_gerado(jwt_authenticated_client_relatorio_consolidado, dre, periodo, tipo_conta):
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -41,9 +41,9 @@ def prestacao_conta_em_analise(periodo, associacao):
     )
 
 
-def test_api_get_status_relatorio_analise_pendente_rel_nao_gerado(jwt_authenticated_client, dre, periodo, tipo_conta,
+def test_api_get_status_relatorio_analise_pendente_rel_nao_gerado(jwt_authenticated_client_relatorio_consolidado, dre, periodo, tipo_conta,
                                                                   prestacao_conta_em_analise):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -79,11 +79,11 @@ def relatorio_dre_consolidado_gerado_parcial_em_2020_10_27_13_59_00(periodo, dre
     )
 
 
-def test_api_get_status_relatorio_analise_pendente_rel_parcial_gerado(jwt_authenticated_client, dre, periodo,
+def test_api_get_status_relatorio_analise_pendente_rel_parcial_gerado(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
                                                                       tipo_conta,
                                                                       prestacao_conta_em_analise,
                                                                       relatorio_dre_consolidado_gerado_parcial_em_2020_10_27_13_59_00):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -100,10 +100,10 @@ def test_api_get_status_relatorio_analise_pendente_rel_parcial_gerado(jwt_authen
     assert result == resultado_esperado
 
 
-def test_api_get_status_relatorio_analise_completa_rel_parcial_gerado(jwt_authenticated_client, dre, periodo,
+def test_api_get_status_relatorio_analise_completa_rel_parcial_gerado(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
                                                                       tipo_conta,
                                                                       relatorio_dre_consolidado_gerado_parcial_em_2020_10_27_13_59_00):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -133,10 +133,10 @@ def relatorio_dre_consolidado_gerado_total_em_2020_10_27_13_59_00(periodo, dre, 
     )
 
 
-def test_api_get_status_relatorio_analise_completa_rel_final_gerado(jwt_authenticated_client, dre, periodo,
+def test_api_get_status_relatorio_analise_completa_rel_final_gerado(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
                                                                     tipo_conta,
                                                                     relatorio_dre_consolidado_gerado_total_em_2020_10_27_13_59_00):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -153,8 +153,8 @@ def test_api_get_status_relatorio_analise_completa_rel_final_gerado(jwt_authenti
     assert result == resultado_esperado
 
 
-def test_api_get_status_relatorio_sem_passa_dre(jwt_authenticated_client, dre, periodo, tipo_conta):
-    response = jwt_authenticated_client.get(
+def test_api_get_status_relatorio_sem_passa_dre(jwt_authenticated_client_relatorio_consolidado, dre, periodo, tipo_conta):
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -169,8 +169,8 @@ def test_api_get_status_relatorio_sem_passa_dre(jwt_authenticated_client, dre, p
     assert result == resultado_esperado
 
 
-def test_api_get_status_relatorio_sem_passa_periodo(jwt_authenticated_client, dre, periodo, tipo_conta):
-    response = jwt_authenticated_client.get(
+def test_api_get_status_relatorio_sem_passa_periodo(jwt_authenticated_client_relatorio_consolidado, dre, periodo, tipo_conta):
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?dre={dre.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -185,8 +185,8 @@ def test_api_get_status_relatorio_sem_passa_periodo(jwt_authenticated_client, dr
     assert result == resultado_esperado
 
 
-def test_api_get_status_relatorio_sem_passar_tipo_conta(jwt_authenticated_client, dre, periodo, tipo_conta):
-    response = jwt_authenticated_client.get(
+def test_api_get_status_relatorio_sem_passar_tipo_conta(jwt_authenticated_client_relatorio_consolidado, dre, periodo, tipo_conta):
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?dre={dre.uuid}&periodo={periodo.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
