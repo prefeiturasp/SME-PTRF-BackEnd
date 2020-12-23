@@ -278,3 +278,70 @@ class PermissaoDadosDiretoriaDre(PermissaoCRUD):
             perms = self.get_required_permissions(request.method)
             return self.has_perms(perms, request.user)
         return True
+
+
+class PermissaoViewRelatorioConsolidadoDre(PermissaoCRUD):
+    perms_map = {
+        'GET': ['view_relatorio_consolidado_dre'],
+        'OPTIONS': ['view_relatorio_consolidado_dre'],
+        'HEAD': ['view_relatorio_consolidado_dre'],
+        'POST': ['view_relatorio_consolidado_dre'],
+        'PUT': ['view_relatorio_consolidado_dre'],
+        'PATCH': ['view_relatorio_consolidado_dre'],
+        'DELETE': ['view_relatorio_consolidado_dre'],
+    }
+
+    def get_required_permissions(self, method):
+        if method not in self.perms_map:
+            raise exceptions.MethodNotAllowed(method)
+
+        return [perm for perm in self.perms_map[method]]
+
+    def has_permission(self, request, view):
+        perms = self.get_required_permissions(request.method)
+        return self.has_perms(perms, request.user)
+
+
+class PermissaoGerarRelatorioConsolidadoDre(PermissaoCRUD):
+    perms_map = {
+        'GET': [],
+        'OPTIONS': [],
+        'HEAD': [],
+        'POST': ['gerar_relatorio_consolidado_dre'],
+        'PUT': [],
+        'PATCH': [],
+        'DELETE': [],
+    }
+
+    def get_required_permissions(self, method):
+        if method not in self.perms_map:
+            raise exceptions.MethodNotAllowed(method)
+
+        return [perm for perm in self.perms_map[method]]
+
+    def has_permission(self, request, view):
+        perms = self.get_required_permissions(request.method)
+        return self.has_perms(perms, request.user)
+
+
+class PermissaoEditarRelatorioConsolidadoDre(PermissaoCRUD):
+    """Está sendo usado para tratar a permissão para salvar justificativas"""
+    perms_map = {
+        'GET': ['change_relatorio_consolidado_dre'],
+        'OPTIONS': [],
+        'HEAD': [],
+        'POST': ['change_relatorio_consolidado_dre'],
+        'PUT': ['change_relatorio_consolidado_dre'],
+        'PATCH': ['change_relatorio_consolidado_dre'],
+        'DELETE': ['change_relatorio_consolidado_dre'],
+    }
+
+    def get_required_permissions(self, method):
+        if method not in self.perms_map:
+            raise exceptions.MethodNotAllowed(method)
+
+        return [perm for perm in self.perms_map[method]]
+
+    def has_permission(self, request, view):
+        perms = self.get_required_permissions(request.method)
+        return self.has_perms(perms, request.user)

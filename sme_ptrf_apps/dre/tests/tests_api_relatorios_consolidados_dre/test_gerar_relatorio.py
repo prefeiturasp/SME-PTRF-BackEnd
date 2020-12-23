@@ -8,7 +8,7 @@ from ...services import gera_relatorio_dre
 pytestmark = pytest.mark.django_db
 
 
-def test_api_geracao_relatorio_final(jwt_authenticated_client_dre, periodo, dre, tipo_conta):
+def test_api_geracao_relatorio_final(jwt_authenticated_client_relatorio_consolidado, periodo, dre, tipo_conta):
     payload = {
         'dre_uuid': str(dre.uuid),
         'periodo_uuid': str(periodo.uuid),
@@ -16,7 +16,7 @@ def test_api_geracao_relatorio_final(jwt_authenticated_client_dre, periodo, dre,
         'parcial': False
     }
 
-    response = jwt_authenticated_client_dre.post(
+    response = jwt_authenticated_client_relatorio_consolidado.post(
         '/api/relatorios-consolidados-dre/gerar-relatorio/',
         data=json.dumps(payload),
         content_type='application/json')
@@ -25,7 +25,7 @@ def test_api_geracao_relatorio_final(jwt_authenticated_client_dre, periodo, dre,
     assert RelatorioConsolidadoDRE.objects.first().status == RelatorioConsolidadoDRE.STATUS_GERADO_TOTAL
 
 
-def test_api_geracao_relatorio_sem_dre_uuid(jwt_authenticated_client_dre, periodo, dre, tipo_conta):
+def test_api_geracao_relatorio_sem_dre_uuid(jwt_authenticated_client_relatorio_consolidado, periodo, dre, tipo_conta):
     payload = {
         'dre_uuid': '',
         'periodo_uuid': str(periodo.uuid),
@@ -33,7 +33,7 @@ def test_api_geracao_relatorio_sem_dre_uuid(jwt_authenticated_client_dre, period
         'parcial': False
     }
 
-    response = jwt_authenticated_client_dre.post(
+    response = jwt_authenticated_client_relatorio_consolidado.post(
         f'/api/relatorios-consolidados-dre/gerar-relatorio/',
         data=json.dumps(payload),
         content_type='application/json')
@@ -48,7 +48,7 @@ def test_api_geracao_relatorio_sem_dre_uuid(jwt_authenticated_client_dre, period
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_api_geracao_relatorio_sem_periodo_uuid(jwt_authenticated_client_dre, periodo, dre, tipo_conta):
+def test_api_geracao_relatorio_sem_periodo_uuid(jwt_authenticated_client_relatorio_consolidado, periodo, dre, tipo_conta):
     payload = {
         'dre_uuid': str(dre.uuid),
         'periodo_uuid': '',
@@ -56,7 +56,7 @@ def test_api_geracao_relatorio_sem_periodo_uuid(jwt_authenticated_client_dre, pe
         'parcial': False
     }
 
-    response = jwt_authenticated_client_dre.post(
+    response = jwt_authenticated_client_relatorio_consolidado.post(
         f'/api/relatorios-consolidados-dre/gerar-relatorio/',
         data=json.dumps(payload),
         content_type='application/json')
@@ -71,7 +71,7 @@ def test_api_geracao_relatorio_sem_periodo_uuid(jwt_authenticated_client_dre, pe
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_api_geracao_relatorio_objeto_nao_encontrado(jwt_authenticated_client_dre, periodo, dre, tipo_conta):
+def test_api_geracao_relatorio_objeto_nao_encontrado(jwt_authenticated_client_relatorio_consolidado, periodo, dre, tipo_conta):
     import uuid
     uuid_objeto = str(uuid.uuid4())
     payload = {
@@ -81,7 +81,7 @@ def test_api_geracao_relatorio_objeto_nao_encontrado(jwt_authenticated_client_dr
         'parcial': False
     }
 
-    response = jwt_authenticated_client_dre.post(
+    response = jwt_authenticated_client_relatorio_consolidado.post(
         f'/api/relatorios-consolidados-dre/gerar-relatorio/',
         data=json.dumps(payload),
         content_type='application/json')
@@ -97,7 +97,7 @@ def test_api_geracao_relatorio_objeto_nao_encontrado(jwt_authenticated_client_dr
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_api_geracao_relatorio_parcial(jwt_authenticated_client_dre, periodo, dre, tipo_conta):
+def test_api_geracao_relatorio_parcial(jwt_authenticated_client_relatorio_consolidado, periodo, dre, tipo_conta):
     payload = {
         'dre_uuid': str(dre.uuid),
         'periodo_uuid': str(periodo.uuid),
@@ -105,7 +105,7 @@ def test_api_geracao_relatorio_parcial(jwt_authenticated_client_dre, periodo, dr
         'parcial': True
     }
 
-    response = jwt_authenticated_client_dre.post(
+    response = jwt_authenticated_client_relatorio_consolidado.post(
         f'/api/relatorios-consolidados-dre/gerar-relatorio/',
         data=json.dumps(payload),
         content_type='application/json')
