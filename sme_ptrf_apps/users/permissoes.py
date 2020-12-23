@@ -327,7 +327,7 @@ class PermissaoGerarRelatorioConsolidadoDre(PermissaoCRUD):
 class PermissaoEditarRelatorioConsolidadoDre(PermissaoCRUD):
     """Está sendo usado para tratar a permissão para salvar justificativas"""
     perms_map = {
-        'GET': ['change_relatorio_consolidado_dre'],
+        'GET': ['change_relatorio_consolidado_dre', 'view_relatorio_consolidado_dre'],
         'OPTIONS': [],
         'HEAD': [],
         'POST': ['change_relatorio_consolidado_dre'],
@@ -345,3 +345,4 @@ class PermissaoEditarRelatorioConsolidadoDre(PermissaoCRUD):
     def has_permission(self, request, view):
         perms = self.get_required_permissions(request.method)
         return self.has_perms(perms, request.user)
+        
