@@ -68,7 +68,7 @@ def test_api_list_unidades_dres_todas(jwt_authenticated_client_a, unidade_paulo_
             'nome': 'DRE teste',
             'numero': '',
             'qtd_alunos': 0,
-            'sigla': '',
+            'sigla': 'TT',
             'telefone': '',
             'tipo_logradouro': '',
             'tipo_unidade': 'DRE',
