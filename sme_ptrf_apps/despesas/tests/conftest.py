@@ -306,7 +306,12 @@ def permissoes_despesa():
         Permission.objects.filter(codename='add_despesa').first(),
         Permission.objects.filter(codename='view_despesa').first(),
         Permission.objects.filter(codename='change_despesa').first(),
-        Permission.objects.filter(codename='delete_despesa').first()
+        Permission.objects.filter(codename='delete_despesa').first(),
+        Permission.objects.create(
+            name="Editar conciliação bancária", 
+            codename='change_conciliacao_bancaria', 
+            content_type=ContentType.objects.filter(app_label="auth").first()
+        )
     ]
 
     return permissoes

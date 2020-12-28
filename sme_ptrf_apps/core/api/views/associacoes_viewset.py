@@ -19,7 +19,8 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoDadosUnidadeDre,
     PermissaoExportarDadosAssociacao,
     PermissaoRegularidadeDre,
-    PermissaoSituacaoFinanceira
+    PermissaoSituacaoFinanceira,
+    PermissaoVerConciliacaoBancaria
 )
 
 from ....dre.services import (
@@ -60,7 +61,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
                          mixins.RetrieveModelMixin,
                          mixins.UpdateModelMixin,
                          GenericViewSet, ):
-    permission_classes = [IsAuthenticated & (PermissaoAssociacao | PermissaoAssociacaoDre | PermissaoDadosUnidadeDre | PermissaoSituacaoFinanceira)]
+    permission_classes = [IsAuthenticated & (PermissaoAssociacao | PermissaoAssociacaoDre | PermissaoDadosUnidadeDre | PermissaoSituacaoFinanceira | PermissaoVerConciliacaoBancaria)]
     lookup_field = 'uuid'
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer

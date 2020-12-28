@@ -387,7 +387,12 @@ def permissoes_receitas():
         Permission.objects.filter(codename='add_receita').first(),
         Permission.objects.filter(codename='view_receita').first(),
         Permission.objects.filter(codename='change_receita').first(),
-        Permission.objects.filter(codename='delete_receita').first()
+        Permission.objects.filter(codename='delete_receita').first(),
+        Permission.objects.create(
+            name="Editar conciliação bancária", 
+            codename='change_conciliacao_bancaria', 
+            content_type=ContentType.objects.filter(app_label="auth").first()
+        )
     ]
 
     return permissoes
