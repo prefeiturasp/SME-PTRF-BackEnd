@@ -1186,6 +1186,14 @@ def parametros():
 
 
 @pytest.fixture
+def parametro_fique_de_olho_pc():
+    return baker.make(
+        'ParametroFiqueDeOlhoPc',
+        fique_de_olho='',
+    )
+
+
+@pytest.fixture
 def parametros_aceita_saldo_negativo_em_conta():
     return baker.make(
         'Parametros',

@@ -31,7 +31,8 @@ from .models import (
     DevolucaoAoTesouro,
     ComentarioAnalisePrestacao,
     PrevisaoRepasseSme,
-    Censo
+    Censo,
+    ParametroFiqueDeOlhoPc,
 )
 
 admin.site.register(TipoNotificacao)
@@ -42,7 +43,7 @@ admin.site.register(Parametros)
 admin.site.register(RelacaoBens)
 admin.site.register(Remetente)
 admin.site.register(MembroAssociacao)
-
+admin.site.register(ParametroFiqueDeOlhoPc)
 
 @admin.register(Associacao)
 class AssociacaoAdmin(admin.ModelAdmin):
