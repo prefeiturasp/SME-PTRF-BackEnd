@@ -1,9 +1,9 @@
-from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework import exceptions
-from sme_ptrf_apps.receitas.models import Receita
+from rest_framework.permissions import SAFE_METHODS, BasePermission
+
+from sme_ptrf_apps.core.models import Associacao, PrestacaoConta
 from sme_ptrf_apps.despesas.models import Despesa
-from sme_ptrf_apps.core.models import PrestacaoConta
-from sme_ptrf_apps.core.models import Associacao
+from sme_ptrf_apps.receitas.models import Receita
 
 
 class PermissaoCRUD(BasePermission):
@@ -30,13 +30,13 @@ class PermissaoCRUD(BasePermission):
             raise exceptions.MethodNotAllowed(method)
 
         return [perm % kwargs for perm in self.perms_map[method]]
-    
+
     def get_user_permissions(self, user):
         perms = []
         for group in user.groups.all():
             for permission in group.permissions.all():
                 perms.append(permission.codename)
-        
+
         return perms
 
     def has_perm(self, perm, obj):
@@ -69,7 +69,6 @@ class PermissaoReceita(PermissaoCRUD):
     def has_permission(self, request, view):
         perms = self.get_required_permissions(request.method, Receita)
         return self.has_perms(perms, request.user)
-
 
 
 class PermissaoDespesa(PermissaoCRUD):
@@ -345,4 +344,47 @@ class PermissaoEditarRelatorioConsolidadoDre(PermissaoCRUD):
     def has_permission(self, request, view):
         perms = self.get_required_permissions(request.method)
         return self.has_perms(perms, request.user)
-        
+
+
+class PermissaoVerConciliacaoBancaria(PermissaoCRUD):
+    perms_map = {
+        'GET': ['view_conciliacao_bancaria'],
+        'OPTIONS': ['view_conciliacao_bancaria'],
+        'HEAD': ['view_conciliacao_bancaria'],
+        'POST': [],
+        'PUT': [],
+        'PATCH': [],
+        'DELETE': [],
+    }
+
+    def get_required_permissions(self, method):
+        if method not in self.perms_map:
+            raise exceptions.MethodNotAllowed(method)
+
+        return [perm for perm in self.perms_map[method]]
+
+    def has_permission(self, request, view):
+        perms = self.get_required_permissions(request.method)
+        return self.has_perms(perms, request.user)
+
+
+class PermissaoEditarConciliacaoBancaria(PermissaoCRUD):
+    perms_map = {
+        'GET': [],
+        'OPTIONS': [],
+        'HEAD': [],
+        'POST': ['change_conciliacao_bancaria'],
+        'PUT': ['change_conciliacao_bancaria'],
+        'PATCH': ['change_conciliacao_bancaria'],
+        'DELETE': ['change_conciliacao_bancaria'],
+    }
+
+    def get_required_permissions(self, method):
+        if method not in self.perms_map:
+            raise exceptions.MethodNotAllowed(method)
+
+        return [perm for perm in self.perms_map[method]]
+
+    def has_permission(self, request, view):
+        perms = self.get_required_permissions(request.method)
+        return self.has_perms(perms, request.user)
