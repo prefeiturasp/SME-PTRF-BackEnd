@@ -1,6 +1,8 @@
 import pytest
 
 from django.contrib.auth.models import Permission
+from model_bakery import baker
+
 from sme_ptrf_apps.users.models import Grupo
 from django.contrib.contenttypes.models import ContentType
 
@@ -58,7 +60,7 @@ def permissoes_tipo_devolucao():
     ]
 
     return permissoes
-    
+
 
 @pytest.fixture
 def permissoes_unidades():
@@ -73,8 +75,8 @@ def permissoes_unidades():
 def permissoes_dashboard_dre():
     permissoes = [
         Permission.objects.create(
-            name="visualizar dados dre", 
-            codename='view_dashboard_dre', 
+            name="visualizar dados dre",
+            codename='view_dashboard_dre',
             content_type=ContentType.objects.filter(app_label="auth").first()
         ),
     ]
@@ -86,8 +88,8 @@ def permissoes_dashboard_dre():
 def permissoes_associacoes_dre():
     permissoes = [
         Permission.objects.create(
-            name="visualizar associacoes dre", 
-            codename='view_associacao_dre', 
+            name="visualizar associacoes dre",
+            codename='view_associacao_dre',
             content_type=ContentType.objects.filter(app_label="auth").first()
         ),
     ]
@@ -99,8 +101,8 @@ def permissoes_associacoes_dre():
 def permissoes_dadosdiretoria_dre():
     permissoes = [
         Permission.objects.create(
-            name="visualizar dados diretoria dre", 
-            codename='view_dadosdiretoria_dre', 
+            name="visualizar dados diretoria dre",
+            codename='view_dadosdiretoria_dre',
             content_type=ContentType.objects.filter(app_label="auth").first()
         ),
     ]
@@ -112,8 +114,8 @@ def permissoes_dadosdiretoria_dre():
 def permissoes_regularidade_dre():
     permissoes = [
         Permission.objects.create(
-            name="visualizar regularidade dre", 
-            codename='view_regularidade_dre', 
+            name="visualizar regularidade dre",
+            codename='view_regularidade_dre',
             content_type=ContentType.objects.filter(app_label="auth").first()
         ),
     ]
@@ -257,3 +259,11 @@ def jwt_authenticated_client_a(client, usuario_permissao_associacao):
         resp_data = resp.json()
         api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
     return api_client
+
+
+@pytest.fixture
+def parametro_fique_de_olho_rel_dre_abc():
+    return baker.make(
+        'ParametroFiqueDeOlhoRelDre',
+        fique_de_olho='abc',
+    )
