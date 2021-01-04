@@ -38,7 +38,6 @@ from .models import (
 admin.site.register(TipoNotificacao)
 admin.site.register(Acao)
 admin.site.register(Categoria)
-admin.site.register(RelacaoBens)
 admin.site.register(Remetente)
 admin.site.register(MembroAssociacao)
 admin.site.register(ParametroFiqueDeOlhoPc)
@@ -449,3 +448,54 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
     )
 
     autocomplete_fields = ['conta_associacao', 'acao_associacao']
+
+
+@admin.register(RelacaoBens)
+class RelacaoBensAdmin(admin.ModelAdmin):
+
+    def get_nome_conta(self, obj):
+        return obj.conta_associacao.tipo_conta.nome if obj and obj.conta_associacao else ''
+
+    get_nome_conta.short_description = 'Conta'
+
+    def get_nome_associacao(self, obj):
+        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta else ''
+
+    get_nome_associacao.short_description = 'Associação'
+
+    def get_periodo(self, obj):
+        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
+
+    get_periodo.short_description = 'Periodo'
+
+    def get_nome_dre(self, obj):
+        return obj.prestacao_conta.associacao.unidade.dre.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade and obj.prestacao_conta.associacao.unidade.dre else ''
+
+    get_nome_dre.short_description = 'DRE'
+
+    list_display = (
+        'get_nome_associacao',
+        'get_periodo',
+        'get_nome_conta',
+        'get_nome_dre',
+        'criado_em'
+    )
+
+    list_filter = (
+        'prestacao_conta__associacao',
+        'conta_associacao__tipo_conta',
+        'prestacao_conta__periodo',
+        'prestacao_conta__associacao__unidade__dre',
+    )
+
+    list_display_links = ('get_nome_associacao',)
+
+    readonly_fields = ('uuid', 'id',)
+
+    search_fields = (
+        'prestacao_conta__associacao__unidade__codigo_eol',
+        'prestacao_conta__associacao__unidade__nome',
+        'prestacao_conta__associacao__nome'
+    )
+
+    autocomplete_fields = ['conta_associacao',]
