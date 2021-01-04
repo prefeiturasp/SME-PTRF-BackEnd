@@ -31,18 +31,18 @@ from .models import (
     DevolucaoAoTesouro,
     ComentarioAnalisePrestacao,
     PrevisaoRepasseSme,
-    Censo
+    Censo,
+    ParametroFiqueDeOlhoPc,
 )
 
 admin.site.register(TipoNotificacao)
 admin.site.register(Acao)
 admin.site.register(Categoria)
 admin.site.register(DemonstrativoFinanceiro)
-admin.site.register(Parametros)
 admin.site.register(RelacaoBens)
 admin.site.register(Remetente)
 admin.site.register(MembroAssociacao)
-
+admin.site.register(ParametroFiqueDeOlhoPc)
 
 @admin.register(Associacao)
 class AssociacaoAdmin(admin.ModelAdmin):
@@ -385,3 +385,11 @@ class TipoContaAdmin(admin.ModelAdmin):
 class CensoAdmin(admin.ModelAdmin):
     list_display = ['uuid', 'unidade', 'quantidade_alunos', 'ano']
     list_filter = ['ano', ]
+
+
+@admin.register(Parametros)
+class ParametrosAdmin(admin.ModelAdmin):
+    exclude = ('fique_de_olho', 'fique_de_olho_relatorio_dre')
+    list_display = ['permite_saldo_conta_negativo', 'tempo_notificar_nao_demonstrados',]
+    list_display_links = ['permite_saldo_conta_negativo', 'tempo_notificar_nao_demonstrados',]
+

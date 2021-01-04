@@ -2,7 +2,10 @@ from django.contrib import admin
 from .models import (Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade,
                      ItemVerificacaoRegularidade,
                      VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq, RelatorioConsolidadoDRE,
-                     JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE)
+                     JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE,
+                     ParametroFiqueDeOlhoRelDre)
+
+admin.site.register(ParametroFiqueDeOlhoRelDre)
 
 
 class ListasVerificacaoInline(admin.TabularInline):
@@ -146,7 +149,7 @@ class JObsDevolucaoRelatorioConsolidadoDREAdmin(admin.ModelAdmin):
 
     list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'tipo_devolucao', 'observacao')
     list_filter = (
-    'dre', 'periodo', 'tipo_conta', 'tipo_devolucao', 'tipo_devolucao_a_conta', 'tipo_devolucao_ao_tesouro')
+        'dre', 'periodo', 'tipo_conta', 'tipo_devolucao', 'tipo_devolucao_a_conta', 'tipo_devolucao_ao_tesouro')
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome', 'observacao')

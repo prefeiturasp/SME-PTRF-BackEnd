@@ -35,8 +35,8 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
     @action(detail=False, methods=['get'], url_path='fique-de-olho')
     def fique_de_olho(self, request, uuid=None):
-        from sme_ptrf_apps.core.models import Parametros
-        fique_de_olho = Parametros.get().fique_de_olho_relatorio_dre
+        from sme_ptrf_apps.dre.models import ParametroFiqueDeOlhoRelDre
+        fique_de_olho = ParametroFiqueDeOlhoRelDre.get().fique_de_olho
         return Response({'detail': fique_de_olho}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='status-relatorio')
