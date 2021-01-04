@@ -12,6 +12,7 @@ from sme_ptrf_apps.receitas.models import Receita, Repasse
 from ...services import atualiza_repasse_para_pendente, atualiza_repasse_para_realizado
 from .detalhe_tipo_receita_serializer import DetalheTipoReceitaSerializer
 from .tipo_receita_serializer import TipoReceitaSerializer
+from .repasse_serializer import RepasseSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +82,7 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
     conta_associacao = ContaAssociacaoLookUpSerializer()
     detalhe_tipo_receita = DetalheTipoReceitaSerializer()
     referencia_devolucao = PeriodoLookUpSerializer()
+    repasse = RepasseSerializer()
 
     class Meta:
         model = Receita
@@ -96,5 +98,6 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
             'detalhe_tipo_receita',
             'detalhe_outros',
             'referencia_devolucao',
-            'notificar_dias_nao_conferido'
+            'notificar_dias_nao_conferido',
+            'repasse'
         )

@@ -47,10 +47,10 @@ class RepasseAdmin(admin.ModelAdmin):
     autocomplete_fields = ['associacao', 'periodo', 'conta_associacao', 'acao_associacao']
 
     def tipo_conta(self, obj):
-        return obj.conta_associacao.tipo_conta
+        return obj.conta_associacao.tipo_conta if obj.conta_associacao else ''
 
     def acao(self, obj):
-        return obj.acao_associacao.acao.nome
+        return obj.acao_associacao.acao.nome if obj.acao_associacao else ''
 
     def get_queryset(self, request):
         return super(RepasseAdmin, self).get_queryset(request).select_related(
