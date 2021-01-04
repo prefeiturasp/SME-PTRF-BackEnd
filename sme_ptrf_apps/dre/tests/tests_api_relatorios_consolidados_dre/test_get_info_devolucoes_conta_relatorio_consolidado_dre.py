@@ -107,7 +107,7 @@ def obs_devolucao_conta_relatorio_dre_consolidado(periodo, dre, tipo_conta, deta
     )
 
 def test_api_get_info_devolucoes_conta_relatorio(
-    jwt_authenticated_client,
+    jwt_authenticated_client_relatorio_consolidado,
     dre,
     periodo,
     tipo_conta,
@@ -116,7 +116,7 @@ def test_api_get_info_devolucoes_conta_relatorio(
     receita_devolucao_2,
     obs_devolucao_conta_relatorio_dre_consolidado
 ):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-devolucoes-conta/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -134,8 +134,8 @@ def test_api_get_info_devolucoes_conta_relatorio(
     assert result == resultado_esperado
 
 
-def test_api_get_info_devolucoes_conta_relatorio_sem_passa_dre(jwt_authenticated_client, dre, periodo, tipo_conta):
-    response = jwt_authenticated_client.get(
+def test_api_get_info_devolucoes_conta_relatorio_sem_passa_dre(jwt_authenticated_client_relatorio_consolidado, dre, periodo, tipo_conta):
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-devolucoes-conta/?periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -150,9 +150,9 @@ def test_api_get_info_devolucoes_conta_relatorio_sem_passa_dre(jwt_authenticated
     assert result == resultado_esperado
 
 
-def test_api_get_info_devolucoes_conta_relatorio_sem_passa_periodo(jwt_authenticated_client, dre, periodo,
+def test_api_get_info_devolucoes_conta_relatorio_sem_passa_periodo(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
                                                                    tipo_conta):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-devolucoes-conta/?dre={dre.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -167,9 +167,9 @@ def test_api_get_info_devolucoes_conta_relatorio_sem_passa_periodo(jwt_authentic
     assert result == resultado_esperado
 
 
-def test_api_get_info_devolucoes_conta_relatorio_sem_passar_tipo_conta(jwt_authenticated_client, dre, periodo,
+def test_api_get_info_devolucoes_conta_relatorio_sem_passar_tipo_conta(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
                                                                        tipo_conta):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-devolucoes-conta/?dre={dre.uuid}&periodo={periodo.uuid}',
         content_type='application/json')
     result = json.loads(response.content)

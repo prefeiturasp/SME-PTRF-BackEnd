@@ -1,34 +1,28 @@
 import logging
-
 from io import BytesIO
+
+from django.http import HttpResponse
 from openpyxl.writer.excel import save_virtual_workbook
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework import status
-from django.http import HttpResponse
 
-from sme_ptrf_apps.core.models import (
-    Unidade,
-    Periodo,
-    TipoConta,
-    TipoDevolucaoAoTesouro
-)
-
+from sme_ptrf_apps.core.models import Periodo, TipoConta, TipoDevolucaoAoTesouro, Unidade
 from sme_ptrf_apps.receitas.models import DetalheTipoReceita
+from sme_ptrf_apps.users.permissoes import PermissaoViewRelatorioConsolidadoDre, PermissaoGerarRelatorioConsolidadoDre
 
 from ...models import RelatorioConsolidadoDRE
-
 from ...services import (
-    status_de_geracao_do_relatorio,
-    informacoes_execucao_financeira,
+    gera_previa_relatorio_dre,
+    gera_relatorio_dre,
     informacoes_devolucoes_a_conta_ptrf,
     informacoes_devolucoes_ao_tesouro,
+    informacoes_execucao_financeira,
     informacoes_execucao_financeira_unidades,
+    status_de_geracao_do_relatorio,
     update_observacao_devolucao,
-    gera_relatorio_dre,
-    gera_previa_relatorio_dre
 )
 
 logger = logging.getLogger(__name__)
@@ -36,18 +30,19 @@ logger = logging.getLogger(__name__)
 
 class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated & PermissaoViewRelatorioConsolidadoDre]
     queryset = RelatorioConsolidadoDRE.objects.all()
 
     @action(detail=False, methods=['get'], url_path='fique-de-olho')
     def fique_de_olho(self, request, uuid=None):
-        from sme_ptrf_apps.core.models import Parametros
-        fique_de_olho = Parametros.get().fique_de_olho_relatorio_dre
+        from sme_ptrf_apps.dre.models import ParametroFiqueDeOlhoRelDre
+        fique_de_olho = ParametroFiqueDeOlhoRelDre.get().fique_de_olho
         return Response({'detail': fique_de_olho}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='status-relatorio')
     def status_relatorio(self, request):
         from rest_framework import status
+
         # Determina a DRE
         dre_uuid = self.request.query_params.get('dre')
 
@@ -121,6 +116,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
     @action(detail=False, methods=['get'], url_path='info-execucao-financeira')
     def info_execucao_financeira(self, request):
         from rest_framework import status
+
         # Determina a DRE
         dre_uuid = self.request.query_params.get('dre')
 
@@ -194,6 +190,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
     @action(detail=False, methods=['get'], url_path='info-devolucoes-conta')
     def info_devolucoes_conta(self, request):
         from rest_framework import status
+
         # Determina a DRE
         dre_uuid = self.request.query_params.get('dre')
 
@@ -267,6 +264,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
     @action(detail=False, methods=['get'], url_path='info-devolucoes-ao-tesouro')
     def info_devolucoes_ao_tesouro(self, request):
         from rest_framework import status
+
         # Determina a DRE
         dre_uuid = self.request.query_params.get('dre')
 
@@ -340,6 +338,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
     @action(detail=False, methods=['get'], url_path='info-execucao-financeira-unidades')
     def info_execucao_financeira_unidades(self, request):
         from rest_framework import status
+
         # Determina a DRE
         dre_uuid = self.request.query_params.get('dre')
 
@@ -425,6 +424,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
     @action(detail=False, methods=['put'], url_path='update-observacao-devolucoes-ao-tesouro')
     def update_observacao_devolucoes_ao_tesouro(self, request):
         from rest_framework import status
+
         # Determina a DRE
         dre_uuid = self.request.query_params.get('dre')
 
@@ -523,6 +523,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
     @action(detail=False, methods=['put'], url_path='update-observacao-devolucoes-a-conta')
     def update_observacao_devolucoes_a_conta(self, request):
         from rest_framework import status
+
         # Determina a DRE
         dre_uuid = self.request.query_params.get('dre')
 
@@ -704,7 +705,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         return response
 
-    @action(detail=False, url_path="gerar-relatorio", methods=['post'])
+    @action(detail=False, url_path="gerar-relatorio", methods=['post'], permission_classes=[IsAuthenticated & PermissaoGerarRelatorioConsolidadoDre])
     def gerar_relatorio(self, request):
         dados = request.data
 

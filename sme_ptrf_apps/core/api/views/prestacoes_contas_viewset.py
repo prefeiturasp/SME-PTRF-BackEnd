@@ -521,8 +521,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=False, methods=['get'], url_path='fique-de-olho')
     def fique_de_olho(self, request, uuid=None):
-        from sme_ptrf_apps.core.models import Parametros
-        fique_de_olho = Parametros.get().fique_de_olho
+        from sme_ptrf_apps.core.models import ParametroFiqueDeOlhoPc
+        fique_de_olho = ParametroFiqueDeOlhoPc.get().fique_de_olho
 
         return Response({'detail': fique_de_olho}, status=status.HTTP_200_OK)
 

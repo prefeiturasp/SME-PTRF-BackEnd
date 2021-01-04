@@ -16,9 +16,9 @@ def payload_altera_justificativa():
     return payload
 
 
-def test_update_justificativa_relatorio_consolidado_dre(jwt_authenticated_client, justificativa_relatorio_dre_consolidado,
+def test_update_justificativa_relatorio_consolidado_dre(jwt_authenticated_client_relatorio_consolidado, justificativa_relatorio_dre_consolidado,
                                                         payload_altera_justificativa):
-    response = jwt_authenticated_client.patch(
+    response = jwt_authenticated_client_relatorio_consolidado.patch(
         f'/api/justificativas-relatorios-consolidados-dre/{justificativa_relatorio_dre_consolidado.uuid}/',
         data=json.dumps(payload_altera_justificativa),
         content_type='application/json')

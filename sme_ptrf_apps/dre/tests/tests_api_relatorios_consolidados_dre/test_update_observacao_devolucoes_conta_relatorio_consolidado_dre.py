@@ -110,7 +110,7 @@ def obs_devolucao_conta_relatorio_dre_consolidado(periodo, dre, tipo_conta, deta
 
 
 def test_api_update_observacao_devolucoes_a_conta_create(
-    jwt_authenticated_client,
+    jwt_authenticated_client_relatorio_consolidado,
     dre,
     periodo,
     tipo_conta,
@@ -123,7 +123,7 @@ def test_api_update_observacao_devolucoes_a_conta_create(
         'observacao': 'Teste devolução à conta'
     }
 
-    response = jwt_authenticated_client.put(
+    response = jwt_authenticated_client_relatorio_consolidado.put(
         f'/api/relatorios-consolidados-dre/update-observacao-devolucoes-a-conta/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}&tipo_devolucao={detalhe_tipo_receita.uuid}',
         data=json.dumps(payload),
         content_type='application/json')
@@ -144,7 +144,7 @@ def test_api_update_observacao_devolucoes_a_conta_create(
 
 
 def test_api_update_observacao_devolucoes_a_conta_update(
-    jwt_authenticated_client,
+    jwt_authenticated_client_relatorio_consolidado,
     dre,
     periodo,
     tipo_conta,
@@ -161,7 +161,7 @@ def test_api_update_observacao_devolucoes_a_conta_update(
     assert ObsDevolucaoRelatorioConsolidadoDRE.objects.count() == 1
     assert ObsDevolucaoRelatorioConsolidadoDRE.objects.first().observacao == 'Teste devolução à conta'
 
-    response = jwt_authenticated_client.put(
+    response = jwt_authenticated_client_relatorio_consolidado.put(
         f'/api/relatorios-consolidados-dre/update-observacao-devolucoes-a-conta/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}&tipo_devolucao={detalhe_tipo_receita.uuid}',
         data=json.dumps(payload),
         content_type='application/json')
@@ -182,7 +182,7 @@ def test_api_update_observacao_devolucoes_a_conta_update(
 
 
 def test_api_update_observacao_devolucoes_a_conta_delete(
-    jwt_authenticated_client,
+    jwt_authenticated_client_relatorio_consolidado,
     dre,
     periodo,
     tipo_conta,
@@ -199,7 +199,7 @@ def test_api_update_observacao_devolucoes_a_conta_delete(
     assert ObsDevolucaoRelatorioConsolidadoDRE.objects.count() == 1
     assert ObsDevolucaoRelatorioConsolidadoDRE.objects.first().observacao == 'Teste devolução à conta'
 
-    response = jwt_authenticated_client.put(
+    response = jwt_authenticated_client_relatorio_consolidado.put(
         f'/api/relatorios-consolidados-dre/update-observacao-devolucoes-a-conta/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}&tipo_devolucao={detalhe_tipo_receita.uuid}',
         data=json.dumps(payload),
         content_type='application/json')
@@ -218,12 +218,12 @@ def test_api_update_observacao_devolucoes_a_conta_delete(
     assert ObsDevolucaoRelatorioConsolidadoDRE.objects.count() == 0
 
 
-def test_api_update_observacao_devolucoes_a_conta_sem_passar_dre(jwt_authenticated_client, dre, periodo, tipo_conta):
+def test_api_update_observacao_devolucoes_a_conta_sem_passar_dre(jwt_authenticated_client_relatorio_consolidado, dre, periodo, tipo_conta):
     payload = {
         'observacao': ''
     }
 
-    response = jwt_authenticated_client.put(
+    response = jwt_authenticated_client_relatorio_consolidado.put(
         f'/api/relatorios-consolidados-dre/update-observacao-devolucoes-a-conta/?periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         data=json.dumps(payload),
         content_type='application/json')
@@ -239,13 +239,13 @@ def test_api_update_observacao_devolucoes_a_conta_sem_passar_dre(jwt_authenticat
     assert result == resultado_esperado
 
 
-def test_api_update_observacao_devolucoes_a_conta_sem_passar_periodo(jwt_authenticated_client, dre, periodo,
+def test_api_update_observacao_devolucoes_a_conta_sem_passar_periodo(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
                                                                      tipo_conta):
     payload = {
         'observacao': ''
     }
 
-    response = jwt_authenticated_client.put(
+    response = jwt_authenticated_client_relatorio_consolidado.put(
         f'/api/relatorios-consolidados-dre/update-observacao-devolucoes-a-conta/?dre={dre.uuid}&tipo_conta={tipo_conta.uuid}',
         data=json.dumps(payload),
         content_type='application/json')
@@ -261,13 +261,13 @@ def test_api_update_observacao_devolucoes_a_conta_sem_passar_periodo(jwt_authent
     assert result == resultado_esperado
 
 
-def test_api_get_update_observacao_devolucoes_a_conta_sem_passar_tipo_conta(jwt_authenticated_client, dre, periodo,
+def test_api_get_update_observacao_devolucoes_a_conta_sem_passar_tipo_conta(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
                                                                             tipo_conta):
     payload = {
         'observacao': ''
     }
 
-    response = jwt_authenticated_client.put(
+    response = jwt_authenticated_client_relatorio_consolidado.put(
         f'/api/relatorios-consolidados-dre/update-observacao-devolucoes-a-conta/?dre={dre.uuid}&periodo={periodo.uuid}',
         data=json.dumps(payload),
         content_type='application/json')
@@ -284,7 +284,7 @@ def test_api_get_update_observacao_devolucoes_a_conta_sem_passar_tipo_conta(jwt_
 
 
 def test_api_get_update_observacao_devolucoes_a_conta_sem_passar_tipo_devolucao(
-    jwt_authenticated_client,
+    jwt_authenticated_client_relatorio_consolidado,
     dre,
     periodo,
     tipo_conta,
@@ -294,7 +294,7 @@ def test_api_get_update_observacao_devolucoes_a_conta_sem_passar_tipo_devolucao(
         'observacao': 'Teste devolução ao tesouro'
     }
 
-    response = jwt_authenticated_client.put(
+    response = jwt_authenticated_client_relatorio_consolidado.put(
         f'/api/relatorios-consolidados-dre/update-observacao-devolucoes-a-conta/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         data=json.dumps(payload),
         content_type='application/json')

@@ -6,7 +6,7 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_geracao_e_download_relatorio_previa(jwt_authenticated_client_dre, periodo, dre, tipo_conta):
+def test_geracao_e_download_relatorio_previa(jwt_authenticated_client_relatorio_consolidado, periodo, dre, tipo_conta):
 
     payload = {
         'dre_uuid': str(dre.uuid),
@@ -15,7 +15,7 @@ def test_geracao_e_download_relatorio_previa(jwt_authenticated_client_dre, perio
         'parcial': True
     }
 
-    response = jwt_authenticated_client_dre.post(
+    response = jwt_authenticated_client_relatorio_consolidado.post(
         f'/api/relatorios-consolidados-dre/previa/',
         data=json.dumps(payload),
         content_type='application/json')
@@ -27,7 +27,7 @@ def test_geracao_e_download_relatorio_previa(jwt_authenticated_client_dre, perio
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_api_geracao_relatorio_previa_sem_dre_uuid(jwt_authenticated_client_dre, periodo, dre, tipo_conta):
+def test_api_geracao_relatorio_previa_sem_dre_uuid(jwt_authenticated_client_relatorio_consolidado, periodo, dre, tipo_conta):
     payload = {
         'dre_uuid': '',
         'periodo_uuid': str(periodo.uuid),
@@ -35,7 +35,7 @@ def test_api_geracao_relatorio_previa_sem_dre_uuid(jwt_authenticated_client_dre,
         'parcial': False
     }
 
-    response = jwt_authenticated_client_dre.post(
+    response = jwt_authenticated_client_relatorio_consolidado.post(
         f'/api/relatorios-consolidados-dre/previa/',
         data=json.dumps(payload),
         content_type='application/json')
@@ -50,7 +50,7 @@ def test_api_geracao_relatorio_previa_sem_dre_uuid(jwt_authenticated_client_dre,
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_api_geracao_relatorio_previa_sem_periodo_uuid(jwt_authenticated_client_dre, periodo, dre, tipo_conta):
+def test_api_geracao_relatorio_previa_sem_periodo_uuid(jwt_authenticated_client_relatorio_consolidado, periodo, dre, tipo_conta):
     payload = {
         'dre_uuid': str(dre.uuid),
         'periodo_uuid': '',
@@ -58,7 +58,7 @@ def test_api_geracao_relatorio_previa_sem_periodo_uuid(jwt_authenticated_client_
         'parcial': False
     }
 
-    response = jwt_authenticated_client_dre.post(
+    response = jwt_authenticated_client_relatorio_consolidado.post(
         f'/api/relatorios-consolidados-dre/previa/',
         data=json.dumps(payload),
         content_type='application/json')

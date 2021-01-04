@@ -4,11 +4,11 @@ from rest_framework.permissions import IsAuthenticated
 
 from sme_ptrf_apps.dre.api.serializers.justificativa_relatorio_consolidado_dre_serializer import JustificativaRelatorioConsolidadoDreRetrieveSerializer
 from sme_ptrf_apps.dre.models import JustificativaRelatorioConsolidadoDRE
-
+from sme_ptrf_apps.users.permissoes import PermissaoEditarRelatorioConsolidadoDre
 
 class JustificativasRelatoriosConsolidadosDreViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated & PermissaoEditarRelatorioConsolidadoDre]
     serializer_class = JustificativaRelatorioConsolidadoDreRetrieveSerializer
     queryset = JustificativaRelatorioConsolidadoDRE.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
