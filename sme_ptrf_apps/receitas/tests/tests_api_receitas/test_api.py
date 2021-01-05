@@ -222,6 +222,7 @@ def test_get_receitas(
             'uuid': str(receita.uuid),
             'data': '2020-03-26',
             'valor': '100.00',
+            'repasse': None,
             'tipo_receita': {
                 'id': tipo_receita.id,
                 'nome': tipo_receita.nome,
@@ -380,6 +381,7 @@ def test_retrive_receitas(
             'e_recursos_proprios': False
         },
         'referencia_devolucao': None,
+        'repasse': None,
         "acao_associacao": {
             "uuid": str(acao_associacao.uuid),
             "id": acao_associacao.id,

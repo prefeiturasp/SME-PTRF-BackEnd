@@ -134,4 +134,5 @@ def test_retrieve_serializer(prestacao_conta, devolucao_prestacao_conta_2020_1, 
     assert serializer.data['devolucao_ao_tesouro']
     assert serializer.data['analises_de_conta_da_prestacao']
     assert serializer.data['ressalvas_aprovacao']
+    assert serializer.data['motivos_reprovacao']
     assert serializer.data['devolucoes_ao_tesouro_da_prestacao']

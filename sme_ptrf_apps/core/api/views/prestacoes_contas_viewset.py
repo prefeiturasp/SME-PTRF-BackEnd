@@ -408,6 +408,17 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
+        motivos_reprovacao = request.data.get('motivos_reprovacao', '')
+
+        if resultado_analise == PrestacaoConta.STATUS_REPROVADA and not motivos_reprovacao:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'concluir-analise',
+                'mensagem': 'Para concluir como Reprovada é necessário informar o campo motivos_reprovacao.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
         data_limite_ue = request.data.get('data_limite_ue', None)
 
         if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA and not data_limite_ue:
@@ -425,6 +436,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
             ressalvas_aprovacao=ressalvas_aprovacao,
             data_limite_ue=data_limite_ue,
+            motivos_reprovacao=motivos_reprovacao,
             devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao
         )
 
