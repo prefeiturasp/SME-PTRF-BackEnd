@@ -41,6 +41,7 @@ class RepasseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Repasse
         fields = [
+            'uuid',
             'valor_capital',
             'valor_custeio',
             'valor_livre',
