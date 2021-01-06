@@ -85,26 +85,9 @@ def test_create_receita_repasse(
 
         assert receita.associacao.uuid == associacao.uuid
 
+        assert receita.repasse.uuid == repasse.uuid
+
         assert Repasse.objects.get(uuid=repasse.uuid).status == 'PENDENTE'
-
-
-def test_create_receita_repasse_periodo_invalido(
-    jwt_authenticated_client_p,
-    tipo_receita,
-    acao,
-    acao_associacao,
-    associacao,
-    tipo_conta,
-    conta_associacao,
-    repasse,
-    payload_receita_repasse
-):
-    payload_receita_repasse['data'] = '2020-09-02'
-    response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita_repasse), content_type='application/json')
-    result = json.loads(response.content)
-
-    assert result == ["Repasse não encontrado."]
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def test_create_receita_repasse_valor_diferente(
@@ -239,6 +222,7 @@ def test_get_receitas(
             'uuid': str(receita.uuid),
             'data': '2020-03-26',
             'valor': '100.00',
+            'repasse': None,
             'tipo_receita': {
                 'id': tipo_receita.id,
                 'nome': tipo_receita.nome,
@@ -397,6 +381,7 @@ def test_retrive_receitas(
             'e_recursos_proprios': False
         },
         'referencia_devolucao': None,
+        'repasse': None,
         "acao_associacao": {
             "uuid": str(acao_associacao.uuid),
             "id": acao_associacao.id,
@@ -444,6 +429,7 @@ def test_create_receita_livre_aplicacao(
     receita = Receita.objects.get(uuid=result["uuid"])
 
     assert receita.associacao.uuid == associacao.uuid
+
     assert receita.detalhe_tipo_receita == detalhe_tipo_receita
 
 
@@ -473,6 +459,8 @@ def test_create_receita_repasse_livre_aplicacao(
         receita = Receita.objects.get(uuid=result["uuid"])
 
         assert receita.associacao.uuid == associacao.uuid
+
+        assert receita.repasse.uuid == repasse_2020_1_livre_aplicacao_pendente.uuid 
 
         assert Repasse.objects.get(uuid=repasse_2020_1_livre_aplicacao_pendente.uuid).status == 'REALIZADO'
 
@@ -557,7 +545,8 @@ def test_create_receita_repasse_capital_com_valores_custeio_e_livre_aplicacao_ze
         'categoria_receita': 'CAPITAL',
         'conta_associacao': str(conta_associacao.uuid),
         'acao_associacao': str(acao_associacao.uuid),
-        'tipo_receita': tipo_receita_repasse.id
+        'tipo_receita': tipo_receita_repasse.id,
+        'repasse': str(repasse_so_capital.uuid)
     }
     with freeze_time('2019-11-29'):
         assert Repasse.objects.get(uuid=repasse_so_capital.uuid).status == 'PENDENTE'
@@ -574,6 +563,8 @@ def test_create_receita_repasse_capital_com_valores_custeio_e_livre_aplicacao_ze
         receita = Receita.objects.get(uuid=result["uuid"])
 
         assert receita.associacao.uuid == associacao.uuid
+
+        assert receita.repasse.uuid == repasse_so_capital.uuid
 
         assert Repasse.objects.get(uuid=repasse_so_capital.uuid).status == 'REALIZADO'
 
@@ -610,7 +601,8 @@ def test_create_receita_repasse_custeio_com_valores_capital_e_livre_aplicacao_ze
         'categoria_receita': 'CUSTEIO',
         'conta_associacao': str(conta_associacao.uuid),
         'acao_associacao': str(acao_associacao.uuid),
-        'tipo_receita': tipo_receita_repasse.id
+        'tipo_receita': tipo_receita_repasse.id,
+        'repasse': str(repasse_so_custeio.uuid)
     }
     with freeze_time('2019-11-29'):
         assert Repasse.objects.get(uuid=repasse_so_custeio.uuid).status == 'PENDENTE'
@@ -627,6 +619,8 @@ def test_create_receita_repasse_custeio_com_valores_capital_e_livre_aplicacao_ze
         receita = Receita.objects.get(uuid=result["uuid"])
 
         assert receita.associacao.uuid == associacao.uuid
+
+        assert receita.repasse.uuid == repasse_so_custeio.uuid
 
         assert Repasse.objects.get(uuid=repasse_so_custeio.uuid).status == 'REALIZADO'
 
@@ -663,7 +657,8 @@ def test_create_receita_repasse_livre_aplicacao_com_valores_capital_e_custeio(
         'categoria_receita': 'LIVRE',
         'conta_associacao': str(conta_associacao.uuid),
         'acao_associacao': str(acao_associacao.uuid),
-        'tipo_receita': tipo_receita_repasse.id
+        'tipo_receita': tipo_receita_repasse.id,
+        'repasse': str(repasse_so_livre.uuid)
     }
     with freeze_time('2019-11-29'):
         assert Repasse.objects.get(uuid=repasse_so_livre.uuid).status == 'PENDENTE'
@@ -680,6 +675,8 @@ def test_create_receita_repasse_livre_aplicacao_com_valores_capital_e_custeio(
         receita = Receita.objects.get(uuid=result["uuid"])
 
         assert receita.associacao.uuid == associacao.uuid
+
+        assert receita.repasse.uuid == repasse_so_livre.uuid
 
         assert Repasse.objects.get(uuid=repasse_so_livre.uuid).status == 'REALIZADO'
 
@@ -731,7 +728,8 @@ def test_update_receita_repasse_livre_aplicacao_com_valores_capital_e_custeio(
         'categoria_receita': 'LIVRE',
         'conta_associacao': str(conta_associacao.uuid),
         'acao_associacao': str(acao_associacao.uuid),
-        'tipo_receita': tipo_receita_repasse.id
+        'tipo_receita': tipo_receita_repasse.id,
+        'repasse': str(repasse_teste.uuid)
     }
     with freeze_time('2019-11-29'):
         assert Repasse.objects.get(uuid=repasse_teste.uuid).status == 'PENDENTE'
