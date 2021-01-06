@@ -133,7 +133,7 @@ class RateioDespesa(ModeloBase):
                 despesa__data_documento__range=(
                     periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
         else:
-            dataset = cls.objects.filter(acao_associacao=conta_associacao).filter(
+            dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
                 despesa__data_documento__gte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
