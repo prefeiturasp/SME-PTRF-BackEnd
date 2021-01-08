@@ -57,7 +57,7 @@ class DespesaAdmin(admin.ModelAdmin):
     list_display = ('tipo_documento', 'numero_documento', 'data_documento', 'nome_fornecedor', 'valor_total', 'status')
     ordering = ('-data_documento',)
     search_fields = ('numero_documento', 'nome_fornecedor', 'documento_transacao')
-    list_filter = ('status',)
+    list_filter = ('status', 'associacao')
     inlines = [RateioDespesaInLine, ]
     readonly_fields = ('uuid', 'id')
 

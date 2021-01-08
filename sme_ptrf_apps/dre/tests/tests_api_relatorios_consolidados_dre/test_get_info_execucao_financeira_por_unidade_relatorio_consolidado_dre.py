@@ -342,7 +342,7 @@ def totais_esperados_associacao_que_nao_apresentou_pc():
 
 
 def test_api_get_info_execucao_financeira_por_unidade(
-    jwt_authenticated_client,
+    jwt_authenticated_client_relatorio_consolidado,
     dre,
     outra_dre,
     periodo,
@@ -363,7 +363,7 @@ def test_api_get_info_execucao_financeira_por_unidade(
     totais_esperados_associacao,
     totais_esperados_associacao_que_nao_apresentou_pc
 ):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -403,7 +403,7 @@ def test_api_get_info_execucao_financeira_por_unidade(
 
 
 def test_api_get_info_execucao_financeira_por_unidade_filtro_por_nome_escola(
-    jwt_authenticated_client,
+    jwt_authenticated_client_relatorio_consolidado,
     dre,
     outra_dre,
     periodo,
@@ -424,7 +424,7 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_nome_escola(
     totais_esperados_associacao,
     totais_esperados_associacao_que_nao_apresentou_pc
 ):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}&nome=escolasempc',
         content_type='application/json')
     result = json.loads(response.content)
@@ -450,7 +450,7 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_nome_escola(
     assert result == resultado_esperado
 
 def test_api_get_info_execucao_financeira_por_unidade_filtro_por_nome_associacao(
-    jwt_authenticated_client,
+    jwt_authenticated_client_relatorio_consolidado,
     dre,
     outra_dre,
     periodo,
@@ -471,7 +471,7 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_nome_associacao
     totais_esperados_associacao,
     totais_esperados_associacao_que_nao_apresentou_pc
 ):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}&nome=associacaosempc',
         content_type='application/json')
     result = json.loads(response.content)
@@ -498,7 +498,7 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_nome_associacao
 
 
 def test_api_get_info_execucao_financeira_por_unidade_filtro_por_tipo_unidade(
-    jwt_authenticated_client,
+    jwt_authenticated_client_relatorio_consolidado,
     dre,
     outra_dre,
     periodo,
@@ -519,7 +519,7 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_tipo_unidade(
     totais_esperados_associacao,
     totais_esperados_associacao_que_nao_apresentou_pc
 ):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}&tipo_unidade=EMEI',
         content_type='application/json')
     result = json.loads(response.content)
@@ -547,7 +547,7 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_tipo_unidade(
 
 
 def test_api_get_info_execucao_financeira_por_unidade_filtro_por_status(
-    jwt_authenticated_client,
+    jwt_authenticated_client_relatorio_consolidado,
     dre,
     outra_dre,
     periodo,
@@ -568,7 +568,7 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_status(
     totais_esperados_associacao,
     totais_esperados_associacao_que_nao_apresentou_pc
 ):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}&status=NAO_APRESENTADA',
         content_type='application/json')
     result = json.loads(response.content)
@@ -594,8 +594,8 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_status(
     assert result == resultado_esperado
 
 
-def test_api_get_info_execucao_financeira_unidades_sem_passa_dre(jwt_authenticated_client, dre, periodo, tipo_conta):
-    response = jwt_authenticated_client.get(
+def test_api_get_info_execucao_financeira_unidades_sem_passa_dre(jwt_authenticated_client_relatorio_consolidado, dre, periodo, tipo_conta):
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -610,9 +610,9 @@ def test_api_get_info_execucao_financeira_unidades_sem_passa_dre(jwt_authenticat
     assert result == resultado_esperado
 
 
-def test_api_get_info_execucao_financeira_unidades_sem_passa_periodo(jwt_authenticated_client, dre, periodo,
+def test_api_get_info_execucao_financeira_unidades_sem_passa_periodo(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
                                                                      tipo_conta):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -627,9 +627,9 @@ def test_api_get_info_execucao_financeira_unidades_sem_passa_periodo(jwt_authent
     assert result == resultado_esperado
 
 
-def test_api_get_info_execucao_financeira_unidades_sem_passar_tipo_conta(jwt_authenticated_client, dre, periodo,
+def test_api_get_info_execucao_financeira_unidades_sem_passar_tipo_conta(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
                                                                          tipo_conta):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&periodo={periodo.uuid}',
         content_type='application/json')
     result = json.loads(response.content)

@@ -127,7 +127,7 @@ def acao_role_cultural():
 
 @pytest.fixture
 def dre():
-    return baker.make('Unidade', codigo_eol='99999', tipo_unidade='DRE', nome='DRE teste')
+    return baker.make('Unidade', codigo_eol='99999', tipo_unidade='DRE', nome='DRE teste', sigla='TT')
 
 
 @pytest.fixture
@@ -406,7 +406,8 @@ def prestacao_conta(periodo, associacao):
         data_recebimento=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
         devolucao_tesouro=True,
-        ressalvas_aprovacao='Texto ressalva'
+        ressalvas_aprovacao='Texto ressalva',
+        motivos_reprovacao="Motivo reprovação"   
     )
 
 
@@ -1184,6 +1185,20 @@ def parametros():
         fique_de_olho_relatorio_dre='',
     )
 
+
+@pytest.fixture
+def parametro_fique_de_olho_pc():
+    return baker.make(
+        'ParametroFiqueDeOlhoPc',
+        fique_de_olho='',
+    )
+
+@pytest.fixture
+def parametro_fique_de_olho_pc_texto_abc():
+    return baker.make(
+        'ParametroFiqueDeOlhoPc',
+        fique_de_olho='abc',
+    )
 
 @pytest.fixture
 def parametros_aceita_saldo_negativo_em_conta():

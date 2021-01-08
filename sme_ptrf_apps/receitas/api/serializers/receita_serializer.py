@@ -7,11 +7,12 @@ from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAs
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
 from sme_ptrf_apps.core.models import AcaoAssociacao, Associacao, ContaAssociacao, Periodo
-from sme_ptrf_apps.receitas.models import Receita
+from sme_ptrf_apps.receitas.models import Receita, Repasse
 
 from ...services import atualiza_repasse_para_pendente, atualiza_repasse_para_realizado
 from .detalhe_tipo_receita_serializer import DetalheTipoReceitaSerializer
 from .tipo_receita_serializer import TipoReceitaSerializer
+from .repasse_serializer import RepasseSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,12 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
         slug_field='uuid',
         required=False,
         queryset=Associacao.objects.all()
+    )
+
+    repasse = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Repasse.objects.all()
     )
 
     conta_associacao = serializers.SlugRelatedField(
@@ -46,8 +53,7 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
             raise ValidationError(f"O tipo de receita {validated_data['tipo_receita'].nome} não permite salvar créditos com contas do tipo {validated_data['conta_associacao'].tipo_conta.nome}")
         
         if validated_data['tipo_receita'].e_repasse:
-            repasse = atualiza_repasse_para_realizado(validated_data)
-            validated_data['repasse'] = repasse
+            atualiza_repasse_para_realizado(validated_data)
 
         receita = Receita.objects.create(**validated_data)
 
@@ -61,8 +67,7 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
             atualiza_repasse_para_pendente(instance)
 
         if validated_data['tipo_receita'].e_repasse:
-            repasse = atualiza_repasse_para_realizado(validated_data)
-            validated_data['repasse'] = repasse
+            atualiza_repasse_para_realizado(validated_data)
 
         return super().update(instance, validated_data)
 
@@ -77,6 +82,7 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
     conta_associacao = ContaAssociacaoLookUpSerializer()
     detalhe_tipo_receita = DetalheTipoReceitaSerializer()
     referencia_devolucao = PeriodoLookUpSerializer()
+    repasse = RepasseSerializer()
 
     class Meta:
         model = Receita
@@ -92,5 +98,6 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
             'detalhe_tipo_receita',
             'detalhe_outros',
             'referencia_devolucao',
-            'notificar_dias_nao_conferido'
+            'notificar_dias_nao_conferido',
+            'repasse'
         )

@@ -121,7 +121,7 @@ def payload_receita_livre_aplicacao(associacao, conta_associacao, acao_associaca
 
 
 @pytest.fixture
-def payload_receita_repasse(associacao, conta_associacao, acao_associacao, tipo_receita_repasse):
+def payload_receita_repasse(associacao, conta_associacao, acao_associacao, tipo_receita_repasse, repasse):
     payload = {
         'associacao': str(associacao.uuid),
         'data': '2019-09-26',
@@ -129,13 +129,14 @@ def payload_receita_repasse(associacao, conta_associacao, acao_associacao, tipo_
         'categoria_receita': 'CAPITAL',
         'conta_associacao': str(conta_associacao.uuid),
         'acao_associacao': str(acao_associacao.uuid),
-        'tipo_receita': tipo_receita_repasse.id
+        'tipo_receita': tipo_receita_repasse.id,
+        'repasse': str(repasse.uuid)
     }
     return payload
 
 
 @pytest.fixture
-def payload_receita_repasse_livre_aplicacao(associacao, conta_associacao, acao_associacao, tipo_receita_repasse):
+def payload_receita_repasse_livre_aplicacao(associacao, conta_associacao, acao_associacao, tipo_receita_repasse, repasse_2020_1_livre_aplicacao_pendente):
     payload = {
         'associacao': str(associacao.uuid),
         'data': '2020-02-26',
@@ -143,7 +144,8 @@ def payload_receita_repasse_livre_aplicacao(associacao, conta_associacao, acao_a
         'categoria_receita': 'LIVRE',
         'conta_associacao': str(conta_associacao.uuid),
         'acao_associacao': str(acao_associacao.uuid),
-        'tipo_receita': tipo_receita_repasse.id
+        'tipo_receita': tipo_receita_repasse.id,
+        'repasse': str(repasse_2020_1_livre_aplicacao_pendente.uuid)
     }
     return payload
 
@@ -387,7 +389,12 @@ def permissoes_receitas():
         Permission.objects.filter(codename='add_receita').first(),
         Permission.objects.filter(codename='view_receita').first(),
         Permission.objects.filter(codename='change_receita').first(),
-        Permission.objects.filter(codename='delete_receita').first()
+        Permission.objects.filter(codename='delete_receita').first(),
+        Permission.objects.create(
+            name="Editar conciliação bancária", 
+            codename='change_conciliacao_bancaria', 
+            content_type=ContentType.objects.filter(app_label="auth").first()
+        )
     ]
 
     return permissoes

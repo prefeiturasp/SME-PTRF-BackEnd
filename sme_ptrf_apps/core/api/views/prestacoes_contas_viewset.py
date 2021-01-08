@@ -20,6 +20,7 @@ from ...services import (
     reabrir_prestacao_de_contas,
     lista_prestacoes_de_conta_nao_recebidas,
 )
+from ....dre.services import (dashboard_sme)
 from ..serializers import (
     AtaLookUpSerializer,
     PrestacaoContaListSerializer,
@@ -407,6 +408,17 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
+        motivos_reprovacao = request.data.get('motivos_reprovacao', '')
+
+        if resultado_analise == PrestacaoConta.STATUS_REPROVADA and not motivos_reprovacao:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'concluir-analise',
+                'mensagem': 'Para concluir como Reprovada é necessário informar o campo motivos_reprovacao.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
         data_limite_ue = request.data.get('data_limite_ue', None)
 
         if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA and not data_limite_ue:
@@ -424,6 +436,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
             ressalvas_aprovacao=ressalvas_aprovacao,
             data_limite_ue=data_limite_ue,
+            motivos_reprovacao=motivos_reprovacao,
             devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao
         )
 
@@ -520,8 +533,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=False, methods=['get'], url_path='fique-de-olho')
     def fique_de_olho(self, request, uuid=None):
-        from sme_ptrf_apps.core.models import Parametros
-        fique_de_olho = Parametros.get().fique_de_olho
+        from sme_ptrf_apps.core.models import ParametroFiqueDeOlhoPc
+        fique_de_olho = ParametroFiqueDeOlhoPc.get().fique_de_olho
 
         return Response({'detail': fique_de_olho}, status=status.HTTP_200_OK)
 
@@ -616,7 +629,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-
         result = lista_prestacoes_de_conta_nao_recebidas(dre=dre,
                                                          periodo=periodo,
                                                          filtro_nome=nome,
@@ -624,3 +636,31 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                                                          filtro_status=status_pc
                                                          )
         return Response(result)
+
+    @action(detail=False, methods=['get'], url_path="dashboard-sme")
+    def dashboard_sme(self, request):
+        # Determina o período
+        periodo_uuid = self.request.query_params.get('periodo')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'operacao': 'dashboard-sme',
+                'mensagem': 'Faltou informar o uuid do período. ?periodo=uuid_do_periodo'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        dashboard = dashboard_sme(periodo=periodo)
+
+        return Response(dashboard)

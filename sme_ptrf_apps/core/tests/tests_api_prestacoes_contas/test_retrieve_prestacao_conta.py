@@ -168,7 +168,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                 'dre': {
                     'codigo_eol': '99999',
                     'nome': 'DRE teste',
-                    'sigla': '',
+                    'sigla': 'TT',
                     'tipo_unidade': 'DRE',
                     'uuid': f'{prestacao_conta.associacao.unidade.dre.uuid}'
                 },
@@ -241,6 +241,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
             }
         ],
         'ressalvas_aprovacao': 'Texto ressalva',
+        'motivos_reprovacao': 'Motivo reprovação',
         'devolucoes_ao_tesouro_da_prestacao': [
             {
                 'data': '2020-07-01',

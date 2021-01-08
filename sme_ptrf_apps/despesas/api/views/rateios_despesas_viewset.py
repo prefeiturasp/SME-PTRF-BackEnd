@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoDespesa
+from sme_ptrf_apps.users.permissoes import PermissaoDespesa, PermissaoEditarConciliacaoBancaria
 
 from ....core.models import Associacao, Parametros, Periodo
 from ....core.services import saldos_insuficientes_para_rateios
@@ -59,7 +59,7 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
     def get_serializer_class(self):
         return RateioDespesaListaSerializer
 
-    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated & PermissaoEditarConciliacaoBancaria])
     def conciliar(self, request, uuid):
 
         # Define o período de conciliação
@@ -86,7 +86,7 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
         return Response(RateioDespesaListaSerializer(rateio_despesa_conciliado, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated & PermissaoEditarConciliacaoBancaria])
     def desconciliar(self, request, uuid):
         rateio_despesa_desconciliado = RateioDespesa.desconciliar(uuid=uuid)
         return Response(RateioDespesaListaSerializer(rateio_despesa_desconciliado, many=False).data,

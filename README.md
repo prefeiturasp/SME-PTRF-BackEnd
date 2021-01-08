@@ -5,10 +5,22 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.3.0
-
+Versão: 1.4.0
 
 ## Release Notes
+
+### 1.4.0 - 07/01/2021 - Entregas da Sprint 13
+* Visão SME
+* SME > Painel de parâmetros do sistema
+* SME > Acompanhamento de prestações de conta > Resumo Geral
+* SME > Acompanhamento de prestações de conta > Resumo por DRE (lista)
+* Lançamento de Créditos não relativos ao PTRF
+* Melhorias na área de administração do sistema
+* Melhorias na Ata de Retificação
+* Seleção de repasses ao cadastrar créditos
+* Recurso de exclusão de membros da associação
+* Melhorias no acompanhamento de prestações de contas da DRE
+* 🐞 Correção de alguns poucos bugs ;-)
 
 ### 1.3.0 - 08/12/2020 - Entregas da Sprint 12
 * Carga de previsões de repasse da SME;

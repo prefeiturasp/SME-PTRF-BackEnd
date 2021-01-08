@@ -190,7 +190,7 @@ def previsao_repasse_sme_conta_cartao(periodo, associacao, conta_associacao_cart
 
 
 def test_api_get_info_execucao_financeira_relatorio(
-    jwt_authenticated_client,
+    jwt_authenticated_client_relatorio_consolidado,
     dre,
     periodo,
     tipo_conta_cheque,
@@ -205,7 +205,7 @@ def test_api_get_info_execucao_financeira_relatorio(
     previsao_repasse_sme_conta_cartao,
     previsao_repasse_sme_conta_cheque,
 ):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-execucao-financeira/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -262,8 +262,8 @@ def test_api_get_info_execucao_financeira_relatorio(
     assert result == resultado_esperado
 
 
-def test_api_get_info_execucao_financeira_relatorio_sem_passa_dre(jwt_authenticated_client, dre, periodo, tipo_conta):
-    response = jwt_authenticated_client.get(
+def test_api_get_info_execucao_financeira_relatorio_sem_passa_dre(jwt_authenticated_client_relatorio_consolidado, dre, periodo, tipo_conta):
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-execucao-financeira/?periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -278,9 +278,9 @@ def test_api_get_info_execucao_financeira_relatorio_sem_passa_dre(jwt_authentica
     assert result == resultado_esperado
 
 
-def test_api_get_info_execucao_financeira_relatorio_sem_passa_periodo(jwt_authenticated_client, dre, periodo,
+def test_api_get_info_execucao_financeira_relatorio_sem_passa_periodo(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
                                                                       tipo_conta):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-execucao-financeira/?dre={dre.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
@@ -295,9 +295,9 @@ def test_api_get_info_execucao_financeira_relatorio_sem_passa_periodo(jwt_authen
     assert result == resultado_esperado
 
 
-def test_api_get_info_execucao_financeira_relatorio_sem_passar_tipo_conta(jwt_authenticated_client, dre, periodo,
+def test_api_get_info_execucao_financeira_relatorio_sem_passar_tipo_conta(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
                                                                           tipo_conta):
-    response = jwt_authenticated_client.get(
+    response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-execucao-financeira/?dre={dre.uuid}&periodo={periodo.uuid}',
         content_type='application/json')
     result = json.loads(response.content)

@@ -20,16 +20,17 @@ def test_repasses_pendentes(
         conta_associacao):
 
     response = jwt_authenticated_client_p.get(
-        f'/api/repasses/pendentes/?acao-associacao={acao_associacao.uuid}&data=02/09/2019', content_type='application/json')
+        f'/api/repasses/pendentes/?associacao={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
-    esperado = {
+    esperado = [{
         'valor_capital': '1000.28',
         'valor_custeio': '1000.40',
         'valor_livre': '0.00',
         'acao_associacao': {
             'uuid': str(acao_associacao.uuid),
             'id': acao_associacao.id,
-            'nome': acao_associacao.acao.nome
+            'nome': acao_associacao.acao.nome,
+            'e_recursos_proprios': False
         },
         'conta_associacao': {
             'uuid': str(conta_associacao.uuid),
@@ -39,8 +40,9 @@ def test_repasses_pendentes(
             'uuid': str(periodo.uuid),
             'data_inicio_realizacao_despesas': '2019-09-01',
             'data_fim_realizacao_despesas': '2019-11-30'
-        }
-    }
+        },
+        'uuid': str(repasse.uuid)
+    }]
 
     assert result == esperado
 
@@ -56,16 +58,17 @@ def test_repasses_pendentes_livre_aplicacao(
         conta_associacao):
 
     response = jwt_authenticated_client_p.get(
-        f'/api/repasses/pendentes/?acao-associacao={acao_associacao.uuid}&data=02/03/2020', content_type='application/json')
+        f'/api/repasses/pendentes/?associacao={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
-    esperado = {
+    esperado = [{
         'valor_capital': '0.00',
         'valor_custeio': '0.00',
         'valor_livre': '1000.00',
         'acao_associacao': {
             'uuid': str(acao_associacao.uuid),
             'id': acao_associacao.id,
-            'nome': acao_associacao.acao.nome
+            'nome': acao_associacao.acao.nome,
+            'e_recursos_proprios': False
         },
         'conta_associacao': {
             'uuid': str(conta_associacao.uuid),
@@ -75,8 +78,9 @@ def test_repasses_pendentes_livre_aplicacao(
             'uuid': str(periodo_2020_1.uuid),
             'data_inicio_realizacao_despesas': '2020-01-01',
             'data_fim_realizacao_despesas': '2020-06-30'
-        }
-    }
+        },
+        'uuid': str(repasse_2020_1_livre_aplicacao_pendente.uuid)
+    }]
 
     assert result == esperado
 

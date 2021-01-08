@@ -69,6 +69,8 @@ class PrestacaoConta(ModeloBase):
 
     ressalvas_aprovacao = models.TextField('Ressalvas na aprovação pela DRE', blank=True, default='')
 
+    motivos_reprovacao = models.TextField('Motivos para reprovação pela DRE', blank=True, default='')
+
     @property
     def tecnico_responsavel(self):
         atribuicoes = Atribuicao.search(
@@ -161,7 +163,7 @@ class PrestacaoConta(ModeloBase):
 
     @transaction.atomic
     def salvar_analise(self, devolucao_tesouro, analises_de_conta_da_prestacao, resultado_analise=None,
-                       ressalvas_aprovacao='', devolucoes_ao_tesouro_da_prestacao=[]):
+                       ressalvas_aprovacao='', motivos_reprovacao='', devolucoes_ao_tesouro_da_prestacao=[]):
         from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
         from ..models.devolucao_ao_tesouro import DevolucaoAoTesouro
         from ..models.conta_associacao import ContaAssociacao
@@ -175,6 +177,7 @@ class PrestacaoConta(ModeloBase):
             self.status = resultado_analise
 
         self.ressalvas_aprovacao = ressalvas_aprovacao
+        self.motivos_reprovacao = motivos_reprovacao
 
         self.save()
 
@@ -220,11 +223,12 @@ class PrestacaoConta(ModeloBase):
 
     @transaction.atomic
     def concluir_analise(self, resultado_analise, devolucao_tesouro, analises_de_conta_da_prestacao,
-                         ressalvas_aprovacao, data_limite_ue, devolucoes_ao_tesouro_da_prestacao=[]):
+                         ressalvas_aprovacao, data_limite_ue, motivos_reprovacao, devolucoes_ao_tesouro_da_prestacao=[]):
         prestacao_atualizada = self.salvar_analise(resultado_analise=resultado_analise,
                                                    devolucao_tesouro=devolucao_tesouro,
                                                    analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
                                                    ressalvas_aprovacao=ressalvas_aprovacao,
+                                                   motivos_reprovacao=motivos_reprovacao,
                                                    devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
 
         if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
@@ -312,7 +316,6 @@ class PrestacaoConta(ModeloBase):
             }
             cards.append(card)
 
-
         quantidade_unidades_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
         quantidade_pcs_nao_apresentadas = quantidade_unidades_dre - quantidade_pcs_apresentadas
         card_nao_recebidas = {
@@ -322,6 +325,101 @@ class PrestacaoConta(ModeloBase):
         }
         cards.insert(0, card_nao_recebidas)
         return cards
+
+    @classmethod
+    def quantidade_por_status_sme(cls, periodo_uuid):
+
+        from ..models import Associacao
+
+        qtd_por_status = {
+            cls.STATUS_NAO_RECEBIDA: 0,
+            cls.STATUS_RECEBIDA: 0,
+            cls.STATUS_EM_ANALISE: 0,
+            cls.STATUS_DEVOLVIDA: 0,
+            cls.STATUS_APROVADA: 0,
+            cls.STATUS_APROVADA_RESSALVA: 0,
+            cls.STATUS_REPROVADA: 0,
+            cls.STATUS_NAO_APRESENTADA: 0,
+            'TOTAL_UNIDADES': 0
+        }
+
+        qs = cls.objects.filter(periodo__uuid=periodo_uuid)
+
+        quantidade_pcs_apresentadas = 0
+        qtd_por_status['TOTAL_UNIDADES'] = Associacao.objects.exclude(cnpj__exact='').count()
+
+        for status in qtd_por_status.keys():
+            if status == 'TOTAL_UNIDADES' or status == cls.STATUS_NAO_APRESENTADA:
+                continue
+
+            quantidade_status = qs.filter(status=status).count()
+            quantidade_pcs_apresentadas += quantidade_status
+            qtd_por_status[status] = quantidade_status
+
+        quantidade_pcs_nao_apresentadas = qtd_por_status['TOTAL_UNIDADES'] - quantidade_pcs_apresentadas
+        qtd_por_status[cls.STATUS_NAO_APRESENTADA] = quantidade_pcs_nao_apresentadas
+
+        return qtd_por_status
+
+    @classmethod
+    def quantidade_por_status_por_dre(cls, periodo_uuid):
+
+        from ...core.models import Unidade
+        from ..models import Associacao
+
+        qtd_por_status_dre = []
+        for dre in Unidade.dres.all().order_by('sigla'):
+
+            qtd_por_status = {
+                cls.STATUS_NAO_RECEBIDA: 0,
+                cls.STATUS_RECEBIDA: 0,
+                cls.STATUS_EM_ANALISE: 0,
+                cls.STATUS_DEVOLVIDA: 0,
+                cls.STATUS_APROVADA: 0,
+                cls.STATUS_APROVADA_RESSALVA: 0,
+                cls.STATUS_REPROVADA: 0,
+                cls.STATUS_NAO_APRESENTADA: 0,
+                'TOTAL_UNIDADES': 0
+            }
+
+            qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre.uuid)
+
+            quantidade_pcs_apresentadas = 0
+            qtd_por_status['TOTAL_UNIDADES'] = Associacao.objects.filter(unidade__dre__uuid=dre.uuid).exclude(cnpj__exact='').count()
+
+            for status in qtd_por_status.keys():
+                if status == 'TOTAL_UNIDADES' or status == cls.STATUS_NAO_APRESENTADA:
+                    continue
+
+                quantidade_status = qs.filter(status=status).count()
+                quantidade_pcs_apresentadas += quantidade_status
+                qtd_por_status[status] = quantidade_status
+
+            quantidade_pcs_nao_apresentadas = qtd_por_status['TOTAL_UNIDADES'] - quantidade_pcs_apresentadas
+            qtd_por_status[cls.STATUS_NAO_APRESENTADA] = quantidade_pcs_nao_apresentadas
+
+            periodo_completo = (
+                qtd_por_status[PrestacaoConta.STATUS_NAO_RECEBIDA] == 0
+                and qtd_por_status[PrestacaoConta.STATUS_RECEBIDA] == 0
+                and qtd_por_status[PrestacaoConta.STATUS_EM_ANALISE] == 0
+                and qtd_por_status[PrestacaoConta.STATUS_DEVOLVIDA] == 0
+            )
+
+            qtd_por_status[PrestacaoConta.STATUS_NAO_RECEBIDA] += qtd_por_status[cls.STATUS_NAO_APRESENTADA]
+
+            qtd_por_status_dre.append(
+                {
+                    'dre': {
+                        'uuid': dre.uuid,
+                        'sigla': dre.sigla,
+                        'nome': dre.nome
+                    },
+                    'cards': qtd_por_status,
+                    'periodo_completo': periodo_completo
+                }
+            )
+
+        return qtd_por_status_dre
 
     @classmethod
     def status_to_json(cls):

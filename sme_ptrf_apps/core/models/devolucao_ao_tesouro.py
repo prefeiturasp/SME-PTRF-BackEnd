@@ -24,7 +24,7 @@ class DevolucaoAoTesouro(ModeloBase):
     tipo = models.ForeignKey('TipoDevolucaoAoTesouro', on_delete=models.PROTECT,
                              related_name='devolucoes_ao_tesouro_do_tipo')
 
-    data = models.DateField('data da devolução ao tesouro')
+    data = models.DateField('data da devolução ao tesouro', blank=True, null=True)
 
     despesa = models.ForeignKey('despesas.Despesa', on_delete=models.PROTECT,
                                 related_name='devolucoes_ao_tesouro_da_despesa', blank=True, null=True)

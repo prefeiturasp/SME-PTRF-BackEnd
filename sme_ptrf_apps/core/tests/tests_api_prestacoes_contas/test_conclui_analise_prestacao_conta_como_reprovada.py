@@ -35,6 +35,7 @@ def test_api_conclui_analise_prestacao_conta_aprovada(jwt_authenticated_client_a
                 'saldo_extrato': 100.00,
             },
         ],
+        'motivos_reprovacao': 'Reprovado',
         'resultado_analise': PrestacaoConta.STATUS_REPROVADA
     }
 

@@ -27,7 +27,8 @@ def test_api_get_rateios_despesas(jwt_authenticated_client_d, associacao, despes
             "acao_associacao": {
                 "uuid": f'{rateio_despesa_capital.acao_associacao.uuid}',
                 "id": rateio_despesa_capital.acao_associacao.id,
-                "nome": rateio_despesa_capital.acao_associacao.acao.nome
+                "nome": rateio_despesa_capital.acao_associacao.acao.nome,
+                "e_recursos_proprios": False
             },
             "valor_total": despesa.valor_total,
             "conferido": rateio_despesa_capital.conferido,
