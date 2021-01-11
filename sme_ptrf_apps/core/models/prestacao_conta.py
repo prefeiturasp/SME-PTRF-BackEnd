@@ -74,9 +74,6 @@ class PrestacaoConta(ModeloBase):
         null=True,
     )
 
-    # TODO Remover campo ressalvas_aprovacao
-    ressalvas_aprovacao = models.TextField('Ressalvas na aprovação pela DRE', blank=True, default='')
-
     motivos_reprovacao = models.TextField('Motivos para reprovação pela DRE', blank=True, default='')
 
     @property
@@ -245,7 +242,7 @@ class PrestacaoConta(ModeloBase):
         return prestacao_atualizada
 
     def desfazer_conclusao_analise(self):
-        self.ressalvas_aprovacao = ''
+        self.motivo_aprovacao_ressalva = None
         self.status = self.STATUS_EM_ANALISE
         self.save()
         return self
