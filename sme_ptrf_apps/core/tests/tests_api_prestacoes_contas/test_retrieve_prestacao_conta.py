@@ -134,7 +134,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                                                _devolucao_prestacao_conta, _cobranca_prestacao_devolucao,
                                                _processo_associacao_prestacao_conta,
                                                _analise_conta_prestacao_conta_2020_1, conta_associacao_cheque,
-                                               devolucao_ao_tesouro):
+                                               devolucao_ao_tesouro, motivo_aprovacao_ressalva_x):
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
@@ -241,6 +241,10 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
             }
         ],
         'ressalvas_aprovacao': 'Texto ressalva',
+        'motivo_aprovacao_ressalva': {
+            'uuid': f'{motivo_aprovacao_ressalva_x.uuid}',
+            'motivo': f'{motivo_aprovacao_ressalva_x.motivo}'
+        },
         'motivos_reprovacao': 'Motivo reprovação',
         'devolucoes_ao_tesouro_da_prestacao': [
             {
