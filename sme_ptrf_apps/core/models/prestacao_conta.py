@@ -422,14 +422,16 @@ class PrestacaoConta(ModeloBase):
         return qtd_por_status_dre
 
     @classmethod
+    def _status_nao_selecionaveis(cls):
+        return [cls.STATUS_EM_PROCESSAMENTO]
+
+    @classmethod
     def status_to_json(cls):
-        result = []
-        for choice in cls.STATUS_CHOICES:
-            status = {
-                'id': choice[0],
-                'nome': choice[1]
-            }
-            result.append(status)
+        result = [{
+            'id': choice[0],
+            'nome': choice[1]
+            } for choice in cls.STATUS_CHOICES if choice[0] not in cls._status_nao_selecionaveis()]
+
         return result
 
     class Meta:
