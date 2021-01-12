@@ -15,12 +15,6 @@ class MembroAssociacaoCreateSerializer(serializers.ModelSerializer):
         queryset=Associacao.objects.all()
     )
 
-    usuario = serializers.PrimaryKeyRelatedField(
-        required=False,
-        queryset=User.objects.all(),
-        allow_null=True
-    )
-
     class Meta:
         model = MembroAssociacao
         exclude = ('id',)
@@ -28,7 +22,6 @@ class MembroAssociacaoCreateSerializer(serializers.ModelSerializer):
 
 class MembroAssociacaoListSerializer(serializers.ModelSerializer):
     associacao = AssociacaoLookupSerializer()
-    usuario = UserSerializer()
 
     class Meta:
         model = MembroAssociacao
