@@ -19,7 +19,6 @@ def _prestacao_conta_em_aprovada_ressalva(periodo, associacao):
         associacao=associacao,
         data_recebimento=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
-        ressalvas_aprovacao='Teste',
         status=PrestacaoConta.STATUS_APROVADA_RESSALVA
     )
 
@@ -33,7 +32,7 @@ def test_api_desfaz_conclusao_analise_prestacao_conta_aprovada_com_ressalva(jwt_
 
     prestacao_atualizada = PrestacaoConta.by_uuid(_prestacao_conta_em_aprovada_ressalva.uuid)
     assert prestacao_atualizada.status == PrestacaoConta.STATUS_EM_ANALISE, 'Status não atualizado para EM_ANALISE.'
-    assert prestacao_atualizada.ressalvas_aprovacao == '', 'Não limpou a ressalva de aprovação.'
+    assert prestacao_atualizada.motivo_aprovacao_ressalva is None, 'Não limpou a ressalva de aprovação.'
 
 
 @pytest.fixture

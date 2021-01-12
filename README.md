@@ -9,6 +9,9 @@ Versão: 1.4.0
 
 ## Release Notes
 
+### 1.5.0 - 01/02/2021 - Entregas da Sprint 14
+* Em andamento...
+
 ### 1.4.0 - 07/01/2021 - Entregas da Sprint 13
 * Visão SME
 * SME > Painel de parâmetros do sistema

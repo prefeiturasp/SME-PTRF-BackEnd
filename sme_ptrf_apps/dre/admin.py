@@ -3,9 +3,10 @@ from .models import (Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoR
                      ItemVerificacaoRegularidade,
                      VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq, RelatorioConsolidadoDRE,
                      JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE,
-                     ParametroFiqueDeOlhoRelDre)
+                     ParametroFiqueDeOlhoRelDre, MotivoAprovacaoRessalva)
 
 admin.site.register(ParametroFiqueDeOlhoRelDre)
+admin.site.register(MotivoAprovacaoRessalva)
 
 
 class ListasVerificacaoInline(admin.TabularInline):
