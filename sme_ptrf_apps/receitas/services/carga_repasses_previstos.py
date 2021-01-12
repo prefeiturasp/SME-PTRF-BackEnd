@@ -30,9 +30,10 @@ class StatusRepasse(enum.Enum):
 def get_valor(val):
     if not val:
         return 0
-
-    return float(str(val).replace(',', '.'))
-
+    try:
+        return float(str(val).replace(',', '.'))
+    except ValueError:
+        raise ValueError(f"Não foi possível converter '{val}' em um valor númerico.")
 
 def get_associacao(eol):
     if Associacao.objects.filter(unidade__codigo_eol=eol).exists():
@@ -96,21 +97,19 @@ def get_periodo(nome_arquivo):
 
 def processa_repasse(reader, conta, arquivo):
     nome_arquivo = arquivo.identificador
-    logs = ""
+    logs = []
     importados = 0
-    erros = 0
+
     for index, row in enumerate(reader):
-        if index != 0:
-            logger.info('Linha %s: %s', index, row)
-            associacao = get_associacao(row[0])
-            if not associacao:
-                msg_erro = f'Associação com código eol: {row[0]} não encontrado. Linha {index}'
-                logger.info(msg_erro)
-                logs = f"{logs}\n{msg_erro}"
-                erros += 1
-                continue
-            
-            try:
+        try:
+            if index != 0:
+                logger.info('Linha %s: %s', index, row)
+                associacao = get_associacao(row[0])
+                if not associacao:
+                    msg_erro = f'Associação com código eol: {row[0]} não encontrado.'
+                    logger.info(msg_erro)
+                    raise Exception(msg_erro)
+
                 valor_capital = get_valor(row[1])
                 valor_custeio = get_valor(row[2])
                 valor_livre = get_valor(row[3])
@@ -133,24 +132,23 @@ def processa_repasse(reader, conta, arquivo):
                     )
                     logger.info(f"Repasse criado. Capital={valor_capital} Custeio={valor_custeio} RLA={valor_livre}")
                     importados += 1
-            except Exception as e:
-                logger.info("Error %s", str(e))
-                arquivo.log = f'{logs}\nError: {str(e)}'
-                arquivo.status = ERRO
-                erros += 1
-                arquivo.save()
+        except Exception as e:
+                msg_erro = f"Erro na linha {index}: {str(e)}"
+                logs.append(msg_erro)
+                logger.info(msg_erro)
 
-    if importados > 0 and erros > 0:
+    if importados > 0 and len(logs) > 0:
         arquivo.status = PROCESSADO_COM_ERRO
     elif importados == 0:
         arquivo.status = ERRO
     else:
         arquivo.status = SUCESSO
-    
-    logs = f"{logs}\nForam criados {importados} repasses. Erro na importação de {erros} repasses."
-    logger.info(f'Foram criados {importados} repasses. Erro na importação de {erros} repasses.')
-    
-    arquivo.log = logs
+
+    msg = f"Foram criados {importados} repasses. Erro na importação de {len(logs)} repasse(s)."
+    logs.append(msg)
+    logger.info(msg)
+
+    arquivo.log = "\n".join(logs)
     arquivo.save()
 
 
@@ -167,14 +165,13 @@ def carrega_repasses_previstos(arquivo):
             if  __DELIMITADORES[sniffer.delimiter] != arquivo.tipo_delimitador:
                 msg_erro = f"Formato definido ({arquivo.tipo_delimitador}) é diferente do formato do arquivo csv ({__DELIMITADORES[sniffer.delimiter]})"
                 logger.info(msg_erro)
-                arquivo.status = ERRO
-                arquivo.log = msg_erro
-                arquivo.save()
-                return
+                raise Exception(msg_erro)
 
             reader = csv.reader(f, delimiter=sniffer.delimiter)
             processa_repasse(reader, tipo_conta, arquivo)
     except Exception as err:
-        logger.info("Erro ao processar repasses previstos: %s", str(err))
-        arquivo.log = "Erro ao processar repasses previstos."
+        msg_erro = f"Erro ao processar repasses previstos: {str(err)}" 
+        logger.info(msg_erro)
+        arquivo.log = msg_erro
+        arquivo.status = ERRO
         arquivo.save()
