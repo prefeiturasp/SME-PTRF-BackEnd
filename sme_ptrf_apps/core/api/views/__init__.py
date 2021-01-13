@@ -14,3 +14,4 @@ from .unidades_viewset import UnidadesViewSet
 from .tipos_devolucao_ao_tesouro_viewset import TiposDevolucaoAoTesouroViewSet
 from .tipo_conta_viewset import TiposContaViewSet
 from .comentarios_analises_prestacoes_viewset import ComentariosAnalisesPrestacoesViewSet
+from .acao_associacao_viewset import AcaoAssociacaoViewSet
