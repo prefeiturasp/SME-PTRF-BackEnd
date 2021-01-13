@@ -53,4 +53,4 @@ class AcaoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AcaoAssociacao
-        fields = ('uuid', 'id', 'associacao', 'acao', 'status')
+        fields = ('uuid', 'id', 'associacao', 'acao', 'status', 'criado_em')

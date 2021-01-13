@@ -41,6 +41,7 @@ def test_api_list_acoes_associacoes_todas(
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios
                 },
                 'status': acao_associacao.status,
+                'criado_em': acao_associacao.criado_em.isoformat("T"),
             }
         )
 
@@ -80,6 +81,7 @@ def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios
                 },
                 'status': acao_associacao.status,
+                'criado_em': acao_associacao.criado_em.isoformat("T"),
             }
         )
     assert response.status_code == status.HTTP_200_OK
@@ -118,6 +120,7 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios
                 },
                 'status': acao_associacao.status,
+                'criado_em': acao_associacao.criado_em.isoformat("T"),
             }
         )
     assert response.status_code == status.HTTP_200_OK
@@ -156,6 +159,7 @@ def test_api_list_associacoes_pelo_eol_escola(jwt_authenticated_client_a,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios
                 },
                 'status': acao_associacao.status,
+                'criado_em': acao_associacao.criado_em.isoformat("T"),
             }
         )
     assert response.status_code == status.HTTP_200_OK
@@ -196,6 +200,7 @@ def test_api_list_associacoes_por_acao(jwt_authenticated_client_a,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios
                 },
                 'status': acao_associacao.status,
+                'criado_em': acao_associacao.criado_em.isoformat("T"),
             }
         )
     assert response.status_code == status.HTTP_200_OK
@@ -237,6 +242,7 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios
                 },
                 'status': acao_associacao.status,
+                'criado_em': acao_associacao.criado_em.isoformat("T"),
             }
         )
     assert response.status_code == status.HTTP_200_OK
