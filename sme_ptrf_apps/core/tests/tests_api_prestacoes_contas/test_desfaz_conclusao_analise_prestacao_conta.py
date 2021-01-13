@@ -12,14 +12,16 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def _prestacao_conta_em_aprovada_ressalva(periodo, associacao):
+def _prestacao_conta_em_aprovada_ressalva(periodo, associacao, motivo_aprovacao_ressalva_x):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo,
         associacao=associacao,
         data_recebimento=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
-        status=PrestacaoConta.STATUS_APROVADA_RESSALVA
+        status=PrestacaoConta.STATUS_APROVADA_RESSALVA,
+        outros_motivos_aprovacao_ressalva='outros motivos',
+        motivos_aprovacao_ressalva=[motivo_aprovacao_ressalva_x, ]
     )
 
 
@@ -32,7 +34,8 @@ def test_api_desfaz_conclusao_analise_prestacao_conta_aprovada_com_ressalva(jwt_
 
     prestacao_atualizada = PrestacaoConta.by_uuid(_prestacao_conta_em_aprovada_ressalva.uuid)
     assert prestacao_atualizada.status == PrestacaoConta.STATUS_EM_ANALISE, 'Status não atualizado para EM_ANALISE.'
-    assert prestacao_atualizada.motivo_aprovacao_ressalva is None, 'Não limpou a ressalva de aprovação.'
+    assert prestacao_atualizada.outros_motivos_aprovacao_ressalva == '', 'Não limpou outros motivos.'
+    assert not prestacao_atualizada.motivos_aprovacao_ressalva.exists(), 'Não limpou motivos de aprovação com ressalva'
 
 
 @pytest.fixture

@@ -240,10 +240,13 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                 'uuid': f'{_analise_conta_prestacao_conta_2020_1.uuid}'
             }
         ],
-        'motivo_aprovacao_ressalva': {
-            'uuid': f'{motivo_aprovacao_ressalva_x.uuid}',
-            'motivo': f'{motivo_aprovacao_ressalva_x.motivo}'
-        },
+        'motivos_aprovacao_ressalva': [
+            {
+                'uuid': f'{motivo_aprovacao_ressalva_x.uuid}',
+                'motivo': f'{motivo_aprovacao_ressalva_x.motivo}'
+            },
+        ],
+        'outros_motivos_aprovacao_ressalva': 'Outros motivos',
         'motivos_reprovacao': 'Motivo reprovação',
         'devolucoes_ao_tesouro_da_prestacao': [
             {

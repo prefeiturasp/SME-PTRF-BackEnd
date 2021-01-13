@@ -22,7 +22,8 @@ def test_instance_model(prestacao_conta):
     assert model.data_ultima_analise
     assert model.devolucao_tesouro
     assert model.motivos_reprovacao
-    assert isinstance(model.motivo_aprovacao_ressalva, MotivoAprovacaoRessalva)
+    assert model.motivos_aprovacao_ressalva
+    assert model.outros_motivos_aprovacao_ressalva
 
 
 def test_srt_model(prestacao_conta):

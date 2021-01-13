@@ -67,14 +67,11 @@ class PrestacaoConta(ModeloBase):
 
     devolucao_tesouro = models.BooleanField('há devolução ao tesouro', blank=True, null=True, default=False)
 
-    motivo_aprovacao_ressalva = models.ForeignKey(
-        'dre.MotivoAprovacaoRessalva',
-        on_delete=models.PROTECT,
-        related_name='prestacoes_de_conta_com_o_motivo', blank=True,
-        null=True,
-    )
-
     motivos_reprovacao = models.TextField('Motivos para reprovação pela DRE', blank=True, default='')
+
+    motivos_aprovacao_ressalva = models.ManyToManyField('dre.MotivoAprovacaoRessalva', blank=True)
+
+    outros_motivos_aprovacao_ressalva = models.TextField('Outros motivos para aprovação com ressalvas pela DRE', blank=True, default='')
 
     @property
     def tecnico_responsavel(self):
@@ -168,7 +165,7 @@ class PrestacaoConta(ModeloBase):
 
     @transaction.atomic
     def salvar_analise(self, devolucao_tesouro, analises_de_conta_da_prestacao, resultado_analise=None,
-                       motivo_aprovacao_ressalva=None, motivos_reprovacao='', devolucoes_ao_tesouro_da_prestacao=[]):
+                       motivos_aprovacao_ressalva=[], outros_motivos_aprovacao_ressalva='', motivos_reprovacao='', devolucoes_ao_tesouro_da_prestacao=[]):
         from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
         from ..models.devolucao_ao_tesouro import DevolucaoAoTesouro
         from ..models.conta_associacao import ContaAssociacao
@@ -181,7 +178,9 @@ class PrestacaoConta(ModeloBase):
         if resultado_analise:
             self.status = resultado_analise
 
-        self.motivo_aprovacao_ressalva = motivo_aprovacao_ressalva
+        self.motivos_aprovacao_ressalva.set(motivos_aprovacao_ressalva)
+        self.outros_motivos_aprovacao_ressalva = outros_motivos_aprovacao_ressalva
+
         self.motivos_reprovacao = motivos_reprovacao
 
         self.save()
@@ -228,11 +227,12 @@ class PrestacaoConta(ModeloBase):
 
     @transaction.atomic
     def concluir_analise(self, resultado_analise, devolucao_tesouro, analises_de_conta_da_prestacao,
-                         motivo_aprovacao_ressalva, data_limite_ue, motivos_reprovacao, devolucoes_ao_tesouro_da_prestacao=[]):
+                         motivos_aprovacao_ressalva, outros_motivos_aprovacao_ressalva, data_limite_ue, motivos_reprovacao, devolucoes_ao_tesouro_da_prestacao=[]):
         prestacao_atualizada = self.salvar_analise(resultado_analise=resultado_analise,
                                                    devolucao_tesouro=devolucao_tesouro,
                                                    analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
-                                                   motivo_aprovacao_ressalva=motivo_aprovacao_ressalva,
+                                                   motivos_aprovacao_ressalva=motivos_aprovacao_ressalva,
+                                                   outros_motivos_aprovacao_ressalva=outros_motivos_aprovacao_ressalva,
                                                    motivos_reprovacao=motivos_reprovacao,
                                                    devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
 
@@ -242,7 +242,8 @@ class PrestacaoConta(ModeloBase):
         return prestacao_atualizada
 
     def desfazer_conclusao_analise(self):
-        self.motivo_aprovacao_ressalva = None
+        self.motivos_aprovacao_ressalva.set([])
+        self.outros_motivos_aprovacao_ressalva = ''
         self.status = self.STATUS_EM_ANALISE
         self.save()
         return self

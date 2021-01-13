@@ -117,6 +117,7 @@ def devolucao_ao_tesouro(prestacao_conta, tipo_devolucao_ao_tesouro, despesa):
         motivo='teste'
     )
 
+
 def test_retrieve_serializer(prestacao_conta, devolucao_prestacao_conta_2020_1, atribuicao, processo_associacao_2019,
                              _analise_conta_prestacao_conta_2020_1, devolucao_ao_tesouro):
     serializer = PrestacaoContaRetrieveSerializer(prestacao_conta)
@@ -133,6 +134,7 @@ def test_retrieve_serializer(prestacao_conta, devolucao_prestacao_conta_2020_1, 
     assert serializer.data['data_ultima_analise']
     assert serializer.data['devolucao_ao_tesouro']
     assert serializer.data['analises_de_conta_da_prestacao']
-    assert serializer.data['motivo_aprovacao_ressalva']
+    assert serializer.data['motivos_aprovacao_ressalva']
+    assert serializer.data['outros_motivos_aprovacao_ressalva']
     assert serializer.data['motivos_reprovacao']
     assert serializer.data['devolucoes_ao_tesouro_da_prestacao']
