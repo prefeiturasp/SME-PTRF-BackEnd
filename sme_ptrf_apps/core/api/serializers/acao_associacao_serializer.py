@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
 from ..serializers.acao_serializer import AcaoSerializer
-from ..serializers.associacao_serializer import AssociacaoSerializer
-from ...models import AcaoAssociacao
+from ..serializers.associacao_serializer import AssociacaoSerializer, AssociacaoListSerializer
+from ...models import AcaoAssociacao, Associacao, Acao
 
 
 class AcaoAssociacaoSerializer(serializers.ModelSerializer):
@@ -27,3 +27,30 @@ class AcaoAssociacaoLookUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = AcaoAssociacao
         fields = ('uuid', 'id', 'nome', 'e_recursos_proprios')
+
+
+class AcaoAssociacaoCreateSerializer(serializers.ModelSerializer):
+    associacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Associacao.objects.all()
+    )
+
+    acao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Acao.objects.all()
+    )
+
+    class Meta:
+        model = AcaoAssociacao
+        fields = ('uuid', 'associacao', 'acao', 'status')
+
+
+class AcaoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
+    associacao = AssociacaoListSerializer()
+    acao = AcaoSerializer()
+
+    class Meta:
+        model = AcaoAssociacao
+        fields = ('uuid', 'id', 'associacao', 'acao', 'status')
