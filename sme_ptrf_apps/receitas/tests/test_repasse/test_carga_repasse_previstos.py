@@ -64,21 +64,21 @@ def arquivoCargaVirgulaProcessado(arquivoProcessado):
 
 def test_carga_com_erro_formatacao(arquivoCarga):
     carrega_repasses_previstos(arquivoCarga)
-    assert arquivoCarga.log == 'Formato definido (DELIMITADOR_PONTO_VIRGULA) é diferente do formato do arquivo csv (DELIMITADOR_VIRGULA)'
+    assert arquivoCarga.log == 'Erro ao processar repasses previstos: Formato definido (DELIMITADOR_PONTO_VIRGULA) é diferente do formato do arquivo csv (DELIMITADOR_VIRGULA)'
     assert arquivoCarga.status == ERRO
 
 
 def test_carga_com_erro(arquivoCargaVirgula):
     carrega_repasses_previstos(arquivoCargaVirgula)
-    msg = """\nAssociação com código eol: 93238 não encontrado. Linha 1
-Foram criados 0 repasses. Erro na importação de 1 repasses."""
+    msg = """Erro na linha 1: Associação com código eol: 93238 não encontrado.
+Foram criados 0 repasses. Erro na importação de 1 repasse(s)."""
     assert arquivoCargaVirgula.log == msg
     assert arquivoCargaVirgula.status == ERRO
 
 
 def test_carga_processado_com_erro(arquivoCargaVirgulaProcessado, periodo, associacao, tipo_receita_repasse):
     carrega_repasses_previstos(arquivoCargaVirgulaProcessado)
-    msg = """\nAssociação com código eol: 93238 não encontrado. Linha 2
-Foram criados 1 repasses. Erro na importação de 1 repasses."""
+    msg = """Erro na linha 2: Associação com código eol: 93238 não encontrado.
+Foram criados 1 repasses. Erro na importação de 1 repasse(s)."""
     assert arquivoCargaVirgulaProcessado.log == msg
     assert arquivoCargaVirgulaProcessado.status == PROCESSADO_COM_ERRO
