@@ -47,4 +47,5 @@ def test_retrieave_serializer(acao_associacao):
     assert serializer.data['acao']
     assert serializer.data['associacao']
     assert serializer.data['status']
+    assert serializer.data['criado_em']
 

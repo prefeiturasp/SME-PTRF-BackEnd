@@ -36,6 +36,7 @@ def test_retrieve_acao_associacao(
             'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios
         },
         'status': acao_associacao.status,
+        'criado_em': acao_associacao.criado_em.isoformat("T"),
     }
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
