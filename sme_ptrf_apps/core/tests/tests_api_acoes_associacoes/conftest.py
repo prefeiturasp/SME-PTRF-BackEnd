@@ -95,3 +95,13 @@ def acao_associacao_eco_delta_000087_x(associacao_eco_delta_000087, acao_x):
         associacao=associacao_eco_delta_000087,
         acao=acao_x
     )
+
+
+@pytest.fixture
+def acao_associacao_eco_delta_000087_y_inativa(associacao_eco_delta_000087, acao_y):
+    return baker.make(
+        'AcaoAssociacao',
+        associacao=associacao_eco_delta_000087,
+        acao=acao_y,
+        status='INATIVA'
+    )

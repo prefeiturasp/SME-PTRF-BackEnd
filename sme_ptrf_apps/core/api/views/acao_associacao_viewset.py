@@ -1,5 +1,7 @@
 from django.db.models import Q
 
+from django_filters import rest_framework as filters
+
 from rest_framework import mixins
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
@@ -19,6 +21,8 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
     permission_classes = [IsAuthenticated & PermissaoAssociacao]
     serializer_class = AcaoAssociacaoRetrieveSerializer
     queryset = AcaoAssociacao.objects.all().order_by('associacao__nome', 'acao__nome')
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_fields = ('acao__uuid', 'status')
 
     def get_queryset(self):
         qs = AcaoAssociacao.objects.all()
