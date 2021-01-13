@@ -19,6 +19,7 @@ def test_retrieve_acao_associacao(
 
     esperado = {
         'uuid': f'{acao_associacao.uuid}',
+        'id': acao_associacao.id,
         'associacao': {
             'uuid': f'{acao_associacao.associacao.uuid}',
             'nome': acao_associacao.associacao.nome,

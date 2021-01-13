@@ -23,6 +23,7 @@ def test_api_list_acoes_associacoes_todas(
         resultado_esperado.append(
             {
                 'uuid': f'{acao_associacao.uuid}',
+                'id': acao_associacao.id,
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
@@ -61,6 +62,7 @@ def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
         resultado_esperado.append(
             {
                 'uuid': f'{acao_associacao.uuid}',
+                'id': acao_associacao.id,
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
@@ -98,6 +100,7 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
         resultado_esperado.append(
             {
                 'uuid': f'{acao_associacao.uuid}',
+                'id': acao_associacao.id,
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
@@ -135,6 +138,7 @@ def test_api_list_associacoes_pelo_eol_escola(jwt_authenticated_client_a,
         resultado_esperado.append(
             {
                 'uuid': f'{acao_associacao.uuid}',
+                'id': acao_associacao.id,
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
