@@ -75,7 +75,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     devolucao_ao_tesouro = serializers.SerializerMethodField('get_devolucao_ao_tesouro')
     analises_de_conta_da_prestacao = AnaliseContaPrestacaoContaRetrieveSerializer(many=True)
     devolucoes_ao_tesouro_da_prestacao = DevolucaoAoTesouroRetrieveSerializer(many=True)
-    motivo_aprovacao_ressalva = MotivoAprovacaoRessalvaSerializer()
+    motivos_aprovacao_ressalva = MotivoAprovacaoRessalvaSerializer(many=True)
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
@@ -91,7 +91,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'status', 'associacao', 'periodo_uuid', 'tecnico_responsavel', 'data_recebimento',
                   'devolucoes_da_prestacao', 'processo_sei', 'data_ultima_analise', 'devolucao_ao_tesouro',
                   'analises_de_conta_da_prestacao', 'motivos_reprovacao',
-                  'devolucoes_ao_tesouro_da_prestacao', 'motivo_aprovacao_ressalva')
+                  'devolucoes_ao_tesouro_da_prestacao', 'motivos_aprovacao_ressalva', 'outros_motivos_aprovacao_ressalva')
 
 
 def _str_devolucao_ao_tesouro(obj):

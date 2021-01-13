@@ -414,7 +414,8 @@ def prestacao_conta(periodo, associacao, motivo_aprovacao_ressalva_x):
         data_ultima_analise=date(2020, 10, 1),
         devolucao_tesouro=True,
         motivos_reprovacao="Motivo reprovação",
-        motivo_aprovacao_ressalva=motivo_aprovacao_ressalva_x)
+        motivos_aprovacao_ressalva=[motivo_aprovacao_ressalva_x, ],
+        outros_motivos_aprovacao_ressalva="Outros motivos")
 
 
 @pytest.fixture
