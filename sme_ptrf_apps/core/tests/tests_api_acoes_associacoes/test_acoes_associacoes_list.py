@@ -37,6 +37,7 @@ def test_api_list_acoes_associacoes_todas(
                 },
                 'acao': {
                     'id': acao_associacao.acao.id,
+                    'uuid': f'{acao_associacao.acao.uuid}',
                     'nome': acao_associacao.acao.nome,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios
                 },
@@ -77,6 +78,7 @@ def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
                 },
                 'acao': {
                     'id': acao_associacao.acao.id,
+                    'uuid': f'{acao_associacao.acao.uuid}',
                     'nome': acao_associacao.acao.nome,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios
                 },
@@ -116,6 +118,7 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
                 },
                 'acao': {
                     'id': acao_associacao.acao.id,
+                    'uuid': f'{acao_associacao.acao.uuid}',
                     'nome': acao_associacao.acao.nome,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios
                 },
@@ -155,6 +158,7 @@ def test_api_list_associacoes_pelo_eol_escola(jwt_authenticated_client_a,
                 },
                 'acao': {
                     'id': acao_associacao.acao.id,
+                    'uuid': f'{acao_associacao.acao.uuid}',
                     'nome': acao_associacao.acao.nome,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios
                 },
@@ -196,6 +200,7 @@ def test_api_list_associacoes_por_acao(jwt_authenticated_client_a,
                 },
                 'acao': {
                     'id': acao_associacao.acao.id,
+                    'uuid': f'{acao_associacao.acao.uuid}',
                     'nome': acao_associacao.acao.nome,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios
                 },
@@ -238,6 +243,7 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
                 },
                 'acao': {
                     'id': acao_associacao.acao.id,
+                    'uuid': f'{acao_associacao.acao.uuid}',
                     'nome': acao_associacao.acao.nome,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios
                 },
