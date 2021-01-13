@@ -159,6 +159,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
             },
             'processo_regularidade': '123456',
             'status_regularidade': 'PENDENTE',
+            'motivo_nao_regularidade': '',
             'unidade': {
                 'bairro': 'COHAB INSTITUTO ADVENTISTA',
                 'cep': '5868120',
