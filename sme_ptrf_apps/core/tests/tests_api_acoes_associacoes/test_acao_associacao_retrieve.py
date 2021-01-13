@@ -32,6 +32,7 @@ def test_retrieve_acao_associacao(
         },
         'acao': {
             'id': acao_associacao.acao.id,
+            'uuid': f'{acao_associacao.acao.uuid}',
             'nome': acao_associacao.acao.nome,
             'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios
         },
