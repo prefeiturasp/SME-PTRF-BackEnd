@@ -18,6 +18,15 @@ class PeriodosViewSet(mixins.ListModelMixin,
     queryset = Periodo.objects.all().order_by('-referencia')
     serializer_class = PeriodoSerializer
 
+    def get_queryset(self):
+        qs = Periodo.objects.all()
+
+        referencia = self.request.query_params.get('referencia')
+        if referencia is not None:
+            qs = qs.filter(referencia__icontains=referencia)
+
+        return qs.order_by('-referencia')
+
     @action(detail=False)
     def lookup(self, _):
         return Response(PeriodoLookUpSerializer(self.queryset.order_by('-referencia'), many=True).data)
