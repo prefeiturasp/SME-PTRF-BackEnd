@@ -12,6 +12,7 @@ from ...models import Periodo
 
 class PeriodosViewSet(mixins.ListModelMixin,
                       mixins.RetrieveModelMixin,
+                      mixins.CreateModelMixin,
                       GenericViewSet):
     permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
