@@ -13,3 +13,11 @@ class PeriodoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Periodo
         exclude = ('criado_em', 'alterado_em', 'id', 'periodo_anterior')
+
+
+class PeriodoRetrieveSerializer(serializers.ModelSerializer):
+    periodo_anterior = PeriodoLookUpSerializer()
+
+    class Meta:
+        model = Periodo
+        exclude = ('criado_em', 'alterado_em')

@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ..serializers.periodo_serializer import PeriodoSerializer, PeriodoLookUpSerializer
+from ..serializers.periodo_serializer import PeriodoSerializer, PeriodoLookUpSerializer, PeriodoRetrieveSerializer
 from ...models import Periodo
 
 
@@ -26,6 +26,12 @@ class PeriodosViewSet(mixins.ListModelMixin,
             qs = qs.filter(referencia__icontains=referencia)
 
         return qs.order_by('-referencia')
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return PeriodoRetrieveSerializer
+        else:
+            return PeriodoSerializer
 
     @action(detail=False)
     def lookup(self, _):
