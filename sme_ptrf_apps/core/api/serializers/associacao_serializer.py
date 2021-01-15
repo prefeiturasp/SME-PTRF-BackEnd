@@ -62,6 +62,7 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
         fields = [
             'uuid',
             'nome',
+            'cnpj',
             'unidade',
             'status_regularidade',
             'motivo_nao_regularidade'
