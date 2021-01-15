@@ -90,6 +90,7 @@ def test_api_list_periodos_por_referencia(jwt_authenticated_client, periodo_2020
             "data_prevista_repasse": f'{p.data_prevista_repasse}' if p.data_prevista_repasse else None,
             "data_inicio_prestacao_contas": f'{p.data_inicio_prestacao_contas}' if p.data_inicio_prestacao_contas else None,
             "data_fim_prestacao_contas": f'{p.data_fim_prestacao_contas}' if p.data_fim_prestacao_contas else None,
+            "editavel": p.editavel,
         }
         expected_results.append(esperado)
 

@@ -18,6 +18,7 @@ def test_instance_model(periodo):
     assert model.uuid
     assert model.id
     assert model.referencia
+    assert model.editavel is not None
 
 
 def test_srt_model(periodo):
