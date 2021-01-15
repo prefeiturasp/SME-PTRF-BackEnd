@@ -293,6 +293,7 @@ class AssociacoesViewSet(ModelViewSet):
         result = {
             'tipos_unidade': Unidade.tipos_unidade_to_json(),
             'status_regularidade': Associacao.status_regularidade_to_json(),
+            'dres': Unidade.dres_to_json()
         }
         return Response(result)
 
