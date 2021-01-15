@@ -26,6 +26,14 @@ def test_api_list_periodos(jwt_authenticated_client, periodo_2020_4, periodo_202
             "data_prevista_repasse": f'{p.data_prevista_repasse}' if p.data_prevista_repasse else None,
             "data_inicio_prestacao_contas": f'{p.data_inicio_prestacao_contas}' if p.data_inicio_prestacao_contas else None,
             "data_fim_prestacao_contas": f'{p.data_fim_prestacao_contas}' if p.data_fim_prestacao_contas else None,
+            "editavel": p.editavel,
+            "periodo_anterior": {
+                "uuid": f'{p.periodo_anterior.uuid}',
+                "referencia": p.periodo_anterior.referencia,
+                "data_inicio_realizacao_despesas": f'{p.periodo_anterior.data_inicio_realizacao_despesas}' if p.periodo_anterior.data_inicio_realizacao_despesas else None,
+                "data_fim_realizacao_despesas": f'{p.periodo_anterior.data_fim_realizacao_despesas}' if p.periodo_anterior.data_fim_realizacao_despesas else None,
+                "referencia_por_extenso": f"{p.periodo_anterior.referencia.split('.')[1]}° repasse de {p.periodo_anterior.referencia.split('.')[0]}"
+            } if p.periodo_anterior else None,
         }
         expected_results.append(esperado)
 
@@ -91,6 +99,13 @@ def test_api_list_periodos_por_referencia(jwt_authenticated_client, periodo_2020
             "data_inicio_prestacao_contas": f'{p.data_inicio_prestacao_contas}' if p.data_inicio_prestacao_contas else None,
             "data_fim_prestacao_contas": f'{p.data_fim_prestacao_contas}' if p.data_fim_prestacao_contas else None,
             "editavel": p.editavel,
+            "periodo_anterior": {
+                'referencia': p.periodo_anterior.referencia,
+                'data_inicio_realizacao_despesas': f'{p.periodo_anterior.data_inicio_realizacao_despesas}',
+                'data_fim_realizacao_despesas': f'{p.periodo_anterior.data_fim_realizacao_despesas}',
+                'referencia_por_extenso': f'{p.periodo_anterior.referencia_por_extenso}',
+                'uuid': f'{p.periodo_anterior.uuid}'
+            } if p.periodo_anterior else None,
         }
         expected_results.append(esperado)
 

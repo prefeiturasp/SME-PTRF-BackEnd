@@ -1,4 +1,5 @@
 from ..models import Associacao, Periodo, PrestacaoConta
+from datetime import timedelta
 
 
 def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
@@ -66,7 +67,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     status = {
         'periodo_encerrado': periodo.encerrado,
         'documentos_gerados': prestacao and prestacao.status not in (
-        PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_DEVOLVIDA),
+            PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_DEVOLVIDA),
         'status_prestacao': prestacao.status if prestacao else PrestacaoConta.STATUS_NAO_APRESENTADA,
         'texto_status': mensagem_periodo + ' ' + mensagem_prestacao,
         'periodo_bloqueado': periodo_bloqueado,
@@ -74,3 +75,28 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     }
 
     return status
+
+
+def valida_datas_periodo(
+    data_inicio_realizacao_despesas,
+    data_fim_realizacao_despesas,
+    periodo_anterior
+):
+    mensagem = "Período de realização de despesas válido."
+    valido = True
+
+    if data_inicio_realizacao_despesas > data_fim_realizacao_despesas:
+        mensagem = "Data fim de realização de despesas precisa ser posterior à data de início."
+        valido = False
+
+    if periodo_anterior and data_inicio_realizacao_despesas - periodo_anterior.data_fim_realizacao_despesas != timedelta(days=1):
+        mensagem = ("Data início de realização de despesas precisa ser imediatamente posterior à "
+                    "data de fim do período anterior.")
+        valido = False
+
+    result = {
+        "valido": valido,
+        "mensagem": mensagem,
+    }
+
+    return result

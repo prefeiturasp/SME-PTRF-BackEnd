@@ -32,7 +32,8 @@ def test_retrieve_periodo(
             "data_inicio_realizacao_despesas": f'{p.periodo_anterior.data_inicio_realizacao_despesas}' if p.periodo_anterior.data_inicio_realizacao_despesas else None,
             "data_fim_realizacao_despesas": f'{p.periodo_anterior.data_fim_realizacao_despesas}' if p.periodo_anterior.data_fim_realizacao_despesas else None,
             "referencia_por_extenso": f"{p.periodo_anterior.referencia.split('.')[1]}° repasse de {p.referencia.split('.')[0]}"
-        }
+        },
+        "editavel": p.editavel,
     }
 
     assert response.status_code == status.HTTP_200_OK
