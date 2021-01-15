@@ -11,7 +11,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import ModelViewSet
 
 from sme_ptrf_apps.users.permissoes import (
     PermissaoAssociacao,
@@ -20,7 +20,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoExportarDadosAssociacao,
     PermissaoRegularidadeDre,
     PermissaoSituacaoFinanceira,
-    PermissaoVerConciliacaoBancaria
+    PermissaoVerConciliacaoBancaria,
 )
 
 from ....dre.services import (
@@ -57,11 +57,9 @@ from ..serializers.processo_associacao_serializer import ProcessoAssociacaoRetri
 logger = logging.getLogger(__name__)
 
 
-class AssociacoesViewSet(mixins.ListModelMixin,
-                         mixins.RetrieveModelMixin,
-                         mixins.UpdateModelMixin,
-                         GenericViewSet, ):
-    permission_classes = [IsAuthenticated & (PermissaoAssociacao | PermissaoAssociacaoDre | PermissaoDadosUnidadeDre | PermissaoSituacaoFinanceira | PermissaoVerConciliacaoBancaria)]
+class AssociacoesViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated & (PermissaoAssociacao | PermissaoAssociacaoDre |
+                                             PermissaoDadosUnidadeDre | PermissaoSituacaoFinanceira | PermissaoVerConciliacaoBancaria)]
     lookup_field = 'uuid'
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer
