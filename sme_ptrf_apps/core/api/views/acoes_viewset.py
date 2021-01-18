@@ -14,6 +14,7 @@ class AcoesViewSet(mixins.ListModelMixin,
                    mixins.RetrieveModelMixin,
                    mixins.CreateModelMixin,
                    mixins.UpdateModelMixin,
+                   mixins.DestroyModelMixin,
                    GenericViewSet):
     permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
