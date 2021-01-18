@@ -12,6 +12,8 @@ from ...models import Acao
 
 class AcoesViewSet(mixins.ListModelMixin,
                    mixins.RetrieveModelMixin,
+                   mixins.CreateModelMixin,
+                   mixins.UpdateModelMixin,
                    GenericViewSet):
     permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
