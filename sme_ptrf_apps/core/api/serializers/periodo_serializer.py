@@ -50,7 +50,9 @@ class PeriodoCreateSerializer(serializers.ModelSerializer):
     periodo_anterior = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
-        queryset=Periodo.objects.all()
+        queryset=Periodo.objects.all(),
+        allow_null=True,
+        allow_empty=True,
     )
 
     class Meta:
