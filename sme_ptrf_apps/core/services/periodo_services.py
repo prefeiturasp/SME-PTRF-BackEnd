@@ -80,7 +80,8 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
 def valida_datas_periodo(
     data_inicio_realizacao_despesas,
     data_fim_realizacao_despesas,
-    periodo_anterior
+    periodo_anterior,
+    periodo_uuid=None
 ):
     mensagem = "Período de realização de despesas válido."
     valido = True
@@ -89,11 +90,20 @@ def valida_datas_periodo(
         mensagem = "Data fim de realização de despesas precisa ser posterior à data de início."
         valido = False
 
-    if periodo_anterior and data_inicio_realizacao_despesas - periodo_anterior.data_fim_realizacao_despesas != timedelta(days=1):
-        mensagem = ("Data início de realização de despesas precisa ser imediatamente posterior à "
-                    "data de fim do período anterior.")
-        valido = False
+    if periodo_anterior:
+        if periodo_anterior.data_fim_realizacao_despesas is None:
+            mensagem = "Períodos abertos são podem ser selecionados como anterior à um período."
+            valido = False
 
+        elif data_inicio_realizacao_despesas - periodo_anterior.data_fim_realizacao_despesas != timedelta(days=1):
+            mensagem = ("Data início de realização de despesas precisa ser imediatamente posterior à "
+                        "data de fim do período anterior.")
+            valido = False
+    else:
+        if (not periodo_uuid and Periodo.objects.exists()) or (
+         periodo_uuid and Periodo.objects.exclude(uuid=periodo_uuid).exists()):
+            mensagem = "Período anterior não definido só é permitido para o primeiro período cadastrado."
+            valido = False
     result = {
         "valido": valido,
         "mensagem": mensagem,
