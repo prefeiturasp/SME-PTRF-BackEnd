@@ -45,3 +45,17 @@ def periodo_2021_2(periodo_2021_1):
         periodo_anterior=periodo_2021_1,
     )
 
+
+@pytest.fixture
+def periodo_2021_2_aberto(periodo_2021_1):
+    return baker.make(
+        'Periodo',
+        referencia='2021.2',
+        data_inicio_realizacao_despesas=date(2021, 4, 1),
+        data_fim_realizacao_despesas=None,
+        data_prevista_repasse=date(2021, 4, 1),
+        data_inicio_prestacao_contas=date(2021, 7, 1),
+        data_fim_prestacao_contas=date(2021, 7, 15),
+        periodo_anterior=periodo_2021_1,
+    )
+

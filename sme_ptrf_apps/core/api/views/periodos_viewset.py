@@ -94,10 +94,13 @@ class PeriodosViewSet(mixins.ListModelMixin,
         else:
             periodo_anterior = None
 
+        periodo_uuid = request.query_params.get('periodo_uuid', None)
+
         result = valida_datas_periodo(
             data_inicio_realizacao_despesas=datetime.strptime(data_inicio_realizacao_despesas, '%Y-%m-%d').date(),
             data_fim_realizacao_despesas=datetime.strptime(data_fim_realizacao_despesas, '%Y-%m-%d').date(),
-            periodo_anterior=periodo_anterior
+            periodo_anterior=periodo_anterior,
+            periodo_uuid=periodo_uuid
         )
 
         return Response(result)
