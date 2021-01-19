@@ -44,6 +44,7 @@ from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSeriali
 from ..serializers.associacao_serializer import (
     AssociacaoCompletoSerializer,
     AssociacaoCreateSerializer,
+    AssociacaoUpdateSerializer,
     AssociacaoListSerializer,
     AssociacaoSerializer,
 )
@@ -59,8 +60,8 @@ logger = logging.getLogger(__name__)
 
 
 class AssociacoesViewSet(ModelViewSet):
-#    permission_classes = [IsAuthenticated & (PermissaoAssociacao | PermissaoAssociacaoDre |
-#                                             PermissaoDadosUnidadeDre | PermissaoSituacaoFinanceira | PermissaoVerConciliacaoBancaria)]
+    permission_classes = [IsAuthenticated & (PermissaoAssociacao | PermissaoAssociacaoDre |
+                                             PermissaoDadosUnidadeDre | PermissaoSituacaoFinanceira | PermissaoVerConciliacaoBancaria)]
     lookup_field = 'uuid'
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer
@@ -78,8 +79,10 @@ class AssociacoesViewSet(ModelViewSet):
             return AssociacaoCompletoSerializer
         elif self.action == 'list':
             return AssociacaoListSerializer
-        else:
+        elif self.action == 'create':
             return AssociacaoCreateSerializer
+        else:
+            return AssociacaoUpdateSerializer
 
     def get_queryset(self):
         qs = Associacao.objects.all()

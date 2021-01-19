@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
 from ...api.serializers.unidade_serializer import (UnidadeInfoAtaSerializer, UnidadeLookUpSerializer,
-                                                   UnidadeListSerializer, UnidadeSerializer)
-from ...models import Associacao, Unidade
+                                                   UnidadeListSerializer, UnidadeSerializer, UnidadeCreateSerializer)
+from ...models import Associacao, Unidade, Periodo
 
 
 class AssociacaoSerializer(serializers.ModelSerializer):
@@ -30,6 +30,24 @@ class AssociacaoLookupSerializer(serializers.ModelSerializer):
 
 
 class AssociacaoCreateSerializer(serializers.ModelSerializer):
+    unidade = UnidadeCreateSerializer(many=False)
+
+    class Meta:
+        model = Associacao
+        exclude = ('id',)
+
+
+    def create(self, validated_data):
+        unidade = validated_data.pop('unidade')
+
+        associacao = Associacao.objects.create(**validated_data)
+        unidade_object = UnidadeCreateSerializer().create(unidade)
+        associacao.unidade = unidade_object
+        associacao.save()
+
+        return associacao
+
+class AssociacaoUpdateSerializer(serializers.ModelSerializer):
     unidade = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
