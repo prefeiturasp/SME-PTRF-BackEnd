@@ -34,7 +34,8 @@ def test_api_list_acoes_associacoes_todas(
                         'nome_com_tipo': acao_associacao.associacao.unidade.nome_com_tipo
                     },
                     'status_regularidade': acao_associacao.associacao.status_regularidade,
-                    'motivo_nao_regularidade': ''
+                    'motivo_nao_regularidade': '',
+                    'cnpj': acao_associacao.associacao.cnpj
                 },
                 'acao': {
                     'id': acao_associacao.acao.id,
@@ -77,7 +78,8 @@ def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
                         'nome_com_tipo': acao_associacao.associacao.unidade.nome_com_tipo
                     },
                     'status_regularidade': acao_associacao.associacao.status_regularidade,
-                    'motivo_nao_regularidade': ''
+                    'motivo_nao_regularidade': '',
+                    'cnpj': acao_associacao.associacao.cnpj
                 },
                 'acao': {
                     'id': acao_associacao.acao.id,
@@ -119,7 +121,8 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
                         'nome_com_tipo': acao_associacao.associacao.unidade.nome_com_tipo
                     },
                     'status_regularidade': acao_associacao.associacao.status_regularidade,
-                    'motivo_nao_regularidade': ''
+                    'motivo_nao_regularidade': '',
+                    'cnpj': acao_associacao.associacao.cnpj
                 },
                 'acao': {
                     'id': acao_associacao.acao.id,
@@ -161,7 +164,8 @@ def test_api_list_associacoes_pelo_eol_escola(jwt_authenticated_client_a,
                         'nome_com_tipo': acao_associacao.associacao.unidade.nome_com_tipo
                     },
                     'status_regularidade': acao_associacao.associacao.status_regularidade,
-                    'motivo_nao_regularidade': ''
+                    'motivo_nao_regularidade': '',
+                    'cnpj': acao_associacao.associacao.cnpj
                 },
                 'acao': {
                     'id': acao_associacao.acao.id,
@@ -205,7 +209,8 @@ def test_api_list_associacoes_por_acao(jwt_authenticated_client_a,
                         'nome_com_tipo': acao_associacao.associacao.unidade.nome_com_tipo
                     },
                     'status_regularidade': acao_associacao.associacao.status_regularidade,
-                    'motivo_nao_regularidade': ''
+                    'motivo_nao_regularidade': '',
+                    'cnpj': acao_associacao.associacao.cnpj
                 },
                 'acao': {
                     'id': acao_associacao.acao.id,
@@ -250,7 +255,8 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
                         'nome_com_tipo': acao_associacao.associacao.unidade.nome_com_tipo
                     },
                     'status_regularidade': acao_associacao.associacao.status_regularidade,
-                    'motivo_nao_regularidade': ''
+                    'motivo_nao_regularidade': '',
+                    'cnpj': acao_associacao.associacao.cnpj
                 },
                 'acao': {
                     'id': acao_associacao.acao.id,

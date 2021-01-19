@@ -11,7 +11,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import ModelViewSet
 
 from sme_ptrf_apps.users.permissoes import (
     PermissaoAssociacao,
@@ -20,7 +20,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoExportarDadosAssociacao,
     PermissaoRegularidadeDre,
     PermissaoSituacaoFinanceira,
-    PermissaoVerConciliacaoBancaria
+    PermissaoVerConciliacaoBancaria,
 )
 
 from ....dre.services import (
@@ -38,11 +38,13 @@ from ...services import (
     implantacoes_de_saldo_da_associacao,
     info_painel_acoes_por_periodo_e_conta,
     status_prestacao_conta_associacao,
+    consulta_unidade
 )
 from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from ..serializers.associacao_serializer import (
     AssociacaoCompletoSerializer,
     AssociacaoCreateSerializer,
+    AssociacaoUpdateSerializer,
     AssociacaoListSerializer,
     AssociacaoSerializer,
 )
@@ -57,11 +59,9 @@ from ..serializers.processo_associacao_serializer import ProcessoAssociacaoRetri
 logger = logging.getLogger(__name__)
 
 
-class AssociacoesViewSet(mixins.ListModelMixin,
-                         mixins.RetrieveModelMixin,
-                         mixins.UpdateModelMixin,
-                         GenericViewSet, ):
-    permission_classes = [IsAuthenticated & (PermissaoAssociacao | PermissaoAssociacaoDre | PermissaoDadosUnidadeDre | PermissaoSituacaoFinanceira | PermissaoVerConciliacaoBancaria)]
+class AssociacoesViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated & (PermissaoAssociacao | PermissaoAssociacaoDre |
+                                             PermissaoDadosUnidadeDre | PermissaoSituacaoFinanceira | PermissaoVerConciliacaoBancaria)]
     lookup_field = 'uuid'
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer
@@ -79,8 +79,10 @@ class AssociacoesViewSet(mixins.ListModelMixin,
             return AssociacaoCompletoSerializer
         elif self.action == 'list':
             return AssociacaoListSerializer
-        else:
+        elif self.action == 'create':
             return AssociacaoCreateSerializer
+        else:
+            return AssociacaoUpdateSerializer
 
     def get_queryset(self):
         qs = Associacao.objects.all()
@@ -295,6 +297,7 @@ class AssociacoesViewSet(mixins.ListModelMixin,
         result = {
             'tipos_unidade': Unidade.tipos_unidade_to_json(),
             'status_regularidade': Associacao.status_regularidade_to_json(),
+            'dres': Unidade.dres_to_json()
         }
         return Response(result)
 
@@ -479,4 +482,11 @@ class AssociacoesViewSet(mixins.ListModelMixin,
             'mensagem': 'Itens de verificação atualizados.'
         }
         status_code = status.HTTP_200_OK
+        return Response(result, status=status_code)
+
+    @action(detail=False, methods=['get'], url_path='eol')
+    def consulta_unidade(self, request):
+        codigo_eol = self.request.query_params.get('codigo_eol')
+        result = consulta_unidade(codigo_eol)
+        status_code = status.HTTP_400_BAD_REQUEST if 'erro' in result.keys() else status.HTTP_200_OK
         return Response(result, status=status_code)
