@@ -14,6 +14,11 @@ def acao_y():
 
 
 @pytest.fixture
+def acao_xpto():
+    return baker.make('Acao', nome='Xpto')
+
+
+@pytest.fixture
 def dre_alfa():
     return baker.make(
         'Unidade',

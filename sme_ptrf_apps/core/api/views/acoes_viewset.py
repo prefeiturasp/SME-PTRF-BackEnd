@@ -1,5 +1,3 @@
-from django_filters import rest_framework as filters
-
 from rest_framework import mixins
 
 from rest_framework.permissions import IsAuthenticated
@@ -20,5 +18,12 @@ class AcoesViewSet(mixins.ListModelMixin,
     lookup_field = 'uuid'
     queryset = Acao.objects.all().order_by('nome')
     serializer_class = AcaoSerializer
-    filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('nome',)
+
+    def get_queryset(self):
+        qs = Acao.objects.all()
+
+        nome = self.request.query_params.get('nome')
+        if nome is not None:
+            qs = qs.filter(nome__unaccent__icontains=nome)
+
+        return qs.order_by('nome')
