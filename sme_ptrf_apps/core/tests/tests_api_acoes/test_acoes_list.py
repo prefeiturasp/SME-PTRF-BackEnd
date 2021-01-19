@@ -16,13 +16,16 @@ def test_api_acoes_list(jwt_authenticated_client_a, acao_x, acao_y):
             'id': acao_x.id,
             'nome': 'X',
             'uuid': f'{acao_x.uuid}',
-            'e_recursos_proprios': False
+            'e_recursos_proprios': False,
+            'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
         },
         {
             'id': acao_y.id,
             'nome': 'Y',
             'uuid': f'{acao_y.uuid}',
-            'e_recursos_proprios': False
+            'e_recursos_proprios': False,
+            'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
+
         }
     ]
 
@@ -39,7 +42,8 @@ def test_api_acoes_list_por_nome(jwt_authenticated_client_a, acao_x, acao_y):
             'id': acao_x.id,
             'nome': 'X',
             'uuid': f'{acao_x.uuid}',
-            'e_recursos_proprios': False
+            'e_recursos_proprios': False,
+            'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
         },
     ]
 

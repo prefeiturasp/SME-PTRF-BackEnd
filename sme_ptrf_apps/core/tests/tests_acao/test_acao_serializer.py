@@ -13,3 +13,6 @@ def test_serializer(acao):
     assert serializer.data['id']
     assert serializer.data['nome']
     assert not serializer.data['e_recursos_proprios']
+    assert serializer.data['uuid']
+    assert serializer.data['posicao_nas_pesquisas'] is not None
+

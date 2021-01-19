@@ -20,7 +20,8 @@ def test_retrieve_acao(
         "uuid": f'{acao_x.uuid}',
         "id": acao_x.id,
         "nome": acao_x.nome,
-        "e_recursos_proprios": acao_x.e_recursos_proprios
+        "e_recursos_proprios": acao_x.e_recursos_proprios,
+        "posicao_nas_pesquisas": "ZZZZZZZZZZ",
     }
 
     assert response.status_code == status.HTTP_200_OK
