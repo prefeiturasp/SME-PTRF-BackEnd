@@ -35,7 +35,7 @@ class PeriodosViewSet(mixins.ListModelMixin,
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return PeriodoRetrieveSerializer
-        elif self.action == 'create':
+        elif self.action in ['create', 'update', 'partial_update']:
             return PeriodoCreateSerializer
         else:
             return PeriodoSerializer
