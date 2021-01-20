@@ -42,7 +42,7 @@ class Periodo(ModeloBase):
     @property
     def editavel(self):
         # O período não pode ser editado pelo usuário se houver um período que o referencia como período anterior
-        return self.periodo_seguinte.exists()
+        return not self.periodo_seguinte.exists()
 
     @classmethod
     def periodo_atual(cls):
