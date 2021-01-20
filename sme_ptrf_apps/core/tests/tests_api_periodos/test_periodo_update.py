@@ -10,9 +10,10 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def payload_update_periodo(periodo_2021_2):
+def payload_update_periodo(periodo_2021_2, periodo_2021_1):
     payload = {
         'data_prevista_repasse': '2021-07-01',
+        'periodo_anterior': f'{periodo_2021_1.uuid}'
     }
     return payload
 

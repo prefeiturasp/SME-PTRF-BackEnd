@@ -35,10 +35,26 @@ class PeriodosViewSet(mixins.ListModelMixin,
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return PeriodoRetrieveSerializer
-        elif self.action == 'create':
+        elif self.action in ['create', 'update', 'partial_update']:
             return PeriodoCreateSerializer
         else:
             return PeriodoSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        from django.db.models.deletion import ProtectedError
+
+        obj = self.get_object()
+
+        try:
+            self.perform_destroy(obj)
+        except ProtectedError:
+            content = {
+                'erro': 'ProtectedError',
+                'mensagem': 'Esse período não pode ser excluido porque está sendo usado na aplicação.'
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False)
     def lookup(self, _):
