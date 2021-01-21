@@ -62,4 +62,5 @@ class TerceirizadasService:
                                     headers=cls.headers, timeout=cls.timeout)
             return response.json()
         except Exception as err:
+            logger.info("Error %s", err)
             raise err
