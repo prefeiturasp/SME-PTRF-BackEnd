@@ -34,7 +34,7 @@ class AssociacaoCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Associacao
-        exclude = ('id',)
+        fields = '__all__'
 
 
     def create(self, validated_data):
