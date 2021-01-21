@@ -28,7 +28,7 @@ def arquivoCarga(arquivo, usuario):
 def test_lista_arquivos(jwt_authenticated_client, arquivoCarga):
     response = jwt_authenticated_client.get('/api/arquivos/')
     result = response.json()
-    
+
     resulta_esperado = [
         {
             'id': arquivoCarga.id, 

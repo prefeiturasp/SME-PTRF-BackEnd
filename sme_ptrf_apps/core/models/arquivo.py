@@ -97,3 +97,27 @@ class Arquivo(ModeloBase):
 
     def __str__(self):
         return self.identificador
+
+    @classmethod
+    def status_to_json(cls):
+        return [{
+                'id': choice[0],
+                'nome': choice[1]
+                }
+                for choice in STATUS_PROCESSMENTO_CHOICES]
+
+    @classmethod
+    def tipos_cargas_to_json(cls):
+        return [{
+                'id': choice[0],
+                'nome': choice[1]
+                }
+                for choice in CARGA_CHOICES]
+    
+    @classmethod
+    def delimitadores_to_json(cls):
+        return [{
+                'id': choice[0],
+                'nome': choice[1]
+                }
+                for choice in DELIMITADOR_CHOICES]
