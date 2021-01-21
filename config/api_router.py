@@ -23,7 +23,8 @@ from sme_ptrf_apps.core.api.views import (
     TiposContaViewSet,
     ComentariosAnalisesPrestacoesViewSet,
     AcaoAssociacaoViewSet,
-    AcoesViewSet
+    AcoesViewSet,
+    ArquivoViewSet
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
@@ -80,6 +81,7 @@ router.register("justificativas-relatorios-consolidados-dre", JustificativasRela
 router.register("motivos-aprovacao-ressalva", MotivoAprovacaoRessalvaViewSet)
 router.register("acoes-associacoes", AcaoAssociacaoViewSet)
 router.register("acoes", AcoesViewSet)
+router.register("arquivos", ArquivoViewSet)
 app_name = "api"
 urlpatterns = router.urls
 urlpatterns += [
