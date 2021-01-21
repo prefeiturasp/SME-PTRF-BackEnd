@@ -2,9 +2,10 @@ from django.db.models import Q
 
 from django_filters import rest_framework as filters
 
-from rest_framework import mixins
+from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.response import Response
 
 from sme_ptrf_apps.core.api.serializers import AcaoAssociacaoCreateSerializer, AcaoAssociacaoRetrieveSerializer
 from sme_ptrf_apps.core.models import AcaoAssociacao
@@ -40,3 +41,19 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
             return AcaoAssociacaoRetrieveSerializer
         else:
             return AcaoAssociacaoCreateSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        from django.db.models.deletion import ProtectedError
+
+        obj = self.get_object()
+
+        try:
+            self.perform_destroy(obj)
+        except ProtectedError:
+            content = {
+                'erro': 'ProtectedError',
+                'mensagem': 'Essa ação de associação não pode ser excluida porque está sendo usada na aplicação.'
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

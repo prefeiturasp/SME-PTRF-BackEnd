@@ -1,6 +1,7 @@
 import pytest
 
 from model_bakery import baker
+from datetime import date
 
 
 @pytest.fixture
@@ -104,4 +105,24 @@ def acao_associacao_eco_delta_000087_y_inativa(associacao_eco_delta_000087, acao
         associacao=associacao_eco_delta_000087,
         acao=acao_y,
         status='INATIVA'
+    )
+
+
+@pytest.fixture
+def receita_usando_acao_associacao_eco_delta_x(
+    acao_associacao_eco_delta_000087_x,
+    conta_associacao,
+    tipo_receita,
+    detalhe_tipo_receita
+):
+    return baker.make(
+        'Receita',
+        associacao=acao_associacao_eco_delta_000087_x.associacao,
+        data=date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_eco_delta_000087_x,
+        tipo_receita=tipo_receita,
+        categoria_receita='CUSTEIO',
+        detalhe_tipo_receita=detalhe_tipo_receita,
     )
