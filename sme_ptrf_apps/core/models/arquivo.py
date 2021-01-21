@@ -89,6 +89,7 @@ class Arquivo(ModeloBase):
     )
     log = models.TextField(blank=True, null=True)
     ultima_execucao = models.DateTimeField("Ultima execução", blank=True, null=True)
+    usuario = models.ForeignKey("users.User", on_delete=models.PROTECT, related_name='arquivos', null=True, blank=True)
 
     class Meta:
         verbose_name = "arquivo de carga"
