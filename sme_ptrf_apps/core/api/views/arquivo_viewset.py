@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django_filters import rest_framework as filters
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -14,6 +15,22 @@ class ArquivoViewSet(ModelViewSet):
     lookup_field = "uuid"
     queryset = Arquivo.objects.all().order_by('-criado_em')
     serializer_class = ArquivoSerializer
+    filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
+    filter_fields = ('status',)
+
+    def get_queryset(self):
+        qs = Arquivo.objects.all()
+
+        data_execucao = self.request.query_params.get('data_execucao')
+        if data_execucao is not None:
+            qs = qs.filter(ultima_execucao=data_execucao)
+
+        identificador = self.request.query_params.get('identificador')
+        if identificador is not None:
+            qs = qs.filter(Q(identificador__unaccent__icontains=identificador))
+
+        return qs
+
 
     @action(detail=False, url_path='tabelas')
     def tabelas(self, _):
