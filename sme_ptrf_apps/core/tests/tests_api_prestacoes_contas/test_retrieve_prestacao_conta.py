@@ -160,6 +160,13 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
             'processo_regularidade': '123456',
             'status_regularidade': 'PENDENTE',
             'motivo_nao_regularidade': '',
+            'periodo_inicial': {
+                'data_fim_realizacao_despesas': '2019-08-31',
+                'data_inicio_realizacao_despesas': '2019-01-01',
+                'referencia': '2019.1',
+                'referencia_por_extenso': '1° repasse de 2019',
+                'uuid': f'{prestacao_conta.associacao.periodo_inicial.uuid}'
+            },
             'unidade': {
                 'bairro': 'COHAB INSTITUTO ADVENTISTA',
                 'cep': '5868120',

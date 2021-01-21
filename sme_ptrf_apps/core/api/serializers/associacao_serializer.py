@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from ...api.serializers.unidade_serializer import (UnidadeInfoAtaSerializer, UnidadeLookUpSerializer,
                                                    UnidadeListSerializer, UnidadeSerializer, UnidadeCreateSerializer)
+from ...api.serializers.periodo_serializer import PeriodoLookUpSerializer
 from ...models import Associacao, Unidade, Periodo
 
 
@@ -36,7 +37,6 @@ class AssociacaoCreateSerializer(serializers.ModelSerializer):
         model = Associacao
         fields = '__all__'
 
-
     def create(self, validated_data):
         unidade = validated_data.pop('unidade')
 
@@ -46,6 +46,7 @@ class AssociacaoCreateSerializer(serializers.ModelSerializer):
         associacao.save()
 
         return associacao
+
 
 class AssociacaoUpdateSerializer(serializers.ModelSerializer):
     unidade = serializers.SlugRelatedField(
@@ -89,6 +90,7 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
 
 class AssociacaoCompletoSerializer(serializers.ModelSerializer):
     unidade = UnidadeSerializer(many=False)
+    periodo_inicial = PeriodoLookUpSerializer()
 
     class Meta:
         model = Associacao
@@ -103,5 +105,6 @@ class AssociacaoCompletoSerializer(serializers.ModelSerializer):
             'presidente_associacao',
             'presidente_conselho_fiscal',
             'processo_regularidade',
-            'motivo_nao_regularidade'
+            'motivo_nao_regularidade',
+            'periodo_inicial'
         ]
