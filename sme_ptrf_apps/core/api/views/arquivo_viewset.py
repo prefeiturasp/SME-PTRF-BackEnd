@@ -12,17 +12,18 @@ from rest_framework.viewsets import ModelViewSet
 
 from sme_ptrf_apps.core.api.serializers import ArquivoSerializer
 from sme_ptrf_apps.core.models import Arquivo
+from sme_ptrf_apps.core.tasks import processa_carga_async
 
 logger = logging.getLogger(__name__)
 
 
 class ArquivoViewSet(ModelViewSet):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     lookup_field = "uuid"
     queryset = Arquivo.objects.all().order_by('-criado_em')
     serializer_class = ArquivoSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
-    filter_fields = ('status',)
+    filter_fields = ('status', 'tipo_carga')
 
     def get_queryset(self):
         qs = Arquivo.objects.all()
@@ -46,9 +47,8 @@ class ArquivoViewSet(ModelViewSet):
         }
         return Response(result)
 
-    @action(detail=False, methods=['get'], url_path='download')
-    def download(self, request):
-        uuid = request.query_params.get('uuid')
+    @action(detail=True, methods=['get'], url_path='download')
+    def download(self, request, uuid=None):
         logger.info("Download do arquivo de carga com uuid %s.", uuid)
 
         if not uuid:
@@ -84,3 +84,27 @@ class ArquivoViewSet(ModelViewSet):
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
         return response
+
+
+    @action(detail=True, methods=['post'], url_path='processar')
+    def processar(self, request, uuid):
+        logger.info("Processando arquivo de carga com uuid %s.", uuid)
+
+        if not uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do Arquivo.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        arquivo = self.get_object()
+        if not arquivo:
+            logger.info("Arquivo com uuid %s não encontrado.", uuid)
+            erro = {
+                'erro': 'arquivo_nao_encontrado',
+                'mensagem': f"Arquivo com uuid {uuid} não encontrado."
+            }
+
+        processa_carga_async.delay(uuid)
+
+        return Response(erro, status=status.HTTP_404_NOT_FOUND)

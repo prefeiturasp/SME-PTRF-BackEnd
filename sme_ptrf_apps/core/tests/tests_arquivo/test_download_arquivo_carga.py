@@ -27,7 +27,7 @@ def arquivoCarga(arquivo, usuario):
 
 
 def test_download_arquivo_carga(jwt_authenticated_client, arquivoCarga):
-    response = jwt_authenticated_client.get(f'/api/arquivos/download/?uuid={arquivoCarga.uuid}')
+    response = jwt_authenticated_client.get(f'/api/arquivos/{arquivoCarga.uuid}/download/')
     assert [t[1] for t in list(response.items()) if t[0] ==
             'Content-Disposition'][0] == f'attachment; filename={arquivoCarga.conteudo.name}'
     assert [t[1] for t in list(response.items()) if t[0] ==
