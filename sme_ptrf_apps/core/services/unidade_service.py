@@ -5,7 +5,7 @@ from django.conf import settings
 from sme_ptrf_apps.core.models import Unidade
 from sme_ptrf_apps.dre.models import Atribuicao
 from sme_ptrf_apps.dre.api.serializers.tecnico_dre_serializer import TecnicoDreLookUpSerializer
-from sme_ptrf_apps.core.services.membro_associacao_service import TerceirizadasService 
+from sme_ptrf_apps.core.services.membro_associacao_service import TerceirizadasService
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +110,7 @@ def consulta_unidade(codigo_eol):
                 unidade_retorno = resultado[0]
                 result['codigo_eol'] = codigo_eol
                 result['nome'] = unidade_retorno.get('nm_unidade_educacao') or ''
+                result['tipo_unidade'] = unidade_retorno.get('sg_tp_escola') or ''
                 result['email'] = unidade_retorno.get('email') or ''
                 result['telefone'] = unidade_retorno.get('tel1') or ''
                 result['numero'] = unidade_retorno.get('cd_nr_endereco') or ''

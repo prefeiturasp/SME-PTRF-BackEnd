@@ -196,7 +196,8 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                 'tipo_unidade': 'CEU',
                 'uuid': f'{prestacao_conta.associacao.unidade.uuid}'
             },
-            'uuid': f'{prestacao_conta.associacao.uuid}'
+            'uuid': f'{prestacao_conta.associacao.uuid}',
+            'id': prestacao_conta.associacao.id,
         },
         'periodo_uuid': f'{prestacao_conta.periodo.uuid}',
         'status': 'NAO_APRESENTADA',

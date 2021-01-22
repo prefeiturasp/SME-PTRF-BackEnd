@@ -106,5 +106,6 @@ class AssociacaoCompletoSerializer(serializers.ModelSerializer):
             'presidente_conselho_fiscal',
             'processo_regularidade',
             'motivo_nao_regularidade',
-            'periodo_inicial'
+            'periodo_inicial',
+            'id'
         ]
