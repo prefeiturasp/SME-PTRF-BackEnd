@@ -59,6 +59,7 @@ def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, preside
 
         result_esperado = {
             'uuid': f'{associacao.uuid}',
+            'id': associacao.id,
             'ccm': f'{associacao.ccm}',
             'cnpj': f'{associacao.cnpj}',
             'email': f'{associacao.email}',
@@ -222,6 +223,7 @@ def test_api_retrieve_associacao_apenas_com_permissao_ver_dados_unidade_dre(jwt_
 
         result_esperado = {
             'uuid': f'{associacao.uuid}',
+            'id': associacao.id,
             'ccm': f'{associacao.ccm}',
             'cnpj': f'{associacao.cnpj}',
             'email': f'{associacao.email}',
