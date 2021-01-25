@@ -30,6 +30,7 @@ def test_api_conclui_prestacao_conta(jwt_authenticated_client_a, associacao, per
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado, "Não retornou a prestação de contas esperada."
 
+
 def test_api_conclui_prestacao_conta_sem_periodo(jwt_authenticated_client_a, periodo, associacao):
     associacao_uuid = associacao.uuid
 

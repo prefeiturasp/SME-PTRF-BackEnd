@@ -109,9 +109,22 @@ def acao_associacao_eco_delta_000087_y_inativa(associacao_eco_delta_000087, acao
 
 
 @pytest.fixture
+def conta_associacao_eco_delta(associacao_eco_delta_000087, tipo_conta):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao_eco_delta_000087,
+        tipo_conta=tipo_conta,
+        banco_nome='Banco do Brasil',
+        agencia='12345',
+        numero_conta='123456-x',
+        numero_cartao='534653264523'
+    )
+
+
+@pytest.fixture
 def receita_usando_acao_associacao_eco_delta_x(
     acao_associacao_eco_delta_000087_x,
-    conta_associacao,
+    conta_associacao_eco_delta,
     tipo_receita,
     detalhe_tipo_receita
 ):
@@ -120,7 +133,7 @@ def receita_usando_acao_associacao_eco_delta_x(
         associacao=acao_associacao_eco_delta_000087_x.associacao,
         data=date(2020, 3, 26),
         valor=100.00,
-        conta_associacao=conta_associacao,
+        conta_associacao=conta_associacao_eco_delta,
         acao_associacao=acao_associacao_eco_delta_000087_x,
         tipo_receita=tipo_receita,
         categoria_receita='CUSTEIO',

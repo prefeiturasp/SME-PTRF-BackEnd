@@ -6,6 +6,7 @@ from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
+from rest_framework.decorators import action
 
 from sme_ptrf_apps.core.api.serializers import AcaoAssociacaoCreateSerializer, AcaoAssociacaoRetrieveSerializer
 from sme_ptrf_apps.core.models import AcaoAssociacao
@@ -57,3 +58,32 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['post'], url_path='excluir-lote')
+    def excluir_em_lote(self, request, *args, **kwrgs):
+        if not request.data.get('lista_uuids'):
+            content = {
+                'erro': 'Falta de informações',
+                'mensagem': 'É necessário enviar a lista de uuids a serem apagados (lista_uuids).'
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            erros = AcaoAssociacao.excluir_em_lote(request.data.get('lista_uuids'))
+            if erros:
+                mensagem = f'Alguns vínculos não puderam ser desfeitos por já estarem sendo usados na aplicação.'
+            else:
+                mensagem = 'Unidades desvinculadas da ação com sucesso.'
+            return Response({
+                'erros': erros,
+                'mensagem': mensagem
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as err:
+            error = {
+                'erro': "problema_ao_excluir_acoes_associacoes",
+                'mensagem': str(err)
+            }
+
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
