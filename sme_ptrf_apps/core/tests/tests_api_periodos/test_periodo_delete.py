@@ -35,7 +35,7 @@ def test_delete_periodo_ja_usado(
 
     esperado = {
         "erro": 'ProtectedError',
-        "mensagem": "Esse período não pode ser excluido porque está sendo usado na aplicação.",
+        "mensagem": "Esse período não pode ser excluído porque está sendo usado na aplicação.",
     }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
