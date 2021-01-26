@@ -22,7 +22,7 @@ class AcaoAssociacao(ModeloBase):
     )
 
     associacao = models.ForeignKey('Associacao', on_delete=models.CASCADE, related_name='acoes', blank=True, null=True)
-    acao = models.ForeignKey('Acao', on_delete=models.PROTECT, blank=True, null=True)
+    acao = models.ForeignKey('Acao', on_delete=models.PROTECT, blank=True, null=True, related_name='associacoes_da_acao')
     status = models.CharField(
         'status',
         max_length=15,
