@@ -1,4 +1,5 @@
 from rest_framework import mixins, status
+from rest_framework.decorators import action
 
 from rest_framework.permissions import IsAuthenticated
 
@@ -7,6 +8,8 @@ from rest_framework.response import Response
 
 from ..serializers.acao_serializer import AcaoSerializer
 from ...models import Acao
+from ...services import associacoes_nao_vinculadas_a_acao
+from ..serializers.associacao_serializer import AssociacaoListSerializer
 
 
 class AcoesViewSet(mixins.ListModelMixin,
@@ -44,3 +47,10 @@ class AcoesViewSet(mixins.ListModelMixin,
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['get'], url_path='associacoes-nao-vinculadas')
+    def associacoes_nao_vinculadas(self, request, uuid=None):
+        acao = self.get_object()
+        associacoes = associacoes_nao_vinculadas_a_acao(acao)
+        result = AssociacaoListSerializer(associacoes, many=True).data
+        return Response(result, status=status.HTTP_200_OK)

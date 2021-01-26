@@ -1,4 +1,7 @@
+import uuid
+
 from django.db import models
+from django.db.models.deletion import ProtectedError
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
@@ -19,7 +22,7 @@ class AcaoAssociacao(ModeloBase):
     )
 
     associacao = models.ForeignKey('Associacao', on_delete=models.CASCADE, related_name='acoes', blank=True, null=True)
-    acao = models.ForeignKey('Acao', on_delete=models.PROTECT, blank=True, null=True)
+    acao = models.ForeignKey('Acao', on_delete=models.PROTECT, blank=True, null=True, related_name='associacoes_da_acao')
     status = models.CharField(
         'status',
         max_length=15,
@@ -39,6 +42,30 @@ class AcaoAssociacao(ModeloBase):
         if user:
             query = query.filter(associacao__uuid=associacao_uuid)
         return query.all()
+
+    @classmethod
+    def excluir_em_lote(cls, lista_uuids):
+        erros = []
+        for uuid_str in lista_uuids:
+            try:
+                obj = cls.objects.get(uuid=uuid.UUID(uuid_str))
+                obj.delete()
+            except cls.DoesNotExist:
+                erros.append(
+                    {
+                        'erro': 'Objeto não encontrado.',
+                        'mensagem': f'O objeto acao_associacao para o uuid {uuid_str} não foi encontrado na base.'
+                    }
+                )
+            except ProtectedError:
+                erros.append(
+                    {
+                        'erro': 'ProtectedError',
+                        'mensagem': (f'O vínculo de ação e associação de uuid {uuid_str} não pode ser excluido '
+                                     'porque está sendo usado na aplicação.')
+                    }
+                )
+        return erros
 
     class Meta:
         verbose_name = "Ação de Associação"
