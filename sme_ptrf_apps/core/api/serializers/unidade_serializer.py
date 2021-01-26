@@ -63,4 +63,4 @@ class UnidadeCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Unidade
         fields = ('codigo_eol', 'nome', 'email', 'telefone', 'numero',
-                  'tipo_logradouro', 'logradouro', 'bairro', 'cep',)
+                  'tipo_logradouro', 'logradouro', 'bairro', 'cep', 'tipo_unidade',)
