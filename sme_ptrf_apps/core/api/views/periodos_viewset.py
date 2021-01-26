@@ -50,7 +50,7 @@ class PeriodosViewSet(mixins.ListModelMixin,
         except ProtectedError:
             content = {
                 'erro': 'ProtectedError',
-                'mensagem': 'Esse período não pode ser excluido porque está sendo usado na aplicação.'
+                'mensagem': 'Esse período não pode ser excluído porque está sendo usado na aplicação.'
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 

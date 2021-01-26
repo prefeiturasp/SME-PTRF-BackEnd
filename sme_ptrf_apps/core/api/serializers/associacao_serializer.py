@@ -32,6 +32,13 @@ class AssociacaoLookupSerializer(serializers.ModelSerializer):
 
 class AssociacaoCreateSerializer(serializers.ModelSerializer):
     unidade = UnidadeCreateSerializer(many=False)
+    periodo_inicial = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Periodo.objects.all(),
+        allow_null=True,
+        allow_empty=True,
+    )
 
     class Meta:
         model = Associacao
@@ -53,6 +60,13 @@ class AssociacaoUpdateSerializer(serializers.ModelSerializer):
         slug_field='uuid',
         required=False,
         queryset=Unidade.objects.all()
+    )
+    periodo_inicial = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Periodo.objects.all(),
+        allow_null=True,
+        allow_empty=True,
     )
 
     class Meta:

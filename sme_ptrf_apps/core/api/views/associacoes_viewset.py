@@ -84,6 +84,22 @@ class AssociacoesViewSet(ModelViewSet):
         else:
             return AssociacaoUpdateSerializer
 
+    def destroy(self, request, *args, **kwargs):
+        from django.db.models.deletion import ProtectedError
+
+        obj = self.get_object()
+
+        try:
+            self.perform_destroy(obj)
+        except ProtectedError:
+            content = {
+                'erro': 'ProtectedError',
+                'mensagem': 'Essa associação não pode ser excluída porque está sendo usada na aplicação.'
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     def get_queryset(self):
         qs = Associacao.objects.all()
 

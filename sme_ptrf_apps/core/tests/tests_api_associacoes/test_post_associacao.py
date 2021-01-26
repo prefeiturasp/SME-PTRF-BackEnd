@@ -10,10 +10,8 @@ pytestmark = pytest.mark.django_db
 def test_api_post_associacao(jwt_authenticated_client_a, periodo_anterior):
     payload = {
         "nome": "Nome alterado",
-        "processo_regularidade": "123456",
-        "nome": 'Escola Teste',
         "cnpj": '52.302.275/0001-83',
-        "periodo_inicial": periodo_anterior.id,
+        "periodo_inicial": str(periodo_anterior.uuid),
         "ccm": '0.000.00-0',
         "email": "ollyverottoboni@gmail.com",
         "processo_regularidade": '123456',
@@ -34,8 +32,6 @@ def test_api_post_associacao(jwt_authenticated_client_a, periodo_anterior):
 
     registro_alterado = Associacao.objects.first()
 
-    print(registro_alterado)
-    print(registro_alterado.unidade)
     assert response.status_code == status.HTTP_201_CREATED
     assert registro_alterado.uuid
     assert registro_alterado.unidade.uuid
