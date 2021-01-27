@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from sme_ptrf_apps.core.api.serializers import AcaoAssociacaoCreateSerializer, AcaoAssociacaoRetrieveSerializer
-from sme_ptrf_apps.core.models import AcaoAssociacao
+from sme_ptrf_apps.core.models import AcaoAssociacao, Acao, Associacao
 from sme_ptrf_apps.users.permissoes import PermissaoAssociacao
 
 
@@ -87,3 +87,55 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
 
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=['post'], url_path='incluir-lote')
+    def incluir_lote(self, request, *args, **kwrgs):
+        acao_uuid = request.data.get('acao_uuid')
+        associacoes_uuids = request.data.get('associacoes_uuids')
+
+        if not acao_uuid or not associacoes_uuids:
+            content = {
+                'erro': 'Falta de informações',
+                'mensagem': 'É necessário enviar a acao_uuid e lista associacoes_uuids.'
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            acao = Acao.objects.get(uuid=acao_uuid)
+        except Acao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ação para o uuid {acao_uuid} não foi encontrado na base."
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        associacoes = []
+        erros_parametros = []
+        for associacao_uuid in associacoes_uuids:
+            try:
+                associacao = Associacao.objects.get(uuid=associacao_uuid)
+                associacoes.append(associacao)
+            except Associacao.DoesNotExist:
+                erro = {
+                    'erro': 'Associação não encontrada',
+                    'mensagem': f"O objeto associação para o uuid {associacao_uuid} não foi encontrado na base."
+                }
+                erros_parametros.append(erro)
+
+        try:
+            erros_criacao = AcaoAssociacao.incluir_em_lote(acao=acao, associacoes=associacoes)
+            if erros_parametros or erros_criacao:
+                mensagem = f'Alguns vínculos não puderam ser feitos.'
+            else:
+                mensagem = 'Unidades vinculadas à ação com sucesso.'
+            return Response({
+                'erros': erros_parametros + erros_criacao,
+                'mensagem': mensagem
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as err:
+            error = {
+                'erro': "problema_ao_incluir_acoes_associacoes",
+                'mensagem': str(err)
+            }
+
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)

@@ -67,6 +67,17 @@ class AcaoAssociacao(ModeloBase):
                 )
         return erros
 
+    @classmethod
+    def incluir_em_lote(cls, acao, associacoes):
+        erros = []
+        for associacao in associacoes:
+            cls.objects.create(
+                acao=acao,
+                associacao=associacao,
+                status="ATIVA"
+            )
+        return erros
+
     class Meta:
         verbose_name = "Ação de Associação"
         verbose_name_plural = "07.2) Ações de Associações"
