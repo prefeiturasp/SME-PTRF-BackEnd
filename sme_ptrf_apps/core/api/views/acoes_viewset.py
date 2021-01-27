@@ -1,3 +1,4 @@
+from django.db.models.query_utils import Q
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 
@@ -51,6 +52,20 @@ class AcoesViewSet(mixins.ListModelMixin,
     @action(detail=True, methods=['get'], url_path='associacoes-nao-vinculadas')
     def associacoes_nao_vinculadas(self, request, uuid=None):
         acao = self.get_object()
-        associacoes = associacoes_nao_vinculadas_a_acao(acao)
-        result = AssociacaoListSerializer(associacoes, many=True).data
+        qs = associacoes_nao_vinculadas_a_acao(acao)
+
+        result = AssociacaoListSerializer(qs, many=True).data
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='associacoes-nao-vinculadas-por-nome/(?P<nome>[^/.]+)')
+    def associacoes_nao_vinculadas_por_nome(self, request, nome, uuid=None):
+        acao = self.get_object()
+        qs = associacoes_nao_vinculadas_a_acao(acao)
+
+        if nome is not None:
+            qs = qs.filter(Q(nome__unaccent__icontains=nome) | Q(
+                unidade__nome__unaccent__icontains=nome) | Q(
+                unidade__codigo_eol__icontains=nome))
+
+        result = AssociacaoListSerializer(qs, many=True).data
         return Response(result, status=status.HTTP_200_OK)
