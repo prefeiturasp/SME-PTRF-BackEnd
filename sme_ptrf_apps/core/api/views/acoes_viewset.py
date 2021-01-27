@@ -43,7 +43,7 @@ class AcoesViewSet(mixins.ListModelMixin,
         except ProtectedError:
             content = {
                 'erro': 'ProtectedError',
-                'mensagem': 'Essa ação não pode ser excluida porque está sendo usada.'
+                'mensagem': 'Essa operação não pode ser realizada. Há associações vinculadas a esse tipo de ação.'
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 

@@ -35,7 +35,7 @@ def test_delete_acao_ja_usada(
 
     esperado = {
         "erro": 'ProtectedError',
-        "mensagem": "Essa ação não pode ser excluida porque está sendo usada.",
+        "mensagem": 'Essa operação não pode ser realizada. Há associações vinculadas a esse tipo de ação.',
     }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
