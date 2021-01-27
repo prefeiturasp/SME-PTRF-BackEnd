@@ -37,7 +37,12 @@ class Periodo(ModeloBase):
 
     @property
     def encerrado(self):
-        return  self.data_fim_realizacao_despesas and self.data_fim_realizacao_despesas < datetime.date.today()
+        return self.data_fim_realizacao_despesas and self.data_fim_realizacao_despesas < datetime.date.today()
+
+    @property
+    def editavel(self):
+        # O período não pode ser editado pelo usuário se houver um período que o referencia como período anterior
+        return not self.periodo_seguinte.exists()
 
     @classmethod
     def periodo_atual(cls):

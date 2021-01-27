@@ -12,7 +12,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from sme_ptrf_apps.users.permissoes import PermissaoPrestacaoConta, PermissaoDashboardDre
 
-from ....dre.models import Atribuicao, TecnicoDre
+from ....dre.models import Atribuicao, TecnicoDre, MotivoAprovacaoRessalva
 from ...models import Associacao, Ata, Periodo, PrestacaoConta, Unidade
 from ...services import (
     concluir_prestacao_de_contas,
@@ -397,16 +397,30 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        ressalvas_aprovacao = request.data.get('ressalvas_aprovacao', '')
+        outros_motivos_aprovacao_ressalva = request.data.get('outros_motivos_aprovacao_ressalva', '')
+        motivos_aprovacao_ressalva_uuid = request.data.get('motivos_aprovacao_ressalva', [])
 
-        if resultado_analise == PrestacaoConta.STATUS_APROVADA_RESSALVA and not ressalvas_aprovacao:
+        if resultado_analise == PrestacaoConta.STATUS_APROVADA_RESSALVA and not motivos_aprovacao_ressalva_uuid and not outros_motivos_aprovacao_ressalva:
             response = {
                 'uuid': f'{uuid}',
                 'erro': 'falta_de_informacoes',
                 'operacao': 'concluir-analise',
-                'mensagem': 'Para concluir como APROVADO_RESSALVA é necessário informar o campo ressalvas_aprovacao.'
+                'mensagem': 'Para concluir como APROVADO_RESSALVA é necessário informar motivos_aprovacao_ressalva ou outros_motivos_aprovacao_ressalva.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        motivos_aprovacao_ressalva = []
+        for motivo_uuid in motivos_aprovacao_ressalva_uuid:
+            try:
+                motivo_aprovacao_ressalva = MotivoAprovacaoRessalva.objects.get(uuid=motivo_uuid)
+                motivos_aprovacao_ressalva.append(motivo_aprovacao_ressalva)
+            except MotivoAprovacaoRessalva.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto motivo de aprovação com ressalva para o uuid {motivo_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         motivos_reprovacao = request.data.get('motivos_reprovacao', '')
 
@@ -434,7 +448,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             resultado_analise=resultado_analise,
             devolucao_tesouro=devolucao_tesouro,
             analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
-            ressalvas_aprovacao=ressalvas_aprovacao,
+            motivos_aprovacao_ressalva=motivos_aprovacao_ressalva,
+            outros_motivos_aprovacao_ressalva=outros_motivos_aprovacao_ressalva,
             data_limite_ue=data_limite_ue,
             motivos_reprovacao=motivos_reprovacao,
             devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao

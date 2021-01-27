@@ -5,6 +5,7 @@ from django.conf import settings
 from sme_ptrf_apps.core.models import Unidade
 from sme_ptrf_apps.dre.models import Atribuicao
 from sme_ptrf_apps.dre.api.serializers.tecnico_dre_serializer import TecnicoDreLookUpSerializer
+from sme_ptrf_apps.core.services.membro_associacao_service import TerceirizadasService
 
 logger = logging.getLogger(__name__)
 
@@ -86,3 +87,42 @@ def atualiza_diretor_unidade(unidade: Unidade) -> None:
         logger.info(response.json())
     except Exception as err:
         logger.info("Erro ao atualizar diretor: %s", err)
+
+
+def consulta_unidade(codigo_eol):
+    """Consulta por uma unidade"""
+    result = {}
+    if len(str(codigo_eol)) != 6:
+        result['erro'] = 'codigo_eol_inválido'
+        result['mensagem'] = f"Código eol {codigo_eol} inválido. O código eol deve conter 6 dígitos."
+        logger.info(result['mensagem'])
+    elif Unidade.objects.filter(codigo_eol=codigo_eol).exists():
+        result['erro'] = 'codigo_eol_ja_cadastrado'
+        result['mensagem'] = f"O código eol {codigo_eol} já está vinculado a uma associação."
+        logger.info(result['mensagem'])
+    else:
+        try:
+            response = TerceirizadasService.escolas_terceirizadas()
+            results = response['results']
+
+            resultado = list(filter(lambda d: d['cd_unidade_educacao'] == codigo_eol, results))
+            if resultado:
+                unidade_retorno = resultado[0]
+                result['codigo_eol'] = codigo_eol
+                result['nome'] = unidade_retorno.get('nm_unidade_educacao') or ''
+                result['tipo_unidade'] = unidade_retorno.get('sg_tp_escola') or ''
+                result['email'] = unidade_retorno.get('email') or ''
+                result['telefone'] = unidade_retorno.get('tel1') or ''
+                result['numero'] = unidade_retorno.get('cd_nr_endereco') or ''
+                result['tipo_logradouro'] = unidade_retorno.get('dc_tp_logradouro') or ''
+                result['logradouro'] = unidade_retorno.get('nm_logradouro') or ''
+                result['bairro'] = unidade_retorno.get('nm_bairro') or ''
+                result['cep'] = f"{unidade_retorno['cd_cep']:0>8}" or ''
+                logger.info("Unidade %s: %s localizada.", codigo_eol, result['nome'])
+        except Exception as err:
+            logger.info("Erro ao consultar código eol")
+            result['erro'] = 'erro'
+            result['mensagem'] = f"Erro ao consultar código eol: {str(err)}"
+            logger.info(result['mensagem'])
+
+    return result

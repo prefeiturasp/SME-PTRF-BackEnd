@@ -11,7 +11,7 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def acao_e_recurso_proprio():
-    return baker.make('Acao', nome='PTRF', e_recursos_proprios=True)
+    return baker.make('Acao', nome='PTRF-Recurso-Proprio', e_recursos_proprios=True)
 
 
 @pytest.fixture

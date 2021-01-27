@@ -1,5 +1,8 @@
 import logging
 from datetime import date
+
+from django.contrib.auth import get_user_model
+
 from sme_ptrf_apps.core.choices import MembroEnum
 from sme_ptrf_apps.core.models import (
     Associacao,
@@ -11,6 +14,8 @@ from sme_ptrf_apps.core.models import (
     Remetente,
     TipoNotificacao,
 )
+
+User = get_user_model()
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +45,11 @@ def notificar_usuario(dado):
     membros = associacao.cargos.filter(cargo_associacao__in=cargos)
 
     for membro in membros:
+        if membro.codigo_identificacao:
+            usuario = User.objects.get(username=membro.codigo_identificacao)
+        else:
+            usuario = User.objects.get(username=membro.cpf)
+
         for comentario in comentarios:
             Notificacao.objects.create(
                 tipo=tipo,
@@ -47,6 +57,6 @@ def notificar_usuario(dado):
                 remetente=remetente,
                 titulo=titulo,
                 descricao=comentario.comentario,
-                usuario=membro.usuario
+                usuario=usuario
             )
     logger.info("Notificações criadas com sucesso.")

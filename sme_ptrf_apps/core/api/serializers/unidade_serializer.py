@@ -11,6 +11,7 @@ class DreSerializer(serializers.ModelSerializer):
 
 class UnidadeLookUpSerializer(serializers.ModelSerializer):
     dre = DreSerializer()
+
     class Meta:
         model = Unidade
         fields = ('uuid', 'codigo_eol', 'tipo_unidade', 'nome', 'sigla', 'dre')
@@ -56,3 +57,10 @@ class UnidadeListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Unidade
         fields = ('uuid', 'codigo_eol', 'nome_com_tipo',)
+
+
+class UnidadeCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Unidade
+        fields = ('codigo_eol', 'nome', 'email', 'telefone', 'numero',
+                  'tipo_logradouro', 'logradouro', 'bairro', 'cep', 'tipo_unidade',)

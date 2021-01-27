@@ -59,11 +59,13 @@ def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, preside
 
         result_esperado = {
             'uuid': f'{associacao.uuid}',
+            'id': associacao.id,
             'ccm': f'{associacao.ccm}',
             'cnpj': f'{associacao.cnpj}',
             'email': f'{associacao.email}',
             'nome': f'{associacao.nome}',
             'status_regularidade': f'{associacao.status_regularidade}',
+            'motivo_nao_regularidade': '',
             'presidente_associacao': {
                 'nome': presidente_associacao.nome,
                 'email': presidente_associacao.email,
@@ -75,6 +77,13 @@ def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, preside
                 'cargo_educacao': presidente_conselho_fiscal.cargo_educacao
             },
             'processo_regularidade': '123456',
+            'periodo_inicial': {
+                'data_fim_realizacao_despesas': '2019-08-31',
+                'data_inicio_realizacao_despesas': '2019-01-01',
+                'referencia': '2019.1',
+                'referencia_por_extenso': '1° repasse de 2019',
+                'uuid': f'{associacao.periodo_inicial.uuid}'
+            },
             'unidade': {
                 'codigo_eol': f'{associacao.unidade.codigo_eol}',
                 'dre': {
@@ -114,8 +123,8 @@ def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, preside
 def permissoes_ver_dados_unidade_dre():
     permissoes = [
         Permission.objects.create(
-            name="Ver Dados Unidade", 
-            codename='view_dados_unidade_dre', 
+            name="Ver Dados Unidade",
+            codename='view_dados_unidade_dre',
             content_type=ContentType.objects.filter(app_label="auth").first()
         ),
     ]
@@ -214,11 +223,13 @@ def test_api_retrieve_associacao_apenas_com_permissao_ver_dados_unidade_dre(jwt_
 
         result_esperado = {
             'uuid': f'{associacao.uuid}',
+            'id': associacao.id,
             'ccm': f'{associacao.ccm}',
             'cnpj': f'{associacao.cnpj}',
             'email': f'{associacao.email}',
             'nome': f'{associacao.nome}',
             'status_regularidade': f'{associacao.status_regularidade}',
+            'motivo_nao_regularidade': '',
             'presidente_associacao': {
                 'nome': presidente_associacao.nome,
                 'email': presidente_associacao.email,
@@ -230,6 +241,13 @@ def test_api_retrieve_associacao_apenas_com_permissao_ver_dados_unidade_dre(jwt_
                 'cargo_educacao': presidente_conselho_fiscal.cargo_educacao
             },
             'processo_regularidade': '123456',
+            'periodo_inicial': {
+                'data_fim_realizacao_despesas': '2019-08-31',
+                'data_inicio_realizacao_despesas': '2019-01-01',
+                'referencia': '2019.1',
+                'referencia_por_extenso': '1° repasse de 2019',
+                'uuid': f'{associacao.periodo_inicial.uuid}'
+            },
             'unidade': {
                 'codigo_eol': f'{associacao.unidade.codigo_eol}',
                 'dre': {

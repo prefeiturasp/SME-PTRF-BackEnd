@@ -3,7 +3,7 @@ import logging
 from decimal import Decimal
 
 from ..models import FechamentoPeriodo, Associacao, AcaoAssociacao, ContaAssociacao, Periodo
-from ..services.periodo_associacao_services import status_prestacao_conta_associacao
+from ..services.periodo_services import status_prestacao_conta_associacao
 from ...despesas.models import RateioDespesa
 from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
 from ...receitas.models import Receita, Repasse

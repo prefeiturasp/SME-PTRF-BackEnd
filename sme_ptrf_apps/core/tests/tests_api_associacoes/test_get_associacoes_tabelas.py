@@ -15,6 +15,7 @@ def test_api_get_associacoes_tabelas(jwt_authenticated_client_a):
     esperado = {
         'tipos_unidade': Unidade.tipos_unidade_to_json(),
         'status_regularidade': Associacao.status_regularidade_to_json(),
+        'dres': Unidade.dres_to_json()
     }
 
     assert response.status_code == status.HTTP_200_OK

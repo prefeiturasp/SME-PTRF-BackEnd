@@ -134,7 +134,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                                                _devolucao_prestacao_conta, _cobranca_prestacao_devolucao,
                                                _processo_associacao_prestacao_conta,
                                                _analise_conta_prestacao_conta_2020_1, conta_associacao_cheque,
-                                               devolucao_ao_tesouro):
+                                               devolucao_ao_tesouro, motivo_aprovacao_ressalva_x):
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
@@ -159,6 +159,14 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
             },
             'processo_regularidade': '123456',
             'status_regularidade': 'PENDENTE',
+            'motivo_nao_regularidade': '',
+            'periodo_inicial': {
+                'data_fim_realizacao_despesas': '2019-08-31',
+                'data_inicio_realizacao_despesas': '2019-01-01',
+                'referencia': '2019.1',
+                'referencia_por_extenso': '1° repasse de 2019',
+                'uuid': f'{prestacao_conta.associacao.periodo_inicial.uuid}'
+            },
             'unidade': {
                 'bairro': 'COHAB INSTITUTO ADVENTISTA',
                 'cep': '5868120',
@@ -188,7 +196,8 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                 'tipo_unidade': 'CEU',
                 'uuid': f'{prestacao_conta.associacao.unidade.uuid}'
             },
-            'uuid': f'{prestacao_conta.associacao.uuid}'
+            'uuid': f'{prestacao_conta.associacao.uuid}',
+            'id': prestacao_conta.associacao.id,
         },
         'periodo_uuid': f'{prestacao_conta.periodo.uuid}',
         'status': 'NAO_APRESENTADA',
@@ -240,7 +249,13 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                 'uuid': f'{_analise_conta_prestacao_conta_2020_1.uuid}'
             }
         ],
-        'ressalvas_aprovacao': 'Texto ressalva',
+        'motivos_aprovacao_ressalva': [
+            {
+                'uuid': f'{motivo_aprovacao_ressalva_x.uuid}',
+                'motivo': f'{motivo_aprovacao_ressalva_x.motivo}'
+            },
+        ],
+        'outros_motivos_aprovacao_ressalva': 'Outros motivos',
         'motivos_reprovacao': 'Motivo reprovação',
         'devolucoes_ao_tesouro_da_prestacao': [
             {

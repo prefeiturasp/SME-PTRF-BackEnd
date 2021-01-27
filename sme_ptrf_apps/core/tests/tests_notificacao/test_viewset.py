@@ -200,7 +200,7 @@ def usuario_vice_presidente(unidade):
 
 
 @pytest.fixture
-def membro_associacao_presidente_associacao(associacao, usuario_presidente):
+def membro_associacao_presidente_associacao(associacao):
     return baker.make(
         'MembroAssociacao',
         nome='Arthur Nobrega Silva',
@@ -208,14 +208,13 @@ def membro_associacao_presidente_associacao(associacao, usuario_presidente):
         cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name,
         cargo_educacao='Coordenador',
         representacao=RepresentacaoCargo.SERVIDOR.value,
-        codigo_identificacao='567411',
+        codigo_identificacao='7219999',
         email='ollyverottoboni@gmail.com',
-        usuario=usuario_presidente
     )
 
 
 @pytest.fixture
-def membro_associacao_vice_presidente_associacao(associacao, usuario_vice_presidente):
+def membro_associacao_vice_presidente_associacao(associacao):
     return baker.make(
         'MembroAssociacao',
         nome='Arthur Nobrega Junior',
@@ -223,9 +222,8 @@ def membro_associacao_vice_presidente_associacao(associacao, usuario_vice_presid
         cargo_associacao=MembroEnum.VICE_PRESIDENTE_DIRETORIA_EXECUTIVA.name,
         cargo_educacao='Coordenador',
         representacao=RepresentacaoCargo.SERVIDOR.value,
-        codigo_identificacao='967499',
+        codigo_identificacao='7210418',
         email='ollyverottoboni@gmail.com',
-        usuario=usuario_vice_presidente
     )
 
 
@@ -262,7 +260,8 @@ def test_notificar(jwt_authenticated_client_a,
     comentario_analise_prestacao,
     categoria_prestacao_conta,
     remetente_dre,
-    tipo_notificacao_aviso):
+    tipo_notificacao_aviso,
+    usuario_vice_presidente):
 
     assert Notificacao.objects.count() == 0
 
@@ -280,5 +279,5 @@ def test_notificar(jwt_authenticated_client_a,
     result = json.loads(response.content)
     assert result == {"mensagem": "Processo de notificação enviado com sucesso."}
     assert Notificacao.objects.count() == 2
-    assert Notificacao.objects.filter(usuario=membro_associacao_presidente_associacao.usuario).first()
-    assert Notificacao.objects.filter(usuario=membro_associacao_vice_presidente_associacao.usuario).first()
+    assert Notificacao.objects.filter(usuario__username=membro_associacao_presidente_associacao.codigo_identificacao).first()
+    assert Notificacao.objects.filter(usuario__username=membro_associacao_vice_presidente_associacao.codigo_identificacao).first()
