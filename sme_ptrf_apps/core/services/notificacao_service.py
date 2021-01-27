@@ -45,18 +45,20 @@ def notificar_usuario(dado):
     membros = associacao.cargos.filter(cargo_associacao__in=cargos)
 
     for membro in membros:
+        usuario = None
         if membro.codigo_identificacao:
-            usuario = User.objects.get(username=membro.codigo_identificacao)
+            usuario = User.objects.filter(username=membro.codigo_identificacao).first()
         else:
-            usuario = User.objects.get(username=membro.cpf)
+            usuario = User.objects.filter(username=membro.cpf).first()
 
-        for comentario in comentarios:
-            Notificacao.objects.create(
-                tipo=tipo,
-                categoria=categoria,
-                remetente=remetente,
-                titulo=titulo,
-                descricao=comentario.comentario,
-                usuario=usuario
-            )
-    logger.info("Notificações criadas com sucesso.")
+        if usuario:
+            for comentario in comentarios:
+                Notificacao.objects.create(
+                    tipo=tipo,
+                    categoria=categoria,
+                    remetente=remetente,
+                    titulo=titulo,
+                    descricao=comentario.comentario,
+                    usuario=usuario
+                )
+            logger.info("Notificações criadas com sucesso.")
