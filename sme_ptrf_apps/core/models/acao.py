@@ -17,3 +17,4 @@ class Acao(ModeloIdNome):
     class Meta:
         verbose_name = "Ação"
         verbose_name_plural = "03.0) Ações"
+        unique_together = ['nome',]
