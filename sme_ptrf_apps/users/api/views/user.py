@@ -55,6 +55,10 @@ class UserViewSet(ModelViewSet):
         if associacao_uuid:
             qs = qs.filter(unidades__associacoes__uuid=associacao_uuid)
 
+        username = self.request.query_params.get('username')
+        if username:
+            qs = qs.filter(username=username)
+
         return qs
 
     @action(detail=False, methods=["GET"])
