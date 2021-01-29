@@ -6,7 +6,7 @@ from brazilnum.cnpj import validate_cnpj, format_cnpj
 
 from ..models import Associacao, Unidade
 from ..models.arquivo import (
-    DELIMITADOR_PONTO_VIRGULA, 
+    DELIMITADOR_PONTO_VIRGULA,
     DELIMITADOR_VIRGULA,
     PENDENTE,
     SUCESSO,
@@ -64,7 +64,7 @@ class ProcessaAssociacoes:
 
         cls.logs = f"{cls.logs}\nImportadas {importadas} associações. Erro na importação de {erros} associações."
         logger.info(f'Importadas {importadas} associações. Erro na importação de {erros} associações.')
-        
+
         arquivo.log = cls.logs
         arquivo.save()
 
@@ -113,13 +113,13 @@ class ProcessaAssociacoes:
     @classmethod
     def cria_ou_atualiza_associacao_from_row(cls, row, unidade, lin):
         cnpj = row[cls.__CNPJ_ASSOCIACAO]
-        if not validate_cnpj(cnpj):
+        if cnpj and not validate_cnpj(cnpj):
             msg_erro = f'CNPJ inválido ({cnpj}) na linha {lin}. Associação não criada.'
             logger.error(msg_erro)
             cls.logs = f"{cls.logs}\n{msg_erro}"
             return None
 
-        cnpj = format_cnpj(cnpj)
+        cnpj = format_cnpj(cnpj) if cnpj else ""
 
         associacao, created = Associacao.objects.update_or_create(
             cnpj=cnpj,
