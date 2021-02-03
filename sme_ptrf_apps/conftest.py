@@ -1381,7 +1381,11 @@ def payload_membro_servidor(associacao):
         'cargo_associacao': MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name,
         'cargo_educacao': 'Coordenador',
         'representacao': RepresentacaoCargo.SERVIDOR.name,
-        'codigo_identificacao': '567432'
+        'codigo_identificacao': '567432',
+        'telefone': '11992137854',
+        'cep': '04302000',
+        'bairro': 'Vila da Saúde',
+        'endereco': 'Rua Apotribu, 57 - apto 12',
     }
     return payload
 
