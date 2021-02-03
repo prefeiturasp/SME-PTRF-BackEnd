@@ -37,7 +37,11 @@ def test_get_membros_associacoes(
             'representacao': membro_associacao.representacao,
             'codigo_identificacao': membro_associacao.codigo_identificacao,
             'email': membro_associacao.email,
-            'cpf': membro_associacao.cpf
+            'cpf': membro_associacao.cpf,
+            'telefone': membro_associacao.telefone,
+            'cep': membro_associacao.cep,
+            'bairro': membro_associacao.bairro,
+            'endereco': membro_associacao.endereco,
         }
     ]
 
@@ -70,6 +74,10 @@ def test_get_membro_associacao(
         'codigo_identificacao': membro_associacao.codigo_identificacao,
         'email': membro_associacao.email,
         'cpf': membro_associacao.cpf,
+        'telefone': membro_associacao.telefone,
+        'cep': membro_associacao.cep,
+        'bairro': membro_associacao.bairro,
+        'endereco': membro_associacao.endereco,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -112,6 +120,10 @@ def test_criar_membro_associacao_pai_responsavel(jwt_authenticated_client_a, ass
 def test_atualizar_membro_associacao_servidor(jwt_authenticated_client_a, associacao, membro_associacao, payload_membro_servidor):
     nome_novo = "Gabriel Nóbrega"
     payload_membro_servidor['nome'] = nome_novo
+
+    bairro_novo = "Vila Clementino"
+    payload_membro_servidor['bairro'] = bairro_novo
+
     response = jwt_authenticated_client_a.put(
         f'/api/membros-associacao/{membro_associacao.uuid}/?associacao_uuid={associacao.uuid}', data=json.dumps(payload_membro_servidor), content_type='application/json')
 
@@ -124,6 +136,7 @@ def test_atualizar_membro_associacao_servidor(jwt_authenticated_client_a, associ
     membro = MembroAssociacao.objects.filter(uuid=result['uuid']).get()
 
     assert membro.nome == nome_novo
+    assert membro.bairro == bairro_novo
 
 
 @pytest.fixture

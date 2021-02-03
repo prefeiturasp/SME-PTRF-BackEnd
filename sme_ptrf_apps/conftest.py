@@ -1200,12 +1200,14 @@ def parametro_fique_de_olho_pc():
         fique_de_olho='',
     )
 
+
 @pytest.fixture
 def parametro_fique_de_olho_pc_texto_abc():
     return baker.make(
         'ParametroFiqueDeOlhoPc',
         fique_de_olho='abc',
     )
+
 
 @pytest.fixture
 def parametros_aceita_saldo_negativo_em_conta():
@@ -1259,6 +1261,7 @@ def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
         parecer_conselho='APROVADA'
     )
 
+
 @pytest.fixture
 def ata_2020_1_retificacao(prestacao_conta_2020_1_conciliada):
     return baker.make(
@@ -1280,6 +1283,7 @@ def ata_2020_1_retificacao(prestacao_conta_2020_1_conciliada):
         retificacoes='Teste'
     )
 
+
 @pytest.fixture
 def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
     return baker.make(
@@ -1299,6 +1303,7 @@ def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
         comentarios='Teste',
         parecer_conselho='APROVADA'
     )
+
 
 @pytest.fixture
 def ata_retificacao_prestacao_conta_iniciada(prestacao_conta_iniciada):
@@ -1320,6 +1325,7 @@ def ata_retificacao_prestacao_conta_iniciada(prestacao_conta_iniciada):
         parecer_conselho='APROVADA'
     )
 
+
 @pytest.fixture
 def membro_associacao(associacao):
     return baker.make(
@@ -1331,7 +1337,11 @@ def membro_associacao(associacao):
         representacao=RepresentacaoCargo.SERVIDOR.value,
         codigo_identificacao='567432',
         email='ollyverottoboni@gmail.com',
-        cpf='148.712.970-04'
+        cpf='148.712.970-04',
+        telefone='11992137854',
+        cep='04302000',
+        bairro='Vila da Saúde',
+        endereco='Rua Apotribu, 57 - apto 12'
     )
 
 
@@ -1371,7 +1381,11 @@ def payload_membro_servidor(associacao):
         'cargo_associacao': MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name,
         'cargo_educacao': 'Coordenador',
         'representacao': RepresentacaoCargo.SERVIDOR.name,
-        'codigo_identificacao': '567432'
+        'codigo_identificacao': '567432',
+        'telefone': '11992137854',
+        'cep': '04302000',
+        'bairro': 'Vila da Saúde',
+        'endereco': 'Rua Apotribu, 57 - apto 12',
     }
     return payload
 

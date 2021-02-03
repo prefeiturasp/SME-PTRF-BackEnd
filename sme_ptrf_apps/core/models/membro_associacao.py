@@ -40,6 +40,12 @@ class MembroAssociacao(ModeloBase):
 
     cpf = models.CharField("CPF Responsável", max_length=14, blank=True, null=True, default="")
 
+    telefone = models.CharField('Telefone', max_length=20, blank=True, default='')
+
+    cep = models.CharField('CEP', max_length=20, blank=True, default='')
+    bairro = models.CharField('Bairro', max_length=255, blank=True, default='')
+    endereco = models.CharField('Endereço', max_length=255, blank=True, default='')
+
     class Meta:
         verbose_name = "Membro da Associação"
         verbose_name_plural = "07.3) Membros das Associações"
