@@ -6,6 +6,8 @@ from sme_ptrf_apps.core.api.serializers import (AssociacaoCompletoSerializer, De
                                                 DevolucaoAoTesouroRetrieveSerializer)
 from sme_ptrf_apps.core.services.processos_services import get_processo_sei_da_prestacao
 
+from sme_ptrf_apps.dre.api.serializers.motivo_aprovacao_ressalva_serializer import MotivoAprovacaoRessalvaSerializer
+
 
 class PrestacaoContaLookUpSerializer(serializers.ModelSerializer):
     periodo_uuid = serializers.SerializerMethodField('get_periodo_uuid')
@@ -73,6 +75,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     devolucao_ao_tesouro = serializers.SerializerMethodField('get_devolucao_ao_tesouro')
     analises_de_conta_da_prestacao = AnaliseContaPrestacaoContaRetrieveSerializer(many=True)
     devolucoes_ao_tesouro_da_prestacao = DevolucaoAoTesouroRetrieveSerializer(many=True)
+    motivos_aprovacao_ressalva = MotivoAprovacaoRessalvaSerializer(many=True)
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
@@ -87,7 +90,8 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
         model = PrestacaoConta
         fields = ('uuid', 'status', 'associacao', 'periodo_uuid', 'tecnico_responsavel', 'data_recebimento',
                   'devolucoes_da_prestacao', 'processo_sei', 'data_ultima_analise', 'devolucao_ao_tesouro',
-                  'analises_de_conta_da_prestacao', 'ressalvas_aprovacao', 'motivos_reprovacao', 'devolucoes_ao_tesouro_da_prestacao')
+                  'analises_de_conta_da_prestacao', 'motivos_reprovacao',
+                  'devolucoes_ao_tesouro_da_prestacao', 'motivos_aprovacao_ressalva', 'outros_motivos_aprovacao_ressalva')
 
 
 def _str_devolucao_ao_tesouro(obj):

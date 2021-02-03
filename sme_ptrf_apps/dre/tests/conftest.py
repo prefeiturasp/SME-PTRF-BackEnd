@@ -280,3 +280,19 @@ def obs_devolucao_conta_relatorio_dre_consolidado(periodo, dre, tipo_conta_carta
         tipo_devolucao_a_conta=detalhe_tipo_receita,
         observacao='Teste devolução à conta'
     )
+
+
+@pytest.fixture
+def motivo_aprovacao_ressalva_x():
+    return baker.make(
+        'MotivoAprovacaoRessalva',
+        motivo='X'
+    )
+
+
+@pytest.fixture
+def motivo_aprovacao_ressalva_y():
+    return baker.make(
+        'MotivoAprovacaoRessalva',
+        motivo='Y'
+    )

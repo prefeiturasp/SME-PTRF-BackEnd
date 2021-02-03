@@ -10,3 +10,4 @@ from .relatorio_consolidado_dre import RelatorioConsolidadoDRE
 from .justificativa_relatorio_consolidado_dre import JustificativaRelatorioConsolidadoDRE
 from .obs_devolucao_relatorio_consolidado_dre import ObsDevolucaoRelatorioConsolidadoDRE
 from .parametro_fique_de_olho_rel_dre import ParametroFiqueDeOlhoRelDre
+from .motivo_aprovacao_ressalva import MotivoAprovacaoRessalva

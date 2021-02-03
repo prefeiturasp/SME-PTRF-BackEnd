@@ -81,6 +81,10 @@ class Unidade(ModeloBase, TemNome):
             result.append(tipo_unidade)
         return result
 
+    @classmethod
+    def dres_to_json(cls):  
+        return [{'uuid': str(u.uuid), 'nome': f"{u.tipo_unidade} {u.nome}"} for u in cls.dres.all()]
+
     @property
     def qtd_alunos(self):
         censo = self.censos.order_by('-ano').first()

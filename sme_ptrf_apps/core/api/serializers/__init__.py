@@ -2,7 +2,12 @@ from .tag_serializer import TagLookupSerializer
 from .devolucao_ao_tesouro_serializer import DevolucaoAoTesouroRetrieveSerializer
 from .cobranca_prestacao_conta_serializer import CobrancaPrestacaoContaListSerializer
 from .devolucao_prestacao_conta_serializer import DevolucaoPrestacaoContaRetrieveSerializer
-from .acao_associacao_serializer import AcaoAssociacaoLookUpSerializer, AcaoAssociacaoSerializer
+from .acao_associacao_serializer import (
+    AcaoAssociacaoLookUpSerializer,
+    AcaoAssociacaoSerializer,
+    AcaoAssociacaoRetrieveSerializer,
+    AcaoAssociacaoCreateSerializer
+)
 from .associacao_serializer import (
     AssociacaoCreateSerializer,
     AssociacaoInfoAtaSerializer,
