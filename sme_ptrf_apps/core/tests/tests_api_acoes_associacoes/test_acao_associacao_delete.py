@@ -35,7 +35,7 @@ def test_delete_acao_associacao_ja_usada(
 
     esperado = {
         "erro": 'ProtectedError',
-        "mensagem": "Essa ação de associação não pode ser excluida porque está sendo usada na aplicação.",
+        "mensagem": "Essa operação não pode ser realizada. Há dados vinculados a essa ação da referida Associação",
     }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST

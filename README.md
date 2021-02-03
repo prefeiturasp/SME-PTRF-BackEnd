@@ -5,16 +5,27 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.4.0
+Versão: 1.5.0
 
 ## Release Notes
 
-### 1.5.0 - 01/02/2021 - Entregas da Sprint 14
-* Em andamento...
+### 1.5.0 - 02/02/2021 - Entregas da Sprint 14
+* DRE > Melhorias no relatório consolidado
+* DRE > Motivos de aprovação com ressalvas no acompanhamento de PCs
+* DRE > Seleção de período do acompanhamento de PCs agora inicia com o período anterior e não o corrente
+* DRE > Novo bloco "Associações não regularizadas" no relatório consolidado DRE
+* SME > Cadastro de Associações
+* SME > Cadastro de Ações
+* SME > Cadastro de vínculos de ações e associações
+* SME > Cadastro de Períodos
+* UE > Melhorias na geração de prestações de contas
+* UE > Cadastro de membros agora vincula automaticamente o membro ao seu usuário do sistema 
+* ADM > Agora é possivel fazer carga de associações sem CNPJ
+* ADM > Pesquisa por nome nas tabelas de ações da associação e contas da associação
 
 ### 1.4.0 - 07/01/2021 - Entregas da Sprint 13
 * Visão SME
-* SME > Painel de parâmetros do sistema
+* DRE > Painel de parâmetros do sistema
 * SME > Acompanhamento de prestações de conta > Resumo Geral
 * SME > Acompanhamento de prestações de conta > Resumo por DRE (lista)
 * Lançamento de Créditos não relativos ao PTRF
