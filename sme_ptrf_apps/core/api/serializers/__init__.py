@@ -1,4 +1,4 @@
-from .tag_serializer import TagLookupSerializer
+from .tag_serializer import TagLookupSerializer, TagSerializer
 from .devolucao_ao_tesouro_serializer import DevolucaoAoTesouroRetrieveSerializer
 from .cobranca_prestacao_conta_serializer import CobrancaPrestacaoContaListSerializer
 from .devolucao_prestacao_conta_serializer import DevolucaoPrestacaoContaRetrieveSerializer
