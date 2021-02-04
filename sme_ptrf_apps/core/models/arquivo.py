@@ -89,6 +89,7 @@ class Arquivo(ModeloBase):
     )
     log = models.TextField(blank=True, null=True)
     ultima_execucao = models.DateTimeField("Ultima execução", blank=True, null=True)
+    usuario = models.ForeignKey("users.User", on_delete=models.PROTECT, related_name='arquivos', null=True, blank=True)
 
     class Meta:
         verbose_name = "arquivo de carga"
@@ -96,3 +97,27 @@ class Arquivo(ModeloBase):
 
     def __str__(self):
         return self.identificador
+
+    @classmethod
+    def status_to_json(cls):
+        return [{
+                'id': choice[0],
+                'nome': choice[1]
+                }
+                for choice in STATUS_PROCESSMENTO_CHOICES]
+
+    @classmethod
+    def tipos_cargas_to_json(cls):
+        return [{
+                'id': choice[0],
+                'nome': choice[1]
+                }
+                for choice in CARGA_CHOICES]
+    
+    @classmethod
+    def delimitadores_to_json(cls):
+        return [{
+                'id': choice[0],
+                'nome': choice[1]
+                }
+                for choice in DELIMITADOR_CHOICES]

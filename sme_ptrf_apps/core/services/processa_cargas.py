@@ -10,17 +10,21 @@ from sme_ptrf_apps.users.services.carga_usuarios import carrega_usuarios
 
 def processa_cargas(queryset):
     for arquivo in queryset.all():
-        if arquivo.tipo_carga == CARGA_REPASSE_REALIZADO:
-            carrega_repasses_realizados(arquivo)
-        elif arquivo.tipo_carga == CARGA_PERIODO_INICIAL:
-            carrega_periodo_inicial(arquivo)
-        elif arquivo.tipo_carga == CARGA_REPASSE_PREVISTO:
-            carrega_repasses_previstos(arquivo)
-        elif arquivo.tipo_carga == CARGA_ASSOCIACOES:
-            carrega_associacoes(arquivo)
-        elif arquivo.tipo_carga == CARGA_USUARIOS:
-            carrega_usuarios(arquivo)
-        elif arquivo.tipo_carga == CARGA_CENSO:
-            carrega_censo(arquivo)
-        elif arquivo.tipo_carga == CARGA_REPASSE_PREVISTO_SME:
-            carrega_previsoes_repasses(arquivo)
+        processa_carga(arquivo)
+
+
+def processa_carga(arquivo):
+    if arquivo.tipo_carga == CARGA_REPASSE_REALIZADO:
+        carrega_repasses_realizados(arquivo)
+    elif arquivo.tipo_carga == CARGA_PERIODO_INICIAL:
+        carrega_periodo_inicial(arquivo)
+    elif arquivo.tipo_carga == CARGA_REPASSE_PREVISTO:
+        carrega_repasses_previstos(arquivo)
+    elif arquivo.tipo_carga == CARGA_ASSOCIACOES:
+        carrega_associacoes(arquivo)
+    elif arquivo.tipo_carga == CARGA_USUARIOS:
+        carrega_usuarios(arquivo)
+    elif arquivo.tipo_carga == CARGA_CENSO:
+        carrega_censo(arquivo)
+    elif arquivo.tipo_carga == CARGA_REPASSE_PREVISTO_SME:
+        carrega_previsoes_repasses(arquivo)
