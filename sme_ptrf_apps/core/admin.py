@@ -39,7 +39,6 @@ admin.site.register(TipoNotificacao)
 admin.site.register(Acao)
 admin.site.register(Categoria)
 admin.site.register(Remetente)
-admin.site.register(MembroAssociacao)
 admin.site.register(ParametroFiqueDeOlhoPc)
 
 
@@ -498,4 +497,14 @@ class RelacaoBensAdmin(admin.ModelAdmin):
         'prestacao_conta__associacao__nome'
     )
 
-    autocomplete_fields = ['conta_associacao',]
+    autocomplete_fields = ['conta_associacao', ]
+
+
+@admin.register(MembroAssociacao)
+class MembroAssociacaoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'cargo_associacao', 'associacao')
+    search_fields = ('nome', 'codigo_identificacao', 'uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
+    list_filter = ('associacao', 'cargo_associacao', 'representacao')
+    readonly_fields = ('uuid', 'id')
+    autocomplete_fields = ['associacao', ]
+

@@ -17,6 +17,10 @@ def test_instance_model(membro_associacao):
     assert model.representacao == RepresentacaoCargo.SERVIDOR.value
     assert model.email
     assert model.cpf
+    assert model.telefone
+    assert model.cep
+    assert model.bairro
+    assert model.endereco
 
 
 def test_admin():
