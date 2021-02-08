@@ -2,7 +2,7 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from model_bakery import baker
 
-from ...models.arquivo import CARGA_REPASSE_PREVISTO_SME, DELIMITADOR_PONTO_VIRGULA
+from ...models.arquivo import CARGA_ASSOCIACOES, DELIMITADOR_PONTO_VIRGULA
 
 pytestmark = pytest.mark.django_db
 
@@ -20,7 +20,7 @@ def arquivo_carga(arquivo):
         'Arquivo',
         identificador='carga_previsao_repasse',
         conteudo=arquivo,
-        tipo_carga=CARGA_REPASSE_PREVISTO_SME,
+        tipo_carga=CARGA_ASSOCIACOES,
         tipo_delimitador=DELIMITADOR_PONTO_VIRGULA,
     )
 
