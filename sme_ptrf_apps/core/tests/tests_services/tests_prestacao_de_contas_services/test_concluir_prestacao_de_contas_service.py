@@ -6,14 +6,17 @@ from model_bakery import baker
 from ....models import PrestacaoConta
 from ....services import concluir_prestacao_de_contas
 
-pytestmark = pytest.mark.django_db
 
-
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.usefixtures('celery_session_app')
+@pytest.mark.usefixtures('celery_session_worker')
 def test_prestacao_de_contas_deve_ser_criada(associacao, periodo, settings):
     prestacao = concluir_prestacao_de_contas(associacao=associacao, periodo=periodo)
 
     assert prestacao.status == PrestacaoConta.STATUS_EM_PROCESSAMENTO, "A PC deveria estar como Em_processamento."
 
+
+@pytest.mark.django_db(transaction=False)
 def test_fechamentos_devem_ser_criados_por_acao(associacao,
                                                 periodo_2020_1,
                                                 receita_2020_1_role_repasse_custeio_conferida,
@@ -41,6 +44,7 @@ def test_fechamentos_devem_ser_criados_por_acao(associacao,
     assert prestacao.fechamentos_da_prestacao.count() == 2, "Deveriam ter sido criados dois fechamentos, um por ação."
 
 
+@pytest.mark.django_db(transaction=False)
 def test_deve_sumarizar_transacoes_incluindo_nao_conferidas(associacao,
                                                             periodo_2020_1,
                                                             receita_2020_1_role_repasse_custeio_conferida,
@@ -63,7 +67,7 @@ def test_deve_sumarizar_transacoes_incluindo_nao_conferidas(associacao,
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
     assert prestacao
-    
+
     assert prestacao.fechamentos_da_prestacao.count() == 1, "Deveriam ter sido criado apenas um fechamento."
 
     fechamento = prestacao.fechamentos_da_prestacao.first()
@@ -155,6 +159,7 @@ def _receita_2020_1(associacao, conta_associacao, acao_associacao, tipo_receita_
     )
 
 
+@pytest.mark.django_db(transaction=False)
 def test_fechamentos_devem_ser_vinculados_a_anteriores(_fechamento_2019_2,
                                                        associacao,
                                                        _periodo_2019_2,
@@ -176,6 +181,7 @@ def test_fechamentos_devem_ser_vinculados_a_anteriores(_fechamento_2019_2,
     assert fechamento.fechamento_anterior == _fechamento_2019_2, "Deveria apontar para o fechamento anterior."
 
 
+@pytest.mark.django_db(transaction=False)
 def test_deve_gravar_lista_de_especificacoes_despesas(associacao,
                                                       periodo_2020_1,
                                                       despesa_2020_1,
@@ -201,6 +207,7 @@ def test_deve_gravar_lista_de_especificacoes_despesas(associacao,
     assert fechamento.especificacoes_despesas_custeio == ['Instalação elétrica', ]
 
 
+@pytest.mark.django_db(transaction=False)
 def test_deve_sumarizar_transacoes_considerando_conta(associacao,
                                                       conta_associacao_cartao,
                                                       conta_associacao_cheque,
@@ -227,7 +234,7 @@ def test_deve_sumarizar_transacoes_considerando_conta(associacao,
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
     assert prestacao
-    
+
     assert prestacao.fechamentos_da_prestacao.count() == 2, "Deveriam ter sido criados dois fechamentos."
 
     fechamento = prestacao.fechamentos_da_prestacao.filter(conta_associacao=conta_associacao_cartao).first()
@@ -259,6 +266,7 @@ def test_deve_sumarizar_transacoes_considerando_conta(associacao,
     assert fechamento.total_despesas_nao_conciliadas_custeio == rateio_despesa_2020_role_custeio_nao_conferido.valor_rateio
 
 
+@pytest.mark.django_db(transaction=False)
 def test_demonstrativos_financeiros_devem_ser_criados_por_conta_e_acao(associacao,
                                                                        periodo_2020_1,
                                                                        receita_2020_1_role_repasse_custeio_conferida,
@@ -287,6 +295,7 @@ def test_demonstrativos_financeiros_devem_ser_criados_por_conta_e_acao(associaca
     assert prestacao.demonstrativos_da_prestacao.count() == 4, "Deveriam ter sido criados quatro, 2 contas x 2 ações."
 
 
+@pytest.mark.django_db(transaction=False)
 def test_relacoes_de_bens_devem_ser_criadas_por_conta(associacao,
                                                       periodo_2020_1,
                                                       receita_2020_1_role_repasse_custeio_conferida,
