@@ -39,6 +39,33 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
         fique_de_olho = ParametroFiqueDeOlhoRelDre.get().fique_de_olho
         return Response({'detail': fique_de_olho}, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['patch'], url_path='update-fique-de-olho')
+    def update_fique_de_olho(self, request, uuid=None):
+
+        texto_fique_de_olho = request.data.get('fique_de_olho', None)
+
+        if texto_fique_de_olho is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'update-fique-de-olho',
+                'mensagem': 'Faltou informar o campo Fique de Olho.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        from sme_ptrf_apps.dre.models import ParametroFiqueDeOlhoRelDre
+
+        # Pegando o objeto ParametroFiqueDeOlhoPc
+        obj_fique_de_olho = ParametroFiqueDeOlhoRelDre.get()
+
+        # Atribuindo ao objeto-> propriedade (fique_de_olho), o request.data.get('fique_de_olho', None)
+        obj_fique_de_olho.fique_de_olho = texto_fique_de_olho
+
+        # E por fim Salvando
+        obj_fique_de_olho.save()
+
+        return Response({'detail': 'Salvo com sucesso'}, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['get'], url_path='status-relatorio')
     def status_relatorio(self, request):
         from rest_framework import status
