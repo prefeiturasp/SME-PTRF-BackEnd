@@ -7,6 +7,7 @@ from ...models.arquivo import CARGA_REPASSE_PREVISTO_SME, DELIMITADOR_PONTO_VIRG
 
 pytestmark = pytest.mark.django_db
 
+
 @pytest.fixture
 def arquivo():
     return SimpleUploadedFile(
@@ -15,21 +16,20 @@ def arquivo():
 
 
 @pytest.fixture
-def arquivoCarga(arquivo, usuario):
+def arquivo_carga(arquivo):
     return baker.make(
         'Arquivo',
         identificador='carga_previsao_repasse',
         conteudo=arquivo,
         tipo_carga=CARGA_REPASSE_PREVISTO_SME,
         tipo_delimitador=DELIMITADOR_PONTO_VIRGULA,
-        usuario=usuario
     )
 
 
-def test_download_arquivo_carga(jwt_authenticated_client, arquivoCarga):
-    response = jwt_authenticated_client.get(f'/api/arquivos/{arquivoCarga.uuid}/download/')
+def test_download_arquivo_carga(jwt_authenticated_client, arquivo_carga):
+    response = jwt_authenticated_client.get(f'/api/arquivos/{arquivo_carga.uuid}/download/')
     assert [t[1] for t in list(response.items()) if t[0] ==
-            'Content-Disposition'][0] == f'attachment; filename={arquivoCarga.conteudo.name}'
+            'Content-Disposition'][0] == f'attachment; filename={arquivo_carga.conteudo.name}'
     assert [t[1] for t in list(response.items()) if t[0] ==
             'Content-Type'][0] == 'text/csv'
     assert response.status_code == status.HTTP_200_OK

@@ -85,7 +85,6 @@ class ArquivoViewSet(ModelViewSet):
 
         return response
 
-
     @action(detail=True, methods=['post'], url_path='processar')
     def processar(self, request, uuid):
         logger.info("Processando arquivo de carga com uuid %s.", uuid)

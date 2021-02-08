@@ -7,7 +7,7 @@ from sme_ptrf_apps.core.models import Censo
 
 from sme_ptrf_apps.core.models.arquivo import (
     CARGA_CENSO,
-    DELIMITADOR_PONTO_VIRGULA, 
+    DELIMITADOR_PONTO_VIRGULA,
     DELIMITADOR_VIRGULA,
     ERRO,
     PROCESSADO_COM_ERRO)
@@ -18,17 +18,17 @@ pytestmark = pytest.mark.django_db
 @pytest.fixture
 def arquivo():
     return SimpleUploadedFile(
-        f'arquivo.csv', 
+        f'arquivo.csv',
         bytes(f"""Código EOL,Quantidade Alunos,Ano\n000108,20,2020\n123456,34,2020""", encoding="utf-8"))
 
 @pytest.fixture
 def arquivoComErro():
     return SimpleUploadedFile(
-        f'arquivo.csv', 
+        f'arquivo.csv',
         bytes(f"""Código EOL,Quantidade Alunos,Ano\n000108,20,2020\n123980,34,2020\n,,""", encoding="utf-8"))
 
 @pytest.fixture
-def arquivoCarga(arquivo):
+def arquivo_carga(arquivo):
     return baker.make(
         'Arquivo',
         identificador='carga_censo',
@@ -38,7 +38,7 @@ def arquivoCarga(arquivo):
     )
 
 @pytest.fixture
-def arquivoCargaVirgula(arquivo):
+def arquivo_carga_virgula(arquivo):
     return baker.make(
         'Arquivo',
         identificador='carga_censo',
@@ -59,17 +59,17 @@ def arquivoCargaVirgulaComErro(arquivoComErro):
     )
 
 
-def test_carga_com_erro_formatacao(arquivoCarga):
-    carrega_censo(arquivoCarga)
-    assert arquivoCarga.log == 'Formato definido (DELIMITADOR_PONTO_VIRGULA) é diferente do formato do arquivo csv (DELIMITADOR_VIRGULA)'
-    assert arquivoCarga.status == ERRO
+def test_carga_com_erro_formatacao(arquivo_carga):
+    carrega_censo(arquivo_carga)
+    assert arquivo_carga.log == 'Formato definido (DELIMITADOR_PONTO_VIRGULA) é diferente do formato do arquivo csv (DELIMITADOR_VIRGULA)'
+    assert arquivo_carga.status == ERRO
 
 
-def test_carga_processada_com_erro(arquivoCargaVirgula, unidade):
+def test_carga_processada_com_erro(arquivo_carga_virgula, unidade):
     assert not Censo.objects.exists()
-    carrega_censo(arquivoCargaVirgula)
-    assert arquivoCargaVirgula.log == """\nUnidade Não encontrada para código eol (000108) na linha 1.\nImportadas 1 dados de censo. Erro na importação de 1 dados do censo."""
-    assert arquivoCargaVirgula.status == PROCESSADO_COM_ERRO
+    carrega_censo(arquivo_carga_virgula)
+    assert arquivo_carga_virgula.log == """\nUnidade Não encontrada para código eol (000108) na linha 1.\nImportadas 1 dados de censo. Erro na importação de 1 dados do censo."""
+    assert arquivo_carga_virgula.status == PROCESSADO_COM_ERRO
     assert Censo.objects.exists()
 
 
