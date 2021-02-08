@@ -15,6 +15,14 @@ def arquivo():
 
 
 @pytest.fixture
+def arquivo2():
+    return SimpleUploadedFile(
+        f'arquivo2.csv',
+        bytes(f"""Código eol,Conta,Ação,Referência Período, Valor capital,Valor custeio,Valor livre aplicacao\n93238,Cheque,Role Cultural,2020.u,99000.98,99000.98,""", encoding="utf-8"))
+
+
+
+@pytest.fixture
 def arquivo_carga(arquivo):
     return baker.make(
         'Arquivo',
