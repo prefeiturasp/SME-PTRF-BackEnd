@@ -8,6 +8,7 @@ from sme_ptrf_apps.receitas.services.carga_repasses_previstos import carrega_rep
 from sme_ptrf_apps.receitas.services.carga_repasses_realizados import carrega_repasses_realizados
 from sme_ptrf_apps.users.services.carga_usuarios import carrega_usuarios
 
+
 def processa_cargas(queryset):
     for arquivo in queryset.all():
         processa_carga(arquivo)

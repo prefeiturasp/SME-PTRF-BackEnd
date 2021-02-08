@@ -134,6 +134,7 @@ class ProcessaAssociacoes:
 
         return associacao
 
+
 def carrega_associacoes(arquivo):
     logger.info("Processando arquivo %s", arquivo.identificador)
     arquivo.ultima_execucao = datetime.datetime.now()

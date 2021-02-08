@@ -104,7 +104,8 @@ class ArquivoViewSet(ModelViewSet):
                 'erro': 'arquivo_nao_encontrado',
                 'mensagem': f"Arquivo com uuid {uuid} não encontrado."
             }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
         processa_carga_async.delay(uuid)
 
-        return Response(erro, status=status.HTTP_404_NOT_FOUND)
+        return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
