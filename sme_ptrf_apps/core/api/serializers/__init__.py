@@ -33,3 +33,4 @@ from .processo_associacao_serializer import ProcessoAssociacaoRetrieveSerializer
 from .tipo_conta_serializer import TipoContaSerializer
 from .unidade_serializer import UnidadeInfoAtaSerializer, UnidadeLookUpSerializer, UnidadeSerializer
 from .comentario_analise_prestacao_serializer import ComentarioAnalisePrestacaoRetrieveSerializer
+from .arquivo_serializer import ArquivoSerializer

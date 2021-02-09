@@ -43,14 +43,14 @@ def arquivo():
 
 
 @pytest.fixture
-def arquivoProcessado():
+def arquivo_processado():
     return SimpleUploadedFile(
-        f'carga_repasse_cheque.csv', 
+        f'carga_repasse_cheque.csv',
         bytes(f"""Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao,Data receita,Periodo\n123456,99000.98,99000.98,,Role Cultural,02/04/2019,2019.2\n93238,99000.98,99000.98,,Role Cultural,02/01/2020,2020.u""", encoding="utf-8"))
 
 
 @pytest.fixture
-def arquivoCarga(arquivo):
+def arquivo_carga(arquivo):
     return baker.make(
         'Arquivo',
         identificador='carga_repasse_cheque',
@@ -59,8 +59,9 @@ def arquivoCarga(arquivo):
         tipo_delimitador=DELIMITADOR_PONTO_VIRGULA
     )
 
+
 @pytest.fixture
-def arquivoCargaVirgula(arquivo):
+def arquivo_carga_virgula(arquivo):
     return baker.make(
         'Arquivo',
         identificador='carga_repasse_cheque',
@@ -71,33 +72,33 @@ def arquivoCargaVirgula(arquivo):
 
 
 @pytest.fixture
-def arquivoCargaVirgulaProcessado(arquivoProcessado):
+def arquivo_carga_virgula_processado(arquivo_processado):
     return baker.make(
         'Arquivo',
         identificador='carga_repasse_cheque',
-        conteudo=arquivoProcessado,
+        conteudo=arquivo_processado,
         tipo_carga=CARGA_REPASSE_REALIZADO,
         tipo_delimitador=DELIMITADOR_VIRGULA
     )
 
 
-def test_carga_com_erro_formatacao(arquivoCarga):
-    carrega_repasses_realizados(arquivoCarga)
-    assert arquivoCarga.log == 'Formato definido (DELIMITADOR_PONTO_VIRGULA) é diferente do formato do arquivo csv (DELIMITADOR_VIRGULA)'
-    assert arquivoCarga.status == ERRO
+def test_carga_com_erro_formatacao(arquivo_carga):
+    carrega_repasses_realizados(arquivo_carga)
+    assert arquivo_carga.log == 'Formato definido (DELIMITADOR_PONTO_VIRGULA) é diferente do formato do arquivo csv (DELIMITADOR_VIRGULA)'
+    assert arquivo_carga.status == ERRO
 
 
-def test_carga_com_erro(arquivoCargaVirgula):
-    carrega_repasses_realizados(arquivoCargaVirgula)
+def test_carga_com_erro(arquivo_carga_virgula):
+    carrega_repasses_realizados(arquivo_carga_virgula)
     msg = """\nAssociação com código eol: 93238 não encontrado. Linha 1
 Foram criados 0 repasses. Erro na importação de 1 repasses."""
-    assert arquivoCargaVirgula.log == msg
-    assert arquivoCargaVirgula.status == ERRO
+    assert arquivo_carga_virgula.log == msg
+    assert arquivo_carga_virgula.status == ERRO
 
 
-def test_carga_processado_com_erro(arquivoCargaVirgulaProcessado, periodo, associacao, tipo_receita_repasse):
-    carrega_repasses_realizados(arquivoCargaVirgulaProcessado)
+def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao, tipo_receita_repasse):
+    carrega_repasses_realizados(arquivo_carga_virgula_processado)
     msg = """\nAssociação com código eol: 93238 não encontrado. Linha 2
 Foram criados 1 repasses. Erro na importação de 1 repasses."""
-    assert arquivoCargaVirgulaProcessado.log == msg
-    assert arquivoCargaVirgulaProcessado.status == PROCESSADO_COM_ERRO
+    assert arquivo_carga_virgula_processado.log == msg
+    assert arquivo_carga_virgula_processado.status == PROCESSADO_COM_ERRO

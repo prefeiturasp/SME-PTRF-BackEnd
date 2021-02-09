@@ -19,14 +19,15 @@ pytestmark = pytest.mark.django_db
 @pytest.fixture
 def arquivo():
     return SimpleUploadedFile(
-        f'arquivo.csv', 
+        f'arquivo.csv',
         bytes(f"""Código EOL UE;Nome UE;Código EOL DRE;Nome da DRE UE;Sigla DRE;Nome da associação;CNPJ da associação;RF Presidente Diretoria;Nome Presidente Diretoria;RF Presidente Conselho Fiscal;Nome Presidente Conselho Fiscal
 000086;EMEI PAULO CAMILHIER FLORENCANO;108500;GUAIANASES;G;EMEI PAULO CAMILHIER FLORENÇANO;1142145000190;;;;
 000094;EMEI VICENTE PAULO DA SILVA;108400;FREGUESIA/BRASILANDIA;FO;EMEI VICENTE PAULO DA SILVA;6139086000;;;;
 000108;"EMEF JOSE ERMIRIO DE MORAIS; SEN.";109300;SAO MIGUEL;MP;EMEF SEN JOSÉ ERMINIO DE MORAIS;1095757000179;;;;""", encoding="utf-8"))
 
+
 @pytest.fixture
-def arquivoCarga(arquivo):
+def arquivo_carga(arquivo):
     return baker.make(
         'Arquivo',
         identificador='carga_associacoes',
@@ -35,8 +36,9 @@ def arquivoCarga(arquivo):
         tipo_delimitador=DELIMITADOR_VIRGULA
     )
 
+
 @pytest.fixture
-def arquivoCargaPontoVirgula(arquivo):
+def arquivo_carga_ponto_virgula(arquivo):
     return baker.make(
         'Arquivo',
         identificador='carga_associacoes',
@@ -45,15 +47,17 @@ def arquivoCargaPontoVirgula(arquivo):
         tipo_delimitador=DELIMITADOR_PONTO_VIRGULA
     )
 
-def test_carga_com_erro_formatacao(arquivoCarga):
-    carrega_associacoes(arquivoCarga)
-    assert arquivoCarga.log == 'Formato definido (DELIMITADOR_VIRGULA) é diferente do formato do arquivo csv (DELIMITADOR_PONTO_VIRGULA)'
-    assert arquivoCarga.status == ERRO
 
-def test_carga_processada_com_erro(arquivoCargaPontoVirgula):
+def test_carga_com_erro_formatacao(arquivo_carga):
+    carrega_associacoes(arquivo_carga)
+    assert arquivo_carga.log == 'Formato definido (DELIMITADOR_VIRGULA) é diferente do formato do arquivo csv (DELIMITADOR_PONTO_VIRGULA)'
+    assert arquivo_carga.status == ERRO
+
+
+def test_carga_processada_com_erro(arquivo_carga_ponto_virgula):
     assert not Associacao.objects.exists()
-    carrega_associacoes(arquivoCargaPontoVirgula)
+    carrega_associacoes(arquivo_carga_ponto_virgula)
     msg = """\nCNPJ inválido (6139086000) na linha 2. Associação não criada.\nImportadas 2 associações. Erro na importação de 1 associações."""
-    assert arquivoCargaPontoVirgula.log == msg
-    assert arquivoCargaPontoVirgula.status == PROCESSADO_COM_ERRO
+    assert arquivo_carga_ponto_virgula.log == msg
+    assert arquivo_carga_ponto_virgula.status == PROCESSADO_COM_ERRO
     assert Associacao.objects.exists()

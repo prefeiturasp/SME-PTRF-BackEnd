@@ -23,6 +23,7 @@ class GrupoSerializer(serializers.ModelSerializer):
         model = Grupo
         fields = ['id', 'name', 'descricao']
 
+
 class UserSerializer(serializers.ModelSerializer):
     groups = GrupoSerializer(many=True)
 
@@ -33,6 +34,13 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "url": {"view_name": "api:user-detail", "lookup_field": "username"}
         }
+
+
+class UserLookupSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ["id", "username"]
 
 
 class UserCreateSerializer(serializers.ModelSerializer):

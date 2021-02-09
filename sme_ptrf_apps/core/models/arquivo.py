@@ -51,18 +51,18 @@ SUCESSO = 'SUCESSO'
 ERRO = 'ERRO'
 PROCESSADO_COM_ERRO = 'PROCESSADO_COM_ERRO'
 
-STATUS_PROCESSMENTO = {
+STATUS_PROCESSAMENTO = {
     PENDENTE: 'Pendente',
     SUCESSO: 'Sucesso',
     ERRO: 'Erro',
     PROCESSADO_COM_ERRO: 'Processado com erro'
 }
 
-STATUS_PROCESSMENTO_CHOICES = (
-    (PENDENTE, STATUS_PROCESSMENTO[PENDENTE]),
-    (SUCESSO, STATUS_PROCESSMENTO[SUCESSO]),
-    (ERRO, STATUS_PROCESSMENTO[ERRO]),
-    (PROCESSADO_COM_ERRO, STATUS_PROCESSMENTO[PROCESSADO_COM_ERRO]),
+STATUS_PROCESSAMENTO_CHOICES = (
+    (PENDENTE, STATUS_PROCESSAMENTO[PENDENTE]),
+    (SUCESSO, STATUS_PROCESSAMENTO[SUCESSO]),
+    (ERRO, STATUS_PROCESSAMENTO[ERRO]),
+    (PROCESSADO_COM_ERRO, STATUS_PROCESSAMENTO[PROCESSADO_COM_ERRO]),
 )
 
 
@@ -84,7 +84,7 @@ class Arquivo(ModeloBase):
     status = models.CharField(
         'status',
         max_length=35,
-        choices=STATUS_PROCESSMENTO_CHOICES,
+        choices=STATUS_PROCESSAMENTO_CHOICES,
         default=PENDENTE
     )
     log = models.TextField(blank=True, null=True)
@@ -96,3 +96,27 @@ class Arquivo(ModeloBase):
 
     def __str__(self):
         return self.identificador
+
+    @classmethod
+    def status_to_json(cls):
+        return [{
+                'id': choice[0],
+                'nome': choice[1]
+                }
+                for choice in STATUS_PROCESSAMENTO_CHOICES]
+
+    @classmethod
+    def tipos_cargas_to_json(cls):
+        return [{
+                'id': choice[0],
+                'nome': choice[1]
+                }
+                for choice in CARGA_CHOICES]
+
+    @classmethod
+    def delimitadores_to_json(cls):
+        return [{
+                'id': choice[0],
+                'nome': choice[1]
+                }
+                for choice in DELIMITADOR_CHOICES]
