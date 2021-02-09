@@ -18,3 +18,4 @@ from .acao_associacao_viewset import AcaoAssociacaoViewSet
 from .acoes_viewset import AcoesViewSet
 from .arquivo_viewset import ArquivoViewSet
 from .tags_viewset import TagsViewSet
+from .modelos_cargas_viewset import ModelosCargasViewSet
