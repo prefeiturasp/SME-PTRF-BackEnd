@@ -25,3 +25,4 @@ class Tag(ModeloIdNome):
     class Meta:
         verbose_name = "Tag"
         verbose_name_plural = "10.0) Tags"
+        unique_together = ['nome', ]
