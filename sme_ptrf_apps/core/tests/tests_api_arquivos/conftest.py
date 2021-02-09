@@ -2,7 +2,8 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from model_bakery import baker
 
-from ...models.arquivo import CARGA_ASSOCIACOES, DELIMITADOR_VIRGULA, DELIMITADOR_PONTO_VIRGULA
+from ...models.arquivo import DELIMITADOR_VIRGULA, DELIMITADOR_PONTO_VIRGULA
+from sme_ptrf_apps.core.choices.tipos_carga import CARGA_ASSOCIACOES
 
 pytestmark = pytest.mark.django_db
 

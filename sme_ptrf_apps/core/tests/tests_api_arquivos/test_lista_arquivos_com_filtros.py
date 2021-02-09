@@ -4,7 +4,9 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from model_bakery import baker
 
-from ...models.arquivo import CARGA_REPASSE_PREVISTO_SME, DELIMITADOR_PONTO_VIRGULA
+from ...models.arquivo import DELIMITADOR_PONTO_VIRGULA
+
+from sme_ptrf_apps.core.choices.tipos_carga import CARGA_REPASSE_PREVISTO_SME
 
 pytestmark = pytest.mark.django_db
 

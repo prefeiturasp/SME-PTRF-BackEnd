@@ -6,11 +6,12 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from model_bakery import baker
 
 from sme_ptrf_apps.core.models.arquivo import (
-    CARGA_REPASSE_PREVISTO,
     DELIMITADOR_PONTO_VIRGULA,
     DELIMITADOR_VIRGULA,
     ERRO,
     PROCESSADO_COM_ERRO)
+
+from sme_ptrf_apps.core.choices.tipos_carga import CARGA_REPASSE_PREVISTO
 
 pytestmark = pytest.mark.django_db
 

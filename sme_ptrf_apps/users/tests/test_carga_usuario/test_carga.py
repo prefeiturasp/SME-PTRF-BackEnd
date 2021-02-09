@@ -6,11 +6,12 @@ from sme_ptrf_apps.users.services.carga_usuarios import  carrega_usuarios
 
 
 from sme_ptrf_apps.core.models.arquivo import (
-    CARGA_USUARIOS,
     DELIMITADOR_PONTO_VIRGULA,
     DELIMITADOR_VIRGULA,
     ERRO,
     PROCESSADO_COM_ERRO)
+
+from sme_ptrf_apps.core.choices.tipos_carga import CARGA_USUARIOS
 
 pytestmark = pytest.mark.django_db
 
