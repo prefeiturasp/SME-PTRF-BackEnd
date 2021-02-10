@@ -484,7 +484,21 @@ def test_lista_usuarios_por_unidade(
     response = jwt_authenticated_client_u.get(f"/api/usuarios/?associacao_uuid={associacao.uuid}", content_type='application/json')
     result = response.json()
     esperado = [
-       {    
+        {
+            'id': usuario_3.id,
+            'name': 'Arthur Marques',
+            'tipo_usuario': 'Servidor',
+            'url': 'http://testserver/api/esqueci-minha-senha/7218198/',
+            'username': '7218198',
+            'email': 'sme8198@amcom.com.br',
+            'groups': [
+                {
+                    'descricao': 'Descrição grupo 2',
+                    'id': grupo_2.id,
+                    'name': 'grupo2'
+                }],
+        },
+        {
             'id': usuario_para_teste.id,
             'name': 'LUCIA HELENA',
             'tipo_usuario': 'Servidor',
@@ -497,21 +511,8 @@ def test_lista_usuarios_por_unidade(
                     'id': grupo_1.id,
                     'name': 'grupo1'
                 }],
-       },
-      { 
-            'id': usuario_3.id,
-            'name': 'Arthur Marques',
-            'tipo_usuario': 'Servidor',
-            'url': 'http://testserver/api/esqueci-minha-senha/7218198/',
-            'username': '7218198',
-            'email': 'sme8198@amcom.com.br',
-            'groups': [
-                {   
-                    'descricao': 'Descrição grupo 2',
-                    'id': grupo_2.id,
-                    'name': 'grupo2'
-                }],
-       }
+        }
+
     ]
     print(result)
     assert result == esperado

@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class UserViewSet(ModelViewSet):
     lookup_field = "id"
     serializer_class = UserSerializer
-    queryset = User.objects.all()
+    queryset = User.objects.all().order_by("name")
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
