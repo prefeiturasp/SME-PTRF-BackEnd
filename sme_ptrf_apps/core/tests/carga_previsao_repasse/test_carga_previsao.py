@@ -6,12 +6,14 @@ from sme_ptrf_apps.core.services.carga_previsao_repasse import carrega_previsoes
 
 from ...models import PrevisaoRepasseSme
 from ...models.arquivo import (
-    CARGA_REPASSE_PREVISTO_SME,
     DELIMITADOR_PONTO_VIRGULA,
     DELIMITADOR_VIRGULA,
     SUCESSO,
     ERRO,
     PROCESSADO_COM_ERRO)
+
+
+from sme_ptrf_apps.core.choices.tipos_carga import CARGA_REPASSE_PREVISTO_SME
 
 pytestmark = pytest.mark.django_db
 
