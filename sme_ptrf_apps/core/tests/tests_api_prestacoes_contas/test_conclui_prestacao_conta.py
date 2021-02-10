@@ -7,9 +7,11 @@ from rest_framework import status
 from ...api.serializers import PrestacaoContaLookUpSerializer
 from ...models import PrestacaoConta
 
-pytestmark = pytest.mark.django_db
+pytestmark = pytest.mark.django_db(transaction=True)
 
 
+@pytest.mark.usefixtures('celery_session_app')
+@pytest.mark.usefixtures('celery_session_worker')
 def test_api_conclui_prestacao_conta(jwt_authenticated_client_a, associacao, periodo):
     associacao_uuid = associacao.uuid
     periodo_uuid = periodo.uuid
@@ -31,6 +33,8 @@ def test_api_conclui_prestacao_conta(jwt_authenticated_client_a, associacao, per
     assert result == result_esperado, "Não retornou a prestação de contas esperada."
 
 
+@pytest.mark.usefixtures('celery_session_app')
+@pytest.mark.usefixtures('celery_session_worker')
 def test_api_conclui_prestacao_conta_sem_periodo(jwt_authenticated_client_a, periodo, associacao):
     associacao_uuid = associacao.uuid
 
@@ -49,6 +53,8 @@ def test_api_conclui_prestacao_conta_sem_periodo(jwt_authenticated_client_a, per
     assert result == result_esperado
 
 
+@pytest.mark.usefixtures('celery_session_app')
+@pytest.mark.usefixtures('celery_session_worker')
 def test_api_conclui_prestacao_conta_sem_associacao(jwt_authenticated_client_a, periodo, associacao):
     periodo_uuid = periodo.uuid
 

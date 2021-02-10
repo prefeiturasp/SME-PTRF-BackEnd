@@ -33,6 +33,7 @@ from .models import (
     PrevisaoRepasseSme,
     Censo,
     ParametroFiqueDeOlhoPc,
+    ModeloCarga
 )
 
 admin.site.register(TipoNotificacao)
@@ -40,6 +41,7 @@ admin.site.register(Acao)
 admin.site.register(Categoria)
 admin.site.register(Remetente)
 admin.site.register(ParametroFiqueDeOlhoPc)
+admin.site.register(ModeloCarga)
 
 
 @admin.register(Associacao)
