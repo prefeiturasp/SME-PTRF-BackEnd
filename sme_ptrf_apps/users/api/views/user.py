@@ -67,22 +67,22 @@ class UserViewSet(ModelViewSet):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     @action(detail=True, url_path='altera-email', methods=['patch'])
-    def altera_email(self, request, username):
+    def altera_email(self, request, id):
         data = request.data
         serialize = AlteraEmailSerializer()
         validated_data = serialize.validate(data)
-        usuario = User.objects.get(username=username)
+        usuario = User.objects.get(username=id)
         instance = serialize.update(usuario, validated_data)
         if isinstance(instance, Response):
             return instance
         return Response(UserSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
 
     @action(detail=True, url_path='altera-senha', methods=['patch'])
-    def altera_senha(self, request, username):
+    def altera_senha(self, request, id):
         data = request.data
         serializer = RedefinirSenhaSerializer()
         validated_data = serializer.validate(data)
-        usuario = User.objects.get(username=username)
+        usuario = User.objects.get(username=id)
         instance = serializer.update(usuario, validated_data)
         if isinstance(instance, Response):
             return instance
@@ -108,7 +108,7 @@ class UserViewSet(ModelViewSet):
             }
             logging.info("Erro ao buscar grupos do usuário %s", erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-    
+
     @action(detail=False, methods=['get'], url_path='consultar')
     def consulta_servidor_sgp(self, request):
         username = self.request.query_params.get('username')
