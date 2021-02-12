@@ -17,6 +17,8 @@ def processa_cargas(queryset):
 
 
 def processa_carga(arquivo):
+    arquivo.inicia_processamento()
+
     if arquivo.tipo_carga == CARGA_REPASSE_REALIZADO:
         carrega_repasses_realizados(arquivo)
     elif arquivo.tipo_carga == CARGA_PERIODO_INICIAL:

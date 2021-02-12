@@ -1,4 +1,6 @@
 import pytest
+from datetime import datetime
+
 from django.core.files.uploadedfile import SimpleUploadedFile
 from model_bakery import baker
 
@@ -73,3 +75,14 @@ def arquivo_carga_associacao_com_erro_estrutura(arquivo_associacao_com_erro_estr
         tipo_delimitador=DELIMITADOR_PONTO_VIRGULA,
     )
 
+
+@pytest.fixture
+def arquivo_carga_associacao_processado_2020_01_01(arquivo_associacao):
+    return baker.make(
+        'Arquivo',
+        identificador='carga_associacao',
+        conteudo=arquivo_associacao,
+        tipo_carga=CARGA_ASSOCIACOES,
+        tipo_delimitador=DELIMITADOR_PONTO_VIRGULA,
+        ultima_execucao=datetime(2020, 1, 1, 10, 59, 33)
+    )

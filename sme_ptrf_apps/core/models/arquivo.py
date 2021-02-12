@@ -23,12 +23,14 @@ PENDENTE = 'PENDENTE'
 SUCESSO = 'SUCESSO'
 ERRO = 'ERRO'
 PROCESSADO_COM_ERRO = 'PROCESSADO_COM_ERRO'
+PROCESSANDO = "PROCESSANDO"
 
 STATUS_PROCESSAMENTO = {
     PENDENTE: 'Pendente',
     SUCESSO: 'Sucesso',
     ERRO: 'Erro',
-    PROCESSADO_COM_ERRO: 'Processado com erro'
+    PROCESSADO_COM_ERRO: 'Processado com erro',
+    PROCESSANDO: 'Processando...'
 }
 
 STATUS_PROCESSAMENTO_CHOICES = (
@@ -36,6 +38,7 @@ STATUS_PROCESSAMENTO_CHOICES = (
     (SUCESSO, STATUS_PROCESSAMENTO[SUCESSO]),
     (ERRO, STATUS_PROCESSAMENTO[ERRO]),
     (PROCESSADO_COM_ERRO, STATUS_PROCESSAMENTO[PROCESSADO_COM_ERRO]),
+    (PROCESSANDO, STATUS_PROCESSAMENTO[PROCESSANDO]),
 )
 
 
@@ -69,6 +72,10 @@ class Arquivo(ModeloBase):
 
     def __str__(self):
         return self.identificador
+
+    def inicia_processamento(self):
+        self.status = PROCESSANDO
+        self.save()
 
     @classmethod
     def status_to_json(cls):
