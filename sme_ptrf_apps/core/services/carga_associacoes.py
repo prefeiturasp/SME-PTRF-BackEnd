@@ -2,6 +2,8 @@ import csv
 import logging
 import datetime
 
+from text_unidecode import unidecode
+
 from brazilnum.cnpj import validate_cnpj, format_cnpj
 
 from ..models import Associacao, Unidade
@@ -27,13 +29,13 @@ class ProcessaAssociacoes:
     __CNPJ_ASSOCIACAO = 6
 
     __CABECALHOS = {
-        __EOL_UE: "Código EOL UE",
+        __EOL_UE: "Codigo EOL UE",
         __NOME_UE: "Nome UE",
-        __EOL_DRE: "Código EOL DRE",
+        __EOL_DRE: "Codigo EOL DRE",
         __NOME_DRE: "Nome da DRE UE",
         __SIGLA_DRE: "Sigla DRE",
-        __NOME_ASSOCIACAO: "Nome da associação",
-        __CNPJ_ASSOCIACAO: "CNPJ da associação",
+        __NOME_ASSOCIACAO: "Nome da associacao",
+        __CNPJ_ASSOCIACAO: "CNPJ da associacao",
     }
 
     logs = ""
@@ -42,7 +44,9 @@ class ProcessaAssociacoes:
     def cabecalho_correto(cls, cabecalho):
         estrutura_correta = True
         for coluna, nome in cls.__CABECALHOS.items():
-            if cabecalho[coluna] != nome:
+            titulo_coluna_arquivo = unidecode(cabecalho[coluna])
+            titulo_coluna_modelo = unidecode(nome)
+            if titulo_coluna_arquivo != titulo_coluna_modelo:
                 msg_erro = (f'Título da coluna {coluna} errado. Encontrado "{cabecalho[coluna]}". '
                             f'Deveria ser "{nome}". Confira o arquivo com o modelo.')
                 logger.error(msg_erro)

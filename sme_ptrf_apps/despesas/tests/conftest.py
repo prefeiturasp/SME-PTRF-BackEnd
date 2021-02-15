@@ -56,7 +56,7 @@ def tipo_custeio():
 
 @pytest.fixture
 def tipo_custeio_material():
-    return baker.make('TipoCusteio', nome='Material')
+    return baker.make('TipoCusteio', nome='Material 02')
 
 
 @pytest.fixture
@@ -308,8 +308,8 @@ def permissoes_despesa():
         Permission.objects.filter(codename='change_despesa').first(),
         Permission.objects.filter(codename='delete_despesa').first(),
         Permission.objects.create(
-            name="Editar conciliação bancária", 
-            codename='change_conciliacao_bancaria', 
+            name="Editar conciliação bancária",
+            codename='change_conciliacao_bancaria',
             content_type=ContentType.objects.filter(app_label="auth").first()
         )
     ]

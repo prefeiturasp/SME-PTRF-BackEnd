@@ -6,3 +6,4 @@ class TipoCusteio(ModeloIdNome):
     class Meta:
         verbose_name = "Tipo de custeio"
         verbose_name_plural = "Tipos de custeio"
+        unique_together = ['nome', ]
