@@ -346,23 +346,20 @@ class AssociacoesViewSet(ModelViewSet):
     @action(detail=True, methods=['get'], url_path='exportar-pdf', permission_classes=[]) #IsAuthenticated & PermissaoExportarDadosAssociacao])
     def exportarpdf(self, _, uuid=None):
 
-        data_atual = date.today().strftime("%d/%m/%Y")
+        data_atual = date.today().strftime("%d-%m-%Y")
         usuario_logado = self.request.user
         associacao = Associacao.by_uuid(uuid)
         contas = list(ContaAssociacao.objects.filter(associacao=associacao).all())
 
-        html_string = render_to_string('pdf/associacoes/exportarpdf/pdf.html', {'associacao': associacao, 'contas': contas, 'dataAtual': data_atual, 'usuarioLogado': usuario_logado})
+        html_string = render_to_string('pdf/associacoes/exportarpdf/pdf.html', {'associacao': associacao, 'contas': contas, 'dataAtual': data_atual, 'usuarioLogado': usuario_logado}).encode(encoding="UTF-8")
 
-        html = HTML(string=html_string)
+        html_pdf = HTML(string=html_string, base_url=self.request.build_absolute_uri()).write_pdf()
 
-        result = BytesIO(html.write_pdf())
-
-        filename = 'associacao.pdf'
         response = HttpResponse(
-            result,
-            content_type='application/text;'
+            html_pdf,
+            content_type='application/pdf;'
         )
-        response['Content-Disposition'] = 'inline; filename=%s' % filename
+        response['Content-Disposition'] = 'filename="associacao.pdf"'
 
         return response
 
