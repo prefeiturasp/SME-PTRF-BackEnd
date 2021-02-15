@@ -1,8 +1,10 @@
 import logging
+from datetime import date
 from io import BytesIO
 
 from django.db.models import Q
 from django.http import HttpResponse
+from django.template.loader import render_to_string
 from django_filters import rest_framework as filters
 from openpyxl.writer.excel import save_virtual_workbook
 from rest_framework import mixins, status
@@ -12,6 +14,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from weasyprint import HTML
 
 from sme_ptrf_apps.users.permissoes import (
     PermissaoAssociacao,
@@ -22,6 +25,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoSituacaoFinanceira,
     PermissaoVerConciliacaoBancaria,
 )
+from ....conftest import jwt_authenticated_client
 
 from ....dre.services import (
     desmarca_item_verificacao_associacao,
@@ -336,6 +340,26 @@ class AssociacoesViewSet(ModelViewSet):
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
+        return response
+
+    @action(detail=True, methods=['get'], url_path='exportar-pdf', permission_classes=[]) #IsAuthenticated & PermissaoExportarDadosAssociacao])
+    def exportarpdf(self, _, uuid=None):
+
+        data_atual = date.today().strftime("%d-%m-%Y")
+        usuario_logado = self.request.user
+        associacao = Associacao.by_uuid(uuid)
+        contas = list(ContaAssociacao.objects.filter(associacao=associacao).all())
+
+        html_string = render_to_string('pdf/associacoes/exportarpdf/pdf.html', {'associacao': associacao, 'contas': contas, 'dataAtual': data_atual, 'usuarioLogado': usuario_logado}).encode(encoding="UTF-8")
+
+        html_pdf = HTML(string=html_string, base_url=self.request.build_absolute_uri()).write_pdf()
+
+        response = HttpResponse(
+            html_pdf,
+            content_type='application/pdf;'
+        )
+        response['Content-Disposition'] = 'filename="associacao.pdf"'
 
         return response
 
