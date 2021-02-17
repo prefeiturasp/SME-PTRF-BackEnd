@@ -6,12 +6,12 @@ from sme_ptrf_apps.core.services.carga_associacoes import carrega_associacoes
 
 from ...models import Associacao
 from ...models.arquivo import (
-    CARGA_ASSOCIACOES,
     DELIMITADOR_PONTO_VIRGULA,
     DELIMITADOR_VIRGULA,
-    SUCESSO,
     ERRO,
     PROCESSADO_COM_ERRO)
+
+from sme_ptrf_apps.core.choices.tipos_carga import CARGA_ASSOCIACOES
 
 pytestmark = pytest.mark.django_db
 

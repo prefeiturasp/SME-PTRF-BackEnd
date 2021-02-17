@@ -31,7 +31,7 @@ class ArquivoViewSet(ModelViewSet):
 
         data_execucao = self.request.query_params.get('data_execucao')
         if data_execucao is not None:
-            qs = qs.filter(ultima_execucao=data_execucao)
+            qs = qs.filter(ultima_execucao__date=data_execucao)
 
         identificador = self.request.query_params.get('identificador')
         if identificador is not None:
