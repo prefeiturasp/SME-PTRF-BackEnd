@@ -6,11 +6,12 @@ from sme_ptrf_apps.core.services.carga_censo import carrega_censo
 from sme_ptrf_apps.core.models import Censo
 
 from sme_ptrf_apps.core.models.arquivo import (
-    CARGA_CENSO,
     DELIMITADOR_PONTO_VIRGULA,
     DELIMITADOR_VIRGULA,
     ERRO,
     PROCESSADO_COM_ERRO)
+
+from sme_ptrf_apps.core.choices.tipos_carga import CARGA_CENSO
 
 pytestmark = pytest.mark.django_db
 

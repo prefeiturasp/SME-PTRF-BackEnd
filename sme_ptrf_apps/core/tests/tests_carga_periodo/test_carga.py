@@ -6,11 +6,12 @@ from sme_ptrf_apps.core.services.periodo_inicial import carrega_periodo_inicial
 
 
 from sme_ptrf_apps.core.models.arquivo import (
-    CARGA_PERIODO_INICIAL,
     DELIMITADOR_PONTO_VIRGULA,
     DELIMITADOR_VIRGULA,
     ERRO,
     PROCESSADO_COM_ERRO)
+
+from sme_ptrf_apps.core.choices.tipos_carga import CARGA_PERIODO_INICIAL
 
 pytestmark = pytest.mark.django_db
 

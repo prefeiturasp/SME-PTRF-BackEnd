@@ -29,3 +29,4 @@ from .comentario_analise_prestacao import ComentarioAnalisePrestacao
 from .previsao_repasse_sme import PrevisaoRepasseSme
 from .censo import Censo
 from .parametro_fique_de_olho_pc import ParametroFiqueDeOlhoPc
+from .modelo_carga import ModeloCarga

@@ -956,7 +956,15 @@ def tipo_custeio():
 
 @pytest.fixture
 def tipo_custeio_material():
-    return baker.make('TipoCusteio', nome='Material')
+    return baker.make('TipoCusteio', nome='Material 02')
+
+@pytest.fixture
+def tipo_custeio_servico():
+    return baker.make('TipoCusteio', nome='Servico')
+
+@pytest.fixture
+def tipo_custeio_tributos_e_tarifas():
+    return baker.make('TipoCusteio', nome='tributos e tarifas')
 
 
 @pytest.fixture
@@ -1107,7 +1115,7 @@ def rateio_no_periodo_1500_capital(associacao, despesa_no_periodo, conta_associa
 @pytest.fixture
 def rateio_no_periodo_10_custeio_outra_acao(associacao, despesa_no_periodo, conta_associacao, acao,
                                             tipo_aplicacao_recurso_custeio,
-                                            tipo_custeio_material,
+                                            tipo_custeio_servico,
                                             especificacao_material_eletrico, acao_associacao_role_cultural):
     return baker.make(
         'RateioDespesa',
@@ -1116,7 +1124,7 @@ def rateio_no_periodo_10_custeio_outra_acao(associacao, despesa_no_periodo, cont
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao_role_cultural,
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
-        tipo_custeio=tipo_custeio_material,
+        tipo_custeio=tipo_custeio_servico,
         especificacao_material_servico=especificacao_material_eletrico,
         valor_rateio=100.00
 
@@ -1167,7 +1175,7 @@ def despesa_fora_periodo(associacao, tipo_documento, tipo_transacao, periodo):
 @pytest.fixture
 def rateio_fora_periodo_50_custeio(associacao, despesa_fora_periodo, conta_associacao, acao,
                                    tipo_aplicacao_recurso_custeio,
-                                   tipo_custeio_material,
+                                   tipo_custeio_tributos_e_tarifas,
                                    especificacao_material_eletrico, acao_associacao):
     return baker.make(
         'RateioDespesa',
@@ -1176,7 +1184,7 @@ def rateio_fora_periodo_50_custeio(associacao, despesa_fora_periodo, conta_assoc
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
-        tipo_custeio=tipo_custeio_material,
+        tipo_custeio=tipo_custeio_tributos_e_tarifas,
         especificacao_material_servico=especificacao_material_eletrico,
         valor_rateio=50.00
 
