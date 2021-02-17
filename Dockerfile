@@ -1,4 +1,5 @@
-FROM python:3.6-alpine3.8
+# FROM python:3.6-alpine3.8
+FROM python:3.6-buster
 ENV PYTHONUNBUFFERED 1
 ADD . /code
 WORKDIR /code
@@ -22,7 +23,7 @@ RUN apk update && apk add postgresql-dev tzdata && \
   tk-dev \
   tcl-dev \
   harfbuzz-dev \
-  libffi-dev cairo-dev pango-dev gdk-pixbuf-dev \
+  # libffi-dev cairo-dev pango-dev gdk-pixbuf-dev \
   fribidi-dev && \
   python -m pip --no-cache install -U pip && \
   #    python -m pip --no-cache install Cython && \
