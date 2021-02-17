@@ -22,6 +22,7 @@ RUN apk update && apk add postgresql-dev tzdata && \
   tk-dev \
   tcl-dev \
   harfbuzz-dev \
+  bash cairo pango gdk-pixbuf py3-cffi py3-pillow py-lxml \
   fribidi-dev && \
   python -m pip --no-cache install -U pip && \
   #    python -m pip --no-cache install Cython && \
