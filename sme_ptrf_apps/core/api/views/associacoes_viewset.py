@@ -25,7 +25,6 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoSituacaoFinanceira,
     PermissaoVerConciliacaoBancaria,
 )
-from ....conftest import jwt_authenticated_client
 
 from ....dre.services import (
     desmarca_item_verificacao_associacao,
