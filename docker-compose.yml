@@ -13,10 +13,11 @@ services:
   api_ptrf:
     container_name: api-ptrf
     build: .
-    env_file: 
+    env_file:
         - .env
     # image: api_ptrf
-    command: "gunicorn config.wsgi:application --bind=0.0.0.0:8001 -w 8"
+    #command: "gunicorn config.wsgi:application --bind=0.0.0.0:8001 -w 8"
+    command: "python manage.py runserver 0.0.0.0:8001"
     ports:
       - 8001:8001
     depends_on:
@@ -25,8 +26,8 @@ services:
     volumes:
       - ./staticfiles:/code/staticfiles
     links:
-    - db:db   
-    
+    - db:db
+
   celery_ptrf:
     build: .
     container_name: celery-ptrf
