@@ -19,7 +19,10 @@ logger = logging.getLogger(__name__)
 
 @shared_task(
     retry_backoff=2,
-    retry_kwargs={'max_retries': 8},)
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
 def concluir_prestacao_de_contas_async(periodo_uuid, associacao_uuid):
     from sme_ptrf_apps.core.services.prestacao_contas_services import _criar_documentos, _criar_fechamentos
 
