@@ -28,21 +28,23 @@ class ObservacaoConciliacao(ModeloBase):
         return self.texto[:30]
 
     @classmethod
-    def criar_atualizar(cls, periodo, conta_associacao, lista_observacoes=None):
-        if lista_observacoes:
-            for obs_data in lista_observacoes:
-                observacao = cls.objects.filter(
-                    periodo=periodo, conta_associacao=conta_associacao).first()
-                if observacao:
-                    if obs_data['observacao']:
-                        observacao.texto = obs_data['observacao']
-                        observacao.save()
-                    else:
-                        observacao.delete()
-                elif obs_data['observacao']:
-                    cls.objects.create(
-                        periodo=periodo,
-                        conta_associacao=conta_associacao,
-                        associacao=conta_associacao.associacao,
-                        texto=obs_data['observacao']
-                    )
+    def criar_atualizar(cls, periodo, conta_associacao, texto_observacao="", data_extrato=None, saldo_extrato=0.0):
+
+        observacao = cls.objects.filter(periodo=periodo, conta_associacao=conta_associacao).first()
+        if observacao:
+            if texto_observacao or data_extrato or saldo_extrato:
+                observacao.texto = texto_observacao
+                observacao.data_extrato = data_extrato
+                observacao.saldo_extrato = saldo_extrato
+                observacao.save()
+            else:
+                observacao.delete()
+        elif texto_observacao or data_extrato or saldo_extrato:
+            cls.objects.create(
+                periodo=periodo,
+                conta_associacao=conta_associacao,
+                associacao=conta_associacao.associacao,
+                texto=texto_observacao,
+                data_extrato=data_extrato,
+                saldo_extrato=saldo_extrato
+            )

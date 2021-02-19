@@ -267,11 +267,22 @@ class ConciliacoesViewSet(GenericViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        observacoes = request.data.get('observacoes')
+        # Define a data e saldo do extrato
+        data_extrato = request.data.get('data_extrato', None)
+        saldo_extrato = request.data.get('saldo_extrato', 0.0)
 
-        ObservacaoConciliacao.criar_atualizar(periodo=periodo, conta_associacao=conta_associacao, lista_observacoes=observacoes)
+        # Define texto
+        texto_observacao = request.data.get('observacao')
 
-        return Response({'mensagem': 'observacoes gravadas'},status=status.HTTP_200_OK)
+        ObservacaoConciliacao.criar_atualizar(
+            periodo=periodo,
+            conta_associacao=conta_associacao,
+            texto_observacao=texto_observacao,
+            data_extrato=data_extrato,
+            saldo_extrato=saldo_extrato
+        )
+
+        return Response({'mensagem': 'Informações gravadas'}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='observacoes')
     def observacoes(self, request):
@@ -315,10 +326,15 @@ class ConciliacoesViewSet(GenericViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        observacoes = ObservacaoConciliacao.objects.filter(periodo=periodo, conta_associacao=conta_associacao).all()
-        result = []
-        if observacoes:
-            for obs in observacoes:
-                result.append({'observacao': obs.texto})
+        observacao = ObservacaoConciliacao.objects.filter(periodo=periodo, conta_associacao=conta_associacao).first()
+
+        result = {}
+
+        if observacao:
+            result = {
+                'observacao': observacao.texto,
+                'data_extrato': observacao.data_extrato,
+                'saldo_extrato': observacao.saldo_extrato
+            }
 
         return Response(result, status=status.HTTP_200_OK)

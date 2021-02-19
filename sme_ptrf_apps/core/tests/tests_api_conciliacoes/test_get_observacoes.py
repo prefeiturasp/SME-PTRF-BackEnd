@@ -83,7 +83,7 @@ def test_api_get_observacoes_lista_vazia(jwt_authenticated_client_obervacao,
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == []
+    assert result == {}
 
 
 def test_api_get_observacoes(jwt_authenticated_client_obervacao,
@@ -100,8 +100,8 @@ def test_api_get_observacoes(jwt_authenticated_client_obervacao,
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == [
-        {
-            'observacao': 'Uma bela observação.'
-        }
-    ]
+    assert result == {
+        'observacao': 'Uma bela observação.',
+        'data_extrato': '2020-07-01',
+        'saldo_extrato': 1000.0
+    }
