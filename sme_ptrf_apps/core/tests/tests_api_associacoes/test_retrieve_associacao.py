@@ -57,6 +57,7 @@ def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, preside
 
         mock_patch.return_value = None
 
+
         result_esperado = {
             'uuid': f'{associacao.uuid}',
             'id': associacao.id,
@@ -69,7 +70,11 @@ def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, preside
             'presidente_associacao': {
                 'nome': presidente_associacao.nome,
                 'email': presidente_associacao.email,
-                'cargo_educacao': presidente_associacao.cargo_educacao
+                'cargo_educacao': presidente_associacao.cargo_educacao,
+                'bairro': '',
+                'cep': '',
+                'endereco': '',
+                'telefone': ''
             },
             'presidente_conselho_fiscal': {
                 'nome': presidente_conselho_fiscal.nome,
@@ -114,7 +119,6 @@ def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, preside
                 'diretor_nome': f'{associacao.unidade.diretor_nome}',
             },
         }
-
         assert response.status_code == status.HTTP_200_OK
         assert result == result_esperado
 
@@ -233,7 +237,11 @@ def test_api_retrieve_associacao_apenas_com_permissao_ver_dados_unidade_dre(jwt_
             'presidente_associacao': {
                 'nome': presidente_associacao.nome,
                 'email': presidente_associacao.email,
-                'cargo_educacao': presidente_associacao.cargo_educacao
+                'cargo_educacao': presidente_associacao.cargo_educacao,
+                'bairro': '',
+                'cep': '',
+                'endereco': '',
+                'telefone': ''
             },
             'presidente_conselho_fiscal': {
                 'nome': presidente_conselho_fiscal.nome,
