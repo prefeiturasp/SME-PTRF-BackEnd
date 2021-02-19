@@ -1,35 +1,8 @@
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.core.choices.tipos_carga import CARGA_CHOICES, CARGA_REPASSE_REALIZADO
 
-# Status Choice
-CARGA_REPASSE_REALIZADO = 'REPASSE_REALIZADO'
-CARGA_PERIODO_INICIAL = 'CARGA_PERIODO_INICIAL'
-CARGA_REPASSE_PREVISTO = 'REPASSE_PREVISTO'
-CARGA_ASSOCIACOES = 'CARGA_ASSOCIACOES'
-CARGA_USUARIOS = 'CARGA_USUARIOS'
-CARGA_CENSO = 'CARGA_CENSO'
-CARGA_REPASSE_PREVISTO_SME = 'CARGA_REPASSE_PREVISTO_SME'
-
-CARGA_NOMES = {
-    CARGA_REPASSE_REALIZADO: 'Repasses realizados',
-    CARGA_PERIODO_INICIAL: 'Carga período inicial',
-    CARGA_REPASSE_PREVISTO: 'Repasses previstos',
-    CARGA_ASSOCIACOES: 'Carga de Associações',
-    CARGA_USUARIOS: 'Carga de usuários',
-    CARGA_CENSO: 'Carga de censo',
-    CARGA_REPASSE_PREVISTO_SME: 'Repasses previstos sme',
-}
-
-CARGA_CHOICES = (
-    (CARGA_REPASSE_REALIZADO, CARGA_NOMES[CARGA_REPASSE_REALIZADO]),
-    (CARGA_PERIODO_INICIAL, CARGA_NOMES[CARGA_PERIODO_INICIAL]),
-    (CARGA_REPASSE_PREVISTO, CARGA_NOMES[CARGA_REPASSE_PREVISTO]),
-    (CARGA_ASSOCIACOES, CARGA_NOMES[CARGA_ASSOCIACOES]),
-    (CARGA_USUARIOS, CARGA_NOMES[CARGA_USUARIOS]),
-    (CARGA_CENSO, CARGA_NOMES[CARGA_CENSO]),
-    (CARGA_REPASSE_PREVISTO_SME, CARGA_NOMES[CARGA_REPASSE_PREVISTO_SME]),
-)
 
 # Delimitador do arquivo csv
 DELIMITADOR_PONTO_VIRGULA = 'DELIMITADOR_PONTO_VIRGULA'
@@ -50,19 +23,22 @@ PENDENTE = 'PENDENTE'
 SUCESSO = 'SUCESSO'
 ERRO = 'ERRO'
 PROCESSADO_COM_ERRO = 'PROCESSADO_COM_ERRO'
+PROCESSANDO = "PROCESSANDO"
 
-STATUS_PROCESSMENTO = {
+STATUS_PROCESSAMENTO = {
     PENDENTE: 'Pendente',
     SUCESSO: 'Sucesso',
     ERRO: 'Erro',
-    PROCESSADO_COM_ERRO: 'Processado com erro'
+    PROCESSADO_COM_ERRO: 'Processado com erro',
+    PROCESSANDO: 'Processando...'
 }
 
-STATUS_PROCESSMENTO_CHOICES = (
-    (PENDENTE, STATUS_PROCESSMENTO[PENDENTE]),
-    (SUCESSO, STATUS_PROCESSMENTO[SUCESSO]),
-    (ERRO, STATUS_PROCESSMENTO[ERRO]),
-    (PROCESSADO_COM_ERRO, STATUS_PROCESSMENTO[PROCESSADO_COM_ERRO]),
+STATUS_PROCESSAMENTO_CHOICES = (
+    (PENDENTE, STATUS_PROCESSAMENTO[PENDENTE]),
+    (SUCESSO, STATUS_PROCESSAMENTO[SUCESSO]),
+    (ERRO, STATUS_PROCESSAMENTO[ERRO]),
+    (PROCESSADO_COM_ERRO, STATUS_PROCESSAMENTO[PROCESSADO_COM_ERRO]),
+    (PROCESSANDO, STATUS_PROCESSAMENTO[PROCESSANDO]),
 )
 
 
@@ -84,7 +60,7 @@ class Arquivo(ModeloBase):
     status = models.CharField(
         'status',
         max_length=35,
-        choices=STATUS_PROCESSMENTO_CHOICES,
+        choices=STATUS_PROCESSAMENTO_CHOICES,
         default=PENDENTE
     )
     log = models.TextField(blank=True, null=True)
@@ -96,3 +72,31 @@ class Arquivo(ModeloBase):
 
     def __str__(self):
         return self.identificador
+
+    def inicia_processamento(self):
+        self.status = PROCESSANDO
+        self.save()
+
+    @classmethod
+    def status_to_json(cls):
+        return [{
+                'id': choice[0],
+                'nome': choice[1]
+                }
+                for choice in STATUS_PROCESSAMENTO_CHOICES]
+
+    @classmethod
+    def tipos_cargas_to_json(cls):
+        return [{
+                'id': choice[0],
+                'nome': choice[1]
+                }
+                for choice in CARGA_CHOICES]
+
+    @classmethod
+    def delimitadores_to_json(cls):
+        return [{
+                'id': choice[0],
+                'nome': choice[1]
+                }
+                for choice in DELIMITADOR_CHOICES]

@@ -28,7 +28,8 @@ def test_api_get_despesas_tabelas(associacao, jwt_authenticated_client_d, tipo_a
         'tipos_custeio': [
             {
                 'id': tipo_custeio.id,
-                'nome': tipo_custeio.nome
+                'nome': tipo_custeio.nome,
+                'uuid': f'{tipo_custeio.uuid}'
             },
         ],
 
@@ -55,7 +56,7 @@ def test_api_get_despesas_tabelas(associacao, jwt_authenticated_client_d, tipo_a
                 'id': acao_associacao.id,
                 'nome': acao_associacao.acao.nome,
                 'e_recursos_proprios': False
-                
+
             },
         ],
 

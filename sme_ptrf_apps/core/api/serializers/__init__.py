@@ -1,4 +1,4 @@
-from .tag_serializer import TagLookupSerializer
+from .tag_serializer import TagLookupSerializer, TagSerializer
 from .devolucao_ao_tesouro_serializer import DevolucaoAoTesouroRetrieveSerializer
 from .cobranca_prestacao_conta_serializer import CobrancaPrestacaoContaListSerializer
 from .devolucao_prestacao_conta_serializer import DevolucaoPrestacaoContaRetrieveSerializer
@@ -33,3 +33,5 @@ from .processo_associacao_serializer import ProcessoAssociacaoRetrieveSerializer
 from .tipo_conta_serializer import TipoContaSerializer
 from .unidade_serializer import UnidadeInfoAtaSerializer, UnidadeLookUpSerializer, UnidadeSerializer
 from .comentario_analise_prestacao_serializer import ComentarioAnalisePrestacaoRetrieveSerializer
+from .arquivo_serializer import ArquivoSerializer
+from .modelo_carga_serializer import ModeloCargaSerializer

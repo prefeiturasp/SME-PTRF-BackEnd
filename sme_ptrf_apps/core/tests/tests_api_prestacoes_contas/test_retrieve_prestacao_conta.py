@@ -148,9 +148,13 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
             'email': 'ollyverottoboni@gmail.com',
             'nome': 'Escola Teste',
             'presidente_associacao': {
+                'bairro': '',
                 'cargo_educacao': '',
+                'cep': '',
                 'email': '',
-                'nome': ''
+                'endereco': '',
+                'nome': '',
+                'telefone': ''
             },
             'presidente_conselho_fiscal': {
                 'cargo_educacao': '',

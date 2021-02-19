@@ -2,13 +2,14 @@ import csv
 import logging
 import datetime
 
+from text_unidecode import unidecode
+
 from brazilnum.cnpj import validate_cnpj, format_cnpj
 
 from ..models import Associacao, Unidade
 from ..models.arquivo import (
     DELIMITADOR_PONTO_VIRGULA,
     DELIMITADOR_VIRGULA,
-    PENDENTE,
     SUCESSO,
     ERRO,
     PROCESSADO_COM_ERRO)
@@ -26,23 +27,49 @@ class ProcessaAssociacoes:
     __SIGLA_DRE = 4
     __NOME_ASSOCIACAO = 5
     __CNPJ_ASSOCIACAO = 6
-    __RF_PRESIDENTE_DIRETORIA = 7
-    __NOME_PRESIDENTE_DIRETORIA = 8
-    __RF_PRESIDENTE_CONSELHO = 9
-    __NOME_PRESIDENTE_CONSELHO = 10
+
+    __CABECALHOS = {
+        __EOL_UE: "Codigo EOL UE",
+        __NOME_UE: "Nome UE",
+        __EOL_DRE: "Codigo EOL DRE",
+        __NOME_DRE: "Nome da DRE UE",
+        __SIGLA_DRE: "Sigla DRE",
+        __NOME_ASSOCIACAO: "Nome da associacao",
+        __CNPJ_ASSOCIACAO: "CNPJ da associacao",
+    }
 
     logs = ""
 
+    @classmethod
+    def cabecalho_correto(cls, cabecalho):
+        estrutura_correta = True
+        for coluna, nome in cls.__CABECALHOS.items():
+            titulo_coluna_arquivo = unidecode(cabecalho[coluna])
+            titulo_coluna_modelo = unidecode(nome)
+            if titulo_coluna_arquivo != titulo_coluna_modelo:
+                msg_erro = (f'Título da coluna {coluna} errado. Encontrado "{cabecalho[coluna]}". '
+                            f'Deveria ser "{nome}". Confira o arquivo com o modelo.')
+                logger.error(msg_erro)
+                cls.logs = f"{cls.logs}\n{msg_erro}"
+                estrutura_correta = False
+                break
+        return estrutura_correta
 
     @classmethod
     def processa_associacoes(cls, reader, arquivo):
+        cls.logs = ""
+
         logger.info(f'Carregando arquivo de associações...')
 
         importadas = 0
         erros = 0
         for lin, row in enumerate(reader):
             if lin == 0:
-                continue  # Pula cabeçalho.
+                # Verifica se o cabeçalho está correto. Caso contrário interrompe o processamento.
+                if cls.cabecalho_correto(cabecalho=row):
+                    continue  # Pula o cabeçalho e continua.
+                else:
+                    break
 
             logger.debug(f'Linha {lin}: {row}')
 
@@ -134,6 +161,7 @@ class ProcessaAssociacoes:
 
         return associacao
 
+
 def carrega_associacoes(arquivo):
     logger.info("Processando arquivo %s", arquivo.identificador)
     arquivo.ultima_execucao = datetime.datetime.now()
@@ -143,7 +171,8 @@ def carrega_associacoes(arquivo):
             sniffer = csv.Sniffer().sniff(f.readline())
             f.seek(0)
             if __DELIMITADORES[sniffer.delimiter] != arquivo.tipo_delimitador:
-                msg_erro = f"Formato definido ({arquivo.tipo_delimitador}) é diferente do formato do arquivo csv ({__DELIMITADORES[sniffer.delimiter]})"
+                msg_erro = (f"Formato definido ({arquivo.tipo_delimitador}) é diferente do formato "
+                            f"do arquivo csv ({__DELIMITADORES[sniffer.delimiter]})")
                 logger.error(msg_erro)
                 arquivo.status = ERRO
                 arquivo.log = msg_erro

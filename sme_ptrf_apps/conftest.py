@@ -956,7 +956,15 @@ def tipo_custeio():
 
 @pytest.fixture
 def tipo_custeio_material():
-    return baker.make('TipoCusteio', nome='Material')
+    return baker.make('TipoCusteio', nome='Material 02')
+
+@pytest.fixture
+def tipo_custeio_servico():
+    return baker.make('TipoCusteio', nome='Servico')
+
+@pytest.fixture
+def tipo_custeio_tributos_e_tarifas():
+    return baker.make('TipoCusteio', nome='tributos e tarifas')
 
 
 @pytest.fixture
@@ -1107,7 +1115,7 @@ def rateio_no_periodo_1500_capital(associacao, despesa_no_periodo, conta_associa
 @pytest.fixture
 def rateio_no_periodo_10_custeio_outra_acao(associacao, despesa_no_periodo, conta_associacao, acao,
                                             tipo_aplicacao_recurso_custeio,
-                                            tipo_custeio_material,
+                                            tipo_custeio_servico,
                                             especificacao_material_eletrico, acao_associacao_role_cultural):
     return baker.make(
         'RateioDespesa',
@@ -1116,7 +1124,7 @@ def rateio_no_periodo_10_custeio_outra_acao(associacao, despesa_no_periodo, cont
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao_role_cultural,
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
-        tipo_custeio=tipo_custeio_material,
+        tipo_custeio=tipo_custeio_servico,
         especificacao_material_servico=especificacao_material_eletrico,
         valor_rateio=100.00
 
@@ -1167,7 +1175,7 @@ def despesa_fora_periodo(associacao, tipo_documento, tipo_transacao, periodo):
 @pytest.fixture
 def rateio_fora_periodo_50_custeio(associacao, despesa_fora_periodo, conta_associacao, acao,
                                    tipo_aplicacao_recurso_custeio,
-                                   tipo_custeio_material,
+                                   tipo_custeio_tributos_e_tarifas,
                                    especificacao_material_eletrico, acao_associacao):
     return baker.make(
         'RateioDespesa',
@@ -1176,7 +1184,7 @@ def rateio_fora_periodo_50_custeio(associacao, despesa_fora_periodo, conta_assoc
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         aplicacao_recurso=tipo_aplicacao_recurso_custeio,
-        tipo_custeio=tipo_custeio_material,
+        tipo_custeio=tipo_custeio_tributos_e_tarifas,
         especificacao_material_servico=especificacao_material_eletrico,
         valor_rateio=50.00
 
@@ -1200,12 +1208,14 @@ def parametro_fique_de_olho_pc():
         fique_de_olho='',
     )
 
+
 @pytest.fixture
 def parametro_fique_de_olho_pc_texto_abc():
     return baker.make(
         'ParametroFiqueDeOlhoPc',
         fique_de_olho='abc',
     )
+
 
 @pytest.fixture
 def parametros_aceita_saldo_negativo_em_conta():
@@ -1259,6 +1269,7 @@ def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
         parecer_conselho='APROVADA'
     )
 
+
 @pytest.fixture
 def ata_2020_1_retificacao(prestacao_conta_2020_1_conciliada):
     return baker.make(
@@ -1280,6 +1291,7 @@ def ata_2020_1_retificacao(prestacao_conta_2020_1_conciliada):
         retificacoes='Teste'
     )
 
+
 @pytest.fixture
 def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
     return baker.make(
@@ -1299,6 +1311,7 @@ def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
         comentarios='Teste',
         parecer_conselho='APROVADA'
     )
+
 
 @pytest.fixture
 def ata_retificacao_prestacao_conta_iniciada(prestacao_conta_iniciada):
@@ -1320,6 +1333,7 @@ def ata_retificacao_prestacao_conta_iniciada(prestacao_conta_iniciada):
         parecer_conselho='APROVADA'
     )
 
+
 @pytest.fixture
 def membro_associacao(associacao):
     return baker.make(
@@ -1331,7 +1345,11 @@ def membro_associacao(associacao):
         representacao=RepresentacaoCargo.SERVIDOR.value,
         codigo_identificacao='567432',
         email='ollyverottoboni@gmail.com',
-        cpf='148.712.970-04'
+        cpf='148.712.970-04',
+        telefone='11992137854',
+        cep='04302000',
+        bairro='Vila da Saúde',
+        endereco='Rua Apotribu, 57 - apto 12'
     )
 
 
@@ -1371,7 +1389,11 @@ def payload_membro_servidor(associacao):
         'cargo_associacao': MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name,
         'cargo_educacao': 'Coordenador',
         'representacao': RepresentacaoCargo.SERVIDOR.name,
-        'codigo_identificacao': '567432'
+        'codigo_identificacao': '567432',
+        'telefone': '11992137854',
+        'cep': '04302000',
+        'bairro': 'Vila da Saúde',
+        'endereco': 'Rua Apotribu, 57 - apto 12',
     }
     return payload
 

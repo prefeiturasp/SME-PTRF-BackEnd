@@ -6,12 +6,14 @@ from sme_ptrf_apps.core.services.carga_previsao_repasse import carrega_previsoes
 
 from ...models import PrevisaoRepasseSme
 from ...models.arquivo import (
-    CARGA_REPASSE_PREVISTO_SME,
     DELIMITADOR_PONTO_VIRGULA,
     DELIMITADOR_VIRGULA,
     SUCESSO,
     ERRO,
     PROCESSADO_COM_ERRO)
+
+
+from sme_ptrf_apps.core.choices.tipos_carga import CARGA_REPASSE_PREVISTO_SME
 
 pytestmark = pytest.mark.django_db
 
@@ -24,21 +26,21 @@ def arquivo():
 
 
 @pytest.fixture
-def arquivoProcessado():
+def arquivo_processado():
     return SimpleUploadedFile(
         f'arquivo1.csv',
         bytes(f"""Código eol,Conta,Ação,Referência Período, Valor capital,Valor custeio,Valor livre aplicacao\n123456,Cheque,PTRF,2019.2,99000.98,99000.98,\n93238,Cheque,Role Cultural,2020.u,99000.98,99000.98,""", encoding="utf-8"))
 
 
 @pytest.fixture
-def arquivoProcessadoComDuasAcoes():
+def arquivo_processado_com_duas_acoes():
     return SimpleUploadedFile(
         f'arquivo2.csv',
         bytes(f"""Código eol,Conta,Ação,Referência Período, Valor capital,Valor custeio,Valor livre aplicacao\n123456,Cheque,PTRF,2019.2,99000.98,99000.98,\n123456,Cheque,Rolê Cultural,2019.2,1000,2000,""", encoding="utf-8"))
 
 
 @pytest.fixture
-def arquivoCarga(arquivo):
+def arquivo_carga(arquivo):
     return baker.make(
         'Arquivo',
         identificador='carga_previsao_repasse',
@@ -49,7 +51,7 @@ def arquivoCarga(arquivo):
 
 
 @pytest.fixture
-def arquivoCargaVirgula(arquivo):
+def arquivo_carga_virgula(arquivo):
     return baker.make(
         'Arquivo',
         identificador='carga_previsao_repasse',
@@ -60,55 +62,56 @@ def arquivoCargaVirgula(arquivo):
 
 
 @pytest.fixture
-def arquivoCargaVirgulaProcessado(arquivoProcessado):
+def arquivo_carga_virgula_processado(arquivo_processado):
     return baker.make(
         'Arquivo',
         identificador='carga_previsao_repasse',
-        conteudo=arquivoProcessado,
+        conteudo=arquivo_processado,
         tipo_carga=CARGA_REPASSE_PREVISTO_SME,
         tipo_delimitador=DELIMITADOR_VIRGULA
     )
 
 
 @pytest.fixture
-def arquivoCargaVirgulaProcessadoComDuasAcoes(arquivoProcessadoComDuasAcoes):
+def arquivo_carga_virgula_processado_com_duas_acoes(arquivo_processado_com_duas_acoes):
     return baker.make(
         'Arquivo',
         identificador='carga_previsao_repasse',
-        conteudo=arquivoProcessadoComDuasAcoes,
+        conteudo=arquivo_processado_com_duas_acoes,
         tipo_carga=CARGA_REPASSE_PREVISTO_SME,
         tipo_delimitador=DELIMITADOR_VIRGULA
     )
 
 
-def test_carga_com_erro_formatacao(arquivoCarga):
-    carrega_previsoes_repasses(arquivoCarga)
-    assert arquivoCarga.log == 'Formato definido (DELIMITADOR_PONTO_VIRGULA) é diferente do formato do arquivo csv (DELIMITADOR_VIRGULA)'
-    assert arquivoCarga.status == ERRO
+def test_carga_com_erro_formatacao(arquivo_carga):
+    carrega_previsoes_repasses(arquivo_carga)
+    assert arquivo_carga.log == 'Formato definido (DELIMITADOR_PONTO_VIRGULA) é diferente do formato do arquivo csv (DELIMITADOR_VIRGULA)'
+    assert arquivo_carga.status == ERRO
 
 
-def test_carga_com_erro(arquivoCargaVirgula):
-    carrega_previsoes_repasses(arquivoCargaVirgula)
+def test_carga_com_erro(arquivo_carga_virgula):
+    carrega_previsoes_repasses(arquivo_carga_virgula)
     msg = """\nAssociação com código eol: 93238 não encontrado. Linha 1\nImportados 0 previsões de repasse. Erro na importação de 1 previsões."""
-    assert arquivoCargaVirgula.log == msg
-    assert arquivoCargaVirgula.status == ERRO
+    assert arquivo_carga_virgula.log == msg
+    assert arquivo_carga_virgula.status == ERRO
 
 
-def test_carga_processado_com_erro(arquivoCargaVirgulaProcessado, periodo, associacao, conta_associacao, acao_associacao):
+def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao, conta_associacao, acao_associacao):
     assert not PrevisaoRepasseSme.objects.exists()
-    carrega_previsoes_repasses(arquivoCargaVirgulaProcessado)
+    carrega_previsoes_repasses(arquivo_carga_virgula_processado)
     msg = """\nAssociação com código eol: 93238 não encontrado. Linha 2\nImportados 1 previsões de repasse. Erro na importação de 1 previsões."""
-    assert arquivoCargaVirgulaProcessado.log == msg
-    assert arquivoCargaVirgulaProcessado.status == PROCESSADO_COM_ERRO
+    assert arquivo_carga_virgula_processado.log == msg
+    assert arquivo_carga_virgula_processado.status == PROCESSADO_COM_ERRO
     assert PrevisaoRepasseSme.objects.exists()
 
 
-def test_carga_processado_com_sucesso(arquivoCargaVirgulaProcessadoComDuasAcoes, periodo, associacao, conta_associacao, acao_associacao, acao_associacao_role_cultural):
+def test_carga_processado_com_sucesso(arquivo_carga_virgula_processado_com_duas_acoes, periodo, associacao,
+                                      conta_associacao, acao_associacao, acao_associacao_role_cultural):
     from decimal import Decimal
     assert not PrevisaoRepasseSme.objects.exists()
-    carrega_previsoes_repasses(arquivoCargaVirgulaProcessadoComDuasAcoes)
+    carrega_previsoes_repasses(arquivo_carga_virgula_processado_com_duas_acoes)
     msg = """\nImportados 1 previsões de repasse. Erro na importação de 0 previsões."""
-    assert arquivoCargaVirgulaProcessadoComDuasAcoes.log == msg
-    assert arquivoCargaVirgulaProcessadoComDuasAcoes.status == SUCESSO
+    assert arquivo_carga_virgula_processado_com_duas_acoes.log == msg
+    assert arquivo_carga_virgula_processado_com_duas_acoes.status == SUCESSO
     assert len(PrevisaoRepasseSme.objects.all()) == 1
     assert PrevisaoRepasseSme.objects.first().valor_capital == Decimal("100000.98")

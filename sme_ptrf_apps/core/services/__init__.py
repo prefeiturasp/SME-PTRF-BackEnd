@@ -22,6 +22,6 @@ from .prestacao_contas_services import (
     lista_prestacoes_de_conta_nao_recebidas,
     reabrir_prestacao_de_contas,
 )
-from .processa_cargas import processa_cargas
+from .processa_cargas import processa_cargas, processa_carga
 from .unidade_service import atualiza_dados_unidade, consulta_unidade, monta_unidade_para_atribuicao
 from .acoes_associacoes_service import associacoes_nao_vinculadas_a_acao

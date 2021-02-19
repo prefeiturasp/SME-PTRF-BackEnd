@@ -56,13 +56,21 @@ class Associacao(ModeloIdNome):
             return {
                 'nome': cargo.nome,
                 'email': cargo.email,
-                'cargo_educacao': cargo.cargo_educacao
+                'cargo_educacao': cargo.cargo_educacao,
+                'telefone': cargo.telefone,
+                'endereco': cargo.endereco,
+                'bairro': cargo.bairro,
+                'cep': cargo.cep
             }
         else:
             return {
                 'nome': '',
                 'email': '',
-                'cargo_educacao': ''
+                'cargo_educacao': '',
+                'telefone': '',
+                'endereco': '',
+                'bairro': '',
+                'cep': ''
             }
 
     @property

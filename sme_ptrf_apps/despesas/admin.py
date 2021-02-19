@@ -5,7 +5,6 @@ from .models import TipoTransacao, TipoDocumento, TipoCusteio, EspecificacaoMate
     Fornecedor
 
 admin.site.register(TipoDocumento)
-admin.site.register(TipoCusteio)
 
 
 def customTitledFilter(title):
@@ -16,6 +15,12 @@ def customTitledFilter(title):
             return instance
 
     return Wrapper
+
+
+@admin.register(TipoCusteio)
+class TipoCusteioAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'id', 'uuid')
+    readonly_fields = ('id', 'uuid')
 
 
 @admin.register(RateioDespesa)

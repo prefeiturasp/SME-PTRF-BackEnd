@@ -23,12 +23,16 @@ from sme_ptrf_apps.core.api.views import (
     TiposContaViewSet,
     ComentariosAnalisesPrestacoesViewSet,
     AcaoAssociacaoViewSet,
-    AcoesViewSet
+    AcoesViewSet,
+    ArquivoViewSet,
+    TagsViewSet,
+    ModelosCargasViewSet
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
 from sme_ptrf_apps.despesas.api.views.fornecedores_viewset import FornecedoresViewSet
 from sme_ptrf_apps.despesas.api.views.rateios_despesas_viewset import RateiosDespesasViewSet
+from sme_ptrf_apps.despesas.api.views.tipos_custeio_viewset import TiposCusteioViewSet
 from sme_ptrf_apps.dre.api.views import (FaqCategoriasViewSet, FaqsViewSet, TecnicosDreViewSet, AtribuicaoViewset,
                                          RelatoriosConsolidadosDREViewSet,
                                          JustificativasRelatoriosConsolidadosDreViewSet, MotivoAprovacaoRessalvaViewSet)
@@ -80,6 +84,11 @@ router.register("justificativas-relatorios-consolidados-dre", JustificativasRela
 router.register("motivos-aprovacao-ressalva", MotivoAprovacaoRessalvaViewSet)
 router.register("acoes-associacoes", AcaoAssociacaoViewSet)
 router.register("acoes", AcoesViewSet)
+router.register("arquivos", ArquivoViewSet)
+router.register("tags", TagsViewSet)
+router.register("modelos-cargas", ModelosCargasViewSet)
+router.register("tipos-custeio", TiposCusteioViewSet)
+
 app_name = "api"
 urlpatterns = router.urls
 urlpatterns += [
