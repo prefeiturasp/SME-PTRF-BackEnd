@@ -1,6 +1,9 @@
 import json
 
 import pytest
+
+from datetime import date
+
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import status
@@ -15,8 +18,8 @@ pytestmark = pytest.mark.django_db
 def permissoes_salvar_conciliacao_bancaria():
     permissoes = [
         Permission.objects.create(
-            name="Editar conciliação bancária", 
-            codename='change_conciliacao_bancaria', 
+            name="Editar conciliação bancária",
+            codename='change_conciliacao_bancaria',
             content_type=ContentType.objects.filter(app_label="auth").first()
         ),
     ]
@@ -71,17 +74,15 @@ def jwt_authenticated_client_salvar_obervacao(client, usuario_permissao_salvar_c
     return api_client
 
 
-def test_api_salva_observacoes_conciliacao(jwt_authenticated_client_salvar_obervacao, periodo, conta_associacao_cartao, acao_associacao_ptrf):
+def test_api_salva_observacoes_conciliacao(jwt_authenticated_client_salvar_obervacao, periodo, conta_associacao_cartao):
     url = f'/api/conciliacoes/salvar-observacoes/'
 
-    observacao = "Teste observações."
     payload = {
         "periodo_uuid": f'{periodo.uuid}',
         "conta_associacao_uuid": f'{conta_associacao_cartao.uuid}',
-        "observacoes": [{
-            "acao_associacao_uuid": f'{acao_associacao_ptrf.uuid}',
-            "observacao": observacao
-        }]
+        "observacao": "Teste observações.",
+        "data_extrato": "2021-01-01",
+        "saldo_extrato": 1000.00,
     }
 
     response = jwt_authenticated_client_salvar_obervacao.patch(url, data=json.dumps(payload), content_type='application/json')
@@ -90,18 +91,22 @@ def test_api_salva_observacoes_conciliacao(jwt_authenticated_client_salvar_oberv
 
     assert ObservacaoConciliacao.objects.exists()
 
+    obj = ObservacaoConciliacao.objects.first()
+    assert obj.data_extrato == date(2021, 1, 1)
+    assert obj.saldo_extrato == 1000.0
+    assert obj.texto == "Teste observações."
 
-def test_api_salva_observacoes_conciliacao_vazia(jwt_authenticated_client_salvar_obervacao, periodo, conta_associacao_cartao, acao_associacao_ptrf):
+
+def test_api_salva_observacoes_conciliacao_vazia(jwt_authenticated_client_salvar_obervacao, periodo,
+                                                 conta_associacao_cartao):
     url = f'/api/conciliacoes/salvar-observacoes/'
 
-    observacao = ""
     payload = {
         "periodo_uuid": f'{periodo.uuid}',
         "conta_associacao_uuid": f'{conta_associacao_cartao.uuid}',
-        "observacoes": [{
-            "acao_associacao_uuid": f'{acao_associacao_ptrf.uuid}',
-            "observacao": observacao
-        }]
+        "observacao": "",
+        "data_extrato": "",
+        "saldo_extrato": 0,
     }
 
     response = jwt_authenticated_client_salvar_obervacao.patch(url, data=json.dumps(payload), content_type='application/json')
