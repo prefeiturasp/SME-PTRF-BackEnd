@@ -14,14 +14,15 @@ class ObservacaoConciliacao(ModeloBase):
     conta_associacao = models.ForeignKey('ContaAssociacao', on_delete=models.PROTECT,
                                          related_name='observacoes_conciliacao_da_conta', blank=True, null=True)
 
-    acao_associacao = models.ForeignKey('AcaoAssociacao', on_delete=models.PROTECT,
-                                        related_name='observacoes_conciliacao_da_acao', blank=True, null=True)
+    texto = models.TextField('Observações da conciliação', max_length=600, blank=True, null=True)
 
-    texto = models.TextField('Texto', max_length=600, blank=True, null=True)
+    data_extrato = models.DateField('data do extrato', blank=True, null=True)
+
+    saldo_extrato = models.DecimalField('saldo do extrato', max_digits=12, decimal_places=2, default=0)
 
     class Meta:
-        verbose_name = 'observação de conciliação'
-        verbose_name_plural = '09.5) Observações de conciliação'
+        verbose_name = 'informação de conciliação'
+        verbose_name_plural = '09.5) Informações de conciliação'
 
     def __str__(self):
         return self.texto[:30]
@@ -31,7 +32,6 @@ class ObservacaoConciliacao(ModeloBase):
         if lista_observacoes:
             for obs_data in lista_observacoes:
                 observacao = cls.objects.filter(
-                    acao_associacao__uuid=obs_data['acao_associacao_uuid'],
                     periodo=periodo, conta_associacao=conta_associacao).first()
                 if observacao:
                     if obs_data['observacao']:
@@ -44,6 +44,5 @@ class ObservacaoConciliacao(ModeloBase):
                         periodo=periodo,
                         conta_associacao=conta_associacao,
                         associacao=conta_associacao.associacao,
-                        acao_associacao=AcaoAssociacao.by_uuid(obs_data['acao_associacao_uuid']),
                         texto=obs_data['observacao']
                     )

@@ -319,6 +319,6 @@ class ConciliacoesViewSet(GenericViewSet):
         result = []
         if observacoes:
             for obs in observacoes:
-                result.append({'acao_associacao_uuid': str(obs.acao_associacao.uuid), 'observacao': obs.texto})
+                result.append({'observacao': obs.texto})
 
         return Response(result, status=status.HTTP_200_OK)

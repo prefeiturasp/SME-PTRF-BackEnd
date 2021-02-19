@@ -218,21 +218,17 @@ class ProcessoAssociacaoAdmin(admin.ModelAdmin):
 
 @admin.register(ObservacaoConciliacao)
 class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
-    def get_nome_acao(self, obj):
-        return obj.acao_associacao.acao.nome if obj and obj.acao_associacao else ''
-
-    get_nome_acao.short_description = 'Ação'
-
     def get_nome_conta(self, obj):
         return obj.conta_associacao.tipo_conta.nome if obj and obj.conta_associacao else ''
 
     get_nome_conta.short_description = 'Conta'
 
-    list_display = ('associacao', 'periodo', 'get_nome_acao', 'get_nome_conta', 'texto')
-    list_filter = ('associacao', 'acao_associacao__acao', 'conta_associacao__tipo_conta')
+    list_display = ('associacao', 'periodo', 'get_nome_conta', 'data_extrato', 'saldo_extrato', 'texto')
+    list_filter = ('associacao', 'conta_associacao__tipo_conta')
     list_display_links = ('periodo',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('texto',)
+    autocomplete_fields = ['associacao', 'conta_associacao', 'periodo']
 
 
 @admin.register(Notificacao)

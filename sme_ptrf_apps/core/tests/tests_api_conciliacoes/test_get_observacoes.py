@@ -14,8 +14,8 @@ pytestmark = pytest.mark.django_db
 def permissoes_visualizar_conciliacao_bancaria():
     permissoes = [
         Permission.objects.create(
-            name="visualizar conciliação bancária", 
-            codename='view_conciliacao_bancaria', 
+            name="visualizar conciliação bancária",
+            codename='view_conciliacao_bancaria',
             content_type=ContentType.objects.filter(app_label="auth").first()
         ),
     ]
@@ -102,7 +102,6 @@ def test_api_get_observacoes(jwt_authenticated_client_obervacao,
     assert response.status_code == status.HTTP_200_OK
     assert result == [
         {
-            'acao_associacao_uuid': f'{observacao_conciliacao.acao_associacao.uuid}',
             'observacao': 'Uma bela observação.'
         }
     ]
