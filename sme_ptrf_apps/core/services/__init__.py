@@ -4,6 +4,7 @@ from .conciliacao_services import (
     info_conciliacao_pendente,
     receitas_conciliadas_por_conta_e_acao_na_conciliacao,
     receitas_nao_conciliadas_por_conta_e_acao_no_periodo,
+    info_resumo_conciliacao,
 )
 from .exporta_associacao import gerar_planilha
 from .implantacao_saldos_services import implanta_saldos_da_associacao, implantacoes_de_saldo_da_associacao
