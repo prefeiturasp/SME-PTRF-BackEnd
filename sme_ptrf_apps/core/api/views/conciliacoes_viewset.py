@@ -6,8 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import (PermissaoPrestacaoConta, PermissaoVerConciliacaoBancaria,
-                                            PermissaoEditarConciliacaoBancaria)
+from sme_ptrf_apps.users.permissoes import PermissaoPrestacaoConta, PermissaoVerConciliacaoBancaria, PermissaoEditarConciliacaoBancaria
 
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
@@ -15,17 +14,16 @@ from ...models import AcaoAssociacao, ContaAssociacao, ObservacaoConciliacao, Pe
 from ...services import (
     despesas_conciliadas_por_conta_e_acao_na_conciliacao,
     despesas_nao_conciliadas_por_conta_e_acao_no_periodo,
+    info_conciliacao_pendente,
     receitas_conciliadas_por_conta_e_acao_na_conciliacao,
     receitas_nao_conciliadas_por_conta_e_acao_no_periodo,
-    info_resumo_conciliacao,
 )
 
 logger = logging.getLogger(__name__)
 
 
 class ConciliacoesViewSet(GenericViewSet):
-    permission_classes = [IsAuthenticated & (
-        PermissaoPrestacaoConta | PermissaoVerConciliacaoBancaria | PermissaoEditarConciliacaoBancaria)]
+    permission_classes = [IsAuthenticated & (PermissaoPrestacaoConta | PermissaoVerConciliacaoBancaria | PermissaoEditarConciliacaoBancaria)]
     queryset = ObservacaoConciliacao.objects.all()
 
     @action(detail=False, methods=['get'], url_path='tabela-valores-pendentes')
@@ -60,7 +58,7 @@ class ConciliacoesViewSet(GenericViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        result = info_resumo_conciliacao(periodo=periodo, conta_associacao=conta_associacao)
+        result = info_conciliacao_pendente(periodo=periodo, conta_associacao=conta_associacao)
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'])
