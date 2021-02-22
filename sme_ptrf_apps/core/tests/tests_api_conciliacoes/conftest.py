@@ -5,8 +5,35 @@ from model_bakery import baker
 
 
 @pytest.fixture
+def periodo_2019_2():
+    return baker.make(
+        'Periodo',
+        referencia='2019.2',
+        data_inicio_realizacao_despesas=datetime.date(2019, 7, 1),
+        data_fim_realizacao_despesas=datetime.date(2019, 12, 31),
+        periodo_anterior=None
+    )
+
+
+@pytest.fixture
+def periodo_2020_1(periodo_2019_2):
+    return baker.make(
+        'Periodo',
+        referencia='2020.1',
+        data_inicio_realizacao_despesas=datetime.date(2020, 1, 1),
+        data_fim_realizacao_despesas=datetime.date(2020, 6, 30),
+        periodo_anterior=periodo_2019_2
+    )
+
+
+@pytest.fixture
 def tipo_receita_repasse():
     return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
+
+
+@pytest.fixture
+def tipo_receita_outras():
+    return baker.make('TipoReceita', nome='Outras')
 
 
 @pytest.fixture
@@ -44,6 +71,23 @@ def receita_2020_1_role_repasse_cheque_conferida(associacao, conta_associacao_ch
 
 
 @pytest.fixture
+def receita_2020_1_role_outras_conferida(associacao, conta_associacao_cartao, acao_associacao_role_cultural,
+                                         tipo_receita_outras, periodo_2020_1):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        tipo_receita=tipo_receita_outras,
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
+    )
+
+
+@pytest.fixture
 def receita_2020_1_role_repasse_nao_conferida(associacao, conta_associacao_cartao, acao_associacao_role_cultural,
                                               tipo_receita_repasse):
     return baker.make(
@@ -54,6 +98,22 @@ def receita_2020_1_role_repasse_nao_conferida(associacao, conta_associacao_carta
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        conferido=False,
+        periodo_conciliacao=None,
+    )
+
+
+@pytest.fixture
+def receita_2020_1_role_outras_nao_conferida(associacao, conta_associacao_cartao, acao_associacao_role_cultural,
+                                             tipo_receita_outras):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        tipo_receita=tipo_receita_outras,
         conferido=False,
         periodo_conciliacao=None,
     )
@@ -413,4 +473,33 @@ def repasse_2020_1_realizado(associacao, conta_associacao, acao_associacao, peri
         status='REALIZADO',
         realizado_capital=True,
         realizado_custeio=True
+    )
+
+
+@pytest.fixture
+def fechamento_periodo_2019_2_1000(periodo_2019_2, associacao, conta_associacao_cartao, acao_associacao, ):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo_2019_2,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao,
+        fechamento_anterior=None,
+        total_receitas_capital=1000,
+        status='FECHADO'
+    )
+
+
+@pytest.fixture
+def fechamento_periodo_2019_2_role_1000(periodo_2019_2, associacao, conta_associacao_cartao,
+                                        acao_associacao_role_cultural):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo_2019_2,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        fechamento_anterior=None,
+        total_receitas_capital=1000,
+        status='FECHADO'
     )
