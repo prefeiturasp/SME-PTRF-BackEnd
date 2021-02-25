@@ -3,6 +3,9 @@ from django.db import models
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.core.choices.tipos_carga import CARGA_CHOICES, CARGA_REPASSE_REALIZADO
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 
 # Delimitador do arquivo csv
 DELIMITADOR_PONTO_VIRGULA = 'DELIMITADOR_PONTO_VIRGULA'
@@ -43,6 +46,8 @@ STATUS_PROCESSAMENTO_CHOICES = (
 
 
 class Arquivo(ModeloBase):
+    history = AuditlogHistoryField()
+
     identificador = models.SlugField(unique=True)
     conteudo = models.FileField(blank=True, null=True)
     tipo_carga = models.CharField(
@@ -100,3 +105,6 @@ class Arquivo(ModeloBase):
                 'nome': choice[1]
                 }
                 for choice in DELIMITADOR_CHOICES]
+
+
+auditlog.register(Arquivo)
