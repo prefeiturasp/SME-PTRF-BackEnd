@@ -11,7 +11,7 @@ from sme_ptrf_apps.receitas.models import Receita, Repasse
 
 from ...services import atualiza_repasse_para_pendente, atualiza_repasse_para_realizado
 from .detalhe_tipo_receita_serializer import DetalheTipoReceitaSerializer
-from .tipo_receita_serializer import TipoReceitaSerializer
+from .tipo_receita_serializer import TipoReceitaSerializer, TipoReceitaLookUpSerializer
 from .repasse_serializer import RepasseSerializer
 
 logger = logging.getLogger(__name__)
@@ -51,7 +51,7 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         if validated_data['conta_associacao'].tipo_conta.id not in [t.id for t in validated_data['tipo_receita'].tipos_conta.all()]:
             raise ValidationError(f"O tipo de receita {validated_data['tipo_receita'].nome} não permite salvar créditos com contas do tipo {validated_data['conta_associacao'].tipo_conta.nome}")
-        
+
         if validated_data['tipo_receita'].e_repasse:
             atualiza_repasse_para_realizado(validated_data)
 
@@ -77,6 +77,7 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
 
 
 class ReceitaListaSerializer(serializers.ModelSerializer):
+
     tipo_receita = TipoReceitaSerializer()
     acao_associacao = AcaoAssociacaoLookUpSerializer()
     conta_associacao = ContaAssociacaoLookUpSerializer()
@@ -100,4 +101,29 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
             'referencia_devolucao',
             'notificar_dias_nao_conferido',
             'repasse'
+        )
+
+
+class ReceitaConciliacaoSerializer(serializers.ModelSerializer):
+    associacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Associacao.objects.all()
+    )
+    tipo_receita = TipoReceitaLookUpSerializer()
+    acao_associacao = AcaoAssociacaoLookUpSerializer()
+
+    class Meta:
+        model = Receita
+        fields = (
+            'associacao',
+            'data',
+            'valor',
+            'tipo_receita',
+            'acao_associacao',
+            'categoria_receita',
+            'detalhamento',
+            'notificar_dias_nao_conferido',
+            'conferido',
+            'uuid',
         )

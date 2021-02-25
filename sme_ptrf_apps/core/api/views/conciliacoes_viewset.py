@@ -18,6 +18,7 @@ from ...services import (
     receitas_conciliadas_por_conta_e_acao_na_conciliacao,
     receitas_nao_conciliadas_por_conta_e_acao_no_periodo,
     info_resumo_conciliacao,
+    transacoes_para_conciliacao,
 )
 
 logger = logging.getLogger(__name__)
@@ -340,3 +341,76 @@ class ConciliacoesViewSet(GenericViewSet):
             }
 
         return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'])
+    def transacoes(self, request):
+
+        # Define o período de conciliação
+        periodo_uuid = self.request.query_params.get('periodo')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do período de conciliação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define a conta de conciliação
+        conta_associacao_uuid = self.request.query_params.get('conta_associacao')
+
+        if not conta_associacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da conta da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            conta_associacao = ContaAssociacao.objects.get(uuid=conta_associacao_uuid)
+        except ContaAssociacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto conta-associação para o uuid {conta_associacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define a ação para o filtro de transações
+        acao_associacao = None
+        acao_associacao_uuid = request.query_params.get('acao_associacao')
+        if acao_associacao_uuid:
+            try:
+                acao_associacao = AcaoAssociacao.objects.get(uuid=acao_associacao_uuid)
+            except AcaoAssociacao.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto ação-associação para o uuid {acao_associacao_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define o flag de Conferido para o filtro das transações
+        conferido = request.query_params.get('conferido')
+        if conferido is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o flag de conferido.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        conferido = conferido == 'True'
+        transacoes = transacoes_para_conciliacao(periodo=periodo, conta_associacao=conta_associacao,
+                                                 conferido=conferido,
+                                                 acao_associacao=acao_associacao)
+
+        return Response(transacoes, status=status.HTTP_200_OK)
