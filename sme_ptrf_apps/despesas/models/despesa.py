@@ -54,6 +54,10 @@ class Despesa(ModeloBase):
     def valor_ptrf(self):
         return self.valor_total - self.valor_recursos_proprios
 
+    @property
+    def conferido(self):
+        return not self.rateios.filter(conferido=False).exists()
+
     valor_ptrf.fget.short_description = 'Valor coberto pelo PTRF'
 
     def __str__(self):

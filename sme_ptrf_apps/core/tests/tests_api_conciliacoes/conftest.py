@@ -98,6 +98,7 @@ def receita_2020_1_role_repasse_nao_conferida(associacao, conta_associacao_carta
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
         conferido=False,
         periodo_conciliacao=None,
     )
@@ -114,25 +115,9 @@ def receita_2020_1_role_outras_nao_conferida(associacao, conta_associacao_cartao
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
         tipo_receita=tipo_receita_outras,
+        update_conferido=True,
         conferido=False,
         periodo_conciliacao=None,
-    )
-
-
-@pytest.fixture
-def receita_2020_1_ptrf_repasse_conferida(associacao, conta_associacao_cartao, acao_associacao_ptrf,
-                                          tipo_receita_repasse, periodo_2020_1):
-    return baker.make(
-        'Receita',
-        associacao=associacao,
-        data=datetime.date(2020, 3, 26),
-        valor=100.00,
-        conta_associacao=conta_associacao_cartao,
-        acao_associacao=acao_associacao_ptrf,
-        tipo_receita=tipo_receita_repasse,
-        update_conferido=True,
-        conferido=True,
-        periodo_conciliacao=periodo_2020_1,
     )
 
 
@@ -310,6 +295,23 @@ def rateio_despesa_2020_ptrf_conferido(associacao, despesa_2020_1, conta_associa
         update_conferido=True,
         conferido=True,
         periodo_conciliacao=periodo_2020_1
+    )
+
+
+@pytest.fixture
+def receita_2020_1_ptrf_repasse_conferida(associacao, conta_associacao_cartao, acao_associacao_ptrf,
+                                          tipo_receita_repasse, periodo_2020_1):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_ptrf,
+        tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
     )
 
 
