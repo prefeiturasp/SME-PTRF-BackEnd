@@ -446,3 +446,35 @@ def transacoes_para_conciliacao(periodo, conta_associacao, conferido=False, acao
             transacoes.append(nova_transacao)
 
     return transacoes
+
+
+def conciliar_transacao(periodo, conta_associacao, transacao, tipo_transacao):
+    from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaConciliacaoSerializer
+    from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
+
+    if tipo_transacao == "CREDITO" and isinstance(transacao, Receita):
+        receita_conciliada = transacao.marcar_conferido(periodo_conciliacao=periodo)
+        return ReceitaConciliacaoSerializer(receita_conciliada, many=False).data
+
+    if tipo_transacao == "GASTO" and isinstance(transacao, Despesa):
+        rateios = transacao.rateios.filter(conta_associacao=conta_associacao).filter(conferido=False)
+        for rateio in rateios:
+            rateio.marcar_conferido(periodo_conciliacao=periodo)
+        despesa_conciliada = Despesa.by_uuid(transacao.uuid)
+        return DespesaConciliacaoSerializer(despesa_conciliada, many=False).data
+
+
+def desconciliar_transacao(conta_associacao, transacao, tipo_transacao):
+    from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaConciliacaoSerializer
+    from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
+
+    if tipo_transacao == "CREDITO" and isinstance(transacao, Receita):
+        receita_desconciliada = transacao.desmarcar_conferido()
+        return ReceitaConciliacaoSerializer(receita_desconciliada, many=False).data
+
+    if tipo_transacao == "GASTO" and isinstance(transacao, Despesa):
+        rateios = transacao.rateios.filter(conta_associacao=conta_associacao).filter(conferido=True)
+        for rateio in rateios:
+            rateio.desmarcar_conferido()
+        despesa_desconciliada = Despesa.by_uuid(transacao.uuid)
+        return DespesaConciliacaoSerializer(despesa_desconciliada, many=False).data

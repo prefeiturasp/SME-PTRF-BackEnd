@@ -19,7 +19,11 @@ from ...services import (
     receitas_nao_conciliadas_por_conta_e_acao_no_periodo,
     info_resumo_conciliacao,
     transacoes_para_conciliacao,
+    conciliar_transacao,
+    desconciliar_transacao,
 )
+from ....despesas.models import Despesa
+from ....receitas.models import Receita
 
 logger = logging.getLogger(__name__)
 
@@ -433,3 +437,154 @@ class ConciliacoesViewSet(GenericViewSet):
                                                  tipo_transacao=tipo_transacao)
 
         return Response(transacoes, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['patch'], url_path='conciliar-transacao')
+    def conciliar_transacao(self, request):
+
+        # Define o período de conciliação
+        periodo_uuid = self.request.query_params.get('periodo')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do período de conciliação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define a conta de conciliação
+        conta_associacao_uuid = self.request.query_params.get('conta_associacao')
+
+        if not conta_associacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da conta da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            conta_associacao = ContaAssociacao.objects.get(uuid=conta_associacao_uuid)
+        except ContaAssociacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto conta-associação para o uuid {conta_associacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define o tipo de transação
+        tipo_transacao = request.query_params.get('tipo')
+        if not tipo_transacao or tipo_transacao not in ('CREDITO', 'GASTO'):
+            erro = {
+                'erro': 'parametro_inválido',
+                'mensagem': 'O parâmetro "tipo" deve receber como valor "CREDITO" ou "GASTO". '
+                            'O parâmetro é obrigatório.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define a transação
+        transacao_uuid = self.request.query_params.get('transacao')
+
+        if not transacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da transação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            if tipo_transacao == 'GASTO':
+                transacao = Despesa.objects.get(uuid=transacao_uuid)
+            else:
+                transacao = Receita.objects.get(uuid=transacao_uuid)
+
+        except (Despesa.DoesNotExist, Receita.DoesNotExist):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto de {tipo_transacao} para o uuid {transacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        transacao_conciliada = conciliar_transacao(
+            periodo=periodo,
+            conta_associacao=conta_associacao,
+            transacao=transacao,
+            tipo_transacao=tipo_transacao
+        )
+
+        return Response(transacao_conciliada, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['patch'], url_path='desconciliar-transacao')
+    def desconciliar_transacao(self, request):
+
+        # Define a conta de conciliação
+        conta_associacao_uuid = self.request.query_params.get('conta_associacao')
+
+        if not conta_associacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da conta da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            conta_associacao = ContaAssociacao.objects.get(uuid=conta_associacao_uuid)
+        except ContaAssociacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto conta-associação para o uuid {conta_associacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define o tipo de transação
+        tipo_transacao = request.query_params.get('tipo')
+        if not tipo_transacao or tipo_transacao not in ('CREDITO', 'GASTO'):
+            erro = {
+                'erro': 'parametro_inválido',
+                'mensagem': 'O parâmetro "tipo" deve receber como valor "CREDITO" ou "GASTO". '
+                            'O parâmetro é obrigatório.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define a transação
+        transacao_uuid = self.request.query_params.get('transacao')
+
+        if not transacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da transação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            if tipo_transacao == 'GASTO':
+                transacao = Despesa.objects.get(uuid=transacao_uuid)
+            else:
+                transacao = Receita.objects.get(uuid=transacao_uuid)
+
+        except (Despesa.DoesNotExist, Receita.DoesNotExist):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto de {tipo_transacao} para o uuid {transacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        transacao_desconciliada = desconciliar_transacao(
+            conta_associacao=conta_associacao,
+            transacao=transacao,
+            tipo_transacao=tipo_transacao
+        )
+
+        return Response(transacao_desconciliada, status=status.HTTP_200_OK)
