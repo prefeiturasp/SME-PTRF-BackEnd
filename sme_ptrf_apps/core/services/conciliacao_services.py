@@ -360,26 +360,33 @@ def transacoes_para_conciliacao(periodo, conta_associacao, conferido=False, acao
     from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaConciliacaoSerializer
     from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
 
-    if conferido:
-        despesas = documentos_de_despesa_conciliados_por_conta_e_acao_na_conciliacao(conta_associacao=conta_associacao,
-                                                                                     acao_associacao=acao_associacao,
-                                                                                     periodo=periodo)
+    receitas = []
+    despesas = []
 
-        receitas = receitas_conciliadas_por_conta_e_acao_na_conciliacao(conta_associacao=conta_associacao,
-                                                                        acao_associacao=acao_associacao,
-                                                                        periodo=periodo)
-    else:
+    if not tipo_transacao or tipo_transacao == "CREDITOS":
+        if conferido:
+            receitas = receitas_conciliadas_por_conta_e_acao_na_conciliacao(conta_associacao=conta_associacao,
+                                                                            acao_associacao=acao_associacao,
+                                                                            periodo=periodo)
+        else:
+            receitas = receitas_nao_conciliadas_por_conta_e_acao_no_periodo(conta_associacao=conta_associacao,
+                                                                            acao_associacao=acao_associacao,
+                                                                            periodo=periodo)
+        receitas = receitas.order_by("data")
 
-        despesas = documentos_de_despesa_nao_conciliados_por_conta_e_acao_no_periodo(conta_associacao=conta_associacao,
-                                                                                     acao_associacao=acao_associacao,
-                                                                                     periodo=periodo)
+    if not tipo_transacao or tipo_transacao == "GASTOS":
+        if conferido:
+            despesas = documentos_de_despesa_conciliados_por_conta_e_acao_na_conciliacao(
+                conta_associacao=conta_associacao,
+                acao_associacao=acao_associacao,
+                periodo=periodo)
+        else:
+            despesas = documentos_de_despesa_nao_conciliados_por_conta_e_acao_no_periodo(
+                conta_associacao=conta_associacao,
+                acao_associacao=acao_associacao,
+                periodo=periodo)
 
-        receitas = receitas_nao_conciliadas_por_conta_e_acao_no_periodo(conta_associacao=conta_associacao,
-                                                                        acao_associacao=acao_associacao,
-                                                                        periodo=periodo)
-
-    receitas = receitas.order_by("data")
-    despesas = despesas.order_by("data_transacao")
+        despesas = despesas.order_by("data_transacao")
 
     # Iniciar a lista de transacoes com a lista de despesas ordenada
     transacoes = []
@@ -430,9 +437,12 @@ def transacoes_para_conciliacao(periodo, conta_associacao, conferido=False, acao
             'notificar_dias_nao_conferido': receita.notificar_dias_nao_conferido,
         }
 
-        for idx, transacao in enumerate(transacoes):
-            if nova_transacao['data'] >= transacao['data']:
-                transacoes.insert(idx, nova_transacao)
-                break
+        if transacoes:
+            for idx, transacao in enumerate(transacoes):
+                if nova_transacao['data'] >= transacao['data']:
+                    transacoes.insert(idx, nova_transacao)
+                    break
+        else:
+            transacoes.append(nova_transacao)
 
     return transacoes
