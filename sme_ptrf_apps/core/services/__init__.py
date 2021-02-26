@@ -6,6 +6,8 @@ from .conciliacao_services import (
     receitas_nao_conciliadas_por_conta_e_acao_no_periodo,
     info_resumo_conciliacao,
     transacoes_para_conciliacao,
+    conciliar_transacao,
+    desconciliar_transacao,
 )
 from .exporta_associacao import gerar_planilha
 from .implantacao_saldos_services import implanta_saldos_da_associacao, implantacoes_de_saldo_da_associacao
