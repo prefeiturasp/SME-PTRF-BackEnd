@@ -394,7 +394,7 @@ class ConciliacoesViewSet(GenericViewSet):
             except AcaoAssociacao.DoesNotExist:
                 erro = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto ação-associação para o uuid {acao_associacao_uuid} não foi encontrado na base."
+                    'mensagem': f"O objeto ação-associação para o uuid {acao_associacao_uuid} não foi encontrado."
                 }
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -408,9 +408,28 @@ class ConciliacoesViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        if conferido not in ('True', 'False'):
+            erro = {
+                'erro': 'parametro_inválido',
+                'mensagem': 'O parâmetro "conferido" deve receber como valor "True" ou "False". '
+                            'O parâmetro é obrigatório.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
         conferido = conferido == 'True'
+
+        # Define o tipo de transação para o filtro das transações
+        tipo_transacao = request.query_params.get('tipo')
+        if tipo_transacao and tipo_transacao not in ('CREDITOS', 'GASTOS'):
+            erro = {
+                'erro': 'parametro_inválido',
+                'mensagem': 'O parâmetro tipo pode receber como valor "CREDITOS" ou "GASTOS". O parâmetro é opcional.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
         transacoes = transacoes_para_conciliacao(periodo=periodo, conta_associacao=conta_associacao,
                                                  conferido=conferido,
-                                                 acao_associacao=acao_associacao)
+                                                 acao_associacao=acao_associacao,
+                                                 tipo_transacao=tipo_transacao)
 
         return Response(transacoes, status=status.HTTP_200_OK)
