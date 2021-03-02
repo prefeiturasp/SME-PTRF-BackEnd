@@ -52,31 +52,44 @@ def processa_importacao_usuarios(reader, arquivo):
                     if not visao:
                         visao = Visao.objects.create(nome=row[__VISAO].strip())
 
+                    try:
+                        novo_email = row[__EMAIL].strip()
+                    except IndexError:
+                        novo_email = ""
+
+                    if novo_email and not valid_email(novo_email):
+                        msg_erro = f'O email {novo_email} do usuário {row[__RF].strip()} não é válido.'
+                        logger.error(msg_erro)
+                        logs = f"{logs}\n{msg_erro}"
+                        erros += 1
+                        novo_email = ""
+
                     u = User.objects.filter(username=row[__RF].strip()).first()
                     if not u:
-                        u = User.objects.create(username=row[__RF].strip(), email=row[__EMAIL].strip())
+                        u = User.objects.create(username=row[__RF].strip(), email=novo_email)
 
-                    try:
-                        SmeIntegracaoService.redefine_email(u.username, row[__EMAIL].strip())
-                        u.email = row[__EMAIL].strip()
+                    if novo_email:
+                        try:
+                            SmeIntegracaoService.redefine_email(u.username, novo_email)
+                            u.email = novo_email
 
-                    except SmeIntegracaoException as e:
-                        msg_erro = f'Erro {str(e)} ao tentar atualizar o e-mail do usuário {row[__RF].strip()} no CoreSSO.'
-                        logger.error(msg_erro)
-                        logs = f"{logs}\n{msg_erro}"
-                        erros += 1
+                        except SmeIntegracaoException as e:
+                            msg_erro = f'Erro {str(e)} ao tentar atualizar o e-mail do usuário {row[__RF].strip()} no CoreSSO.'
+                            logger.error(msg_erro)
+                            logs = f"{logs}\n{msg_erro}"
+                            erros += 1
 
-                    except ReadTimeout:
-                        msg_erro = f'Erro de ReadTimeout ao tentar atualizar o e-mail do usuário {row[__RF].strip()} no CoreSSO.'
-                        logger.error(msg_erro)
-                        logs = f"{logs}\n{msg_erro}"
-                        erros += 1
+                        except ReadTimeout:
+                            msg_erro = f'Erro de ReadTimeout ao tentar atualizar o e-mail do usuário {row[__RF].strip()} no CoreSSO.'
+                            logger.error(msg_erro)
+                            logs = f"{logs}\n{msg_erro}"
+                            erros += 1
 
-                    except ConnectTimeout:
-                        msg_erro = f'Erro de ConnectTimeout ao tentar atualizar o e-mail do usuário {row[__RF].strip()} no CoreSSO.'
-                        logger.error(msg_erro)
-                        logs = f"{logs}\n{msg_erro}"
-                        erros += 1
+                        except ConnectTimeout:
+                            msg_erro = f'Erro de ConnectTimeout ao tentar atualizar o e-mail do usuário {row[__RF].strip()} no CoreSSO.'
+                            logger.error(msg_erro)
+                            logs = f"{logs}\n{msg_erro}"
+                            erros += 1
 
                     if not u.unidades.filter(codigo_eol=row[__EOL_UNIDADE].strip()).first():
                         u.unidades.add(unidade)
@@ -134,3 +147,15 @@ def carrega_usuarios(arquivo):
         logger.info("Erro ao processar usuários: %s", str(err))
         arquivo.log = "Erro ao processar usuários."
         arquivo.save()
+
+
+def valid_email(string):
+    pos = string.find("@")
+    dot = string.rfind(".")
+    if pos < 1:
+        return False
+    if dot < pos + 2:
+        return False
+    if dot + 2 >= len(string):
+        return False
+    return True
