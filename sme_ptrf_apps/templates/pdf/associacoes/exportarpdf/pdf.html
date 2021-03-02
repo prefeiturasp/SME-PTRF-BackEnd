@@ -5,49 +5,25 @@
   <head>
     <meta charset="UTF-8">
     <title>Ficha cadastral da associação e do presidente</title>
-    <style>
-      html {
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: small;
-      }
-      h1 {
-        text-align: center;
-      }
-      h2 {
-        text-align: left;
-        font-size: large;
-      }
-      table {
-        margin: 0 auto;
-        width: 100%;
-        border-style: solid;
-        border-width: 1px;
-        border-bottom-width: 0px;
-      }
-      th {
-        border-style: solid;
-        border-width: 0px;
-        border-bottom-width: 0px;
-        padding: 0px 10px;
-      }
-      td {
-        padding: 10px;
-      }
-    </style>
+    <link href="{% static 'css/pdf.css' %}" rel="stylesheet">
   </head>
 
   <body>
-    <table style="width: 100%; background-color: #EEEEEE; border-width: 0px">
-      <thead>
-      <tr style="height: 40px"><td align="center" width="15%">
-        <img src="{% static 'images/logo-pdf.svg' %}">
-      </td><td><h1>Programa de Transferência de Recursos Financeiros</h1></td></tr>
-      </thead>
-    </table>
+        <table id="cabecalho">
+          <tr>
+            <td>
+              <img src="{% static 'images/logo-pdf.svg' %}">
+            </td>
+            <td>
+              <h1>Programa de Transferências de Recursos Financeiros - PTRF</h1>
+            </td>
+          </tr>
+        </table>
 
-    <h1>Ficha cadastral da associação e do presidente</h1>
+            <h1 class="titulo">Ficha cadastral da associação e do presidente</h1>
 
-    <table style="border-width: 0px">
+
+    <table>
       <thead>
         <tr>
           <th><h2>Bloco 1 - Dados da Associação</h2></th>
@@ -55,24 +31,21 @@
       </thead>
       <tbody>
       <tr><td>
-        <table><tr>
-          <td><strong>Nome (de acordo com o CNPJ) :</strong> {{ associacao.nome }}</td>
-        </tr></table>
-        <table><tr>
-          <td width="33%"><strong>CNPJ:</strong><br> {{ associacao.cnpj }}</td><td><strong>Cadastro de Contribuintes Mobiliários (CCM):</strong><br> {{ associacao.ccm }}</td>
-        </tr></table>
-        <table><tr>
-          <td width="33%"><strong>Endereço:</strong><br> {{ associacao.unidade.logradouro }}, {{ associacao.unidade.numero }} {{ associacao.unidade.complemento }}</td><td width="33%"><strong>Bairro:</strong><br> {{ associacao.unidade.bairro }}</td><td><strong>CEP:</strong><br> {{ associacao.unidade.cep }}</td>
-        </tr></table>
-        <table><tr>
-          <td width="33%"><strong>Telefone:</strong><br> {{ associacao.unidade.telefone }}</td><td width="33%"><strong>Código EOL:</strong><br> {{ associacao.unidade.codigo_eol }}</td><td><strong>E-mail:</strong><br> {{ associacao.unidade.email }}</td>
+        <table class="tablebloco"><tr>
+          <td class="tdbloco"><strong>Nome (de acordo com o CNPJ) :</strong> {{ associacao.nome }}</td>
+        </tr></table><table class="tablebloco"><tr>
+          <td class="tdbloco"><strong>CNPJ:</strong><br> {{ associacao.cnpj }}</td><td class="tdbloco"><strong>Cadastro de Contribuintes Mobiliários (CCM):</strong><br> {{ associacao.ccm }}</td>
+        </tr></table><table class="tablebloco"><tr>
+          <td class="tdbloco"><strong>Endereço:</strong><br> {{ associacao.unidade.logradouro }}, {{ associacao.unidade.numero }} {{ associacao.unidade.complemento }}</td><td class="tdbloco"><strong>Bairro:</strong><br> {{ associacao.unidade.bairro }}</td><td class="tdblocofim"><strong>CEP:</strong><br> {{ associacao.unidade.cep }}</td>
+        </tr></table><table class="tablebloco"><tr>
+          <td class="tdbloco"><strong>Telefone:</strong><br> {{ associacao.unidade.telefone }}</td><td class="tdbloco"><strong>Código EOL:</strong><br> {{ associacao.unidade.codigo_eol }}</td><td class="tdblocofim"><strong>E-mail:</strong><br> {{ associacao.unidade.email }}</td>
         </tr></table>
       </td></tr>
     </tbody>
   </table>
   <br>
 
-    <table style="border-width: 0px">
+    <table>
       <thead>
         <tr>
           <th><h2>Bloco 2 - Dados do Presidente da Associação</h2></th>
@@ -80,23 +53,23 @@
       </thead>
       <tbody>
       <tr><td>
-        <table><tr>
-          <td width="33%"><strong>Nome:</strong><br> {{ associacao.presidente_associacao.nome }}</td><td><strong>Cargo ou função:</strong><br> {{ associacao.presidente_associacao.cargo_educacao }}</td>
+        <table class="tablebloco"><tr>
+          <td class="tdbloco"><strong>Nome:</strong><br> {{ associacao.presidente_associacao.nome }}</td><td class="tdbloco"><strong>Cargo ou função:</strong><br> {{ associacao.presidente_associacao.cargo_educacao }}</td>
         </tr></table>
-        <table><tr>
-          <td width="33%"><strong>Telefone:</strong><br> {{ associacao.presidente_associacao.telefone }}</td><td><strong>E-mail:</strong><br> {{ associacao.presidente_associacao.email }}</td>
+        <table class="tablebloco"><tr>
+          <td class="tdbloco"><strong>Telefone:</strong><br> {{ associacao.presidente_associacao.telefone }}</td><td class="tdbloco"><strong>E-mail:</strong><br> {{ associacao.presidente_associacao.email }}</td>
         </tr></table>
-        <table><tr>
-          <td width="33%"><strong>Endereço:</strong><br> {{ associacao.presidente_associacao.endereco }}</td><td width="33%"><strong>Complemento:</strong><br> &nbsp;</td><td><strong>Bairro:</strong><br> {{ associacao.presidente_associacao.bairro }}</td>
+        <table class="tablebloco"><tr>
+          <td class="tdbloco"><strong>Endereço:</strong><br> {{ associacao.presidente_associacao.endereco }}</td><td class="tdbloco"><strong>Complemento:</strong><br> &nbsp;</td><td class="tdblocofim"><strong>Bairro:</strong><br> {{ associacao.presidente_associacao.bairro }}</td>
         </tr></table>
-        <table><tr>
-          <td width="33%"><strong>CEP:</strong><br> {{ associacao.presidente_associacao.cep }}</td><td width="33%"><strong>Município:</strong><br> &nbsp;</td><td><strong>UF:</strong><br> &nbsp;</td>
+        <table class="tablebloco"><tr>
+          <td class="tdbloco"><strong>CEP:</strong><br> {{ associacao.presidente_associacao.cep }}</td><td class="tdbloco"><strong>Município:</strong><br> &nbsp;</td><td class="tdblocofim"><strong>UF:</strong><br> &nbsp;</td>
         </tr></table>
       </td></tr>
     </tbody>
   </table>
     {% if contas %}
-    <table style="border-width: 0px">
+    <table>
       <thead>
         <tr>
           <th><h2>Bloco 3 - Dados Bancários</h2></th>
@@ -105,9 +78,9 @@
       <tbody>
       {% for conta in contas %}
       <tr><td>
-        Conta Corrente ({{ conta.tipo_conta }})
-        <table><tr>
-          <td width="33%"><strong>Código do Banco:</strong><br> {{ conta.banco_nome }}</td><td width="33%"><strong>Código da Agência/DV:</strong><br> {{ conta.agencia }}</td><td><strong>N° da Conta Corrente/DV:</strong><br> {{ conta.numero_conta }}</td>
+        <h3>Conta Corrente ({{ conta.tipo_conta }})</h3>
+        <table class="tablebloco"><tr>
+          <td class="tdbloco"><strong>Código do Banco:</strong><br> {{ conta.banco_nome }}</td><td class="tdbloco"><strong>Código da Agência/DV:</strong><br> {{ conta.agencia }}</td><td class="tdblocofim"><strong>N° da Conta Corrente/DV:</strong><br> {{ conta.numero_conta }}</td>
         </tr></table>
       </td></tr>
       {% endfor %}
@@ -115,9 +88,12 @@
   </table>
   {% endif %}
  </body>
-  <footer>
+
+  <div>
+  <span id="footer">
     <i>Documento gerado pelo Sig_Escola em {{ dataAtual }} pelo usuário {{  usuarioLogado }}.</i>
-  </footer>
+  </span>
+  </div>
 </html>
 
 
