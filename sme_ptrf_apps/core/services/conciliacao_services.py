@@ -437,12 +437,16 @@ def transacoes_para_conciliacao(periodo, conta_associacao, conferido=False, acao
             'notificar_dias_nao_conferido': receita.notificar_dias_nao_conferido,
         }
 
+        transacao_adicionada = False
+
         if transacoes:
             for idx, transacao in enumerate(transacoes):
-                if nova_transacao['data'] >= transacao['data']:
+                if nova_transacao['data'] <= transacao['data']:
                     transacoes.insert(idx, nova_transacao)
+                    transacao_adicionada = True
                     break
-        else:
+
+        if not transacao_adicionada:
             transacoes.append(nova_transacao)
 
     return transacoes
