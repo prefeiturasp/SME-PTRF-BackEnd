@@ -122,13 +122,6 @@ def test_api_get_transacoes_conferidas(jwt_authenticated_client_a,
 
     transacoes_esperadas = [
         {
-            'mestre': receita_2020_1_ptrf_repasse_conferida,
-            'rateios': [],
-            'tipo': 'Crédito',
-            'valor_transacao_na_conta': 100.0,
-            'valores_por_conta': [],
-        },
-        {
             'mestre': despesa_2020_1,
             'rateios': [
                 rateio_despesa_2020_ptrf_conferido,
@@ -147,7 +140,13 @@ def test_api_get_transacoes_conferidas(jwt_authenticated_client_a,
                 }
             ],
         },
-
+        {
+            'mestre': receita_2020_1_ptrf_repasse_conferida,
+            'rateios': [],
+            'tipo': 'Crédito',
+            'valor_transacao_na_conta': 100.0,
+            'valores_por_conta': [],
+        },
     ]
 
     result_esperado = monta_result_esperado(transacoes_esperadas=transacoes_esperadas, periodo=periodo_2020_1,
@@ -180,13 +179,6 @@ def test_api_get_transacoes_nao_conferidas(jwt_authenticated_client_a,
 
     transacoes_esperadas = [
         {
-            'mestre': receita_2020_1_role_outras_nao_conferida,
-            'rateios': [],
-            'tipo': 'Crédito',
-            'valor_transacao_na_conta': 100.0,
-            'valores_por_conta': [],
-        },
-        {
             'mestre': despesa_2020_1,
             'rateios': [
                 rateio_despesa_2020_ptrf_conferido,
@@ -205,7 +197,13 @@ def test_api_get_transacoes_nao_conferidas(jwt_authenticated_client_a,
                 }
             ],
         },
-
+        {
+            'mestre': receita_2020_1_role_outras_nao_conferida,
+            'rateios': [],
+            'tipo': 'Crédito',
+            'valor_transacao_na_conta': 100.0,
+            'valores_por_conta': [],
+        },
     ]
 
     result_esperado = monta_result_esperado(transacoes_esperadas=transacoes_esperadas, periodo=periodo_2020_1,
@@ -310,13 +308,6 @@ def test_deve_filtrar_transacoes_por_acao(jwt_authenticated_client_a,
     """
     transacoes_esperadas = [
         {
-            'mestre': receita_2020_1_ptrf_repasse_nao_conferida,
-            'rateios': [],
-            'tipo': 'Crédito',
-            'valor_transacao_na_conta': 100.0,
-            'valores_por_conta': [],
-        },
-        {
             'mestre': despesa_2020_1,
             'rateios': [
                 rateio_despesa_2020_ptrf_nao_conferido,
@@ -336,7 +327,13 @@ def test_deve_filtrar_transacoes_por_acao(jwt_authenticated_client_a,
                 }
             ],
         },
-
+        {
+            'mestre': receita_2020_1_ptrf_repasse_nao_conferida,
+            'rateios': [],
+            'tipo': 'Crédito',
+            'valor_transacao_na_conta': 100.0,
+            'valores_por_conta': [],
+        },
     ]
 
     conta_uuid = conta_associacao_cartao.uuid
