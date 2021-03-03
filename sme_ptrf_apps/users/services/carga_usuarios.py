@@ -9,6 +9,8 @@ from sme_ptrf_apps.users.models import Visao
 
 from sme_ptrf_apps.core.models.arquivo import DELIMITADOR_PONTO_VIRGULA, DELIMITADOR_VIRGULA, ERRO, PROCESSADO_COM_ERRO, SUCESSO
 
+from sme_ptrf_apps.users.models import Grupo
+
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
@@ -19,10 +21,24 @@ __RF = 0  # Username
 __VISAO = 1
 __EOL_UNIDADE = 2
 __EMAIL = 3
+__GRUPOS = 4  # Nomes dos grupos de acesso separados por '|'
 
 
 def checa_visao(v):
     return v in ['UE', 'DRE', 'SME']
+
+
+def get_nomes_grupos(linha):
+    try:
+        str_grupos = linha[__GRUPOS]
+        if str_grupos:
+            nomes_grupos = str_grupos.split('|') if '|' in str_grupos else [str_grupos, ]
+        else:
+            nomes_grupos = []
+    except IndexError:
+        nomes_grupos = []
+
+    return nomes_grupos
 
 
 def processa_importacao_usuarios(reader, arquivo):
@@ -96,6 +112,24 @@ def processa_importacao_usuarios(reader, arquivo):
 
                     if not u.visoes.filter(nome=row[__VISAO].strip()).first():
                         u.visoes.add(visao)
+
+                    # Gravação dos grupos de acesso do usuário
+                    nomes_grupos = get_nomes_grupos(row)
+                    grupos = []
+                    for nome_grupo in nomes_grupos:
+                        try:
+                            grupo = Grupo.objects.get(name=nome_grupo)
+                            grupos.append(grupo)
+                        except Grupo.DoesNotExist:
+                            msg_erro = f'Não encontrado grupo com o nome {nome_grupo}. Usuário {row[__RF]}.'
+                            logger.error(msg_erro)
+                            logs = f"{logs}\n{msg_erro}"
+                            erros += 1
+                    if grupos:
+                        u.groups.clear()
+                        for grupo in grupos:
+                            u.groups.add(grupo)
+
                     u.save()
                     logger.info('Usuário para o rf %s criado/atualizado com sucesso.', row[__RF].strip())
                     importados += 1
