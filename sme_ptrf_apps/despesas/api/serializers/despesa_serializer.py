@@ -89,3 +89,33 @@ class DespesaListSerializer(serializers.ModelSerializer):
         model = Despesa
         fields = ('uuid', 'associacao', 'numero_documento', 'tipo_documento', 'data_documento', 'cpf_cnpj_fornecedor',
                   'nome_fornecedor', 'valor_total', 'valor_ptrf')
+
+
+class DespesaConciliacaoSerializer(serializers.ModelSerializer):
+    associacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Associacao.objects.all()
+    )
+
+    tipo_documento = TipoDocumentoListSerializer()
+    tipo_transacao = TipoTransacaoSerializer()
+
+    class Meta:
+        model = Despesa
+        fields = (
+            'associacao',
+            'numero_documento',
+            'tipo_documento',
+            'tipo_transacao',
+            'documento_transacao',
+            'data_documento',
+            'data_transacao',
+            'cpf_cnpj_fornecedor',
+            'nome_fornecedor',
+            'valor_ptrf',
+            'valor_total',
+            'status',
+            'conferido',
+            'uuid',
+        )
