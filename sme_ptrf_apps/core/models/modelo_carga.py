@@ -3,8 +3,13 @@ from django.db import models
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.core.choices.tipos_carga import CARGA_CHOICES, CARGA_ASSOCIACOES, CARGA_NOMES
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 
 class ModeloCarga(ModeloBase):
+    history = AuditlogHistoryField()
+
     tipo_carga = models.CharField(
         'tipo de carga',
         max_length=35,
@@ -28,3 +33,6 @@ class ModeloCarga(ModeloBase):
                 'nome': choice[1]
                 }
                 for choice in CARGA_CHOICES]
+
+
+auditlog.register(ModeloCarga)

@@ -11,10 +11,11 @@ def test_model(observacao_conciliacao):
 
     assert isinstance(model, ObservacaoConciliacao)
     assert isinstance(model.periodo, Periodo)
-    assert isinstance(model.acao_associacao, AcaoAssociacao)
     assert isinstance(model.conta_associacao, ContaAssociacao)
     assert isinstance(model.associacao, Associacao)
     assert model.texto == "Uma bela observação."
+    assert model.data_extrato
+    assert model.saldo_extrato
 
 
 def test_admin():

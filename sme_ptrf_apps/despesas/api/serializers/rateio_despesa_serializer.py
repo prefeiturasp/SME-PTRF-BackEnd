@@ -128,3 +128,22 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
             'data_transacao',
             'notificar_dias_nao_conferido',
         )
+
+
+class RateioDespesaConciliacaoSerializer(serializers.ModelSerializer):
+    acao_associacao = AcaoAssociacaoLookUpSerializer()
+    especificacao_material_servico = EspecificacaoMaterialServicoLookUpSerializer()
+    tipo_custeio = TipoCusteioSerializer()
+
+    class Meta:
+        model = RateioDespesa
+        fields = (
+            'uuid',
+            'especificacao_material_servico',
+            'aplicacao_recurso',
+            'acao_associacao',
+            'valor_rateio',
+            'conferido',
+            'notificar_dias_nao_conferido',
+            'tipo_custeio',
+        )
