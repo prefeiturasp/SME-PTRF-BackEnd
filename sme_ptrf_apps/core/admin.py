@@ -33,7 +33,8 @@ from .models import (
     PrevisaoRepasseSme,
     Censo,
     ParametroFiqueDeOlhoPc,
-    ModeloCarga
+    ModeloCarga,
+    Ambiente
 )
 
 admin.site.register(TipoNotificacao)
@@ -507,4 +508,9 @@ class MembroAssociacaoAdmin(admin.ModelAdmin):
     list_filter = ('associacao', 'cargo_associacao', 'representacao')
     readonly_fields = ('uuid', 'id')
     autocomplete_fields = ['associacao', ]
+
+
+@admin.register(Ambiente)
+class AmbienteAdmin(admin.ModelAdmin):
+    list_display = ('prefixo', 'nome')
 
