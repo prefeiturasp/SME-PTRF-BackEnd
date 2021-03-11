@@ -45,7 +45,7 @@ def tipo_devolucao_ao_tesouro():
 
 
 @freeze_time('2020-09-01')
-def test_api_salva_devolucoes_ao_tesouro(jwt_authenticated_client, prestacao_conta_em_analise, conta_associacao,
+def test_api_salva_devolucoes_ao_tesouro(jwt_authenticated_client_a, prestacao_conta_em_analise, conta_associacao,
                                          tipo_devolucao_ao_tesouro, despesa):
     payload = {
         'devolucoes_ao_tesouro_da_prestacao': [
@@ -63,7 +63,7 @@ def test_api_salva_devolucoes_ao_tesouro(jwt_authenticated_client, prestacao_con
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/salvar-devolucoes-ao-tesouro/'
 
-    response = jwt_authenticated_client.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -91,11 +91,11 @@ def devolucao_ao_tesouro(prestacao_conta_em_analise, tipo_devolucao_ao_tesouro, 
     )
 
 
-def test_api_salvar_devolucoes_ao_tesouro_sem_devolucao_tesouro(jwt_authenticated_client, prestacao_conta_em_analise,
-                                                                  devolucao_ao_tesouro):
+def test_api_salvar_devolucoes_ao_tesouro_sem_devolucao_tesouro(jwt_authenticated_client_a, prestacao_conta_em_analise,
+                                                                devolucao_ao_tesouro):
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/salvar-devolucoes-ao-tesouro/'
 
-    response = jwt_authenticated_client.patch(url, content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 

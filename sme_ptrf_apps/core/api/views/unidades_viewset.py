@@ -8,11 +8,14 @@ from rest_framework.response import Response
 from ..serializers import UnidadeSerializer
 from ...models import Unidade
 from ...services import monta_unidade_para_atribuicao
-from sme_ptrf_apps.users.permissoes import PermissaoDadosDiretoriaDre
+from sme_ptrf_apps.users.permissoes import (
+    PermissaoApiUe,
+    PermissaoAPITodosComLeituraOuGravacao,
+)
 
 
 class UnidadesViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated & PermissaoDadosDiretoriaDre]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = Unidade.objects.all()
     filters = (filters.DjangoFilterBackend, SearchFilter,)
@@ -40,8 +43,8 @@ class UnidadesViewSet(viewsets.ModelViewSet):
 
         return qs
 
-
-    @action(detail=False, url_path='para-atribuicao')
+    @action(detail=False, url_path='para-atribuicao',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def para_atribuicao(self, request, *args, **kwargs):
         dre_uuid = request.query_params.get('dre_uuid')
         periodo = request.query_params.get('periodo')

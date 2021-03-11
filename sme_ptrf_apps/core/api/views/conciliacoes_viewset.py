@@ -6,8 +6,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import (PermissaoPrestacaoConta, PermissaoVerConciliacaoBancaria,
-                                            PermissaoEditarConciliacaoBancaria)
+from sme_ptrf_apps.users.permissoes import (
+    PermissaoApiUe,
+    PermissaoAPITodosComLeituraOuGravacao,
+    PermissaoAPITodosComGravacao,
+)
 
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
@@ -29,11 +32,11 @@ logger = logging.getLogger(__name__)
 
 
 class ConciliacoesViewSet(GenericViewSet):
-    permission_classes = [IsAuthenticated & (
-        PermissaoPrestacaoConta | PermissaoVerConciliacaoBancaria | PermissaoEditarConciliacaoBancaria)]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     queryset = ObservacaoConciliacao.objects.all()
 
-    @action(detail=False, methods=['get'], url_path='tabela-valores-pendentes')
+    @action(detail=False, methods=['get'], url_path='tabela-valores-pendentes',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabela_valores_pendentes(self, request):
         conta_associacao_uuid = self.request.query_params.get('conta_associacao')
         periodo_uuid = self.request.query_params.get('periodo')
@@ -68,7 +71,8 @@ class ConciliacoesViewSet(GenericViewSet):
         result = info_resumo_conciliacao(periodo=periodo, conta_associacao=conta_associacao)
         return Response(result, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def receitas(self, request):
 
         # Define o período de conciliação
@@ -150,7 +154,8 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response(ReceitaListaSerializer(receitas, many=True).data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def despesas(self, request):
 
         # Define o período de conciliação
@@ -232,7 +237,8 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response(RateioDespesaListaSerializer(despesas, many=True).data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['patch'], url_path='salvar-observacoes')
+    @action(detail=False, methods=['patch'], url_path='salvar-observacoes',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def salvar_observacoes(self, request):
         # Define o período de conciliação
         periodo_uuid = request.data.get('periodo_uuid')
@@ -291,7 +297,8 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response({'mensagem': 'Informações gravadas'}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'], url_path='observacoes')
+    @action(detail=False, methods=['get'], url_path='observacoes',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def observacoes(self, request):
         # Define o período de conciliação
         periodo_uuid = self.request.query_params.get('periodo')
@@ -346,7 +353,8 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response(result, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def transacoes(self, request):
 
         # Define o período de conciliação
@@ -438,7 +446,8 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response(transacoes, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['patch'], url_path='conciliar-transacao')
+    @action(detail=False, methods=['patch'], url_path='conciliar-transacao',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def conciliar_transacao(self, request):
 
         # Define o período de conciliação
@@ -524,7 +533,8 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response(transacao_conciliada, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['patch'], url_path='desconciliar-transacao')
+    @action(detail=False, methods=['patch'], url_path='desconciliar-transacao',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def desconciliar_transacao(self, request):
 
         # Define a conta de conciliação

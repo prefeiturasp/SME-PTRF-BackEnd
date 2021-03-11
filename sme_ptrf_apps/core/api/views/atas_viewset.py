@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoPrestacaoConta
+from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComLeituraOuGravacao
 
 from ....utils.choices_to_json import choices_to_json
 from ...models import Ata
@@ -14,12 +14,13 @@ from ..serializers import AtaSerializer
 class AtasViewSet(mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   GenericViewSet):
-    permission_classes = [IsAuthenticated & PermissaoPrestacaoConta]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = Ata.objects.all()
     serializer_class = AtaSerializer
 
-    @action(detail=False, url_path='tabelas')
+    @action(detail=False, url_path='tabelas',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, request):
 
         result = {

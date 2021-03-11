@@ -10,7 +10,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoPrestacaoConta
+from sme_ptrf_apps.users.permissoes import (
+    PermissaoApiUe,
+    PermissaoAPITodosComLeituraOuGravacao,
+    PermissaoAPITodosComGravacao
+)
 
 from sme_ptrf_apps.core.models import (
     AcaoAssociacao,
@@ -20,6 +24,7 @@ from sme_ptrf_apps.core.models import (
     PeriodoPrevia,
     PrestacaoConta,
 )
+
 from sme_ptrf_apps.core.services.demonstrativo_financeiro import gerar
 from sme_ptrf_apps.core.services.info_por_acao_services import info_acoes_associacao_no_periodo
 
@@ -27,11 +32,12 @@ logger = logging.getLogger(__name__)
 
 
 class DemonstrativoFinanceiroViewSet(GenericViewSet):
-    permission_classes = [IsAuthenticated & PermissaoPrestacaoConta]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = DemonstrativoFinanceiro.objects.all()
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def previa(self, request):
         logger.info("Previa do demonstrativo financeiro")
         acao_associacao_uuid = self.request.query_params.get('acao-associacao')
@@ -79,7 +85,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         logger.info("Previa Pronta. Retornando conteúdo para o frontend")
         return response
 
-    @action(detail=False, methods=['get'], url_path='documento-final')
+    @action(detail=False, methods=['get'], url_path='documento-final',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def documento_final(self, request):
         logger.info("Download do documento Final.")
         acao_associacao_uuid = self.request.query_params.get('acao-associacao')
@@ -105,7 +112,7 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
-        
+
         prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao, periodo=periodo).first()
         demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(acao_associacao=acao_associacao,
                                                                           conta_associacao=conta_associacao,
@@ -120,7 +127,7 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
         logger.info("Retornando dados do arquivo: %s", demonstrativo_financeiro.arquivo.path)
-        
+
         try:
             response = HttpResponse(
                 open(demonstrativo_financeiro.arquivo.path, 'rb'),
@@ -137,7 +144,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         return response
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def acoes(self, request):
         periodo = None
 
@@ -168,7 +176,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         return Response(result)
 
-    @action(detail=False, methods=['get'], url_path='demonstrativo-info')
+    @action(detail=False, methods=['get'], url_path='demonstrativo-info',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def demonstrativo_info(self, request):
         acao_associacao_uuid = self.request.query_params.get('acao-associacao')
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')

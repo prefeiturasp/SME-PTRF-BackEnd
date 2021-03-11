@@ -13,7 +13,11 @@ from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAs
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
 from sme_ptrf_apps.receitas.models import Receita
-from sme_ptrf_apps.users.permissoes import PermissaoReceita, PermissaoAssociacaoDre, PermissaoEditarConciliacaoBancaria
+from sme_ptrf_apps.users.permissoes import (
+    PermissaoApiUe,
+    PermissaoAPITodosComLeituraOuGravacao,
+    PermissaoAPITodosComGravacao
+)
 from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoReceitaEDetalhesSerializer
 from ...services import atualiza_repasse_para_pendente
 from ...tipos_aplicacao_recurso_receitas import aplicacoes_recurso_to_json
@@ -34,7 +38,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data',)
     filter_fields = ('associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid', 'conferido')
-    permission_classes = [IsAuthenticated & (PermissaoReceita | PermissaoAssociacaoDre)]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
@@ -65,7 +69,8 @@ class ReceitaViewSet(mixins.CreateModelMixin,
 
         return qs
 
-    @action(detail=False, url_path='tabelas', permission_classes=[IsAuthenticated])
+    @action(detail=False, url_path='tabelas',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, request):
 
         associacao_uuid = request.query_params.get('associacao_uuid')
@@ -98,7 +103,8 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated & PermissaoEditarConciliacaoBancaria])
+    @action(detail=True, methods=['patch'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def conciliar(self, request, uuid):
         periodo_uuid = request.query_params.get('periodo')
 
@@ -124,7 +130,8 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         return Response(ReceitaListaSerializer(receita_conciliada, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated & PermissaoEditarConciliacaoBancaria])
+    @action(detail=True, methods=['patch'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def desconciliar(self, request, uuid):
         receita_desconciliada = Receita.desconciliar(uuid=uuid)
         return Response(ReceitaListaSerializer(receita_desconciliada, many=False).data,
