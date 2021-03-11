@@ -35,3 +35,4 @@ from .unidade_serializer import UnidadeInfoAtaSerializer, UnidadeLookUpSerialize
 from .comentario_analise_prestacao_serializer import ComentarioAnalisePrestacaoRetrieveSerializer
 from .arquivo_serializer import ArquivoSerializer
 from .modelo_carga_serializer import ModeloCargaSerializer
+from .ambiente_serializer import AmbienteSerializer

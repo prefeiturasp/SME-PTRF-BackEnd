@@ -58,3 +58,5 @@ from .permissoes_api import (
     ApiPermissoesPerfis,
 )
 
+from .ambiente import Ambiente
+
