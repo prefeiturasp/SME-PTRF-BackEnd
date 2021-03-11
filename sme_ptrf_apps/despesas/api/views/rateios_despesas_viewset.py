@@ -9,7 +9,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoDespesa, PermissaoEditarConciliacaoBancaria
+from sme_ptrf_apps.users.permissoes import (
+    PermissaoApiUe,
+    PermissaoAPITodosComLeituraOuGravacao,
+    PermissaoAPITodosComGravacao
+)
 
 from ....core.models import Associacao, Parametros, Periodo
 from ....core.services import saldos_insuficientes_para_rateios
@@ -18,6 +22,7 @@ from ..serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 
 logger = logging.getLogger(__name__)
 
+
 class RateiosDespesasViewSet(mixins.CreateModelMixin,
                              mixins.ListModelMixin,
                              mixins.RetrieveModelMixin,
@@ -25,7 +30,7 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
     lookup_field = 'uuid'
     queryset = RateioDespesa.objects.all().order_by('-despesa__data_documento')
     serializer_class = RateioDespesaListaSerializer
-    permission_classes = [IsAuthenticated & PermissaoDespesa]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data_documento',)
     filter_fields = ('aplicacao_recurso', 'acao_associacao__uuid', 'despesa__status', 'associacao__uuid', 'conferido')
@@ -59,7 +64,8 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
     def get_serializer_class(self):
         return RateioDespesaListaSerializer
 
-    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated & PermissaoEditarConciliacaoBancaria])
+    @action(detail=True, methods=['patch'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def conciliar(self, request, uuid):
 
         # Define o período de conciliação
@@ -86,13 +92,15 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
         return Response(RateioDespesaListaSerializer(rateio_despesa_conciliado, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated & PermissaoEditarConciliacaoBancaria])
+    @action(detail=True, methods=['patch'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def desconciliar(self, request, uuid):
         rateio_despesa_desconciliado = RateioDespesa.desconciliar(uuid=uuid)
         return Response(RateioDespesaListaSerializer(rateio_despesa_desconciliado, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=False, url_path='verificar-saldos', methods=['post'], permission_classes=[IsAuthenticated])
+    @action(detail=False, url_path='verificar-saldos', methods=['post'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def verificar_saldos(self, request):
         despesa_uuid = request.query_params.get('despesa_uuid')
 
@@ -140,7 +148,8 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
 
         return Response(result)
 
-    @action(detail=False, url_path='totais', methods=['get'])
+    @action(detail=False, url_path='totais', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def totais(self, request):
         associacao__uuid = request.query_params.get('associacao__uuid')
 

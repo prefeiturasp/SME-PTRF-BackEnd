@@ -30,4 +30,33 @@ from .previsao_repasse_sme import PrevisaoRepasseSme
 from .censo import Censo
 from .parametro_fique_de_olho_pc import ParametroFiqueDeOlhoPc
 from .modelo_carga import ModeloCarga
+from .permissoes_ue import (
+    FuncUeResumoDosRecursos,
+    FuncUeDadosDaEscola,
+    FuncUeCreditosDaEscola,
+    FuncUeGastosDaEscola,
+    FuncUeConciliacaoBancaria,
+    FuncUePrestacaoDeContas,
+    FuncUeGerais,
+    FuncUeGestaoPerfis,
+)
+from .permissoes_dre import (
+    FuncDreAssociacoesDaDre,
+    FuncDreDadosDaDiretoria,
+    FuncDreAcompanhamentoDePcs,
+    FuncDreFaqDre,
+    FuncDreRelatorioConsolidado,
+    FuncDreGestaoPerfis,
+)
+from .permissoes_sme import (
+    FuncSmePainelParametrizacoes,
+    FuncSmeAcompanhamentoDePc,
+    FuncSmeGestaoPerfis,
+    FuncSmeArquivosCarga,
+)
+from .permissoes_api import (
+    ApiPermissoesPerfis,
+)
+
 from .ambiente import Ambiente
+

@@ -11,7 +11,11 @@ from rest_framework.viewsets import GenericViewSet
 
 from sme_ptrf_apps.core.models import Periodo, TipoConta, TipoDevolucaoAoTesouro, Unidade
 from sme_ptrf_apps.receitas.models import DetalheTipoReceita
-from sme_ptrf_apps.users.permissoes import PermissaoViewRelatorioConsolidadoDre, PermissaoGerarRelatorioConsolidadoDre
+from sme_ptrf_apps.users.permissoes import (
+    PermissaoApiDre,
+    PermissaoAPIApenasDreComGravacao,
+    PermissaoAPIApenasDreComLeituraOuGravacao
+)
 
 from ...models import RelatorioConsolidadoDRE
 from ...services import (
@@ -30,16 +34,18 @@ logger = logging.getLogger(__name__)
 
 class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
-    permission_classes = [IsAuthenticated & PermissaoViewRelatorioConsolidadoDre]
+    permission_classes = [IsAuthenticated & PermissaoApiDre]
     queryset = RelatorioConsolidadoDRE.objects.all()
 
-    @action(detail=False, methods=['get'], url_path='fique-de-olho')
+    @action(detail=False, methods=['get'], url_path='fique-de-olho',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def fique_de_olho(self, request, uuid=None):
         from sme_ptrf_apps.dre.models import ParametroFiqueDeOlhoRelDre
         fique_de_olho = ParametroFiqueDeOlhoRelDre.get().fique_de_olho
         return Response({'detail': fique_de_olho}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['patch'], url_path='update-fique-de-olho')
+    @action(detail=False, methods=['patch'], url_path='update-fique-de-olho',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def update_fique_de_olho(self, request, uuid=None):
 
         texto_fique_de_olho = request.data.get('fique_de_olho', None)
@@ -66,7 +72,8 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response({'detail': 'Salvo com sucesso'}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'], url_path='status-relatorio')
+    @action(detail=False, methods=['get'], url_path='status-relatorio',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def status_relatorio(self, request):
         from rest_framework import status
 
@@ -140,7 +147,8 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response(status)
 
-    @action(detail=False, methods=['get'], url_path='info-execucao-financeira')
+    @action(detail=False, methods=['get'], url_path='info-execucao-financeira',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def info_execucao_financeira(self, request):
         from rest_framework import status
 
@@ -214,7 +222,8 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response(info)
 
-    @action(detail=False, methods=['get'], url_path='info-devolucoes-conta')
+    @action(detail=False, methods=['get'], url_path='info-devolucoes-conta',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def info_devolucoes_conta(self, request):
         from rest_framework import status
 
@@ -288,7 +297,8 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response(info)
 
-    @action(detail=False, methods=['get'], url_path='info-devolucoes-ao-tesouro')
+    @action(detail=False, methods=['get'], url_path='info-devolucoes-ao-tesouro',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def info_devolucoes_ao_tesouro(self, request):
         from rest_framework import status
 
@@ -362,7 +372,8 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response(info)
 
-    @action(detail=False, methods=['get'], url_path='info-execucao-financeira-unidades')
+    @action(detail=False, methods=['get'], url_path='info-execucao-financeira-unidades',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def info_execucao_financeira_unidades(self, request):
         from rest_framework import status
 
@@ -448,7 +459,8 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response(info)
 
-    @action(detail=False, methods=['put'], url_path='update-observacao-devolucoes-ao-tesouro')
+    @action(detail=False, methods=['put'], url_path='update-observacao-devolucoes-ao-tesouro',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def update_observacao_devolucoes_ao_tesouro(self, request):
         from rest_framework import status
 
@@ -547,7 +559,8 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response(info)
 
-    @action(detail=False, methods=['put'], url_path='update-observacao-devolucoes-a-conta')
+    @action(detail=False, methods=['put'], url_path='update-observacao-devolucoes-a-conta',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def update_observacao_devolucoes_a_conta(self, request):
         from rest_framework import status
 
@@ -646,7 +659,8 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response(info)
 
-    @action(detail=False, methods=['get'], url_path='download')
+    @action(detail=False, methods=['get'], url_path='download',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def download(self, request):
 
         # Determina a DRE
@@ -732,7 +746,8 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         return response
 
-    @action(detail=False, url_path="gerar-relatorio", methods=['post'], permission_classes=[IsAuthenticated & PermissaoGerarRelatorioConsolidadoDre])
+    @action(detail=False, url_path="gerar-relatorio", methods=['post'],
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def gerar_relatorio(self, request):
         dados = request.data
 
@@ -788,7 +803,8 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response({"OK": "Relatório Consolidado Gerado."}, status=status.HTTP_201_CREATED)
 
-    @action(detail=False, url_path="previa", methods=['post'])
+    @action(detail=False, url_path="previa", methods=['post'],
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def previa(self, request):
         dados = request.data
 

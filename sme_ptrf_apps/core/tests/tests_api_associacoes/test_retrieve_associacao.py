@@ -217,10 +217,10 @@ def jwt_authenticated_client_sem_permissao(client, usuario_sem_permissao_unidade
     return api_client
 
 
-def test_api_retrieve_associacao_apenas_com_permissao_ver_dados_unidade_dre(jwt_authenticated_client_com_permissao, associacao, presidente_associacao, presidente_conselho_fiscal, censo):
+def test_api_retrieve_associacao_apenas_com_permissao_ver_dados_unidade_dre(jwt_authenticated_client_a, associacao, presidente_associacao, presidente_conselho_fiscal, censo):
     from unittest.mock import patch
     with patch('sme_ptrf_apps.core.api.views.associacoes_viewset.atualiza_dados_unidade') as mock_patch:
-        response = jwt_authenticated_client_com_permissao.get(f'/api/associacoes/{associacao.uuid}/', content_type='application/json')
+        response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/', content_type='application/json')
         result = json.loads(response.content)
 
         mock_patch.return_value = None
@@ -289,15 +289,3 @@ def test_api_retrieve_associacao_apenas_com_permissao_ver_dados_unidade_dre(jwt_
 
         assert response.status_code == status.HTTP_200_OK
         assert result == result_esperado
-
-
-def test_api_retrieve_associacao_apenas_sem_permissao_ver_dados_unidade_dre(jwt_authenticated_client_sem_permissao, associacao, presidente_associacao, presidente_conselho_fiscal, censo):
-    from unittest.mock import patch
-    with patch('sme_ptrf_apps.core.api.views.associacoes_viewset.atualiza_dados_unidade') as mock_patch:
-        response = jwt_authenticated_client_sem_permissao.get(f'/api/associacoes/{associacao.uuid}/', content_type='application/json')
-        result = json.loads(response.content)
-
-        mock_patch.return_value = None
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-

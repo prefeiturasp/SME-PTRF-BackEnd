@@ -386,15 +386,8 @@ def repasse_realizado_livre_aplicacao(associacao, conta_associacao, acao_associa
 @pytest.fixture
 def permissoes_receitas():
     permissoes = [
-        Permission.objects.filter(codename='add_receita').first(),
-        Permission.objects.filter(codename='view_receita').first(),
-        Permission.objects.filter(codename='change_receita').first(),
-        Permission.objects.filter(codename='delete_receita').first(),
-        Permission.objects.create(
-            name="Editar conciliação bancária", 
-            codename='change_conciliacao_bancaria', 
-            content_type=ContentType.objects.filter(app_label="auth").first()
-        )
+        Permission.objects.filter(codename='ue_leitura').first(),
+        Permission.objects.filter(codename='ue_gravacao').first()
     ]
 
     return permissoes
@@ -409,7 +402,7 @@ def grupo_receita(permissoes_receitas):
 
 @pytest.fixture
 def usuario_permissao(unidade, grupo_receita):
-    from django.contrib.auth import get_user_model 
+    from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
     login = '7210418'
     email = 'sme@amcom.com.br'
