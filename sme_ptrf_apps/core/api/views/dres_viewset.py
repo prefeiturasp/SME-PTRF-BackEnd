@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoDashboardDre
+from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComLeituraOuGravacao
 
 from ...models import Unidade
 from ..serializers import UnidadeSerializer
@@ -15,7 +15,7 @@ from ..serializers import UnidadeSerializer
 class DresViewSet(mixins.ListModelMixin,
                   mixins.RetrieveModelMixin,
                   GenericViewSet, ):
-    permission_classes = [IsAuthenticated & PermissaoDashboardDre]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = Unidade.dres.all()
     filters = (filters.DjangoFilterBackend, SearchFilter,)
@@ -35,7 +35,8 @@ class DresViewSet(mixins.ListModelMixin,
 
         return qs
 
-    @action(detail=True, url_path='qtd-unidades')
+    @action(detail=True, url_path='qtd-unidades',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def qtd_unidades(self, request, uuid=None):
         dre = self.get_object()
         quantidade = dre.unidades_da_dre.count()

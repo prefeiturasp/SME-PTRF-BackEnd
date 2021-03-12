@@ -4,7 +4,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from sme_ptrf_apps.core.api.serializers import ProcessoAssociacaoCreateSerializer, ProcessoAssociacaoRetrieveSerializer
 from sme_ptrf_apps.core.models import ProcessoAssociacao
-from sme_ptrf_apps.users.permissoes import PermissaoAssociacaoDre
+from sme_ptrf_apps.users.permissoes import PermissaoApiDre
 
 
 class ProcessosAssociacaoViewSet(mixins.RetrieveModelMixin,
@@ -13,7 +13,7 @@ class ProcessosAssociacaoViewSet(mixins.RetrieveModelMixin,
                                  mixins.DestroyModelMixin,
                                  GenericViewSet):
     lookup_field = 'uuid'
-    permission_classes = [IsAuthenticated & PermissaoAssociacaoDre]
+    permission_classes = [IsAuthenticated & PermissaoApiDre]
     serializer_class = ProcessoAssociacaoRetrieveSerializer
     queryset = ProcessoAssociacao.objects.all()
 

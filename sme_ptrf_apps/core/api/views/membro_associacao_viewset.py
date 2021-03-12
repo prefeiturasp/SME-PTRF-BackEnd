@@ -8,7 +8,7 @@ from rest_framework.viewsets import GenericViewSet
 from sme_ptrf_apps.core.api.serializers import MembroAssociacaoCreateSerializer, MembroAssociacaoListSerializer
 from sme_ptrf_apps.core.models import MembroAssociacao
 from sme_ptrf_apps.core.services import TerceirizadasException, TerceirizadasService
-from sme_ptrf_apps.users.permissoes import PermissaoAssociacao
+from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComLeituraOuGravacao
 
 
 class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
@@ -19,7 +19,7 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
                               GenericViewSet):
 
     lookup_field = 'uuid'
-    permission_classes = [IsAuthenticated & PermissaoAssociacao]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     serializer_class = MembroAssociacaoListSerializer
     queryset = MembroAssociacao.objects.all()
 
@@ -42,7 +42,8 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
 
         return qs
 
-    @action(detail=False, methods=['get'], url_path='codigo-identificacao')
+    @action(detail=False, methods=['get'], url_path='codigo-identificacao',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def consulta_codigo_identificacao(self, request):
         rf = self.request.query_params.get('rf')
         codigo_eol = self.request.query_params.get('codigo-eol')
@@ -77,7 +78,8 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
         except ConnectTimeout:
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['get'], url_path='cpf-responsavel')
+    @action(detail=False, methods=['get'], url_path='cpf-responsavel',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def consulta_cpf_responsavel(self, request):
         cpf = self.request.query_params.get('cpf')
         associacao_uuid = self.request.query_params.get('associacao_uuid')

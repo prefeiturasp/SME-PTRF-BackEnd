@@ -5,7 +5,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoDespesa, PermissaoDashboardDre
+from sme_ptrf_apps.users.permissoes import (
+    PermissaoApiUe,
+    PermissaoAPITodosComLeituraOuGravacao,
+)
 
 from ....core.api.serializers import TagLookupSerializer
 from ....core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
@@ -24,7 +27,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
                       mixins.DestroyModelMixin,
                       mixins.ListModelMixin,
                       GenericViewSet):
-    permission_classes = [IsAuthenticated & (PermissaoDespesa | PermissaoDashboardDre)]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = Despesa.objects.all()
     serializer_class = DespesaSerializer
@@ -40,7 +43,8 @@ class DespesasViewSet(mixins.CreateModelMixin,
         else:
             return DespesaCreateSerializer
 
-    @action(detail=False, url_path='tabelas')
+    @action(detail=False, url_path='tabelas',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, request):
 
         associacao_uuid = request.query_params.get('associacao_uuid')
@@ -68,7 +72,8 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
         return Response(result)
 
-    @action(detail=False, url_path='ja-lancada', permission_classes=[IsAuthenticated])
+    @action(detail=False, url_path='ja-lancada',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def ja_lancada(self, request):
 
         tipo_documento = request.query_params.get('tipo_documento')

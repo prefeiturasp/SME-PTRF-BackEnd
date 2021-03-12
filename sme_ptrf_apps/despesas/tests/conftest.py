@@ -10,6 +10,37 @@ from ..tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 
 @pytest.fixture
+def permissoes_api_ue():
+    permissoes = [
+        Permission.objects.filter(codename='ue_leitura').first(),
+        Permission.objects.filter(codename='ue_gravacao').first()
+    ]
+
+    return permissoes
+
+
+@pytest.fixture
+def permissoes_api_dre():
+    permissoes = [
+        Permission.objects.filter(codename='dre_leitura').first(),
+        Permission.objects.filter(codename='dre_gravacao').first()
+    ]
+
+    return permissoes
+
+
+@pytest.fixture
+def permissoes_api_sme():
+    permissoes = [
+        Permission.objects.filter(codename='sme_leitura').first(),
+        Permission.objects.filter(codename='sme_gravacao').first()
+    ]
+
+    return permissoes
+
+
+
+@pytest.fixture
 def tipo_documento():
     return baker.make('TipoDocumento', nome='NFe', apenas_digitos=False, numero_documento_digitado=False)
 
@@ -327,10 +358,11 @@ def permissoes_rateios():
 
     return permissoes
 
+
 @pytest.fixture
-def grupo_despesa(permissoes_despesa, permissoes_rateios):
+def grupo_despesa(permissoes_despesa, permissoes_api_ue):
     g = Grupo.objects.create(name="despesa")
-    g.permissions.add(*permissoes_despesa, *permissoes_rateios)
+    g.permissions.add(*permissoes_api_ue)
     return g
 
 
