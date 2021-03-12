@@ -1,10 +1,5 @@
 from rest_framework import exceptions
-from rest_framework.permissions import SAFE_METHODS, BasePermission
-
-from sme_ptrf_apps.core.models import Associacao, PrestacaoConta
-from sme_ptrf_apps.despesas.models import Despesa
-from sme_ptrf_apps.receitas.models import Receita
-from sme_ptrf_apps.dre.models import Atribuicao, RelatorioConsolidadoDRE
+from rest_framework.permissions import BasePermission
 
 
 class PermissaoCRUD(BasePermission):
@@ -53,401 +48,6 @@ class PermissaoCRUD(BasePermission):
 
     def has_permission(self, request, view):
         perms = self.get_required_permissions(request.method, view.queryset.model)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoReceita(PermissaoCRUD):
-    perms_map = {
-        'GET': ['view_%(model_name)s'],
-        'OPTIONS': ['view_%(model_name)s'],
-        'HEAD': ['view_%(model_name)s'],
-        'POST': ['add_%(model_name)s'],
-        'PUT': ['change_%(model_name)s'],
-        'PATCH': ['change_%(model_name)s'],
-        'DELETE': ['delete_%(model_name)s'],
-    }
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method, Receita)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoDespesa(PermissaoCRUD):
-    perms_map = {
-        'GET': ['view_%(model_name)s'],
-        'OPTIONS': ['view_%(model_name)s'],
-        'HEAD': ['view_%(model_name)s'],
-        'POST': ['add_%(model_name)s'],
-        'PUT': ['change_%(model_name)s'],
-        'PATCH': ['change_%(model_name)s'],
-        'DELETE': ['delete_%(model_name)s'],
-    }
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method, Despesa)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoAssociacao(PermissaoCRUD):
-    perms_map = {
-        'GET': ['view_%(model_name)s'],
-        'OPTIONS': ['view_%(model_name)s'],
-        'HEAD': ['view_%(model_name)s'],
-        'POST': ['add_%(model_name)s', 'change_%(model_name)s'],
-        'PUT': ['change_%(model_name)s'],
-        'PATCH': ['change_%(model_name)s'],
-        'DELETE': ['delete_%(model_name)s', 'change_%(model_name)s'],
-    }
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method, Associacao)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoPrestacaoConta(PermissaoCRUD):
-    perms_map = {
-        'GET': ['view_%(model_name)s'],
-        'OPTIONS': ['view_%(model_name)s'],
-        'HEAD': ['view_%(model_name)s'],
-        'POST': ['add_%(model_name)s'],
-        'PUT': ['change_%(model_name)s'],
-        'PATCH': ['change_%(model_name)s'],
-        'DELETE': ['delete_%(model_name)s'],
-    }
-
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            perms = self.get_required_permissions(request.method, PrestacaoConta)
-            return self.has_perms(perms, request.user)
-        return True
-
-
-class PermissaoExportarDadosAssociacao(PermissaoCRUD):
-    perms_map = {
-        'GET': ['view_associacao'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': [],
-        'PUT': [],
-        'PATCH': [],
-        'DELETE': [],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            perms = self.get_required_permissions(request.method)
-            return self.has_perms(perms, request.user)
-        return False
-
-
-class PermissaoDashboardDre(PermissaoCRUD):
-    perms_map = {
-        'GET': ['access_acompanhamento_pcs_dre'],
-        'OPTIONS': ['access_acompanhamento_pcs_dre'],
-        'HEAD': ['access_acompanhamento_pcs_dre'],
-        'POST': ['access_acompanhamento_pcs_dre'],
-        'PUT': ['access_acompanhamento_pcs_dre'],
-        'PATCH': ['access_acompanhamento_pcs_dre'],
-        'DELETE': ['access_acompanhamento_pcs_dre'],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoAssociacaoDre(PermissaoCRUD):
-    perms_map = {
-        'GET': ['access_associacao_dre'],
-        'OPTIONS': ['access_associacao_dre'],
-        'HEAD': ['access_associacao_dre'],
-        'POST': ['access_associacao_dre'],
-        'PUT': ['access_associacao_dre'],
-        'PATCH': ['access_associacao_dre'],
-        'DELETE': ['access_associacao_dre'],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoDadosUnidadeDre(PermissaoCRUD):
-    perms_map = {
-        'GET': ['access_associacao_dre'],
-        'OPTIONS': ['access_associacao_dre'],
-        'HEAD': ['access_associacao_dre'],
-        'POST': ['access_associacao_dre'],
-        'PUT': ['access_associacao_dre'],
-        'PATCH': ['access_associacao_dre'],
-        'DELETE': ['access_associacao_dre'],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoRegularidadeDre(PermissaoCRUD):
-    perms_map = {
-        'GET': ['access_associacao_dre'],
-        'OPTIONS': ['access_associacao_dre'],
-        'HEAD': ['access_associacao_dre'],
-        'POST': ['access_associacao_dre'],
-        'PUT': ['access_associacao_dre'],
-        'PATCH': ['access_associacao_dre'],
-        'DELETE': ['access_associacao_dre'],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoSituacaoFinanceira(PermissaoCRUD):
-    perms_map = {
-        'GET': ['access_associacao_dre'],
-        'OPTIONS': ['access_associacao_dre'],
-        'HEAD': ['access_associacao_dre'],
-        'POST': ['access_associacao_dre'],
-        'PUT': ['access_associacao_dre'],
-        'PATCH': ['access_associacao_dre'],
-        'DELETE': ['access_associacao_dre'],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoDadosDiretoriaDre(PermissaoCRUD):
-    perms_map = {
-        'GET': ['access_dados_diretoria'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': [],
-        'PUT': [],
-        'PATCH': [],
-        'DELETE': [],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            perms = self.get_required_permissions(request.method)
-            return self.has_perms(perms, request.user)
-        return True
-
-
-class PermissaoViewRelatorioConsolidadoDre(PermissaoCRUD):
-    perms_map = {
-        'GET': ['access_relatorio_consolidado_dre'],
-        'OPTIONS': ['access_relatorio_consolidado_dre'],
-        'HEAD': ['access_relatorio_consolidado_dre'],
-        'POST': ['access_relatorio_consolidado_dre'],
-        'PUT': ['access_relatorio_consolidado_dre'],
-        'PATCH': ['access_relatorio_consolidado_dre'],
-        'DELETE': ['access_relatorio_consolidado_dre'],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoGerarRelatorioConsolidadoDre(PermissaoCRUD):
-    perms_map = {
-        'GET': [],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['gerar_relatorio_consolidado_dre'],
-        'PUT': [],
-        'PATCH': [],
-        'DELETE': [],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoEditarRelatorioConsolidadoDre(PermissaoCRUD):
-    """Está sendo usado para tratar a permissão para salvar justificativas"""
-    perms_map = {
-        'GET': ['change_relatorio_consolidado_dre', 'view_relatorio_consolidado_dre'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['change_relatorio_consolidado_dre'],
-        'PUT': ['change_relatorio_consolidado_dre'],
-        'PATCH': ['change_relatorio_consolidado_dre'],
-        'DELETE': ['change_relatorio_consolidado_dre'],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoVerConciliacaoBancaria(PermissaoCRUD):
-    perms_map = {
-        'GET': ['view_conciliacao'],
-        'OPTIONS': ['view_conciliacao'],
-        'HEAD': ['view_conciliacao'],
-        'POST': [],
-        'PUT': [],
-        'PATCH': [],
-        'DELETE': [],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoEditarConciliacaoBancaria(PermissaoCRUD):
-    perms_map = {
-        'GET': [],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['change_conciliacao'],
-        'PUT': ['change_conciliacao'],
-        'PATCH': ['change_conciliacao'],
-        'DELETE': ['change_conciliacao'],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoConciliacaoBancaria(PermissaoCRUD):
-    perms_map = {
-        'GET': ['view_conciliacao'],
-        'OPTIONS': ['view_conciliacao'],
-        'HEAD': ['view_conciliacao'],
-        'POST': [],
-        'PUT': [],
-        'PATCH': ['change_conciliacao'],
-        'DELETE': [],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoAtribuicao(PermissaoCRUD):
-    perms_map = {
-        'GET': ['view_%(model_name)s'],
-        'OPTIONS': ['view_%(model_name)s'],
-        'HEAD': ['view_%(model_name)s'],
-        'POST': ['add_%(model_name)s'],
-        'PUT': ['change_%(model_name)s'],
-        'PATCH': ['change_%(model_name)s'],
-        'DELETE': ['delete_%(model_name)s'],
-    }
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method, Atribuicao)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoRelatorioConsolidadoDre(PermissaoCRUD):
-    perms_map = {
-        'GET': ['view_relatorio_consolidado_dre'],
-        'OPTIONS': ['view_relatorio_consolidado_dre'],
-        'HEAD': ['view_relatorio_consolidado_dre'],
-        'POST': ['create_relatorio_consolidado_dre'],
-        'PUT': ['change_relatorio_consolidado_dre'],
-        'PATCH': ['change_relatorio_consolidado_dre'],
-        'DELETE': [],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method)
         return self.has_perms(perms, request.user)
 
 
@@ -576,6 +176,50 @@ class PermissaoAPIApenasDreComLeituraOuGravacao(PermissaoCRUD):
         'PUT': ['dre_leitura', 'dre_gravacao'],
         'PATCH': ['dre_leitura', 'dre_gravacao'],
         'DELETE': ['dre_leitura', 'dre_gravacao'],
+    }
+
+    def get_required_permissions(self, method):
+        if method not in self.perms_map:
+            raise exceptions.MethodNotAllowed(method)
+
+        return [perm for perm in self.perms_map[method]]
+
+    def has_permission(self, request, view):
+        perms = self.get_required_permissions(request.method)
+        return self.has_perms(perms, request.user)
+
+
+class PermissaoAPIApenasSmeComGravacao(PermissaoCRUD):
+    perms_map = {
+        'GET': ['sme_gravacao'],
+        'OPTIONS': ['sme_gravacao'],
+        'HEAD': ['sme_gravacao'],
+        'POST': ['sme_gravacao'],
+        'PUT': ['sme_gravacao'],
+        'PATCH': ['sme_gravacao'],
+        'DELETE': ['sme_gravacao'],
+    }
+
+    def get_required_permissions(self, method):
+        if method not in self.perms_map:
+            raise exceptions.MethodNotAllowed(method)
+
+        return [perm for perm in self.perms_map[method]]
+
+    def has_permission(self, request, view):
+        perms = self.get_required_permissions(request.method)
+        return self.has_perms(perms, request.user)
+
+
+class PermissaoAPIApenasSmeComLeituraOuGravacao(PermissaoCRUD):
+    perms_map = {
+        'GET': ['sme_leitura', 'sme_gravacao'],
+        'OPTIONS': ['sme_leitura', 'sme_gravacao'],
+        'HEAD': ['sme_leitura', 'sme_gravacao'],
+        'POST': ['sme_leitura', 'sme_gravacao'],
+        'PUT': ['sme_leitura', 'sme_gravacao'],
+        'PATCH': ['sme_leitura', 'sme_gravacao'],
+        'DELETE': ['sme_leitura', 'sme_gravacao'],
     }
 
     def get_required_permissions(self, method):
