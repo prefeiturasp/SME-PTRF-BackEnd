@@ -85,6 +85,10 @@ class FuncUePrestacaoDeContas(models.Model):
 
         permissions = (
             ('access_prestacao_contas', '[UE] Pode acessar Prestação de Contas:Geração de documentos.'),
+            ('concluir_periodo_prestacao_contas', '[UE] Pode concluir período em Prestação de Contas.'),
+            ('gerar_previas_prestacao_contas', '[UE] Pode gerar prévias em Prestação de Contas.'),
+            ('baixar_documentos_prestacao_contas', '[UE] Pode baixar documentos de Prestação de Contas.'),
+            ('change_ata_prestacao_contas', '[UE] Pode atualizar atas de Prestação de Contas.'),
         )
 
 
