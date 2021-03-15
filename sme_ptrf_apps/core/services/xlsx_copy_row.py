@@ -5,6 +5,10 @@ from openpyxl.cell.cell import MergedCell
 from openpyxl.utils import get_column_letter, range_boundaries
 
 
+def insert_row(ws, last_row, source_row):
+    for row_idx in range(last_row, source_row, -1):
+        copy_row(ws, row_idx, 1, copy_data=True)
+
 def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_merged_columns=True):
     """Copia uma linha da planilha para a linha imediatamento abaixo mantendo todos os atributos."""
     CELL_RE = re.compile("(?P<col>\$?[A-Z]+)(?P<row>\$?\d+)")
@@ -73,7 +77,7 @@ def copy_row_direct(ws, source_row, dest_row, copy_data=False, copy_style=True, 
     new_rd = copy(ws.row_dimensions[source_row])
     new_rd.index = dest_row
     ws.row_dimensions[dest_row] = new_rd
-    
+
     # Fazendo unmerge das celulas de destino.
     mergedcells = []
     for group in ws.merged_cells.ranges:
