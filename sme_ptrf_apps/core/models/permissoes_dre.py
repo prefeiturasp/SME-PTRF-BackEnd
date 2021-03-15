@@ -24,6 +24,7 @@ class FuncDreAssociacoesDaDre(models.Model):
             ('access_dados_unidade_dre', '[DRE] Pode acessar dados de uma unidade.'),
             ('access_regularidade_dre', '[DRE] Pode acessar regularidade de uma unidade.'),
             ('access_situacao_financeira_dre', '[DRE] Pode acessar a situação financeira de uma unidade.'),
+            ('change_regularidade', '[DRE] Pode atualizar a regularidade de uma unidade.'),
         )
 
 
