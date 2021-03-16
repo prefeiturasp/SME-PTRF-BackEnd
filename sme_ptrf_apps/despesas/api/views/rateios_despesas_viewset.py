@@ -1,5 +1,7 @@
 import logging
 
+from datetime import datetime
+
 from django.db.models import Sum
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status
@@ -15,8 +17,8 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPITodosComGravacao
 )
 
-from ....core.models import Associacao, Parametros, Periodo
-from ....core.services import saldos_insuficientes_para_rateios
+from ....core.models import Associacao, Periodo
+from ....core.services import valida_rateios_quanto_aos_saldos
 from ...models import RateioDespesa
 from ..serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 
@@ -105,46 +107,34 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
         despesa_uuid = request.query_params.get('despesa_uuid')
 
         despesa = request.data
-        data_documento = despesa['data_documento']
+        data_documento = datetime.strptime(despesa['data_documento'], '%Y-%m-%d').date()
+        associacao_uuid = despesa['associacao']
 
-        if data_documento:
-            periodo_despesa = Periodo.da_data(data_documento)
-            rateios = despesa['rateios']
-            saldos_insuficientes = saldos_insuficientes_para_rateios(
-                rateios=rateios,
-                periodo=periodo_despesa,
-                exclude_despesa=despesa_uuid
-            )
-        else:
-            return Response({
-                'situacao_do_saldo': 'impossível_determinar',
-                'mensagem': 'Sem informar a data da despesa não há como determinar o saldo disponível.',
-                'saldos_insuficientes': [],
-                'aceitar_lancamento': True
-            })
-
-        if not saldos_insuficientes['saldos_insuficientes']:
-            return Response( {
-                'situacao_do_saldo': 'saldo_suficiente',
-                'mensagem': 'Há saldo disponível para cobertura da despesa.',
-                'saldos_insuficientes': [],
-                'aceitar_lancamento': True
-            })
-
-        if saldos_insuficientes['tipo_saldo'] == 'CONTA':
-            result = {
-                'situacao_do_saldo': 'saldo_conta_insuficiente',
-                'mensagem': 'Não há saldo disponível em alguma das contas da despesa.',
-                'saldos_insuficientes': saldos_insuficientes['saldos_insuficientes'],
-                'aceitar_lancamento': Parametros.get().permite_saldo_conta_negativo
+        if not associacao_uuid:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'operacao': 'verificar saldos',
+                'mensagem': 'O UUID da associação não foi enviado na requisição'
             }
-        else:
-            result = {
-                'situacao_do_saldo': 'saldo_insuficiente',
-                'mensagem': 'Não há saldo disponível em alguma das ações da despesa.',
-                'saldos_insuficientes': saldos_insuficientes['saldos_insuficientes'],
-                'aceitar_lancamento': True
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            associacao = Associacao.objects.get(uuid=associacao_uuid)
+        except Associacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto associação para o uuid {associacao_uuid} não foi encontrado na base."
             }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        result = valida_rateios_quanto_aos_saldos(
+            rateios=despesa['rateios'],
+            associacao=associacao,
+            data_documento=data_documento,
+            exclude_despesa=despesa_uuid
+        )
 
         return Response(result)
 
@@ -178,3 +168,6 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
             "total_despesas_com_filtro": total_despesas_com_filtro
         }
         return Response(result)
+
+
+
