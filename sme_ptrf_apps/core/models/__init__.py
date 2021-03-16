@@ -53,6 +53,7 @@ from .permissoes_sme import (
     FuncSmeAcompanhamentoDePc,
     FuncSmeGestaoPerfis,
     FuncSmeArquivosCarga,
+    FuncSmeConsultaSaldoBancario,
 )
 from .permissoes_api import (
     ApiPermissoesPerfis,
