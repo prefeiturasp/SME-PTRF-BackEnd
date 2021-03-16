@@ -1,6 +1,5 @@
 from django.db import models
 
-from sme_ptrf_apps.core.models import AcaoAssociacao
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 

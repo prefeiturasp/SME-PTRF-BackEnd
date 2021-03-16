@@ -64,3 +64,17 @@ class FuncSmeArquivosCarga(models.Model):
         permissions = (
             ('access_arquivos_carga', '[SME] Pode acessar Arquivos de Carga em parametrizações.'),
         )
+
+
+class FuncSmeConsultaSaldoBancario(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[SME] Consulta Saldo Bancário"
+        verbose_name_plural = "[SME] Consulta Saldos Bancários"
+
+        permissions = (
+            ('access_consulta_saldo_bancario', '[SME] Pode acessar a consulta de saldo bancário.'),
+        )
