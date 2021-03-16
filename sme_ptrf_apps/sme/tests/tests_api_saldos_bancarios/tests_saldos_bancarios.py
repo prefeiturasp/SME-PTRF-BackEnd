@@ -13,8 +13,6 @@ def test_saldo_bancario_por_tipo_de_unidade(jwt_authenticated_client, observacao
         f'/api/saldos-bancarios-sme/saldo-por-tipo-unidade/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}',
         content_type='application/json')
 
-    print(f'\ntipo_conta_saldos_bancarios XXXXXXX: \n{tipo_conta_saldos_bancarios}')
-
     result = json.loads(response.content)
 
     resultado_esperado = [
