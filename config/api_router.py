@@ -38,6 +38,7 @@ from sme_ptrf_apps.despesas.api.views.tipos_custeio_viewset import TiposCusteioV
 from sme_ptrf_apps.dre.api.views import (FaqCategoriasViewSet, FaqsViewSet, TecnicosDreViewSet, AtribuicaoViewset,
                                          RelatoriosConsolidadosDREViewSet,
                                          JustificativasRelatoriosConsolidadosDreViewSet, MotivoAprovacaoRessalvaViewSet)
+from sme_ptrf_apps.sme.api.views import SaldosBancariosSMEViewSet
 from sme_ptrf_apps.receitas.api.views import ReceitaViewSet, RepasseViewSet
 from sme_ptrf_apps.users.api.views import EsqueciMinhaSenhaViewSet, LoginView, RedefinirSenhaViewSet, UserViewSet
 
@@ -91,6 +92,7 @@ router.register("tags", TagsViewSet)
 router.register("modelos-cargas", ModelosCargasViewSet)
 router.register("tipos-custeio", TiposCusteioViewSet)
 router.register("ambientes", AmbientesViewSet)
+router.register("saldos-bancarios-sme", SaldosBancariosSMEViewSet)
 
 app_name = "api"
 urlpatterns = router.urls

@@ -100,6 +100,7 @@ LOCAL_APPS = [
     "sme_ptrf_apps.despesas.apps.DespesasConfig",
     "sme_ptrf_apps.receitas.apps.ReceitasConfig",
     "sme_ptrf_apps.dre.apps.DreConfig",
+    "sme_ptrf_apps.sme.apps.SmeConfig",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

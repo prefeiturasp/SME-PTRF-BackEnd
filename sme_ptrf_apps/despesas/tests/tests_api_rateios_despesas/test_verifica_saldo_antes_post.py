@@ -23,8 +23,8 @@ def test_api_verifica_saldo_antes_post_saldo_ok(
     payload_despesa_valida
 ):
     response = jwt_authenticated_client_d.post('/api/rateios-despesas/verificar-saldos/',
-                                             data=json.dumps(payload_despesa_valida),
-                                             content_type='application/json')
+                                               data=json.dumps(payload_despesa_valida),
+                                               content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -206,6 +206,39 @@ def test_api_verifica_saldo_antes_post_com_saldo_na_conta_considerando_recursos_
     result_esperado = {
         'situacao_do_saldo': 'saldo_suficiente',
         'mensagem': 'Há saldo disponível para cobertura da despesa.',
+        'saldos_insuficientes': [],
+        'aceitar_lancamento': True
+    }
+    result = json.loads(response.content)
+
+    assert result == result_esperado
+
+
+def test_api_verifica_saldo_despesa_anterior_periodo_inicial(
+    jwt_authenticated_client_d,
+    tipo_aplicacao_recurso,
+    tipo_custeio,
+    tipo_documento,
+    tipo_transacao,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    payload_despesa_valida_anterior_periodo_inicial,
+    parametros_nao_aceita_saldo_negativo_em_conta,
+    periodo_2020_1,
+    fechamento_periodo_com_saldo_livre_aplicacao,
+):
+    response = jwt_authenticated_client_d.post('/api/rateios-despesas/verificar-saldos/',
+                                               data=json.dumps(payload_despesa_valida_anterior_periodo_inicial),
+                                               content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    result_esperado = {
+        'situacao_do_saldo': 'lancamento_anterior_implantacao',
+        'mensagem': 'Lançamento com data anterior ao período inicial da associação.',
         'saldos_insuficientes': [],
         'aceitar_lancamento': True
     }

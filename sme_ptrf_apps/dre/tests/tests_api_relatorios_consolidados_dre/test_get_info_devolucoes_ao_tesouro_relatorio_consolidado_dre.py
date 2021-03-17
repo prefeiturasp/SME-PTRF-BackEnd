@@ -9,6 +9,7 @@ from rest_framework import status
 
 pytestmark = pytest.mark.django_db
 
+
 @pytest.fixture
 def prestacao_conta(periodo, associacao):
     return baker.make(
