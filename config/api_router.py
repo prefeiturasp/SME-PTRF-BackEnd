@@ -94,6 +94,7 @@ router.register("tipos-custeio", TiposCusteioViewSet)
 router.register("ambientes", AmbientesViewSet)
 router.register("saldos-bancarios-sme", SaldosBancariosSMEViewSet)
 
+
 app_name = "api"
 urlpatterns = router.urls
 urlpatterns += [

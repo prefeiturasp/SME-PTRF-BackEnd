@@ -38,3 +38,31 @@ def saldo_por_tipo_de_unidade(queryset, periodo, conta):
 
     return lista_de_saldos_bancarios_por_tipo
 
+
+def saldo_por_dre(queryset, periodo, conta):
+    saldo_por_dre = queryset.filter(
+        periodo__uuid=periodo,
+        conta_associacao__tipo_conta__uuid=conta
+    ).values('associacao__unidade__dre', 'associacao__unidade__dre__nome').annotate(
+        qtde_dre_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
+    )
+
+    total_unidades_por_dre = Associacao.objects.exclude(cnpj__exact='').values('unidade__dre', 'unidade__dre__nome').annotate(
+        qtde=Count('uuid'))
+
+    result = dict()
+
+    for nome in total_unidades_por_dre:
+        result[nome['unidade__dre']] = {"nome_dre": nome['unidade__dre__nome'], "qtde_dre_informadas": 0, "saldo_bancario_informado": 0, "total_unidades": 0}
+        result[nome["unidade__dre"]]["total_unidades"] = nome["qtde"]
+
+    for saldo in saldo_por_dre:
+        result[saldo["associacao__unidade__dre"]]["qtde_dre_informadas"] = saldo["qtde_dre_informadas"]
+        result[saldo["associacao__unidade__dre"]]["saldo_bancario_informado"] = saldo["saldo_bancario_informado"]
+
+    lista_de_saldos_bancarios_dre = []
+
+    for valor in result.values():
+        lista_de_saldos_bancarios_dre.append(valor)
+
+    return lista_de_saldos_bancarios_dre
