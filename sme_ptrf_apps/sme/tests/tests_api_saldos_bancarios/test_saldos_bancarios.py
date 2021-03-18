@@ -72,7 +72,10 @@ def test_saldo_bancario_por_tipo_de_unidade_falta_conta(jwt_authenticated_client
 
 def test_saldo_bancario_por_dre(jwt_authenticated_client_sme, observacao_conciliacao_saldos_bancarios,
                                 periodo_saldos_bancarios,
-                                tipo_conta_saldos_bancarios):
+                                tipo_conta_saldos_bancarios,
+                                dre,
+                                dre_saldos_bancarios,
+                                ):
     response = jwt_authenticated_client_sme.get(
         f'/api/saldos-bancarios-sme/saldo-por-dre/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}',
         content_type='application/json')
@@ -80,11 +83,10 @@ def test_saldo_bancario_por_dre(jwt_authenticated_client_sme, observacao_concili
     result = json.loads(response.content)
 
     resultado_esperado = [
-        {'nome_dre': 'DRE teste', 'qtde_dre_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 1},
-        {'nome_dre': 'DRE teste2', 'qtde_dre_informadas': 1, 'saldo_bancario_informado': 1000.0, 'total_unidades': 1},
+        {'nome_dre': dre_saldos_bancarios.nome, 'qtde_dre_informadas': 1, 'saldo_bancario_informado': 1000.0,
+         'total_unidades': 1},
+        {'nome_dre': dre.nome, 'qtde_dre_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 1},
     ]
-
-    print(f'RESULTADO {result}')
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado
@@ -117,6 +119,82 @@ def test_saldo_bancario_por_dre_falta_conta(jwt_authenticated_client_sme, period
     resultado_esperado = {
         'erro': 'falta_de_informacoes',
         'operacao': 'saldo-por-dre',
+        'mensagem': 'Faltou informar o uuid da conta. ?conta=uuid_da_conta'
+    }
+
+    assert result == resultado_esperado
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_saldo_bancario_por_ue_dre(jwt_authenticated_client_sme, observacao_conciliacao_saldos_bancarios,
+                                   periodo_saldos_bancarios,
+                                   tipo_conta_saldos_bancarios,
+                                   dre,
+                                   dre_saldos_bancarios):
+    response = jwt_authenticated_client_sme.get(
+        f'/api/saldos-bancarios-sme/saldo-por-ue-dre/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}',
+        content_type='application/json')
+
+    result = json.loads(response.content)
+
+    resultado_esperado = [{'associacoes': [{'associacao': 'IFSP', 'saldo_total': 0},
+                                           {'associacao': 'CMCT', 'saldo_total': 0},
+                                           {'associacao': 'CECI', 'saldo_total': 0},
+                                           {'associacao': 'CEI', 'saldo_total': 0},
+                                           {'associacao': 'CEMEI', 'saldo_total': 0},
+                                           {'associacao': 'CIEJA', 'saldo_total': 0},
+                                           {'associacao': 'EMEBS', 'saldo_total': 0},
+                                           {'associacao': 'EMEF', 'saldo_total': 0},
+                                           {'associacao': 'EMEFM', 'saldo_total': 0},
+                                           {'associacao': 'EMEI', 'saldo_total': 0},
+                                           {'associacao': 'CEU', 'saldo_total': 0}],
+                           'sigla_dre': dre.sigla,
+                           'uuid_dre': f'{dre.uuid}'},
+                          {'associacoes': [{'associacao': 'IFSP', 'saldo_total': 0},
+                                           {'associacao': 'CMCT', 'saldo_total': 0},
+                                           {'associacao': 'CECI', 'saldo_total': 0},
+                                           {'associacao': 'CEI', 'saldo_total': 0},
+                                           {'associacao': 'CEMEI', 'saldo_total': 0},
+                                           {'associacao': 'CIEJA', 'saldo_total': 0},
+                                           {'associacao': 'EMEBS', 'saldo_total': 0},
+                                           {'associacao': 'EMEF', 'saldo_total': 0},
+                                           {'associacao': 'EMEFM', 'saldo_total': 0},
+                                           {'associacao': 'EMEI', 'saldo_total': 0},
+                                           {'associacao': 'CEU', 'saldo_total': 1000.0}],
+                           'sigla_dre': dre_saldos_bancarios.sigla,
+                           'uuid_dre': f'{dre_saldos_bancarios.uuid}'}]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == resultado_esperado
+
+
+def test_saldo_bancario_por_ue_dre_falta_periodo(jwt_authenticated_client_sme, tipo_conta_saldos_bancarios):
+    response = jwt_authenticated_client_sme.get(
+        f'/api/saldos-bancarios-sme/saldo-por-ue-dre/?conta={tipo_conta_saldos_bancarios.uuid}',
+        content_type='application/json')
+
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        'erro': 'falta_de_informacoes',
+        'operacao': 'saldo-por-ue-dre',
+        'mensagem': 'Faltou informar o uuid do periodo. ?periodo=uuid_do_periodo'
+    }
+
+    assert result == resultado_esperado
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_saldo_bancario_por_ue_dre_falta_conta(jwt_authenticated_client_sme, periodo_saldos_bancarios):
+    response = jwt_authenticated_client_sme.get(
+        f'/api/saldos-bancarios-sme/saldo-por-ue-dre/?periodo={periodo_saldos_bancarios.uuid}',
+        content_type='application/json')
+
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        'erro': 'falta_de_informacoes',
+        'operacao': 'saldo-por-ue-dre',
         'mensagem': 'Faltou informar o uuid da conta. ?conta=uuid_da_conta'
     }
 

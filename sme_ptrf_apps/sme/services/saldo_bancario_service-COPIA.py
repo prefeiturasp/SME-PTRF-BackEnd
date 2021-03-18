@@ -15,25 +15,21 @@ def saldo_por_tipo_de_unidade(queryset, periodo, conta):
         qtde_unidades_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
     )
 
-    total_unidades_por_tipo = Associacao.objects.exclude(cnpj__exact='').values('unidade__tipo_unidade').annotate(
-        qtde=Count('uuid'))
+    total_unidades_por_tipo = Associacao.objects.exclude(cnpj__exact='').values('unidade__tipo_unidade').annotate(qtde=Count('uuid'))
 
     choices = Unidade.TIPOS_CHOICE
 
     result = dict()
 
     for tipo in choices:
-        result[tipo[0]] = {"tipo_de_unidade": tipo[0], "qtde_unidades_informadas": 0, "saldo_bancario_informado": 0,
-                           "total_unidades": 0}
+        result[tipo[0]] = {"tipo_de_unidade": tipo[0], "qtde_unidades_informadas": 0, "saldo_bancario_informado": 0, "total_unidades": 0}
 
     for total in total_unidades_por_tipo:
         result[total["unidade__tipo_unidade"]]["total_unidades"] = total["qtde"]
 
     for saldo in saldo_por_tipo_unidade:
-        result[saldo["associacao__unidade__tipo_unidade"]]["qtde_unidades_informadas"] = saldo[
-            "qtde_unidades_informadas"]
-        result[saldo["associacao__unidade__tipo_unidade"]]["saldo_bancario_informado"] = saldo[
-            "saldo_bancario_informado"]
+        result[saldo["associacao__unidade__tipo_unidade"]]["qtde_unidades_informadas"] = saldo["qtde_unidades_informadas"]
+        result[saldo["associacao__unidade__tipo_unidade"]]["saldo_bancario_informado"] = saldo["saldo_bancario_informado"]
 
     lista_de_saldos_bancarios_por_tipo = []
 
@@ -51,13 +47,13 @@ def saldo_por_dre(queryset, periodo, conta):
         qtde_dre_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
     )
 
-    total_unidades_por_dre = Associacao.objects.exclude(cnpj__exact='').values('unidade__dre','unidade__dre__nome').annotate(qtde=Count('uuid'))
+    total_unidades_por_dre = Associacao.objects.exclude(cnpj__exact='').values('unidade__dre', 'unidade__dre__nome').annotate(
+        qtde=Count('uuid'))
 
     result = dict()
 
     for nome in total_unidades_por_dre:
-        result[nome['unidade__dre']] = {"nome_dre": nome['unidade__dre__nome'], "qtde_dre_informadas": 0,
-                                        "saldo_bancario_informado": 0, "total_unidades": 0}
+        result[nome['unidade__dre']] = {"nome_dre": nome['unidade__dre__nome'], "qtde_dre_informadas": 0, "saldo_bancario_informado": 0, "total_unidades": 0}
         result[nome["unidade__dre"]]["total_unidades"] = nome["qtde"]
 
     for saldo in saldo_por_dre:
@@ -74,34 +70,48 @@ def saldo_por_dre(queryset, periodo, conta):
 
 def saldo_por_ue_dre(queryset, periodo, conta):
     saldos_por_ue_dre = []
-    choices = []
-    result = dict()
-    dres = Unidade.dres.exclude(sigla='')
-    tupla_choices = Unidade.TIPOS_CHOICE
 
-    for choice in tupla_choices:
-        if choice[0] != 'DRE' and choice[0] != 'ADM':
-            choices.append(choice[0])
+    # for dre in Unidade.dres.all():
+    #     saldo_por_tipo_da_dre = queryset.filter(
+    #         periodo__uuid=periodo,
+    #         conta_associacao__tipo_conta__uuid=conta,
+    #         associacao__unidade__dre = dre
+    #     ).values('associacao__unidade__tipo_unidade', 'associacao__unidade__dre', 'associacao__unidade__dre__sigla').annotate(
+    #         saldo_bancario_informado=Sum('saldo_extrato')
+    #     )
+    #     saldos_por_ue_dre.append(saldo_por_tipo_da_dre)
+
+    dres = Unidade.dres.all()
+
+
+    result = dict()
 
     for dre in dres:
+        result[dre.sigla] = {"associacao__unidade__tipo_unidade": '', "associacao__unidade__dre__sigla": dre.sigla, "saldo_bancario_informado": 0}
+
+    choices = Unidade.TIPOS_CHOICE
+
+    for tipo in choices:
+        result[tipo[0]] = {"associacao__unidade__tipo_unidade": tipo[0]}
+
+    for dre in dres:
+
         saldo_por_tipo_da_dre = queryset.filter(
             periodo__uuid=periodo,
             conta_associacao__tipo_conta__uuid=conta,
-            associacao__unidade__dre=dre
+            associacao__unidade__dre = dre
         ).values('associacao__unidade__tipo_unidade', 'associacao__unidade__dre__sigla').annotate(
             saldo_bancario_informado=Sum('saldo_extrato')
         )
         saldos_por_ue_dre.extend(saldo_por_tipo_da_dre)
 
-        result[dre.sigla] = {"sigla_dre": dre.sigla, "uuid_dre": dre.uuid, "associacoes": []}
-
-        for tipo in choices:
-            result[dre.sigla]['associacoes'].append({"associacao": tipo, "saldo_total": 0})
-
     for saldo in saldos_por_ue_dre:
-        for r in result[saldo['associacao__unidade__dre__sigla']]['associacoes']:
-            if r['associacao'] in saldo['associacao__unidade__tipo_unidade']:
-                r['saldo_total'] = saldo['saldo_bancario_informado']
+         print(f'SALDO {saldo["associacao__unidade__dre__sigla"]}')
+         print(f'SALDO {saldo["saldo_bancario_informado"]}')
+         result[saldo["associacao__unidade__dre__sigla"]]["saldo_bancario_informado"] = saldo["saldo_bancario_informado"]
+         result[saldo["associacao__unidade__dre__sigla"]]["associacao__unidade__tipo_unidade"] = saldo["associacao__unidade__tipo_unidade"]
+
+
 
     lista_de_saldos_bancarios_ue_dre = []
 
@@ -109,4 +119,6 @@ def saldo_por_ue_dre(queryset, periodo, conta):
         lista_de_saldos_bancarios_ue_dre.append(valor)
 
     return lista_de_saldos_bancarios_ue_dre
+    # return saldos_por_ue_dre
+
 

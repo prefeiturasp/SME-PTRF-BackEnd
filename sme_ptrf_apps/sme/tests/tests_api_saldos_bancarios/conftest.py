@@ -55,6 +55,12 @@ def conta_associacao_saldos_bancarios(associacao, tipo_conta_saldos_bancarios):
 def dre_saldos_bancarios():
     return baker.make('Unidade', codigo_eol='99998', tipo_unidade='DRE', nome='DRE teste2', sigla='TO')
 
+
+@pytest.fixture
+def dre():
+    return baker.make('Unidade', codigo_eol='99999', tipo_unidade='DRE', nome='DRE teste', sigla='TT')
+
+
 @pytest.fixture
 def unidade_saldos_bancarios(dre_saldos_bancarios):
     return baker.make(
