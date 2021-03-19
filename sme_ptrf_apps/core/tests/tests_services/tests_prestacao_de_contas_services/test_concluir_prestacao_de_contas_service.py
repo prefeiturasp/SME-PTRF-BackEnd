@@ -292,7 +292,7 @@ def test_demonstrativos_financeiros_devem_ser_criados_por_conta_e_acao(associaca
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
     assert prestacao
-    assert prestacao.demonstrativos_da_prestacao.count() == 4, "Deveriam ter sido criados quatro, 2 contas x 2 ações."
+    assert prestacao.demonstrativos_da_prestacao.count() == 2, "Deveriam ter sido criados 2(contas)."
 
 
 @pytest.mark.django_db(transaction=False)

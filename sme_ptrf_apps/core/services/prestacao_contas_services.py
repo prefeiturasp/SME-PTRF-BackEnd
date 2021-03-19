@@ -3,6 +3,7 @@ import logging
 from django.db import transaction
 from django.db.models import Q
 
+from .demonstrativo_financeiro_novo import gerar_arquivo_demonstrativo_financeiro_novo
 from ..models import PrestacaoConta, AcaoAssociacao, FechamentoPeriodo, ContaAssociacao, Associacao
 from ..services import info_acoes_associacao_no_periodo
 from ..services.demonstrativo_financeiro import gerar_arquivo_demonstrativo_financeiro
@@ -68,10 +69,14 @@ def _criar_documentos(acoes, contas, periodo, prestacao):
     for conta in contas:
         logger.info(f'Gerando relação de bens da conta {conta}.')
         gerar_arquivo_relacao_de_bens(periodo=periodo, conta_associacao=conta, prestacao=prestacao)
-        for acao in acoes:
-            logger.info(f'Gerando demonstrativo financeiro da ação {acao} e conta {conta}.')
-            gerar_arquivo_demonstrativo_financeiro(periodo=periodo, conta_associacao=conta, acao_associacao=acao,
-                                                   prestacao=prestacao)
+
+        logger.info(f'Gerando demonstrativo financeiro da conta {conta}.')
+        gerar_arquivo_demonstrativo_financeiro_novo(acoes=acoes, periodo=periodo, conta_associacao=conta, prestacao=prestacao)
+
+        # for acao in acoes:
+        #     logger.info(f'Gerando demonstrativo financeiro da ação {acao} e conta {conta}.')
+        #     gerar_arquivo_demonstrativo_financeiro(periodo=periodo, conta_associacao=conta, acao_associacao=acao,
+        #                                            prestacao=prestacao)
 
 
 def reabrir_prestacao_de_contas(prestacao_contas_uuid):
