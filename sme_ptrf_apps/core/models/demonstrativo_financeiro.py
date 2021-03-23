@@ -25,8 +25,8 @@ class DemonstrativoFinanceiro(ModeloBase):
     VERSAO_PREVIA = 'PREVIA'
 
     VERSAO_NOMES = {
-        VERSAO_FINAL: 'Documento final',
-        VERSAO_PREVIA: 'Prévia',
+        VERSAO_FINAL: 'final',
+        VERSAO_PREVIA: 'prévio',
     }
 
     VERSAO_CHOICES = (
@@ -64,7 +64,10 @@ class DemonstrativoFinanceiro(ModeloBase):
         verbose_name_plural = '09.2) Demonstrativos Financeiros'
 
     def __str__(self):
-        return f"Documento gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
+        if self.status == self.STATUS_CONCLUIDO:
+            return f"Documento {self.VERSAO_NOMES[self.versao]} gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
+        else:
+            return f"Documento {self.VERSAO_NOMES[self.versao]} sendo gerado. Aguarde."
 
     def arquivo_concluido(self):
         self.status = self.STATUS_CONCLUIDO
