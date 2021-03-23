@@ -1,9 +1,8 @@
 import logging
 from datetime import datetime
-from io import BytesIO
 
 from django.http import HttpResponse
-from openpyxl.writer.excel import save_virtual_workbook
+
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -24,7 +23,7 @@ from sme_ptrf_apps.core.models import (
     PrestacaoConta,
 )
 
-from sme_ptrf_apps.core.services.demonstrativo_financeiro import gerar
+from sme_ptrf_apps.core.services.demonstrativo_financeiro import gerar_arquivo_demonstrativo_financeiro_novo
 from sme_ptrf_apps.core.services.info_por_acao_services import info_acoes_associacao_no_periodo
 
 logger = logging.getLogger(__name__)
@@ -69,19 +68,24 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        periodoPrevia = PeriodoPrevia(periodo.uuid, periodo.referencia, data_inicio, data_fim)
-        xlsx = self._gerar_planilha(conta_associacao_uuid, periodoPrevia, previa=True)
+        periodo_previa = PeriodoPrevia(periodo.uuid, periodo.referencia, data_inicio, data_fim)
 
-        result = BytesIO(save_virtual_workbook(xlsx))
+        conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
+        acoes = conta_associacao.associacao.acoes.filter(status='ATIVA')
 
-        filename = 'demonstrativo_financeiro.xlsx'
-        response = HttpResponse(
-            result,
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        demonstrativo_financeiro = gerar_arquivo_demonstrativo_financeiro_novo(
+            acoes=acoes,
+            periodo=periodo_previa,
+            conta_associacao=conta_associacao,
+            previa=True
         )
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename
-        logger.info("Previa Pronta. Retornando conteúdo para o frontend")
-        return response
+
+        if not demonstrativo_financeiro:
+            msg = 'Documento pendente de geração'
+        else:
+            msg = str(demonstrativo_financeiro)
+
+        return Response(msg)
 
     @action(detail=False, methods=['get'], url_path='documento-final',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
@@ -212,10 +216,3 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             msg = str(demonstrativo_financeiro)
 
         return Response(msg)
-
-    def _gerar_planilha(self, conta_associacao_uuid, periodo, previa=False):
-        conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
-        acoes = conta_associacao.associacao.acoes.filter(status='ATIVA')
-
-        xlsx = gerar("", acoes, periodo, conta_associacao, previa=previa)
-        return xlsx

@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from sme_ptrf_apps.core.models import ContaAssociacao, Periodo, PeriodoPrevia, PrestacaoConta, RelacaoBens
-from sme_ptrf_apps.core.services.relacao_bens import gerar
+from sme_ptrf_apps.core.services.relacao_bens import gerar_arquivo_relacao_de_bens
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL
 from sme_ptrf_apps.users.permissoes import (
@@ -56,20 +56,18 @@ class RelacaoBensViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        periodoPrevia = PeriodoPrevia(periodo.uuid, periodo.referencia, data_inicio, data_fim)
+        conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
+        periodo_previa = PeriodoPrevia(periodo.uuid, periodo.referencia, data_inicio, data_fim)
 
-        xlsx = self._gerar_planilha(periodoPrevia, conta_associacao_uuid, previa=True)
+        relacao_de_bens = gerar_arquivo_relacao_de_bens(periodo=periodo_previa, conta_associacao=conta_associacao, previa=True)
 
-        result = BytesIO(save_virtual_workbook(xlsx))
+        if not relacao_de_bens:
+            msg = 'Não houve bem adquirido ou produzido no referido período.'
+        else:
+            msg = str(relacao_de_bens)
 
-        filename = 'relacao_bens.xlsx'
-        response = HttpResponse(
-            result,
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        return Response(msg)
 
-        return response
 
     @action(detail=False, methods=['get'], url_path='documento-final',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])

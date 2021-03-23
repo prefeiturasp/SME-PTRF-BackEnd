@@ -36,26 +36,30 @@ BLOCO_3 = 19
 LAST_LINE = 26
 
 
-def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, prestacao):
+def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, prestacao=None, previa=False):
     filename = 'relacao_bens.xlsx'
 
     rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
                 conta_associacao=conta_associacao, periodo=periodo, aplicacao_recurso=APLICACAO_CAPITAL)
 
     if rateios:
-        xlsx = gerar(periodo, conta_associacao)
+        xlsx = gerar(periodo, conta_associacao, previa=previa)
         with NamedTemporaryFile() as tmp:
             xlsx.save(tmp.name)
 
             relacao_bens, _ = RelacaoBens.objects.update_or_create(
                 conta_associacao=conta_associacao,
-                prestacao_conta=prestacao
+                prestacao_conta=prestacao,
+                periodo_previa=None if prestacao else periodo,
+                versao=RelacaoBens.VERSAO_PREVIA if previa else RelacaoBens.VERSAO_FINAL,
+                status=RelacaoBens.STATUS_EM_PROCESSAMENTO,
             )
             relacao_bens.arquivo.save(name=filename, content=File(tmp))
             relacao_bens.arquivo_concluido()
-        return
+        return relacao_bens
 
     LOGGER.info("Não houve bem adquirido ou produzido no referido período (%s).", str(periodo))
+    return None
 
 
 def gerar(periodo, conta_associacao, previa=False):

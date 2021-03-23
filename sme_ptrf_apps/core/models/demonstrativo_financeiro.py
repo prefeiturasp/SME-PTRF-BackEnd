@@ -42,18 +42,19 @@ class DemonstrativoFinanceiro(ModeloBase):
     prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE,
                                         related_name='demonstrativos_da_prestacao', blank=True, null=True)
 
-    acao_associacao = models.ForeignKey('core.AcaoAssociacao', on_delete=models.PROTECT,
-                                        related_name='demonstrativos_financeiros', blank=True, null=True)
+    periodo_previa = models.ForeignKey('Periodo', on_delete=models.PROTECT,
+                                       related_name='demonstrativos_previos_do_periodo', blank=True, null=True,
+                                       verbose_name='Período da prévia')
 
     status = models.CharField(
         'status',
         max_length=20,
         choices=STATUS_CHOICES,
-        default=STATUS_EM_PROCESSAMENTO
+        default=STATUS_CONCLUIDO
     )
 
     versao = models.CharField(
-        'status',
+        'versão',
         max_length=20,
         choices=VERSAO_CHOICES,
         default=VERSAO_FINAL
