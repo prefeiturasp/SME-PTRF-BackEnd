@@ -19,6 +19,20 @@ class RelacaoBens(ModeloBase):
         (STATUS_CONCLUIDO, STATUS_NOMES[STATUS_CONCLUIDO]),
     )
 
+    # Versao Choice
+    VERSAO_FINAL = 'FINAL'
+    VERSAO_PREVIA = 'PREVIA'
+
+    VERSAO_NOMES = {
+        VERSAO_FINAL: 'Documento final',
+        VERSAO_PREVIA: 'Prévia',
+    }
+
+    VERSAO_CHOICES = (
+        (VERSAO_FINAL, VERSAO_NOMES[VERSAO_FINAL]),
+        (VERSAO_PREVIA, VERSAO_NOMES[VERSAO_PREVIA]),
+    )
+
     arquivo = models.FileField(blank=True, null=True)
 
     conta_associacao = models.ForeignKey('ContaAssociacao', on_delete=models.PROTECT,
@@ -32,6 +46,13 @@ class RelacaoBens(ModeloBase):
         max_length=20,
         choices=STATUS_CHOICES,
         default=STATUS_EM_PROCESSAMENTO
+    )
+
+    versao = models.CharField(
+        'status',
+        max_length=20,
+        choices=VERSAO_CHOICES,
+        default=VERSAO_FINAL
     )
 
     class Meta:
