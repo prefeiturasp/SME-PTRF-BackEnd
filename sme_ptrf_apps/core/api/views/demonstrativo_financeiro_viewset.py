@@ -24,7 +24,7 @@ from sme_ptrf_apps.core.models import (
     PrestacaoConta,
 )
 
-from sme_ptrf_apps.core.services.demonstrativo_financeiro_novo import gerar
+from sme_ptrf_apps.core.services.demonstrativo_financeiro import gerar
 from sme_ptrf_apps.core.services.info_por_acao_services import info_acoes_associacao_no_periodo
 
 logger = logging.getLogger(__name__)

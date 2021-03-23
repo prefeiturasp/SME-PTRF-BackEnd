@@ -52,6 +52,7 @@ def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, prestacao):
                 prestacao_conta=prestacao
             )
             relacao_bens.arquivo.save(name=filename, content=File(tmp))
+            relacao_bens.arquivo_concluido()
         return
 
     LOGGER.info("Não houve bem adquirido ou produzido no referido período (%s).", str(periodo))

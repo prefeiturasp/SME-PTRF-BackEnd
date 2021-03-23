@@ -6,6 +6,20 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
 class DemonstrativoFinanceiro(ModeloBase):
+    # Status Choice
+    STATUS_EM_PROCESSAMENTO = 'EM_PROCESSAMENTO'
+    STATUS_CONCLUIDO = 'CONCLUIDO'
+
+    STATUS_NOMES = {
+        STATUS_EM_PROCESSAMENTO: 'Em processamento',
+        STATUS_CONCLUIDO: 'Geração concluída',
+    }
+
+    STATUS_CHOICES = (
+        (STATUS_EM_PROCESSAMENTO, STATUS_NOMES[STATUS_EM_PROCESSAMENTO]),
+        (STATUS_CONCLUIDO, STATUS_NOMES[STATUS_CONCLUIDO]),
+    )
+
     arquivo = models.FileField(blank=True, null=True)
 
     conta_associacao = models.ForeignKey('ContaAssociacao', on_delete=models.PROTECT,
@@ -16,12 +30,25 @@ class DemonstrativoFinanceiro(ModeloBase):
 
     acao_associacao = models.ForeignKey('core.AcaoAssociacao', on_delete=models.PROTECT,
                                         related_name='demonstrativos_financeiros', blank=True, null=True)
+
+    status = models.CharField(
+        'status',
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_EM_PROCESSAMENTO
+    )
+
     class Meta:
         verbose_name = 'Demonstrativo Financeiro'
         verbose_name_plural = '09.2) Demonstrativos Financeiros'
 
     def __str__(self):
         return f"Documento gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
+
+    def arquivo_concluido(self):
+        self.status = self.STATUS_CONCLUIDO
+        self.save()
+
 
 @receiver(models.signals.post_delete, sender=DemonstrativoFinanceiro)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
