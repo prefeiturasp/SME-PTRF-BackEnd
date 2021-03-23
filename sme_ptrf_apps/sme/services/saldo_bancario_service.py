@@ -23,7 +23,7 @@ def saldo_por_tipo_de_unidade(queryset, periodo, conta):
     result = dict()
 
     for tipo in choices:
-        if tipo[0] != 'ADM' and tipo[0] != 'DRE':
+        if tipo[0].upper() != 'ADM' and tipo[0].upper() != 'DRE':
             result[tipo[0]] = {"tipo_de_unidade": tipo[0], "qtde_unidades_informadas": 0, "saldo_bancario_informado": 0,
                                "total_unidades": 0}
 
@@ -52,16 +52,16 @@ def saldo_por_dre(queryset, periodo, conta):
         qtde_dre_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
     )
 
-    total_unidades_por_dre = Associacao.objects.exclude(cnpj__exact='').values('unidade__dre',
-                                                                               'unidade__dre__nome').annotate(
-        qtde=Count('uuid'))
+    total_unidades_por_dre = Associacao.objects.exclude(cnpj__exact='').values('unidade__dre','unidade__dre__nome').annotate(qtde=Count('uuid'))
 
     result = dict()
 
     for nome in total_unidades_por_dre:
-        result[nome['unidade__dre']] = {"nome_dre": nome['unidade__dre__nome'], "qtde_dre_informadas": 0,
-                                        "saldo_bancario_informado": 0, "total_unidades": 0}
-        result[nome["unidade__dre"]]["total_unidades"] = nome["qtde"]
+        if nome['unidade__dre'] is not None and nome['unidade__dre__nome'] is not None:
+            result[nome['unidade__dre']] = {"nome_dre": nome['unidade__dre__nome'], "qtde_dre_informadas": 0,
+                                            "saldo_bancario_informado": 0, "total_unidades": 0}
+
+            result[nome["unidade__dre"]]["total_unidades"] = nome["qtde"]
 
     for saldo in saldo_por_dre:
         result[saldo["associacao__unidade__dre"]]["qtde_dre_informadas"] = saldo["qtde_dre_informadas"]
@@ -83,7 +83,7 @@ def saldo_por_ue_dre(queryset, periodo, conta):
     tupla_choices = Unidade.TIPOS_CHOICE
 
     for choice in tupla_choices:
-        if choice[0] != 'DRE' and choice[0] != 'ADM':
+        if choice[0].upper() != 'DRE' and choice[0].upper() != 'ADM':
             choices.append(choice[0])
 
     for dre in dres:
