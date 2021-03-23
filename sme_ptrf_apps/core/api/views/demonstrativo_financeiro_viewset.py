@@ -17,7 +17,6 @@ from sme_ptrf_apps.users.permissoes import (
 )
 
 from sme_ptrf_apps.core.models import (
-    AcaoAssociacao,
     ContaAssociacao,
     DemonstrativoFinanceiro,
     Periodo,
@@ -25,7 +24,7 @@ from sme_ptrf_apps.core.models import (
     PrestacaoConta,
 )
 
-from sme_ptrf_apps.core.services.demonstrativo_financeiro import gerar
+from sme_ptrf_apps.core.services.demonstrativo_financeiro_novo import gerar
 from sme_ptrf_apps.core.services.info_por_acao_services import info_acoes_associacao_no_periodo
 
 logger = logging.getLogger(__name__)
@@ -40,7 +39,6 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def previa(self, request):
         logger.info("Previa do demonstrativo financeiro")
-        acao_associacao_uuid = self.request.query_params.get('acao-associacao')
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
 
         periodo_uuid = self.request.query_params.get('periodo')
@@ -48,10 +46,10 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         data_inicio = self.request.query_params.get('data_inicio')
         data_fim = self.request.query_params.get('data_fim')
 
-        if not acao_associacao_uuid or not conta_associacao_uuid or not periodo_uuid or (not data_inicio or not data_fim):
+        if not conta_associacao_uuid or not periodo_uuid or (not data_inicio or not data_fim):
             erro = {
                 'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid da ação da associação o uuid da conta da associação o periodo_uuid e as datas de inicio e fim do período.'
+                'mensagem': 'É necessário enviar o uuid da conta da associação o periodo_uuid e as datas de inicio e fim do período.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -72,7 +70,7 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         periodoPrevia = PeriodoPrevia(periodo.uuid, periodo.referencia, data_inicio, data_fim)
-        xlsx = self._gerar_planilha(acao_associacao_uuid, conta_associacao_uuid, periodoPrevia, previa=True)
+        xlsx = self._gerar_planilha(conta_associacao_uuid, periodoPrevia, previa=True)
 
         result = BytesIO(save_virtual_workbook(xlsx))
 
@@ -89,20 +87,18 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def documento_final(self, request):
         logger.info("Download do documento Final.")
-        acao_associacao_uuid = self.request.query_params.get('acao-associacao')
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
 
-        if not acao_associacao_uuid or not conta_associacao_uuid or not periodo_uuid:
+        if not conta_associacao_uuid or not periodo_uuid:
             erro = {
                 'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid do período, o uuid da ação da associação e o uuid da conta da associação.'
+                'mensagem': 'É necessário enviar o uuid do período e o uuid da conta da associação.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        logger.info("Consultando dados da acao_associacao: %s, da conta_associacao: %s e do periodo %s.", acao_associacao_uuid, conta_associacao_uuid, periodo_uuid)
+        logger.info("Consultando dados da conta_associacao: %s e do periodo %s.", conta_associacao_uuid, periodo_uuid)
         try:
-            acao_associacao = AcaoAssociacao.objects.filter(uuid=acao_associacao_uuid).get()
             conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
             periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
         except Exception as err:
@@ -112,10 +108,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
-
         prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao, periodo=periodo).first()
-        demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(acao_associacao=acao_associacao,
-                                                                          conta_associacao=conta_associacao,
+        demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(conta_associacao=conta_associacao,
                                                                           prestacao_conta=prestacao_conta).first()
 
         logger.info("Prestacao de conta: %s, Demonstrativo Financeiro: %s", str(prestacao_conta), str(demonstrativo_financeiro))
@@ -176,9 +170,9 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         return Response(result)
 
-    @action(detail=False, methods=['get'], url_path='demonstrativo-info',
+    @action(detail=False, methods=['get'], url_path='__demonstrativo-info',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def demonstrativo_info(self, request):
+    def __demonstrativo_info(self, request):
         acao_associacao_uuid = self.request.query_params.get('acao-associacao')
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
@@ -201,9 +195,27 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         return Response(msg)
 
-    def _gerar_planilha(self, acao_associacao_uuid, conta_associacao_uuid, periodo, previa=False):
-        acao_associacao = AcaoAssociacao.objects.filter(uuid=acao_associacao_uuid).get()
-        conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
+    @action(detail=False, methods=['get'], url_path='demonstrativo-info',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def demonstrativo_info(self, request):
+        conta_associacao_uuid = self.request.query_params.get('conta-associacao')
+        periodo_uuid = self.request.query_params.get('periodo')
+        conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
+        prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao, periodo__uuid=periodo_uuid).first()
 
-        xlsx = gerar(periodo, acao_associacao, conta_associacao, previa=previa)
+        demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(conta_associacao__uuid=conta_associacao_uuid, prestacao_conta=prestacao_conta).first()
+
+        msg = ""
+        if not demonstrativo_financeiro:
+            msg = 'Documento pendente de geração'
+        else:
+            msg = str(demonstrativo_financeiro)
+
+        return Response(msg)
+
+    def _gerar_planilha(self, conta_associacao_uuid, periodo, previa=False):
+        conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
+        acoes = conta_associacao.associacao.acoes.filter(status='ATIVA')
+
+        xlsx = gerar("", acoes, periodo, conta_associacao, previa=previa)
         return xlsx

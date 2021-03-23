@@ -54,7 +54,7 @@ def test_previa_demonstrativo_financeiro_sem_data_inicio_e_data_fim(jwt_authenti
     result = response.json()
     esperado = {
         'erro': 'parametros_requeridos',
-        'mensagem': 'É necessário enviar o uuid da ação da associação o uuid da conta da associação o periodo_uuid e as datas de inicio e fim do período.'}
+        'mensagem': 'É necessário enviar o uuid da conta da associação o periodo_uuid e as datas de inicio e fim do período.'}
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result == esperado
 
