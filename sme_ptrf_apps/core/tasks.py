@@ -67,7 +67,8 @@ def processa_carga_async(arquivo_uuid):
 def gerar_previa_demonstrativo_financeiro_async(periodo_uuid, conta_associacao_uuid, data_inicio, data_fim):
     logger.info(f'Iniciando criação da Previa de demonstrativo financeiro para a conta {conta_associacao_uuid} e período {periodo_uuid}.')
 
-    from sme_ptrf_apps.core.services.prestacao_contas_services import _criar_previa_demonstrativo_financeiro
+    from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_previa_demonstrativo_financeiro,
+                                                                       _apagar_previas_demonstrativo_financeiro)
 
     periodo = Periodo.by_uuid(periodo_uuid)
     periodo_previa = PeriodoPrevia(periodo.uuid, periodo.referencia, data_inicio, data_fim)
@@ -75,6 +76,8 @@ def gerar_previa_demonstrativo_financeiro_async(periodo_uuid, conta_associacao_u
     conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
 
     acoes = conta_associacao.associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
+
+    _apagar_previas_demonstrativo_financeiro(conta=conta_associacao, periodo=periodo)
 
     demonstrativo_financeiro = _criar_previa_demonstrativo_financeiro(
         acoes=acoes,
@@ -93,12 +96,15 @@ def gerar_previa_demonstrativo_financeiro_async(periodo_uuid, conta_associacao_u
 def gerar_previa_relacao_de_bens_async(periodo_uuid, conta_associacao_uuid, data_inicio, data_fim):
     logger.info(f'Iniciando criação da Previa de relação de bens para a conta {conta_associacao_uuid} e período {periodo_uuid}.')
 
-    from sme_ptrf_apps.core.services.prestacao_contas_services import _criar_previa_relacao_de_bens
+    from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_previa_relacao_de_bens,
+                                                                       _apagar_previas_relacao_bens)
 
     periodo = Periodo.by_uuid(periodo_uuid)
     periodo_previa = PeriodoPrevia(periodo.uuid, periodo.referencia, data_inicio, data_fim)
 
     conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
+
+    _apagar_previas_relacao_bens(conta=conta_associacao, periodo=periodo)
 
     relacao_de_bens = _criar_previa_relacao_de_bens(
         periodo=periodo,

@@ -100,6 +100,18 @@ def _apagar_previas_documentos(contas, periodo, prestacao):
         apagar_previas_demonstrativo_financeiro(periodo=periodo, conta_associacao=conta)
 
 
+def _apagar_previas_relacao_bens(conta, periodo):
+    logger.info(f'Apagando prévias de relações de bens do período {periodo} e conta {conta}...')
+    apagar_previas_relacao_de_bens(periodo=periodo, conta_associacao=conta)
+    logger.info(f'Apagadas as prévias de relações de bens do período {periodo} e conta {conta}...')
+
+
+def _apagar_previas_demonstrativo_financeiro(conta, periodo):
+    logger.info(f'Apagando prévias de demonstrativos financeiros do período {periodo} e conta {conta}...')
+    apagar_previas_demonstrativo_financeiro(periodo=periodo, conta_associacao=conta)
+    logger.info(f'Apagadas prévias de demonstrativos financeiros do período {periodo} e conta {conta}...')
+
+
 def reabrir_prestacao_de_contas(prestacao_contas_uuid):
     logger.info(f'Reabrindo a prestação de contas de uuid {prestacao_contas_uuid}.')
     concluido = PrestacaoConta.reabrir(uuid=prestacao_contas_uuid)
