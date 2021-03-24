@@ -692,3 +692,8 @@ def formata_valor(valor):
     sinal, valor_formatado = format_currency(valor, 'BRL', locale='pt_BR').split('\xa0')
     sinal = '-' if '-' in sinal else ''
     return f'{sinal}{valor_formatado}'
+
+
+def apagar_previas_demonstrativo_financeiro(periodo, conta_associacao):
+    DemonstrativoFinanceiro.objects.filter(periodo_previa=periodo, conta_associacao=conta_associacao).delete()
+

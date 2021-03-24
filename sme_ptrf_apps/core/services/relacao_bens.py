@@ -199,3 +199,7 @@ def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_me
                 for row in range(new_row_idx, new_row_idx + dest_row):
                     newCellRange = get_column_letter(min_col) + str(row) + ":" + get_column_letter(max_col) + str(row)
                     ws.merge_cells(newCellRange)
+
+
+def apagar_previas_relacao_de_bens(periodo, conta_associacao):
+    RelacaoBens.objects.filter(periodo_previa=periodo, conta_associacao=conta_associacao).delete()
