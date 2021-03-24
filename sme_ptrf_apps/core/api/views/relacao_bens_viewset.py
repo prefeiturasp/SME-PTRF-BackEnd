@@ -19,6 +19,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPITodosComGravacao
 )
 
+from sme_ptrf_apps.core.tasks import gerar_previa_relacao_de_bens_async
 
 class RelacaoBensViewSet(GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiUe]
@@ -56,18 +57,13 @@ class RelacaoBensViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
-        periodo_previa = PeriodoPrevia(periodo.uuid, periodo.referencia, data_inicio, data_fim)
+        gerar_previa_relacao_de_bens_async.delay(periodo_uuid=periodo_uuid,
+                                                 conta_associacao_uuid=conta_associacao_uuid,
+                                                 data_inicio=data_inicio,
+                                                 data_fim=data_fim
+                                                 )
 
-        relacao_de_bens = gerar_arquivo_relacao_de_bens(periodo=periodo_previa, conta_associacao=conta_associacao, previa=True)
-
-        if not relacao_de_bens:
-            msg = 'Não houve bem adquirido ou produzido no referido período.'
-        else:
-            msg = str(relacao_de_bens)
-
-        return Response(msg)
-
+        return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='documento-final',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])

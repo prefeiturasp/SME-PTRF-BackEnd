@@ -23,8 +23,10 @@ from sme_ptrf_apps.core.models import (
     PrestacaoConta,
 )
 
-from sme_ptrf_apps.core.services.demonstrativo_financeiro import gerar_arquivo_demonstrativo_financeiro_novo
-from sme_ptrf_apps.core.services.info_por_acao_services import info_acoes_associacao_no_periodo
+from sme_ptrf_apps.core.services.prestacao_contas_services import gerar_doc_previa_demonstrativo_financeiro
+
+from sme_ptrf_apps.core.tasks import gerar_previa_demonstrativo_financeiro_async
+
 
 logger = logging.getLogger(__name__)
 
@@ -68,24 +70,13 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        periodo_previa = PeriodoPrevia(periodo.uuid, periodo.referencia, data_inicio, data_fim)
+        gerar_previa_demonstrativo_financeiro_async.delay(periodo_uuid=periodo_uuid,
+                                                          conta_associacao_uuid=conta_associacao_uuid,
+                                                          data_inicio=data_inicio,
+                                                          data_fim=data_fim
+                                                          )
 
-        conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
-        acoes = conta_associacao.associacao.acoes.filter(status='ATIVA')
-
-        demonstrativo_financeiro = gerar_arquivo_demonstrativo_financeiro_novo(
-            acoes=acoes,
-            periodo=periodo_previa,
-            conta_associacao=conta_associacao,
-            previa=True
-        )
-
-        if not demonstrativo_financeiro:
-            msg = 'Documento pendente de geração'
-        else:
-            msg = str(demonstrativo_financeiro)
-
-        return Response(msg)
+        return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='documento-final',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
