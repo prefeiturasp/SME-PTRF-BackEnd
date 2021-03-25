@@ -1,12 +1,11 @@
 import logging
 from datetime import datetime
-from io import BytesIO
 
 from django.http import HttpResponse
-from openpyxl.writer.excel import save_virtual_workbook
+
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -20,11 +19,11 @@ from sme_ptrf_apps.core.models import (
     ContaAssociacao,
     DemonstrativoFinanceiro,
     Periodo,
-    PeriodoPrevia,
     PrestacaoConta,
 )
 
-from sme_ptrf_apps.core.services.demonstrativo_financeiro_novo import gerar
+from sme_ptrf_apps.core.tasks import gerar_previa_demonstrativo_financeiro_async
+
 from sme_ptrf_apps.core.services.info_por_acao_services import info_acoes_associacao_no_periodo
 
 logger = logging.getLogger(__name__)
@@ -49,7 +48,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         if not conta_associacao_uuid or not periodo_uuid or (not data_inicio or not data_fim):
             erro = {
                 'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid da conta da associação o periodo_uuid e as datas de inicio e fim do período.'
+                'mensagem': 'É necessário enviar o uuid da conta da associação o periodo_uuid e as datas de inicio e '
+                            'fim do período.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -62,26 +62,23 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
 
-        if periodo.data_fim_realizacao_despesas and datetime.strptime(data_fim, "%Y-%m-%d").date() > periodo.data_fim_realizacao_despesas:
+        if (
+            periodo.data_fim_realizacao_despesas and
+            datetime.strptime(data_fim, "%Y-%m-%d").date() > periodo.data_fim_realizacao_despesas
+        ):
             erro = {
                 'erro': 'erro_nas_datas',
                 'mensagem': 'Data fim não pode ser maior que a data fim da realização as despesas do periodo.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        periodoPrevia = PeriodoPrevia(periodo.uuid, periodo.referencia, data_inicio, data_fim)
-        xlsx = self._gerar_planilha(conta_associacao_uuid, periodoPrevia, previa=True)
+        gerar_previa_demonstrativo_financeiro_async.delay(periodo_uuid=periodo_uuid,
+                                                          conta_associacao_uuid=conta_associacao_uuid,
+                                                          data_inicio=data_inicio,
+                                                          data_fim=data_fim
+                                                          )
 
-        result = BytesIO(save_virtual_workbook(xlsx))
-
-        filename = 'demonstrativo_financeiro.xlsx'
-        response = HttpResponse(
-            result,
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename
-        logger.info("Previa Pronta. Retornando conteúdo para o frontend")
-        return response
+        return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='documento-final',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
@@ -118,6 +115,62 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             erro = {
                 'erro': 'arquivo_nao_gerado',
                 'mensagem': 'Não existe um arquivo de demostrativo financeiro para download.'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+        logger.info("Retornando dados do arquivo: %s", demonstrativo_financeiro.arquivo.path)
+
+        try:
+            response = HttpResponse(
+                open(demonstrativo_financeiro.arquivo.path, 'rb'),
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        except Exception as err:
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': str(err)
+            }
+            logger.info("Erro: %s", str(err))
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        return response
+
+    @action(detail=False, methods=['get'], url_path='documento-previa',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
+    def documento_previa(self, request):
+        logger.info("Download do documento Prévia.")
+        conta_associacao_uuid = self.request.query_params.get('conta-associacao')
+        periodo_uuid = self.request.query_params.get('periodo')
+
+        if not conta_associacao_uuid or not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do período e o uuid da conta da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        logger.info("Consultando dados da conta_associacao: %s e do periodo %s.", conta_associacao_uuid, periodo_uuid)
+        try:
+            conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
+            periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
+        except Exception as err:
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': str(err)
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(conta_associacao=conta_associacao,
+                                                                          periodo_previa=periodo,
+                                                                          versao=DemonstrativoFinanceiro.VERSAO_PREVIA
+                                                                          ).first()
+
+        logger.info("Demonstrativo Financeiro: %s", str(demonstrativo_financeiro))
+        filename = 'demonstrativo_financeiro.xlsx'
+        if not demonstrativo_financeiro:
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': 'Não existe um arquivo de prévia de demostrativo financeiro para download.'
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
         logger.info("Retornando dados do arquivo: %s", demonstrativo_financeiro.arquivo.path)
@@ -205,17 +258,9 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(conta_associacao__uuid=conta_associacao_uuid, prestacao_conta=prestacao_conta).first()
 
-        msg = ""
         if not demonstrativo_financeiro:
             msg = 'Documento pendente de geração'
         else:
             msg = str(demonstrativo_financeiro)
 
         return Response(msg)
-
-    def _gerar_planilha(self, conta_associacao_uuid, periodo, previa=False):
-        conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
-        acoes = conta_associacao.associacao.acoes.filter(status='ATIVA')
-
-        xlsx = gerar("", acoes, periodo, conta_associacao, previa=previa)
-        return xlsx

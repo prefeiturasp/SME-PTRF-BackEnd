@@ -249,7 +249,7 @@ EMAIL_BACKEND = 'des.backends.ConfiguredEmailBackend'
 # Django Admin URL.
 ADMIN_URL = "admin/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#admins
-ADMINS = [("""Anderson Marques""", "anderson.morais@amcom.com.br")]
+ADMINS = [("""Alessandro Fernandes""", "alessandro.fernandes@amcom.com.br")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
 MANAGERS = ADMINS
 

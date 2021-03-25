@@ -5,6 +5,34 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
 class RelacaoBens(ModeloBase):
+    # Status Choice
+    STATUS_EM_PROCESSAMENTO = 'EM_PROCESSAMENTO'
+    STATUS_CONCLUIDO = 'CONCLUIDO'
+
+    STATUS_NOMES = {
+        STATUS_EM_PROCESSAMENTO: 'Em processamento',
+        STATUS_CONCLUIDO: 'Geração concluída',
+    }
+
+    STATUS_CHOICES = (
+        (STATUS_EM_PROCESSAMENTO, STATUS_NOMES[STATUS_EM_PROCESSAMENTO]),
+        (STATUS_CONCLUIDO, STATUS_NOMES[STATUS_CONCLUIDO]),
+    )
+
+    # Versao Choice
+    VERSAO_FINAL = 'FINAL'
+    VERSAO_PREVIA = 'PREVIA'
+
+    VERSAO_NOMES = {
+        VERSAO_FINAL: 'final',
+        VERSAO_PREVIA: 'prévio',
+    }
+
+    VERSAO_CHOICES = (
+        (VERSAO_FINAL, VERSAO_NOMES[VERSAO_FINAL]),
+        (VERSAO_PREVIA, VERSAO_NOMES[VERSAO_PREVIA]),
+    )
+
     arquivo = models.FileField(blank=True, null=True)
 
     conta_associacao = models.ForeignKey('ContaAssociacao', on_delete=models.PROTECT,
@@ -13,12 +41,37 @@ class RelacaoBens(ModeloBase):
     prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE,
                                         related_name='relacoes_de_bens_da_prestacao', blank=True, null=True)
 
+    periodo_previa = models.ForeignKey('Periodo', on_delete=models.PROTECT,
+                                       related_name='relacoes_de_bens_previos_do_periodo', blank=True, null=True,
+                                       verbose_name='Período da prévia')
+
+    status = models.CharField(
+        'status',
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_CONCLUIDO
+    )
+
+    versao = models.CharField(
+        'versão',
+        max_length=20,
+        choices=VERSAO_CHOICES,
+        default=VERSAO_FINAL
+    )
+
     class Meta:
         verbose_name = 'Relação de bens'
         verbose_name_plural = '09.3) Relações de bens'
 
     def __str__(self):
-        return f"Documento gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
+        if self.status == self.STATUS_CONCLUIDO:
+            return f"Documento {self.VERSAO_NOMES[self.versao]} gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
+        else:
+            return f"Documento {self.VERSAO_NOMES[self.versao]} sendo gerado. Aguarde."
+
+    def arquivo_concluido(self):
+        self.status = self.STATUS_CONCLUIDO
+        self.save()
 
 
 @receiver(models.signals.post_delete, sender=RelacaoBens)

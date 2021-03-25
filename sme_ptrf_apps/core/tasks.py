@@ -7,12 +7,11 @@ from sme_ptrf_apps.core.models import (
     Arquivo,
     Associacao,
     ContaAssociacao,
-    FechamentoPeriodo,
     Periodo,
+    PeriodoPrevia,
     PrestacaoConta,
 )
 
-from sme_ptrf_apps.core.services.enviar_email import enviar_email_html
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +23,8 @@ logger = logging.getLogger(__name__)
     soft_time_limit=300
 )
 def concluir_prestacao_de_contas_async(periodo_uuid, associacao_uuid):
-    from sme_ptrf_apps.core.services.prestacao_contas_services import _criar_documentos, _criar_fechamentos
+    from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_documentos, _criar_fechamentos,
+                                                                       _apagar_previas_documentos)
 
     periodo = Periodo.by_uuid(periodo_uuid)
     associacao = Associacao.by_uuid(associacao_uuid)
@@ -35,6 +35,9 @@ def concluir_prestacao_de_contas_async(periodo_uuid, associacao_uuid):
 
     _criar_fechamentos(acoes, contas, periodo, prestacao)
     logger.info('Fechamentos criados para a prestação de contas %s.', prestacao)
+
+    _apagar_previas_documentos(contas=contas, periodo=periodo, prestacao=prestacao)
+    logger.info('Prévias apagadas.')
 
     _criar_documentos(acoes, contas, periodo, prestacao)
     logger.info('Documentos gerados para a prestação de contas %s.', prestacao)
@@ -56,3 +59,57 @@ def processa_carga_async(arquivo_uuid):
         logger.info("Arquivo encontrado %s", arquivo_uuid)
     processa_carga(arquivo)
 
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8}
+)
+def gerar_previa_demonstrativo_financeiro_async(periodo_uuid, conta_associacao_uuid, data_inicio, data_fim):
+    logger.info(f'Iniciando criação da Previa de demonstrativo financeiro para a conta {conta_associacao_uuid} e período {periodo_uuid}.')
+
+    from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_previa_demonstrativo_financeiro,
+                                                                       _apagar_previas_demonstrativo_financeiro)
+
+    periodo = Periodo.by_uuid(periodo_uuid)
+    periodo_previa = PeriodoPrevia(periodo.uuid, periodo.referencia, data_inicio, data_fim)
+
+    conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
+
+    acoes = conta_associacao.associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
+
+    _apagar_previas_demonstrativo_financeiro(conta=conta_associacao, periodo=periodo)
+
+    demonstrativo_financeiro = _criar_previa_demonstrativo_financeiro(
+        acoes=acoes,
+        periodo=periodo,
+        conta=conta_associacao,
+    )
+
+    logger.info(f'Previa de demonstrativo financeiro criado para a conta {conta_associacao} e período {periodo}.')
+    logger.info(f'Previa de demonstrativo financeiro arquivo {demonstrativo_financeiro}.')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8}
+)
+def gerar_previa_relacao_de_bens_async(periodo_uuid, conta_associacao_uuid, data_inicio, data_fim):
+    logger.info(f'Iniciando criação da Previa de relação de bens para a conta {conta_associacao_uuid} e período {periodo_uuid}.')
+
+    from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_previa_relacao_de_bens,
+                                                                       _apagar_previas_relacao_bens)
+
+    periodo = Periodo.by_uuid(periodo_uuid)
+    periodo_previa = PeriodoPrevia(periodo.uuid, periodo.referencia, data_inicio, data_fim)
+
+    conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
+
+    _apagar_previas_relacao_bens(conta=conta_associacao, periodo=periodo)
+
+    relacao_de_bens = _criar_previa_relacao_de_bens(
+        periodo=periodo,
+        conta=conta_associacao,
+    )
+
+    logger.info(f'Previa de demonstrativo financeiro criado para a conta {conta_associacao} e período {periodo}.')
+    logger.info(f'Previa de demonstrativo financeiro arquivo {relacao_de_bens}.')
