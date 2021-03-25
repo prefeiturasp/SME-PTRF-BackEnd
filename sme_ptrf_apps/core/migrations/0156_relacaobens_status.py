@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='relacaobens',
             name='status',
-            field=models.CharField(choices=[('EM_PROCESSAMENTO', 'Em processamento'), ('CONCLUIDO', 'Geração concluída')], default='EM_PROCESSAMENTO', max_length=20, verbose_name='status'),
+            field=models.CharField(choices=[('EM_PROCESSAMENTO', 'Em processamento'), ('CONCLUIDO', 'Geração concluída')], default='CONCLUIDO', max_length=20, verbose_name='status'),
         ),
     ]
