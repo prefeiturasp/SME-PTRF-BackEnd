@@ -287,12 +287,18 @@ class ConciliacoesViewSet(GenericViewSet):
         # Define texto
         texto_observacao = request.data.get('observacao')
 
+        # Define comprovante extrato bancario
+        comprovante_extrato = request.data.get('comprovante_extrato', None)
+        data_atualizacao_comprovante_extrato = request.data.get('data_atualizacao_comprovante_extrato', None)
+
         ObservacaoConciliacao.criar_atualizar(
             periodo=periodo,
             conta_associacao=conta_associacao,
             texto_observacao=texto_observacao,
             data_extrato=data_extrato,
-            saldo_extrato=saldo_extrato
+            saldo_extrato=saldo_extrato,
+            comprovante_extrato=comprovante_extrato,
+            data_atualizacao_comprovante_extrato=data_atualizacao_comprovante_extrato,
         )
 
         return Response({'mensagem': 'Informações gravadas'}, status=status.HTTP_200_OK)
@@ -342,13 +348,20 @@ class ConciliacoesViewSet(GenericViewSet):
 
         observacao = ObservacaoConciliacao.objects.filter(periodo=periodo, conta_associacao=conta_associacao).first()
 
+        comprovante_extrato_nome = ''
+
+        if observacao and observacao.comprovante_extrato and observacao.comprovante_extrato.name:
+            comprovante_extrato_nome = observacao.comprovante_extrato.name
+
         result = {}
 
         if observacao:
             result = {
                 'observacao': observacao.texto,
                 'data_extrato': observacao.data_extrato,
-                'saldo_extrato': observacao.saldo_extrato
+                'saldo_extrato': observacao.saldo_extrato,
+                'comprovante_extrato': comprovante_extrato_nome,
+                'data_atualizacao_comprovante_extrato': observacao.data_atualizacao_comprovante_extrato,
             }
 
         return Response(result, status=status.HTTP_200_OK)
