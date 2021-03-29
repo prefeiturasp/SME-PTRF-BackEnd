@@ -148,6 +148,25 @@ class RateioDespesa(ModeloBase):
         return dataset.all()
 
     @classmethod
+    def rateios_da_conta_associacao_em_periodos_anteriores(cls, conta_associacao, periodo, conferido=None,
+                                               exclude_despesa=None, aplicacao_recurso=None):
+
+        dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+            despesa__data_documento__lte=periodo.data_inicio_realizacao_despesas)
+
+        if conferido is not None:
+            dataset = dataset.filter(conferido=conferido)
+
+        if exclude_despesa:
+            dataset = dataset.exclude(despesa__uuid=exclude_despesa)
+
+        if aplicacao_recurso:
+            dataset = dataset.filter(aplicacao_recurso=aplicacao_recurso)
+
+        return dataset.all()
+
+
+    @classmethod
     def especificacoes_dos_rateios_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None,
                                                                  conta_associacao=None,
                                                                  exclude_despesa=None):

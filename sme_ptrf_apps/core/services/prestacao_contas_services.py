@@ -3,9 +3,11 @@ import logging
 from django.db import transaction
 from django.db.models import Q
 
+from .pdf_demo_financeiro_service import gerar_pdf_demonstrativo_financeiro
 from ..models import PrestacaoConta, AcaoAssociacao, FechamentoPeriodo, ContaAssociacao, Associacao
 from ..services import info_acoes_associacao_no_periodo
 from ..services.demonstrativo_financeiro import gerar_arquivo_demonstrativo_financeiro
+from ..services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens
 from ..services.processos_services import get_processo_sei_da_prestacao
 from ...despesas.models import RateioDespesa
@@ -65,10 +67,15 @@ def _criar_fechamentos(acoes, contas, periodo, prestacao):
 
 def _criar_documentos(acoes, contas, periodo, prestacao):
     logger.info(f'Criando documentos do período {periodo} e prestacao {prestacao}...')
+
     for conta in contas:
         logger.info(f'Gerando relação de bens da conta {conta}.')
         gerar_arquivo_relacao_de_bens(periodo=periodo, conta_associacao=conta, prestacao=prestacao)
         for acao in acoes:
+            dados_demonstrativo = gerar_dados_demonstrativo_financeiro("usuarioteste", acoes, periodo, contas[0],
+                                                                       prestacao, previa=False)
+            gerar_pdf_demonstrativo_financeiro(dados_demonstrativo, acao, conta, prestacao)
+
             logger.info(f'Gerando demonstrativo financeiro da ação {acao} e conta {conta}.')
             gerar_arquivo_demonstrativo_financeiro(periodo=periodo, conta_associacao=conta, acao_associacao=acao,
                                                    prestacao=prestacao)

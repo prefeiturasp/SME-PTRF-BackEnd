@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+  {% load static %}
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+    <link href="css/pdf-demo-financeiro.css" rel="stylesheet">
+
+    <title>Ficha cadastral da associação e do presidente</title>
+  </head>
+  <body>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+
+    <div id="cabecalho" class="row">
+      <div class="col"><img src="images/logo-pdf.svg"></div>
+      <div class="col"><h1>Programa de Transferências de Recursos Financeiros - PTRF</h1></div>
+      <div class="col">
+        <div class="row" style="border: 1px solid gray">
+          <div class="col">
+            <p>Período de Realização:</p>
+            <p>{{ dados.cabecalho.periodo }}</p>
+          </div>
+          <div style="border-left: 1px solid gray; " ></div>
+          <div class="col">
+            <p>Conta:</p>
+            <p>{{ dados.cabecalho.conta }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <p>Bloco 1 - Identificação da Associação da Unidade Educacional</p>
+        <div style="border-top: 1px solid gray; " ></div>
+        <br>
+        <div style="border: 1px solid gray; border-radius: 2px">
+          <div class="row">
+            <div class="col">
+              <p>Nome da Associação:</p>
+              <p>{{ dados.identificacao_apm.nome_associacao }}</p>
+            </div>
+            <div class="col">
+              <p>CNPJ:</p>
+              <p>{{ dados.identificacao_apm.cnpj_associacao }}</p>
+            </div>
+          </div>
+          <div style="border-top: 1px solid gray; " ></div>
+          <div class="row">
+            <div class="col">
+              <p>Diretoria Regional de Educação:</p>
+              <p>{{ dados.identificacao_apm.nome_dre_associacao }}</p>
+            </div>
+            <div class="col">
+              <p>Código EOL:</p>
+              <p>{{ dados.identificacao_apm.codigo_eol_associacao }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <p>Bloco 2 - Identificação Bancária e Saldo</p>
+        <div style="border-bottom: 1px solid gray; " ></div>
+        <br>
+        <div style="border: 1px solid gray; border-radius: 2px;">
+          <div class="row">
+            <div class="col">
+              <p>Banco:</p>
+              <p>{{ dados.identificacao_conta.banco }} </p>
+            </div>
+            <div class="col">
+              <p>Código da Agência:</p>
+              <p>{{ dados.identificacao_conta.agencia }} </p>
+            </div>
+            <div class="col">
+              <p>Número da conta corrente:</p>
+              <p>{{ dados.identificacao_conta.conta }} </p>
+            </div>
+          </div>
+          <div style="border-top: 1px solid gray; " ></div>
+          <div class="row">
+            <div class="col">
+              <p>Data do extrato:</p>
+              <p>{{ dados.identificacao_conta.data_extrato }}</p>
+            </div>
+            <div class="col">
+              <p>Saldo do extrato:</p>
+              <p>{{ dados.identificacao_conta.saldo_extrato }}</p>
+            </div>
+            <div class="col">
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p>Bloco 3 - Resumo por Ação</p>
+    <div style="border-bottom: 1px solid gray; " ></div>
+    <br>
+    <div style="border: 1px solid gray; border-radius: 2px;">
+    </div>
+
+    <p>Bloco 4 - Créditos</p>
+    <div style="border-bottom: 1px solid gray; " ></div>
+    <br>
+    <div style="border: 1px solid gray; border-radius: 2px;">
+      <div class="row">
+        <div class="col"></div>
+        <div class="col">21. Tipo de crédito</div>
+        <div class="col">22. Detalhamento</div>
+        <div class="col">23. Ação do Programa</div>
+        <div class="col">24. Data</div>
+        <div class="col">25. Valor</div>
+      </div>
+      {% for receita in dados.creditos_demonstrados.linhas %}
+        <div class="row">
+          <div class="col">{{ forloop.counter }}</div>
+          <div class="col">{{ receita.tipo_receita }}</div>
+          <div class="col">{{ receita.detalhamento }}</div>
+          <div class="col">{{ receita.nome_acao }}</div>
+          <div class="col">{{ receita.data }}</div>
+          <div class="col">{{ receita.valor }}</div>
+        </div>
+      {% endfor %}
+      <div class="row">
+        <div class="col">TOTAL</div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col">{{ dados.creditos_demonstrados.valor_total }}</div>
+      </div>
+    </div>
+
+    <br>
+    <p>Bloco 5 - Despesas Demonstradas</p>
+    <div style="border-bottom: 1px solid gray; " ></div>
+    <br>
+    <div style="border: 1px solid gray; border-radius: 2px;">
+      <div class="row">
+        <div class="col"></div>
+        <div class="col">27. Razão social</div>
+        <div class="col">28. CNPJ ou CPF</div>
+        <div class="col">29. Tipo do documento</div>
+        <div class="col">30. Número do documento</div>
+        <div class="col">31. Data</div>
+        <div class="col">32. Ação do Programa</div>
+        <div class="col">33. Especificação do material ou serviço</div>
+        <div class="col">34. Tipo da despesa</div>
+        <div class="col">35. Tipo de transação</div>
+        <div class="col">36. Data</div>
+        <div class="col">37. Valor</div>
+      </div>
+      {% for despesa in dados.despesas_demonstradas.linhas %}
+        <div class="row">
+          <div class="col">{{ forloop.counter }}</div>
+          <div class="col">{{ despesa.razao_social }}</div>
+          <div class="col">{{ despesa.cnpj_cpf }}</div>
+          <div class="col">{{ despesa.tipo_documento }}</div>
+          <div class="col">{{ despesa.numero_documento }}</div>
+          <div class="col">{{ despesa.data_documento }}</div>
+          <div class="col">{{ despesa.nome_acao_documento }}</div>
+          <div class="col">{{ despesa.especificacao_material }}</div>
+          <div class="col">{{ despesa.tipo_despesa }}</div>
+          <div class="col">{{ despesa.tipo_transacao }}</div>
+          <div class="col">{{ despesa.data_documento }}</div>
+          <div class="col">{{ despesa.valor }}</div>
+        </div>
+      {% endfor %}
+      <div class="row">
+        <div class="col">TOTAL</div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col">{{ dados.despesas_demonstradas.valor_total }}</div>
+      </div>
+    </div>
+
+    <br>
+    <p>Bloco 6 - Despesas Não Demonstradas no Extrato / Demonstrativo</p>
+    <div style="border-bottom: 1px solid gray; " ></div>
+    <br>
+    <div style="border: 1px solid gray; border-radius: 2px;">
+      <div class="row">
+        <div class="col"></div>
+        <div class="col">27. Razão social</div>
+        <div class="col">28. CNPJ ou CPF</div>
+        <div class="col">29. Tipo do documento</div>
+        <div class="col">30. Número do documento</div>
+        <div class="col">31. Data</div>
+        <div class="col">32. Ação do Programa</div>
+        <div class="col">33. Especificação do material ou serviço</div>
+        <div class="col">34. Tipo da despesa</div>
+        <div class="col">35. Tipo de transação</div>
+        <div class="col">36. Data</div>
+        <div class="col">37. Valor</div>
+      </div>
+      {% for despesa in dados.despesas_nao_demonstradas.linhas %}
+        <div class="row">
+          <div class="col">{{ forloop.counter }}</div>
+          <div class="col">{{ despesa.razao_social }}</div>
+          <div class="col">{{ despesa.cnpj_cpf }}</div>
+          <div class="col">{{ despesa.tipo_documento }}</div>
+          <div class="col">{{ despesa.numero_documento }}</div>
+          <div class="col">{{ despesa.data_documento }}</div>
+          <div class="col">{{ despesa.nome_acao_documento }}</div>
+          <div class="col">{{ despesa.especificacao_material }}</div>
+          <div class="col">{{ despesa.tipo_despesa }}</div>
+          <div class="col">{{ despesa.tipo_transacao }}</div>
+          <div class="col">{{ despesa.data_documento }}</div>
+          <div class="col">{{ despesa.valor }}</div>
+        </div>
+      {% endfor %}
+      <div class="row">
+        <div class="col">TOTAL</div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col">{{ dados.despesas_nao_demonstradas.valor_total }}</div>
+      </div>
+    </div>
+
+    <p>Bloco 7 - Despesas de Períodos Anteriores Não Demonstrados no Extrato / Demonstrativo</p>
+    <div style="border-bottom: 1px solid gray; " ></div>
+    <br>
+    <div style="border: 1px solid gray; border-radius: 2px;">
+      <div class="row">
+        <div class="col"></div>
+        <div class="col">27. Razão social</div>
+        <div class="col">28. CNPJ ou CPF</div>
+        <div class="col">29. Tipo do documento</div>
+        <div class="col">30. Número do documento</div>
+        <div class="col">31. Data</div>
+        <div class="col">32. Ação do Programa</div>
+        <div class="col">33. Especificação do material ou serviço</div>
+        <div class="col">34. Tipo da despesa</div>
+        <div class="col">35. Tipo de transação</div>
+        <div class="col">36. Data</div>
+        <div class="col">37. Valor</div>
+      </div>
+      {% for despesa in dados.despesas_anteriores_nao_demonstradas.linhas %}
+        <div class="row">
+          <div class="col">{{ forloop.counter }}</div>
+          <div class="col">{{ despesa.razao_social }}</div>
+          <div class="col">{{ despesa.cnpj_cpf }}</div>
+          <div class="col">{{ despesa.tipo_documento }}</div>
+          <div class="col">{{ despesa.numero_documento }}</div>
+          <div class="col">{{ despesa.data_documento }}</div>
+          <div class="col">{{ despesa.nome_acao_documento }}</div>
+          <div class="col">{{ despesa.especificacao_material }}</div>
+          <div class="col">{{ despesa.tipo_despesa }}</div>
+          <div class="col">{{ despesa.tipo_transacao }}</div>
+          <div class="col">{{ despesa.data_documento }}</div>
+          <div class="col">{{ despesa.valor }}</div>
+        </div>
+      {% endfor %}
+      <div class="row">
+        <div class="col">TOTAL</div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col">{{ dados.despesas_anteriores_nao_demonstradas.valor_total }}</div>
+      </div>
+    </div>
+
+    <p>Bloco 8 - Assinatura dos Responsáveis pela Prestação de Contas</p>
+    <div style="border-bottom: 1px solid gray; " ></div>
+    <br>
+    <div style="border: 1px solid gray; border-radius: 2px;">
+      <div class="row">
+        <div class="col">Declaramos, sob a pena da lei, que as informações prestadas são verdadeiras.</div>
+        <div class="col">Data: {{ dados.data_geracao}}</div>
+      </div>
+      <div style="border-bottom: 1px solid gray; " ></div>
+      <br><br><br>
+      <div class="row">
+        <div class="col">
+          <div width="80%" style="border-bottom: 1px solid gray; " ></div>
+          <p>Assinatura do Presidente da Diretoria Executiva da Associação</p>
+          <p>{{ dados.identificacao_apm.presidente_diretoria_executiva }}</p>
+        </div>
+        <div class="col">
+          <div width="80%" style="border-bottom: 1px solid gray; " ></div>
+          <p>Assinatura do Presidente do Conselho Fiscal da Associação</p>
+          <p>{{ dados.identificacao_apm.presidente_conselho_fiscal }}</p>
+        </div>
+      </div>
+    </div>
+
+    <p>{{ dados.data_geracao_documento }}</p>
+
+{{ dados.resumo_por_acao }}
+</body>
+</html>
