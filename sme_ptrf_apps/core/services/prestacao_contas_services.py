@@ -13,6 +13,9 @@ from ...despesas.models import RateioDespesa
 from ...receitas.models import Receita
 from ..tasks import concluir_prestacao_de_contas_async, gerar_previa_demonstrativo_financeiro_async
 
+from ..services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
+from .pdf_demo_financeiro_service import gerar_pdf_demonstrativo_financeiro
+
 logger = logging.getLogger(__name__)
 
 
@@ -78,6 +81,10 @@ def _criar_documentos(acoes, contas, periodo, prestacao):
         logger.info(f'Gerando demonstrativo financeiro da conta {conta}.')
         gerar_arquivo_demonstrativo_financeiro_novo(acoes=acoes, periodo=periodo, conta_associacao=conta,
                                                     prestacao=prestacao)
+
+        dados_demonstrativo = gerar_dados_demonstrativo_financeiro("usuarioteste", acoes, periodo, contas[0],
+                                                                   prestacao, previa=False)
+        gerar_pdf_demonstrativo_financeiro(dados_demonstrativo)
 
 
 def _criar_previa_demonstrativo_financeiro(acoes, conta, periodo):
