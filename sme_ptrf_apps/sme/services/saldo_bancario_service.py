@@ -134,7 +134,9 @@ def saldo_detalhe_associacao(periodo_uuid, conta_uuid, dre_uuid, unidade, tipo_u
         'nome',
         'unidade__codigo_eol',
         'obs_periodo__saldo_extrato',
-        'obs_periodo__data_extrato'
+        'obs_periodo__data_extrato',
+        'obs_periodo__comprovante_extrato',
+        'obs_periodo__uuid',
     )
 
     # Filtros

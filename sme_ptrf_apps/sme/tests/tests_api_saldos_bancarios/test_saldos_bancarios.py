@@ -215,9 +215,14 @@ def test_saldo_bancario_detalhes_associacoes(jwt_authenticated_client_sme,
     result = json.loads(response.content)
 
     resultado_esperado = [
-        {'nome': associacao_saldos_bancarios.nome,
-         'unidade__codigo_eol': associacao_saldos_bancarios.unidade.codigo_eol, 'obs_periodo__saldo_extrato': 1000.0,
-         'obs_periodo__data_extrato': None}
+        {
+            'nome': associacao_saldos_bancarios.nome,
+            'obs_periodo__comprovante_extrato': '',
+            'unidade__codigo_eol': associacao_saldos_bancarios.unidade.codigo_eol,
+            'obs_periodo__saldo_extrato': 1000.0,
+            'obs_periodo__uuid': f'{observacao_conciliacao_saldos_bancarios.uuid}',
+            'obs_periodo__data_extrato': None
+        }
     ]
 
     assert response.status_code == status.HTTP_200_OK
@@ -313,9 +318,12 @@ def test_saldo_bancario_detalhes_associacoes_filtro_unidade(jwt_authenticated_cl
     resultado_esperado = [
         {
             'nome': associacao_saldos_bancarios.nome,
+            'obs_periodo__comprovante_extrato': '',
             'unidade__codigo_eol': associacao_saldos_bancarios.unidade.codigo_eol,
             'obs_periodo__saldo_extrato': 1000.0,
-            'obs_periodo__data_extrato': None}
+            'obs_periodo__uuid': f'{observacao_conciliacao_saldos_bancarios.uuid}',
+            'obs_periodo__data_extrato': None
+        }
     ]
 
     assert response.status_code == status.HTTP_200_OK
@@ -323,13 +331,13 @@ def test_saldo_bancario_detalhes_associacoes_filtro_unidade(jwt_authenticated_cl
 
 
 def test_saldo_bancario_detalhes_associacoes_filtro_codigo_eol(jwt_authenticated_client_sme,
-                                                            associacao_saldos_bancarios,
-                                                            observacao_conciliacao_saldos_bancarios,
-                                                            periodo_saldos_bancarios,
-                                                            tipo_conta_saldos_bancarios,
-                                                            dre,
-                                                            dre_saldos_bancarios,
-                                                            ):
+                                                               associacao_saldos_bancarios,
+                                                               observacao_conciliacao_saldos_bancarios,
+                                                               periodo_saldos_bancarios,
+                                                               tipo_conta_saldos_bancarios,
+                                                               dre,
+                                                               dre_saldos_bancarios,
+                                                               ):
     response = jwt_authenticated_client_sme.get(
         f'/api/saldos-bancarios-sme-detalhes/saldos-detalhes-associacoes/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}&dre={dre_saldos_bancarios.uuid}&unidade=123457',
         content_type='application/json')
@@ -339,9 +347,12 @@ def test_saldo_bancario_detalhes_associacoes_filtro_codigo_eol(jwt_authenticated
     resultado_esperado = [
         {
             'nome': associacao_saldos_bancarios.nome,
+            'obs_periodo__comprovante_extrato': '',
             'unidade__codigo_eol': associacao_saldos_bancarios.unidade.codigo_eol,
             'obs_periodo__saldo_extrato': 1000.0,
-            'obs_periodo__data_extrato': None}
+            'obs_periodo__uuid': f'{observacao_conciliacao_saldos_bancarios.uuid}',
+            'obs_periodo__data_extrato': None
+        }
     ]
 
     assert response.status_code == status.HTTP_200_OK
@@ -349,13 +360,13 @@ def test_saldo_bancario_detalhes_associacoes_filtro_codigo_eol(jwt_authenticated
 
 
 def test_saldo_bancario_detalhes_associacoes_filtro_tipo_unidade(jwt_authenticated_client_sme,
-                                                            associacao_saldos_bancarios,
-                                                            observacao_conciliacao_saldos_bancarios,
-                                                            periodo_saldos_bancarios,
-                                                            tipo_conta_saldos_bancarios,
-                                                            dre,
-                                                            dre_saldos_bancarios,
-                                                            ):
+                                                                 associacao_saldos_bancarios,
+                                                                 observacao_conciliacao_saldos_bancarios,
+                                                                 periodo_saldos_bancarios,
+                                                                 tipo_conta_saldos_bancarios,
+                                                                 dre,
+                                                                 dre_saldos_bancarios,
+                                                                 ):
     response = jwt_authenticated_client_sme.get(
         f'/api/saldos-bancarios-sme-detalhes/saldos-detalhes-associacoes/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}&dre={dre_saldos_bancarios.uuid}&tipo_ue=CEU',
         content_type='application/json')
@@ -365,9 +376,12 @@ def test_saldo_bancario_detalhes_associacoes_filtro_tipo_unidade(jwt_authenticat
     resultado_esperado = [
         {
             'nome': associacao_saldos_bancarios.nome,
+            'obs_periodo__comprovante_extrato': '',
             'unidade__codigo_eol': associacao_saldos_bancarios.unidade.codigo_eol,
             'obs_periodo__saldo_extrato': 1000.0,
-            'obs_periodo__data_extrato': None}
+            'obs_periodo__uuid': f'{observacao_conciliacao_saldos_bancarios.uuid}',
+            'obs_periodo__data_extrato': None
+        }
     ]
 
     assert response.status_code == status.HTTP_200_OK

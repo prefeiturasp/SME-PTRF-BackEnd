@@ -6,10 +6,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from django.http import HttpResponse
+
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
     PermissaoAPITodosComLeituraOuGravacao,
-    PermissaoAPITodosComGravacao,
+    PermissaoAPITodosComGravacao, PermissaoAPIApenasSmeComLeituraOuGravacao,
 )
 
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
@@ -27,6 +29,8 @@ from ...services import (
 )
 from ....despesas.models import Despesa
 from ....receitas.models import Receita
+
+import mimetypes
 
 logger = logging.getLogger(__name__)
 
@@ -357,6 +361,7 @@ class ConciliacoesViewSet(GenericViewSet):
 
         if observacao:
             result = {
+                'observacao_uuid': observacao.uuid,
                 'observacao': observacao.texto,
                 'data_extrato': observacao.data_extrato,
                 'saldo_extrato': observacao.saldo_extrato,
@@ -365,6 +370,64 @@ class ConciliacoesViewSet(GenericViewSet):
             }
 
         return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='download-extrato-bancario',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
+            )
+    def download_extrato_bancario(self, request):
+        # Define o observacao da conciliacao
+        observacao_uuid = request.query_params.get('observacao_uuid')
+
+        if not observacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da observacao da conciliação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            observacao = ObservacaoConciliacao.by_uuid(observacao_uuid)
+        except ObservacaoConciliacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto observacao para o uuid {observacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        logger.info(f'Download do extrato bancário para a Observacao uuid {observacao_uuid}')
+
+        observacao = ObservacaoConciliacao.by_uuid(observacao_uuid)
+
+        if observacao and observacao.comprovante_extrato and observacao.comprovante_extrato.name:
+            comprovante_extrato_nome = observacao.comprovante_extrato.name
+            comprovante_extrato_path = observacao.comprovante_extrato.path
+            comprovante_extrato_file_mime = mimetypes.guess_type(observacao.comprovante_extrato.name)[0]
+
+            logger.info("Retornando dados do extrato bancario: %s", comprovante_extrato_path)
+
+            try:
+                response = HttpResponse(
+                    open(comprovante_extrato_path, 'rb'),
+                    content_type=comprovante_extrato_file_mime
+                )
+                response['Content-Disposition'] = 'attachment; filename=%s' % comprovante_extrato_nome
+            except Exception as err:
+                erro = {
+                    'erro': 'extrato_bancario_nao_gerado',
+                    'mensagem': str(err)
+                }
+                logger.info("Erro: %s", str(err))
+                return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+            return response
+
+        else:
+            erro = {
+                'erro': 'extrato_bancario_nao_encontrado',
+                'mensagem': 'Extrato bancário não encontrado'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
