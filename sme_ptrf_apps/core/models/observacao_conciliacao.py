@@ -35,7 +35,7 @@ class ObservacaoConciliacao(ModeloBase):
 
         observacao = cls.objects.filter(periodo=periodo, conta_associacao=conta_associacao).first()
         if observacao:
-            if texto_observacao or data_extrato or saldo_extrato or comprovante_extrato:
+            if texto_observacao or data_extrato or saldo_extrato or comprovante_extrato or data_atualizacao_comprovante_extrato:
                 observacao.texto = texto_observacao
                 observacao.data_extrato = data_extrato
                 observacao.saldo_extrato = saldo_extrato
@@ -50,7 +50,7 @@ class ObservacaoConciliacao(ModeloBase):
                 observacao.save()
             else:
                 observacao.delete()
-        elif texto_observacao or data_extrato or saldo_extrato:
+        elif texto_observacao or data_extrato or saldo_extrato or comprovante_extrato or data_atualizacao_comprovante_extrato:
             cls.objects.create(
                 periodo=periodo,
                 conta_associacao=conta_associacao,
