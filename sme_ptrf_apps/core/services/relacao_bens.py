@@ -103,9 +103,15 @@ def identificacao_apm(worksheet, conta_associacao):
 
 def autenticacao(worksheet, associacao):
     """BLOCO 3 - AUTENTICAÇÃO"""
+
     mensagem = "Declaro, sob as penas de Lei, que os bens acima relacionados, adquiridos com recursos do PTRF foram doados" \
                " à Prefeitura do município de São Paulo/ Secretaria Municipal de Educação para serem incorporados ao patrimônio público" \
-               f" e destinados à (ao) {associacao.nome}, responsável por sua guarda e conservação."
+               f" e destinados à (ao) {associacao.unidade.tipo_unidade} {associacao.unidade.nome}, responsável por sua guarda e conservação."
+
+    # mensagem = "Declaro, sob as penas de Lei, que os bens acima relacionados, adquiridos com recursos do PTRF foram doados" \
+    #            " à Prefeitura do município de São Paulo/ Secretaria Municipal de Educação para serem incorporados ao patrimônio público" \
+    #            f" e destinados à (ao) {associacao.nome}, responsável por sua guarda e conservação."
+
     rows = list(worksheet.rows)
     rows[BLOCO_3][0].value = mensagem
 
