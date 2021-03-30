@@ -41,7 +41,10 @@ def test_api_get_observacoes(jwt_authenticated_client_a,
 
     assert response.status_code == status.HTTP_200_OK
     assert result == {
+        'comprovante_extrato': '',
+        'data_atualizacao_comprovante_extrato': None,
         'observacao': 'Uma bela observação.',
         'data_extrato': '2020-07-01',
+        'observacao_uuid': f'{observacao_conciliacao.uuid}',
         'saldo_extrato': 1000.0
     }
