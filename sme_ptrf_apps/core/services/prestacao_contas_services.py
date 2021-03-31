@@ -75,16 +75,30 @@ def _criar_fechamentos(acoes, contas, periodo, prestacao):
 def _criar_documentos(acoes, contas, periodo, prestacao):
     logger.info(f'Criando documentos do período {periodo} e prestacao {prestacao}...')
     for conta in contas:
+
         logger.info(f'Gerando relação de bens da conta {conta}.')
         gerar_arquivo_relacao_de_bens(periodo=periodo, conta_associacao=conta, prestacao=prestacao)
 
         logger.info(f'Gerando demonstrativo financeiro da conta {conta}.')
-        gerar_arquivo_demonstrativo_financeiro_novo(acoes=acoes, periodo=periodo, conta_associacao=conta,
-                                                    prestacao=prestacao)
+        demonstrativo_financeiro = gerar_arquivo_demonstrativo_financeiro_novo(acoes=acoes, periodo=periodo,
+                                                                               conta_associacao=conta,
+                                                                               prestacao=prestacao)
+        # # TODO Remover - Aqui apenas para o teste do PDF
+        # from ..models import DemonstrativoFinanceiro
+        # demonstrativo_financeiro, _ = DemonstrativoFinanceiro.objects.update_or_create(
+        #     conta_associacao=conta,
+        #     prestacao_conta=prestacao,
+        #     periodo_previa=None if prestacao else periodo,
+        #     versao=DemonstrativoFinanceiro.VERSAO_FINAL,
+        #     status=DemonstrativoFinanceiro.STATUS_EM_PROCESSAMENTO,
+        # )
+        # # -------
 
         dados_demonstrativo = gerar_dados_demonstrativo_financeiro("usuarioteste", acoes, periodo, contas[0],
                                                                    prestacao, previa=False)
-        gerar_pdf_demonstrativo_financeiro(dados_demonstrativo)
+
+        logger.info(f'Gerando PDF demonstrativo financeiro da conta {conta}.')
+        gerar_pdf_demonstrativo_financeiro(dados_demonstrativo, demonstrativo_financeiro)
 
 
 def _criar_previa_demonstrativo_financeiro(acoes, conta, periodo):

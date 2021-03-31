@@ -451,6 +451,7 @@ def cria_data_geracao_documento(usuario, previa):
 
     return texto
 
+
 def cria_data_geracao():
 
     data_geracao = date.today().strftime("%d/%m/%Y")
