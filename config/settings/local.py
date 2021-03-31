@@ -84,3 +84,8 @@ LOGGING = {
     },
     "root": {"level": "INFO", "handlers": ["console"]},
 }
+
+
+# TODO Testar impacto no deploy
+# Alterado para rodar a geração de PDF localmente
+STATIC_URL = "/staticfiles/"
