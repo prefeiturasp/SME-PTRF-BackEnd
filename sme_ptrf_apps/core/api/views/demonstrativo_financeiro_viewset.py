@@ -86,6 +86,17 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         logger.info("Download do documento Final.")
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
+        formato_arquivo = self.request.query_params.get('formato_arquivo')
+
+        if formato_arquivo and formato_arquivo not in ['XLSX', 'PDF']:
+            erro = {
+                'erro': 'parametro_inválido',
+                'mensagem': 'O parâmetro formato_arquivo espera os valores XLSX ou PDF.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if not formato_arquivo:
+            formato_arquivo = 'XLSX'
 
         if not conta_associacao_uuid or not periodo_uuid:
             erro = {
@@ -110,7 +121,7 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
                                                                           prestacao_conta=prestacao_conta).first()
 
         logger.info("Prestacao de conta: %s, Demonstrativo Financeiro: %s", str(prestacao_conta), str(demonstrativo_financeiro))
-        filename = 'demonstrativo_financeiro.xlsx'
+
         if not demonstrativo_financeiro:
             erro = {
                 'erro': 'arquivo_nao_gerado',
@@ -120,11 +131,21 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         logger.info("Retornando dados do arquivo: %s", demonstrativo_financeiro.arquivo.path)
 
         try:
-            response = HttpResponse(
-                open(demonstrativo_financeiro.arquivo.path, 'rb'),
-                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            )
-            response['Content-Disposition'] = 'attachment; filename=%s' % filename
+            if formato_arquivo == 'PDF':
+                filename = 'demonstrativo_financeiro.pdf'
+                response = HttpResponse(
+                    open(demonstrativo_financeiro.arquivo_pdf.path, 'rb'),
+                    content_type='application/pdf'
+                )
+                response['Content-Disposition'] = 'attachment; filename=%s' % filename
+            else:
+                filename = 'demonstrativo_financeiro.xlsx'
+                response = HttpResponse(
+                    open(demonstrativo_financeiro.arquivo.path, 'rb'),
+                    content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                )
+                response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
         except Exception as err:
             erro = {
                 'erro': 'arquivo_nao_gerado',
@@ -141,6 +162,17 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         logger.info("Download do documento Prévia.")
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
+        formato_arquivo = self.request.query_params.get('formato_arquivo')
+
+        if formato_arquivo and formato_arquivo not in ['XLSX', 'PDF']:
+            erro = {
+                'erro': 'parametro_inválido',
+                'mensagem': 'O parâmetro formato_arquivo espera os valores XLSX ou PDF.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if not formato_arquivo:
+            formato_arquivo = 'XLSX'
 
         if not conta_associacao_uuid or not periodo_uuid:
             erro = {
@@ -166,7 +198,7 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
                                                                           ).first()
 
         logger.info("Demonstrativo Financeiro: %s", str(demonstrativo_financeiro))
-        filename = 'demonstrativo_financeiro.xlsx'
+
         if not demonstrativo_financeiro:
             erro = {
                 'erro': 'arquivo_nao_gerado',
@@ -176,11 +208,20 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         logger.info("Retornando dados do arquivo: %s", demonstrativo_financeiro.arquivo.path)
 
         try:
-            response = HttpResponse(
-                open(demonstrativo_financeiro.arquivo.path, 'rb'),
-                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            )
-            response['Content-Disposition'] = 'attachment; filename=%s' % filename
+            if formato_arquivo == 'PDF':
+                filename = 'demonstrativo_financeiro.pdf'
+                response = HttpResponse(
+                    open(demonstrativo_financeiro.arquivo_pdf.path, 'rb'),
+                    content_type='application/pdf'
+                )
+                response['Content-Disposition'] = 'attachment; filename=%s' % filename
+            else:
+                filename = 'demonstrativo_financeiro.xlsx'
+                response = HttpResponse(
+                    open(demonstrativo_financeiro.arquivo.path, 'rb'),
+                    content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                )
+                response['Content-Disposition'] = 'attachment; filename=%s' % filename
         except Exception as err:
             erro = {
                 'erro': 'arquivo_nao_gerado',
