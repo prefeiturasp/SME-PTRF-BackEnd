@@ -422,7 +422,7 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
     def gera_pdf(self, request, queryset):
         from sme_ptrf_apps.core.models import AcaoAssociacao, ContaAssociacao
         from sme_ptrf_apps.core.services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
-        from sme_ptrf_apps.core.services.pdf_demo_financeiro_service import gerar_pdf_demonstrativo_financeiro
+        from sme_ptrf_apps.core.services.demonstrativo_financeiro_pdf_service import gerar_arquivo_demonstrativo_financeiro_pdf
 
         demonstrativo_financeiro = queryset.first()
 
@@ -434,7 +434,7 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
         dados_demonstrativo = gerar_dados_demonstrativo_financeiro("usuarioteste", acoes, periodo, contas[0],
                                                                    prestacao, previa=False)
 
-        gerar_pdf_demonstrativo_financeiro(dados_demonstrativo, demonstrativo_financeiro)
+        gerar_arquivo_demonstrativo_financeiro_pdf(dados_demonstrativo, demonstrativo_financeiro)
 
     gera_pdf.short_description = "Gerar PDF"
 
