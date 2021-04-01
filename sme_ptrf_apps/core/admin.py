@@ -419,6 +419,25 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
 
     get_nome_dre.short_description = 'DRE'
 
+    def gera_pdf(self, request, queryset):
+        from sme_ptrf_apps.core.models import AcaoAssociacao, ContaAssociacao
+        from sme_ptrf_apps.core.services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
+        from sme_ptrf_apps.core.services.pdf_demo_financeiro_service import gerar_pdf_demonstrativo_financeiro
+
+        demonstrativo_financeiro = queryset.first()
+
+        prestacao = demonstrativo_financeiro.prestacao_conta
+        periodo = prestacao.periodo
+        acoes = prestacao.associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
+        contas = prestacao.associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
+
+        dados_demonstrativo = gerar_dados_demonstrativo_financeiro("usuarioteste", acoes, periodo, contas[0],
+                                                                   prestacao, previa=False)
+
+        gerar_pdf_demonstrativo_financeiro(dados_demonstrativo, demonstrativo_financeiro)
+
+    gera_pdf.short_description = "Gerar PDF"
+
     list_display = (
         'get_nome_associacao',
         'get_periodo',
@@ -450,6 +469,8 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
     )
 
     autocomplete_fields = ['conta_associacao', 'periodo_previa', 'prestacao_conta']
+
+    actions = ['gera_pdf', ]
 
 
 @admin.register(RelacaoBens)

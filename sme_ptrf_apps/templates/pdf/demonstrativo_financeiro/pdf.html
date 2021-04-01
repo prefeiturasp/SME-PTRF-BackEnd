@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
     <link href="{{ base_static_url }}/css/pdf-demo-financeiro.css" rel="stylesheet">
 
-    <title>Ficha cadastral da associação e do presidente</title>
+    <title>Demonstrativo Financeiro PTRF</title>
   </head>
   <body>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
@@ -16,7 +16,7 @@
 
     <div id="cabecalho" class="row">
       <div class="col"><img src="{{ base_static_url }}/images/logo-pdf.svg" alt="logo"></div>
-      <div class="col"><h1>Programa de Transferências de Recursos Financeiros - PTRF</h1></div>
+      <div class="col"><h1 id="titulo">1 Programa de Transferências de Recursos Financeiros - PTRF</h1></div>
       <div class="col">
         <div class="row" style="border: 1px solid gray">
           <div class="col">
@@ -34,7 +34,7 @@
 
     <div class="row">
       <div class="col">
-        <p>Bloco 1 - Identificação da Associação da Unidade Educacional</p>
+        <p class="titulo_bloco">Bloco A - Identificação da Associação da Unidade Educacional</p>
         <div style="border-top: 1px solid gray; " ></div>
         <br>
         <div style="border: 1px solid gray; border-radius: 2px">
@@ -62,7 +62,7 @@
         </div>
       </div>
       <div class="col">
-        <p>Bloco 2 - Identificação Bancária e Saldo</p>
+        <p class="titulo_bloco">Bloco 2 - Identificação Bancária e Saldo</p>
         <div style="border-bottom: 1px solid gray; " ></div>
         <br>
         <div style="border: 1px solid gray; border-radius: 2px;">
