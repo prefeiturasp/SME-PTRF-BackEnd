@@ -3,15 +3,18 @@ import logging
 from django.db import transaction
 from django.db.models import Q
 
-from .demonstrativo_financeiro import (gerar_arquivo_demonstrativo_financeiro_novo,
-                                       apagar_previas_demonstrativo_financeiro)
-from ..models import PrestacaoConta, FechamentoPeriodo, Associacao
+from .demonstrativo_financeiro_xlsx_service import (gerar_arquivo_demonstrativo_financeiro_xlsx,
+                                                    apagar_previas_demonstrativo_financeiro)
+from ..models import PrestacaoConta, FechamentoPeriodo, Associacao, DemonstrativoFinanceiro
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
 from ..services.processos_services import get_processo_sei_da_prestacao
 from ...despesas.models import RateioDespesa
 from ...receitas.models import Receita
 from ..tasks import concluir_prestacao_de_contas_async, gerar_previa_demonstrativo_financeiro_async
+
+from ..services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
+from .demonstrativo_financeiro_pdf_service import gerar_arquivo_demonstrativo_financeiro_pdf
 
 logger = logging.getLogger(__name__)
 
@@ -72,17 +75,28 @@ def _criar_fechamentos(acoes, contas, periodo, prestacao):
 def _criar_documentos(acoes, contas, periodo, prestacao):
     logger.info(f'Criando documentos do período {periodo} e prestacao {prestacao}...')
     for conta in contas:
+
         logger.info(f'Gerando relação de bens da conta {conta}.')
         gerar_arquivo_relacao_de_bens(periodo=periodo, conta_associacao=conta, prestacao=prestacao)
 
         logger.info(f'Gerando demonstrativo financeiro da conta {conta}.')
-        gerar_arquivo_demonstrativo_financeiro_novo(acoes=acoes, periodo=periodo, conta_associacao=conta,
-                                                    prestacao=prestacao)
+        _gerar_arquivos_demonstrativo_financeiro(
+            acoes=acoes,
+            periodo=periodo,
+            conta_associacao=conta,
+            prestacao=prestacao
+        )
 
 
 def _criar_previa_demonstrativo_financeiro(acoes, conta, periodo):
-    logger.info(f'Criando prévia de demonstrativo financeiro do período {periodo} e conta {conta}...')
-    gerar_arquivo_demonstrativo_financeiro_novo(acoes=acoes, periodo=periodo, conta_associacao=conta, previa=True)
+    logger.info(f'Gerando prévias do demonstrativo financeiro da conta {conta}.')
+    _gerar_arquivos_demonstrativo_financeiro(
+        acoes=acoes,
+        periodo=periodo,
+        conta_associacao=conta,
+        prestacao=None,
+        previa=True,
+    )
 
 
 def _criar_previa_relacao_de_bens(conta, periodo):
@@ -263,3 +277,32 @@ def lista_prestacoes_de_conta_nao_recebidas(
         prestacoes.append(info_prestacao)
 
     return prestacoes
+
+
+def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, prestacao=None, usuario="", previa=False):
+
+    logger.info(f'Criando registro do demonstrativo financeiro da conta {conta_associacao}.')
+    demonstrativo, _ = DemonstrativoFinanceiro.objects.update_or_create(
+        conta_associacao=conta_associacao,
+        prestacao_conta=prestacao,
+        periodo_previa=None if prestacao else periodo,
+        versao=DemonstrativoFinanceiro.VERSAO_PREVIA if previa else DemonstrativoFinanceiro.VERSAO_FINAL,
+        status=DemonstrativoFinanceiro.STATUS_EM_PROCESSAMENTO,
+    )
+
+    logger.info(f'Gerando demonstrativo financeiro em XLSX da conta {conta_associacao}.')
+    demonstrativo = gerar_arquivo_demonstrativo_financeiro_xlsx(acoes=acoes, periodo=periodo,
+                                                                conta_associacao=conta_associacao,
+                                                                prestacao=prestacao,
+                                                                previa=previa,
+                                                                demonstrativo_financeiro=demonstrativo,
+                                                                )
+
+    logger.info(f'Gerando demonstrativo financeiro em PDF da conta {conta_associacao}.')
+    dados_demonstrativo = gerar_dados_demonstrativo_financeiro("usuarioteste", acoes, periodo, conta_associacao,
+                                                               prestacao, previa=False)
+    gerar_arquivo_demonstrativo_financeiro_pdf(dados_demonstrativo, demonstrativo)
+
+    demonstrativo.arquivo_concluido()
+
+    return demonstrativo

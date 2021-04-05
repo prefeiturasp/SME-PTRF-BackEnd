@@ -57,7 +57,15 @@ DATA_2 = 10
 VALOR = 11
 
 
-def gerar_arquivo_demonstrativo_financeiro_novo(acoes, periodo, conta_associacao, prestacao=None, usuario="", previa=False):
+def gerar_arquivo_demonstrativo_financeiro_xlsx(
+    acoes,
+    periodo,
+    conta_associacao,
+    prestacao=None,
+    usuario="",
+    previa=False,
+    demonstrativo_financeiro=None
+):
     filename = 'demonstrativo_financeiro_%s.xlsx'
 
     xlsx = gerar(usuario, acoes, periodo, conta_associacao, previa=previa)
@@ -65,16 +73,16 @@ def gerar_arquivo_demonstrativo_financeiro_novo(acoes, periodo, conta_associacao
     with NamedTemporaryFile() as tmp:
         xlsx.save(tmp.name)
 
-        demonstrativo_financeiro, _ = DemonstrativoFinanceiro.objects.update_or_create(
-            conta_associacao=conta_associacao,
-            prestacao_conta=prestacao,
-            periodo_previa=None if prestacao else periodo,
-            versao=DemonstrativoFinanceiro.VERSAO_PREVIA if previa else DemonstrativoFinanceiro.VERSAO_FINAL,
-            status=DemonstrativoFinanceiro.STATUS_EM_PROCESSAMENTO,
-        )
+        if not demonstrativo_financeiro:
+            demonstrativo_financeiro, _ = DemonstrativoFinanceiro.objects.update_or_create(
+                conta_associacao=conta_associacao,
+                prestacao_conta=prestacao,
+                periodo_previa=None if prestacao else periodo,
+                versao=DemonstrativoFinanceiro.VERSAO_PREVIA if previa else DemonstrativoFinanceiro.VERSAO_FINAL,
+                status=DemonstrativoFinanceiro.STATUS_EM_PROCESSAMENTO,
+            )
 
         demonstrativo_financeiro.arquivo.save(name=filename % demonstrativo_financeiro.pk, content=File(tmp))
-        demonstrativo_financeiro.arquivo_concluido()
 
     return demonstrativo_financeiro
 
