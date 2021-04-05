@@ -198,7 +198,7 @@ def info_resumo_conciliacao(periodo, conta_associacao):
 
         'saldo_posterior_total': saldo_posterior_total,
         'saldo_posterior_conciliado': saldo_posterior_conciliado,
-        'saldo_posterior_nao_conciliado': saldo_posterior_nao_conciliado,
+        'saldo_posterior_nao_conciliado': saldo_posterior_total - saldo_posterior_conciliado,
     }
 
     return info
