@@ -9,8 +9,21 @@ Versão: 1.8.0
 
 ## Release Notes
 
-### 1.8.0 - 29/03/2021 - Entregas da Sprint 17
-* Em andamento...
+### 1.8.0 - 06/04/2021 - Entregas da Sprint 17
+* UE > Upload de extrato bancário na conciliação
+* UE > Geração de prévias de documento de forma assíncrona
+* UE > Lançamento de gastos não demonstrados anteriores ao período de implantação
+* UE > Novo demonstrativo financeiro agora integrando todas as ações em uma conta 
+* UE > Melhorias na interface de exportação de informações e ficha cadastral
+* UE > Mudanças de textos nas atas de apresentação e retificação
+* UE > Mudanças de textos no relatório Relação de Bens
+* UE > Mais opções de permissões na funcionalidade de prestações de contas
+* DRE > Mais opções de permissões na funcionalidade de gestão de regularidade
+* SME > Consulta de saldos bancários por tipo de unidade, DRE e Unidade
+* SME > Download de extratos bancários adicionados pelas UEs
+* ADM > Melhoria no sistema de permissionamento
+* ADM > Exibição do nome do ambiente (Produção, Homologação, etc.)
+* 🐞 Correção de bugs
 
 ### 1.7.0 - 05/03/2021 - Entregas da Sprint 16
 * UE > Ficha cadastral da associação e de seu presidente (PDF)
