@@ -16,6 +16,7 @@ from .info_por_acao_services import (
     info_acoes_associacao_no_periodo,
     info_painel_acoes_por_periodo_e_conta,
     saldos_insuficientes_para_rateios,
+    valida_rateios_quanto_aos_saldos,
 )
 from .membro_associacao_service import TerceirizadasException, TerceirizadasService
 from .notificacao_service import formata_data, notificar_usuario

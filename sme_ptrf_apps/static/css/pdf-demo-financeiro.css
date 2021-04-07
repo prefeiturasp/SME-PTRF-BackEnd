@@ -1,0 +1,43 @@
+{% load static %}
+
+@charset "UTF-8";
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  src: url(../fonts/Roboto-Regular.ttf);
+}
+
+@page {
+  size: A4 landscape;
+}
+
+html {
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 6pt;
+}
+
+
+#titulo {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0c0c0c;
+}
+
+#cabecalho {
+  top: 0;
+  left: 0;
+  height: 2cm;
+  width: 100%;
+  background: #dadada;
+  text-align: center; }
+
+
+.titulo_bloco {
+  font-style: normal;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 14px;
+  color: #000000;
+}

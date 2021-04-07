@@ -1,9 +1,5 @@
 from rest_framework import exceptions
-from rest_framework.permissions import SAFE_METHODS, BasePermission
-
-from sme_ptrf_apps.core.models import Associacao, PrestacaoConta
-from sme_ptrf_apps.despesas.models import Despesa
-from sme_ptrf_apps.receitas.models import Receita
+from rest_framework.permissions import BasePermission
 
 
 class PermissaoCRUD(BasePermission):
@@ -55,105 +51,18 @@ class PermissaoCRUD(BasePermission):
         return self.has_perms(perms, request.user)
 
 
-class PermissaoReceita(PermissaoCRUD):
+class PermissaoApiUe(PermissaoCRUD):
+    """
+    Recursos de API da visão de Unidade Escolar são acessíveis também para as visões de DRE e SME
+    """
     perms_map = {
-        'GET': ['view_%(model_name)s'],
-        'OPTIONS': ['view_%(model_name)s'],
-        'HEAD': ['view_%(model_name)s'],
-        'POST': ['add_%(model_name)s'],
-        'PUT': ['change_%(model_name)s'],
-        'PATCH': ['change_%(model_name)s'],
-        'DELETE': ['delete_%(model_name)s'],
-    }
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method, Receita)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoDespesa(PermissaoCRUD):
-    perms_map = {
-        'GET': ['view_%(model_name)s'],
-        'OPTIONS': ['view_%(model_name)s'],
-        'HEAD': ['view_%(model_name)s'],
-        'POST': ['add_%(model_name)s'],
-        'PUT': ['change_%(model_name)s'],
-        'PATCH': ['change_%(model_name)s'],
-        'DELETE': ['delete_%(model_name)s'],
-    }
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method, Despesa)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoAssociacao(PermissaoCRUD):
-    perms_map = {
-        'GET': ['view_%(model_name)s'],
-        'OPTIONS': ['view_%(model_name)s'],
-        'HEAD': ['view_%(model_name)s'],
-        'POST': ['add_%(model_name)s', 'change_%(model_name)s'],
-        'PUT': ['change_%(model_name)s'],
-        'PATCH': ['change_%(model_name)s'],
-        'DELETE': ['delete_%(model_name)s', 'change_%(model_name)s'],
-    }
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method, Associacao)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoPrestacaoConta(PermissaoCRUD):
-    perms_map = {
-        'GET': ['view_%(model_name)s'],
-        'OPTIONS': ['view_%(model_name)s'],
-        'HEAD': ['view_%(model_name)s'],
-        'POST': ['add_%(model_name)s'],
-        'PUT': ['change_%(model_name)s'],
-        'PATCH': ['change_%(model_name)s'],
-        'DELETE': ['delete_%(model_name)s'],
-    }
-
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            perms = self.get_required_permissions(request.method, PrestacaoConta)
-            return self.has_perms(perms, request.user)
-        return True
-
-
-class PermissaoExportarDadosAssociacao(PermissaoCRUD):
-    perms_map = {
-        'GET': ['export_dados_associacao'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': [],
-        'PUT': [],
-        'PATCH': [],
-        'DELETE': [],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            perms = self.get_required_permissions(request.method)
-            return self.has_perms(perms, request.user)
-        return False
-
-
-class PermissaoDashboardDre(PermissaoCRUD):
-    perms_map = {
-        'GET': ['view_dashboard_dre'],
-        'OPTIONS': ['view_dashboard_dre'],
-        'HEAD': ['view_dashboard_dre'],
-        'POST': ['view_dashboard_dre'],
-        'PUT': ['view_dashboard_dre'],
-        'PATCH': ['view_dashboard_dre'],
-        'DELETE': ['view_dashboard_dre'],
+        'GET': ['ue_leitura', 'ue_gravacao', 'dre_leitura', 'dre_gravacao', 'sme_leitura', 'sme_gravacao'],
+        'OPTIONS': ['ue_leitura', 'ue_gravacao', 'dre_leitura', 'dre_gravacao', 'sme_leitura', 'sme_gravacao'],
+        'HEAD': ['ue_leitura', 'ue_gravacao', 'dre_leitura', 'dre_gravacao', 'sme_leitura', 'sme_gravacao'],
+        'POST': ['ue_gravacao', 'dre_gravacao', 'sme_gravacao'],
+        'PUT': ['ue_gravacao', 'dre_gravacao', 'sme_gravacao'],
+        'PATCH': ['ue_gravacao', 'dre_gravacao', 'sme_gravacao'],
+        'DELETE': ['ue_gravacao', 'dre_gravacao', 'sme_gravacao'],
     }
 
     def get_required_permissions(self, method):
@@ -167,15 +76,18 @@ class PermissaoDashboardDre(PermissaoCRUD):
         return self.has_perms(perms, request.user)
 
 
-class PermissaoAssociacaoDre(PermissaoCRUD):
+class PermissaoApiDre(PermissaoCRUD):
+    """
+    Recursos de API da visão de DRE são acessíveis também para a visão de SME e não para a de UE.
+    """
     perms_map = {
-        'GET': ['view_associacao_dre'],
-        'OPTIONS': ['view_associacao_dre'],
-        'HEAD': ['view_associacao_dre'],
-        'POST': ['view_associacao_dre'],
-        'PUT': ['view_associacao_dre'],
-        'PATCH': ['view_associacao_dre'],
-        'DELETE': ['view_associacao_dre'],
+        'GET': ['dre_leitura', 'dre_gravacao', 'sme_leitura', 'sme_gravacao'],
+        'OPTIONS': ['dre_leitura', 'dre_gravacao', 'sme_leitura', 'sme_gravacao'],
+        'HEAD': ['dre_leitura', 'dre_gravacao', 'sme_leitura', 'sme_gravacao'],
+        'POST': ['dre_gravacao', 'sme_gravacao'],
+        'PUT': ['dre_gravacao', 'sme_gravacao'],
+        'PATCH': ['dre_gravacao', 'sme_gravacao'],
+        'DELETE': ['dre_gravacao', 'sme_gravacao'],
     }
 
     def get_required_permissions(self, method):
@@ -189,15 +101,15 @@ class PermissaoAssociacaoDre(PermissaoCRUD):
         return self.has_perms(perms, request.user)
 
 
-class PermissaoDadosUnidadeDre(PermissaoCRUD):
+class PermissaoAPITodosComLeituraOuGravacao(PermissaoCRUD):
     perms_map = {
-        'GET': ['view_dados_unidade_dre'],
-        'OPTIONS': ['view_dados_unidade_dre'],
-        'HEAD': ['view_dados_unidade_dre'],
-        'POST': ['view_dados_unidade_dre'],
-        'PUT': ['view_dados_unidade_dre'],
-        'PATCH': ['view_dados_unidade_dre'],
-        'DELETE': ['view_dados_unidade_dre'],
+        'GET': ['ue_leitura', 'ue_gravacao', 'dre_leitura', 'dre_gravacao', 'sme_leitura', 'sme_gravacao'],
+        'OPTIONS': ['ue_leitura', 'ue_gravacao', 'dre_leitura', 'dre_gravacao', 'sme_leitura', 'sme_gravacao'],
+        'HEAD': ['ue_leitura', 'ue_gravacao', 'dre_leitura', 'dre_gravacao', 'sme_leitura', 'sme_gravacao'],
+        'POST': ['ue_leitura', 'ue_gravacao', 'dre_leitura', 'dre_gravacao', 'sme_leitura', 'sme_gravacao'],
+        'PUT': ['ue_leitura', 'ue_gravacao', 'dre_leitura', 'dre_gravacao', 'sme_leitura', 'sme_gravacao'],
+        'PATCH': ['ue_leitura', 'ue_gravacao', 'dre_leitura', 'dre_gravacao', 'sme_leitura', 'sme_gravacao'],
+        'DELETE': ['ue_leitura', 'ue_gravacao', 'dre_leitura', 'dre_gravacao', 'sme_leitura', 'sme_gravacao'],
     }
 
     def get_required_permissions(self, method):
@@ -211,15 +123,15 @@ class PermissaoDadosUnidadeDre(PermissaoCRUD):
         return self.has_perms(perms, request.user)
 
 
-class PermissaoRegularidadeDre(PermissaoCRUD):
+class PermissaoAPITodosComGravacao(PermissaoCRUD):
     perms_map = {
-        'GET': ['view_regularidade_dre'],
-        'OPTIONS': ['view_regularidade_dre'],
-        'HEAD': ['view_regularidade_dre'],
-        'POST': ['view_regularidade_dre'],
-        'PUT': ['view_regularidade_dre'],
-        'PATCH': ['view_regularidade_dre'],
-        'DELETE': ['view_regularidade_dre'],
+        'GET': ['ue_gravacao', 'dre_gravacao', 'sme_gravacao'],
+        'OPTIONS': ['ue_gravacao', 'dre_gravacao', 'sme_gravacao'],
+        'HEAD': ['ue_gravacao', 'dre_gravacao', 'sme_gravacao'],
+        'POST': ['ue_gravacao', 'dre_gravacao', 'sme_gravacao'],
+        'PUT': ['ue_gravacao', 'dre_gravacao', 'sme_gravacao'],
+        'PATCH': ['ue_gravacao', 'dre_gravacao', 'sme_gravacao'],
+        'DELETE': ['ue_gravacao', 'dre_gravacao', 'sme_gravacao'],
     }
 
     def get_required_permissions(self, method):
@@ -233,15 +145,15 @@ class PermissaoRegularidadeDre(PermissaoCRUD):
         return self.has_perms(perms, request.user)
 
 
-class PermissaoSituacaoFinanceira(PermissaoCRUD):
+class PermissaoAPIApenasDreComGravacao(PermissaoCRUD):
     perms_map = {
-        'GET': ['view_situacao_financeira_dre'],
-        'OPTIONS': ['view_situacao_financeira_dre'],
-        'HEAD': ['view_situacao_financeira_dre'],
-        'POST': ['view_situacao_financeira_dre'],
-        'PUT': ['view_situacao_financeira_dre'],
-        'PATCH': ['view_situacao_financeira_dre'],
-        'DELETE': ['view_situacao_financeira_dre'],
+        'GET': ['dre_gravacao'],
+        'OPTIONS': ['dre_gravacao'],
+        'HEAD': ['dre_gravacao'],
+        'POST': ['dre_gravacao'],
+        'PUT': ['dre_gravacao'],
+        'PATCH': ['dre_gravacao'],
+        'DELETE': ['dre_gravacao'],
     }
 
     def get_required_permissions(self, method):
@@ -255,39 +167,15 @@ class PermissaoSituacaoFinanceira(PermissaoCRUD):
         return self.has_perms(perms, request.user)
 
 
-class PermissaoDadosDiretoriaDre(PermissaoCRUD):
+class PermissaoAPIApenasDreComLeituraOuGravacao(PermissaoCRUD):
     perms_map = {
-        'GET': ['view_dadosdiretoria_dre'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': [],
-        'PUT': [],
-        'PATCH': [],
-        'DELETE': [],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            perms = self.get_required_permissions(request.method)
-            return self.has_perms(perms, request.user)
-        return True
-
-
-class PermissaoViewRelatorioConsolidadoDre(PermissaoCRUD):
-    perms_map = {
-        'GET': ['view_relatorio_consolidado_dre'],
-        'OPTIONS': ['view_relatorio_consolidado_dre'],
-        'HEAD': ['view_relatorio_consolidado_dre'],
-        'POST': ['view_relatorio_consolidado_dre'],
-        'PUT': ['view_relatorio_consolidado_dre'],
-        'PATCH': ['view_relatorio_consolidado_dre'],
-        'DELETE': ['view_relatorio_consolidado_dre'],
+        'GET': ['dre_leitura', 'dre_gravacao'],
+        'OPTIONS': ['dre_leitura', 'dre_gravacao'],
+        'HEAD': ['dre_leitura', 'dre_gravacao'],
+        'POST': ['dre_leitura', 'dre_gravacao'],
+        'PUT': ['dre_leitura', 'dre_gravacao'],
+        'PATCH': ['dre_leitura', 'dre_gravacao'],
+        'DELETE': ['dre_leitura', 'dre_gravacao'],
     }
 
     def get_required_permissions(self, method):
@@ -301,15 +189,15 @@ class PermissaoViewRelatorioConsolidadoDre(PermissaoCRUD):
         return self.has_perms(perms, request.user)
 
 
-class PermissaoGerarRelatorioConsolidadoDre(PermissaoCRUD):
+class PermissaoAPIApenasSmeComGravacao(PermissaoCRUD):
     perms_map = {
-        'GET': [],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['gerar_relatorio_consolidado_dre'],
-        'PUT': [],
-        'PATCH': [],
-        'DELETE': [],
+        'GET': ['sme_gravacao'],
+        'OPTIONS': ['sme_gravacao'],
+        'HEAD': ['sme_gravacao'],
+        'POST': ['sme_gravacao'],
+        'PUT': ['sme_gravacao'],
+        'PATCH': ['sme_gravacao'],
+        'DELETE': ['sme_gravacao'],
     }
 
     def get_required_permissions(self, method):
@@ -323,60 +211,15 @@ class PermissaoGerarRelatorioConsolidadoDre(PermissaoCRUD):
         return self.has_perms(perms, request.user)
 
 
-class PermissaoEditarRelatorioConsolidadoDre(PermissaoCRUD):
-    """Está sendo usado para tratar a permissão para salvar justificativas"""
+class PermissaoAPIApenasSmeComLeituraOuGravacao(PermissaoCRUD):
     perms_map = {
-        'GET': ['change_relatorio_consolidado_dre', 'view_relatorio_consolidado_dre'],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['change_relatorio_consolidado_dre'],
-        'PUT': ['change_relatorio_consolidado_dre'],
-        'PATCH': ['change_relatorio_consolidado_dre'],
-        'DELETE': ['change_relatorio_consolidado_dre'],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoVerConciliacaoBancaria(PermissaoCRUD):
-    perms_map = {
-        'GET': ['view_conciliacao_bancaria'],
-        'OPTIONS': ['view_conciliacao_bancaria'],
-        'HEAD': ['view_conciliacao_bancaria'],
-        'POST': [],
-        'PUT': [],
-        'PATCH': [],
-        'DELETE': [],
-    }
-
-    def get_required_permissions(self, method):
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
-
-        return [perm for perm in self.perms_map[method]]
-
-    def has_permission(self, request, view):
-        perms = self.get_required_permissions(request.method)
-        return self.has_perms(perms, request.user)
-
-
-class PermissaoEditarConciliacaoBancaria(PermissaoCRUD):
-    perms_map = {
-        'GET': [],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['change_conciliacao_bancaria'],
-        'PUT': ['change_conciliacao_bancaria'],
-        'PATCH': ['change_conciliacao_bancaria'],
-        'DELETE': ['change_conciliacao_bancaria'],
+        'GET': ['sme_leitura', 'sme_gravacao'],
+        'OPTIONS': ['sme_leitura', 'sme_gravacao'],
+        'HEAD': ['sme_leitura', 'sme_gravacao'],
+        'POST': ['sme_leitura', 'sme_gravacao'],
+        'PUT': ['sme_leitura', 'sme_gravacao'],
+        'PATCH': ['sme_leitura', 'sme_gravacao'],
+        'DELETE': ['sme_leitura', 'sme_gravacao'],
     }
 
     def get_required_permissions(self, method):

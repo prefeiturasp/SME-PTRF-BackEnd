@@ -17,13 +17,10 @@ from rest_framework.viewsets import ModelViewSet
 from weasyprint import HTML
 
 from sme_ptrf_apps.users.permissoes import (
-    PermissaoAssociacao,
-    PermissaoAssociacaoDre,
-    PermissaoDadosUnidadeDre,
-    PermissaoExportarDadosAssociacao,
-    PermissaoRegularidadeDre,
-    PermissaoSituacaoFinanceira,
-    PermissaoVerConciliacaoBancaria,
+    PermissaoApiUe,
+    PermissaoAPITodosComLeituraOuGravacao,
+    PermissaoAPITodosComGravacao,
+    PermissaoAPIApenasDreComGravacao,
 )
 
 from ....dre.services import (
@@ -63,8 +60,7 @@ logger = logging.getLogger(__name__)
 
 
 class AssociacoesViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated & (PermissaoAssociacao | PermissaoAssociacaoDre |
-                                             PermissaoDadosUnidadeDre | PermissaoSituacaoFinanceira | PermissaoVerConciliacaoBancaria)]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer
@@ -113,7 +109,8 @@ class AssociacoesViewSet(ModelViewSet):
 
         return qs
 
-    @action(detail=True, url_path='painel-acoes')
+    @action(detail=True, url_path='painel-acoes',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def painel_acoes(self, request, uuid=None):
 
         periodo_uuid = request.query_params.get('periodo_uuid')
@@ -125,7 +122,8 @@ class AssociacoesViewSet(ModelViewSet):
 
         return Response(result)
 
-    @action(detail=True, url_path='status-periodo', permission_classes=[IsAuthenticated])
+    @action(detail=True, url_path='status-periodo',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def status_periodo(self, request, uuid=None):
         associacao = self.get_object()
 
@@ -160,7 +158,8 @@ class AssociacoesViewSet(ModelViewSet):
 
         return Response(result)
 
-    @action(detail=True, url_path='permite-implantacao-saldos', methods=['get'])
+    @action(detail=True, url_path='permite-implantacao-saldos', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def permite_implantacao_saldos(self, request, uuid=None):
 
         associacao = self.get_object()
@@ -190,7 +189,8 @@ class AssociacoesViewSet(ModelViewSet):
 
         return Response(result, status=status.HTTP_200_OK)
 
-    @action(detail=True, url_path='implantacao-saldos', methods=['get'])
+    @action(detail=True, url_path='implantacao-saldos', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def implantacao_saldos(self, request, uuid=None):
 
         associacao = self.get_object()
@@ -228,7 +228,8 @@ class AssociacoesViewSet(ModelViewSet):
 
         return Response(result)
 
-    @action(detail=True, url_path='implanta-saldos', methods=['post'])
+    @action(detail=True, url_path='implanta-saldos', methods=['post'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def implanta_saldos(self, request, uuid=None):
 
         associacao = self.get_object()
@@ -260,14 +261,16 @@ class AssociacoesViewSet(ModelViewSet):
 
         return Response(result, status=status_code)
 
-    @action(detail=True, url_path='contas', methods=['get'])
+    @action(detail=True, url_path='contas', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def contas(self, request, uuid=None):
         associacao = self.get_object()
         contas = ContaAssociacao.objects.filter(associacao=associacao).all()
         contas_data = ContaAssociacaoDadosSerializer(contas, many=True).data
         return Response(contas_data)
 
-    @action(detail=True, url_path='contas-update', methods=['post'])
+    @action(detail=True, url_path='contas-update', methods=['post'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def contas_update(self, request, uuid=None):
         logger.info("Atualizando Contas da Associação: %s", uuid)
 
@@ -311,7 +314,8 @@ class AssociacoesViewSet(ModelViewSet):
 
         return Response(resultado, status=status_code)
 
-    @action(detail=False, url_path='tabelas', permission_classes=[IsAuthenticated])
+    @action(detail=False, url_path='tabelas',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, _):
         result = {
             'tipos_unidade': Unidade.tipos_unidade_to_json(),
@@ -326,7 +330,8 @@ class AssociacoesViewSet(ModelViewSet):
         xlsx = gerar_planilha(associacao)
         return xlsx
 
-    @action(detail=True, methods=['get'], url_path='exportar', permission_classes=[IsAuthenticated & PermissaoExportarDadosAssociacao])
+    @action(detail=True, methods=['get'], url_path='exportar',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def exportar(self, _, uuid=None):
 
         xlsx = self._gerar_planilha(uuid)
@@ -342,7 +347,8 @@ class AssociacoesViewSet(ModelViewSet):
 
         return response
 
-    @action(detail=True, methods=['get'], url_path='exportar-pdf', permission_classes=[]) #IsAuthenticated & PermissaoExportarDadosAssociacao])
+    @action(detail=True, methods=['get'], url_path='exportar-pdf',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def exportarpdf(self, _, uuid=None):
 
         data_atual = date.today().strftime("%d-%m-%Y")
@@ -362,24 +368,28 @@ class AssociacoesViewSet(ModelViewSet):
 
         return response
 
-    @action(detail=True, url_path='periodos-para-prestacao-de-contas', methods=['get'])
+    @action(detail=True, url_path='periodos-para-prestacao-de-contas', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def periodos_para_prestacao_de_contas(self, request, uuid=None):
         associacao = self.get_object()
         periodos = associacao.periodos_para_prestacoes_de_conta()
         return Response(PeriodoLookUpSerializer(periodos, many=True).data)
 
-    @action(detail=True, url_path='processos', methods=['get'])
+    @action(detail=True, url_path='processos', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def processos_da_associacao(self, request, uuid=None):
         associacao = self.get_object()
         processos = associacao.processos.all()
         return Response(ProcessoAssociacaoRetrieveSerializer(processos, many=True).data)
 
-    @action(detail=True, url_path='verificacao-regularidade', methods=['get'], permission_classes=[IsAuthenticated & ((PermissaoAssociacaoDre & PermissaoRegularidadeDre))])
+    @action(detail=True, url_path='verificacao-regularidade', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def verificacao_regularidade(self, request, uuid=None):
         verificacao = verifica_regularidade_associacao(uuid)
         return Response(verificacao)
 
-    @action(detail=True, url_path='marca-item-verificacao', methods=['get'], permission_classes=[IsAuthenticated & ((PermissaoAssociacaoDre & PermissaoRegularidadeDre))])
+    @action(detail=True, url_path='marca-item-verificacao', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def marca_item_verificacao(self, request, uuid=None):
         item = request.query_params.get('item')
 
@@ -407,7 +417,8 @@ class AssociacoesViewSet(ModelViewSet):
 
         return Response(result, status=status_code)
 
-    @action(detail=True, url_path='desmarca-item-verificacao', methods=['get'], permission_classes=[IsAuthenticated & ((PermissaoAssociacaoDre & PermissaoRegularidadeDre))])
+    @action(detail=True, url_path='desmarca-item-verificacao', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def desmarca_item_verificacao(self, request, uuid=None):
         item = request.query_params.get('item')
 
@@ -435,7 +446,8 @@ class AssociacoesViewSet(ModelViewSet):
 
         return Response(result, status=status_code)
 
-    @action(detail=True, url_path='marca-lista-verificacao', methods=['get'], permission_classes=[IsAuthenticated & ((PermissaoAssociacaoDre & PermissaoRegularidadeDre))])
+    @action(detail=True, url_path='marca-lista-verificacao', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def marca_lista_verificacao(self, request, uuid=None):
         lista = request.query_params.get('lista')
 
@@ -463,7 +475,8 @@ class AssociacoesViewSet(ModelViewSet):
 
         return Response(result, status=status_code)
 
-    @action(detail=True, url_path='desmarca-lista-verificacao', methods=['get'], permission_classes=[IsAuthenticated & ((PermissaoAssociacaoDre & PermissaoRegularidadeDre))])
+    @action(detail=True, url_path='desmarca-lista-verificacao', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def desmarca_lista_verificacao(self, request, uuid=None):
         lista = request.query_params.get('lista')
 
@@ -491,7 +504,8 @@ class AssociacoesViewSet(ModelViewSet):
 
         return Response(result, status=status_code)
 
-    @action(detail=True, url_path='atualiza-itens-verificacao', methods=['post'], permission_classes=[IsAuthenticated & (PermissaoAssociacaoDre & PermissaoRegularidadeDre)])
+    @action(detail=True, url_path='atualiza-itens-verificacao', methods=['post'],
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def atualiza_itens_verificacao(self, request, uuid=None):
         itens = request.data
 
@@ -523,7 +537,8 @@ class AssociacoesViewSet(ModelViewSet):
         status_code = status.HTTP_200_OK
         return Response(result, status=status_code)
 
-    @action(detail=False, methods=['get'], url_path='eol')
+    @action(detail=False, methods=['get'], url_path='eol',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def consulta_unidade(self, request):
         codigo_eol = self.request.query_params.get('codigo_eol')
         result = consulta_unidade(codigo_eol)

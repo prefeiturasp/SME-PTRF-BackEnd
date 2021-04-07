@@ -10,7 +10,7 @@ from rest_framework.decorators import action
 
 from sme_ptrf_apps.core.api.serializers import AcaoAssociacaoCreateSerializer, AcaoAssociacaoRetrieveSerializer
 from sme_ptrf_apps.core.models import AcaoAssociacao, Acao, Associacao
-from sme_ptrf_apps.users.permissoes import PermissaoAssociacao
+from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComGravacao
 
 
 class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
@@ -20,7 +20,7 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
                             mixins.ListModelMixin,
                             GenericViewSet):
     lookup_field = 'uuid'
-    permission_classes = [IsAuthenticated & PermissaoAssociacao]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     serializer_class = AcaoAssociacaoRetrieveSerializer
     queryset = AcaoAssociacao.objects.all().order_by('associacao__nome', 'acao__nome')
     filter_backends = (filters.DjangoFilterBackend,)
@@ -59,7 +59,8 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['post'], url_path='excluir-lote')
+    @action(detail=False, methods=['post'], url_path='excluir-lote',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def excluir_em_lote(self, request, *args, **kwrgs):
         if not request.data.get('lista_uuids'):
             content = {
@@ -87,7 +88,8 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
 
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['post'], url_path='incluir-lote')
+    @action(detail=False, methods=['post'], url_path='incluir-lote',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def incluir_lote(self, request, *args, **kwrgs):
         acao_uuid = request.data.get('acao_uuid')
         associacoes_uuids = request.data.get('associacoes_uuids')

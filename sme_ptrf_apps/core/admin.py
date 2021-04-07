@@ -33,7 +33,8 @@ from .models import (
     PrevisaoRepasseSme,
     Censo,
     ParametroFiqueDeOlhoPc,
-    ModeloCarga
+    ModeloCarga,
+    Ambiente
 )
 
 admin.site.register(TipoNotificacao)
@@ -394,10 +395,6 @@ class ParametrosAdmin(admin.ModelAdmin):
 
 @admin.register(DemonstrativoFinanceiro)
 class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
-    def get_nome_acao(self, obj):
-        return obj.acao_associacao.acao.nome if obj and obj.acao_associacao else ''
-
-    get_nome_acao.short_description = 'Ação'
 
     def get_nome_conta(self, obj):
         return obj.conta_associacao.tipo_conta.nome if obj and obj.conta_associacao else ''
@@ -405,35 +402,60 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
     get_nome_conta.short_description = 'Conta'
 
     def get_nome_associacao(self, obj):
-        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta else ''
+        return obj.conta_associacao.associacao.nome if obj and obj.conta_associacao and obj.conta_associacao.associacao else ''
 
     get_nome_associacao.short_description = 'Associação'
 
     def get_periodo(self, obj):
-        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
+        if obj and obj.prestacao_conta:
+            return obj.prestacao_conta.periodo.referencia if obj.prestacao_conta.periodo else ''
+        else:
+            return obj.periodo_previa.referencia if obj.periodo_previa else ''
 
     get_periodo.short_description = 'Periodo'
 
     def get_nome_dre(self, obj):
-        return obj.prestacao_conta.associacao.unidade.dre.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade and obj.prestacao_conta.associacao.unidade.dre else ''
+        return obj.conta_associacao.associacao.unidade.dre.nome if obj and obj.conta_associacao and obj.conta_associacao.associacao and obj.conta_associacao.associacao.unidade and obj.conta_associacao.associacao.unidade.dre else ''
 
     get_nome_dre.short_description = 'DRE'
+
+    def gera_pdf(self, request, queryset):
+        from sme_ptrf_apps.core.models import AcaoAssociacao, ContaAssociacao
+        from sme_ptrf_apps.core.services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
+        from sme_ptrf_apps.core.services.demonstrativo_financeiro_pdf_service import gerar_arquivo_demonstrativo_financeiro_pdf
+
+        demonstrativo_financeiro = queryset.first()
+
+        prestacao = demonstrativo_financeiro.prestacao_conta
+        periodo = prestacao.periodo
+        acoes = prestacao.associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
+        contas = prestacao.associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
+
+        dados_demonstrativo = gerar_dados_demonstrativo_financeiro("usuarioteste", acoes, periodo, contas[0],
+                                                                   prestacao, previa=False)
+
+        gerar_arquivo_demonstrativo_financeiro_pdf(dados_demonstrativo, demonstrativo_financeiro)
+
+    gera_pdf.short_description = "Gerar PDF"
 
     list_display = (
         'get_nome_associacao',
         'get_periodo',
-        'get_nome_acao',
         'get_nome_conta',
         'get_nome_dre',
-        'criado_em'
+        'criado_em',
+        'versao',
+        'status'
     )
 
     list_filter = (
         'prestacao_conta__associacao',
-        'acao_associacao__acao',
         'conta_associacao__tipo_conta',
         'prestacao_conta__periodo',
         'prestacao_conta__associacao__unidade__dre',
+        'periodo_previa',
+        'status',
+        'versao'
     )
 
     list_display_links = ('get_nome_associacao',)
@@ -446,7 +468,9 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
         'prestacao_conta__associacao__nome'
     )
 
-    autocomplete_fields = ['conta_associacao', 'acao_associacao']
+    autocomplete_fields = ['conta_associacao', 'periodo_previa', 'prestacao_conta']
+
+    actions = ['gera_pdf', ]
 
 
 @admin.register(RelacaoBens)
@@ -458,17 +482,20 @@ class RelacaoBensAdmin(admin.ModelAdmin):
     get_nome_conta.short_description = 'Conta'
 
     def get_nome_associacao(self, obj):
-        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta else ''
+        return obj.conta_associacao.associacao.nome if obj and obj.conta_associacao else ''
 
     get_nome_associacao.short_description = 'Associação'
 
     def get_periodo(self, obj):
-        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
+        if obj and obj.prestacao_conta:
+            return obj.prestacao_conta.periodo.referencia if obj.prestacao_conta.periodo else ''
+        else:
+            return obj.periodo_previa.referencia if obj.periodo_previa else ''
 
     get_periodo.short_description = 'Periodo'
 
     def get_nome_dre(self, obj):
-        return obj.prestacao_conta.associacao.unidade.dre.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade and obj.prestacao_conta.associacao.unidade.dre else ''
+        return obj.conta_associacao.associacao.unidade.dre.nome if obj and obj.conta_associacao and obj.conta_associacao.associacao and obj.conta_associacao.associacao.unidade and obj.conta_associacao.associacao.unidade.dre else ''
 
     get_nome_dre.short_description = 'DRE'
 
@@ -477,7 +504,9 @@ class RelacaoBensAdmin(admin.ModelAdmin):
         'get_periodo',
         'get_nome_conta',
         'get_nome_dre',
-        'criado_em'
+        'criado_em',
+        'versao',
+        'status'
     )
 
     list_filter = (
@@ -485,6 +514,9 @@ class RelacaoBensAdmin(admin.ModelAdmin):
         'conta_associacao__tipo_conta',
         'prestacao_conta__periodo',
         'prestacao_conta__associacao__unidade__dre',
+        'periodo_previa',
+        'versao',
+        'status'
     )
 
     list_display_links = ('get_nome_associacao',)
@@ -497,7 +529,7 @@ class RelacaoBensAdmin(admin.ModelAdmin):
         'prestacao_conta__associacao__nome'
     )
 
-    autocomplete_fields = ['conta_associacao', ]
+    autocomplete_fields = ['conta_associacao', 'periodo_previa', 'prestacao_conta']
 
 
 @admin.register(MembroAssociacao)
@@ -507,4 +539,9 @@ class MembroAssociacaoAdmin(admin.ModelAdmin):
     list_filter = ('associacao', 'cargo_associacao', 'representacao')
     readonly_fields = ('uuid', 'id')
     autocomplete_fields = ['associacao', ]
+
+
+@admin.register(Ambiente)
+class AmbienteAdmin(admin.ModelAdmin):
+    list_display = ('prefixo', 'nome')
 

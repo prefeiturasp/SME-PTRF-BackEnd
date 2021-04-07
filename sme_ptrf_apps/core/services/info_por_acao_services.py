@@ -2,7 +2,7 @@ import datetime
 import logging
 from decimal import Decimal
 
-from ..models import FechamentoPeriodo, Associacao, AcaoAssociacao, ContaAssociacao, Periodo
+from ..models import FechamentoPeriodo, Associacao, AcaoAssociacao, ContaAssociacao, Periodo, Parametros
 from ..services.periodo_services import status_prestacao_conta_associacao
 from ...despesas.models import RateioDespesa
 from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
@@ -101,6 +101,70 @@ def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
         'tipo_saldo': 'ACAO',
         'saldos_insuficientes': saldos_insuficientes
     }
+
+
+def valida_rateios_quanto_aos_saldos(rateios, associacao, data_documento=None, exclude_despesa=None):
+
+    if not data_documento:
+        """
+        Caso não tenha sido informada a data da transação, não é possível determinar o saldo.
+        """
+        return {
+            'situacao_do_saldo': 'impossível_determinar',
+            'mensagem': 'Sem informar a data da despesa não há como determinar o saldo disponível.',
+            'saldos_insuficientes': [],
+            'aceitar_lancamento': True
+        }
+
+    if associacao.periodo_inicial and data_documento <= associacao.periodo_inicial.data_fim_realizacao_despesas:
+        """
+        Caso o lançamento seja anterior ao período de implantação da Associação, ele deve ser tratado como uma
+        implantação de lançamento não demonstrado (não conciliado).
+        """
+        return {
+            'situacao_do_saldo': 'lancamento_anterior_implantacao',
+            'mensagem': 'Lançamento com data anterior ao período inicial da associação.',
+            'saldos_insuficientes': [],
+            'aceitar_lancamento': True
+        }
+
+    """
+    Verifica se os rateios informados causarão algum saldo negativo.
+    """
+    periodo_despesa = Periodo.da_data(data_documento)
+    saldos_insuficientes = saldos_insuficientes_para_rateios(
+        rateios=rateios,
+        periodo=periodo_despesa,
+        exclude_despesa=exclude_despesa
+    )
+
+    if not saldos_insuficientes['saldos_insuficientes']:
+        """
+        Caso não sejam encontrados saldos insuficientes.
+        """
+        return {
+            'situacao_do_saldo': 'saldo_suficiente',
+            'mensagem': 'Há saldo disponível para cobertura da despesa.',
+            'saldos_insuficientes': [],
+            'aceitar_lancamento': True
+        }
+
+    if saldos_insuficientes['tipo_saldo'] == 'CONTA':
+        result = {
+            'situacao_do_saldo': 'saldo_conta_insuficiente',
+            'mensagem': 'Não há saldo disponível em alguma das contas da despesa.',
+            'saldos_insuficientes': saldos_insuficientes['saldos_insuficientes'],
+            'aceitar_lancamento': Parametros.get().permite_saldo_conta_negativo
+        }
+    else:
+        result = {
+            'situacao_do_saldo': 'saldo_insuficiente',
+            'mensagem': 'Não há saldo disponível em alguma das ações da despesa.',
+            'saldos_insuficientes': saldos_insuficientes['saldos_insuficientes'],
+            'aceitar_lancamento': True
+        }
+
+    return result
 
 
 def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=None, conta=None):

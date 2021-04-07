@@ -1,26 +1,33 @@
 from datetime import datetime
-from io import BytesIO
+
 
 from django.http import HttpResponse
-from openpyxl.writer.excel import save_virtual_workbook
+
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.core.models import ContaAssociacao, Periodo, PeriodoPrevia, PrestacaoConta, RelacaoBens
-from sme_ptrf_apps.core.services.relacao_bens import gerar
+from sme_ptrf_apps.core.models import ContaAssociacao, Periodo, PrestacaoConta, RelacaoBens
+
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL
-from sme_ptrf_apps.users.permissoes import PermissaoPrestacaoConta
+from sme_ptrf_apps.users.permissoes import (
+    PermissaoApiUe,
+    PermissaoAPITodosComLeituraOuGravacao,
+    PermissaoAPITodosComGravacao
+)
+
+from sme_ptrf_apps.core.tasks import gerar_previa_relacao_de_bens_async
 
 
 class RelacaoBensViewSet(GenericViewSet):
-    permission_classes = [IsAuthenticated & PermissaoPrestacaoConta]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     queryset = RelacaoBens.objects.all()
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def previa(self, request):
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
@@ -31,7 +38,8 @@ class RelacaoBensViewSet(GenericViewSet):
         if not conta_associacao_uuid or not periodo_uuid or (not data_inicio or not data_fim):
             erro = {
                 'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid do período o uuid da conta da associação e as datas de inicio e fim do período.'
+                'mensagem': 'É necessário enviar o uuid do período o uuid da conta da associação e as datas de inicio '
+                            'e fim do período.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -51,23 +59,16 @@ class RelacaoBensViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        periodoPrevia = PeriodoPrevia(periodo.uuid, periodo.referencia, data_inicio, data_fim)
+        gerar_previa_relacao_de_bens_async.delay(periodo_uuid=periodo_uuid,
+                                                 conta_associacao_uuid=conta_associacao_uuid,
+                                                 data_inicio=data_inicio,
+                                                 data_fim=data_fim
+                                                 )
 
-        xlsx = self._gerar_planilha(periodoPrevia, conta_associacao_uuid, previa=True)
+        return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
 
-        result = BytesIO(save_virtual_workbook(xlsx))
-
-        filename = 'relacao_bens.xlsx'
-        response = HttpResponse(
-            result,
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename
-
-        return response
-
-
-    @action(detail=False, methods=['get'], url_path='documento-final')
+    @action(detail=False, methods=['get'], url_path='documento-final',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def documento_final(self, request):
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
@@ -100,7 +101,45 @@ class RelacaoBensViewSet(GenericViewSet):
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         return response
 
-    @action(detail=False, methods=['get'], url_path='relacao-bens-info')
+    @action(detail=False, methods=['get'], url_path='documento-previa',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
+    def documento_previa(self, request):
+        conta_associacao_uuid = self.request.query_params.get('conta-associacao')
+        periodo_uuid = self.request.query_params.get('periodo')
+
+        if not conta_associacao_uuid or not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do período e o uuid da conta da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
+        periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
+
+        relacao_bens = RelacaoBens.objects.filter(
+            conta_associacao=conta_associacao,
+            periodo_previa=periodo,
+            versao=RelacaoBens.VERSAO_PREVIA
+        ).first()
+
+        if not relacao_bens:
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': 'Não existe um arquivo de prévia de relação de bens para download.'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        filename = 'relacao_bens.xlsx'
+        response = HttpResponse(
+            open(relacao_bens.arquivo.path, 'rb'),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        return response
+
+    @action(detail=False, methods=['get'], url_path='relacao-bens-info',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def relacao_bens_info(self, request):
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
@@ -121,9 +160,3 @@ class RelacaoBensViewSet(GenericViewSet):
             msg = str(relacao_bens)
 
         return Response(msg)
-
-    def _gerar_planilha(self, periodo, conta_associacao_uuid, previa=False):
-        conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid).get()
-
-        xlsx = gerar(periodo, conta_associacao, previa=previa)
-        return xlsx

@@ -99,6 +99,7 @@ def atribuicao(tecnico_dre, unidade, periodo):
         periodo=periodo,
     )
 
+
 @pytest.fixture
 def arquivo():
     return SimpleUploadedFile(f'arquivo.txt', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding="utf-8"))
@@ -116,17 +117,16 @@ def relatorio_dre_consolidado_gerado_total(periodo, dre, tipo_conta_cartao, arqu
         status='GERADO_TOTAL'
     )
 
+
 @pytest.fixture
 def permissoes_dadosdiretoria_dre():
     permissoes = [
-        Permission.objects.create(
-            name="visualizar dados diretoria dre",
-            codename='view_dadosdiretoria_dre',
-            content_type=ContentType.objects.filter(app_label="auth").first()
-        ),
+        Permission.objects.filter(codename='dre_leitura').first(),
+        Permission.objects.filter(codename='dre_gravacao').first()
     ]
 
     return permissoes
+
 
 @pytest.fixture
 def grupo_dados_diretoria_dre(permissoes_dadosdiretoria_dre):
@@ -178,24 +178,12 @@ def jwt_authenticated_client_dre(client, usuario_permissao_atribuicao):
 @pytest.fixture
 def permissoes_ver_relatorio_consolidado_dre():
     permissoes = [
-        Permission.objects.create(
-            name="visualizar relatorio consolidado dre",
-            codename='view_relatorio_consolidado_dre',
-            content_type=ContentType.objects.filter(app_label="auth").first()
-        ),
-        Permission.objects.create(
-            name="gerar relatorio consolidado dre",
-            codename='gerar_relatorio_consolidado_dre',
-            content_type=ContentType.objects.filter(app_label="auth").first()
-        ),
-        Permission.objects.create(
-            name="Mudar relatorio consolidado dre",
-            codename='change_relatorio_consolidado_dre',
-            content_type=ContentType.objects.filter(app_label="auth").first()
-        ),
+        Permission.objects.filter(codename='dre_leitura').first(),
+        Permission.objects.filter(codename='dre_gravacao').first()
     ]
 
     return permissoes
+
 
 @pytest.fixture
 def grupo_ver_relatorio_consolidado_dre(permissoes_ver_relatorio_consolidado_dre):

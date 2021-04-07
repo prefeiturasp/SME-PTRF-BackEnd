@@ -6,8 +6,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import (PermissaoPrestacaoConta, PermissaoVerConciliacaoBancaria,
-                                            PermissaoEditarConciliacaoBancaria)
+from django.http import HttpResponse
+
+from sme_ptrf_apps.users.permissoes import (
+    PermissaoApiUe,
+    PermissaoAPITodosComLeituraOuGravacao,
+    PermissaoAPITodosComGravacao, PermissaoAPIApenasSmeComLeituraOuGravacao,
+)
 
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
@@ -25,15 +30,17 @@ from ...services import (
 from ....despesas.models import Despesa
 from ....receitas.models import Receita
 
+import mimetypes
+
 logger = logging.getLogger(__name__)
 
 
 class ConciliacoesViewSet(GenericViewSet):
-    permission_classes = [IsAuthenticated & (
-        PermissaoPrestacaoConta | PermissaoVerConciliacaoBancaria | PermissaoEditarConciliacaoBancaria)]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     queryset = ObservacaoConciliacao.objects.all()
 
-    @action(detail=False, methods=['get'], url_path='tabela-valores-pendentes')
+    @action(detail=False, methods=['get'], url_path='tabela-valores-pendentes',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabela_valores_pendentes(self, request):
         conta_associacao_uuid = self.request.query_params.get('conta_associacao')
         periodo_uuid = self.request.query_params.get('periodo')
@@ -68,7 +75,8 @@ class ConciliacoesViewSet(GenericViewSet):
         result = info_resumo_conciliacao(periodo=periodo, conta_associacao=conta_associacao)
         return Response(result, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def receitas(self, request):
 
         # Define o período de conciliação
@@ -150,7 +158,8 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response(ReceitaListaSerializer(receitas, many=True).data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def despesas(self, request):
 
         # Define o período de conciliação
@@ -232,7 +241,8 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response(RateioDespesaListaSerializer(despesas, many=True).data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['patch'], url_path='salvar-observacoes')
+    @action(detail=False, methods=['patch'], url_path='salvar-observacoes',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def salvar_observacoes(self, request):
         # Define o período de conciliação
         periodo_uuid = request.data.get('periodo_uuid')
@@ -281,17 +291,24 @@ class ConciliacoesViewSet(GenericViewSet):
         # Define texto
         texto_observacao = request.data.get('observacao')
 
+        # Define comprovante extrato bancario
+        comprovante_extrato = request.data.get('comprovante_extrato', None)
+        data_atualizacao_comprovante_extrato = request.data.get('data_atualizacao_comprovante_extrato', None)
+
         ObservacaoConciliacao.criar_atualizar(
             periodo=periodo,
             conta_associacao=conta_associacao,
             texto_observacao=texto_observacao,
             data_extrato=data_extrato,
-            saldo_extrato=saldo_extrato
+            saldo_extrato=saldo_extrato,
+            comprovante_extrato=comprovante_extrato,
+            data_atualizacao_comprovante_extrato=data_atualizacao_comprovante_extrato,
         )
 
         return Response({'mensagem': 'Informações gravadas'}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'], url_path='observacoes')
+    @action(detail=False, methods=['get'], url_path='observacoes',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def observacoes(self, request):
         # Define o período de conciliação
         periodo_uuid = self.request.query_params.get('periodo')
@@ -335,18 +352,85 @@ class ConciliacoesViewSet(GenericViewSet):
 
         observacao = ObservacaoConciliacao.objects.filter(periodo=periodo, conta_associacao=conta_associacao).first()
 
+        comprovante_extrato_nome = ''
+
+        if observacao and observacao.comprovante_extrato and observacao.comprovante_extrato.name:
+            comprovante_extrato_nome = observacao.comprovante_extrato.name
+
         result = {}
 
         if observacao:
             result = {
+                'observacao_uuid': observacao.uuid,
                 'observacao': observacao.texto,
                 'data_extrato': observacao.data_extrato,
-                'saldo_extrato': observacao.saldo_extrato
+                'saldo_extrato': observacao.saldo_extrato,
+                'comprovante_extrato': comprovante_extrato_nome,
+                'data_atualizacao_comprovante_extrato': observacao.data_atualizacao_comprovante_extrato,
             }
 
         return Response(result, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='download-extrato-bancario',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
+            )
+    def download_extrato_bancario(self, request):
+        # Define o observacao da conciliacao
+        observacao_uuid = request.query_params.get('observacao_uuid')
+
+        if not observacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da observacao da conciliação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            observacao = ObservacaoConciliacao.by_uuid(observacao_uuid)
+        except ObservacaoConciliacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto observacao para o uuid {observacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        logger.info(f'Download do extrato bancário para a Observacao uuid {observacao_uuid}')
+
+        observacao = ObservacaoConciliacao.by_uuid(observacao_uuid)
+
+        if observacao and observacao.comprovante_extrato and observacao.comprovante_extrato.name:
+            comprovante_extrato_nome = observacao.comprovante_extrato.name
+            comprovante_extrato_path = observacao.comprovante_extrato.path
+            comprovante_extrato_file_mime = mimetypes.guess_type(observacao.comprovante_extrato.name)[0]
+
+            logger.info("Retornando dados do extrato bancario: %s", comprovante_extrato_path)
+
+            try:
+                response = HttpResponse(
+                    open(comprovante_extrato_path, 'rb'),
+                    content_type=comprovante_extrato_file_mime
+                )
+                response['Content-Disposition'] = 'attachment; filename=%s' % comprovante_extrato_nome
+            except Exception as err:
+                erro = {
+                    'erro': 'extrato_bancario_nao_gerado',
+                    'mensagem': str(err)
+                }
+                logger.info("Erro: %s", str(err))
+                return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+            return response
+
+        else:
+            erro = {
+                'erro': 'extrato_bancario_nao_encontrado',
+                'mensagem': 'Extrato bancário não encontrado'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def transacoes(self, request):
 
         # Define o período de conciliação
@@ -438,7 +522,8 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response(transacoes, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['patch'], url_path='conciliar-transacao')
+    @action(detail=False, methods=['patch'], url_path='conciliar-transacao',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def conciliar_transacao(self, request):
 
         # Define o período de conciliação
@@ -524,7 +609,8 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response(transacao_conciliada, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['patch'], url_path='desconciliar-transacao')
+    @action(detail=False, methods=['patch'], url_path='desconciliar-transacao',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def desconciliar_transacao(self, request):
 
         # Define a conta de conciliação

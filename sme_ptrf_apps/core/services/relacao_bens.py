@@ -36,25 +36,30 @@ BLOCO_3 = 19
 LAST_LINE = 26
 
 
-def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, prestacao):
+def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, prestacao=None, previa=False):
     filename = 'relacao_bens.xlsx'
 
     rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
                 conta_associacao=conta_associacao, periodo=periodo, aplicacao_recurso=APLICACAO_CAPITAL)
 
     if rateios:
-        xlsx = gerar(periodo, conta_associacao)
+        xlsx = gerar(periodo, conta_associacao, previa=previa)
         with NamedTemporaryFile() as tmp:
             xlsx.save(tmp.name)
 
             relacao_bens, _ = RelacaoBens.objects.update_or_create(
                 conta_associacao=conta_associacao,
-                prestacao_conta=prestacao
+                prestacao_conta=prestacao,
+                periodo_previa=None if prestacao else periodo,
+                versao=RelacaoBens.VERSAO_PREVIA if previa else RelacaoBens.VERSAO_FINAL,
+                status=RelacaoBens.STATUS_EM_PROCESSAMENTO,
             )
             relacao_bens.arquivo.save(name=filename, content=File(tmp))
-        return
+            relacao_bens.arquivo_concluido()
+        return relacao_bens
 
     LOGGER.info("Não houve bem adquirido ou produzido no referido período (%s).", str(periodo))
+    return None
 
 
 def gerar(periodo, conta_associacao, previa=False):
@@ -98,9 +103,10 @@ def identificacao_apm(worksheet, conta_associacao):
 
 def autenticacao(worksheet, associacao):
     """BLOCO 3 - AUTENTICAÇÃO"""
+
     mensagem = "Declaro, sob as penas de Lei, que os bens acima relacionados, adquiridos com recursos do PTRF foram doados" \
                " à Prefeitura do município de São Paulo/ Secretaria Municipal de Educação para serem incorporados ao patrimônio público" \
-               f" e destinados à (ao) {associacao.nome}, responsável por sua guarda e conservação."
+               f" e destinados à (ao) {associacao.unidade.tipo_unidade} {associacao.unidade.nome}, responsável por sua guarda e conservação."
     rows = list(worksheet.rows)
     rows[BLOCO_3][0].value = mensagem
 
@@ -194,3 +200,7 @@ def copy_row(ws, source_row, dest_row, copy_data=False, copy_style=True, copy_me
                 for row in range(new_row_idx, new_row_idx + dest_row):
                     newCellRange = get_column_letter(min_col) + str(row) + ":" + get_column_letter(max_col) + str(row)
                     ws.merge_cells(newCellRange)
+
+
+def apagar_previas_relacao_de_bens(periodo, conta_associacao):
+    RelacaoBens.objects.filter(periodo_previa=periodo, conta_associacao=conta_associacao).delete()

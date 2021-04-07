@@ -10,7 +10,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from sme_ptrf_apps.users.permissoes import PermissaoPrestacaoConta, PermissaoDashboardDre
+from sme_ptrf_apps.users.permissoes import (
+    PermissaoApiUe,
+    PermissaoAPITodosComLeituraOuGravacao,
+    PermissaoAPITodosComGravacao,
+    PermissaoAPIApenasDreComGravacao,
+)
 
 from ....dre.models import Atribuicao, TecnicoDre, MotivoAprovacaoRessalva
 from ...models import Associacao, Ata, Periodo, PrestacaoConta, Unidade
@@ -35,7 +40,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                               mixins.UpdateModelMixin,
                               mixins.ListModelMixin,
                               GenericViewSet):
-    permission_classes = [IsAuthenticated & (PermissaoPrestacaoConta | PermissaoDashboardDre)]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = PrestacaoConta.objects.all()
     serializer_class = PrestacaoContaLookUpSerializer
@@ -115,7 +120,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         else:
             return PrestacaoContaLookUpSerializer
 
-    @action(detail=False, url_path='por-associacao-e-periodo')
+    @action(detail=False, url_path='por-associacao-e-periodo',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def por_associacao_e_periodo(self, request):
         associacao_uuid = request.query_params.get('associacao_uuid')
         periodo_uuid = request.query_params.get('periodo_uuid')
@@ -123,7 +129,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             self.queryset.filter(associacao__uuid=associacao_uuid).filter(
                 periodo__uuid=periodo_uuid).first(), many=False).data)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def concluir(self, request):
         associacao_uuid = request.query_params.get('associacao_uuid')
         if not associacao_uuid:
@@ -173,7 +180,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaLookUpSerializer(prestacao_de_contas, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['delete'])
+    @action(detail=True, methods=['delete'],
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def reabrir(self, request, uuid):
         reaberta = reabrir_prestacao_de_contas(prestacao_contas_uuid=uuid)
         if reaberta:
@@ -189,7 +197,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=True, methods=['patch'])
+    @action(detail=True, methods=['patch'],
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def receber(self, request, uuid):
         prestacao_conta = self.get_object()
 
@@ -218,7 +227,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_recebida, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'], url_path='desfazer-recebimento')
+    @action(detail=True, methods=['patch'], url_path='desfazer-recebimento',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def desfazer_recebimento(self, request, uuid):
         prestacao_conta = self.get_object()
 
@@ -237,7 +247,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'], url_path='analisar')
+    @action(detail=True, methods=['patch'], url_path='analisar',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def analisar(self, request, uuid):
         prestacao_conta = self.get_object()
 
@@ -256,7 +267,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'], url_path='desfazer-analise')
+    @action(detail=True, methods=['patch'], url_path='desfazer-analise',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def desfazer_analise(self, request, uuid):
         prestacao_conta = self.get_object()
 
@@ -275,7 +287,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'], url_path='salvar-analise')
+    @action(detail=True, methods=['patch'], url_path='salvar-analise',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def salvar_analise(self, request, uuid):
         prestacao_conta = self.get_object()
 
@@ -318,7 +331,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'], url_path='salvar-devolucoes-ao-tesouro')
+    @action(detail=True, methods=['patch'], url_path='salvar-devolucoes-ao-tesouro',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def salvar_devolucoes_ao_tesouro(self, request, uuid):
         prestacao_conta = self.get_object()
 
@@ -340,7 +354,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'], url_path='concluir-analise')
+    @action(detail=True, methods=['patch'], url_path='concluir-analise',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def concluir_analise(self, request, uuid):
         prestacao_conta = self.get_object()
 
@@ -458,7 +473,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'], url_path='desfazer-conclusao-analise')
+    @action(detail=True, methods=['patch'], url_path='desfazer-conclusao-analise',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def desfazer_conclusao_analise(self, request, uuid):
         prestacao_conta = self.get_object()
 
@@ -478,7 +494,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def ata(self, request, uuid):
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
 
@@ -492,7 +509,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'], url_path='iniciar-ata')
+    @action(detail=True, methods=['post'], url_path='iniciar-ata',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def iniciar_ata(self, request, uuid):
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
 
@@ -515,7 +533,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         result = informacoes_financeiras_para_atas(prestacao_contas=prestacao_conta)
         return Response(result, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'], url_path='ata-retificacao')
+    @action(detail=True, methods=['get'], url_path='ata-retificacao',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def ata_retificacao(self, request, uuid):
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
 
@@ -529,7 +548,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'], url_path='iniciar-ata-retificacao')
+    @action(detail=True, methods=['post'], url_path='iniciar-ata-retificacao',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def iniciar_ata_retificacao(self, request, uuid):
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
 
@@ -546,14 +566,16 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'], url_path='fique-de-olho')
+    @action(detail=False, methods=['get'], url_path='fique-de-olho',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def fique_de_olho(self, request, uuid=None):
         from sme_ptrf_apps.core.models import ParametroFiqueDeOlhoPc
         fique_de_olho = ParametroFiqueDeOlhoPc.get().fique_de_olho
 
         return Response({'detail': fique_de_olho}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['patch'], url_path='update-fique-de-olho')
+    @action(detail=False, methods=['patch'], url_path='update-fique-de-olho',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def update_fique_de_olho(self, request, uuid=None):
 
         texto_fique_de_olho = request.data.get('fique_de_olho', None)
@@ -580,7 +602,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response({'detail': 'Salvo com sucesso'}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'], url_path="dashboard")
+    @action(detail=False, methods=['get'], url_path="dashboard",
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def dashboard(self, request):
         dre_uuid = request.query_params.get('dre_uuid')
         periodo = request.query_params.get('periodo')
@@ -604,14 +627,16 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(dashboard)
 
-    @action(detail=False, url_path='tabelas')
+    @action(detail=False, url_path='tabelas',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, _):
         result = {
             'status': PrestacaoConta.status_to_json(),
         }
         return Response(result)
 
-    @action(detail=False, url_path='nao-recebidas')
+    @action(detail=False, url_path='nao-recebidas',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def nao_recebidas(self, _):
         # Determina a DRE
         dre_uuid = self.request.query_params.get('associacao__unidade__dre__uuid')
@@ -679,7 +704,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                                                          )
         return Response(result)
 
-    @action(detail=False, methods=['get'], url_path="dashboard-sme")
+    @action(detail=False, methods=['get'], url_path="dashboard-sme",
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def dashboard_sme(self, request):
         # Determina o período
         periodo_uuid = self.request.query_params.get('periodo')

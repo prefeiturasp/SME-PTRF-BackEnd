@@ -6,7 +6,7 @@ from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -18,8 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class ArquivoViewSet(ModelViewSet):
-    permission_classes = [AllowAny]
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     lookup_field = "uuid"
     queryset = Arquivo.objects.all().order_by('-criado_em')
     serializer_class = ArquivoSerializer
