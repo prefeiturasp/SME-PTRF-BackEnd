@@ -12,6 +12,9 @@ Versão: 1.9.0
 ### 1.9.0 - 20/04/2021 - Entregas da Sprint 18
 * Em andamento...
 
+### 1.8.1 - 09/04/2021 - Hotfix
+* Correção de erro de timeout na geração de prévias
+
 ### 1.8.0 - 06/04/2021 - Entregas da Sprint 17
 * UE > Upload de extrato bancário na conciliação
 * UE > Geração de prévias de documento de forma assíncrona
