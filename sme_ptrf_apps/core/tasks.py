@@ -62,7 +62,9 @@ def processa_carga_async(arquivo_uuid):
 
 @shared_task(
     retry_backoff=2,
-    retry_kwargs={'max_retries': 8}
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
 )
 def gerar_previa_demonstrativo_financeiro_async(periodo_uuid, conta_associacao_uuid, data_inicio, data_fim):
     logger.info(f'Iniciando criação da Previa de demonstrativo financeiro para a conta {conta_associacao_uuid} e período {periodo_uuid}.')
@@ -91,7 +93,9 @@ def gerar_previa_demonstrativo_financeiro_async(periodo_uuid, conta_associacao_u
 
 @shared_task(
     retry_backoff=2,
-    retry_kwargs={'max_retries': 8}
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
 )
 def gerar_previa_relacao_de_bens_async(periodo_uuid, conta_associacao_uuid, data_inicio, data_fim):
     logger.info(f'Iniciando criação da Previa de relação de bens para a conta {conta_associacao_uuid} e período {periodo_uuid}.')
