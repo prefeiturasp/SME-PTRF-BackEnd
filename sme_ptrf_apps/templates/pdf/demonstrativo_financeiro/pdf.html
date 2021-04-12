@@ -163,7 +163,7 @@
           <td>{{ acoes.linha_custeio.despesa_nao_demostrada_outros_periodos }}</td>
           <td>{{ acoes.linha_custeio.valor_saldo_reprogramado_proximo_periodo_custeio }}</td>
           <td style="border-bottom: none !important;">{{ acoes.total_valores }}</td>
-          <td>Não Tem {{ acoes.linha_custeio.valor_saldo_bancario_custeio }}</td>
+          <td>{{ acoes.linha_custeio.credito_nao_demonstrado }}</td>
         </tr>
         <tr>
           <td>K</td>
@@ -176,7 +176,7 @@
           <td>{{ acoes.linha_capital.despesa_nao_demostrada_outros_periodos }}</td>
           <td>{{ acoes.linha_capital.valor_saldo_reprogramado_proximo_periodo_capital }}</td>
           <td style="border: none !important;"></td>
-          <td>Não Tem {{ acoes.linha_capital.valor_saldo_bancario_capital }}</td>
+          <td>{{ acoes.linha_capital.credito_nao_demonstrado }}</td>
         </tr>
         <tr>
           <td>L</td>
@@ -189,18 +189,50 @@
           <td class="fundo-cinza"></td>
           <td>{{ acoes.linha_livre.valor_saldo_reprogramado_proximo_periodo_livre }}</td>
           <td style="border-top:none!important; border-bottom: solid 1px #dee2e6 !important;"></td>
-          <td>Não Tem {{ acoes.linha_livre.valor_saldo_bancario_custeio }}</td>
+          <td>{{ acoes.linha_livre.credito_nao_demonstrado }}</td>
         </tr>
       {% endfor %}
+      {% comment %} Total {% endcomment %}
       <tr>
-        <td colspan="2" class="total"><strong>Total ARRUMAR</strong></td>
-        <td class="total"></td>
-        <td class="total text-center" colspan="3">{{ dados.resumo_por_acao.total_valores }}</td>
-        <td class="total"></td>
-        <td class="total"></td>
-        <td class="total text-center" colspan="3">{{ dados.resumo_por_acao.total_conciliacao }}</td>
-        <td class="total"></td>
-      </tr>
+          <td class="total">C</td>
+          <td class="total" rowspan="3"><strong>TOTAL</strong></td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_anterior.C }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.credito.C }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_realizada.C }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_nao_realizada.C }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.C }}</td>
+          <td class="total" style="border-bottom: none !important;">{{ dados.resumo_por_acao.total_valores.saldo_bancario.C }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_nao_demostrada_outros_periodos.C }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.valor_saldo_reprogramado_proximo_periodo.C }}</td>
+          <td class="total" style="border-bottom: none !important;">{{ dados.resumo_por_acao.total_valores.total_valores }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.credito_nao_demonstrado.C }}</td>
+        </tr>
+        <tr>
+          <td class="total">K</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_anterior.K }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.credito.K }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_realizada.K }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_nao_realizada.K }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.K }}</td>
+          <td class="total" style="border: none !important;"></td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_nao_demostrada_outros_periodos.K }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.valor_saldo_reprogramado_proximo_periodo.K }}</td>
+          <td class="total" style="border: none !important;"></td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.credito_nao_demonstrado.K }}</td>
+        </tr>
+        <tr>
+          <td class="total">L</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_anterior.L }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.credito.L }}</td>
+          <td class="fundo-cinza total"></td>
+          <td class="fundo-cinza total"></td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.L }}</td>
+          <td class="total" style="border-top:none!important; border-bottom: solid 1px #dee2e6 !important;">{% comment %}{{ acoes.saldo_bancario }}{% endcomment %}</td>
+          <td class="fundo-cinza total"></td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.valor_saldo_reprogramado_proximo_periodo.L }}</td>
+          <td class="total" style="border-top:none!important; border-bottom: solid 1px #dee2e6 !important;"></td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.credito_nao_demonstrado.L }}</td>
+        </tr>
       </tbody>
     </table>
   </article>
@@ -400,15 +432,15 @@
     </div>
     <div class="col-12 border-right border-left border-bottom">
       <div class="row pt-5">
-        <div class="col mr-2 ml-0">
+        <div class="col mr-2 ml-0 pt-5">
           <p class="mb-0 text-center">__________________________________________________________</p>
-          <p class="font-12 text-center">Assinatura do Presidente da Diretoria Executiva da Associação</p>
-          <p><strong>{{ dados.identificacao_apm.presidente_diretoria_executiva }}</strong></p>
+          <p class="font-12 text-center mb-0">Assinatura do Presidente da Diretoria Executiva da Associação</p>
+          <p class="text-center"><strong>{{ dados.identificacao_apm.presidente_diretoria_executiva }}</strong></p>
         </div>
-        <div class="col ml-2 mr-0">
+        <div class="col ml-2 mr-0 pt-5">
           <p class="mb-0 text-center">______________________________________________________</p>
-          <p class="font-12 text-center">Assinatura do Presidente do Conselho Fiscal da Associação</p>
-          <p><strong>{{ dados.identificacao_apm.presidente_conselho_fiscal }}</strong></p>
+          <p class="font-12 text-center mb-0">Assinatura do Presidente do Conselho Fiscal da Associação</p>
+          <p class="text-center"><strong>{{ dados.identificacao_apm.presidente_conselho_fiscal }}</strong></p>
         </div>
       </div>
     </div>
