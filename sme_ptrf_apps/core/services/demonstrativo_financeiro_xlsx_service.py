@@ -102,9 +102,6 @@ def gerar(usuario, acoes, periodo, conta_associacao, previa=False):
         receitas_demonstradas = Receita.receitas_da_conta_associacao_no_periodo(
             conta_associacao=conta_associacao, periodo=periodo, conferido=True)
 
-        fechamento_periodo = FechamentoPeriodo.objects.filter(
-            conta_associacao=conta_associacao, periodo__uuid=periodo.uuid).first()
-
         path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
         nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro_novo_v3.xlsx')
         workbook = load_workbook(nome_arquivo)
@@ -114,7 +111,7 @@ def gerar(usuario, acoes, periodo, conta_associacao, previa=False):
 
         bloco1_identificacao_apm(worksheet, acoes)
         bloco2_identificacao_conta(worksheet, conta_associacao)
-        bloco3_resumo_por_acao(worksheet, acoes, conta_associacao, periodo, fechamento_periodo)
+        bloco3_resumo_por_acao(worksheet, acoes, conta_associacao, periodo)
         bloco4_creditos_demonstrados(worksheet, receitas_demonstradas)
         bloco5_despesas_demonstradas(worksheet, rateios_conferidos)
         bloco6_despesas_demonstradas(worksheet, rateios_nao_conferidos)
@@ -176,7 +173,7 @@ def bloco2_identificacao_conta(worksheet, conta_associacao):
     row[9].value = saldo_extrato
 
 
-def bloco3_resumo_por_acao(worksheet, acoes, conta_associacao, periodo, fechamento_periodo):
+def bloco3_resumo_por_acao(worksheet, acoes, conta_associacao, periodo):
     global OFFSET
 
     thin = styles.Side(border_style="thin", color="000000")
@@ -214,6 +211,9 @@ def bloco3_resumo_por_acao(worksheet, acoes, conta_associacao, periodo, fechamen
             insert_row(worksheet, LAST_LINE + OFFSET + offset_local, linha_atual - 1)
             insert_row(worksheet, LAST_LINE + OFFSET + offset_local, linha_atual - 1)
 
+        fechamento_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(acao_associacao=acao_associacao,
+                                                                              periodo=periodo,
+                                                                              conta_associacao=conta_associacao).first()
         sub_valores, sub_conciliacao, totalizador = sintese_receita_despesa(
             worksheet, acao_associacao, conta_associacao, periodo, fechamento_periodo, linha_atual, totalizador
         )
