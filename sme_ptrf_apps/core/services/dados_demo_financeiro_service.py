@@ -20,12 +20,10 @@ from sme_ptrf_apps.receitas.models import Receita
 from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (APLICACAO_CAPITAL, APLICACAO_CUSTEIO,
                                                                      APLICACAO_LIVRE)
 
-
 LOGGER = logging.getLogger(__name__)
 
 
 def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao, prestacao, previa=False):
-
     try:
         LOGGER.info("GERANDO DADOS DEMONSTRATIVO...")
         rateios_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
@@ -119,7 +117,6 @@ def cria_identificacao_apm(acoes):
 
 
 def cria_identificacao_conta(conta_associacao):
-
     identificacao_conta = {
         "banco": conta_associacao.banco_nome,
         "agencia": conta_associacao.agencia,
@@ -135,30 +132,46 @@ def cria_resumo_por_acao(acoes, conta_associacao, periodo, fechamento_periodo):
     total_valores = 0
     total_conciliacao = 0
 
+    totalizador = {
+        "saldo_anterior": {'C': 0, 'K': 0, 'L': 0},
+        "credito": {'C': 0, 'K': 0, 'L': 0},
+        "despesa_realizada": {'C': 0, 'K': 0, 'L': 0},
+        "despesa_nao_realizada": {'C': 0, 'K': 0, 'L': 0},
+        "saldo_reprogramado_proximo": {'C': 0, 'K': 0, 'L': 0},
+        "despesa_nao_demostrada_outros_periodos": {'C': 0, 'K': 0, 'L': 0},
+        "saldo_bancario": {'C': 0, 'K': 0, 'L': 0},
+        "valor_saldo_reprogramado_proximo_periodo": {'C': 0, 'K': 0, 'L': 0},
+        "valor_saldo_bancario": {'C': 0, 'K': 0, 'L': 0},
+        "credito_nao_demonstrado": {'C': 0, 'K': 0, 'L': 0},
+        "total_valores": 0,
+    }
+
     resumo_acoes = []
     for _, acao_associacao in enumerate(acoes):
-        resumo_acao = sintese_receita_despesa(acao_associacao, conta_associacao, periodo, fechamento_periodo)
+        resumo_acao, totalizador = sintese_receita_despesa(acao_associacao, conta_associacao, periodo,
+                                                           fechamento_periodo, totalizador)
         total_valores += resumo_acao['total_valores']
         total_conciliacao += resumo_acao['total_conciliacao']
         resumo_acoes.append(resumo_acao)
 
-    total_valores = formata_valor(total_valores)
+    # total_valores = formata_valor(total_valores)
     total_conciliacao = formata_valor(total_conciliacao)
 
     resumo = {
         "resumo_acoes": resumo_acoes,
-        "total_valores": total_valores,
+        "total_valores": totalizador,
         "total_conciliacao": total_conciliacao
     }
 
     return resumo
 
 
-def sintese_receita_despesa(acao_associacao, conta_associacao, periodo, fechamento_periodo):
-
-    linha_custeio = sintese_custeio(acao_associacao, conta_associacao, periodo, fechamento_periodo)
-    linha_capital = sintese_capital(acao_associacao, conta_associacao, periodo, fechamento_periodo)
-    linha_livre = sintese_livre(linha_capital, linha_custeio, acao_associacao, conta_associacao, periodo, fechamento_periodo)
+def sintese_receita_despesa(acao_associacao, conta_associacao, periodo, fechamento_periodo, totalizador):
+    linha_custeio, totalizador = sintese_custeio(acao_associacao, conta_associacao, periodo, fechamento_periodo,
+                                                 totalizador)
+    linha_capital, totalizador = sintese_capital(acao_associacao, conta_associacao, periodo, fechamento_periodo, totalizador)
+    linha_livre, totalizador = sintese_livre(linha_capital, linha_custeio, acao_associacao, conta_associacao, periodo,
+                                fechamento_periodo,totalizador)
 
     valor_saldo_reprogramado_proximo_periodo_custeio = linha_custeio['valor_saldo_reprogramado_proximo_periodo_custeio']
     valor_saldo_bancario_custeio = linha_custeio['valor_saldo_bancario_custeio']
@@ -177,6 +190,10 @@ def sintese_receita_despesa(acao_associacao, conta_associacao, periodo, fechamen
     total_conciliacao = \
         valor_saldo_bancario_capital + valor_saldo_bancario_custeio + valor_saldo_reprogramado_proximo_periodo_livre
 
+    totalizador['total_valores'] += total_valores
+
+
+
     sintese = {
         "acao_associacao": acao_associacao.acao.nome,
         "linha_custeio": linha_custeio,
@@ -186,18 +203,22 @@ def sintese_receita_despesa(acao_associacao, conta_associacao, periodo, fechamen
         "total_valores": total_valores,
         "total_conciliacao": total_conciliacao
     }
-    return sintese
+    return sintese, totalizador
 
 
-def sintese_custeio(acao_associacao, conta_associacao, periodo, fechamento_periodo):
+def sintese_custeio(acao_associacao, conta_associacao, periodo, fechamento_periodo, totalizador):
     saldo_reprogramado_anterior_custeio = \
-        fechamento_periodo\
-        .fechamento_anterior\
-        .saldo_reprogramado_custeio if fechamento_periodo and fechamento_periodo.fechamento_anterior else 0
+        fechamento_periodo \
+            .fechamento_anterior \
+            .saldo_reprogramado_custeio if fechamento_periodo and fechamento_periodo.fechamento_anterior else 0
 
     # Custeio
     receitas_demonstradas_custeio = Receita.receitas_da_acao_associacao_no_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True,
+        categoria_receita=APLICACAO_CUSTEIO).aggregate(valor=Sum('valor'))
+
+    receitas_nao_demonstradas_custeio = Receita.receitas_da_acao_associacao_no_periodo(
+        acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=False,
         categoria_receita=APLICACAO_CUSTEIO).aggregate(valor=Sum('valor'))
 
     rateios_demonstrados_custeio = RateioDespesa.rateios_da_acao_associacao_no_periodo(
@@ -213,6 +234,7 @@ def sintese_custeio(acao_associacao, conta_associacao, periodo, fechamento_perio
         aplicacao_recurso=APLICACAO_CUSTEIO).aggregate(valor=Sum('valor_rateio'))
 
     valor_custeio_receitas_demonstradas = receitas_demonstradas_custeio['valor'] or 0
+    valor_custeio_receitas_nao_demonstradas = receitas_nao_demonstradas_custeio['valor'] or 0
     valor_custeio_rateios_demonstrados = rateios_demonstrados_custeio['valor'] or 0
     valor_custeio_rateios_nao_demonstrados = rateios_nao_conferidos_custeio['valor'] or 0
     valor_custeio_rateios_nao_demonstrados_periodos_anteriores = rateios_nao_conferidos_custeio_periodos_anteriores[
@@ -254,17 +276,32 @@ def sintese_custeio(acao_associacao, conta_associacao, periodo, fechamento_perio
         "saldo_reprogramado_proximo": saldo_reprogramado_proximo,
         "saldo_bancario": saldo_bancario,
         "valor_saldo_reprogramado_proximo_periodo_custeio": valor_saldo_reprogramado_proximo_periodo_custeio,
-        "valor_saldo_bancario_custeio": valor_saldo_bancario_custeio
+        "valor_saldo_bancario_custeio": valor_saldo_bancario_custeio,
+        "credito_nao_demonstrado": valor_custeio_receitas_nao_demonstradas,
     }
 
-    return linha_custeio
+    totalizador['saldo_anterior']['C'] += saldo_reprogramado_anterior_custeio
+    totalizador['credito']['C'] += valor_custeio_receitas_demonstradas
+    totalizador['despesa_realizada']['C'] += valor_custeio_rateios_demonstrados
+    totalizador['despesa_nao_realizada']['C'] += valor_custeio_rateios_nao_demonstrados
+    totalizador['despesa_nao_demostrada_outros_periodos']['C'] += valor_custeio_rateios_nao_demonstrados_periodos_anteriores
+    totalizador['saldo_reprogramado_proximo']['C'] += valor_saldo_reprogramado_proximo_periodo_custeio
+    totalizador['saldo_bancario']['C'] += valor_saldo_bancario_custeio
+    totalizador['valor_saldo_reprogramado_proximo_periodo']['C'] += valor_saldo_reprogramado_proximo_periodo_custeio
+    totalizador['valor_saldo_bancario']['C'] += valor_saldo_bancario_custeio
+    totalizador['credito_nao_demonstrado']['C'] += valor_custeio_receitas_nao_demonstradas
+
+    return linha_custeio, totalizador
 
 
-def sintese_capital(acao_associacao, conta_associacao, periodo, fechamento_periodo):
-
+def sintese_capital(acao_associacao, conta_associacao, periodo, fechamento_periodo, totalizador):
     saldo_reprogramado_anterior_capital = fechamento_periodo.fechamento_anterior.saldo_reprogramado_capital if fechamento_periodo and fechamento_periodo.fechamento_anterior else 0
     receitas_demonstradas_capital = Receita.receitas_da_acao_associacao_no_periodo(
         acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=True,
+        categoria_receita=APLICACAO_CAPITAL).aggregate(valor=Sum('valor'))
+
+    receitas_nao_demonstradas_capital = Receita.receitas_da_acao_associacao_no_periodo(
+        acao_associacao=acao_associacao, conta_associacao=conta_associacao, periodo=periodo, conferido=False,
         categoria_receita=APLICACAO_CAPITAL).aggregate(valor=Sum('valor'))
 
     rateios_demonstrados_capital = RateioDespesa.rateios_da_acao_associacao_no_periodo(
@@ -280,6 +317,7 @@ def sintese_capital(acao_associacao, conta_associacao, periodo, fechamento_perio
         aplicacao_recurso=APLICACAO_CAPITAL).aggregate(valor=Sum('valor_rateio'))
 
     valor_capital_receitas_demonstradas = receitas_demonstradas_capital['valor'] or 0
+    valor_capital_receitas_nao_demonstradas = receitas_nao_demonstradas_capital['valor'] or 0
     valor_capital_rateios_demonstrados = rateios_demonstrados_capital['valor'] or 0
     valor_capital_rateios_nao_demonstrados = rateios_nao_conferidos_capital['valor'] or 0
     valor_capital_rateios_nao_demonstrados_outros_periodos = rateios_nao_conferidos_outros_periodos['valor'] or 0
@@ -318,15 +356,25 @@ def sintese_capital(acao_associacao, conta_associacao, periodo, fechamento_perio
         "saldo_reprogramado_proximo": saldo_reprogramado_proximo,
         "saldo_bancario": saldo_bancario,
         "valor_saldo_reprogramado_proximo_periodo_capital": valor_saldo_reprogramado_proximo_periodo_capital,
-        "valor_saldo_bancario_capital": valor_saldo_bancario_capital
+        "valor_saldo_bancario_capital": valor_saldo_bancario_capital,
+        "credito_nao_demonstrado": valor_capital_receitas_nao_demonstradas,
     }
 
-    return linha_capital
+    totalizador['saldo_anterior']['K'] += saldo_reprogramado_anterior_capital
+    totalizador['credito']['K'] += valor_capital_receitas_demonstradas
+    totalizador['despesa_realizada']['K'] += valor_capital_rateios_demonstrados
+    totalizador['despesa_nao_realizada']['K'] += valor_capital_rateios_nao_demonstrados
+    totalizador['despesa_nao_demostrada_outros_periodos']['K'] += valor_capital_rateios_nao_demonstrados_outros_periodos
+    totalizador['saldo_reprogramado_proximo']['K'] += valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else 0
+    totalizador['saldo_bancario']['K'] += valor_saldo_bancario_capital
+    totalizador['valor_saldo_reprogramado_proximo_periodo']['K'] += valor_saldo_reprogramado_proximo_periodo_capital
+    totalizador['valor_saldo_bancario']['K'] += valor_saldo_bancario_capital
+    totalizador['credito_nao_demonstrado']['K'] += valor_capital_receitas_nao_demonstradas
+
+    return linha_capital, totalizador
 
 
-def sintese_livre(linha_capital, linha_custeio, acao_associacao,
-                  conta_associacao, periodo, fechamento_periodo):
-
+def sintese_livre(linha_capital, linha_custeio, acao_associacao,conta_associacao, periodo, fechamento_periodo, totalizador):
     valor_saldo_reprogramado_proximo_periodo_custeio = linha_custeio['valor_saldo_reprogramado_proximo_periodo_custeio']
     valor_saldo_reprogramado_proximo_periodo_capital = linha_capital['valor_saldo_reprogramado_proximo_periodo_capital']
 
@@ -357,14 +405,25 @@ def sintese_livre(linha_capital, linha_custeio, acao_associacao,
         "saldo_anterior": saldo_anterior,
         "credito": credito,
         "saldo_reprogramado_proximo": saldo_reprogramado_proximo,
-        "valor_saldo_reprogramado_proximo_periodo_livre": valor_saldo_reprogramado_proximo_periodo_livre
+        "valor_saldo_reprogramado_proximo_periodo_livre": valor_saldo_reprogramado_proximo_periodo_livre,
+        "credito_nao_demonstrado": 0,
     }
 
-    return linha_livre
+    totalizador['saldo_anterior']['L'] += saldo_reprogramado_anterior_livre
+    totalizador['credito']['L'] += valor_livre_receitas_demonstradas
+    totalizador['despesa_realizada']['L'] += 0
+    totalizador['despesa_nao_realizada']['L'] += 0
+    totalizador['despesa_nao_demostrada_outros_periodos']['L'] += 0
+    totalizador['saldo_reprogramado_proximo']['L'] += valor_saldo_reprogramado_proximo_periodo_livre
+    totalizador['saldo_bancario']['L'] += 0
+    totalizador['valor_saldo_reprogramado_proximo_periodo']['L'] += valor_saldo_reprogramado_proximo_periodo_livre
+    totalizador['valor_saldo_bancario']['L'] += 0
+    totalizador['credito_nao_demonstrado']['L'] += 0
+
+    return linha_livre, totalizador
 
 
 def cria_creditos_demonstrados(receitas_demonstradas):
-
     linhas = []
     for _, receita in enumerate(receitas_demonstradas):
         linha = {
@@ -431,7 +490,6 @@ def cria_despesas(rateios):
 
 
 def cria_observacoes(periodo, conta_associacao):
-
     observacao = ObservacaoConciliacao.objects.filter(
         conta_associacao=conta_associacao,
         periodo__uuid=periodo.uuid
@@ -443,7 +501,6 @@ def cria_observacoes(periodo, conta_associacao):
 
 
 def cria_data_geracao_documento(usuario, previa):
-
     data_geracao = date.today().strftime("%d/%m/%Y")
     tipo_texto = "parcial" if previa else "final"
     quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}, "
@@ -453,7 +510,6 @@ def cria_data_geracao_documento(usuario, previa):
 
 
 def cria_data_geracao():
-
     data_geracao = date.today().strftime("%d/%m/%Y")
 
     return data_geracao
@@ -464,4 +520,3 @@ def formata_valor(valor):
     sinal, valor_formatado = format_currency(valor, 'BRL', locale='pt_BR').split('\xa0')
     sinal = '-' if '-' in sinal else ''
     return f'{sinal}{valor_formatado}'
-

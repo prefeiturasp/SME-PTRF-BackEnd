@@ -12,6 +12,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def gerar_arquivo_demonstrativo_financeiro_pdf(dados_demonstrativo, demostrativo_financeiro):
+
     html_template = get_template('pdf/demonstrativo_financeiro/pdf.html')
 
     rendered_html = html_template.render({'dados': dados_demonstrativo, 'base_static_url': staticfiles_storage.location})
