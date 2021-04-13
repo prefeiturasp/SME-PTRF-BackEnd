@@ -244,7 +244,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         gerar_previa_demonstrativo_financeiro_async.delay(periodo_uuid=periodo_uuid,
                                                           conta_associacao_uuid=conta_associacao_uuid,
                                                           data_inicio=data_inicio,
-                                                          data_fim=data_fim
+                                                          data_fim=data_fim,
+                                                          usuario=request.user.username,
                                                           )
 
         return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
