@@ -1,319 +1,460 @@
 <!doctype html>
 <html lang="en">
-  {% load staticfiles %}
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
-    <link href="{{ base_static_url }}/css/pdf-demo-financeiro.css" rel="stylesheet">
+{% load staticfiles %}
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+        integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+  <link href="{{ base_static_url }}/css/pdf-demo-financeiro.css" rel="stylesheet">
 
-    <title>Demonstrativo Financeiro PTRF</title>
-  </head>
-  <body>
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+  <title>Demonstrativo Financeiro PTRF</title>
+</head>
+<body>
 
-    <div id="cabecalho" class="row">
-      <div class="col"><img src="{{ base_static_url }}/images/logo-pdf.svg" alt="logo"></div>
-      <div class="col"><h1 id="titulo">1 Programa de Transferências de Recursos Financeiros - PTRF</h1></div>
-      <div class="col">
-        <div class="row" style="border: 1px solid gray">
-          <div class="col">
-            <p>Período de Realização:</p>
-            <p>{{ dados.cabecalho.periodo }}</p>
-          </div>
-          <div style="border-left: 1px solid gray; " ></div>
-          <div class="col">
-            <p>Conta:</p>
-            <p>{{ dados.cabecalho.conta }}</p>
-          </div>
-        </div>
-      </div>
+{# ************************* Cabecalho das páginas *************************  #}
+<header>
+  <div class="d-flex p-2 bd-highlight mt-5">
+    <div class="col-6 mt-2 ml-2">
+      <p class="subtitulo font-14 mb-0">Prestação de Contas - Modelo X</p>
+      <p class="font-14">{{ dados.cabecalho.titulo }}</p>
     </div>
-
-    <div class="row">
-      <div class="col">
-        <p class="titulo_bloco">Bloco A - Identificação da Associação da Unidade Educacional</p>
-        <div style="border-top: 1px solid gray; " ></div>
-        <br>
-        <div style="border: 1px solid gray; border-radius: 2px">
-          <div class="row">
-            <div class="col">
-              <p>Nome da Associação:</p>
-              <p>{{ dados.identificacao_apm.nome_associacao }}</p>
-            </div>
-            <div class="col">
-              <p>CNPJ:</p>
-              <p>{{ dados.identificacao_apm.cnpj_associacao }}</p>
-            </div>
-          </div>
-          <div style="border-top: 1px solid gray; " ></div>
-          <div class="row">
-            <div class="col">
-              <p>Diretoria Regional de Educação:</p>
-              <p>{{ dados.identificacao_apm.nome_dre_associacao }}</p>
-            </div>
-            <div class="col">
-              <p>Código EOL:</p>
-              <p>{{ dados.identificacao_apm.codigo_eol_associacao }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col">
-        <p class="titulo_bloco">Bloco 2 - Identificação Bancária e Saldo</p>
-        <div style="border-bottom: 1px solid gray; " ></div>
-        <br>
-        <div style="border: 1px solid gray; border-radius: 2px;">
-          <div class="row">
-            <div class="col">
-              <p>Banco:</p>
-              <p>{{ dados.identificacao_conta.banco }} </p>
-            </div>
-            <div class="col">
-              <p>Código da Agência:</p>
-              <p>{{ dados.identificacao_conta.agencia }} </p>
-            </div>
-            <div class="col">
-              <p>Número da conta corrente:</p>
-              <p>{{ dados.identificacao_conta.conta }} </p>
-            </div>
-          </div>
-          <div style="border-top: 1px solid gray; " ></div>
-          <div class="row">
-            <div class="col">
-              <p>Data do extrato:</p>
-              <p>{{ dados.identificacao_conta.data_extrato }}</p>
-            </div>
-            <div class="col">
-              <p>Saldo do extrato:</p>
-              <p>{{ dados.identificacao_conta.saldo_extrato }}</p>
-            </div>
-            <div class="col">
-
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <p>Bloco 3 - Resumo por Ação</p>
-    <div style="border-bottom: 1px solid gray; " ></div>
-    <br>
-    <div style="border: 1px solid gray; border-radius: 2px;">
-    </div>
-
-    <p>Bloco 4 - Créditos</p>
-    <div style="border-bottom: 1px solid gray; " ></div>
-    <br>
-    <div style="border: 1px solid gray; border-radius: 2px;">
+    <div class="col-6">
       <div class="row">
-        <div class="col"></div>
-        <div class="col">21. Tipo de crédito</div>
-        <div class="col">22. Detalhamento</div>
-        <div class="col">23. Ação do Programa</div>
-        <div class="col">24. Data</div>
-        <div class="col">25. Valor</div>
+        <div class="col-auto borda-box-cabecalho-left">
+          <p class="font-14 mb-0">Período de Realização:</p>
+          <p class="subtitulo font-14">{{ dados.cabecalho.periodo }}</p>
+        </div>
+        <div class="col borda-box-cabecalho-right mr-0 pr-0">
+          <p class="font-14 mb-0">Conta:</p>
+          <p class="subtitulo font-14">{{ dados.cabecalho.conta }}</p>
+        </div>
       </div>
+    </div>
+  </div>
+</header>
+
+{# ************************* Fim Cabecalho das páginas *************************  #}
+
+<section id="cabecalho">
+  <div class="d-flex p-2 bd-highlight">
+    <div class="col-4">
+      <img src="{{ base_static_url }}/images/logo-pdf.svg" alt="logo">
+    </div>
+    <div class="col-8 pr-3 mr-0 d-flex align-items-center justify-content-end">
+      <p class="titulo font-16">Programa de Transferências de Recursos Financeiros - PTRF</p>
+    </div>
+  </div>
+  <hr class="divisao"/>
+  <div class="d-flex p-2 bd-highlight mt-5">
+    <div class="col-6 mt-2">
+      <p class="subtitulo font-14 mb-0">Prestação de Contas - Modelo X</p>
+      <p class="font-14">{{ dados.cabecalho.titulo }}</p>
+    </div>
+    <div class="col-6">
+      <div class="row">
+        <div class="col-auto borda-box-cabecalho-left">
+          <p class="font-14 mb-0">Período de Realização:</p>
+          <p class="subtitulo font-14">{{ dados.cabecalho.periodo }}</p>
+        </div>
+        <div class="col borda-box-cabecalho-right mr-0 pr-0">
+          <p class="font-14 mb-0">Conta:</p>
+          <p class="subtitulo font-14">{{ dados.cabecalho.conta }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="conteudo mt-4">
+
+  <article id="bloco-1" class="mt-4">
+    <p class="font-14 border-bottom pb-3"><strong>Bloco 1 - Identificação da Associação da Unidade Educacional</strong>
+    </p>
+    <div class="col-12 border mt-4">
+      <p class="pt-2"><strong>Nome da Associação:</strong> {{ dados.identificacao_apm.nome_associacao }}</p>
+    </div>
+    <div class="col-12 border-right border-left border-bottom">
+      <div class="row">
+        <div class="col">
+          <p class="pt-2 mb-0"><strong>CNPJ:</strong></p>
+          <p>{{ dados.identificacao_apm.cnpj_associacao }}</p>
+        </div>
+        <div class="col">
+          <p class="pt-2 mb-0"><strong>Diretoria Regional de Educação:</strong></p>
+          <p>{{ dados.identificacao_apm.nome_dre_associacao }}</p>
+        </div>
+        <div class="col">
+          <p class="pt-2 mb-0"><strong>Código EOL:</strong></p>
+          <p>{{ dados.identificacao_apm.codigo_eol_associacao }}</p>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <article id="bloco-2" class="mt-4">
+    <p class="font-14 border-bottom pb-3"><strong>Bloco 2 - Identificação Bancária e Saldo</strong></p>
+    <div class="col-12 border mt-4">
+      <div class="row">
+        <div class="col">
+          <p class="pt-2 mb-0"><strong>Banco:</strong></p>
+          <p>{{ dados.identificacao_conta.banco }}</p>
+        </div>
+        <div class="col">
+          <p class="pt-2 mb-0"><strong>Código da Agência:</strong></p>
+          <p>{{ dados.identificacao_conta.agencia }}</p>
+        </div>
+        <div class="col">
+          <p class="pt-2 mb-0"><strong>Número da conta corrente:</strong></p>
+          <p>{{ dados.identificacao_conta.conta }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 border-left border-bottom border-right">
+      <div class="row">
+        <div class="col">
+          <p class="pt-2 mb-0"><strong>Data do extrato:</strong></p>
+          <p>{{ dados.identificacao_conta.data_extrato }}</p>
+        </div>
+        <div class="col">
+          <p class="pt-2 mb-0"><strong>Saldo do extrato:</strong></p>
+          <p>{{ dados.identificacao_conta.saldo_extrato }}</p>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <article id="bloco-3" class="mt-4">
+    <p class="font-14 border-bottom pb-3"><strong>Bloco 3 - Resumo por Ação</strong></p>
+    <table class="table table-bordered tabela-resumo-por-acao">
+      <thead class="thead-light">
+      <tr>
+        <th rowspan="2">&nbsp;</th>
+        <th rowspan="2"><strong>12. Ação</strong></th>
+        <th rowspan="2"><strong>13. Saldo reprogramado do período anterior</strong></th>
+        <th colspan="3" class="text-center"><strong>Valores do período</strong></th>
+        <th class="sem-borda border-bottom">&nbsp;</th>
+        <th class="sem-borda border-bottom">&nbsp;</th>
+        <th colspan="3" class="text-center"><strong>Conciliação bancária</strong></th>
+        <th rowspan="2"><strong>20. Crédito não demonstrado</strong></th>
+      </tr>
+      <tr>
+        <th class="align-top">14. Créditos (Bloco 4)</th>
+        <th class="align-top">15. Despesas demonstradas (Bloco 5)</th>
+        <th class="align-top">16. Despesas ñ demonstradas (Bloco 6)</th>
+        <th colspan="2" class="align-top"><strong>17. Saldo reprogramado para o próximo período*</strong></th>
+        <th class="align-top">18. Despesas de períodos anter. ñ demonstradas (Bloco 7)</th>
+        <th colspan="2" class="align-top">19. Saldo parcial ao final do período*</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for acoes in dados.resumo_por_acao.resumo_acoes %}
+
+        <tr>
+          <td>C</td>
+          <td rowspan="3"><strong>{{ acoes.acao_associacao }}</strong></td>
+          <td>{{ acoes.linha_custeio.saldo_anterior }}</td>
+          <td>{{ acoes.linha_custeio.credito }}</td>
+          <td>{{ acoes.linha_custeio.despesa_realizada }}</td>
+          <td>{{ acoes.linha_custeio.despesa_nao_realizada }}</td>
+          <td>{{ acoes.linha_custeio.saldo_reprogramado_proximo }}</td>
+          <td style="border-bottom: none !important;">{{ acoes.saldo_bancario }}</td>
+          <td>{{ acoes.linha_custeio.despesa_nao_demostrada_outros_periodos }}</td>
+          <td>{{ acoes.linha_custeio.valor_saldo_reprogramado_proximo_periodo_custeio }}</td>
+          <td style="border-bottom: none !important;">{{ acoes.total_valores }}</td>
+          <td>{{ acoes.linha_custeio.credito_nao_demonstrado }}</td>
+        </tr>
+        <tr>
+          <td>K</td>
+          <td>{{ acoes.linha_capital.saldo_anterior }}</td>
+          <td>{{ acoes.linha_capital.credito }}</td>
+          <td>{{ acoes.linha_capital.despesa_realizada }}</td>
+          <td>{{ acoes.linha_capital.despesa_nao_realizada }}</td>
+          <td>{{ acoes.linha_capital.saldo_reprogramado_proximo }}</td>
+          <td style="border: none !important;"></td>
+          <td>{{ acoes.linha_capital.despesa_nao_demostrada_outros_periodos }}</td>
+          <td>{{ acoes.linha_capital.valor_saldo_reprogramado_proximo_periodo_capital }}</td>
+          <td style="border: none !important;"></td>
+          <td>{{ acoes.linha_capital.credito_nao_demonstrado }}</td>
+        </tr>
+        <tr>
+          <td>L</td>
+          <td>{{ acoes.linha_livre.saldo_anterior }}</td>
+          <td>{{ acoes.linha_livre.credito }}</td>
+          <td class="fundo-cinza"></td>
+          <td class="fundo-cinza"></td>
+          <td>{{ acoes.linha_livre.saldo_reprogramado_proximo }}</td>
+          <td style="border-top:none!important; border-bottom: solid 1px #dee2e6 !important;">{% comment %}{{ acoes.saldo_bancario }}{% endcomment %}</td>
+          <td class="fundo-cinza"></td>
+          <td>{{ acoes.linha_livre.valor_saldo_reprogramado_proximo_periodo_livre }}</td>
+          <td style="border-top:none!important; border-bottom: solid 1px #dee2e6 !important;"></td>
+          <td>{{ acoes.linha_livre.credito_nao_demonstrado }}</td>
+        </tr>
+      {% endfor %}
+      {% comment %} Total {% endcomment %}
+      <tr>
+          <td class="total">C</td>
+          <td class="total" rowspan="3"><strong>TOTAL</strong></td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_anterior.C }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.credito.C }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_realizada.C }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_nao_realizada.C }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.C }}</td>
+          <td class="total" style="border-bottom: none !important;">{{ dados.resumo_por_acao.total_valores.saldo_bancario.C }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_nao_demostrada_outros_periodos.C }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.valor_saldo_reprogramado_proximo_periodo.C }}</td>
+          <td class="total" style="border-bottom: none !important;">{{ dados.resumo_por_acao.total_valores.total_valores }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.credito_nao_demonstrado.C }}</td>
+        </tr>
+        <tr>
+          <td class="total">K</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_anterior.K }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.credito.K }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_realizada.K }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_nao_realizada.K }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.K }}</td>
+          <td class="total" style="border: none !important;"></td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_nao_demostrada_outros_periodos.K }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.valor_saldo_reprogramado_proximo_periodo.K }}</td>
+          <td class="total" style="border: none !important;"></td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.credito_nao_demonstrado.K }}</td>
+        </tr>
+        <tr>
+          <td class="total">L</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_anterior.L }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.credito.L }}</td>
+          <td class="fundo-cinza total"></td>
+          <td class="fundo-cinza total"></td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.L }}</td>
+          <td class="total" style="border-top:none!important; border-bottom: solid 1px #dee2e6 !important;">{% comment %}{{ acoes.saldo_bancario }}{% endcomment %}</td>
+          <td class="fundo-cinza total"></td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.valor_saldo_reprogramado_proximo_periodo.L }}</td>
+          <td class="total" style="border-top:none!important; border-bottom: solid 1px #dee2e6 !important;"></td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.credito_nao_demonstrado.L }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </article>
+
+  <article id="bloco-4" class="mt-4">
+    <p class="font-14 border-bottom pb-3"><strong>Bloco 4 - Créditos</strong>
+    </p>
+    <table class="table table-bordered tabela-resumo-por-acao tabela-quebra-palavra">
+      <thead class="thead-light">
+      <tr>
+        <th><strong>21. Tipo de crédito</strong></th>
+        <th><strong>22. Detalhamento</strong></th>
+        <th><strong>23. Ação do Programa</strong></th>
+        <th><strong>24. Data</strong></th>
+        <th><strong>25. Valor</strong></th>
+      </tr>
+      </thead>
+      <tbody>
       {% for receita in dados.creditos_demonstrados.linhas %}
-        <div class="row">
-          <div class="col">{{ forloop.counter }}</div>
-          <div class="col">{{ receita.tipo_receita }}</div>
-          <div class="col">{{ receita.detalhamento }}</div>
-          <div class="col">{{ receita.nome_acao }}</div>
-          <div class="col">{{ receita.data }}</div>
-          <div class="col">{{ receita.valor }}</div>
-        </div>
+        <tr>
+          <td>{{ receita.tipo_receita }}</td>
+          <td>{{ receita.detalhamento }}</td>
+          <td>{{ receita.nome_acao }}</td>
+          <td>{{ receita.data }}</td>
+          <td>{{ receita.valor }}</td>
+        </tr>
       {% endfor %}
-      <div class="row">
-        <div class="col">TOTAL</div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col">{{ dados.creditos_demonstrados.valor_total }}</div>
-      </div>
-    </div>
+      <tr>
+        <td class="total sem-borda" style="border-right: 1px solid #F5F6F8; !important;"><strong>Total</strong></td>
+        <td class="total sem-borda" colspan="3" style="border-right: 1px solid #F5F6F8; !important;"></td>
+        <td class="total sem-borda" style="border: none !important;border-left: 1px solid #F5F6F8; !important;">
+          <strong>{{ dados.creditos_demonstrados.valor_total }}</strong></td>
+      </tr>
+      </tbody>
+    </table>
+  </article>
 
-    <br>
-    <p>Bloco 5 - Despesas Demonstradas</p>
-    <div style="border-bottom: 1px solid gray; " ></div>
-    <br>
-    <div style="border: 1px solid gray; border-radius: 2px;">
-      <div class="row">
-        <div class="col"></div>
-        <div class="col">27. Razão social</div>
-        <div class="col">28. CNPJ ou CPF</div>
-        <div class="col">29. Tipo do documento</div>
-        <div class="col">30. Número do documento</div>
-        <div class="col">31. Data</div>
-        <div class="col">32. Ação do Programa</div>
-        <div class="col">33. Especificação do material ou serviço</div>
-        <div class="col">34. Tipo da despesa</div>
-        <div class="col">35. Tipo de transação</div>
-        <div class="col">36. Data</div>
-        <div class="col">37. Valor</div>
-      </div>
+  <article id="bloco-5" class="mt-4">
+    <p class="font-14 border-bottom pb-3"><strong>Bloco 5 - Despesas Demonstradas</strong>
+    </p>
+    <table class="table table-bordered tabela-resumo-por-acao tabela-quebra-palavra">
+      <thead class="thead-light">
+      <tr>
+        <th colspan="5"><strong>Dados documento comprobatório da despesa</strong></th>
+        <th colspan="3"><strong>Classificação da despesa</strong></th>
+        <th colspan="3"><strong>Dados do pagamento</strong></th>
+      </tr>
+      <tr>
+        <th><strong>27. Razão social</strong></th>
+        <th><strong>28. CNPJ ou CPF</strong></th>
+        <th><strong>29. Tipo do documento</strong></th>
+        <th><strong>30. Número do documento</strong></th>
+        <th><strong>31. Data</strong></th>
+        <th><strong>32. Ação do Programa</strong></th>
+        <th><strong>33. Especificação do material ou serviço</strong></th>
+        <th><strong>34. Tipo da despesa</strong></th>
+        <th><strong>35. Tipo de transação</strong></th>
+        <th><strong>36. Data</strong></th>
+        <th><strong>37. Valor</strong></th>
+      </tr>
+      </thead>
+      <tbody>
       {% for despesa in dados.despesas_demonstradas.linhas %}
-        <div class="row">
-          <div class="col">{{ forloop.counter }}</div>
-          <div class="col">{{ despesa.razao_social }}</div>
-          <div class="col">{{ despesa.cnpj_cpf }}</div>
-          <div class="col">{{ despesa.tipo_documento }}</div>
-          <div class="col">{{ despesa.numero_documento }}</div>
-          <div class="col">{{ despesa.data_documento }}</div>
-          <div class="col">{{ despesa.nome_acao_documento }}</div>
-          <div class="col">{{ despesa.especificacao_material }}</div>
-          <div class="col">{{ despesa.tipo_despesa }}</div>
-          <div class="col">{{ despesa.tipo_transacao }}</div>
-          <div class="col">{{ despesa.data_documento }}</div>
-          <div class="col">{{ despesa.valor }}</div>
-        </div>
+        <tr>
+          <td>{{ despesa.razao_social }}</td>
+          <td>{{ despesa.cnpj_cpf }}</td>
+          <td>{{ despesa.tipo_documento }}</td>
+          <td>{{ despesa.numero_documento }}</td>
+          <td>{{ despesa.data_documento }}</td>
+          <td>{{ despesa.nome_acao_documento }}</td>
+          <td>{{ despesa.especificacao_material }}</td>
+          <td>{{ despesa.tipo_despesa }}</td>
+          <td>{{ despesa.tipo_transacao }}</td>
+          <td>{{ despesa.data_documento }}</td>
+          <td>{{ despesa.valor }}</td>
+        </tr>
       {% endfor %}
-      <div class="row">
-        <div class="col">TOTAL</div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col">{{ dados.despesas_demonstradas.valor_total }}</div>
-      </div>
-    </div>
+      <tr>
+        <td class="total sem-borda" style="border-right: 1px solid #F5F6F8; !important;"><strong>Total</strong></td>
+        <td class="total sem-borda" colspan="9" style="border-right: 1px solid #F5F6F8; !important;"></td>
+        <td class="total sem-borda" style="border: none !important;border-left: 1px solid #F5F6F8; !important;">
+          <strong>{{ dados.despesas_demonstradas.valor_total }}</strong></td>
+      </tr>
+      </tbody>
+    </table>
+  </article>
 
-    <br>
-    <p>Bloco 6 - Despesas Não Demonstradas no Extrato / Demonstrativo</p>
-    <div style="border-bottom: 1px solid gray; " ></div>
-    <br>
-    <div style="border: 1px solid gray; border-radius: 2px;">
-      <div class="row">
-        <div class="col"></div>
-        <div class="col">27. Razão social</div>
-        <div class="col">28. CNPJ ou CPF</div>
-        <div class="col">29. Tipo do documento</div>
-        <div class="col">30. Número do documento</div>
-        <div class="col">31. Data</div>
-        <div class="col">32. Ação do Programa</div>
-        <div class="col">33. Especificação do material ou serviço</div>
-        <div class="col">34. Tipo da despesa</div>
-        <div class="col">35. Tipo de transação</div>
-        <div class="col">36. Data</div>
-        <div class="col">37. Valor</div>
-      </div>
+  <article id="bloco-6" class="mt-4">
+    <p class="font-14 border-bottom pb-3"><strong>Bloco 6 - Despesas Não Demonstradas no Extrato /
+      Demonstrativo</strong>
+    </p>
+    <table class="table table-bordered tabela-resumo-por-acao tabela-quebra-palavra">
+      <thead class="thead-light">
+      <tr>
+        <th colspan="5"><strong>Dados documento comprobatório da despesa</strong></th>
+        <th colspan="3"><strong>Classificação da despesa</strong></th>
+        <th colspan="3"><strong>Dados do pagamento</strong></th>
+      </tr>
+      <tr>
+        <th><strong>27. Razão social</strong></th>
+        <th><strong>28. CNPJ ou CPF</strong></th>
+        <th><strong>29. Tipo do documento</strong></th>
+        <th><strong>30. Número do documento</strong></th>
+        <th><strong>31. Data</strong></th>
+        <th><strong>32. Ação do Programa</strong></th>
+        <th><strong>33. Especificação do material ou serviço</strong></th>
+        <th><strong>34. Tipo da despesa</strong></th>
+        <th><strong>35. Tipo de transação</strong></th>
+        <th><strong>36. Data</strong></th>
+        <th><strong>37. Valor</strong></th>
+      </tr>
+      </thead>
+      <tbody>
       {% for despesa in dados.despesas_nao_demonstradas.linhas %}
-        <div class="row">
-          <div class="col">{{ forloop.counter }}</div>
-          <div class="col">{{ despesa.razao_social }}</div>
-          <div class="col">{{ despesa.cnpj_cpf }}</div>
-          <div class="col">{{ despesa.tipo_documento }}</div>
-          <div class="col">{{ despesa.numero_documento }}</div>
-          <div class="col">{{ despesa.data_documento }}</div>
-          <div class="col">{{ despesa.nome_acao_documento }}</div>
-          <div class="col">{{ despesa.especificacao_material }}</div>
-          <div class="col">{{ despesa.tipo_despesa }}</div>
-          <div class="col">{{ despesa.tipo_transacao }}</div>
-          <div class="col">{{ despesa.data_documento }}</div>
-          <div class="col">{{ despesa.valor }}</div>
-        </div>
+        <tr>
+          <td>{{ despesa.razao_social }}</td>
+          <td>{{ despesa.cnpj_cpf }}</td>
+          <td>{{ despesa.tipo_documento }}</td>
+          <td style="word-break:break-all;" class="text-break">{{ despesa.numero_documento }}</td>
+          <td>{{ despesa.data_documento }}</td>
+          <td>{{ despesa.nome_acao_documento }}</td>
+          <td>{{ despesa.especificacao_material }}</td>
+          <td>{{ despesa.tipo_despesa }}</td>
+          <td>{{ despesa.tipo_transacao }}</td>
+          <td>{{ despesa.data_documento }}</td>
+          <td>{{ despesa.valor }}</td>
+        </tr>
       {% endfor %}
-      <div class="row">
-        <div class="col">TOTAL</div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col">{{ dados.despesas_nao_demonstradas.valor_total }}</div>
-      </div>
-    </div>
+      <tr>
+        <td class="total sem-borda" style="border-right: 1px solid #F5F6F8; !important;"><strong>Total</strong></td>
+        <td class="total sem-borda" colspan="9" style="border-right: 1px solid #F5F6F8; !important;"></td>
+        <td class="total sem-borda" style="border: none !important;border-left: 1px solid #F5F6F8; !important;">
+          <strong>{{ dados.despesas_nao_demonstradas.valor_total }}</strong></td>
+      </tr>
+      </tbody>
+    </table>
+  </article>
 
-    <p>Bloco 7 - Despesas de Períodos Anteriores Não Demonstrados no Extrato / Demonstrativo</p>
-    <div style="border-bottom: 1px solid gray; " ></div>
-    <br>
-    <div style="border: 1px solid gray; border-radius: 2px;">
-      <div class="row">
-        <div class="col"></div>
-        <div class="col">27. Razão social</div>
-        <div class="col">28. CNPJ ou CPF</div>
-        <div class="col">29. Tipo do documento</div>
-        <div class="col">30. Número do documento</div>
-        <div class="col">31. Data</div>
-        <div class="col">32. Ação do Programa</div>
-        <div class="col">33. Especificação do material ou serviço</div>
-        <div class="col">34. Tipo da despesa</div>
-        <div class="col">35. Tipo de transação</div>
-        <div class="col">36. Data</div>
-        <div class="col">37. Valor</div>
-      </div>
+  <article id="bloco-7" class="mt-4">
+    <p class="font-14 border-bottom pb-3"><strong>Bloco 7 - Despesas de Períodos Anteriores Não Demonstrados no Extrato
+      / Demonstrativo</strong>
+    </p>
+    <table class="table table-bordered tabela-resumo-por-acao tabela-quebra-palavra">
+      <thead class="thead-light">
+      <tr>
+        <th colspan="5"><strong>Dados documento comprobatório da despesa</strong></th>
+        <th colspan="3"><strong>Classificação da despesa</strong></th>
+        <th colspan="3"><strong>Dados do pagamento</strong></th>
+      </tr>
+      <tr>
+        <th><strong>27. Razão social</strong></th>
+        <th><strong>28. CNPJ ou CPF</strong></th>
+        <th><strong>29. Tipo do documento</strong></th>
+        <th><strong>30. Número do documento</strong></th>
+        <th><strong>31. Data</strong></th>
+        <th><strong>32. Ação do Programa</strong></th>
+        <th><strong>33. Especificação do material ou serviço</strong></th>
+        <th><strong>34. Tipo da despesa</strong></th>
+        <th><strong>35. Tipo de transação</strong></th>
+        <th><strong>36. Data</strong></th>
+        <th><strong>37. Valor</strong></th>
+      </tr>
+      </thead>
+      <tbody>
       {% for despesa in dados.despesas_anteriores_nao_demonstradas.linhas %}
-        <div class="row">
-          <div class="col">{{ forloop.counter }}</div>
-          <div class="col">{{ despesa.razao_social }}</div>
-          <div class="col">{{ despesa.cnpj_cpf }}</div>
-          <div class="col">{{ despesa.tipo_documento }}</div>
-          <div class="col">{{ despesa.numero_documento }}</div>
-          <div class="col">{{ despesa.data_documento }}</div>
-          <div class="col">{{ despesa.nome_acao_documento }}</div>
-          <div class="col">{{ despesa.especificacao_material }}</div>
-          <div class="col">{{ despesa.tipo_despesa }}</div>
-          <div class="col">{{ despesa.tipo_transacao }}</div>
-          <div class="col">{{ despesa.data_documento }}</div>
-          <div class="col">{{ despesa.valor }}</div>
-        </div>
+        <tr>
+          <td>{{ despesa.razao_social }}</td>
+          <td>{{ despesa.cnpj_cpf }}</td>
+          <td>{{ despesa.tipo_documento }}</td>
+          <td style="word-break:break-all;">{{ despesa.numero_documento }}</td>
+          <td>{{ despesa.data_documento }}</td>
+          <td>{{ despesa.nome_acao_documento }}</td>
+          <td>{{ despesa.especificacao_material }}</td>
+          <td>{{ despesa.tipo_despesa }}</td>
+          <td>{{ despesa.tipo_transacao }}</td>
+          <td>{{ despesa.data_documento }}</td>
+          <td>{{ despesa.valor }}</td>
+        </tr>
       {% endfor %}
-      <div class="row">
-        <div class="col">TOTAL</div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col"></div>
-        <div class="col">{{ dados.despesas_anteriores_nao_demonstradas.valor_total }}</div>
-      </div>
-    </div>
+      <tr>
+        <td class="total sem-borda" style="border-right: 1px solid #F5F6F8; !important;"><strong>Total</strong></td>
+        <td class="total sem-borda" colspan="9" style="border-right: 1px solid #F5F6F8; !important;"></td>
+        <td class="total sem-borda" style="border: none !important;border-left: 1px solid #F5F6F8; !important;">
+          <strong>{{ dados.despesas_anteriores_nao_demonstradas.valor_total }}</strong></td>
+      </tr>
+      </tbody>
+    </table>
+  </article>
 
-    <p>Bloco 8 - Assinatura dos Responsáveis pela Prestação de Contas</p>
-    <div style="border-bottom: 1px solid gray; " ></div>
-    <br>
-    <div style="border: 1px solid gray; border-radius: 2px;">
-      <div class="row">
-        <div class="col">Declaramos, sob a pena da lei, que as informações prestadas são verdadeiras.</div>
-        <div class="col">Data: {{ dados.data_geracao}}</div>
-      </div>
-      <div style="border-bottom: 1px solid gray; " ></div>
-      <br><br><br>
-      <div class="row">
-        <div class="col">
-          <div width="80%" style="border-bottom: 1px solid gray; " ></div>
-          <p>Assinatura do Presidente da Diretoria Executiva da Associação</p>
-          <p>{{ dados.identificacao_apm.presidente_diretoria_executiva }}</p>
+  <article id="bloco-8" class="mt-4">
+    <p class="font-14 border-bottom pb-3"><strong>Bloco 8 - Assinatura dos Responsáveis pela Prestação de
+      Contas</strong>
+    </p>
+    <div class="col-12 border mt-4">
+      <p class="pt-2 mb-1">Declaramos, sob a pena da lei, que as informações prestadas são verdadeiras.</p>
+      <p><strong>Data: </strong>{{ dados.data_geracao }}</p>
+    </div>
+    <div class="col-12 border-right border-left border-bottom">
+      <div class="row pt-5">
+        <div class="col mr-2 ml-0 pt-5">
+          <p class="mb-0 text-center">__________________________________________________________</p>
+          <p class="font-12 text-center mb-0">Assinatura do Presidente da Diretoria Executiva da Associação</p>
+          <p class="text-center"><strong>{{ dados.identificacao_apm.presidente_diretoria_executiva }}</strong></p>
         </div>
-        <div class="col">
-          <div width="80%" style="border-bottom: 1px solid gray; " ></div>
-          <p>Assinatura do Presidente do Conselho Fiscal da Associação</p>
-          <p>{{ dados.identificacao_apm.presidente_conselho_fiscal }}</p>
+        <div class="col ml-2 mr-0 pt-5">
+          <p class="mb-0 text-center">______________________________________________________</p>
+          <p class="font-12 text-center mb-0">Assinatura do Presidente do Conselho Fiscal da Associação</p>
+          <p class="text-center"><strong>{{ dados.identificacao_apm.presidente_conselho_fiscal }}</strong></p>
         </div>
       </div>
     </div>
+    <p class="mt-3"><i>{{ dados.data_geracao_documento }}</i></p>
+  </article>
 
-    <p>{{ dados.data_geracao_documento }}</p>
+</section>
 
-{{ dados.resumo_por_acao }}
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
+        crossorigin="anonymous"></script>
+
 </body>
 </html>

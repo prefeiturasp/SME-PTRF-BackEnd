@@ -72,8 +72,14 @@ def _criar_fechamentos(acoes, contas, periodo, prestacao):
             )
 
 
-def _criar_documentos(acoes, contas, periodo, prestacao):
+def _criar_documentos(acoes, contas, periodo, prestacao, request):
     logger.info(f'Criando documentos do período {periodo} e prestacao {prestacao}...')
+
+    user = ''
+
+    if request.user.is_authenticated():
+        user = request.user
+
     for conta in contas:
 
         logger.info(f'Gerando relação de bens da conta {conta}.')
@@ -84,17 +90,25 @@ def _criar_documentos(acoes, contas, periodo, prestacao):
             acoes=acoes,
             periodo=periodo,
             conta_associacao=conta,
+            usuario=user,
             prestacao=prestacao
         )
 
 
-def _criar_previa_demonstrativo_financeiro(acoes, conta, periodo):
+def _criar_previa_demonstrativo_financeiro(acoes, conta, periodo, request):
     logger.info(f'Gerando prévias do demonstrativo financeiro da conta {conta}.')
+
+    user = ''
+
+    if request.user.is_authenticated():
+        user = request.user
+
     _gerar_arquivos_demonstrativo_financeiro(
         acoes=acoes,
         periodo=periodo,
         conta_associacao=conta,
         prestacao=None,
+        usuario=user,
         previa=True,
     )
 
@@ -299,7 +313,7 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
                                                                 )
 
     logger.info(f'Gerando demonstrativo financeiro em PDF da conta {conta_associacao}.')
-    dados_demonstrativo = gerar_dados_demonstrativo_financeiro("usuarioteste", acoes, periodo, conta_associacao,
+    dados_demonstrativo = gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao,
                                                                prestacao, previa=False)
     gerar_arquivo_demonstrativo_financeiro_pdf(dados_demonstrativo, demonstrativo)
 
