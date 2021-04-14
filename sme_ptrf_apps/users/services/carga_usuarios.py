@@ -113,6 +113,10 @@ def processa_importacao_usuarios(reader, arquivo):
                     if not u.visoes.filter(nome=row[__VISAO].strip()).first():
                         u.visoes.add(visao)
 
+                    # Atribuir a visão do usuário no CoreSSO
+                    if visao:
+                        SmeIntegracaoService.atribuir_perfil_coresso(login=u.username, visao=visao.nome)
+
                     # Gravação dos grupos de acesso do usuário
                     nomes_grupos = get_nomes_grupos(row)
                     grupos = []
