@@ -58,7 +58,7 @@ class SmeIntegracaoService:
         except Exception as err:
             raise SmeIntegracaoException(str(err))
 
-    
+
     @classmethod
     def informacao_usuario_sgp(cls, login):
         logger.info('Consultando informação de %s.', login)
@@ -71,4 +71,37 @@ class SmeIntegracaoService:
                 raise SmeIntegracaoException('Dados não encontrados.')
         except Exception as err:
             logger.info("Erro ao consultar informação: %s", str(err))
+            raise SmeIntegracaoException(str(err))
+
+
+    @classmethod
+    def atribuir_perfil_coresso(cls, login, visao):
+        """ Atribuição de Perfil:
+
+        /api/perfis/servidores/{codigoRF}/perfil/{perfil}/atribuirPerfil - GET
+        CodigoRf - RF ou CPF do usuário
+        Perfil - Guid do perfil a ser atribuído
+
+        :param login:
+        :param visao:
+        :return:
+        """
+        logger.info(f'Atribuindo visão {visao} ao usuário {login}.')
+        sys_grupo_ids = {
+            "UE": settings.SYS_GRUPO_ID_UE,
+            "DRE": settings.SYS_GRUPO_ID_DRE,
+            "SME": settings.SYS_GRUPO_ID_SME,
+            "PTRF": settings.SYS_GRUPO_ID_PTRF
+        }
+        try:
+            grupo_id = sys_grupo_ids[visao]
+            url = f'{settings.SME_INTEGRACAO_URL}/api/perfis/servidores/{login}/perfil/{grupo_id}/atribuirPerfil'
+            response = requests.get(url, headers=cls.headers)
+            if response.status_code == status.HTTP_200_OK:
+                return ""
+            else:
+                logger.info("Falha ao tentar fazer atribuição de perfil: %s", response)
+                raise SmeIntegracaoException('Falha ao fazer atribuição de perfil.')
+        except Exception as err:
+            logger.info("Erro ao tentar fazer atribuição de perfil: %s", str(err))
             raise SmeIntegracaoException(str(err))

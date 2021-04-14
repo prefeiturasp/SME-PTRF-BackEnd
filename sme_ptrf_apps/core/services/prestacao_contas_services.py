@@ -20,13 +20,13 @@ logger = logging.getLogger(__name__)
 
 
 @transaction.atomic
-def concluir_prestacao_de_contas(periodo, associacao):
+def concluir_prestacao_de_contas(periodo, associacao, usuario=""):
     prestacao = PrestacaoConta.abrir(periodo=periodo, associacao=associacao)
     logger.info(f'Aberta a prestação de contas {prestacao}.')
 
     prestacao.em_processamento()
     logger.info(f'Prestação de contas em processamento {prestacao}.')
-    concluir_prestacao_de_contas_async.delay(periodo.uuid, associacao.uuid)
+    concluir_prestacao_de_contas_async.delay(periodo.uuid, associacao.uuid, usuario=usuario)
 
     return prestacao
 
@@ -72,13 +72,8 @@ def _criar_fechamentos(acoes, contas, periodo, prestacao):
             )
 
 
-def _criar_documentos(acoes, contas, periodo, prestacao, request):
+def _criar_documentos(acoes, contas, periodo, prestacao, usuario):
     logger.info(f'Criando documentos do período {periodo} e prestacao {prestacao}...')
-
-    user = ''
-
-    if request.user.is_authenticated():
-        user = request.user
 
     for conta in contas:
 
@@ -90,25 +85,20 @@ def _criar_documentos(acoes, contas, periodo, prestacao, request):
             acoes=acoes,
             periodo=periodo,
             conta_associacao=conta,
-            usuario=user,
+            usuario=usuario,
             prestacao=prestacao
         )
 
 
-def _criar_previa_demonstrativo_financeiro(acoes, conta, periodo, request):
+def _criar_previa_demonstrativo_financeiro(acoes, conta, periodo, usuario):
     logger.info(f'Gerando prévias do demonstrativo financeiro da conta {conta}.')
-
-    user = ''
-
-    if request.user.is_authenticated():
-        user = request.user
 
     _gerar_arquivos_demonstrativo_financeiro(
         acoes=acoes,
         periodo=periodo,
         conta_associacao=conta,
         prestacao=None,
-        usuario=user,
+        usuario=usuario,
         previa=True,
     )
 

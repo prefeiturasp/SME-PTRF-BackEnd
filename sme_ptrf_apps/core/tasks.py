@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
     time_limet=600,
     soft_time_limit=300
 )
-def concluir_prestacao_de_contas_async(periodo_uuid, associacao_uuid):
+def concluir_prestacao_de_contas_async(periodo_uuid, associacao_uuid, usuario=""):
     from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_documentos, _criar_fechamentos,
                                                                        _apagar_previas_documentos)
 
@@ -39,7 +39,7 @@ def concluir_prestacao_de_contas_async(periodo_uuid, associacao_uuid):
     _apagar_previas_documentos(contas=contas, periodo=periodo, prestacao=prestacao)
     logger.info('Prévias apagadas.')
 
-    _criar_documentos(acoes, contas, periodo, prestacao)
+    _criar_documentos(acoes, contas, periodo, prestacao, usuario=usuario)
     logger.info('Documentos gerados para a prestação de contas %s.', prestacao)
 
     prestacao = prestacao.concluir()
@@ -66,7 +66,7 @@ def processa_carga_async(arquivo_uuid):
     time_limet=600,
     soft_time_limit=300
 )
-def gerar_previa_demonstrativo_financeiro_async(periodo_uuid, conta_associacao_uuid, data_inicio, data_fim):
+def gerar_previa_demonstrativo_financeiro_async(periodo_uuid, conta_associacao_uuid, data_inicio, data_fim, usuario=""):
     logger.info(f'Iniciando criação da Previa de demonstrativo financeiro para a conta {conta_associacao_uuid} e período {periodo_uuid}.')
 
     from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_previa_demonstrativo_financeiro,
@@ -85,6 +85,7 @@ def gerar_previa_demonstrativo_financeiro_async(periodo_uuid, conta_associacao_u
         acoes=acoes,
         periodo=periodo,
         conta=conta_associacao,
+        usuario=usuario,
     )
 
     logger.info(f'Previa de demonstrativo financeiro criado para a conta {conta_associacao} e período {periodo}.')

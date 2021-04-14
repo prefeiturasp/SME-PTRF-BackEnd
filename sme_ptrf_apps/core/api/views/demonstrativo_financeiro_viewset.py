@@ -1,12 +1,9 @@
 import logging
 from datetime import datetime
-from decimal import Decimal
-
-from django.http import HttpResponse
 
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -27,181 +24,15 @@ from sme_ptrf_apps.core.tasks import gerar_previa_demonstrativo_financeiro_async
 
 from sme_ptrf_apps.core.services.info_por_acao_services import info_acoes_associacao_no_periodo
 
-logger = logging.getLogger(__name__)
-
-from django.core.files.storage import FileSystemStorage
-from django.template.loader import render_to_string
-
-from weasyprint import HTML
-
 from django.http import HttpResponse
 
-from django.contrib.staticfiles.storage import staticfiles_storage
-from django.template.loader import get_template
-
-from django.core.files.uploadedfile import SimpleUploadedFile
-
-from weasyprint import HTML, CSS
+logger = logging.getLogger(__name__)
 
 
 class DemonstrativoFinanceiroViewSet(GenericViewSet):
-    permission_classes = [AllowAny]
-    # permission_classes = [IsAuthenticated & PermissaoApiUe]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = DemonstrativoFinanceiro.objects.all()
-
-    dados_demonstrativo = {
-        'cabecalho': {'titulo': 'Demonstrativo Financeiro - FINAL', 'periodo': '2020.2 - 2020-07-01 a 2020-12-31',
-                      'conta': 'Cheque'},
-        'identificacao_apm': {'nome_associacao': 'AGUA AZUL', 'cnpj_associacao': '12.749.195/0001-56',
-                              'codigo_eol_associacao': '200237', 'nome_dre_associacao': 'GUAIANASES',
-                              'presidente_diretoria_executiva': '', 'presidente_conselho_fiscal': ''},
-        'identificacao_conta': {'banco': 'Banco do Brasil', 'agencia': '7370', 'conta': '12345-6',
-                                'data_extrato': '12/04/2021', 'saldo_extrato': '0,00'},
-        'resumo_por_acao': {
-            'resumo_acoes': [
-                {'acao_associacao': 'Rolê Cultural',
-                 'linha_custeio': {
-                     'saldo_anterior': '0,00',
-                     'credito': '0,00',
-                     'despesa_realizada': '0,00',
-                     'despesa_nao_realizada': '0,00',
-                     'despesa_nao_demostrada_outros_periodos': '100,00',
-                     'saldo_reprogramado_proximo': '0,00',
-                     'saldo_bancario': '100,00',
-                     'valor_saldo_reprogramado_proximo_periodo_custeio': 0,
-                     'valor_saldo_bancario_custeio': Decimal('100.00'),
-                     'credito_nao_demonstrado': 0
-                 },
-                 'linha_capital': {
-                     'saldo_anterior': '',
-                     'credito': '',
-                     'despesa_realizada': '',
-                     'despesa_nao_realizada': '',
-                     'despesa_nao_demostrada_outros_periodos': '',
-                     'saldo_reprogramado_proximo': '',
-                     'saldo_bancario': '',
-                     'valor_saldo_reprogramado_proximo_periodo_capital': 0,
-                     'valor_saldo_bancario_capital': 0, 'credito_nao_demonstrado': 0
-                 },
-                 'linha_livre': {
-                     'saldo_anterior': '',
-                     'credito': '',
-                     'saldo_reprogramado_proximo': '',
-                     'valor_saldo_reprogramado_proximo_periodo_livre': 0,
-                     'credito_nao_demonstrado': 0
-                 },
-                 'saldo_bancario': '', 'total_valores': 0,
-                 'total_conciliacao': Decimal('100.00')
-                 },
-                {'acao_associacao': ' PTRF',
-                     'linha_custeio': {
-                         'saldo_anterior': '',
-                         'credito': '',
-                         'despesa_realizada': '',
-                         'despesa_nao_realizada': '',
-                         'despesa_nao_demostrada_outros_periodos': '',
-                         'saldo_reprogramado_proximo': '',
-                         'saldo_bancario': '',
-                         'valor_saldo_reprogramado_proximo_periodo_custeio': 0,
-                         'valor_saldo_bancario_custeio': 0,
-                         'credito_nao_demonstrado': 0},
-                     'linha_capital': {
-                         'saldo_anterior': '',
-                         'credito': '',
-                         'despesa_realizada': '',
-                         'despesa_nao_realizada': '',
-                         'despesa_nao_demostrada_outros_periodos': '',
-                         'saldo_reprogramado_proximo': '',
-                         'saldo_bancario': '',
-                         'valor_saldo_reprogramado_proximo_periodo_capital': 0,
-                         'valor_saldo_bancario_capital': 0,
-                         'credito_nao_demonstrado': 0
-                     },
-                     'linha_livre': {'saldo_anterior': '',
-                                     'credito': '',
-                                     'saldo_reprogramado_proximo': '',
-                                     'valor_saldo_reprogramado_proximo_periodo_livre': 0,
-                                     'credito_nao_demonstrado': 0
-                                     },
-                     'saldo_bancario': '',
-                     'total_valores': 0,
-                     'total_conciliacao': 0
-                     },
-                {'acao_associacao': 'Ação ABC',
-                 'linha_custeio': {
-                     'saldo_anterior': '',
-                     'credito': '',
-                     'despesa_realizada': '',
-                     'despesa_nao_realizada': '',
-                     'despesa_nao_demostrada_outros_periodos': '',
-                     'saldo_reprogramado_proximo': '', 'saldo_bancario': '',
-                     'valor_saldo_reprogramado_proximo_periodo_custeio': 0,
-                     'valor_saldo_bancario_custeio': 0, 'credito_nao_demonstrado': 0},
-                 'linha_capital': {
-                     'saldo_anterior': '0,00',
-                     'credito': '0,00',
-                     'despesa_realizada': '0,00',
-                     'despesa_nao_realizada': '100,00',
-                     'despesa_nao_demostrada_outros_periodos': '0,00',
-                     'saldo_reprogramado_proximo': '0,00',
-                     'saldo_bancario': '0,00',
-                     'valor_saldo_reprogramado_proximo_periodo_capital': Decimal('-100.00'),
-                     'valor_saldo_bancario_capital': 0, 'credito_nao_demonstrado': 0
-                 },
-                 'linha_livre': {
-                     'saldo_anterior': '0,00',
-                     'credito': '0,00',
-                     'saldo_reprogramado_proximo': '-100,00',
-                     'valor_saldo_reprogramado_proximo_periodo_livre': Decimal('-100.00'),
-                     'credito_nao_demonstrado': 0}, 'saldo_bancario': '-100,00',
-                 'total_valores': Decimal('-100.00'), 'total_conciliacao': Decimal('-100.00')
-                 }
-            ],
-            'total_valores': {
-                'saldo_anterior': {'C': 0, 'K': 0, 'L': 0},
-                'credito': {'C': 0, 'K': 0, 'L': 0},
-                'despesa_realizada': {'C': 0, 'K': 0, 'L': 0},
-                'despesa_nao_realizada': {'C': Decimal('100.00'), 'K': 0, 'L': 0},
-                'saldo_reprogramado_proximo': {'C': Decimal('-100.00'), 'K': 0, 'L': 0},
-                'despesa_nao_demostrada_outros_periodos': {'C': Decimal('100.00'), 'K': 0, 'L': 0},
-                'saldo_bancario': {'C': Decimal('100.00'), 'K': 0, 'L': 0},
-                'valor_saldo_reprogramado_proximo_periodo': {'C': Decimal('-200.00'), 'K': 0, 'L': 0},
-                'valor_saldo_bancario': {'C': Decimal('100.00'), 'K': 0, 'L': 0},
-                'credito_nao_demonstrado': {'C': 0, 'K': 0, 'L': 0},
-                'total_valores': Decimal('-100.00')
-            },
-            'total_conciliacao': '0,00'
-        }, 'creditos_demonstrados': {'linhas': [], 'valor_total': '0,00'},
-        'despesas_demonstradas': {'linhas': [], 'valor_total': '0,00'}, 'despesas_nao_demonstradas': {'linhas': [
-            {'razao_social': 'Teste cpf', 'cnpj_cpf': '006.443.212-29', 'tipo_documento': 'NFe',
-             'numero_documento': '111111111111111111111111111111111', 'nome_acao_documento': 'Ação ABC',
-             'especificacao_material': 'Acess point', 'tipo_despesa': 'CAPITAL', 'tipo_transacao': '7677767',
-             'data_documento': '28/07/2020', 'valor': '100,00'}], 'valor_total': '100,00'},
-        'despesas_anteriores_nao_demonstradas': {'linhas': [
-            {'razao_social': 'Fornecedor 01', 'cnpj_cpf': '51.510.540/0001-56',
-             'tipo_documento': 'Guia de Recolhimento', 'numero_documento': '', 'nome_acao_documento': 'Rolê Cultural',
-             'especificacao_material': 'Alfaiataria, costura e congêneres', 'tipo_despesa': 'CUSTEIO',
-             'tipo_transacao': '', 'data_documento': '29/06/2020', 'valor': '100,00'}], 'valor_total': '100,00'},
-        'observacoes_acoes': '',
-        'data_geracao_documento': 'Documento final gerado pelo usuário usuarioteste, via SIG - Escola, em: 12/04/2021',
-        'data_geracao': '12/04/2021'}
-
-    @action(detail=False, methods=['get'], url_path='ver-pdf', permission_classes=[AllowAny])
-    def ver_pdf(self, request):
-        html_template = get_template('pdf/demonstrativo_financeiro/pdf.html')
-
-        rendered_html = html_template.render(
-            {'dados': self.dados_demonstrativo, 'base_static_url': staticfiles_storage.location})
-
-        pdf_file = HTML(
-            string=rendered_html,
-            base_url=staticfiles_storage.location
-        ).write_pdf(
-            stylesheets=[CSS(staticfiles_storage.location + '/css/pdf-demo-financeiro.css')])
-
-        # return HttpResponse(rendered_html)
-        return HttpResponse(pdf_file, content_type='application/pdf')
 
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
@@ -244,7 +75,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         gerar_previa_demonstrativo_financeiro_async.delay(periodo_uuid=periodo_uuid,
                                                           conta_associacao_uuid=conta_associacao_uuid,
                                                           data_inicio=data_inicio,
-                                                          data_fim=data_fim
+                                                          data_fim=data_fim,
+                                                          usuario=request.user.username,
                                                           )
 
         return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
