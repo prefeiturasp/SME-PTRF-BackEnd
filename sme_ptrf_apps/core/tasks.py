@@ -116,5 +116,5 @@ def gerar_previa_relacao_de_bens_async(periodo_uuid, conta_associacao_uuid, data
         conta=conta_associacao,
     )
 
-    logger.info(f'Previa de demonstrativo financeiro criado para a conta {conta_associacao} e período {periodo}.')
-    logger.info(f'Previa de demonstrativo financeiro arquivo {relacao_de_bens}.')
+    logger.info(f'Previa de Relação de Bens criado para a conta {conta_associacao} e período {periodo}.')
+    logger.info(f'Previa de Relação de Bens arquivo {relacao_de_bens}.')

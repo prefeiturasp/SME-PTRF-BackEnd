@@ -38,16 +38,16 @@ def test_tabela_valores_pendentes(
     result = json.loads(response.content)
 
     esperado = {
-        'saldo_anterior': Decimal('2000.00'),
-        'receitas_conciliadas': Decimal('400.00'),
-        'despesas_conciliadas': Decimal('300.00'),
-        'despesas_nao_conciliadas': Decimal('100.00'),
-        'receitas_nao_conciliadas': Decimal('200.00'),
-        'despesas_total': Decimal('400.00'),
-        'receitas_total': Decimal('600.00'),
-        'saldo_posterior_conciliado': Decimal('2100.00'),
-        'saldo_posterior_nao_conciliado': Decimal('2100.00'),
-        'saldo_posterior_total': Decimal('2200.00'),
+        'saldo_anterior': 2000.0,
+        'receitas_conciliadas': 400.0,
+        'despesas_conciliadas': 300.0,
+        'despesas_nao_conciliadas': 100.0,
+        'receitas_nao_conciliadas': 200.0,
+        'despesas_total': 400.0,
+        'receitas_total': 600.0,
+        'saldo_posterior_conciliado': 2100.0,
+        'saldo_posterior_nao_conciliado': 100.0,
+        'saldo_posterior_total': 2200.0,
     }
 
     assert result == esperado
