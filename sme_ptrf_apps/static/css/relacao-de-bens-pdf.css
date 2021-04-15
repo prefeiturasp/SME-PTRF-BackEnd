@@ -1,0 +1,163 @@
+{
+%
+load
+static
+%
+}
+
+@charset "UTF-8";
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  src: url(../fonts/Roboto-Regular.ttf);
+}
+
+@page {
+  size: A4 landscape;
+  padding: 1cm 0 0 0;
+  margin: 3cm 1cm 1cm 1cm;
+  @top-center {
+    content: element(cabecalho);
+  }
+
+  @bottom-right {
+    color: #000;
+    content: counter(page) "/" counter(pages);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: -2mm -10mm 0 0;
+    font-weight: bold;
+    font-style: italic;
+  }
+
+  @bottom-left {
+    color: #000;
+    /*content: counter(page) "/" counter(pages);*/
+    content: element(nome-associacao);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: -2mm 0 0 -10mm;
+  }
+}
+
+html {
+  font-family: Roboto, sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 10pt;
+}
+
+html body section#cabecalho, header {
+  background: #EEEEEE;
+  width: 310mm;
+  padding: 1cm 1.8cm 0.5cm 1cm;
+  margin: 0 0 0 3.5cm;
+}
+
+html body section#cabecalho .titulo, html body section#cabecalho .subtitulo, html body header .subtitulo {
+  font-weight: bold;
+  color: #0c0c0c;
+  font-family: Roboto, serif;
+}
+
+html body section#cabecalho .subtitulo, html body header .subtitulo {
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+header {
+  position: running(cabecalho);
+}
+#nome-associacao-rodape {
+  position: running(nome-associacao);
+}
+
+.divisao {
+  margin: 0 1.5cm 0 0.5cm;
+}
+
+.font-18 {
+  font-size: 18px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-16 {
+  font-size: 16px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-14 {
+  font-size: 14px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-12 {
+  font-size: 12px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.borda-box-cabecalho-left {
+  border-top: solid 1px #A4A4A4;
+  border-bottom: solid 1px #A4A4A4;
+  border-left: solid 1px #A4A4A4;
+}
+
+.borda-box-cabecalho-right {
+  border-top: solid 1px #A4A4A4;
+  border-bottom: solid 1px #A4A4A4;
+  border-left: solid 1px #A4A4A4;
+  border-right: solid 1px #A4A4A4;
+}
+
+.conteudo {
+  width: 100%;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+html body .conteudo .tabela-relacao-de-bens {
+  font-size: 7pt !important;
+  max-width: 100% !important;
+}
+
+html body .conteudo .tabela-quebra-palavra{
+  table-layout: fixed;
+}
+
+html body .conteudo .tabela-relacao-de-bens thead th, html body .conteudo .tabela-relacao-de-bens thead th.align-top, html body .conteudo .tabela-relacao-de-bens thead th.sem-borda, html body .conteudo .tabela-relacao-de-bens tbody td.total {
+  background-color: #F5F6F8 !important;
+  font-weight: normal !important;
+  vertical-align: middle;
+}
+
+html body .conteudo .tabela-relacao-de-bens thead th.align-top {
+  vertical-align: top;
+}
+
+html body .conteudo .tabela-relacao-de-bens thead th.sem-borda {
+  border: none !important;
+}
+
+html body .conteudo .tabela-relacao-de-bens tbody td.sem-borda {
+  border: none !important;
+}
+
+html body .conteudo .tabela-relacao-de-bens tbody td.fundo-cinza {
+  background-color: #DADADA !important;
+}
+
+html body .conteudo .tabela-relacao-de-bens tbody td {
+  vertical-align: middle;
+  padding: 2px 5px;
+  word-wrap: break-word !important;
+  word-break: break-all !important;
+}
+
+.data-geracao{
+  letter-spacing: 1px;
+}
