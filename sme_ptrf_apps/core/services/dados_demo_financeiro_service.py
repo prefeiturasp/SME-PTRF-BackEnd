@@ -1,5 +1,7 @@
 import logging
 
+from datetime import datetime
+
 from datetime import date
 
 from django.db.models import Sum
@@ -66,6 +68,9 @@ def cria_cabecalho(periodo, conta_associacao, previa):
     cabecalho = {
         "titulo": "Demonstrativo Financeiro - PRÉVIA" if previa else "Demonstrativo Financeiro - FINAL",
         "periodo": str(periodo),
+        "periodo_referencia": periodo.referencia,
+        "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas),
+        "periodo_data_fim": formata_data(periodo.data_fim_realizacao_despesas),
         "conta": conta_associacao.tipo_conta.nome
     }
 
@@ -110,7 +115,7 @@ def cria_identificacao_conta(conta_associacao):
         "agencia": conta_associacao.agencia,
         "conta": conta_associacao.numero_conta,
         "data_extrato": date.today().strftime("%d/%m/%Y"),
-        "saldo_extrato": formata_valor(0)
+        "saldo_extrato": 0
     }
 
     return identificacao_conta
@@ -146,7 +151,7 @@ def cria_resumo_por_acao(acoes, conta_associacao, periodo):
         total_conciliacao += resumo_acao['total_conciliacao']
         resumo_acoes.append(resumo_acao)
 
-    total_conciliacao = formata_valor(total_conciliacao)
+    total_conciliacao = total_conciliacao
 
     resumo = {
         "resumo_acoes": resumo_acoes,
@@ -270,10 +275,10 @@ def sintese_custeio(acao_associacao, conta_associacao, periodo, fechamento_perio
     valor_saldo_bancario_custeio = 0
 
     if saldo_reprogramado_anterior_custeio or valor_custeio_receitas_demonstradas or valor_custeio_rateios_demonstrados or valor_custeio_rateios_nao_demonstrados or valor_custeio_rateios_nao_demonstrados_periodos_anteriores:
-        saldo_anterior = f'{formata_valor(saldo_reprogramado_anterior_custeio)}'
-        credito = f'{formata_valor(valor_custeio_receitas_demonstradas)}'
-        despesa_realizada = f'{formata_valor(valor_custeio_rateios_demonstrados)}'
-        despesa_nao_realizada = f'{formata_valor(valor_custeio_rateios_nao_demonstrados)}'
+        saldo_anterior = saldo_reprogramado_anterior_custeio
+        credito =valor_custeio_receitas_demonstradas
+        despesa_realizada = valor_custeio_rateios_demonstrados
+        despesa_nao_realizada = valor_custeio_rateios_nao_demonstrados
 
 
         valor_saldo_reprogramado_proximo_periodo_custeio = saldo_reprogramado_anterior_custeio + \
@@ -281,13 +286,13 @@ def sintese_custeio(acao_associacao, conta_associacao, periodo, fechamento_perio
                                                            valor_custeio_rateios_demonstrados - \
                                                            valor_custeio_rateios_nao_demonstrados
 
-        saldo_reprogramado_proximo = f'{formata_valor(valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else 0)}'
+        saldo_reprogramado_proximo = valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else 0
 
 
-        despesa_nao_demostrada_outros_periodos = f'{formata_valor(valor_custeio_rateios_nao_demonstrados_periodos_anteriores)}'
+        despesa_nao_demostrada_outros_periodos = valor_custeio_rateios_nao_demonstrados_periodos_anteriores
         valor_saldo_bancario_custeio = valor_saldo_reprogramado_proximo_periodo_custeio + valor_custeio_rateios_nao_demonstrados + valor_custeio_rateios_nao_demonstrados_periodos_anteriores
         valor_saldo_bancario_custeio = valor_saldo_bancario_custeio if valor_saldo_bancario_custeio > 0 else 0
-        saldo_bancario = f'{formata_valor(valor_saldo_bancario_custeio)}'
+        saldo_bancario = valor_saldo_bancario_custeio
 
     linha_custeio = {
         "saldo_anterior": saldo_anterior,
@@ -360,19 +365,19 @@ def sintese_capital(acao_associacao, conta_associacao, periodo, fechamento_perio
     valor_saldo_bancario_capital = 0
 
     if saldo_reprogramado_anterior_capital or valor_capital_receitas_demonstradas or valor_capital_rateios_demonstrados or valor_capital_rateios_nao_demonstrados or valor_capital_rateios_nao_demonstrados_outros_periodos:
-        saldo_anterior = f'{formata_valor(saldo_reprogramado_anterior_capital)}'
-        credito = f'{formata_valor(valor_capital_receitas_demonstradas)}'
-        despesa_realizada = f'{formata_valor(valor_capital_rateios_demonstrados)}'
-        despesa_nao_realizada = f'{formata_valor(valor_capital_rateios_nao_demonstrados)}'
+        saldo_anterior = saldo_reprogramado_anterior_capital
+        credito = valor_capital_receitas_demonstradas
+        despesa_realizada = valor_capital_rateios_demonstrados
+        despesa_nao_realizada = valor_capital_rateios_nao_demonstrados
         valor_saldo_reprogramado_proximo_periodo_capital = saldo_reprogramado_anterior_capital + \
                                                            valor_capital_receitas_demonstradas - \
                                                            valor_capital_rateios_demonstrados - \
                                                            valor_capital_rateios_nao_demonstrados
-        saldo_reprogramado_proximo = f'{formata_valor(valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else 0)}'
-        despesa_nao_demostrada_outros_periodos = f'{formata_valor(valor_capital_rateios_nao_demonstrados_outros_periodos)}'
+        saldo_reprogramado_proximo = valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else 0
+        despesa_nao_demostrada_outros_periodos = valor_capital_rateios_nao_demonstrados_outros_periodos
         valor_saldo_bancario_capital = valor_saldo_reprogramado_proximo_periodo_capital + valor_capital_rateios_nao_demonstrados + valor_capital_rateios_nao_demonstrados_outros_periodos
         valor_saldo_bancario_capital = valor_saldo_bancario_capital if valor_saldo_bancario_capital > 0 else 0
-        saldo_bancario = f'{formata_valor(valor_saldo_bancario_capital)}'
+        saldo_bancario =valor_saldo_bancario_capital
 
     linha_capital = {
         "saldo_anterior": saldo_anterior,
@@ -424,14 +429,14 @@ def sintese_livre(linha_capital, linha_custeio, acao_associacao, conta_associaca
     valor_saldo_reprogramado_proximo_periodo_livre = 0
 
     if saldo_reprogramado_anterior_livre or valor_livre_receitas_demonstradas or valor_saldo_reprogramado_proximo_periodo_custeio < 0 or valor_saldo_reprogramado_proximo_periodo_capital < 0:
-        saldo_anterior = f'{formata_valor(saldo_reprogramado_anterior_livre)}'
-        credito = f'{formata_valor(valor_livre_receitas_demonstradas)}'
+        saldo_anterior = saldo_reprogramado_anterior_livre
+        credito = valor_livre_receitas_demonstradas
         valor_saldo_reprogramado_proximo_periodo_livre = saldo_reprogramado_anterior_livre + valor_livre_receitas_demonstradas
         valor_saldo_reprogramado_proximo_periodo_livre = valor_saldo_reprogramado_proximo_periodo_livre + \
                                                          valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital < 0 else valor_saldo_reprogramado_proximo_periodo_livre
         valor_saldo_reprogramado_proximo_periodo_livre = valor_saldo_reprogramado_proximo_periodo_livre + \
                                                          valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio < 0 else valor_saldo_reprogramado_proximo_periodo_livre
-        saldo_reprogramado_proximo = f'{formata_valor(valor_saldo_reprogramado_proximo_periodo_livre)}'
+        saldo_reprogramado_proximo = valor_saldo_reprogramado_proximo_periodo_livre
 
     linha_livre = {
         "saldo_anterior": saldo_anterior,
@@ -464,11 +469,11 @@ def cria_creditos_demonstrados(receitas_demonstradas):
             "detalhamento": receita.detalhamento,
             "nome_acao": receita.acao_associacao.acao.nome,
             "data": receita.data.strftime("%d/%m/%Y"),
-            "valor": formata_valor(receita.valor)
+            "valor": receita.valor
         }
         linhas.append(linha)
 
-    valor_total = formata_valor(sum(r.valor for r in receitas_demonstradas))
+    valor_total = sum(r.valor for r in receitas_demonstradas)
 
     creditos_demonstradors = {
         "linhas": linhas,
@@ -479,7 +484,7 @@ def cria_creditos_demonstrados(receitas_demonstradas):
 
 
 def cria_despesas(rateios):
-    valor_total = formata_valor(sum(r.valor_rateio for r in rateios))
+    valor_total = sum(r.valor_rateio for r in rateios)
 
     linhas = []
     for _, rateio in enumerate(rateios):
@@ -500,7 +505,7 @@ def cria_despesas(rateios):
                 tipo_transacao = rateio.despesa.tipo_transacao.nome
 
         data_documento = rateio.despesa.data_documento.strftime("%d/%m/%Y") if rateio.despesa.data_documento else ''
-        valor = formata_valor(rateio.valor_rateio)
+        valor = rateio.valor_rateio
         linha = {
             "razao_social": razao_social,
             "cnpj_cpf": cnpj_cpf,
@@ -553,3 +558,12 @@ def formata_valor(valor):
     sinal, valor_formatado = format_currency(valor, 'BRL', locale='pt_BR').split('\xa0')
     sinal = '-' if '-' in sinal else ''
     return f'{sinal}{valor_formatado}'
+
+
+def formata_data(data):
+    data_formatada = " - "
+    if data:
+        d = datetime.strptime(str(data), '%Y-%m-%d')
+        data_formatada = d.strftime("%d/%m/%Y")
+
+    return f'{data_formatada}'
