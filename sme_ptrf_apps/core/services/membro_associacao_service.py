@@ -52,15 +52,3 @@ class TerceirizadasService:
         else:
             raise TerceirizadasException(f'API EOL com erro. Status: {response.status_code}')
 
-
-    @classmethod
-    def escolas_terceirizadas(cls):
-        """Consulta as escolas terceirizadas na API do eol"""
-        logger.info("Buscando escolas terceirizadas na API do eol")
-        try:
-            response = requests.get(f'{settings.EOL_API_TERCEIRIZADAS_URL}/escolas_terceirizadas/',
-                                    headers=cls.headers, timeout=cls.timeout)
-            return response.json()
-        except Exception as err:
-            logger.info("Error %s", err)
-            raise err

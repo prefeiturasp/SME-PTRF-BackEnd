@@ -1,4 +1,3 @@
-import json
 import logging
 
 import requests
@@ -104,4 +103,26 @@ class SmeIntegracaoService:
                 raise SmeIntegracaoException('Falha ao fazer atribuição de perfil.')
         except Exception as err:
             logger.info("Erro ao tentar fazer atribuição de perfil: %s", str(err))
+            raise SmeIntegracaoException(str(err))
+
+    @classmethod
+    def get_dados_unidade_eol(cls, codigo_eol):
+        """ Consulta dados de uma unidade no EOL
+
+            /api/escolas/dados/{codigo_eol}
+
+        :param codigo_eol: Código EOL da unidade
+        :return: Dados cadastrais da Unidade
+        """
+        logger.info(f'Consultando no eol dados da unidade {codigo_eol}.')
+        try:
+            url = f'{settings.SME_INTEGRACAO_URL}/api/escolas/dados/{codigo_eol}'
+            response = requests.get(url, headers=cls.headers)
+            if response.status_code == status.HTTP_200_OK:
+                return response
+            else:
+                logger.info("Falha ao tentar consultar dados da unidade no eol: %s", response)
+                raise SmeIntegracaoException('Falha ao tentar consultar dados da unidade no eol.')
+        except Exception as err:
+            logger.info("Erro ao tentar ao consulta dados da unidade do eol: %s", str(err))
             raise SmeIntegracaoException(str(err))
