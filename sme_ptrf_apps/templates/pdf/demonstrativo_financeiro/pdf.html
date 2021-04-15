@@ -159,10 +159,10 @@
           <td>{{ acoes.linha_custeio.despesa_realizada }}</td>
           <td>{{ acoes.linha_custeio.despesa_nao_realizada }}</td>
           <td>{{ acoes.linha_custeio.saldo_reprogramado_proximo }}</td>
-          <td style="border-bottom: none !important;">{{ acoes.saldo_bancario }}</td>
-          <td>{{ acoes.linha_custeio.despesa_nao_demostrada_outros_periodos }}</td>
-          <td>{{ acoes.linha_custeio.valor_saldo_reprogramado_proximo_periodo_custeio }}</td>
           <td style="border-bottom: none !important;">{{ acoes.total_valores }}</td>
+          <td>{{ acoes.linha_custeio.despesa_nao_demostrada_outros_periodos }}</td>
+          <td>{{ acoes.linha_custeio.valor_saldo_bancario_custeio }}</td>
+          <td style="border-bottom: none !important;">{{ acoes.saldo_bancario }}</td>
           <td>{{ acoes.linha_custeio.credito_nao_demonstrado }}</td>
         </tr>
         <tr>
@@ -174,7 +174,7 @@
           <td>{{ acoes.linha_capital.saldo_reprogramado_proximo }}</td>
           <td style="border: none !important;"></td>
           <td>{{ acoes.linha_capital.despesa_nao_demostrada_outros_periodos }}</td>
-          <td>{{ acoes.linha_capital.valor_saldo_reprogramado_proximo_periodo_capital }}</td>
+          <td>{{ acoes.linha_capital.valor_saldo_bancario_capital }}</td>
           <td style="border: none !important;"></td>
           <td>{{ acoes.linha_capital.credito_nao_demonstrado }}</td>
         </tr>
@@ -201,10 +201,10 @@
           <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_realizada.C }}</td>
           <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_nao_realizada.C }}</td>
           <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.C }}</td>
-          <td class="total" style="border-bottom: none !important;">{{ dados.resumo_por_acao.total_valores.saldo_bancario.C }}</td>
-          <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_nao_demostrada_outros_periodos.C }}</td>
-          <td class="total">{{ dados.resumo_por_acao.total_valores.valor_saldo_reprogramado_proximo_periodo.C }}</td>
           <td class="total" style="border-bottom: none !important;">{{ dados.resumo_por_acao.total_valores.total_valores }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_nao_demostrada_outros_periodos.C }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.valor_saldo_bancario.C }}</td>
+          <td class="total" style="border-bottom: none !important;">{{ dados.resumo_por_acao.total_valores.saldo_bancario }}</td>
           <td class="total">{{ dados.resumo_por_acao.total_valores.credito_nao_demonstrado.C }}</td>
         </tr>
         <tr>
@@ -216,7 +216,7 @@
           <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.K }}</td>
           <td class="total" style="border: none !important;"></td>
           <td class="total">{{ dados.resumo_por_acao.total_valores.despesa_nao_demostrada_outros_periodos.K }}</td>
-          <td class="total">{{ dados.resumo_por_acao.total_valores.valor_saldo_reprogramado_proximo_periodo.K }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.valor_saldo_bancario.K }}</td>
           <td class="total" style="border: none !important;"></td>
           <td class="total">{{ dados.resumo_por_acao.total_valores.credito_nao_demonstrado.K }}</td>
         </tr>
@@ -229,7 +229,7 @@
           <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.L }}</td>
           <td class="total" style="border-top:none!important; border-bottom: solid 1px #dee2e6 !important;">{% comment %}{{ acoes.saldo_bancario }}{% endcomment %}</td>
           <td class="fundo-cinza total"></td>
-          <td class="total">{{ dados.resumo_por_acao.total_valores.valor_saldo_reprogramado_proximo_periodo.L }}</td>
+          <td class="total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.L }}</td>
           <td class="total" style="border-top:none!important; border-bottom: solid 1px #dee2e6 !important;"></td>
           <td class="total">{{ dados.resumo_por_acao.total_valores.credito_nao_demonstrado.L }}</td>
         </tr>
