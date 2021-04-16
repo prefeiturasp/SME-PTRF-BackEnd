@@ -254,10 +254,10 @@
       <tbody>
       {% for receita in dados.creditos_demonstrados.linhas %}
         <tr>
-          <td>{{ receita.tipo_receita|formata_valor }}</td>
-          <td>{{ receita.detalhamento|formata_valor }}</td>
-          <td>{{ receita.nome_acao|formata_valor }}</td>
-          <td>{{ receita.data|formata_valor }}</td>
+          <td>{{ receita.tipo_receita}}</td>
+          <td>{{ receita.detalhamento }}</td>
+          <td>{{ receita.nome_acao }}</td>
+          <td>{{ receita.data }}</td>
           <td>{{ receita.valor|formata_valor }}</td>
         </tr>
       {% endfor %}
