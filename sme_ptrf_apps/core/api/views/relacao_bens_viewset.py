@@ -1,5 +1,5 @@
+import logging
 from datetime import datetime
-
 
 from django.http import HttpResponse
 
@@ -20,6 +20,8 @@ from sme_ptrf_apps.users.permissoes import (
 )
 
 from sme_ptrf_apps.core.tasks import gerar_previa_relacao_de_bens_async
+
+logger = logging.getLogger(__name__)
 
 
 class RelacaoBensViewSet(GenericViewSet):
@@ -52,7 +54,8 @@ class RelacaoBensViewSet(GenericViewSet):
 
         periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
 
-        if periodo.data_fim_realizacao_despesas and datetime.strptime(data_fim, "%Y-%m-%d").date() > periodo.data_fim_realizacao_despesas:
+        if periodo.data_fim_realizacao_despesas and datetime.strptime(data_fim,
+                                                                      "%Y-%m-%d").date() > periodo.data_fim_realizacao_despesas:
             erro = {
                 'erro': 'erro_nas_datas',
                 'mensagem': 'Data fim não pode ser maior que a data fim da realização as despesas do periodo.'
@@ -72,6 +75,17 @@ class RelacaoBensViewSet(GenericViewSet):
     def documento_final(self, request):
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
+        formato_arquivo = self.request.query_params.get('formato_arquivo')
+
+        if formato_arquivo and formato_arquivo not in ['XLSX', 'PDF']:
+            erro = {
+                'erro': 'parametro_inválido',
+                'mensagem': 'O parâmetro formato_arquivo espera os valores XLSX ou PDF.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if not formato_arquivo:
+            formato_arquivo = 'XLSX'
 
         if not conta_associacao_uuid or not periodo_uuid:
             erro = {
@@ -84,7 +98,8 @@ class RelacaoBensViewSet(GenericViewSet):
         periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
 
         prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao, periodo=periodo).first()
-        relacao_bens = RelacaoBens.objects.filter(conta_associacao=conta_associacao, prestacao_conta=prestacao_conta).first()
+        relacao_bens = RelacaoBens.objects.filter(conta_associacao=conta_associacao,
+                                                  prestacao_conta=prestacao_conta).first()
 
         if not relacao_bens:
             erro = {
@@ -93,12 +108,30 @@ class RelacaoBensViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
-        filename = 'relacao_bens.xlsx'
-        response = HttpResponse(
-            open(relacao_bens.arquivo.path, 'rb'),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        try:
+            if formato_arquivo == 'PDF':
+                filename = 'relacao_bens.pdf'
+                response = HttpResponse(
+                    open(relacao_bens.arquivo_pdf.path, 'rb'),
+                    content_type='application/pdf'
+                )
+                response['Content-Disposition'] = 'attachment; filename=%s' % filename
+            else:
+                filename = 'relacao_bens.xlsx'
+                response = HttpResponse(
+                    open(relacao_bens.arquivo.path, 'rb'),
+                    content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                )
+                response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
+        except Exception as err:
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': str(err)
+            }
+            logger.info("Erro: %s", str(err))
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
         return response
 
     @action(detail=False, methods=['get'], url_path='documento-previa',
@@ -106,6 +139,17 @@ class RelacaoBensViewSet(GenericViewSet):
     def documento_previa(self, request):
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
+        formato_arquivo = self.request.query_params.get('formato_arquivo')
+
+        if formato_arquivo and formato_arquivo not in ['XLSX', 'PDF']:
+            erro = {
+                'erro': 'parametro_inválido',
+                'mensagem': 'O parâmetro formato_arquivo espera os valores XLSX ou PDF.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if not formato_arquivo:
+            formato_arquivo = 'XLSX'
 
         if not conta_associacao_uuid or not periodo_uuid:
             erro = {
@@ -123,20 +167,31 @@ class RelacaoBensViewSet(GenericViewSet):
             versao=RelacaoBens.VERSAO_PREVIA
         ).first()
 
-        if not relacao_bens:
+        try:
+            if formato_arquivo == 'PDF':
+                filename = 'relacao_de_bens.pdf'
+                response = HttpResponse(
+                    open(relacao_bens.arquivo_pdf.path, 'rb'),
+                    content_type='application/pdf'
+                )
+                response['Content-Disposition'] = 'attachment; filename=%s' % filename
+            else:
+                filename = 'relacao_bens.xlsx'
+                response = HttpResponse(
+                    open(relacao_bens.arquivo.path, 'rb'),
+                    content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                )
+                response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        except Exception as err:
             erro = {
                 'erro': 'arquivo_nao_gerado',
-                'mensagem': 'Não existe um arquivo de prévia de relação de bens para download.'
+                'mensagem': str(err)
             }
+            logger.info("Erro: %s", str(err))
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
-        filename = 'relacao_bens.xlsx'
-        response = HttpResponse(
-            open(relacao_bens.arquivo.path, 'rb'),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename
         return response
+
 
     @action(detail=False, methods=['get'], url_path='relacao-bens-info',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
@@ -145,8 +200,10 @@ class RelacaoBensViewSet(GenericViewSet):
         periodo_uuid = self.request.query_params.get('periodo')
         periodo = Periodo.by_uuid(periodo_uuid)
         conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
-        prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao, periodo__uuid=periodo_uuid).first()
-        relacao_bens = RelacaoBens.objects.filter(conta_associacao__uuid=conta_associacao_uuid, prestacao_conta=prestacao_conta).first()
+        prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao,
+                                                        periodo__uuid=periodo_uuid).first()
+        relacao_bens = RelacaoBens.objects.filter(conta_associacao__uuid=conta_associacao_uuid,
+                                                  prestacao_conta=prestacao_conta).first()
 
         msg = ""
         if not relacao_bens:

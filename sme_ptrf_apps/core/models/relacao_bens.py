@@ -33,7 +33,9 @@ class RelacaoBens(ModeloBase):
         (VERSAO_PREVIA, VERSAO_NOMES[VERSAO_PREVIA]),
     )
 
-    arquivo = models.FileField(blank=True, null=True)
+    arquivo = models.FileField(blank=True, null=True, verbose_name='Relatório em XLSX')
+
+    arquivo_pdf = models.FileField(blank=True, null=True, verbose_name='Relatório em PDF')
 
     conta_associacao = models.ForeignKey('ContaAssociacao', on_delete=models.PROTECT,
                                          related_name='relacoes_de_bens', blank=True, null=True)

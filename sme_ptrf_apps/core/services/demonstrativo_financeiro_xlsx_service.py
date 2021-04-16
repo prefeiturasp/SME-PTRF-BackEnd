@@ -485,7 +485,7 @@ def sintese_custeio(row_custeio, linha, acao_associacao, conta_associacao, perio
         totalizador[SALDO_ANTERIOR]['C'] += saldo_reprogramado_anterior_custeio
         totalizador[CREDITO]['C'] += valor_custeio_receitas_demonstradas
         totalizador[DESPESA_REALIZADA]['C'] += valor_custeio_rateios_demonstrados
-        totalizador[DESPESA_NAO_REALIZADA]['C'] += valor_custeio_rateios_demonstrados
+        totalizador[DESPESA_NAO_REALIZADA]['C'] += valor_custeio_rateios_nao_demonstrados
         totalizador[SALDO_REPROGRAMADO_PROXIMO][
             'C'] += valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else 0
         totalizador[DESPESA_NAO_DEMONSTRADA_OUTROS_PERIODOS][
