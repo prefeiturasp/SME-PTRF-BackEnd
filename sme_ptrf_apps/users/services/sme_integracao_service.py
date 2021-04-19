@@ -1,6 +1,7 @@
 import logging
-
+import json
 import requests
+
 from django.conf import settings
 from rest_framework import status
 
@@ -72,6 +73,20 @@ class SmeIntegracaoService:
             logger.info("Erro ao consultar informação: %s", str(err))
             raise SmeIntegracaoException(str(err))
 
+    @classmethod
+    def usuario_core_sso_or_none(cls, login):
+        logger.info('Consultando informação de %s.', login)
+        try:
+            response = requests.get(f'{settings.SME_INTEGRACAO_URL}/api/AutenticacaoSgp/{login}/dados', headers=cls.headers)
+            if response.status_code == status.HTTP_200_OK:
+                return response.json()
+            else:
+                logger.info(f"Usuário {login} não encontrado no CoreSSO: {response}")
+                return None
+        except Exception as err:
+            logger.info(f"Erro ao procurar usuário {login} no CoreSSO: {str(err)}")
+            raise SmeIntegracaoException(str(err))
+
 
     @classmethod
     def atribuir_perfil_coresso(cls, login, visao):
@@ -125,4 +140,59 @@ class SmeIntegracaoService:
                 raise SmeIntegracaoException('Falha ao tentar consultar dados da unidade no eol.')
         except Exception as err:
             logger.info("Erro ao tentar ao consulta dados da unidade do eol: %s", str(err))
+            raise SmeIntegracaoException(str(err))
+
+    @classmethod
+    def login_nao_servidor_valido(cls, login):
+        return True
+
+    @classmethod
+    def cria_usuario_core_sso(cls, login, nome, email, e_servidor=False):
+        """ Cria um novo usuário no CoreSSO
+
+        :param login:       login do usuário
+        :param nome:        nome completo do usuário
+        :param email:       e-mail do usuário
+        :param e_servidor:  True se for servidor. False se não for servidor.
+        :return:
+
+        /api/v1/usuarios/coresso - POST
+            {
+              "nome": "Nome do Usuário",
+              "documento": "CPF em caso de não funcionário, caso de funcionário, enviar vazio",
+              "codigoRf": "Código RF do funcionário, caso não funcionario, enviar vazio",
+              "email": "Email do usuário"
+            }
+        """
+
+        headers = {
+            'accept': 'application/json',
+            'x-api-eol-key': '074c047807a16c06fe78966214ba533244e4ca6d',
+            'Content-Type': 'application/json-patch+json'
+        }
+
+        logger.info('Criando usuário no CoreSSO.')
+
+        if not e_servidor and not cls.login_nao_servidor_valido(login):
+            raise SmeIntegracaoException('Login inválido para um não servidor. Necessário ser um CPF válido sem pontos.')
+
+        try:
+            url = f'{settings.SME_INTEGRACAO_URL}/api/v1/usuarios/coresso'
+
+            payload = json.dumps({
+                "nome": nome,
+                "documento": login if not e_servidor else "",
+                "codigoRf": login if e_servidor else "",
+                "email": email
+            })
+
+            response = requests.request("POST", url, headers=headers, data=payload)
+
+            if response.status_code == status.HTTP_200_OK:
+                result = "OK"
+                return result
+            else:
+                logger.info("Erro ao redefinir email: %s", response.json())
+                raise SmeIntegracaoException(f'Erro ao tentar criar o usuário {nome}.')
+        except Exception as err:
             raise SmeIntegracaoException(str(err))
