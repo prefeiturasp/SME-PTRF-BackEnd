@@ -5,7 +5,6 @@ from django.conf import settings
 from sme_ptrf_apps.core.models import Unidade
 from sme_ptrf_apps.dre.models import Atribuicao
 from sme_ptrf_apps.dre.api.serializers.tecnico_dre_serializer import TecnicoDreLookUpSerializer
-from sme_ptrf_apps.core.services.membro_associacao_service import TerceirizadasService
 
 from ...users.services import SmeIntegracaoService
 
