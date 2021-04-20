@@ -167,7 +167,7 @@ class SmeIntegracaoService:
 
         headers = {
             'accept': 'application/json',
-            'x-api-eol-key': '074c047807a16c06fe78966214ba533244e4ca6d',
+            'x-api-eol-key': f'{settings.SME_INTEGRACAO_TOKEN}',
             'Content-Type': 'application/json-patch+json'
         }
 
