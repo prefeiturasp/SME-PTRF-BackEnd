@@ -39,29 +39,29 @@
 {# ************************* Fim Cabecalho das páginas *************************  #}
 
 <section id="cabecalho">
-  <div class="d-flex p-2 bd-highlight">
+  <div class="d-flex p-2 bd-highlight pt-5 pb-4">
     <div class="col-4">
-      <img src="{{ base_static_url }}/images/logo-pdf.svg" alt="logo">
+      <img src="{{ base_static_url }}/images/logo-color.svg" alt="logo">
     </div>
     <div class="col-8 pr-3 mr-0 d-flex align-items-center justify-content-end">
       <p class="titulo font-16">Programa de Transferências de Recursos Financeiros - PTRF</p>
     </div>
   </div>
   <hr class="divisao"/>
-  <div class="d-flex p-2 bd-highlight mt-5">
+  <div class="d-flex p-2 bd-highlight mt-3">
     <div class="col-6 mt-2">
       <p class="subtitulo font-14 mb-0">Prestação de Contas - Modelo X</p>
-      <p class="font-14">{{ dados.cabecalho.titulo }}</p>
+      <p class="font-14 mb-0">{{ dados.cabecalho.titulo }}</p>
     </div>
     <div class="col-6">
       <div class="row">
-        <div class="col-auto borda-box-cabecalho-left">
+        <div class="col-auto borda-box-cabecalho-left pt-1 pb-1">
           <p class="font-14 mb-0">Período de Realização:</p>
-          <p class="subtitulo font-14">{{ dados.cabecalho.periodo_referencia }} - {{ dados.cabecalho.periodo_data_inicio }} até {{ dados.cabecalho.periodo_data_fim }}</p>
+          <p class="subtitulo font-14 mb-0">{{ dados.cabecalho.periodo_referencia }} - {{ dados.cabecalho.periodo_data_inicio }} até {{ dados.cabecalho.periodo_data_fim }}</p>
         </div>
-        <div class="col borda-box-cabecalho-right mr-0 pr-0">
+        <div class="col borda-box-cabecalho-right mr-0 pr-0 pt-1 pb-1">
           <p class="font-14 mb-0">Conta:</p>
-          <p class="subtitulo font-14">{{ dados.cabecalho.conta }}</p>
+          <p class="subtitulo font-14 mb-0">{{ dados.cabecalho.conta }}</p>
         </div>
       </div>
     </div>
