@@ -1,11 +1,9 @@
 import logging
 from datetime import datetime
 
-from django.http import HttpResponse
-
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -25,6 +23,8 @@ from sme_ptrf_apps.core.models import (
 from sme_ptrf_apps.core.tasks import gerar_previa_demonstrativo_financeiro_async
 
 from sme_ptrf_apps.core.services.info_por_acao_services import info_acoes_associacao_no_periodo
+
+from django.http import HttpResponse
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         gerar_previa_demonstrativo_financeiro_async.delay(periodo_uuid=periodo_uuid,
                                                           conta_associacao_uuid=conta_associacao_uuid,
                                                           data_inicio=data_inicio,
-                                                          data_fim=data_fim
+                                                          data_fim=data_fim,
+                                                          usuario=request.user.username,
                                                           )
 
         return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
@@ -120,7 +121,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(conta_associacao=conta_associacao,
                                                                           prestacao_conta=prestacao_conta).first()
 
-        logger.info("Prestacao de conta: %s, Demonstrativo Financeiro: %s", str(prestacao_conta), str(demonstrativo_financeiro))
+        logger.info("Prestacao de conta: %s, Demonstrativo Financeiro: %s", str(prestacao_conta),
+                    str(demonstrativo_financeiro))
 
         if not demonstrativo_financeiro:
             erro = {
@@ -256,7 +258,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
 
-        info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=associacao_uuid, periodo=periodo, conta=conta_associacao)
+        info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=associacao_uuid, periodo=periodo,
+                                                      conta=conta_associacao)
         result = {
             'info_acoes': [info for info in info_acoes if
                            info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
@@ -295,9 +298,11 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         conta_associacao_uuid = self.request.query_params.get('conta-associacao')
         periodo_uuid = self.request.query_params.get('periodo')
         conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
-        prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao, periodo__uuid=periodo_uuid).first()
+        prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao,
+                                                        periodo__uuid=periodo_uuid).first()
 
-        demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(conta_associacao__uuid=conta_associacao_uuid, prestacao_conta=prestacao_conta).first()
+        demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(conta_associacao__uuid=conta_associacao_uuid,
+                                                                          prestacao_conta=prestacao_conta).first()
 
         if not demonstrativo_financeiro:
             msg = 'Documento pendente de geração'

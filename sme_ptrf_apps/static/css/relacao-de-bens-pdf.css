@@ -14,45 +14,30 @@ static
 }
 
 @page {
-  size: A4;
-  margin: 3cm -2mm 2cm -2mm;
-  padding: 0;
-  @bottom-center {
+  size: A4 landscape;
+  padding: 1cm 0 0 0;
+  margin: 3cm 1cm 1cm 1cm;
+  @top-center {
+    content: element(cabecalho);
+  }
+
+  @bottom-right {
     color: #000;
     content: counter(page) "/" counter(pages);
     font-size: 9pt;
     padding: 0 1cm;
-    margin: 1cm 0;
+    margin: -2mm -10mm 0 0;
     font-weight: bold;
+    font-style: italic;
   }
 
-  @top-center {
-    content: element(heading);
-  }
-}
-
-@page :first {
-  size: A4;
-  margin: -2mm;
-  margin-bottom: 2cm;
-  padding: 0;
-  @bottom-center {
+  @bottom-left {
     color: #000;
-    content: counter(page) "/" counter(pages);
+    /*content: counter(page) "/" counter(pages);*/
+    content: element(nome-associacao);
     font-size: 9pt;
     padding: 0 1cm;
-    margin: 1cm 0;
-    font-weight: bold;
-  }
-  @top-center {
-    content: none;
-  }
-
-}
-
-@media print {
-  body, page {
-    margin: 0;
+    margin: -2mm 0 0 -10mm;
   }
 }
 
@@ -63,15 +48,11 @@ html {
   font-size: 10pt;
 }
 
-body {
-
-}
-
 html body section#cabecalho, header {
   background: #EEEEEE;
-  margin: 0 0 0 -2cm;
-  padding: 0 2.5cm 0.5cm 2.5cm;
-  width: 100%;
+  width: 310mm;
+  padding: 1cm 1.8cm 0.5cm 1cm;
+  margin: 0 0 0 3.5cm;
 }
 
 html body section#cabecalho .titulo, html body section#cabecalho .subtitulo, html body header .subtitulo {
@@ -86,10 +67,10 @@ html body section#cabecalho .subtitulo, html body header .subtitulo {
 }
 
 header {
-  position: running(heading);
-  width: 215mm;
-  margin: 1cm 0.5cm 5.5cm 1cm;
-  padding: 5cm 0 0 0;
+  position: running(cabecalho);
+}
+#nome-associacao-rodape {
+  position: running(nome-associacao);
 }
 
 .divisao {
@@ -134,13 +115,12 @@ header {
 }
 
 .conteudo {
-  margin: 0 1cm;
-  width: 74%;
+  width: 100%;
   font-family: Roboto, serif;
   font-style: normal;
 }
 
-html body .conteudo .tabela-resumo-por-acao {
+html body .conteudo .tabela-relacao-de-bens {
   font-size: 7pt !important;
   max-width: 100% !important;
 }
@@ -149,31 +129,35 @@ html body .conteudo .tabela-quebra-palavra{
   table-layout: fixed;
 }
 
-html body .conteudo .tabela-resumo-por-acao thead th, html body .conteudo .tabela-resumo-por-acao thead th.align-top, html body .conteudo .tabela-resumo-por-acao thead th.sem-borda, html body .conteudo .tabela-resumo-por-acao tbody td.total {
+html body .conteudo .tabela-relacao-de-bens thead th, html body .conteudo .tabela-relacao-de-bens thead th.align-top, html body .conteudo .tabela-relacao-de-bens thead th.sem-borda, html body .conteudo .tabela-relacao-de-bens tbody td.total {
   background-color: #F5F6F8 !important;
   font-weight: normal !important;
   vertical-align: middle;
 }
 
-html body .conteudo .tabela-resumo-por-acao thead th.align-top {
+html body .conteudo .tabela-relacao-de-bens thead th.align-top {
   vertical-align: top;
 }
 
-html body .conteudo .tabela-resumo-por-acao thead th.sem-borda {
+html body .conteudo .tabela-relacao-de-bens thead th.sem-borda {
   border: none !important;
 }
 
-html body .conteudo .tabela-resumo-por-acao tbody td.sem-borda {
+html body .conteudo .tabela-relacao-de-bens tbody td.sem-borda {
   border: none !important;
 }
 
-html body .conteudo .tabela-resumo-por-acao tbody td.fundo-cinza {
+html body .conteudo .tabela-relacao-de-bens tbody td.fundo-cinza {
   background-color: #DADADA !important;
 }
 
-html body .conteudo .tabela-resumo-por-acao tbody td {
+html body .conteudo .tabela-relacao-de-bens tbody td {
   vertical-align: middle;
   padding: 2px 5px;
   word-wrap: break-word !important;
   word-break: break-all !important;
+}
+
+.data-geracao{
+  letter-spacing: 1px;
 }

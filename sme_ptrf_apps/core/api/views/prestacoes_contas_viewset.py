@@ -169,7 +169,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            prestacao_de_contas = concluir_prestacao_de_contas(associacao=associacao, periodo=periodo)
+            prestacao_de_contas = concluir_prestacao_de_contas(associacao=associacao, periodo=periodo, usuario=request.user.username)
         except(IntegrityError):
             erro = {
                 'erro': 'prestacao_ja_iniciada',

@@ -8,7 +8,7 @@ from sme_ptrf_apps.core.services.carga_censo import carrega_censo
 from sme_ptrf_apps.core.services.carga_previsao_repasse import carrega_previsoes_repasses
 from sme_ptrf_apps.receitas.services.carga_repasses_previstos import carrega_repasses_previstos
 from sme_ptrf_apps.receitas.services.carga_repasses_realizados import carrega_repasses_realizados
-from sme_ptrf_apps.users.services.carga_usuarios import carrega_usuarios
+from sme_ptrf_apps.users.services.carga_usuario_service import CargaUsuariosService
 
 
 def processa_cargas(queryset):
@@ -28,7 +28,7 @@ def processa_carga(arquivo):
     elif arquivo.tipo_carga == CARGA_ASSOCIACOES:
         carrega_associacoes(arquivo)
     elif arquivo.tipo_carga == CARGA_USUARIOS:
-        carrega_usuarios(arquivo)
+        CargaUsuariosService().carrega_usuarios(arquivo)
     elif arquivo.tipo_carga == CARGA_CENSO:
         carrega_censo(arquivo)
     elif arquivo.tipo_carga == CARGA_REPASSE_PREVISTO_SME:

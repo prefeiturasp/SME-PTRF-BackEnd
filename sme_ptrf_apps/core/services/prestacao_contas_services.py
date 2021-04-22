@@ -20,13 +20,13 @@ logger = logging.getLogger(__name__)
 
 
 @transaction.atomic
-def concluir_prestacao_de_contas(periodo, associacao):
+def concluir_prestacao_de_contas(periodo, associacao, usuario=""):
     prestacao = PrestacaoConta.abrir(periodo=periodo, associacao=associacao)
     logger.info(f'Aberta a prestação de contas {prestacao}.')
 
     prestacao.em_processamento()
     logger.info(f'Prestação de contas em processamento {prestacao}.')
-    concluir_prestacao_de_contas_async.delay(periodo.uuid, associacao.uuid)
+    concluir_prestacao_de_contas_async.delay(periodo.uuid, associacao.uuid, usuario=usuario)
 
     return prestacao
 
@@ -72,8 +72,9 @@ def _criar_fechamentos(acoes, contas, periodo, prestacao):
             )
 
 
-def _criar_documentos(acoes, contas, periodo, prestacao):
+def _criar_documentos(acoes, contas, periodo, prestacao, usuario):
     logger.info(f'Criando documentos do período {periodo} e prestacao {prestacao}...')
+
     for conta in contas:
 
         logger.info(f'Gerando relação de bens da conta {conta}.')
@@ -84,17 +85,20 @@ def _criar_documentos(acoes, contas, periodo, prestacao):
             acoes=acoes,
             periodo=periodo,
             conta_associacao=conta,
+            usuario=usuario,
             prestacao=prestacao
         )
 
 
-def _criar_previa_demonstrativo_financeiro(acoes, conta, periodo):
+def _criar_previa_demonstrativo_financeiro(acoes, conta, periodo, usuario):
     logger.info(f'Gerando prévias do demonstrativo financeiro da conta {conta}.')
+
     _gerar_arquivos_demonstrativo_financeiro(
         acoes=acoes,
         periodo=periodo,
         conta_associacao=conta,
         prestacao=None,
+        usuario=usuario,
         previa=True,
     )
 
@@ -299,7 +303,7 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
                                                                 )
 
     logger.info(f'Gerando demonstrativo financeiro em PDF da conta {conta_associacao}.')
-    dados_demonstrativo = gerar_dados_demonstrativo_financeiro("usuarioteste", acoes, periodo, conta_associacao,
+    dados_demonstrativo = gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao,
                                                                prestacao, previa=False)
     gerar_arquivo_demonstrativo_financeiro_pdf(dados_demonstrativo, demonstrativo)
 

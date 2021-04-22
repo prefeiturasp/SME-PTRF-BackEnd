@@ -5,7 +5,8 @@ from django.conf import settings
 from sme_ptrf_apps.core.models import Unidade
 from sme_ptrf_apps.dre.models import Atribuicao
 from sme_ptrf_apps.dre.api.serializers.tecnico_dre_serializer import TecnicoDreLookUpSerializer
-from sme_ptrf_apps.core.services.membro_associacao_service import TerceirizadasService
+
+from ...users.services import SmeIntegracaoService
 
 logger = logging.getLogger(__name__)
 
@@ -44,26 +45,21 @@ def atualiza_dados_unidade(associacao) -> None:
 
 def atualiza_dados_pessoais_unidade(unidade: Unidade) -> None:
     """Consulta informações da unidade na API do eol"""
-    headers_eol = {
-        "Authorization": f"Token {settings.EOL_API_TERCEIRIZADAS_TOKEN}"
-    }
-    timeout = 10
 
     try:
-        response = requests.get(f'{settings.EOL_API_TERCEIRIZADAS_URL}/escolas_terceirizadas/',
-                                headers=headers_eol, timeout=timeout)
-        results = response.json()['results']
-        resultado = list(filter(lambda d: d['cd_unidade_educacao'] == unidade.codigo_eol, results))
+        response = SmeIntegracaoService.get_dados_unidade_eol(unidade.codigo_eol)
+
+        resultado = response.json()
         if resultado:
-            unidade_retorno = resultado[0]
-            unidade.nome = unidade_retorno.get('nm_unidade_educacao') or ''
+            unidade_retorno = resultado
+            unidade.nome = unidade_retorno.get('nome') or ''
             unidade.email = unidade_retorno.get('email') or ''
-            unidade.telefone = unidade_retorno.get('tel1') or ''
-            unidade.numero = unidade_retorno.get('cd_nr_endereco') or ''
-            unidade.tipo_logradouro = unidade_retorno.get('dc_tp_logradouro') or ''
-            unidade.logradouro = unidade_retorno.get('nm_logradouro') or ''
-            unidade.bairro = unidade_retorno.get('nm_bairro') or ''
-            unidade.cep = f"{unidade_retorno['cd_cep']:0>8}" or ''
+            unidade.telefone = unidade_retorno.get('telefone') or ''
+            unidade.numero = unidade_retorno.get('numero') or ''
+            unidade.tipo_logradouro = unidade_retorno.get('tipoLogradouro') or ''
+            unidade.logradouro = unidade_retorno.get('logradouro') or ''
+            unidade.bairro = unidade_retorno.get('bairro') or ''
+            unidade.cep = f"{unidade_retorno['cep']:0>8}" or ''
             unidade.save()
     except Exception as err:
         logger.info("Erro ao Atualizar dados pessoais da unidade %s", err)
@@ -102,22 +98,20 @@ def consulta_unidade(codigo_eol):
         logger.info(result['mensagem'])
     else:
         try:
-            response = TerceirizadasService.escolas_terceirizadas()
-            results = response['results']
-
-            resultado = list(filter(lambda d: d['cd_unidade_educacao'] == codigo_eol, results))
+            response = SmeIntegracaoService.get_dados_unidade_eol(codigo_eol)
+            resultado = response.json()
             if resultado:
-                unidade_retorno = resultado[0]
+                unidade_retorno = resultado
                 result['codigo_eol'] = codigo_eol
-                result['nome'] = unidade_retorno.get('nm_unidade_educacao') or ''
-                result['tipo_unidade'] = unidade_retorno.get('sg_tp_escola') or ''
+                result['nome'] = unidade_retorno.get('nome') or ''
+                result['tipo_unidade'] = unidade_retorno.get('tipoUnidade') or ''
                 result['email'] = unidade_retorno.get('email') or ''
-                result['telefone'] = unidade_retorno.get('tel1') or ''
-                result['numero'] = unidade_retorno.get('cd_nr_endereco') or ''
-                result['tipo_logradouro'] = unidade_retorno.get('dc_tp_logradouro') or ''
-                result['logradouro'] = unidade_retorno.get('nm_logradouro') or ''
-                result['bairro'] = unidade_retorno.get('nm_bairro') or ''
-                result['cep'] = f"{unidade_retorno['cd_cep']:0>8}" or ''
+                result['telefone'] = unidade_retorno.get('telefone') or ''
+                result['numero'] = unidade_retorno.get('numero') or ''
+                result['tipo_logradouro'] = unidade_retorno.get('tipoLogradouro') or ''
+                result['logradouro'] = unidade_retorno.get('logradouro') or ''
+                result['bairro'] = unidade_retorno.get('bairro') or ''
+                result['cep'] = f"{unidade_retorno['cep']:0>8}" or ''
                 logger.info("Unidade %s: %s localizada.", codigo_eol, result['nome'])
         except Exception as err:
             logger.info("Erro ao consultar código eol")
