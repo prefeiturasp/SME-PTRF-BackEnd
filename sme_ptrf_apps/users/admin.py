@@ -29,8 +29,8 @@ class UserAdmin(auth_admin.UserAdmin):
 
     form = UserChangeForm
     add_form = UserCreationForm
-    fieldsets = (("User", {"fields": ("name", "tipo_usuario")}),) + auth_admin.UserAdmin.fieldsets
-    list_display = ["uuid", "username", "name", "tipo_usuario", "is_superuser",]
+    fieldsets = (("User", {"fields": ("name", "e_servidor")}),) + auth_admin.UserAdmin.fieldsets
+    list_display = ["uuid", "username", "name", "e_servidor", "is_superuser",]
     search_fields = ["name"]
     inlines = [UnidadeInline, VisaoInline]
 
@@ -42,7 +42,7 @@ class PermissaoAdmin(admin.ModelAdmin):
 
     def nome_plicativo(self, obj):
         return obj.content_type.app_label
-    
+
     def nome_modelo(self, obj):
         return obj.content_type
 

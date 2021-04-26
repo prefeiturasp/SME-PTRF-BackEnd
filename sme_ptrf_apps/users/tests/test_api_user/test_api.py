@@ -166,7 +166,7 @@ def usuario_3(
     login = '7218198'
     email = 'sme8198@amcom.com.br'
     User = get_user_model()
-    user = User.objects.create_user(username=login, password=senha, email=email, name="Arthur Marques")
+    user = User.objects.create_user(username=login, password=senha, email=email, name="Arthur Marques", e_servidor=True)
     user.unidades.add(unidade)
     user.groups.add(grupo_2)
     user.visoes.add(visao_dre, visao_ue)
@@ -247,7 +247,7 @@ def test_lista_usuarios(
             'email': usuario_3.email,
             'name': usuario_3.name,
             'url': f'http://testserver/api/esqueci-minha-senha/{usuario_3.username}/',
-            'tipo_usuario': usuario_3.tipo_usuario,
+            'e_servidor': usuario_3.e_servidor,
             'groups': [{'id': grupo_2.id, 'name': grupo_2.name, 'descricao': grupo_2.descricao}]
         }
     ]
@@ -276,7 +276,7 @@ def test_filtro_por_grupo_lista_usuarios(
             'email': 'sme8198@amcom.com.br',
             'name': 'Arthur Marques',
             'url': 'http://testserver/api/esqueci-minha-senha/7218198/',
-            'tipo_usuario': usuario_3.tipo_usuario,
+            'e_servidor': usuario_3.e_servidor,
             'groups': [
                 {
                    'id': grupo_2.id,
@@ -309,7 +309,7 @@ def test_filtro_por_nome_lista_usuarios(
          'email': 'sme8198@amcom.com.br',
          'name': 'Arthur Marques',
          'url': 'http://testserver/api/esqueci-minha-senha/7218198/',
-         'tipo_usuario': usuario_3.tipo_usuario,
+         'e_servidor': usuario_3.e_servidor,
          'groups': [
              {
                 'id': grupo_2.id,
@@ -323,18 +323,16 @@ def test_filtro_por_nome_lista_usuarios(
 def test_criar_usuario_servidor(
         jwt_authenticated_client_u,
         grupo_1,
-        grupo_2,
         visao_dre):
 
     payload = {
-        'tipo_usuario': RepresentacaoCargo.SERVIDOR.name,
+        'e_servidor': True,
         'username': "9876543",
         'name': "Lukaku Silva",
         'email': 'lukaku@gmail.com',
         'visao': "DRE",
         'groups': [
             grupo_1.id,
-            grupo_2.id
         ]
     }
     response = jwt_authenticated_client_u.post(
@@ -345,8 +343,8 @@ def test_criar_usuario_servidor(
         'username': '9876543',
         'email': 'lukaku@gmail.com',
         'name': 'Lukaku Silva',
-        'tipo_usuario': RepresentacaoCargo.SERVIDOR.name,
-        'groups': [grupo_1.id, grupo_2.id]
+        'e_servidor': True,
+        'groups': [grupo_1.id,]
     }
     User = get_user_model()
     u = User.objects.filter(username='9876543').first()
@@ -359,18 +357,16 @@ def test_criar_usuario_servidor(
 def test_criar_usuario_servidor_sem_email_e_sem_nome(
         jwt_authenticated_client_u,
         grupo_1,
-        grupo_2,
         visao_dre):
 
     payload = {
-        'tipo_usuario': RepresentacaoCargo.SERVIDOR.name,
+        'e_servidor': True,
         'username': "9876543",
         'name': "",
         'email': "",
         'visao': "DRE",
         'groups': [
             grupo_1.id,
-            grupo_2.id
         ]
     }
     response = jwt_authenticated_client_u.post(
@@ -380,8 +376,8 @@ def test_criar_usuario_servidor_sem_email_e_sem_nome(
         'username': '9876543',
         'email': '',
         'name': '',
-        'tipo_usuario': RepresentacaoCargo.SERVIDOR.name,
-        'groups': [grupo_1.id, grupo_2.id]
+        'e_servidor': True,
+        'groups': [grupo_1.id,]
     }
     User = get_user_model()
     u = User.objects.filter(username='9876543').first()
@@ -404,7 +400,7 @@ def test_atualizar_usuario_servidor(
     assert not usuario_2.visoes.filter(nome='UE').first()
 
     payload = {
-        'tipo_usuario': RepresentacaoCargo.SERVIDOR.name,
+        'e_servidor': True,
         'username': usuario_2.username,
         'name': usuario_2.name,
         'email': 'novoEmail@gmail.com',
@@ -422,7 +418,7 @@ def test_atualizar_usuario_servidor(
         'username': usuario_2.username,
         'email': 'novoEmail@gmail.com',
         'name': usuario_2.name,
-        'tipo_usuario': RepresentacaoCargo.SERVIDOR.name,
+        'e_servidor': True,
         'groups': [grupo_1.id]
     }
 
@@ -487,7 +483,7 @@ def test_lista_usuarios_por_unidade(
         {
             'id': usuario_3.id,
             'name': 'Arthur Marques',
-            'tipo_usuario': 'Servidor',
+            'e_servidor': True,
             'url': 'http://testserver/api/esqueci-minha-senha/7218198/',
             'username': '7218198',
             'email': 'sme8198@amcom.com.br',
@@ -501,7 +497,7 @@ def test_lista_usuarios_por_unidade(
         {
             'id': usuario_para_teste.id,
             'name': 'LUCIA HELENA',
-            'tipo_usuario': 'Servidor',
+            'e_servidor': False,
             'url': 'http://testserver/api/esqueci-minha-senha/7210418/',
             'username': '7210418',
             'email': 'luh@gmail.com',

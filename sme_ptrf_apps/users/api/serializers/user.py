@@ -29,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "name", "url", "tipo_usuario", "groups"]
+        fields = ["id", "username", "email", "name", "url", "e_servidor", "groups"]
 
         extra_kwargs = {
             "url": {"view_name": "api:user-detail", "lookup_field": "username"}
@@ -48,7 +48,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["username", "email", "name", "tipo_usuario", "visao", "groups"]
+        fields = ["username", "email", "name", "e_servidor", "visao", "groups"]
 
     def create(self, validated_data):
         visao = validated_data.pop('visao')
@@ -64,7 +64,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         visao = validated_data.pop('visao')
-        
+
         if not instance.visoes.filter(nome=visao).first():
             visao_obj = Visao.objects.filter(nome=visao).first()
             instance.visoes.add(visao_obj)

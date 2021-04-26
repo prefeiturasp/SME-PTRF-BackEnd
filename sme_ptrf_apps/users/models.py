@@ -11,7 +11,6 @@ from sme_ptrf_apps.core.choices import RepresentacaoCargo
 from sme_ptrf_apps.core.models import Unidade
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 
-
 class Visao(ModeloIdNome):
 
     def __str__(self):
@@ -52,12 +51,7 @@ class User(AbstractUser):
         related_query_name="user",
     )
 
-    tipo_usuario = models.CharField(
-        'Tipo Usuário',
-        max_length=25,
-        choices=RepresentacaoCargo.choices(),
-        default=RepresentacaoCargo.SERVIDOR.value
-    )
+    e_servidor = models.BooleanField("servidor?", default=False)
 
     def get_absolute_url(self):
         return reverse("users:detail", kwargs={"username": self.username})
