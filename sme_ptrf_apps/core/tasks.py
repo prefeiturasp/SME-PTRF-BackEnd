@@ -127,15 +127,14 @@ def gerar_previa_relacao_de_bens_async(periodo_uuid, conta_associacao_uuid, data
     time_limet=600,
     soft_time_limit=300
 )
-def gerar_arquivo_ata_async(periodo_uuid, prestacao_de_contas_uuid, ata_uuid, usuario):
-    logger.info(f'Iniciando criação do Arquivo da Ata, periodo {periodo_uuid}, prestação {prestacao_de_contas_uuid} e ata {ata_uuid}')
+def gerar_arquivo_ata_async(prestacao_de_contas_uuid, ata_uuid, usuario):
+    logger.info(f'Iniciando criação do Arquivo da Ata, prestação {prestacao_de_contas_uuid} e ata {ata_uuid}')
     from sme_ptrf_apps.core.services.ata_service import gerar_arquivo_ata
 
-    periodo = Periodo.by_uuid(periodo_uuid)
     prestacao_de_contas = PrestacaoConta.by_uuid(prestacao_de_contas_uuid)
     ata = Ata.by_uuid(ata_uuid)
 
-    arquivo_ata = gerar_arquivo_ata(periodo=periodo, prestacao_de_contas=prestacao_de_contas, ata=ata, usuario=usuario)
+    arquivo_ata = gerar_arquivo_ata(prestacao_de_contas=prestacao_de_contas, ata=ata, usuario=usuario)
 
     if arquivo_ata is not None:
         logger.info(f'Arquivo ata: {arquivo_ata} gerado com sucesso.')

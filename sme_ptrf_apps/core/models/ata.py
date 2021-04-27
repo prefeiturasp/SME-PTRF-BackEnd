@@ -168,6 +168,10 @@ class Ata(ModeloBase):
         self.status_geracao_pdf = self.STATUS_CONCLUIDO
         self.save()
 
+    def arquivo_pdf_nao_gerado(self):
+        self.status_geracao_pdf = self.STATUS_NAO_GERADO
+        self.save()
+
     class Meta:
         verbose_name = "Ata"
         verbose_name_plural = "09.4) Atas"

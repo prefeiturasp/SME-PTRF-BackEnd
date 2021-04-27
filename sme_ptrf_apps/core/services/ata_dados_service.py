@@ -6,10 +6,10 @@ from sme_ptrf_apps.utils.numero_por_extenso import real
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_dados_ata(periodo=None, prestacao_de_contas=None, ata=None, usuario=None):
+def gerar_dados_ata(prestacao_de_contas=None, ata=None, usuario=None):
 
     try:
-        cabecalho = cria_cabecalho(periodo, ata)
+        cabecalho = cria_cabecalho(ata)
         info_financeira_ata = informacoes_financeiras_para_atas(prestacao_de_contas)
         dados_ata = {
             "cabecalho": cabecalho,
@@ -64,17 +64,16 @@ def data_por_extenso(data):
     return data_extenso
 
 
-def cria_cabecalho(periodo, ata):
+def cria_cabecalho(ata):
     """ GERA CABECALHO DOCUMENTO EM PDF ATA """
 
     cabecalho = {
         "titulo": "Programa de Transferências de Recuros Financeiros - PTRF",
         "subtitulo": "Prestação de Contas",
         "tipo_ata": 'Apresentação' if ata.tipo_ata == 'APRESENTACAO' else 'Retificação',
-        "periodo": str(periodo),
-        "periodo_referencia": periodo.referencia,
-        "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas) if periodo.data_inicio_realizacao_despesas else "___",
-        "periodo_data_fim": formata_data(periodo.data_fim_realizacao_despesas) if periodo.data_fim_realizacao_despesas else "___",
+        "periodo_referencia": ata.periodo.referencia,
+        "periodo_data_inicio": formata_data(ata.periodo.data_inicio_realizacao_despesas) if ata.periodo.data_inicio_realizacao_despesas else "___",
+        "periodo_data_fim": formata_data(ata.periodo.data_fim_realizacao_despesas) if ata.periodo.data_fim_realizacao_despesas else "___",
     }
 
     return cabecalho
