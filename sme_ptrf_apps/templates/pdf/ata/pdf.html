@@ -286,7 +286,7 @@
     todos, considerando encerrada a reunião, a qual eu, {{ dados.dados_texto_da_ata.secretario_reuniao }} lavrei a
     presente ata, que vai por mim assinada e pelos demais presentes.</p>
   {% language 'pt-br' %}
-    <p class="mt-4">São Paulo, dia {% now "j" %} de {% now "F" %} de {% now "Y" %}</p>
+    <p class="mt-4">São Paulo, dia {{ dados.dados_da_ata.data_reuniao|date:"d" }} de {{ dados.dados_da_ata.data_reuniao|date:"F"|lower }} de {{ dados.dados_da_ata.data_reuniao|date:"Y" }}</p>
   {% endlanguage %}
   {% comment %} FIM Texto dinâmico inferior {% endcomment %}
 

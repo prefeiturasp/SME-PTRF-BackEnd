@@ -33,25 +33,14 @@ class AtasViewSet(mixins.RetrieveModelMixin,
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def gerar_arquivo_ata(self, request):
 
-        periodo_uuid = request.query_params.get('periodo-uuid')
         prestacao_de_contas_uuid = request.query_params.get('prestacao-de-conta-uuid')
         ata_uuid = request.query_params.get('ata-uuid')
 
-        if not prestacao_de_contas_uuid or not ata_uuid or not periodo_uuid:
+        if not prestacao_de_contas_uuid or not ata_uuid:
             erro = {
                 'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid do período, o uuid da prestação de contas e o uuid da ata.'
+                'mensagem': 'É necessário enviar o uuid da prestação de contas e o uuid da ata.'
             }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            periodo = Periodo.by_uuid(periodo_uuid)
-        except ValidationError:
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto periodo para o uuid {prestacao_de_contas_uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
@@ -75,7 +64,6 @@ class AtasViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         gerar_arquivo_ata_async.delay(
-            periodo_uuid=periodo_uuid,
             prestacao_de_contas_uuid=prestacao_de_contas_uuid,
             ata_uuid=ata_uuid,
             usuario=request.user.username,
