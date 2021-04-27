@@ -12,9 +12,11 @@ def test_instance_model(ata_2020_1_cheque_aprovada):
     assert isinstance(model.prestacao_conta, PrestacaoConta)
     assert isinstance(model.associacao, Associacao)
     assert isinstance(model.periodo, Periodo)
+    assert f'{model.arquivo_pdf}.arquivo_pdf'
     assert model.tipo_ata
     assert model.tipo_reuniao
     assert model.convocacao
+    assert model.status_geracao_pdf
     assert model.data_reuniao
     assert model.local_reuniao
     assert model.presidente_reuniao
@@ -28,6 +30,7 @@ def test_instance_model(ata_2020_1_cheque_aprovada):
     assert model.uuid
     assert model.id
     assert model.preenchida_em is None
+
 
 def test_instance_mode_ata_retificacao(ata_2020_1_retificacao):
     model = ata_2020_1_retificacao
