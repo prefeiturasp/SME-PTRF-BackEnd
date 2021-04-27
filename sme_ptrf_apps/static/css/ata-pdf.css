@@ -1,0 +1,189 @@
+{% load static %}
+
+@charset "UTF-8";
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  src: url(../fonts/Roboto-Regular.ttf);
+}
+
+@page {
+  size: A4;
+  padding: 1cm 0 0 0;
+  margin: 2cm 1cm 1cm 3cm;
+  @top-center {
+    content: element(cabecalho);
+  }
+
+  @bottom-right {
+    color: #000;
+    content: counter(page) "/" counter(pages);
+    font-size: 8pt;
+    padding: 0 1cm;
+    margin: -2mm -9mm 0 0;
+    font-weight: bold;
+    font-style: italic;
+  }
+
+  @bottom-left {
+    color: #000;
+    /*content: counter(page) "/" counter(pages);*/
+    content: element(nome-associacao);
+    font-size: 9pt;
+    margin: 0 0 0 -2cm;
+  }
+}
+
+html {
+  font-family: Roboto, sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 10pt;
+}
+
+html body section#cabecalho, header {
+  background: #EEEEEE;
+  width: 215mm;
+  padding: 1cm 1cm 0.5cm 0.5cm;
+  margin: 0;
+}
+
+html body section#cabecalho .titulo, html body section#cabecalho .subtitulo, html body header .subtitulo {
+  font-weight: bold;
+  color: #0c0c0c;
+  font-family: Roboto, serif;
+}
+
+html body section#cabecalho .subtitulo, html body header .subtitulo {
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+header {
+  position: running(cabecalho);
+}
+
+#nome-associacao-rodape {
+  position: running(nome-associacao);
+}
+
+.border-rigth-logo {
+  border-right: 1px solid #A4A4A4;
+}
+
+.font-18 {
+  font-size: 18px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-16 {
+  font-size: 16px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-14 {
+  font-size: 14px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-12 {
+  font-size: 12px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-11 {
+  font-size: 10px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-10 {
+  font-size: 10px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.conteudo {
+  margin: 0 0 0 -2cm;
+  width: 72%;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.tabela-totais {
+  color: #000 !important;
+}
+
+.tabela-acoes .td-livre-aplicacao-ausente {
+  width: calc(100% / 5) !important;
+}
+
+.tabela-acoes .td-livre-aplicacao-ausente {
+  background-color: #E5E5E5 !important;
+}
+
+.tabela-totais .td-livre-aplicacao-ausente {
+  background-color: #E5E5E5 !important;
+}
+
+.titulo-visualizacao-da-ata {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.titulo-tabela-acoes {
+  color: #00585E;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.tabela-acoes, .tabela-totais {
+  max-width: 100%;
+  color: #000 !important;
+  font-size: 8pt !important;
+}
+
+.tabela-acoes th{
+  padding: 5px !important;
+  background-color: #F5F6F8 !important;
+}
+
+.tabela-totais th{
+    padding: 5px !important;
+  background-color: #2B7D83 !important;
+  color: #fff !important;
+}
+
+.tabela-acoes td, .tabela-totais td{
+  padding: 3px !important;
+}
+.tr-titulo{
+  background-color: #E0F7F9;
+ color: #000;
+}
+
+.texto-despesas-titulo {
+  font-family: Roboto, serif;
+  font-style: normal;
+  letter-spacing: normal;
+}
+
+.texto-despesas-valor {
+   font-family: Roboto, serif;
+  font-style: normal;
+  color: #00585e;
+  font-weight: bold;
+}
+
+.tabela-devolucoes-ao-tesouro th{
+  background-color: #A4A4A4;
+  color: #fff;
+}
+
+
+
