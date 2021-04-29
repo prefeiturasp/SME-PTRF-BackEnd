@@ -33,6 +33,31 @@ def unidade_diferente(dre):
         dre_designacao_ano='2017',
     )
 
+@pytest.fixture
+def unidade_ue_271170(dre):
+    return baker.make(
+        'Unidade',
+        nome='Escola Teste 271170',
+        tipo_unidade='EMEI',
+        codigo_eol='271170',
+        dre=dre,
+        sigla='ET9',
+        cep='5868120',
+        tipo_logradouro='Travessa',
+        logradouro='dos Testes',
+        bairro='COHAB INSTITUTO ADVENTISTA',
+        numero='100',
+        complemento='fundos',
+        telefone='99212627',
+        email='teste271170@sme.prefeitura.sp.gov.br',
+        diretor_nome='Maria Testando',
+        dre_cnpj='63.058.286/0001-86',
+        dre_diretor_regional_rf='1234567',
+        dre_diretor_regional_nome='Anthony Edward Stark',
+        dre_designacao_portaria='Portaria nº 0.000',
+        dre_designacao_ano='2017',
+    )
+
 
 @pytest.fixture
 def visao_ue():

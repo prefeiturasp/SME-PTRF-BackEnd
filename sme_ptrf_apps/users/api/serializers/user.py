@@ -14,6 +14,8 @@ from sme_ptrf_apps.users.api.validations.usuario_validations import (
 from sme_ptrf_apps.users.services import SmeIntegracaoException, SmeIntegracaoService
 from sme_ptrf_apps.users.models import Grupo, Visao
 
+from ....core.models import Unidade
+
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
@@ -45,18 +47,22 @@ class UserLookupSerializer(serializers.ModelSerializer):
 
 class UserCreateSerializer(serializers.ModelSerializer):
     visao = serializers.CharField(write_only=True)
+    unidade = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ["username", "email", "name", "e_servidor", "visao", "groups"]
+        fields = ["username", "email", "name", "e_servidor", "visao", "groups", "unidade"]
 
     def create(self, validated_data):
         visao = validated_data.pop('visao')
+        unidade = validated_data.pop('unidade')
         groups = validated_data.pop('groups')
         user = User.objects.create(**validated_data)
         visao_obj = Visao.objects.filter(nome=visao).first()
         user.visoes.add(visao_obj)
         user.groups.add(*groups)
+        unidade_obj = Unidade.objects.filter(codigo_eol=unidade).first()
+        user.unidades.add(unidade_obj)
         user.save()
 
         return user
@@ -64,10 +70,20 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         visao = validated_data.pop('visao')
+        unidade = validated_data.pop('unidade')
 
+        instance_atualizada = False
         if not instance.visoes.filter(nome=visao).first():
             visao_obj = Visao.objects.filter(nome=visao).first()
             instance.visoes.add(visao_obj)
+            instance_atualizada = True
+
+        if not instance.unidades.filter(codigo_eol=unidade).first():
+            unidade_obj = Unidade.objects.filter(codigo_eol=unidade).first()
+            instance.unidades.add(unidade_obj)
+            instance_atualizada = True
+
+        if instance_atualizada:
             instance.save()
 
         return super().update(instance, validated_data)
