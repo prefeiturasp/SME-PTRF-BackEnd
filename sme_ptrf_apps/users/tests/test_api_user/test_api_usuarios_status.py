@@ -6,6 +6,7 @@ from rest_framework import status
 
 pytestmark = pytest.mark.django_db
 
+
 def test_consulta_informacao_usuario_sem_username(jwt_authenticated_client_u):
     response = jwt_authenticated_client_u.get(f'/api/usuarios/status/?username=')
     result = json.loads(response.content)
@@ -58,7 +59,8 @@ def test_get_usuario_status_servidor_cadastrado_sig_escola_nao_cadastrado_core_s
         usuario_sig_escola_esperado = {
             'info_sig_escola': {
                 'visoes': ['UE'],
-                'unidades': ['123456',],
+                'unidades': ['123456', ],
+                'associacoes_que_e_membro': []
             },
             'mensagem': 'Usuário encontrado no Sig.Escola.'
         }
@@ -110,3 +112,41 @@ def test_get_usuario_status_nao_servidor_username_invalido(jwt_authenticated_cli
         assert response.status_code == status.HTTP_200_OK
         assert result == esperado
 
+
+def test_get_usuario_status_servidor_membro_associacoes(
+    jwt_authenticated_client_u,
+    usuario_nao_servidor,
+    associacao_271170,
+    membro_associacao_00746198701
+):
+    path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.usuario_core_sso_or_none'
+    with patch(path) as mock_get:
+
+        mock_get.return_value = None
+
+        username = '00746198701'
+        response = jwt_authenticated_client_u.get(f'/api/usuarios/status/?username={username}&servidor=False')
+
+        usuario_sig_escola_esperado = {
+            'info_sig_escola': {
+                'visoes': ['UE', 'DRE'],
+                'unidades': ['123456', ],
+                'associacoes_que_e_membro': [f'{associacao_271170.uuid}', ]
+            },
+            'mensagem': 'Usuário encontrado no Sig.Escola.'
+        }
+        esperado = {
+            'usuario_core_sso': {
+                'info_core_sso': None,
+                'mensagem': 'Usuário não encontrado no CoreSSO.'
+            },
+            'usuario_sig_escola': usuario_sig_escola_esperado,
+            'validacao_username': {
+                'username_e_valido': True,
+                'mensagem': "",
+            }
+        }
+
+        result = json.loads(response.content)
+        assert response.status_code == status.HTTP_200_OK
+        assert result == esperado

@@ -33,6 +33,7 @@ def unidade_diferente(dre):
         dre_designacao_ano='2017',
     )
 
+
 @pytest.fixture
 def unidade_ue_271170(dre):
     return baker.make(
@@ -56,6 +57,36 @@ def unidade_ue_271170(dre):
         dre_diretor_regional_nome='Anthony Edward Stark',
         dre_designacao_portaria='Portaria nº 0.000',
         dre_designacao_ano='2017',
+    )
+
+
+@pytest.fixture
+def associacao_271170(unidade_ue_271170):
+    return baker.make(
+        'Associacao',
+        nome='Associacao 271170',
+        cnpj='62.738.735/0001-74',
+        unidade=unidade_ue_271170,
+        status_regularidade='PENDENTE'
+    )
+
+
+@pytest.fixture
+def membro_associacao_00746198701(associacao_271170):
+    return baker.make(
+        'MembroAssociacao',
+        nome='Jose Testando',
+        associacao=associacao_271170,
+        cargo_associacao="VOGAL_1",
+        cargo_educacao='',
+        representacao="ESTUDANTE",
+        codigo_identificacao='',
+        email='jose@teste.com',
+        cpf='007.461.987-01',
+        telefone='11992137854',
+        cep='04302000',
+        bairro='Vila Teste',
+        endereco='Rua Teste, 57'
     )
 
 
@@ -231,6 +262,7 @@ def usuario_nao_servidor(
     user.visoes.add(visao_dre, visao_ue)
     user.save()
     return user
+
 
 @pytest.fixture
 def jwt_authenticated_client_u2(client, usuario_2):

@@ -26,3 +26,21 @@ def test_instance_model(membro_associacao):
 def test_admin():
     from django.contrib import admin
     assert admin.site._registry[MembroAssociacao]
+
+
+def test_associacoes_onde_cpf_e_membro(membro_associacao):
+    cpf = "14871297004"
+    associacoes_esperadas = [membro_associacao.associacao.uuid]
+    assert list(MembroAssociacao.associacoes_onde_cpf_e_membro(cpf=cpf)) == associacoes_esperadas
+
+
+def test_associacoes_onde_cpf_e_membro_resultado_vazio(membro_associacao):
+    cpf_inexistente = "00746198701"
+    associacoes_esperadas = []
+    assert list(MembroAssociacao.associacoes_onde_cpf_e_membro(cpf=cpf_inexistente)) == associacoes_esperadas
+
+
+def test_associacoes_onde_cpf_e_membro_cpf_invalido(membro_associacao):
+    cpf_invalido = "123456"
+    associacoes_esperadas = []
+    assert list(MembroAssociacao.associacoes_onde_cpf_e_membro(cpf=cpf_invalido)) == associacoes_esperadas

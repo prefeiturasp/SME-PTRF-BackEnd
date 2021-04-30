@@ -133,9 +133,9 @@ class UserViewSet(ModelViewSet):
         except ConnectTimeout:
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
 
-
     @action(detail=False, methods=['get'], url_path='status')
     def usuario_status(self, request):
+        from ....core.models.membro_associacao import MembroAssociacao
 
         username = request.query_params.get('username')
 
@@ -158,10 +158,12 @@ class UserViewSet(ModelViewSet):
 
         try:
             user_sig_escola = User.objects.get(username=username)
+            onde_e_membro = MembroAssociacao.associacoes_onde_cpf_e_membro(cpf=username) if not e_servidor else []
             info_sig_escola = {
                 'info_sig_escola': {
                     'visoes': user_sig_escola.visoes.values_list('nome', flat=True),
                     'unidades': user_sig_escola.unidades.values_list('codigo_eol', flat=True),
+                    'associacoes_que_e_membro': onde_e_membro
                 },
                 'mensagem': 'Usuário encontrado no Sig.Escola.'
             }
