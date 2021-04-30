@@ -59,12 +59,16 @@ class RateioDespesaInLine(admin.TabularInline):
 
 @admin.register(Despesa)
 class DespesaAdmin(admin.ModelAdmin):
-    list_display = ('tipo_documento', 'numero_documento', 'data_documento', 'nome_fornecedor', 'valor_total', 'status')
+    list_display = (
+        'tipo_documento', 'numero_documento', 'data_documento', 'nome_fornecedor', 'valor_total', 'status', 'associacao')
     ordering = ('-data_documento',)
-    search_fields = ('numero_documento', 'nome_fornecedor', 'documento_transacao')
+    search_fields = ('numero_documento', 'nome_fornecedor', 'documento_transacao', 'associacao__nome', 'associacao__unidade__codigo_eol')
     list_filter = ('status', 'associacao')
     inlines = [RateioDespesaInLine, ]
     readonly_fields = ('uuid', 'id')
+
+    def associacao(self, obj):
+        return obj.associacao.nome if obj.associacao else ''
 
 
 @admin.register(EspecificacaoMaterialServico)
