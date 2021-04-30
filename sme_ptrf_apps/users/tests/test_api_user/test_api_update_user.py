@@ -1,7 +1,10 @@
 import json
 import pytest
 
+from unittest.mock import patch
+
 pytestmark = pytest.mark.django_db
+
 
 def test_atualizar_usuario_servidor(
         jwt_authenticated_client_u,
@@ -32,8 +35,16 @@ def test_atualizar_usuario_servidor(
         ]
     }
 
-    response = jwt_authenticated_client_u.put(
-        f"/api/usuarios/{usuario_2.id}/", data=json.dumps(payload), content_type='application/json')
+    api_usuario_core_sso_or_none = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.usuario_core_sso_or_none'
+    api_cria_usuario_core_sso = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.cria_usuario_core_sso'
+    api_atribuir_perfil_core_sso = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.atribuir_perfil_coresso'
+    with patch(api_usuario_core_sso_or_none) as mock_usuario_core_sso_or_none:
+        mock_usuario_core_sso_or_none.return_value = None
+        with patch(api_cria_usuario_core_sso) as mock_cria_usuario_core_sso:
+            with patch(api_atribuir_perfil_core_sso) as mock_atribuir_perfil_core_sso:
+                response = jwt_authenticated_client_u.put(
+                    f"/api/usuarios/{usuario_2.id}/", data=json.dumps(payload), content_type='application/json')
+
     result = response.json()
 
     esperado = {
@@ -47,3 +58,12 @@ def test_atualizar_usuario_servidor(
     assert usuario_2.visoes.filter(nome='UE').first(), "Deveria ter sido vinculado à visão UE."
     assert usuario_2.unidades.filter(codigo_eol='271170').first(), "Deveria ter sido vinculado à unidade 271170."
     assert result == esperado
+
+    mock_usuario_core_sso_or_none.assert_called_once_with(login='7211981')
+    mock_cria_usuario_core_sso.assert_called_once_with(
+        e_servidor=True,
+        email='novoEmail@gmail.com',
+        login='7211981',
+        nome='Usuario 2'
+    )
+    mock_atribuir_perfil_core_sso.assert_called_once_with(login='7211981', visao='UE')

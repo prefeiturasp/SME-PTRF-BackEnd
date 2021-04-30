@@ -11,7 +11,8 @@ from sme_ptrf_apps.users.api.validations.usuario_validations import (
     senha_nao_pode_ser_nulo,
     senhas_devem_ser_iguais,
 )
-from sme_ptrf_apps.users.services import SmeIntegracaoException, SmeIntegracaoService
+from sme_ptrf_apps.users.services import (SmeIntegracaoException, SmeIntegracaoService,
+                                          cria_ou_atualiza_usuario_core_sso)
 from sme_ptrf_apps.users.models import Grupo, Visao
 
 from ....core.models import Unidade
@@ -39,7 +40,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserLookupSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = User
         fields = ["id", "username"]
@@ -54,37 +54,48 @@ class UserCreateSerializer(serializers.ModelSerializer):
         fields = ["username", "email", "name", "e_servidor", "visao", "groups", "unidade"]
 
     def create(self, validated_data):
-        visao = validated_data.pop('visao')
-        unidade = validated_data.pop('unidade')
-        groups = validated_data.pop('groups')
-        user = User.objects.create(**validated_data)
-        visao_obj = Visao.objects.filter(nome=visao).first()
-        user.visoes.add(visao_obj)
-        user.groups.add(*groups)
-        unidade_obj = Unidade.objects.filter(codigo_eol=unidade).first()
-        user.unidades.add(unidade_obj)
-        user.save()
+        try:
+            cria_ou_atualiza_usuario_core_sso(
+                dados_usuario={
+                    "login": validated_data["username"],
+                    "visao": validated_data["visao"],
+                    "eol_unidade": validated_data["unidade"],
+                    "email": validated_data["email"],
+                    "nome": validated_data["name"],
+                    "servidor_s_n": "S" if validated_data["e_servidor"] else "N",
+                }
+            )
+            logger.info(f'Usuário {validated_data["username"]} criado/atualizado no CoreSSO com sucesso.')
+
+        except Exception as e:
+            logger.error(f'Erro ao tentar cria/atualizar usuário {validated_data["username"]} no CoreSSO: {str(e)}')
+
+        user = User.criar_usuario(dados=validated_data)
 
         return user
 
-
     def update(self, instance, validated_data):
+        try:
+            cria_ou_atualiza_usuario_core_sso(
+                dados_usuario={
+                    "login": validated_data["username"],
+                    "visao": validated_data["visao"],
+                    "eol_unidade": validated_data["unidade"],
+                    "email": validated_data["email"],
+                    "nome": validated_data["name"],
+                    "servidor_s_n": "S" if validated_data["e_servidor"] else "N",
+                }
+            )
+            logger.info(f'Usuário {validated_data["username"]} criado/atualizado no CoreSSO com sucesso.')
+
+        except Exception as e:
+            logger.error(f'Erro ao tentar cria/atualizar usuário {validated_data["username"]} no CoreSSO: {str(e)}')
+
         visao = validated_data.pop('visao')
+        instance.add_visao_se_nao_existir(visao=visao)
+
         unidade = validated_data.pop('unidade')
-
-        instance_atualizada = False
-        if not instance.visoes.filter(nome=visao).first():
-            visao_obj = Visao.objects.filter(nome=visao).first()
-            instance.visoes.add(visao_obj)
-            instance_atualizada = True
-
-        if not instance.unidades.filter(codigo_eol=unidade).first():
-            unidade_obj = Unidade.objects.filter(codigo_eol=unidade).first()
-            instance.unidades.add(unidade_obj)
-            instance_atualizada = True
-
-        if instance_atualizada:
-            instance.save()
+        instance.add_unidade_se_nao_existir(unidade=unidade)
 
         return super().update(instance, validated_data)
 
@@ -145,6 +156,6 @@ class RedefinirSenhaSerializer(serializers.ModelSerializer):
 
         return instance
 
-        class Meta:
-            model = User
-            fields = ['password_atual', 'password', 'password2']
+    class Meta:
+        model = User
+        fields = ['password_atual', 'password', 'password2']

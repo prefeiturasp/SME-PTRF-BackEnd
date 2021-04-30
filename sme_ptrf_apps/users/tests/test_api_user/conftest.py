@@ -166,8 +166,9 @@ def usuario_2(
     senha = 'Sgp1981'
     login = '7211981'
     email = 'sme1981@amcom.com.br'
+    nome  = 'Usuario 2'
     User = get_user_model()
-    user = User.objects.create_user(username=login, password=senha, email=email)
+    user = User.objects.create_user(username=login, password=senha, email=email, name=nome)
     user.unidades.add(unidade_diferente)
     user.groups.add(grupo_2, grupo_3)
     user.visoes.add(visao_dre, visao_sme)

@@ -66,6 +66,43 @@ class User(AbstractUser):
             return True
         return False
 
+    def add_visao_se_nao_existir(self, visao):
+        if not self.visoes.filter(nome=visao).first():
+            visao_obj = Visao.objects.filter(nome=visao).first()
+            if visao_obj:
+                self.visoes.add(visao_obj)
+                self.save()
+
+    def add_unidade_se_nao_existir(self, unidade):
+        if not self.unidades.filter(nome=unidade).first():
+            unidade_obj = Unidade.objects.filter(codigo_eol=unidade).first()
+            if unidade_obj:
+                self.unidades.add(unidade_obj)
+                self.save()
+
+    @classmethod
+    def criar_usuario(cls, dados):
+        """ Recebe dados de usuário incluindo as listas de unidades, visões e grupos vinculados a ele e cria o usuário
+        vinculando a eles as unidades, visões e grupos de acesso.
+        """
+        visao = dados.pop('visao')
+        visao_obj = Visao.objects.filter(nome=visao).first()
+
+        unidade = dados.pop('unidade')
+        unidade_obj = Unidade.objects.filter(codigo_eol=unidade).first()
+
+        groups = dados.pop('groups')
+
+        user = cls.objects.create(**dados)
+
+        user.visoes.add(visao_obj)
+        user.groups.add(*groups)
+        user.unidades.add(unidade_obj)
+
+        user.save()
+
+        return user
+
     class Meta:
         verbose_name = 'Usuário'
         verbose_name_plural = 'Usuários'

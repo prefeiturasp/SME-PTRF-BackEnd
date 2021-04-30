@@ -37,7 +37,8 @@ def test_get_usuario_status_cadastrado_core_sso_nao_cadastrado_sig_escola(jwt_au
             'usuario_sig_escola': {
                 'info_sig_escola': None,
                 'mensagem': 'Usuário não encontrado no Sig.Escola.'
-            }
+            },
+            'validacao_username': {'mensagem': '', 'username_e_valido': True}
         }
 
         result = json.loads(response.content)
