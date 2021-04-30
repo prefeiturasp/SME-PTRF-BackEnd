@@ -2,7 +2,8 @@ import pytest
 
 pytestmark = pytest.mark.django_db
 
-def test_lista_usuarios(
+
+def test_lista_usuarios_por_visao(
         jwt_authenticated_client_u,
         usuario_para_teste,
         usuario_3,
@@ -139,4 +140,55 @@ def test_lista_usuarios_por_unidade(
 
     ]
     print(result)
+    assert result == esperado
+
+
+def test_lista_usuarios_por_e_servidor_true(
+        jwt_authenticated_client_u,
+        usuario_servidor,
+        usuario_nao_servidor,
+        visao_ue,
+        visao_dre,
+        visao_sme,
+        permissao1,
+        permissao2,
+        grupo_1,
+        grupo_2):
+
+    response = jwt_authenticated_client_u.get("/api/usuarios/?servidor=True", content_type='application/json')
+    result = response.json()
+    esperado = [
+        {
+            'id': usuario_servidor.id,
+            'username': usuario_servidor.username,
+            'email': usuario_servidor.email,
+            'name': usuario_servidor.name,
+            'url': f'http://testserver/api/esqueci-minha-senha/{usuario_servidor.username}/',
+            'e_servidor': usuario_servidor.e_servidor,
+            'groups': [{'id': grupo_2.id, 'name': grupo_2.name, 'descricao': grupo_2.descricao}]
+        }
+    ]
+    assert result == esperado
+
+
+def test_lista_usuarios_por_e_servidor_false(
+        jwt_authenticated_client_u,
+        usuario_servidor,
+        usuario_para_teste,
+        grupo_1,
+        grupo_2):
+
+    response = jwt_authenticated_client_u.get("/api/usuarios/?servidor=False", content_type='application/json')
+    result = response.json()
+    esperado = [
+        {
+            'id': usuario_para_teste.id,
+            'username': usuario_para_teste.username,
+            'email': 'luh@gmail.com',
+            'name': 'LUCIA HELENA',
+            'url': f'http://testserver/api/esqueci-minha-senha/{usuario_para_teste.username}/',
+            'e_servidor': usuario_para_teste.e_servidor,
+            'groups': [{'id': grupo_1.id, 'name': grupo_1.name, 'descricao': grupo_1.descricao}]
+        }
+    ]
     assert result == esperado

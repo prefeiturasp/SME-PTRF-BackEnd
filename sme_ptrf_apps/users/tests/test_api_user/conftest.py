@@ -196,6 +196,43 @@ def usuario_3(
 
 
 @pytest.fixture
+def usuario_servidor(
+        unidade,
+        grupo_2,
+        visao_dre,
+        visao_ue):
+
+    senha = 'Sgp8198'
+    login = '7218198'
+    email = 'sme8198@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email, name="Arthur Marques", e_servidor=True)
+    user.unidades.add(unidade)
+    user.groups.add(grupo_2)
+    user.visoes.add(visao_dre, visao_ue)
+    user.save()
+    return user
+
+
+@pytest.fixture
+def usuario_nao_servidor(
+        unidade,
+        grupo_2,
+        visao_dre,
+        visao_ue):
+
+    senha = 'Sgp8701'
+    login = '00746198701'
+    email = 'teste123@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email, name="Arthur Marques", e_servidor=False)
+    user.unidades.add(unidade)
+    user.groups.add(grupo_2)
+    user.visoes.add(visao_dre, visao_ue)
+    user.save()
+    return user
+
+@pytest.fixture
 def jwt_authenticated_client_u2(client, usuario_2):
     from unittest.mock import patch
 

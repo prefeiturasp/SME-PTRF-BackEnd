@@ -60,6 +60,11 @@ class UserViewSet(ModelViewSet):
         if username:
             qs = qs.filter(username=username)
 
+        servidor = self.request.query_params.get('servidor')
+        if servidor:
+            e_servidor = servidor == 'True'
+            qs = qs.filter(e_servidor=e_servidor)
+
         return qs
 
     @action(detail=False, methods=["GET"])
@@ -110,7 +115,7 @@ class UserViewSet(ModelViewSet):
             logging.info("Erro ao buscar grupos do usuário %s", erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-    #TODO Rever url_path 'usuarios/consultar'. É boa prática em APIs Rest evitar verbos. Poderia ser 'servidores'
+    # TODO Rever url_path 'usuarios/consultar'. É boa prática em APIs Rest evitar verbos. Poderia ser 'servidores'
     @action(detail=False, methods=['get'], url_path='consultar')
     def consulta_servidor_sgp(self, request):
         username = self.request.query_params.get('username')
@@ -127,7 +132,6 @@ class UserViewSet(ModelViewSet):
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
         except ConnectTimeout:
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
-
 
 
     @action(detail=False, methods=['get'], url_path='status')
