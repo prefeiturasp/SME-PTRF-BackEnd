@@ -76,7 +76,6 @@ def _criar_documentos(acoes, contas, periodo, prestacao, usuario):
     logger.info(f'Criando documentos do período {periodo} e prestacao {prestacao}...')
 
     for conta in contas:
-
         logger.info(f'Gerando relação de bens da conta {conta}.')
         gerar_arquivo_relacao_de_bens(periodo=periodo, conta_associacao=conta, prestacao=prestacao)
 
@@ -238,7 +237,8 @@ def lista_prestacoes_de_conta_nao_recebidas(
     periodo,
     filtro_nome=None, filtro_tipo_unidade=None, filtro_status=None
 ):
-    associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by('nome')
+    associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by(
+        'unidade__tipo_unidade', 'unidade__nome')
 
     if filtro_nome is not None:
         associacoes_da_dre = associacoes_da_dre.filter(Q(nome__unaccent__icontains=filtro_nome) | Q(
@@ -273,6 +273,7 @@ def lista_prestacoes_de_conta_nao_recebidas(
             'tecnico_responsavel': '',
             'unidade_eol': associacao.unidade.codigo_eol,
             'unidade_nome': associacao.unidade.nome,
+            'unidade_tipo_unidade': associacao.unidade.tipo_unidade,
             'uuid': f'{prestacao_conta.uuid}' if prestacao_conta else '',
             'associacao_uuid': f'{associacao.uuid}',
             'devolucao_ao_tesouro': '0,00'
@@ -283,8 +284,8 @@ def lista_prestacoes_de_conta_nao_recebidas(
     return prestacoes
 
 
-def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, prestacao=None, usuario="", previa=False):
-
+def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, prestacao=None, usuario="",
+                                             previa=False):
     logger.info(f'Criando registro do demonstrativo financeiro da conta {conta_associacao}.')
     demonstrativo, _ = DemonstrativoFinanceiro.objects.update_or_create(
         conta_associacao=conta_associacao,
