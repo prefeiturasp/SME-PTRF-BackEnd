@@ -4,16 +4,12 @@ import logging
 
 from django.contrib.auth import get_user_model
 
-from brazilnum.cpf import validate_cpf
-
 from sme_ptrf_apps.core.models import Unidade
 from sme_ptrf_apps.users.models import Visao
 
 from sme_ptrf_apps.core.models.arquivo import DELIMITADOR_PONTO_VIRGULA, DELIMITADOR_VIRGULA, ERRO, PROCESSADO_COM_ERRO, SUCESSO
 
 from sme_ptrf_apps.users.models import Grupo
-
-from sme_ptrf_apps.users.services import SmeIntegracaoException, SmeIntegracaoService
 
 logger = logging.getLogger(__name__)
 
@@ -166,51 +162,6 @@ class CargaUsuariosService:
 
         return usuario
 
-    def cria_ou_atualiza_usuario_core_sso(self, dados_usuario):
-        """ Verifica se usuário já existe no CoreSSO e cria se não existir
-
-        :param dados_usuario:
-        :return:
-        """
-        from requests import ConnectTimeout, ReadTimeout
-
-        try:
-            info_user_core = SmeIntegracaoService.usuario_core_sso_or_none(login=dados_usuario['login'])
-
-            if not info_user_core:
-                # Valida o nome
-                if not dados_usuario['nome']:
-                    raise CargaUsuarioException(f"Nome é necessário para criação do usuário ({dados_usuario['login']}).")
-
-                # Valida login no caso de não servidor
-                if dados_usuario['servidor_s_n'] == "N" and not validate_cpf(dados_usuario['login']):
-                    raise CargaUsuarioException(f"Login de não servidor ({dados_usuario['login']}) não é um CPF válido.")
-
-                SmeIntegracaoService.cria_usuario_core_sso(
-                    login=dados_usuario['login'],
-                    nome=dados_usuario['nome'],
-                    email=dados_usuario["email"] if dados_usuario["email"] else "",
-                    e_servidor=dados_usuario['servidor_s_n'] == "S"
-                )
-                logger.info(f"Criado usuário no CoreSSO {dados_usuario['login']}.")
-
-            if info_user_core and dados_usuario["email"] and info_user_core["email"] != dados_usuario["email"]:
-                SmeIntegracaoService.redefine_email(dados_usuario['login'], dados_usuario["email"])
-                logger.info(f"Atualizado e-mail do usuário no CoreSSO {dados_usuario['login']}, {dados_usuario['email']}.")
-
-            if dados_usuario["visao"] :
-                SmeIntegracaoService.atribuir_perfil_coresso(login=dados_usuario['login'], visao=dados_usuario['visao'])
-                logger.info(f"Visão {dados_usuario['visao']} vinculada ao usuário {dados_usuario['login']} no CoreSSO.")
-
-        except SmeIntegracaoException as e:
-            raise CargaUsuarioException(f'Erro {str(e)} ao criar/atualizar usuário {dados_usuario["login"]} no CoreSSO.')
-
-        except ReadTimeout:
-            raise CargaUsuarioException(f'Erro de ReadTimeout ao tentar criar/atualizar usuário {dados_usuario["login"]} no CoreSSO.')
-
-        except ConnectTimeout:
-            raise CargaUsuarioException(f'Erro de ConnectTimeout ao tentar criar/atualizar usuário {dados_usuario["login"]} no CoreSSO.')
-
     def atualiza_status_arquivo(self, arquivo):
         if self.__importados > 0 and self.__erros > 0:
             arquivo.status = PROCESSADO_COM_ERRO
@@ -227,6 +178,8 @@ class CargaUsuariosService:
         arquivo.save()
 
     def processa_importacao_usuarios(self, reader, arquivo):
+        from sme_ptrf_apps.users.services.usuario_core_sso_service import cria_ou_atualiza_usuario_core_sso
+
         self.inicializa_log()
         try:
             for index, linha in enumerate(reader):
@@ -235,7 +188,7 @@ class CargaUsuariosService:
                 try:
                     dados_usuario = self.carrega_e_valida_dados_usuarios(linha, index)
                     self.cria_ou_atualiza_usuario_admin(dados_usuario)
-                    self.cria_ou_atualiza_usuario_core_sso(dados_usuario)
+                    cria_ou_atualiza_usuario_core_sso(dados_usuario)
                     self.loga_sucesso_carga_usuario(dados_usuario)
                 except Exception as e:
                     self.loga_erro_carga_usuario(str(e), index)
@@ -248,7 +201,7 @@ class CargaUsuariosService:
             self.atualiza_status_arquivo(arquivo)
 
     def carrega_usuarios(self, arquivo):
-        from sme_ptrf_apps.core.models.arquivo import DELIMITADOR_PONTO_VIRGULA, DELIMITADOR_VIRGULA, ERRO, PROCESSADO_COM_ERRO, SUCESSO
+        from sme_ptrf_apps.core.models.arquivo import DELIMITADOR_PONTO_VIRGULA, DELIMITADOR_VIRGULA
 
         __DELIMITADORES = {',': DELIMITADOR_VIRGULA, ';': DELIMITADOR_PONTO_VIRGULA}
 
