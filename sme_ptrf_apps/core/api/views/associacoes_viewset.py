@@ -100,7 +100,7 @@ class AssociacoesViewSet(ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_queryset(self):
-        qs = Associacao.objects.all()
+        qs = Associacao.objects.all().order_by('unidade__tipo_unidade', 'unidade__nome')
 
         nome = self.request.query_params.get('nome')
         if nome is not None:
