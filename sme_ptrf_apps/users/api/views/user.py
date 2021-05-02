@@ -135,7 +135,7 @@ class UserViewSet(ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='status')
     def usuario_status(self, request):
-        from ....core.models.membro_associacao import MembroAssociacao
+        from ....core.models import MembroAssociacao, Unidade
 
         username = request.query_params.get('username')
 
@@ -143,6 +143,26 @@ class UserViewSet(ModelViewSet):
             return Response("Parâmetro username obrigatório.", status=status.HTTP_400_BAD_REQUEST)
 
         e_servidor = request.query_params.get('servidor', 'True') == 'True'
+
+        unidade_uuid = request.query_params.get('unidade')
+        unidade = None
+        if unidade_uuid:
+            try:
+                unidade = Unidade.objects.get(uuid=unidade_uuid)
+            except Unidade.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto unidade para o uuid {unidade_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        e_servidor_na_unidade = False
+        if e_servidor and unidade:
+            e_servidor_na_unidade = SmeIntegracaoService.get_cargos_do_rf_na_escola(
+                rf=username,
+                codigo_eol=unidade.codigo_eol
+            ) != []
 
         try:
             user_core_sso = SmeIntegracaoService.usuario_core_sso_or_none(username)
@@ -173,11 +193,11 @@ class UserViewSet(ModelViewSet):
                 'mensagem': 'Usuário não encontrado no Sig.Escola.'
             }
 
-
         result = {
             'usuario_core_sso': info_core_sso,
             'usuario_sig_escola': info_sig_escola,
-            'validacao_username': validar_username(username=username, e_servidor=e_servidor)
+            'validacao_username': validar_username(username=username, e_servidor=e_servidor),
+            'e_servidor_na_unidade': e_servidor_na_unidade,
         }
 
         return Response(result, status=status.HTTP_200_OK)
