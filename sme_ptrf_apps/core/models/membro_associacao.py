@@ -1,8 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import Q
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
+
+from brazilnum.cpf import validate_cpf, format_cpf
 
 from sme_ptrf_apps.core.choices import MembroEnum, RepresentacaoCargo
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
@@ -53,4 +52,14 @@ class MembroAssociacao(ModeloBase):
     def __str__(self):
         return f"<Nome: {self.nome}, Representacao: {self.representacao}>"
 
+    @classmethod
+    def associacoes_onde_cpf_e_membro(cls, cpf):
+        if not validate_cpf(cpf):
+            return []
 
+        cpf_formatado = format_cpf(cpf)
+
+        associacoes = cls.objects.filter(
+            cpf=cpf_formatado).distinct("associacao").values_list("associacao__uuid", flat=True)
+
+        return associacoes

@@ -1,1 +1,4 @@
 from .sme_integracao_service import SmeIntegracaoService, SmeIntegracaoException
+from .usuario_core_sso_service import cria_ou_atualiza_usuario_core_sso
+from .validacao_username_service import validar_username
+

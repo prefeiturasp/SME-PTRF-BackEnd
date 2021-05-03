@@ -16,6 +16,7 @@ from sme_ptrf_apps.users.api.serializers import (
 )
 from sme_ptrf_apps.users.models import Grupo
 from sme_ptrf_apps.users.services import SmeIntegracaoException, SmeIntegracaoService
+from sme_ptrf_apps.users.services.validacao_username_service import validar_username
 
 User = get_user_model()
 
@@ -58,6 +59,11 @@ class UserViewSet(ModelViewSet):
         username = self.request.query_params.get('username')
         if username:
             qs = qs.filter(username=username)
+
+        servidor = self.request.query_params.get('servidor')
+        if servidor:
+            e_servidor = servidor == 'True'
+            qs = qs.filter(e_servidor=e_servidor)
 
         return qs
 
@@ -109,6 +115,7 @@ class UserViewSet(ModelViewSet):
             logging.info("Erro ao buscar grupos do usuário %s", erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+    # TODO Rever url_path 'usuarios/consultar'. É boa prática em APIs Rest evitar verbos. Poderia ser 'servidores'
     @action(detail=False, methods=['get'], url_path='consultar')
     def consulta_servidor_sgp(self, request):
         username = self.request.query_params.get('username')
@@ -125,3 +132,72 @@ class UserViewSet(ModelViewSet):
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
         except ConnectTimeout:
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='status')
+    def usuario_status(self, request):
+        from ....core.models import MembroAssociacao, Unidade
+
+        username = request.query_params.get('username')
+
+        if not username:
+            return Response("Parâmetro username obrigatório.", status=status.HTTP_400_BAD_REQUEST)
+
+        e_servidor = request.query_params.get('servidor', 'True') == 'True'
+
+        unidade_uuid = request.query_params.get('unidade')
+        unidade = None
+        if unidade_uuid:
+            try:
+                unidade = Unidade.objects.get(uuid=unidade_uuid)
+            except Unidade.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto unidade para o uuid {unidade_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        e_servidor_na_unidade = False
+        if e_servidor and unidade:
+            e_servidor_na_unidade = SmeIntegracaoService.get_cargos_do_rf_na_escola(
+                rf=username,
+                codigo_eol=unidade.codigo_eol
+            ) != []
+
+        try:
+            user_core_sso = SmeIntegracaoService.usuario_core_sso_or_none(username)
+            info_core_sso = {
+                'info_core_sso': user_core_sso,
+                'mensagem': 'Usuário encontrado no CoreSSO.' if user_core_sso else 'Usuário não encontrado no CoreSSO.'
+            }
+        except SmeIntegracaoException as e:
+            info_core_sso = {
+                'info_core_sso': None,
+                'mensagem': 'Erro ao buscar usuário no CoreSSO!'
+            }
+
+        try:
+            user_sig_escola = User.objects.get(username=username)
+            onde_e_membro = MembroAssociacao.associacoes_onde_cpf_e_membro(cpf=username) if not e_servidor else []
+            info_sig_escola = {
+                'info_sig_escola': {
+                    'visoes': user_sig_escola.visoes.values_list('nome', flat=True),
+                    'unidades': user_sig_escola.unidades.values_list('codigo_eol', flat=True),
+                    'associacoes_que_e_membro': onde_e_membro
+                },
+                'mensagem': 'Usuário encontrado no Sig.Escola.'
+            }
+        except User.DoesNotExist as e:
+            info_sig_escola = {
+                'info_sig_escola': None,
+                'mensagem': 'Usuário não encontrado no Sig.Escola.'
+            }
+
+        result = {
+            'usuario_core_sso': info_core_sso,
+            'usuario_sig_escola': info_sig_escola,
+            'validacao_username': validar_username(username=username, e_servidor=e_servidor),
+            'e_servidor_na_unidade': e_servidor_na_unidade,
+        }
+
+        return Response(result, status=status.HTTP_200_OK)

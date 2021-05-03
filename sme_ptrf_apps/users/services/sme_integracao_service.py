@@ -58,7 +58,6 @@ class SmeIntegracaoService:
         except Exception as err:
             raise SmeIntegracaoException(str(err))
 
-
     @classmethod
     def informacao_usuario_sgp(cls, login):
         logger.info('Consultando informação de %s.', login)
@@ -93,12 +92,7 @@ class SmeIntegracaoService:
         """ Atribuição de Perfil:
 
         /api/perfis/servidores/{codigoRF}/perfil/{perfil}/atribuirPerfil - GET
-        CodigoRf - RF ou CPF do usuário
-        Perfil - Guid do perfil a ser atribuído
 
-        :param login:
-        :param visao:
-        :return:
         """
         logger.info(f'Atribuindo visão {visao} ao usuário {login}.')
         sys_grupo_ids = {
@@ -126,8 +120,6 @@ class SmeIntegracaoService:
 
             /api/escolas/dados/{codigo_eol}
 
-        :param codigo_eol: Código EOL da unidade
-        :return: Dados cadastrais da Unidade
         """
         logger.info(f'Consultando no eol dados da unidade {codigo_eol}.')
         try:
@@ -150,13 +142,9 @@ class SmeIntegracaoService:
     def cria_usuario_core_sso(cls, login, nome, email, e_servidor=False):
         """ Cria um novo usuário no CoreSSO
 
-        :param login:       login do usuário
-        :param nome:        nome completo do usuário
-        :param email:       e-mail do usuário
-        :param e_servidor:  True se for servidor. False se não for servidor.
-        :return:
-
         /api/v1/usuarios/coresso - POST
+
+        Payload =
             {
               "nome": "Nome do Usuário",
               "documento": "CPF em caso de não funcionário, caso de funcionário, enviar vazio",
@@ -196,3 +184,91 @@ class SmeIntegracaoService:
                 raise SmeIntegracaoException(f'Erro ao tentar criar o usuário {nome}.')
         except Exception as err:
             raise SmeIntegracaoException(str(err))
+
+    @classmethod
+    def get_cargos_do_rf(cls, rf):
+        """ Retorna os cargos de dado RF.
+
+        (get) /api/perfis/servidores/{codigoRF}/cargos
+
+        {
+          "nomeServidor": "LUCIMARA CARDOSO RODRIGUES",
+          "codigoServidor": "7210418",
+          "cargos": [
+            {
+              "codigoCargo": "3298",
+              "nomeCargo": "PROF.ENS.FUND.II E MED.-PORTUGUES",
+              "nomeCargoSobreposto": "ASSISTENTE DE DIRETOR DE ESCOLA",
+              "codigoCargoSobreposto": "3085"
+            },
+          ]
+        }
+
+        """
+        logger.info('Consultando informação de %s.', rf)
+        try:
+            response = requests.get(f'{settings.SME_INTEGRACAO_URL}/api/perfis/servidores/{rf}/cargos',
+                                    headers=cls.headers)
+            if response.status_code == status.HTTP_200_OK:
+                return response.json()
+            else:
+                logger.info("Dados não encontrados: %s", response)
+                raise SmeIntegracaoException('Dados não encontrados.')
+        except Exception as err:
+            logger.info("Erro ao consultar informação: %s", str(err))
+            raise SmeIntegracaoException(str(err))
+
+    @classmethod
+    def get_rfs_com_o_cargo_na_escola(cls, codigo_cargo, codigo_eol):
+        """ Retorna lista de RFs com dado cargo em dada escola
+
+        (get) /api/escolas/{codigo_eol}/funcionarios/cargos/{codigo_cargo}
+
+        [
+          {
+            "codigoRF": 8382492,
+            "nomeServidor": "DANIELA CRISTINA BRAZ",
+            "dataInicio": "02/03/2017 00:00:00",
+            "dataFim": null,
+            "cargo": "ASSISTENTE DE DIRETOR DE ESCOLA         ",
+            "cdTipoFuncaoAtividade": 0
+          }
+        ]
+
+        """
+        logger.info(f'Consultando ocupantes do cargo {codigo_cargo} na UE {codigo_eol}.')
+        url = f'{settings.SME_INTEGRACAO_URL}/api/escolas/{codigo_eol}/funcionarios/cargos/{codigo_cargo}'
+        try:
+            response = requests.get(url, headers=cls.headers)
+            if response.status_code == status.HTTP_200_OK:
+                return response.json()
+            else:
+                logger.info("Dados não encontrados: %s", response)
+                raise SmeIntegracaoException('Dados não encontrados.')
+        except Exception as err:
+            logger.info(f'Consultando ocupantes do cargo {codigo_cargo} na UE {codigo_eol}: {str(err)}.')
+            raise SmeIntegracaoException(str(err))
+
+    @classmethod
+    def get_cargos_do_rf_na_escola(cls, rf, codigo_eol):
+        """ Retorna os cargos que dado RF tem em dada escola (código eol) ou [] se não tiver.
+        """
+        cargos_do_rf_na_escola = []
+
+        result_cargos_do_rf = cls.get_cargos_do_rf(rf=rf)
+
+        cargos_do_rf = result_cargos_do_rf["cargos"] if result_cargos_do_rf else []
+
+        for cargo in cargos_do_rf:
+
+            rfs_com_o_cargo_na_escola = cls.get_rfs_com_o_cargo_na_escola(
+                codigo_eol=codigo_eol,
+                codigo_cargo=cargo["codigoCargo"]
+            )
+
+            cargos_do_rf_na_escola = list(filter(lambda d: d['codigoRF'] == int(rf), rfs_com_o_cargo_na_escola))
+
+            if cargos_do_rf_na_escola:
+                break
+
+        return cargos_do_rf_na_escola

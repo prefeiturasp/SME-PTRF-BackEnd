@@ -166,27 +166,29 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_periodo_e_dre(jwt_authentic
             'data_recebimento': None,
             'data_ultima_analise': None,
             'processo_sei': '',
-            'status': 'NAO_RECEBIDA',
+            'status': 'NAO_APRESENTADA',
             'tecnico_responsavel': '',
-            'unidade_eol': '000101',
-            'unidade_nome': 'Andorinha',
-            'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
-            'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
+            'unidade_eol': '000102',
+            'unidade_nome': 'Codorna',
+            'unidade_tipo_unidade': 'CEU',
+            'uuid': '',
+            'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
             'devolucao_ao_tesouro': '0,00'
+
         },
         {
             'periodo_uuid': f'{periodo_2020_1.uuid}',
             'data_recebimento': None,
             'data_ultima_analise': None,
             'processo_sei': '',
-            'status': 'NAO_APRESENTADA',
+            'status': 'NAO_RECEBIDA',
             'tecnico_responsavel': '',
-            'unidade_eol': '000102',
-            'unidade_nome': 'Codorna',
-            'uuid': '',
-            'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
+            'unidade_eol': '000101',
+            'unidade_nome': 'Andorinha',
+            'unidade_tipo_unidade': 'EMEI',
+            'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
+            'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
             'devolucao_ao_tesouro': '0,00'
-
         }
     ]
 
@@ -236,6 +238,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_periodo_e_dre_nao_inclui_ou
             'tecnico_responsavel': '',
             'unidade_eol': '000102',
             'unidade_nome': 'Codorna',
+            'unidade_tipo_unidade': 'CEU',
             'uuid': '',
             'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
             'devolucao_ao_tesouro': '0,00'
@@ -273,6 +276,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_nome_unidade(jwt_authentica
             'tecnico_responsavel': '',
             'unidade_eol': '000101',
             'unidade_nome': 'Andorinha',
+            'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
             'devolucao_ao_tesouro': '0,00'
@@ -298,6 +302,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_nome_unidade(jwt_authentica
             'tecnico_responsavel': '',
             'unidade_eol': '000102',
             'unidade_nome': 'Codorna',
+            'unidade_tipo_unidade': 'CEU',
             'uuid': '',
             'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
             'devolucao_ao_tesouro': '0,00'
@@ -337,6 +342,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_nome_associacao(jwt_authent
             'tecnico_responsavel': '',
             'unidade_eol': '000101',
             'unidade_nome': 'Andorinha',
+            'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
             'devolucao_ao_tesouro': '0,00'
@@ -362,6 +368,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_nome_associacao(jwt_authent
             'tecnico_responsavel': '',
             'unidade_eol': '000102',
             'unidade_nome': 'Codorna',
+            'unidade_tipo_unidade': 'CEU',
             'uuid': '',
             'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
             'devolucao_ao_tesouro': '0,00'
@@ -399,6 +406,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_tipo_unidade(jwt_authentica
             'tecnico_responsavel': '',
             'unidade_eol': '000101',
             'unidade_nome': 'Andorinha',
+            'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
             'devolucao_ao_tesouro': '0,00'
@@ -424,6 +432,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_tipo_unidade(jwt_authentica
             'tecnico_responsavel': '',
             'unidade_eol': '000102',
             'unidade_nome': 'Codorna',
+            'unidade_tipo_unidade': 'CEU',
             'uuid': '',
             'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
             'devolucao_ao_tesouro': '0,00'
@@ -461,6 +470,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_status(jwt_authenticated_cl
             'tecnico_responsavel': '',
             'unidade_eol': '000101',
             'unidade_nome': 'Andorinha',
+            'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
             'devolucao_ao_tesouro': '0,00'
@@ -486,6 +496,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_status(jwt_authenticated_cl
             'tecnico_responsavel': '',
             'unidade_eol': '000102',
             'unidade_nome': 'Codorna',
+            'unidade_tipo_unidade': 'CEU',
             'uuid': '',
             'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
             'devolucao_ao_tesouro': '0,00'
