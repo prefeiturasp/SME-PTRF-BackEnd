@@ -65,6 +65,10 @@ class UserViewSet(ModelViewSet):
             e_servidor = servidor == 'True'
             qs = qs.filter(e_servidor=e_servidor)
 
+        unidade_uuid = self.request.query_params.get('unidade_uuid')
+        if unidade_uuid:
+            qs = qs.filter(unidades__uuid=unidade_uuid)
+
         return qs
 
     @action(detail=False, methods=["GET"])

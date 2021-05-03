@@ -97,7 +97,7 @@ def test_filtro_por_nome_lista_usuarios(
     assert result == esperado
 
 
-def test_lista_usuarios_por_unidade(
+def test_lista_usuarios_por_associacao(
         jwt_authenticated_client_u,
         usuario_para_teste,
         usuario_2,
@@ -191,4 +191,50 @@ def test_lista_usuarios_por_e_servidor_false(
             'groups': [{'id': grupo_1.id, 'name': grupo_1.name, 'descricao': grupo_1.descricao}]
         }
     ]
+    assert result == esperado
+
+
+def test_lista_usuarios_por_unidade(
+        jwt_authenticated_client_u,
+        usuario_para_teste,
+        usuario_2,
+        usuario_3,
+        unidade,
+        grupo_1,
+        grupo_2):
+
+    response = jwt_authenticated_client_u.get(f"/api/usuarios/?unidade_uuid={unidade.uuid}", content_type='application/json')
+    result = response.json()
+    esperado = [
+        {
+            'id': usuario_3.id,
+            'name': 'Arthur Marques',
+            'e_servidor': True,
+            'url': 'http://testserver/api/esqueci-minha-senha/7218198/',
+            'username': '7218198',
+            'email': 'sme8198@amcom.com.br',
+            'groups': [
+                {
+                    'descricao': 'Descrição grupo 2',
+                    'id': grupo_2.id,
+                    'name': 'grupo2'
+                }],
+        },
+        {
+            'id': usuario_para_teste.id,
+            'name': 'LUCIA HELENA',
+            'e_servidor': False,
+            'url': 'http://testserver/api/esqueci-minha-senha/7210418/',
+            'username': '7210418',
+            'email': 'luh@gmail.com',
+            'groups': [
+                {
+                    'descricao': 'Descrição grupo 1',
+                    'id': grupo_1.id,
+                    'name': 'grupo1'
+                }],
+        }
+
+    ]
+    print(result)
     assert result == esperado
