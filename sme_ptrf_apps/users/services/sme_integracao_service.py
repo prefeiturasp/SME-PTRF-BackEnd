@@ -255,18 +255,27 @@ class SmeIntegracaoService:
         """
         cargos_do_rf_na_escola = []
 
-        result_cargos_do_rf = cls.get_cargos_do_rf(rf=rf)
+        try:
+            result_cargos_do_rf = cls.get_cargos_do_rf(rf=rf)
+        except Exception as err:
+            logger.info(f'Erro ao consultar cargos do rf {rf}: {err}')
+            result_cargos_do_rf = None
 
         cargos_do_rf = result_cargos_do_rf["cargos"] if result_cargos_do_rf else []
 
         for cargo in cargos_do_rf:
 
-            rfs_com_o_cargo_na_escola = cls.get_rfs_com_o_cargo_na_escola(
-                codigo_eol=codigo_eol,
-                codigo_cargo=cargo["codigoCargo"]
-            )
+            try:
+                rfs_com_o_cargo_na_escola = cls.get_rfs_com_o_cargo_na_escola(
+                    codigo_eol=codigo_eol,
+                    codigo_cargo=cargo["codigoCargo"]
+                )
+                if rfs_com_o_cargo_na_escola:
+                    cargos_do_rf_na_escola = list(filter(lambda d: d['codigoRF'] == int(rf), rfs_com_o_cargo_na_escola))
 
-            cargos_do_rf_na_escola = list(filter(lambda d: d['codigoRF'] == int(rf), rfs_com_o_cargo_na_escola))
+            except Exception as err:
+                logger.info(f'Erro ao consultar rfs com o cargo {cargo["codigoCargo"]} na escola {codigo_eol}: {err}')
+                continue
 
             if cargos_do_rf_na_escola:
                 break
