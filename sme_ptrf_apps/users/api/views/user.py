@@ -180,22 +180,23 @@ class UserViewSet(ModelViewSet):
                 'mensagem': 'Erro ao buscar usuário no CoreSSO!'
             }
 
+        onde_e_membro = MembroAssociacao.associacoes_onde_cpf_e_membro(cpf=username) if not e_servidor else []
         try:
             user_sig_escola = User.objects.get(username=username)
-            onde_e_membro = MembroAssociacao.associacoes_onde_cpf_e_membro(cpf=username) if not e_servidor else []
             info_sig_escola = {
                 'info_sig_escola': {
                     'visoes': user_sig_escola.visoes.values_list('nome', flat=True),
                     'unidades': user_sig_escola.unidades.values_list('codigo_eol', flat=True),
-                    'associacoes_que_e_membro': onde_e_membro,
                     'user_id': user_sig_escola.id
                 },
-                'mensagem': 'Usuário encontrado no Sig.Escola.'
+                'mensagem': 'Usuário encontrado no Sig.Escola.',
+                'associacoes_que_e_membro': onde_e_membro,
             }
         except User.DoesNotExist as e:
             info_sig_escola = {
                 'info_sig_escola': None,
-                'mensagem': 'Usuário não encontrado no Sig.Escola.'
+                'mensagem': 'Usuário não encontrado no Sig.Escola.',
+                'associacoes_que_e_membro': onde_e_membro,
             }
 
         result = {

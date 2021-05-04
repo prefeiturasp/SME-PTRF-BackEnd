@@ -37,7 +37,8 @@ def test_get_usuario_status_cadastrado_core_sso_nao_cadastrado_sig_escola(jwt_au
             },
             'usuario_sig_escola': {
                 'info_sig_escola': None,
-                'mensagem': 'Usuário não encontrado no Sig.Escola.'
+                'mensagem': 'Usuário não encontrado no Sig.Escola.',
+                'associacoes_que_e_membro': [],
             },
             'validacao_username': {'mensagem': '', 'username_e_valido': True},
             'e_servidor_na_unidade': False
@@ -64,10 +65,10 @@ def test_get_usuario_status_servidor_cadastrado_sig_escola_nao_cadastrado_core_s
             'info_sig_escola': {
                 'visoes': ['UE'],
                 'unidades': ['123456', ],
-                'associacoes_que_e_membro': [],
                 'user_id': usuario_para_teste.id
             },
-            'mensagem': 'Usuário encontrado no Sig.Escola.'
+            'mensagem': 'Usuário encontrado no Sig.Escola.',
+            'associacoes_que_e_membro': [],
         }
         esperado = {
             'usuario_core_sso': {
@@ -100,7 +101,8 @@ def test_get_usuario_status_nao_servidor_username_invalido(jwt_authenticated_cli
 
         usuario_sig_escola_esperado = {
             'info_sig_escola': None,
-            'mensagem': 'Usuário não encontrado no Sig.Escola.'
+            'mensagem': 'Usuário não encontrado no Sig.Escola.',
+            'associacoes_que_e_membro': [],
         }
         esperado = {
             'usuario_core_sso': {
@@ -138,10 +140,10 @@ def test_get_usuario_status_nao_servidor_membro_associacoes(
             'info_sig_escola': {
                 'visoes': ['UE', 'DRE'],
                 'unidades': ['123456', ],
-                'associacoes_que_e_membro': [f'{associacao_271170.uuid}', ],
                 'user_id': usuario_nao_servidor.id
             },
-            'mensagem': 'Usuário encontrado no Sig.Escola.'
+            'mensagem': 'Usuário encontrado no Sig.Escola.',
+            'associacoes_que_e_membro': [f'{associacao_271170.uuid}', ],
         }
         esperado = {
             'usuario_core_sso': {
@@ -212,10 +214,10 @@ def test_get_usuario_status_servidor_lotado_na_unidade(jwt_authenticated_client_
             'info_sig_escola': {
                 'visoes': ['UE'],
                 'unidades': ['123456', ],
-                'associacoes_que_e_membro': [],
                 'user_id': usuario_para_teste.id
             },
-            'mensagem': 'Usuário encontrado no Sig.Escola.'
+            'mensagem': 'Usuário encontrado no Sig.Escola.',
+            'associacoes_que_e_membro': [],
         }
         esperado = {
             'usuario_core_sso': {
@@ -228,6 +230,42 @@ def test_get_usuario_status_servidor_lotado_na_unidade(jwt_authenticated_client_
                 'mensagem': "",
             },
             'e_servidor_na_unidade': True
+        }
+
+        result = json.loads(response.content)
+        assert response.status_code == status.HTTP_200_OK
+        assert result == esperado
+
+
+def test_get_usuario_status_nao_servidor_membro_associacoes_nao_cadastrado_sigescola(
+    jwt_authenticated_client_u,
+    associacao_271170,
+    membro_associacao_00746198701
+):
+    path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.usuario_core_sso_or_none'
+    with patch(path) as mock_get:
+
+        mock_get.return_value = None
+
+        username = '00746198701'
+        response = jwt_authenticated_client_u.get(f'/api/usuarios/status/?username={username}&servidor=False')
+
+        usuario_sig_escola_esperado = {
+            'info_sig_escola': None,
+            'mensagem': 'Usuário não encontrado no Sig.Escola.',
+            'associacoes_que_e_membro': [f'{associacao_271170.uuid}', ],
+        }
+        esperado = {
+            'usuario_core_sso': {
+                'info_core_sso': None,
+                'mensagem': 'Usuário não encontrado no CoreSSO.'
+            },
+            'usuario_sig_escola': usuario_sig_escola_esperado,
+            'validacao_username': {
+                'username_e_valido': True,
+                'mensagem': "",
+            },
+            'e_servidor_na_unidade': False
         }
 
         result = json.loads(response.content)
