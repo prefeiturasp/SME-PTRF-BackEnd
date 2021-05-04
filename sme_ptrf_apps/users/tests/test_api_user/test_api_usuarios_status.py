@@ -48,7 +48,10 @@ def test_get_usuario_status_cadastrado_core_sso_nao_cadastrado_sig_escola(jwt_au
         assert result == esperado
 
 
-def test_get_usuario_status_servidor_cadastrado_sig_escola_nao_cadastrado_core_sso(jwt_authenticated_client_u):
+def test_get_usuario_status_servidor_cadastrado_sig_escola_nao_cadastrado_core_sso(
+    jwt_authenticated_client_u,
+    usuario_para_teste
+):
     path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.usuario_core_sso_or_none'
     with patch(path) as mock_get:
 
@@ -61,7 +64,8 @@ def test_get_usuario_status_servidor_cadastrado_sig_escola_nao_cadastrado_core_s
             'info_sig_escola': {
                 'visoes': ['UE'],
                 'unidades': ['123456', ],
-                'associacoes_que_e_membro': []
+                'associacoes_que_e_membro': [],
+                'user_id': usuario_para_teste.id
             },
             'mensagem': 'Usuário encontrado no Sig.Escola.'
         }
@@ -134,7 +138,8 @@ def test_get_usuario_status_nao_servidor_membro_associacoes(
             'info_sig_escola': {
                 'visoes': ['UE', 'DRE'],
                 'unidades': ['123456', ],
-                'associacoes_que_e_membro': [f'{associacao_271170.uuid}', ]
+                'associacoes_que_e_membro': [f'{associacao_271170.uuid}', ],
+                'user_id': usuario_nao_servidor.id
             },
             'mensagem': 'Usuário encontrado no Sig.Escola.'
         }
@@ -156,7 +161,7 @@ def test_get_usuario_status_nao_servidor_membro_associacoes(
         assert result == esperado
 
 
-def test_get_usuario_status_servidor_lotado_na_unidade(jwt_authenticated_client_u, unidade_ue_271170):
+def test_get_usuario_status_servidor_lotado_na_unidade(jwt_authenticated_client_u, unidade_ue_271170, usuario_para_teste):
     api_usuario_core_sso_or_none = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.usuario_core_sso_or_none'
     api_get_cargos_do_rf = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_cargos_do_rf'
     api_get_rfs_com_o_cargo_na_escola = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_rfs_com_o_cargo_na_escola'
@@ -207,7 +212,8 @@ def test_get_usuario_status_servidor_lotado_na_unidade(jwt_authenticated_client_
             'info_sig_escola': {
                 'visoes': ['UE'],
                 'unidades': ['123456', ],
-                'associacoes_que_e_membro': []
+                'associacoes_que_e_membro': [],
+                'user_id': usuario_para_teste.id
             },
             'mensagem': 'Usuário encontrado no Sig.Escola.'
         }

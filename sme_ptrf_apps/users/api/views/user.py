@@ -187,7 +187,8 @@ class UserViewSet(ModelViewSet):
                 'info_sig_escola': {
                     'visoes': user_sig_escola.visoes.values_list('nome', flat=True),
                     'unidades': user_sig_escola.unidades.values_list('codigo_eol', flat=True),
-                    'associacoes_que_e_membro': onde_e_membro
+                    'associacoes_que_e_membro': onde_e_membro,
+                    'user_id': user_sig_escola.id
                 },
                 'mensagem': 'Usuário encontrado no Sig.Escola.'
             }
