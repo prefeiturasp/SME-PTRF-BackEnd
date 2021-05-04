@@ -86,7 +86,6 @@ class SmeIntegracaoService:
             logger.info(f"Erro ao procurar usuário {login} no CoreSSO: {str(err)}")
             raise SmeIntegracaoException(str(err))
 
-
     @classmethod
     def atribuir_perfil_coresso(cls, login, visao):
         """ Atribuição de Perfil:

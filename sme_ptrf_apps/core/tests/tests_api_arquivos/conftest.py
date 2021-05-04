@@ -28,9 +28,9 @@ def arquivo2():
 def arquivo_associacao():
     return SimpleUploadedFile(
         f'arquivo.csv',
-        bytes(f"""Código EOL UE;Nome UE;Código EOL DRE;Nome da DRE UE;Sigla DRE;Nome da associação;CNPJ da associação;RF Presidente Diretoria;Nome Presidente Diretoria;RF Presidente Conselho Fiscal;Nome Presidente Conselho Fiscal
-000086;EMEI PAULO CAMILHIER FLORENCANO;108500;GUAIANASES;G;EMEI PAULO CAMILHIER FLORENÇANO;1142145000190;;;;
-000108;"EMEF JOSE ERMIRIO DE MORAIS; SEN.";109300;SAO MIGUEL;MP;EMEF SEN JOSÉ ERMINIO DE MORAIS;1095757000179;;;;""", encoding="utf-8"))
+        bytes(f"""Código EOL UE;Nome da associação;CNPJ da associação
+000086;EMEI PAULO CAMILHIER FLORENÇANO;1142145000190
+000108;EMEF SEN JOSÉ ERMINIO DE MORAIS;1095757000179""", encoding="utf-8"))
 
 
 @pytest.fixture
