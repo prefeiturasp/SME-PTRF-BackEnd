@@ -47,7 +47,7 @@ class UserLookupSerializer(serializers.ModelSerializer):
 
 class UserCreateSerializer(serializers.ModelSerializer):
     visao = serializers.CharField(write_only=True)
-    unidade = serializers.CharField(write_only=True)
+    unidade = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = User
@@ -95,7 +95,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
         instance.add_visao_se_nao_existir(visao=visao)
 
         unidade = validated_data.pop('unidade')
-        instance.add_unidade_se_nao_existir(unidade=unidade)
+        if unidade:
+            instance.add_unidade_se_nao_existir(unidade=unidade)
 
         return super().update(instance, validated_data)
 
