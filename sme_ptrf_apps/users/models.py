@@ -97,7 +97,9 @@ class User(AbstractUser):
 
         user.visoes.add(visao_obj)
         user.groups.add(*groups)
-        user.unidades.add(unidade_obj)
+
+        if visao != "SME" and unidade_obj:
+            user.unidades.add(unidade_obj)
 
         user.save()
 
