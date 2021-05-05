@@ -263,6 +263,9 @@ class SmeIntegracaoService:
 
         cargos_do_rf = result_cargos_do_rf["cargos"] if result_cargos_do_rf else []
 
+        if not cargos_do_rf:
+            return []
+
         for cargo in cargos_do_rf:
 
             try:
