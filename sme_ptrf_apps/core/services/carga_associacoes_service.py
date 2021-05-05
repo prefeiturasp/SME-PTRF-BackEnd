@@ -145,6 +145,7 @@ class CargaAssociacoesService:
         dados_unidade_eol = None
         try:
             result_api_eol = SmeIntegracaoService.get_dados_unidade_eol(codigo_eol=dados_associacao['eol_unidade'])
+            result_api_eol = result_api_eol.json()
             if result_api_eol:
                 dados_unidade_eol = {
                     'nome': result_api_eol.get('nome') or '',
@@ -168,7 +169,10 @@ class CargaAssociacoesService:
         if (tipo_unidade, tipo_unidade) not in Unidade.TIPOS_CHOICE:
             msg_erro = f'Tipo de unidade inválido ({tipo_unidade}) na linha {index}. Trocado para EMEF.'
             self.loga_erro_carga_associacao(mensagem_erro=msg_erro, linha=index)
-            dados_unidade_eol['tipo_unidade'] = 'EMEF'
+            tipo_unidade = 'EMEF'
+
+        dados_unidade_eol['tipo_unidade'] = tipo_unidade
+        dados_unidade_eol['dre'] = dados_associacao['dre_obj']
 
         unidade, created = Unidade.objects.update_or_create(
             codigo_eol=eol_unidade,
