@@ -64,6 +64,25 @@ class Ata(ModeloBase):
         (PARECER_REJEITADA, PARECER_NOMES[PARECER_REJEITADA]),
     )
 
+    # Status Choice
+    STATUS_NAO_GERADO = 'NAO_GERADO'
+    STATUS_EM_PROCESSAMENTO = 'EM_PROCESSAMENTO'
+    STATUS_CONCLUIDO = 'CONCLUIDO'
+
+    STATUS_NOMES = {
+        STATUS_NAO_GERADO: 'Não gerado',
+        STATUS_EM_PROCESSAMENTO: 'Em processamento',
+        STATUS_CONCLUIDO: 'Geração concluída',
+    }
+
+    STATUS_CHOICES = (
+        (STATUS_NAO_GERADO, STATUS_NOMES[STATUS_NAO_GERADO]),
+        (STATUS_EM_PROCESSAMENTO, STATUS_NOMES[STATUS_EM_PROCESSAMENTO]),
+        (STATUS_CONCLUIDO, STATUS_NOMES[STATUS_CONCLUIDO]),
+    )
+
+    arquivo_pdf = models.FileField(blank=True, null=True, verbose_name='Relatório em PDF')
+
     prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE, related_name='atas_da_prestacao')
 
     periodo = models.ForeignKey('Periodo', on_delete=models.PROTECT, related_name='+')
@@ -89,6 +108,13 @@ class Ata(ModeloBase):
         max_length=20,
         choices=CONVOCACAO_CHOICES,
         default=CONVOCACAO_PRIMEIRA,
+    )
+
+    status_geracao_pdf = models.CharField(
+        'status Pdf',
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_NAO_GERADO
     )
 
     data_reuniao = models.DateField('data da reunião', blank=True, null=True)
@@ -133,6 +159,18 @@ class Ata(ModeloBase):
 
     def __str__(self):
         return f"Ata {self.periodo.referencia} - {self.ATA_NOMES[self.tipo_ata]} - {self.data_reuniao}"
+
+    def arquivo_pdf_iniciar(self):
+        self.status_geracao_pdf = self.STATUS_EM_PROCESSAMENTO
+        self.save()
+
+    def arquivo_pdf_concluir(self):
+        self.status_geracao_pdf = self.STATUS_CONCLUIDO
+        self.save()
+
+    def arquivo_pdf_nao_gerado(self):
+        self.status_geracao_pdf = self.STATUS_NAO_GERADO
+        self.save()
 
     class Meta:
         verbose_name = "Ata"

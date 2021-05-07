@@ -124,8 +124,8 @@ def test_api_get_transacoes_conferidas(jwt_authenticated_client_a,
         {
             'mestre': despesa_2020_1,
             'rateios': [
-                rateio_despesa_2020_ptrf_conferido,
                 rateio_despesa_2020_role_conferido,
+                rateio_despesa_2020_ptrf_conferido,
             ],
             'tipo': 'Gasto',
             'valor_transacao_na_conta': 200.0,
@@ -181,8 +181,8 @@ def test_api_get_transacoes_nao_conferidas(jwt_authenticated_client_a,
         {
             'mestre': despesa_2020_1,
             'rateios': [
-                rateio_despesa_2020_ptrf_conferido,
                 rateio_despesa_2020_role_nao_conferido,
+                rateio_despesa_2020_ptrf_conferido,
             ],
             'tipo': 'Gasto',
             'valor_transacao_na_conta': 200.0,
@@ -236,8 +236,8 @@ def test_deve_trazer_transacoes_nao_conferidas_de_periodos_anteriores(jwt_authen
         {
             'mestre': despesa_2019_2,
             'rateios': [
-                rateio_despesa_2019_role_nao_conferido,
                 rateio_despesa_2019_role_conferido,
+                rateio_despesa_2019_role_nao_conferido,
             ],
             'tipo': 'Gasto',
             'valor_transacao_na_conta': 200.0,
@@ -251,9 +251,9 @@ def test_deve_trazer_transacoes_nao_conferidas_de_periodos_anteriores(jwt_authen
         {
             'mestre': despesa_2020_1,
             'rateios': [
-                rateio_despesa_2020_ptrf_conferido,
-                rateio_despesa_2020_role_nao_conferido,
                 rateio_despesa_2020_role_conferido,
+                rateio_despesa_2020_role_nao_conferido,
+                rateio_despesa_2020_ptrf_conferido,
             ],
             'tipo': 'Gasto',
             'valor_transacao_na_conta': 300.0,
@@ -310,9 +310,9 @@ def test_deve_filtrar_transacoes_por_acao(jwt_authenticated_client_a,
         {
             'mestre': despesa_2020_1,
             'rateios': [
-                rateio_despesa_2020_ptrf_nao_conferido,
-                rateio_despesa_2020_role_nao_conferido,
                 rateio_despesa_2020_role_conferido,
+                rateio_despesa_2020_role_nao_conferido,
+                rateio_despesa_2020_ptrf_nao_conferido,
             ],
             'tipo': 'Gasto',
             'valor_transacao_na_conta': 300.0,
@@ -414,8 +414,8 @@ def test_deve_poder_filtrar_tipo_transacao_gasto(jwt_authenticated_client_a,
         {
             'mestre': despesa_2020_1,
             'rateios': [
-                rateio_despesa_2020_ptrf_conferido,
                 rateio_despesa_2020_role_conferido,
+                rateio_despesa_2020_ptrf_conferido,
             ],
             'tipo': 'Gasto',
             'valor_transacao_na_conta': 200.0,

@@ -28,6 +28,7 @@ class PrestacaoContaListSerializer(serializers.ModelSerializer):
     associacao_uuid = serializers.SerializerMethodField('get_associacao_uuid')
     tecnico_responsavel = serializers.SerializerMethodField('get_tecnico_responsavel')
     devolucao_ao_tesouro = serializers.SerializerMethodField('get_devolucao_ao_tesouro')
+    unidade_tipo_unidade = serializers.SerializerMethodField('get_unidade_tipo_unidade')
 
     def get_unidade_eol(self, obj):
         return obj.associacao.unidade.codigo_eol if obj.associacao and obj.associacao.unidade else ''
@@ -50,11 +51,14 @@ class PrestacaoContaListSerializer(serializers.ModelSerializer):
     def get_devolucao_ao_tesouro(self, obj):
         return _str_devolucao_ao_tesouro(obj)
 
+    def get_unidade_tipo_unidade(self, obj):
+        return obj.associacao.unidade.tipo_unidade if obj.associacao and obj.associacao.unidade else ''
+
     class Meta:
         model = PrestacaoConta
         fields = (
             'uuid', 'unidade_eol', 'unidade_nome', 'status', 'tecnico_responsavel', 'processo_sei', 'data_recebimento',
-            'data_ultima_analise', 'periodo_uuid', 'associacao_uuid', 'devolucao_ao_tesouro')
+            'data_ultima_analise', 'periodo_uuid', 'associacao_uuid', 'devolucao_ao_tesouro', 'unidade_tipo_unidade')
 
 
 class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):

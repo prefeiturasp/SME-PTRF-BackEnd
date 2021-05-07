@@ -37,6 +37,8 @@ class AtaSerializer(serializers.ModelSerializer):
         model = Ata
         fields = (
             'uuid',
+            'arquivo_pdf',
+            'status_geracao_pdf',
             'prestacao_conta',
             'nome',
             'periodo',

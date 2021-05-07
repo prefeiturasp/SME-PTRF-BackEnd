@@ -11,6 +11,7 @@ def test_api_retrieve_ata_associacao(jwt_authenticated_client_a, associacao, ata
     result = json.loads(response.content)
 
     result_esperado = {
+        'arquivo_pdf': None,
         'associacao': {'cnpj': '52.302.275/0001-83',
                        'nome': 'Escola Teste',
                        'unidade': {'nome': 'Escola Teste', 'tipo_unidade': 'CEU'},
@@ -31,6 +32,7 @@ def test_api_retrieve_ata_associacao(jwt_authenticated_client_a, associacao, ata
         'presidente_reuniao': 'José',
         'prestacao_conta': f'{ata_2020_1_cheque_aprovada.prestacao_conta.uuid}',
         'secretario_reuniao': 'Ana',
+        'status_geracao_pdf': 'NAO_GERADO',
         'tipo_ata': 'APRESENTACAO',
         'tipo_reuniao': 'ORDINARIA',
         'uuid': f'{ata_2020_1_cheque_aprovada.uuid}',
@@ -45,6 +47,7 @@ def test_api_retrieve_ata_retificacao_associacao(jwt_authenticated_client_a, ass
     result = json.loads(response.content)
 
     result_esperado = {
+        'arquivo_pdf': None,
         'associacao': {'cnpj': '52.302.275/0001-83',
                        'nome': 'Escola Teste',
                        'unidade': {'nome': 'Escola Teste', 'tipo_unidade': 'CEU'},
@@ -65,6 +68,7 @@ def test_api_retrieve_ata_retificacao_associacao(jwt_authenticated_client_a, ass
         'presidente_reuniao': 'José',
         'prestacao_conta': f'{ata_2020_1_retificacao.prestacao_conta.uuid}',
         'secretario_reuniao': 'Ana',
+        'status_geracao_pdf': 'NAO_GERADO',
         'tipo_ata': 'RETIFICACAO',
         'tipo_reuniao': 'ORDINARIA',
         'uuid': f'{ata_2020_1_retificacao.uuid}',
