@@ -91,13 +91,13 @@ def gerar(usuario, acoes, periodo, conta_associacao, previa=False):
     try:
         LOGGER.info("GERANDO DEMONSTRATIVO...")
         rateios_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
-            conta_associacao=conta_associacao, periodo=periodo, conferido=True)
+            conta_associacao=conta_associacao, periodo=periodo, conferido=True).order_by('despesa__data_transacao')
 
         rateios_nao_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
-            conta_associacao=conta_associacao, periodo=periodo, conferido=False)
+            conta_associacao=conta_associacao, periodo=periodo, conferido=False).order_by('despesa__data_transacao')
 
         rateios_nao_conferidos_em_periodos_anteriores = RateioDespesa.rateios_da_conta_associacao_em_periodos_anteriores(
-            conta_associacao=conta_associacao, periodo=periodo, conferido=False)
+            conta_associacao=conta_associacao, periodo=periodo, conferido=False).order_by('despesa__data_transacao')
 
         receitas_demonstradas = Receita.receitas_da_conta_associacao_no_periodo(
             conta_associacao=conta_associacao, periodo=periodo, conferido=True)
