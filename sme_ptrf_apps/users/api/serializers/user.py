@@ -27,12 +27,19 @@ class GrupoSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'descricao']
 
 
+class UnidadeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Unidade
+        fields = ['uuid', 'nome', 'codigo_eol', 'tipo_unidade']
+
+
 class UserSerializer(serializers.ModelSerializer):
     groups = GrupoSerializer(many=True)
+    unidades = UnidadeSerializer(many=True)
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "name", "url", "e_servidor", "groups"]
+        fields = ["id", "username", "email", "name", "url", "e_servidor", "groups", "unidades"]
 
         extra_kwargs = {
             "url": {"view_name": "api:user-detail", "lookup_field": "username"}

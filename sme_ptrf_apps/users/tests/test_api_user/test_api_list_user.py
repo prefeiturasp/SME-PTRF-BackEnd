@@ -13,7 +13,9 @@ def test_lista_usuarios_por_visao(
         permissao1,
         permissao2,
         grupo_1,
-        grupo_2):
+        grupo_2,
+        unidade
+):
 
     response = jwt_authenticated_client_u.get("/api/usuarios/?visao=DRE", content_type='application/json')
     result = response.json()
@@ -25,7 +27,21 @@ def test_lista_usuarios_por_visao(
             'name': usuario_3.name,
             'url': f'http://testserver/api/esqueci-minha-senha/{usuario_3.username}/',
             'e_servidor': usuario_3.e_servidor,
-            'groups': [{'id': grupo_2.id, 'name': grupo_2.name, 'descricao': grupo_2.descricao}]
+            'groups': [
+                {
+                    'id': grupo_2.id,
+                    'name': grupo_2.name,
+                    'descricao': grupo_2.descricao
+                }
+            ],
+            'unidades': [
+                {
+                    'uuid': f'{unidade.uuid}',
+                    'nome': unidade.nome,
+                    'codigo_eol': unidade.codigo_eol,
+                    'tipo_unidade': unidade.tipo_unidade
+                }
+            ]
         }
     ]
     assert result == esperado
@@ -41,7 +57,9 @@ def test_filtro_por_grupo_lista_usuarios(
         permissao1,
         permissao2,
         grupo_1,
-        grupo_2):
+        grupo_2,
+        unidade
+):
 
     response = jwt_authenticated_client_u2.get(
         f"/api/usuarios/?visao=DRE&groups__id={grupo_2.id}", content_type='application/json')
@@ -60,7 +78,16 @@ def test_filtro_por_grupo_lista_usuarios(
                    'name': 'grupo2',
                    'descricao': 'Descrição grupo 2'
                 }
+            ],
+            'unidades': [
+                {
+                    'uuid': f'{unidade.uuid}',
+                    'nome': unidade.nome,
+                    'codigo_eol': unidade.codigo_eol,
+                    'tipo_unidade': unidade.tipo_unidade
+                }
             ]
+
         }
     ]
     assert result == esperado
@@ -76,7 +103,9 @@ def test_filtro_por_nome_lista_usuarios(
         permissao1,
         permissao2,
         grupo_1,
-        grupo_2):
+        grupo_2,
+        unidade
+):
 
     response = jwt_authenticated_client_u2.get(f"/api/usuarios/?visao=DRE&search=Arth", content_type='application/json')
     result = response.json()
@@ -89,9 +118,19 @@ def test_filtro_por_nome_lista_usuarios(
          'e_servidor': usuario_3.e_servidor,
          'groups': [
              {
-                'id': grupo_2.id,
-                'name': 'grupo2',
-                'descricao': 'Descrição grupo 2'}]
+                 'id': grupo_2.id,
+                 'name': 'grupo2',
+                 'descricao': 'Descrição grupo 2'
+             }
+         ],
+         'unidades': [
+             {
+                 'uuid': f'{unidade.uuid}',
+                 'nome': unidade.nome,
+                 'codigo_eol': unidade.codigo_eol,
+                 'tipo_unidade': unidade.tipo_unidade
+             }
+         ]
          }
     ]
     assert result == esperado
@@ -104,7 +143,9 @@ def test_lista_usuarios_por_associacao(
         usuario_3,
         associacao,
         grupo_1,
-        grupo_2):
+        grupo_2,
+        unidade
+):
 
     response = jwt_authenticated_client_u.get(f"/api/usuarios/?associacao_uuid={associacao.uuid}", content_type='application/json')
     result = response.json()
@@ -121,7 +162,16 @@ def test_lista_usuarios_por_associacao(
                     'descricao': 'Descrição grupo 2',
                     'id': grupo_2.id,
                     'name': 'grupo2'
-                }],
+                }
+            ],
+            'unidades': [
+                {
+                    'uuid': f'{unidade.uuid}',
+                    'nome': unidade.nome,
+                    'codigo_eol': unidade.codigo_eol,
+                    'tipo_unidade': unidade.tipo_unidade
+                }
+            ]
         },
         {
             'id': usuario_para_teste.id,
@@ -135,7 +185,16 @@ def test_lista_usuarios_por_associacao(
                     'descricao': 'Descrição grupo 1',
                     'id': grupo_1.id,
                     'name': 'grupo1'
-                }],
+                }
+            ],
+            'unidades': [
+                {
+                    'uuid': f'{unidade.uuid}',
+                    'nome': unidade.nome,
+                    'codigo_eol': unidade.codigo_eol,
+                    'tipo_unidade': unidade.tipo_unidade
+                }
+            ]
         }
 
     ]
@@ -153,7 +212,9 @@ def test_lista_usuarios_por_e_servidor_true(
         permissao1,
         permissao2,
         grupo_1,
-        grupo_2):
+        grupo_2,
+        unidade
+):
 
     response = jwt_authenticated_client_u.get("/api/usuarios/?servidor=True", content_type='application/json')
     result = response.json()
@@ -165,7 +226,15 @@ def test_lista_usuarios_por_e_servidor_true(
             'name': usuario_servidor.name,
             'url': f'http://testserver/api/esqueci-minha-senha/{usuario_servidor.username}/',
             'e_servidor': usuario_servidor.e_servidor,
-            'groups': [{'id': grupo_2.id, 'name': grupo_2.name, 'descricao': grupo_2.descricao}]
+            'groups': [{'id': grupo_2.id, 'name': grupo_2.name, 'descricao': grupo_2.descricao}],
+            'unidades': [
+                {
+                    'uuid': f'{unidade.uuid}',
+                    'nome': unidade.nome,
+                    'codigo_eol': unidade.codigo_eol,
+                    'tipo_unidade': unidade.tipo_unidade
+                }
+            ]
         }
     ]
     assert result == esperado
@@ -176,7 +245,9 @@ def test_lista_usuarios_por_e_servidor_false(
         usuario_servidor,
         usuario_para_teste,
         grupo_1,
-        grupo_2):
+        grupo_2,
+        unidade
+):
 
     response = jwt_authenticated_client_u.get("/api/usuarios/?servidor=False", content_type='application/json')
     result = response.json()
@@ -188,7 +259,15 @@ def test_lista_usuarios_por_e_servidor_false(
             'name': 'LUCIA HELENA',
             'url': f'http://testserver/api/esqueci-minha-senha/{usuario_para_teste.username}/',
             'e_servidor': usuario_para_teste.e_servidor,
-            'groups': [{'id': grupo_1.id, 'name': grupo_1.name, 'descricao': grupo_1.descricao}]
+            'groups': [{'id': grupo_1.id, 'name': grupo_1.name, 'descricao': grupo_1.descricao}],
+            'unidades': [
+                {
+                    'uuid': f'{unidade.uuid}',
+                    'nome': unidade.nome,
+                    'codigo_eol': unidade.codigo_eol,
+                    'tipo_unidade': unidade.tipo_unidade
+                }
+            ]
         }
     ]
     assert result == esperado
@@ -201,7 +280,8 @@ def test_lista_usuarios_por_unidade(
         usuario_3,
         unidade,
         grupo_1,
-        grupo_2):
+        grupo_2
+):
 
     response = jwt_authenticated_client_u.get(f"/api/usuarios/?unidade_uuid={unidade.uuid}", content_type='application/json')
     result = response.json()
@@ -218,7 +298,16 @@ def test_lista_usuarios_por_unidade(
                     'descricao': 'Descrição grupo 2',
                     'id': grupo_2.id,
                     'name': 'grupo2'
-                }],
+                }
+            ],
+            'unidades': [
+                {
+                    'uuid': f'{unidade.uuid}',
+                    'nome': unidade.nome,
+                    'codigo_eol': unidade.codigo_eol,
+                    'tipo_unidade': unidade.tipo_unidade
+                }
+            ]
         },
         {
             'id': usuario_para_teste.id,
@@ -232,7 +321,16 @@ def test_lista_usuarios_por_unidade(
                     'descricao': 'Descrição grupo 1',
                     'id': grupo_1.id,
                     'name': 'grupo1'
-                }],
+                }
+            ],
+            'unidades': [
+                {
+                    'uuid': f'{unidade.uuid}',
+                    'nome': unidade.nome,
+                    'codigo_eol': unidade.codigo_eol,
+                    'tipo_unidade': unidade.tipo_unidade
+                }
+            ]
         }
 
     ]
