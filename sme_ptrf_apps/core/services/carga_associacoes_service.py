@@ -122,6 +122,10 @@ class CargaAssociacoesService:
 
         info_dre_ue_no_eol = SmeIntegracaoService.get_info_dre_da_escola(codigo_eol=dados_associacao["eol_unidade"])
 
+        if info_dre_ue_no_eol["codigoDRE"] is None:
+            # A API pode retornar dados nulos e código 200
+            raise CargaAssociacaoException(f"A API do EOL não retornou as informações da DRE da UE {dados_associacao['eol_unidade']}.")
+
         dre, created = Unidade.objects.update_or_create(
             codigo_eol=info_dre_ue_no_eol["codigoDRE"],
             defaults={
