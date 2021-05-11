@@ -13,6 +13,7 @@ from sme_ptrf_apps.users.api.serializers import (
     RedefinirSenhaSerializer,
     UserCreateSerializer,
     UserSerializer,
+    UserRetrieveSerializer
 )
 from sme_ptrf_apps.users.models import Grupo
 from sme_ptrf_apps.users.services import SmeIntegracaoException, SmeIntegracaoService
@@ -31,8 +32,12 @@ class UserViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
+        if self.action == 'list':
             return UserSerializer
+
+        elif self.action == 'retrieve':
+            return UserRetrieveSerializer
+
         else:
             return UserCreateSerializer
 

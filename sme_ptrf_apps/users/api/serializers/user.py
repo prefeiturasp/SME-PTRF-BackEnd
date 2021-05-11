@@ -21,6 +21,12 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
+class VisaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Visao
+        fields = ['nome', ]
+
+
 class GrupoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Grupo
@@ -40,6 +46,20 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "username", "email", "name", "url", "e_servidor", "groups", "unidades"]
+
+        extra_kwargs = {
+            "url": {"view_name": "api:user-detail", "lookup_field": "username"}
+        }
+
+
+class UserRetrieveSerializer(serializers.ModelSerializer):
+    visoes = VisaoSerializer(many=True)
+    groups = GrupoSerializer(many=True)
+    unidades = UnidadeSerializer(many=True)
+
+    class Meta:
+        model = User
+        fields = ["id", "username", "email", "name", "url", "e_servidor", "groups", "unidades", "visoes"]
 
         extra_kwargs = {
             "url": {"view_name": "api:user-detail", "lookup_field": "username"}
