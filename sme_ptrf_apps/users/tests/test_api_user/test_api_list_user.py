@@ -3,7 +3,7 @@ import pytest
 pytestmark = pytest.mark.django_db
 
 
-def test_lista_usuarios_por_visao(
+def test_lista_usuarios_filtro_por_visao(
         jwt_authenticated_client_u,
         usuario_para_teste,
         usuario_3,
@@ -47,7 +47,7 @@ def test_lista_usuarios_por_visao(
     assert result == esperado
 
 
-def test_filtro_por_grupo_lista_usuarios(
+def test_lista_usuarios_filtro_por_grupo(
         jwt_authenticated_client_u2,
         usuario_2,
         usuario_3,
@@ -93,7 +93,7 @@ def test_filtro_por_grupo_lista_usuarios(
     assert result == esperado
 
 
-def test_filtro_por_nome_lista_usuarios(
+def test_lista_usuarios_filtro_por_nome(
         jwt_authenticated_client_u2,
         usuario_2,
         usuario_3,
@@ -136,7 +136,7 @@ def test_filtro_por_nome_lista_usuarios(
     assert result == esperado
 
 
-def test_lista_usuarios_por_associacao(
+def test_lista_usuarios_filtro_por_associacao(
         jwt_authenticated_client_u,
         usuario_para_teste,
         usuario_2,
@@ -202,7 +202,7 @@ def test_lista_usuarios_por_associacao(
     assert result == esperado
 
 
-def test_lista_usuarios_por_e_servidor_true(
+def test_lista_usuarios_filtro_por_e_servidor_true(
         jwt_authenticated_client_u,
         usuario_servidor,
         usuario_nao_servidor,
@@ -240,7 +240,7 @@ def test_lista_usuarios_por_e_servidor_true(
     assert result == esperado
 
 
-def test_lista_usuarios_por_e_servidor_false(
+def test_lista_usuarios_filtro_por_e_servidor_false(
         jwt_authenticated_client_u,
         usuario_servidor,
         usuario_para_teste,
@@ -273,7 +273,7 @@ def test_lista_usuarios_por_e_servidor_false(
     assert result == esperado
 
 
-def test_lista_usuarios_por_unidade_uuid(
+def test_lista_usuarios_filtro_por_unidade_uuid(
         jwt_authenticated_client_u,
         usuario_para_teste,
         usuario_2,
@@ -338,7 +338,7 @@ def test_lista_usuarios_por_unidade_uuid(
     assert result == esperado
 
 
-def test_lista_usuarios_por_unidade_nome(
+def test_lista_usuarios_filtro_por_unidade_nome(
         jwt_authenticated_client_u,
         usuario_para_teste,
         usuario_2,
