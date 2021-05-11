@@ -69,6 +69,10 @@ class UserViewSet(ModelViewSet):
         if unidade_uuid:
             qs = qs.filter(unidades__uuid=unidade_uuid)
 
+        unidade_nome = self.request.query_params.get('unidade_nome')
+        if unidade_nome:
+            qs = qs.filter(unidades__nome__unaccent__icontains=unidade_nome)
+
         return qs
 
     @action(detail=False, methods=["GET"])
