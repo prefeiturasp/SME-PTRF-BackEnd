@@ -17,6 +17,7 @@ from sme_ptrf_apps.users.api.serializers import (
 )
 from sme_ptrf_apps.users.models import Grupo
 from sme_ptrf_apps.users.services import SmeIntegracaoException, SmeIntegracaoService
+from sme_ptrf_apps.users.services.unidades_e_permissoes_service import unidades_do_usuario_e_permissoes_na_visao
 from sme_ptrf_apps.users.services.validacao_username_service import validar_username
 
 User = get_user_model()
@@ -216,3 +217,45 @@ class UserViewSet(ModelViewSet):
         }
 
         return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='unidades-e-permissoes-na-visao/(?P<visao>[^/.]+)')
+    def unidades_e_permissoes_na_visao(self, request, visao, id):
+        from ....core.models import Unidade
+
+        unidade_logada_uuid = request.query_params.get('unidade_logada_uuid')
+
+        if visao not in ["SME", "DRE", "UE"]:
+            erro = {
+                'erro': 'Visão inválida',
+                'mensagem': f"A visão {visao} não é uma visão válida. Esperado UE, DRE ou SME."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if visao != "SME" and not unidade_logada_uuid:
+            erro = {
+                'erro': 'Parâmetro obrigatório',
+                'mensagem': f"Para visões UE e DRE é necessário informar o parâmetro unidade_logada_uuid."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        unidade_logada = None
+        if unidade_logada_uuid:
+            try:
+                unidade_logada = Unidade.objects.get(uuid=unidade_logada_uuid)
+            except Unidade.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto unidade para o uuid {unidade_logada_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        unidades_e_permissoes = unidades_do_usuario_e_permissoes_na_visao(
+            usuario=self.get_object(),
+            visao=visao,
+            unidade_logada=unidade_logada
+        )
+
+        return Response(unidades_e_permissoes, status=status.HTTP_200_OK)
