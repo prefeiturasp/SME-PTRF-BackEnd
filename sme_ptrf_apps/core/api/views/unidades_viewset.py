@@ -18,9 +18,10 @@ class UnidadesViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = Unidade.objects.all()
+    filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
     filters = (filters.DjangoFilterBackend, SearchFilter,)
     serializer_class = UnidadeSerializer
-    filter_fields = ('tipo_unidade', 'codigo_eol')
+    filter_fields = ('tipo_unidade', 'codigo_eol', 'dre__uuid')
 
     def get_queryset(self):
         qs = Unidade.objects.all()
