@@ -44,9 +44,11 @@ def test_retrieve_usuarios(
         'visoes': [
             {
                 'nome': visao_ue.nome,
+                'id': visao_ue.id,
             },
             {
                 'nome': visao_dre.nome,
+                'id': visao_dre.id,
             },
         ]
     }

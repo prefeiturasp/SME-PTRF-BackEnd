@@ -7,9 +7,9 @@ from django.db.models import CharField
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
-from sme_ptrf_apps.core.choices import RepresentacaoCargo
 from sme_ptrf_apps.core.models import Unidade
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
+
 
 class Visao(ModeloIdNome):
 
@@ -85,20 +85,26 @@ class User(AbstractUser):
         """ Recebe dados de usuário incluindo as listas de unidades, visões e grupos vinculados a ele e cria o usuário
         vinculando a eles as unidades, visões e grupos de acesso.
         """
-        visao = dados.pop('visao')
-        visao_obj = Visao.objects.filter(nome=visao).first()
+        visao = dados.pop('visao') if 'visao' in dados else None
+        visao_obj = Visao.objects.filter(nome=visao).first() if visao else None
+
+        visoes = dados.pop('visoes') if 'visoes' in dados else None
 
         unidade = dados.pop('unidade')
-        unidade_obj = Unidade.objects.filter(codigo_eol=unidade).first()
+        unidade_obj = Unidade.objects.filter(codigo_eol=unidade).first() if unidade else None
 
         groups = dados.pop('groups')
 
         user = cls.objects.create(**dados)
 
-        user.visoes.add(visao_obj)
+        if visao_obj:
+            user.visoes.add(visao_obj)
+        elif visoes:
+            user.visoes.add(*visoes)
+
         user.groups.add(*groups)
 
-        if visao != "SME" and unidade_obj:
+        if unidade_obj:
             user.unidades.add(unidade_obj)
 
         user.save()
