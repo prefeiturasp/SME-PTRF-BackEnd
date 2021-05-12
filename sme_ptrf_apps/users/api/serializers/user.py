@@ -33,6 +33,14 @@ class GrupoSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'descricao']
 
 
+class GrupoComVisaoSerializer(serializers.ModelSerializer):
+    visoes = VisaoSerializer(many=True)
+
+    class Meta:
+        model = Grupo
+        fields = ['id', 'name', 'descricao', 'visoes']
+
+
 class UnidadeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Unidade
@@ -54,7 +62,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserRetrieveSerializer(serializers.ModelSerializer):
     visoes = VisaoSerializer(many=True)
-    groups = GrupoSerializer(many=True)
+    groups = GrupoComVisaoSerializer(many=True)
     unidades = UnidadeSerializer(many=True)
 
     class Meta:

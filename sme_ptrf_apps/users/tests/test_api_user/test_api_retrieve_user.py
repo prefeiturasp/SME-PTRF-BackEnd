@@ -30,7 +30,8 @@ def test_retrieve_usuarios(
             {
                 'id': grupo_2.id,
                 'name': grupo_2.name,
-                'descricao': grupo_2.descricao
+                'descricao': grupo_2.descricao,
+                'visoes': [{'id': visao_dre.id, 'nome': 'DRE'}, ]
             }
         ],
         'unidades': [
