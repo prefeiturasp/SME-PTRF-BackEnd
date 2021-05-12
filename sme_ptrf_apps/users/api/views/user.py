@@ -46,9 +46,9 @@ class UserViewSet(ModelViewSet):
         qs = self.queryset
 
         visao = self.request.query_params.get('visao')
-
         if visao:
-            qs = qs.filter(visoes__nome=visao).exclude(id=self.request.user.id).all()
+            # qs = qs.filter(visoes__nome=visao).exclude(id=self.request.user.id).all()
+            qs = qs.filter(visoes__nome=visao)
 
         groups__id = self.request.query_params.get('groups__id')
         if groups__id:
