@@ -73,12 +73,11 @@ class User(AbstractUser):
                 self.visoes.add(visao_obj)
                 self.save()
 
-    def add_unidade_se_nao_existir(self, unidade):
-        if not self.unidades.filter(nome=unidade).first():
-            unidade_obj = Unidade.objects.filter(codigo_eol=unidade).first()
-            if unidade_obj:
-                self.unidades.add(unidade_obj)
-                self.save()
+    def add_unidade_se_nao_existir(self, codigo_eol):
+        if not self.unidades.filter(codigo_eol=codigo_eol).exists():
+            unidade = Unidade.objects.get(codigo_eol=codigo_eol)
+            self.unidades.add(unidade)
+            self.save()
 
     @classmethod
     def criar_usuario(cls, dados):

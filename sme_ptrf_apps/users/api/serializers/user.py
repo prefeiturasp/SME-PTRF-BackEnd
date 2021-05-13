@@ -146,7 +146,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
         unidade = validated_data.pop('unidade')
         if unidade:
-            instance.add_unidade_se_nao_existir(unidade=unidade)
+            instance.add_unidade_se_nao_existir(codigo_eol=unidade)
 
         return super().update(instance, validated_data)
 

@@ -259,3 +259,16 @@ class UserViewSet(ModelViewSet):
         )
 
         return Response(unidades_e_permissoes, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='unidades')
+    def cria_vinculo_usuario_unidade(self, request, id):
+        """ (post) /usuarios/{usuario.id}/unidades/  """
+        usuario = self.get_object()
+        codigo_eol = request.data['codigo_eol']
+        usuario.add_unidade_se_nao_existir(codigo_eol=codigo_eol)
+        return Response({"mensagem": "Unidade vinculada com sucesso"}, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['delete'], url_path='unidades/(?P<codigo_eol>[0-9]+)')
+    def deleta_vinculo_usuario_unidade(self, request, codigo_eol, id):
+        """ (delete) /usuarios/{usuario.id}/unidades/{codigo_eol}  """
+        ...
