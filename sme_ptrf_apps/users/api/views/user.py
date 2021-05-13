@@ -264,11 +264,17 @@ class UserViewSet(ModelViewSet):
     def cria_vinculo_usuario_unidade(self, request, id):
         """ (post) /usuarios/{usuario.id}/unidades/  """
         usuario = self.get_object()
-        codigo_eol = request.data['codigo_eol']
+
+        codigo_eol = request.data.get('codigo_eol')
+        if not codigo_eol:
+            return Response("Campo 'codigo_eol' não encontrado no payload.", status=status.HTTP_400_BAD_REQUEST)
+
         usuario.add_unidade_se_nao_existir(codigo_eol=codigo_eol)
         return Response({"mensagem": "Unidade vinculada com sucesso"}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['delete'], url_path='unidades/(?P<codigo_eol>[0-9]+)')
     def deleta_vinculo_usuario_unidade(self, request, codigo_eol, id):
         """ (delete) /usuarios/{usuario.id}/unidades/{codigo_eol}  """
-        ...
+        usuario = self.get_object()
+        usuario.remove_unidade_se_existir(codigo_eol=codigo_eol)
+        return Response({"mensagem": "Unidade desvinculada com sucesso"}, status=status.HTTP_201_CREATED)

@@ -27,8 +27,13 @@ def test_saldo_bancario_por_tipo_de_unidade(jwt_authenticated_client_sme, observ
         {'tipo_de_unidade': 'EMEF', 'qtde_unidades_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 0},
         {'tipo_de_unidade': 'EMEFM', 'qtde_unidades_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 0},
         {'tipo_de_unidade': 'EMEI', 'qtde_unidades_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 0},
-        {'tipo_de_unidade': 'CEU', 'qtde_unidades_informadas': 1, 'saldo_bancario_informado': 1000,
-         'total_unidades': 2}]
+        {'tipo_de_unidade': 'CEU', 'qtde_unidades_informadas': 1, 'saldo_bancario_informado': 1000, 'total_unidades': 2},
+        {'tipo_de_unidade': 'CEU CEI', 'qtde_unidades_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 0},
+        {'tipo_de_unidade': 'CEU EMEF', 'qtde_unidades_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 0},
+        {'tipo_de_unidade': 'CEU EMEI', 'qtde_unidades_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 0},
+        {'tipo_de_unidade': 'CEU CEMEI', 'qtde_unidades_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 0},
+        {'tipo_de_unidade': 'CEI DIRET', 'qtde_unidades_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 0},
+    ]
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado
@@ -145,7 +150,13 @@ def test_saldo_bancario_por_ue_dre(jwt_authenticated_client_sme, observacao_conc
                                            {'associacao': 'EMEF', 'saldo_total': 0},
                                            {'associacao': 'EMEFM', 'saldo_total': 0},
                                            {'associacao': 'EMEI', 'saldo_total': 0},
-                                           {'associacao': 'CEU', 'saldo_total': 0}],
+                                           {'associacao': 'CEU', 'saldo_total': 0},
+                                           {'associacao': 'CEU CEI', 'saldo_total': 0},
+                                           {'associacao': 'CEU EMEF', 'saldo_total': 0},
+                                           {'associacao': 'CEU EMEI', 'saldo_total': 0},
+                                           {'associacao': 'CEU CEMEI', 'saldo_total': 0},
+                                           {'associacao': 'CEI DIRET', 'saldo_total': 0}
+                                           ],
                            'sigla_dre': dre.sigla,
                            'uuid_dre': f'{dre.uuid}'},
                           {'associacoes': [{'associacao': 'IFSP', 'saldo_total': 0},
@@ -158,7 +169,13 @@ def test_saldo_bancario_por_ue_dre(jwt_authenticated_client_sme, observacao_conc
                                            {'associacao': 'EMEF', 'saldo_total': 0},
                                            {'associacao': 'EMEFM', 'saldo_total': 0},
                                            {'associacao': 'EMEI', 'saldo_total': 0},
-                                           {'associacao': 'CEU', 'saldo_total': 1000.0}],
+                                           {'associacao': 'CEU', 'saldo_total': 1000.0},
+                                           {'associacao': 'CEU CEI', 'saldo_total': 0},
+                                           {'associacao': 'CEU EMEF', 'saldo_total': 0},
+                                           {'associacao': 'CEU EMEI', 'saldo_total': 0},
+                                           {'associacao': 'CEU CEMEI', 'saldo_total': 0},
+                                           {'associacao': 'CEI DIRET', 'saldo_total': 0}
+                                           ],
                            'sigla_dre': dre_saldos_bancarios.sigla,
                            'uuid_dre': f'{dre_saldos_bancarios.uuid}'}]
 
