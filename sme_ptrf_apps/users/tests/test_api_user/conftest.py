@@ -227,6 +227,27 @@ def usuario_3(
 
 
 @pytest.fixture
+def usuario_duas_unidades(
+        unidade,
+        unidade_diferente,
+        grupo_2,
+        visao_dre,
+        visao_ue):
+
+    senha = 'Sgp8198'
+    login = '7218198'
+    email = 'sme8198@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email, name="Arthur Marques", e_servidor=True)
+    user.unidades.add(unidade)
+    user.unidades.add(unidade_diferente)
+    user.groups.add(grupo_2)
+    user.visoes.add(visao_dre, visao_ue)
+    user.save()
+    return user
+
+
+@pytest.fixture
 def usuario_servidor(
         unidade,
         grupo_2,

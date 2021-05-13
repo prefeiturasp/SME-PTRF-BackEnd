@@ -26,6 +26,11 @@ class Unidade(ModeloBase, TemNome):
         ('EMEFM', 'EMEFM'),
         ('EMEI', 'EMEI'),
         ('CEU', 'CEU'),
+        ('CEU CEI', 'CEU CEI'),
+        ('CEU EMEF', 'CEU EMEF'),
+        ('CEU EMEI', 'CEU EMEI'),
+        ('CEU CEMEI', 'CEU CEMEI'),
+        ('CEI DIRET', 'CEI DIRET'),
     )
 
     tipo_unidade = models.CharField(max_length=10, choices=TIPOS_CHOICE, default='ADM')
@@ -82,7 +87,7 @@ class Unidade(ModeloBase, TemNome):
         return result
 
     @classmethod
-    def dres_to_json(cls):  
+    def dres_to_json(cls):
         return [{'uuid': str(u.uuid), 'nome': f"{u.tipo_unidade} {u.nome}"} for u in cls.dres.all()]
 
     @property

@@ -13,9 +13,11 @@ from sme_ptrf_apps.users.api.serializers import (
     RedefinirSenhaSerializer,
     UserCreateSerializer,
     UserSerializer,
+    UserRetrieveSerializer
 )
 from sme_ptrf_apps.users.models import Grupo
 from sme_ptrf_apps.users.services import SmeIntegracaoException, SmeIntegracaoService
+from sme_ptrf_apps.users.services.unidades_e_permissoes_service import unidades_do_usuario_e_permissoes_na_visao
 from sme_ptrf_apps.users.services.validacao_username_service import validar_username
 
 User = get_user_model()
@@ -31,8 +33,12 @@ class UserViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
+        if self.action == 'list':
             return UserSerializer
+
+        elif self.action == 'retrieve':
+            return UserRetrieveSerializer
+
         else:
             return UserCreateSerializer
 
@@ -40,9 +46,9 @@ class UserViewSet(ModelViewSet):
         qs = self.queryset
 
         visao = self.request.query_params.get('visao')
-
         if visao:
-            qs = qs.filter(visoes__nome=visao).exclude(id=self.request.user.id).all()
+            # qs = qs.filter(visoes__nome=visao).exclude(id=self.request.user.id).all()
+            qs = qs.filter(visoes__nome=visao)
 
         groups__id = self.request.query_params.get('groups__id')
         if groups__id:
@@ -68,6 +74,10 @@ class UserViewSet(ModelViewSet):
         unidade_uuid = self.request.query_params.get('unidade_uuid')
         if unidade_uuid:
             qs = qs.filter(unidades__uuid=unidade_uuid)
+
+        unidade_nome = self.request.query_params.get('unidade_nome')
+        if unidade_nome:
+            qs = qs.filter(unidades__nome__unaccent__icontains=unidade_nome)
 
         return qs
 
@@ -207,3 +217,64 @@ class UserViewSet(ModelViewSet):
         }
 
         return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='unidades-e-permissoes-na-visao/(?P<visao>[^/.]+)')
+    def unidades_e_permissoes_na_visao(self, request, visao, id):
+        from ....core.models import Unidade
+
+        unidade_logada_uuid = request.query_params.get('unidade_logada_uuid')
+
+        if visao not in ["SME", "DRE", "UE"]:
+            erro = {
+                'erro': 'Visão inválida',
+                'mensagem': f"A visão {visao} não é uma visão válida. Esperado UE, DRE ou SME."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if visao != "SME" and not unidade_logada_uuid:
+            erro = {
+                'erro': 'Parâmetro obrigatório',
+                'mensagem': f"Para visões UE e DRE é necessário informar o parâmetro unidade_logada_uuid."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        unidade_logada = None
+        if unidade_logada_uuid:
+            try:
+                unidade_logada = Unidade.objects.get(uuid=unidade_logada_uuid)
+            except Unidade.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto unidade para o uuid {unidade_logada_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        unidades_e_permissoes = unidades_do_usuario_e_permissoes_na_visao(
+            usuario=self.get_object(),
+            visao=visao,
+            unidade_logada=unidade_logada
+        )
+
+        return Response(unidades_e_permissoes, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='unidades')
+    def cria_vinculo_usuario_unidade(self, request, id):
+        """ (post) /usuarios/{usuario.id}/unidades/  """
+        usuario = self.get_object()
+
+        codigo_eol = request.data.get('codigo_eol')
+        if not codigo_eol:
+            return Response("Campo 'codigo_eol' não encontrado no payload.", status=status.HTTP_400_BAD_REQUEST)
+
+        usuario.add_unidade_se_nao_existir(codigo_eol=codigo_eol)
+        return Response({"mensagem": "Unidade vinculada com sucesso"}, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['delete'], url_path='unidades/(?P<codigo_eol>[0-9]+)')
+    def deleta_vinculo_usuario_unidade(self, request, codigo_eol, id):
+        """ (delete) /usuarios/{usuario.id}/unidades/{codigo_eol}  """
+        usuario = self.get_object()
+        usuario.remove_unidade_se_existir(codigo_eol=codigo_eol)
+        return Response({"mensagem": "Unidade desvinculada com sucesso"}, status=status.HTTP_201_CREATED)

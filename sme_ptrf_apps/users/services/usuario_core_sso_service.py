@@ -10,11 +10,12 @@ def cria_ou_atualiza_usuario_core_sso(dados_usuario):
 
     :param dados_usuario: {
             "login": "123456",
-            "visao": "UE",
+            "visao": "UE",  ou "visoes": [{visao_obj},]
             "eol_unidade": "1234",
             "email": "teste@teste.com",
             "nome": "Jose Testando",
             "servidor_s_n": "S",
+
         }
     """
     from requests import ConnectTimeout, ReadTimeout
@@ -43,9 +44,14 @@ def cria_ou_atualiza_usuario_core_sso(dados_usuario):
             SmeIntegracaoService.redefine_email(dados_usuario['login'], dados_usuario["email"])
             logger.info(f"Atualizado e-mail do usuário no CoreSSO {dados_usuario['login']}, {dados_usuario['email']}.")
 
-        if dados_usuario["visao"] :
+        if 'visao' in dados_usuario and dados_usuario["visao"]:
             SmeIntegracaoService.atribuir_perfil_coresso(login=dados_usuario['login'], visao=dados_usuario['visao'])
             logger.info(f"Visão {dados_usuario['visao']} vinculada ao usuário {dados_usuario['login']} no CoreSSO.")
+
+        elif 'visoes' in dados_usuario and dados_usuario["visoes"]:
+            for visao in dados_usuario["visoes"]:
+                SmeIntegracaoService.atribuir_perfil_coresso(login=dados_usuario['login'], visao=visao.nome)
+                logger.info(f"Visão {visao.nome} vinculada ao usuário {dados_usuario['login']} no CoreSSO.")
 
     except SmeIntegracaoException as e:
         raise CargaUsuarioException(f'Erro {str(e)} ao criar/atualizar usuário {dados_usuario["login"]} no CoreSSO.')
