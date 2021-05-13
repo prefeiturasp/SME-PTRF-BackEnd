@@ -79,6 +79,12 @@ class User(AbstractUser):
             self.unidades.add(unidade)
             self.save()
 
+    def remove_unidade_se_existir(self, codigo_eol):
+        if self.unidades.filter(codigo_eol=codigo_eol).exists():
+            unidade = Unidade.objects.get(codigo_eol=codigo_eol)
+            self.unidades.remove(unidade)
+            self.save()
+
     @classmethod
     def criar_usuario(cls, dados):
         """ Recebe dados de usuário incluindo as listas de unidades, visões e grupos vinculados a ele e cria o usuário

@@ -271,4 +271,6 @@ class UserViewSet(ModelViewSet):
     @action(detail=True, methods=['delete'], url_path='unidades/(?P<codigo_eol>[0-9]+)')
     def deleta_vinculo_usuario_unidade(self, request, codigo_eol, id):
         """ (delete) /usuarios/{usuario.id}/unidades/{codigo_eol}  """
-        ...
+        usuario = self.get_object()
+        usuario.remove_unidade_se_existir(codigo_eol=codigo_eol)
+        return Response({"mensagem": "Unidade desvinculada com sucesso"}, status=status.HTTP_201_CREATED)
