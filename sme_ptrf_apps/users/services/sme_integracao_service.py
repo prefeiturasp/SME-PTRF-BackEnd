@@ -121,15 +121,19 @@ class SmeIntegracaoService:
 
         Result =
             {
-              "nome": "22 DE MARCO",
-              "tipoUnidade": "ESCOLA",
-              "email": "emef22marco@sme.prefeitura.sp.gov.br",
-              "telefone": "55130007",
+              "nomeDRE": "DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO",
+              "siglaDRE": "DRE - CS",
+              "codigoDRE": "108300",
+              "siglaTipoEscola": null,
+              "nome": "TRES LAGOS - JOSE ARISTODEMO PINOTTI, PROFESSOR",
+              "tipoUnidade": "UNIDADE ADMINISTRATIVA",
+              "email": null,
+              "telefone": "59765642",
               "tipoLogradouro": "Rua",
-              "logradouro": "FRANCISCO SOARES",
-              "numero": "51",
-              "bairro": "PARQUE REGINA",
-              "cep": 5774300
+              "logradouro": "MARIA MOURA DA CONCEICAO",
+              "numero": "S/N",
+              "bairro": "JARDIM BELCITO",
+              "cep": 4855257
             }
 
         """
@@ -296,34 +300,3 @@ class SmeIntegracaoService:
                 break
 
         return cargos_do_rf_na_escola
-
-    @classmethod
-    def get_info_dre_da_escola(cls, codigo_eol):
-        """ Retornar informações de qual a DRE da Escola
-
-        (get) /api/escolas/{codigo_eol}
-
-        Result =
-            {
-              "codigoEscola": "099350",
-              "nomeEscola": "22 DE MARCO",
-              "nomeDRE": "DIRETORIA REGIONAL DE EDUCACAO CAMPO LIMPO",
-              "siglaDRE": "DRE - CL",
-              "codigoDRE": "108200",
-              "tipoEscola": "ESCOLA MUNICIPAL DE ENSINO FUNDAMENTAL",
-              "siglaTipoEscola": "EMEF"
-            }
-        """
-        logger.info(f'Consultando info da DRE da UE {codigo_eol}.')
-        url = f'{settings.SME_INTEGRACAO_URL}/api/escolas/{codigo_eol}'
-        try:
-            response = requests.get(url, headers=cls.headers)
-            if response.status_code == status.HTTP_200_OK:
-                return response.json()
-            else:
-                logger.info("Dados não encontrados: %s", response)
-                raise SmeIntegracaoException('Dados não encontrados.')
-        except Exception as err:
-            logger.error(f'Erro consultando info da DRE da UE {codigo_eol}: {str(err)}.')
-            raise SmeIntegracaoException(str(err))
-
