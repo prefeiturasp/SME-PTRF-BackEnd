@@ -74,8 +74,8 @@ def test_lista_usuarios_filtro_por_grupo(
             'url': f'http://testserver/api/esqueci-minha-senha/{usuario_2.username}/',
             'e_servidor': usuario_2.e_servidor,
             'groups': [
-                {'descricao': 'Descrição grupo 3', 'id': grupo_3.id, 'name': 'grupo3'},
                 {'descricao': 'Descrição grupo 2', 'id': grupo_2.id, 'name': 'grupo2'},
+                {'descricao': 'Descrição grupo 3', 'id': grupo_3.id, 'name': 'grupo3'},
             ],
             'unidades': [
                 {
