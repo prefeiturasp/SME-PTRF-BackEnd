@@ -78,7 +78,6 @@ class CargaAssociacoesService:
             'nome': nome,
             'cnpj': cnpj,
             'tipo_unidade': "",
-            'dre_obj': None,
             'ue_obj': None,
             'associacao-obj': None,
         }
@@ -113,90 +112,96 @@ class CargaAssociacoesService:
 
         return estrutura_correta
 
-    def cria_ou_atualiza_dre(self):
-        dados_associacao = self.__dados_associacao
-        index = self.__linha_index
-
-        if not dados_associacao["eol_unidade"]:
-            raise CargaAssociacaoException(f"Código EOL da UE não definido na linha {index}.")
-
-        info_dre_ue_no_eol = SmeIntegracaoService.get_info_dre_da_escola(codigo_eol=dados_associacao["eol_unidade"])
-
-        if info_dre_ue_no_eol["codigoDRE"] is None:
-            # A API pode retornar dados nulos e código 200
-            raise CargaAssociacaoException(f"A API do EOL não retornou as informações da DRE da UE {dados_associacao['eol_unidade']}.")
+    @staticmethod
+    def cria_ou_atualiza_dre(dados_dre):
 
         dre, created = Unidade.objects.update_or_create(
-            codigo_eol=info_dre_ue_no_eol["codigoDRE"],
+            codigo_eol=dados_dre["codigoDRE"],
             defaults={
                 'tipo_unidade': 'DRE',
                 'dre': None,
-                'sigla': info_dre_ue_no_eol["siglaDRE"][-2],
-                'nome': info_dre_ue_no_eol["nomeDRE"]
+                'sigla': dados_dre["siglaDRE"][-2],
+                'nome': dados_dre["nomeDRE"]
             },
         )
         if created:
             logger.info(f'Criada DRE {dre.nome}')
 
-        self.__dados_associacao['dre_obj'] = dre
-        self.__dados_associacao['tipo_unidade'] = info_dre_ue_no_eol["siglaTipoEscola"]
-
         return dre
 
-    def cria_ou_atualiza_unidade(self):
-        dados_associacao = self.__dados_associacao
-        index = self.__linha_index
-        dados_unidade_eol = None
+    @staticmethod
+    def cria_ou_atualiza_ue(codigo_eol, dados_ue):
+
+        ue, created = Unidade.objects.update_or_create(
+            codigo_eol=codigo_eol,
+            defaults=dados_ue,
+        )
+        if created:
+            logger.info(f'Criada Unidade {ue.nome}')
+
+        return ue
+
+    def get_dados_dre_e_ue_da_api_eol(self):
+        dados_dre = None
+        dados_ue = None
         try:
-            result_api_eol = SmeIntegracaoService.get_dados_unidade_eol(codigo_eol=dados_associacao['eol_unidade'])
+            result_api_eol = SmeIntegracaoService.get_dados_unidade_eol(codigo_eol=self.__dados_associacao['eol_unidade'])
             result_api_eol = result_api_eol.json()
             if result_api_eol:
-                dados_unidade_eol = {
-                    'nome': result_api_eol.get('nome') or '',
+
+                dados_dre = {
+                    'codigoDRE': result_api_eol["codigoDRE"].strip(),
+                    'siglaDRE': result_api_eol["siglaDRE"].strip(),
+                    'nomeDRE': result_api_eol["nomeDRE"].strip(),
+                }
+
+                if dados_dre["codigoDRE"] is None:
+                    raise CargaAssociacaoException(
+                        f"A API do EOL não retornou as informações da DRE da UE {self.__dados_associacao['eol_unidade']}.")
+
+                dados_ue = {
+                    'nome': result_api_eol.get('nome').strip() if result_api_eol.get('nome') else '',
                     'email': result_api_eol.get('email') or '',
-                    'telefone': result_api_eol.get('telefone') or '',
-                    'numero': result_api_eol.get('numero') or '',
-                    'tipo_logradouro': result_api_eol.get('tipoLogradouro') or '',
-                    'logradouro': result_api_eol.get('logradouro') or '',
-                    'bairro': result_api_eol.get('bairro') or '',
+                    'telefone': result_api_eol.get('telefone').strip()[:20] if result_api_eol.get('telefone') else '',
+                    'numero': result_api_eol.get('numero').strip() if result_api_eol.get('numero') else '',
+                    'tipo_logradouro': result_api_eol.get('tipoLogradouro').strip() if result_api_eol.get('tipoLogradouro') else '',
+                    'logradouro': result_api_eol.get('logradouro').strip() if result_api_eol.get('logradouro') else '',
+                    'bairro': result_api_eol.get('bairro').strip() if result_api_eol.get('bairro') else '',
                     'cep': f"{result_api_eol['cep']:0>8}" or '',
-                    'tipo_unidade': result_api_eol.get('tipoUnidade') or ''
+                    'tipo_unidade': result_api_eol.get('siglaTipoEscola').strip() if result_api_eol.get('siglaTipoEscola') else 'CEU'
                 }
             else:
-                raise CargaAssociacaoException(f"API não retornou dados para a unidade {dados_associacao['eol_unidade']}.")
+                raise CargaAssociacaoException(
+                    f"API não retornou dados para a unidade {self.__dados_associacao['eol_unidade']}.")
+
         except Exception as err:
             logger.info("Erro ao Atualizar dados pessoais da unidade %s", err)
 
-        eol_unidade = dados_associacao['eol_unidade']
-        tipo_unidade = self.__dados_associacao['tipo_unidade']
+        if (dados_ue['tipo_unidade'], dados_ue['tipo_unidade']) not in Unidade.TIPOS_CHOICE:
+            msg_erro = f'Tipo de unidade inválido ({dados_ue["tipo_unidade"]}) na linha {self.__linha_index}. Trocado para EMEF.'
+            self.loga_erro_carga_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
+            dados_ue['tipo_unidade'] = 'EMEF'
 
-        if (tipo_unidade, tipo_unidade) not in Unidade.TIPOS_CHOICE:
-            msg_erro = f'Tipo de unidade inválido ({tipo_unidade}) na linha {index}. Trocado para EMEF.'
-            self.loga_erro_carga_associacao(mensagem_erro=msg_erro, linha=index)
-            tipo_unidade = 'EMEF'
+        return dados_dre, dados_ue
 
-        dados_unidade_eol['tipo_unidade'] = tipo_unidade
-        dados_unidade_eol['dre'] = dados_associacao['dre_obj']
+    def cria_ou_atualiza_ue_e_dre(self):
 
-        unidade, created = Unidade.objects.update_or_create(
-            codigo_eol=eol_unidade,
-            defaults=dados_unidade_eol,
+        dados_dre, dados_ue = self.get_dados_dre_e_ue_da_api_eol()
+
+        dados_ue['dre'] = self.cria_ou_atualiza_dre(dados_dre=dados_dre)
+
+        self.__dados_associacao['ue_obj'] = self.cria_ou_atualiza_ue(
+            codigo_eol=self.__dados_associacao['eol_unidade'],
+            dados_ue=dados_ue
         )
-        if created:
-            logger.info(f'Criada Unidade {unidade.nome}')
-
-        self.__dados_associacao['ue_obj'] = unidade
-
-        return unidade
 
     def cria_ou_atualiza_associacao(self):
-        dados_associacao = self.__dados_associacao
 
         associacao, created = Associacao.objects.update_or_create(
-            cnpj=dados_associacao['cnpj'],
+            cnpj=self.__dados_associacao['cnpj'],
             defaults={
-                'unidade': dados_associacao['ue_obj'],
-                'nome': dados_associacao['nome'],
+                'unidade': self.__dados_associacao['ue_obj'],
+                'nome': self.__dados_associacao['nome'],
             },
         )
 
@@ -218,8 +223,7 @@ class CargaAssociacoesService:
 
                 try:
                     self.carrega_e_valida_dados_associacao(linha_conteudo=linha, linha_index=index)
-                    self.cria_ou_atualiza_dre()
-                    self.cria_ou_atualiza_unidade()
+                    self.cria_ou_atualiza_ue_e_dre()
                     self.cria_ou_atualiza_associacao()
                     self.loga_sucesso_carga_associacao()
                 except Exception as e:
