@@ -1,6 +1,8 @@
 import logging
 
 from django.contrib.auth import get_user_model
+from django.db.models import Q
+
 from requests import ConnectTimeout, ReadTimeout
 from rest_framework import status
 from rest_framework.decorators import action
@@ -56,7 +58,7 @@ class UserViewSet(ModelViewSet):
 
         search = self.request.query_params.get('search')
         if search is not None:
-            qs = qs.filter(name__unaccent__icontains=search)
+            qs = qs.filter(Q(name__unaccent__icontains=search) | Q(username=search))
 
         associacao_uuid = self.request.query_params.get('associacao_uuid')
         if associacao_uuid:
