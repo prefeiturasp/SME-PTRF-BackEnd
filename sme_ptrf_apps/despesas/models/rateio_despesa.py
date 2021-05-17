@@ -13,7 +13,7 @@ from ..tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLI
 
 class RateiosCompletosManager(models.Manager):
     def get_queryset(self):
-        return super(RateiosCompletosManager, self).get_queryset().filter(status=STATUS_COMPLETO)
+        return super(RateiosCompletosManager, self).get_queryset().filter(despesa__status=STATUS_COMPLETO)
 
 
 class RateioDespesa(ModeloBase):
