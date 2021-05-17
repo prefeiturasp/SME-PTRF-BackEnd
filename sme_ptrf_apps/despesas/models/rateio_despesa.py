@@ -11,6 +11,11 @@ from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_I
 from ..tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
 
 
+class RateiosCompletosManager(models.Manager):
+    def get_queryset(self):
+        return super(RateiosCompletosManager, self).get_queryset().filter(status=STATUS_COMPLETO)
+
+
 class RateioDespesa(ModeloBase):
     despesa = models.ForeignKey('Despesa', on_delete=models.CASCADE, related_name='rateios', blank=True, null=True)
 
@@ -61,8 +66,11 @@ class RateioDespesa(ModeloBase):
                             null=True, related_name='rateios')
 
     periodo_conciliacao = models.ForeignKey('core.Periodo', on_delete=models.SET_NULL, blank=True, null=True,
-                                        related_name='despesas_conciliadas_no_periodo',
-                                        verbose_name='período de conciliação')
+                                            related_name='despesas_conciliadas_no_periodo',
+                                            verbose_name='período de conciliação')
+
+    objects = models.Manager()  # Manager Padrão
+    completos = RateiosCompletosManager()
 
     def __str__(self):
         documento = self.despesa.numero_documento if self.despesa else 'Despesa indefinida'
@@ -99,16 +107,15 @@ class RateioDespesa(ModeloBase):
             result = decorrido if decorrido >= limite else 0
         return result
 
-
     @classmethod
     def rateios_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None,
                                               exclude_despesa=None, aplicacao_recurso=None):
         if periodo.data_fim_realizacao_despesas:
-            dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
+            dataset = cls.completos.filter(acao_associacao=acao_associacao).filter(
                 despesa__data_documento__range=(
                     periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
         else:
-            dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
+            dataset = cls.completos.filter(acao_associacao=acao_associacao).filter(
                 despesa__data_documento__gte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
@@ -129,11 +136,11 @@ class RateioDespesa(ModeloBase):
     def rateios_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None,
                                                exclude_despesa=None, aplicacao_recurso=None):
         if periodo.data_fim_realizacao_despesas:
-            dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+            dataset = cls.completos.filter(conta_associacao=conta_associacao).filter(
                 despesa__data_documento__range=(
                     periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
         else:
-            dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+            dataset = cls.completos.filter(conta_associacao=conta_associacao).filter(
                 despesa__data_documento__gte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
@@ -149,9 +156,9 @@ class RateioDespesa(ModeloBase):
 
     @classmethod
     def rateios_da_conta_associacao_em_periodos_anteriores(cls, conta_associacao, periodo, conferido=None,
-                                               exclude_despesa=None, aplicacao_recurso=None):
+                                                           exclude_despesa=None, aplicacao_recurso=None):
 
-        dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+        dataset = cls.completos.filter(conta_associacao=conta_associacao).filter(
             despesa__data_documento__lte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
@@ -190,10 +197,10 @@ class RateioDespesa(ModeloBase):
 
     @classmethod
     def rateios_da_acao_associacao_em_qualquer_periodo(cls, acao_associacao, conferido=None, conta_associacao=None,
-                                              exclude_despesa=None, aplicacao_recurso=None):
+                                                       exclude_despesa=None, aplicacao_recurso=None):
 
-        dataset = cls.objects.filter(acao_associacao=acao_associacao,
-                                     despesa__data_documento__lte=date.today())
+        dataset = cls.completos.filter(acao_associacao=acao_associacao,
+                                       despesa__data_documento__lte=date.today())
 
         if conferido is not None:
             dataset = dataset.filter(conferido=conferido)
@@ -210,11 +217,12 @@ class RateioDespesa(ModeloBase):
         return dataset.all()
 
     @classmethod
-    def rateios_da_acao_associacao_em_periodo_anteriores(cls, acao_associacao, periodo, conferido=None, conta_associacao=None,
-                                              exclude_despesa=None, aplicacao_recurso=None):
+    def rateios_da_acao_associacao_em_periodo_anteriores(cls, acao_associacao, periodo, conferido=None,
+                                                         conta_associacao=None,
+                                                         exclude_despesa=None, aplicacao_recurso=None):
 
-        dataset = cls.objects.filter(acao_associacao=acao_associacao,
-                                     despesa__data_documento__lte=periodo.data_inicio_realizacao_despesas)
+        dataset = cls.completos.filter(acao_associacao=acao_associacao,
+                                       despesa__data_documento__lte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
             dataset = dataset.filter(conferido=conferido)

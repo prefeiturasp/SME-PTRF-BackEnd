@@ -11,6 +11,11 @@ from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_I
 from ...core.models import Associacao
 
 
+class DespesasCompletasManager(models.Manager):
+    def get_queryset(self):
+        return super(DespesasCompletasManager, self).get_queryset().filter(status=STATUS_COMPLETO)
+
+
 class Despesa(ModeloBase):
     history = AuditlogHistoryField()
 
@@ -49,6 +54,9 @@ class Despesa(ModeloBase):
         choices=STATUS_CHOICES,
         default=STATUS_INCOMPLETO
     )
+
+    objects = models.Manager()  # Manager Padrão
+    completas = DespesasCompletasManager()
 
     @property
     def valor_ptrf(self):
@@ -95,6 +103,7 @@ class Despesa(ModeloBase):
         return cls.objects.filter(associacao__uuid=associacao__uuid).filter(
             cpf_cnpj_fornecedor=cpf_cnpj_fornecedor).filter(tipo_documento=tipo_documento).filter(
             numero_documento=numero_documento).first()
+
     class Meta:
         verbose_name = "Despesa"
         verbose_name_plural = "Despesas"
@@ -107,9 +116,11 @@ def proponente_pre_save(instance, **kwargs):
 
 @receiver(post_save, sender=Despesa)
 def rateio_post_save(instance, created, **kwargs):
-    # Existe um motivo para o fornecedor não ser uma FK nesse modelo e ele ser atualizado indiretamente
-    # A existência da tabela de fornecedores é apenas para facilitar o preenchimento da despesa pelas associações
-    # Alterações feitas por uma associação no nome de um fornecedor não deve alterar diretamente as despesas de outras
+    """
+    Existe um motivo para o fornecedor não ser uma FK nesse modelo e ele ser atualizado indiretamente
+    A existência da tabela de fornecedores é apenas para facilitar o preenchimento da despesa pelas associações
+    Alterações feitas por uma associação no nome de um fornecedor não deve alterar diretamente as despesas de outras
+    """
     if instance and instance.cpf_cnpj_fornecedor and instance.nome_fornecedor:
         Fornecedor.atualiza_ou_cria(cpf_cnpj=instance.cpf_cnpj_fornecedor, nome=instance.nome_fornecedor)
 
