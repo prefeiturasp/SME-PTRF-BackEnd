@@ -122,7 +122,7 @@ def despesas_nao_conciliadas_por_conta_e_acao_no_periodo(conta_associacao, acao_
 
 
 def despesas_conciliadas_por_conta_e_acao_na_conciliacao(conta_associacao, acao_associacao, periodo):
-    dataset = periodo.despesas_conciliadas_no_periodo.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao)
+    dataset = periodo.despesas_conciliadas_no_periodo.filter(despesa__status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao)
 
     if acao_associacao:
         dataset = dataset.filter(acao_associacao=acao_associacao)
@@ -281,7 +281,7 @@ def receitas_nao_conciliadas_por_conta_no_periodo(conta_associacao, periodo):
 
 
 def despesas_conciliadas_por_conta_na_conciliacao(conta_associacao, periodo):
-    dataset = periodo.despesas_conciliadas_no_periodo.filter(status=STATUS_COMPLETO)
+    dataset = periodo.despesas_conciliadas_no_periodo.filter(despesa__status=STATUS_COMPLETO)
     dataset = dataset.filter(conta_associacao=conta_associacao)
 
     return dataset.all()
