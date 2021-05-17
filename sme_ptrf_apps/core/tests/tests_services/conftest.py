@@ -293,6 +293,9 @@ def rateio_despesa_2020_role_capital_conferido(associacao, despesa_2020_1, conta
         valor_rateio=100.00,
         update_conferido=True,
         conferido=True,
+        quantidade_itens_capital=1,
+        valor_item_capital=100.0,
+        numero_processo_incorporacao_capital="123456"
 
     )
 

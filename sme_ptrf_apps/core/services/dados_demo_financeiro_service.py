@@ -275,22 +275,26 @@ def sintese_custeio(acao_associacao, conta_associacao, periodo, fechamento_perio
 
     if saldo_reprogramado_anterior_custeio or valor_custeio_receitas_demonstradas or valor_custeio_rateios_demonstrados or valor_custeio_rateios_nao_demonstrados or valor_custeio_rateios_nao_demonstrados_periodos_anteriores:
         saldo_anterior = saldo_reprogramado_anterior_custeio
-        credito =valor_custeio_receitas_demonstradas
+        credito = valor_custeio_receitas_demonstradas
         despesa_realizada = valor_custeio_rateios_demonstrados
         despesa_nao_realizada = valor_custeio_rateios_nao_demonstrados
 
+        valor_saldo_reprogramado_proximo_periodo_custeio = (saldo_reprogramado_anterior_custeio +
+                                                            valor_custeio_receitas_demonstradas -
+                                                            valor_custeio_rateios_demonstrados -
+                                                            valor_custeio_rateios_nao_demonstrados)
 
-        valor_saldo_reprogramado_proximo_periodo_custeio = saldo_reprogramado_anterior_custeio + \
-                                                           valor_custeio_receitas_demonstradas - \
-                                                           valor_custeio_rateios_demonstrados - \
-                                                           valor_custeio_rateios_nao_demonstrados
-
-        saldo_reprogramado_proximo = valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else 0
-
+        saldo_reprogramado_proximo = (valor_saldo_reprogramado_proximo_periodo_custeio
+                                      if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else 0)
 
         despesa_nao_demostrada_outros_periodos = valor_custeio_rateios_nao_demonstrados_periodos_anteriores
-        valor_saldo_bancario_custeio = valor_saldo_reprogramado_proximo_periodo_custeio + valor_custeio_rateios_nao_demonstrados + valor_custeio_rateios_nao_demonstrados_periodos_anteriores
+
+        valor_saldo_bancario_custeio = (valor_saldo_reprogramado_proximo_periodo_custeio +
+                                        valor_custeio_rateios_nao_demonstrados +
+                                        valor_custeio_rateios_nao_demonstrados_periodos_anteriores)
+
         valor_saldo_bancario_custeio = valor_saldo_bancario_custeio if valor_saldo_bancario_custeio > 0 else 0
+
         saldo_bancario = valor_saldo_bancario_custeio
 
     linha_custeio = {
@@ -311,10 +315,8 @@ def sintese_custeio(acao_associacao, conta_associacao, periodo, fechamento_perio
     totalizador['credito']['C'] += valor_custeio_receitas_demonstradas
     totalizador['despesa_realizada']['C'] += valor_custeio_rateios_demonstrados
     totalizador['despesa_nao_realizada']['C'] += valor_custeio_rateios_nao_demonstrados
-    totalizador['despesa_nao_demostrada_outros_periodos'][
-        'C'] += valor_custeio_rateios_nao_demonstrados_periodos_anteriores
+    totalizador['despesa_nao_demostrada_outros_periodos']['C'] += valor_custeio_rateios_nao_demonstrados_periodos_anteriores
     totalizador['saldo_reprogramado_proximo']['C'] += valor_saldo_reprogramado_proximo_periodo_custeio
-    # totalizador['saldo_bancario']['C'] += valor_saldo_bancario_custeio
     totalizador['valor_saldo_reprogramado_proximo_periodo']['C'] += valor_saldo_reprogramado_proximo_periodo_custeio
     totalizador['valor_saldo_bancario']['C'] += valor_saldo_bancario_custeio
     totalizador['credito_nao_demonstrado']['C'] += valor_custeio_receitas_nao_demonstradas
@@ -368,15 +370,22 @@ def sintese_capital(acao_associacao, conta_associacao, periodo, fechamento_perio
         credito = valor_capital_receitas_demonstradas
         despesa_realizada = valor_capital_rateios_demonstrados
         despesa_nao_realizada = valor_capital_rateios_nao_demonstrados
-        valor_saldo_reprogramado_proximo_periodo_capital = saldo_reprogramado_anterior_capital + \
-                                                           valor_capital_receitas_demonstradas - \
-                                                           valor_capital_rateios_demonstrados - \
-                                                           valor_capital_rateios_nao_demonstrados
-        saldo_reprogramado_proximo = valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else 0
+        valor_saldo_reprogramado_proximo_periodo_capital = (saldo_reprogramado_anterior_capital +
+                                                            valor_capital_receitas_demonstradas -
+                                                            valor_capital_rateios_demonstrados -
+                                                            valor_capital_rateios_nao_demonstrados)
+
+        saldo_reprogramado_proximo = (valor_saldo_reprogramado_proximo_periodo_capital
+                                      if valor_saldo_reprogramado_proximo_periodo_capital > 0 else 0)
+
         despesa_nao_demostrada_outros_periodos = valor_capital_rateios_nao_demonstrados_outros_periodos
-        valor_saldo_bancario_capital = valor_saldo_reprogramado_proximo_periodo_capital + valor_capital_rateios_nao_demonstrados + valor_capital_rateios_nao_demonstrados_outros_periodos
+        valor_saldo_bancario_capital = (valor_saldo_reprogramado_proximo_periodo_capital +
+                                        valor_capital_rateios_nao_demonstrados +
+                                        valor_capital_rateios_nao_demonstrados_outros_periodos)
+
         valor_saldo_bancario_capital = valor_saldo_bancario_capital if valor_saldo_bancario_capital > 0 else 0
-        saldo_bancario =valor_saldo_bancario_capital
+
+        saldo_bancario = valor_saldo_bancario_capital
 
     linha_capital = {
         "saldo_anterior": saldo_anterior,
@@ -397,9 +406,8 @@ def sintese_capital(acao_associacao, conta_associacao, periodo, fechamento_perio
     totalizador['despesa_realizada']['K'] += valor_capital_rateios_demonstrados
     totalizador['despesa_nao_realizada']['K'] += valor_capital_rateios_nao_demonstrados
     totalizador['despesa_nao_demostrada_outros_periodos']['K'] += valor_capital_rateios_nao_demonstrados_outros_periodos
-    totalizador['saldo_reprogramado_proximo'][
-        'K'] += valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else 0
-    # totalizador['saldo_bancario']['K'] += valor_saldo_bancario_capital
+    totalizador['saldo_reprogramado_proximo']['K'] += (valor_saldo_reprogramado_proximo_periodo_capital
+                                                       if valor_saldo_reprogramado_proximo_periodo_capital > 0 else 0)
     totalizador['valor_saldo_reprogramado_proximo_periodo']['K'] += valor_saldo_reprogramado_proximo_periodo_capital
     totalizador['valor_saldo_bancario']['K'] += valor_saldo_bancario_capital
     totalizador['credito_nao_demonstrado']['K'] += valor_capital_receitas_nao_demonstradas
@@ -427,14 +435,28 @@ def sintese_livre(linha_capital, linha_custeio, acao_associacao, conta_associaca
     saldo_reprogramado_proximo = ""
     valor_saldo_reprogramado_proximo_periodo_livre = 0
 
-    if saldo_reprogramado_anterior_livre or valor_livre_receitas_demonstradas or valor_saldo_reprogramado_proximo_periodo_custeio < 0 or valor_saldo_reprogramado_proximo_periodo_capital < 0:
+    if (
+        saldo_reprogramado_anterior_livre or
+        valor_livre_receitas_demonstradas or
+        valor_saldo_reprogramado_proximo_periodo_custeio < 0 or
+        valor_saldo_reprogramado_proximo_periodo_capital < 0
+    ):
         saldo_anterior = saldo_reprogramado_anterior_livre
         credito = valor_livre_receitas_demonstradas
-        valor_saldo_reprogramado_proximo_periodo_livre = saldo_reprogramado_anterior_livre + valor_livre_receitas_demonstradas
-        valor_saldo_reprogramado_proximo_periodo_livre = valor_saldo_reprogramado_proximo_periodo_livre + \
-                                                         valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital < 0 else valor_saldo_reprogramado_proximo_periodo_livre
-        valor_saldo_reprogramado_proximo_periodo_livre = valor_saldo_reprogramado_proximo_periodo_livre + \
-                                                         valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio < 0 else valor_saldo_reprogramado_proximo_periodo_livre
+
+        valor_saldo_reprogramado_proximo_periodo_livre = (saldo_reprogramado_anterior_livre +
+                                                          valor_livre_receitas_demonstradas)
+
+        valor_saldo_reprogramado_proximo_periodo_livre = (valor_saldo_reprogramado_proximo_periodo_livre +
+                                                          valor_saldo_reprogramado_proximo_periodo_capital
+                                                          if valor_saldo_reprogramado_proximo_periodo_capital < 0
+                                                          else valor_saldo_reprogramado_proximo_periodo_livre)
+
+        valor_saldo_reprogramado_proximo_periodo_livre = (valor_saldo_reprogramado_proximo_periodo_livre +
+                                                          valor_saldo_reprogramado_proximo_periodo_custeio
+                                                          if valor_saldo_reprogramado_proximo_periodo_custeio < 0
+                                                          else valor_saldo_reprogramado_proximo_periodo_livre)
+
         saldo_reprogramado_proximo = valor_saldo_reprogramado_proximo_periodo_livre
 
     linha_livre = {
@@ -452,7 +474,6 @@ def sintese_livre(linha_capital, linha_custeio, acao_associacao, conta_associaca
     totalizador['despesa_nao_realizada']['L'] += 0
     totalizador['despesa_nao_demostrada_outros_periodos']['L'] += 0
     totalizador['saldo_reprogramado_proximo']['L'] += valor_saldo_reprogramado_proximo_periodo_livre
-    # totalizador['saldo_bancario']['L'] += 0
     totalizador['valor_saldo_reprogramado_proximo_periodo']['L'] += valor_saldo_reprogramado_proximo_periodo_livre
     totalizador['valor_saldo_bancario']['L'] += 0
     totalizador['credito_nao_demonstrado']['L'] += 0
