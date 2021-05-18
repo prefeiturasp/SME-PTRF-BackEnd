@@ -3,6 +3,7 @@ import logging
 from django.contrib.auth import get_user_model
 from requests import ConnectTimeout, ReadTimeout
 from rest_framework import serializers, status, exceptions
+from rest_framework.fields import SerializerMethodField
 from rest_framework.response import Response
 
 from sme_ptrf_apps.users.api.validations.usuario_validations import (
@@ -48,7 +49,7 @@ class UnidadeSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    groups = GrupoSerializer(many=True)
+    groups = SerializerMethodField()
     unidades = UnidadeSerializer(many=True)
 
     class Meta:
@@ -58,6 +59,10 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "url": {"view_name": "api:user-detail", "lookup_field": "username"}
         }
+
+    def get_groups(self, instance):
+        groups = instance.groups.order_by('id')
+        return GrupoSerializer(groups, many=True).data
 
 
 class UserRetrieveSerializer(serializers.ModelSerializer):

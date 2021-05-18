@@ -588,7 +588,7 @@ class ConciliacoesViewSet(GenericViewSet):
 
         try:
             if tipo_transacao == 'GASTO':
-                transacao = Despesa.objects.get(uuid=transacao_uuid)
+                transacao = Despesa.completas.get(uuid=transacao_uuid)
             else:
                 transacao = Receita.objects.get(uuid=transacao_uuid)
 
@@ -655,7 +655,7 @@ class ConciliacoesViewSet(GenericViewSet):
 
         try:
             if tipo_transacao == 'GASTO':
-                transacao = Despesa.objects.get(uuid=transacao_uuid)
+                transacao = Despesa.completas.get(uuid=transacao_uuid)
             else:
                 transacao = Receita.objects.get(uuid=transacao_uuid)
 
