@@ -110,6 +110,18 @@ class Associacao(ModeloIdNome):
             periodos.append(proximo_periodo)
         return periodos
 
+    def periodos_ate_agora_fora_implantacao(self):
+        from datetime import datetime
+        from .periodo import Periodo
+
+        qry_periodos = Periodo.objects.filter(
+            data_inicio_realizacao_despesas__lte=datetime.today()).order_by('-referencia')
+
+        if self.periodo_inicial:
+            qry_periodos = qry_periodos.exclude(uuid=self.periodo_inicial.uuid)
+
+        return qry_periodos.all()
+
     @classmethod
     def acoes_da_associacao(cls, associacao_uuid):
         associacao = cls.objects.filter(uuid=associacao_uuid).first()
