@@ -17,7 +17,7 @@ from sme_ptrf_apps.users.api.serializers import (
     UserSerializer,
     UserRetrieveSerializer
 )
-from sme_ptrf_apps.users.models import Grupo
+from sme_ptrf_apps.users.models import Grupo, Visao
 from sme_ptrf_apps.users.services import SmeIntegracaoException, SmeIntegracaoService
 from sme_ptrf_apps.users.services.unidades_e_permissoes_service import unidades_do_usuario_e_permissoes_na_visao
 from sme_ptrf_apps.users.services.validacao_username_service import validar_username
@@ -280,3 +280,17 @@ class UserViewSet(ModelViewSet):
         usuario = self.get_object()
         usuario.remove_unidade_se_existir(codigo_eol=codigo_eol)
         return Response({"mensagem": "Unidade desvinculada com sucesso"}, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, url_path="visoes", methods=['get'])
+    def visoes(self, request):
+        try:
+            visoes = Visao.objects.all().order_by("nome")
+
+            return Response([{'id': str(visao.id), "nome": visao.nome} for visao in visoes])
+        except Exception as err:
+            erro = {
+                'erro': 'erro_ao_consultar_visoes',
+                'mensagem': str(err)
+            }
+            logging.info("Erro ao buscar visoes %s", erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
