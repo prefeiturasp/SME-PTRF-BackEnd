@@ -10,13 +10,24 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def periodo_2019_1():
+def periodo_2018_1():
+    return baker.make(
+        'Periodo',
+        referencia='2018.1',
+        data_inicio_realizacao_despesas=date(2018, 1, 1),
+        data_fim_realizacao_despesas=date(2018, 12, 31),
+        periodo_anterior=None
+    )
+
+
+@pytest.fixture
+def periodo_2019_1(periodo_2018_1):
     return baker.make(
         'Periodo',
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 6, 30),
-        periodo_anterior=None
+        periodo_anterior=periodo_2018_1
     )
 
 
@@ -68,9 +79,10 @@ def associacao_teste(unidade, periodo_2019_1):
 
 
 @freeze_time('2020-06-15')
-def test_get_periodos_prestacao_de_contas_da_associacao(
+def test_get_periodos_ate_agora_fora_implantacao_da_associacao(
     jwt_authenticated_client_a,
     associacao_teste,
+    periodo_2018_1,
     periodo_2019_1,
     periodo_2019_2,
     periodo_2020_1,

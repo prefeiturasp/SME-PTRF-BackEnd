@@ -118,7 +118,9 @@ class Associacao(ModeloIdNome):
             data_inicio_realizacao_despesas__lte=datetime.today()).order_by('-referencia')
 
         if self.periodo_inicial:
-            qry_periodos = qry_periodos.exclude(uuid=self.periodo_inicial.uuid)
+            qry_periodos = qry_periodos.filter(
+                data_inicio_realizacao_despesas__gte=self.periodo_inicial.data_fim_realizacao_despesas
+            )
 
         return qry_periodos.all()
 
