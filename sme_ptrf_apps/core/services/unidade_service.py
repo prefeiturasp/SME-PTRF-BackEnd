@@ -50,6 +50,11 @@ def atualiza_dados_pessoais_unidade(unidade: Unidade) -> None:
         response = SmeIntegracaoService.get_dados_unidade_eol(unidade.codigo_eol)
 
         resultado = response.json()
+
+        if not resultado.get('nome'):
+            logger.info(f"API EOL não retornou informações para o código {unidade.codigo_eol}.")
+            return
+
         if resultado:
             unidade_retorno = resultado
             unidade.nome = unidade_retorno.get('nome') or ''
