@@ -162,3 +162,41 @@ def test_deletar_membro_associacao(jwt_authenticated_client_a, associacao, membr
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
     assert not MembroAssociacao.objects.filter(uuid=membro_associacao.uuid).exists()
+
+
+def test_get_membros_associacoes_por_cpf(
+        jwt_authenticated_client_a,
+        associacao,
+        membro_associacao):
+
+    response = jwt_authenticated_client_a.get(
+        f'/api/membros-associacao/?associacao_uuid={associacao.uuid}&cpf={membro_associacao.cpf}', content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = [
+        {
+            'id': membro_associacao.id,
+            'associacao':
+            {
+                'id': associacao.id,
+                'nome': associacao.nome
+            },
+            'criado_em': membro_associacao.criado_em.isoformat("T"),
+            'alterado_em': membro_associacao.alterado_em.isoformat("T"),
+            'uuid': str(membro_associacao.uuid),
+            'nome': membro_associacao.nome,
+            'cargo_associacao': membro_associacao.cargo_associacao,
+            'cargo_educacao': membro_associacao.cargo_educacao,
+            'representacao': membro_associacao.representacao,
+            'codigo_identificacao': membro_associacao.codigo_identificacao,
+            'email': membro_associacao.email,
+            'cpf': membro_associacao.cpf,
+            'telefone': membro_associacao.telefone,
+            'cep': membro_associacao.cep,
+            'bairro': membro_associacao.bairro,
+            'endereco': membro_associacao.endereco,
+        }
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado

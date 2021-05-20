@@ -52,6 +52,7 @@ def test_atualizar_usuario_servidor_com_visao(
         'e_servidor': True,
         'groups': [grupo_1.id],
         'visoes': [visao_ue.id, visao_dre.id, visao_sme.id],
+        'id': usuario_2.id
     }
 
     assert usuario_2.visoes.filter(nome='UE').first(), "Deveria ter sido vinculado à visão UE."
@@ -92,7 +93,8 @@ def test_atualizar_usuario_servidor_com_visoes(
         'email': 'novoEmail@gmail.com',
         'visoes': [visao_ue.id, visao_dre.id],
         'unidade': "271170",
-        'groups': [grupo_1.id]
+        'groups': [grupo_1.id],
+        'id': usuario_2.id
     }
 
     api_usuario_core_sso_or_none = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.usuario_core_sso_or_none'
@@ -114,6 +116,7 @@ def test_atualizar_usuario_servidor_com_visoes(
         'e_servidor': True,
         'groups': [grupo_1.id],
         'visoes': [visao_ue.id, visao_dre.id],
+        'id': usuario_2.id
     }
 
     assert usuario_2.visoes.filter(nome='UE').first(), "Deveria ter sido vinculado à visão UE."
@@ -178,6 +181,7 @@ def test_atualizar_usuario_servidor_visao_sme(
         'e_servidor': True,
         'groups': [grupo_1.id],
         'visoes': [visao_ue.id, visao_dre.id, visao_sme.id],
+        'id': usuario_3.id
     }
 
     assert usuario_3.visoes.filter(nome='SME').first(), "Deveria ter sido vinculado à visão SME."
@@ -239,6 +243,7 @@ def test_atualizar_usuario_servidor_com_visoes_sem_definir_unidade(
         'e_servidor': True,
         'groups': [grupo_1.id],
         'visoes': [visao_ue.id, visao_dre.id],
+        'id': usuario_2.id
     }
 
     assert usuario_2.unidades.filter(uuid=unidade_diferente.uuid).first(), "Deveria ter continuado vinculado à essa UE."

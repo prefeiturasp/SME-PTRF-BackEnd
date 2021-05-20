@@ -39,6 +39,10 @@ def test_criar_usuario_servidor_com_visao(
 
     result = response.json()
 
+
+    User = get_user_model()
+    u = User.objects.filter(username='9876543').first()
+
     esperado = {
         'username': '9876543',
         'email': 'lukaku@gmail.com',
@@ -46,9 +50,8 @@ def test_criar_usuario_servidor_com_visao(
         'e_servidor': True,
         'groups': [grupo_1.id, ],
         'visoes': [visao_ue.id, ],
+        'id': u.id
     }
-    User = get_user_model()
-    u = User.objects.filter(username='9876543').first()
 
     assert list(u.visoes.values_list('nome', flat=True)) == ["UE", ]
     assert list(u.unidades.values_list('codigo_eol', flat=True)) == [unidade_ue_271170.codigo_eol,]
@@ -91,6 +94,9 @@ def test_criar_usuario_servidor_com_visoes(
 
     result = response.json()
 
+    User = get_user_model()
+    u = User.objects.filter(username='9876543').first()
+
     esperado = {
         'username': '9876543',
         'email': 'lukaku@gmail.com',
@@ -98,10 +104,8 @@ def test_criar_usuario_servidor_com_visoes(
         'e_servidor': True,
         'groups': [grupo_1.id, ],
         'visoes': [visao_ue.id, ],
-
+        'id': u.id
     }
-    User = get_user_model()
-    u = User.objects.filter(username='9876543').first()
 
     assert list(u.visoes.values_list('nome', flat=True)) == ["UE", ]
     assert list(u.unidades.values_list('codigo_eol', flat=True)) == [unidade_ue_271170.codigo_eol,]
@@ -138,16 +142,19 @@ def test_criar_usuario_servidor_sem_email_e_sem_nome(
     response = jwt_authenticated_client_u.post(
         "/api/usuarios/", data=json.dumps(payload), content_type='application/json')
     result = response.json()
+
+    User = get_user_model()
+    u = User.objects.filter(username='9876543').first()
+
     esperado = {
         'username': '9876543',
         'email': '',
         'name': '',
         'e_servidor': True,
         'groups': [grupo_1.id, ],
-        'visoes': [visao_ue.id, ]
+        'visoes': [visao_ue.id, ],
+        'id': u.id
     }
-    User = get_user_model()
-    u = User.objects.filter(username='9876543').first()
 
     assert list(u.visoes.values_list('nome', flat=True)) == ["UE", ]
     assert list(u.unidades.values_list('codigo_eol', flat=True)) == [unidade_ue_271170.codigo_eol, ]
@@ -183,6 +190,9 @@ def test_criar_usuario_servidor_visao_sme(
 
     result = response.json()
 
+    User = get_user_model()
+    u = User.objects.filter(username='9876543').first()
+
     esperado = {
         'username': '9876543',
         'email': 'lukaku@gmail.com',
@@ -190,9 +200,8 @@ def test_criar_usuario_servidor_visao_sme(
         'e_servidor': True,
         'visoes': [visao_ue.id, visao_sme.id],
         'groups': [grupo_1.id, ],
+        'id': u.id
     }
-    User = get_user_model()
-    u = User.objects.filter(username='9876543').first()
 
     assert list(u.visoes.values_list('nome', flat=True)) == ["UE", "SME"]
     assert response.status_code == status.HTTP_201_CREATED
@@ -234,6 +243,9 @@ def test_criar_usuario_servidor_com_visoes_sem_definir_unidade(
 
     result = response.json()
 
+    User = get_user_model()
+    u = User.objects.filter(username='9876543').first()
+
     esperado = {
         'username': '9876543',
         'email': 'lukaku@gmail.com',
@@ -241,10 +253,9 @@ def test_criar_usuario_servidor_com_visoes_sem_definir_unidade(
         'e_servidor': True,
         'groups': [grupo_1.id, ],
         'visoes': [visao_ue.id, ],
+        'id': u.id
 
     }
-    User = get_user_model()
-    u = User.objects.filter(username='9876543').first()
 
     assert list(u.visoes.values_list('nome', flat=True)) == ["UE", ]
     assert list(u.unidades.values_list('codigo_eol', flat=True)) == []
