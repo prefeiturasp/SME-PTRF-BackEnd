@@ -56,6 +56,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
     search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome')
     list_filter = ('unidade__dre', 'periodo_inicial')
     readonly_fields = ('uuid', 'id')
+    list_display_links = ('nome', 'cnpj')
 
 
 @admin.register(ContaAssociacao)
@@ -89,7 +90,7 @@ class UnidadeAdmin(admin.ModelAdmin):
     ordering = ('nome',)
     search_fields = ('nome', 'codigo_eol', 'sigla')
     list_filter = ('tipo_unidade', 'dre')
-    list_display_links = ('nome',)
+    list_display_links = ('nome', 'codigo_eol')
     readonly_fields = ('uuid',)
 
     fieldsets = (
