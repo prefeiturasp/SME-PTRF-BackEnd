@@ -10,7 +10,15 @@ Versão: 1.11.0
 ## Release Notes
 
 ### 1.11.0 - 21/05/2021 - Entregas da Sprint 20
-* Em andamento...
+* UE > Status "Incompleto" em despesas agora chama-se "Rascunho"
+* UE > Despesas de status "Rascunho" agora são ignorados nos cálculos e relatórios
+* UE > Tipo das unidades agora são atualizados automaticamente conforme EOL
+* UE > Pagamentos em ordem cronológica no Demonstrativo Financeiro
+* UE > Alterações menores em textos e usabilidade 
+* UE > Melhorias de performance no lançamento de despesas
+* DRE > Diretorias agora podem cadastrar usuários de suas subordinadas
+* SME > Secretaria agora pode cadastrar usuários para qualquer unidade
+* 🐞 Correção de bugs
 
 ### 1.10.0 - 06/05/2021 - Entregas da Sprint 19
 * UE > Exportação de Atas em PDF
