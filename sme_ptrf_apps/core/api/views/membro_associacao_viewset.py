@@ -4,6 +4,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+from django_filters import rest_framework as filters
+from rest_framework.filters import SearchFilter
 
 from sme_ptrf_apps.core.api.serializers import MembroAssociacaoCreateSerializer, MembroAssociacaoListSerializer
 from sme_ptrf_apps.core.models import MembroAssociacao
@@ -22,6 +24,8 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     serializer_class = MembroAssociacaoListSerializer
     queryset = MembroAssociacao.objects.all()
+    filter_backends = (filters.DjangoFilterBackend, SearchFilter)
+    filter_fields = ('cpf', 'codigo_identificacao', 'email')
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:

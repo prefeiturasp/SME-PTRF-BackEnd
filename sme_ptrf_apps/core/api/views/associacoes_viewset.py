@@ -375,6 +375,13 @@ class AssociacoesViewSet(ModelViewSet):
         periodos = associacao.periodos_para_prestacoes_de_conta()
         return Response(PeriodoLookUpSerializer(periodos, many=True).data)
 
+    @action(detail=True, url_path='periodos-ate-agora-fora-implantacao', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def periodos_ate_agora_fora_implantacao(self, request, uuid=None):
+        associacao = self.get_object()
+        periodos = associacao.periodos_ate_agora_fora_implantacao()
+        return Response(PeriodoLookUpSerializer(periodos, many=True).data)
+
     @action(detail=True, url_path='processos', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def processos_da_associacao(self, request, uuid=None):

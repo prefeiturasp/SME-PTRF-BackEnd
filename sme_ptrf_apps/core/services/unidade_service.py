@@ -50,6 +50,11 @@ def atualiza_dados_pessoais_unidade(unidade: Unidade) -> None:
         response = SmeIntegracaoService.get_dados_unidade_eol(unidade.codigo_eol)
 
         resultado = response.json()
+
+        if not resultado.get('nome'):
+            logger.info(f"API EOL não retornou informações para o código {unidade.codigo_eol}.")
+            return
+
         if resultado:
             unidade_retorno = resultado
             unidade.nome = unidade_retorno.get('nome') or ''
@@ -60,6 +65,7 @@ def atualiza_dados_pessoais_unidade(unidade: Unidade) -> None:
             unidade.logradouro = unidade_retorno.get('logradouro') or ''
             unidade.bairro = unidade_retorno.get('bairro') or ''
             unidade.cep = f"{unidade_retorno['cep']:0>8}" or ''
+            unidade.tipo_unidade = unidade_retorno.get('siglaTipoEscola').strip() if unidade_retorno.get('siglaTipoEscola') else 'CEU'
             unidade.save()
     except Exception as err:
         logger.info("Erro ao Atualizar dados pessoais da unidade %s", err)
