@@ -5,6 +5,7 @@ from model_bakery import baker
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from sme_ptrf_apps.users.models import Grupo
+from datetime import date
 
 
 @pytest.fixture
@@ -433,3 +434,64 @@ def jwt_authenticated_client_p(client, usuario_permissao):
         resp_data = resp.json()
         api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
     return api_client
+
+
+@pytest.fixture
+def tipo_transacao_saida_recurso():
+    return baker.make('TipoTransacao', nome='Boleto')
+
+
+@pytest.fixture
+def tipo_documento_saida_recurso():
+    return baker.make('TipoDocumento', nome='NFe')
+
+
+@pytest.fixture
+def associacao_saida_recurso(unidade, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste Saida Recurso',
+        cnpj='74.718.557/0001-07',
+        unidade=unidade,
+        periodo_inicial=periodo_anterior,
+        ccm='0.000.00-0',
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456'
+    )
+
+
+@pytest.fixture
+def despesa_saida_recurso(associacao_saida_recurso, tipo_documento_saida_recurso, tipo_transacao_saida_recurso):
+    return baker.make(
+        'Despesa',
+        associacao=associacao_saida_recurso,
+        numero_documento='123456',
+        data_documento=date(2019, 9, 10),
+        tipo_documento=tipo_documento_saida_recurso,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao_saida_recurso,
+        data_transacao=date(2019, 9, 10),
+        valor_total=100.00,
+    )
+
+
+@pytest.fixture
+def receita_saida_recurso(associacao, conta_associacao, acao_associacao, tipo_receita, prestacao_conta_iniciada,
+            detalhe_tipo_receita, periodo_2020_1):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
+        update_conferido=True,
+        conferido=True,
+        categoria_receita='CUSTEIO',
+        detalhe_tipo_receita=detalhe_tipo_receita,
+        detalhe_outros='teste',
+        periodo_conciliacao=periodo_2020_1,
+        saida_do_recurso="",
+    )
