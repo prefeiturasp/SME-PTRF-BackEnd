@@ -8,6 +8,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+from django.core.exceptions import ValidationError
 
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
@@ -22,6 +23,7 @@ from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoR
 from ...services import atualiza_repasse_para_pendente
 from ...tipos_aplicacao_recurso_receitas import aplicacoes_recurso_to_json
 from ....core.models import Periodo
+from ....despesas.models import Despesa
 
 logger = logging.getLogger(__name__)
 
@@ -136,3 +138,43 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         receita_desconciliada = Receita.desconciliar(uuid=uuid)
         return Response(ReceitaListaSerializer(receita_desconciliada, many=False).data,
                         status=status.HTTP_200_OK)
+
+    @action(detail=True, url_path='atrelar-saida-recurso', methods=['patch'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def atrelar_saida_do_recurso(self, request, uuid):
+
+        despesa_uuid = request.query_params.get('despesa_uuid')
+
+        try:
+            Receita.objects.get(uuid=uuid)
+        except (Receita.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto receita para o uuid {uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if despesa_uuid is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da despesa'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            Despesa.objects.get(uuid=despesa_uuid)
+        except (Despesa.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto despesa para o uuid {despesa_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        receita_atrelada = Receita.atrelar_saida_recurso(uuid, despesa_uuid)
+
+        return Response(ReceitaListaSerializer(receita_atrelada, many=False).data,
+                        status=status.HTTP_200_OK)
+
+

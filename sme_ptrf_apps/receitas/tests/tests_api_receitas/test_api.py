@@ -223,6 +223,7 @@ def test_get_receitas(
             'data': '2020-03-26',
             'valor': '100.00',
             'repasse': None,
+            'saida_do_recurso': '',
             'tipo_receita': {
                 'id': tipo_receita.id,
                 'nome': tipo_receita.nome,
@@ -382,6 +383,7 @@ def test_retrive_receitas(
         },
         'referencia_devolucao': None,
         'repasse': None,
+        'saida_do_recurso': '',
         "acao_associacao": {
             "uuid": str(acao_associacao.uuid),
             "id": acao_associacao.id,
@@ -460,7 +462,7 @@ def test_create_receita_repasse_livre_aplicacao(
 
         assert receita.associacao.uuid == associacao.uuid
 
-        assert receita.repasse.uuid == repasse_2020_1_livre_aplicacao_pendente.uuid 
+        assert receita.repasse.uuid == repasse_2020_1_livre_aplicacao_pendente.uuid
 
         assert Repasse.objects.get(uuid=repasse_2020_1_livre_aplicacao_pendente.uuid).status == 'REALIZADO'
 

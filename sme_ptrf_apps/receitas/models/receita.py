@@ -54,6 +54,9 @@ class Receita(ModeloBase):
     periodo_conciliacao = models.ForeignKey('core.Periodo', on_delete=models.SET_NULL, blank=True, null=True,
                                         related_name='receitas_conciliadas_no_periodo',
                                         verbose_name='período de conciliação')
+
+    saida_do_recurso = models.CharField('Saída do Recurso (Despesa Uuid)', max_length=100, default='', blank=True)
+
     def __str__(self):
         return f'RECEITA<{self.detalhamento} - {self.data} - {self.valor}>'
 
@@ -182,6 +185,11 @@ class Receita(ModeloBase):
         self.save()
         return self
 
+    def salvar_saida_recurso(self, despesa_uuid=None):
+        self.saida_do_recurso = despesa_uuid
+        self.save()
+        return self
+
     @classmethod
     def conciliar(cls, uuid, periodo_conciliacao):
         receita = cls.by_uuid(uuid)
@@ -191,6 +199,11 @@ class Receita(ModeloBase):
     def desconciliar(cls, uuid):
         receita = cls.by_uuid(uuid)
         return receita.desmarcar_conferido()
+
+    @classmethod
+    def atrelar_saida_recurso(cls, uuid, despesa_uuid):
+        receita = cls.by_uuid(uuid)
+        return receita.salvar_saida_recurso(despesa_uuid)
 
 
 @receiver(pre_save, sender=Receita)
