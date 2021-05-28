@@ -39,6 +39,7 @@ class FuncDreDadosDaDiretoria(models.Model):
 
         permissions = (
             ('access_dados_diretoria', '[DRE] Pode acessar Dados da Diretoria.'),
+            ('change_dados_diretoria', '[DRE] Pode atualizar Dados da Diretoria.'),
         )
 
 
