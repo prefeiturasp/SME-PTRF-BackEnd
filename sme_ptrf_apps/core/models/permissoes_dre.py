@@ -99,3 +99,18 @@ class FuncDreGestaoPerfis(models.Model):
         permissions = (
             ('access_gestao_perfis_dre', '[DRE] Pode acessar Gestão de Perfis da DRE.'),
         )
+
+
+class FuncDreAtribuicaoPorUe(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[DRE] Atribuição por UE"
+        verbose_name_plural = "[DRE] Atribuições por UE"
+
+        permissions = (
+            ('access_atribuicao_por_ue', '[DRE] Pode acessar Atribuição por UE.'),
+            ('change_atribuicao_por_ue', '[DRE] Pode atualizar Atribuição por UE.'),
+        )
