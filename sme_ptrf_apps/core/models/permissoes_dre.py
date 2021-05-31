@@ -114,3 +114,18 @@ class FuncDreAtribuicaoPorUe(models.Model):
             ('access_atribuicao_por_ue', '[DRE] Pode acessar Atribuição por UE.'),
             ('change_atribuicao_por_ue', '[DRE] Pode atualizar Atribuição por UE.'),
         )
+
+
+class FuncDreProcessoSei(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[DRE] Processo SEI"
+        verbose_name_plural = "[DRE] Processos SEI"
+
+        permissions = (
+            ('access_processo_sei', '[DRE] Pode acessar Processo SEI.'),
+            ('change_processo_sei', '[DRE] Pode atualizar Processo SEI.'),
+        )
