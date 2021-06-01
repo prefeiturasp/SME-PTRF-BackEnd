@@ -129,3 +129,18 @@ class FuncDreProcessoSei(models.Model):
             ('access_processo_sei', '[DRE] Pode acessar Processo SEI.'),
             ('change_processo_sei', '[DRE] Pode atualizar Processo SEI.'),
         )
+
+
+class FuncDreTecnicosDaDiretoria(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[DRE] Técnico da Diretoria"
+        verbose_name_plural = "[DRE] Técnicos da Diretoria"
+
+        permissions = (
+            ('access_tecnicos_da_diretoria', '[DRE] Pode acessar Técnicos da Diretoria.'),
+            ('change_tecnicos_da_diretoria', '[DRE] Pode atualizar Técnicos da Diretoria.'),
+        )
