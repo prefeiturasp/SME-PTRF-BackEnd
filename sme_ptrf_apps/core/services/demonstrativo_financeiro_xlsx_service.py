@@ -726,7 +726,7 @@ def pagamentos(worksheet, rateios, linha_inicial=0):
 
         row[TIPO_TRANSACAO].value = tipo_transacao
         row[DATA].value = rateio.despesa.data_documento.strftime("%d/%m/%Y") if rateio.despesa.data_documento else ''
-        row[DATA_2].value = rateio.despesa.data_documento.strftime("%d/%m/%Y") if rateio.despesa.data_documento else ''
+        row[DATA_2].value = rateio.despesa.data_transacao.strftime("%d/%m/%Y") if rateio.despesa.data_transacao else ''
         row[VALOR].value = formata_valor(rateio.valor_rateio)
 
     row = list(worksheet.rows)[linha_atual + 1]
