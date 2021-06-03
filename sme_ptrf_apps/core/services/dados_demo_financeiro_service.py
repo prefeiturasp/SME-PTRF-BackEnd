@@ -525,6 +525,7 @@ def cria_despesas(rateios):
                 tipo_transacao = rateio.despesa.tipo_transacao.nome
 
         data_documento = rateio.despesa.data_documento.strftime("%d/%m/%Y") if rateio.despesa.data_documento else ''
+        data_transacao = rateio.despesa.data_transacao.strftime("%d/%m/%Y") if rateio.despesa.data_transacao else ''
         valor = rateio.valor_rateio
         linha = {
             "razao_social": razao_social,
@@ -536,6 +537,7 @@ def cria_despesas(rateios):
             "tipo_despesa": tipo_despesa,
             "tipo_transacao": tipo_transacao,
             "data_documento": data_documento,
+            "data_transacao": data_transacao,
             "valor": valor
         }
         linhas.append(linha)
