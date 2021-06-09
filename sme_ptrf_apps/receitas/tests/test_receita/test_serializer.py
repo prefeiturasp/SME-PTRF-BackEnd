@@ -23,7 +23,8 @@ def test_list_serializer(receita, detalhe_tipo_receita):
         'conta_associacao',
         'conferido',
         'detalhe_tipo_receita',
-        'notificar_dias_nao_conferido'
+        'notificar_dias_nao_conferido',
+        'saida_do_recurso',
     )
 
     for field in expected_fields:

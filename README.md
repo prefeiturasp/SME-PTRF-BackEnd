@@ -5,9 +5,21 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.11.0
+Versão: 1.12.0
 
 ## Release Notes
+
+### 1.12.0 - 08/06/2021 - Entregas da Sprint 21
+
+* UE > Créditos não relativos ao PTRF agora permite Lançar saída do recurso na edição 
+* UE > Melhorias na validação de campos no lançamento de despesas
+* DRE > dados da diretoria não obriga mais a digitação do RF do diretor
+* DRE > Controle de acesso de gravação em Dados da Diretoria
+* DRE > Controle de acesso de gravação em Técnicos da DRE
+* DRE > Controle de acesso de gravação em Atribuições de técnicos da DRE
+* DRE > Controle de acesso de gravação em Processos SEI
+* SME > Carga de  usuários a partir da gestão de perfis de acesso
+* 🐞 Correção de bugs
 
 ### 1.11.0 - 21/05/2021 - Entregas da Sprint 20
 * UE > Status "Incompleto" em despesas agora chama-se "Rascunho"

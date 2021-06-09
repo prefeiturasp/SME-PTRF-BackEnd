@@ -39,6 +39,7 @@ class FuncDreDadosDaDiretoria(models.Model):
 
         permissions = (
             ('access_dados_diretoria', '[DRE] Pode acessar Dados da Diretoria.'),
+            ('change_dados_diretoria', '[DRE] Pode atualizar Dados da Diretoria.'),
         )
 
 
@@ -97,4 +98,49 @@ class FuncDreGestaoPerfis(models.Model):
 
         permissions = (
             ('access_gestao_perfis_dre', '[DRE] Pode acessar Gestão de Perfis da DRE.'),
+        )
+
+
+class FuncDreAtribuicaoPorUe(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[DRE] Atribuição por UE"
+        verbose_name_plural = "[DRE] Atribuições por UE"
+
+        permissions = (
+            ('access_atribuicao_por_ue', '[DRE] Pode acessar Atribuição por UE.'),
+            ('change_atribuicao_por_ue', '[DRE] Pode atualizar Atribuição por UE.'),
+        )
+
+
+class FuncDreProcessoSei(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[DRE] Processo SEI"
+        verbose_name_plural = "[DRE] Processos SEI"
+
+        permissions = (
+            ('access_processo_sei', '[DRE] Pode acessar Processo SEI.'),
+            ('change_processo_sei', '[DRE] Pode atualizar Processo SEI.'),
+        )
+
+
+class FuncDreTecnicosDaDiretoria(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[DRE] Técnico da Diretoria"
+        verbose_name_plural = "[DRE] Técnicos da Diretoria"
+
+        permissions = (
+            ('access_tecnicos_da_diretoria', '[DRE] Pode acessar Técnicos da Diretoria.'),
+            ('change_tecnicos_da_diretoria', '[DRE] Pode atualizar Técnicos da Diretoria.'),
         )
