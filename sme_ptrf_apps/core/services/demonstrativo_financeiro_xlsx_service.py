@@ -13,7 +13,7 @@ from sme_ptrf_apps.core.services.xlsx_copy_row import copy_row, insert_row
 
 from sme_ptrf_apps.core.choices import MembroEnum
 
-from sme_ptrf_apps.core.models import (FechamentoPeriodo, MembroAssociacao, ObservacaoConciliacao,
+from sme_ptrf_apps.core.models import (FechamentoPeriodo, MembroAssociacao,
                                        DemonstrativoFinanceiro)
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.receitas.models import Receita
@@ -64,11 +64,12 @@ def gerar_arquivo_demonstrativo_financeiro_xlsx(
     prestacao=None,
     usuario="",
     previa=False,
-    demonstrativo_financeiro=None
+    demonstrativo_financeiro=None,
+    observacao_conciliacao=None
 ):
     filename = 'demonstrativo_financeiro_%s.xlsx'
 
-    xlsx = gerar(usuario, acoes, periodo, conta_associacao, previa=previa)
+    xlsx = gerar(usuario, acoes, periodo, conta_associacao, observacao_conciliacao, previa=previa)
 
     with NamedTemporaryFile() as tmp:
         xlsx.save(tmp.name)
@@ -87,7 +88,7 @@ def gerar_arquivo_demonstrativo_financeiro_xlsx(
     return demonstrativo_financeiro
 
 
-def gerar(usuario, acoes, periodo, conta_associacao, previa=False):
+def gerar(usuario, acoes, periodo, conta_associacao, observacao_conciliacao, previa=False):
     try:
         LOGGER.info("GERANDO DEMONSTRATIVO...")
         rateios_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
@@ -110,7 +111,7 @@ def gerar(usuario, acoes, periodo, conta_associacao, previa=False):
         cabecalho(worksheet, periodo, conta_associacao, previa)
 
         bloco1_identificacao_apm(worksheet, acoes)
-        bloco2_identificacao_conta(worksheet, conta_associacao)
+        bloco2_identificacao_conta(worksheet, conta_associacao, observacao_conciliacao)
         bloco3_resumo_por_acao(worksheet, acoes, conta_associacao, periodo)
         bloco4_creditos_demonstrados(worksheet, receitas_demonstradas)
         bloco5_despesas_demonstradas(worksheet, rateios_conferidos)
@@ -156,14 +157,14 @@ def bloco1_identificacao_apm(worksheet, acoes):
     rows[LAST_LINE - 3][6].value = presidente_conselho_fiscal.nome if presidente_conselho_fiscal else ''
 
 
-def bloco2_identificacao_conta(worksheet, conta_associacao):
+def bloco2_identificacao_conta(worksheet, conta_associacao, observacao_conciliacao):
     rows = list(worksheet.rows)
 
     banco = conta_associacao.banco_nome
     agencia = conta_associacao.agencia
     conta = conta_associacao.numero_conta
-    data_extrato = date.today().strftime("%d/%m/%Y")
-    saldo_extrato = 0
+    data_extrato = observacao_conciliacao.data_extrato.strftime('%d/%m/%Y') if observacao_conciliacao and observacao_conciliacao.data_extrato else ""
+    saldo_extrato = formata_valor(observacao_conciliacao.saldo_extrato) if observacao_conciliacao and observacao_conciliacao.saldo_extrato else "0,00"
 
     row = rows[15]
     row[0].value = banco
