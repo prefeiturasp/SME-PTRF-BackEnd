@@ -10,7 +10,7 @@ from sme_ptrf_apps.core.models import (
     Periodo,
     PeriodoPrevia,
     PrestacaoConta,
-    Ata
+    Ata,
 )
 
 

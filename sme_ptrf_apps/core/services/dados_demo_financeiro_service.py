@@ -16,7 +16,7 @@ from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (APLICACAO_C
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao, prestacao, previa=False):
+def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao, prestacao, observacao_conciliacao, previa=False):
     try:
         LOGGER.info("GERANDO DADOS DEMONSTRATIVO...")
         rateios_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
@@ -32,7 +32,7 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
 
         cabecalho = cria_cabecalho(periodo, conta_associacao, previa)
         identificacao_apm = cria_identificacao_apm(acoes)
-        identificacao_conta = cria_identificacao_conta(conta_associacao)
+        identificacao_conta = cria_identificacao_conta(conta_associacao, observacao_conciliacao)
         resumo_por_acao = cria_resumo_por_acao(acoes, conta_associacao, periodo)
         creditos_demonstrados = cria_creditos_demonstrados(receitas_demonstradas)
         despesas_demonstradas = cria_despesas(rateios_conferidos)
@@ -108,13 +108,13 @@ def cria_identificacao_apm(acoes):
     return identificacao_apm
 
 
-def cria_identificacao_conta(conta_associacao):
+def cria_identificacao_conta(conta_associacao, observacao_conciliacao):
     identificacao_conta = {
         "banco": conta_associacao.banco_nome,
         "agencia": conta_associacao.agencia,
         "conta": conta_associacao.numero_conta,
-        "data_extrato": date.today().strftime("%d/%m/%Y"),
-        "saldo_extrato": 0
+        "data_extrato": observacao_conciliacao.data_extrato.strftime("%d/%m/%Y") if observacao_conciliacao and observacao_conciliacao.data_extrato else "",
+        "saldo_extrato": observacao_conciliacao.saldo_extrato if observacao_conciliacao and observacao_conciliacao.saldo_extrato else 0
     }
 
     return identificacao_conta
