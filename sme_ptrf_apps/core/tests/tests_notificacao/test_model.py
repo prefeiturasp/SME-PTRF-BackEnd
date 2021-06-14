@@ -4,43 +4,32 @@ import pytest
 from django.contrib import admin
 from model_bakery import baker
 from django.contrib.auth import get_user_model
-from ...models import Categoria, Notificacao, Remetente, TipoNotificacao
+from ...models import Notificacao
 
 pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def categoria():
-    return baker.make('Categoria', nome='Prestações de conta')
-
-@pytest.fixture
-def tipo_notificacao():
-    return baker.make('TipoNotificacao', nome='Informação')
-
-@pytest.fixture
-def remetente():
-    return baker.make('Remetente', nome='SME')
-
-@pytest.fixture
-def notificacao(tipo_notificacao, remetente, categoria, usuario_permissao_associacao):
+def notificacao(usuario_permissao_associacao):
     return baker.make(
         'Notificacao',
-        tipo=tipo_notificacao,
-        categoria=categoria,
-        remetente=remetente,
+        tipo=Notificacao.TIPO_NOTIFICACAO_INFORMACAO,
+        categoria=Notificacao.CATEGORIA_NOTIFICACAO_COMENTARIO_PC,
+        remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
         titulo="Documentos Faltantes",
         descricao="Documentos Faltantes na prestação de contas",
         usuario=usuario_permissao_associacao
     )
+
 
 def test_instance_model(notificacao):
     model = notificacao
     assert isinstance(model, Notificacao)
     assert model.titulo
     assert model.descricao
-    assert isinstance(model.remetente, Remetente)
-    assert isinstance(model.tipo, TipoNotificacao)
-    assert isinstance(model.categoria, Categoria)
+    assert model.tipo
+    assert model.categoria
+    assert model.remetente
     assert isinstance(model.usuario, get_user_model())
     assert model.criado_em
     assert model.alterado_em
