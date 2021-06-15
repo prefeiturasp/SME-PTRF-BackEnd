@@ -9,7 +9,7 @@ from .conta_associacao import ContaAssociacao
 from .demonstrativo_financeiro import DemonstrativoFinanceiro
 from .fechamento_periodo import STATUS_ABERTO, STATUS_FECHADO, STATUS_IMPLANTACAO, FechamentoPeriodo
 from .membro_associacao import MembroAssociacao
-from .notificacao import Notificacao
+from .notificacao import Notificacao, NotificacaoCreateException
 from .observacao_conciliacao import ObservacaoConciliacao
 from .parametros import Parametros
 from .periodo import Periodo, PeriodoPrevia
