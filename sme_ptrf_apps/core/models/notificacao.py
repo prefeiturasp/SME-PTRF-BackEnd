@@ -4,6 +4,10 @@ from django.db import models
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
+class NotificacaoCreateException(Exception):
+    pass
+
+
 class Notificacao(ModeloBase):
 
     # Tipos de Notificação
@@ -123,3 +127,48 @@ class Notificacao(ModeloBase):
             }
             result.append(status)
         return result
+
+    @classmethod
+    def notificar(
+        cls,
+        tipo,
+        categoria,
+        remetente,
+        titulo,
+        descricao,
+        usuario,
+        renotificar=True,
+    ):
+        if tipo not in cls.TIPO_NOTIFICACAO_NOMES.keys():
+            raise NotificacaoCreateException(f'Tipo {tipo} não é um tipo válido.')
+
+        if categoria not in cls.CATEGORIA_NOTIFICACAO_NOMES.keys():
+            raise NotificacaoCreateException(f'Categoria {categoria} não é uma categoria válida.')
+
+        if remetente not in cls.REMETENTE_NOTIFICACAO_NOMES.keys():
+            raise NotificacaoCreateException(f'Remetente {remetente} não é um remetente válido.')
+
+        if not titulo:
+            raise NotificacaoCreateException(f'O título não pode ser vazio.')
+
+        if not usuario:
+            raise NotificacaoCreateException(f'É necessário definir o usuário destinatário.')
+
+        if not renotificar:
+            notificacao_existente = cls.objects.filter(
+                tipo=tipo,
+                categoria=categoria,
+                remetente=remetente,
+                titulo=titulo,
+                usuario=usuario,
+            )
+
+        if renotificar or not notificacao_existente:
+            cls.objects.create(
+                tipo=tipo,
+                categoria=categoria,
+                remetente=remetente,
+                titulo=titulo,
+                descricao=descricao,
+                usuario=usuario,
+            )
