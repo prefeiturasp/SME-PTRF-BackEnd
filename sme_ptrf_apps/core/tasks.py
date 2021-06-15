@@ -13,6 +13,8 @@ from sme_ptrf_apps.core.models import (
     Ata,
 )
 
+from .services.notificacao_inicio_periodo_prestacao_de_contas import notificar_inicio_periodo_prestacao_de_contas
+
 
 logger = logging.getLogger(__name__)
 
@@ -139,3 +141,13 @@ def gerar_arquivo_ata_async(prestacao_de_contas_uuid, ata_uuid, usuario):
     if arquivo_ata is not None:
         logger.info(f'Arquivo ata: {arquivo_ata} gerado com sucesso.')
 
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
+def gerar_notificacao_inicio_periodo_prestacao_de_contas_async():
+    logger.info(f'Iniciando a geração de notificação inicio periodo prestação de contas async')
+    notificacao = notificar_inicio_periodo_prestacao_de_contas()
