@@ -13,7 +13,7 @@ from sme_ptrf_apps.core.models import (
     Ata,
 )
 
-from .services.notificacao_inicio_periodo_prestacao_de_contas import notificar_inicio_periodo_prestacao_de_contas
+from sme_ptrf_apps.core.services.notificacao_services.notificacao_inicio_periodo_prestacao_de_contas import notificar_inicio_periodo_prestacao_de_contas
 
 
 logger = logging.getLogger(__name__)
