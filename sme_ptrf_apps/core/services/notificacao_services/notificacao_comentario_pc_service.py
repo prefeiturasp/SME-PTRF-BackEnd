@@ -6,13 +6,9 @@ from django.contrib.auth import get_user_model
 from sme_ptrf_apps.core.choices import MembroEnum
 from sme_ptrf_apps.core.models import (
     Associacao,
-    Categoria,
     ComentarioAnalisePrestacao,
-    MembroAssociacao,
     Notificacao,
     Periodo,
-    Remetente,
-    TipoNotificacao,
 )
 
 User = get_user_model()
@@ -20,25 +16,16 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-def formata_data(data):
-    meses = ('Jan.', 'Fev.', 'Mar.', 'Abr.', 'Mai.', 'Jun.', 'Jul.', 'Ago.', 'Set.', 'Out.', 'Nov.', 'Dez.')
-    diasemana = ('Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo')
-    ds = diasemana[date.weekday(data)] if data != date.today() else 'Hoje'
-    ms = meses[data.month-1]
-
-    return f"{ds} {data.day:0>2} {ms} {data.year}"
-
-
-def notificar_usuario(dado):
+def notificar_comentario_pc(dado):
     logging.info("Criando notificações.")
 
     associacao = Associacao.by_uuid(dado['associacao'])
     periodo = Periodo.by_uuid(dado['periodo'])
     comentarios = [ComentarioAnalisePrestacao.by_uuid(uuid) for uuid in dado['comentarios']]
 
-    tipo = TipoNotificacao.objects.filter(nome="Aviso").first()
-    categoria = Categoria.objects.filter(nome="Comentário na prestação de contas").first()
-    remetente = Remetente.objects.filter(nome="DRE").first()
+    tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
+    categoria = Notificacao.CATEGORIA_NOTIFICACAO_COMENTARIO_PC
+    remetente = Notificacao.REMETENTE_NOTIFICACAO_DRE
     titulo = f"Comentário feito em sua prestação de contas de {periodo.referencia}."
 
     cargos = [MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name, MembroEnum.VICE_PRESIDENTE_DIRETORIA_EXECUTIVA.name]

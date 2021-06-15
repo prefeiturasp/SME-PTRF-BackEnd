@@ -1,18 +1,15 @@
-from .remetente import Remetente
 from .unidade import Unidade
-from .tipo_notificacao import TipoNotificacao
 from .acao import Acao
 from .acao_associacao import AcaoAssociacao
 from .arquivo import Arquivo
 from .associacao import Associacao
 from .ata import Ata
-from .categoria import Categoria
 from .cobranca_prestacao_conta import CobrancaPrestacaoConta
 from .conta_associacao import ContaAssociacao
 from .demonstrativo_financeiro import DemonstrativoFinanceiro
 from .fechamento_periodo import STATUS_ABERTO, STATUS_FECHADO, STATUS_IMPLANTACAO, FechamentoPeriodo
 from .membro_associacao import MembroAssociacao
-from .notificacao import Notificacao
+from .notificacao import Notificacao, NotificacaoCreateException
 from .observacao_conciliacao import ObservacaoConciliacao
 from .parametros import Parametros
 from .periodo import Periodo, PeriodoPrevia

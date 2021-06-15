@@ -1,53 +1,22 @@
 import json
 
 import pytest
-from freezegun import freeze_time
+
 from model_bakery import baker
-from rest_framework import status
-from sme_ptrf_apps.core.services import formata_data
+
+from sme_ptrf_apps.core.services.notificacao_services import formata_data
 from sme_ptrf_apps.core.choices import MembroEnum, RepresentacaoCargo
 from sme_ptrf_apps.core.models import Notificacao
 
 pytestmark = pytest.mark.django_db
 
-
 @pytest.fixture
-def categoria():
-    return baker.make('Categoria', nome='Prestações de conta')
-
-
-@pytest.fixture
-def categoria1():
-    return baker.make('Categoria', nome='Categoria 1')
-
-
-@pytest.fixture
-def tipo_notificacao():
-    return baker.make('TipoNotificacao', nome='Informação')
-
-
-@pytest.fixture
-def tipo_notificacao1():
-    return baker.make('TipoNotificacao', nome='Alerta')
-
-
-@pytest.fixture
-def remetente():
-    return baker.make('Remetente', nome='SME')
-
-
-@pytest.fixture
-def remetente1():
-    return baker.make('Remetente', nome='AMCom')
-
-
-@pytest.fixture
-def notificacao(tipo_notificacao, remetente, categoria, usuario_permissao_associacao):
+def notificacao(usuario_permissao_associacao):
     return baker.make(
         'Notificacao',
-        tipo=tipo_notificacao,
-        categoria=categoria,
-        remetente=remetente,
+        tipo=Notificacao.TIPO_NOTIFICACAO_INFORMACAO,
+        categoria=Notificacao.CATEGORIA_NOTIFICACAO_COMENTARIO_PC,
+        remetente=Notificacao.REMETENTE_NOTIFICACAO_DRE,
         titulo="Documentos Faltantes",
         descricao="Documentos Faltantes na prestação de contas",
         usuario=usuario_permissao_associacao
@@ -55,12 +24,12 @@ def notificacao(tipo_notificacao, remetente, categoria, usuario_permissao_associ
 
 
 @pytest.fixture
-def notificacao2(tipo_notificacao1, remetente1, categoria1, usuario_permissao_associacao):
+def notificacao2(usuario_permissao_associacao):
     return baker.make(
         'Notificacao',
-        tipo=tipo_notificacao1,
-        categoria=categoria1,
-        remetente=remetente1,
+        tipo=Notificacao.TIPO_NOTIFICACAO_URGENTE,
+        categoria=Notificacao.CATEGORIA_NOTIFICACAO_ELABORACAO_PC,
+        remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
         lido=True,
         titulo="Documentos Faltantes 2",
         descricao="Documentos Faltantes na prestação de contas 2",
@@ -95,9 +64,9 @@ def test_lista_notificacoes(jwt_authenticated_client_a, notificacao):
                             'descricao': notificacao.descricao,
                             'lido': notificacao.lido,
                             'hora': notificacao.hora.strftime("%H:%M"),
-                            'tipo': notificacao.tipo.nome,
-                            'remetente': notificacao.remetente.nome,
-                            'categoria': notificacao.categoria.nome
+                            'tipo': Notificacao.TIPO_NOTIFICACAO_NOMES[notificacao.tipo],
+                            'remetente': Notificacao.REMETENTE_NOTIFICACAO_NOMES[notificacao.remetente],
+                            'categoria': Notificacao.CATEGORIA_NOTIFICACAO_NOMES[notificacao.categoria]
                         }
                     ]
                 }
@@ -127,14 +96,14 @@ def test_filtro_lido(jwt_authenticated_client_a, notificacao, notificacao2):
                             'descricao': notificacao2.descricao,
                             'lido': notificacao2.lido,
                             'hora': notificacao2.hora.strftime("%H:%M"),
-                            'tipo': notificacao2.tipo.nome,
-                            'remetente': notificacao2.remetente.nome,
-                            'categoria': notificacao2.categoria.nome
+                            'tipo': Notificacao.TIPO_NOTIFICACAO_NOMES[notificacao2.tipo],
+                            'remetente': Notificacao.REMETENTE_NOTIFICACAO_NOMES[notificacao2.remetente],
+                            'categoria': Notificacao.CATEGORIA_NOTIFICACAO_NOMES[notificacao2.categoria]
                         }
                     ]
                 }
             ]
-    
+
     }
 
     assert result == esperado
@@ -142,7 +111,7 @@ def test_filtro_lido(jwt_authenticated_client_a, notificacao, notificacao2):
 
 def test_filtro_tipo(jwt_authenticated_client_a, notificacao, notificacao2):
     response = jwt_authenticated_client_a.get(
-        f'/api/notificacoes/?tipo={notificacao2.tipo.id}', content_type='application/json')
+        f'/api/notificacoes/?tipo={notificacao2.tipo}', content_type='application/json')
     result = json.loads(response.content)
     esperado = {
             'count': 1,
@@ -160,15 +129,14 @@ def test_filtro_tipo(jwt_authenticated_client_a, notificacao, notificacao2):
                             'descricao': notificacao2.descricao,
                             'lido': notificacao2.lido,
                             'hora': notificacao2.hora.strftime("%H:%M"),
-                            'tipo': notificacao2.tipo.nome,
-                            'remetente': notificacao2.remetente.nome,
-                            'categoria': notificacao2.categoria.nome
+                            'tipo': Notificacao.TIPO_NOTIFICACAO_NOMES[notificacao2.tipo],
+                            'remetente': Notificacao.REMETENTE_NOTIFICACAO_NOMES[notificacao2.remetente],
+                            'categoria': Notificacao.CATEGORIA_NOTIFICACAO_NOMES[notificacao2.categoria]
                         }
                     ]
                 }
             ]
     }
-
 
     assert result == esperado
 
@@ -237,32 +205,13 @@ def comentario_analise_prestacao(prestacao_conta_2020_1_conciliada):
     )
 
 
-@pytest.fixture
-def categoria_prestacao_conta():
-    return baker.make('Categoria', nome='Comentário na prestação de contas')
-
-
-@pytest.fixture
-def tipo_notificacao_aviso():
-    return baker.make('TipoNotificacao', nome='Aviso')
-
-
-@pytest.fixture
-def remetente_dre():
-    return baker.make('Remetente', nome='DRE')
-
-
-def test_notificar(jwt_authenticated_client_a, 
-    membro_associacao_presidente_associacao, 
-    membro_associacao_vice_presidente_associacao, 
-    associacao,
-    periodo_2020_1,
-    comentario_analise_prestacao,
-    categoria_prestacao_conta,
-    remetente_dre,
-    tipo_notificacao_aviso,
-    usuario_vice_presidente):
-
+def test_notificar(jwt_authenticated_client_a,
+                   membro_associacao_presidente_associacao,
+                   membro_associacao_vice_presidente_associacao,
+                   associacao,
+                   periodo_2020_1,
+                   comentario_analise_prestacao,
+                   usuario_vice_presidente):
     assert Notificacao.objects.count() == 0
 
     payload = {
@@ -279,5 +228,7 @@ def test_notificar(jwt_authenticated_client_a,
     result = json.loads(response.content)
     assert result == {"mensagem": "Processo de notificação enviado com sucesso."}
     assert Notificacao.objects.count() == 2
-    assert Notificacao.objects.filter(usuario__username=membro_associacao_presidente_associacao.codigo_identificacao).first()
-    assert Notificacao.objects.filter(usuario__username=membro_associacao_vice_presidente_associacao.codigo_identificacao).first()
+    assert Notificacao.objects.filter(
+        usuario__username=membro_associacao_presidente_associacao.codigo_identificacao).first()
+    assert Notificacao.objects.filter(
+        usuario__username=membro_associacao_vice_presidente_associacao.codigo_identificacao).first()
