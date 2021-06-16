@@ -7,13 +7,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from sme_ptrf_apps.core.api.serializers import NotificacaoSerializer
-from sme_ptrf_apps.core.api.serializers.notificacao_serializer import (
-    CategoriatificacaoSerializer,
-    RemetenteNotificacaoSerializer,
-    TipoNotificacaoSerializer,
-)
+
 from sme_ptrf_apps.core.models import Notificacao
-from sme_ptrf_apps.core.services import formata_data, notificar_usuario
+from sme_ptrf_apps.core.services.notificacao_services import formata_data, notificar_comentario_pc
 
 logger = logging.getLogger(__name__)
 
@@ -53,13 +49,13 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
             qs = qs.filter(lido=(self.request.query_params.get('lido') == 'True'))
 
         if self.request.query_params.get('tipo'):
-            qs = qs.filter(tipo__id=self.request.query_params.get('tipo'))
+            qs = qs.filter(tipo=self.request.query_params.get('tipo'))
 
         if self.request.query_params.get('remetente'):
-            qs = qs.filter(remetente__id=self.request.query_params.get('remetente'))
+            qs = qs.filter(remetente=self.request.query_params.get('remetente'))
 
         if self.request.query_params.get('categoria'):
-            qs = qs.filter(categoria__id=self.request.query_params.get('categoria'))
+            qs = qs.filter(categoria=self.request.query_params.get('categoria'))
 
         data_inicio = self.request.query_params.get('data_inicio')
         data_fim = self.request.query_params.get('data_fim')
@@ -138,14 +134,10 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, url_path='tabelas')
     def tabelas(self, _):
-        def get_valores_from(serializer):
-            valores = serializer.Meta.model.get_valores()
-            return serializer(valores, many=True).data if valores else []
-
         result = {
-            'tipos_notificacao': get_valores_from(TipoNotificacaoSerializer),
-            'remetentes': get_valores_from(RemetenteNotificacaoSerializer),
-            'categorias': get_valores_from(CategoriatificacaoSerializer)
+            'tipos_notificacao': Notificacao.tipos_to_json(),
+            'remetentes': Notificacao.remetentes_to_json(),
+            'categorias': Notificacao.categorias_to_json()
         }
 
         return Response(result)
@@ -165,7 +157,7 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
             return Response(resultado, status=status_code)
 
         try:
-            notificar_usuario(dado)
+            notificar_comentario_pc(dado)
         except Exception as err:
             logger.info("Erro no processo de notificação: %s", str(err))
             resultado = {

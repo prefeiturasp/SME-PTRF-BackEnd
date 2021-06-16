@@ -11,7 +11,6 @@ Cada modelo representa uma funcionalidade da aplicação e define as permissões
 
 
 class FuncUeResumoDosRecursos(models.Model):
-
     class Meta:
         managed = False  # No database table creation.
         default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
@@ -25,7 +24,6 @@ class FuncUeResumoDosRecursos(models.Model):
 
 
 class FuncUeGastosDaEscola(models.Model):
-
     class Meta:
         managed = False  # No database table creation.
         default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
@@ -42,7 +40,6 @@ class FuncUeGastosDaEscola(models.Model):
 
 
 class FuncUeCreditosDaEscola(models.Model):
-
     class Meta:
         managed = False  # No database table creation.
         default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
@@ -60,7 +57,6 @@ class FuncUeCreditosDaEscola(models.Model):
 
 
 class FuncUeDadosDaEscola(models.Model):
-
     class Meta:
         managed = False  # No database table creation.
         default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
@@ -75,7 +71,6 @@ class FuncUeDadosDaEscola(models.Model):
 
 
 class FuncUePrestacaoDeContas(models.Model):
-
     class Meta:
         managed = False  # No database table creation.
         default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
@@ -93,7 +88,6 @@ class FuncUePrestacaoDeContas(models.Model):
 
 
 class FuncUeConciliacaoBancaria(models.Model):
-
     class Meta:
         managed = False  # No database table creation.
         default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
@@ -108,7 +102,6 @@ class FuncUeConciliacaoBancaria(models.Model):
 
 
 class FuncUeGerais(models.Model):
-
     class Meta:
         managed = False  # No database table creation.
         default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
@@ -122,7 +115,6 @@ class FuncUeGerais(models.Model):
 
 
 class FuncUeGestaoPerfis(models.Model):
-
     class Meta:
         managed = False  # No database table creation.
         default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
@@ -132,4 +124,17 @@ class FuncUeGestaoPerfis(models.Model):
 
         permissions = (
             ('access_gestao_perfis_ue', '[UE] Pode acessar Gestão de Perfis da UE.'),
+        )
+
+
+class FuncUeRecebimentoDeNotificacoes(models.Model):
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[UE] Recebimento de notificações"
+        verbose_name_plural = "[UE] Recebimento de notificações"
+
+        permissions = (
+            ('recebe_notificacao_inicio_periodo_prestacao_de_contas', '[UE] Pode receber Notificação Início Período Prestação De Contas.'),
         )

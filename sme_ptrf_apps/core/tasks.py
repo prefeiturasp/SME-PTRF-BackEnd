@@ -10,7 +10,7 @@ from sme_ptrf_apps.core.models import (
     Periodo,
     PeriodoPrevia,
     PrestacaoConta,
-    Ata
+    Ata,
 )
 
 
@@ -139,3 +139,34 @@ def gerar_arquivo_ata_async(prestacao_de_contas_uuid, ata_uuid, usuario):
     if arquivo_ata is not None:
         logger.info(f'Arquivo ata: {arquivo_ata} gerado com sucesso.')
 
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
+def gerar_notificacao_inicio_periodo_prestacao_de_contas_async():
+    from sme_ptrf_apps.core.services.notificacao_services import notificar_inicio_periodo_prestacao_de_contas
+
+    logger.info(f'Iniciando a geração de notificação início período prestação de contas async')
+
+    notificar_inicio_periodo_prestacao_de_contas()
+
+    logger.info(f'Finalizando a geração de notificação início período prestação de contas async')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
+def gerar_notificacao_proximidade_inicio_periodo_prestacao_conta_async():
+    from sme_ptrf_apps.core.services.notificacao_services import notificar_proximidade_inicio_periodo_prestacao_conta
+
+    logger.info('Chamando serviço de notificação de proximidade do início do período de prestação de contas.')
+
+    notificar_proximidade_inicio_periodo_prestacao_conta()
+
+    logger.info('Executado serviço de notificação de proximidade do início do período de prestação de contas.')

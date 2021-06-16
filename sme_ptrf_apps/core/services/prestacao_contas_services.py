@@ -5,7 +5,7 @@ from django.db.models import Q
 
 from .demonstrativo_financeiro_xlsx_service import (gerar_arquivo_demonstrativo_financeiro_xlsx,
                                                     apagar_previas_demonstrativo_financeiro)
-from ..models import PrestacaoConta, FechamentoPeriodo, Associacao, DemonstrativoFinanceiro
+from ..models import PrestacaoConta, FechamentoPeriodo, Associacao, DemonstrativoFinanceiro, ObservacaoConciliacao
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
 from ..services.processos_services import get_processo_sei_da_prestacao
@@ -286,6 +286,7 @@ def lista_prestacoes_de_conta_nao_recebidas(
 
 def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, prestacao=None, usuario="",
                                              previa=False):
+
     logger.info(f'Criando registro do demonstrativo financeiro da conta {conta_associacao}.')
     demonstrativo, _ = DemonstrativoFinanceiro.objects.update_or_create(
         conta_associacao=conta_associacao,
@@ -296,16 +297,23 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
     )
 
     logger.info(f'Gerando demonstrativo financeiro em XLSX da conta {conta_associacao}.')
+
+    try:
+        observacao_conciliacao = ObservacaoConciliacao.objects.get(periodo__uuid=periodo.uuid, conta_associacao__uuid=conta_associacao.uuid)
+    except Exception:
+        observacao_conciliacao = None
+
     demonstrativo = gerar_arquivo_demonstrativo_financeiro_xlsx(acoes=acoes, periodo=periodo,
                                                                 conta_associacao=conta_associacao,
                                                                 prestacao=prestacao,
                                                                 previa=previa,
                                                                 demonstrativo_financeiro=demonstrativo,
+                                                                observacao_conciliacao=observacao_conciliacao,
                                                                 )
 
     logger.info(f'Gerando demonstrativo financeiro em PDF da conta {conta_associacao}.')
     dados_demonstrativo = gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao,
-                                                               prestacao, previa=False)
+                                                               prestacao, observacao_conciliacao=observacao_conciliacao, previa=False)
     gerar_arquivo_demonstrativo_financeiro_pdf(dados_demonstrativo, demonstrativo)
 
     demonstrativo.arquivo_concluido()
