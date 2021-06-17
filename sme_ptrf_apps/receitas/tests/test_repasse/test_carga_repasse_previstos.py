@@ -63,13 +63,13 @@ def arquivo_carga_virgula_processado(arquivo_processado):
     )
 
 
-def test_carga_com_erro_formatacao(arquivo_carga):
+def test_carga_com_erro_formatacao(arquivo_carga, tipo_conta_cheque):
     carrega_repasses_previstos(arquivo_carga)
     assert arquivo_carga.log == 'Erro ao processar repasses previstos: Formato definido (DELIMITADOR_PONTO_VIRGULA) é diferente do formato do arquivo csv (DELIMITADOR_VIRGULA)'
     assert arquivo_carga.status == ERRO
 
 
-def test_carga_com_erro(arquivo_carga_virgula):
+def test_carga_com_erro(arquivo_carga_virgula, tipo_conta_cheque):
     carrega_repasses_previstos(arquivo_carga_virgula)
     msg = """Erro na linha 1: Associação com código eol: 93238 não encontrado.
 Foram criados 0 repasses. Erro na importação de 1 repasse(s)."""
@@ -77,7 +77,13 @@ Foram criados 0 repasses. Erro na importação de 1 repasse(s)."""
     assert arquivo_carga_virgula.status == ERRO
 
 
-def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao, tipo_receita_repasse):
+@pytest.fixture
+def acao_role_cultural_teste():
+    return baker.make('Acao', nome='Role Cultural')
+
+
+def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao, tipo_receita_repasse,
+                                   tipo_conta_cheque, acao_role_cultural, acao_role_cultural_teste):
     carrega_repasses_previstos(arquivo_carga_virgula_processado)
     msg = """Erro na linha 2: Associação com código eol: 93238 não encontrado.
 Foram criados 1 repasses. Erro na importação de 1 repasse(s)."""
