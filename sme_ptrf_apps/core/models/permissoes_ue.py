@@ -139,4 +139,5 @@ class FuncUeRecebimentoDeNotificacoes(models.Model):
             ('recebe_notificacao_inicio_periodo_prestacao_de_contas', '[UE] Pode receber Notificação Início Período Prestação De Contas.'),
             ('recebe_notificacao_pendencia_envio_prestacao_de_contas', '[UE] Pode receber Notificação pendência envio Prestação De Contas.'),
             ('recebe_notificacao_proximidade_inicio_prestacao_de_contas', '[UE] Pode receber Notificação Proximidade Início Prestação De Contas.'),
+            ('recebe_notificacao_prestacao_de_contas_devolvida_para_acertos', '[UE] Pode receber Notificação Prestação de Contas Devolvida para Acertos'),
         )

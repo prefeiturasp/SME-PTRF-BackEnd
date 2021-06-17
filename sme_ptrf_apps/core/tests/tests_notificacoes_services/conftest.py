@@ -43,7 +43,8 @@ def permissao_recebe_notificacao_proximidade_inicio_pc():
 
 @pytest.fixture
 def permissao_recebe_notificacao_inicio_pc():
-    return Permission.objects.filter(codename='recebe_notificacao_inicio_periodo_prestacao_de_contas').first()\
+    return Permission.objects.filter(codename='recebe_notificacao_inicio_periodo_prestacao_de_contas').first()
+
 
 @pytest.fixture
 def permissao_recebe_notificacao_pendencia_envio_pc():
@@ -51,11 +52,17 @@ def permissao_recebe_notificacao_pendencia_envio_pc():
 
 
 @pytest.fixture
-def grupo_notificavel(permissao_recebe_notificacao_proximidade_inicio_pc, permissao_recebe_notificacao_inicio_pc, permissao_recebe_notificacao_pendencia_envio_pc, visao_ue):
+def permissao_recebe_notificacao_pc_devolvida_para_acertos():
+    return Permission.objects.filter(codename='recebe_notificacao_prestacao_de_contas_devolvida_para_acertos').first()
+
+
+@pytest.fixture
+def grupo_notificavel(permissao_recebe_notificacao_proximidade_inicio_pc, permissao_recebe_notificacao_inicio_pc, permissao_recebe_notificacao_pendencia_envio_pc, permissao_recebe_notificacao_pc_devolvida_para_acertos, visao_ue):
     g = Grupo.objects.create(name="grupo_notificavel")
     g.permissions.add(permissao_recebe_notificacao_proximidade_inicio_pc)
     g.permissions.add(permissao_recebe_notificacao_inicio_pc)
     g.permissions.add(permissao_recebe_notificacao_pendencia_envio_pc)
+    g.permissions.add(permissao_recebe_notificacao_pc_devolvida_para_acertos)
     g.visoes.add(visao_ue)
     g.descricao = "Grupo que recebe notificações"
     g.save()
@@ -202,6 +209,15 @@ def prestacao_nao_notifica_pendencia_envio_pc(periodo_notifica_pendencia_envio_p
         periodo=periodo_notifica_pendencia_envio_pc,
         associacao=associacao_a,
         status="EM_ANALISE"
+    )
+
+@pytest.fixture
+def prestacao_notifica_pc_devolvida_para_acertos(periodo_notifica_pendencia_envio_pc, associacao_a):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_notifica_pendencia_envio_pc,
+        associacao=associacao_a,
+        status="DEVOLVIDA"
     )
 
 @pytest.fixture
