@@ -28,6 +28,10 @@ PERIODO = 6
 __DELIMITADORES = {',': DELIMITADOR_VIRGULA, ';': DELIMITADOR_PONTO_VIRGULA}
 
 
+class CargaRepasseRealizadoException(Exception):
+    pass
+
+
 class TipoContaEnum(enum.Enum):
     CARTAO = 'Cartão'
     CHEQUE = 'Cheque'
@@ -55,15 +59,15 @@ def get_associacao(eol):
 def get_acao(nome):
     if Acao.objects.filter(nome=nome).exists():
         return Acao.objects.filter(nome=nome).get()
-
-    return Acao.objects.create(nome=nome)
+    else:
+        raise CargaRepasseRealizadoException(f"Ação {nome} não encontrada.")
 
 
 def get_tipo_conta(nome):
     if TipoConta.objects.filter(nome=nome).exists():
         return TipoConta.objects.filter(nome=nome).get()
-
-    return TipoConta.objects.create(nome=nome)
+    else:
+        raise CargaRepasseRealizadoException(f"Tipo de conta {nome} não encontrado.")
 
 
 def get_acao_associacao(acao, associacao):
@@ -103,130 +107,137 @@ def criar_receita(associacao, conta_associacao, acao_associacao, valor, data, ca
     )
 
 
-def processa_repasse(reader, conta, arquivo):
+def processa_repasse(reader, tipo_conta, arquivo):
     logs = ""
     importados = 0
     erros = 0
     for index, row in enumerate(reader):
-        if index != 0:
-            logger.info('Linha %s: %s', index, row)
-            associacao = get_associacao(row[CODIGO_EOL])
-            if not associacao:
-                msg_erro = f'Associação com código eol: {row[CODIGO_EOL]} não encontrado. Linha {index}'
-                logger.info(msg_erro)
-                logs = f"{logs}\n{msg_erro}"
-                erros += 1
-                continue
+        if index == 0:
+            continue
 
-            try:
-                periodo = get_periodo(str(row[PERIODO]).strip())
-                valor_capital = get_valor(row[VALOR_CAPITAL])
-                valor_custeio = get_valor(row[VALOR_CUSTEIO])
-                valor_livre = get_valor(row[VALOR_LIVRE])
-                acao = get_acao(str(row[ACAO]).strip(" "))
-                tipo_conta = get_tipo_conta(conta)
-                acao_associacao = get_acao_associacao(acao, associacao)
-                conta_associacao = get_conta_associacao(tipo_conta, associacao)
+        logger.info('Linha %s: %s', index, row)
+        associacao = get_associacao(row[CODIGO_EOL])
+        if not associacao:
+            msg_erro = f'Associação com código eol: {row[CODIGO_EOL]} não encontrado. Linha {index}'
+            logger.info(msg_erro)
+            logs = f"{logs}\n{msg_erro}"
+            erros += 1
+            continue
 
-                if valor_capital > 0 or valor_custeio > 0 or valor_livre > 0:
-                    logger.info("Criando repasse.")
-                    repasse = Repasse.objects.create(
-                        associacao=associacao,
-                        valor_capital=valor_capital,
-                        valor_custeio=valor_custeio,
-                        valor_livre=valor_livre,
-                        conta_associacao=conta_associacao,
-                        acao_associacao=acao_associacao,
-                        periodo=periodo,
-                        status=StatusRepasse.REALIZADO.name
-                    )
+        try:
+            periodo = get_periodo(str(row[PERIODO]).strip())
 
-                    data = datetime.strptime(str(row[DATA]).strip(" "), '%d/%m/%Y')
-                    tipo_receita = TipoReceita.objects.filter(e_repasse=True).first()
-                    valor = 0
-                    categoria_receita = None
+            valor_capital = get_valor(row[VALOR_CAPITAL])
+            valor_custeio = get_valor(row[VALOR_CUSTEIO])
+            valor_livre = get_valor(row[VALOR_LIVRE])
 
-                    if valor_capital > 0:
-                        valor = valor_capital
-                        categoria_receita = APLICACAO_CAPITAL
+            acao = get_acao(str(row[ACAO]).strip(" "))
 
-                        criar_receita(
-                            associacao,
-                            conta_associacao,
-                            acao_associacao,
-                            valor,
-                            data,
-                            categoria_receita,
-                            tipo_receita,
-                            repasse)
+            acao_associacao = get_acao_associacao(acao, associacao)
+            conta_associacao = get_conta_associacao(tipo_conta, associacao)
 
-                        repasse.realizado_capital = True
+            if valor_capital > 0 or valor_custeio > 0 or valor_livre > 0:
+                logger.info("Criando repasse.")
+                repasse = Repasse.objects.create(
+                    associacao=associacao,
+                    valor_capital=valor_capital,
+                    valor_custeio=valor_custeio,
+                    valor_livre=valor_livre,
+                    conta_associacao=conta_associacao,
+                    acao_associacao=acao_associacao,
+                    periodo=periodo,
+                    status=StatusRepasse.REALIZADO.name
+                )
 
-                    if valor_custeio > 0:
-                        valor = valor_custeio
-                        categoria_receita = APLICACAO_CUSTEIO
+                data = datetime.strptime(str(row[DATA]).strip(" "), '%d/%m/%Y')
+                tipo_receita = TipoReceita.objects.filter(e_repasse=True).first()
+                valor = 0
+                categoria_receita = None
 
-                        criar_receita(
-                            associacao,
-                            conta_associacao,
-                            acao_associacao,
-                            valor,
-                            data,
-                            categoria_receita,
-                            tipo_receita,
-                            repasse)
+                if valor_capital > 0:
+                    valor = valor_capital
+                    categoria_receita = APLICACAO_CAPITAL
 
-                        repasse.realizado_custeio = True
+                    criar_receita(
+                        associacao,
+                        conta_associacao,
+                        acao_associacao,
+                        valor,
+                        data,
+                        categoria_receita,
+                        tipo_receita,
+                        repasse)
 
-                    if valor_livre > 0:
-                        valor = valor_livre
-                        categoria_receita = APLICACAO_LIVRE
+                    repasse.realizado_capital = True
 
-                        criar_receita(
-                            associacao,
-                            conta_associacao,
-                            acao_associacao,
-                            valor,
-                            data,
-                            categoria_receita,
-                            tipo_receita,
-                            repasse)
+                if valor_custeio > 0:
+                    valor = valor_custeio
+                    categoria_receita = APLICACAO_CUSTEIO
 
-                        repasse.realizado_livre = True
+                    criar_receita(
+                        associacao,
+                        conta_associacao,
+                        acao_associacao,
+                        valor,
+                        data,
+                        categoria_receita,
+                        tipo_receita,
+                        repasse)
 
-                    repasse.save()
-                    importados += 1    
-            except Exception as e:
-                logger.info("Error %s", str(e))
-                arquivo.log = f'{logs}\nError: {str(e)}'
-                arquivo.status = ERRO
-                erros += 1
-                arquivo.save()
+                    repasse.realizado_custeio = True
+
+                if valor_livre > 0:
+                    valor = valor_livre
+                    categoria_receita = APLICACAO_LIVRE
+
+                    criar_receita(
+                        associacao,
+                        conta_associacao,
+                        acao_associacao,
+                        valor,
+                        data,
+                        categoria_receita,
+                        tipo_receita,
+                        repasse)
+
+                    repasse.realizado_livre = True
+
+                repasse.save()
+                importados += 1
+
+        except Exception as e:
+            msg = f"Erro na linha {index}: {str(e)}"
+            logger.info(msg)
+
+            logs = f'{logs}\n{msg}'
+            erros += 1
 
     if importados > 0 and erros > 0:
         arquivo.status = PROCESSADO_COM_ERRO
-    elif importados == 0:
+    elif erros > 0:
         arquivo.status = ERRO
     else:
         arquivo.status = SUCESSO
-    
+
     logs = f"{logs}\nForam criados {importados} repasses. Erro na importação de {erros} repasses."
     logger.info(f'Foram criados {importados} repasses. Erro na importação de {erros} repasses.')
-    
+
     arquivo.log = logs
     arquivo.save()
 
 
 def carrega_repasses_realizados(arquivo):
     logger.info("Processando arquivo %s", arquivo.identificador)
-    tipo_conta = TipoContaEnum.CARTAO.value if 'cartao' in arquivo.identificador else TipoContaEnum.CHEQUE.value
+    tipo_conta_nome = TipoContaEnum.CARTAO.value if 'cartao' in arquivo.identificador else TipoContaEnum.CHEQUE.value
     arquivo.ultima_execucao = datetime.now()
 
     try:
+        tipo_conta = get_tipo_conta(tipo_conta_nome)
+
         with open(arquivo.conteudo.path, 'r', encoding="utf-8") as f:
             sniffer = csv.Sniffer().sniff(f.readline())
             f.seek(0)
-            if  __DELIMITADORES[sniffer.delimiter] != arquivo.tipo_delimitador:
+            if __DELIMITADORES[sniffer.delimiter] != arquivo.tipo_delimitador:
                 msg_erro = f"Formato definido ({arquivo.tipo_delimitador}) é diferente do formato do arquivo csv ({__DELIMITADORES[sniffer.delimiter]})"
                 logger.info(msg_erro)
                 arquivo.status = ERRO
@@ -236,7 +247,10 @@ def carrega_repasses_realizados(arquivo):
 
             reader = csv.reader(f, delimiter=sniffer.delimiter)
             processa_repasse(reader, tipo_conta, arquivo)
+
     except Exception as err:
-        logger.info("Erro ao processar repasses realizados: %s", str(err))
-        arquivo.log = "Erro ao processar repasses realizados."
+        msg = f"Erro ao processar repasses realizados: {err}"
+        logger.info(msg)
+        arquivo.log = msg
+        arquivo.status = ERRO
         arquivo.save()

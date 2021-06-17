@@ -39,14 +39,14 @@ def test_criacao_conta_associacao_na_carga_repasses_previstos_com_valor_default(
 def arquivo():
     return SimpleUploadedFile(
         f'carga_repasse_cheque.csv',
-        bytes(f"""Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao,Data receita,Periodo\n93238,99000.98,99000.98,,Role Cultural,02/01/2020,2020.u""", encoding="utf-8"))
+        bytes(f"""Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao,Data receita,Periodo\n93238,99000.98,99000.98,,Rolê Cultural,02/01/2020,2020.u""", encoding="utf-8"))
 
 
 @pytest.fixture
 def arquivo_processado():
     return SimpleUploadedFile(
         f'carga_repasse_cheque.csv',
-        bytes(f"""Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao,Data receita,Periodo\n123456,99000.98,99000.98,,Role Cultural,02/04/2019,2019.2\n93238,99000.98,99000.98,,Role Cultural,02/01/2020,2020.u""", encoding="utf-8"))
+        bytes(f"""Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao,Data receita,Periodo\n123456,99000.98,99000.98,,Rolê Cultural,02/04/2019,2019.2\n93238,99000.98,99000.98,,Role Cultural,02/01/2020,2020.u""", encoding="utf-8"))
 
 
 @pytest.fixture
@@ -82,13 +82,13 @@ def arquivo_carga_virgula_processado(arquivo_processado):
     )
 
 
-def test_carga_com_erro_formatacao(arquivo_carga):
+def test_carga_com_erro_formatacao(arquivo_carga, tipo_conta_cheque):
     carrega_repasses_realizados(arquivo_carga)
     assert arquivo_carga.log == 'Formato definido (DELIMITADOR_PONTO_VIRGULA) é diferente do formato do arquivo csv (DELIMITADOR_VIRGULA)'
     assert arquivo_carga.status == ERRO
 
 
-def test_carga_com_erro(arquivo_carga_virgula):
+def test_carga_com_erro(arquivo_carga_virgula, tipo_conta_cheque):
     carrega_repasses_realizados(arquivo_carga_virgula)
     msg = """\nAssociação com código eol: 93238 não encontrado. Linha 1
 Foram criados 0 repasses. Erro na importação de 1 repasses."""
@@ -96,7 +96,13 @@ Foram criados 0 repasses. Erro na importação de 1 repasses."""
     assert arquivo_carga_virgula.status == ERRO
 
 
-def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao, tipo_receita_repasse):
+@pytest.fixture
+def acao_role_cultural_teste():
+    return baker.make('Acao', nome='Role Cultural')
+
+
+def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao, tipo_receita_repasse,
+                                   tipo_conta_cheque, acao_role_cultural, acao_role_cultural_teste):
     carrega_repasses_realizados(arquivo_carga_virgula_processado)
     msg = """\nAssociação com código eol: 93238 não encontrado. Linha 2
 Foram criados 1 repasses. Erro na importação de 1 repasses."""

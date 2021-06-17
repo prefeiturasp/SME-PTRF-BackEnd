@@ -19,8 +19,10 @@ __DELIMITADORES = {',': DELIMITADOR_VIRGULA, ';': DELIMITADOR_PONTO_VIRGULA}
 
 logger = logging.getLogger(__name__)
 
+
 class CargaRepassePrevistoException(Exception):
     pass
+
 
 class TipoContaEnum(enum.Enum):
     CARTAO = 'Cartão'
