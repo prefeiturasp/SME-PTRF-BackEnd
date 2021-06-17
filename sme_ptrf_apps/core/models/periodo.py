@@ -8,18 +8,25 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 class Periodo(ModeloBase):
     referencia = models.CharField('Referência', max_length=7, blank=True, default="")
+
     data_inicio_realizacao_despesas = models.DateField('Inicio realização de despesas')
     data_fim_realizacao_despesas = models.DateField('Fim realização de despesas', blank=True, null=True)
+
     data_prevista_repasse = models.DateField('Data prevista do repasse', blank=True, null=True)
+
     data_inicio_prestacao_contas = models.DateField('Início prestação de contas', blank=True, null=True)
     data_fim_prestacao_contas = models.DateField('Fim prestação de contas', blank=True, null=True)
+
     periodo_anterior = models.ForeignKey('Periodo', on_delete=models.PROTECT, related_name='periodo_seguinte',
                                          blank=True, null=True)
+
     notificacao_inicio_periodo_pc_realizada = models.BooleanField('Notificação início período de PC realizada',
                                                                   blank=True, null=True, default=False)
 
     notificacao_pendencia_envio_pc_realizada = models.BooleanField('Notificação pendência envio PC realizada',
                                                                    blank=True, null=True, default=False)
+    notificacao_proximidade_inicio_pc_realizada = models.BooleanField('Notificação proximidade início PC realizada',
+                                                                      blank=True, null=True, default=False)
 
     def __str__(self):
         return f"{self.referencia} - {self.data_inicio_realizacao_despesas} a {self.data_fim_realizacao_despesas}"
@@ -65,6 +72,9 @@ class Periodo(ModeloBase):
 
     def notificacao_pendencia_envio_prestacao_de_contas_realizada(self):
         self.notificacao_pendencia_envio_pc_realizada = True
+
+    def notificacao_proximidade_inicio_prestacao_de_contas_realizada(self):
+        self.notificacao_proximidade_inicio_pc_realizada = True
         self.save()
 
     class Meta:
