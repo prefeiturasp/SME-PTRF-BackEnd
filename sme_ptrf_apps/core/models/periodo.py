@@ -23,6 +23,8 @@ class Periodo(ModeloBase):
     notificacao_inicio_periodo_pc_realizada = models.BooleanField('Notificação início período de PC realizada',
                                                                   blank=True, null=True, default=False)
 
+    notificacao_pendencia_envio_pc_realizada = models.BooleanField('Notificação pendência envio PC realizada',
+                                                                   blank=True, null=True, default=False)
     notificacao_proximidade_inicio_pc_realizada = models.BooleanField('Notificação proximidade início PC realizada',
                                                                       blank=True, null=True, default=False)
 
@@ -67,6 +69,9 @@ class Periodo(ModeloBase):
     def notificacao_inicio_prestacao_de_contas_realizada(self):
         self.notificacao_inicio_periodo_pc_realizada = True
         self.save()
+
+    def notificacao_pendencia_envio_prestacao_de_contas_realizada(self):
+        self.notificacao_pendencia_envio_pc_realizada = True
 
     def notificacao_proximidade_inicio_prestacao_de_contas_realizada(self):
         self.notificacao_proximidade_inicio_pc_realizada = True

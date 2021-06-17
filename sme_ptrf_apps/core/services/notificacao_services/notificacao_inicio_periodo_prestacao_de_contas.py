@@ -29,7 +29,7 @@ def notificar_inicio_periodo_prestacao_de_contas():
     if periodo:
         if users:
             for user in users:
-                logger.info(f"Gerando notificação para o usuario: {user} | Período: {periodo.referencia}")
+                logger.info(f"Gerando notificação início período prestação de contas para o usuario: {user} | Período: {periodo.referencia}")
 
                 Notificacao.notificar(
                     tipo=Notificacao.TIPO_NOTIFICACAO_INFORMACAO,
@@ -37,9 +37,11 @@ def notificar_inicio_periodo_prestacao_de_contas():
                     remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
                     titulo=f"O período de envio da PC de {periodo.referencia} começou",
                     descricao="O período de prestações de contas já foi iniciado. Fique atento para não perder o prazo e envie os documentos da prestação de contas",
-                    usuario=user
+                    usuario=user,
+                    renotificar=False,
                 )
-                periodo.notificacao_inicio_prestacao_de_contas_realizada()
+
+            periodo.notificacao_inicio_prestacao_de_contas_realizada()
         else:
             logger.info(f"Não foram encontrados usuários a serem notificados sobre início do período de prestação de contas")
     else:
