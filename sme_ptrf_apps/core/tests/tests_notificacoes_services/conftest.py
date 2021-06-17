@@ -42,9 +42,15 @@ def permissao_recebe_notificacao_proximidade_inicio_pc():
 
 
 @pytest.fixture
-def grupo_notificavel(permissao_recebe_notificacao_proximidade_inicio_pc, visao_ue):
+def permissao_recebe_notificacao_inicio_pc():
+    return Permission.objects.filter(codename='recebe_notificacao_inicio_periodo_prestacao_de_contas').first()
+
+
+@pytest.fixture
+def grupo_notificavel(permissao_recebe_notificacao_proximidade_inicio_pc, permissao_recebe_notificacao_inicio_pc, visao_ue):
     g = Grupo.objects.create(name="grupo_notificavel")
     g.permissions.add(permissao_recebe_notificacao_proximidade_inicio_pc)
+    g.permissions.add(permissao_recebe_notificacao_inicio_pc)
     g.visoes.add(visao_ue)
     g.descricao = "Grupo que recebe notificações"
     g.save()
@@ -140,6 +146,33 @@ def periodo_2021_2_pc_2021_07_01_a_2021_07_15(periodo_2021_1_pc_2021_04_1_a_2021
         data_inicio_prestacao_contas=date(2021, 7, 1),
         data_fim_prestacao_contas=date(2021, 7, 15),
         periodo_anterior=periodo_2021_1_pc_2021_04_1_a_2021_04_15,
+    )
+
+@pytest.fixture
+def periodo_2021_3_pc_2021_06_12_a_2021_06_17(periodo_2021_1_pc_2021_04_1_a_2021_04_15):
+    return baker.make(
+        'Periodo',
+        referencia='2021.3',
+        data_inicio_realizacao_despesas=date(2021, 4, 1),
+        data_fim_realizacao_despesas=date(2021, 6, 30),
+        data_prevista_repasse=date(2021, 4, 1),
+        data_inicio_prestacao_contas=date(2021, 6, 12),
+        data_fim_prestacao_contas=date(2021, 6, 17),
+        periodo_anterior=periodo_2021_1_pc_2021_04_1_a_2021_04_15,
+    )
+
+@pytest.fixture
+def periodo_2021_4_pc_2021_06_18_a_2021_06_30():
+    return baker.make(
+        'Periodo',
+        referencia='2021.4',
+        data_inicio_realizacao_despesas=date(2021, 4, 1),
+        data_fim_realizacao_despesas=date(2021, 6, 30),
+        data_prevista_repasse=date(2021, 4, 1),
+        data_inicio_prestacao_contas=date(2021, 6, 18),
+        data_fim_prestacao_contas=date(2021, 6, 30),
+        periodo_anterior=None,
+        notificacao_inicio_periodo_pc_realizada=False
     )
 
 
