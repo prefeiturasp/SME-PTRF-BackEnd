@@ -19,13 +19,18 @@ __DELIMITADORES = {',': DELIMITADOR_VIRGULA, ';': DELIMITADOR_PONTO_VIRGULA}
 
 logger = logging.getLogger(__name__)
 
+class CargaRepassePrevistoException(Exception):
+    pass
+
 class TipoContaEnum(enum.Enum):
     CARTAO = 'Cartão'
     CHEQUE = 'Cheque'
 
+
 class StatusRepasse(enum.Enum):
     PENDENTE = 'Pendente'
     REALIZADO = 'Realizado'
+
 
 def get_valor(val):
     if not val:
@@ -35,9 +40,10 @@ def get_valor(val):
     except ValueError:
         raise ValueError(f"Não foi possível converter '{val}' em um valor númerico.")
 
+
 def get_associacao(eol):
     if Associacao.objects.filter(unidade__codigo_eol=eol).exists():
-        return  Associacao.objects.filter(unidade__codigo_eol=eol).get()
+        return Associacao.objects.filter(unidade__codigo_eol=eol).get()
 
     return None
 
@@ -45,17 +51,15 @@ def get_associacao(eol):
 def get_acao(nome):
     if Acao.objects.filter(nome=nome).exists():
         return Acao.objects.filter(nome=nome).get()
-
-    logger.info(f"Ação {nome} não encontrada. Registro será criado.")
-    return Acao.objects.create(nome=nome)
+    else:
+        raise CargaRepassePrevistoException(f"Ação {nome} não encontrada.")
 
 
 def get_tipo_conta(nome):
     if TipoConta.objects.filter(nome=nome).exists():
         return TipoConta.objects.filter(nome=nome).get()
-
-    logger.info(f"Tipo de conta {nome} não encontrado. Registro será criado.")
-    return TipoConta.objects.create(nome=nome)
+    else:
+        raise CargaRepassePrevistoException(f"Tipo de conta {nome} não encontrado.")
 
 
 def get_acao_associacao(acao, associacao):
@@ -82,6 +86,7 @@ def get_datas_periodo(nome_arquivo):
 
     return (start, end)
 
+
 def get_periodo(nome_arquivo):
     start, end = get_datas_periodo(nome_arquivo)
 
@@ -95,8 +100,11 @@ def get_periodo(nome_arquivo):
     )
 
 
-def processa_repasse(reader, conta, arquivo):
+def processa_repasse(reader, tipo_conta, arquivo):
     nome_arquivo = arquivo.identificador
+
+    periodo = get_periodo(nome_arquivo)
+
     logs = []
     importados = 0
 
@@ -104,6 +112,7 @@ def processa_repasse(reader, conta, arquivo):
         try:
             if index != 0:
                 logger.info('Linha %s: %s', index, row)
+
                 associacao = get_associacao(row[0])
                 if not associacao:
                     msg_erro = f'Associação com código eol: {row[0]} não encontrado.'
@@ -113,11 +122,11 @@ def processa_repasse(reader, conta, arquivo):
                 valor_capital = get_valor(row[1])
                 valor_custeio = get_valor(row[2])
                 valor_livre = get_valor(row[3])
+
                 acao = get_acao(row[4])
-                tipo_conta = get_tipo_conta(conta)
+
                 acao_associacao = get_acao_associacao(acao, associacao)
                 conta_associacao = get_conta_associacao(tipo_conta, associacao)
-                periodo = get_periodo(nome_arquivo)
 
                 if valor_capital > 0 or valor_custeio > 0 or valor_livre > 0:
                     Repasse.objects.create(
@@ -133,9 +142,9 @@ def processa_repasse(reader, conta, arquivo):
                     logger.info(f"Repasse criado. Capital={valor_capital} Custeio={valor_custeio} RLA={valor_livre}")
                     importados += 1
         except Exception as e:
-                msg_erro = f"Erro na linha {index}: {str(e)}"
-                logs.append(msg_erro)
-                logger.info(msg_erro)
+            msg_erro = f"Erro na linha {index}: {str(e)}"
+            logs.append(msg_erro)
+            logger.info(msg_erro)
 
     if importados > 0 and len(logs) > 0:
         arquivo.status = PROCESSADO_COM_ERRO
@@ -154,23 +163,28 @@ def processa_repasse(reader, conta, arquivo):
 
 def carrega_repasses_previstos(arquivo):
     logger.info("Processando arquivo %s", arquivo.identificador)
-    tipo_conta = TipoContaEnum.CARTAO.value if 'cartao' in arquivo.identificador else TipoContaEnum.CHEQUE.value
-    logger.info(f"Tipo de conta do arquivo: {tipo_conta}.")
+    tipo_conta_nome = TipoContaEnum.CARTAO.value if 'cartao' in arquivo.identificador else TipoContaEnum.CHEQUE.value
+
     arquivo.ultima_execucao = datetime.datetime.now()
 
     try:
+        tipo_conta = get_tipo_conta(tipo_conta_nome)
+        logger.info(f"Tipo de conta do arquivo: {tipo_conta}.")
+
         with open(arquivo.conteudo.path, 'r', encoding="utf-8") as f:
             sniffer = csv.Sniffer().sniff(f.readline())
             f.seek(0)
-            if  __DELIMITADORES[sniffer.delimiter] != arquivo.tipo_delimitador:
+
+            if __DELIMITADORES[sniffer.delimiter] != arquivo.tipo_delimitador:
                 msg_erro = f"Formato definido ({arquivo.tipo_delimitador}) é diferente do formato do arquivo csv ({__DELIMITADORES[sniffer.delimiter]})"
                 logger.info(msg_erro)
                 raise Exception(msg_erro)
 
             reader = csv.reader(f, delimiter=sniffer.delimiter)
             processa_repasse(reader, tipo_conta, arquivo)
+
     except Exception as err:
-        msg_erro = f"Erro ao processar repasses previstos: {str(err)}" 
+        msg_erro = f"Erro ao processar repasses previstos: {str(err)}"
         logger.info(msg_erro)
         arquivo.log = msg_erro
         arquivo.status = ERRO
