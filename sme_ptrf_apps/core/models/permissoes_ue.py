@@ -137,4 +137,5 @@ class FuncUeRecebimentoDeNotificacoes(models.Model):
 
         permissions = (
             ('recebe_notificacao_inicio_periodo_prestacao_de_contas', '[UE] Pode receber Notificação Início Período Prestação De Contas.'),
+            ('recebe_notificacao_proximidade_inicio_prestacao_de_contas', '[UE] Pode receber Notificação Proximidade Início Prestação De Contas.'),
         )
