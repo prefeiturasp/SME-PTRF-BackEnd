@@ -162,6 +162,22 @@ def gerar_notificacao_inicio_periodo_prestacao_de_contas_async():
     time_limet=600,
     soft_time_limit=300
 )
+def gerar_notificacao_pendencia_envio_prestacao_de_contas_async():
+    logger.info(f'Iniciando a geração de notificação pendência envio prestação de contas async')
+
+    from sme_ptrf_apps.core.services.notificacao_services import notificar_pendencia_envio_prestacao_de_contas
+
+    notificar_pendencia_envio_prestacao_de_contas()
+
+    logger.info(f'Finalizando a geração de notificação pendência envio prestação de contas async')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
 def gerar_notificacao_proximidade_inicio_periodo_prestacao_conta_async():
     from sme_ptrf_apps.core.services.notificacao_services import notificar_proximidade_inicio_periodo_prestacao_conta
 

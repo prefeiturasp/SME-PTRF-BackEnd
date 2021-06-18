@@ -9,6 +9,7 @@ from django.db.models.aggregates import Sum
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.dre.models import Atribuicao
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -214,6 +215,7 @@ class PrestacaoConta(ModeloBase):
 
     @transaction.atomic
     def devolver(self, data_limite_ue):
+        from ..services.notificacao_services import notificar_prestacao_de_contas_devolvida_para_acertos
         from ..models import DevolucaoPrestacaoConta
         DevolucaoPrestacaoConta.objects.create(
             prestacao_conta=self,
@@ -223,6 +225,7 @@ class PrestacaoConta(ModeloBase):
         self.apaga_fechamentos()
         self.apaga_relacao_bens()
         self.apaga_demonstrativos_financeiros()
+        notificar_prestacao_de_contas_devolvida_para_acertos(self, data_limite_ue)
         return self
 
     @transaction.atomic
