@@ -25,7 +25,11 @@ class Periodo(ModeloBase):
 
     notificacao_pendencia_envio_pc_realizada = models.BooleanField('Notificação pendência envio PC realizada',
                                                                    blank=True, null=True, default=False)
+
     notificacao_proximidade_inicio_pc_realizada = models.BooleanField('Notificação proximidade início PC realizada',
+                                                                      blank=True, null=True, default=False)
+
+    notificacao_proximidade_fim_pc_realizada = models.BooleanField('Notificação proximidade fim PC realizada',
                                                                       blank=True, null=True, default=False)
 
     def __str__(self):
@@ -75,6 +79,10 @@ class Periodo(ModeloBase):
 
     def notificacao_proximidade_inicio_prestacao_de_contas_realizada(self):
         self.notificacao_proximidade_inicio_pc_realizada = True
+        self.save()
+
+    def notificacao_proximidade_fim_prestacao_de_contas_realizada(self):
+        self.notificacao_proximidade_fim_pc_realizada = True
         self.save()
 
     class Meta:
