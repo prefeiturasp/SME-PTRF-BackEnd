@@ -186,3 +186,19 @@ def gerar_notificacao_proximidade_inicio_periodo_prestacao_conta_async():
     notificar_proximidade_inicio_periodo_prestacao_conta()
 
     logger.info('Executado serviço de notificação de proximidade do início do período de prestação de contas.')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
+def gerar_notificacao_proximidade_fim_periodo_prestacao_conta_async():
+    from ..core.services.notificacao_services import notificar_proximidade_fim_periodo_prestacao_conta
+
+    logger.info('Iniciando a geração de notificação de proximidade do fim do período de prestação de contas.')
+
+    notificar_proximidade_fim_periodo_prestacao_conta()
+
+    logger.info('Finalizando a geração de notificação de proximidade do fim do período de prestação de contas.')

@@ -20,6 +20,11 @@ class Parametros(SingletonModel, ModeloBase):
         default=5
     )
 
+    dias_antes_fim_periodo_pc_para_notificacao = models.PositiveSmallIntegerField(
+        'Quantos dias antes do fim do período de PC, os usuários serão notificados?',
+        default=5
+    )
+
     def __str__(self):
         return 'Parâmetros do PTRF'
 
