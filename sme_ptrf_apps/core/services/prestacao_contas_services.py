@@ -72,12 +72,17 @@ def _criar_fechamentos(acoes, contas, periodo, prestacao):
             )
 
 
-def _criar_documentos(acoes, contas, periodo, prestacao, usuario):
+def _criar_documentos(acoes, contas, periodo, prestacao, usuario, criar_arquivos=True):
     logger.info(f'Criando documentos do período {periodo} e prestacao {prestacao}...')
 
     for conta in contas:
         logger.info(f'Gerando relação de bens da conta {conta}.')
-        gerar_arquivo_relacao_de_bens(periodo=periodo, conta_associacao=conta, prestacao=prestacao)
+        gerar_arquivo_relacao_de_bens(
+            periodo=periodo,
+            conta_associacao=conta,
+            prestacao=prestacao,
+            criar_arquivos=criar_arquivos
+        )
 
         logger.info(f'Gerando demonstrativo financeiro da conta {conta}.')
         _gerar_arquivos_demonstrativo_financeiro(
@@ -85,7 +90,8 @@ def _criar_documentos(acoes, contas, periodo, prestacao, usuario):
             periodo=periodo,
             conta_associacao=conta,
             usuario=usuario,
-            prestacao=prestacao
+            prestacao=prestacao,
+            criar_arquivos=criar_arquivos
         )
 
 
@@ -285,7 +291,7 @@ def lista_prestacoes_de_conta_nao_recebidas(
 
 
 def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, prestacao=None, usuario="",
-                                             previa=False):
+                                             previa=False, criar_arquivos=True):
 
     logger.info(f'Criando registro do demonstrativo financeiro da conta {conta_associacao}.')
     demonstrativo, _ = DemonstrativoFinanceiro.objects.update_or_create(
@@ -303,18 +309,21 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
     except Exception:
         observacao_conciliacao = None
 
-    demonstrativo = gerar_arquivo_demonstrativo_financeiro_xlsx(acoes=acoes, periodo=periodo,
-                                                                conta_associacao=conta_associacao,
-                                                                prestacao=prestacao,
-                                                                previa=previa,
-                                                                demonstrativo_financeiro=demonstrativo,
-                                                                observacao_conciliacao=observacao_conciliacao,
-                                                                )
+    if criar_arquivos:
+        demonstrativo = gerar_arquivo_demonstrativo_financeiro_xlsx(acoes=acoes, periodo=periodo,
+                                                                    conta_associacao=conta_associacao,
+                                                                    prestacao=prestacao,
+                                                                    previa=previa,
+                                                                    demonstrativo_financeiro=demonstrativo,
+                                                                    observacao_conciliacao=observacao_conciliacao,
+                                                                    )
 
     logger.info(f'Gerando demonstrativo financeiro em PDF da conta {conta_associacao}.')
     dados_demonstrativo = gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao,
                                                                prestacao, observacao_conciliacao=observacao_conciliacao, previa=False)
-    gerar_arquivo_demonstrativo_financeiro_pdf(dados_demonstrativo, demonstrativo)
+
+    if criar_arquivos:
+        gerar_arquivo_demonstrativo_financeiro_pdf(dados_demonstrativo, demonstrativo)
 
     demonstrativo.arquivo_concluido()
 
