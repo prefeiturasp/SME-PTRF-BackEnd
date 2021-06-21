@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 def notificar_prestacao_de_contas_devolvida_para_acertos(prestacao_de_contas, data_limite_ue):
-    logger.info(f'Iniciando a geração de notificação prestação de contas devolvida para acertos {prestacao_de_contas}')
+    logger.info(f'Iniciando a geração de notificação prestação de contas devolvida para acertos {prestacao_de_contas} service')
 
     users = get_users_by_permission('recebe_notificacao_prestacao_de_contas_devolvida_para_acertos')
     users = users.filter(visoes__nome="UE")
