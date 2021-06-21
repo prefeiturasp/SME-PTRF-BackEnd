@@ -18,7 +18,7 @@ def notificar_atraso_entrega_ajustes_prestacao_de_contas():
     users = get_users_by_permission('recebe_notificacao_atraso_entrega_ajustes_prestacao_de_contas')
     users = users.filter(visoes__nome="UE")
 
-    devolucoes = DevolucaoPrestacaoConta.objects.filter(prestacao_conta__status="DEVOLVIDA", data_limite_ue__lt=data_de_hoje).order_by('data_limite_ue')
+    devolucoes = DevolucaoPrestacaoConta.objects.filter(prestacao_conta__status="DEVOLVIDA", data_limite_ue__lt=data_de_hoje).order_by('-data_limite_ue')
 
     if devolucoes:
         for devolucao in devolucoes:
@@ -30,7 +30,7 @@ def notificar_atraso_entrega_ajustes_prestacao_de_contas():
                 for usuario in usuarios:
                     logger.info(f"Gerando notificação de atraso na entrega de ajustes de PC para o usuario: {usuario}")
 
-                    # Gerando uma notificação por período e por cada dia de data limite.
+                    # Gerando apenas 1 notificação por período e data ordenado decrescente por -data_limite_ue
                     Notificacao.notificar(
                         tipo=Notificacao.TIPO_NOTIFICACAO_ALERTA,
                         categoria=Notificacao.CATEGORIA_NOTIFICACAO_ANALISE_PC,

@@ -19,7 +19,7 @@ def test_deve_notificar_usuarios(devolucao_notifica_atraso_entrega_ajustes_pc, u
     assert notificacao.tipo == Notificacao.TIPO_NOTIFICACAO_ALERTA
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_ANALISE_PC
     assert notificacao.remetente == Notificacao.REMETENTE_NOTIFICACAO_SISTEMA
-    assert notificacao.titulo == f"Devolução de ajustes na PC atrasada data limite {formata_data_dd_mm_yyyy(devolucao_notifica_atraso_entrega_ajustes_pc.data_limite_ue)}"
+    assert notificacao.titulo == f"Devolução de ajustes na PC atrasada {devolucao_notifica_atraso_entrega_ajustes_pc.prestacao_conta.periodo.referencia}"
     assert notificacao.descricao == f"Sua unidade ainda não enviou os ajustes solicitados pela DRE em sua prestação de contas do período {devolucao_notifica_atraso_entrega_ajustes_pc.prestacao_conta.periodo.referencia}. O seu prazo era {formata_data_dd_mm_yyyy(devolucao_notifica_atraso_entrega_ajustes_pc.data_limite_ue)}"
     assert notificacao.usuario == usuario_notificavel
 
