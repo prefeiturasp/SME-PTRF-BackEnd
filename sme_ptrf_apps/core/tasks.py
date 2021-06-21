@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
     time_limet=600,
     soft_time_limit=300
 )
-def concluir_prestacao_de_contas_async(periodo_uuid, associacao_uuid, usuario=""):
+def concluir_prestacao_de_contas_async(periodo_uuid, associacao_uuid, usuario="", criar_arquivos=True):
     from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_documentos, _criar_fechamentos,
                                                                        _apagar_previas_documentos)
 
@@ -40,7 +40,7 @@ def concluir_prestacao_de_contas_async(periodo_uuid, associacao_uuid, usuario=""
     _apagar_previas_documentos(contas=contas, periodo=periodo, prestacao=prestacao)
     logger.info('Prévias apagadas.')
 
-    _criar_documentos(acoes, contas, periodo, prestacao, usuario=usuario)
+    _criar_documentos(acoes, contas, periodo, prestacao, usuario=usuario, criar_arquivos=criar_arquivos)
     logger.info('Documentos gerados para a prestação de contas %s.', prestacao)
 
     prestacao = prestacao.concluir()
@@ -181,11 +181,11 @@ def gerar_notificacao_pendencia_envio_prestacao_de_contas_async():
 def gerar_notificacao_proximidade_inicio_periodo_prestacao_conta_async():
     from sme_ptrf_apps.core.services.notificacao_services import notificar_proximidade_inicio_periodo_prestacao_conta
 
-    logger.info('Chamando serviço de notificação de proximidade do início do período de prestação de contas.')
+    logger.info('Chamando serviço de notificação de proximidade do início do período de prestação de contas async.')
 
     notificar_proximidade_inicio_periodo_prestacao_conta()
 
-    logger.info('Executado serviço de notificação de proximidade do início do período de prestação de contas.')
+    logger.info('Executado serviço de notificação de proximidade do início do período de prestação de contas async.')
 
 
 @shared_task(
@@ -197,8 +197,23 @@ def gerar_notificacao_proximidade_inicio_periodo_prestacao_conta_async():
 def gerar_notificacao_proximidade_fim_periodo_prestacao_conta_async():
     from ..core.services.notificacao_services import notificar_proximidade_fim_periodo_prestacao_conta
 
-    logger.info('Iniciando a geração de notificação de proximidade do fim do período de prestação de contas.')
+    logger.info('Iniciando a geração de notificação de proximidade do fim do período de prestação de contas async.')
 
     notificar_proximidade_fim_periodo_prestacao_conta()
 
-    logger.info('Finalizando a geração de notificação de proximidade do fim do período de prestação de contas.')
+    logger.info('Finalizando a geração de notificação de proximidade do fim do período de prestação de contas async.')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
+def gerar_notificacao_atraso_entrega_ajustes_prestacao_de_contas_async():
+    from ..core.services.notificacao_services import notificar_atraso_entrega_ajustes_prestacao_de_contas
+    logger.info('Iniciando a geração de notificação de atraso na entrega de ajustes de prestações de contas async.')
+
+    notificar_atraso_entrega_ajustes_prestacao_de_contas()
+
+    logger.info('Finalizando a geração de notificação de atraso na entrega de ajustes de prestações de contas async.')

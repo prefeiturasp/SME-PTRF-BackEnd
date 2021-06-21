@@ -55,19 +55,34 @@ def permissao_recebe_notificacao_pendencia_envio_pc():
 def permissao_recebe_notificacao_pc_devolvida_para_acertos():
     return Permission.objects.filter(codename='recebe_notificacao_prestacao_de_contas_devolvida_para_acertos').first()
 
+
 @pytest.fixture
 def permissao_recebe_notificacao_proximidade_fim_pc():
     return Permission.objects.filter(codename='recebe_notificacao_proximidade_fim_periodo_prestacao_de_contas').first()
 
 
 @pytest.fixture
-def grupo_notificavel(permissao_recebe_notificacao_proximidade_inicio_pc, permissao_recebe_notificacao_inicio_pc, permissao_recebe_notificacao_pendencia_envio_pc, permissao_recebe_notificacao_pc_devolvida_para_acertos, permissao_recebe_notificacao_proximidade_fim_pc, visao_ue):
+def permissao_recebe_notificacao_atraso_entrega_ajustes_pc():
+    return Permission.objects.filter(codename='recebe_notificacao_atraso_entrega_ajustes_prestacao_de_contas').first()
+
+
+@pytest.fixture
+def grupo_notificavel(
+    permissao_recebe_notificacao_proximidade_inicio_pc,
+    permissao_recebe_notificacao_inicio_pc,
+    permissao_recebe_notificacao_pendencia_envio_pc,
+    permissao_recebe_notificacao_pc_devolvida_para_acertos,
+    permissao_recebe_notificacao_proximidade_fim_pc,
+    permissao_recebe_notificacao_atraso_entrega_ajustes_pc,
+    visao_ue
+):
     g = Grupo.objects.create(name="grupo_notificavel")
     g.permissions.add(permissao_recebe_notificacao_proximidade_inicio_pc)
     g.permissions.add(permissao_recebe_notificacao_inicio_pc)
     g.permissions.add(permissao_recebe_notificacao_pendencia_envio_pc)
     g.permissions.add(permissao_recebe_notificacao_pc_devolvida_para_acertos)
     g.permissions.add(permissao_recebe_notificacao_proximidade_fim_pc)
+    g.permissions.add(permissao_recebe_notificacao_atraso_entrega_ajustes_pc)
     g.visoes.add(visao_ue)
     g.descricao = "Grupo que recebe notificações"
     g.save()
@@ -85,10 +100,9 @@ def grupo_nao_notificavel(visao_ue):
 
 @pytest.fixture
 def usuario_notificavel(
-        unidade_a,
-        grupo_notificavel,
-        visao_ue):
-
+    unidade_a,
+    grupo_notificavel,
+    visao_ue):
     from django.contrib.auth import get_user_model
 
     senha = 'Sgp0418'
@@ -165,6 +179,7 @@ def periodo_2021_2_pc_2021_07_01_a_2021_07_15(periodo_2021_1_pc_2021_04_1_a_2021
         periodo_anterior=periodo_2021_1_pc_2021_04_1_a_2021_04_15,
     )
 
+
 @pytest.fixture
 def periodo_2021_3_pc_2021_06_12_a_2021_06_17(periodo_2021_1_pc_2021_04_1_a_2021_04_15):
     return baker.make(
@@ -177,6 +192,7 @@ def periodo_2021_3_pc_2021_06_12_a_2021_06_17(periodo_2021_1_pc_2021_04_1_a_2021
         data_fim_prestacao_contas=date(2021, 6, 17),
         periodo_anterior=periodo_2021_1_pc_2021_04_1_a_2021_04_15,
     )
+
 
 @pytest.fixture
 def periodo_2021_4_pc_2021_06_18_a_2021_06_30():
@@ -191,6 +207,7 @@ def periodo_2021_4_pc_2021_06_18_a_2021_06_30():
         periodo_anterior=None,
         notificacao_inicio_periodo_pc_realizada=False
     )
+
 
 @pytest.fixture
 def periodo_notifica_pendencia_envio_pc():
@@ -216,6 +233,7 @@ def prestacao_nao_notifica_pendencia_envio_pc(periodo_notifica_pendencia_envio_p
         status="EM_ANALISE"
     )
 
+
 @pytest.fixture
 def periodo_notifica_proximidade_fim_pc():
     return baker.make(
@@ -230,6 +248,7 @@ def periodo_notifica_proximidade_fim_pc():
         notificacao_proximidade_fim_pc_realizada=False
     )
 
+
 @pytest.fixture
 def prestacao_notifica_pc_devolvida_para_acertos(periodo_notifica_pendencia_envio_pc, associacao_a):
     return baker.make(
@@ -239,6 +258,27 @@ def prestacao_notifica_pc_devolvida_para_acertos(periodo_notifica_pendencia_envi
         status="DEVOLVIDA"
     )
 
+
+@pytest.fixture
+def devolucao_notifica_atraso_entrega_ajustes_pc(prestacao_notifica_pc_devolvida_para_acertos):
+    return baker.make(
+        'DevolucaoPrestacaoConta',
+        prestacao_conta=prestacao_notifica_pc_devolvida_para_acertos,
+        data=date(2021, 6, 1),
+        data_limite_ue=date(2021, 6, 18),
+    )
+
+
+@pytest.fixture
+def devolucao_nao_notifica_atraso_entrega_ajustes_pc(prestacao_nao_notifica_pendencia_envio_pc):
+    return baker.make(
+        'DevolucaoPrestacaoConta',
+        prestacao_conta=prestacao_nao_notifica_pendencia_envio_pc,
+        data=date(2021, 6, 1),
+        data_limite_ue=date(2021, 6, 18),
+    )
+
+
 @pytest.fixture
 def parametro_proximidade_inicio_pc_5_dias():
     return baker.make(
@@ -246,11 +286,10 @@ def parametro_proximidade_inicio_pc_5_dias():
         dias_antes_inicio_periodo_pc_para_notificacao=5,
     )
 
+
 @pytest.fixture
 def parametro_proximidade_fim_pc_5_dias():
     return baker.make(
         'Parametros',
         dias_antes_fim_periodo_pc_para_notificacao=5,
     )
-
-
