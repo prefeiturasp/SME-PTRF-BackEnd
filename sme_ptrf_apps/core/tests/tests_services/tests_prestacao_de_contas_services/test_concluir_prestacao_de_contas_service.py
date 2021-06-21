@@ -322,4 +322,4 @@ def test_relacoes_de_bens_devem_ser_criadas_por_conta(associacao,
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
     assert prestacao
 
-    assert prestacao.relacoes_de_bens_da_prestacao.count() == 2, "Deveriam ter sido criados uma, 2 contas."
+    assert prestacao.relacoes_de_bens_da_prestacao.count() == 1, "Deveriam ter sido criados uma, 1 contas."
