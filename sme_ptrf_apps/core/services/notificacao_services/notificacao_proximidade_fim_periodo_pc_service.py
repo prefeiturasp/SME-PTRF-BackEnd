@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def notificar_proximidade_fim_periodo_prestacao_conta():
-    logging.info("Criando notificações de proximidade do fim do período de prestação de contas...")
+    logging.info("Criando notificações de proximidade do fim do período de prestação de contas service")
     dias_antes = Parametros.get().dias_antes_fim_periodo_pc_para_notificacao
     data_alvo = date.today() + timedelta(days=dias_antes)
 

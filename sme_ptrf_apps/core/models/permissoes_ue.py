@@ -142,4 +142,5 @@ class FuncUeRecebimentoDeNotificacoes(models.Model):
             ('recebe_notificacao_prestacao_de_contas_devolvida_para_acertos', '[UE] Pode receber Notificação Prestação de Contas Devolvida para Acertos'),
             ('recebe_notificacao_proximidade_fim_periodo_prestacao_de_contas', '[UE] Pode receber Notificação Proximidade Fim Período Prestação de Contas'),
             ('recebe_notificacao_atraso_entrega_ajustes_prestacao_de_contas', '[UE] Pode receber Notificação Atraso Entrega Ajustes Prestação de Contas'),
+            ('recebe_notificacao_proximidade_fim_prazo_ajustes_prestacao_de_contas', '[UE] Pode receber Notificação Proximidade Fim Prazo Ajustes Prestação de Contas'),
         )

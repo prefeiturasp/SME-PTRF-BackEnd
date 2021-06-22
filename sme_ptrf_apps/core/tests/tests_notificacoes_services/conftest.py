@@ -67,6 +67,11 @@ def permissao_recebe_notificacao_atraso_entrega_ajustes_pc():
 
 
 @pytest.fixture
+def permissao_recebe_notificacao_proximidade_fim_entrega_ajustes_pc():
+    return Permission.objects.filter(codename='recebe_notificacao_proximidade_fim_prazo_ajustes_prestacao_de_contas').first()
+
+
+@pytest.fixture
 def grupo_notificavel(
     permissao_recebe_notificacao_proximidade_inicio_pc,
     permissao_recebe_notificacao_inicio_pc,
@@ -74,6 +79,7 @@ def grupo_notificavel(
     permissao_recebe_notificacao_pc_devolvida_para_acertos,
     permissao_recebe_notificacao_proximidade_fim_pc,
     permissao_recebe_notificacao_atraso_entrega_ajustes_pc,
+    permissao_recebe_notificacao_proximidade_fim_entrega_ajustes_pc,
     visao_ue
 ):
     g = Grupo.objects.create(name="grupo_notificavel")
@@ -83,6 +89,7 @@ def grupo_notificavel(
     g.permissions.add(permissao_recebe_notificacao_pc_devolvida_para_acertos)
     g.permissions.add(permissao_recebe_notificacao_proximidade_fim_pc)
     g.permissions.add(permissao_recebe_notificacao_atraso_entrega_ajustes_pc)
+    g.permissions.add(permissao_recebe_notificacao_proximidade_fim_entrega_ajustes_pc)
     g.visoes.add(visao_ue)
     g.descricao = "Grupo que recebe notificações"
     g.save()
@@ -280,6 +287,25 @@ def devolucao_nao_notifica_atraso_entrega_ajustes_pc(prestacao_nao_notifica_pend
 
 
 @pytest.fixture
+def devolucao_notifica_proximidade_fim_entrega_ajustes_pc(prestacao_notifica_pc_devolvida_para_acertos):
+    return baker.make(
+        'DevolucaoPrestacaoConta',
+        prestacao_conta=prestacao_notifica_pc_devolvida_para_acertos,
+        data=date(2021, 6, 1),
+        data_limite_ue=date(2021, 6, 26),
+    )
+
+
+@pytest.fixture
+def devolucao_nao_notifica_proximidade_fim_entrega_ajustes_pc_em_analise(prestacao_nao_notifica_pendencia_envio_pc):
+    return baker.make(
+        'DevolucaoPrestacaoConta',
+        prestacao_conta=prestacao_nao_notifica_pendencia_envio_pc,
+        data=date(2021, 6, 1),
+        data_limite_ue=date(2021, 6, 26),
+    )
+
+@pytest.fixture
 def parametro_proximidade_inicio_pc_5_dias():
     return baker.make(
         'Parametros',
@@ -292,4 +318,11 @@ def parametro_proximidade_fim_pc_5_dias():
     return baker.make(
         'Parametros',
         dias_antes_fim_periodo_pc_para_notificacao=5,
+    )
+
+@pytest.fixture
+def parametro_proximidade_fim_entrega_ajustes_5_dias():
+    return baker.make(
+        'Parametros',
+        dias_antes_fim_prazo_ajustes_pc_para_notificacao=5,
     )
