@@ -288,7 +288,7 @@ def test_demonstrativos_financeiros_devem_ser_criados_por_conta_e_acao(associaca
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
-    task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid)
+    task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid, criar_arquivos=False)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
     assert prestacao
@@ -317,9 +317,9 @@ def test_relacoes_de_bens_devem_ser_criadas_por_conta(associacao,
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
-    task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid)
+    task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid, criar_arquivos=False)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
     assert prestacao
 
-    assert prestacao.relacoes_de_bens_da_prestacao.count() == 1, "Deveriam ter sido criados uma, 1 conta."
+    assert prestacao.relacoes_de_bens_da_prestacao.count() == 1, "Deveriam ter sido criados uma, 1 contas."

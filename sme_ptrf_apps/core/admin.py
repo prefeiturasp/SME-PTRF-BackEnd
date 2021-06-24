@@ -17,12 +17,9 @@ from .models import (
     PrestacaoConta,
     ProcessoAssociacao,
     RelacaoBens,
-    Remetente,
     Tag,
     TipoConta,
-    TipoNotificacao,
     Unidade,
-    Categoria,
     Notificacao,
     CobrancaPrestacaoConta,
     DevolucaoPrestacaoConta,
@@ -37,10 +34,7 @@ from .models import (
     Ambiente
 )
 
-admin.site.register(TipoNotificacao)
 admin.site.register(Acao)
-admin.site.register(Categoria)
-admin.site.register(Remetente)
 admin.site.register(ParametroFiqueDeOlhoPc)
 admin.site.register(ModeloCarga)
 

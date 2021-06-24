@@ -39,15 +39,7 @@ BLOCO_3 = 19
 LAST_LINE = 26
 
 
-def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, prestacao=None, previa=False):
-
-    relacao_bens, _ = RelacaoBens.objects.update_or_create(
-        conta_associacao=conta_associacao,
-        prestacao_conta=prestacao,
-        periodo_previa=None if prestacao else periodo,
-        versao=RelacaoBens.VERSAO_PREVIA if previa else RelacaoBens.VERSAO_FINAL,
-        status=RelacaoBens.STATUS_EM_PROCESSAMENTO,
-    )
+def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, prestacao=None, previa=False, criar_arquivos=True):
 
     filename = 'relacao_bens.xlsx'
 
@@ -55,17 +47,27 @@ def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, prestacao=None, pre
                 conta_associacao=conta_associacao, periodo=periodo, aplicacao_recurso=APLICACAO_CAPITAL)
 
     if rateios:
+        relacao_bens, _ = RelacaoBens.objects.update_or_create(
+            conta_associacao=conta_associacao,
+            prestacao_conta=prestacao,
+            periodo_previa=None if prestacao else periodo,
+            versao=RelacaoBens.VERSAO_PREVIA if previa else RelacaoBens.VERSAO_FINAL,
+            status=RelacaoBens.STATUS_EM_PROCESSAMENTO,
+        )
+
         # PDF
         dados_relacao_de_bens = gerar_dados_relacao_de_bens(conta_associacao=conta_associacao, periodo=periodo, rateios=rateios)
 
-        gerar_arquivo_relacao_de_bens_pdf(dados_relacao_de_bens=dados_relacao_de_bens, relacao_bens=relacao_bens)
+        if criar_arquivos:
+            gerar_arquivo_relacao_de_bens_pdf(dados_relacao_de_bens=dados_relacao_de_bens, relacao_bens=relacao_bens)
 
-        xlsx = gerar(periodo, conta_associacao, previa=previa)
-        with NamedTemporaryFile() as tmp:
-            xlsx.save(tmp.name)
+        if criar_arquivos:
+            xlsx = gerar(periodo, conta_associacao, previa=previa)
+            with NamedTemporaryFile() as tmp:
+                xlsx.save(tmp.name)
+                relacao_bens.arquivo.save(name=filename, content=File(tmp))
 
-            relacao_bens.arquivo.save(name=filename, content=File(tmp))
-            relacao_bens.arquivo_concluido()
+        relacao_bens.arquivo_concluido()
 
         return relacao_bens
 
