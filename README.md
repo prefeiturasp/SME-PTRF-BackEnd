@@ -5,9 +5,20 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.12.0
+Versão: 1.13.0
 
 ## Release Notes
+
+### 1.13.0 - 23/06/2021 - Entregas da Sprint 22
+* UE > Notificações sobre a proximidade do inicio do período de prestação de contas
+* UE > Notificações sobre inicio do período de prestação de contas
+* UE > Notificações sobre a proximidade do fim do período de prestação de contas
+* UE > Notificações sobre pendências de envio de prestações de contas
+* UE > Notificações sobre ajustes solicitados pelas DREs em prestações de contas
+* UE > Notificações sobre a proximidade do fim do prazo de entrega de ajustes solicitados em prestações de contas
+* UE > Notificações sobre atrasos na entrega de ajustes solicitados em prestações de contas
+* ADM > Cargas de repasse agora não criam mais tipos de conta e ações não existentes
+* 🐞 Correção de bugs
 
 ### 1.12.0 - 08/06/2021 - Entregas da Sprint 21
 
