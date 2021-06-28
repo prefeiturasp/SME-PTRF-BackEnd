@@ -22,8 +22,8 @@ def test_srt_model(tipo_custeio):
 
 
 def test_meta_modelo(tipo_custeio):
-    assert tipo_custeio._meta.verbose_name == 'Tipo de custeio'
-    assert tipo_custeio._meta.verbose_name_plural == 'Tipos de custeio'
+    assert tipo_custeio._meta.verbose_name == 'Tipo de despesa de custeio'
+    assert tipo_custeio._meta.verbose_name_plural == 'Tipos de despesa de custeio'
 
 
 def test_admin():
