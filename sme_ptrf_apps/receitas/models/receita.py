@@ -8,6 +8,7 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models import Associacao, Periodo, Parametros
+from sme_ptrf_apps.despesas.models import Despesa
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from ..tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
 
@@ -55,7 +56,9 @@ class Receita(ModeloBase):
                                         related_name='receitas_conciliadas_no_periodo',
                                         verbose_name='período de conciliação')
 
-    saida_do_recurso = models.CharField('Saída do Recurso (Despesa Uuid)', max_length=100, default='', blank=True)
+    saida_do_recurso = models.ForeignKey(Despesa, on_delete=models.SET_NULL, blank=True, null=True,
+                                        related_name='receitas_saida_do_recurso',
+                                        verbose_name='Saída do Recurso (Despesa)')
 
     def __str__(self):
         return f'RECEITA<{self.detalhamento} - {self.data} - {self.valor}>'
@@ -185,8 +188,8 @@ class Receita(ModeloBase):
         self.save()
         return self
 
-    def salvar_saida_recurso(self, despesa_uuid=None):
-        self.saida_do_recurso = despesa_uuid
+    def salvar_saida_recurso(self, despesa=None):
+        self.saida_do_recurso = despesa
         self.save()
         return self
 
@@ -201,9 +204,9 @@ class Receita(ModeloBase):
         return receita.desmarcar_conferido()
 
     @classmethod
-    def atrelar_saida_recurso(cls, uuid, despesa_uuid):
+    def atrelar_saida_recurso(cls, uuid, despesa):
         receita = cls.by_uuid(uuid)
-        return receita.salvar_saida_recurso(despesa_uuid)
+        return receita.salvar_saida_recurso(despesa)
 
 
 @receiver(pre_save, sender=Receita)

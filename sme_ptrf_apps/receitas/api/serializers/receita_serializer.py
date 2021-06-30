@@ -6,6 +6,7 @@ from rest_framework.exceptions import ValidationError
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
+from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaListSerializer
 from sme_ptrf_apps.core.models import AcaoAssociacao, Associacao, ContaAssociacao, Periodo
 from sme_ptrf_apps.receitas.models import Receita, Repasse
 
@@ -84,6 +85,7 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
     detalhe_tipo_receita = DetalheTipoReceitaSerializer()
     referencia_devolucao = PeriodoLookUpSerializer()
     repasse = RepasseSerializer()
+    saida_do_recurso = DespesaListSerializer()
 
     class Meta:
         model = Receita

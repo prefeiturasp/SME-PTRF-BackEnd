@@ -163,7 +163,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            Despesa.objects.get(uuid=despesa_uuid)
+            despesa = Despesa.objects.get(uuid=despesa_uuid)
         except (Despesa.DoesNotExist, ValidationError):
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -172,7 +172,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        receita_atrelada = Receita.atrelar_saida_recurso(uuid, despesa_uuid)
+        receita_atrelada = Receita.atrelar_saida_recurso(uuid, despesa)
 
         return Response(ReceitaListaSerializer(receita_atrelada, many=False).data,
                         status=status.HTTP_200_OK)
