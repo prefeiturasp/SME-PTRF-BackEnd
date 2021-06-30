@@ -25,7 +25,8 @@ def test_create_receita(
     conta_associacao,
     payload_receita
 ):
-    response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita), content_type='application/json')
+    response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita),
+                                               content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED
 
@@ -52,7 +53,8 @@ def test_criar_receita_com_conta_do_tipo_invalido(
     payload_receita
 ):
     payload_receita['conta_associacao'] = str(conta_associacao_cartao.uuid)
-    response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita), content_type='application/json')
+    response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita),
+                                               content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == ['O tipo de receita Estorno não permite salvar créditos com contas do tipo Cartão']
@@ -73,7 +75,7 @@ def test_create_receita_repasse(
         assert Repasse.objects.get(uuid=repasse.uuid).status == 'PENDENTE'
 
         response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita_repasse),
-                               content_type='application/json')
+                                                   content_type='application/json')
 
         assert response.status_code == status.HTTP_201_CREATED
 
@@ -105,7 +107,7 @@ def test_create_receita_repasse_valor_diferente(
     with freeze_time('2019-11-29'):
         payload_receita_repasse['valor'] = 2000.67
         response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita_repasse),
-                               content_type='application/json')
+                                                   content_type='application/json')
         result = json.loads(response.content)
 
         assert result == ['Valor do payload não é igual ao valor do CAPITAL.']
@@ -204,15 +206,17 @@ def test_get_tabelas(
 
 
 def test_get_receitas(
-        jwt_authenticated_client_p,
-        tipo_receita,
-        detalhe_tipo_receita,
-        receita,
-        acao,
-        acao_associacao,
-        associacao,
-        tipo_conta,
-        conta_associacao):
+    jwt_authenticated_client_p,
+    tipo_receita,
+    detalhe_tipo_receita,
+    receita,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    despesa_saida_recurso
+):
     response = jwt_authenticated_client_p.get(
         f'/api/receitas/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
@@ -223,7 +227,21 @@ def test_get_receitas(
             'data': '2020-03-26',
             'valor': '100.00',
             'repasse': None,
-            'saida_do_recurso': '',
+            'saida_do_recurso':
+                {
+                    'associacao': str(despesa_saida_recurso.associacao.uuid),
+                    'cpf_cnpj_fornecedor': '11.478.276/0001-04',
+                    'data_documento': '2019-09-10',
+                    'nome_fornecedor': 'Fornecedor SA',
+                    'numero_documento': '123456',
+                    'tipo_documento': {
+                        'id': despesa_saida_recurso.tipo_documento.id,
+                        'nome': despesa_saida_recurso.tipo_documento.nome
+                    },
+                    'uuid': str(despesa_saida_recurso.uuid),
+                    'valor_ptrf': 100.0,
+                    'valor_total': '100.00'
+                },
             'tipo_receita': {
                 'id': tipo_receita.id,
                 'nome': tipo_receita.nome,
@@ -274,8 +292,9 @@ def test_update_receita(
     receita,
     payload_receita
 ):
-    response = jwt_authenticated_client_p.put(f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', data=json.dumps(payload_receita),
-                                            content_type='application/json')
+    response = jwt_authenticated_client_p.put(f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}',
+                                              data=json.dumps(payload_receita),
+                                              content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -301,23 +320,24 @@ def test_update_receita_com_conta_invalida(
     payload_receita
 ):
     payload_receita['conta_associacao'] = str(conta_associacao_cartao.uuid)
-    response = jwt_authenticated_client_p.put(f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', data=json.dumps(payload_receita),
-                                            content_type='application/json')
+    response = jwt_authenticated_client_p.put(f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}',
+                                              data=json.dumps(payload_receita),
+                                              content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == ['O tipo de receita Estorno não permite salvar créditos com contas do tipo Cartão']
 
 
 def test_deleta_receita(
-        jwt_authenticated_client_p,
-        tipo_receita,
-        acao,
-        acao_associacao,
-        associacao,
-        tipo_conta,
-        conta_associacao,
-        receita,
-        payload_receita):
+    jwt_authenticated_client_p,
+    tipo_receita,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    receita,
+    payload_receita):
     assert Receita.objects.filter(uuid=receita.uuid).exists()
 
     response = jwt_authenticated_client_p.delete(
@@ -343,8 +363,9 @@ def test_deleta_receita_repasse(
 
     assert Receita.objects.filter(uuid=receita_yyy_repasse.uuid).exists()
 
-    response = jwt_authenticated_client_p.delete(f'/api/receitas/{receita_yyy_repasse.uuid}/?associacao_uuid={associacao.uuid}',
-                                               content_type='application/json')
+    response = jwt_authenticated_client_p.delete(
+        f'/api/receitas/{receita_yyy_repasse.uuid}/?associacao_uuid={associacao.uuid}',
+        content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -354,15 +375,17 @@ def test_deleta_receita_repasse(
 
 
 def test_retrive_receitas(
-        jwt_authenticated_client_p,
-        tipo_receita,
-        detalhe_tipo_receita,
-        receita,
-        acao,
-        acao_associacao,
-        associacao,
-        tipo_conta,
-        conta_associacao):
+    jwt_authenticated_client_p,
+    tipo_receita,
+    detalhe_tipo_receita,
+    receita,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    despesa_saida_recurso
+):
     response = jwt_authenticated_client_p.get(
         f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
@@ -383,7 +406,21 @@ def test_retrive_receitas(
         },
         'referencia_devolucao': None,
         'repasse': None,
-        'saida_do_recurso': '',
+        'saida_do_recurso':
+            {
+                'associacao': str(despesa_saida_recurso.associacao.uuid),
+                'cpf_cnpj_fornecedor': '11.478.276/0001-04',
+                'data_documento': '2019-09-10',
+                'nome_fornecedor': 'Fornecedor SA',
+                'numero_documento': '123456',
+                'tipo_documento': {
+                    'id': despesa_saida_recurso.tipo_documento.id,
+                    'nome': despesa_saida_recurso.tipo_documento.nome
+                },
+                'uuid': str(despesa_saida_recurso.uuid),
+                'valor_ptrf': 100.0,
+                'valor_total': '100.00'
+            },
         "acao_associacao": {
             "uuid": str(acao_associacao.uuid),
             "id": acao_associacao.id,
@@ -420,7 +457,7 @@ def test_create_receita_livre_aplicacao(
     payload_receita_livre_aplicacao
 ):
     response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita_livre_aplicacao),
-                           content_type='application/json')
+                                               content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED
 
@@ -449,8 +486,9 @@ def test_create_receita_repasse_livre_aplicacao(
     with freeze_time('2020-03-29'):
         assert Repasse.objects.get(uuid=repasse_2020_1_livre_aplicacao_pendente.uuid).status == 'PENDENTE'
 
-        response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita_repasse_livre_aplicacao),
-                               content_type='application/json')
+        response = jwt_authenticated_client_p.post('/api/receitas/',
+                                                   data=json.dumps(payload_receita_repasse_livre_aplicacao),
+                                                   content_type='application/json')
 
         assert response.status_code == status.HTTP_201_CREATED
 
@@ -480,10 +518,10 @@ def test_create_receita_repasse_livre_aplicacao_valor_diferente(
     repasse_2020_1_livre_aplicacao_pendente,
     payload_receita_repasse_livre_aplicacao
 ):
-
     payload_receita_repasse_livre_aplicacao['valor'] = 2000.67
-    response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita_repasse_livre_aplicacao),
-                           content_type='application/json')
+    response = jwt_authenticated_client_p.post('/api/receitas/',
+                                               data=json.dumps(payload_receita_repasse_livre_aplicacao),
+                                               content_type='application/json')
     result = json.loads(response.content)
 
     assert result == ['Valor do payload não é igual ao valor do LIVRE.']
@@ -505,8 +543,9 @@ def test_deleta_receita_repasse_livre_aplicacao(
 
     assert Receita.objects.filter(uuid=receita_repasse_livre_aplicacao.uuid).exists()
 
-    response = jwt_authenticated_client_p.delete(f'/api/receitas/{receita_repasse_livre_aplicacao.uuid}/?associacao_uuid={associacao.uuid}',
-                                               content_type='application/json')
+    response = jwt_authenticated_client_p.delete(
+        f'/api/receitas/{receita_repasse_livre_aplicacao.uuid}/?associacao_uuid={associacao.uuid}',
+        content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -554,7 +593,7 @@ def test_create_receita_repasse_capital_com_valores_custeio_e_livre_aplicacao_ze
         assert Repasse.objects.get(uuid=repasse_so_capital.uuid).status == 'PENDENTE'
 
         response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload),
-                                                 content_type='application/json')
+                                                   content_type='application/json')
 
         assert response.status_code == status.HTTP_201_CREATED
 
@@ -610,7 +649,7 @@ def test_create_receita_repasse_custeio_com_valores_capital_e_livre_aplicacao_ze
         assert Repasse.objects.get(uuid=repasse_so_custeio.uuid).status == 'PENDENTE'
 
         response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload),
-                                                 content_type='application/json')
+                                                   content_type='application/json')
 
         assert response.status_code == status.HTTP_201_CREATED
 
@@ -666,7 +705,7 @@ def test_create_receita_repasse_livre_aplicacao_com_valores_capital_e_custeio(
         assert Repasse.objects.get(uuid=repasse_so_livre.uuid).status == 'PENDENTE'
 
         response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload),
-                                                 content_type='application/json')
+                                                   content_type='application/json')
 
         assert response.status_code == status.HTTP_201_CREATED
 

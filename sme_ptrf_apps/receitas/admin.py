@@ -35,7 +35,7 @@ class ReceitaAdmin(admin.ModelAdmin):
         'categoria_receita',
         'repasse',
     )
-    readonly_fields = ('uuid', 'id', 'saida_do_recurso')
+    readonly_fields = ('uuid', 'id',)
 
 
 @admin.register(Repasse)
