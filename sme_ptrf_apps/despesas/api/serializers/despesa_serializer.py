@@ -84,11 +84,12 @@ class DespesaListSerializer(serializers.ModelSerializer):
     )
 
     tipo_documento = TipoDocumentoListSerializer()
+    tipo_transacao = TipoTransacaoSerializer()
 
     class Meta:
         model = Despesa
         fields = ('uuid', 'associacao', 'numero_documento', 'tipo_documento', 'data_documento', 'cpf_cnpj_fornecedor',
-                  'nome_fornecedor', 'valor_total', 'valor_ptrf')
+                  'nome_fornecedor', 'valor_total', 'valor_ptrf', 'data_transacao', 'tipo_transacao', 'documento_transacao')
 
 
 class DespesaConciliacaoSerializer(serializers.ModelSerializer):
