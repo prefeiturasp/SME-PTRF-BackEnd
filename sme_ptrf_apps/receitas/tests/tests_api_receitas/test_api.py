@@ -232,11 +232,18 @@ def test_get_receitas(
                     'associacao': str(despesa_saida_recurso.associacao.uuid),
                     'cpf_cnpj_fornecedor': '11.478.276/0001-04',
                     'data_documento': '2019-09-10',
+                    'data_transacao': '2019-09-10',
+                    'documento_transacao': '',
                     'nome_fornecedor': 'Fornecedor SA',
                     'numero_documento': '123456',
                     'tipo_documento': {
                         'id': despesa_saida_recurso.tipo_documento.id,
                         'nome': despesa_saida_recurso.tipo_documento.nome
+                    },
+                    'tipo_transacao': {
+                        'id': despesa_saida_recurso.tipo_transacao.id,
+                        'nome': despesa_saida_recurso.tipo_transacao.nome,
+                        'tem_documento': despesa_saida_recurso.tipo_transacao.tem_documento
                     },
                     'uuid': str(despesa_saida_recurso.uuid),
                     'valor_ptrf': 100.0,
@@ -411,11 +418,18 @@ def test_retrive_receitas(
                 'associacao': str(despesa_saida_recurso.associacao.uuid),
                 'cpf_cnpj_fornecedor': '11.478.276/0001-04',
                 'data_documento': '2019-09-10',
+                'data_transacao': '2019-09-10',
+                'documento_transacao': '',
                 'nome_fornecedor': 'Fornecedor SA',
                 'numero_documento': '123456',
                 'tipo_documento': {
                     'id': despesa_saida_recurso.tipo_documento.id,
                     'nome': despesa_saida_recurso.tipo_documento.nome
+                },
+                'tipo_transacao': {
+                    'id': despesa_saida_recurso.tipo_transacao.id,
+                    'nome': despesa_saida_recurso.tipo_transacao.nome,
+                    'tem_documento': despesa_saida_recurso.tipo_transacao.tem_documento
                 },
                 'uuid': str(despesa_saida_recurso.uuid),
                 'valor_ptrf': 100.0,

@@ -268,12 +268,19 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                     'associacao': f'{prestacao_conta.associacao.uuid}',
                     'cpf_cnpj_fornecedor': '11.478.276/0001-04',
                     'data_documento': '2020-03-10',
+                    'data_transacao': '2020-03-10',
+                    'documento_transacao': '',
                     'nome_fornecedor': 'Fornecedor '
                                        'SA',
                     'numero_documento': '123456',
                     'tipo_documento': {
                         'id': devolucao_ao_tesouro.despesa.tipo_documento.id,
                         'nome': 'NFe'
+                    },
+                    'tipo_transacao': {
+                        'id': devolucao_ao_tesouro.despesa.tipo_transacao.id,
+                        'nome': devolucao_ao_tesouro.despesa.tipo_transacao.nome,
+                        'tem_documento': devolucao_ao_tesouro.despesa.tipo_transacao.tem_documento
                     },
                     'uuid': f'{devolucao_ao_tesouro.despesa.uuid}',
                     'valor_ptrf': 100.0,
