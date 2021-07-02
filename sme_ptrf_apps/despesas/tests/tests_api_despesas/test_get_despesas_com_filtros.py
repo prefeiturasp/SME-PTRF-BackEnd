@@ -108,7 +108,7 @@ def test_api_get_despesas_filtro_por_numero_documento(jwt_authenticated_client_d
 
 
 def test_api_get_despesas_campos(jwt_authenticated_client_d, associacao, despesa_fornecedor_a,
-                                 despesa_fornecedor_b, tipo_documento):
+                                 despesa_fornecedor_b, tipo_documento, tipo_transacao):
     response = jwt_authenticated_client_d.get(
         f'/api/despesas/?numero_documento=123456', content_type='application/json')
     result = json.loads(response.content)
@@ -118,11 +118,18 @@ def test_api_get_despesas_campos(jwt_authenticated_client_d, associacao, despesa
             'associacao': f'{associacao.uuid}',
             'cpf_cnpj_fornecedor': '11.478.276/0001-04',
             'data_documento': '2020-03-10',
+            'data_transacao': '2020-03-10',
+            'documento_transacao': '',
             'nome_fornecedor': 'Fornecedor A graça ARVORE',
             'numero_documento': '123456',
             'tipo_documento': {
                 'id': tipo_documento.id,
                 'nome': 'NFe',
+            },
+            'tipo_transacao': {
+                'id':tipo_transacao.id,
+                'nome': tipo_transacao.nome,
+                'tem_documento': tipo_transacao.tem_documento
             },
             'uuid': f'{despesa_fornecedor_a.uuid}',
             'valor_ptrf': 90.0,
