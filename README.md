@@ -5,9 +5,20 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.13.0
+Versão: 1.14.0
 
 ## Release Notes
+
+### 1.14.0 - 08/07/2021 - Entregas da Sprint 23
+* UE > Créditos de recursos externos agora permitem editar/excluir uma saída vinculada
+* UE > Agora se um crédito de recurso externo é excluido a saída vinculada também é
+* UE > Melhorias no formulário de lançamento de recursos externos
+* UE > O cadastro de membros da Associação agora pede o CPF quando tratar-se de um aluno
+* UE > O lançamento de despesas do tipo capital, agora não traz mas valor default para a quantidade de itens
+* DRE > Resumo de Recursos, alterada a cor de destaques
+* DRE > Ajustes em textos diversos
+* 🐞 Correção de bugs
+
 
 ### 1.13.0 - 23/06/2021 - Entregas da Sprint 22
 * UE > Notificações sobre a proximidade do inicio do período de prestação de contas
