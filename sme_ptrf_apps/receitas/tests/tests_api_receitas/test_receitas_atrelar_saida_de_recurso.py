@@ -22,6 +22,15 @@ def test_api_atrelar_saida_do_recurso(jwt_authenticated_client_p, receita_saida_
     receita_atrelada = Receita.by_uuid(receita_uuid)
 
     result_esperado = ReceitaListaSerializer(receita_atrelada, many=False).data
+    result_esperado['saida_do_recurso']['associacao'] = str(result_esperado['saida_do_recurso']['associacao'])
+    result_esperado['acao_associacao'] = dict(result_esperado["acao_associacao"])
+    result_esperado['acao_associacao'] = dict(result_esperado["acao_associacao"])
+    result_esperado['conta_associacao'] = dict(result_esperado["conta_associacao"])
+    result_esperado['detalhe_tipo_receita'] = dict(result_esperado["detalhe_tipo_receita"])
+    result_esperado['saida_do_recurso'] = dict(result_esperado["saida_do_recurso"])
+    result_esperado['saida_do_recurso']['tipo_documento'] = dict(result_esperado["saida_do_recurso"]['tipo_documento'])
+    result_esperado['saida_do_recurso']['valor_ptrf'] = 100.00
+    result_esperado['tipo_receita'] = dict(result_esperado["tipo_receita"])
 
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado
