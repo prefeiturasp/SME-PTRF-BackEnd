@@ -63,7 +63,7 @@ pipeline {
                         
 			withCredentials([string(credentialsId: 'aprovadores-ptrf', variable: 'APROVADORES')]) {
                         timeout(time: 24, unit: "HOURS") {
-                            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: $APROVADORES
+                            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: '"$APROVADORES"'
                         }
                         }
 			    
