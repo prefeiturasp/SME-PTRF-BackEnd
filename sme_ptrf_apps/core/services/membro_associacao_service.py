@@ -24,18 +24,23 @@ class TerceirizadasService:
         try:
             response = requests.get(f'{settings.EOL_API_TERCEIRIZADAS_URL}/alunos/{codigo_eol}',
                                     headers=cls.headers, timeout=cls.timeout)
-            logger.info(response.url)
-            logger.info(response)
-            if response.status_code == status.HTTP_200_OK:
-                results = response.json()['results']
-                if len(results) == 1:
-                    return results[0]
-                raise TerceirizadasException(f'Código não encontrado.')
-            else:
-                raise TerceirizadasException('Código inválido.')
         except Exception as e:
             logger.error(f"Erro ao acessar api: {str(e)}")
             raise TerceirizadasException('Erro ao consultar EOL. Tente mais tarde.')
+
+        logger.info(response.url)
+        logger.info(response)
+
+        if response.status_code == status.HTTP_200_OK:
+            results = response.json()['results']
+            if len(results) == 1:
+                return results[0]
+            else:
+                msg = 'Código não encontrado.'
+                logger.error(msg)
+                raise TerceirizadasException(msg)
+        else:
+            raise TerceirizadasException('Código inválido.')
 
     @classmethod
     def get_informacao_servidor(cls, registro_funcional):
