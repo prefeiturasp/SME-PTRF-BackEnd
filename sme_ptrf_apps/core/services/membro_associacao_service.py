@@ -18,7 +18,6 @@ class TerceirizadasService:
 
     timeout = 20
 
-
     @classmethod
     def get_informacao_aluno(cls, codigo_eol):
         logger.info('Buscando informações na API EOL para o código eol: %s.', codigo_eol)
@@ -31,12 +30,12 @@ class TerceirizadasService:
                 results = response.json()['results']
                 if len(results) == 1:
                     return results[0]
-                raise TerceirizadasException(f'Não foram encontrados resultados para o cod eol:{codigo_eol}.')
+                raise TerceirizadasException(f'Código não encontrado.')
             else:
-                raise TerceirizadasException('Código EOL não existe.')
+                raise TerceirizadasException('Código inválido.')
         except Exception as e:
-            raise TerceirizadasException(str(e))
-
+            logger.error(f"Erro ao acessar api: {str(e)}")
+            raise TerceirizadasException('Erro ao consultar EOL. Tente mais tarde.')
 
     @classmethod
     def get_informacao_servidor(cls, registro_funcional):
