@@ -1,1 +1,2 @@
 from .repasse_service import atualiza_repasse_para_realizado, atualiza_repasse_para_pendente
+from .total_receita import get_total_receita_com_filtro, get_total_receita_sem_filtro
