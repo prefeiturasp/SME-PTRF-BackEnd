@@ -31,6 +31,7 @@ def test_instance_model(rateio_despesa_capital):
     assert model.conferido
     assert isinstance(model.periodo_conciliacao, Periodo)
     assert model.valor_original
+    assert model.saida_de_recurso_externo is False
 
 
 def test_srt_model(rateio_despesa_capital):

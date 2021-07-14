@@ -69,6 +69,8 @@ class RateioDespesa(ModeloBase):
                                             related_name='despesas_conciliadas_no_periodo',
                                             verbose_name='período de conciliação')
 
+    saida_de_recurso_externo = models.BooleanField('É saída de recurso externo?', default=False)
+
     objects = models.Manager()  # Manager Padrão
     completos = RateiosCompletosManager()
 
