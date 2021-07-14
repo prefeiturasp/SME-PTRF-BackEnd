@@ -24,6 +24,7 @@ from ...services import (
     informacoes_financeiras_para_atas,
     reabrir_prestacao_de_contas,
     lista_prestacoes_de_conta_nao_recebidas,
+    lista_prestacoes_de_conta_todos_os_status
 )
 from ....dre.services import (dashboard_sme)
 from ..serializers import (
@@ -32,6 +33,8 @@ from ..serializers import (
     PrestacaoContaLookUpSerializer,
     PrestacaoContaRetrieveSerializer,
 )
+
+from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -703,6 +706,75 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                                                          filtro_tipo_unidade=tipo_unidade,
                                                          filtro_status=status_pc
                                                          )
+        return Response(result)
+
+    @action(detail=False, url_path='todos-os-status',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def todos_os_status(self, _):
+        # Determina a DRE
+        dre_uuid = self.request.query_params.get('associacao__unidade__dre__uuid')
+
+        if not dre_uuid:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'operacao': 'todos-os-status',
+                'mensagem': 'Faltou informar o uuid da dre. ?associacao__unidade__dre__uuid=uuid_da_dre'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            dre = Unidade.dres.get(uuid=dre_uuid)
+        except (Unidade.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Determina o período
+        periodo_uuid = self.request.query_params.get('periodo__uuid')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'operacao': 'todos-os-status',
+                'mensagem': 'Faltou informar o uuid do período. ?periodo__uuid=uuid_do_periodo'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except (Periodo.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Pega filtros
+        nome = self.request.query_params.get('nome')
+        tipo_unidade = self.request.query_params.get('tipo_unidade')
+        status_pc = self.request.query_params.get('status')
+
+        if status_pc and status_pc not in ['TODOS']:
+            erro = {
+                'erro': 'status-invalido',
+                'operacao': 'todos-os-status',
+                'mensagem': 'Só é possível filtrar Todos pelo status TODOS'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        result = lista_prestacoes_de_conta_todos_os_status(
+            dre=dre,
+            periodo=periodo,
+            filtro_nome=nome,
+            filtro_tipo_unidade=tipo_unidade,
+        )
         return Response(result)
 
     @action(detail=False, methods=['get'], url_path="dashboard-sme",
