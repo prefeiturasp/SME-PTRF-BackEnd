@@ -98,6 +98,11 @@ class Despesa(ModeloBase):
         if cadastro_completo != status_completo:
             self.save()  # Força um rec'alculo do status.
 
+    def atualiza_rateios_como_saida_recurso_externo(self):
+        for rateio in self.rateios.all():
+            rateio.saida_de_recurso_externo = True
+            rateio.save()
+
     @classmethod
     def by_documento(cls, tipo_documento, numero_documento, cpf_cnpj_fornecedor, associacao__uuid):
         return cls.objects.filter(associacao__uuid=associacao__uuid).filter(

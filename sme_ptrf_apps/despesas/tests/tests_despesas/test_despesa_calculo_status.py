@@ -1,5 +1,7 @@
 import datetime
 import pytest
+from datetime import date
+
 from model_bakery import baker
 
 from ...models import Despesa
@@ -115,6 +117,62 @@ def despesa_incompleta_numero_digitado(associacao, tipo_documento_numero_documen
     )
 
 
+@pytest.fixture
+def despesa_credito_externo(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        data_transacao=date(2020, 3, 10),
+        valor_total=100.00,
+    )
+
+
+@pytest.fixture
+def rateio_despesa_capital_completo_credito_externo(associacao, despesa_credito_externo, conta_associacao, acao,
+                                                    tipo_aplicacao_recurso_custeio,
+                                                    especificacao_material_servico, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_credito_externo,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=None,
+        especificacao_material_servico=None,
+        valor_rateio=10.00,
+        saida_de_recurso_externo=True
+    )
+
+
+@pytest.fixture
+def receita_saida_recurso(associacao, conta_associacao, acao_associacao, tipo_receita, prestacao_conta_iniciada,
+                          detalhe_tipo_receita, periodo_2020_1, despesa_credito_externo,
+                          rateio_despesa_capital_completo_credito_externo):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
+        update_conferido=True,
+        conferido=True,
+        categoria_receita='CUSTEIO',
+        detalhe_tipo_receita=detalhe_tipo_receita,
+        detalhe_outros='teste',
+        periodo_conciliacao=periodo_2020_1,
+        saida_do_recurso=despesa_credito_externo,
+    )
+
+
 def test_despesa_completa(despesa):
     assert despesa.cadastro_completo()
     assert despesa.status == STATUS_COMPLETO
@@ -122,6 +180,7 @@ def test_despesa_completa(despesa):
 
 def test_despesa_incompleta(despesa_incompleta):
     assert despesa_incompleta.status == STATUS_INCOMPLETO
+
 
 def test_despesa_incompleta_numero_digitado(despesa_incompleta_numero_digitado):
     assert despesa_incompleta_numero_digitado.status == STATUS_INCOMPLETO
@@ -162,3 +221,13 @@ def test_despesa_de_transacao_que_tem_documento_sem_documento(despesa_cheque_sem
 def test_despesa_de_transacao_que_nao_tem_documento_sem_documento(despesa_boleto_sem_documento_transacao):
     # Despesa com tipo de transação que não exige um documento de transação é completa mesmo sem o documento
     assert despesa_boleto_sem_documento_transacao.status == STATUS_COMPLETO, "A despesa deveria estar completa"
+
+
+def test_rateio_despesa_vinculada_credito_externo(
+    despesa_credito_externo,
+    rateio_despesa_capital_completo_credito_externo,
+    receita_saida_recurso
+):
+    assert rateio_despesa_capital_completo_credito_externo.status == STATUS_COMPLETO
+    despesa = Despesa.objects.get(uuid=rateio_despesa_capital_completo_credito_externo.despesa.uuid)
+    assert despesa.status == STATUS_COMPLETO

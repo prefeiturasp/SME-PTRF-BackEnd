@@ -478,6 +478,23 @@ def despesa_saida_recurso(associacao_saida_recurso, tipo_documento_saida_recurso
 
 
 @pytest.fixture
+def rateio_saida_recurso(associacao, despesa_saida_recurso, conta_associacao, acao,
+                         tipo_aplicacao_recurso_custeio, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_saida_recurso,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=None,
+        especificacao_material_servico=None,
+        valor_rateio=10.00,
+        saida_de_recurso_externo=True
+    )
+
+
+@pytest.fixture
 def receita_saida_recurso(associacao, conta_associacao, acao_associacao, tipo_receita, prestacao_conta_iniciada,
             detalhe_tipo_receita, periodo_2020_1, despesa_saida_recurso):
     return baker.make(
