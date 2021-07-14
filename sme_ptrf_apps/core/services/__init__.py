@@ -25,6 +25,7 @@ from .prestacao_contas_services import (
     concluir_prestacao_de_contas,
     informacoes_financeiras_para_atas,
     lista_prestacoes_de_conta_nao_recebidas,
+    lista_prestacoes_de_conta_todos_os_status,
     reabrir_prestacao_de_contas,
 )
 from .processa_cargas import processa_cargas, processa_carga
