@@ -20,9 +20,9 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPITodosComGravacao
 )
 from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoReceitaEDetalhesSerializer
-from ...services import atualiza_repasse_para_pendente
+from ...services import atualiza_repasse_para_pendente, get_total_receita_sem_filtro, get_total_receita_com_filtro
 from ...tipos_aplicacao_recurso_receitas import aplicacoes_recurso_to_json
-from ....core.models import Periodo
+from ....core.models import Associacao, Periodo
 from ....despesas.models import Despesa
 
 logger = logging.getLogger(__name__)
@@ -70,6 +70,30 @@ class ReceitaViewSet(mixins.CreateModelMixin,
                 detalhe_tipo_receita__nome__unaccent__icontains=search))
 
         return qs
+
+    @action(detail=False, url_path='totais', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def totais(self, request):
+        associacao_uuid = request.query_params.get('associacao_uuid')
+
+        if not associacao_uuid:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da conta da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        associacao = Associacao.by_uuid(associacao_uuid)
+        queryset = Receita.objects.filter(associacao=associacao).all()
+
+        result = {
+            "associacao_uuid": f'{associacao_uuid}',
+            "total_receitas_sem_filtro": get_total_receita_sem_filtro(queryset),
+            "total_receitas_com_filtro": get_total_receita_com_filtro(
+                self.get_queryset(), self.filter_fields, request)
+        }
+
+        return Response(result)
 
     @action(detail=False, url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
