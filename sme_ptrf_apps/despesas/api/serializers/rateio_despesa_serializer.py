@@ -81,6 +81,7 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
     cpf_cnpj_fornecedor = serializers.SerializerMethodField('get_cpf_cnpj_fornecedor')
     nome_fornecedor = serializers.SerializerMethodField('get_nome_fornecedor')
     data_transacao = serializers.SerializerMethodField('get_data_transacao')
+    receitas_saida_do_recurso = serializers.SerializerMethodField('get_recurso_externo')
 
     def get_numero_documento(self, rateio):
         return rateio.despesa.numero_documento
@@ -109,6 +110,9 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
     def get_data_transacao(self, rateio):
         return rateio.despesa.data_transacao
 
+    def get_recurso_externo(self, rateio):
+        return rateio.despesa.receitas_saida_do_recurso.first().uuid if rateio.despesa.receitas_saida_do_recurso.exists() else None
+
     class Meta:
         model = RateioDespesa
         fields = (
@@ -127,6 +131,7 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
             'tipo_transacao_nome',
             'data_transacao',
             'notificar_dias_nao_conferido',
+            'receitas_saida_do_recurso',
         )
 
 
