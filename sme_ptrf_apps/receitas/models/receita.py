@@ -191,6 +191,7 @@ class Receita(ModeloBase):
     def salvar_saida_recurso(self, despesa=None):
         self.saida_do_recurso = despesa
         self.save()
+        despesa.atualiza_rateios_como_saida_recurso_externo()
         return self
 
     @classmethod

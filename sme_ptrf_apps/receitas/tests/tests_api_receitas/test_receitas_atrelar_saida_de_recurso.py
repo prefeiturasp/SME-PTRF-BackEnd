@@ -5,11 +5,18 @@ from rest_framework import status
 
 from ...api.serializers import ReceitaListaSerializer
 from ...models import Receita
+from ....despesas.models import Despesa
+from ....despesas.status_cadastro_completo import STATUS_COMPLETO
 
 pytestmark = pytest.mark.django_db
 
 
-def test_api_atrelar_saida_do_recurso(jwt_authenticated_client_p, receita_saida_recurso, despesa_saida_recurso):
+def test_api_atrelar_saida_do_recurso(
+    jwt_authenticated_client_p,
+    receita_saida_recurso,
+    despesa_saida_recurso,
+    rateio_saida_recurso
+):
     receita_uuid = receita_saida_recurso.uuid
     despesa_uuid = despesa_saida_recurso.uuid
 
@@ -34,6 +41,12 @@ def test_api_atrelar_saida_do_recurso(jwt_authenticated_client_p, receita_saida_
 
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado
+
+    despesa_atrelada = Despesa.by_uuid(despesa_uuid)
+    assert despesa_atrelada.status == STATUS_COMPLETO
+
+    rateio_atrelado = despesa_atrelada.rateios.first()
+    assert rateio_atrelado.status == STATUS_COMPLETO
 
 
 def test_api_atrelar_saida_do_recurso_uuid_receita_incorreto(jwt_authenticated_client_p):
