@@ -187,6 +187,22 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     @action(detail=True, methods=['delete'],
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def reabrir(self, request, uuid):
+
+        prestacao_de_contas = PrestacaoConta.by_uuid(uuid)
+
+        if prestacao_de_contas:
+            associacao = prestacao_de_contas.associacao
+            prestacao_de_contas_posteriores = PrestacaoConta.objects.filter(associacao=associacao, id__gt=prestacao_de_contas.id)
+
+            if prestacao_de_contas_posteriores:
+                response = {
+                    'uuid': f'{uuid}',
+                    'erro': 'prestacao_de_contas_posteriores',
+                    'operacao': 'reabrir',
+                    'mensagem': 'Essa prestação de contas não pode ser reaberta porque há prestação de contas dessa mesma associação de um período posterior. Se necessário, reabra primeiramente a prestação de contas mais recente.'
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
         reaberta = reabrir_prestacao_de_contas(prestacao_contas_uuid=uuid)
         if reaberta:
             response = {
@@ -462,6 +478,21 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'mensagem': 'Para concluir como DEVOLVIDA é necessário informar o campo data_limite_ue.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
+
+            associacao = prestacao_conta.associacao
+            prestacao_de_contas_posteriores = PrestacaoConta.objects.filter(associacao=associacao,
+                                                                            id__gt=prestacao_conta.id)
+
+            if prestacao_de_contas_posteriores:
+                response = {
+                    'uuid': f'{uuid}',
+                    'erro': 'prestacao_de_contas_posteriores',
+                    'operacao': 'concluir-analise',
+                    'mensagem': 'Essa prestação de contas não pode ser devolvida porque há prestação de contas dessa mesma associação de um período posterior. Se necessário, devolva para ajuste a prestação de contas mais recente.'
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         prestacao_salva = prestacao_conta.concluir_analise(
             resultado_analise=resultado_analise,
