@@ -75,6 +75,10 @@ class Unidade(ModeloBase, TemNome):
     def nome_com_tipo(self):
         return f'{self.tipo_unidade} {self.nome}'
 
+    @property
+    def nome_dre(self):
+        return f'{self.dre.nome}'
+
     @classmethod
     def tipos_unidade_to_json(cls):
         result = []
