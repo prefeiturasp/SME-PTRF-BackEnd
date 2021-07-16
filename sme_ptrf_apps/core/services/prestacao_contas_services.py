@@ -290,6 +290,46 @@ def lista_prestacoes_de_conta_nao_recebidas(
     return prestacoes
 
 
+def lista_prestacoes_de_conta_todos_os_status(
+    dre,
+    periodo,
+    filtro_nome=None,
+    filtro_tipo_unidade=None
+):
+    associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by(
+        'unidade__tipo_unidade', 'unidade__nome')
+
+    if filtro_nome is not None:
+        associacoes_da_dre = associacoes_da_dre.filter(Q(nome__unaccent__icontains=filtro_nome) | Q(
+            unidade__nome__unaccent__icontains=filtro_nome))
+
+    if filtro_tipo_unidade is not None:
+        associacoes_da_dre = associacoes_da_dre.filter(unidade__tipo_unidade=filtro_tipo_unidade)
+
+    prestacoes = []
+    for associacao in associacoes_da_dre:
+        prestacao_conta = PrestacaoConta.objects.filter(associacao=associacao, periodo=periodo).first()
+
+        info_prestacao = {
+            'periodo_uuid': f'{periodo.uuid}',
+            'data_recebimento': None,
+            'data_ultima_analise': None,
+            'processo_sei': get_processo_sei_da_prestacao(prestacao_contas=prestacao_conta) if prestacao_conta else '',
+            'status': prestacao_conta.status if prestacao_conta else PrestacaoConta.STATUS_NAO_APRESENTADA,
+            'tecnico_responsavel': '',
+            'unidade_eol': associacao.unidade.codigo_eol,
+            'unidade_nome': associacao.unidade.nome,
+            'unidade_tipo_unidade': associacao.unidade.tipo_unidade,
+            'uuid': f'{prestacao_conta.uuid}' if prestacao_conta else '',
+            'associacao_uuid': f'{associacao.uuid}',
+            'devolucao_ao_tesouro': '0,00'
+        }
+
+        prestacoes.append(info_prestacao)
+
+    return prestacoes
+
+
 def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, prestacao=None, usuario="",
                                              previa=False, criar_arquivos=True):
 

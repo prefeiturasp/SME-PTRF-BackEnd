@@ -61,7 +61,8 @@ def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valen
             'unidade': {
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
                 'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
-                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo
+                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
+                'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
             'status_regularidade': associacao_valenca_ceu_vassouras_dre_1.status_regularidade,
             'motivo_nao_regularidade': '',
@@ -73,7 +74,8 @@ def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valen
             'unidade': {
                 'uuid': f'{associacao_pinheiros_emef_mendes_dre_2.unidade.uuid}',
                 'codigo_eol': associacao_pinheiros_emef_mendes_dre_2.unidade.codigo_eol,
-                'nome_com_tipo': associacao_pinheiros_emef_mendes_dre_2.unidade.nome_com_tipo
+                'nome_com_tipo': associacao_pinheiros_emef_mendes_dre_2.unidade.nome_com_tipo,
+                'nome_dre': associacao_pinheiros_emef_mendes_dre_2.unidade.nome_dre
             },
             'status_regularidade': associacao_pinheiros_emef_mendes_dre_2.status_regularidade,
             'motivo_nao_regularidade': '',
@@ -99,7 +101,8 @@ def test_api_list_associacoes_de_uma_dre(jwt_authenticated_client_a, associacao_
             'unidade': {
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
                 'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
-                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo
+                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
+                'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
             'status_regularidade': associacao_valenca_ceu_vassouras_dre_1.status_regularidade,
             'motivo_nao_regularidade': '',
@@ -123,7 +126,8 @@ def test_api_list_associacoes_pelo_nome_associacao_ignorando_acentos(jwt_authent
             'unidade': {
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
                 'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
-                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo
+                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
+                'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
             'status_regularidade': associacao_valenca_ceu_vassouras_dre_1.status_regularidade,
             'motivo_nao_regularidade': '',
@@ -147,7 +151,8 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a, assoc
             'unidade': {
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
                 'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
-                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo
+                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
+                'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
             'status_regularidade': associacao_valenca_ceu_vassouras_dre_1.status_regularidade,
             'motivo_nao_regularidade': '',
@@ -171,7 +176,8 @@ def test_api_list_associacoes_pelo_status_regularidade(jwt_authenticated_client_
             'unidade': {
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
                 'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
-                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo
+                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
+                'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
             'status_regularidade': associacao_valenca_ceu_vassouras_dre_1.status_regularidade,
             'motivo_nao_regularidade': '',
@@ -195,7 +201,8 @@ def test_api_list_associacoes_pelo_tipo_unidade(jwt_authenticated_client_a, asso
             'unidade': {
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
                 'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
-                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo
+                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
+                'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
             'status_regularidade': associacao_valenca_ceu_vassouras_dre_1.status_regularidade,
             'motivo_nao_regularidade': '',
