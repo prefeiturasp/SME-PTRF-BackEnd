@@ -9,7 +9,7 @@ from ...models import Despesa, RateioDespesa
 from ....core.api.serializers import TagLookupSerializer
 from ....core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer, AcaoAssociacaoSerializer
 from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
-from ....core.api.serializers.conta_associacao_serializer import ContaAssociacaoSerializer
+from ....core.api.serializers.conta_associacao_serializer import ContaAssociacaoSerializer, ContaAssociacaoLookUpSerializer
 from ....core.models import AcaoAssociacao, Associacao, ContaAssociacao, Tag
 
 
@@ -71,6 +71,7 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
         queryset=Despesa.objects.all()
     )
     acao_associacao = AcaoAssociacaoLookUpSerializer()
+    conta_associacao = ContaAssociacaoLookUpSerializer()
     especificacao_material_servico = EspecificacaoMaterialServicoLookUpSerializer()
     numero_documento = serializers.SerializerMethodField('get_numero_documento')
     status_despesa = serializers.SerializerMethodField('get_status_despesa')
@@ -132,6 +133,7 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
             'data_transacao',
             'notificar_dias_nao_conferido',
             'receitas_saida_do_recurso',
+            'conta_associacao',
         )
 
 
