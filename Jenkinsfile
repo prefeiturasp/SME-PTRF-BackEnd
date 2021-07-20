@@ -88,23 +88,41 @@ pipeline {
             }           
         }
 
-        stage('Deploy Pre / Treino'){
-            when { anyOf {  branch 'master'; branch 'main' } }        
-            steps {
-                script{
-                  withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
-                    sh('cp $config '+"$home"+'/.kube/config')
-                    sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
-                    sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
-                    sh 'kubectl rollout restart deployment/sigescolapre-flower -n sme-sigescola-pre'
-		                sh 'kubectl rollout restart deployment/treinamento-backend -n sigescola-treinamento'
-                    sh 'kubectl rollout restart deployment/treinamento-celery -n sigescola-treinamento'
-                    sh 'kubectl rollout restart deployment/treinamento-flower -n sigescola-treinamento'	  
-	                  sh('rm -f '+"$home"+'/.kube/config')
-                  }
+        stage('Ambientes'){
+            when { anyOf {  branch 'master'; branch 'main' } }
+            parallel {
+            stage('Treino'){          
+              steps {
+                  script{
+                    withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
+                      sh('cp $config '+"$home"+'/.kube/config')
+                      sh 'kubectl rollout restart deployment/treinamento-backend -n sigescola-treinamento'
+                      sh 'kubectl rollout restart deployment/treinamento-celery -n sigescola-treinamento'
+                      sh 'kubectl rollout restart deployment/treinamento-flower -n sigescola-treinamento'	  
+                      sh('rm -f '+"$home"+'/.kube/config')
+                    }
                     
                 }
+              }
             }
+
+            stage('Pre-Prod'){          
+              steps {
+                  script{
+                    withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
+                      sh('cp $config '+"$home"+'/.kube/config')
+                      sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
+                      sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
+                      sh 'kubectl rollout restart deployment/sigescolapre-flower -n sme-sigescola-pre'
+                     sh('rm -f '+"$home"+'/.kube/config')
+                    }
+                    
+                }
+              }
+            }
+
+
+            }  
         }
 
                     
