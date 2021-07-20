@@ -72,6 +72,14 @@ pipeline {
                             sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf'
                             sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf'
                             sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf'
+				                
+                        if ( env.branchname == 'main' ||  env.branchname == 'master' || env.branchname == 'ebufaino-cicd' ) {
+                            sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
+                            sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
+                            sh 'kubectl rollout restart deployment/sigescolapre-flower -n sme-sigescola-pre'
+			
+                        }
+				
                             sh('rm -f '+"$home"+'/.kube/config')
                         }
                     }
@@ -86,7 +94,9 @@ pipeline {
                     }
                 }
             }           
-        }    
+        }
+
+
     }
 
   post {
