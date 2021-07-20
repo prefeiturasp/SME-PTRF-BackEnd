@@ -97,7 +97,10 @@ pipeline {
                     sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
                     sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
                     sh 'kubectl rollout restart deployment/sigescolapre-flower -n sme-sigescola-pre'
-				            sh('rm -f '+"$home"+'/.kube/config')
+		    sh 'kubectl rollout restart deployment/treinamento-backend -n sigescola-treinamento'
+                    sh 'kubectl rollout restart deployment/treinamento-celery -n sigescola-treinamento'
+                    sh 'kubectl rollout restart deployment/treinamento-flower -n sigescola-treinamento'	  
+	            sh('rm -f '+"$home"+'/.kube/config')
                   }
                     
                 }
