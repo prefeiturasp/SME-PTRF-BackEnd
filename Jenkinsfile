@@ -72,15 +72,7 @@ pipeline {
                             sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf'
                             sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf'
                             sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf'
-				                
-                        if ( env.branchname == 'main' ||  env.branchname == 'master' || env.branchname == 'ebufaino-cicd' ) {
-                            sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
-                            sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
-                            sh 'kubectl rollout restart deployment/sigescolapre-flower -n sme-sigescola-pre'
-			
-                        }
-				
-                            sh('rm -f '+"$home"+'/.kube/config')
+				                    sh('rm -f '+"$home"+'/.kube/config')
                         }
                     }
                     else{
@@ -95,6 +87,26 @@ pipeline {
                 }
             }           
         }
+
+        stage('Deploy Pre / Treino'){
+            when { anyOf {  branch 'master'; branch 'main' } }        
+            steps {
+                script{
+                  withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
+                    sh('cp $config '+"$home"+'/.kube/config')
+                    sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
+                    sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
+                    sh 'kubectl rollout restart deployment/sigescolapre-flower -n sme-sigescola-pre'
+				            sh('rm -f '+"$home"+'/.kube/config')
+                  }
+                    
+                }
+            }
+        }
+
+                    
+      }
+
 
 
     }
@@ -124,6 +136,5 @@ def getKubeconf(branchName) {
     else if ("homolog".equals(branchName)) { return "config_hom"; }
     else if ("release".equals(branchName)) { return "config_hom"; }
     else if ("development".equals(branchName)) { return "config_dev"; }
-    else if ("develop".equals(branchName)) { return "config_dev"; }
-    else if ("ebufaino-cicd".equals(branchName)) { return "config_prd"; }	
+    else if ("develop".equals(branchName)) { return "config_dev"; }	
 }
