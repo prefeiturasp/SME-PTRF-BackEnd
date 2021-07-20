@@ -26,6 +26,13 @@ def test_consulta_grupos(
             "id": str(grupo_3.id),
             "nome": grupo_3.name,
             "descricao": grupo_3.descricao
-        }]
+        },
+        {
+            "id": str(grupo_1.id),
+            "nome": grupo_1.name,
+            "descricao": grupo_1.descricao
+        }
+
+    ]
 
     assert result == esperado

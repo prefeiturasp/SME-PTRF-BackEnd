@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+from django.db.models.query import QuerySet
 
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
@@ -42,6 +43,40 @@ class DespesasViewSet(mixins.CreateModelMixin,
             return DespesaListSerializer
         else:
             return DespesaCreateSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        from django.db.models.deletion import ProtectedError
+        from ....core.models import DevolucaoAoTesouro
+
+        obj = self.get_object()
+
+        try:
+            self.perform_destroy(obj)
+        except ProtectedError as exception:
+
+            erros = []
+
+            if exception.args:
+                for excecao in exception.args:
+                    if isinstance(excecao, QuerySet):
+                        for ex in excecao:
+                            if isinstance(ex, DevolucaoAoTesouro):
+                                erros.append(f'{ex._meta.verbose_name}: {ex.data.strftime("%d/%m/%Y") if ex.data else "Sem data"} - {ex.tipo}')
+                            else:
+                                erros.append(f'{ex._meta.verbose_name}: {ex}')
+
+            content = {
+                'code': 'server_error',
+                'message': 'Internal server error.',
+                'error': {
+                    'type': str(type(exception)),
+                    'message': str(exception),
+                    'itens_erro': erros
+                }
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
