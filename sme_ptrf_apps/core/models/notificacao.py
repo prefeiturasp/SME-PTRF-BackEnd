@@ -179,6 +179,7 @@ class Notificacao(ModeloBase):
                 usuario=usuario,
             )
 
-        enviar_email_nova_notificacao(usuario=usuario, titulo=titulo, descricao=descricao)
+        if renotificar or not notificacao_existente:
+            enviar_email_nova_notificacao(usuario=usuario, titulo=titulo, descricao=descricao)
 
 
