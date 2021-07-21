@@ -15,7 +15,7 @@ def notificar_teste_envio_de_email():
     logger.info(f'XXXXX Iniciando a geração de notificação TESTE ENVIO DE EMAIL XXXXXX')
 
     users = get_users_by_permission('recebe_notificacao_atraso_entrega_ajustes_prestacao_de_contas')
-    users = users.filter(uuid='e8b91b04-4674-4bce-9d34-b732b9662f4b')
+    users = users.filter(username=6347959)
 
     if users:
         for usuario in users:
