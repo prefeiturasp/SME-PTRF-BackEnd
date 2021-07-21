@@ -54,7 +54,7 @@ def enviar_email_nova_notificacao_async(email, username, nome, titulo, descricao
     }
     return enviar_email_nova_notificacao_html(
         assunto=titulo,
-        template='email_redefinicao_senha.html',
+        template='email_nova_notificacao.html',
         context=context,
         enviar_para=email
     )

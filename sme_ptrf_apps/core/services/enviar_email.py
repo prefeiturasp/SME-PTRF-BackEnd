@@ -31,6 +31,7 @@ def enviar_email_nova_notificacao_html(assunto, template, context, enviar_para):
 
     logger.info('Enviando email para %s', enviar_para)
     logger.info('Enviando email assunto %s', assunto)
+    logger.info('Enviando email template %s', template)
     logger.info('Enviando email context %s', context)
 
     try:
