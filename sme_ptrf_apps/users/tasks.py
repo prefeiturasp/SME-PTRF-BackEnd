@@ -41,8 +41,8 @@ def enviar_email_redifinicao_senha(email, username, nome, hash_definicao):
     retry_kwargs={'max_retries': 8},
 )
 def enviar_email_nova_notificacao_async(email, username, nome, titulo, descricao):
-    logger.info("Tarefa de envio de email nova notificacao")
-    link = f"https://{env('SERVER_NAME')}/login/"
+    logger.info("Tarefa de envio de email nova notificacao async")
+    link = f"https://{env('SERVER_NAME')}/"
     data = date.today().strftime("%d/%m/%Y")
     context = {
         'url': link,

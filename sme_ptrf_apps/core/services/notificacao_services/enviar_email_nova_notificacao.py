@@ -10,17 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 def enviar_email_nova_notificacao(usuario=None, titulo=None, descricao=None):
-    logger.info(f'Iniciando envio de email nova notificação service {usuario}')
+    logger.info(f'Iniciando envio de email nova notificação service para o usuário: {usuario}')
 
     result = SmeIntegracaoService.informacao_usuario_sgp(usuario.username)
 
-    logger.info(f'XXX EMAIL USUARIO {result}')
-
     if result['email']:
         try:
-            enviar_email_nova_notificacao_async(email=result['email'], username=usuario.username, nome=usuario.name, titulo=titulo, descricao=descricao)
+            enviar_email_nova_notificacao_async(email=result['email'], username=usuario.username, nome=usuario.name,
+                                                titulo=titulo, descricao=descricao)
         except Exception as err:
             logger.info("Erro ao enviar email: %s", str(err))
-            # raise ProblemaEnvioEmail("Problema ao enviar email.")
-
-

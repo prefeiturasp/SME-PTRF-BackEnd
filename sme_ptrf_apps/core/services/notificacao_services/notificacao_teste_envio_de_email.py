@@ -26,9 +26,7 @@ def notificar_teste_envio_de_email():
                 categoria=Notificacao.CATEGORIA_NOTIFICACAO_ANALISE_PC,
                 remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
                 titulo=f"Titulo Notificacao TESTE ENVIO DE EMAIL",
-                descricao=f"Descrição Notificacao TESTE ENVIO DE EMAIL",
+                descricao=f"Descrição Notificacao TESTE ENVIO DE EMAIL. Mussum Ipsum, cacilds vidis litro abertis. Copo furadis é disculpa de bebadis.",
                 usuario=usuario,
-                renotificar=True,
+                renotificar=False,
             )
-
-
