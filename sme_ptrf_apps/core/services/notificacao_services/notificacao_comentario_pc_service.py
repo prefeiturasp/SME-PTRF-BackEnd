@@ -40,12 +40,13 @@ def notificar_comentario_pc(dado):
 
         if usuario:
             for comentario in comentarios:
-                Notificacao.objects.create(
+                Notificacao.notificar(
                     tipo=tipo,
                     categoria=categoria,
                     remetente=remetente,
                     titulo=titulo,
                     descricao=comentario.comentario,
-                    usuario=usuario
+                    usuario=usuario,
+                    renotificar=False,
                 )
             logger.info("Notificações criadas com sucesso.")

@@ -494,8 +494,10 @@ def informacoes_execucao_financeira_unidades(
         return totais
 
     resultado = []
+    resultado_nao_apresentada = []
 
-    associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by('nome')
+    associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').\
+        order_by('unidade__tipo_unidade', 'unidade__nome')
 
     if filtro_nome is not None:
         associacoes_da_dre = associacoes_da_dre.filter(Q(nome__unaccent__icontains=filtro_nome) | Q(
@@ -522,20 +524,39 @@ def informacoes_execucao_financeira_unidades(
 
         totais = _totaliza_previsoes_repasses_sme(associacao, periodo, tipo_conta, totais)
 
-        resultado.append(
-            {
-                'unidade': {
-                    'uuid': f'{associacao.unidade.uuid}',
-                    'codigo_eol': associacao.unidade.codigo_eol,
-                    'tipo_unidade': associacao.unidade.tipo_unidade,
-                    'nome': associacao.unidade.nome,
-                    'sigla': associacao.unidade.sigla,
-                },
+        if status_prestacao_conta == 'NAO_APRESENTADA':
+            resultado_nao_apresentada.append(
+                {
+                    'unidade': {
+                        'uuid': f'{associacao.unidade.uuid}',
+                        'codigo_eol': associacao.unidade.codigo_eol,
+                        'tipo_unidade': associacao.unidade.tipo_unidade,
+                        'nome': associacao.unidade.nome,
+                        'sigla': associacao.unidade.sigla,
+                    },
 
-                'status_prestacao_contas': status_prestacao_conta,
-                'valores': totais,
-            }
-        )
+                    'status_prestacao_contas': status_prestacao_conta,
+                    'valores': totais,
+                }
+            )
+        else:
+            resultado.append(
+                {
+                    'unidade': {
+                        'uuid': f'{associacao.unidade.uuid}',
+                        'codigo_eol': associacao.unidade.codigo_eol,
+                        'tipo_unidade': associacao.unidade.tipo_unidade,
+                        'nome': associacao.unidade.nome,
+                        'sigla': associacao.unidade.sigla,
+                    },
+
+                    'status_prestacao_contas': status_prestacao_conta,
+                    'valores': totais,
+                }
+            )
+
+    resultado = sorted(resultado, key=lambda row: row['status_prestacao_contas'])
+    resultado.extend(resultado_nao_apresentada)
 
     return resultado
 
