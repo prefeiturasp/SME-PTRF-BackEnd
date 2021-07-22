@@ -234,18 +234,3 @@ def gerar_notificacao_proximidade_fim_prazo_ajustes_prestacao_conta_async():
 
     logger.info('Finalizando a geração de notificação de proximidade do fim do prazo para entrega de ajustes de prestação de contas async.')
 
-
-@shared_task(
-    retry_backoff=2,
-    retry_kwargs={'max_retries': 8},
-    time_limet=600,
-    soft_time_limit=300
-)
-def gerar_notificacao_teste_envio_email_async():
-    from ..core.services.notificacao_services import notificar_teste_envio_de_email
-
-    logger.info('Iniciando a geração de Notificacao TESTE ENVIO DE EMAIL async.')
-
-    notificar_teste_envio_de_email()
-
-    logger.info('Finalizando a geração de Notificacao TESTE ENVIO DE EMAIL async.')
