@@ -14,6 +14,7 @@ class TipoReceita(ModeloIdNome):
 
     tipos_conta = models.ManyToManyField(TipoConta, blank=True)
     mensagem_usuario = models.TextField('Mensagem para o usuario', blank=True, default='')
+    possui_detalhamento = models.BooleanField('Deve exibir detalhamento?', default=False)
 
     class Meta:
         verbose_name = 'Tipo de receita'

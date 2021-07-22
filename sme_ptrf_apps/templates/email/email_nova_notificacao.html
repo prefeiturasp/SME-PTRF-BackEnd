@@ -1,0 +1,22 @@
+{% load static %}
+{% block content %}
+
+<div class="row">
+    <div class="col-12 p-2">
+        <p><img alt="" src="{{server_name}}/django_static/images/logo-ptrf-verde.a9a19032.png" style="width: 200px;"/></p>
+
+        <p>Olá, {{ nome }},</p>
+
+        <p>Você recebeu a seguinte notificação no SIG-Escola:</p>
+
+        <p>{{ descricao }}</p>
+
+        <p>
+          Para acessar o sistema, clique <a href="{{url}}">aqui</a> ou copie e cole em seu navegador o link abaixo:<br>
+          {{ url }}
+        </p>
+        <br/>
+    </div>
+</div>
+
+{% endblock %}

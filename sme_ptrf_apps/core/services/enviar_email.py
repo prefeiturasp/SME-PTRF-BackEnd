@@ -25,3 +25,24 @@ def enviar_email_html(assunto, template, context, enviar_para):
         email.send()
     except Exception as err:
         logger.info("Erro email: %s", str(err))
+
+
+def enviar_email_nova_notificacao_html(assunto, template, context, enviar_para):
+
+    logger.info('Enviando email de nova notificação para %s', enviar_para)
+
+    try:
+        config = DynamicEmailConfiguration.get_solo()
+        conteudo = render_to_string(template_name=f'email/{template}', context=context)
+        logger.info(config.from_email)
+        email = EmailMessage(
+            subject=assunto,
+            body=conteudo,
+            from_email=config.from_email or None,
+            bcc=(enviar_para,),
+            connection=EmailBackend(**config.__dict__)
+        )
+        email.content_subtype = 'html'
+        email.send()
+    except Exception as err:
+        logger.info("Erro email: %s", str(err))
