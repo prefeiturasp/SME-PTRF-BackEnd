@@ -68,7 +68,8 @@ pipeline {
                         
 			    
                         withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
-                            sh('cp $config '+"$home"+'/.kube/config')
+                            sh 'who'
+			    sh('cp $config '+"$home"+'/.kube/config')
                             sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf'
                             sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf'
                             sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf'
@@ -77,7 +78,8 @@ pipeline {
                     }
                     else{
                         withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
-                            sh('cp $config '+"$home"+'/.kube/config')
+                            sh 'who'
+			    sh('cp $config '+"$home"+'/.kube/config')
                             sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf'
                             sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf'
                             sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf'
@@ -95,7 +97,8 @@ pipeline {
               steps {
                   script{
                     withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
-                      sh ('cp $config '+"$home"+'/.kube/config')
+                      sh 'who'
+		      sh ('cp $config '+"$home"+'/.kube/config')
                       sh 'kubectl rollout restart deployment/treinamento-backend -n sigescola-treinamento'
                       sh 'kubectl rollout restart deployment/treinamento-celery -n sigescola-treinamento'
                       sh 'kubectl rollout restart deployment/treinamento-flower -n sigescola-treinamento'	  
@@ -110,7 +113,8 @@ pipeline {
               steps {
                   script{
                     withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
-                      sh ('cp $config '+"$home"+'/.kube/config')
+                      sh 'who'
+		      sh ('cp $config '+"$home"+'/.kube/config')
                       sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
                       sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
                       sh 'kubectl rollout restart deployment/sigescolapre-flower -n sme-sigescola-pre'
