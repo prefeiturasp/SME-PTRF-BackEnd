@@ -5,9 +5,27 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.14.0
+Versão: 1.15.0
 
 ## Release Notes
+
+### 1.15.0 - 23/07/2021 - Entregas da Sprint 24
+* UE > Exibição de totais de créditos no cadastramento de receitas
+* UE > Exibição de mensagem parametrizavel ao usar determinados tipos de crédito
+* UE > No cadastro de créditos, agora o campo detalhamento só é pedido para determinados tipos de crédito 
+* UE > Implementado filtro por conta no cadastro de gastos da escola
+* UE > Gastos da escola agora usa um formulário simplificado para editar gastos vinculados a recursos externos
+* UE > Não é mais possível usar uma ação de recurso externo em uma despesa lançada em gastos da escola
+* UE > Exibição de mensagem ao tetar excluir uma despesa usada em uma devolução ao tesouro
+* DRE > Em acompanhamento de PC agora é possível consultar de uma vez PCs de todos os status
+* DRE > Listas de unidades agora são ordenadas por status da PC, tipo de unidade e nome
+* DRE > Ajustes em textos diversos
+* DRE > Exibição de mensagem ao tentar reabrir ou devolver uma PC com PCs posteriores
+* SME > Exibição da DRE da Associações no cadastro de Associações
+* O usuário agora pode escolher exibir a senha digitada no formulário de login
+* Notificações agora também são enviadas por e-mail para os usuários
+* 🐞 Correção de bugs
+
 
 ### 1.14.0 - 08/07/2021 - Entregas da Sprint 23
 * UE > Créditos de recursos externos agora permitem editar/excluir uma saída vinculada
