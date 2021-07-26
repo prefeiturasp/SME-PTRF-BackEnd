@@ -17,7 +17,19 @@ class TipoReceitaEDetalhesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipoReceita
-        fields = ('id', 'nome', 'e_repasse', 'aceita_capital', 'aceita_custeio', 'aceita_livre', 'detalhes_tipo_receita', 'tipos_conta', 'e_devolucao', 'e_recursos_proprios')
+        fields = ('id',
+                  'nome',
+                  'e_repasse',
+                  'aceita_capital',
+                  'aceita_custeio',
+                  'aceita_livre',
+                  'detalhes_tipo_receita',
+                  'tipos_conta',
+                  'e_devolucao',
+                  'e_recursos_proprios',
+                  'mensagem_usuario',
+                  'possui_detalhamento',
+                )
 
 
 class TipoReceitaLookUpSerializer(serializers.ModelSerializer):

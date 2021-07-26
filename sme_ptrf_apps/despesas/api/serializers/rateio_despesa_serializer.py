@@ -9,7 +9,7 @@ from ...models import Despesa, RateioDespesa
 from ....core.api.serializers import TagLookupSerializer
 from ....core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer, AcaoAssociacaoSerializer
 from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
-from ....core.api.serializers.conta_associacao_serializer import ContaAssociacaoSerializer
+from ....core.api.serializers.conta_associacao_serializer import ContaAssociacaoSerializer, ContaAssociacaoLookUpSerializer
 from ....core.models import AcaoAssociacao, Associacao, ContaAssociacao, Tag
 
 
@@ -71,6 +71,7 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
         queryset=Despesa.objects.all()
     )
     acao_associacao = AcaoAssociacaoLookUpSerializer()
+    conta_associacao = ContaAssociacaoLookUpSerializer()
     especificacao_material_servico = EspecificacaoMaterialServicoLookUpSerializer()
     numero_documento = serializers.SerializerMethodField('get_numero_documento')
     status_despesa = serializers.SerializerMethodField('get_status_despesa')
@@ -81,6 +82,7 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
     cpf_cnpj_fornecedor = serializers.SerializerMethodField('get_cpf_cnpj_fornecedor')
     nome_fornecedor = serializers.SerializerMethodField('get_nome_fornecedor')
     data_transacao = serializers.SerializerMethodField('get_data_transacao')
+    receitas_saida_do_recurso = serializers.SerializerMethodField('get_recurso_externo')
 
     def get_numero_documento(self, rateio):
         return rateio.despesa.numero_documento
@@ -109,6 +111,9 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
     def get_data_transacao(self, rateio):
         return rateio.despesa.data_transacao
 
+    def get_recurso_externo(self, rateio):
+        return rateio.despesa.receitas_saida_do_recurso.first().uuid if rateio.despesa.receitas_saida_do_recurso.exists() else None
+
     class Meta:
         model = RateioDespesa
         fields = (
@@ -127,6 +132,8 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
             'tipo_transacao_nome',
             'data_transacao',
             'notificar_dias_nao_conferido',
+            'receitas_saida_do_recurso',
+            'conta_associacao',
         )
 
 

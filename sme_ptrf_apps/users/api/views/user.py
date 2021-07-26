@@ -119,17 +119,55 @@ class UserViewSet(ModelViewSet):
         if not visao:
             return Response("Parâmetro visão é obrigatório.", status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            grupos = Grupo.objects.filter(visoes__nome=visao).all()
-
-            return Response([{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao} for grupo in grupos])
-        except Exception as err:
+        if visao not in ["SME", "DRE", "UE"]:
             erro = {
-                'erro': 'erro_ao_consultar_grupos',
-                'mensagem': str(err)
-            }
+                    'erro': 'erro_ao_consultar_grupos',
+                    'mensagem': f'Visao {visao} nao foi encontrada. Os valores permitidos sao SME, DRE ou UE'
+                }
             logging.info("Erro ao buscar grupos do usuário %s", erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if visao == "SME":
+            try:
+                grupos = Grupo.objects.all()
+
+                return Response([{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao} for grupo in grupos])
+
+            except Exception as err:
+                erro = {
+                    'erro': 'erro_ao_consultar_grupos',
+                    'mensagem': str(err)
+                }
+                logging.info("Erro ao buscar grupos do usuário %s", erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        elif visao == "DRE":
+            try:
+                grupos = Grupo.objects.filter(Q(visoes__nome="DRE") | Q(visoes__nome="UE")).all()
+
+                return Response([{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao} for grupo in grupos])
+
+            except Exception as err:
+                erro = {
+                    'erro': 'erro_ao_consultar_grupos',
+                    'mensagem': str(err)
+                }
+                logging.info("Erro ao buscar grupos do usuário %s", erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        elif visao == "UE":
+            try:
+                grupos = Grupo.objects.filter(Q(visoes__nome="UE")).all()
+
+                return Response([{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao} for grupo in grupos])
+
+            except Exception as err:
+                erro = {
+                    'erro': 'erro_ao_consultar_grupos',
+                    'mensagem': str(err)
+                }
+                logging.info("Erro ao buscar grupos do usuário %s", erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
     # TODO Rever url_path 'usuarios/consultar'. É boa prática em APIs Rest evitar verbos. Poderia ser 'servidores'
     @action(detail=False, methods=['get'], url_path='consultar')

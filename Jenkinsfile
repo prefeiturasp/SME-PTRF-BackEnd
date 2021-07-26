@@ -55,20 +55,24 @@ pipeline {
         }
 	    
         stage('Deploy'){
-            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'develop'; branch 'release'; branch 'homolog';  } }        
+            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'develop'; branch 'release'; branch 'homolog'} }        
             steps {
                 script{
                     if ( env.branchname == 'main' ||  env.branchname == 'master' || env.branchname == 'homolog' || env.branchname == 'release' ) {
                         sendTelegram("🤩 [Deploy ${env.branchname}] Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nMe aprove! \nLog: \n${env.BUILD_URL}")
+                        
+			
                         timeout(time: 24, unit: "HOURS") {
-                            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'kelwy_oliveira, anderson_morais'
+                            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'alessandro_fernandes, kelwy_oliveira, anderson_morais, ollyver_ottoboni'
                         }
+                        
+			    
                         withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
                             sh('cp $config '+"$home"+'/.kube/config')
                             sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf'
                             sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf'
                             sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf'
-                            sh('rm -f '+"$home"+'/.kube/config')
+				                    sh('rm -f '+"$home"+'/.kube/config')
                         }
                     }
                     else{
@@ -82,10 +86,49 @@ pipeline {
                     }
                 }
             }           
-        }    
-    }
+        }
 
-  post {
+        stage('Ambientes'){
+            when { anyOf {  branch 'master'; branch 'main' } }
+            parallel {
+            stage('Treino'){          
+              steps {
+                  script{
+                    withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
+                      sh('cp $config '+"$home"+'/.kube/config')
+                      sh 'kubectl rollout restart deployment/treinamento-backend -n sigescola-treinamento'
+                      sh 'kubectl rollout restart deployment/treinamento-celery -n sigescola-treinamento'
+                      sh 'kubectl rollout restart deployment/treinamento-flower -n sigescola-treinamento'	  
+                      sh('rm -f '+"$home"+'/.kube/config')
+                    }
+                    
+                }
+              }
+            }
+
+            stage('Pre-Prod'){          
+              steps {
+                  script{
+                    withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
+                      sh('cp $config '+"$home"+'/.kube/config')
+                      sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
+                      sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
+                      sh 'kubectl rollout restart deployment/sigescolapre-flower -n sme-sigescola-pre'
+                     sh('rm -f '+"$home"+'/.kube/config')
+                    }
+                    
+                }
+              }
+            }
+
+
+            }  
+        }
+
+                    
+      }
+
+post {
     success { sendTelegram("🚀 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Success \nLog: \n${env.BUILD_URL}console") }
     unstable { sendTelegram("💣 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Unstable \nLog: \n${env.BUILD_URL}console") }
     failure { sendTelegram("💥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Failure \nLog: \n${env.BUILD_URL}console") }

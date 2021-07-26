@@ -233,3 +233,4 @@ def gerar_notificacao_proximidade_fim_prazo_ajustes_prestacao_conta_async():
     notificar_proximidade_fim_prazo_ajustes_prestacao_de_contas()
 
     logger.info('Finalizando a geração de notificação de proximidade do fim do prazo para entrega de ajustes de prestação de contas async.')
+

@@ -6,7 +6,7 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_rateios_despesas(jwt_authenticated_client_d, associacao, despesa, rateio_despesa_capital):
+def test_api_get_rateios_despesas(jwt_authenticated_client_d, associacao, despesa, rateio_despesa_capital, conta_associacao):
     response = jwt_authenticated_client_d.get(f'/api/rateios-despesas/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
@@ -15,6 +15,7 @@ def test_api_get_rateios_despesas(jwt_authenticated_client_d, associacao, despes
             "uuid": f'{rateio_despesa_capital.uuid}',
             "despesa": f'{despesa.uuid}',
             "numero_documento": despesa.numero_documento,
+            "receitas_saida_do_recurso": despesa.receitas_saida_do_recurso.first().uuid if despesa.receitas_saida_do_recurso.exists() else None,
             "status_despesa": despesa.status,
             "especificacao_material_servico": {
                 "id": rateio_despesa_capital.especificacao_material_servico.id,
@@ -38,6 +39,10 @@ def test_api_get_rateios_despesas(jwt_authenticated_client_d, associacao, despes
             "tipo_transacao_nome": despesa.tipo_transacao.nome,
             "data_transacao": '2020-03-10',
             'notificar_dias_nao_conferido': 0,
+            'conta_associacao': {
+                'uuid': f'{conta_associacao.uuid}',
+                'nome': f'{conta_associacao.tipo_conta}'
+            }
         },
 
     ]

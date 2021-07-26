@@ -147,6 +147,8 @@ def test_get_tabelas(
                 'aceita_livre': tipo_receita.aceita_livre,
                 'e_devolucao': False,
                 'e_recursos_proprios': False,
+                'mensagem_usuario': tipo_receita.mensagem_usuario,
+                'possui_detalhamento': tipo_receita.possui_detalhamento,
                 'tipos_conta': [{
                     'uuid': f'{tipo_conta.uuid}',
                     'id': tipo_conta.id,
