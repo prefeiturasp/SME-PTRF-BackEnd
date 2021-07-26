@@ -140,51 +140,6 @@ class UserViewSet(ModelViewSet):
             logging.info("Erro ao buscar grupos do usuário %s", erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        # if visao == "SME":
-        #     try:
-        #         grupos = Grupo.objects.all()
-        #
-        #         for g in grupos:
-        #             _visao = g.visoes
-        #
-        #         return Response([{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao} for grupo in grupos])
-        #
-        #     except Exception as err:
-        #         erro = {
-        #             'erro': 'erro_ao_consultar_grupos',
-        #             'mensagem': str(err)
-        #         }
-        #         logging.info("Erro ao buscar grupos do usuário %s", erro)
-        #         return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        #
-        # elif visao == "DRE":
-        #     try:
-        #         grupos = Grupo.objects.filter(Q(visoes__nome="DRE") | Q(visoes__nome="UE")).all()
-        #
-        #         return Response([{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao} for grupo in grupos])
-        #
-        #     except Exception as err:
-        #         erro = {
-        #             'erro': 'erro_ao_consultar_grupos',
-        #             'mensagem': str(err)
-        #         }
-        #         logging.info("Erro ao buscar grupos do usuário %s", erro)
-        #         return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        #
-        # elif visao == "UE":
-        #     try:
-        #         grupos = Grupo.objects.filter(Q(visoes__nome="UE")).all()
-        #
-        #         return Response([{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao} for grupo in grupos])
-        #
-        #     except Exception as err:
-        #         erro = {
-        #             'erro': 'erro_ao_consultar_grupos',
-        #             'mensagem': str(err)
-        #         }
-        #         logging.info("Erro ao buscar grupos do usuário %s", erro)
-        #         return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
     # TODO Rever url_path 'usuarios/consultar'. É boa prática em APIs Rest evitar verbos. Poderia ser 'servidores'
     @action(detail=False, methods=['get'], url_path='consultar')
     def consulta_servidor_sgp(self, request):
