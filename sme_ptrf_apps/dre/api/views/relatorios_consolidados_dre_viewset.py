@@ -20,7 +20,6 @@ from sme_ptrf_apps.users.permissoes import (
 from ...models import RelatorioConsolidadoDRE
 from ...services import (
     gera_previa_relatorio_dre,
-    gera_relatorio_dre,
     informacoes_devolucoes_a_conta_ptrf,
     informacoes_devolucoes_ao_tesouro,
     informacoes_execucao_financeira,
@@ -28,12 +27,12 @@ from ...services import (
     status_de_geracao_do_relatorio,
     update_observacao_devolucao,
 )
+from ...tasks import gerar_relatorio_consolidado_dre_async
 
 logger = logging.getLogger(__name__)
 
 
 class RelatoriosConsolidadosDREViewSet(GenericViewSet):
-
     permission_classes = [IsAuthenticated & PermissaoApiDre]
     queryset = RelatorioConsolidadoDRE.objects.all()
 
@@ -751,7 +750,13 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
     def gerar_relatorio(self, request):
         dados = request.data
 
-        if not dados or not dados.get('dre_uuid') or not dados.get('periodo_uuid') or not dados.get('tipo_conta_uuid') or (dados.get('parcial') is None):
+        if (
+            not dados
+            or not dados.get('dre_uuid')
+            or not dados.get('periodo_uuid')
+            or not dados.get('tipo_conta_uuid')
+            or (dados.get('parcial') is None)
+        ):
             erro = {
                 'erro': 'parametros_requeridos',
                 'mensagem': 'É necessário enviar os uuids da dre, período, conta e parcial.'
@@ -760,9 +765,10 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         dre_uuid, periodo_uuid, tipo_conta_uuid = dados['dre_uuid'], dados['periodo_uuid'], dados['tipo_conta_uuid']
+        parcial = dados['parcial']
 
         try:
-            dre = Unidade.dres.get(uuid=dre_uuid)
+            Unidade.dres.get(uuid=dre_uuid)
         except Unidade.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -772,7 +778,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            tipo_conta = TipoConta.objects.get(uuid=tipo_conta_uuid)
+            TipoConta.objects.get(uuid=tipo_conta_uuid)
         except TipoConta.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -782,7 +788,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            periodo = Periodo.objects.get(uuid=periodo_uuid)
+            Periodo.objects.get(uuid=periodo_uuid)
         except Periodo.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -792,7 +798,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            gera_relatorio_dre(dre, periodo, tipo_conta, dados['parcial'])
+            gerar_relatorio_consolidado_dre_async.delay(periodo_uuid, dre_uuid, tipo_conta_uuid, parcial)
         except Exception as err:
             erro = {
                 'erro': 'problem_geracao_relatorio',
@@ -801,15 +807,20 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             logger.info("Erro ao gerar relatório consolidado: %s", str(err))
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"OK": "Relatório Consolidado Gerado."}, status=status.HTTP_201_CREATED)
+        return Response({"OK": "Relatório Consolidado na fila para processamento."}, status=status.HTTP_201_CREATED)
 
     @action(detail=False, url_path="previa", methods=['post'],
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def previa(self, request):
         dados = request.data
 
-        if not dados or not dados.get('dre_uuid') or not dados.get('periodo_uuid') or not dados.get(
-            'tipo_conta_uuid') or (dados.get('parcial') is None):
+        if (
+            not dados
+            or not dados.get('dre_uuid')
+            or not dados.get('periodo_uuid')
+            or not dados.get('tipo_conta_uuid')
+            or (dados.get('parcial') is None)
+        ):
             erro = {
                 'erro': 'parametros_requeridos',
                 'mensagem': 'É necessário enviar os uuids da dre, período, conta e parcial.'
@@ -870,4 +881,3 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             }
             logger.info("Erro ao gerar prévia do relatório consolidado: %s", str(err))
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-

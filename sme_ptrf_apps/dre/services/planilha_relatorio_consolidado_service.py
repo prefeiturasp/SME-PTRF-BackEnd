@@ -77,22 +77,31 @@ LAST_LINE = 56
 
 def gera_relatorio_dre(dre, periodo, tipo_conta, parcial=False):
 
+    LOGGER.info("Relatório consolidado em processamento...")
+
+    relatorio_consolidado, _ = RelatorioConsolidadoDRE.objects.update_or_create(
+        dre=dre,
+        periodo=periodo,
+        tipo_conta=tipo_conta,
+        status=RelatorioConsolidadoDRE.STATUS_EM_PROCESSAMENTO
+    )
+
     filename = 'relatorio_consolidade_dre_%s.xlsx'
 
     xlsx = gerar(dre, periodo, tipo_conta, parcial=parcial)
 
     with NamedTemporaryFile() as tmp:
         xlsx.save(tmp.name)
-
-        relatorio_consolidado, _ = RelatorioConsolidadoDRE.objects.update_or_create(
-            dre=dre,
-            periodo=periodo,
-            tipo_conta=tipo_conta,
-            status=RelatorioConsolidadoDRE.STATUS_GERADO_PARCIAL if parcial else RelatorioConsolidadoDRE.STATUS_GERADO_TOTAL
-        )
         relatorio_consolidado.arquivo.save(name=filename % relatorio_consolidado.pk, content=File(tmp))
-        LOGGER.info("Relatório Consolidado Gerado: uuid: %s, status: %s",
-                    relatorio_consolidado.uuid, relatorio_consolidado.status)
+
+    relatorio_consolidado.status = (
+        RelatorioConsolidadoDRE.STATUS_GERADO_PARCIAL if parcial
+        else RelatorioConsolidadoDRE.STATUS_GERADO_TOTAL
+    )
+    relatorio_consolidado.save()
+
+    LOGGER.info("Relatório Consolidado Gerado: uuid: %s, status: %s",
+                relatorio_consolidado.uuid, relatorio_consolidado.status)
 
 
 def gera_previa_relatorio_dre(dre, periodo, tipo_conta, parcial=False):
