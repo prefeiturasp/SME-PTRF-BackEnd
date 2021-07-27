@@ -219,7 +219,8 @@ def test_notificar(jwt_authenticated_client_a,
         'periodo': str(periodo_2020_1.uuid),
         'comentarios': [
             str(comentario_analise_prestacao.uuid),
-        ]
+        ],
+        'enviar_email': False
     }
 
     response = jwt_authenticated_client_a.post(

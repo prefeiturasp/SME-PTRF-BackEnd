@@ -10,7 +10,7 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-def notificar_proximidade_fim_prazo_ajustes_prestacao_de_contas():
+def notificar_proximidade_fim_prazo_ajustes_prestacao_de_contas(enviar_email=True):
     logging.info("Criando notificações de proximidade do fim do prazo de ajustes de prestação de contas service")
     dias_antes = Parametros.get().dias_antes_fim_prazo_ajustes_pc_para_notificacao
     data_alvo = date.today() + timedelta(days=dias_antes)
@@ -45,6 +45,7 @@ def notificar_proximidade_fim_prazo_ajustes_prestacao_de_contas():
                         descricao=f"Faltam apenas {dias_para_fim.days} dia(s) para o fim do prazo de envio dos ajustes de sua prestações de contas de {prestacao_de_contas.periodo.referencia}. Fique atento para não perder o prazo e realize os ajustes solicitados.",
                         usuario=usuario,
                         renotificar=False,
+                        enviar_email=enviar_email
                     )
     else:
         logger.info(f"Não foram encontrados prestações de contas a serem notificadas.")

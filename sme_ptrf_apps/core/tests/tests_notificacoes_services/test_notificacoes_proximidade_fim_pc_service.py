@@ -21,7 +21,7 @@ def test_deve_notificar_usuarios_5_dias_antes(
 
     assert not Notificacao.objects.exists()
 
-    notificar_proximidade_fim_periodo_prestacao_conta()
+    notificar_proximidade_fim_periodo_prestacao_conta(enviar_email=False)
 
     assert Notificacao.objects.count() == 1
 
@@ -48,7 +48,7 @@ def test_deve_notificar_usuarios_no_dia(
 
     assert not Notificacao.objects.exists()
 
-    notificar_proximidade_fim_periodo_prestacao_conta()
+    notificar_proximidade_fim_periodo_prestacao_conta(enviar_email=False)
 
     assert Notificacao.objects.count() == 1
 
@@ -66,7 +66,7 @@ def test_deve_flagar_periodo_como_notificado(
 
     assert not periodo_notifica_proximidade_fim_pc.notificacao_proximidade_fim_pc_realizada
 
-    notificar_proximidade_fim_periodo_prestacao_conta()
+    notificar_proximidade_fim_periodo_prestacao_conta(enviar_email=False)
 
     periodo = Periodo.objects.get(referencia="2021.6")
     assert periodo.notificacao_proximidade_fim_pc_realizada

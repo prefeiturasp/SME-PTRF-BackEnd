@@ -6,7 +6,7 @@ from .formata_data_dd_mm_yyyy import formata_data_dd_mm_yyyy
 logger = logging.getLogger(__name__)
 
 
-def notificar_prestacao_de_contas_devolvida_para_acertos(prestacao_de_contas, data_limite_ue):
+def notificar_prestacao_de_contas_devolvida_para_acertos(prestacao_de_contas, data_limite_ue, enviar_email=True):
     logger.info(f'Iniciando a geração de notificação prestação de contas devolvida para acertos {prestacao_de_contas} service')
 
     users = get_users_by_permission('recebe_notificacao_prestacao_de_contas_devolvida_para_acertos')
@@ -26,6 +26,7 @@ def notificar_prestacao_de_contas_devolvida_para_acertos(prestacao_de_contas, da
                 descricao=f"A DRE solicitou alguns ajustes em sua prestação de contas do período {prestacao_de_contas.periodo.referencia}. O seu prazo para envio das mudanças é {formata_data_dd_mm_yyyy(data_limite_ue)}",
                 usuario=usuario,
                 renotificar=True,
+                enviar_email=enviar_email
             )
 
     logger.info(f'Finalizando a geração de notificação prestação de contas devolvida para acertos')
