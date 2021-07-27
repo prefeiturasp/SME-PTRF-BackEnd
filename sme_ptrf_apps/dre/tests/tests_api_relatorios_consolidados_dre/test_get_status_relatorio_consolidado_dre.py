@@ -12,7 +12,8 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_status_relatorio_analise_completa_rel_nao_gerado(jwt_authenticated_client_relatorio_consolidado, dre, periodo, tipo_conta):
+def test_api_get_status_relatorio_analise_completa_rel_nao_gerado(jwt_authenticated_client_relatorio_consolidado, dre,
+                                                                  periodo, tipo_conta):
     response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
@@ -41,7 +42,8 @@ def prestacao_conta_em_analise(periodo, associacao):
     )
 
 
-def test_api_get_status_relatorio_analise_pendente_rel_nao_gerado(jwt_authenticated_client_relatorio_consolidado, dre, periodo, tipo_conta,
+def test_api_get_status_relatorio_analise_pendente_rel_nao_gerado(jwt_authenticated_client_relatorio_consolidado, dre,
+                                                                  periodo, tipo_conta,
                                                                   prestacao_conta_em_analise):
     response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
@@ -68,7 +70,8 @@ def arquivo_gerado_em_2020_10_27_13_59_00():
 
 @pytest.fixture
 @freeze_time('2020-10-27 13:59:00')
-def relatorio_dre_consolidado_gerado_parcial_em_2020_10_27_13_59_00(periodo, dre, tipo_conta, arquivo_gerado_em_2020_10_27_13_59_00):
+def relatorio_dre_consolidado_gerado_parcial_em_2020_10_27_13_59_00(periodo, dre, tipo_conta,
+                                                                    arquivo_gerado_em_2020_10_27_13_59_00):
     return baker.make(
         'RelatorioConsolidadoDre',
         dre=dre,
@@ -79,7 +82,8 @@ def relatorio_dre_consolidado_gerado_parcial_em_2020_10_27_13_59_00(periodo, dre
     )
 
 
-def test_api_get_status_relatorio_analise_pendente_rel_parcial_gerado(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
+def test_api_get_status_relatorio_analise_pendente_rel_parcial_gerado(jwt_authenticated_client_relatorio_consolidado,
+                                                                      dre, periodo,
                                                                       tipo_conta,
                                                                       prestacao_conta_em_analise,
                                                                       relatorio_dre_consolidado_gerado_parcial_em_2020_10_27_13_59_00):
@@ -100,7 +104,8 @@ def test_api_get_status_relatorio_analise_pendente_rel_parcial_gerado(jwt_authen
     assert result == resultado_esperado
 
 
-def test_api_get_status_relatorio_analise_completa_rel_parcial_gerado(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
+def test_api_get_status_relatorio_analise_completa_rel_parcial_gerado(jwt_authenticated_client_relatorio_consolidado,
+                                                                      dre, periodo,
                                                                       tipo_conta,
                                                                       relatorio_dre_consolidado_gerado_parcial_em_2020_10_27_13_59_00):
     response = jwt_authenticated_client_relatorio_consolidado.get(
@@ -122,7 +127,8 @@ def test_api_get_status_relatorio_analise_completa_rel_parcial_gerado(jwt_authen
 
 @pytest.fixture
 @freeze_time('2020-10-27 13:59:00')
-def relatorio_dre_consolidado_gerado_total_em_2020_10_27_13_59_00(periodo, dre, tipo_conta, arquivo_gerado_em_2020_10_27_13_59_00):
+def relatorio_dre_consolidado_gerado_total_em_2020_10_27_13_59_00(periodo, dre, tipo_conta,
+                                                                  arquivo_gerado_em_2020_10_27_13_59_00):
     return baker.make(
         'RelatorioConsolidadoDre',
         dre=dre,
@@ -133,7 +139,8 @@ def relatorio_dre_consolidado_gerado_total_em_2020_10_27_13_59_00(periodo, dre, 
     )
 
 
-def test_api_get_status_relatorio_analise_completa_rel_final_gerado(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
+def test_api_get_status_relatorio_analise_completa_rel_final_gerado(jwt_authenticated_client_relatorio_consolidado, dre,
+                                                                    periodo,
                                                                     tipo_conta,
                                                                     relatorio_dre_consolidado_gerado_total_em_2020_10_27_13_59_00):
     response = jwt_authenticated_client_relatorio_consolidado.get(
@@ -153,7 +160,8 @@ def test_api_get_status_relatorio_analise_completa_rel_final_gerado(jwt_authenti
     assert result == resultado_esperado
 
 
-def test_api_get_status_relatorio_sem_passa_dre(jwt_authenticated_client_relatorio_consolidado, dre, periodo, tipo_conta):
+def test_api_get_status_relatorio_sem_passa_dre(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
+                                                tipo_conta):
     response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
@@ -169,7 +177,8 @@ def test_api_get_status_relatorio_sem_passa_dre(jwt_authenticated_client_relator
     assert result == resultado_esperado
 
 
-def test_api_get_status_relatorio_sem_passa_periodo(jwt_authenticated_client_relatorio_consolidado, dre, periodo, tipo_conta):
+def test_api_get_status_relatorio_sem_passa_periodo(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
+                                                    tipo_conta):
     response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?dre={dre.uuid}&tipo_conta={tipo_conta.uuid}',
         content_type='application/json')
@@ -185,7 +194,8 @@ def test_api_get_status_relatorio_sem_passa_periodo(jwt_authenticated_client_rel
     assert result == resultado_esperado
 
 
-def test_api_get_status_relatorio_sem_passar_tipo_conta(jwt_authenticated_client_relatorio_consolidado, dre, periodo, tipo_conta):
+def test_api_get_status_relatorio_sem_passar_tipo_conta(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
+                                                        tipo_conta):
     response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/status-relatorio/?dre={dre.uuid}&periodo={periodo.uuid}',
         content_type='application/json')
@@ -198,4 +208,36 @@ def test_api_get_status_relatorio_sem_passar_tipo_conta(jwt_authenticated_client
     }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result == resultado_esperado
+
+
+@pytest.fixture
+def relatorio_dre_consolidado_em_processamento(periodo, dre, tipo_conta):
+    return baker.make(
+        'RelatorioConsolidadoDre',
+        dre=dre,
+        tipo_conta=tipo_conta,
+        periodo=periodo,
+        arquivo=None,
+        status='EM_PROCESSAMENTO'
+    )
+
+
+def test_api_get_status_relatorio_em_processamento(jwt_authenticated_client_relatorio_consolidado, dre, periodo,
+                                                   tipo_conta,
+                                                   relatorio_dre_consolidado_em_processamento):
+    response = jwt_authenticated_client_relatorio_consolidado.get(
+        f'/api/relatorios-consolidados-dre/status-relatorio/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        'pcs_em_analise': False,
+        'status_geracao': 'EM_PROCESSAMENTO',
+        'status_txt': 'Análise de prestações de contas das associações completa. Relatório em processamento.',
+        'cor_idx': 3,
+        'status_arquivo': 'Relatório sendo gerado. Aguarde.'
+    }
+
+    assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado
