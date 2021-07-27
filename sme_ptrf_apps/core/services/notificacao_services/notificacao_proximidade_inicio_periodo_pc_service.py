@@ -11,7 +11,7 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-def notificar_proximidade_inicio_periodo_prestacao_conta():
+def notificar_proximidade_inicio_periodo_prestacao_conta(enviar_email=True):
     logging.info("Criando notificações de proximidade do inicio do período de prestação de contas...")
     dias_antes = Parametros.get().dias_antes_inicio_periodo_pc_para_notificacao
     data_alvo = date.today() + timedelta(days=dias_antes)
@@ -46,7 +46,8 @@ def notificar_proximidade_inicio_periodo_prestacao_conta():
                     descricao=f"Faltam apenas {dias_para_inicio.days} dias para o início do período de prestações "
                               f"de contas. Finalize o cadastro de crédito e de gastos, a conciliação bancária e "
                               f"gere os documentos da prestação de contas.",
-                    usuario=user
+                    usuario=user,
+                    enviar_email=enviar_email
                 )
                 periodo.notificacao_proximidade_inicio_prestacao_de_contas_realizada()
         else:

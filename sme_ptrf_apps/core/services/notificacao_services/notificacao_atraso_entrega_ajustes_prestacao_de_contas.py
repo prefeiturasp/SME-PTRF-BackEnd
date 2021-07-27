@@ -11,7 +11,7 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-def notificar_atraso_entrega_ajustes_prestacao_de_contas():
+def notificar_atraso_entrega_ajustes_prestacao_de_contas(enviar_email=True):
     logger.info(f'Iniciando a geração de notificação sobre atraso na entrega de ajustes de prestações de contas service')
     data_de_hoje = date.today()
 
@@ -42,6 +42,7 @@ def notificar_atraso_entrega_ajustes_prestacao_de_contas():
                                   f"O seu prazo era {formata_data_dd_mm_yyyy(devolucao.data_limite_ue)}",
                         usuario=usuario,
                         renotificar=False,
+                        enviar_email=enviar_email,
                     )
     else:
         logger.info(f"Não foram encontrados prestações de contas a serem notificadas.")

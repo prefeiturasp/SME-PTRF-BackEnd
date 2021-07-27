@@ -12,7 +12,7 @@ pytestmark = pytest.mark.django_db
 @freeze_time("2021-06-19")
 def test_deve_notificar_usuarios(devolucao_notifica_atraso_entrega_ajustes_pc, usuario_notificavel, associacao_a):
     assert not Notificacao.objects.exists()
-    notificar_atraso_entrega_ajustes_prestacao_de_contas()
+    notificar_atraso_entrega_ajustes_prestacao_de_contas(enviar_email=False)
     assert Notificacao.objects.count() == 1
     notificacao = Notificacao.objects.first()
 

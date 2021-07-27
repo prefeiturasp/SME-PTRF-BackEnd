@@ -141,9 +141,10 @@ class Notificacao(ModeloBase):
         descricao,
         usuario,
         renotificar=True,
+        enviar_email=False
     ):
 
-        from sme_ptrf_apps.core.services.notificacao_services.enviar_email_nova_notificacao import enviar_email_nova_notificacao
+        from sme_ptrf_apps.core.services.notificacao_services.enviar_email_notificacao import enviar_email_nova_notificacao
 
         if tipo not in cls.TIPO_NOTIFICACAO_NOMES.keys():
             raise NotificacaoCreateException(f'Tipo {tipo} não é um tipo válido.')
@@ -179,7 +180,7 @@ class Notificacao(ModeloBase):
                 usuario=usuario,
             )
 
-        if renotificar or not notificacao_existente:
+        if (renotificar or not notificacao_existente) and enviar_email:
             enviar_email_nova_notificacao(usuario=usuario, titulo=titulo, descricao=descricao)
 
 
