@@ -7,7 +7,7 @@ from django.db.models import Count
 logger = logging.getLogger(__name__)
 
 
-def notificar_inicio_periodo_prestacao_de_contas():
+def notificar_inicio_periodo_prestacao_de_contas(enviar_email=True):
     logger.info(f'Notificar início período prestação de contas service')
     data_de_hoje = date.today()
 
@@ -39,6 +39,7 @@ def notificar_inicio_periodo_prestacao_de_contas():
                     descricao="O período de prestações de contas já foi iniciado. Fique atento para não perder o prazo e envie os documentos da prestação de contas",
                     usuario=user,
                     renotificar=False,
+                    enviar_email=enviar_email,
                 )
 
             periodo.notificacao_inicio_prestacao_de_contas_realizada()

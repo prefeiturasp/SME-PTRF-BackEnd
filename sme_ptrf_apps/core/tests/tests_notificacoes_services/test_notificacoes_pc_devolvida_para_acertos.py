@@ -12,7 +12,7 @@ pytestmark = pytest.mark.django_db
 def test_deve_notificar_usuarios(prestacao_notifica_pc_devolvida_para_acertos, usuario_notificavel, associacao_a):
     assert not Notificacao.objects.exists()
     data_limite_ue = datetime.date(2020, 6, 17)
-    notificar_prestacao_de_contas_devolvida_para_acertos(prestacao_notifica_pc_devolvida_para_acertos, data_limite_ue)
+    notificar_prestacao_de_contas_devolvida_para_acertos(prestacao_notifica_pc_devolvida_para_acertos, data_limite_ue, enviar_email=False)
     assert Notificacao.objects.count() == 1
     notificacao = Notificacao.objects.first()
 

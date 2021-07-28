@@ -16,6 +16,7 @@ def test_instance_model(relatorio_dre_consolidado_gerado_total):
     assert model.status
     assert model.arquivo
 
+
 def test_str_model(relatorio_dre_consolidado_gerado_total):
     assert relatorio_dre_consolidado_gerado_total.__str__() == 'Documento final gerado dia 27/10/2020 13:59'
 

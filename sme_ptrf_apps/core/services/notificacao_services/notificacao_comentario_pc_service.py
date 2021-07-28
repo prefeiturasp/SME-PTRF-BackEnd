@@ -16,7 +16,7 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-def notificar_comentario_pc(dado):
+def notificar_comentario_pc(dado, enviar_email=True):
     logging.info("Criando notificações.")
 
     associacao = Associacao.by_uuid(dado['associacao'])
@@ -31,12 +31,16 @@ def notificar_comentario_pc(dado):
     cargos = [MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name, MembroEnum.VICE_PRESIDENTE_DIRETORIA_EXECUTIVA.name]
     membros = associacao.cargos.filter(cargo_associacao__in=cargos)
 
+    if 'enviar_email' in dado:
+        enviar_email = dado['enviar_email']
+
     for membro in membros:
         usuario = None
         if membro.codigo_identificacao:
             usuario = User.objects.filter(username=membro.codigo_identificacao).first()
         else:
-            usuario = User.objects.filter(username=membro.cpf).first()
+            cpf_tratado = membro.cpf.replace(".", "").replace(".", "").replace("-", "")
+            usuario = User.objects.filter(username=cpf_tratado).first()
 
         if usuario:
             for comentario in comentarios:
@@ -48,5 +52,6 @@ def notificar_comentario_pc(dado):
                     descricao=comentario.comentario,
                     usuario=usuario,
                     renotificar=False,
+                    enviar_email=enviar_email,
                 )
             logger.info("Notificações criadas com sucesso.")

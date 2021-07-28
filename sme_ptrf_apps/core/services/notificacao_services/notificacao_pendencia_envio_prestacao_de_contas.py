@@ -6,7 +6,7 @@ from sme_ptrf_apps.users.services.permissions_service import get_users_by_permis
 logger = logging.getLogger(__name__)
 
 
-def notificar_pendencia_envio_prestacao_de_contas():
+def notificar_pendencia_envio_prestacao_de_contas(enviar_email=True):
     logger.info(f'Notificar pendência envio prestação de contas service')
 
     data_de_hoje = date.today()
@@ -47,6 +47,7 @@ def notificar_pendencia_envio_prestacao_de_contas():
                         descricao=f"Terminou o período de prestações de contas para a associação {associacao.unidade.codigo_eol} - {associacao.unidade.nome} e você ainda não enviou sua PC.",
                         usuario=usuario,
                         renotificar=True,
+                        enviar_email=enviar_email
                     )
 
                 periodo.notificacao_pendencia_envio_prestacao_de_contas_realizada()

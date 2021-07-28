@@ -19,7 +19,7 @@ def test_deve_notificar_usuarios_5_dias_antes(
 
     assert not Notificacao.objects.exists()
 
-    notificar_proximidade_fim_prazo_ajustes_prestacao_de_contas()
+    notificar_proximidade_fim_prazo_ajustes_prestacao_de_contas(enviar_email=False)
 
     assert Notificacao.objects.count() == 1
 
@@ -44,7 +44,7 @@ def test_deve_notificar_usuarios_no_dia(
 
     assert not Notificacao.objects.exists()
 
-    notificar_proximidade_fim_prazo_ajustes_prestacao_de_contas()
+    notificar_proximidade_fim_prazo_ajustes_prestacao_de_contas(enviar_email=False)
 
     assert Notificacao.objects.count() == 1
 

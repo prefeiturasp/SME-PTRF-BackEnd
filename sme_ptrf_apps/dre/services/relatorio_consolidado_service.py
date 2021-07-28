@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def status_de_geracao_do_relatorio(dre, periodo, tipo_conta):
-    '''
+    """
     Calcula o status de geração do relatório da DRE em determinado período e tipo de conta conforme tabela:
 
     PCs em análise?	Relatório gerado?	Texto status	                                                                            Cor
@@ -25,11 +25,13 @@ def status_de_geracao_do_relatorio(dre, periodo, tipo_conta):
     Não	            Não	                Análise de prestações de contas das associações completa. Relatório não gerado.	            2
     Não	            Sim (parcial)	    Análise de prestações de contas das associações completa. Relatório parcial gerado.	        2
     Não	            Sim (final)	        Análise de prestações de contas das associações completa. Relatório final gerado.	        3
-    '''
+    """
+
     LEGENDA_COR = {
         'NAO_GERADO': {'com_pcs_em_analise': 0, 'sem_pcs_em_analise': 2},
         'GERADO_PARCIAL': {'com_pcs_em_analise': 1, 'sem_pcs_em_analise': 2},
         'GERADO_TOTAL': {'com_pcs_em_analise': 0, 'sem_pcs_em_analise': 3},
+        'EM_PROCESSAMENTO': {'com_pcs_em_analise': 0, 'sem_pcs_em_analise': 3},
     }
 
     pcs_em_analise = PrestacaoConta.objects.filter(periodo=periodo,
