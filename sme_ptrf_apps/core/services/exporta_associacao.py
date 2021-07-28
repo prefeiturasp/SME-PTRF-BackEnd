@@ -48,10 +48,10 @@ CARGOS = {
 }
 
 # Colunas Contas da Associação
-BANCO = 0
-TIPO = 1
-AGENCIA = 2
-NUMERO = 3
+BANCO = 1
+TIPO = 2
+AGENCIA = 3
+NUMERO = 4
 
 
 def gerar_planilha(associacao):
@@ -95,11 +95,12 @@ def membros(workbook, associacao):
 def contas(workbook, associacao):
     contas = associacao.contas.all()
     worksheet = workbook.worksheets[CONTAS]
-    rows = list(worksheet.rows)
-    linha = 1
+    linha = 2
     for conta in contas:
-        rows[linha][BANCO].value = conta.banco_nome
-        rows[linha][TIPO].value = conta.tipo_conta.nome if conta.tipo_conta else ' '
-        rows[linha][AGENCIA].value = conta.agencia
-        rows[linha][NUMERO].value = conta.numero_conta
+        worksheet.cell(row=linha, column=BANCO, value=conta.banco_nome)
+        worksheet.cell(row=linha, column=TIPO, value=conta.tipo_conta.nome if conta.tipo_conta else ' ')
+        worksheet.cell(row=linha, column=AGENCIA, value=conta.agencia)
+        worksheet.cell(row=linha, column=NUMERO, value=conta.numero_conta)
         linha += 1
+
+
