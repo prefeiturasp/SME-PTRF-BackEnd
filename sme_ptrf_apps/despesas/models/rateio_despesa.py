@@ -71,6 +71,8 @@ class RateioDespesa(ModeloBase):
 
     saida_de_recurso_externo = models.BooleanField('É saída de recurso externo?', default=False)
 
+    eh_despesa_sem_comprovacao_fiscal = models.BooleanField('É despesa sem comprovação fiscal?', default=False)
+
     objects = models.Manager()  # Manager Padrão
     completos = RateiosCompletosManager()
 
@@ -84,13 +86,13 @@ class RateioDespesa(ModeloBase):
                    self.aplicacao_recurso and \
                    self.valor_rateio
 
-        if not self.saida_de_recurso_externo:
+        if not self.saida_de_recurso_externo and not self.eh_despesa_sem_comprovacao_fiscal:
             completo = completo and self.especificacao_material_servico
 
-        if not self.saida_de_recurso_externo and self.aplicacao_recurso == APLICACAO_CUSTEIO:
-            completo = completo and self.tipo_custeio
-
-        if self.aplicacao_recurso == APLICACAO_CAPITAL:
+        if self.aplicacao_recurso == APLICACAO_CUSTEIO:
+            if not self.saida_de_recurso_externo and not self.eh_despesa_sem_comprovacao_fiscal:
+                completo = completo and self.tipo_custeio
+        elif self.aplicacao_recurso == APLICACAO_CAPITAL:
             completo = completo and \
                        self.quantidade_itens_capital > 0 and \
                        self.valor_item_capital > 0 and self.numero_processo_incorporacao_capital
