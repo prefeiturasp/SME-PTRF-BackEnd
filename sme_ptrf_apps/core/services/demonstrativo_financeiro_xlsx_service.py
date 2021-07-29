@@ -90,8 +90,6 @@ def gerar_arquivo_demonstrativo_financeiro_xlsx(
 
 def gerar(usuario, acoes, periodo, conta_associacao, observacao_conciliacao, previa=False):
 
-    # LOGGER.info(f"XXXXXXXXXXXXX OBSERVAÇÔES {dir(observacao_conciliacao)}")
-
     try:
         LOGGER.info("GERANDO DEMONSTRATIVO...")
         rateios_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
