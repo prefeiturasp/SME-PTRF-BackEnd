@@ -27,7 +27,7 @@ LOGGER = logging.getLogger(__name__)
 COL_CABECALHO = 10
 LINHA_PERIODO_CABECALHO = 4
 LINHA_CONTA_CABECALHO = 5
-LAST_LINE = 64
+LAST_LINE = 68
 OFFSET = 0
 
 # Coluna 2 da planilha
@@ -89,6 +89,7 @@ def gerar_arquivo_demonstrativo_financeiro_xlsx(
 
 
 def gerar(usuario, acoes, periodo, conta_associacao, observacao_conciliacao, previa=False):
+
     try:
         LOGGER.info("GERANDO DEMONSTRATIVO...")
         rateios_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
@@ -104,7 +105,7 @@ def gerar(usuario, acoes, periodo, conta_associacao, observacao_conciliacao, pre
             conta_associacao=conta_associacao, periodo=periodo, conferido=True)
 
         path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
-        nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro_novo_v3.xlsx')
+        nome_arquivo = os.path.join(path, 'modelo_demonstrativo_financeiro_novo_v4.xlsx')
         workbook = load_workbook(nome_arquivo)
         worksheet = workbook.active
 
@@ -117,6 +118,7 @@ def gerar(usuario, acoes, periodo, conta_associacao, observacao_conciliacao, pre
         bloco5_despesas_demonstradas(worksheet, rateios_conferidos)
         bloco6_despesas_demonstradas(worksheet, rateios_nao_conferidos)
         bloco7_despesas_demonstradas(worksheet, rateios_nao_conferidos_em_periodos_anteriores)
+        bloco8_justificativas_e_informacoes_adicionais(worksheet, observacao_conciliacao)
 
         data_geracao_documento(worksheet, usuario, previa)
 
@@ -333,6 +335,17 @@ def bloco6_despesas_demonstradas(worksheet, rateios):
 
 def bloco7_despesas_demonstradas(worksheet, rateios):
     pagamentos(worksheet, rateios, linha_inicial=52)
+
+
+def bloco8_justificativas_e_informacoes_adicionais(worksheet, observacao_conciliacao, linha_inicial=58):
+    global OFFSET
+
+    linha_inicial += OFFSET
+    linha_atual = linha_inicial
+
+    rows = list(worksheet.rows)
+
+    rows[linha_atual - 1][0].value = observacao_conciliacao.texto if observacao_conciliacao and observacao_conciliacao.texto else " "
 
 
 def data_geracao_documento(worksheet, usuario, previa=False):
