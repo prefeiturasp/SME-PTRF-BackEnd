@@ -512,7 +512,7 @@ def cria_despesas(rateios):
         cnpj_cpf = rateio.despesa.cpf_cnpj_fornecedor
         tipo_documento = rateio.despesa.tipo_documento.nome if rateio.despesa.tipo_documento else ''
         numero_documento = rateio.despesa.numero_documento
-        nome_acao_documento = rateio.acao_associacao.acao.nome
+        nome_acao_documento = rateio.acao_associacao.acao.nome if rateio and rateio.acao_associacao and rateio.acao_associacao.acao.nome else ""
         especificacao_material = \
             rateio.especificacao_material_servico.descricao if rateio.especificacao_material_servico else ''
         tipo_despesa = rateio.aplicacao_recurso
