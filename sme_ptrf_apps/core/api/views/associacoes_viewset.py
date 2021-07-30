@@ -355,6 +355,7 @@ class AssociacoesViewSet(ModelViewSet):
         usuario_logado = self.request.user
         associacao = Associacao.by_uuid(uuid)
         contas = list(ContaAssociacao.objects.filter(associacao=associacao).all())
+        atualiza_dados_unidade(associacao)
 
         html_string = render_to_string('pdf/associacoes/exportarpdf/pdf.html', {'associacao': associacao, 'contas': contas, 'dataAtual': data_atual, 'usuarioLogado': usuario_logado}).encode(encoding="UTF-8")
 
