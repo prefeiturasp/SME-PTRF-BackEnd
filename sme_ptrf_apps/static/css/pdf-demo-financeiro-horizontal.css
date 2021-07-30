@@ -1,6 +1,6 @@
-{% load static %}
-
 @charset "UTF-8";
+
+{% load static %}
 
 @font-face {
   font-family: Roboto;
@@ -82,12 +82,8 @@ html body section#cabecalho .subtitulo, html body header .subtitulo {
 header {
   position: running(heading);
   width: 330mm;
-  /*margin: 1cm 0 5.5cm 0;*/
-  /*padding: 5cm 0 0 1cm;*/
-
   margin: -2cm 0 1cm 1cm;
   padding: 0.5cm 0.25cm 0 2.5cm;
-  /*width: 100%;*/
 }
 
 .divisao {
@@ -141,32 +137,39 @@ header {
 html body .conteudo .tabela-resumo-por-acao {
   font-size: 7pt !important;
   max-width: 100% !important;
+  width: auto;
 }
 
 html body .conteudo .tabela-quebra-palavra{
   table-layout: fixed;
+  width: auto;
 }
 
 html body .conteudo .tabela-resumo-por-acao thead th, html body .conteudo .tabela-resumo-por-acao thead th.align-top, html body .conteudo .tabela-resumo-por-acao thead th.sem-borda, html body .conteudo .tabela-resumo-por-acao tbody td.total {
   background-color: #F5F6F8 !important;
   font-weight: normal !important;
   vertical-align: middle;
+  width: auto;
 }
 
 html body .conteudo .tabela-resumo-por-acao thead th.align-top {
   vertical-align: top;
+  width: auto;
 }
 
 html body .conteudo .tabela-resumo-por-acao thead th.sem-borda {
   border: none !important;
+  width: auto;
 }
 
 html body .conteudo .tabela-resumo-por-acao tbody td.sem-borda {
   border: none !important;
+  width: auto;
 }
 
 html body .conteudo .tabela-resumo-por-acao tbody td.fundo-cinza {
   background-color: #DADADA !important;
+  width: auto;
 }
 
 html body .conteudo .tabela-resumo-por-acao tbody td {
@@ -174,6 +177,11 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
   padding: 2px 5px;
   word-wrap: break-word !important;
   word-break: break-all !important;
+  width: auto;
+}
+
+.tabela-bloco-4{
+  width: 100% !important;
 }
 
 .container-texto-justificativas{
