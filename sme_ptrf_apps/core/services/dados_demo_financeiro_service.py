@@ -39,6 +39,7 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
         despesas_nao_demonstradas = cria_despesas(rateios_nao_conferidos)
         despesas_anteriores_nao_demonstradas = cria_despesas(rateios_nao_conferidos_periodos_anteriores)
         observacoes = cria_observacoes(periodo, conta_associacao)
+        justificativas = cria_justificativas(observacao_conciliacao)
         data_geracao_documento = cria_data_geracao_documento(usuario, previa)
         data_geracao = cria_data_geracao()
 
@@ -52,6 +53,7 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
             "despesas_nao_demonstradas": despesas_nao_demonstradas,
             "despesas_anteriores_nao_demonstradas": despesas_anteriores_nao_demonstradas,
             "observacoes_acoes": observacoes,
+            "justificativas": justificativas,
             "data_geracao_documento": data_geracao_documento,
             "data_geracao": data_geracao
         }
@@ -558,6 +560,10 @@ def cria_observacoes(periodo, conta_associacao):
     ).exists() else ''
 
     return observacao
+
+
+def cria_justificativas(observacao_conciliacao):
+    return observacao_conciliacao.texto if observacao_conciliacao and observacao_conciliacao.texto else " "
 
 
 def cria_data_geracao_documento(usuario, previa):
