@@ -9,7 +9,7 @@
 }
 
 @page {
-  size: A4;
+  size: A4 landscape;
   margin: 3cm -2mm 2cm -2mm;
   padding: 0;
   @bottom-center {
@@ -27,7 +27,7 @@
 }
 
 @page :first {
-  size: A4;
+  size: A4 landscape;
   margin: -2mm;
   margin-bottom: 2cm;
   padding: 0;
@@ -64,8 +64,8 @@ body {
 
 html body section#cabecalho, header {
   background: #EEEEEE;
-  margin: 0 0 0 -2cm;
-  padding: 0 2.5cm 0.5cm 2.5cm;
+  margin: 0;
+  padding: 0 0 0.5cm 0.5cm;
   width: 100%;
 }
 
@@ -82,9 +82,13 @@ html body section#cabecalho .subtitulo, html body header .subtitulo {
 
 header {
   position: running(heading);
-  width: 215mm;
-  margin: 1cm 0.5cm 5.5cm 1cm;
-  padding: 5cm 0 0 0;
+  width: 310mm;
+  /*margin: 1cm 0 5.5cm 0;*/
+  /*padding: 5cm 0 0 1cm;*/
+
+  margin: -2cm 0 1cm 0;
+  padding: 0.5cm 0 0 1.5cm;
+  /*width: 100%;*/
 }
 
 .divisao {
@@ -130,7 +134,7 @@ header {
 
 .conteudo {
   margin: 0 1cm;
-  width: 74%;
+  width: 275mm;
   font-family: Roboto, serif;
   font-style: normal;
 }
