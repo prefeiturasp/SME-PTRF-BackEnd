@@ -83,7 +83,7 @@ def gera_relatorio_dre(dre, periodo, tipo_conta, parcial=False):
         dre=dre,
         periodo=periodo,
         tipo_conta=tipo_conta,
-        status=RelatorioConsolidadoDRE.STATUS_EM_PROCESSAMENTO
+        defaults={'status': RelatorioConsolidadoDRE.STATUS_EM_PROCESSAMENTO},
     )
 
     filename = 'relatorio_consolidade_dre_%s.xlsx'
