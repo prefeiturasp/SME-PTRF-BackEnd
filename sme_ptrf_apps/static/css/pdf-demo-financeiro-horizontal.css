@@ -38,39 +38,6 @@
   }
 }
 
-@page :first {
-  size: A4 landscape;
-  margin: -2mm -5mm 2cm -2mm;
-  padding: 0;
-
-  @top-center {
-    content: none;
-  }
-
-  @bottom-right {
-    color: #000;
-    content: counter(page) "/" counter(pages);
-    font-size: 9pt;
-    padding: 0 1cm;
-    margin: 0 0.5cm 0 0;
-    font-weight: bold;
-    font-style: italic;
-  }
-
-  @bottom-center {
-    content: none;
-  }
-
-  @bottom-left {
-    color: #000;
-    content: element(nome-associacao);
-    font-size: 9pt;
-    padding: 0 1cm;
-    margin: 0;
-  }
-
-}
-
 @media print {
   body, page {
     margin: 0;
@@ -95,6 +62,13 @@ html body section#cabecalho, header {
   width: 100%;
 }
 
+header {
+  position: running(heading);
+  width: 315mm;
+  padding: 0.3cm 1.8cm 0.3cm 1cm;
+  margin: 0 0 0.7cm 3.5cm;
+}
+
 html body section#cabecalho .titulo, html body section#cabecalho .subtitulo, html body header .subtitulo {
   font-weight: bold;
   color: #0c0c0c;
@@ -106,12 +80,7 @@ html body section#cabecalho .subtitulo, html body header .subtitulo {
   font-style: normal;
 }
 
-header {
-  position: running(heading);
-  width: 330mm;
-  margin: -2cm 0 1cm 1cm;
-  padding: 0.5cm 0.25cm 0 2.5cm;
-}
+
 
 #nome-associacao-rodape {
   position: running(nome-associacao);
