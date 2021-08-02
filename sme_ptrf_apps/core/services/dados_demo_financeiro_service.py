@@ -86,6 +86,8 @@ def cria_identificacao_apm(acoes):
     cnpj_associacao = associacao.cnpj
     codigo_eol_associacao = associacao.unidade.codigo_eol or ""
     nome_dre_associacao = associacao.unidade.dre.nome if associacao.unidade.dre else ""
+    tipo_unidade = associacao.unidade.tipo_unidade
+    nome_unidade = associacao.unidade.nome
 
     _presidente_diretoria_executiva = \
         MembroAssociacao.objects.filter(associacao=associacao,
@@ -103,6 +105,8 @@ def cria_identificacao_apm(acoes):
         "cnpj_associacao": cnpj_associacao,
         "codigo_eol_associacao": codigo_eol_associacao,
         "nome_dre_associacao": nome_dre_associacao,
+        "tipo_unidade": tipo_unidade,
+        "nome_unidade": nome_unidade,
         "presidente_diretoria_executiva": presidente_diretoria_executiva,
         "presidente_conselho_fiscal": presidente_conselho_fiscal
     }

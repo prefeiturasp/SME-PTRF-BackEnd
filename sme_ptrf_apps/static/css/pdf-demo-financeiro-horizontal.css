@@ -12,17 +12,29 @@
   size: A4 landscape;
   margin: 3cm -2mm 2cm -2mm;
   padding: 0;
-  @bottom-center {
+  @top-center {
+    content: element(heading);
+  }
+    @bottom-right {
     color: #000;
     content: counter(page) "/" counter(pages);
     font-size: 9pt;
     padding: 0 1cm;
-    margin: 1cm 0;
+    margin: 0;
     font-weight: bold;
+    font-style: italic;
   }
 
-  @top-center {
-    content: element(heading);
+  @bottom-center {
+    content: none;
+  }
+
+  @bottom-left {
+    color: #000;
+    content: element(nome-associacao);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: 0;
   }
 }
 
@@ -30,16 +42,31 @@
   size: A4 landscape;
   margin: -2mm -5mm 2cm -2mm;
   padding: 0;
-  @bottom-center {
+
+  @top-center {
+    content: none;
+  }
+
+  @bottom-right {
     color: #000;
     content: counter(page) "/" counter(pages);
     font-size: 9pt;
     padding: 0 1cm;
-    margin: 1cm 0;
+    margin: 0 0.5cm 0 0;
     font-weight: bold;
+    font-style: italic;
   }
-  @top-center {
+
+  @bottom-center {
     content: none;
+  }
+
+  @bottom-left {
+    color: #000;
+    content: element(nome-associacao);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: 0;
   }
 
 }
@@ -84,6 +111,10 @@ header {
   width: 330mm;
   margin: -2cm 0 1cm 1cm;
   padding: 0.5cm 0.25cm 0 2.5cm;
+}
+
+#nome-associacao-rodape {
+  position: running(nome-associacao);
 }
 
 .divisao {
