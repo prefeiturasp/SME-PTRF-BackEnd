@@ -8,6 +8,7 @@ from .conciliacao_services import (
     transacoes_para_conciliacao,
     conciliar_transacao,
     desconciliar_transacao,
+    salva_conciliacao_bancaria,
 )
 from .exporta_associacao import gerar_planilha
 from .implantacao_saldos_services import implanta_saldos_da_associacao, implantacoes_de_saldo_da_associacao
