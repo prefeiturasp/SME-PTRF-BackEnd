@@ -66,11 +66,11 @@ class ObservacaoConciliacao(ModeloBase):
         observacao = cls.objects.filter(periodo=periodo, conta_associacao=conta_associacao).first()
 
         if observacao:
-            if texto_observacao:
+            if texto_observacao is not None:
                 observacao.texto = texto_observacao
                 observacao.save()
         else:
-            if texto_observacao:
+            if texto_observacao is not None:
                 cls.objects.create(
                     periodo=periodo,
                     conta_associacao=conta_associacao,

@@ -22,6 +22,7 @@ def test_api_salva_observacoes_conciliacao_justificativa(jwt_authenticated_clien
         "periodo_uuid": f'{periodo.uuid}',
         "conta_associacao_uuid": f'{conta_associacao_cartao.uuid}',
         "observacao": "Teste observações.",
+        "justificativa_ou_extrato_bancario": "JUSTIFICATIVA"
     }
 
     response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
@@ -44,6 +45,7 @@ def test_api_salva_observacoes_conciliacao_extrato_bancario(jwt_authenticated_cl
         "conta_associacao_uuid": f'{conta_associacao_cartao.uuid}',
         "data_extrato": "2021-01-01",
         "saldo_extrato": 1000.00,
+        "justificativa_ou_extrato_bancario": "EXTRATO_BANCARIO"
     }
 
     response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')

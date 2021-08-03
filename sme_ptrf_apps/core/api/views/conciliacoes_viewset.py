@@ -248,6 +248,9 @@ class ConciliacoesViewSet(GenericViewSet):
         # Define o período de conciliação
         periodo_uuid = request.data.get('periodo_uuid')
 
+        # Define se é um cadastro de justificativa ou extrato bancario
+        justificativa_ou_extrato_bancario = request.data.get('justificativa_ou_extrato_bancario')
+
         if not periodo_uuid:
             erro = {
                 'erro': 'parametros_requeridos',
@@ -290,14 +293,14 @@ class ConciliacoesViewSet(GenericViewSet):
         saldo_extrato = request.data.get('saldo_extrato', 0.0)
 
         # Define texto
-        texto_observacao = request.data.get('observacao', None)
+        texto_observacao = request.data.get('observacao', "")
 
         # Define comprovante extrato bancario
         comprovante_extrato = request.data.get('comprovante_extrato', None)
         data_atualizacao_comprovante_extrato = request.data.get('data_atualizacao_comprovante_extrato', None)
 
-        salva_conciliacao_bancaria(texto_observacao, periodo, conta_associacao,
-                                   data_extrato, saldo_extrato, comprovante_extrato,
+        salva_conciliacao_bancaria(justificativa_ou_extrato_bancario, texto_observacao, periodo,
+                                   conta_associacao, data_extrato, saldo_extrato, comprovante_extrato,
                                    data_atualizacao_comprovante_extrato, ObservacaoConciliacao)
 
         return Response({'mensagem': 'Informações gravadas'}, status=status.HTTP_200_OK)
