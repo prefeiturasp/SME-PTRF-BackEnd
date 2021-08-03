@@ -31,12 +31,13 @@ class ObservacaoConciliacao(ModeloBase):
         return self.texto[:30]
 
     @classmethod
-    def criar_atualizar(cls, periodo, conta_associacao, texto_observacao="", data_extrato=None, saldo_extrato=0.0, comprovante_extrato=None, data_atualizacao_comprovante_extrato=None):
+    def criar_atualizar_extrato_bancario(cls, periodo, conta_associacao, data_extrato, saldo_extrato,
+                                         comprovante_extrato, data_atualizacao_comprovante_extrato):
 
         observacao = cls.objects.filter(periodo=periodo, conta_associacao=conta_associacao).first()
+
         if observacao:
-            if texto_observacao or data_extrato or saldo_extrato or comprovante_extrato or data_atualizacao_comprovante_extrato:
-                observacao.texto = texto_observacao
+            if data_extrato or saldo_extrato or comprovante_extrato or data_atualizacao_comprovante_extrato:
                 observacao.data_extrato = data_extrato
                 observacao.saldo_extrato = saldo_extrato
 
@@ -48,16 +49,34 @@ class ObservacaoConciliacao(ModeloBase):
                     observacao.comprovante_extrato = ''
 
                 observacao.save()
-            else:
-                observacao.delete()
-        elif texto_observacao or data_extrato or saldo_extrato or comprovante_extrato or data_atualizacao_comprovante_extrato:
-            cls.objects.create(
-                periodo=periodo,
-                conta_associacao=conta_associacao,
-                associacao=conta_associacao.associacao,
-                texto=texto_observacao,
-                data_extrato=data_extrato,
-                saldo_extrato=saldo_extrato,
-                comprovante_extrato=comprovante_extrato,
-                data_atualizacao_comprovante_extrato=data_atualizacao_comprovante_extrato,
-            )
+        else:
+            if data_extrato or saldo_extrato or comprovante_extrato or data_atualizacao_comprovante_extrato:
+                cls.objects.create(
+                    periodo=periodo,
+                    conta_associacao=conta_associacao,
+                    associacao=conta_associacao.associacao,
+                    data_extrato=data_extrato,
+                    saldo_extrato=saldo_extrato,
+                    comprovante_extrato=comprovante_extrato,
+                    data_atualizacao_comprovante_extrato=data_atualizacao_comprovante_extrato,
+                )
+
+    @classmethod
+    def criar_atualizar_justificativa(cls, periodo, conta_associacao, texto_observacao):
+        observacao = cls.objects.filter(periodo=periodo, conta_associacao=conta_associacao).first()
+
+        if observacao:
+            if texto_observacao:
+                observacao.texto = texto_observacao
+                observacao.save()
+        else:
+            if texto_observacao:
+                cls.objects.create(
+                    periodo=periodo,
+                    conta_associacao=conta_associacao,
+                    associacao=conta_associacao.associacao,
+                    texto=texto_observacao,
+                    data_extrato=None,
+                    comprovante_extrato=None,
+                    data_atualizacao_comprovante_extrato=None,
+                )

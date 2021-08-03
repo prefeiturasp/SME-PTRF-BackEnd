@@ -26,6 +26,7 @@ from ...services import (
     transacoes_para_conciliacao,
     conciliar_transacao,
     desconciliar_transacao,
+    salva_conciliacao_bancaria
 )
 from ....despesas.models import Despesa
 from ....receitas.models import Receita
@@ -289,21 +290,15 @@ class ConciliacoesViewSet(GenericViewSet):
         saldo_extrato = request.data.get('saldo_extrato', 0.0)
 
         # Define texto
-        texto_observacao = request.data.get('observacao')
+        texto_observacao = request.data.get('observacao', None)
 
         # Define comprovante extrato bancario
         comprovante_extrato = request.data.get('comprovante_extrato', None)
         data_atualizacao_comprovante_extrato = request.data.get('data_atualizacao_comprovante_extrato', None)
 
-        ObservacaoConciliacao.criar_atualizar(
-            periodo=periodo,
-            conta_associacao=conta_associacao,
-            texto_observacao=texto_observacao,
-            data_extrato=data_extrato,
-            saldo_extrato=saldo_extrato,
-            comprovante_extrato=comprovante_extrato,
-            data_atualizacao_comprovante_extrato=data_atualizacao_comprovante_extrato,
-        )
+        salva_conciliacao_bancaria(texto_observacao, periodo, conta_associacao,
+                                   data_extrato, saldo_extrato, comprovante_extrato,
+                                   data_atualizacao_comprovante_extrato, ObservacaoConciliacao)
 
         return Response({'mensagem': 'Informações gravadas'}, status=status.HTTP_200_OK)
 
