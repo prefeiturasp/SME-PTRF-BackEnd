@@ -479,3 +479,25 @@ def desconciliar_transacao(conta_associacao, transacao, tipo_transacao):
             rateio.desmarcar_conferido()
         despesa_desconciliada = Despesa.by_uuid(transacao.uuid)
         return DespesaConciliacaoSerializer(despesa_desconciliada, many=False).data
+
+
+def salva_conciliacao_bancaria(justificativa_ou_extrato_bancario, texto_observacao, periodo,
+                               conta_associacao, data_extrato, saldo_extrato,
+                               comprovante_extrato, data_atualizacao_comprovante_extrato,
+                               observacao_conciliacao):
+
+    if justificativa_ou_extrato_bancario == "JUSTIFICATIVA":
+        observacao_conciliacao.criar_atualizar_justificativa(
+            periodo=periodo,
+            conta_associacao=conta_associacao,
+            texto_observacao=texto_observacao,
+        )
+    elif justificativa_ou_extrato_bancario == "EXTRATO_BANCARIO":
+        observacao_conciliacao.criar_atualizar_extrato_bancario(
+            periodo=periodo,
+            conta_associacao=conta_associacao,
+            data_extrato=data_extrato,
+            saldo_extrato=saldo_extrato,
+            comprovante_extrato=comprovante_extrato,
+            data_atualizacao_comprovante_extrato=data_atualizacao_comprovante_extrato,
+        )
