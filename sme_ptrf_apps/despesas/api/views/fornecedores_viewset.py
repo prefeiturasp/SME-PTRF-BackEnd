@@ -5,9 +5,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from ..serializers.fornecedor_serializer import FornecedorSerializer
 from ...models import Fornecedor
+from django.db.models import Q
 
 
-class FornecedoresViewSet(viewsets.ReadOnlyModelViewSet):
+class FornecedoresViewSet(viewsets.ModelViewSet):
     queryset = Fornecedor.objects.all()
     serializer_class = FornecedorSerializer
     permission_classes = [IsAuthenticated]
@@ -15,6 +16,19 @@ class FornecedoresViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ('nome',)
     search_fields = ('uuid', 'nome',)
     filter_fields = ('uuid', 'cpf_cnpj')
+
+    def get_queryset(self):
+        qs = Fornecedor.objects.all().order_by('nome')
+        nome = self.request.query_params.get('nome')
+        cpf_cnpj = self.request.query_params.get('cpf_cnpj')
+
+        if nome is not None:
+            qs = qs.filter(Q(nome__unaccent__icontains=nome))
+
+        if cpf_cnpj is not None:
+            qs = qs.filter(Q(cpf_cnpj__unaccent__icontains=cpf_cnpj))
+
+        return qs
 
     def list(self, request, *args, **kwargs):
 
@@ -27,6 +41,6 @@ class FornecedoresViewSet(viewsets.ReadOnlyModelViewSet):
             }]
             return Response(context)
         else:
-            queryset = self.filter_queryset(self.get_queryset())
+            queryset = self.get_queryset()
             return Response(FornecedorSerializer(queryset, many=True).data)
 

@@ -7,7 +7,7 @@ from .validators import cpf_cnpj_validation
 class Fornecedor(ModeloBase):
     cpf_cnpj = models.CharField(
         "CPF / CNPJ", max_length=20, validators=[cpf_cnpj_validation]
-        , blank=True, null=True, default=""
+        , blank=True, null=True, default="", unique=True
     )
 
     nome = models.CharField("Nome do fornecedor", max_length=100, default='', blank=True)
