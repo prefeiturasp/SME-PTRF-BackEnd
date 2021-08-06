@@ -144,3 +144,18 @@ class FuncDreTecnicosDaDiretoria(models.Model):
             ('access_tecnicos_da_diretoria', '[DRE] Pode acessar Técnicos da Diretoria.'),
             ('change_tecnicos_da_diretoria', '[DRE] Pode atualizar Técnicos da Diretoria.'),
         )
+
+
+class FuncDreFornecedores(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[DRE] Cadastro de Fornecedor"
+        verbose_name_plural = "[DRE] Cadastro de Fornecedores"
+
+        permissions = (
+            ('access_fornecedores', '[DRE] Pode acessar cadastro de fornecedores.'),
+            ('change_fornecedores', '[DRE] Pode atualizar cadastro de fornecedores.'),
+        )
