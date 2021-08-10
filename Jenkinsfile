@@ -68,20 +68,22 @@ pipeline {
                         
 			    
                         withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
-                            sh('cp $config '+"$home"+'/.kube/config')
+                            
+			    sh('cp $config '+"$home"+'/.kube/config')
                             sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf'
                             sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf'
                             sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf'
-				                    sh('rm -f '+"$home"+'/.kube/config')
+				                    
                         }
                     }
                     else{
                         withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
-                            sh('cp $config '+"$home"+'/.kube/config')
+                            
+			    sh('cp $config '+"$home"+'/.kube/config')
                             sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf'
                             sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf'
                             sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf'
-                            sh('rm -f '+"$home"+'/.kube/config')
+                            
                         }
                     }
                 }
@@ -93,31 +95,17 @@ pipeline {
             parallel {
             stage('Treino'){          
               steps {
-                  script{
-                    withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
-                      sh('cp $config '+"$home"+'/.kube/config')
-                      sh 'kubectl rollout restart deployment/treinamento-backend -n sigescola-treinamento'
-                      sh 'kubectl rollout restart deployment/treinamento-celery -n sigescola-treinamento'
-                      sh 'kubectl rollout restart deployment/treinamento-flower -n sigescola-treinamento'	  
-                      sh('rm -f '+"$home"+'/.kube/config')
-                    }
-                    
-                }
+                 sh 'kubectl rollout restart deployment/treinamento-backend -n sigescola-treinamento'
+                 sh 'kubectl rollout restart deployment/treinamento-celery -n sigescola-treinamento'
+                 sh 'kubectl rollout restart deployment/treinamento-flower -n sigescola-treinamento'	  
               }
             }
 
             stage('Pre-Prod'){          
               steps {
-                  script{
-                    withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
-                      sh('cp $config '+"$home"+'/.kube/config')
-                      sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
-                      sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
-                      sh 'kubectl rollout restart deployment/sigescolapre-flower -n sme-sigescola-pre'
-                     sh('rm -f '+"$home"+'/.kube/config')
-                    }
-                    
-                }
+                  sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
+                  sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
+                  sh 'kubectl rollout restart deployment/sigescolapre-flower -n sme-sigescola-pre'
               }
             }
 
