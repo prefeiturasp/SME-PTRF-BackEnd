@@ -110,13 +110,12 @@ class Despesa(ModeloBase):
 
     def verifica_cnpj_zerado(self):
         if self.eh_despesa_sem_comprovacao_fiscal(self.cpf_cnpj_fornecedor):
-            self.nome_fornecedor = "DESPESA SEM COMPROVAÇÃO FISCAL"
+            self.nome_fornecedor = "Despesa sem comprovação fiscal"
             self.save()
 
     def verifica_data_documento_vazio(self):
         if self.data_transacao:
             if not self.data_documento:
-                print("entrei")
                 self.data_documento = self.data_transacao
                 self.save()
 
@@ -146,7 +145,8 @@ def rateio_post_save(instance, created, **kwargs):
     Alterações feitas por uma associação no nome de um fornecedor não deve alterar diretamente as despesas de outras
     """
     if instance and instance.cpf_cnpj_fornecedor and instance.nome_fornecedor:
-        Fornecedor.atualiza_ou_cria(cpf_cnpj=instance.cpf_cnpj_fornecedor, nome=instance.nome_fornecedor)
+        if not instance.eh_despesa_sem_comprovacao_fiscal(instance.cpf_cnpj_fornecedor):
+            Fornecedor.atualiza_ou_cria(cpf_cnpj=instance.cpf_cnpj_fornecedor, nome=instance.nome_fornecedor)
 
 
 auditlog.register(Despesa)
