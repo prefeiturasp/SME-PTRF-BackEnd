@@ -393,8 +393,8 @@ def test_api_get_info_execucao_financeira_por_unidade(
         'valores': totais_esperados_associacao_que_nao_apresentou_pc,
     }
     resultado_esperado = [
-        resultado_associacao_sem_pc,
         resultado_associacao_com_pc,
+        resultado_associacao_sem_pc
     ]
 
     assert response.status_code == status.HTTP_200_OK

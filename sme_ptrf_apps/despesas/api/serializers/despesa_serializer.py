@@ -36,19 +36,20 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         rateios = validated_data.pop('rateios')
 
-        # if not rateios:
-        #     msgError = "Pelo menos uma linha de rateio deve ser enviada!"
-        #     log.info(msgError)
-        #     raise ValidationError(msgError)
-
         despesa = Despesa.objects.create(**validated_data)
+        despesa.verifica_cnpj_zerado()
+        despesa.verifica_data_documento_vazio()
         log.info("Criando despesa com uuid: {}".format(despesa.uuid))
 
         rateios_lista = []
         for rateio in rateios:
+            rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal(
+                validated_data['cpf_cnpj_fornecedor']
+            )
             rateio_object = RateioDespesaCreateSerializer().create(rateio)
             rateios_lista.append(rateio_object)
         despesa.rateios.set(rateios_lista)
+        despesa.atualiza_status()
         log.info("Despesa {}, Rateios: {}".format(despesa.uuid, rateios_lista))
 
         log.info("Criação de despesa finalizada!")
@@ -58,15 +59,21 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         rateios_json = validated_data.pop('rateios')
         instance.rateios.all().delete()
+        instance.verifica_cnpj_zerado()
 
         rateios_lista = []
         for rateio_json in rateios_json:
+            rateio_json["eh_despesa_sem_comprovacao_fiscal"] = instance.eh_despesa_sem_comprovacao_fiscal(
+                validated_data['cpf_cnpj_fornecedor']
+            )
             rateios_object = RateioDespesaCreateSerializer(
             ).create(rateio_json)
             rateios_lista.append(rateios_object)
 
         update_instance_from_dict(instance, validated_data)
         instance.rateios.set(rateios_lista)
+        instance.verifica_data_documento_vazio()
+        instance.atualiza_status()
         instance.save()
 
         return instance

@@ -21,8 +21,7 @@ def test_api_geracao_relatorio_final(jwt_authenticated_client_relatorio_consolid
         data=json.dumps(payload),
         content_type='application/json')
 
-    assert RelatorioConsolidadoDRE.objects.exists()
-    assert RelatorioConsolidadoDRE.objects.first().status == RelatorioConsolidadoDRE.STATUS_GERADO_TOTAL
+    assert response.status_code == status.HTTP_201_CREATED
 
 
 def test_api_geracao_relatorio_sem_dre_uuid(jwt_authenticated_client_relatorio_consolidado, periodo, dre, tipo_conta):
@@ -110,8 +109,7 @@ def test_api_geracao_relatorio_parcial(jwt_authenticated_client_relatorio_consol
         data=json.dumps(payload),
         content_type='application/json')
 
-    assert RelatorioConsolidadoDRE.objects.exists()
-    assert RelatorioConsolidadoDRE.objects.first().status == RelatorioConsolidadoDRE.STATUS_GERADO_PARCIAL
+    assert response.status_code == status.HTTP_201_CREATED
 
 
 def test_gerar_relatorio_final(periodo, dre, tipo_conta):

@@ -72,19 +72,24 @@ class Despesa(ModeloBase):
         return f"{self.numero_documento} - {self.data_documento} - {self.valor_total:.2f}"
 
     def cadastro_completo(self):
-        completo = self.tipo_documento and \
-                   self.data_documento and \
-                   self.cpf_cnpj_fornecedor and \
+        completo = self.cpf_cnpj_fornecedor and \
                    self.nome_fornecedor and \
                    self.tipo_transacao and \
                    self.data_transacao and \
                    self.valor_total > 0
 
+        if completo and not self.eh_despesa_sem_comprovacao_fiscal(self.cpf_cnpj_fornecedor):
+            completo = completo and self.tipo_documento
+
+        if completo and not self.eh_despesa_sem_comprovacao_fiscal(self.cpf_cnpj_fornecedor):
+            completo = completo and self.data_documento
+
+        if completo and not self.eh_despesa_sem_comprovacao_fiscal(self.cpf_cnpj_fornecedor):
+            if self.tipo_documento.numero_documento_digitado:
+                completo = completo and self.numero_documento
+
         if completo and self.tipo_transacao.tem_documento:
             completo = completo and self.documento_transacao
-
-        if completo and self.tipo_documento.numero_documento_digitado:
-            completo = completo and self.numero_documento
 
         if completo:
             for rateio in self.rateios.all():
@@ -103,6 +108,20 @@ class Despesa(ModeloBase):
             rateio.saida_de_recurso_externo = True
             rateio.save()
 
+    def verifica_cnpj_zerado(self):
+        if self.eh_despesa_sem_comprovacao_fiscal(self.cpf_cnpj_fornecedor):
+            self.nome_fornecedor = "Despesa sem comprovação fiscal"
+            self.save()
+
+    def verifica_data_documento_vazio(self):
+        if self.data_transacao:
+            if not self.data_documento:
+                self.data_documento = self.data_transacao
+                self.save()
+
+    def eh_despesa_sem_comprovacao_fiscal(self, cpf_cnpj_fornecedor):
+        return True if cpf_cnpj_fornecedor == "00.000.000/0000-00" else False
+
     @classmethod
     def by_documento(cls, tipo_documento, numero_documento, cpf_cnpj_fornecedor, associacao__uuid):
         return cls.objects.filter(associacao__uuid=associacao__uuid).filter(
@@ -118,7 +137,6 @@ class Despesa(ModeloBase):
 def proponente_pre_save(instance, **kwargs):
     instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
 
-
 @receiver(post_save, sender=Despesa)
 def rateio_post_save(instance, created, **kwargs):
     """
@@ -127,7 +145,8 @@ def rateio_post_save(instance, created, **kwargs):
     Alterações feitas por uma associação no nome de um fornecedor não deve alterar diretamente as despesas de outras
     """
     if instance and instance.cpf_cnpj_fornecedor and instance.nome_fornecedor:
-        Fornecedor.atualiza_ou_cria(cpf_cnpj=instance.cpf_cnpj_fornecedor, nome=instance.nome_fornecedor)
+        if not instance.eh_despesa_sem_comprovacao_fiscal(instance.cpf_cnpj_fornecedor):
+            Fornecedor.atualiza_ou_cria(cpf_cnpj=instance.cpf_cnpj_fornecedor, nome=instance.nome_fornecedor)
 
 
 auditlog.register(Despesa)

@@ -136,3 +136,41 @@ def payload_despesa_valida_rateio_com_tag(
         ]
     }
     return payload
+
+@pytest.fixture
+def payload_despesa_cnpj_zerado(
+    associacao,
+    tipo_documento,
+    tipo_transacao,
+    conta_associacao,
+    acao_associacao_e_recurso_proprio,
+    tipo_aplicacao_recurso,
+    tipo_custeio,
+    especificacao_material_servico
+):
+    payload = {
+        "associacao": f'{associacao.uuid}',
+        "cpf_cnpj_fornecedor": "00.000.000/0000-00",
+        "nome_fornecedor": "Despesa sem comprovação fiscal",
+        "tipo_documento": "",
+        "data_documento": "2020-03-10",
+        "numero_documento": "",
+        "tipo_transacao": tipo_transacao.id,
+        "data_transacao": "2020-03-10",
+        "valor_total": 11000.50, # "valor_realizado"
+        "valor_original": 11000.50, # "valor documento"
+        "rateios": [
+            {
+                "associacao": f'{associacao.uuid}',
+                "conta_associacao": f'{conta_associacao.uuid}',
+                "acao_associacao": f'{acao_associacao_e_recurso_proprio.uuid}',
+                "aplicacao_recurso": tipo_aplicacao_recurso,
+                "tipo_custeio": None,
+                "especificacao_material_servico": None,
+                "valor_rateio": 11000.50,
+                "valor_original": 11000.50
+            }
+        ]
+    }
+
+    return payload

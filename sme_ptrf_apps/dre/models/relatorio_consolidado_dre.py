@@ -10,17 +10,20 @@ class RelatorioConsolidadoDRE(ModeloBase):
     STATUS_NAO_GERADO = 'NAO_GERADO'
     STATUS_GERADO_PARCIAL = 'GERADO_PARCIAL'
     STATUS_GERADO_TOTAL = 'GERADO_TOTAL'
+    STATUS_EM_PROCESSAMENTO = 'EM_PROCESSAMENTO'
 
     STATUS_NOMES = {
         STATUS_NAO_GERADO: 'Relatório não gerado',
         STATUS_GERADO_PARCIAL: 'Relatório parcial gerado',
         STATUS_GERADO_TOTAL: 'Relatório final gerado',
+        STATUS_EM_PROCESSAMENTO: 'Relatório em processamento',
     }
 
     STATUS_CHOICES = (
         (STATUS_NAO_GERADO, STATUS_NOMES[STATUS_NAO_GERADO]),
         (STATUS_GERADO_PARCIAL, STATUS_NOMES[STATUS_GERADO_PARCIAL]),
         (STATUS_GERADO_TOTAL, STATUS_NOMES[STATUS_GERADO_TOTAL]),
+        (STATUS_EM_PROCESSAMENTO, STATUS_NOMES[STATUS_EM_PROCESSAMENTO]),
     )
 
     arquivo = models.FileField(blank=True, null=True)
@@ -45,7 +48,18 @@ class RelatorioConsolidadoDRE(ModeloBase):
         verbose_name_plural = 'Relatórios consolidados DREs'
 
     def __str__(self):
-        return f"Documento {'final' if self.status == 'GERADO_TOTAL' else 'parcial'} gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
+
+        if self.status == self.STATUS_EM_PROCESSAMENTO:
+            status_str = "Relatório sendo gerado. Aguarde."
+
+        elif self.status == self.STATUS_NAO_GERADO:
+            status_str = "Documento não gerado"
+
+        else:
+            status_str = f"Documento {'final' if self.status == 'GERADO_TOTAL' else 'parcial'} " \
+                         f"gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
+
+        return status_str
 
 
 @receiver(models.signals.post_delete, sender=RelatorioConsolidadoDRE)

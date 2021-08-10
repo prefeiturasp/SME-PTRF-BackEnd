@@ -11,7 +11,7 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-def notificar_proximidade_fim_periodo_prestacao_conta():
+def notificar_proximidade_fim_periodo_prestacao_conta(enviar_email=True):
     logging.info("Criando notificações de proximidade do fim do período de prestação de contas service")
     dias_antes = Parametros.get().dias_antes_fim_periodo_pc_para_notificacao
     data_alvo = date.today() + timedelta(days=dias_antes)
@@ -44,7 +44,8 @@ def notificar_proximidade_fim_periodo_prestacao_conta():
                     remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
                     titulo=f"Últimos dias para enviar a PC {periodo.referencia}",
                     descricao=f"Faltam apenas {dias_para_fim.days} dia(s) para o término do período de prestações de contas. Envie a sua prestação de contas.",
-                    usuario=user
+                    usuario=user,
+                    enviar_email=enviar_email
                 )
                 periodo.notificacao_proximidade_fim_prestacao_de_contas_realizada()
         else:

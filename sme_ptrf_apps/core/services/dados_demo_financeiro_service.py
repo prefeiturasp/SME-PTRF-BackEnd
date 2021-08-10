@@ -39,6 +39,7 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
         despesas_nao_demonstradas = cria_despesas(rateios_nao_conferidos)
         despesas_anteriores_nao_demonstradas = cria_despesas(rateios_nao_conferidos_periodos_anteriores)
         observacoes = cria_observacoes(periodo, conta_associacao)
+        justificativas = cria_justificativas(observacao_conciliacao)
         data_geracao_documento = cria_data_geracao_documento(usuario, previa)
         data_geracao = cria_data_geracao()
 
@@ -52,6 +53,7 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
             "despesas_nao_demonstradas": despesas_nao_demonstradas,
             "despesas_anteriores_nao_demonstradas": despesas_anteriores_nao_demonstradas,
             "observacoes_acoes": observacoes,
+            "justificativas": justificativas,
             "data_geracao_documento": data_geracao_documento,
             "data_geracao": data_geracao
         }
@@ -84,6 +86,8 @@ def cria_identificacao_apm(acoes):
     cnpj_associacao = associacao.cnpj
     codigo_eol_associacao = associacao.unidade.codigo_eol or ""
     nome_dre_associacao = associacao.unidade.dre.nome if associacao.unidade.dre else ""
+    tipo_unidade = associacao.unidade.tipo_unidade
+    nome_unidade = associacao.unidade.nome
 
     _presidente_diretoria_executiva = \
         MembroAssociacao.objects.filter(associacao=associacao,
@@ -101,6 +105,8 @@ def cria_identificacao_apm(acoes):
         "cnpj_associacao": cnpj_associacao,
         "codigo_eol_associacao": codigo_eol_associacao,
         "nome_dre_associacao": nome_dre_associacao,
+        "tipo_unidade": tipo_unidade,
+        "nome_unidade": nome_unidade,
         "presidente_diretoria_executiva": presidente_diretoria_executiva,
         "presidente_conselho_fiscal": presidente_conselho_fiscal
     }
@@ -512,7 +518,7 @@ def cria_despesas(rateios):
         cnpj_cpf = rateio.despesa.cpf_cnpj_fornecedor
         tipo_documento = rateio.despesa.tipo_documento.nome if rateio.despesa.tipo_documento else ''
         numero_documento = rateio.despesa.numero_documento
-        nome_acao_documento = rateio.acao_associacao.acao.nome
+        nome_acao_documento = rateio.acao_associacao.acao.nome if rateio and rateio.acao_associacao and rateio.acao_associacao.acao.nome else ""
         especificacao_material = \
             rateio.especificacao_material_servico.descricao if rateio.especificacao_material_servico else ''
         tipo_despesa = rateio.aplicacao_recurso
@@ -558,6 +564,10 @@ def cria_observacoes(periodo, conta_associacao):
     ).exists() else ''
 
     return observacao
+
+
+def cria_justificativas(observacao_conciliacao):
+    return observacao_conciliacao.texto if observacao_conciliacao and observacao_conciliacao.texto else " "
 
 
 def cria_data_geracao_documento(usuario, previa):
