@@ -5,9 +5,23 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.15.0
+Versão: 1.16.0
 
 ## Release Notes
+
+### 1.16.0 - 09/08/2021 - Entregas da Sprint 25
+* UE > Agora é possível lançar despesas sem comprovação fiscal
+* UE > Ficha cadastral atualizada automaticamente com informações do Eol
+* UE > Novo bloco justificativas no demonstrativo financeiro em XLSX e PDF
+* UE > Melhorias na usabilidade da Conciliação Bancária 
+* DRE > Relatório consolidado agora é gerado assincronamente
+* DRE > Melhorias na usabilidade do Acompanhamento de Prestação de Contas
+* DRE > Melhorias na usabilidade do Relatório Consolidado
+* DRE > Cadastro de Fornecedores
+* SME > Parametrizações > Cadastro de Fornecedores
+* Melhorias na Gestão de Perfis
+* Ajustes em textos diversos
+* 🐞 Correção de bugs
 
 ### 1.15.0 - 23/07/2021 - Entregas da Sprint 24
 * UE > Exibição de totais de créditos no cadastramento de receitas
