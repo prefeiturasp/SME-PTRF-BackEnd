@@ -46,6 +46,25 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
 
         return qs
 
+    @action(detail=False, methods=['get'], url_path='membros-cargos',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def get_membros_cargos(self, request):
+        associacao_uuid = self.request.query_params.get('associacao_uuid')
+
+        if associacao_uuid is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da associação como parâmetro..'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        result = MembroAssociacao.objects.filter(associacao__uuid=associacao_uuid).values(
+            'nome',
+            'cargo_associacao'
+        )
+
+        return Response(result)
+
     @action(detail=False, methods=['get'], url_path='codigo-identificacao',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def consulta_codigo_identificacao(self, request):
