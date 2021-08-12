@@ -58,12 +58,20 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        result = MembroAssociacao.objects.filter(associacao__uuid=associacao_uuid).values(
-            'nome',
-            'cargo_associacao'
-        )
+        result = MembroAssociacao.objects.filter(associacao__uuid=associacao_uuid).all()
+        lista_content = []
 
-        return Response(result)
+        for membro in result:
+            content = {
+                'uuid': membro.uuid,
+                'nome': membro.nome,
+                'cargo_associacao_key': membro.cargo_associacao,
+                'cargo_associacao_value': membro.get_cargo_associacao_display()
+            }
+
+            lista_content.append(content)
+
+        return Response(lista_content)
 
     @action(detail=False, methods=['get'], url_path='codigo-identificacao',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
