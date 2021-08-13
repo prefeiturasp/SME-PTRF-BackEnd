@@ -25,6 +25,8 @@ logger = logging.getLogger(__name__)
 
 
 class RelacaoBensViewSet(GenericViewSet):
+    lookup_field = 'uuid'
+
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     queryset = RelacaoBens.objects.all()
 
@@ -192,7 +194,6 @@ class RelacaoBensViewSet(GenericViewSet):
 
         return response
 
-
     @action(detail=False, methods=['get'], url_path='relacao-bens-info',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def relacao_bens_info(self, request):
@@ -217,3 +218,34 @@ class RelacaoBensViewSet(GenericViewSet):
             msg = str(relacao_bens)
 
         return Response(msg)
+
+    @action(detail=True, methods=['get'], url_path='pdf', permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
+    def pdf(self, request, uuid):
+        """/api/relacao-bens/{uuid}/pdf"""
+        relacao_bens = RelacaoBens.by_uuid(uuid)
+
+        if not relacao_bens:
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': 'Não existe um arquivo de relação de bens para download.'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            filename = 'relacao_bens.pdf'
+            response = HttpResponse(
+                open(relacao_bens.arquivo_pdf.path, 'rb'),
+                content_type='application/pdf'
+            )
+            response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
+        except Exception as err:
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': str(err)
+            }
+            logger.info("Erro: %s", str(err))
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        return response
+

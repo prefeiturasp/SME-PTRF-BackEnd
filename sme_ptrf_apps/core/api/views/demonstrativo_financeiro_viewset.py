@@ -310,3 +310,32 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             msg = str(demonstrativo_financeiro)
 
         return Response(msg)
+
+    @action(detail=True, methods=['get'], url_path='pdf',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
+    def pdf(self, request, uuid):
+        """/api/demonstrativo-financeiro/{uuid}/pdf"""
+        logger.info("Download do documento Final.")
+
+        demonstrativo_financeiro = DemonstrativoFinanceiro.by_uuid(uuid)
+
+        logger.info("Demonstrativo Financeiro: %s", str(demonstrativo_financeiro))
+
+        try:
+
+            filename = 'demonstrativo_financeiro.pdf'
+            response = HttpResponse(
+                open(demonstrativo_financeiro.arquivo_pdf.path, 'rb'),
+                content_type='application/pdf'
+            )
+            response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
+        except Exception as err:
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': str(err)
+            }
+            logger.info("Erro: %s", str(err))
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        return response
