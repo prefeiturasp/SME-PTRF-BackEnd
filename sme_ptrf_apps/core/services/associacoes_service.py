@@ -13,6 +13,7 @@ def retorna_status_prestacoes(periodos=None, status_pc=None, uuid=None):
                 'data_fim_realizacao_despesas': periodo.data_fim_realizacao_despesas,
                 'status_pc': prestacao_conta_status['status_prestacao'],
                 'texto_status': prestacao_conta_status['texto_status'],
+                'legenda_cor': prestacao_conta_status['legenda_cor'],
             }
 
             lista_de_periodos.append(obj_periodo)
