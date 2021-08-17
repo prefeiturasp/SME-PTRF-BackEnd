@@ -383,6 +383,33 @@ class AssociacoesViewSet(ModelViewSet):
         periodos = associacao.periodos_ate_agora_fora_implantacao()
         return Response(PeriodoLookUpSerializer(periodos, many=True).data)
 
+    @action(detail=True, url_path='status-prestacoes', methods=['get'],
+            permission_classes=[IsAuthenticated, PermissaoAPITodosComLeituraOuGravacao])
+    def status_prestacoes(self, request, uuid=None):
+
+        from ...services.associacoes_service import retorna_status_prestacoes
+
+        associacao = self.get_object()
+        status_pc = request.query_params.get('status_pc')
+        periodo_uuid = request.query_params.get('periodo_uuid')
+
+        if periodo_uuid:
+            try:
+                Periodo.objects.filter(uuid=periodo_uuid).get()
+                periodos=Periodo.objects.filter(uuid=periodo_uuid)
+            except (ValidationError, Exception):
+                erro = {
+                    'erro': 'parametro_invalido',
+                    'mensagem': f"Não foi encontrado o objeto periodo para o uuid {periodo_uuid}"
+                }
+                return Response(erro, status=status.HTTP_404_NOT_FOUND)
+        else:
+            periodos = associacao.periodos_ate_agora_fora_implantacao()
+
+        lista_de_periodos = retorna_status_prestacoes(periodos=periodos, status_pc=status_pc, uuid=uuid)
+
+        return Response(lista_de_periodos)
+
     @action(detail=True, url_path='processos', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def processos_da_associacao(self, request, uuid=None):
