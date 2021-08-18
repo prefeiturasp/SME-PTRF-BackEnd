@@ -37,6 +37,8 @@ logger = logging.getLogger(__name__)
 
 
 class ConciliacoesViewSet(GenericViewSet):
+    lookup_field = 'uuid'
+
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     queryset = ObservacaoConciliacao.objects.all()
 
@@ -672,3 +674,40 @@ class ConciliacoesViewSet(GenericViewSet):
         )
 
         return Response(transacao_desconciliada, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='extrato-bancario',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
+            )
+    def extrato_bancario(self, request, uuid):
+
+        observacao = ObservacaoConciliacao.by_uuid(uuid)
+
+        if observacao and observacao.comprovante_extrato and observacao.comprovante_extrato.name:
+            comprovante_extrato_nome = observacao.comprovante_extrato.name
+            comprovante_extrato_path = observacao.comprovante_extrato.path
+            comprovante_extrato_file_mime = mimetypes.guess_type(observacao.comprovante_extrato.name)[0]
+
+            logger.info("Retornando dados do extrato bancario: %s", comprovante_extrato_path)
+
+            try:
+                response = HttpResponse(
+                    open(comprovante_extrato_path, 'rb'),
+                    content_type=comprovante_extrato_file_mime
+                )
+                response['Content-Disposition'] = 'attachment; filename=%s' % comprovante_extrato_nome
+            except Exception as err:
+                erro = {
+                    'erro': 'extrato_bancario_nao_gerado',
+                    'mensagem': str(err)
+                }
+                logger.info("Erro: %s", str(err))
+                return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+            return response
+
+        else:
+            erro = {
+                'erro': 'extrato_bancario_nao_encontrado',
+                'mensagem': 'Extrato bancário não encontrado'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)

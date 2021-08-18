@@ -28,7 +28,7 @@ class ObservacaoConciliacao(ModeloBase):
         verbose_name_plural = '09.5) Informações de conciliação'
 
     def __str__(self):
-        return self.texto[:30]
+        return f'Conciliação: {self.periodo.referencia}'
 
     @classmethod
     def criar_atualizar_extrato_bancario(cls, periodo, conta_associacao, data_extrato, saldo_extrato,
