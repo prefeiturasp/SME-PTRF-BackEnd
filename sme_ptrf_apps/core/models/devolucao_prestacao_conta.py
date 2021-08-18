@@ -2,6 +2,7 @@ from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
+
 class DevolucaoPrestacaoConta(ModeloBase):
     prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE,
                                         related_name='devolucoes_da_prestacao')
@@ -9,7 +10,6 @@ class DevolucaoPrestacaoConta(ModeloBase):
     data = models.DateField('data da devolução')
 
     data_limite_ue = models.DateField('data limite para a ue')
-
 
     def __str__(self):
         return f"{self.data} - {self.data_limite_ue}"
