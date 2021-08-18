@@ -58,7 +58,7 @@ def carrega_especificacoes():
 
     logger.info(f'Carregando arquivo de especificações de materiais e serviços...')
 
-    f = staticfiles_storage.open(os.path.join('cargas', 'classificacoes_material_servico.csv'), 'r')
+    f = staticfiles_storage.open(os.path.join('cargas', 'classificacoes_material_servico_v2.csv'), 'r')
 
     reader = csv.reader(f, delimiter=',')
 
