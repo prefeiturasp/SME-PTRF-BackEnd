@@ -1486,6 +1486,7 @@ def cobranca_prestacao_recebimento(prestacao_conta_2020_1_conciliada):
         data=date(2020, 7, 1),
     )
 
+
 @pytest.fixture
 def cobranca_prestacao_devolucao(prestacao_conta_2020_1_conciliada, devolucao_prestacao_conta_2020_1):
     return baker.make(
@@ -1495,6 +1496,7 @@ def cobranca_prestacao_devolucao(prestacao_conta_2020_1_conciliada, devolucao_pr
         data=date(2020, 7, 1),
         devolucao_prestacao=devolucao_prestacao_conta_2020_1
     )
+
 
 @pytest.fixture
 def cobranca_prestacao_devolucao(prestacao_conta_2020_1_conciliada):
@@ -1526,6 +1528,7 @@ def analise_conta_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, cont
         saldo_extrato=100.00,
     )
 
+
 @pytest.fixture
 def previsao_repasse_sme(periodo, associacao, conta_associacao):
     return baker.make(
@@ -1536,4 +1539,13 @@ def previsao_repasse_sme(periodo, associacao, conta_associacao):
         valor_custeio=10000.50,
         valor_capital=10000.50,
         valor_livre=10000.50,
+    )
+
+
+@pytest.fixture
+def analise_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, devolucao_prestacao_conta_2020_1):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1
     )
