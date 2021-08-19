@@ -31,7 +31,8 @@ from .models import (
     Censo,
     ParametroFiqueDeOlhoPc,
     ModeloCarga,
-    Ambiente
+    Ambiente,
+    ArquivoDownload,
 )
 
 admin.site.register(Acao)
@@ -540,3 +541,9 @@ class MembroAssociacaoAdmin(admin.ModelAdmin):
 class AmbienteAdmin(admin.ModelAdmin):
     list_display = ('prefixo', 'nome')
 
+
+@admin.register(ArquivoDownload)
+class ArquivoDownloadAdmin(admin.ModelAdmin):
+    list_display = ('identificador', 'status', 'alterado_em', 'lido')
+    readonly_fields = ('uuid', 'id', 'usuario')
+    list_display_links = ('identificador',)

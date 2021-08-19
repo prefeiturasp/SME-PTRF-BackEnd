@@ -28,6 +28,7 @@ from sme_ptrf_apps.core.api.views import (
     TagsViewSet,
     ModelosCargasViewSet,
     AmbientesViewSet,
+    ArquivosDownloadViewSet
 
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
@@ -94,6 +95,7 @@ router.register("tipos-custeio", TiposCusteioViewSet)
 router.register("ambientes", AmbientesViewSet)
 router.register("saldos-bancarios-sme", SaldosBancariosSMEViewSet)
 router.register("saldos-bancarios-sme-detalhes", SaldosBancariosSmeDetalhesAsocciacoesViewSet)
+router.register("arquivos-download", ArquivosDownloadViewSet)
 
 
 app_name = "api"
