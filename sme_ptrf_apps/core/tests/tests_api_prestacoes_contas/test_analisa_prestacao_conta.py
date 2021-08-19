@@ -33,6 +33,19 @@ def test_api_analisar_prestacao_conta(jwt_authenticated_client_a, prestacao_cont
     assert prestacao_atualizada.status == PrestacaoConta.STATUS_EM_ANALISE, 'Status não atualizado.'
 
 
+def test_api_analisar_prestacao_conta_deve_criar_registro_de_analise(
+    jwt_authenticated_client_a,
+    prestacao_conta_recebida
+):
+    url = f'/api/prestacoes-contas/{prestacao_conta_recebida.uuid}/analisar/'
+
+    jwt_authenticated_client_a.patch(url, content_type='application/json')
+
+    prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_recebida.uuid)
+
+    assert prestacao_atualizada.analises_da_prestacao.exists(), 'Deveria criar uma análise da prestação.'
+
+
 @pytest.fixture
 def prestacao_conta_aprovada(periodo, associacao):
     return baker.make(

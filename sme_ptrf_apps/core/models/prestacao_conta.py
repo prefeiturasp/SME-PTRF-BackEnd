@@ -9,7 +9,6 @@ from django.db.models.aggregates import Sum
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.dre.models import Atribuicao
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -125,9 +124,15 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
+    @transaction.atomic
     def analisar(self):
+        from . import AnalisePrestacaoConta
+
         self.status = self.STATUS_EM_ANALISE
         self.save()
+
+        AnalisePrestacaoConta.objects.create(prestacao_conta=self)
+
         return self
 
     def desfazer_analise(self):
