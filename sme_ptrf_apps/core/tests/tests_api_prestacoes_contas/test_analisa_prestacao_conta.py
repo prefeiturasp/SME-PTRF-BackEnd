@@ -44,6 +44,8 @@ def test_api_analisar_prestacao_conta_deve_criar_registro_de_analise(
     prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_recebida.uuid)
 
     assert prestacao_atualizada.analises_da_prestacao.exists(), 'Deveria criar uma análise da prestação.'
+    assert (prestacao_atualizada.analise_atual == prestacao_atualizada.analises_da_prestacao.first(),
+            'A PC deveria referenciar a análise como análise atual.')
 
 
 @pytest.fixture

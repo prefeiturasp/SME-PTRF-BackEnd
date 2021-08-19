@@ -73,6 +73,10 @@ class PrestacaoConta(ModeloBase):
 
     outros_motivos_aprovacao_ressalva = models.TextField('Outros motivos para aprovação com ressalvas pela DRE', blank=True, default='')
 
+    analise_atual = models.ForeignKey('AnalisePrestacaoConta', on_delete=models.SET_NULL,
+                                      related_name='+',
+                                      blank=True, null=True)
+
     @property
     def tecnico_responsavel(self):
         atribuicoes = Atribuicao.search(
