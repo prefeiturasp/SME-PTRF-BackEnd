@@ -139,7 +139,12 @@ class PrestacaoConta(ModeloBase):
 
         return self
 
+    @transaction.atomic
     def desfazer_analise(self):
+        if self.analise_atual:
+            self.analise_atual.delete()
+            self.analise_atual = None
+
         self.data_ultima_analise = None
         self.status = self.STATUS_RECEBIDA
         self.save()
