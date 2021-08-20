@@ -1,80 +1,101 @@
 Aplicação do recurso,Especificação do material ou serviço
-Custeio: material,Material pedagógico
 Custeio: material,Material de expediente
 Custeio: material,"Material de higiene, limpeza e primeiros socorros"
-Custeio: material,Material para conservação predial
+Custeio: material,Material de informática
+Custeio: material,Material eletro/eletrônico
 Custeio: material,Material para conservação de equipamento e mobiliário
-Custeio: tributos e tarifas,Instituto Nacional de Seguridade Social - INSS
+Custeio: material,Material para conservação predial - Alvenaria
+Custeio: material,Material para conservação predial - Carpintaria
+Custeio: material,Material para conservação predial - Elétrica
+Custeio: material,Material para conservação predial - Estruturais
+Custeio: material,Material para conservação predial - Hidráulica
+Custeio: material,Material para conservação predial - Jardinagem/horta
+Custeio: material,Material para conservação predial - Marcenaria
+Custeio: material,Material para conservação predial - Pintura
+Custeio: material,Material pedagógico
 Custeio: tributos e tarifas,Imposto de Renda Retido na Fonte - IRRF
-Custeio: tributos e tarifas,PIS/COFINS/CSLL na Fonte
 Custeio: tributos e tarifas,Imposto Sobre Serviço de Qualquer Natureza - ISS
-Custeio: tributos e tarifas,Taxa de Fiscalização de Estabelecimentos (TFE)
-Custeio: tributos e tarifas,Tarifa bancária: manutenção da conta ativa
-Custeio: tributos e tarifas,Tarifa bancária: renovação de cadastro
-Custeio: tributos e tarifas,Tarifa bancária: processamento de cheque
-Custeio: tributos e tarifas,Tarifa bancária: fornecimento de cheque
+Custeio: tributos e tarifas,Instituto Nacional de Seguridade Social - INSS
+Custeio: tributos e tarifas,PIS/COFINS/CSLL na Fonte
+Custeio: tributos e tarifas,Tarifa bancária: adicional de cheque
 Custeio: tributos e tarifas,Tarifa bancária: devolução de cheque
-Custeio: tributos e tarifas,Tarifa bancária: microfilme do cheque
 Custeio: tributos e tarifas,Tarifa bancária: extrato excedente
+Custeio: tributos e tarifas,Tarifa bancária: fornecimento de cheque
+Custeio: tributos e tarifas,Tarifa bancária: manutenção da conta ativa
+Custeio: tributos e tarifas,Tarifa bancária: microfilme do cheque
+Custeio: tributos e tarifas,Tarifa bancária: pacote de serviços
+Custeio: tributos e tarifas,Tarifa bancária: processamento de cheque
+Custeio: tributos e tarifas,Tarifa bancária: renovação de cadastro
+Custeio: tributos e tarifas,Taxa de Fiscalização de Estabelecimentos (TFE)
+Custeio: serviço,Afinação de instrumentos musicais
+Custeio: serviço,"Alfaiataria, costura e congêneres"
+Custeio: serviço,"Apresentação de palestras, conferências, seminários e congêneres"
+Custeio: serviço,"Apresentação teatral, circence, musical, cultural"
+Custeio: serviço,Arbitragem
+Custeio: serviço,"Artes gráficas, tipografia, diagramação, paginação e gravação"
+Custeio: serviço,"Assessoria, consultoria, formação"
+Custeio: serviço,Calafetação
+Custeio: serviço,Carga e recarga de extintores de incêndio
+Custeio: serviço,Certificado Digital
+Custeio: serviço,"Cessão de andaimes, palcos, coberturas e outras estruturas de uso temporário"
+Custeio: serviço,Coleta e remoção de entulho
+Custeio: serviço,Colocação de molduras e congêneres
+Custeio: serviço,"Colocação e instalação de carpetes, assoalhos, cortinas, revestimento de parede"
+Custeio: serviço,"Colocação e instalação de toldos, telas de proteção"
+Custeio: serviço,"Colocação e instalação de vidros, divisórias, placas de gesso e congêneres"
+Custeio: serviço,"Colocação, troca e remoção de areia do parque"
+Custeio: serviço,Confecção de carimbos
+Custeio: serviço,"Confecção de placas, sinalização visual, banners, adesivos e congêneres"
+Custeio: serviço,"Conserto, restauração, manutenção e conservação de máquinas, aparelhos, equipamentos, motores, elevadores"
+Custeio: serviço,Contabilidade
+Custeio: serviço,Corte de mato
+Custeio: serviço,"Dedetização, desinfecção, desinsetização, higienização, desratização e congêneres"
+Custeio: serviço,Desentupimento de fossas e ramal de esgoto
+Custeio: serviço,"Encadernação, gravação de livros e revistas"
+Custeio: serviço,"Instalação e montagem de aparelhos, máquinas e equipamentos"
+Custeio: serviço,"Instalação, reparos em alambrados"
+Custeio: serviço,"Instrução, treinamento, orientação pedagógica e educacional"
+Custeio: serviço,Jardinagem
+Custeio: serviço,Limpeza de caixa de água
+Custeio: serviço,Limpeza de caixa de gordura
+Custeio: serviço,Limpeza de canaletas e calhas
+Custeio: serviço,Locação de brinquedos infláveis
+Custeio: serviço,Locação de caçamba
+Custeio: serviço,Locação de ônibus
+Custeio: serviço,"Lubrificação, limpeza, revisão de máquinas, aparelhos, motores, elevadores e afins"
+Custeio: serviço,Organização de passeios e excursões
+Custeio: serviço,"Pintura artística, pedagógica"
+Custeio: serviço,Poda de grama e/ou de árvore
+Custeio: serviço,Recreação e animação
+Custeio: serviço,"Recuperação, raspagem, polimento, impermeabilização e lustração de pisos e congêneres"
 Custeio: serviço,Reparos de alvenaria
-Custeio: serviço,"Serviços de cobertura - telhas, cumeeiras, instalação, reparos e remoção de calhas"
 Custeio: serviço,Reparos de elétrica
 Custeio: serviço,Reparos de hidráulica
 Custeio: serviço,Reparos de pintura
-Custeio: serviço,Reparos em lousa fixa
-Custeio: serviço,"Instalação, reparos em alambrados"
-Custeio: serviço,Serviços de serralheria
-Custeio: serviço,Serviços de carpintaria
-Custeio: serviço,Serviços de marcenaria
-Custeio: serviço,"Colocação e instalação de toldos, telas de proteção"
-Custeio: serviço,"Colocação e instalação de carpetes, assoalhos, cortinas, revestimento de parede"
-Custeio: serviço,"Colocação e instalação de vidros, divisórias, placas de gesso e congêneres"
-Custeio: serviço,"Recuperação, raspagem, polimento, impermeabilização e lustração de pisos e congêneres"
-Custeio: serviço,Calafetação
-Custeio: serviço,Coleta e remoção de entulho
-Custeio: serviço,Locação de caçamba
-Custeio: serviço,Corte de mato
-Custeio: serviço,Poda de grama e/ou de árvore
-Custeio: serviço,Limpeza de canaletas e calhas
-Custeio: serviço,"Colocação, troca e remoção de areia do parque"
-Custeio: serviço,Desentupimento de fossas e ramal de esgoto
-Custeio: serviço,Limpeza de caixa de água
-Custeio: serviço,Limpeza de caixa de gordura
-Custeio: serviço,Jardinagem
-Custeio: serviço,"Dedetização, desinfecção, desinsetização, higienização, desratização e congêneres"
-Custeio: serviço,Locação de ônibus
-Custeio: serviço,Serviços de correio
-Custeio: serviço,"Assessoria, consultoria, formação"
-Custeio: serviço,Arbitragem
-Custeio: serviço,Contabilidade
-Custeio: serviço,"Apresentação de palestras, conferências, seminários e congêneres"
-Custeio: serviço,"Serviços de registros públicos, cartoriais e notariais"
-Custeio: serviço,"Instrução, treinamento, orientação pedagógica e educacional"
-Custeio: serviço,"Revelação, ampliação, cópia e reprodução de fotos"
-Custeio: serviço,"Reprografia, microfilmagem e digitalização"
-Custeio: serviço,Colocação de molduras e congêneres
-Custeio: serviço,"Encadernação, gravação de livros e revistas"
-Custeio: serviço,"Artes gráficas, tipografia, diagramação, paginação e gravação"
-Custeio: serviço,Serviços de chaveiro
-Custeio: serviço,Confecção de carimbos
-Custeio: serviço,"Confecção de placas, sinalização visual, banners, adesivos e congêneres"
-Custeio: serviço,"Pintura artística, pedagógica"
-Custeio: serviço,Organização de passeios e excursões
-Custeio: serviço,Locação de brinquedos infláveis
-Custeio: serviço,Recreação e animação
-Custeio: serviço,"Apresentação teatral, circence, musical, cultural"
-Custeio: serviço,"Instalação e montagem de aparelhos, máquinas e equipamentos"
-Custeio: serviço,"Lubrificação, limpeza, revisão de máquinas, aparelhos, motores, elevadores e afins"
-Custeio: serviço,Carga e recarga de extintores de incêndio
 Custeio: serviço,Reparos em hidrantes e pára-raios
-Custeio: serviço,"Conserto, restauração, manutenção e conservação de máquinas, aparelhos, equipamentos, motores, elevadores"
-Custeio: serviço,Afinação de instrumentos musicais
-Custeio: serviço,"Alfaiataria, costura e congêneres"
-Custeio: serviço,Tinturaria e lavanderia
-Custeio: serviço,Tapeçaria e reforma de estofados em geral
-Custeio: serviço,"Cessão de andaimes, palcos, coberturas e outras estruturas de uso temporário"
-Custeio: serviço,"Serviços de artistas, atletas, modelos e manequins"
+Custeio: serviço,Reparos em lousa fixa
+Custeio: serviço,"Reprografia, microfilmagem e digitalização"
 Custeio: serviço,Ressarcimento de despesa de oficineiro
+Custeio: serviço,"Revelação, ampliação, cópia e reprodução de fotos"
+Custeio: serviço,"Serviços de artistas, atletas, modelos e manequins"
+Custeio: serviço,Serviços de carpintaria
+Custeio: serviço,Serviços de chaveiro
+Custeio: serviço,"Serviços de cobertura - telhas, cumeeiras, instalação, reparos e remoção de calhas"
+Custeio: serviço,Serviços de correio
+Custeio: serviço,Serviços de marcenaria
+Custeio: serviço,"Serviços de registros públicos, cartoriais e notariais"
+Custeio: serviço,Serviços de serralheria
+Custeio: serviço,Tapeçaria e reforma de estofados em geral
+Custeio: serviço,Tinturaria e lavanderia
+Capital,Acess point
+Capital,Afastador anal
+Capital,Afoxê
+Capital,Agitador
+Capital,Agogo
+Capital,Amassadeira espiral
+Capital,Amnioscópio
+Capital,Amperímetro
+Capital,Amplificador
 Capital,Amplificador para fones de ouvido
 Capital,Analisador bioquimico
 Capital,Analisador de distribuidor de motor a explosao
@@ -82,31 +103,32 @@ Capital,Analisador de espectro
 Capital,Analisador de motores
 Capital,Analisador de ph
 Capital,Analisador de voltagem
+Capital,Analisador e extrator de material genético
 Capital,Analizador de hematologia
 Capital,Analizador de pressao
 Capital,Analizador de radiadores
 Capital,Analizador dsp
+Capital,Analizador para monitorização de óxido nítrico e dióxido de nitrogênio
 Capital,Analog delay
 Capital,Anatomic anne
-Capital,Andador
 Capital,Andaime
 Capital,Anigoscopio
+Capital,Anilha olimpica emborrachada
 Capital,Anodizador
 Capital,Antena parabolica
+Capital,Antena wifi externa
 Capital,Anuscopio de pitanga
 Capital,Aparador
-Capital,Aparador de cerca viva
+Capital,Aparelho amalgamador
 Capital,Aparelho autonomo de respiracao de ar comprimido
 Capital,Aparelho brunidor std
+Capital,Aparelho cardiaco marca passo externo
 Capital,Aparelho carrocel twister
 Capital,Aparelho celular
 Capital,Aparelho de acuidade visual
 Capital,Aparelho de aerosselterapia
 Capital,Aparelho de anestesia
-Capital,Aparelho de ar condicionado
-Capital,Aparelho de ar condicionado condensadora
-Capital,Aparelho de ar condicionado condensadora central
-Capital,Aparelho de ar condicionado evaporadora
+Capital,Aparelho de ar condicionado portátil
 Capital,Aparelho de bioimpedancia
 Capital,Aparelho de cardiotocografo
 Capital,Aparelho de depilacao
@@ -125,6 +147,7 @@ Capital,Aparelho de ionizacao
 Capital,Aparelho de jateamento por succao
 Capital,Aparelho de laser microprocessado
 Capital,Aparelho de laserterapia
+Capital,Aparelho de mamografia
 Capital,Aparelho de mergulho
 Capital,Aparelho de microcorrentes
 Capital,Aparelho de mp3
@@ -135,11 +158,13 @@ Capital,Aparelho de profilaxia
 Capital,Aparelho de raio laser
 Capital,Aparelho de raio x
 Capital,Aparelho de retifica de valvulas
+Capital,Aparelho de som
 Capital,Aparelho de telex
 Capital,Aparelho de treinamento de fala
 Capital,Aparelho de ultra som
 Capital,Aparelho de videoke
 Capital,Aparelho diatermia
+Capital,Aparelho durômetro
 Capital,Aparelho facial
 Capital,Aparelho fonte de alimentacao regulada
 Capital,Aparelho fotopolimerizador
@@ -153,7 +178,6 @@ Capital,Aparelho mini-doppler
 Capital,Aparelho nebulizador
 Capital,Aparelho para aspiracao
 Capital,Aparelho para bioquimica
-Capital,Aparelho para bobina
 Capital,Aparelho para descontaminacao
 Capital,Aparelho para leitura
 Capital,Aparelho para lixar pe
@@ -161,9 +185,12 @@ Capital,Aparelho para medir pressao arterial
 Capital,Aparelho para telemarketing
 Capital,Aparelho para teste de telefone
 Capital,Aparelho para teste ergometrico
+Capital,Aparelho para urodinâmica
 Capital,Aparelho pbx
 Capital,Aparelho phlebo press
 Capital,Aparelho rebobinador
+Capital,Aparelho reprodutor feminino tridimensional
+Capital,Aparelho reprodutor masculino tridimensional
 Capital,Aparelho ressucitador pulmotor
 Capital,Aparelho sequencial
 Capital,Aparelho spinlight
@@ -178,13 +205,19 @@ Capital,Aparelho tirfor
 Capital,Aparelho vibrador de gesso
 Capital,Aplicador de cera
 Capital,Aplicador de cola
+Capital,Aplicador de ligadura
+Capital,Appliance
 Capital,Aquecedor de agua
 Capital,Aquecedor de agua a gas
 Capital,Aquecedor de ambiente
+Capital,Aquecedor de fluido
 Capital,Aquecedor de mamadeira
 Capital,Aquecedor de marmitas
+Capital,Aquecedor elétrico para confecção de órteses
 Capital,Aquecedor infra vermelho
+Capital,Arado
 Capital,Arara
+Capital,Arco cirúrgico
 Capital,Armario
 Capital,Armario auxiliar
 Capital,Armario de aco
@@ -192,9 +225,11 @@ Capital,Armario de madeira
 Capital,Armario de parede
 Capital,Arqueadeira
 Capital,Arqueadora de molas
+Capital,Arquibancada
 Capital,Arquivo de aco
 Capital,Arquivo de madeira
 Capital,Arquivo deslizante
+Capital,Aspirador  e soprador de folhas
 Capital,Aspirador cirurgico
 Capital,Aspirador de agua
 Capital,Aspirador de po
@@ -202,6 +237,7 @@ Capital,Aspirador de po e agua
 Capital,Aspirador e jateador de ar
 Capital,Aspirador hospitalar
 Capital,Atabaque
+Capital,Atendedor digital
 Capital,Atomizador
 Capital,Atomizador costal
 Capital,Audiometro
@@ -211,12 +247,15 @@ Capital,Auto bomba
 Capital,Auto radio
 Capital,Auto salvamento
 Capital,Autoclave
+Capital,Automóvel
 Capital,Badisco
 Capital,Bafometro
 Capital,Baia para atendimento
 Capital,Baixo
 Capital,Baixo tuba
+Capital,Balança
 Capital,Balanca antropometrica
+Capital,Balança digital
 Capital,Balanca eletronica
 Capital,Balanca mecanica
 Capital,Balanca pesa bebe
@@ -232,16 +271,19 @@ Capital,Balcao frigorifico
 Capital,Balcao para recepcao
 Capital,Balcao termico
 Capital,Balsa inflavel
+Capital,Bancada de camarim
 Capital,Bancada de ferro
 Capital,Bancada de madeira
 Capital,Bancada de trabalho
 Capital,Banco adutor
+Capital,Banco de aço carbono
 Capital,Banco de ferro
 Capital,Banco de madeira
 Capital,Banco fixo
 Capital,Banco giratorio
 Capital,Banco giratorio de madeira
 Capital,Banco infantil
+Capital,Banco multi posicoes
 Capital,Banco para bateria
 Capital,Banco para jardim
 Capital,Banco para piano
@@ -250,9 +292,11 @@ Capital,Banco para supino
 Capital,Banco para teclado
 Capital,Banco sueco
 Capital,Bandinha
+Capital,Bandolim
 Capital,Banheiro quimico
 Capital,Banho de parafina
 Capital,Banho maria
+Capital,Banho maria digital
 Capital,Banqueta alta
 Capital,Banqueta de ferro
 Capital,Banqueta de madeira
@@ -266,23 +310,28 @@ Capital,Barometro
 Capital,Barra para ginastica
 Capital,Barra paralela
 Capital,Barraca
+Capital,Barreira de softwall
 Capital,Barreira para salto
 Capital,Barreira registradora de excesso de velocidade
 Capital,Bastidor para estacao fixa
 Capital,Bastidor para estacao repetidora
 Capital,Batedeira
 Capital,Bateria musical
+Capital,Bau de acessórios
 Capital,Bau de aluminio
 Capital,Bau de madeira
 Capital,Bebe conforto
 Capital,Bebedouro
 Capital,Beliche
+Capital,Bem não atende critério de controle no sbpm
+Capital,Bens doação os
 Capital,Berco
 Capital,Berco aquecido
 Capital,Berco de ferro
 Capital,Berco de madeira
 Capital,Berco hospitalar
 Capital,Betoneira
+Capital,Biblioteca de fitas para backup
 Capital,Bicama
 Capital,Bicicleta
 Capital,Bicicleta eletromagnetica
@@ -292,11 +341,15 @@ Capital,Bilispot
 Capital,Biombo
 Capital,Biombo de madeira
 Capital,Biombo para raio x odontologico
+Capital,Bipap
 Capital,Bipe
 Capital,Bisturi eletrico
 Capital,Bisturi eletronico
-Capital,Bloqueador de chamadas interubarno
+Capital,Bituqueira
+Capital,Bloco de partida em aço
+Capital,Bloco digestor
 Capital,Bloqueador inflavel
+Capital,Blu ray
 Capital,Bomba aspiradora
 Capital,Bomba auto escorvante
 Capital,Bomba centrifuga
@@ -305,6 +358,7 @@ Capital,Bomba de emulsao
 Capital,Bomba de graxa
 Capital,Bomba de incendio
 Capital,Bomba de infusao
+Capital,Bomba de irrigação para endoscopia
 Capital,Bomba de oleo
 Capital,Bomba de succao
 Capital,Bomba de vacuo
@@ -316,26 +370,33 @@ Capital,Bomba para lavagem de veiculos
 Capital,Bomba para transferencia de oleo diesel
 Capital,Bomba pulverizadora
 Capital,Bomba rotativa
+Capital,Bomba submersível
 Capital,Bombardao
 Capital,Bombardino
 Capital,Bombo
 Capital,Bonde
 Capital,Bongo
+Capital,Bosu fisioterapia
 Capital,Bote inflavel
-Capital,Bracadeira para injecao
+Capital,Botijão criogênico
+Capital,Botijão garrafa térmica
+Capital,Box truss
 Capital,Braco articulavel para monitor
 Capital,Braco pantografico
+Capital,Brinquedo para atividade psicomotora
+Capital,Brinquedoteca móvel
 Capital,Britador
-Capital,Brocarete
 Capital,Buffet
 Capital,Bumbo
 Capital,Bumbo fuzileiro
 Capital,Bussola
 Capital,Busto
+Capital,Cabina de fluxo unidirecional
 Capital,Cabine audiometrica
 Capital,Cacamba
 Capital,Cacamba basculante
 Capital,Cadeira
+Capital,Cadeira  adutora e abdutora
 Capital,Cadeira automatica
 Capital,Cadeira cirurgica
 Capital,Cadeira de ferro
@@ -344,8 +405,10 @@ Capital,Cadeira de rodas
 Capital,Cadeira dirigivel
 Capital,Cadeira escolar
 Capital,Cadeira escolar especial
+Capital,Cadeira extensora graduada
 Capital,Cadeira fixa
 Capital,Cadeira fixa empilhavel
+Capital,Cadeira flexora e extensora
 Capital,Cadeira giratoria
 Capital,Cadeira hidraulica
 Capital,Cadeira infantil
@@ -373,14 +436,17 @@ Capital,Cafeteira eletrica
 Capital,Caixa acustica
 Capital,Caixa acustica amplificada
 Capital,Caixa acustica para impressora brailler
+Capital,Caixa de aquecimento para frasco de contraste
 Capital,Caixa de guerra
+Capital,Caixa de som
 Capital,Caixa malacacheta
 Capital,Caixa para raio x
 Capital,Caixa para revelacao radiologica
 Capital,Caixa repique
 Capital,Caixa tarol
+Capital,Caixa térmica com termômetro
+Capital,Cajon
 Capital,Calandra
-Capital,Calculadora
 Capital,Calculadora eletrica
 Capital,Calculadora eletronica
 Capital,Calculadora financeira
@@ -400,6 +466,7 @@ Capital,Cama para vacina
 Capital,Camara com lampada uv
 Capital,Camara de conservacao
 Capital,Camara de eco
+Capital,Câmara de gás para  roedores
 Capital,Camara de seguranca biologica
 Capital,Camara fotografica
 Capital,Camara frigorifica
@@ -408,22 +475,33 @@ Capital,Cambao
 Capital,Camera de seguranca
 Capital,Camera de televisao
 Capital,Camera de video
+Capital,Câmera digital
+Capital,Câmera fotográfica
+Capital,Camera video conferencia
+Capital,Caminhão
+Capital,Caminhão basculante
+Capital,Caminhão carroceria
+Capital,Caminhão pipa
+Capital,Campímetro
 Capital,Cancela automatica
+Capital,Cancela manual
 Capital,Caneta de alta rotacao
 Capital,Caneta emissora laser
 Capital,Caneta para corte
 Capital,Caneta para gravacao
 Capital,Caneta para leitura optica
-Capital,Caneta para solda
 Capital,Caneta rapidograph
 Capital,Canhao
 Capital,Canhao de laser
 Capital,Canhao para agua
 Capital,Canhao seguidor
+Capital,Canil
 Capital,Canteadeira
+Capital,Cantinho de leitura
 Capital,Cantinho de madeira
 Capital,Cantoneira
 Capital,Cantoneira para correspondencia
+Capital,Cão
 Capital,Capacimetro
 Capital,Capela de fluxo laminar
 Capital,Capela para exaustao de gases
@@ -443,16 +521,18 @@ Capital,Carreta para lancha
 Capital,Carreta para moto aquatica
 Capital,Carreta para transporte
 Capital,Carreta para transporte de caixoes e coroa flores
+Capital,Carreta reboque tipo prancha
 Capital,Carreta rodoviaria
 Capital,Carrinho auxiliar
 Capital,Carrinho bate bate
 Capital,Carrinho de emergencia
 Capital,Carrinho de ferro
+Capital,Carrinho de limpeza
 Capital,Carrinho para bebe
 Capital,Carrinho para cilindros
 Capital,Carrinho para deficiente
 Capital,Carrinho para documentos
-Capital,Carrinho para ferramentas
+Capital,Carrinho para endoscopia
 Capital,Carrinho para fichario
 Capital,Carrinho para leitura
 Capital,Carrinho para medicamentos
@@ -465,9 +545,11 @@ Capital,Carrinho para urna funeraria
 Capital,Carro auxiliar
 Capital,Carro bandeja
 Capital,Carro caixa
+Capital,Carro cuba
 Capital,Carro de alimento
 Capital,Carro de emergencia
 Capital,Carro de lixo
+Capital,Carro de primeira leitura
 Capital,Carro elevador
 Capital,Carro escada
 Capital,Carro funcional
@@ -493,6 +575,7 @@ Capital,Carro para transporte de roupa
 Capital,Carro para transporte de urna mortuaria
 Capital,Carro para transportes de livros
 Capital,Carro plataforma
+Capital,Carro termico
 Capital,Carroceria
 Capital,Carroceria bau
 Capital,Carroceria de madeira
@@ -504,13 +587,7 @@ Capital,Carteira infantil
 Capital,Carteira universitaria
 Capital,Casa de boneca
 Capital,Casador de impedancia
-Capital,Case para cd player dj
-Capital,Case para contrabaixo
-Capital,Case para guitarra
-Capital,Case para mesa de som
-Capital,Case para perifericos
-Capital,Case para teclado
-Capital,Case para timpano
+Capital,Cascata de chocolate
 Capital,Casinha
 Capital,Casinha infantil
 Capital,Castical
@@ -536,9 +613,11 @@ Capital,Cavalo olimpico
 Capital,Cavalo para salto
 Capital,Cavalo thunder
 Capital,Cavaquinho
+Capital,Caxixi
 Capital,Cd player
 Capital,Cd player para dj
 Capital,Cenario para fantoches
+Capital,Central de alarme
 Capital,Central de gases medicinais
 Capital,Central de monitoramento
 Capital,Central de monitorizacao fisiologica
@@ -557,20 +636,13 @@ Capital,Centrifugadora
 Capital,Centrifugadora de roupas
 Capital,Centrimicro para microhematocrito
 Capital,Ceratometro
-Capital,Cestao
-Capital,Cesto alto
-Capital,Cesto de inspecao
 Capital,Chancela
+Capital,Chapa aquecedora
 Capital,Chapa bifeteira
 Capital,Chapeira para cartao de ponto
-Capital,Chassis de trolete
-Capital,Chave de impacto
-Capital,Chaveador eletronico
 Capital,Chaveiro de madeira
 Capital,Chiqueirinho
-Capital,Cilindro com suporte
-Capital,Cilindro ou botijão para gás de cozinha
-Capital,Cilindro para massa
+Capital,Chuveiro lava olhos
 Capital,Cilindro para mergulho
 Capital,Cintel
 Capital,Circulador de ar
@@ -583,12 +655,14 @@ Capital,Coagulometro
 Capital,Cofre
 Capital,Coifa
 Capital,Coladeira de filme
+Capital,Colchão pneumático com motor
 Capital,Coletor compactador
 Capital,Coletor de dados
 Capital,Coletor de dados para gps
 Capital,Coletor de lixo
 Capital,Coletor de oleo
 Capital,Coletor de roupa hamper
+Capital,Colméia organizadora
 Capital,Colocador de ilhoes
 Capital,Colocadora de espirais
 Capital,Colposcopio
@@ -598,33 +672,29 @@ Capital,Coluna pantografica
 Capital,Coluna para aparelho oftalmologico
 Capital,Coluna para raio x
 Capital,Coluna para refrator
+Capital,Comando de bomba
 Capital,Comando de graxa para abastecimento
 Capital,Comoda
 Capital,Compact disc
 Capital,Comparador colorimetro
-Capital,Compressor de ar
+Capital,Complemento de mesa
 Capital,Compressor de audio
 Capital,Compressor de voz
 Capital,Compressor limitador de audio
 Capital,Compressor multicom
-Capital,Compressor odontologico
 Capital,Compressor radial
 Capital,Comutador para micro e impressora
-Capital,Condensador remoto para ar condicionado
 Capital,Conj.completo p/abastecimento de oleo diesel
 Capital,Conjunto autonomo
 Capital,Conjunto de lixeiras
 Capital,Conjunto de longarinas
 Capital,Conjunto de mesa
+Capital,Conjunto de nefrostomia percutânea
 Capital,Conjunto de percussao
-Capital,Conjunto de preparacao de ar
-Capital,Conjunto de regulador para mergulho
+Capital,Conjunto de proteção individual
 Capital,Conjunto de retinoscopio e oftalmoscopio
-Capital,Conjunto de sinalizacao acustico visual
-Capital,Conjunto de sinalzacao
 Capital,Conjunto de solda
 Capital,Conjunto de solda a oxiacetileno
-Capital,Conjunto diesel para solda eletrica
 Capital,Conjunto lubrefil
 Capital,Conjunto olimpico
 Capital,Conjunto para salto em altura
@@ -664,32 +734,43 @@ Capital,Cortadeira manual
 Capital,Cortador de amostras
 Capital,Cortador de chapa
 Capital,Cortador de ferro
+Capital,Cortador de fitas
 Capital,Cortador de frios
 Capital,Cortador de grama
 Capital,Cortador de legumes
 Capital,Cortador de piso
 Capital,Cortadora de tecidos
+Capital,Cortina de ar
 Capital,Costotomo
 Capital,Criado mudo
+Capital,Criocautério dermatológico
 Capital,Criocauterio ginecologico
+Capital,Criostato
 Capital,Cristaleira
 Capital,Cronometro
 Capital,Crossover
 Capital,Crucifixo
+Capital,Cuffômetro
 Capital,Cuica
 Capital,Cultivador motorizado
 Capital,Curvador
 Capital,Curvimetro
+Capital,Cuspideira
 Capital,Dardo
+Capital,Datalogger
 Capital,Decibelimetro
 Capital,Deck de rolo
 Capital,Decodificador
 Capital,Decodificador de codigo de barra
 Capital,Deionizador
 Capital,Delay
+Capital,Delimitador de filas
+Capital,Delineador paralelômetro
 Capital,Densitometro
 Capital,Depurador de ar
+Capital,Dermatoscópio
 Capital,Desempenadeira
+Capital,Desencarcerador
 Capital,Desengrossadeira
 Capital,Desentupidor de esgoto
 Capital,Desenvolvimento de ombros
@@ -701,7 +782,10 @@ Capital,Destilador de agua
 Capital,Desumidificador de ar
 Capital,Desumidificador de papel
 Capital,Detector de batimento cardiaco fetal
+Capital,Detector de gas para oxigênio
 Capital,Detector de metais
+Capital,Detector de partículas
+Capital,Detector de radiação
 Capital,Detector de tubulacoes
 Capital,Detector de vazamento
 Capital,Detector de veiculos
@@ -709,32 +793,43 @@ Capital,Detector fetal
 Capital,Dialer p/chamadas telefonicas automaticas
 Capital,Digital delay
 Capital,Digitalizador
+Capital,Digitalizador de imagens radiográficas
+Capital,Digitalizador de radiologia
 Capital,Digitalizadora de microfilme
-Capital,Diluidor
 Capital,Dinamometro
 Capital,Dinamometro dorsal
 Capital,Direct box
 Capital,Disc laser
 Capital,Discman
+Capital,Disjuntor tripolar on board
 Capital,Disk array
 Capital,Dispensette digital
 Capital,Display expositor
 Capital,Dispositivo hidraulico
+Capital,Dispositivo para transferência de paciente
+Capital,Dispositivo reutilizável de biópsia
 Capital,Distanciometro
 Capital,Distribuidor de audio
+Capital,Distribuidor de composto orgânico
 Capital,Distribuidor de sinal
 Capital,Ditafone
 Capital,Diva
 Capital,Diva ginecologico
+Capital,Divisor radiográfico
+Capital,Divisora de massas
 Capital,Dobradeira de papel
+Capital,Doc station
 Capital,Doppler vascular
 Capital,Dosador de nivel constante
 Capital,Driver de compressao
+Capital,Drone
+Capital,Ducha elétrica
 Capital,Duplicador de cd
 Capital,Duplicador de quad
 Capital,Duplicador digital
 Capital,Dvd player com karaoke
 Capital,Dvd player e video cassete
+Capital,Ecógrafo
 Capital,Eletro neuromiografo
 Capital,Eletrocardiografo
 Capital,Eletrocauterio
@@ -745,14 +840,17 @@ Capital,Eletrola
 Capital,Eletrola portatil
 Capital,Eletronistagmografo
 Capital,Elevador de canecas
+Capital,Elevador de piscina
 Capital,Elevador de veiculos
 Capital,Eliminador de microfonia
+Capital,Eliptico
 Capital,Embaladeira
 Capital,Embalador de guarda-chuvas molhados
 Capital,Emissor de senha
 Capital,Empilhadeira
 Capital,Encadernadora
 Capital,Enceradeira
+Capital,Enclosure
 Capital,Endoscopio
 Capital,Engraxadeira
 Capital,Enroladeira de filmes
@@ -760,8 +858,10 @@ Capital,Episcopio
 Capital,Equalizador
 Capital,Equalizador de som
 Capital,Equalizador grafico
+Capital,Equipamento de manometria anorretal
 Capital,Equipamento de teste de injetor e motor de passo
 Capital,Equipamento dieselimpo
+Capital,Equipamento para exame otoneurológico
 Capital,Equipamento para jateamento
 Capital,Equipamento para limpeza e teste de injetores
 Capital,Equipo odontologico
@@ -776,6 +876,7 @@ Capital,Escaleta
 Capital,Escaninho
 Capital,Escaninho de madeira
 Capital,Esclerometro
+Capital,Escorredor de pratos industrial
 Capital,Escorregador
 Capital,Escrivaninha
 Capital,Escrivaninha de aco
@@ -798,19 +899,24 @@ Capital,Espremedor de frutas
 Capital,Espremedor de legumes
 Capital,Espremedor de sucos
 Capital,Esquadrejadeira
+Capital,Esqueleto animal
+Capital,Esqueleto humano
 Capital,Esqui
 Capital,Estabiliazdor de voltagem
+Capital,Estabilizador
+Capital,Estação de automação para laboratório
 Capital,Estacao de musculacao
 Capital,Estacao de solda
 Capital,Estacao de trabalho
+Capital,Estação de tratamento para resíduos radiológicos
 Capital,Estacao fixa
 Capital,Estacao repetidora
 Capital,Estacao total
 Capital,Estadiometro
+Capital,Estante
 Capital,Estante para partitura
 Capital,Estante sinfonica
 Capital,Estativa para raio x
-Capital,Esteira
 Capital,Esteira eletrica
 Capital,Esteira ergometrica
 Capital,Estereomicroscopio
@@ -818,40 +924,40 @@ Capital,Estereoscopio
 Capital,Esterilizador de ar
 Capital,Esterilizador de mamadeira
 Capital,Esterilizador de xicaras
-Capital,Estetoscopio
 Capital,Esticador e encolhedor universal
 Capital,Esticador hidraulico
 Capital,Estimulador calorico
 Capital,Estimulador de musculo
 Capital,Estimulador optocinetico
+Capital,Estimulador pélvico
 Capital,Estimulador visual
-Capital,Estojo de curvas
-Capital,Estojo de desenho
 Capital,Estrado de madeira
+Capital,Estufa bacteriologica
 Capital,Estufa para alimentos
 Capital,Estufa para placas filtrantes
 Capital,Estufa para ressecagem
 Capital,Estufa para secagem de filme
+Capital,Estufa para secagem de plantas
 Capital,Esvrivaninha
 Capital,Etiquetador
 Capital,Etiquetadora
+Capital,Evaporador rotativo
 Capital,Exaustor
 Capital,Exaustor para camara escura
 Capital,Exercitador de tornozelo
 Capital,Expansor hidraulico
 Capital,Expositor de folders
 Capital,Expositor giratorio
+Capital,Extensão elétrica tipo totem
+Capital,Extensor lombar
 Capital,Extintor de incendio
 Capital,Extrator de suco
-Capital,Faca eletrica
 Capital,Fagoto em do
 Capital,Feeder seat
 Capital,Ferro de engomar
 Capital,Ferro de passar roupa
 Capital,Fesvif
 Capital,Fichario de aco
-Capital,Fichario de acrilico
-Capital,Fichario de madeira
 Capital,Filmadora
 Capital,Filtro de agua
 Capital,Filtro para piscina
@@ -859,12 +965,13 @@ Capital,Filtro prensa
 Capital,Filtro regulador de ar
 Capital,Finca pinos
 Capital,Flanelografo
-Capital,Flash
 Capital,Flauta
 Capital,Flautin
+Capital,Flexor abdominal sentado
 Capital,Flip chart
 Capital,Floreira modulavel
 Capital,Flugel horn
+Capital,Fluorímetro
 Capital,Fluxometro
 Capital,Foco cirurgico
 Capital,Fogao domiciliar
@@ -874,6 +981,8 @@ Capital,Fone de cabeca
 Capital,Fonte conversor
 Capital,Fonte de alimentacao
 Capital,Fonte estabilizadora
+Capital,Forceps
+Capital,Forma de molde farmaceutica
 Capital,Forno
 Capital,Forno de bier
 Capital,Forno de microondas
@@ -890,20 +999,25 @@ Capital,Franqueadora de correspondencia
 Capital,Freezer
 Capital,Frequencimetro
 Capital,Fresadora
+Capital,Friabilômetro
 Capital,Fritadeira
+Capital,Fruteira
 Capital,Furadeira
 Capital,Furadeira de pedestal
 Capital,Furadeira de tecido
 Capital,Furador de azulejos
 Capital,Furgao de aluminio
 Capital,Gabarito
+Capital,Gabinete
 Capital,Gabinete acustico
 Capital,Gabinete de pia
+Capital,Gabinete de secagem
 Capital,Gabinete kardex
 Capital,Gaiola labirinto
 Capital,Gaita
 Capital,Gangorra
 Capital,Ganza
+Capital,Garrote pneumático
 Capital,Gastroscopio
 Capital,Gaveta de aco inoxidavel
 Capital,Gaveteiro
@@ -920,25 +1034,28 @@ Capital,Gerador de ruidos
 Capital,Gerador de solda
 Capital,Gerador eletrico
 Capital,Gerador para raio x
+Capital,Gerenciador gráfico
 Capital,Gira gira
 Capital,Giraplay
 Capital,Globo de bingo
+Capital,Globo terrestre
 Capital,Glokenspiel
 Capital,Gondola
 Capital,Gongo
 Capital,Gps
-Capital,Grampeador
-Capital,Grampeadora
 Capital,Gravador cassete
 Capital,Gravador de audio
 Capital,Gravador de cd
 Capital,Gravador de dvd
 Capital,Gravador de dvd e cd
+Capital,Gravador de dvd externo
 Capital,Gravador de fita cassete
 Capital,Gravador de fita magnetica
+Capital,Gravador de holter
 Capital,Gravador de rolo
 Capital,Gravador de som
 Capital,Gravador de video
+Capital,Gravador digital dvr
 Capital,Gravador e reprodutor de mini disc
 Capital,Gravadora de cd
 Capital,Gravadora de estencil
@@ -954,17 +1071,25 @@ Capital,Guarita
 Capital,Guarita de fibra de vidro
 Capital,Guilhotina
 Capital,Guincho
+Capital,Guincho tipo girafa
 Capital,Guindaste
+Capital,Guindaste veicular
 Capital,Guitarra
 Capital,Gyrotec
+Capital,Hack 45
 Capital,Hamper
 Capital,Handie talkie
 Capital,Handie-talkie-fm-220
+Capital,Hard disk externo
+Capital,Haste de escuta
 Capital,Hidrolavadora universal
+Capital,Hipro
 Capital,Histerometro
+Capital,Histotécnico
 Capital,Home theater
 Capital,Homogeneizador de sangue
 Capital,Horodatador
+Capital,Hoverboard skate flutuante
 Capital,Hub
 Capital,Identificador radiografico
 Capital,Iluminador de led
@@ -978,6 +1103,8 @@ Capital,Inalador
 Capital,Inclusor a vacuo
 Capital,Incubador biologico
 Capital,Incubadora
+Capital,Instrumentos musicais
+Capital,Insuflador
 Capital,Intercomunicador
 Capital,Interfone
 Capital,Inversor
@@ -985,42 +1112,41 @@ Capital,Inversor de frequencia
 Capital,Inversor de polos
 Capital,Inversor de tensao
 Capital,Jet ski
-Capital,Jogo de compasso
 Capital,Jogo de coordenatografo polar
 Capital,Jogo de curvas
 Capital,Jogo de estofado
-Capital,Jogo de reguas de curvas
-Capital,Kardex
 Capital,Kardex de aco
-Capital,Kit visodisc
+Capital,Kart odontológico
 Capital,Laminadora
-Capital,Lampada de fenda
-Capital,Lampada de ponto
-Capital,Lampada de ponto digital
 Capital,Lanca
 Capital,Lancha
+Capital,Laparoscópico
 Capital,Laptop
 Capital,Laringoscopio
 Capital,Lavadora de alta pressao
 Capital,Lavadora de instrumentos cirurgico
+Capital,Lavadora de microplacas
 Capital,Lavadora de pecas
 Capital,Lavadora de pisos
-Capital,Lavatorio de cabelereiro
 Capital,Leg press
 Capital,Leitor de codigo de barras
 Capital,Leitor de microficha
 Capital,Leitor de microfilme
+Capital,Leitor de tela braille
+Capital,Leitor de transponder
 Capital,Leitor optico
+Capital,Leitora automática de microplacas
 Capital,Lensometro
-Capital,Limpadora de fita
 Capital,Line force
 Capital,Liquidificador
 Capital,Lira musical
+Capital,Litotripsor
+Capital,Livro
 Capital,Lixadeira
 Capital,Lixadeira automatica de rolo
 Capital,Lixadeira orbital
+Capital,Localizador apical
 Capital,Localizador de metal
-Capital,Lona para circo
 Capital,Longarina
 Capital,Longarina para auditorio
 Capital,Lousa
@@ -1030,15 +1156,8 @@ Capital,Luximetro
 Capital,Maca
 Capital,Macaco hidraulico
 Capital,Macarico
-Capital,Mala
-Capital,Mala de aluminio
-Capital,Mala para projetor de slides
-Capital,Mala para transporte de camera de televisao
-Capital,Mala para transporte de camera de video
-Capital,Mala para video cassete
-Capital,Maleta
-Capital,Maleta para transmissao de microfone
-Capital,Maleta para transporte
+Capital,Maçarico de corte
+Capital,Maçarico de solda
 Capital,Mancebo
 Capital,Manequim
 Capital,Manequim c/ pedestal de madeira
@@ -1052,8 +1171,11 @@ Capital,Mapoteca
 Capital,Mapoteca de aco
 Capital,Mapoteca de madeira
 Capital,Maq. De franquear correspondencia
+Capital,Maquete
 Capital,Maquima fotografica
 Capital,Maquina chimbau
+Capital,Máquina copiadora de chaves
+Capital,Maquina de  bolha de sabao
 Capital,Maquina de acabamento de cabelo
 Capital,Maquina de algodao doce
 Capital,Maquina de arquear molas
@@ -1071,6 +1193,7 @@ Capital,Maquina de cortar isopor
 Capital,Maquina de cortar pedra
 Capital,Maquina de cortar pelicula refletiva
 Capital,Maquina de cortar tecido
+Capital,Maquina de corte de moldes
 Capital,Maquina de costura
 Capital,Maquina de desmontar pneu
 Capital,Maquina de escerar
@@ -1086,16 +1209,19 @@ Capital,Maquina de fazer fralda
 Capital,Maquina de fixar ilhos
 Capital,Maquina de forrar botoes
 Capital,Maquina de fumaca
+Capital,Maquina de fumaça
 Capital,Maquina de furar e rosquear
 Capital,Maquina de furar rede em carga
 Capital,Maquina de gelo
 Capital,Maquina de imprimir em alto relevo
+Capital,Maquina de lavar disco
 Capital,Maquina de lavar louca
 Capital,Maquina de lavar pecas
 Capital,Maquina de lavar roupas
 Capital,Maquina de raspar tacos c/ motor monofasico
 Capital,Maquina de solda
 Capital,Maquina de solda e corte
+Capital,Maquina de suco
 Capital,Maquina de trico
 Capital,Maquina de xerox
 Capital,Maquina desobstruidora de esgotos
@@ -1123,17 +1249,11 @@ Capital,Maquina plastificadora eletrica
 Capital,Maquina redutora
 Capital,Maquina registradora
 Capital,Maquina respigadeira
+Capital,Maquina vacuum forming
 Capital,Marcador de faltas
 Capital,Marginador de papel
 Capital,Martelete
 Capital,Martelete perfurador
-Capital,Martelo de perfuracao
-Capital,Martelo demolidor
-Capital,Martelo para reflexo
-Capital,Martelo perfurador
-Capital,Martelo rompedor
-Capital,Mascara autonoma
-Capital,Mascara facial
 Capital,Mastro para bandeira
 Capital,Mastros para rede de voley
 Capital,Medidor de altura
@@ -1141,11 +1261,11 @@ Capital,Medidor de campo
 Capital,Medidor de compressao
 Capital,Medidor de condutividade
 Capital,Medidor de diametro
+Capital,Medidor de distância
 Capital,Medidor de espessura
-Capital,Medidor de glicose
+Capital,Medidor de icterícia
 Capital,Medidor de nivel de som
 Capital,Medidor de ph
-Capital,Medidor de pressao
 Capital,Medidor de resistencia de terra
 Capital,Medidor de tensao de correia
 Capital,Medidor de vibracao
@@ -1161,6 +1281,7 @@ Capital,Mesa antropometrica
 Capital,Mesa articulavel
 Capital,Mesa auxiliar hospitalar
 Capital,Mesa central infantil
+Capital,Mesa chaveadora
 Capital,Mesa cilindrica
 Capital,Mesa cirurgica
 Capital,Mesa controladora
@@ -1260,8 +1381,10 @@ Capital,Microfone
 Capital,Microfone de lapela
 Capital,Microfone de transmissao para transceptor fixo
 Capital,Microfone sem fio
+Capital,Micromotor odontológico
 Capital,Microscopio
 Capital,Microsystem
+Capital,Micrótomo
 Capital,Microverb 4
 Capital,Mimeografo
 Capital,Mini bloqueio
@@ -1278,16 +1401,22 @@ Capital,Misturador de microfones
 Capital,Misturador de som
 Capital,Misturador forcado para argamasssa
 Capital,Mixer
+Capital,Mocho odontológico
+Capital,Modelo para anatomia animal
+Capital,Modelo para anatomia humana
 Capital,Modem
 Capital,Modulo de potencia
+Capital,Modulo dimmer
 Capital,Moedor de carne
 Capital,Moldura com espelho
 Capital,Monitor cardiaco
 Capital,Monitor de audio e video
 Capital,Monitor de circuito interno de tv
 Capital,Monitor de frequencia cardiaca
+Capital,Monitor de gases anestésicos
 Capital,Monitor de glicemia
 Capital,Monitor de linhas
+Capital,Monitor de radiologia
 Capital,Monitor de ventilacao
 Capital,Monitor de video
 Capital,Monitor de video para camera de televisao
@@ -1297,6 +1426,7 @@ Capital,Monitor para camera de seguranca
 Capital,Monitor para microcomputador
 Capital,Monitor para servidor
 Capital,Monitor para ultra som
+Capital,Monobloco frigorífico
 Capital,Monociclo
 Capital,Montadora e desmontadora de pneus
 Capital,Morsa
@@ -1305,30 +1435,27 @@ Capital,Moto esmeril
 Capital,Motobomba
 Capital,Motobomba hidraulica
 Capital,Motocicleta
+Capital,Motoniveladora
 Capital,Motopodadeira
-Capital,Motor de popa
 Capital,Motoserra
-Capital,Mouse
 Capital,Mp4
 Capital,Multi exercitador
-Capital,Multicabo
 Capital,Multigate
 Capital,Multimetro
 Capital,Multiprocessador
 Capital,Multiprocessador de efeitos de audio
 Capital,Multitest
 Capital,Mural
+Capital,Nasofaringolaringoscopio
+Capital,Nefroscópio
 Capital,Negatoscopio
 Capital,Netebook
-Capital,Nivel
 Capital,Nobelfone
 Capital,Nobreak
 Capital,Normografo
 Capital,Notebook
 Capital,Numerador automatico
-Capital,Numerador para marcar baterias e pneus
 Capital,Numerador para marcar pneus
-Capital,Objetiva
 Capital,Oboe
 Capital,Obra de arte
 Capital,Oftalmometro
@@ -1336,7 +1463,11 @@ Capital,Oftalmoscopio
 Capital,Oftalmoscopio de coluna
 Capital,Oleo s/duratex circular
 Capital,Oleo s/tela
+Capital,Ombrelone suspenso
+Capital,Onibus
 Capital,Oratorio
+Capital,Organizador de brinquedos
+Capital,Orquidômetro
 Capital,Osciloscopio
 Capital,Oto oftalmoscopio
 Capital,Otocalorimetro
@@ -1355,11 +1486,16 @@ Capital,Painel expositor
 Capital,Painel fotografico
 Capital,Painel para exposicao
 Capital,Painel para uti
+Capital,Painel psicomotor
+Capital,Painel video wall
 Capital,Palco
 Capital,Palete de madeira
 Capital,Palm top
 Capital,Palvilhadeira
 Capital,Pandeiro
+Capital,Panela de pressao industrial
+Capital,Panela eletrica
+Capital,Panela ortodontica
 Capital,Paneleiro
 Capital,Paneleiro de madeira
 Capital,Panendofibroscopio
@@ -1368,6 +1504,7 @@ Capital,Paquimetro
 Capital,Parafusadeira
 Capital,Paralela olimpica
 Capital,Paralela simetrica
+Capital,Paredao de lona tri tennis
 Capital,Pasteurizador
 Capital,Pau de fita
 Capital,Peca reta
@@ -1378,12 +1515,14 @@ Capital,Pedestal para bongo
 Capital,Pedestal para conga
 Capital,Pedestal para microfone
 Capital,Pedestal para teclado
-Capital,Pen drive
+Capital,Pélvis feminina
 Capital,Peneira vibratoria sel.de pedras
 Capital,Penteadeira
 Capital,Perfurador de fio de kirchener
-Capital,Perfurador de papel
+Capital,Perfurador de solo
+Capital,Perfurador de solo tratorizado
 Capital,Permutador de lp
+Capital,Perneira
 Capital,Piano
 Capital,Picador de galhos de arvores
 Capital,Picador de legumes
@@ -1391,18 +1530,22 @@ Capital,Pintura oleo s/duratex
 Capital,Pintura oleo s/duratex circular
 Capital,Pintura oleo s/tela
 Capital,Pintura-acrilico s/tela
+Capital,Pipoqueira
 Capital,Pirografo
 Capital,Piscina de bolinhas
 Capital,Pista para carrinho bate bate
 Capital,Pistao
 Capital,Pistola
+Capital,Pistola de água e ar comprimido
 Capital,Pistola para lancamento de dardos
 Capital,Pistola para pintura
 Capital,Pistola para pulverizar
-Capital,Pistola para solda
+Capital,Placa refrigerada
 Capital,Placa vibratoria
+Capital,Placar de mesa
 Capital,Placar eletronico
 Capital,Plaina
+Capital,Planetario escolar
 Capital,Planimetro
 Capital,Plastificadora
 Capital,Plataforma auto socorro
@@ -1416,8 +1559,10 @@ Capital,Plinto
 Capital,Plotter
 Capital,Pluviografo
 Capital,Pneumotacografo
+Capital,Polia alta articulada
 Capital,Polia superior
 Capital,Policorte
+Capital,Polidora quimica
 Capital,Politriz
 Capital,Poltrona
 Capital,Poltrona de madeira
@@ -1451,6 +1596,7 @@ Capital,Porta molde
 Capital,Porta plantas
 Capital,Porta revista
 Capital,Poste para rede de voleibol
+Capital,Prancha de emergência
 Capital,Prancha para abdominal
 Capital,Prancheta para desenho
 Capital,Prateleira
@@ -1464,6 +1610,8 @@ Capital,Prensa de ferro
 Capital,Prensa de madeira
 Capital,Prensa hidraulica
 Capital,Preparador de alimentos
+Capital,Press lateral
+Capital,Press peitoral graduado
 Capital,Pressao de pernas
 Capital,Pressostato
 Capital,Processador de alimentos
@@ -1472,6 +1620,7 @@ Capital,Processador de voz
 Capital,Processador digital
 Capital,Processadora automatica para raio x
 Capital,Processadora de microfilme
+Capital,Processadora para endoscopia
 Capital,Processadora para raio x
 Capital,Profilax
 Capital,Programador horario
@@ -1489,8 +1638,6 @@ Capital,Projetor oftalmologico
 Capital,Pro-mixer
 Capital,Propulsora de graxa
 Capital,Propulsora de oleo
-Capital,Protocolador
-Capital,Prumo optico
 Capital,Psofometro
 Capital,Pulpito
 Capital,Pulverizador
@@ -1506,21 +1653,27 @@ Capital,Quadro de editais
 Capital,Quadro de madeira
 Capital,Quadro de metal
 Capital,Quadro de ordens
+Capital,Quadro decorativo
 Capital,Quadro imantado
 Capital,Quadro interativo
 Capital,Quadro mural
 Capital,Quadro negro
 Capital,Quadro para flip-shart
 Capital,Quadro para plantas
+Capital,Quadro para tchoukball
+Capital,Queixada
 Capital,Quiosque
 Capital,Rack
 Capital,Rack de iluminacao
 Capital,Rack de madeira
+Capital,Rack para datacenter
 Capital,Rack para som
 Capital,Rack para transceptor movel
 Capital,Rack unidade de acessorios central p/telefones ks
+Capital,Rádio
 Capital,Radio comunicador
 Capital,Radio gravador
+Capital,Rádio portátil
 Capital,Radio transmissor
 Capital,Radiofoto digital
 Capital,Radiometro
@@ -1530,7 +1683,9 @@ Capital,Rebitadeira
 Capital,Rebitadeira para lona de freio
 Capital,Rebitador
 Capital,Rebobinador de filme
+Capital,Rebolo
 Capital,Recarregador
+Capital,Receptor
 Capital,Receptor de satelite
 Capital,Receptor gps
 Capital,Receptor para antena parabolica
@@ -1539,24 +1694,24 @@ Capital,Receptor para microfone lapela
 Capital,Receptor para microfone sem fio
 Capital,Receptor uhf
 Capital,Recipientes para oleo
+Capital,Reco reco
 Capital,Recortador de gesso
 Capital,Redutor a rosca
 Capital,Redutor de velocidade
 Capital,Refiladora de papel
+Capital,Refletor
 Capital,Refletor odontologico
 Capital,Refletor parabolico
 Capital,Refrator oftalmologico
 Capital,Refresqueira
 Capital,Refrigerador
-Capital,Registrador de dados
 Capital,Registrador de excesso de velocidade
 Capital,Registrador de pressao manometrica
 Capital,Registrador de violacao de faixa de retencao
 Capital,Registrador pneumatico de pressao
 Capital,Regua antropometrica
-Capital,Regua calimetro
-Capital,Regua de conexao
 Capital,Regua de som
+Capital,Régua escano gráfica
 Capital,Regulador automatico de pressao
 Capital,Regulador de acetileno
 Capital,Regulador de oxigenio
@@ -1571,6 +1726,7 @@ Capital,Relogio de vigia
 Capital,Relogio de xadrez
 Capital,Relogio horodatador
 Capital,Relogio protocolador
+Capital,Relógio sinaleiro
 Capital,Relogio time para tratamento
 Capital,Remada
 Capital,Remada sentada
@@ -1578,6 +1734,7 @@ Capital,Renovador de ar
 Capital,Repinique
 Capital,Repique
 Capital,Reprodutor de imagens
+Capital,Repuxadora de lataria
 Capital,Requinta
 Capital,Resfriador
 Capital,Resfriador posterior
@@ -1606,11 +1763,13 @@ Capital,Roca
 Capital,Roca de pedal
 Capital,Roca eletrica
 Capital,Roçadeira
+Capital,Roçadeira agrícola
 Capital,Roda de ombro
 Capital,Roda gigante
 Capital,Roda panoramica
-Capital,Roller mouse
+Capital,Rolo compactador
 Capital,Ropueiro de aco
+Capital,Rosca apoiada scott
 Capital,Rotacao dupla diagonal
 Capital,Rotacao vertical
 Capital,Roteador
@@ -1625,6 +1784,7 @@ Capital,Salpingografos
 Capital,Sanduicheira
 Capital,Sangrador de freios
 Capital,Sanitizadora
+Capital,Sarrafo para salto em altura
 Capital,Sax
 Capital,Sax alto
 Capital,Sax baritono
@@ -1645,10 +1805,12 @@ Capital,Secador radiografico
 Capital,Secadora de filmes
 Capital,Secadora de papel
 Capital,Secadora de roupas
+Capital,Secadora de traquéia
 Capital,Secadora para fotografias
 Capital,Secretaria eletronica
 Capital,Segador rotativo
 Capital,Sensitometro
+Capital,Sensor de presença
 Capital,Seriografo para raio x
 Capital,Serra
 Capital,Serra circular
@@ -1663,19 +1825,19 @@ Capital,Serra mecanica
 Capital,Serra para ferro
 Capital,Serra para gesso
 Capital,Serra tico tico
+Capital,Servidor
+Capital,Servidor de rede
 Capital,Servo ventilador
+Capital,Set de prato
 Capital,Shamporizador para lava rapido
 Capital,Simetrografo
 Capital,Simulador de caminhada
 Capital,Simulador de cavalgada
-Capital,Sinalizador acustico
-Capital,Sinalizador acustico visual
-Capital,Sinalizador luminoso
-Capital,Sinalizador visual
+Capital,Simulador manequim
 Capital,Sincronizador para projetor
 Capital,Sintonizador
-Capital,Sirene
-Capital,Sirenes eletronica com cornetas
+Capital,Sistema de vídeo para endourologia
+Capital,Sistema fotodocumentação de géis
 Capital,Smith machine
 Capital,Socador de piso
 Capital,Sofa
@@ -1684,21 +1846,24 @@ Capital,Soft start
 Capital,Soldadora
 Capital,Sommier
 Capital,Sonar
+Capital,Sonic borden para ultrassom odontológico
 Capital,Sonophasys
 Capital,Soprador termico
 Capital,Souzafones
 Capital,Steps
 Capital,Stereo cassette deck
 Capital,Stereo tuner
+Capital,Storage
+Capital,Strobo
 Capital,Submarino
-Capital,Sugador cirugico
+Capital,Sulcador de linha
 Capital,Supino
 Capital,Suporte com regulador de pressao
 Capital,Suporte de aco
 Capital,Suporte de hamper
+Capital,Suporte de instrumento musical
 Capital,Suporte de madeira para espelho tipo envernizado
 Capital,Suporte de madeira para modelo de manequim
-Capital,Suporte em acrilico
 Capital,Suporte metalico p/mastros de bandeiras
 Capital,Suporte movel para montar motor
 Capital,Suporte p/ estufa
@@ -1709,15 +1874,12 @@ Capital,Suporte para bobina
 Capital,Suporte para braco
 Capital,Suporte para cabide
 Capital,Suporte para caixa de som
-Capital,Suporte para cartazes
 Capital,Suporte para chapeu
 Capital,Suporte para cpu
 Capital,Suporte para cpu e estabilizador
 Capital,Suporte para esterilizador
-Capital,Suporte para filtro de agua
 Capital,Suporte para flanelografo
 Capital,Suporte para furadeira
-Capital,Suporte para livro de presenca
 Capital,Suporte para maca
 Capital,Suporte para maquiagem
 Capital,Suporte para microcomputador
@@ -1725,13 +1887,10 @@ Capital,Suporte para microondas
 Capital,Suporte para monitor de microcomputador
 Capital,Suporte para motores
 Capital,Suporte para nobreak
-Capital,Suporte para papel
 Capital,Suporte para partitura musical
-Capital,Suporte para pastas
 Capital,Suporte para perna
 Capital,Suporte para projetor de imagens
 Capital,Suporte para respiratorio
-Capital,Suporte para rolo de papel manilha
 Capital,Suporte para saco hamper
 Capital,Suporte para soro
 Capital,Suporte para tecido
@@ -1748,57 +1907,55 @@ Capital,Surdo mor
 Capital,Switch
 Capital,Tabela de basquetebol
 Capital,Tabela de mini-basquete
+Capital,Tablet
 Capital,Tabua de avd
 Capital,Tabua de passar roupa
 Capital,Tabua de quadriceps
 Capital,Tabua proprioceptiva
+Capital,Tabuleiro de xadrez gigante
 Capital,Tacografo
 Capital,Tacômetro
-Capital,Talha
-Capital,Tambor para gaze
+Capital,Tambor musical
 Capital,Tamborete
 Capital,Tamborete giratorio
 Capital,Tamborim
-Capital,Tanque de areia
-Capital,Tanque de combustivel
 Capital,Tanque de formulacao
-Capital,Tanque de lavagem de pecas
 Capital,Tanque de revelacao de filmes
 Capital,Tanque de revelacao triplex
 Capital,Tanque estacionario
 Capital,Tanque estacionario p/armaz.de asfalto
-Capital,Tanque para agua
 Capital,Tanque para transporte de agua
 Capital,Tanque pulverizador
-Capital,Tanque reservatorio
 Capital,Tanquinho para lavar roupas
 Capital,Tape deck
 Capital,Tape drive
 Capital,Teatro de fantoche
-Capital,Teclado ergonomico
 Capital,Teclado musical
-Capital,Teclado para microcomputador
 Capital,Tecnigrafo
 Capital,Tela cinematografica
 Capital,Tela para projecao
+Capital,Telelupa monocular
+Capital,Telemedidor para tanque de combustivel
 Capital,Televisao de madeira
 Capital,Televisor
 Capital,Televisor de lcd
 Capital,Televisor de plasma
 Capital,Tenda de oxigenio
+Capital,Tenda pantográfica
 Capital,Tenda piramidal
 Capital,Teodolito
+Capital,Terminal de auto atendimento
 Capital,Terminal de microcomputador
 Capital,Termocauterio
 Capital,Termocera
+Capital,Termohigrografo
 Capital,Termohigrometro
 Capital,Termometro de globo
 Capital,Termometro de globo digital
+Capital,Termômetro infravermelho
 Capital,Termonebulizador
 Capital,Termoseladora
-Capital,Tesoura mecanica
-Capital,Tesoura para cortar chapa
-Capital,Tesoura para cortar ferro
+Capital,Terraceador agrícola de arrasto
 Capital,Testador de bicos injetores
 Capital,Testador de cabos
 Capital,Testador de induzido
@@ -1807,6 +1964,7 @@ Capital,Testador de motor de partida
 Capital,Testador de semicondutores
 Capital,Teste freio
 Capital,Thin client
+Capital,Timba
 Capital,Timbale
 Capital,Timbau
 Capital,Timer
@@ -1814,8 +1972,6 @@ Capital,Timpano
 Capital,Toalheiro
 Capital,Toca discos
 Capital,Toca fitas
-Capital,Tomada dupla para oxigenio
-Capital,Tomada tripla para oxigenio
 Capital,Tonometro
 Capital,Tonometro de aplanacao
 Capital,Torno de bancada
@@ -1827,7 +1983,9 @@ Capital,Torno para madeira
 Capital,Torno para modelagem de barro
 Capital,Torquimetro
 Capital,Torradeira de farinha
-Capital,Torre para cd rom
+Capital,Torso
+Capital,Totem com monitor de reconhecimento facial
+Capital,Totem para alcool em gel
 Capital,Traçador grafico
 Capital,Trampolim
 Capital,Tranceiver
@@ -1846,20 +2004,24 @@ Capital,Transmissor para instrumentos musicais
 Capital,Transmissor para microfone
 Capital,Transmissor para microfone sem fio
 Capital,Transportador mecanico continuo
+Capital,Trator
 Capital,Trator automatico
-Capital,Trave
 Capital,Treinador de fala
 Capital,Treinador de fala coletivo
 Capital,Treinador de fala pararitimo
+Capital,Treliça box truss
 Capital,Triangulo
 Capital,Triciclo
+Capital,Trijato com exaustor
+Capital,Tripé
+Capital,Triturador de resíduos orgânicos
+Capital,Trocador de fraldas
 Capital,Trombone
 Capital,Trombone de vara
 Capital,Trompa
 Capital,Trompete
 Capital,Trompete de vara
 Capital,Tuba
-Capital,Tubo de pitot para tirar pressao de agua em redes
 Capital,Tumbadora
 Capital,Tupia
 Capital,Turbidimetro
@@ -1867,21 +2029,20 @@ Capital,Turbidimetro nefelometrico
 Capital,Turbilhao
 Capital,Ultracurve
 Capital,Umidificador
+Capital,Unidade de aquecimento e resfriamento para colchão
+Capital,Unidade de cuidados intensivos e reanimação
 Capital,Upa-upa
+Capital,Ureteroscópio
 Capital,Urna de madeira
 Capital,Usina de asfalto
 Capital,Usina rotativa
 Capital,Vacuometro
 Capital,Vaga oceanica
-Capital,Valvula de demanda
-Capital,Valvula para oxigenio
-Capital,Valvula redutora
-Capital,Valvula redutora de ar comprimido
-Capital,Valvula redutora de oxigenio
 Capital,Vaporetto
 Capital,Vaporizador
-Capital,Vassoura magica
+Capital,Vara cênica
 Capital,Vectonistagmografo
+Capital,Ventilador
 Capital,Ventilador de coluna
 Capital,Ventilador de mesa
 Capital,Ventilador de parede
@@ -1894,8 +2055,13 @@ Capital,Vibrador osseo
 Capital,Vibrador para concreto
 Capital,Video cassete
 Capital,Video cd
+Capital,Vídeo colonoscópio
 Capital,Video game
+Capital,Vídeo porteiro
+Capital,Video walkman
 Capital,Violao
+Capital,Violino
+Capital,Violoncelo
 Capital,Vitrine
 Capital,Vitrola
 Capital,Voador peitoral
@@ -1903,185 +2069,8 @@ Capital,Vocalizador
 Capital,Voltimetro
 Capital,Vulcanizador
 Capital,Vulcanizador de pneus
-Capital,Webcam
+Capital,Webcam portátil
 Capital,Workstation
 Capital,Xilofone
 Capital,Zabumba
 Capital,Zepelin
-Capital,Abridor de lata eletrico
-Capital,Acess point
-Capital,Adipometro clínico
-Capital,Afoxê
-Capital,Agitador
-Capital,Agogo
-Capital,Alicate instrumento cirurgico
-Capital,Amnioscópio
-Capital,Amperímetro
-Capital,Amplificador
-Capital,Aparelho amalgamador
-Capital,Aparelho de som
-Capital,Apontador elétrico
-Capital,Appliance
-Capital,Aquecedor elétrico para confecção de órteses
-Capital,Arado
-Capital,Arco cirúrgico
-Capital,Automóvel
-Capital,Automóvel
-Capital,Avental de chumbo
-Capital,Bandolim
-Capital,Banheira
-Capital,Blu ray
-Capital,Bomba de irrigação para endoscopia
-Capital,Bomba submersível
-Capital,Botijão garrafa térmica
-Capital,Brinquedos
-Capital,Brinquedoteca móvel
-Capital,Cadeira adutora e abdutora
-Capital,Cadeira extensora graduada
-Capital,Caixa instrumental cirúrgico
-Capital,Caixa pe de carga para chassi
-Capital,Cajon
-Capital,Câmera digital
-Capital,Câmera fotográfica
-Capital,Camera video conferencia
-Capital,Caminhão
-Capital,Caminhão basculante
-Capital,Caminhão carroceria
-Capital,Caminhão pipa
-Capital,Cancela manual
-Capital,Canil
-Capital,Carreta reboque tipo prancha
-Capital,Carrinho de limpeza
-Capital,Carrinho para endoscopia
-Capital,Carro cuba
-Capital,Carro térmico
-Capital,Caxixi
-Capital,Central de alarme
-Capital,Chassi radiográfico
-Capital,Chuveiro lava olhos
-Capital,Colchão pneumático com motor
-Capital,Colméia organizadora
-Capital,Comando de bomba
-Capital,Complemento de mesa
-Capital,Cone extensão ajustável
-Capital,Conjunto de nefrostomia percutânea
-Capital,Cortina
-Capital,Criocautério dermatológico
-Capital,Criostato
-Capital,Cuspideira
-Capital,Delimitador de filas
-Capital,Delineador paralelômetro
-Capital,Dermatoscópio
-Capital,Digitalizador de radiologia
-Capital,Disjuntor tripolar on board
-Capital,Distribuidor de composto orgânico
-Capital,Divisor radiográfico
-Capital,Divisória
-Capital,Doca para notebook
-Capital,Drone
-Capital,Ducha elétrica
-Capital,Ecógrafo
-Capital,Elevador de piscina
-Capital,Enxada rotativa
-Capital,Escorredor de pratos industrial
-Capital,Esqueleto animal
-Capital,Esqueleto humano
-Capital,Estabilizador
-Capital,Estação de tratamento para resíduos radiológicos
-Capital,Estante
-Capital,Estufa bacteriologica
-Capital,Evaporador rotativo
-Capital,Extensor lombar
-Capital,Firewall
-Capital,Flexor abdominal sentado
-Capital,Fluorímetro
-Capital,Gabinete
-Capital,Globo terrestre
-Capital,Gravador de dvd externo
-Capital,Gravador de holter
-Capital,Gravador digital dvr
-Capital,Guincho tipo girafa
-Capital,Guindaste veicular
-Capital,Hard disk externo
-Capital,Instrumentos musicais
-Capital,Itens adquiridos indevidamente no elem 52
-Capital,Kit caminha empilhavel
-Capital,Kit encanteirador
-Capital,Kit robótica
-Capital,Leitor de transponder
-Capital,Lente de oftalmoscopia
-Capital,Litotripsor
-Capital,Livro
-Capital,Lixeira
-Capital,Localizador apical
-Capital,Maçarico de corte
-Capital,Maçarico de solda
-Capital,Maquina de corte de moldes
-Capital,Medidor de distância
-Capital,Micromotor odontológico
-Capital,Modelo para anatomia humana
-Capital,Monitor de gases anestésicos
-Capital,Monitor de radiologia
-Capital,Motoniveladora
-Capital,Motor de portao
-Capital,Nasofaringolaringoscopio
-Capital,Nefroscópio
-Capital,Onibus
-Capital,Pá agrícola
-Capital,Pá carregadeira
-Capital,Panela de pressao industrial
-Capital,Panela eletrica
-Capital,Panela ortodontica
-Capital,Paredao de lona tri tennis
-Capital,Peça reta para odontologia
-Capital,Perfurador de solo tratorizado
-Capital,Perneira
-Capital,Persiana
-Capital,Pinça
-Capital,Pipeta
-Capital,Pipoqueira
-Capital,Planetario escolar
-Capital,Polidora quimica
-Capital,Poste para tênis
-Capital,Prancha de emergência
-Capital,Press lateral
-Capital,Press peitoral graduado
-Capital,Processadora para endoscopia
-Capital,Queixada
-Capital,Rack para datacenter
-Capital,Rádio
-Capital,Rádio portátil
-Capital,Rebolo
-Capital,Reco reco
-Capital,Relógio sinaleiro
-Capital,Roçadeira agrícola
-Capital,Rolo compactador
-Capital,Rosca apoiada scott
-Capital,Sarrafo para salto em altura
-Capital,Servidor
-Capital,Servidor de rede
-Capital,Set de prato
-Capital,Simulador manequim
-Capital,Sistema de vídeo para endourologia
-Capital,Sistema fotodocumentação de géis
-Capital,Sonic borden para ultrassom odontológico
-Capital,Sulcador de linha
-Capital,Suporte de instrumento musical
-Capital,Tablet
-Capital,Tambor musical
-Capital,Tapete
-Capital,Telelupa monocular
-Capital,Tenda pantográfica
-Capital,Terraceador agrícola de arrasto
-Capital,Timba
-Capital,Toldo
-Capital,Torso
-Capital,Trator
-Capital,Trena a laser
-Capital,Trijato com exaustor
-Capital,Trocador de fraldas
-Capital,Ureteroscópio
-Capital,Ventilador
-Capital,Vídeo porteiro
-Capital,Violino
-Capital,Violoncelo

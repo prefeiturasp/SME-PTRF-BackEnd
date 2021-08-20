@@ -101,6 +101,20 @@ class FuncUeConciliacaoBancaria(models.Model):
         )
 
 
+class FuncUeAnaliseDre(models.Model):
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[UE] Análise DRE"
+        verbose_name_plural = "[UE] Análises DRE"
+
+        permissions = (
+            ('access_analise_dre', '[UE] Pode acessar Análise DRE.'),
+            ('change_analise_dre', '[UE] Pode atualizar Análise DRE.'),
+        )
+
+
 class FuncUeGerais(models.Model):
     class Meta:
         managed = False  # No database table creation.
