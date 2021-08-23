@@ -28,7 +28,8 @@ from .prestacao_contas_services import (
     lista_prestacoes_de_conta_nao_recebidas,
     lista_prestacoes_de_conta_todos_os_status,
     reabrir_prestacao_de_contas,
-    lancamentos_da_prestacao
+    lancamentos_da_prestacao,
+    marca_lancamentos_como_corretos
 )
 from .processa_cargas import processa_cargas, processa_carga
 from .unidade_service import atualiza_dados_unidade, consulta_unidade, monta_unidade_para_atribuicao

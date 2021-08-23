@@ -490,3 +490,28 @@ def lancamentos_da_prestacao(analise_prestacao_conta, conta_associacao, acao_ass
 
     return lancamentos
 
+
+def marca_lancamentos_como_corretos(analise_prestacao, lancamentos_corretos):
+    def marca_credito_correto(credito_uuid):
+        if not analise_prestacao.analises_de_lancamentos.filter(receita__uuid=credito_uuid).exists():
+            receita = Receita.by_uuid(credito_uuid)
+            AnaliseLancamentoPrestacaoConta.objects.create(
+                analise_prestacao_conta=analise_prestacao,
+                tipo_lancamento="CREDITO",
+                receita=receita
+            )
+
+    def marca_gasto_correto(gasto_uuid):
+        if not analise_prestacao.analises_de_lancamentos.filter(despesa__uuid=gasto_uuid).exists():
+            despesa = Despesa.by_uuid(gasto_uuid)
+            AnaliseLancamentoPrestacaoConta.objects.create(
+                analise_prestacao_conta=analise_prestacao,
+                tipo_lancamento="GASTO",
+                despesa=despesa
+            )
+
+    for lancamento in lancamentos_corretos:
+        if lancamento["tipo_lancamento"] == 'CREDITO':
+            marca_credito_correto(credito_uuid=lancamento["lancamento"])
+        else:
+            marca_gasto_correto(gasto_uuid=lancamento["lancamento"])

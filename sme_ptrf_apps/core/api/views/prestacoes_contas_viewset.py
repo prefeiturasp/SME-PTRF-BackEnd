@@ -34,7 +34,8 @@ from ...services import (
     reabrir_prestacao_de_contas,
     lista_prestacoes_de_conta_nao_recebidas,
     lista_prestacoes_de_conta_todos_os_status,
-    lancamentos_da_prestacao
+    lancamentos_da_prestacao,
+    marca_lancamentos_como_corretos
 )
 from ....dre.services import (dashboard_sme)
 from ..serializers import (
@@ -931,3 +932,50 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         )
 
         return Response(lancamentos, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path="lancamentos-corretos",
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def lancamentos_corretos(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        analise_prestacao_uuid = request.data.get('analise_prestacao', None)
+        if analise_prestacao_uuid is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'lancamentos-corretos',
+                'mensagem': 'Faltou informar no payload o UUID da analise_prestacao.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if analise_prestacao.prestacao_conta != prestacao_conta:
+            erro = {
+                'erro': 'Análise de prestação inválida.',
+                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        lancamentos_corretos = request.data.get('lancamentos_corretos', None)
+        if lancamentos_corretos is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'lancamentos-corretos',
+                'mensagem': 'Faltou informar a lista com os lançamentos corretos.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        marca_lancamentos_como_corretos(analise_prestacao, lancamentos_corretos)
+
+        return Response({"message": "Lançamentos marcados como corretos."}, status=status.HTTP_200_OK)
