@@ -515,3 +515,17 @@ def marca_lancamentos_como_corretos(analise_prestacao, lancamentos_corretos):
             marca_credito_correto(credito_uuid=lancamento["lancamento"])
         else:
             marca_gasto_correto(gasto_uuid=lancamento["lancamento"])
+
+
+def marca_lancamentos_como_nao_conferidos(analise_prestacao, lancamentos_nao_conferidos):
+    def marca_credito_nao_conferido(credito_uuid):
+        analise_prestacao.analises_de_lancamentos.filter(receita__uuid=credito_uuid).delete()
+
+    def marca_gasto_nao_conferido(gasto_uuid):
+        analise_prestacao.analises_de_lancamentos.filter(despesa__uuid=gasto_uuid).delete()
+
+    for lancamento in lancamentos_nao_conferidos:
+        if lancamento["tipo_lancamento"] == 'CREDITO':
+            marca_credito_nao_conferido(credito_uuid=lancamento["lancamento"])
+        else:
+            marca_gasto_nao_conferido(gasto_uuid=lancamento["lancamento"])

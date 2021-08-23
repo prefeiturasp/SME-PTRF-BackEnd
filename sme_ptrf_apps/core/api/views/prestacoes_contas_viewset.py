@@ -35,7 +35,8 @@ from ...services import (
     lista_prestacoes_de_conta_nao_recebidas,
     lista_prestacoes_de_conta_todos_os_status,
     lancamentos_da_prestacao,
-    marca_lancamentos_como_corretos
+    marca_lancamentos_como_corretos,
+    marca_lancamentos_como_nao_conferidos
 )
 from ....dre.services import (dashboard_sme)
 from ..serializers import (
@@ -979,3 +980,50 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         marca_lancamentos_como_corretos(analise_prestacao, lancamentos_corretos)
 
         return Response({"message": "Lançamentos marcados como corretos."}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path="lancamentos-nao-conferidos",
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def lancamentos_nao_conferidos(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        analise_prestacao_uuid = request.data.get('analise_prestacao', None)
+        if analise_prestacao_uuid is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'lancamentos-nao-conferidos',
+                'mensagem': 'Faltou informar no payload o UUID da analise_prestacao.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if analise_prestacao.prestacao_conta != prestacao_conta:
+            erro = {
+                'erro': 'Análise de prestação inválida.',
+                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        lancamentos_nao_conferidos = request.data.get('lancamentos_nao_conferidos', None)
+        if lancamentos_nao_conferidos is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'lancamentos-nao-conferidos',
+                'mensagem': 'Faltou informar a lista com os lançamentos não conferidos.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        marca_lancamentos_como_nao_conferidos(analise_prestacao, lancamentos_nao_conferidos)
+
+        return Response({"message": "Lançamentos marcados como não conferidos."}, status=status.HTTP_200_OK)
