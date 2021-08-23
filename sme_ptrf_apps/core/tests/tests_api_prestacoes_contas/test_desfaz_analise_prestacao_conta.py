@@ -23,7 +23,6 @@ def _prestacao_conta_em_analise(periodo, associacao):
     )
 
 
-
 def test_api_desfaz_analise_prestacao_conta(jwt_authenticated_client_a, _prestacao_conta_em_analise):
     url = f'/api/prestacoes-contas/{_prestacao_conta_em_analise.uuid}/desfazer-analise/'
 
@@ -33,7 +32,6 @@ def test_api_desfaz_analise_prestacao_conta(jwt_authenticated_client_a, _prestac
 
     prestacao_atualizada = PrestacaoConta.by_uuid(_prestacao_conta_em_analise.uuid)
     assert prestacao_atualizada.status == PrestacaoConta.STATUS_RECEBIDA, 'Status não atualizado para RECEBIDA.'
-    #TODO Verificar se os dados de análise foram limpos
 
 
 @pytest.fixture
@@ -66,4 +64,31 @@ def test_api_desfaz_analise_prestacao_conta_erro_se_nao_em_analise(jwt_authentic
 
     prestacao_atualizada = PrestacaoConta.by_uuid(_prestacao_conta_nao_recebida.uuid)
     assert prestacao_atualizada.status == PrestacaoConta.STATUS_NAO_RECEBIDA, 'Status não deveria ter sido alterado.'
-    # TODO Verificar se os dados de análise foram mantidos
+
+
+@pytest.fixture
+def _analise_prestacao_conta(_prestacao_conta_em_analise):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=_prestacao_conta_em_analise,
+    )
+
+
+@pytest.fixture
+def _prestacao_de_contas_com_analise_corrente(_prestacao_conta_em_analise, _analise_prestacao_conta):
+    _prestacao_conta_em_analise.analise_atual = _analise_prestacao_conta
+    _prestacao_conta_em_analise.save()
+    return _prestacao_conta_em_analise
+
+
+def test_api_desfaz_analise_prestacao_conta_deve_apagar_registro_de_analise_corrente(
+    jwt_authenticated_client_a,
+    _prestacao_de_contas_com_analise_corrente
+):
+    url = f'/api/prestacoes-contas/{_prestacao_de_contas_com_analise_corrente.uuid}/desfazer-analise/'
+
+    jwt_authenticated_client_a.patch(url, content_type='application/json')
+
+    prestacao_atualizada = PrestacaoConta.by_uuid(_prestacao_de_contas_com_analise_corrente.uuid)
+    assert not prestacao_atualizada.analises_da_prestacao.exists(), 'Deveria apagar a análise da prestação.'
+    assert prestacao_atualizada.analise_atual is None, 'Deveria ter limpado o campo análise atual.'

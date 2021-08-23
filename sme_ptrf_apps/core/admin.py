@@ -32,6 +32,7 @@ from .models import (
     ParametroFiqueDeOlhoPc,
     ModeloCarga,
     Ambiente,
+    AnalisePrestacaoConta
     ArquivoDownload,
 )
 
@@ -541,6 +542,26 @@ class MembroAssociacaoAdmin(admin.ModelAdmin):
 class AmbienteAdmin(admin.ModelAdmin):
     list_display = ('prefixo', 'nome')
 
+
+@admin.register(AnalisePrestacaoConta)
+class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
+
+    def get_associacao(self, obj):
+        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''
+
+    get_associacao.short_description = 'Associação'
+
+    def get_referencia_periodo(self, obj):
+        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
+
+    get_referencia_periodo.short_description = 'Período'
+
+    list_display = ('get_associacao', 'get_referencia_periodo', 'criado_em', 'status',)
+    list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta', 'status')
+    list_display_links = ('get_associacao',)
+    readonly_fields = ('uuid', id)
+    search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
+                     'prestacao_conta__associacao__nome')
 
 @admin.register(ArquivoDownload)
 class ArquivoDownloadAdmin(admin.ModelAdmin):

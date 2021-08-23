@@ -1,20 +1,29 @@
 import logging
 
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Sum
 
 from .demonstrativo_financeiro_xlsx_service import (gerar_arquivo_demonstrativo_financeiro_xlsx,
                                                     apagar_previas_demonstrativo_financeiro)
-from ..models import PrestacaoConta, FechamentoPeriodo, Associacao, DemonstrativoFinanceiro, ObservacaoConciliacao
+from ..models import (
+    PrestacaoConta,
+    FechamentoPeriodo,
+    Associacao,
+    DemonstrativoFinanceiro,
+    ObservacaoConciliacao,
+    AnaliseLancamentoPrestacaoConta
+)
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
 from ..services.processos_services import get_processo_sei_da_prestacao
-from ...despesas.models import RateioDespesa
+from ...despesas.models import RateioDespesa, Despesa
 from ...receitas.models import Receita
 from ..tasks import concluir_prestacao_de_contas_async, gerar_previa_demonstrativo_financeiro_async
 
 from ..services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
 from .demonstrativo_financeiro_pdf_service import gerar_arquivo_demonstrativo_financeiro_pdf
+
+from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
 
 logger = logging.getLogger(__name__)
 
@@ -368,3 +377,155 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
     demonstrativo.arquivo_concluido()
 
     return demonstrativo
+
+
+def lancamentos_da_prestacao(analise_prestacao_conta, conta_associacao, acao_associacao=None, tipo_transacao=None):
+    from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaConciliacaoSerializer
+    from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaConciliacaoSerializer
+    from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
+
+    def documentos_de_despesa_por_conta_e_acao_no_periodo(conta_associacao, acao_associacao, periodo):
+        rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
+            conta_associacao=conta_associacao,
+            acao_associacao=acao_associacao,
+            periodo=periodo
+        )
+        despesas_com_rateios = rateios.values_list('despesa__id', flat=True).distinct()
+
+        dataset = Despesa.completas.filter(id__in=despesas_com_rateios)
+
+        return dataset.all()
+
+    receitas = []
+    despesas = []
+
+    prestacao_conta = analise_prestacao_conta.prestacao_conta
+
+    if not tipo_transacao or tipo_transacao == "CREDITOS":
+        receitas = Receita.receitas_da_conta_associacao_no_periodo(
+            conta_associacao=conta_associacao,
+            acao_associacao=acao_associacao,
+            periodo=prestacao_conta.periodo
+        )
+
+        receitas = receitas.order_by("data")
+
+    if not tipo_transacao or tipo_transacao == "GASTOS":
+        despesas = documentos_de_despesa_por_conta_e_acao_no_periodo(
+            conta_associacao=conta_associacao,
+            acao_associacao=acao_associacao,
+            periodo=prestacao_conta.periodo
+        )
+
+        despesas = despesas.order_by("data_transacao")
+
+    # Iniciar a lista de lançamentos com a lista de despesas ordenada
+    lancamentos = []
+    for despesa in despesas:
+
+        max_notificar_dias_nao_conferido = 0
+        for rateio in despesa.rateios.filter(status=STATUS_COMPLETO, conta_associacao=conta_associacao):
+            if rateio.notificar_dias_nao_conferido > max_notificar_dias_nao_conferido:
+                max_notificar_dias_nao_conferido = rateio.notificar_dias_nao_conferido
+
+        analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(despesa=despesa).first()
+
+        lancamento = {
+            'periodo': f'{prestacao_conta.periodo.uuid}',
+            'conta': f'{conta_associacao.uuid}',
+            'data': despesa.data_transacao,
+            'tipo_transacao': 'Gasto',
+            'numero_documento': despesa.numero_documento,
+            'descricao': despesa.nome_fornecedor,
+            'valor_transacao_total': despesa.valor_total,
+            'valor_transacao_na_conta':
+                despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).aggregate(Sum('valor_rateio'))[
+                    'valor_rateio__sum'],
+            'valores_por_conta': despesa.rateios.filter(status=STATUS_COMPLETO).values('conta_associacao__tipo_conta__nome').annotate(
+                Sum('valor_rateio')),
+            'conferido': despesa.conferido,
+            'documento_mestre': DespesaConciliacaoSerializer(despesa, many=False).data,
+            'rateios': RateioDespesaConciliacaoSerializer(despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by('id'),
+                                                          many=True).data,
+            'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
+            'analise_lancamento': {'resultado': analise_lancamento.resultado,
+                                   'uuid': analise_lancamento.uuid} if analise_lancamento else None
+        }
+        lancamentos.append(lancamento)
+
+    # Percorrer a lista de créditos ordenada e para cada credito, buscar na lista de lançamentos a posição correta
+    for receita in receitas:
+
+        analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(receita=receita).first()
+
+        novo_lancamento = {
+            'periodo': f'{prestacao_conta.periodo.uuid}',
+            'conta': f'{conta_associacao.uuid}',
+            'data': receita.data,
+            'tipo_transacao': 'Crédito',
+            'numero_documento': '',
+            'descricao': receita.tipo_receita.nome if receita.tipo_receita else '',
+            'valor_transacao_total': receita.valor,
+            'valor_transacao_na_conta': receita.valor,
+            'valores_por_conta': [],
+            'conferido': receita.conferido,
+            'documento_mestre': ReceitaConciliacaoSerializer(receita, many=False).data,
+            'rateios': [],
+            'notificar_dias_nao_conferido': receita.notificar_dias_nao_conferido,
+            'analise_lancamento': {'resultado': analise_lancamento.resultado,
+                                   'uuid': analise_lancamento.uuid} if analise_lancamento else None
+        }
+
+        lancamento_adicionado = False
+
+        if lancamentos:
+            for idx, lancamento in enumerate(lancamentos):
+                if novo_lancamento['data'] <= lancamento['data']:
+                    lancamentos.insert(idx, novo_lancamento)
+                    lancamento_adicionado = True
+                    break
+
+        if not lancamento_adicionado:
+            lancamentos.append(novo_lancamento)
+
+    return lancamentos
+
+
+def marca_lancamentos_como_corretos(analise_prestacao, lancamentos_corretos):
+    def marca_credito_correto(credito_uuid):
+        if not analise_prestacao.analises_de_lancamentos.filter(receita__uuid=credito_uuid).exists():
+            receita = Receita.by_uuid(credito_uuid)
+            AnaliseLancamentoPrestacaoConta.objects.create(
+                analise_prestacao_conta=analise_prestacao,
+                tipo_lancamento="CREDITO",
+                receita=receita
+            )
+
+    def marca_gasto_correto(gasto_uuid):
+        if not analise_prestacao.analises_de_lancamentos.filter(despesa__uuid=gasto_uuid).exists():
+            despesa = Despesa.by_uuid(gasto_uuid)
+            AnaliseLancamentoPrestacaoConta.objects.create(
+                analise_prestacao_conta=analise_prestacao,
+                tipo_lancamento="GASTO",
+                despesa=despesa
+            )
+
+    for lancamento in lancamentos_corretos:
+        if lancamento["tipo_lancamento"] == 'CREDITO':
+            marca_credito_correto(credito_uuid=lancamento["lancamento"])
+        else:
+            marca_gasto_correto(gasto_uuid=lancamento["lancamento"])
+
+
+def marca_lancamentos_como_nao_conferidos(analise_prestacao, lancamentos_nao_conferidos):
+    def marca_credito_nao_conferido(credito_uuid):
+        analise_prestacao.analises_de_lancamentos.filter(receita__uuid=credito_uuid).delete()
+
+    def marca_gasto_nao_conferido(gasto_uuid):
+        analise_prestacao.analises_de_lancamentos.filter(despesa__uuid=gasto_uuid).delete()
+
+    for lancamento in lancamentos_nao_conferidos:
+        if lancamento["tipo_lancamento"] == 'CREDITO':
+            marca_credito_nao_conferido(credito_uuid=lancamento["lancamento"])
+        else:
+            marca_gasto_nao_conferido(gasto_uuid=lancamento["lancamento"])

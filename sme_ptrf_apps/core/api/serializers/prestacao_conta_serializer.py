@@ -71,6 +71,14 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             model = TecnicoDre
             fields = ('uuid', 'rf', 'nome',)
 
+    class AnalisePrestacaoContaSerializer(serializers.ModelSerializer):
+        devolucao_prestacao_conta = DevolucaoPrestacaoContaRetrieveSerializer(many=False)
+
+        class Meta:
+            from sme_ptrf_apps.core.models import AnalisePrestacaoConta
+            model = AnalisePrestacaoConta
+            fields = ('uuid', 'id', 'devolucao_prestacao_conta', 'status', 'criado_em')
+
     associacao = AssociacaoCompletoSerializer(many=False)
     periodo_uuid = serializers.SerializerMethodField('get_periodo_uuid')
     tecnico_responsavel = TecnicoResponsavelSerializer(many=False)
@@ -81,6 +89,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     devolucoes_ao_tesouro_da_prestacao = DevolucaoAoTesouroRetrieveSerializer(many=True)
     motivos_aprovacao_ressalva = MotivoAprovacaoRessalvaSerializer(many=True)
     arquivos_referencia = serializers.SerializerMethodField('get_arquivos_referencia')
+    analise_atual = AnalisePrestacaoContaSerializer(many=False)
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
@@ -148,6 +157,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'motivos_aprovacao_ressalva',
             'outros_motivos_aprovacao_ressalva',
             'arquivos_referencia',
+            'analise_atual',
         )
 
 

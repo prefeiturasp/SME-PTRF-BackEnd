@@ -18,13 +18,25 @@ from sme_ptrf_apps.users.permissoes import (
 )
 
 from ....dre.models import Atribuicao, TecnicoDre, MotivoAprovacaoRessalva
-from ...models import Associacao, Ata, Periodo, PrestacaoConta, Unidade
+from ...models import (
+    Associacao,
+    Ata,
+    Periodo,
+    PrestacaoConta,
+    Unidade,
+    ContaAssociacao,
+    AcaoAssociacao,
+    AnalisePrestacaoConta
+)
 from ...services import (
     concluir_prestacao_de_contas,
     informacoes_financeiras_para_atas,
     reabrir_prestacao_de_contas,
     lista_prestacoes_de_conta_nao_recebidas,
-    lista_prestacoes_de_conta_todos_os_status
+    lista_prestacoes_de_conta_todos_os_status,
+    lancamentos_da_prestacao,
+    marca_lancamentos_como_corretos,
+    marca_lancamentos_como_nao_conferidos
 )
 from ....dre.services import (dashboard_sme)
 from ..serializers import (
@@ -836,3 +848,182 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         dashboard = dashboard_sme(periodo=periodo)
 
         return Response(dashboard)
+
+    @action(detail=True, methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def lancamentos(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        # Define a análise da prestação de contas
+        analise_prestacao_uuid = self.request.query_params.get('analise_prestacao')
+
+        if not analise_prestacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da analise de prestacao de contas.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if analise_prestacao.prestacao_conta != prestacao_conta:
+            erro = {
+                'erro': 'Análise de prestação inválida.',
+                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define a conta de conciliação
+        conta_associacao_uuid = self.request.query_params.get('conta_associacao')
+
+        if not conta_associacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da conta da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            conta_associacao = ContaAssociacao.objects.get(uuid=conta_associacao_uuid)
+        except ContaAssociacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto conta-associação para o uuid {conta_associacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define a ação para o filtro de transações
+        acao_associacao = None
+        acao_associacao_uuid = request.query_params.get('acao_associacao')
+        if acao_associacao_uuid:
+            try:
+                acao_associacao = AcaoAssociacao.objects.get(uuid=acao_associacao_uuid)
+            except AcaoAssociacao.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto ação-associação para o uuid {acao_associacao_uuid} não foi encontrado."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define o tipo de transação para o filtro das transações
+        tipo_transacao = request.query_params.get('tipo')
+        if tipo_transacao and tipo_transacao not in ('CREDITOS', 'GASTOS'):
+            erro = {
+                'erro': 'parametro_inválido',
+                'mensagem': 'O parâmetro tipo pode receber como valor "CREDITOS" ou "GASTOS". O parâmetro é opcional.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        lancamentos = lancamentos_da_prestacao(
+            analise_prestacao_conta=analise_prestacao,
+            conta_associacao=conta_associacao,
+            acao_associacao=acao_associacao,
+            tipo_transacao=tipo_transacao
+        )
+
+        return Response(lancamentos, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path="lancamentos-corretos",
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def lancamentos_corretos(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        analise_prestacao_uuid = request.data.get('analise_prestacao', None)
+        if analise_prestacao_uuid is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'lancamentos-corretos',
+                'mensagem': 'Faltou informar no payload o UUID da analise_prestacao.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if analise_prestacao.prestacao_conta != prestacao_conta:
+            erro = {
+                'erro': 'Análise de prestação inválida.',
+                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        lancamentos_corretos = request.data.get('lancamentos_corretos', None)
+        if lancamentos_corretos is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'lancamentos-corretos',
+                'mensagem': 'Faltou informar a lista com os lançamentos corretos.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        marca_lancamentos_como_corretos(analise_prestacao, lancamentos_corretos)
+
+        return Response({"message": "Lançamentos marcados como corretos."}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path="lancamentos-nao-conferidos",
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def lancamentos_nao_conferidos(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        analise_prestacao_uuid = request.data.get('analise_prestacao', None)
+        if analise_prestacao_uuid is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'lancamentos-nao-conferidos',
+                'mensagem': 'Faltou informar no payload o UUID da analise_prestacao.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if analise_prestacao.prestacao_conta != prestacao_conta:
+            erro = {
+                'erro': 'Análise de prestação inválida.',
+                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        lancamentos_nao_conferidos = request.data.get('lancamentos_nao_conferidos', None)
+        if lancamentos_nao_conferidos is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'lancamentos-nao-conferidos',
+                'mensagem': 'Faltou informar a lista com os lançamentos não conferidos.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        marca_lancamentos_como_nao_conferidos(analise_prestacao, lancamentos_nao_conferidos)
+
+        return Response({"message": "Lançamentos marcados como não conferidos."}, status=status.HTTP_200_OK)
