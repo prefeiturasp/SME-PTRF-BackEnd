@@ -5,7 +5,14 @@ from django.db.models import Q, Sum
 
 from .demonstrativo_financeiro_xlsx_service import (gerar_arquivo_demonstrativo_financeiro_xlsx,
                                                     apagar_previas_demonstrativo_financeiro)
-from ..models import PrestacaoConta, FechamentoPeriodo, Associacao, DemonstrativoFinanceiro, ObservacaoConciliacao
+from ..models import (
+    PrestacaoConta,
+    FechamentoPeriodo,
+    Associacao,
+    DemonstrativoFinanceiro,
+    ObservacaoConciliacao,
+    AnaliseLancamentoPrestacaoConta
+)
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
 from ..services.processos_services import get_processo_sei_da_prestacao
@@ -372,7 +379,7 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
     return demonstrativo
 
 
-def lancamentos_da_prestacao(prestacao_conta, conta_associacao, acao_associacao=None, tipo_transacao=None):
+def lancamentos_da_prestacao(analise_prestacao_conta, conta_associacao, acao_associacao=None, tipo_transacao=None):
     from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaConciliacaoSerializer
     from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaConciliacaoSerializer
     from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
@@ -391,6 +398,8 @@ def lancamentos_da_prestacao(prestacao_conta, conta_associacao, acao_associacao=
 
     receitas = []
     despesas = []
+
+    prestacao_conta = analise_prestacao_conta.prestacao_conta
 
     if not tipo_transacao or tipo_transacao == "CREDITOS":
         receitas = Receita.receitas_da_conta_associacao_no_periodo(
@@ -419,6 +428,8 @@ def lancamentos_da_prestacao(prestacao_conta, conta_associacao, acao_associacao=
             if rateio.notificar_dias_nao_conferido > max_notificar_dias_nao_conferido:
                 max_notificar_dias_nao_conferido = rateio.notificar_dias_nao_conferido
 
+        analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(despesa=despesa).first()
+
         lancamento = {
             'periodo': f'{prestacao_conta.periodo.uuid}',
             'conta': f'{conta_associacao.uuid}',
@@ -437,11 +448,15 @@ def lancamentos_da_prestacao(prestacao_conta, conta_associacao, acao_associacao=
             'rateios': RateioDespesaConciliacaoSerializer(despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by('id'),
                                                           many=True).data,
             'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
+            'analise_lancamento': {'resultado': analise_lancamento.resultado,
+                                   'uuid': analise_lancamento.uuid} if analise_lancamento else None
         }
         lancamentos.append(lancamento)
 
     # Percorrer a lista de créditos ordenada e para cada credito, buscar na lista de lançamentos a posição correta
     for receita in receitas:
+
+        analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(receita=receita).first()
 
         novo_lancamento = {
             'periodo': f'{prestacao_conta.periodo.uuid}',
@@ -457,6 +472,8 @@ def lancamentos_da_prestacao(prestacao_conta, conta_associacao, acao_associacao=
             'documento_mestre': ReceitaConciliacaoSerializer(receita, many=False).data,
             'rateios': [],
             'notificar_dias_nao_conferido': receita.notificar_dias_nao_conferido,
+            'analise_lancamento': {'resultado': analise_lancamento.resultado,
+                                   'uuid': analise_lancamento.uuid} if analise_lancamento else None
         }
 
         lancamento_adicionado = False

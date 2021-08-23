@@ -103,6 +103,10 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
                 'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido if lancamento["tipo"] == "Gasto" else
                 lancamento["mestre"].notificar_dias_nao_conferido,
                 'conferido': lancamento["mestre"].conferido,
+                'analise_lancamento': {
+                    'uuid': f'{lancamento["analise_lancamento"].uuid}',
+                    'resultado': lancamento["analise_lancamento"].resultado,
+                } if lancamento["analise_lancamento"] else None
             }
         )
 
@@ -120,7 +124,10 @@ def test_api_get_lancamentos_todos_da_conta(
     conta_associacao_cartao,
     receita_2020_1_ptrf_repasse_conferida,
     receita_2020_1_role_outras_nao_conferida,
-    prestacao_conta_2020_1_em_analise
+    prestacao_conta_2020_1_em_analise,
+    analise_prestacao_conta_2020_1_em_analise,
+    analise_lancamento_receita_prestacao_conta_2020_1_em_analise,
+    analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
 ):
     conta_uuid = conta_associacao_cartao.uuid
 
@@ -144,6 +151,7 @@ def test_api_get_lancamentos_todos_da_conta(
                     'valor_rateio__sum': 100.0
                 }
             ],
+            'analise_lancamento': analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
         },
         {
             'mestre': receita_2020_1_ptrf_repasse_conferida,
@@ -151,6 +159,7 @@ def test_api_get_lancamentos_todos_da_conta(
             'tipo': 'Crédito',
             'valor_transacao_na_conta': 100.0,
             'valores_por_conta': [],
+            'analise_lancamento': analise_lancamento_receita_prestacao_conta_2020_1_em_analise,
         },
         {
             'mestre': receita_2020_1_role_outras_nao_conferida,
@@ -158,68 +167,14 @@ def test_api_get_lancamentos_todos_da_conta(
             'tipo': 'Crédito',
             'valor_transacao_na_conta': 100.0,
             'valores_por_conta': [],
+            'analise_lancamento': None
         },
     ]
-
-    # lancamentos_esperados = [
-    #     {
-    #         'mestre': despesa_2020_1,
-    #         'rateios': [
-    #             rateio_despesa_2020_role_conferido,
-    #             rateio_despesa_2020_ptrf_conferido,
-    #         ],
-    #         'tipo': 'Gasto',
-    #         'valor_transacao_na_conta': 200.0,
-    #         'valores_por_conta': [
-    #             {
-    #                 'conta_associacao__tipo_conta__nome': 'Cartão',
-    #                 'valor_rateio__sum': 200.0
-    #             },
-    #             {
-    #                 'conta_associacao__tipo_conta__nome': 'Cheque',
-    #                 'valor_rateio__sum': 100.0
-    #             }
-    #         ],
-    #     },
-    #     {
-    #         'mestre': receita_2020_1_ptrf_repasse_conferida,
-    #         'rateios': [],
-    #         'tipo': 'Crédito',
-    #         'valor_transacao_na_conta': 100.0,
-    #         'valores_por_conta': [],
-    #     },
-    #     {
-    #         'mestre': despesa_2020_1,
-    #         'rateios': [
-    #             rateio_despesa_2020_role_nao_conferido,
-    #             rateio_despesa_2020_ptrf_conferido,
-    #         ],
-    #         'tipo': 'Gasto',
-    #         'valor_transacao_na_conta': 200.0,
-    #         'valores_por_conta': [
-    #             {
-    #                 'conta_associacao__tipo_conta__nome': 'Cartão',
-    #                 'valor_rateio__sum': 200.0
-    #             },
-    #             {
-    #                 'conta_associacao__tipo_conta__nome': 'Cheque',
-    #                 'valor_rateio__sum': 100.0
-    #             }
-    #         ],
-    #     },
-    #     {
-    #         'mestre': receita_2020_1_role_outras_nao_conferida,
-    #         'rateios': [],
-    #         'tipo': 'Crédito',
-    #         'valor_transacao_na_conta': 100.0,
-    #         'valores_por_conta': [],
-    #     },
-    # ]
 
     result_esperado = monta_result_esperado(lancamentos_esperados=lancamentos_esperados, periodo=periodo_2020_1,
                                             conta=conta_associacao_cartao)
 
-    url = f'/api/prestacoes-contas/{prestacao_conta_2020_1_em_analise.uuid}/lancamentos/?conta_associacao={conta_uuid}'
+    url = f'/api/prestacoes-contas/{prestacao_conta_2020_1_em_analise.uuid}/lancamentos/?analise_prestacao={analise_prestacao_conta_2020_1_em_analise.uuid}&conta_associacao={conta_uuid}'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
@@ -227,354 +182,3 @@ def test_api_get_lancamentos_todos_da_conta(
 
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado, "Não retornou a lista de lancamentos esperados."
-
-
-def test_api_get_transacoes_nao_conferidas(jwt_authenticated_client_a,
-                                           acao_associacao_role_cultural,
-                                           despesa_2019_2,
-                                           rateio_despesa_2019_role_conferido,
-                                           despesa_2020_1,
-                                           rateio_despesa_2020_role_nao_conferido,
-                                           rateio_despesa_2020_ptrf_conferido,
-                                           rateio_despesa_2020_role_cheque_conferido,
-                                           receita_2020_1_ptrf_repasse_conferida,
-                                           receita_2020_1_role_outras_nao_conferida,
-                                           periodo_2020_1,
-                                           conta_associacao_cartao
-                                           ):
-    conta_uuid = conta_associacao_cartao.uuid
-
-    transacoes_esperadas = [
-        {
-            'mestre': despesa_2020_1,
-            'rateios': [
-                rateio_despesa_2020_role_nao_conferido,
-                rateio_despesa_2020_ptrf_conferido,
-            ],
-            'tipo': 'Gasto',
-            'valor_transacao_na_conta': 200.0,
-            'valores_por_conta': [
-                {
-                    'conta_associacao__tipo_conta__nome': 'Cartão',
-                    'valor_rateio__sum': 200.0
-                },
-                {
-                    'conta_associacao__tipo_conta__nome': 'Cheque',
-                    'valor_rateio__sum': 100.0
-                }
-            ],
-        },
-        {
-            'mestre': receita_2020_1_role_outras_nao_conferida,
-            'rateios': [],
-            'tipo': 'Crédito',
-            'valor_transacao_na_conta': 100.0,
-            'valores_por_conta': [],
-        },
-
-    ]
-
-    result_esperado = monta_result_esperado(lancamentos_esperados=transacoes_esperadas, periodo=periodo_2020_1,
-                                            conta=conta_associacao_cartao)
-
-    url = f'/api/conciliacoes/transacoes/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=False'
-
-    response = jwt_authenticated_client_a.get(url, content_type='application/json')
-
-    result = json.loads(response.content)
-
-    assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado, "Não retornou a lista de transações esperada."
-
-
-def test_deve_trazer_transacoes_nao_conferidas_de_periodos_anteriores(jwt_authenticated_client_a,
-                                                                      acao_associacao_role_cultural,
-                                                                      despesa_2019_2,
-                                                                      rateio_despesa_2019_role_conferido,
-                                                                      rateio_despesa_2019_role_nao_conferido,
-                                                                      despesa_2020_1,
-                                                                      rateio_despesa_2020_role_conferido,
-                                                                      rateio_despesa_2020_role_nao_conferido,
-                                                                      rateio_despesa_2020_ptrf_conferido,
-                                                                      rateio_despesa_2020_role_cheque_conferido,
-                                                                      periodo_2020_1,
-                                                                      conta_associacao_cartao
-                                                                      ):
-    transacoes_esperadas = [
-        {
-            'mestre': despesa_2019_2,
-            'rateios': [
-                rateio_despesa_2019_role_conferido,
-                rateio_despesa_2019_role_nao_conferido,
-            ],
-            'tipo': 'Gasto',
-            'valor_transacao_na_conta': 200.0,
-            'valores_por_conta': [
-                {
-                    'conta_associacao__tipo_conta__nome': 'Cartão',
-                    'valor_rateio__sum': 200.0
-                },
-            ],
-        },
-        {
-            'mestre': despesa_2020_1,
-            'rateios': [
-                rateio_despesa_2020_role_conferido,
-                rateio_despesa_2020_role_nao_conferido,
-                rateio_despesa_2020_ptrf_conferido,
-            ],
-            'tipo': 'Gasto',
-            'valor_transacao_na_conta': 300.0,
-            'valores_por_conta': [
-                {
-                    'conta_associacao__tipo_conta__nome': 'Cartão',
-                    'valor_rateio__sum': 300.0
-                },
-                {
-                    'conta_associacao__tipo_conta__nome': 'Cheque',
-                    'valor_rateio__sum': 100.0
-                }
-            ],
-        },
-
-    ]
-
-    conta_uuid = conta_associacao_cartao.uuid
-
-    result_esperado = monta_result_esperado(lancamentos_esperados=transacoes_esperadas, periodo=periodo_2020_1,
-                                            conta=conta_associacao_cartao)
-
-    url = f'/api/conciliacoes/transacoes/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=False'
-
-    response = jwt_authenticated_client_a.get(url, content_type='application/json')
-
-    result = json.loads(response.content)
-
-    assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado, "Não retornou a lista de transações esperada."
-
-
-def test_deve_filtrar_transacoes_por_acao(jwt_authenticated_client_a,
-                                          acao_associacao_role_cultural,
-                                          acao_associacao_ptrf,
-                                          despesa_2019_2,
-                                          rateio_despesa_2019_role_conferido,
-                                          rateio_despesa_2019_role_nao_conferido,
-                                          despesa_2020_1,
-                                          rateio_despesa_2020_role_conferido,
-                                          rateio_despesa_2020_role_nao_conferido,
-                                          rateio_despesa_2020_ptrf_nao_conferido,
-                                          rateio_despesa_2020_role_cheque_conferido,
-                                          periodo_2020_1,
-                                          conta_associacao_cartao,
-                                          receita_2020_1_ptrf_repasse_nao_conferida,
-                                          receita_2020_1_role_outras_nao_conferida,
-                                          ):
-    """
-    Deve retornar apenas receitas da ação filtrada, ou despesas que tenham ao meno sum rateio na ação filtrada
-    considerando também o filtro de período, conta e conferido.
-    """
-    transacoes_esperadas = [
-        {
-            'mestre': despesa_2020_1,
-            'rateios': [
-                rateio_despesa_2020_role_conferido,
-                rateio_despesa_2020_role_nao_conferido,
-                rateio_despesa_2020_ptrf_nao_conferido,
-            ],
-            'tipo': 'Gasto',
-            'valor_transacao_na_conta': 300.0,
-            'valores_por_conta': [
-                {
-                    'conta_associacao__tipo_conta__nome': 'Cartão',
-                    'valor_rateio__sum': 300.0
-                },
-                {
-                    'conta_associacao__tipo_conta__nome': 'Cheque',
-                    'valor_rateio__sum': 100.0
-                }
-            ],
-        },
-        {
-            'mestre': receita_2020_1_ptrf_repasse_nao_conferida,
-            'rateios': [],
-            'tipo': 'Crédito',
-            'valor_transacao_na_conta': 100.0,
-            'valores_por_conta': [],
-        },
-    ]
-
-    conta_uuid = conta_associacao_cartao.uuid
-    acao_uuid = acao_associacao_ptrf.uuid
-
-    result_esperado = monta_result_esperado(lancamentos_esperados=transacoes_esperadas, periodo=periodo_2020_1,
-                                            conta=conta_associacao_cartao)
-
-    url = f'/api/conciliacoes/transacoes/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=False'
-
-    url = f'{url}&acao_associacao={acao_uuid}'
-
-    response = jwt_authenticated_client_a.get(url, content_type='application/json')
-
-    result = json.loads(response.content)
-
-    assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado, "Não retornou a lista de transações esperada."
-
-
-def test_deve_poder_filtrar_tipo_transacao_credito(jwt_authenticated_client_a,
-                                                   despesa_2020_1,
-                                                   rateio_despesa_2020_role_conferido,
-                                                   rateio_despesa_2020_ptrf_conferido,
-                                                   rateio_despesa_2020_role_cheque_conferido,
-                                                   periodo_2020_1,
-                                                   conta_associacao_cartao,
-                                                   receita_2020_1_ptrf_repasse_conferida,
-                                                   ):
-    """
-    Deve retornar apenas as receitas se for passado o parâmetro tipo=CREDITOS
-    """
-
-    conta_uuid = conta_associacao_cartao.uuid
-
-    transacoes_esperadas = [
-        {
-            'mestre': receita_2020_1_ptrf_repasse_conferida,
-            'rateios': [],
-            'tipo': 'Crédito',
-            'valor_transacao_na_conta': 100.0,
-            'valores_por_conta': [],
-        },
-
-    ]
-
-    result_esperado = monta_result_esperado(lancamentos_esperados=transacoes_esperadas, periodo=periodo_2020_1,
-                                            conta=conta_associacao_cartao)
-
-    url = f'/api/conciliacoes/transacoes/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=True'
-
-    url = f'{url}&tipo=CREDITOS'
-
-    response = jwt_authenticated_client_a.get(url, content_type='application/json')
-
-    result = json.loads(response.content)
-
-    assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado, "Não retornou a lista de transações esperada."
-
-
-def test_deve_poder_filtrar_tipo_transacao_gasto(jwt_authenticated_client_a,
-                                                 despesa_2020_1,
-                                                 rateio_despesa_2020_role_conferido,
-                                                 rateio_despesa_2020_ptrf_conferido,
-                                                 rateio_despesa_2020_role_cheque_conferido,
-                                                 periodo_2020_1,
-                                                 conta_associacao_cartao,
-                                                 receita_2020_1_ptrf_repasse_conferida,
-                                                 ):
-    """
-    Deve retornar apenas as despesas se for passado o parâmetro tipo=GASTOS
-    """
-
-    conta_uuid = conta_associacao_cartao.uuid
-
-    transacoes_esperadas = [
-        {
-            'mestre': despesa_2020_1,
-            'rateios': [
-                rateio_despesa_2020_role_conferido,
-                rateio_despesa_2020_ptrf_conferido,
-            ],
-            'tipo': 'Gasto',
-            'valor_transacao_na_conta': 200.0,
-            'valores_por_conta': [
-                {
-                    'conta_associacao__tipo_conta__nome': 'Cartão',
-                    'valor_rateio__sum': 200.0
-                },
-                {
-                    'conta_associacao__tipo_conta__nome': 'Cheque',
-                    'valor_rateio__sum': 100.0
-                }
-            ],
-        },
-
-    ]
-
-    result_esperado = monta_result_esperado(lancamentos_esperados=transacoes_esperadas, periodo=periodo_2020_1,
-                                            conta=conta_associacao_cartao)
-
-    url = f'/api/conciliacoes/transacoes/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=True'
-
-    url = f'{url}&tipo=GASTOS'
-
-    response = jwt_authenticated_client_a.get(url, content_type='application/json')
-
-    result = json.loads(response.content)
-
-    assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado, "Não retornou a lista de transações esperada."
-
-
-def test_deve_validar_tipo_transacao(jwt_authenticated_client_a,
-                                     despesa_2020_1,
-                                     rateio_despesa_2020_role_conferido,
-                                     rateio_despesa_2020_ptrf_conferido,
-                                     rateio_despesa_2020_role_cheque_conferido,
-                                     periodo_2020_1,
-                                     conta_associacao_cartao,
-                                     receita_2020_1_ptrf_repasse_conferida,
-                                     ):
-    """
-    Deve retornar erro se o tipo informado for diferente de GASTOS e CREDITOS.
-    """
-
-    conta_uuid = conta_associacao_cartao.uuid
-
-    result_esperado = {
-        'erro': 'parametro_inválido',
-        'mensagem': 'O parâmetro tipo pode receber como valor "CREDITOS" ou "GASTOS". '
-                    'O parâmetro é opcional.'
-    }
-
-    url = f'/api/conciliacoes/transacoes/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=True'
-
-    url = f'{url}&tipo=INVALIDO'
-
-    response = jwt_authenticated_client_a.get(url, content_type='application/json')
-
-    result = json.loads(response.content)
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert result == result_esperado, "Não retornou o erro esperado."
-
-
-def test_deve_validar_conferido(jwt_authenticated_client_a,
-                                despesa_2020_1,
-                                rateio_despesa_2020_role_conferido,
-                                rateio_despesa_2020_ptrf_conferido,
-                                rateio_despesa_2020_role_cheque_conferido,
-                                periodo_2020_1,
-                                conta_associacao_cartao,
-                                receita_2020_1_ptrf_repasse_conferida,
-                                ):
-    """
-    Deve retornar erro se o parâmetro conferido informado for diferente de True e False.
-    """
-
-    conta_uuid = conta_associacao_cartao.uuid
-
-    result_esperado = {
-        'erro': 'parametro_inválido',
-        'mensagem': 'O parâmetro "conferido" deve receber como valor "True" ou "False". '
-                    'O parâmetro é obrigatório.'
-    }
-
-    url = f'/api/conciliacoes/transacoes/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=INVALID'
-
-    response = jwt_authenticated_client_a.get(url, content_type='application/json')
-
-    result = json.loads(response.content)
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert result == result_esperado, "Não retornou o erro esperado."

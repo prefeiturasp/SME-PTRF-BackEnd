@@ -553,3 +553,39 @@ def prestacao_conta_2020_1_em_analise(periodo_2020_1, associacao):
         data_recebimento=datetime.date(2020, 10, 1),
         status="EM_ANALISE"
     )
+
+
+@pytest.fixture
+def analise_prestacao_conta_2020_1_em_analise(prestacao_conta_2020_1_em_analise,):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_em_analise,
+    )
+
+
+@pytest.fixture
+def analise_lancamento_receita_prestacao_conta_2020_1_em_analise(
+    analise_prestacao_conta_2020_1_em_analise,
+    receita_2020_1_ptrf_repasse_conferida
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise,
+        tipo_lancamento='CREDITO',
+        receita=receita_2020_1_ptrf_repasse_conferida,
+        resultado='CORRETO'
+    )
+
+
+@pytest.fixture
+def analise_lancamento_despesa_prestacao_conta_2020_1_em_analise(
+    analise_prestacao_conta_2020_1_em_analise,
+    despesa_2020_1
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise,
+        tipo_lancamento='GASTO',
+        despesa=despesa_2020_1,
+        resultado='CORRETO'
+    )

@@ -18,7 +18,16 @@ from sme_ptrf_apps.users.permissoes import (
 )
 
 from ....dre.models import Atribuicao, TecnicoDre, MotivoAprovacaoRessalva
-from ...models import Associacao, Ata, Periodo, PrestacaoConta, Unidade, ContaAssociacao, AcaoAssociacao
+from ...models import (
+    Associacao,
+    Ata,
+    Periodo,
+    PrestacaoConta,
+    Unidade,
+    ContaAssociacao,
+    AcaoAssociacao,
+    AnalisePrestacaoConta
+)
 from ...services import (
     concluir_prestacao_de_contas,
     informacoes_financeiras_para_atas,
@@ -843,6 +852,34 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def lancamentos(self, request, uuid):
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
 
+        # Define a análise da prestação de contas
+        analise_prestacao_uuid = self.request.query_params.get('analise_prestacao')
+
+        if not analise_prestacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da analise de prestacao de contas.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if analise_prestacao.prestacao_conta != prestacao_conta:
+            erro = {
+                'erro': 'Análise de prestação inválida.',
+                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
         # Define a conta de conciliação
         conta_associacao_uuid = self.request.query_params.get('conta_associacao')
 
@@ -887,7 +924,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         lancamentos = lancamentos_da_prestacao(
-            prestacao_conta=prestacao_conta,
+            analise_prestacao_conta=analise_prestacao,
             conta_associacao=conta_associacao,
             acao_associacao=acao_associacao,
             tipo_transacao=tipo_transacao
