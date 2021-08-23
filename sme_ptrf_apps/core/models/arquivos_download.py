@@ -21,7 +21,7 @@ class ArquivoDownload(ModeloBase):
         (STATUS_ERRO, STATUS_NOMES[STATUS_ERRO])
     )
 
-    identificador = models.CharField("Nome do arquivo", max_length=20, default='')
+    identificador = models.CharField("Nome do arquivo", max_length=200, default='')
     arquivo = models.FileField(null=True, verbose_name='Arquivo')
     status = models.CharField(
         'status',
@@ -31,7 +31,6 @@ class ArquivoDownload(ModeloBase):
     )
     msg_erro = models.CharField("Mensagem erro", max_length=300, blank=True)
     lido = models.BooleanField("Foi lido?", default=False)
-    central_de_downloads = models.BooleanField("Deve ir para central de downloads?", default=False)
     usuario = models.ForeignKey(get_user_model(), on_delete=models.PROTECT)
 
     class Meta:
