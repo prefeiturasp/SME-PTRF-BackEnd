@@ -33,6 +33,7 @@ from .models import (
     ModeloCarga,
     Ambiente,
     AnalisePrestacaoConta
+    ArquivoDownload,
 )
 
 admin.site.register(Acao)
@@ -562,3 +563,8 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
 
+@admin.register(ArquivoDownload)
+class ArquivoDownloadAdmin(admin.ModelAdmin):
+    list_display = ('identificador', 'status', 'alterado_em', 'lido')
+    readonly_fields = ('uuid', 'id',)
+    list_display_links = ('identificador',)

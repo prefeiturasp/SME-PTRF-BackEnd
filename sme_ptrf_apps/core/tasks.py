@@ -234,3 +234,23 @@ def gerar_notificacao_proximidade_fim_prazo_ajustes_prestacao_conta_async():
 
     logger.info('Finalizando a geração de notificação de proximidade do fim do prazo para entrega de ajustes de prestação de contas async.')
 
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
+def gerar_xlsx_saldo_bancario_async(periodo_uuid, conta_uuid, dre_uuid, unidade, tipo_ue, username):
+    logger.info('Iniciando a exportação do arquivo xlsx de saldos bancarios em detalhes associações async')
+    from sme_ptrf_apps.sme.services.exporta_arquivos_service import gerar_arquivo_xlsx_saldo_bancario
+    from sme_ptrf_apps.core.services.arquivo_download_service import gerar_arquivo_download, atualiza_arquivo_download, atualiza_arquivo_download_erro
+
+    obj_arquivo_download = gerar_arquivo_download(username, "saldos_bancarios_associacoes.xlsx")
+    try:
+        arquivo_xlsx = gerar_arquivo_xlsx_saldo_bancario(periodo_uuid, conta_uuid, dre_uuid, unidade, tipo_ue, username)
+        atualiza_arquivo_download(obj_arquivo_download, arquivo_xlsx)
+    except Exception as e:
+        atualiza_arquivo_download_erro(obj_arquivo_download, e)
+
+    logger.info('Finalizando a exportação do arquivo xlsx de saldos bancarios em detalhes associações async')
