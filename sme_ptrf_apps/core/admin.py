@@ -32,7 +32,7 @@ from .models import (
     ParametroFiqueDeOlhoPc,
     ModeloCarga,
     Ambiente,
-    AnalisePrestacaoConta
+    AnalisePrestacaoConta,
     ArquivoDownload,
 )
 
