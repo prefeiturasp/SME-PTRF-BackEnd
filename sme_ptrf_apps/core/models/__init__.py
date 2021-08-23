@@ -55,6 +55,6 @@ from .permissoes_sme import (
 from .permissoes_api import (
     ApiPermissoesPerfis,
 )
-
 from .ambiente import Ambiente
 from .analise_prestacao_conta import AnalisePrestacaoConta
+from .analise_lancamento_prestacao_conta import AnaliseLancamentoPrestacaoConta

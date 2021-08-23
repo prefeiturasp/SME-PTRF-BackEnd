@@ -930,6 +930,19 @@ def receita_30_no_periodo_outra_acao(associacao, conta_associacao, acao_associac
 
 
 @pytest.fixture
+def receita_no_periodo_2020_1(associacao, conta_associacao, acao_associacao, tipo_receita, periodo_2020_1):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=periodo_2020_1.data_inicio_realizacao_despesas,
+        valor=100.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
+    )
+
+
+@pytest.fixture
 def tipo_documento():
     return baker.make('TipoDocumento', nome='NFe')
 
@@ -1548,4 +1561,15 @@ def analise_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, devolucao_
         'AnalisePrestacaoConta',
         prestacao_conta=prestacao_conta_2020_1_conciliada,
         devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1
+    )
+
+
+@pytest.fixture
+def analise_lancamento_receita_prestacao_conta_2020_1(analise_prestacao_conta_2020_1, receita_no_periodo_2020_1):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
+        tipo_lancamento='CREDITO',
+        receita=receita_no_periodo_2020_1,
+        resultado='CORRETO'
     )
