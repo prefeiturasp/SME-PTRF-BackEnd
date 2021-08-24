@@ -27,8 +27,7 @@ class ArquivosDownloadViewSet(mixins.ListModelMixin,
 
     def get_queryset(self):
         user = self.request.user
-        qs = ArquivoDownload.objects.filter(
-            usuario=user).filter(central_de_downloads=True).order_by("-criado_em")
+        qs = ArquivoDownload.objects.filter(usuario=user).order_by("-criado_em")
 
         ultima_atualizacao = self.request.query_params.get('ultima_atualizacao')
         if ultima_atualizacao is not None:
@@ -81,7 +80,7 @@ class ArquivosDownloadViewSet(mixins.ListModelMixin,
     def quantidade_de_nao_lidos(self, request):
         user = self.request.user
         quantidade_nao = ArquivoDownload.objects.filter(
-            usuario=user).filter(lido=False).filter(central_de_downloads=True).exclude(status="EM_PROCESSAMENTO").count()
+            usuario=user).filter(lido=False).exclude(status="EM_PROCESSAMENTO").count()
         data = {
             "quantidade_nao_lidos": quantidade_nao
         }

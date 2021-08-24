@@ -36,4 +36,5 @@ from .comentario_analise_prestacao_serializer import ComentarioAnalisePrestacaoR
 from .arquivo_serializer import ArquivoSerializer
 from .modelo_carga_serializer import ModeloCargaSerializer
 from .ambiente_serializer import AmbienteSerializer
+from .analise_prestacao_conta_serializer import AnalisePrestacaoContaRetrieveSerializer
 from .arquivos_download_serializer import ArquivoDownloadSerializer

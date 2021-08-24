@@ -173,6 +173,7 @@ def arquivo_extrato():
         f'extrato.pdf',
         bytes(f"""Arquivo teste""", encoding="utf-8"))
 
+
 @pytest.fixture
 def extrato_cheque(arquivo_extrato, prestacao_conta, conta_associacao_cheque):
     return baker.make(
@@ -188,9 +189,24 @@ def extrato_cheque(arquivo_extrato, prestacao_conta, conta_associacao_cheque):
     )
 
 
+@pytest.fixture
+def _analise_prestacao_conta(prestacao_conta):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta,
+    )
+
+
+@pytest.fixture
+def _prestacao_de_contas_com_analise_corrente(prestacao_conta, _analise_prestacao_conta):
+    prestacao_conta.analise_atual = _analise_prestacao_conta
+    prestacao_conta.save()
+    return prestacao_conta
+
+
 def test_api_retrieve_prestacao_conta_por_uuid(
     jwt_authenticated_client_a,
-    prestacao_conta,
+    _prestacao_de_contas_com_analise_corrente,
     _atribuicao,
     _devolucao_prestacao_conta,
     _cobranca_prestacao_devolucao,
@@ -203,6 +219,8 @@ def test_api_retrieve_prestacao_conta_por_uuid(
     demonstrativo_financeiro_cheque,
     extrato_cheque
 ):
+    prestacao_conta = _prestacao_de_contas_com_analise_corrente
+
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
@@ -386,7 +404,14 @@ def test_api_retrieve_prestacao_conta_por_uuid(
                 'uuid': f'{extrato_cheque.uuid}',
                 'conta_uuid': f'{conta_associacao_cheque.uuid}'
             }
-        ]
+        ],
+        'analise_atual': {
+            'uuid': f'{prestacao_conta.analise_atual.uuid}',
+            'id': prestacao_conta.analise_atual.id,
+            'devolucao_prestacao_conta': None,
+            'status': 'EM_ANALISE',
+            'criado_em': prestacao_conta.analise_atual.criado_em.isoformat("T")
+        },
     }
 
     assert response.status_code == status.HTTP_200_OK
