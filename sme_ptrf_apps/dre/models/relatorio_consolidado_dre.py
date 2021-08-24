@@ -26,6 +26,20 @@ class RelatorioConsolidadoDRE(ModeloBase):
         (STATUS_EM_PROCESSAMENTO, STATUS_NOMES[STATUS_EM_PROCESSAMENTO]),
     )
 
+    # Versao Choice
+    VERSAO_FINAL = 'FINAL'
+    VERSAO_PREVIA = 'PREVIA'
+
+    VERSAO_NOMES = {
+        VERSAO_FINAL: 'final',
+        VERSAO_PREVIA: 'prévio',
+    }
+
+    VERSAO_CHOICES = (
+        (VERSAO_FINAL, VERSAO_NOMES[VERSAO_FINAL]),
+        (VERSAO_PREVIA, VERSAO_NOMES[VERSAO_PREVIA]),
+    )
+
     arquivo = models.FileField(blank=True, null=True)
 
     dre = models.ForeignKey('core.Unidade', on_delete=models.PROTECT, related_name='relatorios_consolidados_da_dre',
@@ -43,21 +57,34 @@ class RelatorioConsolidadoDRE(ModeloBase):
         default=STATUS_NAO_GERADO
     )
 
+    versao = models.CharField(
+        'versão',
+        max_length=20,
+        choices=VERSAO_CHOICES,
+        default=VERSAO_FINAL
+    )
+
     class Meta:
         verbose_name = 'Relatório consolidado DRE'
         verbose_name_plural = 'Relatórios consolidados DREs'
 
     def __str__(self):
-
-        if self.status == self.STATUS_EM_PROCESSAMENTO:
-            status_str = "Relatório sendo gerado. Aguarde."
-
-        elif self.status == self.STATUS_NAO_GERADO:
-            status_str = "Documento não gerado"
-
-        else:
-            status_str = f"Documento {'final' if self.status == 'GERADO_TOTAL' else 'parcial'} " \
-                         f"gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
+        if self.versao == self.VERSAO_PREVIA:
+            if self.status == self.STATUS_EM_PROCESSAMENTO:
+                status_str = "Previa do relatório sendo gerada. Aguarde."
+            elif self.status == self.STATUS_NAO_GERADO:
+                status_str = "Documento não gerado"
+            else:
+                status_str = f"Prévia do documento {'final' if self.status == 'GERADO_TOTAL' else 'parcial'} " \
+                             f"gerada dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
+        elif self.versao == self.VERSAO_FINAL:
+            if self.status == self.STATUS_EM_PROCESSAMENTO:
+                status_str = "Relatório sendo gerado. Aguarde."
+            elif self.status == self.STATUS_NAO_GERADO:
+                status_str = "Documento não gerado"
+            else:
+                status_str = f"Documento {'final' if self.status == 'GERADO_TOTAL' else 'parcial'} " \
+                             f"gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
 
         return status_str
 

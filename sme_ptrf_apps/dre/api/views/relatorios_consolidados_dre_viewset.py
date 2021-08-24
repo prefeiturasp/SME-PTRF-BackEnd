@@ -27,7 +27,7 @@ from ...services import (
     status_de_geracao_do_relatorio,
     update_observacao_devolucao,
 )
-from ...tasks import gerar_relatorio_consolidado_dre_async
+from ...tasks import gerar_relatorio_consolidado_dre_async, gerar_previa_relatorio_consolidado_dre_async
 
 logger = logging.getLogger(__name__)
 
@@ -737,7 +737,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
-        filename = 'relatorio_dre.xlsx'
+        filename = 'relatorio_dre.xlsx' if relatorio.versao == RelatorioConsolidadoDRE.VERSAO_FINAL else 'previa_relatorio_dre.xlsx'
         response = HttpResponse(
             open(relatorio.arquivo.path, 'rb'),
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -831,7 +831,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
         dre_uuid, periodo_uuid, tipo_conta_uuid = dados['dre_uuid'], dados['periodo_uuid'], dados['tipo_conta_uuid']
 
         try:
-            dre = Unidade.dres.get(uuid=dre_uuid)
+            Unidade.dres.get(uuid=dre_uuid)
         except Unidade.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -841,7 +841,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            tipo_conta = TipoConta.objects.get(uuid=tipo_conta_uuid)
+            TipoConta.objects.get(uuid=tipo_conta_uuid)
         except TipoConta.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -851,7 +851,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            periodo = Periodo.objects.get(uuid=periodo_uuid)
+            Periodo.objects.get(uuid=periodo_uuid)
         except Periodo.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -861,23 +861,13 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            xlsx = gera_previa_relatorio_dre(dre, periodo, tipo_conta, dados['parcial'])
-
-            result = BytesIO(save_virtual_workbook(xlsx))
-
-            filename = 'relatorio_consolidado_dre.xlsx'
-            response = HttpResponse(
-                result,
-                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            )
-            response['Content-Disposition'] = 'attachment; filename=%s' % filename
-
-            return response
-
+            gerar_previa_relatorio_consolidado_dre_async.delay(dre_uuid, tipo_conta_uuid, periodo_uuid, dados['parcial'])
         except Exception as err:
             erro = {
-                'erro': 'problema_geracao_previa_relatorio',
-                'mensagem': 'Ao gerar prévia do relatório.'
+                'erro': 'problem_geracao_relatorio',
+                'mensagem': 'Ao gerar relatório.'
             }
-            logger.info("Erro ao gerar prévia do relatório consolidado: %s", str(err))
+            logger.info("Erro ao gerar relatório consolidado: %s", str(err))
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"OK": "Relatório Consolidado na fila para processamento."}, status=status.HTTP_201_CREATED)

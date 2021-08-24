@@ -44,6 +44,8 @@ def status_de_geracao_do_relatorio(dre, periodo, tipo_conta):
 
     status_txt_relatorio = f'{RelatorioConsolidadoDRE.STATUS_NOMES[status_relatorio]}.'
 
+    versao_relatorio = relatorio.versao if relatorio else None
+
     if pcs_em_analise:
         status_txt_analise = 'Ainda constam prestações de contas das associações em análise.'
     else:
@@ -58,7 +60,8 @@ def status_de_geracao_do_relatorio(dre, periodo, tipo_conta):
         'status_geracao': status_relatorio,
         'status_txt': status_txt_geracao,
         'cor_idx': cor_idx,
-        'status_arquivo': 'Documento pendente de geração' if status_relatorio == 'NAO_GERADO' else relatorio.__str__()
+        'status_arquivo': 'Documento pendente de geração' if status_relatorio == 'NAO_GERADO' else relatorio.__str__(),
+        'versao': versao_relatorio
     }
     return status
 

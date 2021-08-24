@@ -83,7 +83,10 @@ def gera_relatorio_dre(dre, periodo, tipo_conta, parcial=False):
         dre=dre,
         periodo=periodo,
         tipo_conta=tipo_conta,
-        defaults={'status': RelatorioConsolidadoDRE.STATUS_EM_PROCESSAMENTO},
+        defaults={
+            'status': RelatorioConsolidadoDRE.STATUS_EM_PROCESSAMENTO,
+            'versao': RelatorioConsolidadoDRE.VERSAO_FINAL
+        }
     )
 
     filename = 'relatorio_consolidade_dre_%s.xlsx'
@@ -105,31 +108,61 @@ def gera_relatorio_dre(dre, periodo, tipo_conta, parcial=False):
 
 
 def gera_previa_relatorio_dre(dre, periodo, tipo_conta, parcial=False):
+    LOGGER.info("Prévia relatório consolidado em processamento...")
+
+    relatorio_consolidado, _ = RelatorioConsolidadoDRE.objects.update_or_create(
+        dre=dre,
+        periodo=periodo,
+        tipo_conta=tipo_conta,
+        defaults={'status': RelatorioConsolidadoDRE.STATUS_EM_PROCESSAMENTO},
+        versao=RelatorioConsolidadoDRE.VERSAO_PREVIA
+    )
+
+    filename = 'previa_relatorio_consolidade_dre_%s.xlsx'
 
     xlsx = gerar(dre, periodo, tipo_conta, parcial=parcial)
 
-    return xlsx
+    with NamedTemporaryFile() as tmp:
+        xlsx.save(tmp.name)
+        relatorio_consolidado.arquivo.save(name=filename % relatorio_consolidado.pk, content=File(tmp))
+
+    relatorio_consolidado.status = (
+        RelatorioConsolidadoDRE.STATUS_GERADO_PARCIAL if parcial
+        else RelatorioConsolidadoDRE.STATUS_GERADO_TOTAL
+    )
+    relatorio_consolidado.save()
+
+    LOGGER.info("Prévia relatório Consolidado Gerado: uuid: %s, status: %s",
+                relatorio_consolidado.uuid, relatorio_consolidado.status)
 
 
 def gerar(dre, periodo, tipo_conta, parcial=False):
-    LOGGER.info("GERANDO RELATÓRIO CONSOLIDADO...")
+    LOGGER.info("Gerando relatório consolidado...")
 
     path = os.path.join(os.path.basename(staticfiles_storage.location), 'cargas')
     nome_arquivo = os.path.join(path, 'modelo_relatorio_dre_sme.xlsx')
     workbook = load_workbook(nome_arquivo)
     worksheet = workbook.active
     try:
+        LOGGER.info("Iniciando cabecalho...")
         cabecalho(worksheet, periodo, tipo_conta, parcial)
+        LOGGER.info("Iniciando identificacao...")
         identificacao_dre(worksheet, dre)
+        LOGGER.info("Iniciando assinatura...")
         assinatura_dre(worksheet, dre)
+        LOGGER.info("Iniciando data geracao...")
         data_geracao_documento(worksheet, parcial)
+        LOGGER.info("Iniciando execucao financeira...")
         execucao_financeira(worksheet, dre, periodo, tipo_conta)
+        LOGGER.info("Iniciando execucao fisica...")
         execucao_fisica(worksheet, dre, periodo)
 
+        LOGGER.info("Iniciando associacoes pendentes...")
         associacoes_pendentes = Associacao.objects.filter(
             unidade__dre=dre, status_regularidade=Associacao.STATUS_REGULARIDADE_PENDENTE).exclude(cnpj__exact='')
 
         associacoes_nao_regularizadas(worksheet, associacoes_pendentes)
+        LOGGER.info("Iniciando dados fisicos financeiros...")
         acc = len(associacoes_pendentes) - 1 if len(associacoes_pendentes) > 1 else 0
         dados_fisicos_financeiros(worksheet, dre, periodo, tipo_conta, acc=acc)
     except Exception as err:

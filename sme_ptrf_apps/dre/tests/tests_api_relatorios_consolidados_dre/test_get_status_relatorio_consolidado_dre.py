@@ -25,6 +25,7 @@ def test_api_get_status_relatorio_analise_completa_rel_nao_gerado(jwt_authentica
         'status_txt': 'Análise de prestações de contas das associações completa. Relatório não gerado.',
         'cor_idx': 2,
         'status_arquivo': 'Documento pendente de geração',
+        'versao': None
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -55,7 +56,8 @@ def test_api_get_status_relatorio_analise_pendente_rel_nao_gerado(jwt_authentica
         'status_geracao': 'NAO_GERADO',
         'status_txt': 'Ainda constam prestações de contas das associações em análise. Relatório não gerado.',
         'cor_idx': 0,
-        'status_arquivo': 'Documento pendente de geração'
+        'status_arquivo': 'Documento pendente de geração',
+        'versao': None
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -97,7 +99,8 @@ def test_api_get_status_relatorio_analise_pendente_rel_parcial_gerado(jwt_authen
         'status_geracao': 'GERADO_PARCIAL',
         'status_txt': 'Ainda constam prestações de contas das associações em análise. Relatório parcial gerado.',
         'cor_idx': 1,
-        'status_arquivo': 'Documento parcial gerado dia 27/10/2020 13:59'
+        'status_arquivo': 'Documento parcial gerado dia 27/10/2020 13:59',
+        'versao': 'FINAL'
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -118,7 +121,8 @@ def test_api_get_status_relatorio_analise_completa_rel_parcial_gerado(jwt_authen
         'status_geracao': 'GERADO_PARCIAL',
         'status_txt': 'Análise de prestações de contas das associações completa. Relatório parcial gerado.',
         'cor_idx': 2,
-        'status_arquivo': 'Documento parcial gerado dia 27/10/2020 13:59'
+        'status_arquivo': 'Documento parcial gerado dia 27/10/2020 13:59',
+        'versao': 'FINAL'
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -153,7 +157,8 @@ def test_api_get_status_relatorio_analise_completa_rel_final_gerado(jwt_authenti
         'status_geracao': 'GERADO_TOTAL',
         'status_txt': 'Análise de prestações de contas das associações completa. Relatório final gerado.',
         'cor_idx': 3,
-        'status_arquivo': 'Documento final gerado dia 27/10/2020 13:59'
+        'status_arquivo': 'Documento final gerado dia 27/10/2020 13:59',
+        'versao': 'FINAL'
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -236,7 +241,8 @@ def test_api_get_status_relatorio_em_processamento(jwt_authenticated_client_rela
         'status_geracao': 'EM_PROCESSAMENTO',
         'status_txt': 'Análise de prestações de contas das associações completa. Relatório em processamento.',
         'cor_idx': 3,
-        'status_arquivo': 'Relatório sendo gerado. Aguarde.'
+        'status_arquivo': 'Relatório sendo gerado. Aguarde.',
+        'versao': 'FINAL'
     }
 
     assert response.status_code == status.HTTP_200_OK
