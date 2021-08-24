@@ -20,11 +20,14 @@ def test_geracao_e_download_relatorio_previa(jwt_authenticated_client_relatorio_
         data=json.dumps(payload),
         content_type='application/json')
 
-    assert [t[1] for t in list(response.items()) if t[0] ==
-            'Content-Disposition'][0] == 'attachment; filename=relatorio_consolidado_dre.xlsx'
-    assert [t[1] for t in list(response.items()) if t[0] ==
-            'Content-Type'][0] == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    assert response.status_code == status.HTTP_200_OK
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        'OK': 'Relatório Consolidado na fila para processamento.'
+    }
+
+    assert result == resultado_esperado
+    assert response.status_code == status.HTTP_201_CREATED
 
 
 def test_api_geracao_relatorio_previa_sem_dre_uuid(jwt_authenticated_client_relatorio_consolidado, periodo, dre, tipo_conta):
