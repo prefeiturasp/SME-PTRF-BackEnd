@@ -9,7 +9,7 @@ from rest_framework.filters import SearchFilter
 
 from sme_ptrf_apps.core.api.serializers import MembroAssociacaoCreateSerializer, MembroAssociacaoListSerializer
 from sme_ptrf_apps.core.models import MembroAssociacao
-from sme_ptrf_apps.core.services import TerceirizadasException, TerceirizadasService
+from sme_ptrf_apps.core.services import TerceirizadasException, TerceirizadasService, SmeIntegracaoApiService, SmeIntegracaoApiException
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComLeituraOuGravacao
 
 
@@ -95,13 +95,15 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
             if codigo_eol:
                 filtro["codigo_identificacao__iexact"] = codigo_eol
                 self.membro_ja_cadastrado(**filtro)
-                result = TerceirizadasService.get_informacao_aluno(codigo_eol)
+                result = SmeIntegracaoApiService.get_informacao_aluno(codigo_eol)
                 return Response(result)
             else:
                 filtro["codigo_identificacao__iexact"] = rf
                 self.membro_ja_cadastrado(**filtro)
                 result = TerceirizadasService.get_informacao_servidor(rf)
                 return Response(result)
+        except SmeIntegracaoApiException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except TerceirizadasException as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except ReadTimeout:
@@ -131,9 +133,9 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
             self.membro_ja_cadastrado(**filtro)
 
             return Response({'detail': "Pode ser cadastrado."}, status.HTTP_200_OK)
-        except TerceirizadasException as e:
+        except SmeIntegracaoApiException as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def membro_ja_cadastrado(self, **kwargs):
         if MembroAssociacao.objects.filter(**kwargs).exists():
-            raise TerceirizadasException('Membro já cadastrado.')
+            raise SmeIntegracaoApiException('Membro já cadastrado.')
