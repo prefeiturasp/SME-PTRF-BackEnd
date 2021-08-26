@@ -9,7 +9,6 @@ from django.db.models.aggregates import Sum
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.dre.models import Atribuicao
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -74,6 +73,10 @@ class PrestacaoConta(ModeloBase):
 
     outros_motivos_aprovacao_ressalva = models.TextField('Outros motivos para aprovação com ressalvas pela DRE', blank=True, default='')
 
+    analise_atual = models.ForeignKey('AnalisePrestacaoConta', on_delete=models.SET_NULL,
+                                      related_name='+',
+                                      blank=True, null=True)
+
     @property
     def tecnico_responsavel(self):
         atribuicoes = Atribuicao.search(
@@ -125,12 +128,23 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
+    @transaction.atomic
     def analisar(self):
+        from . import AnalisePrestacaoConta
+
         self.status = self.STATUS_EM_ANALISE
         self.save()
+
+        AnalisePrestacaoConta.objects.create(prestacao_conta=self)
+
         return self
 
+    @transaction.atomic
     def desfazer_analise(self):
+        if self.analise_atual:
+            self.analise_atual.delete()
+            self.analise_atual = None
+
         self.data_ultima_analise = None
         self.status = self.STATUS_RECEBIDA
         self.save()

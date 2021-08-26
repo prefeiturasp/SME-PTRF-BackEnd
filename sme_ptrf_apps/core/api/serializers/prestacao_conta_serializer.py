@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from sme_ptrf_apps.core.models import PrestacaoConta
+from sme_ptrf_apps.core.models import PrestacaoConta, ObservacaoConciliacao
 from sme_ptrf_apps.core.api.serializers import (AssociacaoCompletoSerializer, DevolucaoPrestacaoContaRetrieveSerializer,
                                                 AnaliseContaPrestacaoContaRetrieveSerializer,
                                                 DevolucaoAoTesouroRetrieveSerializer)
@@ -71,6 +71,14 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             model = TecnicoDre
             fields = ('uuid', 'rf', 'nome',)
 
+    class AnalisePrestacaoContaSerializer(serializers.ModelSerializer):
+        devolucao_prestacao_conta = DevolucaoPrestacaoContaRetrieveSerializer(many=False)
+
+        class Meta:
+            from sme_ptrf_apps.core.models import AnalisePrestacaoConta
+            model = AnalisePrestacaoConta
+            fields = ('uuid', 'id', 'devolucao_prestacao_conta', 'status', 'criado_em')
+
     associacao = AssociacaoCompletoSerializer(many=False)
     periodo_uuid = serializers.SerializerMethodField('get_periodo_uuid')
     tecnico_responsavel = TecnicoResponsavelSerializer(many=False)
@@ -80,6 +88,8 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     analises_de_conta_da_prestacao = AnaliseContaPrestacaoContaRetrieveSerializer(many=True)
     devolucoes_ao_tesouro_da_prestacao = DevolucaoAoTesouroRetrieveSerializer(many=True)
     motivos_aprovacao_ressalva = MotivoAprovacaoRessalvaSerializer(many=True)
+    arquivos_referencia = serializers.SerializerMethodField('get_arquivos_referencia')
+    analise_atual = AnalisePrestacaoContaSerializer(many=False)
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
@@ -90,12 +100,65 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     def get_devolucao_ao_tesouro(self, obj):
         return _str_devolucao_ao_tesouro(obj)
 
+    def get_arquivos_referencia(self, prestacao_contas):
+        result = []
+
+        for demonstrativo in prestacao_contas.demonstrativos_da_prestacao.all():
+            result.append(
+                {
+                    'tipo': 'DF',
+                    'nome': f'Demonstrativo Financeiro da Conta {demonstrativo.conta_associacao.tipo_conta.nome}',
+                    'uuid': f'{demonstrativo.uuid}',
+                    'conta_uuid': f'{demonstrativo.conta_associacao.uuid}'
+                }
+            )
+
+        for rel_bens in prestacao_contas.relacoes_de_bens_da_prestacao.all():
+            result.append(
+                {
+                    'tipo': 'RB',
+                    'nome': f'Relação de Bens da Conta {rel_bens.conta_associacao.tipo_conta.nome}',
+                    'uuid': f'{rel_bens.uuid}',
+                    'conta_uuid': f'{rel_bens.conta_associacao.uuid}'
+                }
+            )
+
+        extratos = ObservacaoConciliacao.objects.filter(
+            associacao=prestacao_contas.associacao).filter(periodo=prestacao_contas.periodo)
+
+        for extrato in extratos:
+            if extrato.comprovante_extrato:
+                result.append(
+                    {
+                        'tipo': 'EB',
+                        'nome': f'Extrato Bancário da Conta {extrato.conta_associacao.tipo_conta.nome}',
+                        'uuid': f'{extrato.uuid}',
+                        'conta_uuid': f'{extrato.conta_associacao.uuid}'
+                    }
+                )
+        return result
+
     class Meta:
         model = PrestacaoConta
-        fields = ('uuid', 'status', 'associacao', 'periodo_uuid', 'tecnico_responsavel', 'data_recebimento',
-                  'devolucoes_da_prestacao', 'processo_sei', 'data_ultima_analise', 'devolucao_ao_tesouro',
-                  'analises_de_conta_da_prestacao', 'motivos_reprovacao',
-                  'devolucoes_ao_tesouro_da_prestacao', 'motivos_aprovacao_ressalva', 'outros_motivos_aprovacao_ressalva')
+        fields = (
+            'uuid',
+            'status',
+            'associacao',
+            'periodo_uuid',
+            'tecnico_responsavel',
+            'data_recebimento',
+            'devolucoes_da_prestacao',
+            'processo_sei',
+            'data_ultima_analise',
+            'devolucao_ao_tesouro',
+            'analises_de_conta_da_prestacao',
+            'motivos_reprovacao',
+            'devolucoes_ao_tesouro_da_prestacao',
+            'motivos_aprovacao_ressalva',
+            'outros_motivos_aprovacao_ressalva',
+            'arquivos_referencia',
+            'analise_atual',
+        )
 
 
 def _str_devolucao_ao_tesouro(obj):

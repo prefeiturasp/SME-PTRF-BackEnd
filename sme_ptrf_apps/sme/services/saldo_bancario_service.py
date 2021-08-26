@@ -2,7 +2,9 @@ import logging
 
 from django.db.models import Count, Sum, Q, FilteredRelation
 
-from sme_ptrf_apps.core.models import Associacao, Unidade, Periodo
+from sme_ptrf_apps.core.models import Associacao, Unidade, Periodo, TipoConta
+import datetime
+from django.contrib.auth import get_user_model
 
 logger = logging.getLogger(__name__)
 
@@ -151,3 +153,89 @@ def saldo_detalhe_associacao(periodo_uuid, conta_uuid, dre_uuid, unidade, tipo_u
         return qs
 
     return qs
+
+
+def gerar_dados_exportar_xlsx(periodo_uuid, conta_uuid, dre_uuid, unidade, tipo_ue, username):
+    dres = Unidade.dres.exclude(sigla='')
+    dre = dres.get(uuid=dre_uuid)
+
+    periodo_relation = Periodo.objects.get(uuid=periodo_uuid)
+    data_inicio = formata_data(periodo_relation.data_inicio_realizacao_despesas)
+    data_fim = formata_data(periodo_relation.data_fim_realizacao_despesas)
+    periodo = f"{periodo_relation.referencia} - {data_inicio} até {data_fim}"
+
+    conta = TipoConta.objects.get(uuid=conta_uuid)
+
+    usuario = get_user_model().objects.get(username=username)
+
+    filtered_relation = FilteredRelation(
+        'observacoes_conciliacao_da_associacao',
+        condition=Q(observacoes_conciliacao_da_associacao__periodo=periodo_relation)
+    )
+
+    qs = Associacao.objects.filter(unidade__dre__sigla=dre.sigla).annotate(
+        obs_periodo=filtered_relation
+    ).filter(
+        Q(obs_periodo__conta_associacao__tipo_conta__uuid=conta_uuid) | Q(obs_periodo__isnull=True)
+    ).values(
+        'unidade__codigo_eol',
+        'unidade__nome',
+        'unidade__tipo_unidade',
+        'obs_periodo__data_extrato',
+        'obs_periodo__saldo_extrato',
+    )
+
+    dados = {
+        "qs": qs,
+        "informacoes_adicionais": {
+            "dre": dre.nome,
+            "periodo": periodo,
+            "conta": conta.nome,
+            "usuario": usuario.name,
+            "filtro": None
+        }
+    }
+
+
+    # Filtros
+    if unidade is not None:
+        qs = qs.filter(Q(nome__unaccent__icontains=unidade) | Q(
+            unidade__nome__unaccent__icontains=unidade) | Q(
+            unidade__codigo_eol__icontains=unidade))
+
+        dados = {
+            "qs": qs,
+            "informacoes_adicionais": {
+                "dre": dre.nome,
+                "periodo": periodo,
+                "conta": conta.nome,
+                "usuario": usuario.name,
+                "filtro": "Filtro por associação"
+            }
+        }
+
+        return dados
+
+    if tipo_ue is not None:
+        qs = qs.filter(Q(unidade__tipo_unidade__icontains=tipo_ue))
+
+        dados = {
+            "qs": qs,
+            "informacoes_adicionais": {
+                "dre": dre.nome,
+                "periodo": periodo,
+                "conta": conta.nome,
+                "usuario": usuario.name,
+                "filtro": "Filtro por tipo de unidade"
+            }
+        }
+
+        return dados
+
+    return dados
+
+
+def formata_data(data):
+    original_date = datetime.datetime.strptime(str(data), '%Y-%m-%d')
+    formatted_date = original_date.strftime("%d/%m/%Y")
+    return formatted_date

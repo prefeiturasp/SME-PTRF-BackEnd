@@ -50,15 +50,15 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
 
         data_inicio = self.request.query_params.get('data_inicio')
         data_fim = self.request.query_params.get('data_fim')
-        if data_inicio is not None and data_fim is not None:
+        if data_inicio is not None and data_fim is not None and data_inicio != '' and data_fim != '':
             qs = qs.filter(despesa__data_documento__range=[data_inicio, data_fim])
 
         fornecedor = self.request.query_params.get('fornecedor')
-        if fornecedor is not None:
+        if fornecedor is not None and fornecedor != '':
             qs = qs.filter(despesa__nome_fornecedor__unaccent__icontains=fornecedor)
 
         search = self.request.query_params.get('search')
-        if search is not None:
+        if search is not None and search != '':
             qs = qs.filter(especificacao_material_servico__descricao__unaccent__icontains=search)
 
         return qs

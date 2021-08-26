@@ -1,7 +1,8 @@
 import json
 import pytest
-
 from datetime import date
+
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from model_bakery import baker
 from rest_framework import status
@@ -129,12 +130,97 @@ def devolucao_ao_tesouro(prestacao_conta, tipo_devolucao_ao_tesouro, despesa):
     )
 
 
-def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prestacao_conta, prestacao_conta_anterior,
-                                               _atribuicao,
-                                               _devolucao_prestacao_conta, _cobranca_prestacao_devolucao,
-                                               _processo_associacao_prestacao_conta,
-                                               _analise_conta_prestacao_conta_2020_1, conta_associacao_cheque,
-                                               devolucao_ao_tesouro, motivo_aprovacao_ressalva_x):
+@pytest.fixture
+def arquivo_relacao_bens():
+    return SimpleUploadedFile(
+        f'relacao_bens.pdf',
+        bytes(f"""Arquivo teste""", encoding="utf-8"))
+
+
+@pytest.fixture
+def relacao_bens_cheque(arquivo_relacao_bens, prestacao_conta, conta_associacao_cheque):
+    return baker.make(
+        'RelacaoBens',
+        arquivo=arquivo_relacao_bens,
+        arquivo_pdf=arquivo_relacao_bens,
+        conta_associacao=conta_associacao_cheque,
+        prestacao_conta=prestacao_conta,
+        status='CONCLUIDO'
+    )
+
+
+@pytest.fixture
+def arquivo_demonstrativo():
+    return SimpleUploadedFile(
+        f'demonstrativo.pdf',
+        bytes(f"""Arquivo teste""", encoding="utf-8"))
+
+
+@pytest.fixture
+def demonstrativo_financeiro_cheque(arquivo_demonstrativo, prestacao_conta, conta_associacao_cheque):
+    return baker.make(
+        'DemonstrativoFinanceiro',
+        arquivo=arquivo_demonstrativo,
+        arquivo_pdf=arquivo_demonstrativo,
+        conta_associacao=conta_associacao_cheque,
+        prestacao_conta=prestacao_conta,
+        status='CONCLUIDO'
+    )
+
+@pytest.fixture
+def arquivo_extrato():
+    return SimpleUploadedFile(
+        f'extrato.pdf',
+        bytes(f"""Arquivo teste""", encoding="utf-8"))
+
+
+@pytest.fixture
+def extrato_cheque(arquivo_extrato, prestacao_conta, conta_associacao_cheque):
+    return baker.make(
+        'ObservacaoConciliacao',
+        periodo=prestacao_conta.periodo,
+        associacao=prestacao_conta.associacao,
+        conta_associacao=conta_associacao_cheque,
+        texto="teste",
+        data_extrato=prestacao_conta.periodo.data_fim_realizacao_despesas,
+        saldo_extrato=1000,
+        comprovante_extrato=arquivo_extrato,
+        data_atualizacao_comprovante_extrato=prestacao_conta.periodo.data_fim_realizacao_despesas,
+    )
+
+
+@pytest.fixture
+def _analise_prestacao_conta(prestacao_conta):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta,
+    )
+
+
+@pytest.fixture
+def _prestacao_de_contas_com_analise_corrente(prestacao_conta, _analise_prestacao_conta):
+    prestacao_conta.analise_atual = _analise_prestacao_conta
+    prestacao_conta.save()
+    return prestacao_conta
+
+
+def test_api_retrieve_prestacao_conta_por_uuid(
+    jwt_authenticated_client_a,
+    _prestacao_de_contas_com_analise_corrente,
+    _atribuicao,
+    _devolucao_prestacao_conta,
+    _cobranca_prestacao_devolucao,
+    _processo_associacao_prestacao_conta,
+    _analise_conta_prestacao_conta_2020_1,
+    conta_associacao_cheque,
+    devolucao_ao_tesouro,
+    motivo_aprovacao_ressalva_x,
+    relacao_bens_cheque,
+    demonstrativo_financeiro_cheque,
+    extrato_cheque
+):
+    prestacao_conta = _prestacao_de_contas_com_analise_corrente
+
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
@@ -250,7 +336,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                 'data_extrato': '2020-07-01',
                 'prestacao_conta': f'{prestacao_conta.uuid}',
                 'saldo_extrato': '100.00',
-                'uuid': f'{_analise_conta_prestacao_conta_2020_1.uuid}'
+                'uuid': f'{_analise_conta_prestacao_conta_2020_1.uuid}',
             }
         ],
         'motivos_aprovacao_ressalva': [
@@ -299,6 +385,33 @@ def test_api_retrieve_prestacao_conta_por_uuid(jwt_authenticated_client_a, prest
                 'visao_criacao': 'DRE'
             }
         ],
+        'arquivos_referencia': [
+            {
+                'tipo': 'DF',
+                'nome': 'Demonstrativo Financeiro da Conta Cheque',
+                'uuid': f'{demonstrativo_financeiro_cheque.uuid}',
+                'conta_uuid': f'{conta_associacao_cheque.uuid}'
+            },
+            {
+                'tipo': 'RB',
+                'nome': 'Relação de Bens da Conta Cheque',
+                'uuid': f'{relacao_bens_cheque.uuid}',
+                'conta_uuid': f'{conta_associacao_cheque.uuid}'
+            },
+            {
+                'tipo': 'EB',
+                'nome': 'Extrato Bancário da Conta Cheque',
+                'uuid': f'{extrato_cheque.uuid}',
+                'conta_uuid': f'{conta_associacao_cheque.uuid}'
+            }
+        ],
+        'analise_atual': {
+            'uuid': f'{prestacao_conta.analise_atual.uuid}',
+            'id': prestacao_conta.analise_atual.id,
+            'devolucao_prestacao_conta': None,
+            'status': 'EM_ANALISE',
+            'criado_em': prestacao_conta.analise_atual.criado_em.isoformat("T")
+        },
     }
 
     assert response.status_code == status.HTTP_200_OK
