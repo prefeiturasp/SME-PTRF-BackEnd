@@ -407,11 +407,9 @@ def test_saldo_bancario_detalhes_associacoes_filtro_tipo_unidade(jwt_authenticat
 
 def test_saldo_bancario_detalhes_associacoes_exporta_xlsx(jwt_authenticated_client_sme,
                                                          periodo_saldos_bancarios,
-                                                         tipo_conta_saldos_bancarios,
-                                                         dre_saldos_bancarios,
-                                                         ):
+                                                         tipo_conta_saldos_bancarios):
     response = jwt_authenticated_client_sme.get(
-        f'/api/saldos-bancarios-sme-detalhes/exporta_pdf/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}&dre={dre_saldos_bancarios.uuid}',
+        f'/api/saldos-bancarios-sme-detalhes/exporta_xlsx_dres/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}',
         content_type='application/json')
 
     result = json.loads(response.content)
@@ -425,11 +423,9 @@ def test_saldo_bancario_detalhes_associacoes_exporta_xlsx(jwt_authenticated_clie
 
 
 def test_saldo_bancario_detalhes_associacoes_falta_periodo_exporta_xlsx(jwt_authenticated_client_sme,
-                                                                       tipo_conta_saldos_bancarios,
-                                                                       dre_saldos_bancarios,
-                                                                       ):
+                                                                       tipo_conta_saldos_bancarios):
     response = jwt_authenticated_client_sme.get(
-        f'/api/saldos-bancarios-sme-detalhes/exporta_pdf/?conta={tipo_conta_saldos_bancarios.uuid}&dre={dre_saldos_bancarios.uuid}',
+        f'/api/saldos-bancarios-sme-detalhes/exporta_xlsx_dres/?conta={tipo_conta_saldos_bancarios.uuid}',
         content_type='application/json')
 
     result = json.loads(response.content)
@@ -445,11 +441,9 @@ def test_saldo_bancario_detalhes_associacoes_falta_periodo_exporta_xlsx(jwt_auth
 
 
 def test_saldo_bancario_detalhes_associacoes_falta_conta_exporta_xlsx(jwt_authenticated_client_sme,
-                                                                     periodo_saldos_bancarios,
-                                                                     dre_saldos_bancarios,
-                                                                     ):
+                                                                     periodo_saldos_bancarios):
     response = jwt_authenticated_client_sme.get(
-        f'/api/saldos-bancarios-sme-detalhes/exporta_pdf/?periodo={periodo_saldos_bancarios.uuid}&dre={dre_saldos_bancarios.uuid}',
+        f'/api/saldos-bancarios-sme-detalhes/exporta_xlsx_dres/?periodo={periodo_saldos_bancarios.uuid}',
         content_type='application/json')
 
     result = json.loads(response.content)
@@ -463,81 +457,3 @@ def test_saldo_bancario_detalhes_associacoes_falta_conta_exporta_xlsx(jwt_authen
     assert result == resultado_esperado
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-
-def test_saldo_bancario_detalhes_associacoes_falta_dre_exporta_xlsx(jwt_authenticated_client_sme,
-                                                                   periodo_saldos_bancarios,
-                                                                   tipo_conta_saldos_bancarios,
-                                                                   ):
-    response = jwt_authenticated_client_sme.get(
-        f'/api/saldos-bancarios-sme-detalhes/exporta_pdf/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}',
-        content_type='application/json')
-
-    result = json.loads(response.content)
-
-    resultado_esperado = {
-        'erro': 'falta_de_informacoes',
-        'operacao': 'saldos-detalhes-associacoes',
-        'mensagem': 'Faltou informar o uuid da dre. ?dre=uuid_da_dre'
-    }
-
-    assert result == resultado_esperado
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-def test_saldo_bancario_detalhes_associacoes_filtro_unidade_exporta_xlsx(jwt_authenticated_client_sme,
-                                                                        associacao_saldos_bancarios,
-                                                                        observacao_conciliacao_saldos_bancarios,
-                                                                        periodo_saldos_bancarios,
-                                                                        tipo_conta_saldos_bancarios,
-                                                                        dre_saldos_bancarios,
-                                                                        ):
-    response = jwt_authenticated_client_sme.get(
-        f'/api/saldos-bancarios-sme-detalhes/exporta_pdf/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}&dre={dre_saldos_bancarios.uuid}&unidade=Escola Teste',
-        content_type='application/json')
-
-    result = json.loads(response.content)
-
-    resultado_esperado = {
-        "mensagem": "Arquivo na fila para processamento."
-    }
-
-    assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado
-
-
-def test_saldo_bancario_detalhes_associacoes_filtro_codigo_eol_exporta_xlsx(jwt_authenticated_client_sme,
-                                                                           periodo_saldos_bancarios,
-                                                                           tipo_conta_saldos_bancarios,
-                                                                           dre_saldos_bancarios,
-                                                                           ):
-    response = jwt_authenticated_client_sme.get(
-        f'/api/saldos-bancarios-sme-detalhes/exporta_pdf/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}&dre={dre_saldos_bancarios.uuid}&unidade=123457',
-        content_type='application/json')
-
-    result = json.loads(response.content)
-
-    resultado_esperado = {
-        "mensagem": "Arquivo na fila para processamento."
-    }
-
-    assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado
-
-
-def test_saldo_bancario_detalhes_associacoes_filtro_tipo_unidade_exporta_xlsx(jwt_authenticated_client_sme,
-                                                                             periodo_saldos_bancarios,
-                                                                             tipo_conta_saldos_bancarios,
-                                                                             dre_saldos_bancarios,
-                                                                             ):
-    response = jwt_authenticated_client_sme.get(
-        f'/api/saldos-bancarios-sme-detalhes/exporta_pdf/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}&dre={dre_saldos_bancarios.uuid}&tipo_ue=CEU',
-        content_type='application/json')
-
-    result = json.loads(response.content)
-
-    resultado_esperado = {
-        "mensagem": "Arquivo na fila para processamento."
-    }
-
-    assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado

@@ -46,6 +46,7 @@ def extrair_dados(workbook, dados):
 
     qs = dados["qs"]
     informacoes_adicionais = dados["informacoes_adicionais"]
+    gerado_em = datetime.datetime.today().strftime('%d/%m/%Y ás %H:%M')
 
     for dado in qs:
         worksheet.cell(row=linha, column=CODIGO_EOL, value=dado['unidade__codigo_eol'])
@@ -55,7 +56,7 @@ def extrair_dados(workbook, dados):
         worksheet.cell(row=linha, column=VALOR_EXTRATO, value=dado['obs_periodo__saldo_extrato'])
         worksheet.cell(row=linha, column=PERIODO, value=informacoes_adicionais['periodo'])
         worksheet.cell(row=linha, column=CONTA, value=informacoes_adicionais['conta'])
-        worksheet.cell(row=linha, column=DRE, value=informacoes_adicionais['dre'])
+        worksheet.cell(row=linha, column=DRE, value=dado['unidade__dre__nome'])
         linha += 1
 
     linha += 3
@@ -64,7 +65,7 @@ def extrair_dados(workbook, dados):
     worksheet.cell(row=linha+1, column=FONTE, value="SIG-Escola/SME-SP")
 
     worksheet.cell(row=linha, column=GERADO_EM, value="Gerado em")
-    worksheet.cell(row=linha+1, column=GERADO_EM, value=formata_data(datetime.datetime.today().strftime('%Y-%m-%d')))
+    worksheet.cell(row=linha+1, column=GERADO_EM, value=gerado_em)
 
     worksheet.cell(row=linha, column=USUARIO, value="Usuário")
     worksheet.cell(row=linha+1, column=USUARIO, value=informacoes_adicionais['usuario'])

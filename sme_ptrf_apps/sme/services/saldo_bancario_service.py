@@ -155,10 +155,7 @@ def saldo_detalhe_associacao(periodo_uuid, conta_uuid, dre_uuid, unidade, tipo_u
     return qs
 
 
-def gerar_dados_exportar_xlsx(periodo_uuid, conta_uuid, dre_uuid, unidade, tipo_ue, username):
-    dres = Unidade.dres.exclude(sigla='')
-    dre = dres.get(uuid=dre_uuid)
-
+def gerar_dados_extrato_dres_exportacao_xlsx(periodo_uuid, conta_uuid, username):
     periodo_relation = Periodo.objects.get(uuid=periodo_uuid)
     data_inicio = formata_data(periodo_relation.data_inicio_realizacao_despesas)
     data_fim = formata_data(periodo_relation.data_fim_realizacao_despesas)
@@ -173,7 +170,7 @@ def gerar_dados_exportar_xlsx(periodo_uuid, conta_uuid, dre_uuid, unidade, tipo_
         condition=Q(observacoes_conciliacao_da_associacao__periodo=periodo_relation)
     )
 
-    qs = Associacao.objects.filter(unidade__dre__sigla=dre.sigla).annotate(
+    qs = Associacao.objects.annotate(
         obs_periodo=filtered_relation
     ).filter(
         Q(obs_periodo__conta_associacao__tipo_conta__uuid=conta_uuid) | Q(obs_periodo__isnull=True)
@@ -181,56 +178,20 @@ def gerar_dados_exportar_xlsx(periodo_uuid, conta_uuid, dre_uuid, unidade, tipo_
         'unidade__codigo_eol',
         'unidade__nome',
         'unidade__tipo_unidade',
+        'unidade__dre__nome',
         'obs_periodo__data_extrato',
         'obs_periodo__saldo_extrato',
-    )
+    ).order_by('unidade__dre__nome')
 
     dados = {
         "qs": qs,
         "informacoes_adicionais": {
-            "dre": dre.nome,
             "periodo": periodo,
             "conta": conta.nome,
             "usuario": usuario.name,
-            "filtro": None
+            "filtro": f"Filtrado por período {periodo} e por conta {str(conta).lower()}"
         }
     }
-
-
-    # Filtros
-    if unidade is not None:
-        qs = qs.filter(Q(nome__unaccent__icontains=unidade) | Q(
-            unidade__nome__unaccent__icontains=unidade) | Q(
-            unidade__codigo_eol__icontains=unidade))
-
-        dados = {
-            "qs": qs,
-            "informacoes_adicionais": {
-                "dre": dre.nome,
-                "periodo": periodo,
-                "conta": conta.nome,
-                "usuario": usuario.name,
-                "filtro": "Filtro por associação"
-            }
-        }
-
-        return dados
-
-    if tipo_ue is not None:
-        qs = qs.filter(Q(unidade__tipo_unidade__icontains=tipo_ue))
-
-        dados = {
-            "qs": qs,
-            "informacoes_adicionais": {
-                "dre": dre.nome,
-                "periodo": periodo,
-                "conta": conta.nome,
-                "usuario": usuario.name,
-                "filtro": "Filtro por tipo de unidade"
-            }
-        }
-
-        return dados
 
     return dados
 
