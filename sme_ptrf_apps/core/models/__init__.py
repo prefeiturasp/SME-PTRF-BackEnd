@@ -59,3 +59,4 @@ from .permissoes_api import (
 from .ambiente import Ambiente
 from .analise_prestacao_conta import AnalisePrestacaoConta
 from .analise_lancamento_prestacao_conta import AnaliseLancamentoPrestacaoConta
+from .tipo_acerto_lancamento import TipoAcertoLancamento

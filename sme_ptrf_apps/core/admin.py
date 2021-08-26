@@ -34,6 +34,7 @@ from .models import (
     Ambiente,
     AnalisePrestacaoConta,
     ArquivoDownload,
+    TipoAcertoLancamento,
 )
 
 admin.site.register(Acao)
@@ -204,8 +205,8 @@ class ArquivoAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ['uuid', 'nome', 'status']
-    search_fields = ['status']
-    list_filter = ['nome', 'status']
+    search_fields = ['nome',]
+    list_filter = ['status',]
 
 
 @admin.register(ProcessoAssociacao)
@@ -236,6 +237,7 @@ class NotificacaoAdmin(admin.ModelAdmin):
     list_display = ("uuid", "titulo", "remetente", "categoria", "tipo", "hora")
     readonly_fields = ('uuid', 'id')
     list_filter = ("remetente", "categoria", "tipo")
+    search_fields = ("titulo",)
 
 
 @admin.register(CobrancaPrestacaoConta)
@@ -308,7 +310,6 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
 class TipoDevolucaoTesouroAdmin(admin.ModelAdmin):
     list_display = ['uuid', 'nome']
     search_fields = ['nome']
-    list_filter = ['nome', ]
 
 
 @admin.register(DevolucaoAoTesouro)
@@ -563,8 +564,16 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
 
+
 @admin.register(ArquivoDownload)
 class ArquivoDownloadAdmin(admin.ModelAdmin):
     list_display = ('identificador', 'status', 'alterado_em', 'lido')
     readonly_fields = ('uuid', 'id',)
     list_display_links = ('identificador',)
+
+
+@admin.register(TipoAcertoLancamento)
+class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
+    list_display = ['uuid', 'nome', 'categoria']
+    search_fields = ['nome']
+    list_filter = ['categoria', ]
