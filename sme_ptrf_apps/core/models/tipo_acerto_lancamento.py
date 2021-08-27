@@ -27,4 +27,4 @@ class TipoAcertoLancamento(ModeloIdNome):
 
     class Meta:
         verbose_name = "Tipo de acerto em lançamentos"
-        verbose_name_plural = "15.1) Tipos de acerto em lançamentos"
+        verbose_name_plural = "16.2) Tipos de acerto em lançamentos"

@@ -8,14 +8,14 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
     RESULTADO_CORRETO = 'CORRETO'
     RESULTADO_AJUSTE = 'AJUSTE'
 
-    RESULTADIO_NOMES = {
+    RESULTADO_NOMES = {
         RESULTADO_CORRETO: 'Lançamento Correto',
         RESULTADO_AJUSTE: 'Ajuste necessário',
     }
 
     RESULTADO_CHOICES = (
-        (RESULTADO_CORRETO, RESULTADIO_NOMES[RESULTADO_CORRETO]),
-        (RESULTADO_AJUSTE, RESULTADIO_NOMES[RESULTADO_AJUSTE]),
+        (RESULTADO_CORRETO, RESULTADO_NOMES[RESULTADO_CORRETO]),
+        (RESULTADO_AJUSTE, RESULTADO_NOMES[RESULTADO_AJUSTE]),
     )
 
     # Tipo Lançamento Choice
@@ -60,4 +60,4 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
 
     class Meta:
         verbose_name = "Análise de lançamento"
-        verbose_name_plural = "15.1) Análises de lançamentos"
+        verbose_name_plural = "16.1) Análises de lançamentos"

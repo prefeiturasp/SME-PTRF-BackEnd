@@ -32,9 +32,11 @@ from .models import (
     ParametroFiqueDeOlhoPc,
     ModeloCarga,
     Ambiente,
-    AnalisePrestacaoConta,
     ArquivoDownload,
+    AnalisePrestacaoConta,
+    AnaliseLancamentoPrestacaoConta,
     TipoAcertoLancamento,
+    SolicitacaoAcertoLancamento,
 )
 
 admin.site.register(Acao)
@@ -544,6 +546,13 @@ class AmbienteAdmin(admin.ModelAdmin):
     list_display = ('prefixo', 'nome')
 
 
+@admin.register(ArquivoDownload)
+class ArquivoDownloadAdmin(admin.ModelAdmin):
+    list_display = ('identificador', 'status', 'alterado_em', 'lido')
+    readonly_fields = ('uuid', 'id',)
+    list_display_links = ('identificador',)
+
+
 @admin.register(AnalisePrestacaoConta)
 class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
 
@@ -565,11 +574,10 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
                      'prestacao_conta__associacao__nome')
 
 
-@admin.register(ArquivoDownload)
-class ArquivoDownloadAdmin(admin.ModelAdmin):
-    list_display = ('identificador', 'status', 'alterado_em', 'lido')
-    readonly_fields = ('uuid', 'id',)
-    list_display_links = ('identificador',)
+@admin.register(AnaliseLancamentoPrestacaoConta)
+class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
+    list_display = ['analise_prestacao_conta', 'tipo_lancamento', 'resultado']
+    list_filter = ['tipo_lancamento', ]
 
 
 @admin.register(TipoAcertoLancamento)
@@ -577,3 +585,10 @@ class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
     list_display = ['uuid', 'nome', 'categoria']
     search_fields = ['nome']
     list_filter = ['categoria', ]
+
+
+@admin.register(SolicitacaoAcertoLancamento)
+class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
+    list_display = ['uuid', 'analise_lancamento', 'tipo_acerto']
+    search_fields = ['detalhamento']
+    list_filter = ['tipo_acerto', ]
