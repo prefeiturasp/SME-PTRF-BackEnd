@@ -3,7 +3,12 @@ from django.db import models
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 from sme_ptrf_apps.core.models import TipoConta
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
+
 class TipoReceita(ModeloIdNome):
+    history = AuditlogHistoryField()
     e_repasse = models.BooleanField("É repasse?", default=False)
     e_rendimento = models.BooleanField("É rendimento?", default=False)
     e_devolucao = models.BooleanField("É devolução?", default=False)
@@ -25,3 +30,6 @@ class TipoReceita(ModeloIdNome):
 
     def tem_detalhamento(self):
         return self.detalhes_tipo_receita.exists()
+
+
+auditlog.register(TipoReceita)
