@@ -589,3 +589,18 @@ def analise_lancamento_despesa_prestacao_conta_2020_1_em_analise(
         despesa=despesa_2020_1,
         resultado='CORRETO'
     )
+
+
+@pytest.fixture
+def tipo_acerto_lancamento_devolucao():
+    return baker.make('TipoAcertoLancamento', nome='Devolução', categoria='DEVOLUCAO')
+
+
+@pytest.fixture
+def tipo_acerto_lancamento_basico():
+    return baker.make('TipoAcertoLancamento', nome='Básico', categoria='BASICO')
+
+
+@pytest.fixture
+def tipo_devolucao_ao_tesouro_teste():
+    return baker.make('TipoDevolucaoAoTesouro', nome='Devolução teste')
