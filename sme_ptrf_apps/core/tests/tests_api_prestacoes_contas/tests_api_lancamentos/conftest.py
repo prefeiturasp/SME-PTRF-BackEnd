@@ -247,11 +247,19 @@ def despesa_2020_1(associacao, tipo_documento, tipo_transacao):
 
 
 @pytest.fixture
+def tag_teste():
+    return baker.make(
+        'Tag',
+        nome="TESTE",
+    )
+
+
+@pytest.fixture
 def rateio_despesa_2020_role_conferido(associacao, despesa_2020_1, conta_associacao_cartao, acao,
                                        tipo_aplicacao_recurso_custeio,
                                        tipo_custeio_servico,
                                        especificacao_instalacao_eletrica, acao_associacao_role_cultural,
-                                       periodo_2020_1):
+                                       periodo_2020_1, tag_teste):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_2020_1,
@@ -265,6 +273,7 @@ def rateio_despesa_2020_role_conferido(associacao, despesa_2020_1, conta_associa
         update_conferido=True,
         conferido=True,
         periodo_conciliacao=periodo_2020_1,
+        tag=tag_teste,
 
     )
 
