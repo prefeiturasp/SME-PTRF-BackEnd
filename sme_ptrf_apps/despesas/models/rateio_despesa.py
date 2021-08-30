@@ -10,6 +10,9 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO
 from ..tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 
 class RateiosCompletosManager(models.Manager):
     def get_queryset(self):
@@ -17,6 +20,7 @@ class RateiosCompletosManager(models.Manager):
 
 
 class RateioDespesa(ModeloBase):
+    history = AuditlogHistoryField()
     despesa = models.ForeignKey('Despesa', on_delete=models.CASCADE, related_name='rateios', blank=True, null=True)
 
     associacao = models.ForeignKey('core.Associacao', on_delete=models.PROTECT, related_name='rateios_associacao',
@@ -77,8 +81,9 @@ class RateioDespesa(ModeloBase):
     completos = RateiosCompletosManager()
 
     def __str__(self):
-        documento = self.despesa.numero_documento if self.despesa else 'Despesa indefinida'
-        return f"{documento} - {self.valor_rateio:.2f}"
+        # O retorno de informações da Despesa quebra o auditlog
+
+        return f"Rateio {self.pk}"
 
     def cadastro_completo(self):
         completo = self.conta_associacao and \
@@ -316,3 +321,6 @@ def rateio_pre_save(instance, **kwargs):
 def rateio_post_save(instance, created, **kwargs):
     if instance and instance.despesa:
         instance.despesa.atualiza_status()
+
+
+auditlog.register(RateioDespesa)
