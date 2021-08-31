@@ -8,6 +8,9 @@ from django.dispatch import receiver
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 logger = logging.getLogger(__name__)
 
 # Status Choice
@@ -33,6 +36,7 @@ def get_especificacoes_despesas_default():
 
 
 class FechamentoPeriodo(ModeloBase):
+    history = AuditlogHistoryField()
     prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE,
                                         related_name='fechamentos_da_prestacao', blank=True, null=True)
 
@@ -297,3 +301,6 @@ def fechamento_pre_save(instance, **kwargs):
     instance.saldo_reprogramado_capital = saldo_reprogramado['CAPITAL']
     instance.saldo_reprogramado_custeio = saldo_reprogramado['CUSTEIO']
     instance.saldo_reprogramado_livre = saldo_reprogramado['LIVRE']
+
+
+auditlog.register(FechamentoPeriodo)
