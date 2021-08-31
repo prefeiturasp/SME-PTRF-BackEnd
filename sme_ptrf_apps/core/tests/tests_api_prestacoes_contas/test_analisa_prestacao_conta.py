@@ -6,7 +6,7 @@ from datetime import date
 from model_bakery import baker
 from rest_framework import status
 
-from ...models import PrestacaoConta
+from ...models import PrestacaoConta, AnalisePrestacaoConta
 
 pytestmark = pytest.mark.django_db
 
@@ -44,7 +44,8 @@ def test_api_analisar_prestacao_conta_deve_criar_registro_de_analise(
     prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_recebida.uuid)
 
     assert prestacao_atualizada.analises_da_prestacao.exists(), 'Deveria criar uma análise da prestação.'
-    assert (prestacao_atualizada.analise_atual == prestacao_atualizada.analises_da_prestacao.first(),
+    assert prestacao_atualizada.analise_atual, 'Deveria atualizar com a análise atual aberta.'
+    assert (prestacao_atualizada.analise_atual == AnalisePrestacaoConta.objects.filter(prestacao_conta=prestacao_atualizada).first(),
             'A PC deveria referenciar a análise como análise atual.')
 
 

@@ -93,7 +93,7 @@ class AssociacoesViewSet(ModelViewSet):
         except ProtectedError:
             content = {
                 'erro': 'ProtectedError',
-                'mensagem': 'Essa associação não pode ser excluída porque está sendo usada na aplicação.'
+                'mensagem': 'Não é possível excluir essa associação porque ela já possui movimentação (despesas, receitas, etc.)'
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 

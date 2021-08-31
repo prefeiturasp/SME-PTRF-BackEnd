@@ -6,8 +6,13 @@ from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 
 class Ata(ModeloBase):
+    history = AuditlogHistoryField()
+
     # Tipo de Ata
     ATA_APRESENTACAO = 'APRESENTACAO'
     ATA_RETIFICACAO = 'RETIFICACAO'
@@ -182,3 +187,6 @@ def ata_pre_save(instance, **kwargs):
     criando_ata = instance._state.adding
     if not criando_ata:
         instance.preenchida_em = datetime.now()
+
+
+auditlog.register(Ata)

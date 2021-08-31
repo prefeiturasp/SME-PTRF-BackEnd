@@ -34,7 +34,7 @@ def test_api_delete_associacao_ja_usada(
 
     esperado = {
         "erro": 'ProtectedError',
-        'mensagem': 'Essa associação não pode ser excluída porque está sendo usada na aplicação.'
+        'mensagem': 'Não é possível excluir essa associação porque ela já possui movimentação (despesas, receitas, etc.)'
     }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST

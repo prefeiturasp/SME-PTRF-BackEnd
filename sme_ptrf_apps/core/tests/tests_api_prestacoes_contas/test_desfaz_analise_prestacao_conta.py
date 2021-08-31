@@ -6,7 +6,7 @@ from datetime import date
 from model_bakery import baker
 from rest_framework import status
 
-from ...models import PrestacaoConta
+from ...models import PrestacaoConta, AnalisePrestacaoConta
 
 pytestmark = pytest.mark.django_db
 
@@ -23,15 +23,34 @@ def _prestacao_conta_em_analise(periodo, associacao):
     )
 
 
-def test_api_desfaz_analise_prestacao_conta(jwt_authenticated_client_a, _prestacao_conta_em_analise):
-    url = f'/api/prestacoes-contas/{_prestacao_conta_em_analise.uuid}/desfazer-analise/'
+@pytest.fixture
+def _analise_prestacao_conta_em_analise(_prestacao_conta_em_analise,):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=_prestacao_conta_em_analise,
+    )
+
+
+@pytest.fixture
+def _prestacao_de_conta_com_analise_atual(_prestacao_conta_em_analise, _analise_prestacao_conta_em_analise):
+    _prestacao_conta_em_analise.analise_atual = _analise_prestacao_conta_em_analise
+    _prestacao_conta_em_analise.save()
+    return _prestacao_conta_em_analise
+
+
+def test_api_desfaz_analise_prestacao_conta(jwt_authenticated_client_a, _prestacao_de_conta_com_analise_atual, _analise_prestacao_conta_em_analise):
+    assert AnalisePrestacaoConta.objects.filter(prestacao_conta=_prestacao_de_conta_com_analise_atual).exists()
+
+    url = f'/api/prestacoes-contas/{_prestacao_de_conta_com_analise_atual.uuid}/desfazer-analise/'
 
     response = jwt_authenticated_client_a.patch(url, content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
-    prestacao_atualizada = PrestacaoConta.by_uuid(_prestacao_conta_em_analise.uuid)
+    prestacao_atualizada = PrestacaoConta.by_uuid(_prestacao_de_conta_com_analise_atual.uuid)
     assert prestacao_atualizada.status == PrestacaoConta.STATUS_RECEBIDA, 'Status não atualizado para RECEBIDA.'
+    assert prestacao_atualizada.analise_atual is None
+    assert not AnalisePrestacaoConta.objects.filter(prestacao_conta=_prestacao_de_conta_com_analise_atual).exists()
 
 
 @pytest.fixture

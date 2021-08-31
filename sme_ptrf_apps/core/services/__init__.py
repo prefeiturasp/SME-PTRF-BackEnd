@@ -19,7 +19,7 @@ from .info_por_acao_services import (
     saldos_insuficientes_para_rateios,
     valida_rateios_quanto_aos_saldos,
 )
-from .membro_associacao_service import TerceirizadasException, TerceirizadasService
+from .membro_associacao_service import TerceirizadasException, TerceirizadasService, SmeIntegracaoApiException, SmeIntegracaoApiService
 from sme_ptrf_apps.core.services.notificacao_services.notificacao_inicio_periodo_prestacao_de_contas import notificar_inicio_periodo_prestacao_de_contas
 from .periodo_services import status_prestacao_conta_associacao, valida_datas_periodo
 from .prestacao_contas_services import (
@@ -30,7 +30,8 @@ from .prestacao_contas_services import (
     reabrir_prestacao_de_contas,
     lancamentos_da_prestacao,
     marca_lancamentos_como_corretos,
-    marca_lancamentos_como_nao_conferidos
+    marca_lancamentos_como_nao_conferidos,
+    solicita_acertos_de_lancamentos
 )
 from .processa_cargas import processa_cargas, processa_carga
 from .unidade_service import atualiza_dados_unidade, consulta_unidade, monta_unidade_para_atribuicao

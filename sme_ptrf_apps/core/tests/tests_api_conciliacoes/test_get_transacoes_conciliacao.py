@@ -76,6 +76,7 @@ def monta_result_esperado(transacoes_esperadas, periodo, conta):
                 },
                 "conferido": rateio.conferido,
                 "valor_rateio": f'{rateio.valor_rateio:.2f}',
+                "tag": None,
                 "uuid": f'{rateio.uuid}',
             }
             rateios_esperados.append(rateio_esperado)

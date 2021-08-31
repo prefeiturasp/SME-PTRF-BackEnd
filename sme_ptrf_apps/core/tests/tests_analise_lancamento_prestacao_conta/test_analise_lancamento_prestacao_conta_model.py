@@ -22,4 +22,4 @@ def test_srt_model(analise_lancamento_receita_prestacao_conta_2020_1):
 
 def test_admin():
     # pylint: disable=W0212
-    assert admin.site._registry[AnalisePrestacaoConta]
+    assert admin.site._registry[AnaliseLancamentoPrestacaoConta]

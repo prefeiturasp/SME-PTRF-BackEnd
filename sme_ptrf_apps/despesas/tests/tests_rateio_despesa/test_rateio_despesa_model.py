@@ -35,7 +35,7 @@ def test_instance_model(rateio_despesa_capital):
 
 
 def test_srt_model(rateio_despesa_capital):
-    assert rateio_despesa_capital.__str__() == '123456 - 100.00'
+    assert rateio_despesa_capital.__str__() == f'Rateio {rateio_despesa_capital.pk}'
 
 
 def test_meta_modelo(rateio_despesa_capital):

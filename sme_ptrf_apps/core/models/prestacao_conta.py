@@ -9,10 +9,15 @@ from django.db.models.aggregates import Sum
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.dre.models import Atribuicao
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 logger = logging.getLogger(__name__)
 
 
 class PrestacaoConta(ModeloBase):
+    history = AuditlogHistoryField()
+
     # Status Choice
     STATUS_NAO_APRESENTADA = 'NAO_APRESENTADA'
     STATUS_NAO_RECEBIDA = 'NAO_RECEBIDA'
@@ -131,11 +136,11 @@ class PrestacaoConta(ModeloBase):
     @transaction.atomic
     def analisar(self):
         from . import AnalisePrestacaoConta
+        analise_atual = AnalisePrestacaoConta.objects.create(prestacao_conta=self)
 
         self.status = self.STATUS_EM_ANALISE
+        self.analise_atual = analise_atual
         self.save()
-
-        AnalisePrestacaoConta.objects.create(prestacao_conta=self)
 
         return self
 
@@ -461,3 +466,6 @@ class PrestacaoConta(ModeloBase):
         verbose_name = "Prestação de conta"
         verbose_name_plural = "09.0) Prestações de contas"
         unique_together = ['associacao', 'periodo']
+
+
+auditlog.register(PrestacaoConta)

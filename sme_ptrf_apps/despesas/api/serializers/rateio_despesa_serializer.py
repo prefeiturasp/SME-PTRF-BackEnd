@@ -141,6 +141,7 @@ class RateioDespesaConciliacaoSerializer(serializers.ModelSerializer):
     acao_associacao = AcaoAssociacaoLookUpSerializer()
     especificacao_material_servico = EspecificacaoMaterialServicoLookUpSerializer()
     tipo_custeio = TipoCusteioSerializer()
+    tag = TagLookupSerializer()
 
     class Meta:
         model = RateioDespesa
@@ -153,4 +154,5 @@ class RateioDespesaConciliacaoSerializer(serializers.ModelSerializer):
             'conferido',
             'notificar_dias_nao_conferido',
             'tipo_custeio',
+            'tag',
         )

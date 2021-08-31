@@ -3,8 +3,12 @@ from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase, SingletonModel
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 
 class Parametros(SingletonModel, ModeloBase):
+    history = AuditlogHistoryField()
     permite_saldo_conta_negativo = models.BooleanField('Permite saldo negativo em contas?', default=True)
 
     fique_de_olho = RichTextField(null=True)
@@ -36,3 +40,6 @@ class Parametros(SingletonModel, ModeloBase):
     class Meta:
         verbose_name = "Parâmetro"
         verbose_name_plural = "01.0) Parâmetros"
+
+
+auditlog.register(Parametros)
