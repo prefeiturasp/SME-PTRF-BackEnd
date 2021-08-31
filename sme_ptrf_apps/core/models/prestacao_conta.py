@@ -131,11 +131,11 @@ class PrestacaoConta(ModeloBase):
     @transaction.atomic
     def analisar(self):
         from . import AnalisePrestacaoConta
+        analise_atual = AnalisePrestacaoConta.objects.create(prestacao_conta=self)
 
         self.status = self.STATUS_EM_ANALISE
+        self.analise_atual = analise_atual
         self.save()
-
-        AnalisePrestacaoConta.objects.create(prestacao_conta=self)
 
         return self
 
