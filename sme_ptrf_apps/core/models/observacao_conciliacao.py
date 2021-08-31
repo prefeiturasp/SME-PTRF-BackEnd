@@ -2,8 +2,12 @@ from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 
 class ObservacaoConciliacao(ModeloBase):
+    history = AuditlogHistoryField()
     periodo = models.ForeignKey('Periodo', on_delete=models.PROTECT, related_name='observacoes_conciliacao_do_periodo')
 
     associacao = models.ForeignKey('Associacao', on_delete=models.PROTECT,
@@ -80,3 +84,6 @@ class ObservacaoConciliacao(ModeloBase):
                     comprovante_extrato=None,
                     data_atualizacao_comprovante_extrato=None,
                 )
+
+
+auditlog.register(ObservacaoConciliacao)
