@@ -11,7 +11,11 @@ from ..models import (
     Associacao,
     DemonstrativoFinanceiro,
     ObservacaoConciliacao,
-    AnaliseLancamentoPrestacaoConta
+    AnaliseLancamentoPrestacaoConta,
+    SolicitacaoAcertoLancamento,
+    TipoAcertoLancamento,
+    DevolucaoAoTesouro,
+    TipoDevolucaoAoTesouro
 )
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
@@ -494,6 +498,8 @@ def lancamentos_da_prestacao(analise_prestacao_conta, conta_associacao, acao_ass
 def marca_lancamentos_como_corretos(analise_prestacao, lancamentos_corretos):
     def marca_credito_correto(credito_uuid):
         if not analise_prestacao.analises_de_lancamentos.filter(receita__uuid=credito_uuid).exists():
+            logging.info(
+                f'Criando analise de lançamento do crédito {credito_uuid} na análise de PC {analise_prestacao.uuid}.')
             receita = Receita.by_uuid(credito_uuid)
             AnaliseLancamentoPrestacaoConta.objects.create(
                 analise_prestacao_conta=analise_prestacao,
@@ -503,6 +509,8 @@ def marca_lancamentos_como_corretos(analise_prestacao, lancamentos_corretos):
 
     def marca_gasto_correto(gasto_uuid):
         if not analise_prestacao.analises_de_lancamentos.filter(despesa__uuid=gasto_uuid).exists():
+            logging.info(
+                f'Apagando analise de lançamento do gasto {gasto_uuid} na análise de PC {analise_prestacao.uuid}.')
             despesa = Despesa.by_uuid(gasto_uuid)
             AnaliseLancamentoPrestacaoConta.objects.create(
                 analise_prestacao_conta=analise_prestacao,
@@ -510,6 +518,7 @@ def marca_lancamentos_como_corretos(analise_prestacao, lancamentos_corretos):
                 despesa=despesa
             )
 
+    logging.info(f'Marcando lançamento como corretos na análise de PC {analise_prestacao.uuid}.')
     for lancamento in lancamentos_corretos:
         if lancamento["tipo_lancamento"] == 'CREDITO':
             marca_credito_correto(credito_uuid=lancamento["lancamento"])
@@ -519,13 +528,103 @@ def marca_lancamentos_como_corretos(analise_prestacao, lancamentos_corretos):
 
 def marca_lancamentos_como_nao_conferidos(analise_prestacao, lancamentos_nao_conferidos):
     def marca_credito_nao_conferido(credito_uuid):
+        logging.info(f'Apagando analise de lançamento do crédito {credito_uuid} na análise de PC {analise_prestacao.uuid}.')
         analise_prestacao.analises_de_lancamentos.filter(receita__uuid=credito_uuid).delete()
 
     def marca_gasto_nao_conferido(gasto_uuid):
+        logging.info(f'Apagando analise de lançamento do gasto {gasto_uuid} na análise de PC {analise_prestacao.uuid}.')
         analise_prestacao.analises_de_lancamentos.filter(despesa__uuid=gasto_uuid).delete()
 
+    logging.info(f'Marcando lançamento como não conferidos na análise de PC {analise_prestacao.uuid}.')
     for lancamento in lancamentos_nao_conferidos:
         if lancamento["tipo_lancamento"] == 'CREDITO':
             marca_credito_nao_conferido(credito_uuid=lancamento["lancamento"])
         else:
             marca_gasto_nao_conferido(gasto_uuid=lancamento["lancamento"])
+
+
+def __apaga_analise_lancamento(analise_prestacao, lancamento):
+    if lancamento['tipo_lancamento'] == 'CREDITO':
+        AnaliseLancamentoPrestacaoConta.objects.filter(
+            analise_prestacao_conta=analise_prestacao,
+            receita__uuid=lancamento['lancamento_uuid']
+        ).delete()
+    else:
+        AnaliseLancamentoPrestacaoConta.objects.filter(
+            analise_prestacao_conta=analise_prestacao,
+            despesa__uuid=lancamento['lancamento_uuid']
+        ).delete()
+
+
+def __cria_analise_lancamento_solicitacao_acerto(analise_prestacao, lancamento):
+    if lancamento['tipo_lancamento'] == 'CREDITO':
+        receita = Receita.by_uuid(lancamento['lancamento_uuid'])
+        analise_lancamento = AnaliseLancamentoPrestacaoConta.objects.create(
+            analise_prestacao_conta=analise_prestacao,
+            tipo_lancamento="CREDITO",
+            receita=receita,
+            resultado=AnaliseLancamentoPrestacaoConta.RESULTADO_AJUSTE,
+        )
+    else:
+        despesa = Despesa.by_uuid(lancamento['lancamento_uuid'])
+        analise_lancamento = AnaliseLancamentoPrestacaoConta.objects.create(
+            analise_prestacao_conta=analise_prestacao,
+            tipo_lancamento="GASTO",
+            despesa=despesa,
+            resultado=AnaliseLancamentoPrestacaoConta.RESULTADO_AJUSTE,
+        )
+
+    return analise_lancamento
+
+
+def __cria_solicitacao_acerto(analise_lancamento, solicitacao_acerto):
+    tipo_acerto = TipoAcertoLancamento.objects.get(uuid=solicitacao_acerto['tipo_acerto'])
+
+    devolucao_tesouro = None
+    if analise_lancamento.tipo_lancamento == 'GASTO' and solicitacao_acerto['devolucao_tesouro']:
+        logging.info(f'Criando devolução ao tesouro para a análise de lançamento {analise_lancamento.uuid}.')
+        devolucao_tesouro = DevolucaoAoTesouro.objects.create(
+            prestacao_conta=analise_lancamento.analise_prestacao_conta.prestacao_conta,
+            tipo=TipoDevolucaoAoTesouro.objects.get(uuid=solicitacao_acerto['devolucao_tesouro']['tipo']),
+            data=solicitacao_acerto['devolucao_tesouro']['data'],
+            despesa=analise_lancamento.despesa,
+            devolucao_total=solicitacao_acerto['devolucao_tesouro']['devolucao_total'],
+            valor=solicitacao_acerto['devolucao_tesouro']['valor'],
+            motivo=solicitacao_acerto['detalhamento']
+        )
+
+    if not solicitacao_acerto['devolucao_tesouro'] or analise_lancamento.tipo_lancamento == 'GASTO':
+        # Apenas lançamentos do tipo gasto recebem ajustes de devolução ao tesouro
+        logging.info(f'Criando solicitação de acerto para a análise de lançamento {analise_lancamento.uuid}.')
+        SolicitacaoAcertoLancamento.objects.create(
+            analise_lancamento=analise_lancamento,
+            tipo_acerto=tipo_acerto,
+            devolucao_ao_tesouro=devolucao_tesouro,
+            detalhamento=solicitacao_acerto['detalhamento']
+        )
+
+
+def __apaga_solicitacoes_acerto_lancamento(analise_lancamento):
+    logging.info(f'Apagando solicitações de ajustes existentes para a análise de lançamento {analise_lancamento.uuid}.')
+    analise_lancamento.solicitacoes_de_ajuste_da_analise.delete()
+
+
+def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes_acerto):
+    atualizacao_em_lote = len(lancamentos) > 0
+    logging.info(f'Criando solicitações de acerto na análise de PC {analise_prestacao.uuid}. em_lote={atualizacao_em_lote}')
+
+    for lancamento in lancamentos:
+        __apaga_analise_lancamento(analise_prestacao=analise_prestacao, lancamento=lancamento)
+
+        analise_lancamento = __cria_analise_lancamento_solicitacao_acerto(
+            analise_prestacao=analise_prestacao,
+            lancamento=lancamento
+        )
+
+        if not atualizacao_em_lote:
+            __apaga_solicitacoes_acerto_lancamento(analise_lancamento=analise_lancamento)
+
+        for solicitacao in solicitacoes_acerto:
+            __cria_solicitacao_acerto(analise_lancamento=analise_lancamento, solicitacao_acerto=solicitacao)
+
+
