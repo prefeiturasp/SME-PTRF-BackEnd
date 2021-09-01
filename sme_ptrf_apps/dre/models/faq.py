@@ -1,9 +1,12 @@
 from django.db import models
 from .faq_categoria import FaqCategoria
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
 
 
 class Faq(ModeloBase):
+    history = AuditlogHistoryField()
     lookup_field = 'uuid'
     pergunta = models.CharField(max_length=200)
     resposta = models.TextField()
@@ -15,3 +18,6 @@ class Faq(ModeloBase):
 
     def __str__(self):
         return self.pergunta
+
+
+auditlog.register(Faq)

@@ -1,9 +1,12 @@
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
 
 
 class TecnicoDre(ModeloBase):
+    history = AuditlogHistoryField()
     dre = models.ForeignKey('core.Unidade', on_delete=models.PROTECT, related_name='tecnicos_da_dre', to_field="codigo_eol",
                             blank=True, null=True, limit_choices_to={'tipo_unidade': 'DRE'})
 
@@ -21,3 +24,6 @@ class TecnicoDre(ModeloBase):
 
     def __str__(self):
         return f"Nome: {self.nome}, RF: {self.rf}"
+
+
+auditlog.register(TecnicoDre)
