@@ -2,8 +2,12 @@ from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 
 class Atribuicao(ModeloBase):
+    history = AuditlogHistoryField()
     unidade = models.ForeignKey('core.Unidade', on_delete=models.PROTECT, related_name='atribuicoes',
                                 blank=True, null=True)
     tecnico = models.ForeignKey('TecnicoDre', on_delete=models.CASCADE, related_name='atribuicoes',
@@ -27,3 +31,6 @@ class Atribuicao(ModeloBase):
     class Meta:
         verbose_name = 'Atribuição'
         verbose_name_plural = 'Atribuições'
+
+
+auditlog.register(Atribuicao)
