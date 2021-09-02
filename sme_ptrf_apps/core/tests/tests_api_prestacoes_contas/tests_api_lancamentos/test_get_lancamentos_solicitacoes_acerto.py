@@ -2,8 +2,6 @@ import json
 
 import pytest
 
-from datetime import date
-
 from rest_framework import status
 
 
