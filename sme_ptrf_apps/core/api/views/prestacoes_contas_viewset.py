@@ -26,7 +26,8 @@ from ...models import (
     Unidade,
     ContaAssociacao,
     AcaoAssociacao,
-    AnalisePrestacaoConta
+    AnalisePrestacaoConta,
+    AnaliseLancamentoPrestacaoConta
 )
 from ...services import (
     concluir_prestacao_de_contas,
@@ -46,6 +47,7 @@ from ..serializers import (
     PrestacaoContaListSerializer,
     PrestacaoContaLookUpSerializer,
     PrestacaoContaRetrieveSerializer,
+    AnaliseLancamentoPrestacaoContaRetrieveSerializer
 )
 
 from django.core.exceptions import ValidationError
@@ -1090,3 +1092,40 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         )
 
         return Response({"message": "Solicitações de acerto gravadas para os lançamentos."}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path="analises-de-lancamento",
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def analises_de_lancamento(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        # Define a análise de lançamaneto
+        analise_lancamento_uuid = self.request.query_params.get('analise_lancamento')
+
+        if analise_lancamento_uuid is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'get-solicitacoes-acerto',
+                'mensagem': 'Faltou informar o parâmetro analise_lancamento com o UUID da analise de lançamaneto.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_lancamento = AnaliseLancamentoPrestacaoConta.objects.get(uuid=analise_lancamento_uuid)
+        except AnaliseLancamentoPrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-lancamento-prestacao-conta para o uuid {analise_lancamento_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if analise_lancamento.analise_prestacao_conta.prestacao_conta != prestacao_conta:
+            erro = {
+                'erro': 'Análise de prestação inválida.',
+                'mensagem': f"A análise de lançamento {analise_lancamento_uuid} não pertence à Prestação de Contas {uuid}."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(AnaliseLancamentoPrestacaoContaRetrieveSerializer(analise_lancamento).data, status=status.HTTP_200_OK)
