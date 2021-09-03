@@ -556,6 +556,21 @@ def __apaga_analise_lancamento(analise_prestacao, lancamento):
         ).delete()
 
 
+def __get_analise_lancamento(analise_prestacao, lancamento):
+    if lancamento['tipo_lancamento'] == 'CREDITO':
+        analise = AnaliseLancamentoPrestacaoConta.objects.filter(
+            analise_prestacao_conta=analise_prestacao,
+            receita__uuid=lancamento['lancamento_uuid']
+        ).first()
+    else:
+        analise = AnaliseLancamentoPrestacaoConta.objects.filter(
+            analise_prestacao_conta=analise_prestacao,
+            despesa__uuid=lancamento['lancamento_uuid']
+        ).first()
+
+    return analise
+
+
 def __cria_analise_lancamento_solicitacao_acerto(analise_prestacao, lancamento):
     if lancamento['tipo_lancamento'] == 'CREDITO':
         receita = Receita.by_uuid(lancamento['lancamento_uuid'])
@@ -606,20 +621,40 @@ def __cria_solicitacao_acerto(analise_lancamento, solicitacao_acerto):
 
 def __apaga_solicitacoes_acerto_lancamento(analise_lancamento):
     logging.info(f'Apagando solicitações de ajustes existentes para a análise de lançamento {analise_lancamento.uuid}.')
-    analise_lancamento.solicitacoes_de_ajuste_da_analise.delete()
+    for solicitacao_acerto in analise_lancamento.solicitacoes_de_ajuste_da_analise.all():
+        devolucao_ao_tesouro = solicitacao_acerto.devolucao_ao_tesouro
+
+        logging.info(f'Apagando solicitação de acerto {solicitacao_acerto.uuid}.')
+        solicitacao_acerto.delete()
+
+        if devolucao_ao_tesouro:
+            logging.info(f'Apagando devolução ao tesouro {devolucao_ao_tesouro.uuid}.')
+            devolucao_ao_tesouro.delete()
+
+
+def __atualiza_analise_lancamento_para_acerto(analise_lancamento):
+    if analise_lancamento.resultado != AnaliseLancamentoPrestacaoConta.RESULTADO_AJUSTE:
+        analise_lancamento.resultado = AnaliseLancamentoPrestacaoConta.RESULTADO_AJUSTE
+        analise_lancamento.save()
+    return analise_lancamento
 
 
 def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes_acerto):
-    atualizacao_em_lote = len(lancamentos) > 0
+    atualizacao_em_lote = len(lancamentos) > 1
     logging.info(f'Criando solicitações de acerto na análise de PC {analise_prestacao.uuid}. em_lote={atualizacao_em_lote}')
 
     for lancamento in lancamentos:
-        __apaga_analise_lancamento(analise_prestacao=analise_prestacao, lancamento=lancamento)
 
-        analise_lancamento = __cria_analise_lancamento_solicitacao_acerto(
-            analise_prestacao=analise_prestacao,
-            lancamento=lancamento
-        )
+        analise_lancamento = __get_analise_lancamento(analise_prestacao=analise_prestacao, lancamento=lancamento)
+
+        if solicitacoes_acerto:
+            if not analise_lancamento:
+                analise_lancamento = __cria_analise_lancamento_solicitacao_acerto(
+                    analise_prestacao=analise_prestacao,
+                    lancamento=lancamento
+                )
+            else:
+                __atualiza_analise_lancamento_para_acerto(analise_lancamento=analise_lancamento)
 
         if not atualizacao_em_lote:
             __apaga_solicitacoes_acerto_lancamento(analise_lancamento=analise_lancamento)
@@ -627,4 +662,5 @@ def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes
         for solicitacao in solicitacoes_acerto:
             __cria_solicitacao_acerto(analise_lancamento=analise_lancamento, solicitacao_acerto=solicitacao)
 
-
+        if not atualizacao_em_lote and not solicitacoes_acerto:
+            __apaga_analise_lancamento(analise_prestacao=analise_prestacao, lancamento=lancamento)

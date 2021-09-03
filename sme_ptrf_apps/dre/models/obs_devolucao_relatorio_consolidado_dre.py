@@ -1,9 +1,13 @@
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
 
 
 class ObsDevolucaoRelatorioConsolidadoDRE(ModeloBase):
+    history = AuditlogHistoryField()
+
     # Tipos de devolução Choice
     DEVOLUCAO_TESOURO = 'TESOURO'
     DEVOLUCAO_CONTA = 'CONTA'
@@ -52,3 +56,6 @@ class ObsDevolucaoRelatorioConsolidadoDRE(ModeloBase):
 
     def __str__(self):
         return self.observacao
+
+
+auditlog.register(ObsDevolucaoRelatorioConsolidadoDRE)
