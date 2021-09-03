@@ -122,11 +122,13 @@ class CargaUsuariosService:
         }
 
     def cria_ou_atualiza_usuario_admin(self, dados_usuario):
+        e_servidor = (dados_usuario["servidor_s_n"] == "S")
         usuario, criado = User.objects.get_or_create(
             username=dados_usuario["login"],
             defaults={
                 'email': dados_usuario["email"] if dados_usuario["email"] else "",
                 'name': dados_usuario["nome"],
+                'e_servidor': e_servidor
             },
         )
 
