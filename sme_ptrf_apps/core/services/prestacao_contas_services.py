@@ -373,7 +373,8 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
 
     logger.info(f'Gerando demonstrativo financeiro em PDF da conta {conta_associacao}.')
     dados_demonstrativo = gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao,
-                                                               prestacao, observacao_conciliacao=observacao_conciliacao, previa=False)
+                                                               prestacao, observacao_conciliacao=observacao_conciliacao,
+                                                               previa=previa)
 
     if criar_arquivos:
         gerar_arquivo_demonstrativo_financeiro_pdf(dados_demonstrativo, demonstrativo)
