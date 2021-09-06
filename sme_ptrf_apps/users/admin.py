@@ -55,6 +55,7 @@ class GrupoAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
     def get_form(self, request, obj=None, **kwargs):
+        self.exclude = ("visoes_log",)
         form = super(GrupoAdmin, self).get_form(request, obj, **kwargs)
         print(form.__dict__)
         form.base_fields['permissions'].queryset = Permission.objects.filter(name__contains='Pode')
