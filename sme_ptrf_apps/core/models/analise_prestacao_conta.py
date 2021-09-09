@@ -49,6 +49,6 @@ class AnalisePrestacaoConta(ModeloBase):
 
     class Meta:
         verbose_name = "Análise de prestação de contas"
-        verbose_name_plural = "15.0) Análises de prestações de contas"
+        verbose_name_plural = "16.0) Análises de prestações de contas"
 
 

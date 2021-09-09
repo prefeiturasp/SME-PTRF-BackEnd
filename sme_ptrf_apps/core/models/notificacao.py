@@ -3,12 +3,16 @@ from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 
 class NotificacaoCreateException(Exception):
     pass
 
 
 class Notificacao(ModeloBase):
+    history = AuditlogHistoryField()
 
     # Tipos de Notificação
     TIPO_NOTIFICACAO_ALERTA = 'ALERTA'
@@ -184,3 +188,4 @@ class Notificacao(ModeloBase):
             enviar_email_nova_notificacao(usuario=usuario, titulo=titulo, descricao=descricao)
 
 
+auditlog.register(Notificacao)

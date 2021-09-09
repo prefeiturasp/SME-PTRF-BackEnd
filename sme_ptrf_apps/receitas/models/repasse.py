@@ -5,6 +5,9 @@ from django.db import models
 from sme_ptrf_apps.core.models import Associacao, Periodo
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 
 class StatusRepasse(Enum):
     PENDENTE = 'Pendente'
@@ -17,6 +20,7 @@ STATUS_CHOICES = (
 
 
 class Repasse(ModeloBase):
+    history = AuditlogHistoryField()
     associacao = models.ForeignKey(Associacao, on_delete=models.PROTECT, related_name='repasses',
                                    blank=True, null=True)
 
@@ -68,3 +72,5 @@ class Repasse(ModeloBase):
 
         return dataset.all()
 
+
+auditlog.register(Repasse)

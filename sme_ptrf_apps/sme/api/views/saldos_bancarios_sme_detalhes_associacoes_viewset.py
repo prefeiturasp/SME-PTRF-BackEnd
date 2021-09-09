@@ -18,7 +18,7 @@ from sme_ptrf_apps.users.permissoes import PermissaoAPIApenasSmeComLeituraOuGrav
 from ...services.saldo_bancario_service import saldo_detalhe_associacao
 
 from rest_framework.decorators import action
-from sme_ptrf_apps.core.tasks import gerar_xlsx_saldo_bancario_async
+from sme_ptrf_apps.core.tasks import gerar_xlsx_extrato_dres_async
 
 logger = logging.getLogger(__name__)
 
@@ -101,14 +101,11 @@ class SaldosBancariosSmeDetalhesAsocciacoesViewSet(mixins.ListModelMixin,
 
         return Response(saldos, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'], url_path='exporta_pdf',
+    @action(detail=False, methods=['get'], url_path='exporta_xlsx_dres',
             permission_classes=[IsAuthenticated, PermissaoAPIApenasSmeComLeituraOuGravacao])
-    def exporta_pdf(self, request):
+    def exporta_xlsx_dres(self, request):
         periodo_uuid = request.query_params.get('periodo')
         conta_uuid = request.query_params.get('conta')
-        dre_uuid = request.query_params.get('dre')
-        unidade = request.query_params.get('unidade')
-        tipo_ue = request.query_params.get('tipo_ue')
 
         if not periodo_uuid:
             erro = {
@@ -148,31 +145,9 @@ class SaldosBancariosSmeDetalhesAsocciacoesViewSet(mixins.ListModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        if not dre_uuid:
-            erro = {
-                'erro': 'falta_de_informacoes',
-                'operacao': 'saldos-detalhes-associacoes',
-                'mensagem': 'Faltou informar o uuid da dre. ?dre=uuid_da_dre'
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            Unidade.dres.get(uuid=dre_uuid)
-        except ValidationError:
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        gerar_xlsx_saldo_bancario_async.delay(
+        gerar_xlsx_extrato_dres_async.delay(
             periodo_uuid=periodo_uuid,
             conta_uuid=conta_uuid,
-            dre_uuid=dre_uuid,
-            unidade=unidade,
-            tipo_ue=tipo_ue,
             username=request.user.username
         )
 

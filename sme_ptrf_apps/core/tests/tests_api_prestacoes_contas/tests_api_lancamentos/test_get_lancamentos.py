@@ -76,6 +76,11 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
                 },
                 "conferido": rateio.conferido,
                 "valor_rateio": f'{rateio.valor_rateio:.2f}',
+                "tag": {
+                    'uuid': f'{rateio.tag.uuid}',
+                    'status': 'Inativo',
+                    'nome': f'{rateio.tag.nome}'
+                } if rateio.tag else None,
                 "uuid": f'{rateio.uuid}',
             }
             rateios_esperados.append(rateio_esperado)

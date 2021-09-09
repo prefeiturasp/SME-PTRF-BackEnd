@@ -32,8 +32,11 @@ from .models import (
     ParametroFiqueDeOlhoPc,
     ModeloCarga,
     Ambiente,
-    AnalisePrestacaoConta,
     ArquivoDownload,
+    AnalisePrestacaoConta,
+    AnaliseLancamentoPrestacaoConta,
+    TipoAcertoLancamento,
+    SolicitacaoAcertoLancamento,
 )
 
 admin.site.register(Acao)
@@ -204,8 +207,8 @@ class ArquivoAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ['uuid', 'nome', 'status']
-    search_fields = ['status']
-    list_filter = ['nome', 'status']
+    search_fields = ['nome',]
+    list_filter = ['status',]
 
 
 @admin.register(ProcessoAssociacao)
@@ -236,6 +239,7 @@ class NotificacaoAdmin(admin.ModelAdmin):
     list_display = ("uuid", "titulo", "remetente", "categoria", "tipo", "hora")
     readonly_fields = ('uuid', 'id')
     list_filter = ("remetente", "categoria", "tipo")
+    search_fields = ("titulo",)
 
 
 @admin.register(CobrancaPrestacaoConta)
@@ -308,7 +312,6 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
 class TipoDevolucaoTesouroAdmin(admin.ModelAdmin):
     list_display = ['uuid', 'nome']
     search_fields = ['nome']
-    list_filter = ['nome', ]
 
 
 @admin.register(DevolucaoAoTesouro)
@@ -543,6 +546,13 @@ class AmbienteAdmin(admin.ModelAdmin):
     list_display = ('prefixo', 'nome')
 
 
+@admin.register(ArquivoDownload)
+class ArquivoDownloadAdmin(admin.ModelAdmin):
+    list_display = ('identificador', 'status', 'alterado_em', 'lido')
+    readonly_fields = ('uuid', 'id',)
+    list_display_links = ('identificador',)
+
+
 @admin.register(AnalisePrestacaoConta)
 class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
 
@@ -563,8 +573,22 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
 
-@admin.register(ArquivoDownload)
-class ArquivoDownloadAdmin(admin.ModelAdmin):
-    list_display = ('identificador', 'status', 'alterado_em', 'lido')
-    readonly_fields = ('uuid', 'id',)
-    list_display_links = ('identificador',)
+
+@admin.register(AnaliseLancamentoPrestacaoConta)
+class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
+    list_display = ['analise_prestacao_conta', 'tipo_lancamento', 'resultado']
+    list_filter = ['tipo_lancamento', ]
+
+
+@admin.register(TipoAcertoLancamento)
+class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
+    list_display = ['uuid', 'nome', 'categoria']
+    search_fields = ['nome']
+    list_filter = ['categoria', ]
+
+
+@admin.register(SolicitacaoAcertoLancamento)
+class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
+    list_display = ['uuid', 'analise_lancamento', 'tipo_acerto']
+    search_fields = ['detalhamento']
+    list_filter = ['tipo_acerto', ]

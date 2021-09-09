@@ -3,8 +3,12 @@ from django.db import models
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from .validators import cpf_cnpj_validation
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 
 class Fornecedor(ModeloBase):
+    history = AuditlogHistoryField()
     cpf_cnpj = models.CharField(
         "CPF / CNPJ", max_length=20, validators=[cpf_cnpj_validation]
         , blank=True, null=True, default="", unique=True
@@ -26,3 +30,6 @@ class Fornecedor(ModeloBase):
     class Meta:
         verbose_name = "Fornecedor"
         verbose_name_plural = "Fornecedores"
+
+
+auditlog.register(Fornecedor)

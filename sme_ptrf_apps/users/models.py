@@ -10,8 +10,13 @@ from django.utils.translation import ugettext_lazy as _
 from sme_ptrf_apps.core.models import Unidade
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+from django.db.models.signals import m2m_changed
+
 
 class Visao(ModeloIdNome):
+    history = AuditlogHistoryField()
 
     def __str__(self):
         return self.nome
@@ -22,7 +27,9 @@ class Visao(ModeloIdNome):
 
 
 class Grupo(Group):
+    history = AuditlogHistoryField()
     descricao = models.TextField(blank=True, default='')
+    visoes_log = models.TextField(blank=True, help_text='Visões do grupo (audtilog)')
     visoes = models.ManyToManyField(Visao, blank=True)
 
     @classmethod
@@ -32,10 +39,14 @@ class Grupo(Group):
 
 
 class User(AbstractUser):
+    history = AuditlogHistoryField()
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, null=True)
     name = CharField(_("Nome do usuário"), blank=True, max_length=255)
     hash_redefinicao = models.TextField(blank=True, default='',
                                         help_text='Campo utilizado para registrar hash na redefinição de senhas.')
+    visoes_log = models.TextField(blank=True, help_text='Visões do usuário (audtilog)')
+    unidades_log = models.TextField(blank=True, help_text='Unidades do usuário (audtilog)')
+    groups_log = models.TextField(blank=True, help_text='Grupos do usuário (audtilog)')
 
     unidades = models.ManyToManyField(Unidade, blank=True)
     visoes = models.ManyToManyField(Visao, blank=True)
@@ -119,3 +130,106 @@ class User(AbstractUser):
     class Meta:
         verbose_name = 'Usuário'
         verbose_name_plural = 'Usuários'
+
+
+# signals para gravação de log de campos many to many modelo User
+def m2m_changed_visoes(sender, **kwargs):
+    instance = kwargs["instance"]
+    action = kwargs["action"]
+
+    if action == "post_add":
+        lista = []
+        for visao in instance.visoes.all():
+            lista.append(visao.nome)
+
+        instance.visoes_log = lista
+        instance.save()
+
+    elif action == "post_remove":
+        lista = []
+        for visao in instance.visoes.all():
+            lista.append(visao.nome)
+
+        instance.visoes_log = lista
+        instance.save()
+
+
+def m2m_changed_unidades(sender, **kwargs):
+    instance = kwargs["instance"]
+    action = kwargs["action"]
+
+    if action == "post_add":
+        lista = []
+        for unidade in instance.unidades.all():
+            lista.append(unidade.nome)
+
+        instance.unidades_log = lista
+        instance.save()
+
+    elif action == "post_remove":
+        lista = []
+        for unidade in instance.unidades.all():
+            lista.append(unidade.nome)
+
+        instance.unidades_log = lista
+        instance.save()
+
+
+def m2m_changed_groups(sender, **kwargs):
+    instance = kwargs["instance"]
+    action = kwargs["action"]
+
+    if action == "post_add":
+        lista = []
+        for grupo in instance.groups.all():
+            lista.append(grupo.name)
+
+        instance.groups_log = lista
+        instance.save()
+
+    elif action == "post_remove":
+        lista = []
+        for grupo in instance.groups.all():
+            lista.append(grupo.name)
+
+        instance.groups_log = lista
+        instance.save()
+
+
+m2m_changed.connect(m2m_changed_visoes, sender=User.visoes.through)
+m2m_changed.connect(m2m_changed_unidades, sender=User.unidades.through)
+m2m_changed.connect(m2m_changed_groups, sender=User.groups.through)
+
+auditlog.register(User)
+
+
+# signals para gravação de log de campos many to many modelo Grupo
+def m2m_changed_group_visoes(sender, **kwargs):
+    instance = kwargs["instance"]
+    action = kwargs["action"]
+
+    if action == "post_add":
+        lista = []
+        for visao in instance.visoes.all():
+            lista.append(visao.nome)
+
+        instance.visoes_log = lista
+        instance.save()
+
+    elif action == "post_remove":
+        lista = []
+        for visao in instance.visoes.all():
+            lista.append(visao.nome)
+
+        instance.visoes_log = lista
+        instance.save()
+
+
+m2m_changed.connect(m2m_changed_group_visoes, sender=Grupo.visoes.through)
+
+auditlog.register(Grupo)
+auditlog.register(Visao)
+
+
+
+
