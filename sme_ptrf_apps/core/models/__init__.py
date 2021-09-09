@@ -62,3 +62,4 @@ from .analise_lancamento_prestacao_conta import AnaliseLancamentoPrestacaoConta
 from .tipo_acerto_lancamento import TipoAcertoLancamento
 from .solicitacao_acerto_lancamento import SolicitacaoAcertoLancamento
 from .tipo_documento_prestacao_conta import TipoDocumentoPrestacaoConta
+from .tipo_acerto_documento import TipoAcertoDocumento
