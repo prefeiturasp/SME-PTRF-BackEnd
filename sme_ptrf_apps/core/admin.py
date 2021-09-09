@@ -37,6 +37,7 @@ from .models import (
     AnaliseLancamentoPrestacaoConta,
     TipoAcertoLancamento,
     SolicitacaoAcertoLancamento,
+    TipoDocumentoPrestacaoConta
 )
 
 admin.site.register(Acao)
@@ -592,3 +593,9 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
     list_display = ['uuid', 'analise_lancamento', 'tipo_acerto']
     search_fields = ['detalhamento']
     list_filter = ['tipo_acerto', ]
+
+
+@admin.register(TipoDocumentoPrestacaoConta)
+class TipoDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
+    list_display = ['uuid', 'nome']
+    search_fields = ['nome']
