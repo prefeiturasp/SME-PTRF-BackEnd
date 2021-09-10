@@ -3,6 +3,8 @@ from django.db import models
 
 from .validators import cnpj_validation
 from ..models_abstracts import TemNome, ModeloBase
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
 
 
 class DresManager(models.Manager):
@@ -11,6 +13,8 @@ class DresManager(models.Manager):
 
 
 class Unidade(ModeloBase, TemNome):
+    history = AuditlogHistoryField()
+
     # Tipo de Unidade Choices
     TIPOS_CHOICE = (
         ('ADM', 'ADM'),
@@ -102,3 +106,6 @@ class Unidade(ModeloBase, TemNome):
     class Meta:
         verbose_name = 'Unidade'
         verbose_name_plural = '06.0) Unidades'
+
+
+auditlog.register(Unidade)
