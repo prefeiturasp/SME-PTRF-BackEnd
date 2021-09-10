@@ -38,7 +38,8 @@ from .models import (
     TipoAcertoLancamento,
     SolicitacaoAcertoLancamento,
     TipoDocumentoPrestacaoConta,
-    TipoAcertoDocumento
+    TipoAcertoDocumento,
+    AnaliseDocumentoPrestacaoConta
 )
 
 admin.site.register(Acao)
@@ -572,7 +573,7 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ('get_associacao', 'get_referencia_periodo', 'criado_em', 'status',)
     list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta', 'status')
     list_display_links = ('get_associacao',)
-    readonly_fields = ('uuid', id)
+    readonly_fields = ('uuid', 'id',)
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
 
@@ -581,7 +582,7 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
 class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ['analise_prestacao_conta', 'tipo_lancamento', 'resultado']
     list_filter = ['tipo_lancamento', ]
-    readonly_fields = ('uuid', id)
+    readonly_fields = ('uuid', 'id',)
 
 
 @admin.register(TipoAcertoLancamento)
@@ -589,7 +590,7 @@ class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
     list_display = ['nome', 'categoria']
     search_fields = ['nome']
     list_filter = ['categoria', ]
-    readonly_fields = ('uuid', id)
+    readonly_fields = ('uuid', 'id',)
 
 
 @admin.register(SolicitacaoAcertoLancamento)
@@ -597,20 +598,25 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
     list_display = ['uuid', 'analise_lancamento', 'tipo_acerto']
     search_fields = ['detalhamento']
     list_filter = ['tipo_acerto', ]
-    readonly_fields = ('uuid', id)
+    readonly_fields = ('uuid', 'id',)
 
 
 @admin.register(TipoDocumentoPrestacaoConta)
 class TipoDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ['nome']
     search_fields = ['nome']
-    readonly_fields = ('uuid', id)
+    readonly_fields = ('uuid', 'id',)
 
 
 @admin.register(TipoAcertoDocumento)
 class TipoAcertoDocumentoAdmin(admin.ModelAdmin):
     list_display = ['nome']
     search_fields = ['nome']
-    readonly_fields = ('uuid', id)
+    readonly_fields = ('uuid', 'id',)
 
 
+@admin.register(AnaliseDocumentoPrestacaoConta)
+class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
+    list_display = ['analise_prestacao_conta', 'tipo_documento_prestacao_conta', 'resultado']
+    list_filter = ['tipo_documento_prestacao_conta', ]
+    readonly_fields = ('uuid', 'id',)
