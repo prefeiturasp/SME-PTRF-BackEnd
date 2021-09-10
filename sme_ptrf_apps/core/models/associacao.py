@@ -3,9 +3,13 @@ from django.db import models
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 from .validators import cnpj_validation
 from ..choices import MembroEnum
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
 
 
 class Associacao(ModeloIdNome):
+    history = AuditlogHistoryField()
+
     # Status de Regularidade
     STATUS_REGULARIDADE_PENDENTE = 'PENDENTE'
     STATUS_REGULARIDADE_REGULAR = 'REGULAR'
@@ -143,3 +147,6 @@ class Associacao(ModeloIdNome):
     class Meta:
         verbose_name = "Associação"
         verbose_name_plural = "07.0) Associações"
+
+
+auditlog.register(Associacao)

@@ -5,11 +5,14 @@ from brazilnum.cpf import validate_cpf, format_cpf
 
 from sme_ptrf_apps.core.choices import MembroEnum, RepresentacaoCargo
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
 
 User = get_user_model()
 
 
 class MembroAssociacao(ModeloBase):
+    history = AuditlogHistoryField()
     nome = models.CharField('Nome', max_length=160)
 
     associacao = models.ForeignKey('Associacao', on_delete=models.PROTECT,
@@ -63,3 +66,6 @@ class MembroAssociacao(ModeloBase):
             cpf=cpf_formatado).distinct("associacao").values_list("associacao__uuid", flat=True)
 
         return associacoes
+
+
+auditlog.register(MembroAssociacao)

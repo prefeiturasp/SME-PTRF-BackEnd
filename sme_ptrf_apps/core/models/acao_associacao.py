@@ -4,9 +4,12 @@ from django.db import models
 from django.db.models.deletion import ProtectedError
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
 
 
 class AcaoAssociacao(ModeloBase):
+    history = AuditlogHistoryField()
     # Status Choice
     STATUS_ATIVA = 'ATIVA'
     STATUS_INATIVA = 'INATIVA'
@@ -81,3 +84,6 @@ class AcaoAssociacao(ModeloBase):
     class Meta:
         verbose_name = "Ação de Associação"
         verbose_name_plural = "07.2) Ações de Associações"
+
+
+auditlog.register(AcaoAssociacao)
