@@ -4,9 +4,12 @@ from django.db import models
 from django.db.models import Q
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
 
 
 class Periodo(ModeloBase):
+    history = AuditlogHistoryField()
     referencia = models.CharField('Referência', max_length=7, blank=True, default="")
 
     data_inicio_realizacao_despesas = models.DateField('Inicio realização de despesas')
@@ -99,3 +102,6 @@ class PeriodoPrevia:
 
     def __str__(self):
         return f"{self.referencia} - {self.data_inicio_realizacao_despesas} a {self.data_fim_realizacao_despesas}"
+
+
+auditlog.register(Periodo)

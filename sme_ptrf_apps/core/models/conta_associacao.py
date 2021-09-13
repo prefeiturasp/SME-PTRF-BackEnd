@@ -3,9 +3,13 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
 
 
 class ContaAssociacao(ModeloBase):
+    history = AuditlogHistoryField()
+
     # Status Choice
     STATUS_ATIVA = 'ATIVA'
     STATUS_INATIVA = 'INATIVA'
@@ -66,3 +70,5 @@ def conta_associacao_pre_save(instance, **kwargs):
     if instance.tipo_conta.numero_cartao and not instance.numero_cartao:
         instance.numero_cartao = instance.tipo_conta.numero_cartao
 
+
+auditlog.register(ContaAssociacao)

@@ -37,6 +37,9 @@ from .models import (
     AnaliseLancamentoPrestacaoConta,
     TipoAcertoLancamento,
     SolicitacaoAcertoLancamento,
+    TipoDocumentoPrestacaoConta,
+    TipoAcertoDocumento,
+    AnaliseDocumentoPrestacaoConta
 )
 
 admin.site.register(Acao)
@@ -90,7 +93,6 @@ class UnidadeAdmin(admin.ModelAdmin):
     search_fields = ('nome', 'codigo_eol', 'sigla')
     list_filter = ('tipo_unidade', 'dre')
     list_display_links = ('nome', 'codigo_eol')
-    readonly_fields = ('uuid',)
 
     fieldsets = (
         ('Dados da Unidade', {
@@ -146,7 +148,7 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
                     'total_despesas', 'saldo_reprogramado', 'status')
     list_filter = ('status', 'associacao', 'acao_associacao__acao', 'conta_associacao__tipo_conta')
     list_display_links = ('periodo',)
-    readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre')
+    readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre', 'uuid', 'id')
     search_fields = ('associacao__unidade__codigo_eol',)
 
 
@@ -161,7 +163,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ('get_eol_unidade', 'periodo', 'status')
     list_filter = ('status', 'associacao', 'periodo')
     list_display_links = ('periodo',)
-    readonly_fields = ('uuid',)
+    readonly_fields = ('uuid', 'id')
     search_fields = ('associacao__unidade__codigo_eol',)
 
 
@@ -185,7 +187,7 @@ class AtaAdmin(admin.ModelAdmin):
     list_filter = (
         'parecer_conselho', 'tipo_ata', 'tipo_reuniao', 'convocacao', 'associacao')
     list_display_links = ('get_eol_unidade',)
-    readonly_fields = ('uuid', id)
+    readonly_fields = ('uuid', 'id')
     search_fields = ('associacao__unidade__codigo_eol',)
 
 
@@ -193,7 +195,7 @@ class AtaAdmin(admin.ModelAdmin):
 class ArquivoAdmin(admin.ModelAdmin):
     list_display = ['identificador', 'conteudo', 'tipo_carga', 'status', 'ultima_execucao']
     actions = ['processa_carga', ]
-    readonly_fields = ['ultima_execucao', 'status', 'log']
+    readonly_fields = ['ultima_execucao', 'status', 'log', 'uuid', 'id']
     list_filter = ['tipo_carga', 'status']
     search_fields = ('identificador', )
 
@@ -206,9 +208,10 @@ class ArquivoAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ['uuid', 'nome', 'status']
+    list_display = ['nome', 'status']
     search_fields = ['nome',]
     list_filter = ['status',]
+    readonly_fields = ('uuid', id)
 
 
 @admin.register(ProcessoAssociacao)
@@ -259,7 +262,7 @@ class CobrancaPrestacaoContaAdmin(admin.ModelAdmin):
         'get_associacao', 'get_referencia_periodo', 'data', 'tipo')
     list_filter = ('tipo', 'prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
     list_display_links = ('get_associacao',)
-    readonly_fields = ('uuid', id)
+    readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
 
@@ -281,7 +284,7 @@ class DevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
         'get_associacao', 'get_referencia_periodo', 'data', 'data_limite_ue')
     list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
     list_display_links = ('get_associacao',)
-    readonly_fields = ('uuid', id)
+    readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
 
@@ -303,7 +306,7 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
         'get_associacao', 'get_referencia_periodo', 'data_extrato', 'saldo_extrato')
     list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
     list_display_links = ('get_associacao',)
-    readonly_fields = ('uuid', id)
+    readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
 
@@ -312,6 +315,7 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
 class TipoDevolucaoTesouroAdmin(admin.ModelAdmin):
     list_display = ['uuid', 'nome']
     search_fields = ['nome']
+    readonly_fields = ('uuid', id)
 
 
 @admin.register(DevolucaoAoTesouro)
@@ -335,7 +339,7 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
         'visao_criacao')
 
     list_display_links = ('get_associacao',)
-    readonly_fields = ('uuid', id)
+    readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome', 'motivo')
 
@@ -358,7 +362,7 @@ class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
     list_filter = (
         'prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
     list_display_links = ('get_associacao',)
-    readonly_fields = ('uuid', id)
+    readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome', 'ordem', 'comentario')
 
@@ -368,7 +372,7 @@ class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
     list_display = ('associacao', 'conta_associacao', 'periodo', 'valor_capital', 'valor_custeio', 'valor_livre')
     list_filter = ('associacao', 'periodo', 'conta_associacao')
     list_display_links = ('associacao',)
-    readonly_fields = ('uuid',)
+    readonly_fields = ('uuid', 'id')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome')
 
 
@@ -569,7 +573,7 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ('get_associacao', 'get_referencia_periodo', 'criado_em', 'status',)
     list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta', 'status')
     list_display_links = ('get_associacao',)
-    readonly_fields = ('uuid', id)
+    readonly_fields = ('uuid', 'id',)
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
 
@@ -578,13 +582,15 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
 class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ['analise_prestacao_conta', 'tipo_lancamento', 'resultado']
     list_filter = ['tipo_lancamento', ]
+    readonly_fields = ('uuid', 'id',)
 
 
 @admin.register(TipoAcertoLancamento)
 class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
-    list_display = ['uuid', 'nome', 'categoria']
+    list_display = ['nome', 'categoria']
     search_fields = ['nome']
     list_filter = ['categoria', ]
+    readonly_fields = ('uuid', 'id',)
 
 
 @admin.register(SolicitacaoAcertoLancamento)
@@ -592,3 +598,25 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
     list_display = ['uuid', 'analise_lancamento', 'tipo_acerto']
     search_fields = ['detalhamento']
     list_filter = ['tipo_acerto', ]
+    readonly_fields = ('uuid', 'id',)
+
+
+@admin.register(TipoDocumentoPrestacaoConta)
+class TipoDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
+    list_display = ['nome']
+    search_fields = ['nome']
+    readonly_fields = ('uuid', 'id',)
+
+
+@admin.register(TipoAcertoDocumento)
+class TipoAcertoDocumentoAdmin(admin.ModelAdmin):
+    list_display = ['nome']
+    search_fields = ['nome']
+    readonly_fields = ('uuid', 'id',)
+
+
+@admin.register(AnaliseDocumentoPrestacaoConta)
+class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
+    list_display = ['analise_prestacao_conta', 'tipo_documento_prestacao_conta', 'resultado']
+    list_filter = ['tipo_documento_prestacao_conta', ]
+    readonly_fields = ('uuid', 'id',)
