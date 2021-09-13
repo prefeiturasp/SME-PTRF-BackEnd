@@ -1643,3 +1643,18 @@ def solicitacao_acerto_lancamento_devolucao(
         devolucao_ao_tesouro=devolucao_ao_tesouro_parcial,
         detalhamento="teste"
     )
+
+
+@pytest.fixture
+def tipo_documento_prestacao_conta_ata():
+    return baker.make('TipoDocumentoPrestacaoConta', nome='Cópia da ata da prestação de contas')
+
+
+@pytest.fixture
+def analise_documento_prestacao_conta_2020_1_ata_correta(analise_prestacao_conta_2020_1, tipo_documento_prestacao_conta_ata):
+    return baker.make(
+        'AnaliseDocumentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
+        tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_ata,
+        resultado='CORRETO'
+    )
