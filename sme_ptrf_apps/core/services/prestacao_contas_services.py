@@ -707,7 +707,7 @@ def documentos_da_prestacao(analise_prestacao_conta):
 
 
 def marca_documentos_como_corretos(analise_prestacao, documentos_corretos):
-    def marca_documento_correto(tipo_documento_uuid, conta_associacao_uuid=None ):
+    def marca_documento_correto(tipo_documento_uuid, conta_associacao_uuid=None):
         if not analise_prestacao.analises_de_documento.filter(
             tipo_documento_prestacao_conta__uuid=tipo_documento_uuid,
             conta_associacao__uuid=conta_associacao_uuid
@@ -726,6 +726,22 @@ def marca_documentos_como_corretos(analise_prestacao, documentos_corretos):
     logging.info(f'Marcando documentos como corretos na análise de PC {analise_prestacao.uuid}.')
     for documento in documentos_corretos:
         marca_documento_correto(
+            tipo_documento_uuid=documento['tipo_documento'],
+            conta_associacao_uuid=documento['conta_associacao']
+        )
+
+
+def marca_documentos_como_nao_conferidos(analise_prestacao, documentos_nao_conferidos):
+    def marca_documento_nao_conferido(tipo_documento_uuid, conta_associacao_uuid=None):
+        logging.info(f'Apagando analise de documento {tipo_documento_uuid} conta {conta_associacao_uuid} na análise de PC {analise_prestacao.uuid}.')
+        analise_prestacao.analises_de_documento.filter(
+            tipo_documento_prestacao_conta__uuid=tipo_documento_uuid,
+            conta_associacao__uuid=conta_associacao_uuid
+        ).delete()
+
+    logging.info(f'Marcando documentos como não conferidos na análise de PC {analise_prestacao.uuid}.')
+    for documento in documentos_nao_conferidos:
+        marca_documento_nao_conferido(
             tipo_documento_uuid=documento['tipo_documento'],
             conta_associacao_uuid=documento['conta_associacao']
         )
