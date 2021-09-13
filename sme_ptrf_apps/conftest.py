@@ -1651,10 +1651,15 @@ def tipo_documento_prestacao_conta_ata():
 
 
 @pytest.fixture
-def analise_documento_prestacao_conta_2020_1_ata_correta(analise_prestacao_conta_2020_1, tipo_documento_prestacao_conta_ata):
+def analise_documento_prestacao_conta_2020_1_ata_correta(
+    analise_prestacao_conta_2020_1,
+    tipo_documento_prestacao_conta_ata,
+    tipo_conta
+):
     return baker.make(
         'AnaliseDocumentoPrestacaoConta',
         analise_prestacao_conta=analise_prestacao_conta_2020_1,
         tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_ata,
+        tipo_conta=tipo_conta,
         resultado='CORRETO'
     )

@@ -665,3 +665,37 @@ def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes
 
         if not atualizacao_em_lote and not solicitacoes_acerto:
             __apaga_analise_lancamento(analise_prestacao=analise_prestacao, lancamento=lancamento)
+
+
+def documentos_da_prestacao(analise_prestacao_conta):
+    from ..models import TipoDocumentoPrestacaoConta, ContaAssociacao
+
+    associacao = analise_prestacao_conta.prestacao_conta.associacao
+
+    def result_documento(_documento, _tipo_conta=None):
+        analise_documento = analise_prestacao_conta.analises_de_documento.filter(
+            tipo_documento_prestacao_conta=documento,
+            tipo_conta=_tipo_conta
+        ).first()
+        return {
+            'tipo_documento_prestacao_conta': {
+                'uuid': f'{_documento.uuid}',
+                'nome': f'{_documento.nome} {_tipo_conta.nome}' if _tipo_conta else _documento.nome,
+                'documento_por_conta': True if _tipo_conta else False,
+            },
+            'analise_documento': {
+                'resultado': analise_documento.resultado,
+                'uuid': analise_documento.uuid,
+                'tipo_conta': analise_documento.tipo_conta.nome if analise_documento.tipo_conta else None
+            } if analise_documento else None
+        }
+
+    documentos = []
+    for documento in TipoDocumentoPrestacaoConta.objects.all():
+        if documento.documento_por_conta:
+            for conta in associacao.contas.all().order_by('id'):
+                documentos.append(result_documento(documento, conta.tipo_conta))
+        else:
+            documentos.append(result_documento(documento))
+
+    return documentos

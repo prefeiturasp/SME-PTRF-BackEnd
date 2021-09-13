@@ -38,7 +38,8 @@ from ...services import (
     lancamentos_da_prestacao,
     marca_lancamentos_como_corretos,
     marca_lancamentos_como_nao_conferidos,
-    solicita_acertos_de_lancamentos
+    solicita_acertos_de_lancamentos,
+    documentos_da_prestacao
 
 )
 from ....dre.services import (dashboard_sme)
@@ -1129,3 +1130,40 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(AnaliseLancamentoPrestacaoContaRetrieveSerializer(analise_lancamento).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def documentos(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        # Define a análise da prestação de contas
+        analise_prestacao_uuid = self.request.query_params.get('analise_prestacao')
+
+        if not analise_prestacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da analise de prestacao de contas.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if analise_prestacao.prestacao_conta != prestacao_conta:
+            erro = {
+                'erro': 'Análise de prestação inválida.',
+                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        documentos = documentos_da_prestacao(analise_prestacao_conta=analise_prestacao)
+
+        return Response(documentos, status=status.HTTP_200_OK)

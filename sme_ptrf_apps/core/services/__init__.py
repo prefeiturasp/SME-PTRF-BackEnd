@@ -31,7 +31,8 @@ from .prestacao_contas_services import (
     lancamentos_da_prestacao,
     marca_lancamentos_como_corretos,
     marca_lancamentos_como_nao_conferidos,
-    solicita_acertos_de_lancamentos
+    solicita_acertos_de_lancamentos,
+    documentos_da_prestacao
 )
 from .processa_cargas import processa_cargas, processa_carga
 from .unidade_service import atualiza_dados_unidade, consulta_unidade, monta_unidade_para_atribuicao
