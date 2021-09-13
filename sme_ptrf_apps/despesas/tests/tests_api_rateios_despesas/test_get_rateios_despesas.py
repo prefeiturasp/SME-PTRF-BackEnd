@@ -21,7 +21,8 @@ def test_api_get_rateios_despesas(jwt_authenticated_client_d, associacao, despes
                 "id": rateio_despesa_capital.especificacao_material_servico.id,
                 "descricao": rateio_despesa_capital.especificacao_material_servico.descricao,
                 "aplicacao_recurso": rateio_despesa_capital.aplicacao_recurso,
-                "tipo_custeio": rateio_despesa_capital.tipo_custeio.id
+                "tipo_custeio": rateio_despesa_capital.tipo_custeio.id,
+                'ativa': True,
             },
             "data_documento": '2020-03-10',
             "aplicacao_recurso": rateio_despesa_capital.aplicacao_recurso,
