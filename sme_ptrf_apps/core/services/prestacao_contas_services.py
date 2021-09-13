@@ -672,21 +672,23 @@ def documentos_da_prestacao(analise_prestacao_conta):
 
     associacao = analise_prestacao_conta.prestacao_conta.associacao
 
-    def result_documento(_documento, _tipo_conta=None):
+    def result_documento(_documento, _conta_associacao=None):
         analise_documento = analise_prestacao_conta.analises_de_documento.filter(
             tipo_documento_prestacao_conta=documento,
-            tipo_conta=_tipo_conta
+            conta_associacao=_conta_associacao
         ).first()
         return {
             'tipo_documento_prestacao_conta': {
                 'uuid': f'{_documento.uuid}',
-                'nome': f'{_documento.nome} {_tipo_conta.nome}' if _tipo_conta else _documento.nome,
-                'documento_por_conta': True if _tipo_conta else False,
+                'nome': f'{_documento.nome} {_conta_associacao.tipo_conta.nome}' if _conta_associacao else _documento.nome,
+                'documento_por_conta': True if _conta_associacao else False,
+                'conta_associacao': f'{_conta_associacao.uuid}' if _conta_associacao else None
             },
             'analise_documento': {
                 'resultado': analise_documento.resultado,
                 'uuid': analise_documento.uuid,
-                'tipo_conta': analise_documento.tipo_conta.nome if analise_documento.tipo_conta else None
+                'tipo_conta': analise_documento.conta_associacao.tipo_conta.nome if analise_documento.conta_associacao else None,
+                'conta_associacao': f'{_conta_associacao.uuid}' if _conta_associacao else None
             } if analise_documento else None
         }
 
@@ -694,7 +696,7 @@ def documentos_da_prestacao(analise_prestacao_conta):
     for documento in TipoDocumentoPrestacaoConta.objects.all():
         if documento.documento_por_conta:
             for conta in associacao.contas.all().order_by('id'):
-                documentos.append(result_documento(documento, conta.tipo_conta))
+                documentos.append(result_documento(documento, conta))
         else:
             documentos.append(result_documento(documento))
 

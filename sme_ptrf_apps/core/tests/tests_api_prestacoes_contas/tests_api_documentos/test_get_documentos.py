@@ -27,11 +27,13 @@ def test_api_get_documentos_para_analise(
                 'uuid': f'{tipo_documento_prestacao_conta_ata.uuid}',
                 'nome': tipo_documento_prestacao_conta_ata.nome,
                 'documento_por_conta': False,
+                'conta_associacao': None,
             },
             'analise_documento': {
                 'uuid': f'{analise_documento_prestacao_conta_2020_1_ata_correta.uuid}',
                 'resultado': analise_documento_prestacao_conta_2020_1_ata_correta.resultado,
-                'tipo_conta': None
+                'tipo_conta': None,
+                'conta_associacao': None,
             }
         },
         {
@@ -39,11 +41,13 @@ def test_api_get_documentos_para_analise(
                 'uuid': f'{tipo_documento_prestacao_conta_declaracao.uuid}',
                 'nome': f'{tipo_documento_prestacao_conta_declaracao.nome} Cartão',
                 'documento_por_conta': True,
+                'conta_associacao': f'{conta_associacao_cartao.uuid}',
             },
             'analise_documento': {
                 'uuid': f'{analise_documento_prestacao_conta_2020_1_declaracao_cartao_correta.uuid}',
                 'resultado': analise_documento_prestacao_conta_2020_1_declaracao_cartao_correta.resultado,
-                'tipo_conta': 'Cartão'
+                'tipo_conta': 'Cartão',
+                'conta_associacao': f'{conta_associacao_cartao.uuid}',
             }
         },
         {
@@ -51,6 +55,7 @@ def test_api_get_documentos_para_analise(
                 'uuid': f'{tipo_documento_prestacao_conta_declaracao.uuid}',
                 'nome': f'{tipo_documento_prestacao_conta_declaracao.nome} Cheque',
                 'documento_por_conta': True,
+                'conta_associacao': f'{conta_associacao_cheque.uuid}',
             },
             'analise_documento': None
         },
