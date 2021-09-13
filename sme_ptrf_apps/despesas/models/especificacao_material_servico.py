@@ -19,6 +19,8 @@ class EspecificacaoMaterialServico(ModeloBase):
     )
     tipo_custeio = models.ForeignKey('TipoCusteio', on_delete=models.PROTECT, blank=True, null=True)
 
+    ativa = models.BooleanField('Está ativa?', default=True)
+
     def __str__(self):
         return f"{self.descricao}"
 

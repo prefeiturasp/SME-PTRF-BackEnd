@@ -73,12 +73,13 @@ class DespesaAdmin(admin.ModelAdmin):
 
 @admin.register(EspecificacaoMaterialServico)
 class EspecificacaoMaterialServicoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'descricao', 'aplicacao_recurso', 'tipo_custeio')
+    list_display = ('id', 'descricao', 'aplicacao_recurso', 'tipo_custeio', 'ativa')
     ordering = ('descricao',)
     search_fields = ('descricao',)
-    list_filter = ('aplicacao_recurso', 'tipo_custeio')
+    list_filter = ('aplicacao_recurso', 'tipo_custeio', 'ativa')
     readonly_fields = ('uuid', 'id')
     actions = ['importa_especificacoes', ]
+    list_editable = ('ativa',)
 
     def importa_especificacoes(self, request, queryset):
         from .services.carga_especificacoes_material_servico import carrega_especificacoes
