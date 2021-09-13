@@ -24,6 +24,9 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
     tipo_documento_prestacao_conta = models.ForeignKey('TipoDocumentoPrestacaoConta', on_delete=models.PROTECT,
                                                        related_name='analises_do_documento', blank=True, null=True)
 
+    tipo_conta = models.ForeignKey('TipoConta', on_delete=models.PROTECT,
+                                   related_name='analises_de_documento_do_tipo_conta', blank=True, null=True)
+
     resultado = models.CharField(
         'status',
         max_length=20,
