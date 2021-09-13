@@ -39,7 +39,8 @@ from ...services import (
     marca_lancamentos_como_corretos,
     marca_lancamentos_como_nao_conferidos,
     solicita_acertos_de_lancamentos,
-    documentos_da_prestacao
+    documentos_da_prestacao,
+    marca_documentos_como_corretos,
 
 )
 from ....dre.services import (dashboard_sme)
@@ -1167,3 +1168,50 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         documentos = documentos_da_prestacao(analise_prestacao_conta=analise_prestacao)
 
         return Response(documentos, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path="documentos-corretos",
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def documentos_corretos(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        analise_prestacao_uuid = request.data.get('analise_prestacao', None)
+        if analise_prestacao_uuid is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'lancamentos-corretos',
+                'mensagem': 'Faltou informar no payload o UUID da analise_prestacao.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if analise_prestacao.prestacao_conta != prestacao_conta:
+            erro = {
+                'erro': 'Análise de prestação inválida.',
+                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        documentos_corretos = request.data.get('documentos_corretos', None)
+        if documentos_corretos is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'documentos-corretos',
+                'mensagem': 'Faltou informar a lista com os documentos corretos.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        marca_documentos_como_corretos(analise_prestacao, documentos_corretos)
+
+        return Response({"message": "Documentos marcados como corretos."}, status=status.HTTP_200_OK)

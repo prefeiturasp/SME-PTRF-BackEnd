@@ -679,7 +679,7 @@ def analise_documento_prestacao_conta_2020_1_declaracao_cartao_correta(
         'AnaliseDocumentoPrestacaoConta',
         analise_prestacao_conta=analise_prestacao_conta_2020_1,
         tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_declaracao,
-        tipo_conta=conta_associacao_cartao.tipo_conta,
+        conta_associacao=conta_associacao_cartao,
         resultado='CORRETO'
     )
 

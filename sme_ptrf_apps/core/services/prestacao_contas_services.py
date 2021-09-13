@@ -15,7 +15,10 @@ from ..models import (
     SolicitacaoAcertoLancamento,
     TipoAcertoLancamento,
     DevolucaoAoTesouro,
-    TipoDevolucaoAoTesouro
+    TipoDevolucaoAoTesouro,
+    TipoDocumentoPrestacaoConta,
+    AnaliseDocumentoPrestacaoConta,
+    ContaAssociacao
 )
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
@@ -701,3 +704,28 @@ def documentos_da_prestacao(analise_prestacao_conta):
             documentos.append(result_documento(documento))
 
     return documentos
+
+
+def marca_documentos_como_corretos(analise_prestacao, documentos_corretos):
+    def marca_documento_correto(tipo_documento_uuid, conta_associacao_uuid=None ):
+        if not analise_prestacao.analises_de_documento.filter(
+            tipo_documento_prestacao_conta__uuid=tipo_documento_uuid,
+            conta_associacao__uuid=conta_associacao_uuid
+        ).exists():
+            logging.info(
+                f'Criando analise de documento {tipo_documento_uuid} conta {conta_associacao_uuid} na análise de PC {analise_prestacao.uuid}.')
+            tipo_documento = TipoDocumentoPrestacaoConta.by_uuid(tipo_documento_uuid)
+            conta = ContaAssociacao.by_uuid(conta_associacao_uuid) if conta_associacao_uuid else None
+            AnaliseDocumentoPrestacaoConta.objects.create(
+                analise_prestacao_conta=analise_prestacao,
+                tipo_documento_prestacao_conta=tipo_documento,
+                conta_associacao=conta,
+                resultado=AnaliseDocumentoPrestacaoConta.RESULTADO_CORRETO
+            )
+
+    logging.info(f'Marcando documentos como corretos na análise de PC {analise_prestacao.uuid}.')
+    for documento in documentos_corretos:
+        marca_documento_correto(
+            tipo_documento_uuid=documento['tipo_documento'],
+            conta_associacao_uuid=documento['conta_associacao']
+        )
