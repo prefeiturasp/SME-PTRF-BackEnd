@@ -647,12 +647,12 @@ def solicitacao_acerto_lancamento_devolucao(
 
 @pytest.fixture
 def tipo_documento_prestacao_conta_declaracao():
-    return baker.make('TipoDocumentoPrestacaoConta', nome='Declaração XPTO')
+    return baker.make('TipoDocumentoPrestacaoConta', nome='Declaração XPTO', documento_por_conta=True)
 
 
 @pytest.fixture
 def tipo_documento_prestacao_conta_ata():
-    return baker.make('TipoDocumentoPrestacaoConta', nome='Cópia da ata da prestação de contas')
+    return baker.make('TipoDocumentoPrestacaoConta', nome='Cópia da ata da prestação de contas', documento_por_conta=False)
 
 
 @pytest.fixture
@@ -665,4 +665,28 @@ def analise_documento_prestacao_conta_2020_1_ata_correta(
         analise_prestacao_conta=analise_prestacao_conta_2020_1,
         tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_ata,
         resultado='CORRETO'
+    )
+
+
+@pytest.fixture
+def analise_documento_prestacao_conta_2020_1_declaracao_cartao_correta(
+    analise_prestacao_conta_2020_1,
+    tipo_documento_prestacao_conta_declaracao,
+    conta_associacao_cartao,
+    conta_associacao_cheque
+):
+    return baker.make(
+        'AnaliseDocumentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
+        tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_declaracao,
+        conta_associacao=conta_associacao_cartao,
+        resultado='CORRETO'
+    )
+
+
+@pytest.fixture
+def tipo_conta_carteira():
+    return baker.make(
+        'TipoConta',
+        nome='Carteira',
     )

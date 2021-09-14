@@ -15,7 +15,10 @@ from ..models import (
     SolicitacaoAcertoLancamento,
     TipoAcertoLancamento,
     DevolucaoAoTesouro,
-    TipoDevolucaoAoTesouro
+    TipoDevolucaoAoTesouro,
+    TipoDocumentoPrestacaoConta,
+    AnaliseDocumentoPrestacaoConta,
+    ContaAssociacao
 )
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
@@ -665,3 +668,80 @@ def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes
 
         if not atualizacao_em_lote and not solicitacoes_acerto:
             __apaga_analise_lancamento(analise_prestacao=analise_prestacao, lancamento=lancamento)
+
+
+def documentos_da_prestacao(analise_prestacao_conta):
+    from ..models import TipoDocumentoPrestacaoConta, ContaAssociacao
+
+    associacao = analise_prestacao_conta.prestacao_conta.associacao
+
+    def result_documento(_documento, _conta_associacao=None):
+        analise_documento = analise_prestacao_conta.analises_de_documento.filter(
+            tipo_documento_prestacao_conta=documento,
+            conta_associacao=_conta_associacao
+        ).first()
+        return {
+            'tipo_documento_prestacao_conta': {
+                'uuid': f'{_documento.uuid}',
+                'nome': f'{_documento.nome} {_conta_associacao.tipo_conta.nome}' if _conta_associacao else _documento.nome,
+                'documento_por_conta': True if _conta_associacao else False,
+                'conta_associacao': f'{_conta_associacao.uuid}' if _conta_associacao else None
+            },
+            'analise_documento': {
+                'resultado': analise_documento.resultado,
+                'uuid': analise_documento.uuid,
+                'tipo_conta': analise_documento.conta_associacao.tipo_conta.nome if analise_documento.conta_associacao else None,
+                'conta_associacao': f'{_conta_associacao.uuid}' if _conta_associacao else None
+            } if analise_documento else None
+        }
+
+    documentos = []
+    for documento in TipoDocumentoPrestacaoConta.objects.all():
+        if documento.documento_por_conta:
+            for conta in associacao.contas.all().order_by('id'):
+                documentos.append(result_documento(documento, conta))
+        else:
+            documentos.append(result_documento(documento))
+
+    return documentos
+
+
+def marca_documentos_como_corretos(analise_prestacao, documentos_corretos):
+    def marca_documento_correto(tipo_documento_uuid, conta_associacao_uuid=None):
+        if not analise_prestacao.analises_de_documento.filter(
+            tipo_documento_prestacao_conta__uuid=tipo_documento_uuid,
+            conta_associacao__uuid=conta_associacao_uuid
+        ).exists():
+            logging.info(
+                f'Criando analise de documento {tipo_documento_uuid} conta {conta_associacao_uuid} na análise de PC {analise_prestacao.uuid}.')
+            tipo_documento = TipoDocumentoPrestacaoConta.by_uuid(tipo_documento_uuid)
+            conta = ContaAssociacao.by_uuid(conta_associacao_uuid) if conta_associacao_uuid else None
+            AnaliseDocumentoPrestacaoConta.objects.create(
+                analise_prestacao_conta=analise_prestacao,
+                tipo_documento_prestacao_conta=tipo_documento,
+                conta_associacao=conta,
+                resultado=AnaliseDocumentoPrestacaoConta.RESULTADO_CORRETO
+            )
+
+    logging.info(f'Marcando documentos como corretos na análise de PC {analise_prestacao.uuid}.')
+    for documento in documentos_corretos:
+        marca_documento_correto(
+            tipo_documento_uuid=documento['tipo_documento'],
+            conta_associacao_uuid=documento['conta_associacao']
+        )
+
+
+def marca_documentos_como_nao_conferidos(analise_prestacao, documentos_nao_conferidos):
+    def marca_documento_nao_conferido(tipo_documento_uuid, conta_associacao_uuid=None):
+        logging.info(f'Apagando analise de documento {tipo_documento_uuid} conta {conta_associacao_uuid} na análise de PC {analise_prestacao.uuid}.')
+        analise_prestacao.analises_de_documento.filter(
+            tipo_documento_prestacao_conta__uuid=tipo_documento_uuid,
+            conta_associacao__uuid=conta_associacao_uuid
+        ).delete()
+
+    logging.info(f'Marcando documentos como não conferidos na análise de PC {analise_prestacao.uuid}.')
+    for documento in documentos_nao_conferidos:
+        marca_documento_nao_conferido(
+            tipo_documento_uuid=documento['tipo_documento'],
+            conta_associacao_uuid=documento['conta_associacao']
+        )
