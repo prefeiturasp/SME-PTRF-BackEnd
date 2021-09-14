@@ -690,3 +690,11 @@ def tipo_conta_carteira():
         'TipoConta',
         nome='Carteira',
     )
+
+
+@pytest.fixture
+def tipo_acerto_documento_assinatura(tipo_documento_prestacao_conta_ata):
+    tipo_acerto = baker.make('TipoAcertoDocumento', nome='Enviar com assinatura')
+    tipo_acerto.tipos_documento_prestacao.add(tipo_documento_prestacao_conta_ata)
+    tipo_acerto.save()
+    return tipo_acerto

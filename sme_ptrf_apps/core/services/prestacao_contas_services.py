@@ -18,7 +18,9 @@ from ..models import (
     TipoDevolucaoAoTesouro,
     TipoDocumentoPrestacaoConta,
     AnaliseDocumentoPrestacaoConta,
-    ContaAssociacao
+    ContaAssociacao,
+    TipoAcertoDocumento,
+    SolicitacaoAcertoDocumento
 )
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
@@ -745,3 +747,64 @@ def marca_documentos_como_nao_conferidos(analise_prestacao, documentos_nao_confe
             tipo_documento_uuid=documento['tipo_documento'],
             conta_associacao_uuid=documento['conta_associacao']
         )
+
+
+def solicita_acertos_de_documentos(analise_prestacao, documentos, solicitacoes_acerto):
+
+    def apaga_solicitacoes_acerto_documento(_analise_documento):
+        logging.info(
+            f'Apagando solicitações de ajustes existentes para a análise de documento {analise_documento.uuid}.')
+        for solicitacao_acerto in _analise_documento.solicitacoes_de_ajuste_da_analise.all():
+            logging.info(f'Apagando solicitação de acerto de dodcumento {solicitacao_acerto.uuid}.')
+            solicitacao_acerto.delete()
+
+    def cria_solicitacoes_acerto_documento(_analise_documento, _solicitacoes_acerto):
+        for _solicitacao_acerto in _solicitacoes_acerto:
+            logging.info(f'Criando solicitação de acerto para a análise de documento {_analise_documento.uuid}.')
+            tipo_acerto = TipoAcertoDocumento.objects.get(uuid=_solicitacao_acerto['tipo_acerto'])
+            SolicitacaoAcertoDocumento.objects.create(
+                analise_documento=_analise_documento,
+                tipo_acerto=tipo_acerto,
+            )
+
+    def apaga_analise_documento(_analise_prestacao, _tipo_documento, _conta=None):
+        AnaliseDocumentoPrestacaoConta.objects.filter(
+            analise_prestacao_conta=_analise_prestacao,
+            tipo_documento_prestacao_conta=_tipo_documento,
+            conta_associacao=_conta
+        ).delete()
+
+    logging.info(f'Criando solicitações de acerto de documentos na análise de PC {analise_prestacao.uuid}.')
+
+    for documento in documentos:
+
+        tipo_documento = TipoDocumentoPrestacaoConta.by_uuid(documento['tipo_documento'])
+        conta = ContaAssociacao.by_uuid(documento['conta_associacao']) if documento['conta_associacao'] else None
+
+        analise_documento = analise_prestacao.analises_de_documento.filter(
+            tipo_documento_prestacao_conta=tipo_documento,
+            conta_associacao=conta
+        ).first()
+
+        if solicitacoes_acerto:
+            if not analise_documento:
+
+                analise_documento = AnaliseDocumentoPrestacaoConta.objects.create(
+                    analise_prestacao_conta=analise_prestacao,
+                    tipo_documento_prestacao_conta=tipo_documento,
+                    conta_associacao=conta,
+                    resultado=AnaliseDocumentoPrestacaoConta.RESULTADO_AJUSTE
+                )
+            else:
+                analise_documento.resultado = AnaliseDocumentoPrestacaoConta.RESULTADO_AJUSTE
+                analise_documento.save()
+
+        apaga_solicitacoes_acerto_documento(_analise_documento=analise_documento)
+
+        cria_solicitacoes_acerto_documento(
+            _analise_documento=analise_documento,
+            _solicitacoes_acerto=solicitacoes_acerto
+        )
+
+        if not solicitacoes_acerto:
+            apaga_analise_documento(_analise_prestacao=analise_prestacao, _tipo_documento=tipo_documento, _conta=conta)
