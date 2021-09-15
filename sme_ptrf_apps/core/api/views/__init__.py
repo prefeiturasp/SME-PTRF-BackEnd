@@ -22,3 +22,4 @@ from .modelos_cargas_viewset import ModelosCargasViewSet
 from .ambientes_viewset import AmbientesViewSet
 from .arquivos_download_viewset import ArquivosDownloadViewSet
 from .tipos_acerto_lancamento_viewset import TiposAcertoLancamentoViewSet
+from .tipos_acerto_documento_viewset import TiposAcertoDocumentoViewSet
