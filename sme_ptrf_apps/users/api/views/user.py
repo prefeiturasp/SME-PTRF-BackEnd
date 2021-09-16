@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 class UserViewSet(ModelViewSet):
     lookup_field = "id"
     serializer_class = UserSerializer
-    queryset = User.objects.all().order_by("name")
+    queryset = User.objects.all().order_by("name", "id")
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
@@ -62,7 +62,7 @@ class UserViewSet(ModelViewSet):
             qs = qs.filter(unidades__uuid=unidade_uuid)
         elif visao == 'DRE':
             unidades_da_dre = Unidade.dres.get(uuid=unidade_uuid).unidades_da_dre.values_list("uuid", flat=True)
-            qs = qs.filter(Q(unidades__uuid=unidade_uuid) | Q(unidades__uuid__in=unidades_da_dre) )
+            qs = qs.filter(Q(unidades__uuid=unidade_uuid) | Q(unidades__uuid__in=unidades_da_dre) ).distinct('name', 'id')
 
         groups__id = self.request.query_params.get('groups__id')
         if groups__id:
