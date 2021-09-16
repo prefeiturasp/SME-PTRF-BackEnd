@@ -690,3 +690,62 @@ def tipo_conta_carteira():
         'TipoConta',
         nome='Carteira',
     )
+
+
+@pytest.fixture
+def tipo_acerto_documento_assinatura(tipo_documento_prestacao_conta_ata):
+    tipo_acerto = baker.make('TipoAcertoDocumento', nome='Enviar com assinatura')
+    tipo_acerto.tipos_documento_prestacao.add(tipo_documento_prestacao_conta_ata)
+    tipo_acerto.save()
+    return tipo_acerto
+
+
+@pytest.fixture
+def analise_documento_prestacao_conta_2020_1_ata_ajuste(
+    analise_prestacao_conta_2020_1,
+    tipo_documento_prestacao_conta_ata,
+):
+    return baker.make(
+        'AnaliseDocumentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
+        tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_ata,
+        conta_associacao=None,
+        resultado='AJUSTE'
+    )
+
+@pytest.fixture
+def solicitacao_acerto_documento_ata(
+    analise_documento_prestacao_conta_2020_1_ata_ajuste,
+    tipo_acerto_documento_assinatura,
+):
+    return baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento_prestacao_conta_2020_1_ata_ajuste,
+        tipo_acerto=tipo_acerto_documento_assinatura,
+    )
+
+@pytest.fixture
+def analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste(
+    analise_prestacao_conta_2020_1,
+    tipo_documento_prestacao_conta_declaracao,
+    conta_associacao_cartao,
+    conta_associacao_cheque
+):
+    return baker.make(
+        'AnaliseDocumentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
+        tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_declaracao,
+        conta_associacao=conta_associacao_cartao,
+        resultado='AJUSTE'
+    )
+
+@pytest.fixture
+def solicitacao_acerto_documento_declaracao_cartao(
+    analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste,
+    tipo_acerto_documento_assinatura,
+):
+    return baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste,
+        tipo_acerto=tipo_acerto_documento_assinatura,
+    )
