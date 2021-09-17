@@ -21,6 +21,7 @@ from sme_ptrf_apps.users.models import Grupo, Visao
 from sme_ptrf_apps.users.services import SmeIntegracaoException, SmeIntegracaoService
 from sme_ptrf_apps.users.services.unidades_e_permissoes_service import unidades_do_usuario_e_permissoes_na_visao
 from sme_ptrf_apps.users.services.validacao_username_service import validar_username
+from sme_ptrf_apps.core.models import Unidade
 
 User = get_user_model()
 
@@ -31,7 +32,7 @@ logger = logging.getLogger(__name__)
 class UserViewSet(ModelViewSet):
     lookup_field = "id"
     serializer_class = UserSerializer
-    queryset = User.objects.all().order_by("name")
+    queryset = User.objects.all().order_by("name", "id")
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
@@ -45,12 +46,23 @@ class UserViewSet(ModelViewSet):
             return UserCreateSerializer
 
     def get_queryset(self, *args, **kwargs):
+        """
+        Visão == SME - Se a visão for SME, todos os usuários devem ser retornados
+
+        Visão == DRE - Se a visão for DRE, devem ser retornados todos os usuários da DRE e das UEs subordinadas
+
+        Visão == UE - Se a visão for UE, devem ser retornados apenas os usuários da unidade
+        """
         qs = self.queryset
 
         visao = self.request.query_params.get('visao')
-        if visao:
-            # qs = qs.filter(visoes__nome=visao).exclude(id=self.request.user.id).all()
-            qs = qs.filter(visoes__nome=visao)
+        unidade_uuid = self.request.query_params.get('unidade_uuid')
+
+        if visao == 'UE':
+            qs = qs.filter(unidades__uuid=unidade_uuid)
+        elif visao == 'DRE':
+            unidades_da_dre = Unidade.dres.get(uuid=unidade_uuid).unidades_da_dre.values_list("uuid", flat=True)
+            qs = qs.filter(Q(unidades__uuid=unidade_uuid) | Q(unidades__uuid__in=unidades_da_dre) ).distinct('name', 'id')
 
         groups__id = self.request.query_params.get('groups__id')
         if groups__id:
@@ -72,10 +84,6 @@ class UserViewSet(ModelViewSet):
         if servidor:
             e_servidor = servidor == 'True'
             qs = qs.filter(e_servidor=e_servidor)
-
-        unidade_uuid = self.request.query_params.get('unidade_uuid')
-        if unidade_uuid:
-            qs = qs.filter(unidades__uuid=unidade_uuid)
 
         unidade_nome = self.request.query_params.get('unidade_nome')
         if unidade_nome:
