@@ -23,3 +23,4 @@ from .ambientes_viewset import AmbientesViewSet
 from .arquivos_download_viewset import ArquivosDownloadViewSet
 from .tipos_acerto_lancamento_viewset import TiposAcertoLancamentoViewSet
 from .tipos_acerto_documento_viewset import TiposAcertoDocumentoViewSet
+from .analises_prestacoes_contas_viewset import AnalisesPrestacoesContasViewSet
