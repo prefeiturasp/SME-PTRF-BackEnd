@@ -30,7 +30,7 @@ class AnalisesPrestacoesContasViewSet(
     queryset = AnalisePrestacaoConta.objects.all().order_by('id')
     serializer_class = AnalisePrestacaoContaRetrieveSerializer
 
-    @action(detail=True, methods=['get'],
+    @action(detail=True, methods=['get'], url_path='lancamentos-com-ajustes',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def lancamentos_com_ajustes(self, request, uuid):
         analise_prestacao = AnalisePrestacaoConta.by_uuid(uuid)
@@ -77,19 +77,12 @@ class AnalisesPrestacoesContasViewSet(
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        lancamentos = analise_prestacao.analises_de_lancamentos.filter(
-            resultado='AJUSTE',
-            conta_associacao=conta_associacao
-        )
-
-        if acao_associacao:
-            lancamentos = lancamentos.filter(acao_associacao=acao_associacao)
-
         lancamentos = lancamentos_da_prestacao(
             analise_prestacao_conta=analise_prestacao,
             conta_associacao=conta_associacao,
             acao_associacao=acao_associacao,
-            tipo_transacao=tipo_transacao
+            tipo_transacao=tipo_transacao,
+            com_ajustes=True
         )
 
         return Response(lancamentos, status=status.HTTP_200_OK)

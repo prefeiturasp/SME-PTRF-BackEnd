@@ -611,7 +611,7 @@ def analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises(
         analise_prestacao_conta=analise_prestacao_conta_2020_1_teste_analises,
         tipo_lancamento='GASTO',
         despesa=despesa_2020_1,
-        resultado='CORRETO'
+        resultado='AJUSTE'
     )
 
 
