@@ -389,10 +389,17 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
     return demonstrativo
 
 
-def lancamentos_da_prestacao(analise_prestacao_conta, conta_associacao, acao_associacao=None, tipo_transacao=None):
+def lancamentos_da_prestacao(
+    analise_prestacao_conta,
+    conta_associacao,
+    acao_associacao=None,
+    tipo_transacao=None,
+    com_ajustes=False,
+):
     from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaConciliacaoSerializer
     from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaConciliacaoSerializer
     from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
+    from sme_ptrf_apps.core.api.serializers.analise_lancamento_prestacao_conta_serializer import AnaliseLancamentoPrestacaoContaRetrieveSerializer
 
     def documentos_de_despesa_por_conta_e_acao_no_periodo(conta_associacao, acao_associacao, periodo):
         rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
@@ -440,6 +447,9 @@ def lancamentos_da_prestacao(analise_prestacao_conta, conta_associacao, acao_ass
 
         analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(despesa=despesa).first()
 
+        if com_ajustes and (not analise_lancamento or analise_lancamento.resultado != 'AJUSTE'):
+            continue
+
         lancamento = {
             'periodo': f'{prestacao_conta.periodo.uuid}',
             'conta': f'{conta_associacao.uuid}',
@@ -449,24 +459,38 @@ def lancamentos_da_prestacao(analise_prestacao_conta, conta_associacao, acao_ass
             'descricao': despesa.nome_fornecedor,
             'valor_transacao_total': despesa.valor_total,
             'valor_transacao_na_conta':
-                despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).aggregate(Sum('valor_rateio'))[
+                despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).aggregate(
+                    Sum('valor_rateio'))[
                     'valor_rateio__sum'],
-            'valores_por_conta': despesa.rateios.filter(status=STATUS_COMPLETO).values('conta_associacao__tipo_conta__nome').annotate(
+            'valores_por_conta': despesa.rateios.filter(status=STATUS_COMPLETO).values(
+                'conta_associacao__tipo_conta__nome').annotate(
                 Sum('valor_rateio')),
             'conferido': despesa.conferido,
             'documento_mestre': DespesaConciliacaoSerializer(despesa, many=False).data,
-            'rateios': RateioDespesaConciliacaoSerializer(despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by('id'),
-                                                          many=True).data,
+            'rateios': RateioDespesaConciliacaoSerializer(
+                despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by('id'),
+                many=True).data,
             'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
             'analise_lancamento': {'resultado': analise_lancamento.resultado,
                                    'uuid': analise_lancamento.uuid} if analise_lancamento else None
         }
+
+        if com_ajustes:
+            lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaRetrieveSerializer(analise_lancamento,
+                                                                                                 many=False).data
+        else:
+            lancamento['analise_lancamento'] = {'resultado': analise_lancamento.resultado,
+                                                'uuid': analise_lancamento.uuid} if analise_lancamento else None
+
         lancamentos.append(lancamento)
 
     # Percorrer a lista de créditos ordenada e para cada credito, buscar na lista de lançamentos a posição correta
     for receita in receitas:
 
         analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(receita=receita).first()
+
+        if com_ajustes and (not analise_lancamento or analise_lancamento.resultado != 'AJUSTE'):
+            continue
 
         novo_lancamento = {
             'periodo': f'{prestacao_conta.periodo.uuid}',
@@ -485,6 +509,14 @@ def lancamentos_da_prestacao(analise_prestacao_conta, conta_associacao, acao_ass
             'analise_lancamento': {'resultado': analise_lancamento.resultado,
                                    'uuid': analise_lancamento.uuid} if analise_lancamento else None
         }
+
+        if com_ajustes:
+            novo_lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaRetrieveSerializer(
+                analise_lancamento,
+                many=False).data
+        else:
+            novo_lancamento['analise_lancamento'] = {'resultado': analise_lancamento.resultado,
+                                                     'uuid': analise_lancamento.uuid} if analise_lancamento else None
 
         lancamento_adicionado = False
 

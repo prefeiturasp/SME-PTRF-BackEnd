@@ -4,20 +4,21 @@ pytestmark = pytest.mark.django_db
 
 
 def test_lista_usuarios_filtro_por_visao(
-        jwt_authenticated_client_u,
-        usuario_para_teste,
-        usuario_3,
-        visao_ue,
-        visao_dre,
-        visao_sme,
-        permissao1,
-        permissao2,
-        grupo_1,
-        grupo_2,
-        unidade
+    jwt_authenticated_client_u,
+    usuario_3,
+    usuario_para_teste,
+    visao_ue,
+    visao_dre,
+    visao_sme,
+    permissao1,
+    permissao2,
+    grupo_1,
+    grupo_2,
+    unidade,
+    dre,
 ):
 
-    response = jwt_authenticated_client_u.get("/api/usuarios/?visao=DRE", content_type='application/json')
+    response = jwt_authenticated_client_u.get(f"/api/usuarios/?visao=DRE&unidade_uuid={dre.uuid}", content_type='application/json')
     result = response.json()
     esperado = [
         {
@@ -42,29 +43,53 @@ def test_lista_usuarios_filtro_por_visao(
                     'tipo_unidade': unidade.tipo_unidade
                 }
             ]
+        },
+        {
+            'id': usuario_para_teste.id,
+            'username': usuario_para_teste.username,
+            'email': 'luh@gmail.com',
+            'name': 'LUCIA HELENA',
+            'url': f'http://testserver/api/esqueci-minha-senha/{usuario_para_teste.username}/',
+            'e_servidor': usuario_para_teste.e_servidor,
+            'groups': [
+                {
+                    'id': grupo_1.id,
+                    'name': grupo_1.name,
+                    'descricao': grupo_1.descricao
+                }
+            ],
+            'unidades': [
+                {
+                    'uuid': f'{unidade.uuid}',
+                    'nome': unidade.nome,
+                    'codigo_eol': unidade.codigo_eol,
+                    'tipo_unidade': unidade.tipo_unidade
+                }
+            ]
         }
     ]
     assert result == esperado
 
 
 def test_lista_usuarios_filtro_por_grupo(
-        jwt_authenticated_client_u2,
-        usuario_2,
-        usuario_3,
-        visao_ue,
-        visao_dre,
-        visao_sme,
-        permissao1,
-        permissao2,
-        grupo_1,
-        grupo_2,
-        grupo_3,
-        unidade,
-        unidade_diferente
+    jwt_authenticated_client_u2,
+    usuario_2,
+    usuario_3,
+    visao_ue,
+    visao_dre,
+    visao_sme,
+    permissao1,
+    permissao2,
+    grupo_1,
+    grupo_2,
+    grupo_3,
+    unidade,
+    unidade_diferente,
+    dre
 ):
 
     response = jwt_authenticated_client_u2.get(
-        f"/api/usuarios/?visao=DRE&groups__id={grupo_3.id}", content_type='application/json')
+        f"/api/usuarios/?visao=DRE&unidade_uuid={dre.uuid}&groups__id={grupo_3.id}", content_type='application/json')
     esperado = [
         {
             'id': usuario_2.id,
@@ -93,20 +118,21 @@ def test_lista_usuarios_filtro_por_grupo(
 
 
 def test_lista_usuarios_filtro_por_nome(
-        jwt_authenticated_client_u2,
-        usuario_2,
-        usuario_3,
-        visao_ue,
-        visao_dre,
-        visao_sme,
-        permissao1,
-        permissao2,
-        grupo_1,
-        grupo_2,
-        unidade
+    jwt_authenticated_client_u2,
+    usuario_2,
+    usuario_3,
+    visao_ue,
+    visao_dre,
+    visao_sme,
+    permissao1,
+    permissao2,
+    grupo_1,
+    grupo_2,
+    unidade,
+    dre
 ):
 
-    response = jwt_authenticated_client_u2.get(f"/api/usuarios/?visao=DRE&search=Arth", content_type='application/json')
+    response = jwt_authenticated_client_u2.get(f"/api/usuarios/?visao=DRE&unidade_uuid={dre.uuid}&search=Arth", content_type='application/json')
     result = response.json()
     esperado = [
         {'id': usuario_3.id,
@@ -136,20 +162,21 @@ def test_lista_usuarios_filtro_por_nome(
 
 
 def test_lista_usuarios_filtro_por_nome_ou_username(
-        jwt_authenticated_client_u2,
-        usuario_2,
-        usuario_3,
-        visao_ue,
-        visao_dre,
-        visao_sme,
-        permissao1,
-        permissao2,
-        grupo_1,
-        grupo_2,
-        unidade
+    jwt_authenticated_client_u2,
+    usuario_2,
+    usuario_3,
+    visao_ue,
+    visao_dre,
+    visao_sme,
+    permissao1,
+    permissao2,
+    grupo_1,
+    grupo_2,
+    unidade,
+    dre
 ):
 
-    response = jwt_authenticated_client_u2.get(f"/api/usuarios/?visao=DRE&search=7218198", content_type='application/json')
+    response = jwt_authenticated_client_u2.get(f"/api/usuarios/?visao=DRE&unidade_uuid={dre.uuid}&search=7218198", content_type='application/json')
     result = response.json()
     esperado = [
         {'id': usuario_3.id,
@@ -326,7 +353,7 @@ def test_lista_usuarios_filtro_por_unidade_uuid(
         grupo_2
 ):
 
-    response = jwt_authenticated_client_u.get(f"/api/usuarios/?unidade_uuid={unidade.uuid}", content_type='application/json')
+    response = jwt_authenticated_client_u.get(f"/api/usuarios/?visao=UE&unidade_uuid={unidade.uuid}", content_type='application/json')
     result = response.json()
     esperado = [
         {
