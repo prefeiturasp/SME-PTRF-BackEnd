@@ -1667,13 +1667,13 @@ def analise_documento_prestacao_conta_2020_1_ata_correta(
 
 @pytest.fixture
 def analise_documento_prestacao_conta_2020_1_ata_ajuste(
-    analise_prestacao_conta_2020_1_teste_analises,
+    analise_prestacao_conta_2020_1,
     tipo_documento_prestacao_conta_ata,
     conta_associacao_cartao
 ):
     return baker.make(
         'AnaliseDocumentoPrestacaoConta',
-        analise_prestacao_conta=analise_prestacao_conta_2020_1_teste_analises,
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
         tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_ata,
         conta_associacao=conta_associacao_cartao,
         resultado='AJUSTE'

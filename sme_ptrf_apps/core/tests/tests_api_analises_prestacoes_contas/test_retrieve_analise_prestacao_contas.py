@@ -23,7 +23,18 @@ def test_api_retrieve_analise_prestacao_contas_existente(
 ):
     analise_prestacao = solicitacao_acerto_documento_ata_teste_analises.analise_documento.analise_prestacao_conta
 
-    result_esperado = {}
+    result_esperado = {
+        'criado_em': analise_prestacao.criado_em.isoformat("T"),
+        'devolucao_prestacao_conta': {'cobrancas_da_devolucao': [],
+                                      'data': '2020-10-05',
+                                      'data_limite_ue': '2020-08-01',
+                                      'prestacao_conta': f'{analise_prestacao.prestacao_conta.uuid}',
+                                      'uuid': f'{analise_prestacao.devolucao_prestacao_conta.uuid}'},
+        'id': analise_prestacao.id,
+        'prestacao_conta': f'{analise_prestacao.prestacao_conta.uuid}',
+        'status': 'EM_ANALISE',
+        'uuid': f'{analise_prestacao.uuid}'
+    }
 
     url = f'/api/analises-prestacoes-contas/{analise_prestacao.uuid}/'
 

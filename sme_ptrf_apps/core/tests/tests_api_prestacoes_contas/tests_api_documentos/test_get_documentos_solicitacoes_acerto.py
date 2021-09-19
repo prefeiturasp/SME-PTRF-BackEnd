@@ -24,6 +24,7 @@ def test_api_get_solicitacoes_acerto_de_um_documento_nao_por_conta(
         'resultado': 'AJUSTE',
         'conta_associacao': None,
         'analise_prestacao_conta': f'{analise_prestacao.uuid}',
+        'documento': 'Cópia da ata da prestação de contas',
         'tipo_documento_prestacao_conta': {
             'uuid': f'{tipo_documento_prestacao_conta_ata.uuid}',
             'id': tipo_documento_prestacao_conta_ata.id,
@@ -72,6 +73,7 @@ def test_api_get_solicitacoes_acerto_de_um_documento_por_conta(
             'uuid': f'{conta_associacao_cartao.uuid}'
         },
         'analise_prestacao_conta': f'{analise_prestacao.uuid}',
+        'documento': 'Declaração XPTO Cartão',
         'tipo_documento_prestacao_conta': {
             'uuid': f'{tipo_documento_prestacao_conta_declaracao.uuid}',
             'id': tipo_documento_prestacao_conta_declaracao.id,
