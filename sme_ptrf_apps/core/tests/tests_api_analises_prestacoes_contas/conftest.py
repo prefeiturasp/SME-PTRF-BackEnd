@@ -3,7 +3,6 @@ import datetime
 import pytest
 from model_bakery import baker
 
-
 @pytest.fixture
 def periodo_2019_2():
     return baker.make(
@@ -555,7 +554,6 @@ def fechamento_periodo_2019_2_role_1000(periodo_2019_2, associacao, conta_associ
 
 @pytest.fixture
 def prestacao_conta_2020_1_teste_analises(periodo_2020_1, associacao):
-    # Aqui PC
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1,
@@ -574,9 +572,9 @@ def devolucao_prestacao_conta_2020_1_teste_analises(prestacao_conta_2020_1_teste
         data_limite_ue=datetime.date(2020, 8, 1),
     )
 
+
 @pytest.fixture
 def analise_prestacao_conta_2020_1_teste_analises(
-    # Aqui
     prestacao_conta_2020_1_teste_analises,
     devolucao_prestacao_conta_2020_1_teste_analises
 ):
@@ -658,7 +656,6 @@ def solicitacao_acerto_lancamento_devolucao_teste_analises(
         devolucao_ao_tesouro=devolucao_ao_tesouro_parcial_ajuste,
         detalhamento="teste"
     )
-
 
 
 @pytest.fixture

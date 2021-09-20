@@ -52,7 +52,8 @@ from ..serializers import (
     PrestacaoContaLookUpSerializer,
     PrestacaoContaRetrieveSerializer,
     AnaliseLancamentoPrestacaoContaRetrieveSerializer,
-    AnaliseDocumentoPrestacaoContaRetrieveSerializer
+    AnaliseDocumentoPrestacaoContaRetrieveSerializer,
+    AnalisePrestacaoContaRetrieveSerializer
 )
 
 from django.core.exceptions import ValidationError
@@ -1363,3 +1364,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(AnaliseDocumentoPrestacaoContaRetrieveSerializer(analise_documento).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path="devolucoes",
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def devolucoes(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+        devolucoes = prestacao_conta.analises_da_prestacao.filter(status='DEVOLVIDA').order_by('id')
+        return Response(AnalisePrestacaoContaRetrieveSerializer(devolucoes, many=True).data, status=status.HTTP_200_OK)
