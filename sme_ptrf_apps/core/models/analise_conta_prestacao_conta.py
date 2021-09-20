@@ -2,6 +2,7 @@ from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
+
 class AnaliseContaPrestacaoConta(ModeloBase):
     prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE,
                                         related_name='analises_de_conta_da_prestacao')

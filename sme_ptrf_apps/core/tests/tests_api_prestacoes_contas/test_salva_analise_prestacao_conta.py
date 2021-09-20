@@ -56,17 +56,6 @@ def test_api_salva_analise_prestacao_conta(jwt_authenticated_client_a, prestacao
                 'saldo_extrato': 100.00,
             },
         ],
-        'devolucoes_ao_tesouro_da_prestacao': [
-            {
-                'data': '2020-07-01',
-                'devolucao_total': True,
-                'motivo': 'teste',
-                'valor': 100.00,
-                'tipo': f'{tipo_devolucao_ao_tesouro.uuid}',
-                'despesa': f'{despesa.uuid}',
-                'visao_criacao': 'UE'
-            }
-        ]
     }
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/salvar-analise/'
@@ -78,31 +67,10 @@ def test_api_salva_analise_prestacao_conta(jwt_authenticated_client_a, prestacao
     prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_em_analise.uuid)
     assert prestacao_atualizada.status == PrestacaoConta.STATUS_EM_ANALISE, 'Status deveria ter sido mantido.'
     assert prestacao_atualizada.data_ultima_analise == date(2020, 9, 1), 'Data de última análise não atualizada.'
-    assert prestacao_atualizada.devolucao_tesouro, 'Devolução ao tesouro não atualizado.'
     assert prestacao_atualizada.analises_de_conta_da_prestacao.exists(), 'Não gravou a análise de conta'
     assert prestacao_atualizada.analises_de_conta_da_prestacao.first().data_extrato == date(2020, 7,
                                                                                             1), 'Não atualizou a data do extrato.'
     assert prestacao_atualizada.analises_de_conta_da_prestacao.first().saldo_extrato == 100.00, 'Não atualizou a saldo do extrato.'
-    assert prestacao_atualizada.devolucoes_ao_tesouro_da_prestacao.exists(), 'Não gravou as devoluções ao tesouro'
-    assert prestacao_atualizada.devolucoes_ao_tesouro_da_prestacao.first().visao_criacao == 'UE'
-
-def test_api_salvar_prestacao_conta_exige_devolucao_tesouro(jwt_authenticated_client_a, prestacao_conta_em_analise):
-    url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/salvar-analise/'
-
-    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    result = json.loads(response.content)
-
-    result_esperado = {
-        'uuid': f'{prestacao_conta_em_analise.uuid}',
-        'erro': 'falta_de_informacoes',
-        'operacao': 'salvar-analise',
-        'mensagem': 'Faltou informar o campo devolucao_tesouro.'
-    }
-
-    assert result == result_esperado, "Deveria ter retornado erro falta_de_informacoes."
 
 
 def test_api_salvar_prestacao_conta_exige_analises_de_conta_da_prestacao(jwt_authenticated_client_a,
