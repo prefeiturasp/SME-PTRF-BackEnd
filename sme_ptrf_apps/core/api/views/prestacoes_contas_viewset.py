@@ -334,16 +334,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def salvar_analise(self, request, uuid):
         prestacao_conta = self.get_object()
 
-        devolucao_tesouro = request.data.get('devolucao_tesouro', None)
-        if devolucao_tesouro is None:
-            response = {
-                'uuid': f'{uuid}',
-                'erro': 'falta_de_informacoes',
-                'operacao': 'salvar-analise',
-                'mensagem': 'Faltou informar o campo devolucao_tesouro.'
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
         analises_de_conta_da_prestacao = request.data.get('analises_de_conta_da_prestacao', None)
         if analises_de_conta_da_prestacao is None:
             response = {
@@ -353,8 +343,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'mensagem': 'Faltou informar o campo analises_de_conta_da_prestacao.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
-        devolucoes_ao_tesouro_da_prestacao = request.data.get('devolucoes_ao_tesouro_da_prestacao', [])
 
         if prestacao_conta.status != PrestacaoConta.STATUS_EM_ANALISE:
             response = {
@@ -366,9 +354,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        prestacao_salva = prestacao_conta.salvar_analise(devolucao_tesouro=devolucao_tesouro,
-                                                         analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
-                                                         devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
+        prestacao_salva = prestacao_conta.salvar_analise(analises_de_conta_da_prestacao=analises_de_conta_da_prestacao)
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
@@ -422,16 +408,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        devolucao_tesouro = request.data.get('devolucao_tesouro', None)
-        if devolucao_tesouro is None:
-            response = {
-                'uuid': f'{uuid}',
-                'erro': 'falta_de_informacoes',
-                'operacao': 'concluir-analise',
-                'mensagem': 'Faltou informar o campo devolucao_tesouro.'
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
         analises_de_conta_da_prestacao = request.data.get('analises_de_conta_da_prestacao', None)
         if analises_de_conta_da_prestacao is None:
             response = {
@@ -441,8 +417,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'mensagem': 'Faltou informar o campo analises_de_conta_da_prestacao.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
-        devolucoes_ao_tesouro_da_prestacao = request.data.get('devolucoes_ao_tesouro_da_prestacao', [])
 
         if prestacao_conta.status != PrestacaoConta.STATUS_EM_ANALISE:
             response = {
@@ -518,13 +492,11 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         prestacao_salva = prestacao_conta.concluir_analise(
             resultado_analise=resultado_analise,
-            devolucao_tesouro=devolucao_tesouro,
             analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
             motivos_aprovacao_ressalva=motivos_aprovacao_ressalva,
             outros_motivos_aprovacao_ressalva=outros_motivos_aprovacao_ressalva,
             data_limite_ue=data_limite_ue,
             motivos_reprovacao=motivos_reprovacao,
-            devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao
         )
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,

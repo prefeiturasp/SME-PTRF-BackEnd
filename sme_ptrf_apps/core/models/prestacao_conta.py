@@ -184,15 +184,11 @@ class PrestacaoConta(ModeloBase):
         return self
 
     @transaction.atomic
-    def salvar_analise(self, devolucao_tesouro, analises_de_conta_da_prestacao, resultado_analise=None,
-                       motivos_aprovacao_ressalva=[], outros_motivos_aprovacao_ressalva='', motivos_reprovacao='', devolucoes_ao_tesouro_da_prestacao=[]):
+    def salvar_analise(self, analises_de_conta_da_prestacao, resultado_analise=None,
+                       motivos_aprovacao_ressalva=[], outros_motivos_aprovacao_ressalva='', motivos_reprovacao=''):
         from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
-        from ..models.devolucao_ao_tesouro import DevolucaoAoTesouro
         from ..models.conta_associacao import ContaAssociacao
-        from ..models.tipo_devolucao_ao_tesouro import TipoDevolucaoAoTesouro
-        from ...despesas.models.despesa import Despesa
 
-        self.devolucao_tesouro = devolucao_tesouro
         self.data_ultima_analise = date.today()
 
         if resultado_analise:
@@ -215,21 +211,6 @@ class PrestacaoConta(ModeloBase):
                 saldo_extrato=analise['saldo_extrato']
             )
 
-        self.devolucoes_ao_tesouro_da_prestacao.all().delete()
-        for devolucao in devolucoes_ao_tesouro_da_prestacao:
-            tipo_devolucao = TipoDevolucaoAoTesouro.by_uuid(devolucao['tipo'])
-            despesa = Despesa.by_uuid(devolucao['despesa'])
-            DevolucaoAoTesouro.objects.create(
-                prestacao_conta=self,
-                tipo=tipo_devolucao,
-                despesa=despesa,
-                data=devolucao['data'],
-                devolucao_total=devolucao['devolucao_total'],
-                motivo=devolucao['motivo'],
-                valor=devolucao['valor'],
-                visao_criacao=devolucao['visao_criacao'],
-            )
-
         return self
 
     @transaction.atomic
@@ -248,15 +229,13 @@ class PrestacaoConta(ModeloBase):
         return self
 
     @transaction.atomic
-    def concluir_analise(self, resultado_analise, devolucao_tesouro, analises_de_conta_da_prestacao,
-                         motivos_aprovacao_ressalva, outros_motivos_aprovacao_ressalva, data_limite_ue, motivos_reprovacao, devolucoes_ao_tesouro_da_prestacao=[]):
+    def concluir_analise(self, resultado_analise, analises_de_conta_da_prestacao, motivos_aprovacao_ressalva,
+                         outros_motivos_aprovacao_ressalva, data_limite_ue, motivos_reprovacao):
         prestacao_atualizada = self.salvar_analise(resultado_analise=resultado_analise,
-                                                   devolucao_tesouro=devolucao_tesouro,
                                                    analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
                                                    motivos_aprovacao_ressalva=motivos_aprovacao_ressalva,
                                                    outros_motivos_aprovacao_ressalva=outros_motivos_aprovacao_ressalva,
-                                                   motivos_reprovacao=motivos_reprovacao,
-                                                   devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
+                                                   motivos_reprovacao=motivos_reprovacao)
 
         if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
             prestacao_atualizada = prestacao_atualizada.devolver(data_limite_ue=data_limite_ue)
