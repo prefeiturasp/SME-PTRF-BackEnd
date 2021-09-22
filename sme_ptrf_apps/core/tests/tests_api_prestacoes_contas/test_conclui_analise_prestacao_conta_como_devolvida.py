@@ -115,17 +115,6 @@ def test_api_conclui_analise_prestacao_conta_devolvida(jwt_authenticated_client_
         ],
         'resultado_analise': PrestacaoConta.STATUS_DEVOLVIDA,
         'data_limite_ue': '2020-07-21',
-        'devolucoes_ao_tesouro_da_prestacao': [
-            {
-                'data': '2020-07-01',
-                'devolucao_total': True,
-                'motivo': 'teste',
-                'valor': 100.00,
-                'tipo': f'{tipo_devolucao_ao_tesouro.uuid}',
-                'despesa': f'{despesa.uuid}',
-                'visao_criacao': 'UE',
-            }
-        ]
     }
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
@@ -139,7 +128,6 @@ def test_api_conclui_analise_prestacao_conta_devolvida(jwt_authenticated_client_
     assert prestacao_atualizada.devolucoes_da_prestacao.exists(), 'Não gravou o registro de devolução da PC.'
     assert prestacao_atualizada.devolucoes_da_prestacao.first().data_limite_ue == date(2020, 7,
                                                                                        21), 'Não gravou a data limite.'
-    assert prestacao_atualizada.devolucoes_ao_tesouro_da_prestacao.exists(), 'Não gravou as devoluções ao tesouro'
 
 
 def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_data_limite(jwt_authenticated_client_a,

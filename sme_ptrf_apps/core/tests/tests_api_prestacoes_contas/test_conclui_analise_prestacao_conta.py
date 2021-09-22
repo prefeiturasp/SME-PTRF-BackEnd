@@ -54,38 +54,6 @@ def test_api_conclui_analise_prestacao_conta_exige_resultado_analise(jwt_authent
     assert result == result_esperado, "Deveria ter retornado erro falta_de_informacoes."
 
 
-def test_api_conclui_analise_prestacao_conta_exige_devolucao_tesouro(jwt_authenticated_client_a,
-                                                                     prestacao_conta_em_analise,
-                                                                     conta_associacao):
-    payload = {
-        'analises_de_conta_da_prestacao': [
-            {
-                'conta_associacao': f'{conta_associacao.uuid}',
-                'data_extrato': '2020-07-01',
-                'saldo_extrato': 100.00,
-            },
-        ],
-        'resultado_analise': PrestacaoConta.STATUS_APROVADA
-    }
-
-    url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
-
-    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    result = json.loads(response.content)
-
-    result_esperado = {
-        'uuid': f'{prestacao_conta_em_analise.uuid}',
-        'erro': 'falta_de_informacoes',
-        'operacao': 'concluir-analise',
-        'mensagem': 'Faltou informar o campo devolucao_tesouro.'
-    }
-
-    assert result == result_esperado, "Deveria ter retornado erro falta_de_informacoes."
-
-
 def test_api_conclui_analise_prestacao_conta_exige_analises_de_conta_da_prestacao(jwt_authenticated_client_a,
                                                                                   prestacao_conta_em_analise):
     payload = {
