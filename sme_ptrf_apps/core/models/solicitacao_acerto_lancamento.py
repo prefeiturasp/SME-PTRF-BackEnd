@@ -10,7 +10,7 @@ class SolicitacaoAcertoLancamento(ModeloBase):
     tipo_acerto = models.ForeignKey('TipoAcertoLancamento', on_delete=models.PROTECT,
                                     related_name='+')
 
-    devolucao_ao_tesouro = models.ForeignKey('DevolucaoAoTesouro', on_delete=models.PROTECT,
+    devolucao_ao_tesouro = models.ForeignKey('DevolucaoAoTesouro', on_delete=models.SET_NULL,
                                              related_name='solicitacao_de_ajuste_da_devolucao',
                                              null=True, blank=True)
 
