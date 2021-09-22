@@ -12,6 +12,7 @@ from sme_ptrf_apps.dre.models import Atribuicao
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -136,11 +137,18 @@ class PrestacaoConta(ModeloBase):
     @transaction.atomic
     def analisar(self):
         from . import AnalisePrestacaoConta
+        from ..services.analise_prestacao_conta_service import copia_ajustes_entre_analises
+
+        analise_anterior = AnalisePrestacaoConta.objects.filter(prestacao_conta=self).order_by('-id').first()
+
         analise_atual = AnalisePrestacaoConta.objects.create(prestacao_conta=self)
 
         self.status = self.STATUS_EM_ANALISE
         self.analise_atual = analise_atual
         self.save()
+
+        if analise_anterior:
+            copia_ajustes_entre_analises(analise_origem=analise_anterior, analise_destino=analise_atual)
 
         return self
 
@@ -283,10 +291,10 @@ class PrestacaoConta(ModeloBase):
 
     @classmethod
     def dashboard(cls, periodo_uuid, dre_uuid, add_aprovado_ressalva=False):
-        '''
+        """
         :param add_aprovado_ressalva: True para retornar a quantidade de aprovados com ressalva separadamente ou
         False para retornar a quantidade de aprovadas com ressalva somada a quantidade de aprovadas
-        '''
+        """
         from ..models import Associacao
 
         titulos_por_status = {

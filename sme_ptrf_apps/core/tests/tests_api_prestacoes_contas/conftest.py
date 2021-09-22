@@ -389,6 +389,7 @@ def repasse_2020_1_pendente(associacao, conta_associacao, acao_associacao, perio
         realizado_custeio=False
     )
 
+
 @pytest.fixture
 def repasse_2020_1_realizado(associacao, conta_associacao, acao_associacao, periodo_2020_1):
     return baker.make(
@@ -404,3 +405,114 @@ def repasse_2020_1_realizado(associacao, conta_associacao, acao_associacao, peri
         realizado_custeio=True
     )
 
+
+@pytest.fixture
+def prestacao_conta_com_analise_anterior(periodo, associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo,
+        associacao=associacao,
+        data_recebimento=datetime.date(2020, 10, 1),
+        status='RECEBIDA'
+    )
+
+
+@pytest.fixture
+def devolucao_prestacao_conta_anterior(prestacao_conta_com_analise_anterior):
+    return baker.make(
+        'DevolucaoPrestacaoConta',
+        prestacao_conta=prestacao_conta_com_analise_anterior,
+        data=datetime.date(2020, 7, 1),
+        data_limite_ue=datetime.date(2020, 8, 1),
+    )
+
+
+@pytest.fixture
+def analise_prestacao_conta_anterior(prestacao_conta_com_analise_anterior, devolucao_prestacao_conta_anterior):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_com_analise_anterior,
+        devolucao_prestacao_conta=devolucao_prestacao_conta_anterior
+    )
+
+
+@pytest.fixture
+def analise_lancamento_despesa_em_analise_anterior(
+    analise_prestacao_conta_anterior,
+    despesa_2020_1
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_anterior,
+        tipo_lancamento='GASTO',
+        despesa=despesa_2020_1,
+        resultado='CORRETO'
+    )
+
+
+@pytest.fixture
+def tipo_devolucao_ao_tesouro_teste():
+    return baker.make('TipoDevolucaoAoTesouro', nome='Devolução teste')
+
+
+@pytest.fixture
+def devolucao_ao_tesouro_analise_anterior(prestacao_conta_com_analise_anterior, tipo_devolucao_ao_tesouro_teste, despesa_2020_1):
+    return baker.make(
+        'DevolucaoAoTesouro',
+        prestacao_conta=prestacao_conta_com_analise_anterior,
+        tipo=tipo_devolucao_ao_tesouro_teste,
+        data=datetime.date(2020, 7, 1),
+        despesa=despesa_2020_1,
+        devolucao_total=False,
+        valor=100.00,
+        motivo='teste',
+        visao_criacao='DRE'
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_devolucao_analise_anterior(
+    analise_lancamento_despesa_em_analise_anterior,
+    tipo_acerto_lancamento_devolucao,
+    devolucao_ao_tesouro_analise_anterior
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_despesa_em_analise_anterior,
+        tipo_acerto=tipo_acerto_lancamento_devolucao,
+        devolucao_ao_tesouro=devolucao_ao_tesouro_analise_anterior,
+        detalhamento="teste"
+    )
+
+
+@pytest.fixture
+def tipo_documento_prestacao_conta_declaracao():
+    return baker.make('TipoDocumentoPrestacaoConta', nome='Declaração XPTO', documento_por_conta=True)
+
+
+@pytest.fixture
+def analise_documento_prestacao_analise_anterior(
+    analise_prestacao_conta_anterior,
+    tipo_documento_prestacao_conta_declaracao,
+    conta_associacao_cartao,
+    conta_associacao_cheque
+):
+    return baker.make(
+        'AnaliseDocumentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_anterior,
+        tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_declaracao,
+        conta_associacao=conta_associacao_cartao,
+        resultado='AJUSTE'
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_documento_analise_anterior(
+    analise_documento_prestacao_analise_anterior,
+    tipo_acerto_documento_assinatura,
+):
+    return baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento_prestacao_analise_anterior,
+        tipo_acerto=tipo_acerto_documento_assinatura,
+    )
