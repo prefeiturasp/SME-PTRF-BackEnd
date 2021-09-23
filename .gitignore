@@ -284,3 +284,7 @@ sme_ptrf_apps/media/
 .envs/*
 !.envs/.local/
 /_material/
+
+
+### Redis dump.rdb file
+dump.rdb

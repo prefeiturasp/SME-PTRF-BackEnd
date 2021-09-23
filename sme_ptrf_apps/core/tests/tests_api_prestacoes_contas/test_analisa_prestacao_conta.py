@@ -6,7 +6,14 @@ from datetime import date
 from model_bakery import baker
 from rest_framework import status
 
-from ...models import PrestacaoConta, AnalisePrestacaoConta
+from ...models import (
+    PrestacaoConta,
+    AnalisePrestacaoConta,
+    SolicitacaoAcertoLancamento,
+    AnaliseLancamentoPrestacaoConta,
+    DevolucaoAoTesouro,
+    SolicitacaoAcertoDocumento
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -82,3 +89,31 @@ def test_api_analisar_prestacao_conta_nao_pode_aceitar_status_diferente_de_receb
 
     prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_aprovada.uuid)
     assert prestacao_atualizada.status == prestacao_conta_aprovada.status, 'Status não deveria ter sido alterado.'
+
+
+def test_api_analisar_prestacao_conta_com_devolucoes_anteriores_deve_copiar_ajustes(
+    jwt_authenticated_client_a,
+    prestacao_conta_com_analise_anterior,
+    solicitacao_acerto_lancamento_devolucao_analise_anterior,
+    solicitacao_acerto_documento_analise_anterior
+):
+    url = f'/api/prestacoes-contas/{prestacao_conta_com_analise_anterior.uuid}/analisar/'
+
+    assert AnalisePrestacaoConta.objects.count() == 1
+    assert AnaliseLancamentoPrestacaoConta.objects.count() == 1
+    assert SolicitacaoAcertoLancamento.objects.count() == 1
+    assert DevolucaoAoTesouro.objects.count() == 1
+    assert SolicitacaoAcertoDocumento.objects.count() == 1
+
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_com_analise_anterior.uuid)
+    assert prestacao_atualizada.status == PrestacaoConta.STATUS_EM_ANALISE, 'Status não atualizado.'
+
+    assert AnalisePrestacaoConta.objects.count() == 2
+    assert AnaliseLancamentoPrestacaoConta.objects.count() == 2
+    assert SolicitacaoAcertoLancamento.objects.count() == 2
+    assert DevolucaoAoTesouro.objects.count() == 1, "Devoluções ao tesouro não devem ser replicadas."
+    assert SolicitacaoAcertoDocumento.objects.count() == 2
