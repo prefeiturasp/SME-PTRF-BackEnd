@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from ..serializers.analise_prestacao_conta_serializer import AnalisePrestacaoContaRetrieveSerializer
 from ..serializers.analise_documento_prestacao_conta_serializer import AnaliseDocumentoPrestacaoContaRetrieveSerializer
-from ...models import AnalisePrestacaoConta, ContaAssociacao, AcaoAssociacao
+from ...models import AnalisePrestacaoConta, ContaAssociacao, AcaoAssociacao, TipoAcertoLancamento
 
 from sme_ptrf_apps.users.permissoes import (
     PermissaoAPITodosComLeituraOuGravacao,
@@ -77,11 +77,26 @@ class AnalisesPrestacoesContasViewSet(
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        # Define o tipo de acerto para o filtro de transações
+        tipo_acerto = None
+        tipo_acerto_uuid = request.query_params.get('tipo_acerto')
+        if tipo_acerto_uuid:
+            try:
+                tipo_acerto = TipoAcertoLancamento.objects.get(uuid=tipo_acerto_uuid)
+            except TipoAcertoLancamento.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto TipoAcertoLancamento para o uuid {tipo_acerto_uuid} não foi encontrado."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
         lancamentos = lancamentos_da_prestacao(
             analise_prestacao_conta=analise_prestacao,
             conta_associacao=conta_associacao,
             acao_associacao=acao_associacao,
             tipo_transacao=tipo_transacao,
+            tipo_acerto=tipo_acerto,
             com_ajustes=True
         )
 

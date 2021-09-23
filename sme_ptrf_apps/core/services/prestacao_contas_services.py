@@ -389,11 +389,16 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
     return demonstrativo
 
 
+def tem_solicitacao_acerto_do_tipo(analise_lancamento, tipo_acerto):
+    return analise_lancamento.solicitacoes_de_ajuste_da_analise.filter(tipo_acerto=tipo_acerto).exists()
+
+
 def lancamentos_da_prestacao(
     analise_prestacao_conta,
     conta_associacao,
     acao_associacao=None,
     tipo_transacao=None,
+    tipo_acerto=None,
     com_ajustes=False,
 ):
     from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaConciliacaoSerializer
@@ -447,6 +452,9 @@ def lancamentos_da_prestacao(
 
         analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(despesa=despesa).first()
 
+        if analise_lancamento and tipo_acerto and not tem_solicitacao_acerto_do_tipo(analise_lancamento, tipo_acerto):
+            continue
+
         if com_ajustes and (not analise_lancamento or analise_lancamento.resultado != 'AJUSTE'):
             continue
 
@@ -488,6 +496,9 @@ def lancamentos_da_prestacao(
     for receita in receitas:
 
         analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(receita=receita).first()
+
+        if analise_lancamento and tipo_acerto and not tem_solicitacao_acerto_do_tipo(analise_lancamento, tipo_acerto):
+            continue
 
         if com_ajustes and (not analise_lancamento or analise_lancamento.resultado != 'AJUSTE'):
             continue
