@@ -595,7 +595,7 @@ def analise_lancamento_receita_prestacao_conta_2020_1_teste_analises(
         analise_prestacao_conta=analise_prestacao_conta_2020_1_teste_analises,
         tipo_lancamento='CREDITO',
         receita=receita_2020_1_ptrf_repasse_conferida,
-        resultado='CORRETO'
+        resultado='AJUSTE'
     )
 
 
@@ -657,6 +657,19 @@ def solicitacao_acerto_lancamento_devolucao_teste_analises(
         detalhamento="teste"
     )
 
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_basico_tipo_teste_analises(
+    analise_lancamento_receita_prestacao_conta_2020_1_teste_analises,
+    tipo_acerto_lancamento_basico,
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1_teste_analises,
+        tipo_acerto=tipo_acerto_lancamento_basico,
+        devolucao_ao_tesouro=None,
+        detalhamento="teste 2"
+    )
 
 @pytest.fixture
 def tipo_documento_prestacao_conta_declaracao():
