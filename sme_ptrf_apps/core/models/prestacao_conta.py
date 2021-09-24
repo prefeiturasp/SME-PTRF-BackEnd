@@ -202,6 +202,10 @@ class PrestacaoConta(ModeloBase):
         if resultado_analise:
             self.status = resultado_analise
 
+        if resultado_analise and self.analise_atual:
+            self.analise_atual.status = resultado_analise
+            self.analise_atual.save()
+
         self.motivos_aprovacao_ressalva.set(motivos_aprovacao_ressalva)
         self.outros_motivos_aprovacao_ressalva = outros_motivos_aprovacao_ressalva
 
@@ -225,14 +229,22 @@ class PrestacaoConta(ModeloBase):
     def devolver(self, data_limite_ue):
         from ..services.notificacao_services import notificar_prestacao_de_contas_devolvida_para_acertos
         from ..models import DevolucaoPrestacaoConta
-        DevolucaoPrestacaoConta.objects.create(
+        devolucao = DevolucaoPrestacaoConta.objects.create(
             prestacao_conta=self,
             data=date.today(),
             data_limite_ue=data_limite_ue
         )
+        if self.analise_atual:
+            self.analise_atual.devolucao_prestacao_conta = devolucao
+            self.analise_atual.save()
+
+        self.analise_atual = None
+        self.save()
+
         self.apaga_fechamentos()
         self.apaga_relacao_bens()
         self.apaga_demonstrativos_financeiros()
+
         notificar_prestacao_de_contas_devolvida_para_acertos(self, data_limite_ue)
         return self
 

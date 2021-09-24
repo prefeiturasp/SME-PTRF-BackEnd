@@ -184,10 +184,7 @@ def test_api_list_lancamentos_todos_da_conta(
     rateio_despesa_2020_role_nao_conferido,
     periodo_2020_1,
     conta_associacao_cartao,
-    receita_2020_1_ptrf_repasse_conferida,
-    receita_2020_1_role_outras_nao_conferida,
     analise_prestacao_conta_2020_1_teste_analises,
-    analise_lancamento_receita_prestacao_conta_2020_1_teste_analises,
     analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises,
     solicitacao_acerto_lancamento_devolucao_teste_analises
 ):
@@ -222,6 +219,64 @@ def test_api_list_lancamentos_todos_da_conta(
                                             conta=conta_associacao_cartao)
 
     url = f'/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_analises.uuid}/lancamentos-com-ajustes/?conta_associacao={conta_uuid}'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == result_esperado, "Não retornou a lista de lançamentos esperados."
+
+
+def test_api_list_lancamentos_todos_da_conta_por_tipo_ajuste(
+    jwt_authenticated_client_a,
+    despesa_2020_1,
+    rateio_despesa_2020_role_conferido,
+    rateio_despesa_2020_ptrf_conferido,
+    rateio_despesa_2020_role_cheque_conferido,
+    rateio_despesa_2020_role_nao_conferido,
+    periodo_2020_1,
+    conta_associacao_cartao,
+    receita_2020_1_ptrf_repasse_conferida,
+    receita_2020_1_role_outras_nao_conferida,
+    analise_prestacao_conta_2020_1_teste_analises,
+    analise_lancamento_receita_prestacao_conta_2020_1_teste_analises,
+    analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises,
+    solicitacao_acerto_lancamento_devolucao_teste_analises,
+    solicitacao_acerto_lancamento_basico_tipo_teste_analises,
+    tipo_acerto_lancamento_devolucao,
+):
+    conta_uuid = conta_associacao_cartao.uuid
+
+    lancamentos_esperados = [
+        {
+            'mestre': despesa_2020_1,
+            'rateios': [
+                rateio_despesa_2020_role_conferido,
+                rateio_despesa_2020_ptrf_conferido,
+                rateio_despesa_2020_role_nao_conferido
+            ],
+            'tipo': 'Gasto',
+            'valor_transacao_na_conta': 300.0,
+            'valores_por_conta': [
+                {
+                    'conta_associacao__tipo_conta__nome': 'Cartão',
+                    'valor_rateio__sum': 300.0
+                },
+                {
+                    'conta_associacao__tipo_conta__nome': 'Cheque',
+                    'valor_rateio__sum': 100.0
+                }
+            ],
+            'analise_lancamento': analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises,
+            'solicitacao_ajuste': solicitacao_acerto_lancamento_devolucao_teste_analises,
+        },
+    ]
+
+    result_esperado = monta_result_esperado(lancamentos_esperados=lancamentos_esperados, periodo=periodo_2020_1,
+                                            conta=conta_associacao_cartao)
+
+    url = f'/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_analises.uuid}/lancamentos-com-ajustes/?conta_associacao={conta_uuid}&tipo_acerto={tipo_acerto_lancamento_devolucao.uuid}'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
