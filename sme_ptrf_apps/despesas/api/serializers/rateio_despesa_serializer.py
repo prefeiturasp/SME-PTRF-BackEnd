@@ -158,7 +158,7 @@ class RateioDespesaConciliacaoSerializer(serializers.ModelSerializer):
         )
 
 
-class RateioDespesaTabelaGastosEscola(serializers.ModelSerializer):
+class RateioDespesaTabelaGastosEscolaSerializer(serializers.ModelSerializer):
     despesa = serializers.SlugRelatedField(
         slug_field='id',
         required=False,
