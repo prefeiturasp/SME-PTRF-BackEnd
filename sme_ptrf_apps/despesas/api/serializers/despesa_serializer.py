@@ -3,7 +3,7 @@ import logging
 from rest_framework import serializers
 
 from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
-from .rateio_despesa_serializer import RateioDespesaSerializer, RateioDespesaTabelaGastosEscola
+from .rateio_despesa_serializer import RateioDespesaSerializer, RateioDespesaTabelaGastosEscolaSerializer
 from .tipo_documento_serializer import TipoDocumentoSerializer, TipoDocumentoListSerializer
 from .tipo_transacao_serializer import TipoTransacaoSerializer
 from ..serializers.rateio_despesa_serializer import RateioDespesaCreateSerializer
@@ -108,7 +108,7 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
 
     tipo_documento = TipoDocumentoListSerializer()
     tipo_transacao = TipoTransacaoSerializer()
-    rateios = RateioDespesaTabelaGastosEscola(many=True)
+    rateios = RateioDespesaTabelaGastosEscolaSerializer(many=True)
 
     receitas_saida_do_recurso = serializers.SerializerMethodField('get_recurso_externo')
 
