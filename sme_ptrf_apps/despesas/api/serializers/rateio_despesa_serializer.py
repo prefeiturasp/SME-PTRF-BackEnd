@@ -156,3 +156,25 @@ class RateioDespesaConciliacaoSerializer(serializers.ModelSerializer):
             'tipo_custeio',
             'tag',
         )
+
+
+class RateioDespesaTabelaGastosEscola(serializers.ModelSerializer):
+    despesa = serializers.SlugRelatedField(
+        slug_field='id',
+        required=False,
+        queryset=Despesa.objects.all()
+    )
+    associacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Associacao.objects.all()
+    )
+    conta_associacao = ContaAssociacaoSerializer()
+    acao_associacao = AcaoAssociacaoSerializer()
+    especificacao_material_servico = EspecificacaoMaterialServicoSerializer()
+    tipo_custeio = TipoCusteioSerializer()
+    tag = TagLookupSerializer()
+
+    class Meta:
+        model = RateioDespesa
+        fields = '__all__'
