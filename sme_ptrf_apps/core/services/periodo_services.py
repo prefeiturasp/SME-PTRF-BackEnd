@@ -71,7 +71,8 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         'status_prestacao': prestacao.status if prestacao else PrestacaoConta.STATUS_NAO_APRESENTADA,
         'texto_status': mensagem_periodo + ' ' + mensagem_prestacao,
         'periodo_bloqueado': periodo_bloqueado,
-        'legenda_cor': cor
+        'legenda_cor': cor,
+        'prestacao_de_contas_uuid': prestacao.uuid if prestacao and prestacao.uuid else None
     }
 
     return status

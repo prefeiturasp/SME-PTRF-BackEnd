@@ -14,6 +14,7 @@ def retorna_status_prestacoes(periodos=None, status_pc=None, uuid=None):
                 'status_pc': prestacao_conta_status['status_prestacao'],
                 'texto_status': prestacao_conta_status['texto_status'],
                 'legenda_cor': prestacao_conta_status['legenda_cor'],
+                'prestacao_de_contas_uuid': prestacao_conta_status['prestacao_de_contas_uuid'],
             }
 
             lista_de_periodos.append(obj_periodo)

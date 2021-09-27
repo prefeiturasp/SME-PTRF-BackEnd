@@ -29,6 +29,7 @@ def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, per
             'periodo_encerrado': None,
             'status_prestacao': 'NAO_APRESENTADA',
             'texto_status': 'Período em andamento. ',
+            'prestacao_de_contas_uuid': None,
         },
         'prestacao_conta': '',
 
@@ -55,6 +56,7 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
             'periodo_encerrado': True,
             'status_prestacao': 'NAO_APRESENTADA',
             'texto_status': 'Período finalizado. Documentos pendentes de geração.',
+            'prestacao_de_contas_uuid': None,
         },
         'prestacao_conta': '',
 
@@ -114,6 +116,7 @@ def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prest
             'periodo_encerrado': True,
             'status_prestacao': 'NAO_RECEBIDA',
             'texto_status': 'Período finalizado. Prestação de contas ainda não recebida pela DRE.',
+            'prestacao_de_contas_uuid': f'{prestacao_conta_2020_1_conciliada.uuid}',
         },
         'prestacao_conta': f'{prestacao_conta_2020_1_conciliada.uuid}',
 
@@ -155,6 +158,7 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
             'periodo_encerrado': True,
             'status_prestacao': 'DEVOLVIDA',
             'texto_status': 'Período finalizado. Prestação de contas devolvida para ajustes.',
+            'prestacao_de_contas_uuid': f'{_prestacao_conta_devolvida.uuid}',
         },
         'prestacao_conta': f'{_prestacao_conta_devolvida.uuid}',
 
