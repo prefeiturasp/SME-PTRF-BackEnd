@@ -126,7 +126,8 @@ def test_action_painel_acoes_de_uma_conta(
             'periodo_bloqueado': False,
             'periodo_encerrado': True,
             'status_prestacao': 'NAO_APRESENTADA',
-            'texto_status': 'Período finalizado. Documentos pendentes de geração.'
+            'texto_status': 'Período finalizado. Documentos pendentes de geração.',
+            'prestacao_de_contas_uuid': None,
         },
     }
 
@@ -254,7 +255,8 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
             'periodo_bloqueado': False,
             'periodo_encerrado': True,
             'status_prestacao': 'NAO_APRESENTADA',
-            'texto_status': 'Período finalizado. Documentos pendentes de geração.'
+            'texto_status': 'Período finalizado. Documentos pendentes de geração.',
+            'prestacao_de_contas_uuid': None,
         },
     }
 

@@ -101,7 +101,8 @@ def test_get_action_status_prestacoes(
             'data_fim_realizacao_despesas': f'{periodo_2020_1.data_fim_realizacao_despesas}',
             'legenda_cor': 1,
             'status_pc': 'NAO_APRESENTADA',
-            'texto_status': 'Período em andamento. '
+            'texto_status': 'Período em andamento. ',
+            'prestacao_de_contas_uuid': None,
         },
         {
             'referencia': '2019.2',
@@ -109,7 +110,8 @@ def test_get_action_status_prestacoes(
             'data_fim_realizacao_despesas': f'{periodo_2019_2.data_fim_realizacao_despesas}',
             'legenda_cor': 3,
             'status_pc': 'NAO_APRESENTADA',
-            'texto_status': 'Período finalizado. Documentos pendentes de geração.'
+            'texto_status': 'Período finalizado. Documentos pendentes de geração.',
+            'prestacao_de_contas_uuid': None,
         },
     ]
 
@@ -141,7 +143,8 @@ def test_get_action_status_prestacoes_filtro_por_periodo(
             'data_fim_realizacao_despesas': f'{periodo_2019_2.data_fim_realizacao_despesas}',
             'legenda_cor': 3,
             'status_pc': 'NAO_APRESENTADA',
-            'texto_status': 'Período finalizado. Documentos pendentes de geração.'
+            'texto_status': 'Período finalizado. Documentos pendentes de geração.',
+            'prestacao_de_contas_uuid': None,
         },
     ]
 
@@ -173,7 +176,8 @@ def test_get_action_status_prestacoes_filtro_por_status(
             'data_fim_realizacao_despesas': f'{periodo_2020_1.data_fim_realizacao_despesas}',
             'legenda_cor': 1,
             'status_pc': 'NAO_APRESENTADA',
-            'texto_status': 'Período em andamento. '
+            'texto_status': 'Período em andamento. ',
+            'prestacao_de_contas_uuid': None,
         },
         {
             'referencia': '2019.2',
@@ -181,7 +185,8 @@ def test_get_action_status_prestacoes_filtro_por_status(
             'data_fim_realizacao_despesas': f'{periodo_2019_2.data_fim_realizacao_despesas}',
             'legenda_cor': 3,
             'status_pc': 'NAO_APRESENTADA',
-            'texto_status': 'Período finalizado. Documentos pendentes de geração.'
+            'texto_status': 'Período finalizado. Documentos pendentes de geração.',
+            'prestacao_de_contas_uuid': None,
         },
     ]
     assert response.status_code == status.HTTP_200_OK
