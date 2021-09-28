@@ -2,7 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth import admin as auth_admin
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Permission, Group
+from django.contrib.auth.models import Permission
 
 from sme_ptrf_apps.users.forms import UserChangeForm, UserCreationForm
 from sme_ptrf_apps.users.models import Visao, Grupo
@@ -16,13 +16,16 @@ class UnidadeChangeListForm(forms.ModelForm):
     unidades = forms.ModelMultipleChoiceField(
         queryset=Unidade.objects.all(), required=False)
 
+
 class UnidadeInline(admin.TabularInline):
     model = Unidade.user_set.through
     extra = 1
 
+
 class VisaoInline(admin.TabularInline):
     model = Visao.user_set.through
     extra = 1
+
 
 @admin.register(User)
 class UserAdmin(auth_admin.UserAdmin):
@@ -52,14 +55,16 @@ class PermissaoAdmin(admin.ModelAdmin):
 
 @admin.register(Grupo)
 class GrupoAdmin(admin.ModelAdmin):
+    """
+    Versão estendida dos grupos de acesso, queinclui as visões e descrição. As permissões continuam a ser inseridas
+    na versão padrão de Group.
+    """
     list_display = ["name"]
 
-    def get_form(self, request, obj=None, **kwargs):
-        self.exclude = ("visoes_log",)
-        form = super(GrupoAdmin, self).get_form(request, obj, **kwargs)
-        print(form.__dict__)
-        form.base_fields['permissions'].queryset = Permission.objects.filter(name__contains='Pode')
-        return form
+    fieldsets = (
+        ('', {'fields': ('name', )},),
+        ('Extras', {'fields': ('descricao', 'visoes')}),
+    )
+
 
 admin.site.register(Visao)
-admin.site.unregister(Group)

@@ -27,6 +27,12 @@ class Visao(ModeloIdNome):
 
 
 class Grupo(Group):
+    """
+    Uma melhor abordagem teria sido, em vez de extender Group, simplesmente criar uma relação one-to-one com Group e
+    acessar a partir dele os campos extras quando necessário. Assim não teríamos que manter no Admin duas entidades
+    distintas Group e Grupo. Mas, optei por manter essa solução para não ter que lidar com perda de dados na migração
+    em produção.
+    """
     history = AuditlogHistoryField()
     descricao = models.TextField(blank=True, default='')
     visoes_log = models.TextField(blank=True, help_text='Visões do grupo (audtilog)')
@@ -50,7 +56,9 @@ class User(AbstractUser):
 
     unidades = models.ManyToManyField(Unidade, blank=True)
     visoes = models.ManyToManyField(Visao, blank=True)
-    groups = models.ManyToManyField(
+
+    # Esse campo é apenas para fazer backup do antigo campo groups. Depois será removido.
+    grupos = models.ManyToManyField(
         Grupo,
         verbose_name=_('grupos'),
         blank=True,
@@ -58,8 +66,8 @@ class User(AbstractUser):
             'The groups this user belongs to. A user will get all permissions '
             'granted to each of their groups.'
         ),
-        related_name="user_set",
-        related_query_name="user",
+        related_name="usuarios",
+        related_query_name="usuario",
     )
 
     e_servidor = models.BooleanField("servidor?", default=False)
@@ -229,7 +237,3 @@ m2m_changed.connect(m2m_changed_group_visoes, sender=Grupo.visoes.through)
 
 auditlog.register(Grupo)
 auditlog.register(Visao)
-
-
-
-

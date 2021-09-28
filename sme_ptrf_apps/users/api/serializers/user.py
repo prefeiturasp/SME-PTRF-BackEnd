@@ -61,14 +61,26 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def get_groups(self, instance):
-        groups = instance.groups.order_by('id')
-        return GrupoSerializer(groups, many=True).data
+        """
+        Retorna a versão estendida dos grupos do usuário que inclui as informações de visões e descrição.
+        """
+        groups_padrao = instance.groups.values_list("id", flat=True)
+        groups_extendido = Grupo.objects.filter(id__in=groups_padrao).order_by('id')
+        return GrupoSerializer(groups_extendido, many=True).data
 
 
 class UserRetrieveSerializer(serializers.ModelSerializer):
     visoes = VisaoSerializer(many=True)
-    groups = GrupoComVisaoSerializer(many=True)
+    groups = SerializerMethodField()
     unidades = UnidadeSerializer(many=True)
+
+    def get_groups(self, instance):
+        """
+        Retorna a versão estendida dos grupos do usuário que inclui as informações de visões e descrição.
+        """
+        groups_padrao = instance.groups.values_list("id", flat=True)
+        groups_extendido = Grupo.objects.filter(id__in=groups_padrao).order_by('id')
+        return GrupoComVisaoSerializer(groups_extendido, many=True).data
 
     class Meta:
         model = User
