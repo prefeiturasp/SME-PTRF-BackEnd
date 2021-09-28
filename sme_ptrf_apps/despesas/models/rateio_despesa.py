@@ -123,11 +123,11 @@ class RateioDespesa(ModeloBase):
                                               exclude_despesa=None, aplicacao_recurso=None):
         if periodo.data_fim_realizacao_despesas:
             dataset = cls.completos.filter(acao_associacao=acao_associacao).filter(
-                despesa__data_documento__range=(
+                despesa__data_transacao__range=(
                     periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
         else:
             dataset = cls.completos.filter(acao_associacao=acao_associacao).filter(
-                despesa__data_documento__gte=periodo.data_inicio_realizacao_despesas)
+                despesa__data_transacao__gte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
             dataset = dataset.filter(conferido=conferido)
@@ -148,11 +148,11 @@ class RateioDespesa(ModeloBase):
                                                exclude_despesa=None, aplicacao_recurso=None, acao_associacao=None):
         if periodo.data_fim_realizacao_despesas:
             dataset = cls.completos.filter(conta_associacao=conta_associacao).filter(
-                despesa__data_documento__range=(
+                despesa__data_transacao__range=(
                     periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
         else:
             dataset = cls.completos.filter(conta_associacao=conta_associacao).filter(
-                despesa__data_documento__gte=periodo.data_inicio_realizacao_despesas)
+                despesa__data_transacao__gte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
             dataset = dataset.filter(conferido=conferido)
@@ -173,7 +173,7 @@ class RateioDespesa(ModeloBase):
                                                            exclude_despesa=None, aplicacao_recurso=None):
 
         dataset = cls.completos.filter(conta_associacao=conta_associacao).filter(
-            despesa__data_documento__lte=periodo.data_inicio_realizacao_despesas)
+            despesa__data_transacao__lte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
             dataset = dataset.filter(conferido=conferido)
@@ -214,7 +214,7 @@ class RateioDespesa(ModeloBase):
                                                        exclude_despesa=None, aplicacao_recurso=None):
 
         dataset = cls.completos.filter(acao_associacao=acao_associacao,
-                                       despesa__data_documento__lte=date.today())
+                                       despesa__data_transacao__lte=date.today())
 
         if conferido is not None:
             dataset = dataset.filter(conferido=conferido)
@@ -236,7 +236,7 @@ class RateioDespesa(ModeloBase):
                                                          exclude_despesa=None, aplicacao_recurso=None):
 
         dataset = cls.completos.filter(acao_associacao=acao_associacao,
-                                       despesa__data_documento__lte=periodo.data_inicio_realizacao_despesas)
+                                       despesa__data_transacao__lte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
             dataset = dataset.filter(conferido=conferido)
