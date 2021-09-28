@@ -18,6 +18,12 @@ def test_consulta_grupos(
     result = response.json()
     esperado = [
         {
+            "id": str(grupo_1.id),
+            "nome": grupo_1.name,
+            "descricao": grupo_1.descricao,
+            "visao": 'DRE'
+        },
+        {
             "id": str(grupo_2.id),
             "nome": grupo_2.name,
             "descricao": grupo_2.descricao,
