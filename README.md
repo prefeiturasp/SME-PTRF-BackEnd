@@ -5,9 +5,19 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.18.0
+Versão: 1.19.0
 
 ## Release Notes
+
+### 1.19.0 - 29/09/2021 - Entregas da Sprint 28
+* UE > Consulta de detalhes de análises da DRE
+* UE > Agora não é mais permitida a exclusão de créditos do tipo repasse
+* UE > Melhoria na visualização de detalhes de uma Associação
+* UE > Gastos da escola agora exibem as despesas com todos os seus rateios agrupados
+* DRE > Conclusão do novo fluxo de acompanhamento de prestações de contas
+* ADM > Registro de movimentações (Audit Logs) relacionadas à Associações
+* ADM > Desativação de especificações de material ou serviço
+* 🐞 Correção de bugs
 
 ### 1.18.0 - 08/09/2021 - Entregas da Sprint 27
 * ADM > Registro de movimentações (Audit Logs) relacionadas à Prestação de Contas
