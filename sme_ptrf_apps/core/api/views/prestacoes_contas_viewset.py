@@ -27,7 +27,8 @@ from ...models import (
     ContaAssociacao,
     AcaoAssociacao,
     AnalisePrestacaoConta,
-    AnaliseLancamentoPrestacaoConta
+    AnaliseLancamentoPrestacaoConta,
+    AnaliseDocumentoPrestacaoConta
 )
 from ...services import (
     concluir_prestacao_de_contas,
@@ -38,8 +39,11 @@ from ...services import (
     lancamentos_da_prestacao,
     marca_lancamentos_como_corretos,
     marca_lancamentos_como_nao_conferidos,
-    solicita_acertos_de_lancamentos
-
+    solicita_acertos_de_lancamentos,
+    documentos_da_prestacao,
+    marca_documentos_como_corretos,
+    marca_documentos_como_nao_conferidos,
+    solicita_acertos_de_documentos,
 )
 from ....dre.services import (dashboard_sme)
 from ..serializers import (
@@ -47,7 +51,9 @@ from ..serializers import (
     PrestacaoContaListSerializer,
     PrestacaoContaLookUpSerializer,
     PrestacaoContaRetrieveSerializer,
-    AnaliseLancamentoPrestacaoContaRetrieveSerializer
+    AnaliseLancamentoPrestacaoContaRetrieveSerializer,
+    AnaliseDocumentoPrestacaoContaRetrieveSerializer,
+    AnalisePrestacaoContaRetrieveSerializer
 )
 
 from django.core.exceptions import ValidationError
@@ -328,16 +334,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def salvar_analise(self, request, uuid):
         prestacao_conta = self.get_object()
 
-        devolucao_tesouro = request.data.get('devolucao_tesouro', None)
-        if devolucao_tesouro is None:
-            response = {
-                'uuid': f'{uuid}',
-                'erro': 'falta_de_informacoes',
-                'operacao': 'salvar-analise',
-                'mensagem': 'Faltou informar o campo devolucao_tesouro.'
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
         analises_de_conta_da_prestacao = request.data.get('analises_de_conta_da_prestacao', None)
         if analises_de_conta_da_prestacao is None:
             response = {
@@ -347,8 +343,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'mensagem': 'Faltou informar o campo analises_de_conta_da_prestacao.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
-        devolucoes_ao_tesouro_da_prestacao = request.data.get('devolucoes_ao_tesouro_da_prestacao', [])
 
         if prestacao_conta.status != PrestacaoConta.STATUS_EM_ANALISE:
             response = {
@@ -360,9 +354,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        prestacao_salva = prestacao_conta.salvar_analise(devolucao_tesouro=devolucao_tesouro,
-                                                         analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
-                                                         devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
+        prestacao_salva = prestacao_conta.salvar_analise(analises_de_conta_da_prestacao=analises_de_conta_da_prestacao)
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
@@ -416,16 +408,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        devolucao_tesouro = request.data.get('devolucao_tesouro', None)
-        if devolucao_tesouro is None:
-            response = {
-                'uuid': f'{uuid}',
-                'erro': 'falta_de_informacoes',
-                'operacao': 'concluir-analise',
-                'mensagem': 'Faltou informar o campo devolucao_tesouro.'
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
         analises_de_conta_da_prestacao = request.data.get('analises_de_conta_da_prestacao', None)
         if analises_de_conta_da_prestacao is None:
             response = {
@@ -435,8 +417,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'mensagem': 'Faltou informar o campo analises_de_conta_da_prestacao.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
-        devolucoes_ao_tesouro_da_prestacao = request.data.get('devolucoes_ao_tesouro_da_prestacao', [])
 
         if prestacao_conta.status != PrestacaoConta.STATUS_EM_ANALISE:
             response = {
@@ -512,13 +492,11 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         prestacao_salva = prestacao_conta.concluir_analise(
             resultado_analise=resultado_analise,
-            devolucao_tesouro=devolucao_tesouro,
             analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
             motivos_aprovacao_ressalva=motivos_aprovacao_ressalva,
             outros_motivos_aprovacao_ressalva=outros_motivos_aprovacao_ressalva,
             data_limite_ue=data_limite_ue,
             motivos_reprovacao=motivos_reprovacao,
-            devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao
         )
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
@@ -1042,7 +1020,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             response = {
                 'uuid': f'{uuid}',
                 'erro': 'falta_de_informacoes',
-                'operacao': 'lancamentos-corretos',
+                'operacao': 'solicitacoes-de-acerto',
                 'mensagem': 'Faltou informar no payload o UUID da analise_prestacao.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
@@ -1105,7 +1083,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             response = {
                 'uuid': f'{uuid}',
                 'erro': 'falta_de_informacoes',
-                'operacao': 'get-solicitacoes-acerto',
+                'operacao': 'analises-de-lancamento',
                 'mensagem': 'Faltou informar o parâmetro analise_lancamento com o UUID da analise de lançamaneto.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
@@ -1129,3 +1107,239 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(AnaliseLancamentoPrestacaoContaRetrieveSerializer(analise_lancamento).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def documentos(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        # Define a análise da prestação de contas
+        analise_prestacao_uuid = self.request.query_params.get('analise_prestacao')
+
+        if not analise_prestacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da analise de prestacao de contas.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if analise_prestacao.prestacao_conta != prestacao_conta:
+            erro = {
+                'erro': 'Análise de prestação inválida.',
+                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        documentos = documentos_da_prestacao(analise_prestacao_conta=analise_prestacao)
+
+        return Response(documentos, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path="documentos-corretos",
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def documentos_corretos(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        analise_prestacao_uuid = request.data.get('analise_prestacao', None)
+        if analise_prestacao_uuid is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'lancamentos-corretos',
+                'mensagem': 'Faltou informar no payload o UUID da analise_prestacao.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if analise_prestacao.prestacao_conta != prestacao_conta:
+            erro = {
+                'erro': 'Análise de prestação inválida.',
+                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        documentos_corretos = request.data.get('documentos_corretos', None)
+        if documentos_corretos is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'documentos-corretos',
+                'mensagem': 'Faltou informar a lista com os documentos corretos.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        marca_documentos_como_corretos(analise_prestacao, documentos_corretos)
+
+        return Response({"message": "Documentos marcados como corretos."}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path="documentos-nao-conferidos",
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def documentos_nao_conferidos(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        analise_prestacao_uuid = request.data.get('analise_prestacao', None)
+        if analise_prestacao_uuid is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'documentos-nao-conferidos',
+                'mensagem': 'Faltou informar no payload o UUID da analise_prestacao.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if analise_prestacao.prestacao_conta != prestacao_conta:
+            erro = {
+                'erro': 'Análise de prestação inválida.',
+                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        documentos_nao_conferidos = request.data.get('documentos_nao_conferidos', None)
+        if documentos_nao_conferidos is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'documentos-nao-conferidos',
+                'mensagem': 'Faltou informar a lista com os documentos não conferidos.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        marca_documentos_como_nao_conferidos(analise_prestacao, documentos_nao_conferidos)
+
+        return Response({"message": "Documentos marcados como não conferidos."}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path="solicitacoes-de-acerto-documento",
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def solicitacoes_acerto_documento(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        analise_prestacao_uuid = request.data.get('analise_prestacao', None)
+        if analise_prestacao_uuid is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'solicitacoes-de-acerto-documento',
+                'mensagem': 'Faltou informar no payload o UUID da analise_prestacao.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if analise_prestacao.prestacao_conta != prestacao_conta:
+            erro = {
+                'erro': 'Análise de prestação inválida.',
+                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        documentos = request.data.get('documentos', None)
+        if documentos is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'solicitacoes-de-acerto-documento',
+                'mensagem': 'Faltou informar a lista com os documentos. documentos:'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        solicitacoes_acerto = request.data.get('solicitacoes_acerto', None)
+        if solicitacoes_acerto is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'solicitacoes-de-acerto-documento',
+                'mensagem': 'Faltou informar a lista com as solicitações de acerto. solicitacoes_acerto:'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        solicita_acertos_de_documentos(
+            analise_prestacao=analise_prestacao,
+            documentos=documentos,
+            solicitacoes_acerto=solicitacoes_acerto
+        )
+
+        return Response({"message": "Solicitações de acerto gravadas para os documentos."}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path="analises-de-documento",
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def analises_de_documento(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        # Define a análise de documento
+        analise_documento_uuid = self.request.query_params.get('analise_documento')
+
+        if analise_documento_uuid is None:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'analises-de-documento',
+                'mensagem': 'Faltou informar o parâmetro analise_documento com o UUID da analise de documento.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_documento = AnaliseDocumentoPrestacaoConta.objects.get(uuid=analise_documento_uuid)
+        except AnaliseLancamentoPrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-documento-prestacao-conta para o uuid {analise_documento_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if analise_documento.analise_prestacao_conta.prestacao_conta != prestacao_conta:
+            erro = {
+                'erro': 'Análise de prestação inválida.',
+                'mensagem': f"A análise de documento {analise_documento_uuid} não pertence à Prestação de Contas {uuid}."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(AnaliseDocumentoPrestacaoContaRetrieveSerializer(analise_documento).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path="devolucoes",
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def devolucoes(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+        devolucoes = prestacao_conta.analises_da_prestacao.filter(status='DEVOLVIDA').order_by('id')
+        return Response(AnalisePrestacaoContaRetrieveSerializer(devolucoes, many=True).data, status=status.HTTP_200_OK)

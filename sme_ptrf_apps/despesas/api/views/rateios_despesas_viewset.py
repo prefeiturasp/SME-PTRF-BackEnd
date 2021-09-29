@@ -107,7 +107,7 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
         despesa_uuid = request.query_params.get('despesa_uuid')
 
         despesa = request.data
-        data_documento = datetime.strptime(despesa['data_documento'], '%Y-%m-%d').date()
+        data_documento = datetime.strptime(despesa['data_transacao'], '%Y-%m-%d').date()
         associacao_uuid = despesa['associacao']
 
         if not associacao_uuid:

@@ -15,7 +15,12 @@ from ..models import (
     SolicitacaoAcertoLancamento,
     TipoAcertoLancamento,
     DevolucaoAoTesouro,
-    TipoDevolucaoAoTesouro
+    TipoDevolucaoAoTesouro,
+    TipoDocumentoPrestacaoConta,
+    AnaliseDocumentoPrestacaoConta,
+    ContaAssociacao,
+    TipoAcertoDocumento,
+    SolicitacaoAcertoDocumento
 )
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
@@ -384,10 +389,22 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
     return demonstrativo
 
 
-def lancamentos_da_prestacao(analise_prestacao_conta, conta_associacao, acao_associacao=None, tipo_transacao=None):
+def tem_solicitacao_acerto_do_tipo(analise_lancamento, tipo_acerto):
+    return analise_lancamento.solicitacoes_de_ajuste_da_analise.filter(tipo_acerto=tipo_acerto).exists()
+
+
+def lancamentos_da_prestacao(
+    analise_prestacao_conta,
+    conta_associacao,
+    acao_associacao=None,
+    tipo_transacao=None,
+    tipo_acerto=None,
+    com_ajustes=False,
+):
     from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaConciliacaoSerializer
     from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaConciliacaoSerializer
     from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
+    from sme_ptrf_apps.core.api.serializers.analise_lancamento_prestacao_conta_serializer import AnaliseLancamentoPrestacaoContaRetrieveSerializer
 
     def documentos_de_despesa_por_conta_e_acao_no_periodo(conta_associacao, acao_associacao, periodo):
         rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
@@ -435,6 +452,12 @@ def lancamentos_da_prestacao(analise_prestacao_conta, conta_associacao, acao_ass
 
         analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(despesa=despesa).first()
 
+        if analise_lancamento and tipo_acerto and not tem_solicitacao_acerto_do_tipo(analise_lancamento, tipo_acerto):
+            continue
+
+        if com_ajustes and (not analise_lancamento or analise_lancamento.resultado != 'AJUSTE'):
+            continue
+
         lancamento = {
             'periodo': f'{prestacao_conta.periodo.uuid}',
             'conta': f'{conta_associacao.uuid}',
@@ -444,24 +467,41 @@ def lancamentos_da_prestacao(analise_prestacao_conta, conta_associacao, acao_ass
             'descricao': despesa.nome_fornecedor,
             'valor_transacao_total': despesa.valor_total,
             'valor_transacao_na_conta':
-                despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).aggregate(Sum('valor_rateio'))[
+                despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).aggregate(
+                    Sum('valor_rateio'))[
                     'valor_rateio__sum'],
-            'valores_por_conta': despesa.rateios.filter(status=STATUS_COMPLETO).values('conta_associacao__tipo_conta__nome').annotate(
+            'valores_por_conta': despesa.rateios.filter(status=STATUS_COMPLETO).values(
+                'conta_associacao__tipo_conta__nome').annotate(
                 Sum('valor_rateio')),
             'conferido': despesa.conferido,
             'documento_mestre': DespesaConciliacaoSerializer(despesa, many=False).data,
-            'rateios': RateioDespesaConciliacaoSerializer(despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by('id'),
-                                                          many=True).data,
+            'rateios': RateioDespesaConciliacaoSerializer(
+                despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by('id'),
+                many=True).data,
             'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
             'analise_lancamento': {'resultado': analise_lancamento.resultado,
                                    'uuid': analise_lancamento.uuid} if analise_lancamento else None
         }
+
+        if com_ajustes:
+            lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaRetrieveSerializer(analise_lancamento,
+                                                                                                 many=False).data
+        else:
+            lancamento['analise_lancamento'] = {'resultado': analise_lancamento.resultado,
+                                                'uuid': analise_lancamento.uuid} if analise_lancamento else None
+
         lancamentos.append(lancamento)
 
     # Percorrer a lista de créditos ordenada e para cada credito, buscar na lista de lançamentos a posição correta
     for receita in receitas:
 
         analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(receita=receita).first()
+
+        if analise_lancamento and tipo_acerto and not tem_solicitacao_acerto_do_tipo(analise_lancamento, tipo_acerto):
+            continue
+
+        if com_ajustes and (not analise_lancamento or analise_lancamento.resultado != 'AJUSTE'):
+            continue
 
         novo_lancamento = {
             'periodo': f'{prestacao_conta.periodo.uuid}',
@@ -480,6 +520,14 @@ def lancamentos_da_prestacao(analise_prestacao_conta, conta_associacao, acao_ass
             'analise_lancamento': {'resultado': analise_lancamento.resultado,
                                    'uuid': analise_lancamento.uuid} if analise_lancamento else None
         }
+
+        if com_ajustes:
+            novo_lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaRetrieveSerializer(
+                analise_lancamento,
+                many=False).data
+        else:
+            novo_lancamento['analise_lancamento'] = {'resultado': analise_lancamento.resultado,
+                                                     'uuid': analise_lancamento.uuid} if analise_lancamento else None
 
         lancamento_adicionado = False
 
@@ -665,3 +713,141 @@ def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes
 
         if not atualizacao_em_lote and not solicitacoes_acerto:
             __apaga_analise_lancamento(analise_prestacao=analise_prestacao, lancamento=lancamento)
+
+
+def documentos_da_prestacao(analise_prestacao_conta):
+    from ..models import TipoDocumentoPrestacaoConta, ContaAssociacao
+
+    associacao = analise_prestacao_conta.prestacao_conta.associacao
+
+    def result_documento(_documento, _conta_associacao=None):
+        analise_documento = analise_prestacao_conta.analises_de_documento.filter(
+            tipo_documento_prestacao_conta=documento,
+            conta_associacao=_conta_associacao
+        ).first()
+        return {
+            'tipo_documento_prestacao_conta': {
+                'uuid': f'{_documento.uuid}',
+                'nome': f'{_documento.nome} {_conta_associacao.tipo_conta.nome}' if _conta_associacao else _documento.nome,
+                'documento_por_conta': True if _conta_associacao else False,
+                'conta_associacao': f'{_conta_associacao.uuid}' if _conta_associacao else None
+            },
+            'analise_documento': {
+                'resultado': analise_documento.resultado,
+                'uuid': analise_documento.uuid,
+                'tipo_conta': analise_documento.conta_associacao.tipo_conta.nome if analise_documento.conta_associacao else None,
+                'conta_associacao': f'{_conta_associacao.uuid}' if _conta_associacao else None
+            } if analise_documento else None
+        }
+
+    documentos = []
+    for documento in TipoDocumentoPrestacaoConta.objects.all():
+        if documento.documento_por_conta:
+            for conta in associacao.contas.all().order_by('id'):
+                documentos.append(result_documento(documento, conta))
+        else:
+            documentos.append(result_documento(documento))
+
+    return documentos
+
+
+def marca_documentos_como_corretos(analise_prestacao, documentos_corretos):
+    def marca_documento_correto(tipo_documento_uuid, conta_associacao_uuid=None):
+        if not analise_prestacao.analises_de_documento.filter(
+            tipo_documento_prestacao_conta__uuid=tipo_documento_uuid,
+            conta_associacao__uuid=conta_associacao_uuid
+        ).exists():
+            logging.info(
+                f'Criando analise de documento {tipo_documento_uuid} conta {conta_associacao_uuid} na análise de PC {analise_prestacao.uuid}.')
+            tipo_documento = TipoDocumentoPrestacaoConta.by_uuid(tipo_documento_uuid)
+            conta = ContaAssociacao.by_uuid(conta_associacao_uuid) if conta_associacao_uuid else None
+            AnaliseDocumentoPrestacaoConta.objects.create(
+                analise_prestacao_conta=analise_prestacao,
+                tipo_documento_prestacao_conta=tipo_documento,
+                conta_associacao=conta,
+                resultado=AnaliseDocumentoPrestacaoConta.RESULTADO_CORRETO
+            )
+
+    logging.info(f'Marcando documentos como corretos na análise de PC {analise_prestacao.uuid}.')
+    for documento in documentos_corretos:
+        marca_documento_correto(
+            tipo_documento_uuid=documento['tipo_documento'],
+            conta_associacao_uuid=documento['conta_associacao']
+        )
+
+
+def marca_documentos_como_nao_conferidos(analise_prestacao, documentos_nao_conferidos):
+    def marca_documento_nao_conferido(tipo_documento_uuid, conta_associacao_uuid=None):
+        logging.info(f'Apagando analise de documento {tipo_documento_uuid} conta {conta_associacao_uuid} na análise de PC {analise_prestacao.uuid}.')
+        analise_prestacao.analises_de_documento.filter(
+            tipo_documento_prestacao_conta__uuid=tipo_documento_uuid,
+            conta_associacao__uuid=conta_associacao_uuid
+        ).delete()
+
+    logging.info(f'Marcando documentos como não conferidos na análise de PC {analise_prestacao.uuid}.')
+    for documento in documentos_nao_conferidos:
+        marca_documento_nao_conferido(
+            tipo_documento_uuid=documento['tipo_documento'],
+            conta_associacao_uuid=documento['conta_associacao']
+        )
+
+
+def solicita_acertos_de_documentos(analise_prestacao, documentos, solicitacoes_acerto):
+
+    def apaga_solicitacoes_acerto_documento(_analise_documento):
+        logging.info(
+            f'Apagando solicitações de ajustes existentes para a análise de documento {analise_documento.uuid}.')
+        for solicitacao_acerto in _analise_documento.solicitacoes_de_ajuste_da_analise.all():
+            logging.info(f'Apagando solicitação de acerto de dodcumento {solicitacao_acerto.uuid}.')
+            solicitacao_acerto.delete()
+
+    def cria_solicitacoes_acerto_documento(_analise_documento, _solicitacoes_acerto):
+        for _solicitacao_acerto in _solicitacoes_acerto:
+            logging.info(f'Criando solicitação de acerto para a análise de documento {_analise_documento.uuid}.')
+            tipo_acerto = TipoAcertoDocumento.objects.get(uuid=_solicitacao_acerto['tipo_acerto'])
+            SolicitacaoAcertoDocumento.objects.create(
+                analise_documento=_analise_documento,
+                tipo_acerto=tipo_acerto,
+            )
+
+    def apaga_analise_documento(_analise_prestacao, _tipo_documento, _conta=None):
+        AnaliseDocumentoPrestacaoConta.objects.filter(
+            analise_prestacao_conta=_analise_prestacao,
+            tipo_documento_prestacao_conta=_tipo_documento,
+            conta_associacao=_conta
+        ).delete()
+
+    logging.info(f'Criando solicitações de acerto de documentos na análise de PC {analise_prestacao.uuid}.')
+
+    for documento in documentos:
+
+        tipo_documento = TipoDocumentoPrestacaoConta.by_uuid(documento['tipo_documento'])
+        conta = ContaAssociacao.by_uuid(documento['conta_associacao']) if documento['conta_associacao'] else None
+
+        analise_documento = analise_prestacao.analises_de_documento.filter(
+            tipo_documento_prestacao_conta=tipo_documento,
+            conta_associacao=conta
+        ).first()
+
+        if solicitacoes_acerto:
+            if not analise_documento:
+
+                analise_documento = AnaliseDocumentoPrestacaoConta.objects.create(
+                    analise_prestacao_conta=analise_prestacao,
+                    tipo_documento_prestacao_conta=tipo_documento,
+                    conta_associacao=conta,
+                    resultado=AnaliseDocumentoPrestacaoConta.RESULTADO_AJUSTE
+                )
+            else:
+                analise_documento.resultado = AnaliseDocumentoPrestacaoConta.RESULTADO_AJUSTE
+                analise_documento.save()
+
+        apaga_solicitacoes_acerto_documento(_analise_documento=analise_documento)
+
+        cria_solicitacoes_acerto_documento(
+            _analise_documento=analise_documento,
+            _solicitacoes_acerto=solicitacoes_acerto
+        )
+
+        if not solicitacoes_acerto:
+            apaga_analise_documento(_analise_prestacao=analise_prestacao, _tipo_documento=tipo_documento, _conta=conta)

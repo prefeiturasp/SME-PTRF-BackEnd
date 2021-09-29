@@ -1,7 +1,7 @@
 import pytest
 from django.contrib import admin
 
-from ...models import PrestacaoConta, AnalisePrestacaoConta, AnaliseLancamentoPrestacaoConta
+from ...models import AnalisePrestacaoConta, AnaliseLancamentoPrestacaoConta
 
 pytestmark = pytest.mark.django_db
 

@@ -12,6 +12,7 @@ from sme_ptrf_apps.dre.models import Atribuicao
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -136,11 +137,18 @@ class PrestacaoConta(ModeloBase):
     @transaction.atomic
     def analisar(self):
         from . import AnalisePrestacaoConta
+        from ..services.analise_prestacao_conta_service import copia_ajustes_entre_analises
+
+        analise_anterior = AnalisePrestacaoConta.objects.filter(prestacao_conta=self).order_by('-id').first()
+
         analise_atual = AnalisePrestacaoConta.objects.create(prestacao_conta=self)
 
         self.status = self.STATUS_EM_ANALISE
         self.analise_atual = analise_atual
         self.save()
+
+        if analise_anterior:
+            copia_ajustes_entre_analises(analise_origem=analise_anterior, analise_destino=analise_atual)
 
         return self
 
@@ -184,19 +192,19 @@ class PrestacaoConta(ModeloBase):
         return self
 
     @transaction.atomic
-    def salvar_analise(self, devolucao_tesouro, analises_de_conta_da_prestacao, resultado_analise=None,
-                       motivos_aprovacao_ressalva=[], outros_motivos_aprovacao_ressalva='', motivos_reprovacao='', devolucoes_ao_tesouro_da_prestacao=[]):
+    def salvar_analise(self, analises_de_conta_da_prestacao, resultado_analise=None,
+                       motivos_aprovacao_ressalva=[], outros_motivos_aprovacao_ressalva='', motivos_reprovacao=''):
         from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
-        from ..models.devolucao_ao_tesouro import DevolucaoAoTesouro
         from ..models.conta_associacao import ContaAssociacao
-        from ..models.tipo_devolucao_ao_tesouro import TipoDevolucaoAoTesouro
-        from ...despesas.models.despesa import Despesa
 
-        self.devolucao_tesouro = devolucao_tesouro
         self.data_ultima_analise = date.today()
 
         if resultado_analise:
             self.status = resultado_analise
+
+        if resultado_analise and self.analise_atual:
+            self.analise_atual.status = resultado_analise
+            self.analise_atual.save()
 
         self.motivos_aprovacao_ressalva.set(motivos_aprovacao_ressalva)
         self.outros_motivos_aprovacao_ressalva = outros_motivos_aprovacao_ressalva
@@ -215,48 +223,39 @@ class PrestacaoConta(ModeloBase):
                 saldo_extrato=analise['saldo_extrato']
             )
 
-        self.devolucoes_ao_tesouro_da_prestacao.all().delete()
-        for devolucao in devolucoes_ao_tesouro_da_prestacao:
-            tipo_devolucao = TipoDevolucaoAoTesouro.by_uuid(devolucao['tipo'])
-            despesa = Despesa.by_uuid(devolucao['despesa'])
-            DevolucaoAoTesouro.objects.create(
-                prestacao_conta=self,
-                tipo=tipo_devolucao,
-                despesa=despesa,
-                data=devolucao['data'],
-                devolucao_total=devolucao['devolucao_total'],
-                motivo=devolucao['motivo'],
-                valor=devolucao['valor'],
-                visao_criacao=devolucao['visao_criacao'],
-            )
-
         return self
 
     @transaction.atomic
     def devolver(self, data_limite_ue):
         from ..services.notificacao_services import notificar_prestacao_de_contas_devolvida_para_acertos
         from ..models import DevolucaoPrestacaoConta
-        DevolucaoPrestacaoConta.objects.create(
+        devolucao = DevolucaoPrestacaoConta.objects.create(
             prestacao_conta=self,
             data=date.today(),
             data_limite_ue=data_limite_ue
         )
+        if self.analise_atual:
+            self.analise_atual.devolucao_prestacao_conta = devolucao
+            self.analise_atual.save()
+
+        self.analise_atual = None
+        self.save()
+
         self.apaga_fechamentos()
         self.apaga_relacao_bens()
         self.apaga_demonstrativos_financeiros()
+
         notificar_prestacao_de_contas_devolvida_para_acertos(self, data_limite_ue)
         return self
 
     @transaction.atomic
-    def concluir_analise(self, resultado_analise, devolucao_tesouro, analises_de_conta_da_prestacao,
-                         motivos_aprovacao_ressalva, outros_motivos_aprovacao_ressalva, data_limite_ue, motivos_reprovacao, devolucoes_ao_tesouro_da_prestacao=[]):
+    def concluir_analise(self, resultado_analise, analises_de_conta_da_prestacao, motivos_aprovacao_ressalva,
+                         outros_motivos_aprovacao_ressalva, data_limite_ue, motivos_reprovacao):
         prestacao_atualizada = self.salvar_analise(resultado_analise=resultado_analise,
-                                                   devolucao_tesouro=devolucao_tesouro,
                                                    analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
                                                    motivos_aprovacao_ressalva=motivos_aprovacao_ressalva,
                                                    outros_motivos_aprovacao_ressalva=outros_motivos_aprovacao_ressalva,
-                                                   motivos_reprovacao=motivos_reprovacao,
-                                                   devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
+                                                   motivos_reprovacao=motivos_reprovacao)
 
         if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
             prestacao_atualizada = prestacao_atualizada.devolver(data_limite_ue=data_limite_ue)
@@ -304,10 +303,10 @@ class PrestacaoConta(ModeloBase):
 
     @classmethod
     def dashboard(cls, periodo_uuid, dre_uuid, add_aprovado_ressalva=False):
-        '''
+        """
         :param add_aprovado_ressalva: True para retornar a quantidade de aprovados com ressalva separadamente ou
         False para retornar a quantidade de aprovadas com ressalva somada a quantidade de aprovadas
-        '''
+        """
         from ..models import Associacao
 
         titulos_por_status = {

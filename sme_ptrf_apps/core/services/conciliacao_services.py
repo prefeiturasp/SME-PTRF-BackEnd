@@ -116,7 +116,7 @@ def despesas_nao_conciliadas_por_conta_e_acao_no_periodo(conta_associacao, acao_
 
     # No caso de despesas não conciliadas todas devem ser exibidas até a data limite do período
     if periodo.data_fim_realizacao_despesas:
-        dataset = dataset.filter(despesa__data_documento__lte=periodo.data_fim_realizacao_despesas)
+        dataset = dataset.filter(despesa__data_transacao__lte=periodo.data_fim_realizacao_despesas)
 
     return dataset.all()
 
@@ -292,7 +292,7 @@ def despesas_nao_conciliadas_por_conta_no_periodo(conta_associacao, periodo):
 
     # No caso de despesas não conciliadas todas devem ser exibidas até a data limite do período
     if periodo.data_fim_realizacao_despesas:
-        dataset = dataset.filter(despesa__data_documento__lte=periodo.data_fim_realizacao_despesas)
+        dataset = dataset.filter(despesa__data_transacao__lte=periodo.data_fim_realizacao_despesas)
 
     return dataset.all()
 

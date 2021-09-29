@@ -94,7 +94,9 @@ def test_action_painel_acoes(
             'periodo_bloqueado': False,
             'periodo_encerrado': True,
             'status_prestacao': 'NAO_APRESENTADA',
-            'texto_status': 'Período finalizado. Documentos pendentes de geração.'
+            'texto_status': 'Período finalizado. Documentos pendentes de geração.',
+            'prestacao_de_contas_uuid': None,
+
         }
     }
 
@@ -189,7 +191,8 @@ def test_action_painel_acoes_por_periodo(
             'periodo_bloqueado': False,
             'periodo_encerrado': True,
             'status_prestacao': 'NAO_APRESENTADA',
-            'texto_status': 'Período finalizado. Documentos pendentes de geração.'
+            'texto_status': 'Período finalizado. Documentos pendentes de geração.',
+            'prestacao_de_contas_uuid': None,
         },
     }
 
@@ -330,7 +333,8 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
             'periodo_bloqueado': False,
             'periodo_encerrado': True,
             'status_prestacao': 'NAO_APRESENTADA',
-            'texto_status': 'Período finalizado. Documentos pendentes de geração.'
+            'texto_status': 'Período finalizado. Documentos pendentes de geração.',
+            'prestacao_de_contas_uuid': None,
         },
     }
 

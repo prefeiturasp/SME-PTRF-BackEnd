@@ -3,7 +3,7 @@ import logging
 from rest_framework import serializers
 
 from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
-from .rateio_despesa_serializer import RateioDespesaSerializer
+from .rateio_despesa_serializer import RateioDespesaSerializer, RateioDespesaTabelaGastosEscolaSerializer
 from .tipo_documento_serializer import TipoDocumentoSerializer, TipoDocumentoListSerializer
 from .tipo_transacao_serializer import TipoTransacaoSerializer
 from ..serializers.rateio_despesa_serializer import RateioDespesaCreateSerializer
@@ -97,6 +97,28 @@ class DespesaListSerializer(serializers.ModelSerializer):
         model = Despesa
         fields = ('uuid', 'associacao', 'numero_documento', 'tipo_documento', 'data_documento', 'cpf_cnpj_fornecedor',
                   'nome_fornecedor', 'valor_total', 'valor_ptrf', 'data_transacao', 'tipo_transacao', 'documento_transacao')
+
+
+class DespesaListComRateiosSerializer(serializers.ModelSerializer):
+    associacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Associacao.objects.all()
+    )
+
+    tipo_documento = TipoDocumentoListSerializer()
+    tipo_transacao = TipoTransacaoSerializer()
+    rateios = RateioDespesaTabelaGastosEscolaSerializer(many=True)
+
+    receitas_saida_do_recurso = serializers.SerializerMethodField('get_recurso_externo')
+
+    def get_recurso_externo(self, despesa):
+        return despesa.receitas_saida_do_recurso.first().uuid if despesa.receitas_saida_do_recurso.exists() else None
+
+    class Meta:
+        model = Despesa
+        fields = ('uuid', 'associacao', 'numero_documento', 'status', 'tipo_documento', 'data_documento', 'cpf_cnpj_fornecedor',
+                  'nome_fornecedor', 'valor_total', 'valor_ptrf', 'data_transacao', 'tipo_transacao', 'documento_transacao', 'rateios', 'receitas_saida_do_recurso',)
 
 
 class DespesaConciliacaoSerializer(serializers.ModelSerializer):

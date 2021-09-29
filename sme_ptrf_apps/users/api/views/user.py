@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.exceptions import ValidationError
 
 from sme_ptrf_apps.users.api.serializers import (
     AlteraEmailSerializer,
@@ -135,18 +136,43 @@ class UserViewSet(ModelViewSet):
             logging.info("Erro ao buscar grupos do usuário %s", erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            grupos = Grupo.objects.filter(visoes__nome=visao).all()
-
-            return Response(
-                [{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao, "visao": visao} for grupo in grupos])
-        except Exception as err:
-            erro = {
-                'erro': 'erro_ao_consultar_grupos',
-                'mensagem': str(err)
-            }
-            logging.info("Erro ao buscar grupos do usuário %s", erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        if visao == 'SME':
+            try:
+                grupos = Grupo.objects.all().order_by('name')
+                return Response(
+                    [{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao, "visao": visao} for grupo
+                     in grupos])
+            except Exception as err:
+                erro = {
+                    'erro': 'erro_ao_consultar_grupos',
+                    'mensagem': str(err)
+                }
+                logging.info("Erro ao buscar grupos do usuário %s", erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        elif visao == "DRE":
+            try:
+                grupos = Grupo.objects.filter(Q(visoes__nome="DRE") | Q(visoes__nome="UE")).order_by('name')
+                return Response(
+                         [{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao, "visao": visao} for grupo in grupos])
+            except Exception as err:
+                erro = {
+                    'erro': 'erro_ao_consultar_grupos',
+                    'mensagem': str(err)
+                }
+                logging.info("Erro ao buscar grupos do usuário %s", erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            try:
+                grupos = Grupo.objects.filter(visoes__nome="UE").order_by('name')
+                return Response(
+                         [{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao, "visao": visao} for grupo in grupos])
+            except Exception as err:
+                erro = {
+                    'erro': 'erro_ao_consultar_grupos',
+                    'mensagem': str(err)
+                }
+                logging.info("Erro ao buscar grupos do usuário %s", erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
     # TODO Rever url_path 'usuarios/consultar'. É boa prática em APIs Rest evitar verbos. Poderia ser 'servidores'
     @action(detail=False, methods=['get'], url_path='consultar')

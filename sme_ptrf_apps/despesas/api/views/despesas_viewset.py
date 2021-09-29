@@ -16,10 +16,35 @@ from ....core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLo
 from ....core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from ...models import Despesa
 from ...tipos_aplicacao_recurso import aplicacoes_recurso_to_json
-from ..serializers.despesa_serializer import DespesaCreateSerializer, DespesaListSerializer, DespesaSerializer
+from ..serializers.despesa_serializer import DespesaCreateSerializer, DespesaSerializer, DespesaListComRateiosSerializer
 from ..serializers.tipo_custeio_serializer import TipoCusteioSerializer
 from ..serializers.tipo_documento_serializer import TipoDocumentoSerializer
 from ..serializers.tipo_transacao_serializer import TipoTransacaoSerializer
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.pagination import PageNumberPagination
+from django.db.models import Subquery
+
+
+DEFAULT_PAGE = 1
+DEFAULT_PAGE_SIZE = 10
+
+
+class CustomPagination(PageNumberPagination):
+    page = DEFAULT_PAGE
+    page_size = DEFAULT_PAGE_SIZE
+    page_size_query_param = 'page_size'
+
+    def get_paginated_response(self, data):
+        return Response({
+            'links': {
+                'next': self.get_next_link(),
+                'previous': self.get_previous_link()
+            },
+            'count': self.page.paginator.count,
+            'page': int(self.request.GET.get('page', DEFAULT_PAGE)),
+            'page_size': int(self.request.GET.get('page_size', self.page_size)),
+            'results': data
+        })
 
 
 class DespesasViewSet(mixins.CreateModelMixin,
@@ -32,15 +57,68 @@ class DespesasViewSet(mixins.CreateModelMixin,
     lookup_field = 'uuid'
     queryset = Despesa.objects.all()
     serializer_class = DespesaSerializer
-    filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = (
-    'associacao__uuid', 'cpf_cnpj_fornecedor', 'tipo_documento__uuid', 'numero_documento', 'tipo_documento__id')
+    filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
+    filter_fields = ('associacao__uuid', 'cpf_cnpj_fornecedor', 'tipo_documento__uuid',
+                     'numero_documento', 'tipo_documento__id', 'status' )
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        qs = Despesa.objects.all()
+
+        search = self.request.query_params.get('search')
+        if search is not None and search != '':
+            qs = qs.filter(rateios__especificacao_material_servico__descricao__unaccent__icontains=search)
+
+        acao_associacao_uuid = self.request.query_params.get('rateios__acao_associacao__uuid')
+
+        if acao_associacao_uuid:
+            # Necessario para utilizar distinct e order by juntos, com valores diferentes
+            qs = qs.filter(
+                pk__in=Subquery(
+                    qs.filter(rateios__acao_associacao__uuid=acao_associacao_uuid).distinct("uuid").values('pk')
+                )
+            )
+
+        aplicacao_recurso = self.request.query_params.get('aplicacao_recurso')
+
+        if aplicacao_recurso:
+            # Necessario para utilizar distinct e order by juntos, com valores diferentes
+            qs = qs.filter(
+                pk__in=Subquery(
+                    qs.filter(rateios__aplicacao_recurso=aplicacao_recurso).distinct("uuid").values('pk')
+                )
+            )
+
+        fornecedor = self.request.query_params.get('fornecedor')
+
+        if fornecedor is not None and fornecedor != '':
+            qs = qs.filter(nome_fornecedor__unaccent__icontains=fornecedor)
+
+        conta_associacao__uuid = self.request.query_params.get('rateios__conta_associacao__uuid')
+
+        if conta_associacao__uuid:
+            # Necessario para utilizar distinct e order by juntos, com valores diferentes
+            qs = qs.filter(
+                pk__in=Subquery(
+                    qs.filter(rateios__conta_associacao__uuid=conta_associacao__uuid).distinct("uuid").values('pk')
+                )
+            )
+
+        data_inicio = self.request.query_params.get('data_inicio')
+        data_fim = self.request.query_params.get('data_fim')
+
+        if data_inicio is not None and data_fim is not None and data_inicio != '' and data_fim != '':
+            qs = qs.filter(data_documento__range=[data_inicio, data_fim])
+
+        qs = qs.order_by('-data_documento')
+
+        return qs
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return DespesaSerializer
         elif self.action == 'list':
-            return DespesaListSerializer
+            return DespesaListComRateiosSerializer
         else:
             return DespesaCreateSerializer
 

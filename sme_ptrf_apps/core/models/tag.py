@@ -2,9 +2,12 @@ from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 from sme_ptrf_apps.core.choices import StatusTag
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
 
 
 class Tag(ModeloIdNome):
+    history = AuditlogHistoryField()
     status = models.CharField(
         'status',
         max_length=60,
@@ -26,3 +29,6 @@ class Tag(ModeloIdNome):
         verbose_name = "Tag"
         verbose_name_plural = "10.0) Tags"
         unique_together = ['nome', ]
+
+
+auditlog.register(Tag)
