@@ -9,7 +9,7 @@ from auditlog.registry import auditlog
 class TipoDocumentoPrestacaoConta(ModeloIdNome):
     history = AuditlogHistoryField()
 
-    documento_por_conta = models.BooleanField('Documento por tipode conta?', default=False)
+    documento_por_conta = models.BooleanField('Documento por tipo de conta?', default=False)
 
     class Meta:
         verbose_name = "Documento de prestação de contas"
