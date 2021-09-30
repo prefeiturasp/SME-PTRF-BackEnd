@@ -42,9 +42,16 @@ def concluir_prestacao_de_contas(periodo, associacao, usuario=""):
     prestacao = PrestacaoConta.abrir(periodo=periodo, associacao=associacao)
     logger.info(f'Aberta a prestação de contas {prestacao}.')
 
+    e_retorno_devolucao = prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA
+
     prestacao.em_processamento()
     logger.info(f'Prestação de contas em processamento {prestacao}.')
-    concluir_prestacao_de_contas_async.delay(periodo.uuid, associacao.uuid, usuario=usuario)
+    concluir_prestacao_de_contas_async.delay(
+        periodo.uuid,
+        associacao.uuid,
+        usuario=usuario,
+        e_retorno_devolucao=e_retorno_devolucao
+    )
 
     return prestacao
 

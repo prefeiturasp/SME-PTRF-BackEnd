@@ -25,6 +25,7 @@ class PrestacaoConta(ModeloBase):
     STATUS_RECEBIDA = 'RECEBIDA'
     STATUS_EM_ANALISE = 'EM_ANALISE'
     STATUS_DEVOLVIDA = 'DEVOLVIDA'
+    STATUS_DEVOLVIDA_RETORNADA = 'DEVOLVIDA_RETORNADA'
     STATUS_APROVADA = 'APROVADA'
     STATUS_APROVADA_RESSALVA = 'APROVADA_RESSALVA'
     STATUS_REPROVADA = 'REPROVADA'
@@ -36,6 +37,7 @@ class PrestacaoConta(ModeloBase):
         STATUS_RECEBIDA: 'Recebida',
         STATUS_EM_ANALISE: 'Em análise',
         STATUS_DEVOLVIDA: 'Devolvida para acertos',
+        STATUS_DEVOLVIDA_RETORNADA: 'Retornada após acertos',
         STATUS_APROVADA: 'Aprovada',
         STATUS_APROVADA_RESSALVA: 'Aprovada com ressalvas',
         STATUS_REPROVADA: 'Reprovada',
@@ -48,6 +50,7 @@ class PrestacaoConta(ModeloBase):
         (STATUS_RECEBIDA, STATUS_NOMES[STATUS_RECEBIDA]),
         (STATUS_EM_ANALISE, STATUS_NOMES[STATUS_EM_ANALISE]),
         (STATUS_DEVOLVIDA, STATUS_NOMES[STATUS_DEVOLVIDA]),
+        (STATUS_DEVOLVIDA_RETORNADA, STATUS_NOMES[STATUS_DEVOLVIDA_RETORNADA]),
         (STATUS_APROVADA, STATUS_NOMES[STATUS_APROVADA]),
         (STATUS_APROVADA_RESSALVA, STATUS_NOMES[STATUS_APROVADA_RESSALVA]),
         (STATUS_REPROVADA, STATUS_NOMES[STATUS_REPROVADA]),
@@ -117,8 +120,8 @@ class PrestacaoConta(ModeloBase):
     def ultima_ata_retificacao(self):
         return self.atas_da_prestacao.filter(tipo_ata='RETIFICACAO').last()
 
-    def concluir(self):
-        self.status = self.STATUS_NAO_RECEBIDA
+    def concluir(self, e_retorno_devolucao=False):
+        self.status = self.STATUS_DEVOLVIDA_RETORNADA if e_retorno_devolucao else self.STATUS_NAO_RECEBIDA
         self.save()
         return self
 
