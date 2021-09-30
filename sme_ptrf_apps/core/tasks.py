@@ -23,7 +23,13 @@ logger = logging.getLogger(__name__)
     time_limet=600,
     soft_time_limit=300
 )
-def concluir_prestacao_de_contas_async(periodo_uuid, associacao_uuid, usuario="", criar_arquivos=True):
+def concluir_prestacao_de_contas_async(
+    periodo_uuid,
+    associacao_uuid,
+    usuario="",
+    criar_arquivos=True,
+    e_retorno_devolucao=False
+):
     from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_documentos, _criar_fechamentos,
                                                                        _apagar_previas_documentos)
 
@@ -43,7 +49,7 @@ def concluir_prestacao_de_contas_async(periodo_uuid, associacao_uuid, usuario=""
     _criar_documentos(acoes, contas, periodo, prestacao, usuario=usuario, criar_arquivos=criar_arquivos)
     logger.info('Documentos gerados para a prestação de contas %s.', prestacao)
 
-    prestacao = prestacao.concluir()
+    prestacao = prestacao.concluir(e_retorno_devolucao=e_retorno_devolucao)
     logger.info('Concluída a prestação de contas %s.', prestacao)
 
 
