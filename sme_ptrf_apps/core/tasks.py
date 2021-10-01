@@ -105,7 +105,7 @@ def gerar_previa_demonstrativo_financeiro_async(periodo_uuid, conta_associacao_u
     time_limet=600,
     soft_time_limit=300
 )
-def gerar_previa_relacao_de_bens_async(periodo_uuid, conta_associacao_uuid, data_inicio, data_fim):
+def gerar_previa_relacao_de_bens_async(periodo_uuid, conta_associacao_uuid, data_inicio, data_fim, usuario):
     logger.info(f'Iniciando criação da Previa de relação de bens para a conta {conta_associacao_uuid} e período {periodo_uuid}.')
 
     from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_previa_relacao_de_bens,
@@ -121,6 +121,7 @@ def gerar_previa_relacao_de_bens_async(periodo_uuid, conta_associacao_uuid, data
     relacao_de_bens = _criar_previa_relacao_de_bens(
         periodo=periodo,
         conta=conta_associacao,
+        usuario=usuario
     )
 
     logger.info(f'Previa de Relação de Bens criado para a conta {conta_associacao} e período {periodo}.')
