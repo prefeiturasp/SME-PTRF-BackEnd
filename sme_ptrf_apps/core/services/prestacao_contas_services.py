@@ -105,6 +105,7 @@ def _criar_documentos(acoes, contas, periodo, prestacao, usuario, criar_arquivos
         gerar_arquivo_relacao_de_bens(
             periodo=periodo,
             conta_associacao=conta,
+            usuario=usuario,
             prestacao=prestacao,
             criar_arquivos=criar_arquivos
         )
@@ -133,9 +134,9 @@ def _criar_previa_demonstrativo_financeiro(acoes, conta, periodo, usuario):
     )
 
 
-def _criar_previa_relacao_de_bens(conta, periodo):
+def _criar_previa_relacao_de_bens(conta, periodo, usuario):
     logger.info(f'Criando prévia de demonstrativo financeiro do período {periodo} e conta {conta}...')
-    gerar_arquivo_relacao_de_bens(periodo=periodo, conta_associacao=conta, previa=True)
+    gerar_arquivo_relacao_de_bens(periodo=periodo, conta_associacao=conta, previa=True, usuario=usuario)
 
 
 def _apagar_previas_documentos(contas, periodo, prestacao):
