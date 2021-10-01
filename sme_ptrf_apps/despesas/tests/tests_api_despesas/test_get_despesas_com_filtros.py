@@ -5,6 +5,8 @@ import pytest
 from model_bakery import baker
 from rest_framework import status
 
+from sme_ptrf_apps.core.choices import StatusTag
+
 pytestmark = pytest.mark.django_db
 
 
@@ -169,3 +171,63 @@ def test_api_get_despesas_filtro_por_tipo_documento_id(jwt_authenticated_client_
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 0, 'Não deveria ter achado nada'
+
+
+@pytest.fixture
+def tag_teste_filtro_por_tag():
+    return baker.make(
+        'Tag',
+        nome="COVID-19",
+        status=StatusTag.ATIVO.name
+    )
+
+
+@pytest.fixture
+def despesa_teste_filtro_por_tag(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='777777',
+        data_documento=datetime.date(2020, 3, 11),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='517.870.110-03',
+        nome_fornecedor='Fornecedor Teste Filtro Por Tag',
+        tipo_transacao=tipo_transacao,
+        documento_transacao='',
+        data_transacao=datetime.date(2020, 3, 11),
+        valor_total=100.00,
+        valor_recursos_proprios=10.00,
+    )
+
+@pytest.fixture
+def rateio_despesa_tag_teste_filtro_por_tag(associacao, despesa_teste_filtro_por_tag, conta_associacao, acao,
+                                tipo_aplicacao_recurso_custeio,
+                                tipo_custeio_servico,
+                                especificacao_instalacao_eletrica, acao_associacao_ptrf, tag_teste_filtro_por_tag):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_teste_filtro_por_tag,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_ptrf,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=100.00,
+        conferido=True,
+        tag=tag_teste_filtro_por_tag,
+    )
+
+
+def test_api_get_despesas_filtro_por_tag(jwt_authenticated_client_d, associacao, despesa_teste_filtro_por_tag, tipo_documento, tipo_transacao, rateio_despesa_tag_teste_filtro_por_tag, tag_teste_filtro_por_tag):
+
+    response = jwt_authenticated_client_d.get(
+        f'/api/despesas/?rateios__tag__uuid={tag_teste_filtro_por_tag.uuid}',
+        content_type='application/json')
+    result = json.loads(response.content)
+    result = result["results"]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 1, 'Deve encontrar pela tag_teste_filtro_por_tag'
+
+

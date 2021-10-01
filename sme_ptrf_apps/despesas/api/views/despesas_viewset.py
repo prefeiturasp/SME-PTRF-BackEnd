@@ -69,6 +69,15 @@ class DespesasViewSet(mixins.CreateModelMixin,
         if search is not None and search != '':
             qs = qs.filter(rateios__especificacao_material_servico__descricao__unaccent__icontains=search)
 
+        tag_uuid = self.request.query_params.get('rateios__tag__uuid')
+        if tag_uuid:
+            # Necessario para utilizar distinct e order by juntos, com valores diferentes
+            qs = qs.filter(
+                pk__in=Subquery(
+                    qs.filter(rateios__tag__uuid=tag_uuid).distinct("uuid").values('pk')
+                )
+            )
+
         acao_associacao_uuid = self.request.query_params.get('rateios__acao_associacao__uuid')
 
         if acao_associacao_uuid:
