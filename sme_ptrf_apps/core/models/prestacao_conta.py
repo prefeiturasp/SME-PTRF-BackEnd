@@ -26,6 +26,7 @@ class PrestacaoConta(ModeloBase):
     STATUS_EM_ANALISE = 'EM_ANALISE'
     STATUS_DEVOLVIDA = 'DEVOLVIDA'
     STATUS_DEVOLVIDA_RETORNADA = 'DEVOLVIDA_RETORNADA'
+    STATUS_DEVOLVIDA_RECEBIDA = 'DEVOLVIDA_RECEBIDA'
     STATUS_APROVADA = 'APROVADA'
     STATUS_APROVADA_RESSALVA = 'APROVADA_RESSALVA'
     STATUS_REPROVADA = 'REPROVADA'
@@ -38,6 +39,7 @@ class PrestacaoConta(ModeloBase):
         STATUS_EM_ANALISE: 'Em análise',
         STATUS_DEVOLVIDA: 'Devolvida para acertos',
         STATUS_DEVOLVIDA_RETORNADA: 'Retornada após acertos',
+        STATUS_DEVOLVIDA_RECEBIDA: 'Recebida após acertos',
         STATUS_APROVADA: 'Aprovada',
         STATUS_APROVADA_RESSALVA: 'Aprovada com ressalvas',
         STATUS_REPROVADA: 'Reprovada',
@@ -51,6 +53,7 @@ class PrestacaoConta(ModeloBase):
         (STATUS_EM_ANALISE, STATUS_NOMES[STATUS_EM_ANALISE]),
         (STATUS_DEVOLVIDA, STATUS_NOMES[STATUS_DEVOLVIDA]),
         (STATUS_DEVOLVIDA_RETORNADA, STATUS_NOMES[STATUS_DEVOLVIDA_RETORNADA]),
+        (STATUS_DEVOLVIDA_RECEBIDA, STATUS_NOMES[STATUS_DEVOLVIDA_RECEBIDA]),
         (STATUS_APROVADA, STATUS_NOMES[STATUS_APROVADA]),
         (STATUS_APROVADA_RESSALVA, STATUS_NOMES[STATUS_APROVADA_RESSALVA]),
         (STATUS_REPROVADA, STATUS_NOMES[STATUS_REPROVADA]),
@@ -71,6 +74,8 @@ class PrestacaoConta(ModeloBase):
     )
 
     data_recebimento = models.DateField('data de recebimento pela DRE', blank=True, null=True)
+
+    data_recebimento_apos_acertos = models.DateField('data de recebimento pela DRE após acertos', blank=True, null=True)
 
     data_ultima_analise = models.DateField('data da última análise pela DRE', blank=True, null=True)
 
@@ -128,6 +133,12 @@ class PrestacaoConta(ModeloBase):
     def receber(self, data_recebimento):
         self.data_recebimento = data_recebimento
         self.status = self.STATUS_RECEBIDA
+        self.save()
+        return self
+
+    def receber_apos_acertos(self, data_recebimento_apos_acertos):
+        self.data_recebimento_apos_acertos = data_recebimento_apos_acertos
+        self.status = self.STATUS_DEVOLVIDA_RECEBIDA
         self.save()
         return self
 
