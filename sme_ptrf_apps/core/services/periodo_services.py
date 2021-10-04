@@ -13,6 +13,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     Encerrado	    Gerados	                Em Análise	        Período finalizado.	    Prestação de Contas em análise pela DRE.	                X	4
     Encerrado	    Gerados	                Devolvida	        Período finalizado.	    Prestação de Contas devolvida para ajustes.		                3
     Encerrado	    Gerados	                Devolvida Retornada Período finalizado.	    Prestação de Contas retornada após acertos.		            X   2
+    Encerrado	    Gerados	                Devolvida Recebida  Período finalizado.	    Prestação de Contas recebida após acertos.		            X   4
     Encerrado	    Gerados	                Aprovada	        Período finalizado.	    Prestação de Contas aprovada pela DRE.	                    X	5
     Encerrado	    Gerados	                Reprovada	        Período finalizado.	    Prestação de Contas reprovada pela DRE.	                    X	3
     '''
@@ -27,6 +28,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         PrestacaoConta.STATUS_EM_ANALISE: 'Prestação de contas em análise pela DRE.',
         PrestacaoConta.STATUS_DEVOLVIDA: 'Prestação de contas devolvida para ajustes.',
         PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA: 'Prestação de contas retornada após acertos.',
+        PrestacaoConta.STATUS_DEVOLVIDA_RECEBIDA: 'Prestação de contas recebida após acertos.',
         PrestacaoConta.STATUS_APROVADA: 'Prestação de contas aprovada pela DRE.',
         PrestacaoConta.STATUS_APROVADA_RESSALVA: 'Prestação de contas aprovada com ressalvas pela DRE.',
         PrestacaoConta.STATUS_REPROVADA: 'Prestação de contas reprovada pela DRE.',
@@ -42,6 +44,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         PrestacaoConta.STATUS_EM_ANALISE: 4,
         PrestacaoConta.STATUS_DEVOLVIDA: 3,
         PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA: 2,
+        PrestacaoConta.STATUS_DEVOLVIDA_RECEBIDA: 4,
         PrestacaoConta.STATUS_APROVADA: 5,
         PrestacaoConta.STATUS_APROVADA_RESSALVA: 5,
         PrestacaoConta.STATUS_REPROVADA: 3,
