@@ -10,7 +10,7 @@ from sme_ptrf_apps.core.models import (MembroAssociacao)
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_dados_relacao_de_bens(conta_associacao=None, periodo=None, previa=False, rateios=None):
+def gerar_dados_relacao_de_bens(usuario, conta_associacao=None, periodo=None, previa=False, rateios=None):
 
     try:
         LOGGER.info("GERANDO DADOS RELAÇÃO DE BENS...")
@@ -19,12 +19,14 @@ def gerar_dados_relacao_de_bens(conta_associacao=None, periodo=None, previa=Fals
         identificacao_apm = cria_identificacao_apm(conta_associacao)
         data_geracao = cria_data_geracao()
         relacao_de_bens_adquiridos_ou_produzidos = cria_relacao_de_bens_adquiridos_ou_produzidos(rateios)
+        data_geracao_documento = cria_data_geracao_documento(usuario, previa)
 
         dados_relacao_de_bens = {
             "cabecalho": cabecalho,
             "identificacao_apm": identificacao_apm,
             "data_geracao": data_geracao,
             "relacao_de_bens_adquiridos_ou_produzidos": relacao_de_bens_adquiridos_ou_produzidos,
+            "data_geracao_documento": data_geracao_documento
         }
     finally:
         LOGGER.info("DADOS RELAÇÃO DE BENS GERADO")
@@ -110,6 +112,15 @@ def cria_relacao_de_bens_adquiridos_ou_produzidos(rateios):
         "valor_total": valor_total
     }
     return despesas
+
+
+def cria_data_geracao_documento(usuario, previa):
+    data_geracao = date.today().strftime("%d/%m/%Y")
+    tipo_texto = "parcial" if previa else "final"
+    quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}, "
+    texto = f"Documento {tipo_texto} gerado {quem_gerou}via SIG - Escola, em: {data_geracao}"
+
+    return texto
 
 
 def cria_data_geracao():

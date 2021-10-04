@@ -39,7 +39,7 @@ BLOCO_3 = 19
 LAST_LINE = 26
 
 
-def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, prestacao=None, previa=False, criar_arquivos=True):
+def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, usuario, prestacao=None, previa=False, criar_arquivos=True):
 
     filename = 'relacao_bens.xlsx'
 
@@ -56,7 +56,7 @@ def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, prestacao=None, pre
         )
 
         # PDF
-        dados_relacao_de_bens = gerar_dados_relacao_de_bens(conta_associacao=conta_associacao, periodo=periodo, rateios=rateios)
+        dados_relacao_de_bens = gerar_dados_relacao_de_bens(conta_associacao=conta_associacao, periodo=periodo, rateios=rateios, previa=previa, usuario=usuario)
 
         if criar_arquivos:
             gerar_arquivo_relacao_de_bens_pdf(dados_relacao_de_bens=dados_relacao_de_bens, relacao_bens=relacao_bens)
