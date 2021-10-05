@@ -716,20 +716,22 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         tipo_unidade = self.request.query_params.get('tipo_unidade')
         status_pc = self.request.query_params.get('status')
 
-        if status_pc and status_pc not in [PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_NAO_RECEBIDA]:
-            erro = {
-                'erro': 'status-invalido',
-                'operacao': 'nao-recebidas',
-                'mensagem': 'Só é possível filtrar não recebidas pelos status NAO_APRESENTADA e NAO_RECEBIDA.'
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        status_pc_list = status_pc.split(',') if status_pc else []
+        for status_str in status_pc_list:
+            if status_str not in [PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_NAO_RECEBIDA]:
+                erro = {
+                    'erro': 'status-invalido',
+                    'operacao': 'nao-recebidas',
+                    'mensagem': 'Esse endpoint só aceita o filtro por status para os status NAO_APRESENTADA e NAO_RECEBIDA.'
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         result = lista_prestacoes_de_conta_nao_recebidas(dre=dre,
                                                          periodo=periodo,
                                                          filtro_nome=nome,
                                                          filtro_tipo_unidade=tipo_unidade,
-                                                         filtro_status=status_pc
+                                                         filtro_status=status_pc_list
                                                          )
         return Response(result)
 

@@ -267,7 +267,7 @@ def informacoes_financeiras_para_atas(prestacao_contas):
 def lista_prestacoes_de_conta_nao_recebidas(
     dre,
     periodo,
-    filtro_nome=None, filtro_tipo_unidade=None, filtro_status=None
+    filtro_nome=None, filtro_tipo_unidade=None, filtro_status=[]
 ):
     associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by(
         'unidade__tipo_unidade', 'unidade__nome')
@@ -289,12 +289,13 @@ def lista_prestacoes_de_conta_nao_recebidas(
             continue
 
         # Aplica o filtro por status
-        if filtro_status == PrestacaoConta.STATUS_NAO_RECEBIDA:
-            if not prestacao_conta or prestacao_conta.status != PrestacaoConta.STATUS_NAO_RECEBIDA:
-                continue
-        elif filtro_status == PrestacaoConta.STATUS_NAO_APRESENTADA:
-            if prestacao_conta and prestacao_conta.status != PrestacaoConta.STATUS_NAO_APRESENTADA:
-                continue
+        if filtro_status:
+            if PrestacaoConta.STATUS_NAO_APRESENTADA not in filtro_status:
+                if not prestacao_conta or prestacao_conta.status not in filtro_status:
+                    continue
+            else:
+                if prestacao_conta and prestacao_conta.status not in filtro_status:
+                    continue
 
         info_prestacao = {
             'periodo_uuid': f'{periodo.uuid}',
