@@ -148,6 +148,12 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
+    def desfazer_recebimento_apos_acertos(self):
+        self.data_recebimento_apos_acertos = None
+        self.status = self.STATUS_DEVOLVIDA_RETORNADA
+        self.save()
+        return self
+
     @transaction.atomic
     def analisar(self):
         from . import AnalisePrestacaoConta
