@@ -410,6 +410,7 @@ def prestacao_conta(periodo, associacao, motivo_aprovacao_ressalva_x):
         periodo=periodo,
         associacao=associacao,
         data_recebimento=date(2020, 10, 1),
+        data_recebimento_apos_acertos=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
         devolucao_tesouro=True,
         motivos_reprovacao="Motivo reprovação",

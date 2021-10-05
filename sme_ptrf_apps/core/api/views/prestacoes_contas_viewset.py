@@ -1343,3 +1343,33 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
         devolucoes = prestacao_conta.analises_da_prestacao.filter(status='DEVOLVIDA').order_by('id')
         return Response(AnalisePrestacaoContaRetrieveSerializer(devolucoes, many=True).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['patch'], url_path="receber-apos-acertos",
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def receber_apos_acertos(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        data_recebimento = request.data.get('data_recebimento_apos_acertos', None)
+        if not data_recebimento:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'receber-apos-acertos',
+                'mensagem': 'Faltou informar a data de recebimento da Prestação de Contas. data_recebimento_apos_acertos'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        if prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'receber-apos-acertos',
+                'mensagem': 'Você não pode receber após acertos uma prestação de contas com status diferente de DEVOLVIDA_RETORNADA.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_recebida = prestacao_conta.receber_apos_acertos(data_recebimento_apos_acertos=data_recebimento)
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_recebida, many=False).data,
+                        status=status.HTTP_200_OK)
