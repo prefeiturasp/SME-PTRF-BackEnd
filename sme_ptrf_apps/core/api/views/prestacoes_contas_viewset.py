@@ -1382,3 +1382,23 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_recebida, many=False).data,
                         status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['patch'], url_path='desfazer-recebimento-apos-acertos',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def desfazer_recebimento_apos_acertos(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        if prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA_RECEBIDA:
+            response = {
+                'uuid': f'{prestacao_conta.uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'desfazer-recebimento-apos-acertos',
+                'mensagem': 'Impossível desfazer recebimento após acertos de uma PC com status diferente de DEVOLVIDA_RECEBIDA.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_atualizada = prestacao_conta.desfazer_recebimento_apos_acertos()
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
+                        status=status.HTTP_200_OK)
