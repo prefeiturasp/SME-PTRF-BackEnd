@@ -75,12 +75,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def get_queryset(self):
         qs = PrestacaoConta.objects.all().order_by('associacao__unidade__tipo_unidade', 'associacao__unidade__nome')
 
-        status = self.request.query_params.get('status')
-        if status is not None:
-            if status in ['APROVADA', 'APROVADA_RESSALVA']:
-                qs = qs.filter(Q(status='APROVADA') | Q(status='APROVADA_RESSALVA'))
-            else:
-                qs = qs.filter(status=status)
+        status_pc = self.request.query_params.get('status')
+        status_pc_list = status_pc.split(',') if status_pc else []
+        if status_pc_list:
+            qs = qs.filter(status__in=status_pc_list)
 
         nome = self.request.query_params.get('nome')
         if nome is not None:
@@ -648,7 +646,12 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         par_add_aprovados_ressalva = request.query_params.get('add_aprovadas_ressalva')
         add_aprovados_ressalva = par_add_aprovados_ressalva == 'SIM'
-        cards = PrestacaoConta.dashboard(periodo, dre_uuid, add_aprovado_ressalva=add_aprovados_ressalva)
+        cards = PrestacaoConta.dashboard(
+            periodo,
+            dre_uuid,
+            add_aprovado_ressalva=add_aprovados_ressalva,
+            add_info_devolvidas_retornadas=True
+        )
         dashboard = {
             "total_associacoes_dre": total_associacoes_dre,
             "cards": cards
@@ -716,20 +719,22 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         tipo_unidade = self.request.query_params.get('tipo_unidade')
         status_pc = self.request.query_params.get('status')
 
-        if status_pc and status_pc not in [PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_NAO_RECEBIDA]:
-            erro = {
-                'erro': 'status-invalido',
-                'operacao': 'nao-recebidas',
-                'mensagem': 'Só é possível filtrar não recebidas pelos status NAO_APRESENTADA e NAO_RECEBIDA.'
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        status_pc_list = status_pc.split(',') if status_pc else []
+        for status_str in status_pc_list:
+            if status_str not in [PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_NAO_RECEBIDA]:
+                erro = {
+                    'erro': 'status-invalido',
+                    'operacao': 'nao-recebidas',
+                    'mensagem': 'Esse endpoint só aceita o filtro por status para os status NAO_APRESENTADA e NAO_RECEBIDA.'
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         result = lista_prestacoes_de_conta_nao_recebidas(dre=dre,
                                                          periodo=periodo,
                                                          filtro_nome=nome,
                                                          filtro_tipo_unidade=tipo_unidade,
-                                                         filtro_status=status_pc
+                                                         filtro_status=status_pc_list
                                                          )
         return Response(result)
 
@@ -780,25 +785,29 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        # Pega filtros
+        # Pega filtros por nome e tipo de unidade
         nome = self.request.query_params.get('nome')
         tipo_unidade = self.request.query_params.get('tipo_unidade')
-        status_pc = self.request.query_params.get('status')
 
-        if status_pc and status_pc not in ['TODOS']:
-            erro = {
-                'erro': 'status-invalido',
-                'operacao': 'todos-os-status',
-                'mensagem': 'Só é possível filtrar Todos pelo status TODOS'
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        # Pega e valida filtro por status
+        status_pc = self.request.query_params.get('status')
+        status_pc_list = status_pc.split(',') if status_pc else []
+        for status_str in status_pc_list:
+            if status_str not in PrestacaoConta.STATUS_NOMES.keys():
+                erro = {
+                    'erro': 'status-invalido',
+                    'operacao': 'todos-os-status',
+                    'mensagem': 'Passe um status de prestação de contas válido.'
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         result = lista_prestacoes_de_conta_todos_os_status(
             dre=dre,
             periodo=periodo,
             filtro_nome=nome,
             filtro_tipo_unidade=tipo_unidade,
+            filtro_por_status=status_pc_list,
         )
         return Response(result)
 
@@ -1372,4 +1381,24 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         prestacao_recebida = prestacao_conta.receber_apos_acertos(data_recebimento_apos_acertos=data_recebimento)
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_recebida, many=False).data,
+                        status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['patch'], url_path='desfazer-recebimento-apos-acertos',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def desfazer_recebimento_apos_acertos(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        if prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA_RECEBIDA:
+            response = {
+                'uuid': f'{prestacao_conta.uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'desfazer-recebimento-apos-acertos',
+                'mensagem': 'Impossível desfazer recebimento após acertos de uma PC com status diferente de DEVOLVIDA_RECEBIDA.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_atualizada = prestacao_conta.desfazer_recebimento_apos_acertos()
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
                         status=status.HTTP_200_OK)

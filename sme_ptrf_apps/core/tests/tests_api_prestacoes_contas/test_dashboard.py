@@ -104,22 +104,123 @@ def _associacao_que_nao_apresentou_pc1(_unidade_que_nao_apresentou_pc, periodo_a
     )
 
 
+@pytest.fixture
+def unidade_devolvida(dre):
+    return baker.make(
+        'Unidade',
+        codigo_eol="190880",
+        tipo_unidade="CEU",
+        nome="Devolvida",
+        sigla="",
+        dre=dre,
+    )
+
+
+@pytest.fixture
+def associacao_devolvida(unidade_devolvida, periodo, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Devolvida',
+        unidade=unidade_devolvida,
+        periodo_inicial=periodo_anterior,
+        cnpj='38.507.153/0001-00'
+    )
+
+
+@pytest.fixture
+def prestacao_conta_devolvida(periodo, associacao_devolvida):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo,
+        associacao=associacao_devolvida,
+        status="DEVOLVIDA"
+    )
+
+
+@pytest.fixture
+def unidade_devolvida_retornada(dre):
+    return baker.make(
+        'Unidade',
+        codigo_eol="190881",
+        tipo_unidade="CEU",
+        nome="Devolvida Retornada",
+        sigla="",
+        dre=dre,
+    )
+
+
+@pytest.fixture
+def associacao_devolvida_retornada(unidade_devolvida_retornada, periodo, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Devolvida Retornada',
+        unidade=unidade_devolvida_retornada,
+        periodo_inicial=periodo_anterior,
+        cnpj='65.375.219/0001-10'
+    )
+
+
+@pytest.fixture
+def prestacao_conta_devolvida_retornada(periodo, associacao_devolvida_retornada):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo,
+        associacao=associacao_devolvida_retornada,
+        status="DEVOLVIDA_RETORNADA"
+    )
+
+@pytest.fixture
+def unidade_devolvida_recebida(dre):
+    return baker.make(
+        'Unidade',
+        codigo_eol="190882",
+        tipo_unidade="CEU",
+        nome="Devolvida Recebida",
+        sigla="",
+        dre=dre,
+    )
+
+
+@pytest.fixture
+def associacao_devolvida_recebida(unidade_devolvida_recebida, periodo, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Devolvida Recebida',
+        unidade=unidade_devolvida_recebida,
+        periodo_inicial=periodo_anterior,
+        cnpj='43.880.463/0001-06'
+    )
+
+
+@pytest.fixture
+def prestacao_conta_devolvida_recebida(periodo, associacao_devolvida_recebida):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo,
+        associacao=associacao_devolvida_recebida,
+        status="DEVOLVIDA_RECEBIDA"
+    )
+
+
 def test_dashboard(
     jwt_authenticated_client_a,
     prestacao_conta_aprovada,
     prestacao_conta_em_analise,
     prestacao_conta_aprovada_ressalva,
     prestacao_conta_nao_recebida,
+    prestacao_conta_devolvida,
+    prestacao_conta_devolvida_retornada,
+    prestacao_conta_devolvida_recebida,
     periodo,
     dre,
-    _associacao_que_nao_apresentou_pc1
+    _associacao_que_nao_apresentou_pc1,
 ):
     response = jwt_authenticated_client_a.get(
         f"/api/prestacoes-contas/dashboard/?periodo={periodo.uuid}&dre_uuid={dre.uuid}")
     result = response.json()
 
     esperado = {
-        'total_associacoes_dre': 5,
+        'total_associacoes_dre': 8,
         'cards': [
             {
                 'titulo': 'Prestações de contas não recebidas',
@@ -135,7 +236,8 @@ def test_dashboard(
                 'status': 'EM_ANALISE'},
             {
                 'titulo': 'Prestações de conta devolvidas para acertos',
-                'quantidade_prestacoes': 0,
+                'quantidade_prestacoes': 3,  # Devolvida + Retornada após acertos + Recebida após acertos
+                'quantidade_retornadas': 1,  # Retornada após acertos
                 'status': 'DEVOLVIDA'},
             {
                 'titulo': 'Prestações de contas aprovadas',
@@ -184,6 +286,7 @@ def test_dashboard_add_aprovada_ressalva(
             {
                 'titulo': 'Prestações de conta devolvidas para acertos',
                 'quantidade_prestacoes': 0,
+                'quantidade_retornadas': 0,
                 'status': 'DEVOLVIDA'},
             {
                 'titulo': 'Prestações de contas aprovadas',
@@ -241,6 +344,7 @@ def test_dashboard_outro_periodo(jwt_authenticated_client_a, prestacao_conta_apr
             {
                 'titulo': 'Prestações de conta devolvidas para acertos',
                 'quantidade_prestacoes': 0,
+                'quantidade_retornadas': 0,
                 'status': 'DEVOLVIDA'},
             {
                 'titulo': 'Prestações de contas aprovadas',
@@ -254,4 +358,4 @@ def test_dashboard_outro_periodo(jwt_authenticated_client_a, prestacao_conta_apr
     }
 
     assert response.status_code == status.HTTP_200_OK
-    assert esperado == result
+    assert result == esperado
