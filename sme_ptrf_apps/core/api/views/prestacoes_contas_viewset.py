@@ -75,12 +75,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def get_queryset(self):
         qs = PrestacaoConta.objects.all().order_by('associacao__unidade__tipo_unidade', 'associacao__unidade__nome')
 
-        status = self.request.query_params.get('status')
-        if status is not None:
-            if status in ['APROVADA', 'APROVADA_RESSALVA']:
-                qs = qs.filter(Q(status='APROVADA') | Q(status='APROVADA_RESSALVA'))
-            else:
-                qs = qs.filter(status=status)
+        status_pc = self.request.query_params.get('status')
+        status_pc_list = status_pc.split(',') if status_pc else []
+        if status_pc_list:
+            qs = qs.filter(status__in=status_pc_list)
 
         nome = self.request.query_params.get('nome')
         if nome is not None:

@@ -432,19 +432,17 @@ def test_api_list_prestacoes_conta_por_data_recebimento(jwt_authenticated_client
     assert result == result_esperado
 
 
-def test_api_list_prestacoes_conta_por_status_aprovada_e_aprovada_ressalva(jwt_authenticated_client_a,
-                                                                           _prestacao_conta_2020_1_unidade_a_dre1,
-                                                                           # Entra
-                                                                           _prestacao_conta_2020_1_unidade_c_dre1,
-                                                                           # Não entra
-                                                                           _prestacao_conta_2019_2_unidade_a_dre1,
-                                                                           # Entra
-                                                                           _prestacao_conta_2020_1_unidade_b_dre2,
-                                                                           # Não entra
-                                                                           _dre_01,
-                                                                           periodo_2020_1,
-                                                                           periodo_2019_2):
-    url = f'/api/prestacoes-contas/?status=APROVADA'
+def test_api_list_prestacoes_conta_por_status_aprovada_e_aprovada_ressalva(
+    jwt_authenticated_client_a,
+    _prestacao_conta_2020_1_unidade_a_dre1, # Entra
+    _prestacao_conta_2020_1_unidade_c_dre1, # Não entra
+    _prestacao_conta_2019_2_unidade_a_dre1, # Entra
+    _prestacao_conta_2020_1_unidade_b_dre2, # Não entra
+    _dre_01,
+    periodo_2020_1,
+    periodo_2019_2
+):
+    url = f'/api/prestacoes-contas/?status=APROVADA,APROVADA_RESSALVA'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
@@ -486,18 +484,91 @@ def test_api_list_prestacoes_conta_por_status_aprovada_e_aprovada_ressalva(jwt_a
     assert result == result_esperado
 
 
-def test_api_list_prestacoes_conta_por_status_recebida(jwt_authenticated_client_a,
-                                                       _prestacao_conta_2020_1_unidade_a_dre1,
-                                                       # Não entra
-                                                       _prestacao_conta_2020_1_unidade_c_dre1,
-                                                       # Entra
-                                                       _prestacao_conta_2019_2_unidade_a_dre1,
-                                                       # Não entra
-                                                       _prestacao_conta_2020_1_unidade_b_dre2,
-                                                       # Não entra
-                                                       _dre_01,
-                                                       periodo_2020_1,
-                                                       periodo_2019_2):
+def test_api_list_prestacoes_conta_por_status_aprovada(
+    jwt_authenticated_client_a,
+    _prestacao_conta_2020_1_unidade_a_dre1, # Entra
+    _prestacao_conta_2020_1_unidade_c_dre1, # Não entra
+    _prestacao_conta_2019_2_unidade_a_dre1, # Entra
+    _prestacao_conta_2020_1_unidade_b_dre2, # Não entra
+    _dre_01,
+    periodo_2020_1,
+    periodo_2019_2
+):
+    url = f'/api/prestacoes-contas/?status=APROVADA'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    result = json.loads(response.content)
+
+    result_esperado = [
+        {
+            'periodo_uuid': f'{periodo_2020_1.uuid}',
+            'data_recebimento': '2020-01-01',
+            'data_ultima_analise': None,
+            'processo_sei': '',
+            'status': 'APROVADA',
+            'tecnico_responsavel': '',
+            'unidade_eol': '000101',
+            'unidade_nome': 'Andorinha',
+            'unidade_tipo_unidade': 'EMEI',
+            'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
+            'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
+            'devolucao_ao_tesouro': '0,00'
+        }
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == result_esperado
+
+
+def test_api_list_prestacoes_conta_por_status_aprovada_ressalva(
+    jwt_authenticated_client_a,
+    _prestacao_conta_2020_1_unidade_a_dre1, # Entra
+    _prestacao_conta_2020_1_unidade_c_dre1, # Não entra
+    _prestacao_conta_2019_2_unidade_a_dre1, # Entra
+    _prestacao_conta_2020_1_unidade_b_dre2, # Não entra
+    _dre_01,
+    periodo_2020_1,
+    periodo_2019_2
+):
+    url = f'/api/prestacoes-contas/?status=APROVADA_RESSALVA'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    result = json.loads(response.content)
+
+    result_esperado = [
+        {
+            'periodo_uuid': f'{periodo_2019_2.uuid}',
+            'data_recebimento': '2019-01-01',
+            'data_ultima_analise': None,
+            'processo_sei': '',
+            'status': 'APROVADA_RESSALVA',
+            'tecnico_responsavel': '',
+            'unidade_eol': '000101',
+            'unidade_nome': 'Andorinha',
+            'unidade_tipo_unidade': 'EMEI',
+            'uuid': f'{_prestacao_conta_2019_2_unidade_a_dre1.uuid}',
+            'associacao_uuid': f'{_prestacao_conta_2019_2_unidade_a_dre1.associacao.uuid}',
+            'devolucao_ao_tesouro': 'Não'
+
+        },
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == result_esperado
+
+
+def test_api_list_prestacoes_conta_por_status_recebida(
+    jwt_authenticated_client_a,
+    _prestacao_conta_2020_1_unidade_a_dre1, # Não entra
+    _prestacao_conta_2020_1_unidade_c_dre1, # Entra
+    _prestacao_conta_2019_2_unidade_a_dre1, # Não entra
+    _prestacao_conta_2020_1_unidade_b_dre2, # Não entra
+    _dre_01,
+    periodo_2020_1,
+    periodo_2019_2
+):
     url = f'/api/prestacoes-contas/?status=RECEBIDA'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
