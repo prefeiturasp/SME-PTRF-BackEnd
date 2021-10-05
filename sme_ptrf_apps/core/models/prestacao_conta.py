@@ -316,10 +316,13 @@ class PrestacaoConta(ModeloBase):
         return cls.objects.filter(associacao=associacao, periodo=periodo).first()
 
     @classmethod
-    def dashboard(cls, periodo_uuid, dre_uuid, add_aprovado_ressalva=False):
+    def dashboard(cls, periodo_uuid, dre_uuid, add_aprovado_ressalva=False, add_info_devolvidas_retornadas=False):
         """
         :param add_aprovado_ressalva: True para retornar a quantidade de aprovados com ressalva separadamente ou
         False para retornar a quantidade de aprovadas com ressalva somada a quantidade de aprovadas
+
+        :param add_info_devolvidas_retornadas: True para retornar a quantidade de devolvidas retornadas no card de
+        devolução.
         """
         from ..models import Associacao
 
@@ -348,13 +351,25 @@ class PrestacaoConta(ModeloBase):
             if status == cls.STATUS_APROVADA and not add_aprovado_ressalva:
                 quantidade_status += qs.filter(status=cls.STATUS_APROVADA_RESSALVA).count()
 
+            if status == cls.STATUS_DEVOLVIDA:
+                quantidade_status += qs.filter(status__in=[cls.STATUS_DEVOLVIDA_RETORNADA, cls.STATUS_DEVOLVIDA_RECEBIDA]).count()
+
             quantidade_pcs_apresentadas += quantidade_status
 
-            card = {
-                "titulo": titulo,
-                "quantidade_prestacoes": quantidade_status,
-                "status": status
-            }
+            if status == cls.STATUS_DEVOLVIDA and add_info_devolvidas_retornadas:
+                quantidade_retornadas = qs.filter(status=cls.STATUS_DEVOLVIDA_RETORNADA).count()
+                card = {
+                    "titulo": titulo,
+                    "quantidade_prestacoes": quantidade_status,
+                    "quantidade_retornadas": quantidade_retornadas,
+                    "status": status
+                }
+            else:
+                card = {
+                    "titulo": titulo,
+                    "quantidade_prestacoes": quantidade_status,
+                    "status": status
+                }
             cards.append(card)
 
         quantidade_unidades_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
