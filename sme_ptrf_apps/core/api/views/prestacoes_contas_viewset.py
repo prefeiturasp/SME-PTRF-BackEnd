@@ -780,25 +780,29 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        # Pega filtros
+        # Pega filtros por nome e tipo de unidade
         nome = self.request.query_params.get('nome')
         tipo_unidade = self.request.query_params.get('tipo_unidade')
-        status_pc = self.request.query_params.get('status')
 
-        if status_pc and status_pc not in ['TODOS']:
-            erro = {
-                'erro': 'status-invalido',
-                'operacao': 'todos-os-status',
-                'mensagem': 'Só é possível filtrar Todos pelo status TODOS'
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        # Pega e valida filtro por status
+        status_pc = self.request.query_params.get('status')
+        status_pc_list = status_pc.split(',') if status_pc else []
+        for status_str in status_pc_list:
+            if status_str not in PrestacaoConta.STATUS_NOMES.keys():
+                erro = {
+                    'erro': 'status-invalido',
+                    'operacao': 'todos-os-status',
+                    'mensagem': 'Passe um status de prestação de contas válido.'
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         result = lista_prestacoes_de_conta_todos_os_status(
             dre=dre,
             periodo=periodo,
             filtro_nome=nome,
             filtro_tipo_unidade=tipo_unidade,
+            filtro_por_status=status_pc_list,
         )
         return Response(result)
 

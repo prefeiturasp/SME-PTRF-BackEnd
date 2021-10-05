@@ -321,7 +321,8 @@ def lista_prestacoes_de_conta_todos_os_status(
     dre,
     periodo,
     filtro_nome=None,
-    filtro_tipo_unidade=None
+    filtro_tipo_unidade=None,
+    filtro_por_status=[]
 ):
     associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by(
         'unidade__tipo_unidade', 'unidade__nome')
@@ -336,6 +337,14 @@ def lista_prestacoes_de_conta_todos_os_status(
     prestacoes = []
     for associacao in associacoes_da_dre:
         prestacao_conta = PrestacaoConta.objects.filter(associacao=associacao, periodo=periodo).first()
+
+        if filtro_por_status and not prestacao_conta and PrestacaoConta.STATUS_NAO_APRESENTADA not in filtro_por_status:
+            # Pula PCs não apresentadas se existir um filtro por status e não contiver o status não apresentada
+            continue
+
+        if filtro_por_status and prestacao_conta and prestacao_conta.status not in filtro_por_status:
+            # Pula PCs apresentadas se existir um filtro por status e não contiver o status da PC
+            continue
 
         info_prestacao = {
             'periodo_uuid': f'{periodo.uuid}',
