@@ -14,6 +14,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
         mestre_esperado = {
             'associacao': f'{lancamento["mestre"].associacao.uuid}',
             'numero_documento': lancamento["mestre"].numero_documento,
+            'receitas_saida_do_recurso': None,
             'tipo_documento': {
                 'id': lancamento["mestre"].tipo_documento.id,
                 'nome': lancamento["mestre"].tipo_documento.nome,

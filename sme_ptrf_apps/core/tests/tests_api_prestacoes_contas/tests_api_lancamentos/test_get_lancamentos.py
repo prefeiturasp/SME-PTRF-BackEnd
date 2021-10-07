@@ -14,6 +14,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
         mestre_esperado = {
             'associacao': f'{lancamento["mestre"].associacao.uuid}',
             'numero_documento': lancamento["mestre"].numero_documento,
+            'receitas_saida_do_recurso': None,
             'tipo_documento': {
                 'id': lancamento["mestre"].tipo_documento.id,
                 'nome': lancamento["mestre"].tipo_documento.nome,
@@ -160,20 +161,20 @@ def test_api_get_lancamentos_todos_da_conta(
             'analise_lancamento': analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
         },
         {
-            'mestre': receita_2020_1_ptrf_repasse_conferida,
-            'rateios': [],
-            'tipo': 'Crédito',
-            'valor_transacao_na_conta': 100.0,
-            'valores_por_conta': [],
-            'analise_lancamento': analise_lancamento_receita_prestacao_conta_2020_1_em_analise,
-        },
-        {
             'mestre': receita_2020_1_role_outras_nao_conferida,
             'rateios': [],
             'tipo': 'Crédito',
             'valor_transacao_na_conta': 100.0,
             'valores_por_conta': [],
             'analise_lancamento': None
+        },
+        {
+            'mestre': receita_2020_1_ptrf_repasse_conferida,
+            'rateios': [],
+            'tipo': 'Crédito',
+            'valor_transacao_na_conta': 100.0,
+            'valores_por_conta': [],
+            'analise_lancamento': analise_lancamento_receita_prestacao_conta_2020_1_em_analise,
         },
     ]
 

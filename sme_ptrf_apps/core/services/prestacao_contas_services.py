@@ -419,7 +419,7 @@ def lancamentos_da_prestacao(
     tipo_acerto=None,
     com_ajustes=False,
 ):
-    from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaConciliacaoSerializer
+    from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaDocumentoMestreSerializer
     from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaConciliacaoSerializer
     from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
     from sme_ptrf_apps.core.api.serializers.analise_lancamento_prestacao_conta_serializer import AnaliseLancamentoPrestacaoContaRetrieveSerializer
@@ -492,7 +492,7 @@ def lancamentos_da_prestacao(
                 'conta_associacao__tipo_conta__nome').annotate(
                 Sum('valor_rateio')),
             'conferido': despesa.conferido,
-            'documento_mestre': DespesaConciliacaoSerializer(despesa, many=False).data,
+            'documento_mestre': DespesaDocumentoMestreSerializer(despesa, many=False).data,
             'rateios': RateioDespesaConciliacaoSerializer(
                 despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by('id'),
                 many=True).data,

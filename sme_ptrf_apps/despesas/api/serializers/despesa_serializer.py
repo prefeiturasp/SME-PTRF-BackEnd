@@ -149,3 +149,39 @@ class DespesaConciliacaoSerializer(serializers.ModelSerializer):
             'conferido',
             'uuid',
         )
+
+
+class DespesaDocumentoMestreSerializer(serializers.ModelSerializer):
+    associacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Associacao.objects.all()
+    )
+
+    tipo_documento = TipoDocumentoListSerializer()
+    tipo_transacao = TipoTransacaoSerializer()
+
+    receitas_saida_do_recurso = serializers.SerializerMethodField('get_recurso_externo')
+
+    def get_recurso_externo(self, despesa):
+        return despesa.receitas_saida_do_recurso.first().uuid if despesa.receitas_saida_do_recurso.exists() else None
+
+    class Meta:
+        model = Despesa
+        fields = (
+            'associacao',
+            'numero_documento',
+            'tipo_documento',
+            'tipo_transacao',
+            'documento_transacao',
+            'data_documento',
+            'data_transacao',
+            'cpf_cnpj_fornecedor',
+            'nome_fornecedor',
+            'valor_ptrf',
+            'valor_total',
+            'status',
+            'conferido',
+            'uuid',
+            'receitas_saida_do_recurso',
+        )
