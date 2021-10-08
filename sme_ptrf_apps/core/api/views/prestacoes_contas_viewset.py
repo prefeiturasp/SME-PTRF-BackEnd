@@ -292,13 +292,13 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def analisar(self, request, uuid):
         prestacao_conta = self.get_object()
 
-        if prestacao_conta.status != PrestacaoConta.STATUS_RECEBIDA:
+        if prestacao_conta.status not in (PrestacaoConta.STATUS_RECEBIDA, PrestacaoConta.STATUS_DEVOLVIDA_RECEBIDA):
             response = {
                 'uuid': f'{prestacao_conta.uuid}',
                 'erro': 'status_nao_permite_operacao',
                 'status': prestacao_conta.status,
                 'operacao': 'analisar',
-                'mensagem': 'Você não pode analisar uma prestação de contas com status diferente de RECEBIDA.'
+                'mensagem': 'Você não pode analisar uma prestação de contas com status diferente de RECEBIDA ou DEVOLVIDA_RECEBIDA.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
