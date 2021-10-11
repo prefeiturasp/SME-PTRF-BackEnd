@@ -117,3 +117,9 @@ def valida_datas_periodo(
     }
 
     return result
+
+
+def periodo_aceita_alteracoes_na_associacao(periodo, associacao):
+    prestacao = PrestacaoConta.by_periodo(associacao=associacao, periodo=periodo)
+    periodo_bloqueado = True if prestacao and prestacao.status != PrestacaoConta.STATUS_DEVOLVIDA else False
+    return not periodo_bloqueado

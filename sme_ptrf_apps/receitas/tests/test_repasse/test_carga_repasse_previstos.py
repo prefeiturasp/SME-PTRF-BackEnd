@@ -20,14 +20,14 @@ pytestmark = pytest.mark.django_db
 def arquivo():
     return SimpleUploadedFile(
         f'2020_01_01_a_2020_06_30_cheque.csv',
-        bytes(f"""Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao,Data receita,Periodo\n93238,99000.98,99000.98,,Role Cultural,02/01/2020,2020.u""", encoding="utf-8"))
+        bytes(f"""Id_Linha,Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao\n10,93238,99000.98,99000.98,,Role Cultural""", encoding="utf-8"))
 
 
 @pytest.fixture
 def arquivo_processado():
     return SimpleUploadedFile(
         f'carga_repasse_cheque.csv',
-        bytes(f"""Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao,Data receita,Periodo\n123456,99000.98,99000.98,,Role Cultural,02/04/2019,2019.2\n93238,99000.98,99000.98,,Role Cultural,02/01/2020,2020.u""", encoding="utf-8"))
+        bytes(f"""Id_Linha,Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao\n10,123456,99000.98,99000.98,,Role Cultural\n20,93238,99000.98,99000.98,,Role Cultural""", encoding="utf-8"))
 
 
 @pytest.fixture
