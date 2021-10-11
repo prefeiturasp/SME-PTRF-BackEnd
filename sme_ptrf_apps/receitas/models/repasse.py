@@ -54,6 +54,8 @@ class Repasse(ModeloBase):
     carga_origem = models.ForeignKey('core.Arquivo', on_delete=models.SET_NULL,
                                      related_name='repasses_criados', blank=True, null=True)
 
+    carga_origem_linha_id = models.PositiveSmallIntegerField('Id da linha de carga', default=0, blank=True, null=True)
+
     class Meta:
         verbose_name = 'Repasse'
         verbose_name_plural = 'Repasses'

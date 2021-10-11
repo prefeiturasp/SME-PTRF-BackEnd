@@ -103,7 +103,24 @@ def get_periodo(nome_arquivo):
     )
 
 
+def get_id_linha(str_id_linha):
+    str_id = str_id_linha.strip()
+    if not str_id:
+        return 0
+    try:
+        return int(str_id)
+    except ValueError:
+        raise ValueError(f"Não foi possível converter '{str_id}' em um valor inteiro.")
+
+
 def processa_repasse(reader, tipo_conta, arquivo):
+    __ID_LINHA = 0
+    __CODIGO_EOL = 1
+    __VR_CAPITAL = 2
+    __VR_CUSTEIO = 3
+    __VR_LIVRE = 4
+    __ACAO = 5
+
     nome_arquivo = arquivo.identificador
 
     periodo = get_periodo(nome_arquivo)
@@ -113,45 +130,44 @@ def processa_repasse(reader, tipo_conta, arquivo):
 
     for index, row in enumerate(reader):
         try:
+            if len(row) != 6:
+                msg_erro = f'Linha deveria ter seis colunas: id_linha, eol, capital, custeio, livre e ação.'
+                raise Exception(msg_erro)
+
             if index != 0:
                 logger.info('Linha %s: %s', index, row)
 
-                associacao = get_associacao(row[0])
+                associacao = get_associacao(row[__CODIGO_EOL])
                 if not associacao:
-                    msg_erro = f'Associação com código eol: {row[0]} não encontrado.'
-                    logger.info(msg_erro)
+                    msg_erro = f'Associação com código eol: {row[__CODIGO_EOL]} não encontrado.'
                     raise Exception(msg_erro)
 
-                valor_capital = get_valor(row[1])
-                valor_custeio = get_valor(row[2])
-                valor_livre = get_valor(row[3])
+                valor_capital = get_valor(row[__VR_CAPITAL])
+                valor_custeio = get_valor(row[__VR_CUSTEIO])
+                valor_livre = get_valor(row[__VR_LIVRE])
 
-                acao = get_acao(row[4])
+                acao = get_acao(row[__ACAO])
 
                 acao_associacao = get_acao_associacao(acao, associacao)
                 conta_associacao = get_conta_associacao(tipo_conta, associacao)
 
+                id_linha = get_id_linha(row[__ID_LINHA])
+
+                repasse_anterior = Repasse.objects.filter(
+                    carga_origem=arquivo,
+                    carga_origem_linha_id=id_linha,
+                ).first()
+
+                if repasse_anterior and repasse_anterior.valor_realizado:
+                    msg_erro = f'O repasse da linha de id {id_linha} já foi importado anteriormente e já teve realização. Linha ignorada.'
+                    raise Exception(msg_erro)
+
+                if repasse_anterior and not repasse_anterior.valor_realizado:
+                    repasse_anterior.delete()
+                    logger.info(f'O repasse da linha de id {id_linha} já foi importado anteriormente. Anterior apagado.'
+                                f'{id_linha if id_linha else ""}')
+
                 if valor_capital > 0 or valor_custeio > 0 or valor_livre > 0:
-
-                    repasse_anterior = Repasse.objects.filter(
-                        associacao=associacao,
-                        valor_capital=valor_capital,
-                        valor_custeio=valor_custeio,
-                        valor_livre=valor_livre,
-                        conta_associacao=conta_associacao,
-                        acao_associacao=acao_associacao,
-                        periodo=periodo,
-                        carga_origem=arquivo,
-                    ).first()
-                    if repasse_anterior and repasse_anterior.valor_realizado > 0:
-                        msg_erro = 'O repasse foi importado anteriormente e já teve realização. Linha ignorada.'
-                        logger.info(msg_erro)
-                        raise Exception(msg_erro)
-
-                    if repasse_anterior and repasse_anterior.valor_realizado == 0:
-                        repasse_anterior.delete()
-                        logger.info(f'O repasse da linha {index} já foi importado anteriormente. Anterior apagado.')
-
                     Repasse.objects.create(
                         associacao=associacao,
                         valor_capital=valor_capital,
@@ -162,9 +178,13 @@ def processa_repasse(reader, tipo_conta, arquivo):
                         periodo=periodo,
                         status=StatusRepasse.PENDENTE.name,
                         carga_origem=arquivo,
+                        carga_origem_linha_id=id_linha,
                     )
-                    logger.info(f"Repasse criado. Capital={valor_capital} Custeio={valor_custeio} RLA={valor_livre}")
+                    logger.info(f"Repasse referente a linha de id {id_linha} criado. Capital={valor_capital} Custeio={valor_custeio} RLA={valor_livre}")
                     importados += 1
+                else:
+                    logger.info(f"A linha de id {id_linha} está sem valores. Nenhum repasse criado.")
+
         except Exception as e:
             msg_erro = f"Erro na linha {index}: {str(e)}"
             logs.append(msg_erro)
