@@ -39,14 +39,14 @@ def test_criacao_conta_associacao_na_carga_repasses_previstos_com_valor_default(
 def arquivo():
     return SimpleUploadedFile(
         f'carga_repasse_cheque.csv',
-        bytes(f"""Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao,Data receita,Periodo\n93238,99000.98,99000.98,,Rolê Cultural,02/01/2020,2020.u""", encoding="utf-8"))
+        bytes(f"""Linha_ID,Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao,Data receita,Periodo\n10,93238,99000.98,99000.98,,Rolê Cultural,02/01/2020,2020.u""", encoding="utf-8"))
 
 
 @pytest.fixture
 def arquivo_processado():
     return SimpleUploadedFile(
         f'carga_repasse_cheque.csv',
-        bytes(f"""Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao,Data receita,Periodo\n123456,99000.98,99000.98,,Rolê Cultural,02/04/2019,2019.2\n93238,99000.98,99000.98,,Role Cultural,02/01/2020,2020.u""", encoding="utf-8"))
+        bytes(f"""Linha_ID,Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao,Data receita,Periodo\n10,123456,99000.98,99000.98,,Rolê Cultural,02/04/2019,2019.2\n20,93238,99000.98,99000.98,,Role Cultural,02/01/2020,2020.u""", encoding="utf-8"))
 
 
 @pytest.fixture
@@ -90,7 +90,7 @@ def test_carga_com_erro_formatacao(arquivo_carga, tipo_conta_cheque):
 
 def test_carga_com_erro(arquivo_carga_virgula, tipo_conta_cheque):
     carrega_repasses_realizados(arquivo_carga_virgula)
-    msg = """\nAssociação com código eol: 93238 não encontrado. Linha 1
+    msg = """\nErro na linha 1: Associação com código eol: 93238 não encontrado. Linha ID:10
 Foram criados 0 repasses. Erro na importação de 1 repasses."""
     assert arquivo_carga_virgula.log == msg
     assert arquivo_carga_virgula.status == ERRO
@@ -104,7 +104,7 @@ def acao_role_cultural_teste():
 def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao, tipo_receita_repasse,
                                    tipo_conta_cheque, acao_role_cultural, acao_role_cultural_teste):
     carrega_repasses_realizados(arquivo_carga_virgula_processado)
-    msg = """\nAssociação com código eol: 93238 não encontrado. Linha 2
+    msg = """\nErro na linha 2: Associação com código eol: 93238 não encontrado. Linha ID:20
 Foram criados 1 repasses. Erro na importação de 1 repasses."""
     assert arquivo_carga_virgula_processado.log == msg
     assert arquivo_carga_virgula_processado.status == PROCESSADO_COM_ERRO

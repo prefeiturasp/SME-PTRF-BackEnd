@@ -12,19 +12,21 @@ from sme_ptrf_apps.core.models.arquivo import (
     PROCESSADO_COM_ERRO,
     SUCESSO,
 )
-
+from sme_ptrf_apps.core.services.periodo_services import periodo_aceita_alteracoes_na_associacao
 from ..models import Receita, Repasse, TipoReceita
 from ..tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CUSTEIO, APLICACAO_LIVRE
 
+
 logger = logging.getLogger(__name__)
 
-CODIGO_EOL = 0
-VALOR_CAPITAL = 1
-VALOR_CUSTEIO = 2
-VALOR_LIVRE = 3
-ACAO = 4
-DATA = 5
-PERIODO = 6
+ID_LINHA = 0
+CODIGO_EOL = 1
+VALOR_CAPITAL = 2
+VALOR_CUSTEIO = 3
+VALOR_LIVRE = 4
+ACAO = 5
+DATA = 6
+PERIODO = 7
 __DELIMITADORES = {',': DELIMITADOR_VIRGULA, ';': DELIMITADOR_PONTO_VIRGULA}
 
 
@@ -93,7 +95,6 @@ def get_periodo(referencia):
 
 
 def criar_receita(associacao, conta_associacao, acao_associacao, valor, data, categoria_receita, tipo_receita, repasse):
-    logger.info("Criando receita.")
     Receita.objects.create(
         associacao=associacao,
         conta_associacao=conta_associacao,
@@ -105,6 +106,17 @@ def criar_receita(associacao, conta_associacao, acao_associacao, valor, data, ca
         categoria_receita=categoria_receita,
         repasse=repasse
     )
+    logger.info(f"Crianda receita realização do repasse. Linha_ID:{repasse.carga_origem_linha_id}")
+
+
+def get_id_linha(str_id_linha):
+    str_id = str_id_linha.strip()
+    if not str_id:
+        return 0
+    try:
+        return int(str_id)
+    except ValueError:
+        raise ValueError(f"Não foi possível converter '{str_id}' em um valor inteiro.")
 
 
 def processa_repasse(reader, tipo_conta, arquivo):
@@ -116,16 +128,24 @@ def processa_repasse(reader, tipo_conta, arquivo):
             continue
 
         logger.info('Linha %s: %s', index, row)
-        associacao = get_associacao(row[CODIGO_EOL])
-        if not associacao:
-            msg_erro = f'Associação com código eol: {row[CODIGO_EOL]} não encontrado. Linha {index}'
-            logger.info(msg_erro)
-            logs = f"{logs}\n{msg_erro}"
-            erros += 1
-            continue
 
         try:
+            if len(row) != 8:
+                msg_erro = f'Linha deveria ter seis colunas: id_linha, eol, capital, custeio, livre, ação, data e período.'
+                raise Exception(msg_erro)
+
+            id_linha = get_id_linha(row[ID_LINHA])
+
+            associacao = get_associacao(row[CODIGO_EOL])
+            if not associacao:
+                msg_erro = f'Associação com código eol: {row[CODIGO_EOL]} não encontrado. Linha ID:{id_linha}'
+                raise Exception(msg_erro)
+
             periodo = get_periodo(str(row[PERIODO]).strip())
+
+            if not periodo_aceita_alteracoes_na_associacao(periodo, associacao):
+                msg_erro = f'Período {periodo.referencia} fechado para alterações na associação. Linha ID:{id_linha}'
+                raise Exception(msg_erro)
 
             valor_capital = get_valor(row[VALOR_CAPITAL])
             valor_custeio = get_valor(row[VALOR_CUSTEIO])
@@ -136,8 +156,20 @@ def processa_repasse(reader, tipo_conta, arquivo):
             acao_associacao = get_acao_associacao(acao, associacao)
             conta_associacao = get_conta_associacao(tipo_conta, associacao)
 
+
+            repasse_anterior = Repasse.objects.filter(
+                carga_origem=arquivo,
+                carga_origem_linha_id=id_linha,
+            ).first()
+
+            if repasse_anterior:
+                for receita in repasse_anterior.receitas.all():
+                    receita.delete()
+                repasse_anterior.delete()
+                logger.info(f'O repasse da linha de id {id_linha} já foi importado anteriormente. Anterior e suas receitas apagados.'
+                            f'{id_linha if id_linha else ""}')
+
             if valor_capital > 0 or valor_custeio > 0 or valor_livre > 0:
-                logger.info("Criando repasse.")
                 repasse = Repasse.objects.create(
                     associacao=associacao,
                     valor_capital=valor_capital,
@@ -146,8 +178,11 @@ def processa_repasse(reader, tipo_conta, arquivo):
                     conta_associacao=conta_associacao,
                     acao_associacao=acao_associacao,
                     periodo=periodo,
-                    status=StatusRepasse.REALIZADO.name
+                    status=StatusRepasse.REALIZADO.name,
+                    carga_origem=arquivo,
+                    carga_origem_linha_id=id_linha,
                 )
+                logger.info(f"Repasse referente a linha de id {id_linha} criado. Capital={valor_capital} Custeio={valor_custeio} RLA={valor_livre}")
 
                 data = datetime.strptime(str(row[DATA]).strip(" "), '%d/%m/%Y')
                 tipo_receita = TipoReceita.objects.filter(e_repasse=True).first()
@@ -204,6 +239,8 @@ def processa_repasse(reader, tipo_conta, arquivo):
 
                 repasse.save()
                 importados += 1
+            else:
+                logger.info(f"A linha de id {id_linha} está sem valores. Nenhum repasse criado.")
 
         except Exception as e:
             msg = f"Erro na linha {index}: {str(e)}"
