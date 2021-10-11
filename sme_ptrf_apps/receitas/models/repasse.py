@@ -51,6 +51,9 @@ class Repasse(ModeloBase):
 
     realizado_livre = models.BooleanField('Realizado Livre Aplicação?', default=False)
 
+    carga_origem = models.ForeignKey('core.Arquivo', on_delete=models.SET_NULL,
+                                     related_name='repasses_criados', blank=True, null=True)
+
     class Meta:
         verbose_name = 'Repasse'
         verbose_name_plural = 'Repasses'
@@ -61,6 +64,10 @@ class Repasse(ModeloBase):
     @property
     def valor_total(self):
         return self.valor_capital + self.valor_custeio
+
+    @property
+    def valor_realizado(self):
+        return self.realizado_capital + self.realizado_custeio + self.realizado_livre
 
     @classmethod
     def repasses_pendentes_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conta_associacao=None):

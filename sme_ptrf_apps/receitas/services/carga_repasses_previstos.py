@@ -98,7 +98,8 @@ def get_periodo(nome_arquivo):
     logger.info(f"Período {start}-{end} não encontrado. Registro será criado.")
     return Periodo.objects.create(
         data_inicio_realizacao_despesas=start,
-        data_fim_realizacao_despesas=end
+        data_fim_realizacao_despesas=end,
+        referencia=f'{start.year}'
     )
 
 
@@ -131,6 +132,26 @@ def processa_repasse(reader, tipo_conta, arquivo):
                 conta_associacao = get_conta_associacao(tipo_conta, associacao)
 
                 if valor_capital > 0 or valor_custeio > 0 or valor_livre > 0:
+
+                    repasse_anterior = Repasse.objects.filter(
+                        associacao=associacao,
+                        valor_capital=valor_capital,
+                        valor_custeio=valor_custeio,
+                        valor_livre=valor_livre,
+                        conta_associacao=conta_associacao,
+                        acao_associacao=acao_associacao,
+                        periodo=periodo,
+                        carga_origem=arquivo,
+                    ).first()
+                    if repasse_anterior and repasse_anterior.valor_realizado > 0:
+                        msg_erro = 'O repasse foi importado anteriormente e já teve realização. Linha ignorada.'
+                        logger.info(msg_erro)
+                        raise Exception(msg_erro)
+
+                    if repasse_anterior and repasse_anterior.valor_realizado == 0:
+                        repasse_anterior.delete()
+                        logger.info(f'O repasse da linha {index} já foi importado anteriormente. Anterior apagado.')
+
                     Repasse.objects.create(
                         associacao=associacao,
                         valor_capital=valor_capital,
@@ -139,7 +160,8 @@ def processa_repasse(reader, tipo_conta, arquivo):
                         conta_associacao=conta_associacao,
                         acao_associacao=acao_associacao,
                         periodo=periodo,
-                        status=StatusRepasse.PENDENTE.name
+                        status=StatusRepasse.PENDENTE.name,
+                        carga_origem=arquivo,
                     )
                     logger.info(f"Repasse criado. Capital={valor_capital} Custeio={valor_custeio} RLA={valor_livre}")
                     importados += 1
