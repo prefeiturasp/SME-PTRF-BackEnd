@@ -78,6 +78,7 @@ def test_verificacao_regularidade_associacao_regular(client, associacao,
 
     esperado = {
         'uuid': f'{associacao.uuid}',
+        'motivo_nao_regularidade': '',
         'verificacao_regularidade': {
             'grupos_verificacao': [
                 {
@@ -115,6 +116,7 @@ def test_verificacao_regularidade_associacao_pendente_quando_sem_verificacao(cli
 
     esperado = {
         'uuid': f'{associacao.uuid}',
+        'motivo_nao_regularidade': '',
         'verificacao_regularidade': {
             'grupos_verificacao': [
                 {
@@ -155,6 +157,7 @@ def test_verificacao_regularidade_associacao_pendente_quando_com_verificacao_irr
 
     esperado = {
         'uuid': f'{associacao.uuid}',
+        'motivo_nao_regularidade': '',
         'verificacao_regularidade': {
             'grupos_verificacao': [
                 {

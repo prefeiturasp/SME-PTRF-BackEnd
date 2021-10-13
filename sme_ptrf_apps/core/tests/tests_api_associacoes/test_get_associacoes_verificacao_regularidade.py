@@ -57,6 +57,7 @@ def test_api_get_associacoes_verificacao_regularidade(jwt_authenticated_client_a
 
     esperado = {
         'uuid': f'{associacao.uuid}',
+        'motivo_nao_regularidade': '',
         'verificacao_regularidade': {
             'grupos_verificacao': [
                 {
