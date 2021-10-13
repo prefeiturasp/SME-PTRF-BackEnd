@@ -38,7 +38,7 @@ django-cors-headers # https://github.com/adamchainz/django-cors-headers
 # https://django-auditlog.readthedocs.io/en/latest/index.html
 # Pegando última versão diretamente do repositório oficial.
 #-e git://github.com/jjkester/django-auditlog.git##egg=django-auditlog
-django-auditlog=0.4.7
+django-auditlog==0.4.7
 
 # Para validação e formatação de CNPJ e CPF
 # https://github.com/poliquin/brazilnum
