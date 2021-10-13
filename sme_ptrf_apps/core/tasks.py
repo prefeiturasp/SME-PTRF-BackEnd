@@ -11,6 +11,7 @@ from sme_ptrf_apps.core.models import (
     PeriodoPrevia,
     PrestacaoConta,
     Ata,
+    AnalisePrestacaoConta
 )
 
 
@@ -261,3 +262,28 @@ def gerar_xlsx_extrato_dres_async(periodo_uuid, conta_uuid, username):
         atualiza_arquivo_download_erro(obj_arquivo_download, e)
 
     logger.info('Finalizando a exportação do arquivo xlsx de saldos bancarios em detalhes associações async')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
+def gerar_previa_relatorio_acertos_async(analise_prestacao_uuid, conta_associacao_cheque_uuid, conta_associacao_cartao_uuid, usuario=""):
+    from sme_ptrf_apps.core.services.analise_prestacao_conta_service import (_criar_previa_relatorio_acertos)
+
+    analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+    conta_associacao_cheque = ContaAssociacao.objects.get(uuid=conta_associacao_cheque_uuid)
+    conta_associacao_cartao = ContaAssociacao.objects.get(uuid=conta_associacao_cartao_uuid)
+
+    analise_prestacao.apaga_arquivo_pdf()
+
+    _criar_previa_relatorio_acertos(
+        analise_prestacao_conta=analise_prestacao,
+        conta_associacao_cheque=conta_associacao_cheque,
+        conta_associacao_cartao=conta_associacao_cartao,
+        usuario=usuario
+    )
+
+    logger.info('Finalizando a geração prévia do relatório de acertos')
