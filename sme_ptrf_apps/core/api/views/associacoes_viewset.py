@@ -542,7 +542,8 @@ class AssociacoesViewSet(ModelViewSet):
     @action(detail=True, url_path='atualiza-itens-verificacao', methods=['post'],
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def atualiza_itens_verificacao(self, request, uuid=None):
-        itens = request.data
+        itens = request.data.get('itens')
+        motivo = request.data.get('motivo_nao_regularidade')
 
         if not itens:
             result_error = {
@@ -554,9 +555,9 @@ class AssociacoesViewSet(ModelViewSet):
         for item in itens:
             try:
                 if item['regular']:
-                    marca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'])
+                    marca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'], motivo=motivo)
                 else:
-                    desmarca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'])
+                    desmarca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'], motivo=motivo)
 
             except ValidationError as e:
                 result = {
