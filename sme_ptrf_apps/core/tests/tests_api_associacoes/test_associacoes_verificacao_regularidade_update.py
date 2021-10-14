@@ -209,16 +209,20 @@ def test_atualiza_itens_verificacao(jwt_authenticated_client_a, associacao,
                                     verificacao_regularidade_associacao_documento_cnpj,
                                     verificacao_regularidade_associacao_documento_rais
                                     ):
-    payload = [
-        {
-            "uuid": f'{item_verificacao_regularidade_documentos_associacao_cnpj.uuid}',
-            "regular": False
-        },
-        {
-            "uuid": f'{item_verificacao_regularidade_documentos_associacao_rais.uuid}',
-            "regular": True
-        }
-    ]
+    payload = {
+        'itens': [
+            {
+                "uuid": f'{item_verificacao_regularidade_documentos_associacao_cnpj.uuid}',
+                'regular': False
+            },
+            {
+                "uuid": f'{item_verificacao_regularidade_documentos_associacao_rais.uuid}',
+                'regular': True
+            },
+        ],
+        'motivo_nao_regularidade': ''
+    }
+
     response = jwt_authenticated_client_a.post(
         f'/api/associacoes/{associacao.uuid}/atualiza-itens-verificacao/', data=json.dumps(payload),
         content_type='application/json')
@@ -233,30 +237,35 @@ def test_atualiza_itens_verificacao(jwt_authenticated_client_a, associacao,
     assert result == esperado
 
     verificacao1 = VerificacaoRegularidadeAssociacao.objects.filter(associacao=associacao,
-                                                                   item_verificacao=item_verificacao_regularidade_documentos_associacao_cnpj)
+                                                                    item_verificacao=item_verificacao_regularidade_documentos_associacao_cnpj)
     assert verificacao1.count() == 0, 'Esse item não deveria existir'
 
     verificacao2 = VerificacaoRegularidadeAssociacao.objects.filter(associacao=associacao,
-                                                                   item_verificacao=item_verificacao_regularidade_documentos_associacao_rais)
+                                                                    item_verificacao=item_verificacao_regularidade_documentos_associacao_rais)
     assert verificacao2.count() == 1, 'Esse item deveria existir'
 
 
 def test_atualiza_itens_verificacao_associacao_regular(jwt_authenticated_client_a, associacao,
-                                    grupo_verificacao_regularidade_documentos,
-                                    lista_verificacao_regularidade_documentos_associacao,
-                                    item_verificacao_regularidade_documentos_associacao_cnpj,
-                                    item_verificacao_regularidade_documentos_associacao_rais
-                                    ):
-    payload = [
-        {
-            "uuid": f'{item_verificacao_regularidade_documentos_associacao_cnpj.uuid}',
-            "regular": True
-        },
-        {
-            "uuid": f'{item_verificacao_regularidade_documentos_associacao_rais.uuid}',
-            "regular": True
-        }
-    ]
+                                                       grupo_verificacao_regularidade_documentos,
+                                                       lista_verificacao_regularidade_documentos_associacao,
+                                                       item_verificacao_regularidade_documentos_associacao_cnpj,
+                                                       item_verificacao_regularidade_documentos_associacao_rais
+                                                       ):
+
+    payload = {
+        'itens': [
+            {
+                "uuid": f'{item_verificacao_regularidade_documentos_associacao_cnpj.uuid}',
+                'regular': True
+            },
+            {
+                "uuid": f'{item_verificacao_regularidade_documentos_associacao_rais.uuid}',
+                'regular': True
+            },
+        ],
+        'motivo_nao_regularidade': ''
+    }
+
     response = jwt_authenticated_client_a.post(
         f'/api/associacoes/{associacao.uuid}/atualiza-itens-verificacao/', data=json.dumps(payload),
         content_type='application/json')

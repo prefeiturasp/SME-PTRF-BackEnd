@@ -1,5 +1,10 @@
+import logging
 import uuid
 import copy
+from sme_ptrf_apps.core.services.dados_relatorio_acertos_service import (gerar_dados_relatorio_acertos)
+from sme_ptrf_apps.core.services.relatorio_acertos_pdf_service import (gerar_arquivo_relatorio_acertos_pdf)
+
+logger = logging.getLogger(__name__)
 
 
 def copia_ajustes_entre_analises(analise_origem, analise_destino):
@@ -49,3 +54,29 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
 
     copia_analises_de_lancamento()
     copia_analises_de_documento()
+
+
+def _criar_previa_relatorio_acertos(analise_prestacao_conta, conta_associacao_cheque, conta_associacao_cartao, usuario=""):
+    logger.info(f'Gerando prévias do relatorio de acertos.')
+
+    _gerar_arquivos_relatorio_acertos(
+        analise_prestacao_conta=analise_prestacao_conta,
+        conta_associacao_cheque=conta_associacao_cheque,
+        conta_associacao_cartao=conta_associacao_cartao,
+        previa=True,
+        usuario=usuario
+    )
+
+
+def _gerar_arquivos_relatorio_acertos(analise_prestacao_conta, conta_associacao_cheque, conta_associacao_cartao, previa, usuario=""):
+    analise_prestacao_conta.inicia_geracao_arquivo_pdf(previa)
+
+    dados_relatorio_acertos = gerar_dados_relatorio_acertos(
+        analise_prestacao_conta=analise_prestacao_conta,
+        conta_associacao_cheque=conta_associacao_cheque,
+        conta_associacao_cartao=conta_associacao_cartao,
+        previa=previa,
+        usuario=usuario
+    )
+
+    gerar_arquivo_relatorio_acertos_pdf(dados_relatorio_acertos, analise_prestacao_conta)
