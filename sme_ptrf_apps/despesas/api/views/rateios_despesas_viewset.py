@@ -35,7 +35,7 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data_documento',)
-    filter_fields = ('aplicacao_recurso', 'acao_associacao__uuid', 'despesa__status', 'associacao__uuid', 'conferido', 'conta_associacao__uuid', )
+    filter_fields = ('aplicacao_recurso', 'acao_associacao__uuid', 'despesa__status', 'associacao__uuid', 'conferido', 'conta_associacao__uuid', 'tag__uuid')
 
     def get_queryset(self):
         associacao_uuid = self.request.query_params.get('associacao_uuid') or self.request.query_params.get('associacao__uuid')
