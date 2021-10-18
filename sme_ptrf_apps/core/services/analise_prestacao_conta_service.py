@@ -59,6 +59,8 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
 def _criar_previa_relatorio_acertos(analise_prestacao_conta, conta_associacao_cheque, conta_associacao_cartao, usuario=""):
     logger.info(f'Gerando prévias do relatorio de acertos.')
 
+    logger.info(f'ESTOU DENTRO DO CRIAR PREVIA {analise_prestacao_conta.status}, {analise_prestacao_conta}')
+
     _gerar_arquivos_relatorio_acertos(
         analise_prestacao_conta=analise_prestacao_conta,
         conta_associacao_cheque=conta_associacao_cheque,
@@ -69,6 +71,8 @@ def _criar_previa_relatorio_acertos(analise_prestacao_conta, conta_associacao_ch
 
 
 def _gerar_arquivos_relatorio_acertos(analise_prestacao_conta, conta_associacao_cheque, conta_associacao_cartao, previa, usuario=""):
+    logger.info(f'ESTOU DENTRO DO GERAR ARQUIVOS {analise_prestacao_conta.status}, {analise_prestacao_conta}')
+
     analise_prestacao_conta.inicia_geracao_arquivo_pdf(previa)
 
     dados_relatorio_acertos = gerar_dados_relatorio_acertos(
@@ -78,5 +82,7 @@ def _gerar_arquivos_relatorio_acertos(analise_prestacao_conta, conta_associacao_
         previa=previa,
         usuario=usuario
     )
+
+    logger.info(f'ESTOU NO FIM DE GERAR ARQUIVOS {analise_prestacao_conta.status}, {analise_prestacao_conta}')
 
     gerar_arquivo_relatorio_acertos_pdf(dados_relatorio_acertos, analise_prestacao_conta)

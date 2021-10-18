@@ -13,6 +13,9 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 
+
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -249,6 +252,7 @@ class PrestacaoConta(ModeloBase):
     def devolver(self, data_limite_ue):
         from ..services.notificacao_services import notificar_prestacao_de_contas_devolvida_para_acertos
         from ..models import DevolucaoPrestacaoConta
+        from sme_ptrf_apps.core.tasks import gerar_previa_relatorio_acertos_async
         devolucao = DevolucaoPrestacaoConta.objects.create(
             prestacao_conta=self,
             data=date.today(),
@@ -257,6 +261,16 @@ class PrestacaoConta(ModeloBase):
         if self.analise_atual:
             self.analise_atual.devolucao_prestacao_conta = devolucao
             self.analise_atual.save()
+
+            # print("status da analise antes de devolver:", self.analise_atual.status, self.analise_atual)
+            # print("devolucao:", self.analise_atual.devolucao_prestacao_conta)
+
+            # gerar_previa_relatorio_acertos_async.delay(
+            #     analise_prestacao_uuid=self.analise_atual.uuid,
+            #     conta_associacao_cheque_uuid="de7b74e8-22e0-4fff-a22a-6e3759495dd6",
+            #     conta_associacao_cartao_uuid="785ae4ab-1d9d-49ea-9707-6cfe70f419ce",
+            #     usuario="teste"
+            # )
 
         self.analise_atual = None
         self.save()

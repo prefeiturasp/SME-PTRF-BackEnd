@@ -274,10 +274,15 @@ def gerar_previa_relatorio_acertos_async(analise_prestacao_uuid, conta_associaca
     from sme_ptrf_apps.core.services.analise_prestacao_conta_service import (_criar_previa_relatorio_acertos)
 
     analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+
+    logger.info(f'ESTOU DENTRO DO GERAR PREVIA RELATORIO {analise_prestacao.status}, {analise_prestacao}, {analise_prestacao.uuid}')
+
     conta_associacao_cheque = ContaAssociacao.objects.get(uuid=conta_associacao_cheque_uuid)
     conta_associacao_cartao = ContaAssociacao.objects.get(uuid=conta_associacao_cartao_uuid)
 
     analise_prestacao.apaga_arquivo_pdf()
+
+    logger.info(f'ESTOU DENTRO DO GERAR PREVIA RELATORIO {analise_prestacao.status}, {analise_prestacao}')
 
     _criar_previa_relatorio_acertos(
         analise_prestacao_conta=analise_prestacao,
