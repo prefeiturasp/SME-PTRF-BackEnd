@@ -144,13 +144,17 @@ def _prestacao_conta_2020_1_unidade_b_dre2(periodo_2020_1, _unidade_b_dre_2, _as
     )
 
 
-def test_api_list_prestacoes_conta_nao_recebidas_por_periodo_e_dre(jwt_authenticated_client_a,
-                                                                   _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
-                                                                   _prestacao_conta_2019_2_unidade_a_dre1,  # Não entra
-                                                                   _prestacao_conta_2020_1_unidade_b_dre2,  # Não entra
-                                                                   _dre_01,
-                                                                   _associacao_c_dre_1,  # Entra como NAO_APRESENTADA
-                                                                   periodo_2020_1):
+def test_api_list_prestacoes_conta_nao_recebidas_por_periodo_e_dre_sem_filtro_por_status(
+    jwt_authenticated_client_a,
+    _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
+    _prestacao_conta_2019_2_unidade_a_dre1,  # Não entra
+    _prestacao_conta_2020_1_unidade_b_dre2,  # Não entra
+    _dre_01,
+    _associacao_c_dre_1,  # Entra como NAO_APRESENTADA
+    periodo_2020_1
+):
+    """ Deve listar todas as PC Não apresentadas ou Não recebidas """
+
     dre_uuid = _dre_01.uuid
     periodo_uuid = periodo_2020_1.uuid
 
@@ -208,17 +212,17 @@ def _prestacao_conta_2020_1_unidade_a_dre1_em_analise(periodo_2020_1, _unidade_a
     )
 
 
-def test_api_list_prestacoes_conta_nao_recebidas_por_periodo_e_dre_nao_inclui_outros_status(jwt_authenticated_client_a,
-                                                                                            _prestacao_conta_2020_1_unidade_a_dre1_em_analise,
-                                                                                            # Não Entra
-                                                                                            _prestacao_conta_2019_2_unidade_a_dre1,
-                                                                                            # Não entra
-                                                                                            _prestacao_conta_2020_1_unidade_b_dre2,
-                                                                                            # Não entra
-                                                                                            _dre_01,
-                                                                                            _associacao_c_dre_1,
-                                                                                            # Entra como NAO_APRESENTADA
-                                                                                            periodo_2020_1):
+def test_api_list_prestacoes_conta_nao_recebidas_por_periodo_e_dre_nao_inclui_outros_status(
+    jwt_authenticated_client_a,
+    _prestacao_conta_2020_1_unidade_a_dre1_em_analise, # Não Entra
+    _prestacao_conta_2019_2_unidade_a_dre1, # Não entra
+    _prestacao_conta_2020_1_unidade_b_dre2, # Não entra
+    _dre_01,
+    _associacao_c_dre_1, # Entra como NAO_APRESENTADA
+    periodo_2020_1
+):
+    """ PCs de status diferente de Não Recebida devem ser ignoradas """
+
     dre_uuid = _dre_01.uuid
     periodo_uuid = periodo_2020_1.uuid
 
@@ -444,13 +448,17 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_tipo_unidade(jwt_authentica
     assert result == result_esperado
 
 
-def test_api_list_prestacoes_conta_nao_recebidas_por_status(jwt_authenticated_client_a,
-                                                            _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
-                                                            _prestacao_conta_2019_2_unidade_a_dre1,  # Não entra
-                                                            _prestacao_conta_2020_1_unidade_b_dre2,  # Não entra
-                                                            _dre_01,
-                                                            _associacao_c_dre_1,  # Entra como NAO_APRESENTADA
-                                                            periodo_2020_1):
+def test_api_list_prestacoes_conta_nao_recebidas_por_status_nao_recebida(jwt_authenticated_client_a,
+                                                                         _prestacao_conta_2020_1_unidade_a_dre1,
+                                                                         # Entra
+                                                                         _prestacao_conta_2019_2_unidade_a_dre1,
+                                                                         # Não entra
+                                                                         _prestacao_conta_2020_1_unidade_b_dre2,
+                                                                         # Não entra
+                                                                         _dre_01,
+                                                                         _associacao_c_dre_1,
+                                                                         # Entra como NAO_APRESENTADA
+                                                                         periodo_2020_1):
     dre_uuid = _dre_01.uuid
     periodo_uuid = periodo_2020_1.uuid
 
@@ -480,6 +488,21 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_status(jwt_authenticated_cl
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado
 
+
+def test_api_list_prestacoes_conta_nao_recebidas_por_status_nao_apresentada(jwt_authenticated_client_a,
+                                                                            _prestacao_conta_2020_1_unidade_a_dre1,
+                                                                            # Entra
+                                                                            _prestacao_conta_2019_2_unidade_a_dre1,
+                                                                            # Não entra
+                                                                            _prestacao_conta_2020_1_unidade_b_dre2,
+                                                                            # Não entra
+                                                                            _dre_01,
+                                                                            _associacao_c_dre_1,
+                                                                            # Entra como NAO_APRESENTADA
+                                                                            periodo_2020_1):
+    dre_uuid = _dre_01.uuid
+    periodo_uuid = periodo_2020_1.uuid
+
     url = f'/api/prestacoes-contas/nao-recebidas/?associacao__unidade__dre__uuid={dre_uuid}&periodo__uuid={periodo_uuid}&status=NAO_APRESENTADA'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
@@ -507,6 +530,19 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_status(jwt_authenticated_cl
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado
 
+
+def test_api_list_prestacoes_conta_nao_recebidas_por_status_diferente_nao_recebida_nao_apresentada(
+    jwt_authenticated_client_a,
+    _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
+    _prestacao_conta_2019_2_unidade_a_dre1,  # Não entra
+    _prestacao_conta_2020_1_unidade_b_dre2,  # Não entra
+    _dre_01,
+    _associacao_c_dre_1,  # Entra como NAO_APRESENTADA
+    periodo_2020_1):
+
+    dre_uuid = _dre_01.uuid
+    periodo_uuid = periodo_2020_1.uuid
+
     url = f'/api/prestacoes-contas/nao-recebidas/?associacao__unidade__dre__uuid={dre_uuid}&periodo__uuid={periodo_uuid}&status=APROVADA'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
@@ -515,9 +551,63 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_status(jwt_authenticated_cl
 
     result_esperado = {
         'erro': 'status-invalido',
-        'mensagem': 'Só é possível filtrar não recebidas pelos status NAO_APRESENTADA e NAO_RECEBIDA.',
+        'mensagem': 'Esse endpoint só aceita o filtro por status para os status NAO_APRESENTADA e NAO_RECEBIDA.',
         'operacao': 'nao-recebidas'
     }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result == result_esperado
+
+
+def test_api_list_prestacoes_conta_nao_recebidas_por_mais_de_um_status(
+    jwt_authenticated_client_a,
+    _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
+    _prestacao_conta_2019_2_unidade_a_dre1,  # Não entra
+    _prestacao_conta_2020_1_unidade_b_dre2,  # Não entra
+    _dre_01,
+    _associacao_c_dre_1,  # Entra como NAO_APRESENTADA
+    periodo_2020_1
+):
+    dre_uuid = _dre_01.uuid
+    periodo_uuid = periodo_2020_1.uuid
+
+    url = f'/api/prestacoes-contas/nao-recebidas/?associacao__unidade__dre__uuid={dre_uuid}&periodo__uuid={periodo_uuid}&status=NAO_RECEBIDA,NAO_APRESENTADA'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    result = json.loads(response.content)
+
+    result_esperado = [
+        {
+            'periodo_uuid': f'{periodo_2020_1.uuid}',
+            'data_recebimento': None,
+            'data_ultima_analise': None,
+            'processo_sei': '',
+            'status': 'NAO_APRESENTADA',
+            'tecnico_responsavel': '',
+            'unidade_eol': '000102',
+            'unidade_nome': 'Codorna',
+            'unidade_tipo_unidade': 'CEU',
+            'uuid': '',
+            'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
+            'devolucao_ao_tesouro': '0,00'
+
+        },
+        {
+            'periodo_uuid': f'{periodo_2020_1.uuid}',
+            'data_recebimento': None,
+            'data_ultima_analise': None,
+            'processo_sei': '',
+            'status': 'NAO_RECEBIDA',
+            'tecnico_responsavel': '',
+            'unidade_eol': '000101',
+            'unidade_nome': 'Andorinha',
+            'unidade_tipo_unidade': 'EMEI',
+            'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
+            'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
+            'devolucao_ao_tesouro': '0,00'
+        }
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado

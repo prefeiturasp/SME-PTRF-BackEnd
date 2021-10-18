@@ -82,7 +82,7 @@ def test_api_analisar_prestacao_conta_nao_pode_aceitar_status_diferente_de_receb
         'erro': 'status_nao_permite_operacao',
         'status': prestacao_conta_aprovada.status,
         'operacao': 'analisar',
-        'mensagem': 'Você não pode analisar uma prestação de contas com status diferente de RECEBIDA.'
+        'mensagem': 'Você não pode analisar uma prestação de contas com status diferente de RECEBIDA ou DEVOLVIDA_RECEBIDA.'
     }
 
     assert result == result_esperado, "Deveria ter retornado erro status_nao_permite_operacao."

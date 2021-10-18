@@ -584,6 +584,32 @@ def analise_prestacao_conta_2020_1_teste_analises(
         devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1_teste_analises
     )
 
+@pytest.fixture
+def analise_prestacao_conta_2020_1_teste_analises_sem_versao(
+    prestacao_conta_2020_1_teste_analises,
+    devolucao_prestacao_conta_2020_1_teste_analises
+):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_teste_analises,
+        devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1_teste_analises,
+        versao="-",
+        status_versao='Não gerado'
+    )
+
+@pytest.fixture
+def analise_prestacao_conta_2020_1_teste_analises_com_versao_rascunho_em_processamento(
+    prestacao_conta_2020_1_teste_analises,
+    devolucao_prestacao_conta_2020_1_teste_analises
+):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_teste_analises,
+        devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1_teste_analises,
+        versao="rascunho",
+        status_versao='Em processamento',
+    )
+
 
 @pytest.fixture
 def analise_lancamento_receita_prestacao_conta_2020_1_teste_analises(

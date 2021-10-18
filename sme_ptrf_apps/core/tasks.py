@@ -11,6 +11,7 @@ from sme_ptrf_apps.core.models import (
     PeriodoPrevia,
     PrestacaoConta,
     Ata,
+    AnalisePrestacaoConta
 )
 
 
@@ -23,7 +24,13 @@ logger = logging.getLogger(__name__)
     time_limet=600,
     soft_time_limit=300
 )
-def concluir_prestacao_de_contas_async(periodo_uuid, associacao_uuid, usuario="", criar_arquivos=True):
+def concluir_prestacao_de_contas_async(
+    periodo_uuid,
+    associacao_uuid,
+    usuario="",
+    criar_arquivos=True,
+    e_retorno_devolucao=False
+):
     from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_documentos, _criar_fechamentos,
                                                                        _apagar_previas_documentos)
 
@@ -43,7 +50,7 @@ def concluir_prestacao_de_contas_async(periodo_uuid, associacao_uuid, usuario=""
     _criar_documentos(acoes, contas, periodo, prestacao, usuario=usuario, criar_arquivos=criar_arquivos)
     logger.info('Documentos gerados para a prestação de contas %s.', prestacao)
 
-    prestacao = prestacao.concluir()
+    prestacao = prestacao.concluir(e_retorno_devolucao=e_retorno_devolucao)
     logger.info('Concluída a prestação de contas %s.', prestacao)
 
 
@@ -99,7 +106,7 @@ def gerar_previa_demonstrativo_financeiro_async(periodo_uuid, conta_associacao_u
     time_limet=600,
     soft_time_limit=300
 )
-def gerar_previa_relacao_de_bens_async(periodo_uuid, conta_associacao_uuid, data_inicio, data_fim):
+def gerar_previa_relacao_de_bens_async(periodo_uuid, conta_associacao_uuid, data_inicio, data_fim, usuario):
     logger.info(f'Iniciando criação da Previa de relação de bens para a conta {conta_associacao_uuid} e período {periodo_uuid}.')
 
     from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_previa_relacao_de_bens,
@@ -115,6 +122,7 @@ def gerar_previa_relacao_de_bens_async(periodo_uuid, conta_associacao_uuid, data
     relacao_de_bens = _criar_previa_relacao_de_bens(
         periodo=periodo,
         conta=conta_associacao,
+        usuario=usuario
     )
 
     logger.info(f'Previa de Relação de Bens criado para a conta {conta_associacao} e período {periodo}.')
@@ -254,3 +262,28 @@ def gerar_xlsx_extrato_dres_async(periodo_uuid, conta_uuid, username):
         atualiza_arquivo_download_erro(obj_arquivo_download, e)
 
     logger.info('Finalizando a exportação do arquivo xlsx de saldos bancarios em detalhes associações async')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
+def gerar_previa_relatorio_acertos_async(analise_prestacao_uuid, conta_associacao_cheque_uuid, conta_associacao_cartao_uuid, usuario=""):
+    from sme_ptrf_apps.core.services.analise_prestacao_conta_service import (_criar_previa_relatorio_acertos)
+
+    analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+    conta_associacao_cheque = ContaAssociacao.objects.get(uuid=conta_associacao_cheque_uuid)
+    conta_associacao_cartao = ContaAssociacao.objects.get(uuid=conta_associacao_cartao_uuid)
+
+    analise_prestacao.apaga_arquivo_pdf()
+
+    _criar_previa_relatorio_acertos(
+        analise_prestacao_conta=analise_prestacao,
+        conta_associacao_cheque=conta_associacao_cheque,
+        conta_associacao_cartao=conta_associacao_cartao,
+        usuario=usuario
+    )
+
+    logger.info('Finalizando a geração prévia do relatório de acertos')

@@ -1,6 +1,7 @@
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from datetime import datetime
 
 
 class AnalisePrestacaoConta(ModeloBase):
@@ -27,6 +28,40 @@ class AnalisePrestacaoConta(ModeloBase):
         (STATUS_REPROVADA, STATUS_NOMES[STATUS_REPROVADA]),
     )
 
+    # Versao Choice
+    VERSAO_NAO_GERADO = '-'
+    VERSAO_FINAL = 'FINAL'
+    VERSAO_RASCUNHO = 'RASCUNHO'
+
+    VERSAO_NOMES = {
+        VERSAO_NAO_GERADO: '-',
+        VERSAO_FINAL: 'final',
+        VERSAO_RASCUNHO: 'rascunho',
+    }
+
+    VERSAO_CHOICES = (
+        (VERSAO_NAO_GERADO, VERSAO_NOMES[VERSAO_NAO_GERADO]),
+        (VERSAO_FINAL, VERSAO_NOMES[VERSAO_FINAL]),
+        (VERSAO_RASCUNHO, VERSAO_NOMES[VERSAO_RASCUNHO]),
+    )
+
+    # Status Choice
+    STATUS_NAO_GERADO = 'NAO_GERADO'
+    STATUS_EM_PROCESSAMENTO = 'EM_PROCESSAMENTO'
+    STATUS_CONCLUIDO = 'CONCLUIDO'
+
+    STATUS_NOMES_CHOICES = {
+        STATUS_NAO_GERADO: 'Não gerado',
+        STATUS_EM_PROCESSAMENTO: 'Em processamento',
+        STATUS_CONCLUIDO: 'Geração concluída',
+    }
+
+    STATUS_CHOICES_VERSAO = (
+        (STATUS_NAO_GERADO, STATUS_NOMES_CHOICES[STATUS_NAO_GERADO]),
+        (STATUS_EM_PROCESSAMENTO, STATUS_NOMES_CHOICES[STATUS_EM_PROCESSAMENTO]),
+        (STATUS_CONCLUIDO, STATUS_NOMES_CHOICES[STATUS_CONCLUIDO]),
+    )
+
     prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE,
                                         related_name='analises_da_prestacao')
 
@@ -44,8 +79,58 @@ class AnalisePrestacaoConta(ModeloBase):
         blank=True, null=True,
     )
 
+    arquivo_pdf = models.FileField(blank=True, null=True, verbose_name='Relatório em PDF')
+
+    status_versao = models.CharField(
+        'Status da geração do documento',
+        max_length=20,
+        choices=STATUS_CHOICES_VERSAO,
+        default=STATUS_NAO_GERADO
+    )
+
+    versao = models.CharField(
+        'Versão do documento',
+        max_length=20,
+        choices=VERSAO_CHOICES,
+        default=VERSAO_NAO_GERADO
+    )
+
+    arquivo_pdf_criado_em = models.DateTimeField("Arquivo pdf gerado em", null=True)
+
     def __str__(self):
         return f"{self.prestacao_conta.periodo} - Análise #{self.pk}"
+
+    def get_status(self):
+        if self.status_versao == self.STATUS_NAO_GERADO:
+            if self.VERSAO_NOMES[self.versao] == 'rascunho':
+                return "Nenhuma prévia gerada."
+            else:
+                return "Nenhum documento gerado."
+        elif self.status_versao == self.STATUS_CONCLUIDO:
+            if self.VERSAO_NOMES[self.versao] == 'rascunho':
+                return f"Prévia gerada em {self.arquivo_pdf_criado_em.strftime('%d/%m/%Y ás %H:%M')}"
+            else:
+                return f"Documento gerado em {self.arquivo_pdf_criado_em.strftime('%d/%m/%Y ás %H:%M')}"
+        else:
+            return f"Relatório sendo gerado..."
+
+    def apaga_arquivo_pdf(self):
+        self.arquivo_pdf = None
+        self.arquivo_pdf_criado_em = None
+        self.versao = self.VERSAO_NAO_GERADO
+        self.status_versao = self.STATUS_NAO_GERADO
+        self.save()
+
+    def inicia_geracao_arquivo_pdf(self, previa):
+        self.versao = self.VERSAO_RASCUNHO if previa else self.VERSAO_FINAL
+        self.status_versao = self.STATUS_EM_PROCESSAMENTO
+        self.save()
+
+    def finaliza_geracao_arquivo_pdf(self, pdf):
+        self.arquivo_pdf = pdf
+        self.status_versao = self.STATUS_CONCLUIDO
+        self.arquivo_pdf_criado_em = datetime.today()
+        self.save()
 
     class Meta:
         verbose_name = "Análise de prestação de contas"

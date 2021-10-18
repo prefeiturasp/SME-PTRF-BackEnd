@@ -51,12 +51,14 @@ def verifica_regularidade_associacao(associacao_uuid):
         'uuid': f'{associacao.uuid}',
         'verificacao_regularidade': {
             'grupos_verificacao': grupos
-        }
+        },
+        'motivo_nao_regularidade': associacao.motivo_nao_regularidade
+
     }
     return result
 
 
-def marca_item_verificacao_associacao(associacao_uuid, item_verificacao_uuid):
+def marca_item_verificacao_associacao(associacao_uuid, item_verificacao_uuid, motivo=''):
     associacao = Associacao.by_uuid(associacao_uuid)
 
     if not associacao:
@@ -82,14 +84,14 @@ def marca_item_verificacao_associacao(associacao_uuid, item_verificacao_uuid):
     ) if associacao and item_verificacao else None
 
     if associacao:
-        atualiza_status_regularidade(associacao)
+        atualiza_status_regularidade(associacao, motivo)
 
     logger.info(f'Item de verificação marcado {result}')
 
     return result
 
 
-def desmarca_item_verificacao_associacao(associacao_uuid, item_verificacao_uuid):
+def desmarca_item_verificacao_associacao(associacao_uuid, item_verificacao_uuid, motivo=''):
     associacao = Associacao.by_uuid(associacao_uuid)
     item_verificacao = ItemVerificacaoRegularidade.by_uuid(item_verificacao_uuid)
 
@@ -99,16 +101,22 @@ def desmarca_item_verificacao_associacao(associacao_uuid, item_verificacao_uuid)
     ).delete()
 
     if associacao:
-        atualiza_status_regularidade(associacao)
+        atualiza_status_regularidade(associacao, motivo=motivo)
 
     return 'OK' if associacao and item_verificacao else None
 
 
-def atualiza_status_regularidade(associacao):
+def atualiza_status_regularidade(associacao, motivo=''):
     status = Associacao.STATUS_REGULARIDADE_PENDENTE
+
     if associacao.verificacoes_regularidade.count() == ItemVerificacaoRegularidade.objects.count():
         if all(associacao.verificacoes_regularidade.values_list('regular', flat=True)):
             status = Associacao.STATUS_REGULARIDADE_REGULAR
+
+    if status == Associacao.STATUS_REGULARIDADE_PENDENTE:
+        associacao.motivo_nao_regularidade = motivo
+    else:
+        associacao.motivo_nao_regularidade = ''
 
     associacao.status_regularidade = status
     associacao.save()

@@ -298,6 +298,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(
             'uuid': f'{_atribuicao.tecnico.uuid}'
         },
         'data_recebimento': '2020-10-01',
+        'data_recebimento_apos_acertos': '2020-10-01',
         'devolucoes_da_prestacao': [
             {
                 'cobrancas_da_devolucao': [

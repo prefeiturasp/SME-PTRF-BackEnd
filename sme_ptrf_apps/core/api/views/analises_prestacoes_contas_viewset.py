@@ -18,6 +18,9 @@ from ...services import (
     lancamentos_da_prestacao,
 )
 
+from django.http import HttpResponse
+from sme_ptrf_apps.core.tasks import gerar_previa_relatorio_acertos_async
+
 logger = logging.getLogger(__name__)
 
 
@@ -108,3 +111,174 @@ class AnalisesPrestacoesContasViewSet(
         analise_prestacao = AnalisePrestacaoConta.by_uuid(uuid)
         documentos = analise_prestacao.analises_de_documento.filter(resultado='AJUSTE').all().order_by('tipo_documento_prestacao_conta__nome')
         return Response(AnaliseDocumentoPrestacaoContaRetrieveSerializer(documentos, many=True).data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def previa(self, request):
+        # Define a análise da prestação de contas
+        analise_prestacao_uuid = self.request.query_params.get('analise_prestacao_uuid')
+
+        # Define a conta cheque da conciliação
+        conta_associacao_cheque_uuid = self.request.query_params.get('conta_associacao_cheque_uuid')
+
+        # Define a conta cartao da conciliação
+        conta_associacao_cartao_uuid = self.request.query_params.get('conta_associacao_cartao_uuid')
+
+        if analise_prestacao_uuid:
+            try:
+                analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+            except AnalisePrestacaoConta.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                erro = {
+                    'erro': 'Ocorreu um erro!',
+                    'mensagem': f"{e}"
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da analise.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if conta_associacao_cheque_uuid:
+            try:
+                conta_associacao_cheque = ContaAssociacao.objects.get(uuid=conta_associacao_cheque_uuid)
+            except ContaAssociacao.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto conta-associação para o uuid {conta_associacao_cheque_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                erro = {
+                    'erro': 'Ocorreu um erro!',
+                    'mensagem': f"{e}"
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da conta cheque.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if conta_associacao_cartao_uuid:
+            try:
+                conta_associacao_cartao = ContaAssociacao.objects.get(uuid=conta_associacao_cartao_uuid)
+            except ContaAssociacao.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto conta-associação para o uuid {conta_associacao_cartao_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                erro = {
+                    'erro': 'Ocorreu um erro!',
+                    'mensagem': f"{e}"
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da conta cartao.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        gerar_previa_relatorio_acertos_async.delay(
+            analise_prestacao_uuid=analise_prestacao_uuid,
+            conta_associacao_cheque_uuid=conta_associacao_cheque_uuid,
+            conta_associacao_cartao_uuid=conta_associacao_cartao_uuid,
+            usuario=request.user.username
+        )
+
+        return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='status-info',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def status_info(self, request):
+        analise_prestacao_uuid = request.query_params.get('analise_prestacao_uuid')
+
+        if analise_prestacao_uuid:
+            try:
+                analise_prestacao = AnalisePrestacaoConta.by_uuid(analise_prestacao_uuid)
+            except AnalisePrestacaoConta.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto AnalisePrestacaoConta para o uuid {analise_prestacao_uuid} não foi encontrado."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                erro = {
+                    'erro': 'Ocorreu um erro!',
+                    'mensagem': f"{e}"
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da analise.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(analise_prestacao.get_status())
+
+    @action(detail=False, methods=['get'], url_path='download-documento-pdf',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def download_documento_pdf(self, request):
+        logger.info("Download do documento pdf.")
+
+        analise_prestacao_uuid = request.query_params.get('analise_prestacao_uuid')
+
+        if analise_prestacao_uuid:
+            try:
+                analise_prestacao = AnalisePrestacaoConta.by_uuid(analise_prestacao_uuid)
+            except AnalisePrestacaoConta.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto AnalisePrestacaoConta para o uuid {analise_prestacao_uuid} não foi encontrado."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                erro = {
+                    'erro': 'Ocorreu um erro!',
+                    'mensagem': f"{e}"
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da analise.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            filename = 'relatorio_acertos.pdf'
+            response = HttpResponse(
+                open(analise_prestacao.arquivo_pdf.path, 'rb'),
+                content_type='application/pdf'
+            )
+            response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        except Exception as err:
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': str(err)
+            }
+            logger.info("Erro: %s", str(err))
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        return response

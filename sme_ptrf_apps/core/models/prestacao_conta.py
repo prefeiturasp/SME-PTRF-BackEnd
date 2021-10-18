@@ -25,6 +25,8 @@ class PrestacaoConta(ModeloBase):
     STATUS_RECEBIDA = 'RECEBIDA'
     STATUS_EM_ANALISE = 'EM_ANALISE'
     STATUS_DEVOLVIDA = 'DEVOLVIDA'
+    STATUS_DEVOLVIDA_RETORNADA = 'DEVOLVIDA_RETORNADA'
+    STATUS_DEVOLVIDA_RECEBIDA = 'DEVOLVIDA_RECEBIDA'
     STATUS_APROVADA = 'APROVADA'
     STATUS_APROVADA_RESSALVA = 'APROVADA_RESSALVA'
     STATUS_REPROVADA = 'REPROVADA'
@@ -36,6 +38,8 @@ class PrestacaoConta(ModeloBase):
         STATUS_RECEBIDA: 'Recebida',
         STATUS_EM_ANALISE: 'Em análise',
         STATUS_DEVOLVIDA: 'Devolvida para acertos',
+        STATUS_DEVOLVIDA_RETORNADA: 'Retornada após acertos',
+        STATUS_DEVOLVIDA_RECEBIDA: 'Recebida após acertos',
         STATUS_APROVADA: 'Aprovada',
         STATUS_APROVADA_RESSALVA: 'Aprovada com ressalvas',
         STATUS_REPROVADA: 'Reprovada',
@@ -48,6 +52,8 @@ class PrestacaoConta(ModeloBase):
         (STATUS_RECEBIDA, STATUS_NOMES[STATUS_RECEBIDA]),
         (STATUS_EM_ANALISE, STATUS_NOMES[STATUS_EM_ANALISE]),
         (STATUS_DEVOLVIDA, STATUS_NOMES[STATUS_DEVOLVIDA]),
+        (STATUS_DEVOLVIDA_RETORNADA, STATUS_NOMES[STATUS_DEVOLVIDA_RETORNADA]),
+        (STATUS_DEVOLVIDA_RECEBIDA, STATUS_NOMES[STATUS_DEVOLVIDA_RECEBIDA]),
         (STATUS_APROVADA, STATUS_NOMES[STATUS_APROVADA]),
         (STATUS_APROVADA_RESSALVA, STATUS_NOMES[STATUS_APROVADA_RESSALVA]),
         (STATUS_REPROVADA, STATUS_NOMES[STATUS_REPROVADA]),
@@ -68,6 +74,8 @@ class PrestacaoConta(ModeloBase):
     )
 
     data_recebimento = models.DateField('data de recebimento pela DRE', blank=True, null=True)
+
+    data_recebimento_apos_acertos = models.DateField('data de recebimento pela DRE após acertos', blank=True, null=True)
 
     data_ultima_analise = models.DateField('data da última análise pela DRE', blank=True, null=True)
 
@@ -117,8 +125,8 @@ class PrestacaoConta(ModeloBase):
     def ultima_ata_retificacao(self):
         return self.atas_da_prestacao.filter(tipo_ata='RETIFICACAO').last()
 
-    def concluir(self):
-        self.status = self.STATUS_NAO_RECEBIDA
+    def concluir(self, e_retorno_devolucao=False):
+        self.status = self.STATUS_DEVOLVIDA_RETORNADA if e_retorno_devolucao else self.STATUS_NAO_RECEBIDA
         self.save()
         return self
 
@@ -128,9 +136,21 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
+    def receber_apos_acertos(self, data_recebimento_apos_acertos):
+        self.data_recebimento_apos_acertos = data_recebimento_apos_acertos
+        self.status = self.STATUS_DEVOLVIDA_RECEBIDA
+        self.save()
+        return self
+
     def desfazer_recebimento(self):
         self.data_recebimento = None
         self.status = self.STATUS_NAO_RECEBIDA
+        self.save()
+        return self
+
+    def desfazer_recebimento_apos_acertos(self):
+        self.data_recebimento_apos_acertos = None
+        self.status = self.STATUS_DEVOLVIDA_RETORNADA
         self.save()
         return self
 
@@ -302,10 +322,13 @@ class PrestacaoConta(ModeloBase):
         return cls.objects.filter(associacao=associacao, periodo=periodo).first()
 
     @classmethod
-    def dashboard(cls, periodo_uuid, dre_uuid, add_aprovado_ressalva=False):
+    def dashboard(cls, periodo_uuid, dre_uuid, add_aprovado_ressalva=False, add_info_devolvidas_retornadas=False):
         """
         :param add_aprovado_ressalva: True para retornar a quantidade de aprovados com ressalva separadamente ou
         False para retornar a quantidade de aprovadas com ressalva somada a quantidade de aprovadas
+
+        :param add_info_devolvidas_retornadas: True para retornar a quantidade de devolvidas retornadas no card de
+        devolução.
         """
         from ..models import Associacao
 
@@ -334,13 +357,25 @@ class PrestacaoConta(ModeloBase):
             if status == cls.STATUS_APROVADA and not add_aprovado_ressalva:
                 quantidade_status += qs.filter(status=cls.STATUS_APROVADA_RESSALVA).count()
 
+            if status == cls.STATUS_DEVOLVIDA:
+                quantidade_status += qs.filter(status__in=[cls.STATUS_DEVOLVIDA_RETORNADA, cls.STATUS_DEVOLVIDA_RECEBIDA]).count()
+
             quantidade_pcs_apresentadas += quantidade_status
 
-            card = {
-                "titulo": titulo,
-                "quantidade_prestacoes": quantidade_status,
-                "status": status
-            }
+            if status == cls.STATUS_DEVOLVIDA and add_info_devolvidas_retornadas:
+                quantidade_retornadas = qs.filter(status=cls.STATUS_DEVOLVIDA_RETORNADA).count()
+                card = {
+                    "titulo": titulo,
+                    "quantidade_prestacoes": quantidade_status,
+                    "quantidade_retornadas": quantidade_retornadas,
+                    "status": status
+                }
+            else:
+                card = {
+                    "titulo": titulo,
+                    "quantidade_prestacoes": quantidade_status,
+                    "status": status
+                }
             cards.append(card)
 
         quantidade_unidades_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()

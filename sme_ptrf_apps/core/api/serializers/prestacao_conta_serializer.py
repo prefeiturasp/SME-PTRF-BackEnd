@@ -147,6 +147,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'periodo_uuid',
             'tecnico_responsavel',
             'data_recebimento',
+            'data_recebimento_apos_acertos',
             'devolucoes_da_prestacao',
             'processo_sei',
             'data_ultima_analise',
