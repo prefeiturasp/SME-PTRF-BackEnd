@@ -4,6 +4,8 @@ import copy
 from sme_ptrf_apps.core.services.dados_relatorio_acertos_service import (gerar_dados_relatorio_acertos)
 from sme_ptrf_apps.core.services.relatorio_acertos_pdf_service import (gerar_arquivo_relatorio_acertos_pdf)
 
+from sme_ptrf_apps.core.models import AnalisePrestacaoConta
+
 logger = logging.getLogger(__name__)
 
 
@@ -56,33 +58,36 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
     copia_analises_de_documento()
 
 
-def _criar_previa_relatorio_acertos(analise_prestacao_conta, conta_associacao_cheque, conta_associacao_cartao, usuario=""):
+def _criar_previa_relatorio_acertos(analise_prestacao_conta, usuario=""):
     logger.info(f'Gerando prévias do relatorio de acertos.')
-
-    logger.info(f'ESTOU DENTRO DO CRIAR PREVIA {analise_prestacao_conta.status}, {analise_prestacao_conta}')
 
     _gerar_arquivos_relatorio_acertos(
         analise_prestacao_conta=analise_prestacao_conta,
-        conta_associacao_cheque=conta_associacao_cheque,
-        conta_associacao_cartao=conta_associacao_cartao,
         previa=True,
         usuario=usuario
     )
 
 
-def _gerar_arquivos_relatorio_acertos(analise_prestacao_conta, conta_associacao_cheque, conta_associacao_cartao, previa, usuario=""):
-    logger.info(f'ESTOU DENTRO DO GERAR ARQUIVOS {analise_prestacao_conta.status}, {analise_prestacao_conta}')
+def _criar_documento_final_relatorio_acertos(analise_prestacao_uuid, usuario=""):
+    analise_prestacao_conta = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+    logger.info(f'Gerando documento final do relatorio de acertos.')
 
+    analise_prestacao_conta.apaga_arquivo_pdf()
+
+    _gerar_arquivos_relatorio_acertos(
+        analise_prestacao_conta=analise_prestacao_conta,
+        previa=False,
+        usuario=usuario
+    )
+
+
+def _gerar_arquivos_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
     analise_prestacao_conta.inicia_geracao_arquivo_pdf(previa)
 
     dados_relatorio_acertos = gerar_dados_relatorio_acertos(
         analise_prestacao_conta=analise_prestacao_conta,
-        conta_associacao_cheque=conta_associacao_cheque,
-        conta_associacao_cartao=conta_associacao_cartao,
         previa=previa,
         usuario=usuario
     )
-
-    logger.info(f'ESTOU NO FIM DE GERAR ARQUIVOS {analise_prestacao_conta.status}, {analise_prestacao_conta}')
 
     gerar_arquivo_relatorio_acertos_pdf(dados_relatorio_acertos, analise_prestacao_conta)

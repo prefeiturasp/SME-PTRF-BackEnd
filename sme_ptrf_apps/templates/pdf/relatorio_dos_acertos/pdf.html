@@ -35,6 +35,12 @@
 
 {# ************************* Fim Cabecalho das páginas *************************  #}
 
+{# ************************* Rodape ************************* #}
+<p id="data-geracao-rodape">
+  <i>{{ dados.data_geracao_documento }}</i>
+</p>
+{# ************************* Fim Rodape ************************* #}
+
 <section id="cabecalho" class="mt-3">
   <div class="d-flex p-2 bd-highlight">
     <div class="col-4">
@@ -114,231 +120,120 @@
 
   <article id="bloco-2" class="mt-4">
     <p class="font-14 border-bottom pb-3"><strong>Bloco 2 - Acertos nos lançamentos</strong></p>
-    <p class="titulo-conta font-12 pb-2">Conta Cheque</p>
 
-    <table class="table table-bordered tabela-resumo-por-acao">
-      <thead class="thead-light">
-        <tr>
-          <th style="width: 2%"></th>
-          <th class="font-9"><strong>Data</strong></th>
-          <th class="font-9"><strong>Tipo de lançamento</strong></th>
-          <th class="font-9"><strong>Nº do documento</strong></th>
-          <th class="font-9" style="width: 40%"><strong>Descrição</strong></th>
-          <th class="font-9"><strong>Valor (R$)</strong></th>
-        </tr>
-      </thead>
+    {% for conta in dados.dados_contas %}
+      <p class="titulo-conta font-12 pb-2">Conta {{ conta.nome_conta }}</p>
 
-      <tbody>
-      {% for lancamentos in dados.dados_conta_cheque %}
-        <tr>
-          <td>{{ forloop.counter }}</td>
-          <td>{{ lancamentos.data|date:'d/m/Y' }}</td>
-          {% if lancamentos.tipo_transacao == 'Gasto' %}
-            <td>Despesa</td>
-          {% else %}
-            <td>{{ lancamentos.tipo_transacao }}</td>
-          {% endif %}
+      <table class="table table-bordered tabela-resumo-por-acao">
+        <thead class="thead-light">
+          <tr>
+            <th style="width: 2%"></th>
+            <th class="font-9"><strong>Data</strong></th>
+            <th class="font-9"><strong>Tipo de lançamento</strong></th>
+            <th class="font-9"><strong>Nº do documento</strong></th>
+            <th class="font-9" style="width: 40%"><strong>Descrição</strong></th>
+            <th class="font-9"><strong>Valor (R$)</strong></th>
+          </tr>
+        </thead>
 
-          {% if lancamentos.numero_documento == '' %}
-            <td>-</td>
-          {% else %}
-            <td>{{ lancamentos.numero_documento }}</td>
-          {% endif %}
+        <tbody>
+        {% for lancamento in conta.lancamentos %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ lancamento.data|date:'d/m/Y' }}</td>
+            {% if lancamento.tipo_transacao == 'Gasto' %}
+              <td>Despesa</td>
+            {% else %}
+              <td>{{ lancamento.tipo_transacao }}</td>
+            {% endif %}
 
-          <td>{{ lancamentos.descricao }}</td>
-          <td>{{ lancamentos.valor_transacao_total|formata_valor }}</td>
-        </tr>
+            {% if lancamento.numero_documento == '' %}
+              <td>-</td>
+            {% else %}
+              <td>{{ lancamento.numero_documento }}</td>
+            {% endif %}
 
-        <tr>
-          <td rowspan="1"></td>
-          <td colspan="5">
+            <td>{{ lancamento.descricao }}</td>
+            <td>{{ lancamento.valor_transacao_total|formata_valor }}</td>
+          </tr>
 
-            {% for acerto in lancamentos.analise_lancamento.solicitacoes_de_ajuste_da_analise %}
-              <p class="item mt-2 font-9">Item {{ forloop.counter }}</p>
+          <tr>
+            <td rowspan="1"></td>
+            <td colspan="5">
 
-              {% if acerto.tipo_acerto.categoria == 'BASICO' %}
-                <div class="row pb-1">
-                  <div class="col-12">
-                    <span><strong>Tipo de Acerto</strong></span>
-                    <br>
-                    <span class="">{{ acerto.tipo_acerto.nome }}</span>
-                  </div>
-                </div>
+              {% for acerto in lancamento.analise_lancamento.solicitacoes_de_ajuste_da_analise %}
+                <p class="item mt-2 font-9">Item {{ forloop.counter }}</p>
 
-                {% if acerto.detalhamento %}
+                {% if acerto.tipo_acerto.categoria == 'BASICO' %}
                   <div class="row pb-1">
                     <div class="col-12">
-                      <span><strong>Detalhamento do acerto (opcional)</strong></span>
+                      <span><strong>Tipo de Acerto</strong></span>
                       <br>
-                      <span class="">{{ acerto.detalhamento }}</span>
+                      <span class="">{{ acerto.tipo_acerto.nome }}</span>
+                    </div>
+                  </div>
+
+                  {% if acerto.detalhamento %}
+                    <div class="row pb-1">
+                      <div class="col-12">
+                        <span><strong>Detalhamento do acerto (opcional)</strong></span>
+                        <br>
+                        <span class="">{{ acerto.detalhamento }}</span>
+                      </div>
+                    </div>
+                  {% endif %}
+
+                {% else %}
+                  <div class="row">
+                    <div class="col-12">
+                      <span><strong>Tipo de Acerto</strong></span>
+                      <br>
+                      <span>{{ acerto.tipo_acerto.nome }}</span>
+                    </div>
+                  </div>
+
+                  <div class="row mt-2">
+                    <div class="col-12">
+                      <span><strong>Tipo de devolução</strong></span>
+                      <br>
+                      <span>{{ acerto.devolucao_ao_tesouro.tipo.nome }}</span>
+                    </div>
+                  </div>
+
+                  <div class="row mt-2">
+                    <div class="col-6">
+                      <span><strong>Valor total ou parcial da despesa</strong></span>
+                      <br>
+                      {% if acerto.devolucao_ao_tesouro.devolucao_total is True %}
+                        <span>Total</span>
+                      {% else %}
+                        <span>Parcial</span>
+                      {% endif %}
+                    </div>
+
+                    <div class="col-6">
+                      <span><strong>Valor (R$)</strong></span>
+                      <br>
+                      <span>{{ acerto.devolucao_ao_tesouro.valor }}</span>
+                    </div>
+                  </div>
+
+                  <div class="row mt-2 pb-1">
+                    <div class="col-12">
+                      <span><strong>Motivo</strong></span>
+                      <br>
+                      <span>{{ acerto.devolucao_ao_tesouro.motivo }}</span>
                     </div>
                   </div>
                 {% endif %}
+              {% endfor %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% endfor %}
 
-              {% else %}
-                <div class="row">
-                  <div class="col-12">
-                    <span><strong>Tipo de Acerto</strong></span>
-                    <br>
-                    <span>{{ acerto.tipo_acerto.nome }}</span>
-                  </div>
-                </div>
-
-                <div class="row mt-2">
-                  <div class="col-12">
-                    <span><strong>Tipo de devolução</strong></span>
-                    <br>
-                    <span>{{ acerto.devolucao_ao_tesouro.tipo.nome }}</span>
-                  </div>
-                </div>
-
-                <div class="row mt-2">
-                  <div class="col-6">
-                    <span><strong>Valor total ou parcial da despesa</strong></span>
-                    <br>
-                    {% if acerto.devolucao_ao_tesouro.devolucao_total is True %}
-                      <span>Total</span>
-                    {% else %}
-                      <span>Parcial</span>
-                    {% endif %}
-                  </div>
-
-                  <div class="col-6">
-                    <span><strong>Valor (R$)</strong></span>
-                    <br>
-                    <span>{{ acerto.devolucao_ao_tesouro.valor }}</span>
-                  </div>
-                </div>
-
-                <div class="row mt-2 pb-1">
-                  <div class="col-12">
-                    <span><strong>Motivo</strong></span>
-                    <br>
-                    <span>{{ acerto.devolucao_ao_tesouro.motivo }}</span>
-                  </div>
-                </div>
-
-              {% endif %}
-            {% endfor %}
-          </td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-
-    <!--    -->
-
-    <p class="titulo-conta font-12 pb-2">Conta Cartão</p>
-
-    <table class="table table-bordered tabela-resumo-por-acao">
-      <thead class="thead-light">
-        <tr>
-          <th style="width: 2%"></th>
-          <th class="font-9"><strong>Data</strong></th>
-          <th class="font-9"><strong>Tipo de lançamento</strong></th>
-          <th class="font-9"><strong>Nº do documento</strong></th>
-          <th class="font-9" style="width: 40%"><strong>Descrição</strong></th>
-          <th class="font-9"><strong>Valor (R$)</strong></th>
-        </tr>
-      </thead>
-
-      <tbody>
-      {% for lancamentos in dados.dados_conta_cartao %}
-        <tr>
-          <td>{{ forloop.counter }}</td>
-          <td>{{ lancamentos.data|date:'d/m/Y' }}</td>
-          {% if lancamentos.tipo_transacao == 'Gasto' %}
-            <td>Despesa</td>
-          {% else %}
-            <td>{{ lancamentos.tipo_transacao }}</td>
-          {% endif %}
-
-          {% if lancamentos.numero_documento == '' %}
-            <td>-</td>
-          {% else %}
-            <td>{{ lancamentos.numero_documento }}</td>
-          {% endif %}
-
-          <td>{{ lancamentos.descricao }}</td>
-          <td>{{ lancamentos.valor_transacao_total|formata_valor }}</td>
-        </tr>
-
-        <tr>
-          <td rowspan="1"></td>
-          <td colspan="5">
-
-            {% for acerto in lancamentos.analise_lancamento.solicitacoes_de_ajuste_da_analise %}
-              <p class="item mt-2 font-9">Item {{ forloop.counter }}</p>
-
-              {% if acerto.tipo_acerto.categoria == 'BASICO' %}
-                <div class="row pb-1">
-                  <div class="col-12">
-                    <span><strong>Tipo de Acerto</strong></span>
-                    <br>
-                    <span class="">{{ acerto.tipo_acerto.nome }}</span>
-                  </div>
-                </div>
-
-                {% if acerto.detalhamento %}
-                  <div class="row pb-1">
-                    <div class="col-12">
-                      <span><strong>Detalhamento do acerto (opcional)</strong></span>
-                      <br>
-                      <span class="">{{ acerto.detalhamento }}</span>
-                    </div>
-                  </div>
-                {% endif %}
-
-              {% else %}
-                <div class="row">
-                  <div class="col-12">
-                    <span><strong>Tipo de Acerto</strong></span>
-                    <br>
-                    <span>{{ acerto.tipo_acerto.nome }}</span>
-                  </div>
-                </div>
-
-                <div class="row mt-2">
-                  <div class="col-12">
-                    <span><strong>Tipo de devolução</strong></span>
-                    <br>
-                    <span>{{ acerto.devolucao_ao_tesouro.tipo.nome }}</span>
-                  </div>
-                </div>
-
-                <div class="row mt-2">
-                  <div class="col-6">
-                    <span><strong>Valor total ou parcial da despesa</strong></span>
-                    <br>
-                    {% if acerto.devolucao_ao_tesouro.devolucao_total is True %}
-                      <span>Total</span>
-                    {% else %}
-                      <span>Parcial</span>
-                    {% endif %}
-                  </div>
-
-                  <div class="col-6">
-                    <span><strong>Valor (R$)</strong></span>
-                    <br>
-                    <span>{{ acerto.devolucao_ao_tesouro.valor }}</span>
-                  </div>
-                </div>
-
-                <div class="row mt-2 pb-1">
-                  <div class="col-12">
-                    <span><strong>Motivo</strong></span>
-                    <br>
-                    <span>{{ acerto.devolucao_ao_tesouro.motivo }}</span>
-                  </div>
-                </div>
-
-              {% endif %}
-            {% endfor %}
-          </td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
   </article>
 
   <article id="bloco-3" class="mt-4">
@@ -374,10 +269,32 @@
         {% endfor %}
       </tbody>
     </table>
-
-
-    <p class="mt-3"><i>{{ dados.data_geracao_documento }}</i></p>
   </article>
+
+  {% if dados.versao_devolucao != "Rascunho" %}
+    <article id="bloco-4" class="mt-4">
+        <p class="font-14 border-bottom pb-3"><strong>Bloco 4 - Responsável pela análise da Prestação de Contas</strong>
+        </p>
+
+        <div class="col-12 border mt-4">
+          <div class="row pb-3">
+            <div class="col">
+              <p class="pt-2 mb-0 pb-0 border-bottom">{{ dados.dados_tecnico.responsavel }}</p>
+              <span class="mt-2 mb-2"><strong>Nome do responsável</strong></span>
+            </div>
+
+            <div class="col">
+              {% if dados.dados_tecnico.data_devolucao != "-" %}
+                <p class="pt-2 mb-0 pb-0 border-bottom">{{ dados.dados_tecnico.data_devolucao|date:'d/m/Y' }}</p>
+              {% else %}
+                <p class="pt-2 mb-0 pb-0 border-bottom">{{ dados.dados_tecnico.data_devolucao }}</p>
+              {% endif %}
+              <span class="mt-2 mb-2"><strong>Data da devolução para acertos</strong></span>
+            </div>
+          </div>
+        </div>
+    </article>
+  {% endif %}
 
 </section>
 

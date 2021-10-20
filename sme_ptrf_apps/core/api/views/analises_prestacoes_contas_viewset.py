@@ -117,12 +117,6 @@ class AnalisesPrestacoesContasViewSet(
         # Define a análise da prestação de contas
         analise_prestacao_uuid = self.request.query_params.get('analise_prestacao_uuid')
 
-        # Define a conta cheque da conciliação
-        conta_associacao_cheque_uuid = self.request.query_params.get('conta_associacao_cheque_uuid')
-
-        # Define a conta cartao da conciliação
-        conta_associacao_cartao_uuid = self.request.query_params.get('conta_associacao_cartao_uuid')
-
         if analise_prestacao_uuid:
             try:
                 analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
@@ -147,58 +141,8 @@ class AnalisesPrestacoesContasViewSet(
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        if conta_associacao_cheque_uuid:
-            try:
-                conta_associacao_cheque = ContaAssociacao.objects.get(uuid=conta_associacao_cheque_uuid)
-            except ContaAssociacao.DoesNotExist:
-                erro = {
-                    'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto conta-associação para o uuid {conta_associacao_cheque_uuid} não foi encontrado na base."
-                }
-                logger.info('Erro: %r', erro)
-                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-            except Exception as e:
-                erro = {
-                    'erro': 'Ocorreu um erro!',
-                    'mensagem': f"{e}"
-                }
-                logger.info('Erro: %r', erro)
-                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            erro = {
-                'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid da conta cheque.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        if conta_associacao_cartao_uuid:
-            try:
-                conta_associacao_cartao = ContaAssociacao.objects.get(uuid=conta_associacao_cartao_uuid)
-            except ContaAssociacao.DoesNotExist:
-                erro = {
-                    'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto conta-associação para o uuid {conta_associacao_cartao_uuid} não foi encontrado na base."
-                }
-                logger.info('Erro: %r', erro)
-                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-            except Exception as e:
-                erro = {
-                    'erro': 'Ocorreu um erro!',
-                    'mensagem': f"{e}"
-                }
-                logger.info('Erro: %r', erro)
-                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            erro = {
-                'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid da conta cartao.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
         gerar_previa_relatorio_acertos_async.delay(
             analise_prestacao_uuid=analise_prestacao_uuid,
-            conta_associacao_cheque_uuid=conta_associacao_cheque_uuid,
-            conta_associacao_cartao_uuid=conta_associacao_cartao_uuid,
             usuario=request.user.username
         )
 

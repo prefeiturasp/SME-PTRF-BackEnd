@@ -57,6 +57,7 @@ from ..serializers import (
 )
 
 from sme_ptrf_apps.core.tasks import gerar_previa_relatorio_acertos_async
+from ...services.analise_prestacao_conta_service import _criar_documento_final_relatorio_acertos
 
 from django.core.exceptions import ValidationError
 
@@ -491,7 +492,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         analise_prestacao = prestacao_conta.analise_atual
-        print("status antes de devolver:", analise_prestacao.status)
 
         prestacao_salva = prestacao_conta.concluir_analise(
             resultado_analise=resultado_analise,
@@ -502,30 +502,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             motivos_reprovacao=motivos_reprovacao,
         )
 
-        print("qual analise é?", analise_prestacao, analise_prestacao.uuid)
-        print("status da analise depois de devolver:", analise_prestacao.status, analise_prestacao)
-        print("devolucao:", analise_prestacao.devolucao_prestacao_conta)
-        #
-        teste = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao.uuid)
-        print("dentro do objeto...", teste.status)
-        #
-
-        gerar_previa_relatorio_acertos_async.delay(
-            analise_prestacao_uuid=analise_prestacao.uuid,
-            conta_associacao_cheque_uuid="de7b74e8-22e0-4fff-a22a-6e3759495dd6",
-            conta_associacao_cartao_uuid="785ae4ab-1d9d-49ea-9707-6cfe70f419ce",
-            usuario="teste"
-        )
-
-        print("ddepois da previa")
-        print("qual analise é?", analise_prestacao, analise_prestacao.uuid)
-        print("status da analise depois de devolver:", analise_prestacao.status, analise_prestacao)
-        print("devolucao:", analise_prestacao.devolucao_prestacao_conta)
-        #
-        teste2 = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao.uuid)
-        print("dentro do objeto...", teste2.status)
-        #
-
+        if prestacao_conta.status == PrestacaoConta.STATUS_DEVOLVIDA:
+            _criar_documento_final_relatorio_acertos(analise_prestacao.uuid, request.user.username)
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
