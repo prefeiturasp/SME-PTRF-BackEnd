@@ -1353,6 +1353,12 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         devolucoes = prestacao_conta.analises_da_prestacao.filter(status='DEVOLVIDA').order_by('id')
         return Response(AnalisePrestacaoContaRetrieveSerializer(devolucoes, many=True).data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['get'], url_path="ultima-analise-pc", permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def ultima_analise_da_pc(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+        ultima_analise_pc = prestacao_conta.analises_da_prestacao.order_by('id').last()
+        return Response(AnalisePrestacaoContaRetrieveSerializer(ultima_analise_pc, many=False).data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['patch'], url_path="receber-apos-acertos",
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def receber_apos_acertos(self, request, uuid):
