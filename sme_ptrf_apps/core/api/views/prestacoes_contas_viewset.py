@@ -56,6 +56,9 @@ from ..serializers import (
     AnalisePrestacaoContaRetrieveSerializer
 )
 
+from sme_ptrf_apps.core.tasks import gerar_previa_relatorio_acertos_async
+from ...services.analise_prestacao_conta_service import _criar_documento_final_relatorio_acertos
+
 from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
@@ -488,6 +491,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
+        analise_prestacao = prestacao_conta.analise_atual
+
         prestacao_salva = prestacao_conta.concluir_analise(
             resultado_analise=resultado_analise,
             analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
@@ -496,6 +501,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             data_limite_ue=data_limite_ue,
             motivos_reprovacao=motivos_reprovacao,
         )
+
+        if prestacao_conta.status == PrestacaoConta.STATUS_DEVOLVIDA:
+            _criar_documento_final_relatorio_acertos(analise_prestacao.uuid, request.user.username)
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
