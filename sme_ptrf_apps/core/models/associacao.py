@@ -6,6 +6,9 @@ from ..choices import MembroEnum
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+# necessario para utilizacao da funcao sorted
+from .periodo import Periodo
+
 
 class Associacao(ModeloIdNome):
     history = AuditlogHistoryField()
@@ -112,7 +115,9 @@ class Associacao(ModeloIdNome):
         proximo_periodo = self.proximo_periodo_de_prestacao_de_contas()
         if proximo_periodo:
             periodos.append(proximo_periodo)
-        return periodos
+
+        periodos_ordenados = sorted(periodos, key=Periodo.get_referencia, reverse=True)
+        return periodos_ordenados
 
     def periodos_ate_agora_fora_implantacao(self):
         from datetime import datetime

@@ -27,3 +27,5 @@ def gerar_arquivo_relatorio_acertos_pdf(dados_relatorio_acertos, analise_prestac
 
     pdf = SimpleUploadedFile(filename, pdf_file, content_type='application/pdf')
     analise_prestacao_conta.finaliza_geracao_arquivo_pdf(pdf)
+
+    logger.info(f'ESTOU DENTRO DO GERAR ARQUIVO relatorio pdf {analise_prestacao_conta.status}, {analise_prestacao_conta}')

@@ -17,13 +17,30 @@ static
   size: A4;
   margin: 3cm -2mm 2cm -2mm;
   padding: 0;
-  @bottom-center {
+
+
+  @bottom-right {
     color: #000;
     content: counter(page) "/" counter(pages);
     font-size: 9pt;
     padding: 0 1cm;
     margin: 1cm 0;
     font-weight: bold;
+  }
+
+
+  @bottom-center {
+    content: none;
+  }
+
+  @bottom-left {
+    color: #000;
+    content: element(data-geracao);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: 0;
+    font-style: normal;
+    font-family: Roboto;
   }
 
   @top-center {
@@ -36,7 +53,9 @@ static
   margin: -2mm;
   margin-bottom: 2cm;
   padding: 0;
-  @bottom-center {
+
+
+  @bottom-right {
     color: #000;
     content: counter(page) "/" counter(pages);
     font-size: 9pt;
@@ -44,6 +63,22 @@ static
     margin: 1cm 0;
     font-weight: bold;
   }
+
+
+  @bottom-center {
+    content: none;
+  }
+
+  @bottom-left {
+    color: #000;
+    content: element(data-geracao);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: 0;
+    font-style: normal;
+    font-family: Roboto;
+  }
+
   @top-center {
     content: none;
   }
@@ -64,7 +99,8 @@ html {
 }
 
 body {
-
+  font-family: Roboto;
+  font-style: normal;
 }
 
 html body section#cabecalho, header {
@@ -194,4 +230,9 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
   border-bottom-style: solid;
   border-bottom-width: 1px;
   color: #00585e;
+}
+
+#data-geracao-rodape {
+  position: running(data-geracao);
+  font-style: normal;
 }
