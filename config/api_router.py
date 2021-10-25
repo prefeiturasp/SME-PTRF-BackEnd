@@ -41,7 +41,8 @@ from sme_ptrf_apps.despesas.api.views.rateios_despesas_viewset import RateiosDes
 from sme_ptrf_apps.despesas.api.views.tipos_custeio_viewset import TiposCusteioViewSet
 from sme_ptrf_apps.dre.api.views import (FaqCategoriasViewSet, FaqsViewSet, TecnicosDreViewSet, AtribuicaoViewset,
                                          RelatoriosConsolidadosDREViewSet,
-                                         JustificativasRelatoriosConsolidadosDreViewSet, MotivoAprovacaoRessalvaViewSet)
+                                         JustificativasRelatoriosConsolidadosDreViewSet, MotivoAprovacaoRessalvaViewSet,
+                                         MotivoReprovacaoViewSet)
 from sme_ptrf_apps.sme.api.views import SaldosBancariosSMEViewSet, SaldosBancariosSmeDetalhesAsocciacoesViewSet
 from sme_ptrf_apps.receitas.api.views import ReceitaViewSet, RepasseViewSet
 from sme_ptrf_apps.users.api.views import EsqueciMinhaSenhaViewSet, LoginView, RedefinirSenhaViewSet, UserViewSet
@@ -89,6 +90,7 @@ router.register("comentarios-de-analises", ComentariosAnalisesPrestacoesViewSet)
 router.register("relatorios-consolidados-dre", RelatoriosConsolidadosDREViewSet)
 router.register("justificativas-relatorios-consolidados-dre", JustificativasRelatoriosConsolidadosDreViewSet)
 router.register("motivos-aprovacao-ressalva", MotivoAprovacaoRessalvaViewSet)
+router.register("motivos-reprovacao", MotivoReprovacaoViewSet)
 router.register("acoes-associacoes", AcaoAssociacaoViewSet)
 router.register("acoes", AcoesViewSet)
 router.register("arquivos", ArquivoViewSet)
