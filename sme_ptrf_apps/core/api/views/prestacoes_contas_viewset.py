@@ -17,7 +17,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasDreComGravacao,
 )
 
-from ....dre.models import Atribuicao, TecnicoDre, MotivoAprovacaoRessalva
+from ....dre.models import Atribuicao, TecnicoDre, MotivoAprovacaoRessalva, MotivoReprovacao
 from ...models import (
     Associacao,
     Ata,
@@ -454,16 +454,31 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        motivos_reprovacao = request.data.get('motivos_reprovacao', '')
+        motivos_reprovacao_uuid = request.data.get('motivos_reprovacao', [])
+        outros_motivos_reprovacao = request.data.get('outros_motivos_reprovacao', '')
 
-        if resultado_analise == PrestacaoConta.STATUS_REPROVADA and not motivos_reprovacao:
+        if resultado_analise == PrestacaoConta.STATUS_REPROVADA and not motivos_reprovacao_uuid and not outros_motivos_reprovacao:
             response = {
                 'uuid': f'{uuid}',
                 'erro': 'falta_de_informacoes',
                 'operacao': 'concluir-analise',
-                'mensagem': 'Para concluir como Reprovada é necessário informar o campo motivos_reprovacao.'
+                'mensagem': 'Para concluir como Reprovada é necessário informar o campo motivos_reprovacao ou outros_motivos_reprovacao.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        motivos_reprovacao=[]
+
+        for motivo_uuid in motivos_reprovacao_uuid:
+            try:
+                motivo_reprovacao = MotivoReprovacao.objects.get(uuid=motivo_uuid)
+                motivos_reprovacao.append(motivo_reprovacao)
+            except MotivoReprovacao.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto motivo de reprovação para o uuid {motivo_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         data_limite_ue = request.data.get('data_limite_ue', None)
 
@@ -500,6 +515,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             outros_motivos_aprovacao_ressalva=outros_motivos_aprovacao_ressalva,
             data_limite_ue=data_limite_ue,
             motivos_reprovacao=motivos_reprovacao,
+            outros_motivos_reprovacao=outros_motivos_reprovacao,
         )
 
         if prestacao_conta.status == PrestacaoConta.STATUS_DEVOLVIDA:

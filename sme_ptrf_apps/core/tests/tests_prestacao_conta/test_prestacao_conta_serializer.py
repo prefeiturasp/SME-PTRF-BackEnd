@@ -137,5 +137,6 @@ def test_retrieve_serializer(prestacao_conta, devolucao_prestacao_conta_2020_1, 
     assert serializer.data['motivos_aprovacao_ressalva']
     assert serializer.data['outros_motivos_aprovacao_ressalva']
     assert serializer.data['motivos_reprovacao']
+    assert serializer.data['outros_motivos_reprovacao']
     assert serializer.data['devolucoes_ao_tesouro_da_prestacao']
     assert serializer.data['analise_atual'] is None

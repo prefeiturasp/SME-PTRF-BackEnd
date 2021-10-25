@@ -5,3 +5,4 @@ from .atribuicao_viewset import AtribuicaoViewset
 from .relatorios_consolidados_dre_viewset import RelatoriosConsolidadosDREViewSet
 from .justificativas_relatorios_consolidados_dre_viewset import JustificativasRelatoriosConsolidadosDreViewSet
 from .motivo_aprovacao_ressalva_viewset import MotivoAprovacaoRessalvaViewSet
+from .motivo_reprovacao_viewset import MotivoReprovacaoViewSet
