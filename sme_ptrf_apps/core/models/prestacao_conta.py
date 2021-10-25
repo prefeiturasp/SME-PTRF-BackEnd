@@ -13,9 +13,6 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 
-
-
-
 logger = logging.getLogger(__name__)
 
 
