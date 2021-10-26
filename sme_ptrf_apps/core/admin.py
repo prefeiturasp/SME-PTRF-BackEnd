@@ -245,6 +245,7 @@ class NotificacaoAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id')
     list_filter = ("remetente", "categoria", "tipo")
     search_fields = ("titulo",)
+    autocomplete_fields = ['unidade', 'prestacao_conta']
 
 
 @admin.register(CobrancaPrestacaoConta)
