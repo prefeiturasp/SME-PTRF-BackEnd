@@ -800,4 +800,5 @@ def solicitacao_acerto_documento_declaracao_cartao_teste_analises(
         'SolicitacaoAcertoDocumento',
         analise_documento=analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste,
         tipo_acerto=tipo_acerto_documento_assinatura,
+        detalhamento=''
     )
