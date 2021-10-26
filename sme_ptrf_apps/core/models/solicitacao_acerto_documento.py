@@ -10,8 +10,10 @@ class SolicitacaoAcertoDocumento(ModeloBase):
     tipo_acerto = models.ForeignKey('TipoAcertoDocumento', on_delete=models.PROTECT,
                                     related_name='+')
 
+    detalhamento = models.TextField('Motivo', max_length=600, blank=True, default="")
+
     def __str__(self):
-        return f"{self.tipo_acerto}"
+        return f"{self.tipo_acerto} - {self.detalhamento}"
 
     class Meta:
         verbose_name = "Solicitação de acerto em documento"

@@ -826,6 +826,7 @@ def solicita_acertos_de_documentos(analise_prestacao, documentos, solicitacoes_a
             SolicitacaoAcertoDocumento.objects.create(
                 analise_documento=_analise_documento,
                 tipo_acerto=tipo_acerto,
+                detalhamento=_solicitacao_acerto['detalhamento']
             )
 
     def apaga_analise_documento(_analise_prestacao, _tipo_documento, _conta=None):
