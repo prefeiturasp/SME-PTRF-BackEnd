@@ -402,9 +402,22 @@ def motivo_aprovacao_ressalva_x():
         motivo='X'
     )
 
+@pytest.fixture
+def motivo_reprovacao_x():
+    return baker.make(
+        'dre.MotivoReprovacao',
+        motivo='X'
+    )
 
 @pytest.fixture
-def prestacao_conta(periodo, associacao, motivo_aprovacao_ressalva_x):
+def motivo_reprovacao_y():
+    return baker.make(
+        'dre.MotivoReprovacao',
+        motivo='Y'
+    )
+
+@pytest.fixture
+def prestacao_conta(periodo, associacao, motivo_aprovacao_ressalva_x, motivo_reprovacao_x):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo,
@@ -413,7 +426,8 @@ def prestacao_conta(periodo, associacao, motivo_aprovacao_ressalva_x):
         data_recebimento_apos_acertos=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
         devolucao_tesouro=True,
-        motivos_reprovacao="Motivo reprovação",
+        motivos_reprovacao=[motivo_reprovacao_x, ],
+        outros_motivos_reprovacao="Outros motivos reprovacao",
         motivos_aprovacao_ressalva=[motivo_aprovacao_ressalva_x, ],
         outros_motivos_aprovacao_ressalva="Outros motivos")
 

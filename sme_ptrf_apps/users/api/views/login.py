@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework_jwt.views import ObtainJSONWebToken
 
 from sme_ptrf_apps.users.api.services import AutenticacaoService
-from sme_ptrf_apps.core.models import Associacao
+from sme_ptrf_apps.core.models import Associacao, Notificacao
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -58,6 +58,22 @@ class LoginView(ObtainJSONWebToken):
                     unidades = []
                     for unidade in user.unidades.all():
                         associacao = Associacao.objects.filter(unidade__uuid=unidade.uuid).first()
+
+                        notificao_devolucao_pc = Notificacao.objects.filter(
+                            usuario=user,
+                            categoria=Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_PC,
+                            unidade=unidade,
+                            lido=False
+                        ).first()
+
+                        if notificao_devolucao_pc and notificao_devolucao_pc.prestacao_conta:
+                            notificar_devolucao_referencia = notificao_devolucao_pc.prestacao_conta.periodo.referencia
+                            notificacao_uuid = notificao_devolucao_pc.uuid
+                            logger.info(f"Notificação de devolução encontrada para o período {notificar_devolucao_referencia}.")
+                        else:
+                            notificar_devolucao_referencia = None
+                            notificacao_uuid = None
+
                         unidades.append({
                             'uuid': unidade.uuid,
                             'nome': unidade.nome,
@@ -65,7 +81,9 @@ class LoginView(ObtainJSONWebToken):
                             'associacao': {
                                 'uuid': associacao.uuid if associacao else '',
                                 'nome': associacao.nome if associacao else ''
-                            }
+                            },
+                            'notificar_devolucao_referencia': notificar_devolucao_referencia,
+                            'notificacao_uuid': notificacao_uuid,
                         })
 
                     '''

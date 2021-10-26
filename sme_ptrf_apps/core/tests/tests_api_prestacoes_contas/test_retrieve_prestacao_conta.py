@@ -217,7 +217,8 @@ def test_api_retrieve_prestacao_conta_por_uuid(
     motivo_aprovacao_ressalva_x,
     relacao_bens_cheque,
     demonstrativo_financeiro_cheque,
-    extrato_cheque
+    extrato_cheque,
+    motivo_reprovacao_x
 ):
     prestacao_conta = _prestacao_de_contas_com_analise_corrente
 
@@ -347,7 +348,13 @@ def test_api_retrieve_prestacao_conta_por_uuid(
             },
         ],
         'outros_motivos_aprovacao_ressalva': 'Outros motivos',
-        'motivos_reprovacao': 'Motivo reprovação',
+        'motivos_reprovacao': [
+            {
+                'uuid': f'{motivo_reprovacao_x.uuid}',
+                'motivo': f'{motivo_reprovacao_x.motivo}'
+            }
+        ],
+        'outros_motivos_reprovacao': 'Outros motivos reprovacao',
         'devolucoes_ao_tesouro_da_prestacao': [
             {
                 'data': '2020-07-01',

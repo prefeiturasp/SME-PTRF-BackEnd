@@ -85,7 +85,7 @@ def cria_identificacao_apm(acoes):
     nome_associacao = associacao.nome
     cnpj_associacao = associacao.cnpj
     codigo_eol_associacao = associacao.unidade.codigo_eol or ""
-    nome_dre_associacao = associacao.unidade.dre.nome if associacao.unidade.dre else ""
+    nome_dre_associacao = formata_nome_dre(associacao)
     tipo_unidade = associacao.unidade.tipo_unidade
     nome_unidade = associacao.unidade.nome
 
@@ -152,6 +152,10 @@ def cria_resumo_por_acao(acoes, conta_associacao, periodo):
 
         resumo_acao, totalizador = sintese_receita_despesa(acao_associacao, conta_associacao, periodo,
                                                            fechamento_periodo, totalizador)
+
+        if not tem_movimentacao(resumo_acao):
+            continue
+
         total_valores += resumo_acao['total_valores']
         total_conciliacao += resumo_acao['total_conciliacao']
         resumo_acoes.append(resumo_acao)
@@ -527,6 +531,9 @@ def cria_despesas(rateios):
         if rateio.conta_associacao.tipo_conta:
             if rateio.conta_associacao.tipo_conta.nome == 'Cheque':
                 tipo_transacao = rateio.despesa.documento_transacao
+
+                if "CHEQUE" in rateio.despesa.tipo_transacao.nome.upper():
+                    tipo_transacao = f"Ch-{rateio.despesa.documento_transacao}"
             else:
                 tipo_transacao = rateio.despesa.tipo_transacao.nome
 
@@ -599,3 +606,59 @@ def formata_data(data):
         data_formatada = d.strftime("%d/%m/%Y")
 
     return f'{data_formatada}'
+
+
+def formata_nome_dre(associacao):
+    if associacao.unidade.dre:
+        nome_dre = associacao.unidade.dre.nome.upper()
+        if "DIRETORIA REGIONAL DE EDUCACAO" in nome_dre:
+            nome_dre = nome_dre.replace("DIRETORIA REGIONAL DE EDUCACAO", "")
+            nome_dre = nome_dre.strip()
+            return nome_dre
+        else:
+            return nome_dre
+    else:
+        return ""
+
+
+def tem_movimentacao(resumo_acao):
+    # Calcula valor absoluto de custeio
+    valor_absoluto_linha_custeio_saldo_anterior = abs(resumo_acao["linha_custeio"]["saldo_anterior"]) if \
+        resumo_acao["linha_custeio"]["saldo_anterior"] != '' else 0
+
+    valor_absoluto_linha_custeio_credito = abs(resumo_acao["linha_custeio"]["credito"]) if \
+        resumo_acao["linha_custeio"]["credito"] != '' else 0
+
+    valor_absoluto_linha_custeio_despesa = abs(resumo_acao["linha_custeio"]["despesa_realizada"]) if \
+        resumo_acao["linha_custeio"]["despesa_realizada"] != '' else 0
+
+    soma_absoluta_custeio = valor_absoluto_linha_custeio_saldo_anterior + valor_absoluto_linha_custeio_credito \
+        + valor_absoluto_linha_custeio_despesa
+
+    # Calcula valor absoluto de capital
+    valor_absoluto_linha_capital_saldo_anterior = abs(resumo_acao["linha_capital"]["saldo_anterior"]) if \
+        resumo_acao["linha_capital"]["saldo_anterior"] != '' else 0
+
+    valor_absoluto_linha_capital_credito = abs(resumo_acao["linha_capital"]["credito"]) if \
+        resumo_acao["linha_capital"]["credito"] != '' else 0
+
+    valor_absoluto_linha_capital_despesa = abs(resumo_acao["linha_capital"]["despesa_realizada"]) if \
+        resumo_acao["linha_capital"]["despesa_realizada"] != '' else 0
+
+    soma_absoluta_capital = valor_absoluto_linha_capital_saldo_anterior + valor_absoluto_linha_capital_credito \
+        + valor_absoluto_linha_capital_despesa
+
+    # Calcula valor absoluto de livre
+    valor_absoluto_linha_livre_saldo_anterior = abs(resumo_acao["linha_livre"]["saldo_anterior"]) if \
+        resumo_acao["linha_livre"]["saldo_anterior"] != '' else 0
+
+    valor_absoluto_linha_livre_credito = abs(resumo_acao["linha_livre"]["credito"]) if \
+        resumo_acao["linha_livre"]["credito"] != '' else 0
+
+    soma_absoluta_livre = valor_absoluto_linha_livre_saldo_anterior + valor_absoluto_linha_livre_credito
+
+    if soma_absoluta_custeio == 0 and soma_absoluta_capital == 0 and soma_absoluta_livre == 0:
+        LOGGER.info(f"A ação: {resumo_acao['acao_associacao']} não tem movimentacão, portanto não entrará na listagem.")
+        return False
+
+    return True

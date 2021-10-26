@@ -20,13 +20,15 @@ def notificar_prestacao_de_contas_devolvida_para_acertos(prestacao_de_contas, da
 
             Notificacao.notificar(
                 tipo=Notificacao.TIPO_NOTIFICACAO_ALERTA,
-                categoria=Notificacao.CATEGORIA_NOTIFICACAO_ANALISE_PC,
+                categoria=Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_PC,
                 remetente=Notificacao.REMETENTE_NOTIFICACAO_DRE,
                 titulo=f"Ajustes necessários na PC",
                 descricao=f"A DRE solicitou alguns ajustes em sua prestação de contas do período {prestacao_de_contas.periodo.referencia}. O seu prazo para envio das mudanças é {formata_data_dd_mm_yyyy(data_limite_ue)}",
                 usuario=usuario,
                 renotificar=True,
-                enviar_email=enviar_email
+                enviar_email=enviar_email,
+                unidade=associacao.unidade,
+                prestacao_conta=prestacao_de_contas,
             )
 
     logger.info(f'Finalizando a geração de notificação prestação de contas devolvida para acertos')

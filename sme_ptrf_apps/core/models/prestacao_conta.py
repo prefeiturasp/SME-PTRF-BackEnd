@@ -13,9 +13,6 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 
-
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -84,7 +81,9 @@ class PrestacaoConta(ModeloBase):
 
     devolucao_tesouro = models.BooleanField('há devolução ao tesouro', blank=True, null=True, default=False)
 
-    motivos_reprovacao = models.TextField('Motivos para reprovação pela DRE', blank=True, default='')
+    motivos_reprovacao = models.ManyToManyField('dre.MotivoReprovacao', blank=True)
+
+    outros_motivos_reprovacao = models.TextField('Outros motivos para reprovação pela DRE', blank=True, default='')
 
     motivos_aprovacao_ressalva = models.ManyToManyField('dre.MotivoAprovacaoRessalva', blank=True)
 
@@ -216,7 +215,7 @@ class PrestacaoConta(ModeloBase):
 
     @transaction.atomic
     def salvar_analise(self, analises_de_conta_da_prestacao, resultado_analise=None,
-                       motivos_aprovacao_ressalva=[], outros_motivos_aprovacao_ressalva='', motivos_reprovacao=''):
+                       motivos_aprovacao_ressalva=[], outros_motivos_aprovacao_ressalva='', motivos_reprovacao=[], outros_motivos_reprovacao=''):
         from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
         from ..models.conta_associacao import ContaAssociacao
 
@@ -232,7 +231,8 @@ class PrestacaoConta(ModeloBase):
         self.motivos_aprovacao_ressalva.set(motivos_aprovacao_ressalva)
         self.outros_motivos_aprovacao_ressalva = outros_motivos_aprovacao_ressalva
 
-        self.motivos_reprovacao = motivos_reprovacao
+        self.motivos_reprovacao.set(motivos_reprovacao)
+        self.outros_motivos_reprovacao = outros_motivos_reprovacao
 
         self.save()
 
@@ -273,12 +273,13 @@ class PrestacaoConta(ModeloBase):
 
     @transaction.atomic
     def concluir_analise(self, resultado_analise, analises_de_conta_da_prestacao, motivos_aprovacao_ressalva,
-                         outros_motivos_aprovacao_ressalva, data_limite_ue, motivos_reprovacao):
+                         outros_motivos_aprovacao_ressalva, data_limite_ue, motivos_reprovacao, outros_motivos_reprovacao):
         prestacao_atualizada = self.salvar_analise(resultado_analise=resultado_analise,
                                                    analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
                                                    motivos_aprovacao_ressalva=motivos_aprovacao_ressalva,
                                                    outros_motivos_aprovacao_ressalva=outros_motivos_aprovacao_ressalva,
-                                                   motivos_reprovacao=motivos_reprovacao)
+                                                   motivos_reprovacao=motivos_reprovacao,
+                                                   outros_motivos_reprovacao=outros_motivos_reprovacao)
 
         if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
             prestacao_atualizada = prestacao_atualizada.devolver(data_limite_ue=data_limite_ue)
@@ -288,6 +289,8 @@ class PrestacaoConta(ModeloBase):
     def desfazer_conclusao_analise(self):
         self.motivos_aprovacao_ressalva.set([])
         self.outros_motivos_aprovacao_ressalva = ''
+        self.motivos_reprovacao.set([])
+        self.outros_motivos_reprovacao = ''
         self.status = self.STATUS_EM_ANALISE
         self.save()
         return self
