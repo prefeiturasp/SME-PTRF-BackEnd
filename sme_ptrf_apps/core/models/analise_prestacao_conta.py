@@ -101,18 +101,32 @@ class AnalisePrestacaoConta(ModeloBase):
         return f"{self.prestacao_conta.periodo} - Análise #{self.pk}"
 
     def get_status(self):
-        if self.status_versao == self.STATUS_NAO_GERADO:
-            if self.VERSAO_NOMES[self.versao] == 'rascunho':
-                return "Nenhuma prévia gerada."
-            else:
-                return "Nenhum documento gerado."
-        elif self.status_versao == self.STATUS_CONCLUIDO:
-            if self.VERSAO_NOMES[self.versao] == 'rascunho':
-                return f"Prévia gerada em {self.arquivo_pdf_criado_em.strftime('%d/%m/%Y ás %H:%M')}"
-            else:
-                return f"Documento gerado em {self.arquivo_pdf_criado_em.strftime('%d/%m/%Y ás %H:%M')}"
-        else:
-            return f"Relatório sendo gerado..."
+        if not self.arquivo_pdf:
+            if self.status_versao == self.STATUS_NAO_GERADO:
+                if not self.devolucao_prestacao_conta and self.VERSAO_NOMES[self.versao] == '-':
+                    return "Nenhuma prévia gerada."
+                elif self.devolucao_prestacao_conta and self.VERSAO_NOMES[self.versao] == '-':
+                    return "Nenhum documento gerado."
+            elif self.status_versao == self.STATUS_EM_PROCESSAMENTO:
+                return f"Relatório sendo gerado..."
+            elif self.status_versao == self.STATUS_CONCLUIDO:
+                if self.VERSAO_NOMES[self.versao] == 'rascunho':
+                    return "Nenhuma prévia gerada."
+                else:
+                    return "Nenhum documento gerado."
+        elif self.arquivo_pdf:
+            if self.status_versao == self.STATUS_CONCLUIDO:
+                if self.VERSAO_NOMES[self.versao] == 'rascunho':
+                    return f"Prévia gerada em {self.arquivo_pdf_criado_em.strftime('%d/%m/%Y ás %H:%M')}"
+                else:
+                    return f"Documento gerado em {self.arquivo_pdf_criado_em.strftime('%d/%m/%Y ás %H:%M')}"
+            elif self.status_versao == self.STATUS_EM_PROCESSAMENTO:
+                return f"Relatório sendo gerado..."
+            elif self.status_versao == self.STATUS_NAO_GERADO:
+                if self.VERSAO_NOMES[self.versao] == 'rascunho':
+                    return "Nenhuma prévia gerada."
+                else:
+                    return "Nenhum documento gerado."
 
     def apaga_arquivo_pdf(self):
         self.arquivo_pdf = None

@@ -594,7 +594,7 @@ def analise_prestacao_conta_2020_1_teste_analises_sem_versao(
         prestacao_conta=prestacao_conta_2020_1_teste_analises,
         devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1_teste_analises,
         versao="-",
-        status_versao='Não gerado'
+        status_versao='NAO_GERADO'
     )
 
 @pytest.fixture

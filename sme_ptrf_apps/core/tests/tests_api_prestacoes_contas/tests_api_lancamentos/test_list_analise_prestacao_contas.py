@@ -73,7 +73,8 @@ def test_api_analise_prestacao_contas_list_devolucoes(
             'id': analise_prestacao.id,
             'prestacao_conta': f'{prestacao_conta.uuid}',
             'status': 'DEVOLVIDA',
-            'uuid': f'{analise_prestacao.uuid}'
+            'uuid': f'{analise_prestacao.uuid}',
+            'versao': analise_prestacao.versao
         },
     ]
 
