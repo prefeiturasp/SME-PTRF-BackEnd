@@ -100,7 +100,7 @@ class Notificacao(ModeloBase):
 
     lido = models.BooleanField("Foi Lido?", default=False)
 
-    usuario = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, default='', blank=True, null=True)
+    usuario = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, default='', blank=True, null=True)
 
     unidade = models.ForeignKey('Unidade', on_delete=models.SET_NULL, related_name="notificacoes_da_unidade",
                                 to_field="codigo_eol", blank=True, null=True)
