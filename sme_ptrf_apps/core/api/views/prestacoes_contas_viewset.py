@@ -1371,7 +1371,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(AnaliseDocumentoPrestacaoContaRetrieveSerializer(analise_documento).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], url_path="devolucoes",
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def devolucoes(self, request, uuid):
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
         devolucoes = prestacao_conta.analises_da_prestacao.filter(status='DEVOLVIDA').order_by('id')
