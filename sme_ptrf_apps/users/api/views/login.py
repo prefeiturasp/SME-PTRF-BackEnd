@@ -68,11 +68,13 @@ class LoginView(ObtainJSONWebToken):
 
                         if notificao_devolucao_pc and notificao_devolucao_pc.prestacao_conta:
                             notificar_devolucao_referencia = notificao_devolucao_pc.prestacao_conta.periodo.referencia
+                            notificar_devolucao_pc_uuid = notificao_devolucao_pc.prestacao_conta.uuid
                             notificacao_uuid = notificao_devolucao_pc.uuid
                             logger.info(f"Notificação de devolução encontrada para o período {notificar_devolucao_referencia}.")
                         else:
                             notificar_devolucao_referencia = None
                             notificacao_uuid = None
+                            notificar_devolucao_pc_uuid = None
 
                         unidades.append({
                             'uuid': unidade.uuid,
@@ -83,6 +85,7 @@ class LoginView(ObtainJSONWebToken):
                                 'nome': associacao.nome if associacao else ''
                             },
                             'notificar_devolucao_referencia': notificar_devolucao_referencia,
+                            'notificar_devolucao_pc_uuid': notificar_devolucao_pc_uuid,
                             'notificacao_uuid': notificacao_uuid,
                         })
 
