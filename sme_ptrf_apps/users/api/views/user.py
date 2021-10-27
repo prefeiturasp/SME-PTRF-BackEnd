@@ -48,13 +48,14 @@ class UserViewSet(ModelViewSet):
 
     def get_queryset(self, *args, **kwargs):
         """
-        Visão == SME - Se a visão for SME, todos os usuários devem ser retornados
+        Visão == SME - Se a visão for SME, todos os usuários devem ser retornados, caso tenham alguma visão associada
 
         Visão == DRE - Se a visão for DRE, devem ser retornados todos os usuários da DRE e das UEs subordinadas
 
         Visão == UE - Se a visão for UE, devem ser retornados apenas os usuários da unidade
         """
         qs = self.queryset
+        qs = qs.exclude(visoes=None)
 
         visao = self.request.query_params.get('visao')
         unidade_uuid = self.request.query_params.get('unidade_uuid')

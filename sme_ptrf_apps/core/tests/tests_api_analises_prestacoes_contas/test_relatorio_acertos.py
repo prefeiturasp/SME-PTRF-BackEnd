@@ -68,7 +68,7 @@ def test_api_get_status_documento_sem_documento(
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
-    resultado_esperado = "Relatório sendo gerado..."
+    resultado_esperado = "Nenhum documento gerado."
 
     assert resultado_esperado == result
     assert response.status_code == status.HTTP_200_OK

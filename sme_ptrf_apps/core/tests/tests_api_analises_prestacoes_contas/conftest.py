@@ -594,7 +594,7 @@ def analise_prestacao_conta_2020_1_teste_analises_sem_versao(
         prestacao_conta=prestacao_conta_2020_1_teste_analises,
         devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1_teste_analises,
         versao="-",
-        status_versao='Não gerado'
+        status_versao='NAO_GERADO'
     )
 
 @pytest.fixture
@@ -800,4 +800,5 @@ def solicitacao_acerto_documento_declaracao_cartao_teste_analises(
         'SolicitacaoAcertoDocumento',
         analise_documento=analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste,
         tipo_acerto=tipo_acerto_documento_assinatura,
+        detalhamento=''
     )

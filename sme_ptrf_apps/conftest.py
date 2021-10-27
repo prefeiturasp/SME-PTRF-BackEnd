@@ -1712,4 +1712,5 @@ def solicitacao_acerto_documento_ata(
         'SolicitacaoAcertoDocumento',
         analise_documento=analise_documento_prestacao_conta_2020_1_ata_ajuste,
         tipo_acerto=tipo_acerto_documento_assinatura,
+        detalhamento="Detalhamento motivo acerto no documento",
     )
