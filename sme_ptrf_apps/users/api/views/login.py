@@ -1,6 +1,5 @@
 import logging
 import json
-import uuid
 
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, status
@@ -14,7 +13,7 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 # Constante que representa o UUID da unidade Secretaria Municipal de Educação
-UUID_SME = uuid.uuid4()
+UUID_SME = "8919f454-bee5-419c-ad54-b2df27bf8007"
 UNIDADE_SME = {
     'uuid': UUID_SME,
     'nome': 'Secretaria Municipal de Educação',
