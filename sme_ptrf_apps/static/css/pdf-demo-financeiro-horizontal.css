@@ -118,6 +118,12 @@ html body section#cabecalho .subtitulo, html body header .subtitulo {
   font-style: normal;
 }
 
+.font-10 {
+  font-size: 10px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
 .font-8 {
   font-size: 8px;
   font-family: Roboto, serif;
