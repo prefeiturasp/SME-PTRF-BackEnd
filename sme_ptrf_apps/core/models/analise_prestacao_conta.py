@@ -117,9 +117,9 @@ class AnalisePrestacaoConta(ModeloBase):
         elif self.arquivo_pdf:
             if self.status_versao == self.STATUS_CONCLUIDO:
                 if self.VERSAO_NOMES[self.versao] == 'rascunho':
-                    return f"Prévia gerada em {self.arquivo_pdf_criado_em.strftime('%d/%m/%Y ás %H:%M')}"
+                    return f"Prévia gerada em {self.arquivo_pdf_criado_em.strftime('%d/%m/%Y às %H:%M')}"
                 else:
-                    return f"Documento gerado em {self.arquivo_pdf_criado_em.strftime('%d/%m/%Y ás %H:%M')}"
+                    return f"Documento gerado em {self.arquivo_pdf_criado_em.strftime('%d/%m/%Y às %H:%M')}"
             elif self.status_versao == self.STATUS_EM_PROCESSAMENTO:
                 return f"Relatório sendo gerado..."
             elif self.status_versao == self.STATUS_NAO_GERADO:
