@@ -1,6 +1,5 @@
 import logging
 import json
-import uuid
 
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, status
@@ -8,13 +7,13 @@ from rest_framework.response import Response
 from rest_framework_jwt.views import ObtainJSONWebToken
 
 from sme_ptrf_apps.users.api.services import AutenticacaoService
-from sme_ptrf_apps.core.models import Associacao
+from sme_ptrf_apps.core.models import Associacao, Notificacao
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
 # Constante que representa o UUID da unidade Secretaria Municipal de Educação
-UUID_SME = uuid.uuid4()
+UUID_SME = "8919f454-bee5-419c-ad54-b2df27bf8007"
 UNIDADE_SME = {
     'uuid': UUID_SME,
     'nome': 'Secretaria Municipal de Educação',
@@ -22,7 +21,10 @@ UNIDADE_SME = {
     'associacao': {
         'uuid': '',
         'nome': ''
-    }
+    },
+    'notificacao_uuid': None,
+    'notificar_devolucao_pc_uuid': None,
+    'notificar_devolucao_referencia': None,
 }
 
 
@@ -58,6 +60,24 @@ class LoginView(ObtainJSONWebToken):
                     unidades = []
                     for unidade in user.unidades.all():
                         associacao = Associacao.objects.filter(unidade__uuid=unidade.uuid).first()
+
+                        notificao_devolucao_pc = Notificacao.objects.filter(
+                            usuario=user,
+                            categoria=Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_PC,
+                            unidade=unidade,
+                            lido=False
+                        ).first()
+
+                        if notificao_devolucao_pc and notificao_devolucao_pc.prestacao_conta:
+                            notificar_devolucao_referencia = notificao_devolucao_pc.prestacao_conta.periodo.referencia
+                            notificar_devolucao_pc_uuid = notificao_devolucao_pc.prestacao_conta.uuid
+                            notificacao_uuid = notificao_devolucao_pc.uuid
+                            logger.info(f"Notificação de devolução encontrada para o período {notificar_devolucao_referencia}.")
+                        else:
+                            notificar_devolucao_referencia = None
+                            notificacao_uuid = None
+                            notificar_devolucao_pc_uuid = None
+
                         unidades.append({
                             'uuid': unidade.uuid,
                             'nome': unidade.nome,
@@ -65,7 +85,10 @@ class LoginView(ObtainJSONWebToken):
                             'associacao': {
                                 'uuid': associacao.uuid if associacao else '',
                                 'nome': associacao.nome if associacao else ''
-                            }
+                            },
+                            'notificar_devolucao_referencia': notificar_devolucao_referencia,
+                            'notificar_devolucao_pc_uuid': notificar_devolucao_pc_uuid,
+                            'notificacao_uuid': notificacao_uuid,
                         })
 
                     '''

@@ -5,9 +5,18 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.20.0
+Versão: 1.21.0
 
 ## Release Notes
+
+### 1.21.0 - 01/11/2021 - Entregas da Sprint 30
+* UE > Melhorias diversas no layout do Demonstrativo Financeiro (PDF)
+* UE > Novas notificações de devolução de PC até que usuário veja os ajustes solicitados
+* DRE > Acompanhamento de PC agora exibe detalhes da última análise, quando nos status posteriores à análise
+* DRE > Relatório de acertos solicitados agora é gerado automaticamente ao final da análise de prestação de contas
+* DRE > Reprovação de PC agora permite a seleção de motivos pré-cadastrados
+* DRE > Solicitação de acertos em documentos de PC agora inclui campo de detalhamento
+* 🐞 Correção de bugs
 
 ### 1.20.0 - 18/10/2021 - Entregas da Sprint 29
 * UE > Novo rodapé no relatório de Relação de Bens 

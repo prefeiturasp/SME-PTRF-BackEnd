@@ -17,7 +17,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasDreComGravacao,
 )
 
-from ....dre.models import Atribuicao, TecnicoDre, MotivoAprovacaoRessalva
+from ....dre.models import Atribuicao, TecnicoDre, MotivoAprovacaoRessalva, MotivoReprovacao
 from ...models import (
     Associacao,
     Ata,
@@ -55,6 +55,9 @@ from ..serializers import (
     AnaliseDocumentoPrestacaoContaRetrieveSerializer,
     AnalisePrestacaoContaRetrieveSerializer
 )
+
+from sme_ptrf_apps.core.tasks import gerar_previa_relatorio_acertos_async
+from ...services.analise_prestacao_conta_service import _criar_documento_final_relatorio_acertos
 
 from django.core.exceptions import ValidationError
 
@@ -451,16 +454,31 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        motivos_reprovacao = request.data.get('motivos_reprovacao', '')
+        motivos_reprovacao_uuid = request.data.get('motivos_reprovacao', [])
+        outros_motivos_reprovacao = request.data.get('outros_motivos_reprovacao', '')
 
-        if resultado_analise == PrestacaoConta.STATUS_REPROVADA and not motivos_reprovacao:
+        if resultado_analise == PrestacaoConta.STATUS_REPROVADA and not motivos_reprovacao_uuid and not outros_motivos_reprovacao:
             response = {
                 'uuid': f'{uuid}',
                 'erro': 'falta_de_informacoes',
                 'operacao': 'concluir-analise',
-                'mensagem': 'Para concluir como Reprovada é necessário informar o campo motivos_reprovacao.'
+                'mensagem': 'Para concluir como Reprovada é necessário informar o campo motivos_reprovacao ou outros_motivos_reprovacao.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        motivos_reprovacao=[]
+
+        for motivo_uuid in motivos_reprovacao_uuid:
+            try:
+                motivo_reprovacao = MotivoReprovacao.objects.get(uuid=motivo_uuid)
+                motivos_reprovacao.append(motivo_reprovacao)
+            except MotivoReprovacao.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto motivo de reprovação para o uuid {motivo_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         data_limite_ue = request.data.get('data_limite_ue', None)
 
@@ -488,6 +506,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
+        analise_prestacao = prestacao_conta.analise_atual
+
         prestacao_salva = prestacao_conta.concluir_analise(
             resultado_analise=resultado_analise,
             analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
@@ -495,7 +515,11 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             outros_motivos_aprovacao_ressalva=outros_motivos_aprovacao_ressalva,
             data_limite_ue=data_limite_ue,
             motivos_reprovacao=motivos_reprovacao,
+            outros_motivos_reprovacao=outros_motivos_reprovacao,
         )
+
+        if prestacao_conta.status == PrestacaoConta.STATUS_DEVOLVIDA:
+            _criar_documento_final_relatorio_acertos(analise_prestacao.uuid, request.user.username)
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
@@ -1347,11 +1371,17 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(AnaliseDocumentoPrestacaoContaRetrieveSerializer(analise_documento).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], url_path="devolucoes",
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def devolucoes(self, request, uuid):
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
         devolucoes = prestacao_conta.analises_da_prestacao.filter(status='DEVOLVIDA').order_by('id')
         return Response(AnalisePrestacaoContaRetrieveSerializer(devolucoes, many=True).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path="ultima-analise-pc", permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def ultima_analise_da_pc(self, request, uuid):
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+        ultima_analise_pc = prestacao_conta.analises_da_prestacao.order_by('id').last()
+        return Response(AnalisePrestacaoContaRetrieveSerializer(ultima_analise_pc, many=False).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['patch'], url_path="receber-apos-acertos",
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])

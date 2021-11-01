@@ -110,16 +110,16 @@ class Receita(ModeloBase):
     def receitas_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None, acao_associacao=None):
         if periodo.data_fim_realizacao_despesas:
             dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
-                data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
+                data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas)).order_by('data')
         else:
             dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
-                data__gte=periodo.data_inicio_realizacao_despesas)
+                data__gte=periodo.data_inicio_realizacao_despesas).order_by('data')
 
         if conferido is not None:
-            dataset = dataset.filter(conferido=conferido)
+            dataset = dataset.filter(conferido=conferido).order_by('data')
 
         if acao_associacao:
-            dataset = dataset.filter(acao_associacao=acao_associacao)
+            dataset = dataset.filter(acao_associacao=acao_associacao).order_by('data')
 
         return dataset.all()
 

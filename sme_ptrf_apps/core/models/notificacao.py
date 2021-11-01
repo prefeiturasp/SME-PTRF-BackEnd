@@ -38,17 +38,20 @@ class Notificacao(ModeloBase):
     CATEGORIA_NOTIFICACAO_COMENTARIO_PC = 'COMENTARIO_PC'
     CATEGORIA_NOTIFICACAO_ELABORACAO_PC = 'ELABORACAO_PC'
     CATEGORIA_NOTIFICACAO_ANALISE_PC = 'ANALISE_PC'
+    CATEGORIA_NOTIFICACAO_DEVOLUCAO_PC = 'DEVOLUCAO_PC'
 
     CATEGORIA_NOTIFICACAO_NOMES = {
         CATEGORIA_NOTIFICACAO_COMENTARIO_PC: 'Comentário na prestação de contas',
         CATEGORIA_NOTIFICACAO_ELABORACAO_PC: 'Elaboração de PC',
         CATEGORIA_NOTIFICACAO_ANALISE_PC: 'Análise de PC',
+        CATEGORIA_NOTIFICACAO_DEVOLUCAO_PC: 'Devolução de PC para ajustes',
     }
 
     CATEGORIA_NOTIFICACAO_CHOICES = (
         (CATEGORIA_NOTIFICACAO_COMENTARIO_PC, CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_COMENTARIO_PC]),
         (CATEGORIA_NOTIFICACAO_ELABORACAO_PC, CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_ELABORACAO_PC]),
         (CATEGORIA_NOTIFICACAO_ANALISE_PC, CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_ANALISE_PC]),
+        (CATEGORIA_NOTIFICACAO_DEVOLUCAO_PC, CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_DEVOLUCAO_PC]),
     )
 
     # Remetentes de Notificação
@@ -90,10 +93,20 @@ class Notificacao(ModeloBase):
     )
 
     titulo = models.CharField("Título", max_length=100, default='', blank=True)
+
     descricao = models.CharField("Descrição", max_length=300, default='', blank=True)
+
     hora = models.TimeField("Hora", editable=False, auto_now_add=True)
+
     lido = models.BooleanField("Foi Lido?", default=False)
-    usuario = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, default='', blank=True, null=True)
+
+    usuario = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, default='', blank=True, null=True)
+
+    unidade = models.ForeignKey('Unidade', on_delete=models.SET_NULL, related_name="notificacoes_da_unidade",
+                                to_field="codigo_eol", blank=True, null=True)
+
+    prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.SET_NULL,
+                                        related_name='notificacoes_da_prestacao', blank=True, null=True)
 
     class Meta:
         verbose_name = "Notificação"
@@ -145,7 +158,9 @@ class Notificacao(ModeloBase):
         descricao,
         usuario,
         renotificar=True,
-        enviar_email=False
+        enviar_email=False,
+        unidade=None,
+        prestacao_conta=None,
     ):
 
         from sme_ptrf_apps.core.services.notificacao_services.enviar_email_notificacao import enviar_email_nova_notificacao
@@ -182,6 +197,8 @@ class Notificacao(ModeloBase):
                 titulo=titulo,
                 descricao=descricao,
                 usuario=usuario,
+                unidade=unidade,
+                prestacao_conta=prestacao_conta,
             )
 
         if (renotificar or not notificacao_existente) and enviar_email:

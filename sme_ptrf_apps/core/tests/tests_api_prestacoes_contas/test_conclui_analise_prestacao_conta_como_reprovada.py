@@ -25,7 +25,7 @@ def prestacao_conta_em_analise(periodo, associacao):
 
 @freeze_time('2020-09-01')
 def test_api_conclui_analise_prestacao_conta_aprovada(jwt_authenticated_client_a, prestacao_conta_em_analise,
-                                                      conta_associacao):
+                                                      conta_associacao, motivo_reprovacao_x):
     payload = {
         'devolucao_tesouro': True,
         'analises_de_conta_da_prestacao': [
@@ -35,7 +35,7 @@ def test_api_conclui_analise_prestacao_conta_aprovada(jwt_authenticated_client_a
                 'saldo_extrato': 100.00,
             },
         ],
-        'motivos_reprovacao': 'Reprovado',
+        'motivos_reprovacao': [f'{motivo_reprovacao_x.uuid}', ],
         'resultado_analise': PrestacaoConta.STATUS_REPROVADA
     }
 

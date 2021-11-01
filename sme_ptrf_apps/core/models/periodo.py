@@ -88,6 +88,10 @@ class Periodo(ModeloBase):
         self.notificacao_proximidade_fim_pc_realizada = True
         self.save()
 
+    def get_referencia(self):
+        # Necessario para utilizar a função "sorted", que retornará um erro se for um property
+        return self.referencia
+
     class Meta:
         verbose_name = "Período"
         verbose_name_plural = "08.0) Períodos"

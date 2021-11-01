@@ -7,6 +7,7 @@ from sme_ptrf_apps.core.api.serializers import (AssociacaoCompletoSerializer, De
 from sme_ptrf_apps.core.services.processos_services import get_processo_sei_da_prestacao
 
 from sme_ptrf_apps.dre.api.serializers.motivo_aprovacao_ressalva_serializer import MotivoAprovacaoRessalvaSerializer
+from sme_ptrf_apps.dre.api.serializers.motivo_reprovacao_serializer import MotivoReprovacaoSerializer
 
 
 class PrestacaoContaLookUpSerializer(serializers.ModelSerializer):
@@ -88,6 +89,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     analises_de_conta_da_prestacao = AnaliseContaPrestacaoContaRetrieveSerializer(many=True)
     devolucoes_ao_tesouro_da_prestacao = DevolucaoAoTesouroRetrieveSerializer(many=True)
     motivos_aprovacao_ressalva = MotivoAprovacaoRessalvaSerializer(many=True)
+    motivos_reprovacao = MotivoReprovacaoSerializer(many=True)
     arquivos_referencia = serializers.SerializerMethodField('get_arquivos_referencia')
     analise_atual = AnalisePrestacaoContaSerializer(many=False)
 
@@ -154,6 +156,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'devolucao_ao_tesouro',
             'analises_de_conta_da_prestacao',
             'motivos_reprovacao',
+            'outros_motivos_reprovacao',
             'devolucoes_ao_tesouro_da_prestacao',
             'motivos_aprovacao_ressalva',
             'outros_motivos_aprovacao_ressalva',

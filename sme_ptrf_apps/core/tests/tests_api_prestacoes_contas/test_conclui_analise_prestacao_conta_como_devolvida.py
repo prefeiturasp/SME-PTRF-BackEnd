@@ -1,6 +1,6 @@
 import json
 import pytest
-
+import datetime
 from freezegun import freeze_time
 from datetime import date
 
@@ -11,15 +11,33 @@ from ...models import PrestacaoConta
 
 pytestmark = pytest.mark.django_db
 
+@pytest.fixture
+def prestacao_conta_2020_1_em_analise(periodo_2020_1, associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        data_recebimento=datetime.date(2020, 10, 1),
+        status="EM_ANALISE"
+    )
+
 
 @pytest.fixture
-def prestacao_conta_em_analise(periodo, associacao):
+def analise_prestacao_conta_2020_1_em_analise(prestacao_conta_2020_1_em_analise,):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_em_analise,
+    )
+
+@pytest.fixture
+def prestacao_conta_em_analise(periodo, associacao, analise_prestacao_conta_2020_1_em_analise):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo,
         associacao=associacao,
         data_recebimento=date(2020, 10, 1),
-        status=PrestacaoConta.STATUS_EM_ANALISE
+        status=PrestacaoConta.STATUS_EM_ANALISE,
+        analise_atual=analise_prestacao_conta_2020_1_em_analise
     )
 
 
@@ -48,7 +66,7 @@ def periodo_01(periodo_anterior_01):
 
 
 @pytest.fixture
-def prestacao_conta_01_pc_posterior(periodo_01, associacao, motivo_aprovacao_ressalva_x):
+def prestacao_conta_01_pc_posterior(periodo_01, associacao, motivo_aprovacao_ressalva_x, motivo_reprovacao_x):
     return baker.make(
         'PrestacaoConta',
         id=1,
@@ -57,7 +75,8 @@ def prestacao_conta_01_pc_posterior(periodo_01, associacao, motivo_aprovacao_res
         data_recebimento=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
         devolucao_tesouro=True,
-        motivos_reprovacao="Motivo reprovação",
+        motivos_reprovacao=[motivo_reprovacao_x, ],
+        outros_motivos_reprovacao="Outros motivos reprovação",
         motivos_aprovacao_ressalva=[motivo_aprovacao_ressalva_x, ],
         outros_motivos_aprovacao_ressalva="Outros motivos",
         status='EM_ANALISE'
@@ -66,7 +85,7 @@ def prestacao_conta_01_pc_posterior(periodo_01, associacao, motivo_aprovacao_res
 
 
 @pytest.fixture
-def prestacao_conta_02_pc_posterior(periodo, associacao, motivo_aprovacao_ressalva_x):
+def prestacao_conta_02_pc_posterior(periodo, associacao, motivo_aprovacao_ressalva_x, motivo_reprovacao_x):
     return baker.make(
         'PrestacaoConta',
         id=2,
@@ -75,7 +94,8 @@ def prestacao_conta_02_pc_posterior(periodo, associacao, motivo_aprovacao_ressal
         data_recebimento=date(2020, 10, 2),
         data_ultima_analise=date(2020, 10, 2),
         devolucao_tesouro=True,
-        motivos_reprovacao="Motivo reprovação",
+        motivos_reprovacao=[motivo_reprovacao_x, ],
+        outros_motivos_reprovacao="Outros motivos reprovação",
         motivos_aprovacao_ressalva=[motivo_aprovacao_ressalva_x, ],
         outros_motivos_aprovacao_ressalva="Outros motivos")
 

@@ -44,6 +44,7 @@ def test_api_get_documentos_para_analise(
             'solicitacoes_de_ajuste_da_analise': [
                 {
                     'analise_documento': f'{analise_doc_ata.uuid}',
+                    'detalhamento': solicitacao_acerto_declaracao.detalhamento,
                     'tipo_acerto': {
                         'nome': 'Enviar com assinatura',
                         'uuid': f'{tipo_acerto_assinatura.uuid}',
@@ -73,6 +74,7 @@ def test_api_get_documentos_para_analise(
             'solicitacoes_de_ajuste_da_analise': [
                 {
                     'analise_documento': f'{analise_doc_declaracao.uuid}',
+                    'detalhamento': '',
                     'tipo_acerto': {
                         'nome': 'Enviar com assinatura',
                         'uuid': f'{tipo_acerto_assinatura.uuid}',
