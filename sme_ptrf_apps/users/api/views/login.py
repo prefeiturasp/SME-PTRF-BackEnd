@@ -21,7 +21,10 @@ UNIDADE_SME = {
     'associacao': {
         'uuid': '',
         'nome': ''
-    }
+    },
+    'notificacao_uuid': None,
+    'notificar_devolucao_pc_uuid': None,
+    'notificar_devolucao_referencia': None,
 }
 
 
