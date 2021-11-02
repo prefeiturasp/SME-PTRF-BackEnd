@@ -1,3 +1,7 @@
+### 1.21.1 - 01/11/2021 - Hotfix
+* (51942) - Erro de cálculo no Demonstrativo Financeiro
+
+
 ### 1.16.1 - 18/08/2021 - Hotfix
 * Atualiza CSV de carga de especificações de materiais e serviços.
 

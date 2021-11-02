@@ -43,6 +43,37 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
         data_geracao_documento = cria_data_geracao_documento(usuario, previa)
         data_geracao = cria_data_geracao()
 
+        """
+            Mapeamento campos x pdf - Campos usados em cada um dos blocos do PDF:
+
+            Bloco 1 - Identificação da Associação
+                cabecalho
+                identificacao_apm
+
+            Bloco 2 - Identificação Bancária e Saldo
+                identificacao_conta
+
+            Bloco 3 - Resumo por Ação
+                resumo_por_acao
+
+            Bloco 4 - Créditos
+                creditos_demonstrados
+
+            Bloco 5 - Despesas Demonstradas
+                despesas_demonstradas
+
+            Bloco 6 - Despesas Não Demonstradas
+                despesas_nao_demonstradas
+
+            Bloco 7 - Despesas de períodos anteriores não demonstradas
+                despesas_anteriores_nao_demonstradas
+
+            Bloco 8 - Justificativas e informações adicionais
+                justificativas
+
+            Bloco 9 - Assinaturas
+                data_geracao
+        """
         dados_demonstrativo = {
             "cabecalho": cabecalho,
             "identificacao_apm": identificacao_apm,
@@ -127,6 +158,77 @@ def cria_identificacao_conta(conta_associacao, observacao_conciliacao):
 
 
 def cria_resumo_por_acao(acoes, conta_associacao, periodo):
+    """
+        Mapeamento campos x bloco 3 do PDF. Campos que são usados em cada coluna do bloco 3 no PDF:
+
+        resumo_acoes (lista com os valores por ação):
+
+            12-Ação                         : acao_associacao
+
+            13-Saldo anterior           (C): linha_custeio.saldo_anterior
+                                        (K): linha_capital.saldo_anterior
+                                        (L): linha_livre.saldo_anterior
+
+            14-Créditos                 (C): linha_custeio.credito
+                                        (K): linha_capital.credito
+                                        (L): linha_livre.credito
+
+            15-Despesas Demonstradas    (C): linha_custeio.despesa_realizada
+                                        (K): linha_capital.despesa_realizada
+                                        (L): XXXXX Não tem
+
+            16-Despesas Ñ Demonstradas  (C): linha_custeio.despesa_nao_realizada
+                                        (K): linha_capital.despesa_nao_realizada
+                                        (L): XXXXX Não tem
+
+            17-Saldo próximo período    (C): linha_custeio.saldo_reprogramado_proximo
+                                        (K): linha_capital.saldo_reprogramado_proximo
+                                        (L): linha_livre.saldo_reprogramado_proximo
+                                        (T): total_valores
+
+            18-Despesas Ñ Demonstr.Ant. (C): linha_custeio.despesa_nao_demostrada_outros_periodos
+                                        (K): linha_capital.despesa_nao_demostrada_outros_periodos
+                                        (L): XXXXX Não tem
+
+            19-Saldo parcial próximo    (C): linha_custeio.valor_saldo_bancario_custeio
+                                        (K): linha_capital.valor_saldo_bancario_capital
+                                        (L): linha_livre.saldo_reprogramado_proximo  (mesmo da coluna 17)
+                                        (T): saldo_bancario
+
+        total_valores (Totais):
+
+            13-Saldo anterior           (C): saldo_anterior.C
+                                        (K): saldo_anterior.K
+                                        (L): saldo_anterior.L
+
+            14-Créditos                 (C): credito.C
+                                        (K): credito.K
+                                        (L): credito.L
+
+            15-Despesas Demonstradas    (C): despesa_realizada.C
+                                        (K): despesa_realizada.K
+                                        (L): XXXXX Não tem
+
+            16-Despesas Ñ Demonstradas  (C): despesa_nao_realizada.C
+                                        (K): despesa_nao_realizada.K
+                                        (L): XXXXX Não tem
+
+            17-Saldo próximo período    (C): saldo_reprogramado_proximo.C
+                                        (K): saldo_reprogramado_proximo.K
+                                        (L): saldo_reprogramado_proximo.L
+                                        (T): total_valores
+
+
+            18-Despesas Ñ Demonstr.Ant. (C): despesa_nao_demostrada_outros_periodos.C
+                                        (K): despesa_nao_demostrada_outros_periodos.K
+                                        (L): XXXXX Não tem
+
+            19-Saldo parcial próximo    (C): valor_saldo_bancario.C
+                                        (K): valor_saldo_bancario.K
+                                        (L): saldo_reprogramado_proximo.L  (mesmo da coluna 17)
+                                        (T): saldo_bancario
+
+    """
     total_valores = 0
     total_conciliacao = 0
 
