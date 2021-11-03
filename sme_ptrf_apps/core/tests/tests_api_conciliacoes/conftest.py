@@ -135,7 +135,7 @@ def receita_2020_1_role_outras_nao_conferida(associacao, conta_associacao_cartao
     return baker.make(
         'Receita',
         associacao=associacao,
-        data=datetime.date(2020, 3, 26),
+        data=datetime.date(2020, 3, 27),
         valor=100.00,
         conta_associacao=conta_associacao_cartao,
         acao_associacao=acao_associacao_role_cultural,
