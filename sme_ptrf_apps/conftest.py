@@ -171,6 +171,22 @@ def associacao(unidade, periodo_anterior):
 
 
 @pytest.fixture
+def associacao_com_presidente_ausente(unidade, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste',
+        cnpj='52.302.275/0001-83',
+        unidade=unidade,
+        periodo_inicial=periodo_anterior,
+        ccm='0.000.00-0',
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456',
+        status_presidente='AUSENTE',
+        cargo_substituto_presidente_ausente=MembroEnum.VICE_PRESIDENTE_DIRETORIA_EXECUTIVA.name
+    )
+
+
+@pytest.fixture
 def outra_associacao(unidade, periodo_anterior):
     return baker.make(
         'Associacao',

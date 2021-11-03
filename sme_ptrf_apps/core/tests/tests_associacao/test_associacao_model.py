@@ -24,6 +24,12 @@ def test_instance_model(associacao):
     assert model.processo_regularidade is not None
 
 
+def test_instance_model_campos_presidente_ausente(associacao_com_presidente_ausente):
+    model = associacao_com_presidente_ausente
+    assert model.status_presidente == 'AUSENTE'
+    assert model.cargo_substituto_presidente_ausente == 'VICE_PRESIDENTE_DIRETORIA_EXECUTIVA'
+
+
 def test_srt_model(associacao):
     assert associacao.__str__() == 'Escola Teste'
 
