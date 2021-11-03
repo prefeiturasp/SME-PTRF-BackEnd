@@ -130,7 +130,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
                 'mensagem': 'Não existe um arquivo de demostrativo financeiro para download.'
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
-        logger.info("Retornando dados do arquivo: %s", demonstrativo_financeiro.arquivo.path)
+
+        logger.info("Retornando dados do arquivo: %s", demonstrativo_financeiro.arquivo_pdf.path)
 
         try:
             if formato_arquivo == 'PDF':
@@ -174,7 +175,7 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         if not formato_arquivo:
-            formato_arquivo = 'XLSX'
+            formato_arquivo = 'PDF'
 
         if not conta_associacao_uuid or not periodo_uuid:
             erro = {
@@ -207,7 +208,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
                 'mensagem': 'Não existe um arquivo de prévia de demostrativo financeiro para download.'
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
-        logger.info("Retornando dados do arquivo: %s", demonstrativo_financeiro.arquivo.path)
+
+        logger.info("Retornando dados do arquivo: %s", demonstrativo_financeiro.arquivo_pdf.path)
 
         try:
             if formato_arquivo == 'PDF':
@@ -299,7 +301,8 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         periodo_uuid = self.request.query_params.get('periodo')
         conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
         prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao,
-                                                        periodo__uuid=periodo_uuid).first()
+                                                        periodo__uuid=periodo_uuid
+                                                        ).exclude(status=PrestacaoConta.STATUS_DEVOLVIDA).first()
 
         demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(conta_associacao__uuid=conta_associacao_uuid,
                                                                           prestacao_conta=prestacao_conta).first()

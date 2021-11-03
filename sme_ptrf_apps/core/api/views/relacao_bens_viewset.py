@@ -202,8 +202,10 @@ class RelacaoBensViewSet(GenericViewSet):
         periodo_uuid = self.request.query_params.get('periodo')
         periodo = Periodo.by_uuid(periodo_uuid)
         conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
-        prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao,
-                                                        periodo__uuid=periodo_uuid).first()
+        prestacao_conta = PrestacaoConta.objects.filter(
+            associacao=conta_associacao.associacao,
+            periodo__uuid=periodo_uuid
+        ).exclude(status=PrestacaoConta.STATUS_DEVOLVIDA).first()
         relacao_bens = RelacaoBens.objects.filter(conta_associacao__uuid=conta_associacao_uuid,
                                                   prestacao_conta=prestacao_conta).first()
 
