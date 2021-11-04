@@ -32,3 +32,38 @@ def get_status_presidente(associacao):
              }
 
     return result
+
+
+def update_status_presidente(associacao, status_presidente, cargo_substituto_presidente_ausente):
+    from django.core.exceptions import ValidationError
+
+    if not status_presidente or status_presidente not in ['PRESENTE', 'AUSENTE']:
+        result_error = {
+            'erro': 'campo_requerido',
+            'mensagem': 'É necessário enviar no payload um staus_presidente válido [PRESENTE|AUSENTE]. '
+        }
+        raise ValidationError(result_error)
+
+    if status_presidente == 'AUSENTE' and not cargo_diretoria_executiva_valido(cargo_substituto_presidente_ausente):
+        result_error = {
+            'erro': 'campo_requerido',
+            'mensagem': 'É necessário enviar no payload um cargo_substituto_presidente_ausente válido.'
+        }
+        raise ValidationError(result_error)
+
+    associacao.status_presidente = status_presidente
+    associacao.cargo_substituto_presidente_ausente = cargo_substituto_presidente_ausente
+    associacao.save()
+
+    result = {
+                 'status_presidente': associacao.status_presidente,
+                 'cargo_substituto_presidente_ausente': associacao.cargo_substituto_presidente_ausente,
+             }
+
+    return result
+
+
+def cargo_diretoria_executiva_valido(cargo):
+    from sme_ptrf_apps.core.choices.membro_associacao import MembroEnum
+    cargos_diretoria_executiva = [key[0] for key in MembroEnum.diretoria_executiva_choices()]
+    return cargo in cargos_diretoria_executiva

@@ -39,7 +39,8 @@ from ...services import (
     info_painel_acoes_por_periodo_e_conta,
     status_prestacao_conta_associacao,
     consulta_unidade,
-    get_status_presidente
+    get_status_presidente,
+    update_status_presidente
 )
 from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from ..serializers.associacao_serializer import (
@@ -582,11 +583,34 @@ class AssociacoesViewSet(ModelViewSet):
         status_code = status.HTTP_400_BAD_REQUEST if 'erro' in result.keys() else status.HTTP_200_OK
         return Response(result, status=status_code)
 
-    @action(detail=True, url_path='status-presidente',
+    @action(detail=True, url_path='status-presidente', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def status_presidente(self, request, uuid=None):
+    def get_status_presidente(self, request, uuid=None):
         associacao = self.get_object()
 
         result = get_status_presidente(associacao=associacao)
 
         return Response(result)
+
+    @action(detail=True, url_path='update-status-presidente', methods=['patch'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
+    def update_status_presidente(self, request, uuid=None):
+        associacao = self.get_object()
+
+        status_presidente = request.data.get('status_presidente')
+        cargo_substituto_presidente_ausente = request.data.get('cargo_substituto_presidente_ausente')
+
+        try:
+            result = update_status_presidente(
+                associacao=associacao,
+                status_presidente=status_presidente,
+                cargo_substituto_presidente_ausente=cargo_substituto_presidente_ausente
+            )
+            return Response(result)
+        except ValidationError as e:
+            result = {
+                'erro': 'Erro de validação.',
+                'mensagem': f'{e}'
+            }
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+

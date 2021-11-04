@@ -4,6 +4,7 @@ Choices para o modelo MembroAssociacao
 
 from enum import Enum
 
+
 class RepresentacaoCargo(Enum):
     SERVIDOR = 'Servidor'
     PAI_RESPONSAVEL = 'Pai_ou_responsável'

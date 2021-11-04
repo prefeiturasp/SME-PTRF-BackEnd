@@ -40,4 +40,9 @@ from .prestacao_contas_services import (
 from .processa_cargas import processa_cargas, processa_carga
 from .unidade_service import atualiza_dados_unidade, consulta_unidade, monta_unidade_para_atribuicao
 from .acoes_associacoes_service import associacoes_nao_vinculadas_a_acao
-from .associacoes_service import retorna_status_prestacoes, get_status_presidente
+from .associacoes_service import (
+    retorna_status_prestacoes,
+    get_status_presidente,
+    update_status_presidente,
+    cargo_diretoria_executiva_valido
+)
