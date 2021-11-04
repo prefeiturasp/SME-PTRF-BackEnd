@@ -73,6 +73,12 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
 
         return Response(lista_content)
 
+    @action(detail=False, url_path='cargos-diretoria-executiva',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def cargos_diretoria_executiva(self, request):
+        lista_cargos = MembroAssociacao.cargos_diretoria_executiva_to_json()
+        return Response(lista_cargos)
+
     @action(detail=False, methods=['get'], url_path='codigo-identificacao',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def consulta_codigo_identificacao(self, request):

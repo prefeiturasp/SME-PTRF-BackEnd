@@ -4,6 +4,7 @@ Choices para o modelo MembroAssociacao
 
 from enum import Enum
 
+
 class RepresentacaoCargo(Enum):
     SERVIDOR = 'Servidor'
     PAI_RESPONSAVEL = 'Pai_ou_responsável'
@@ -33,3 +34,20 @@ class MembroEnum(Enum):
     @classmethod
     def choices(cls):
         return [(key.name, key.value) for key in cls]
+
+    @classmethod
+    def diretoria_executiva_choices(cls):
+        diretoria_executiva = []
+        for key in cls:
+            # Ignora membros do conselho fiscal
+            if key.name in (
+                cls.PRESIDENTE_CONSELHO_FISCAL.name,
+                cls.CONSELHEIRO_1.name,
+                cls.CONSELHEIRO_2.name,
+                cls.CONSELHEIRO_3.name,
+                cls.CONSELHEIRO_4.name,
+            ):
+                continue
+            diretoria_executiva.append((key.name, key.value))
+        return diretoria_executiva
+
