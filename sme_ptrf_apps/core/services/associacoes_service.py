@@ -23,3 +23,12 @@ def retorna_status_prestacoes(periodos=None, status_pc=None, uuid=None):
             lista_de_periodos = list(filter(lambda d: d['status_pc'] == status_pc, lista_de_periodos))
 
         return lista_de_periodos
+
+
+def get_status_presidente(associacao):
+    result = {
+                 'status_presidente': associacao.status_presidente,
+                 'cargo_substituto_presidente_ausente': associacao.cargo_substituto_presidente_ausente,
+             }
+
+    return result
