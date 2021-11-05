@@ -40,7 +40,8 @@ from ...services import (
     status_prestacao_conta_associacao,
     consulta_unidade,
     get_status_presidente,
-    update_status_presidente
+    update_status_presidente,
+    get_implantacao_de_saldos_da_associacao
 )
 from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from ..serializers.associacao_serializer import (
@@ -174,41 +175,8 @@ class AssociacoesViewSet(ModelViewSet):
     @action(detail=True, url_path='implantacao-saldos', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def implantacao_saldos(self, request, uuid=None):
-
-        associacao = self.get_object()
-
-        if not associacao.periodo_inicial:
-            erro = {
-                'erro': 'periodo_inicial_nao_definido',
-                'mensagem': 'Período inicial não foi definido para essa associação. Verifique com o administrador.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        if associacao.prestacoes_de_conta_da_associacao.exists():
-            erro = {
-                'erro': 'prestacao_de_contas_existente',
-                'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        saldos = []
-        implantacoes = implantacoes_de_saldo_da_associacao(associacao=associacao)
-        for implantacao in implantacoes:
-            saldo = {
-                'acao_associacao': AcaoAssociacaoLookUpSerializer(implantacao['acao_associacao']).data,
-                'conta_associacao': ContaAssociacaoLookUpSerializer(implantacao['conta_associacao']).data,
-                'aplicacao': implantacao['aplicacao'],
-                'saldo': implantacao['saldo']
-            }
-            saldos.append(saldo)
-
-        result = {
-            'associacao': f'{uuid}',
-            'periodo': PeriodoLookUpSerializer(associacao.periodo_inicial).data,
-            'saldos': saldos,
-        }
-
-        return Response(result)
+        result = get_implantacao_de_saldos_da_associacao(associacao=self.get_object())
+        return Response(result['conteudo'], result['status_code'])
 
     @action(detail=True, url_path='implanta-saldos', methods=['post'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])

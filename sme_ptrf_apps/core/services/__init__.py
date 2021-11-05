@@ -45,5 +45,6 @@ from .associacoes_service import (
     get_status_presidente,
     update_status_presidente,
     cargo_diretoria_executiva_valido,
-    associacao_pode_implantar_saldo
+    associacao_pode_implantar_saldo,
+    get_implantacao_de_saldos_da_associacao
 )

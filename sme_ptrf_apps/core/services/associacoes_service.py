@@ -1,5 +1,7 @@
 from .periodo_services import status_prestacao_conta_associacao
 from django.db.models import Q
+from django.core.exceptions import ValidationError
+
 
 def retorna_status_prestacoes(periodos=None, status_pc=None, uuid=None):
     lista_de_periodos = []
@@ -35,7 +37,6 @@ def get_status_presidente(associacao):
 
 
 def update_status_presidente(associacao, status_presidente, cargo_substituto_presidente_ausente):
-    from django.core.exceptions import ValidationError
 
     if not status_presidente or status_presidente not in ['PRESENTE', 'AUSENTE']:
         result_error = {
@@ -99,3 +100,52 @@ def associacao_pode_implantar_saldo(associacao):
 
     return result
 
+
+def get_implantacao_de_saldos_da_associacao(associacao):
+    from rest_framework import status
+    from .implantacao_saldos_services import implantacoes_de_saldo_da_associacao
+    from ..api.serializers import (AcaoAssociacaoLookUpSerializer,
+                                   ContaAssociacaoLookUpSerializer,
+                                   PeriodoLookUpSerializer)
+
+    if not associacao.periodo_inicial:
+        erro = {
+            'erro': 'periodo_inicial_nao_definido',
+            'mensagem': 'Período inicial não foi definido para essa associação. Verifique com o administrador.'
+        }
+        return {
+            'conteudo': erro,
+            'status_code': status.HTTP_400_BAD_REQUEST
+        }
+
+    if associacao.prestacoes_de_conta_da_associacao.exists():
+        erro = {
+            'erro': 'prestacao_de_contas_existente',
+            'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
+        }
+        return {
+            'conteudo': erro,
+            'status_code': status.HTTP_400_BAD_REQUEST
+        }
+
+    saldos = []
+    implantacoes = implantacoes_de_saldo_da_associacao(associacao=associacao)
+    for implantacao in implantacoes:
+        saldo = {
+            'acao_associacao': AcaoAssociacaoLookUpSerializer(implantacao['acao_associacao']).data,
+            'conta_associacao': ContaAssociacaoLookUpSerializer(implantacao['conta_associacao']).data,
+            'aplicacao': implantacao['aplicacao'],
+            'saldo': implantacao['saldo']
+        }
+        saldos.append(saldo)
+
+    result = {
+        'associacao': f'{associacao.uuid}',
+        'periodo': PeriodoLookUpSerializer(associacao.periodo_inicial).data,
+        'saldos': saldos,
+    }
+
+    return {
+        'conteudo': result,
+        'status_code': status.HTTP_200_OK
+    }
