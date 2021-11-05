@@ -1,3 +1,6 @@
+### 1.21.3 - 03/11/2021 - Hotfix
+* (52511) - Demonstrativo Financeiro PDF - Redistribuição das linhas do bloco 3 colunas 15, 16 e 18
+
 ### 1.21.2 - 03/11/2021 - Hotfix
 * (51973) - Remover geração de XLSX de Demonstrativo Financeiro e Relação de Bens
 
