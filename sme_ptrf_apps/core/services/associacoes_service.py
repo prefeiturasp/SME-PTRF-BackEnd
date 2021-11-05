@@ -108,6 +108,8 @@ def get_implantacao_de_saldos_da_associacao(associacao):
                                    ContaAssociacaoLookUpSerializer,
                                    PeriodoLookUpSerializer)
 
+    periodo_primeira_pc = associacao.periodo_inicial.proximo_periodo if associacao.periodo_inicial else None
+
     if not associacao.periodo_inicial:
         erro = {
             'erro': 'periodo_inicial_nao_definido',
@@ -118,7 +120,9 @@ def get_implantacao_de_saldos_da_associacao(associacao):
             'status_code': status.HTTP_400_BAD_REQUEST
         }
 
-    if associacao.prestacoes_de_conta_da_associacao.exists():
+    if associacao.prestacoes_de_conta_da_associacao.exclude(
+        Q(periodo=periodo_primeira_pc) & Q(status='DEVOLVIDA')
+    ).exists():
         erro = {
             'erro': 'prestacao_de_contas_existente',
             'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
