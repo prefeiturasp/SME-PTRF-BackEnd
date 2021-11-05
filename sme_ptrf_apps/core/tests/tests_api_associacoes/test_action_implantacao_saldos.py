@@ -55,6 +55,43 @@ def test_get_permite_implantacao_com_prestacao_contas(jwt_authenticated_client_a
     assert result == esperado
 
 
+def test_get_permite_implantacao_com_prestacao_contas_devolvida(jwt_authenticated_client_a, associacao,
+                                                                periodo_anterior, prestacao_conta_devolvida,
+                                                                acao_associacao_role_cultural, conta_associacao):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/permite-implantacao-saldos/',
+                                              content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'permite_implantacao': True,
+        'erro': '',
+        'mensagem': 'Os saldos podem ser implantados normalmente.'
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
+
+
+def test_get_permite_implantacao_com_prestacao_contas_devolvida_periodo_posterior(jwt_authenticated_client_a,
+                                                                                  associacao,
+                                                                                  periodo_anterior,
+                                                                                  prestacao_conta_devolvida_posterior,
+                                                                                  acao_associacao_role_cultural,
+                                                                                  conta_associacao):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/permite-implantacao-saldos/',
+                                              content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'permite_implantacao': False,
+        'erro': 'prestacao_de_contas_existente',
+        'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
+
+
 def test_retrieve_implanta_saldos_saldos_ainda_nao_implantados(jwt_authenticated_client_a, associacao, periodo_anterior):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/implantacao-saldos/',
                           content_type='application/json')

@@ -1,5 +1,5 @@
 from .periodo_services import status_prestacao_conta_associacao
-
+from django.db.models import Q
 
 def retorna_status_prestacoes(periodos=None, status_pc=None, uuid=None):
     lista_de_periodos = []
@@ -72,6 +72,8 @@ def cargo_diretoria_executiva_valido(cargo):
 def associacao_pode_implantar_saldo(associacao):
     result = None
 
+    periodo_primeira_pc = associacao.periodo_inicial.proximo_periodo if associacao.periodo_inicial else None
+
     if not associacao.periodo_inicial:
         result = {
             'permite_implantacao': False,
@@ -79,7 +81,9 @@ def associacao_pode_implantar_saldo(associacao):
             'mensagem': 'Período inicial não foi definido para essa associação. Verifique com o administrador.'
         }
 
-    if associacao.prestacoes_de_conta_da_associacao.exists():
+    if associacao.prestacoes_de_conta_da_associacao.exclude(
+        Q(periodo=periodo_primeira_pc) & Q(status='DEVOLVIDA')
+    ).exists():
         result = {
             'permite_implantacao': False,
             'erro': 'prestacao_de_contas_existente',
