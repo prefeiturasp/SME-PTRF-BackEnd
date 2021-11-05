@@ -1,5 +1,5 @@
 from decimal import Decimal
-
+from django.db.models import Q
 from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (APLICACAO_CAPITAL, APLICACAO_CUSTEIO,
                                                                      APLICACAO_LIVRE)
 from ..models import FechamentoPeriodo, AcaoAssociacao, ContaAssociacao
@@ -42,7 +42,11 @@ def implanta_saldos_da_associacao(associacao, saldos):
             'mensagem': 'Período inicial não foi definido para essa associação. Verifique com o administrador.',
         }
 
-    if associacao.prestacoes_de_conta_da_associacao.exists():
+    periodo_primeira_pc = associacao.periodo_inicial.proximo_periodo if associacao.periodo_inicial else None
+
+    if associacao.prestacoes_de_conta_da_associacao.exclude(
+        Q(periodo=periodo_primeira_pc) & Q(status='DEVOLVIDA')
+    ).exists():
         return {
             'saldo_implantado': False,
             'codigo_erro': 'prestacao_de_contas_existente',

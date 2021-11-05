@@ -458,6 +458,28 @@ def prestacao_conta_iniciada(periodo_2020_1, associacao):
 
 
 @pytest.fixture
+def prestacao_conta_devolvida(periodo, associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo,
+        associacao=associacao,
+        status=PrestacaoConta.STATUS_DEVOLVIDA
+    )
+
+
+@pytest.fixture
+def prestacao_conta_devolvida_posterior(periodo_futuro, associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_futuro,
+        associacao=associacao,
+        status=PrestacaoConta.STATUS_DEVOLVIDA
+    )
+
+
+
+
+@pytest.fixture
 def fechamento_periodo_anterior(periodo_anterior, associacao, conta_associacao, acao_associacao, ):
     return baker.make(
         'FechamentoPeriodo',
