@@ -67,3 +67,31 @@ def cargo_diretoria_executiva_valido(cargo):
     from sme_ptrf_apps.core.choices.membro_associacao import MembroEnum
     cargos_diretoria_executiva = [key[0] for key in MembroEnum.diretoria_executiva_choices()]
     return cargo in cargos_diretoria_executiva
+
+
+def associacao_pode_implantar_saldo(associacao):
+    result = None
+
+    if not associacao.periodo_inicial:
+        result = {
+            'permite_implantacao': False,
+            'erro': 'periodo_inicial_nao_definido',
+            'mensagem': 'Período inicial não foi definido para essa associação. Verifique com o administrador.'
+        }
+
+    if associacao.prestacoes_de_conta_da_associacao.exists():
+        result = {
+            'permite_implantacao': False,
+            'erro': 'prestacao_de_contas_existente',
+            'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
+        }
+
+    if not result:
+        result = {
+            'permite_implantacao': True,
+            'erro': '',
+            'mensagem': 'Os saldos podem ser implantados normalmente.'
+        }
+
+    return result
+
