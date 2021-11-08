@@ -20,7 +20,7 @@
     content: counter(page) "/" counter(pages);
     font-size: 9pt;
     padding: 0 1cm;
-    margin: 0;
+    margin: 1.4cm 0;
     font-weight: bold;
     font-style: italic;
   }
@@ -34,7 +34,7 @@
     content: element(nome-associacao);
     font-size: 9pt;
     padding: 0 1cm;
-    margin: 0;
+    margin: 1.5cm 0;
     font-style: normal;
   }
 }

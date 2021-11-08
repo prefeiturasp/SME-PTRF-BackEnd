@@ -55,6 +55,43 @@ def test_get_permite_implantacao_com_prestacao_contas(jwt_authenticated_client_a
     assert result == esperado
 
 
+def test_get_permite_implantacao_com_prestacao_contas_devolvida(jwt_authenticated_client_a, associacao,
+                                                                periodo_anterior, prestacao_conta_devolvida,
+                                                                acao_associacao_role_cultural, conta_associacao):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/permite-implantacao-saldos/',
+                                              content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'permite_implantacao': True,
+        'erro': '',
+        'mensagem': 'Os saldos podem ser implantados normalmente.'
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
+
+
+def test_get_permite_implantacao_com_prestacao_contas_devolvida_periodo_posterior(jwt_authenticated_client_a,
+                                                                                  associacao,
+                                                                                  periodo_anterior,
+                                                                                  prestacao_conta_devolvida_posterior,
+                                                                                  acao_associacao_role_cultural,
+                                                                                  conta_associacao):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/permite-implantacao-saldos/',
+                                              content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'permite_implantacao': False,
+        'erro': 'prestacao_de_contas_existente',
+        'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
+
+
 def test_retrieve_implanta_saldos_saldos_ainda_nao_implantados(jwt_authenticated_client_a, associacao, periodo_anterior):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/implantacao-saldos/',
                           content_type='application/json')
@@ -126,6 +163,83 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados(jwt_authenticated_client
     }
 
     assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
+
+
+def test_retrieve_implanta_saldos_saldos_ja_implantados_com_pc_devolvida(jwt_authenticated_client_a, associacao,
+                                                                         periodo_anterior,
+                                                                         fechamento_periodo_anterior_role_implantado,
+                                                                         acao_associacao_role_cultural,
+                                                                         conta_associacao,
+                                                                         prestacao_conta_devolvida
+                                                                         ):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/implantacao-saldos/',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'associacao': f'{associacao.uuid}',
+        'periodo': {
+            'referencia': '2019.1',
+            'data_inicio_realizacao_despesas': '2019-01-01',
+            'data_fim_realizacao_despesas': '2019-08-31',
+            'referencia_por_extenso': '1° repasse de 2019',
+            'uuid': f'{periodo_anterior.uuid}'
+        },
+        'saldos': [
+            {
+                'acao_associacao': {
+                    'id': acao_associacao_role_cultural.id,
+                    'uuid': f'{acao_associacao_role_cultural.uuid}',
+                    'nome': acao_associacao_role_cultural.acao.nome,
+                    'e_recursos_proprios': False
+                },
+                'conta_associacao': {
+                    'uuid': f'{conta_associacao.uuid}',
+                    'nome': f'{conta_associacao.tipo_conta.nome}'
+                },
+                'aplicacao': 'CAPITAL',
+                'saldo': 1000.0
+            },
+            {
+                'acao_associacao': {
+                    'id': acao_associacao_role_cultural.id,
+                    'uuid': f'{acao_associacao_role_cultural.uuid}',
+                    'nome': acao_associacao_role_cultural.acao.nome,
+                    'e_recursos_proprios': False
+                },
+                'conta_associacao': {
+                    'uuid': f'{conta_associacao.uuid}',
+                    'nome': f'{conta_associacao.tipo_conta.nome}'
+                },
+                'aplicacao': 'CUSTEIO',
+                'saldo': 2000.0
+            }
+        ],
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
+
+
+def test_retrieve_implanta_saldos_saldos_ja_implantados_com_pc_devolvida_posterior(jwt_authenticated_client_a,
+                                                                                   associacao,
+                                                                                   periodo_anterior,
+                                                                                   fechamento_periodo_anterior_role_implantado,
+                                                                                   acao_associacao_role_cultural,
+                                                                                   conta_associacao,
+                                                                                   prestacao_conta_devolvida_posterior
+                                                                                   ):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/implantacao-saldos/',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'erro': 'prestacao_de_contas_existente',
+        'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
+    }
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result == esperado
 
 

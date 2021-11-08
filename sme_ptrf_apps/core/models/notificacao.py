@@ -102,10 +102,10 @@ class Notificacao(ModeloBase):
 
     usuario = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, default='', blank=True, null=True)
 
-    unidade = models.ForeignKey('Unidade', on_delete=models.SET_NULL, related_name="notificacoes_da_unidade",
+    unidade = models.ForeignKey('Unidade', on_delete=models.CASCADE, related_name="notificacoes_da_unidade",
                                 to_field="codigo_eol", blank=True, null=True)
 
-    prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.SET_NULL,
+    prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE,
                                         related_name='notificacoes_da_prestacao', blank=True, null=True)
 
     class Meta:

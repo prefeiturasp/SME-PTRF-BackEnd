@@ -3,8 +3,6 @@ import logging
 from django.db import transaction
 from django.db.models import Q, Sum
 
-from .demonstrativo_financeiro_xlsx_service import (gerar_arquivo_demonstrativo_financeiro_xlsx,
-                                                    apagar_previas_demonstrativo_financeiro)
 from ..models import (
     PrestacaoConta,
     FechamentoPeriodo,
@@ -137,6 +135,10 @@ def _criar_previa_demonstrativo_financeiro(acoes, conta, periodo, usuario):
 def _criar_previa_relacao_de_bens(conta, periodo, usuario):
     logger.info(f'Criando prévia de demonstrativo financeiro do período {periodo} e conta {conta}...')
     gerar_arquivo_relacao_de_bens(periodo=periodo, conta_associacao=conta, previa=True, usuario=usuario)
+
+
+def apagar_previas_demonstrativo_financeiro(periodo, conta_associacao):
+    DemonstrativoFinanceiro.objects.filter(periodo_previa=periodo, conta_associacao=conta_associacao).delete()
 
 
 def _apagar_previas_documentos(contas, periodo, prestacao):
@@ -378,21 +380,21 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
         status=DemonstrativoFinanceiro.STATUS_EM_PROCESSAMENTO,
     )
 
-    logger.info(f'Gerando demonstrativo financeiro em XLSX da conta {conta_associacao}.')
-
     try:
         observacao_conciliacao = ObservacaoConciliacao.objects.get(periodo__uuid=periodo.uuid, conta_associacao__uuid=conta_associacao.uuid)
     except Exception:
         observacao_conciliacao = None
 
-    if criar_arquivos:
-        demonstrativo = gerar_arquivo_demonstrativo_financeiro_xlsx(acoes=acoes, periodo=periodo,
-                                                                    conta_associacao=conta_associacao,
-                                                                    prestacao=prestacao,
-                                                                    previa=previa,
-                                                                    demonstrativo_financeiro=demonstrativo,
-                                                                    observacao_conciliacao=observacao_conciliacao,
-                                                                    )
+    # TODO Remover Excel
+    # if criar_arquivos:
+    #     logger.info(f'Gerando demonstrativo financeiro em XLSX da conta {conta_associacao}.')
+    #     demonstrativo = gerar_arquivo_demonstrativo_financeiro_xlsx(acoes=acoes, periodo=periodo,
+    #                                                                 conta_associacao=conta_associacao,
+    #                                                                 prestacao=prestacao,
+    #                                                                 previa=previa,
+    #                                                                 demonstrativo_financeiro=demonstrativo,
+    #                                                                 observacao_conciliacao=observacao_conciliacao,
+    #                                                                 )
 
     logger.info(f'Gerando demonstrativo financeiro em PDF da conta {conta_associacao}.')
     dados_demonstrativo = gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao,
