@@ -40,7 +40,8 @@ from .models import (
     TipoDocumentoPrestacaoConta,
     TipoAcertoDocumento,
     AnaliseDocumentoPrestacaoConta,
-    SolicitacaoAcertoDocumento
+    SolicitacaoAcertoDocumento,
+    PresenteAta
 )
 
 admin.site.register(Acao)
@@ -631,3 +632,8 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
     search_fields = ['uuid']
     list_filter = ['tipo_acerto', ]
     readonly_fields = ('uuid', 'id',)
+
+
+@admin.register(PresenteAta)
+class PresenteAtaAdmin(admin.ModelAdmin):
+    list_display = ['uuid', 'ata', 'identificacao', 'nome', 'cargo', 'membro']
