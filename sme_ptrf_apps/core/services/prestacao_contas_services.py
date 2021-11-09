@@ -20,7 +20,10 @@ from ..models import (
     AnaliseDocumentoPrestacaoConta,
     ContaAssociacao,
     TipoAcertoDocumento,
-    SolicitacaoAcertoDocumento
+    SolicitacaoAcertoDocumento,
+    Ata,
+    PresenteAta,
+    MembroAssociacao
 )
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
@@ -255,6 +258,15 @@ def informacoes_financeiras_para_atas(prestacao_contas):
                 'totais': totaliza_info_acoes(info_acoes),
             }
         )
+
+    ata = Ata.objects.filter(prestacao_conta=prestacao_contas).first()
+    presentes_ata = PresenteAta.objects.filter(ata=ata).first()
+    print(presentes_ata)
+
+    conselheiro_1 = MembroAssociacao.objects.filter(associacao=prestacao_contas.associacao).filter(cargo_associacao="CONSELHEIRO_1")
+    print(conselheiro_1)
+
+
 
     info = {
         'uuid': prestacao_contas.uuid,

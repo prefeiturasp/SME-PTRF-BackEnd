@@ -9,6 +9,8 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+from .presentes_ata import PresenteAta
+
 
 class Ata(ModeloBase):
     history = AuditlogHistoryField()
@@ -126,15 +128,15 @@ class Ata(ModeloBase):
 
     local_reuniao = models.CharField('local da reunião', max_length=200, blank=True, default='')
 
-    presidente_reuniao = models.CharField('presidente da reunião', max_length=200, blank=True, default='')
-
-    cargo_presidente_reuniao = models.CharField('cargo do presidente da reunião', max_length=200, blank=True,
-                                                default='')
-
-    secretario_reuniao = models.CharField('secretario da reunião', max_length=200, blank=True, default='')
-
-    cargo_secretaria_reuniao = models.CharField('cargo da secretária da reunião', max_length=200, blank=True,
-                                                default='')
+    # presidente_reuniao = models.CharField('presidente da reunião', max_length=200, blank=True, default='')
+    #
+    # cargo_presidente_reuniao = models.CharField('cargo do presidente da reunião', max_length=200, blank=True,
+    #                                             default='')
+    #
+    # secretario_reuniao = models.CharField('secretario da reunião', max_length=200, blank=True, default='')
+    #
+    # cargo_secretaria_reuniao = models.CharField('cargo da secretária da reunião', max_length=200, blank=True,
+    #                                             default='')
 
     comentarios = models.TextField('Manifestações, comentários e justificativas', blank=True, default='')
 
@@ -155,12 +157,26 @@ class Ata(ModeloBase):
 
     @classmethod
     def iniciar(cls, prestacao_conta, retificacao=False):
-        return Ata.objects.create(
+        ata = Ata.objects.create(
             prestacao_conta=prestacao_conta,
             periodo=prestacao_conta.periodo,
             associacao=prestacao_conta.associacao,
             tipo_ata='RETIFICACAO' if retificacao else 'APRESENTACAO'
         )
+
+        presente_ata = PresenteAta.objects.create(
+            ata=ata
+        )
+
+        return ata
+
+
+        # return Ata.objects.create(
+        #     prestacao_conta=prestacao_conta,
+        #     periodo=prestacao_conta.periodo,
+        #     associacao=prestacao_conta.associacao,
+        #     tipo_ata='RETIFICACAO' if retificacao else 'APRESENTACAO'
+        # )
 
     def __str__(self):
         return f"Ata {self.periodo.referencia} - {self.ATA_NOMES[self.tipo_ata]} - {self.data_reuniao}"
