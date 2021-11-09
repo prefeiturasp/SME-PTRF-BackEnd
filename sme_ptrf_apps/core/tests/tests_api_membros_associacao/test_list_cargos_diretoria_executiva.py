@@ -21,7 +21,7 @@ def test_api_list_cargos_diretoria_executiva(jwt_authenticated_client_a):
         },
         {
             "id": "SECRETARIO",
-            "nome": "Secretario"
+            "nome": "Secretário"
         },
         {
             "id": "TESOUREIRO",
