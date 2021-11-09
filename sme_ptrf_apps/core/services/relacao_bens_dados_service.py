@@ -53,13 +53,27 @@ def cria_identificacao_apm(conta_associacao):
     """BLOCO 1 - IDENTIFICAÇÃO DA APM/APMSUAC DA UNIDADE EDUCACIONAL DOCUMENTO EM PDF RELACAO DE BENS """
     associacao = conta_associacao.associacao
 
+    status_presidente_associacao = associacao.status_presidente
+    cargo_substituto_presidente_ausente_name = associacao.cargo_substituto_presidente_ausente
+
     nome_associacao = associacao.nome
     cnpj_associacao = associacao.cnpj
     codigo_eol_associacao = associacao.unidade.codigo_eol or ""
     nome_dre_associacao = associacao.unidade.dre.nome if associacao.unidade.dre else ""
-    _presidente_diretoria_executiva = MembroAssociacao.objects.filter(associacao=associacao,
-                                                                     cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
-    presidente_diretoria_executiva = _presidente_diretoria_executiva.nome if _presidente_diretoria_executiva else ''
+
+    if status_presidente_associacao == 'PRESENTE':
+        _presidente_diretoria_executiva = \
+            MembroAssociacao.objects.filter(associacao=associacao,
+                                            cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
+        cargo_substituto_presidente_ausente_value = MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value
+    else:
+        _presidente_diretoria_executiva = \
+            MembroAssociacao.objects.filter(associacao=associacao, cargo_associacao=MembroEnum[
+                cargo_substituto_presidente_ausente_name].name).first()
+        cargo_substituto_presidente_ausente_value = MembroEnum[cargo_substituto_presidente_ausente_name].value
+
+    presidente_diretoria_executiva = _presidente_diretoria_executiva.nome if _presidente_diretoria_executiva else '-------'
+
     tipo_unidade = associacao.unidade.tipo_unidade
     nome_unidade = associacao.unidade.nome
 
@@ -71,6 +85,7 @@ def cria_identificacao_apm(conta_associacao):
         "presidente_diretoria_executiva": presidente_diretoria_executiva,
         "tipo_unidade": tipo_unidade,
         "nome_unidade": nome_unidade,
+        "cargo_substituto_presidente_ausente": cargo_substituto_presidente_ausente_value,
     }
 
     return identificacao_apm
