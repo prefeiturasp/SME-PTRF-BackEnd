@@ -1,3 +1,6 @@
+### 1.21.4 - 09/11/2021 - Hotfix
+* (51942) - Demonstrativo Financeiro PDF - Correção do cálculo da coluna 19
+
 ### 1.21.3 - 03/11/2021 - Hotfix
 * (52511) - Demonstrativo Financeiro PDF - Redistribuição das linhas do bloco 3 colunas 15, 16 e 18
 
