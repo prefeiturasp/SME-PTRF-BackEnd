@@ -16,13 +16,17 @@ from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (APLICACAO_C
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao, prestacao, observacao_conciliacao, previa=False):
+def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao, prestacao, observacao_conciliacao,
+                                         previa=False):
     try:
         LOGGER.info("GERANDO DADOS DEMONSTRATIVO...")
         rateios_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
             conta_associacao=conta_associacao, periodo=periodo, conferido=True).order_by('despesa__data_transacao')
 
-        rateios_nao_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(conta_associacao=conta_associacao, periodo=periodo, conferido=False).order_by('despesa__data_transacao')
+        rateios_nao_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(conta_associacao=conta_associacao,
+                                                                                      periodo=periodo,
+                                                                                      conferido=False).order_by(
+            'despesa__data_transacao')
 
         rateios_nao_conferidos_periodos_anteriores = RateioDespesa.rateios_da_conta_associacao_em_periodos_anteriores(
             conta_associacao=conta_associacao, periodo=periodo, conferido=False).order_by('despesa__data_transacao')
@@ -113,23 +117,34 @@ def cria_identificacao_apm(acoes):
     acao_associacao = acoes[0]
     associacao = acao_associacao.associacao
 
+    status_presidente_associacao = associacao.status_presidente
+    cargo_substituto_presidente_ausente_name = associacao.cargo_substituto_presidente_ausente
+
     nome_associacao = associacao.nome
     cnpj_associacao = associacao.cnpj
     codigo_eol_associacao = associacao.unidade.codigo_eol or ""
     nome_dre_associacao = formata_nome_dre(associacao)
     tipo_unidade = associacao.unidade.tipo_unidade
     nome_unidade = associacao.unidade.nome
+    _presidente_diretoria_executiva = ''
 
-    _presidente_diretoria_executiva = \
-        MembroAssociacao.objects.filter(associacao=associacao,
-                                        cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
+    if status_presidente_associacao == 'PRESENTE':
+        _presidente_diretoria_executiva = \
+            MembroAssociacao.objects.filter(associacao=associacao,
+                                            cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
+        cargo_substituto_presidente_ausente_value = MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value
+    else:
+        _presidente_diretoria_executiva = \
+            MembroAssociacao.objects.filter(associacao=associacao, cargo_associacao=MembroEnum[
+                cargo_substituto_presidente_ausente_name].name).first()
+        cargo_substituto_presidente_ausente_value = MembroEnum[cargo_substituto_presidente_ausente_name].value
 
     _presidente_conselho_fiscal = \
         MembroAssociacao.objects.filter(associacao=associacao,
                                         cargo_associacao=MembroEnum.PRESIDENTE_CONSELHO_FISCAL.name).first()
 
-    presidente_diretoria_executiva = _presidente_diretoria_executiva.nome if _presidente_diretoria_executiva else ''
-    presidente_conselho_fiscal = _presidente_conselho_fiscal.nome if _presidente_conselho_fiscal else ''
+    presidente_diretoria_executiva = _presidente_diretoria_executiva.nome if _presidente_diretoria_executiva else '-------'
+    presidente_conselho_fiscal = _presidente_conselho_fiscal.nome if _presidente_conselho_fiscal else '-------'
 
     identificacao_apm = {
         "nome_associacao": nome_associacao,
@@ -139,7 +154,8 @@ def cria_identificacao_apm(acoes):
         "tipo_unidade": tipo_unidade,
         "nome_unidade": nome_unidade,
         "presidente_diretoria_executiva": presidente_diretoria_executiva,
-        "presidente_conselho_fiscal": presidente_conselho_fiscal
+        "presidente_conselho_fiscal": presidente_conselho_fiscal,
+        "cargo_substituto_presidente_ausente": cargo_substituto_presidente_ausente_value,
     }
 
     return identificacao_apm
@@ -150,7 +166,8 @@ def cria_identificacao_conta(conta_associacao, observacao_conciliacao):
         "banco": conta_associacao.banco_nome,
         "agencia": conta_associacao.agencia,
         "conta": conta_associacao.numero_conta,
-        "data_extrato": observacao_conciliacao.data_extrato.strftime("%d/%m/%Y") if observacao_conciliacao and observacao_conciliacao.data_extrato else "",
+        "data_extrato": observacao_conciliacao.data_extrato.strftime(
+            "%d/%m/%Y") if observacao_conciliacao and observacao_conciliacao.data_extrato else "",
         "saldo_extrato": observacao_conciliacao.saldo_extrato if observacao_conciliacao and observacao_conciliacao.saldo_extrato else 0
     }
 
@@ -295,7 +312,6 @@ def sintese_receita_despesa(acao_associacao, conta_associacao, periodo, fechamen
     valor_total_reprogramado_proximo = valor_total_reprogramado_proximo + \
                                        valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else valor_total_reprogramado_proximo
 
-
     subtotal_saldo_bancario = linha_custeio['valor_saldo_bancario_custeio'] + linha_capital[
         'valor_saldo_bancario_capital'] + linha_livre['valor_saldo_reprogramado_proximo_periodo_livre']
 
@@ -433,7 +449,8 @@ def sintese_custeio(acao_associacao, conta_associacao, periodo, fechamento_perio
     totalizador['credito']['C'] += valor_custeio_receitas_demonstradas
     totalizador['despesa_realizada']['C'] += valor_custeio_rateios_demonstrados
     totalizador['despesa_nao_realizada']['C'] += valor_custeio_rateios_nao_demonstrados
-    totalizador['despesa_nao_demostrada_outros_periodos']['C'] += valor_custeio_rateios_nao_demonstrados_periodos_anteriores
+    totalizador['despesa_nao_demostrada_outros_periodos'][
+        'C'] += valor_custeio_rateios_nao_demonstrados_periodos_anteriores
     totalizador['saldo_reprogramado_proximo']['C'] += saldo_reprogramado_proximo
     totalizador['valor_saldo_reprogramado_proximo_periodo']['C'] += valor_saldo_reprogramado_proximo_periodo_custeio
     totalizador['valor_saldo_bancario']['C'] += valor_saldo_bancario_custeio
@@ -744,7 +761,7 @@ def tem_movimentacao(resumo_acao):
         resumo_acao["linha_custeio"]["despesa_realizada"] != '' else 0
 
     soma_absoluta_custeio = valor_absoluto_linha_custeio_saldo_anterior + valor_absoluto_linha_custeio_credito \
-        + valor_absoluto_linha_custeio_despesa
+                            + valor_absoluto_linha_custeio_despesa
 
     # Calcula valor absoluto de capital
     valor_absoluto_linha_capital_saldo_anterior = abs(resumo_acao["linha_capital"]["saldo_anterior"]) if \
@@ -757,7 +774,7 @@ def tem_movimentacao(resumo_acao):
         resumo_acao["linha_capital"]["despesa_realizada"] != '' else 0
 
     soma_absoluta_capital = valor_absoluto_linha_capital_saldo_anterior + valor_absoluto_linha_capital_credito \
-        + valor_absoluto_linha_capital_despesa
+                            + valor_absoluto_linha_capital_despesa
 
     # Calcula valor absoluto de livre
     valor_absoluto_linha_livre_saldo_anterior = abs(resumo_acao["linha_livre"]["saldo_anterior"]) if \

@@ -1,11 +1,6 @@
-{
-%
-load
-static
-%
-}
-
 @charset "UTF-8";
+
+{% load static %}
 
 @font-face {
   font-family: Roboto;
@@ -28,16 +23,16 @@ static
     padding: 0 1cm;
     margin: -2mm -10mm 0 0;
     font-weight: bold;
-    font-style: italic;
+    font-style: normal;
   }
 
   @bottom-left {
     color: #000;
-    /*content: counter(page) "/" counter(pages);*/
     content: element(nome-associacao);
     font-size: 9pt;
     padding: 0 1cm;
     margin: -2mm 0 0 -10mm;
+    font-style: normal;
   }
 }
 
@@ -46,6 +41,11 @@ html {
   font-style: normal;
   font-weight: normal;
   font-size: 10pt;
+}
+
+body {
+  font-family: Roboto;
+  font-style: normal;
 }
 
 html body section#cabecalho, header {
@@ -71,6 +71,8 @@ header {
 }
 #nome-associacao-rodape {
   position: running(nome-associacao);
+  font-style: normal;
+  color: #000;
 }
 
 .divisao {
