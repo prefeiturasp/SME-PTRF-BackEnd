@@ -16,7 +16,7 @@ from .associacao_serializer import (
     AssociacaoCompletoSerializer,
     AssociacaoListSerializer
 )
-from .ata_serializer import AtaLookUpSerializer, AtaSerializer
+from .ata_serializer import AtaLookUpSerializer, AtaSerializer, AtaCreateSerializer
 from .conta_associacao_serializer import (
     ContaAssociacaoInfoAtaSerializer,
     ContaAssociacaoLookUpSerializer,
@@ -43,3 +43,4 @@ from .analise_lancamento_prestacao_conta_serializer import AnaliseLancamentoPres
 from .solicitacao_acerto_documento_serializer import SolicitacaoAcertoDocumentoRetrieveSerializer
 from .analise_documento_prestacao_conta_serializer import AnaliseDocumentoPrestacaoContaRetrieveSerializer
 from .tipo_documento_prestacao_conta_serializer import TipoDocumentoPrestacaoContaSerializer
+from .presentes_ata_serializer import PresentesAtaSerializer, PresentesAtaCreateSerializer
