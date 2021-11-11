@@ -202,6 +202,7 @@ def cria_resumo_por_acao(acoes, conta_associacao, periodo):
                                         (K): linha_capital.saldo_reprogramado_proximo
                                         (L): linha_livre.saldo_reprogramado_proximo
                                         (T): total_valores
+                                        (*): 13+14-15-16
 
             18-Despesas Ñ Demonstr.Ant. (C): linha_custeio.despesa_nao_demostrada_outros_periodos
                                         (K): linha_capital.despesa_nao_demostrada_outros_periodos
@@ -211,6 +212,7 @@ def cria_resumo_por_acao(acoes, conta_associacao, periodo):
                                         (K): linha_capital.valor_saldo_bancario_capital
                                         (L): linha_livre.saldo_reprogramado_proximo  (mesmo da coluna 17)
                                         (T): saldo_bancario
+                                        (*): 16+17+18
 
         total_valores (Totais):
 
@@ -417,9 +419,13 @@ def sintese_custeio(acao_associacao, conta_associacao, periodo, fechamento_perio
 
         despesa_nao_demostrada_outros_periodos = valor_custeio_rateios_nao_demonstrados_periodos_anteriores
 
-        valor_saldo_bancario_custeio = (valor_saldo_reprogramado_proximo_periodo_custeio +
-                                        valor_custeio_rateios_nao_demonstrados +
-                                        valor_custeio_rateios_nao_demonstrados_periodos_anteriores)
+        # valor_saldo_bancario_custeio = (valor_saldo_reprogramado_proximo_periodo_custeio +
+        #                                 valor_custeio_rateios_nao_demonstrados +
+        #                                 valor_custeio_rateios_nao_demonstrados_periodos_anteriores)
+
+        valor_saldo_bancario_custeio = (despesa_nao_realizada +
+                                        saldo_reprogramado_proximo +
+                                        despesa_nao_demostrada_outros_periodos)
 
         valor_saldo_bancario_custeio = valor_saldo_bancario_custeio if valor_saldo_bancario_custeio > 0 else 0
 
@@ -484,13 +490,13 @@ def sintese_capital(acao_associacao, conta_associacao, periodo, fechamento_perio
     valor_capital_rateios_nao_demonstrados = rateios_nao_conferidos_capital['valor'] or 0
     valor_capital_rateios_nao_demonstrados_outros_periodos = rateios_nao_conferidos_outros_periodos['valor'] or 0
 
-    saldo_anterior = ""
-    credito = ""
-    despesa_realizada = ""
-    despesa_nao_realizada = ""
-    despesa_nao_demostrada_outros_periodos = ""
-    saldo_reprogramado_proximo = ""
-    saldo_bancario = ""
+    saldo_anterior = 0
+    credito = 0
+    despesa_realizada = 0
+    despesa_nao_realizada = 0
+    despesa_nao_demostrada_outros_periodos = 0
+    saldo_reprogramado_proximo = 0
+    saldo_bancario = 0
     valor_saldo_reprogramado_proximo_periodo_capital = 0
     valor_saldo_bancario_capital = 0
 
@@ -508,9 +514,12 @@ def sintese_capital(acao_associacao, conta_associacao, periodo, fechamento_perio
                                       if valor_saldo_reprogramado_proximo_periodo_capital > 0 else 0)
 
         despesa_nao_demostrada_outros_periodos = valor_capital_rateios_nao_demonstrados_outros_periodos
-        valor_saldo_bancario_capital = (valor_saldo_reprogramado_proximo_periodo_capital +
-                                        valor_capital_rateios_nao_demonstrados +
-                                        valor_capital_rateios_nao_demonstrados_outros_periodos)
+        # valor_saldo_bancario_capital = (valor_saldo_reprogramado_proximo_periodo_capital +
+        #                                 valor_capital_rateios_nao_demonstrados +
+        #                                 valor_capital_rateios_nao_demonstrados_outros_periodos)
+        valor_saldo_bancario_capital = (despesa_nao_realizada +
+                                        saldo_reprogramado_proximo +
+                                        despesa_nao_demostrada_outros_periodos)
 
         valor_saldo_bancario_capital = valor_saldo_bancario_capital if valor_saldo_bancario_capital > 0 else 0
 
