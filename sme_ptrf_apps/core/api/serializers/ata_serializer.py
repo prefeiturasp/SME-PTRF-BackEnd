@@ -70,7 +70,6 @@ class AtaSerializer(serializers.ModelSerializer):
 
 
 class AtaCreateSerializer(serializers.ModelSerializer):
-    log.info(f"cheguei aqui")
     nome = serializers.SerializerMethodField('get_nome_ata')
     associacao = AssociacaoInfoAtaSerializer(many=False)
     periodo = PeriodoLookUpSerializer(many=False)

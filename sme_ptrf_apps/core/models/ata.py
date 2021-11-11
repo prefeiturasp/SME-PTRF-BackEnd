@@ -128,15 +128,15 @@ class Ata(ModeloBase):
 
     local_reuniao = models.CharField('local da reunião', max_length=200, blank=True, default='')
 
-    # presidente_reuniao = models.CharField('presidente da reunião', max_length=200, blank=True, default='')
-    #
-    # cargo_presidente_reuniao = models.CharField('cargo do presidente da reunião', max_length=200, blank=True,
-    #                                             default='')
-    #
-    # secretario_reuniao = models.CharField('secretario da reunião', max_length=200, blank=True, default='')
-    #
-    # cargo_secretaria_reuniao = models.CharField('cargo da secretária da reunião', max_length=200, blank=True,
-    #                                             default='')
+    presidente_reuniao = models.CharField('presidente da reunião', max_length=200, blank=True, default='')
+
+    cargo_presidente_reuniao = models.CharField('cargo do presidente da reunião', max_length=200, blank=True,
+                                                default='')
+
+    secretario_reuniao = models.CharField('secretario da reunião', max_length=200, blank=True, default='')
+
+    cargo_secretaria_reuniao = models.CharField('cargo da secretária da reunião', max_length=200, blank=True,
+                                                default='')
 
     comentarios = models.TextField('Manifestações, comentários e justificativas', blank=True, default='')
 
