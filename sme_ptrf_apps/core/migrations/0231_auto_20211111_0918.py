@@ -4,30 +4,9 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('core', '0230_auto_20211111_0911'),
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='ata',
-            name='cargo_presidente_reuniao',
-            field=models.CharField(blank=True, default='', max_length=200, verbose_name='cargo do presidente da reunião'),
-        ),
-        migrations.AddField(
-            model_name='ata',
-            name='cargo_secretaria_reuniao',
-            field=models.CharField(blank=True, default='', max_length=200, verbose_name='cargo da secretária da reunião'),
-        ),
-        migrations.AddField(
-            model_name='ata',
-            name='presidente_reuniao',
-            field=models.CharField(blank=True, default='', max_length=200, verbose_name='presidente da reunião'),
-        ),
-        migrations.AddField(
-            model_name='ata',
-            name='secretario_reuniao',
-            field=models.CharField(blank=True, default='', max_length=200, verbose_name='secretario da reunião'),
-        ),
     ]
