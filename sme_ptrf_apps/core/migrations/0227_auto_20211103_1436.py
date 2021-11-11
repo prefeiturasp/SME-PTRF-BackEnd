@@ -4,26 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('core', '0226_auto_20211103_1139'),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='ata',
-            name='cargo_presidente_reuniao',
-        ),
-        migrations.RemoveField(
-            model_name='ata',
-            name='cargo_secretaria_reuniao',
-        ),
-        migrations.RemoveField(
-            model_name='ata',
-            name='presidente_reuniao',
-        ),
-        migrations.RemoveField(
-            model_name='ata',
-            name='secretario_reuniao',
-        ),
     ]
