@@ -10,7 +10,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
         integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
-  <link href="{{ base_static_url }}/css/ata-pdf.css" rel="stylesheet">
+    <link href="{{ base_static_url }}/css/ata-pdf.css" rel="stylesheet">
+
   <title>Ata PTRF</title>
 </head>
 <body>
@@ -24,7 +25,8 @@
     <div class="col-5 d-flex align-items-center justify-content-center ml-3">
       <p class="mb-0 bottom-left">
         <span class="titulo font-14"><strong>{{ dados.cabecalho.titulo }}</strong></span><br/>
-        <span class="font-12 mb-0"><strong>{{ dados.cabecalho.subtitulo }} - </strong>Ata de {{ dados.dados_da_ata.get_tipo_ata_display }}</span>
+        <span
+          class="font-12 mb-0"><strong>{{ dados.cabecalho.subtitulo }} - </strong>Ata de {{ dados.dados_da_ata.get_tipo_ata_display }}</span>
       </p>
     </div>
     <div class="col-5 d-flex align-items-center justify-content-end">
@@ -39,7 +41,8 @@
 
 {# ************************* Rodape ************************* #}
 <p id="nome-associacao-rodape" class="font-10">
-  <i>APM DA(O) {{ dados.dados_texto_da_ata.unidade_tipo }} {{ dados.dados_texto_da_ata.unidade_nome }}</i></p>
+  <i>Ata PDF gerada pelo Sig_Escola em {% now "j/m/Y" %} pelo usuário {{ dados.dados_texto_da_ata.usuario }} para a APM
+    DA(O) {{ dados.dados_texto_da_ata.unidade_tipo }} {{ dados.dados_texto_da_ata.unidade_nome }}</i></p>
 {# ************************* Fim Rodape ************************* #}
 
 <section class="conteudo">
@@ -160,7 +163,8 @@
         <div class="col-12">
           <p class="mb-0 font-10 texto-despesas-titulo"><strong>Despesas de custeio:</strong>
             {% if info.despesas_no_periodo_custeio %}
-              <span class="texto-despesas-valor"> R$ {{ info.despesas_no_periodo_custeio|formata_valor }}</span> {% else %}
+              <span
+                class="texto-despesas-valor"> R$ {{ info.despesas_no_periodo_custeio|formata_valor }}</span> {% else %}
               Não foram realizadas despesas de Custeio no período.{% endif %}</p>
         </div>
         {% for espec in info.especificacoes_despesas_custeio %}
@@ -173,7 +177,8 @@
         <div class="col-12">
           <p class="mb-0 font-10 texto-despesas-titulo"><strong>Despesas de capital:</strong>
             {% if info.despesas_no_periodo_capital %}
-              <span class="texto-despesas-valor"> R$ {{ info.despesas_no_periodo_capital|formata_valor }}</span> {% else %}
+              <span
+                class="texto-despesas-valor"> R$ {{ info.despesas_no_periodo_capital|formata_valor }}</span> {% else %}
               Não foram realizadas despesas de Capital no período.{% endif %}</p>
         </div>
         {% for espec in info.especificacoes_despesas_capital %}
@@ -280,15 +285,13 @@
   {% comment %} Comentários {% endcomment %}
   <p class="mt-4">{{ dados.dados_texto_da_ata.comentarios }}</p>
 
-  {% comment %} Texto dinâmico inferior {% endcomment %}
-  <p class="mt-4">{% parecer_conselho dados.dados_texto_da_ata.parecer_conselho %} Esgotados os assuntos o(a) senhor(a)
-    presidente ofereceu a palavra a quem dela desejasse fazer uso e, como não houve manifestação agradeceu a presença de
-    todos, considerando encerrada a reunião, a qual eu, {{ dados.dados_texto_da_ata.secretario_reuniao }} lavrei a
-    presente ata, que vai por mim assinada e pelos demais presentes.</p>
+  <p class="mt-4">Esgotados os assuntos o(a) senhor(a) presidente ofereceu a palavra a quem dela desejasse fazer uso e, como não houve manifestação agradeceu a presença de todos, considerando encerrada a reunião, a qual eu, {{ dados.dados_texto_da_ata.secretario_reuniao }} lavrei a presente ata, que vai por mim assinada e pelos demais presentes.</p>
+
   {% language 'pt-br' %}
-    <p class="mt-4">São Paulo, dia {{ dados.dados_da_ata.data_reuniao|date:"d" }} de {{ dados.dados_da_ata.data_reuniao|date:"F"|lower }} de {{ dados.dados_da_ata.data_reuniao|date:"Y" }}</p>
+    <p class="mt-4">São Paulo, dia {{ dados.dados_da_ata.data_reuniao|date:"d" }}
+      de {{ dados.dados_da_ata.data_reuniao|date:"F"|lower }} de {{ dados.dados_da_ata.data_reuniao|date:"Y" }}</p>
   {% endlanguage %}
-  {% comment %} FIM Texto dinâmico inferior {% endcomment %}
+
 
   <div class='row mt-5'>
     <div class="col mt-5">
@@ -302,9 +305,85 @@
       <p class="mb-0 text-center">{{ dados.dados_texto_da_ata.cargo_secretaria_reuniao }}</p>
     </div>
   </div>
-  <hr/>
-  <p class="mt-4">Documento gerado pelo Sig_Escola em {% now "j/m/Y" %} pelo
-    usuário {{ dados.dados_texto_da_ata.usuario }}.</p>
+
+
+  <p class="font-12 mt-5 titulo-membros-conselho-fiscal">Presentes</p>
+  <table class="table table-bordered tabela-assinaturas">
+      <thead>
+      <tr>
+        <th scope="col">Nome e cargo</th>
+        <th scope="col">Assinatura</th>
+      </tr>
+      </thead>
+       {% for info in dados.presentes_na_ata.presentes_ata_membros %}
+        <tbody>
+          <tr>
+            <td>
+              <p class='mb-0'><strong>{{ info.nome }}</strong></p>
+              <p class='mb-0'>{{ info.cargo }}</p>
+            </td>
+            <td> </td>
+          </tr>
+        </tbody>
+      {% endfor %}
+    </table>
+
+<p class="font-12 mt-5 titulo-membros-conselho-fiscal">DEMAIS PRESENTES</p>
+  <table class="table table-bordered tabela-assinaturas">
+      <thead>
+      <tr>
+        <th scope="col">Nome e cargo</th>
+        <th scope="col">Assinatura</th>
+      </tr>
+      </thead>
+       {% for info in dados.presentes_na_ata.presentes_ata_nao_membros %}
+        <tbody>
+          <tr>
+            <td>
+              <p class='mb-0'><strong>{{ info.nome }}</strong></p>
+              <p class='mb-0'>{{ info.cargo }}</p>
+            </td>
+            <td> </td>
+          </tr>
+        </tbody>
+      {% endfor %}
+    </table>
+
+
+  {% comment %} Texto dinâmico inferior - Parecer do conselho fiscal com quebra de página {% endcomment %}
+  <div id="parecer-do-conselho-fiscal-quebra-de-pagina">
+    <p class="font-12"><strong>PARECER DO CONSELHO FISCAL</strong></p>
+    <p class="mt-4">{% parecer_conselho dados.dados_texto_da_ata.parecer_conselho %}</p>
+
+    {% language 'pt-br' %}
+      <p class="mt-5">São Paulo, dia {{ dados.dados_da_ata.data_reuniao|date:"d" }}
+        de {{ dados.dados_da_ata.data_reuniao|date:"F"|lower }} de {{ dados.dados_da_ata.data_reuniao|date:"Y" }}</p>
+    {% endlanguage %}
+
+    <p class="mt-5 font-12 titulo-membros-conselho-fiscal">Membros do Conselho Fiscal</p>
+
+    <table class="table table-bordered tabela-assinaturas">
+      <thead>
+      <tr>
+        <th scope="col">Nome e cargo</th>
+        <th scope="col">Assinatura</th>
+      </tr>
+      </thead>
+       {% for info in dados.presentes_na_ata.presentes_ata_conselho_fiscal %}
+        <tbody>
+          <tr>
+            <td>
+              <p class='mb-0'><strong>{{ info.nome }}</strong></p>
+              <p class='mb-0'>{{ info.cargo }}</p>
+            </td>
+            <td> </td>
+          </tr>
+        </tbody>
+      {% endfor %}
+    </table>
+
+  </div>
+  {% comment %} FIM Texto dinâmico inferior {% endcomment %}
 
 </section>
 
