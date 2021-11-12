@@ -1338,6 +1338,41 @@ def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
         parecer_conselho='APROVADA'
     )
 
+@pytest.fixture
+def presente_ata_membro(ata_2020_1_cheque_aprovada):
+    return baker.make(
+        'PresenteAta',
+        ata=ata_2020_1_cheque_aprovada,
+        identificacao="123",
+        nome="membro",
+        cargo="teste cargo",
+        membro=True,
+        conselho_fiscal=False
+    )
+
+@pytest.fixture
+def presente_ata_membro_e_conselho_fiscal(ata_2020_1_cheque_aprovada):
+    return baker.make(
+        'PresenteAta',
+        ata=ata_2020_1_cheque_aprovada,
+        identificacao="123",
+        nome="membro",
+        cargo="teste cargo",
+        membro=True,
+        conselho_fiscal=True
+    )
+
+@pytest.fixture
+def presente_ata_nao_membro(ata_2020_1_cheque_aprovada):
+    return baker.make(
+        'PresenteAta',
+        ata=ata_2020_1_cheque_aprovada,
+        identificacao="123",
+        nome="membro",
+        cargo="teste cargo",
+        membro=False,
+        conselho_fiscal=False
+    )
 
 @pytest.fixture
 def ata_2020_1_retificacao(prestacao_conta_2020_1_conciliada):

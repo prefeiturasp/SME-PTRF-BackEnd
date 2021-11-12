@@ -9,10 +9,6 @@ from ...models import Ata, PrestacaoConta
 from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
 
 
-log = logging.getLogger(__name__)
-
-
-
 class AtaLookUpSerializer(serializers.ModelSerializer):
     nome = serializers.SerializerMethodField('get_nome_ata')
     alterado_em = serializers.SerializerMethodField('get_alterado_em')
@@ -58,10 +54,10 @@ class AtaSerializer(serializers.ModelSerializer):
             'convocacao',
             'data_reuniao',
             'local_reuniao',
-            # 'presidente_reuniao',
-            # 'cargo_presidente_reuniao',
-            # 'secretario_reuniao',
-            # 'cargo_secretaria_reuniao',
+            'presidente_reuniao',
+            'cargo_presidente_reuniao',
+            'secretario_reuniao',
+            'cargo_secretaria_reuniao',
             'comentarios',
             'parecer_conselho',
             'retificacoes',
@@ -85,11 +81,9 @@ class AtaCreateSerializer(serializers.ModelSerializer):
         return obj.nome
 
     def create(self, validated_data):
-        log.info(f"validated data: {validated_data}")
         presentes_na_ata = validated_data.pop('presentes_na_ata')
         ata = Ata.objects.create(**validated_data)
 
-        log.info(f"presentes antes de salvar: {presentes_na_ata}")
         presentes_lista = []
         for presente in presentes_na_ata:
             presentes_object = PresentesAtaCreateSerializer().create(presente)
@@ -98,16 +92,11 @@ class AtaCreateSerializer(serializers.ModelSerializer):
 
         ata.presentes_na_ata.set(presentes_lista)
         ata.save()
-        log.info(f"presentes depois de salvar: {presentes_lista}")
-
-        log.info("Criação de ata finalizada!")
 
         return ata
 
     def update(self, instance, validated_data):
-        log.info(f"validated data: {validated_data}")
         presentes_json = validated_data.pop('presentes_na_ata')
-        log.info(f"presentes antes de salvar: {instance.presentes_na_ata.all()}")
         instance.presentes_na_ata.all().delete()
 
         presentes_lista = []
@@ -119,7 +108,6 @@ class AtaCreateSerializer(serializers.ModelSerializer):
         update_instance_from_dict(instance, validated_data)
         instance.presentes_na_ata.set(presentes_lista)
         instance.save()
-        log.info(f"presentes depois de salvar: {presentes_lista}")
 
         return instance
 

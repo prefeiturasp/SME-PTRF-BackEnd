@@ -9,9 +9,12 @@ class PresentesAtaSerializer(serializers.ModelSerializer):
         queryset=Ata.objects.all()
     )
 
+    def editavel(self, obj):
+        return obj.editavel
+
     class Meta:
         model = PresenteAta
-        fields = ('ata', 'identificacao', 'nome', 'cargo', 'membro')
+        fields = ('ata', 'identificacao', 'nome', 'cargo', 'membro', 'editavel')
 
 
 class PresentesAtaCreateSerializer(serializers.ModelSerializer):
