@@ -157,26 +157,12 @@ class Ata(ModeloBase):
 
     @classmethod
     def iniciar(cls, prestacao_conta, retificacao=False):
-        ata = Ata.objects.create(
+        return Ata.objects.create(
             prestacao_conta=prestacao_conta,
             periodo=prestacao_conta.periodo,
             associacao=prestacao_conta.associacao,
             tipo_ata='RETIFICACAO' if retificacao else 'APRESENTACAO'
         )
-
-        presente_ata = PresenteAta.objects.create(
-            ata=ata
-        )
-
-        return ata
-
-
-        # return Ata.objects.create(
-        #     prestacao_conta=prestacao_conta,
-        #     periodo=prestacao_conta.periodo,
-        #     associacao=prestacao_conta.associacao,
-        #     tipo_ata='RETIFICACAO' if retificacao else 'APRESENTACAO'
-        # )
 
     def __str__(self):
         return f"Ata {self.periodo.referencia} - {self.ATA_NOMES[self.tipo_ata]} - {self.data_reuniao}"

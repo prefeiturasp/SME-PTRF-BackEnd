@@ -29,7 +29,6 @@ class AtasViewSet(mixins.RetrieveModelMixin,
     queryset = Ata.objects.all()
     serializer_class = AtaSerializer
 
-
     def get_serializer_class(self):
         if self.action == 'partial_update':
             return AtaCreateSerializer

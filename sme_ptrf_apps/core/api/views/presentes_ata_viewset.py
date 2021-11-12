@@ -1,4 +1,5 @@
 from rest_framework import mixins
+from django_filters import rest_framework as filters
 from rest_framework.viewsets import GenericViewSet
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe
@@ -10,7 +11,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q
 from sme_ptrf_apps.core.choices import MembroEnum, RepresentacaoCargo
-
+from rest_framework import status
+from django.core.exceptions import ValidationError
 
 
 class PresentesAtaViewSet(mixins.CreateModelMixin,
@@ -20,18 +22,37 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
                           mixins.ListModelMixin,
                           GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiUe]
-    lookup_field = 'uuid'
     queryset = PresenteAta.objects.all()
     serializer_class = PresentesAtaSerializer
+    filter_fields = ('ata__uuid',)
+    filter_backends = (filters.DjangoFilterBackend,)
 
     @action(detail=False, url_path='membros-e-nao-membros',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def membros_e_nao_membros(self, request):
         ata_uuid = request.query_params.get('ata_uuid')
+
+        if not ata_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da ata.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            valida_ata = Ata.by_uuid(ata_uuid)
+        except ValidationError:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ata para o uuid {ata_uuid} não foi encontrado na base."
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
         ata = Ata.objects.filter(uuid=ata_uuid).first()
         presentes_ata_membros = PresenteAta.objects.filter(ata=ata).filter(membro=True).values()
         presentes_ata_nao_membros = PresenteAta.objects.filter(ata=ata).filter(membro=False).values()
-        presentes_ata_conselho_fiscal = PresenteAta.objects.filter(ata=ata).filter(membro=True).filter(conselho_fiscal=True).values()
+        presentes_ata_conselho_fiscal = PresenteAta.objects.filter(
+            ata=ata).filter(membro=True).filter(conselho_fiscal=True).values()
 
         result = {
             'presentes_membros': presentes_ata_membros,
@@ -44,33 +65,63 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
     @action(detail=False, url_path='padrao-de-presentes', permission_classes=[IsAuthenticated & PermissaoApiUe])
     def padrao_presentes(self, request):
         ata_uuid = request.query_params.get('ata_uuid')
+
+        if not ata_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da ata.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            valida_ata = Ata.by_uuid(ata_uuid)
+        except ValidationError:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ata para o uuid {ata_uuid} não foi encontrado na base."
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
         ata = Ata.objects.filter(uuid=ata_uuid).first()
 
         membros_associacao = MembroAssociacao.objects.filter(associacao=ata.associacao)
 
-        lista = []
-        for i in membros_associacao:
+        membros = []
+        for membro in membros_associacao:
 
             dado = {
                 "ata": ata_uuid,
-                "cargo": MembroEnum[i.cargo_associacao].value,
-                "identificacao": i.codigo_identificacao if i.codigo_identificacao != "" else i.cpf,
-                "nome": i.nome,
+                "cargo": MembroEnum[membro.cargo_associacao].value,
+                "identificacao": membro.codigo_identificacao if membro.codigo_identificacao != "" else membro.cpf,
+                "nome": membro.nome,
                 "editavel": False,
                 "membro": True
             }
 
-            lista.append(dado)
+            membros.append(dado)
 
-        result = {
-            "membros_associacao": lista
-        }
-
-        return Response(result)
+        return Response(membros)
 
     @action(detail=False, url_path='presentes-padrao-conselho-fiscal', permission_classes=[IsAuthenticated & PermissaoApiUe])
     def presentes_padrao_conselho_fiscal(self, request):
         ata_uuid = request.query_params.get('ata_uuid')
+
+        if not ata_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da ata.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            valida_ata = Ata.by_uuid(ata_uuid)
+        except ValidationError:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ata para o uuid {ata_uuid} não foi encontrado na base."
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
         ata = Ata.objects.filter(uuid=ata_uuid).first()
         membros_associacao = MembroAssociacao.objects.filter(associacao=ata.associacao)
 
@@ -96,6 +147,29 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
     def get_nome_cargo_membro_associacao(self, request):
         ata_uuid = request.query_params.get('ata_uuid')
         identificador = request.query_params.get('identificador')
+
+        if not identificador:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o identificador.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if not ata_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da ata e o identificador.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            valida_ata = Ata.by_uuid(ata_uuid)
+        except ValidationError:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ata para o uuid {ata_uuid} não foi encontrado na base."
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         ata = Ata.objects.filter(uuid=ata_uuid).first()
         membros_associacao = MembroAssociacao.objects.filter(associacao=ata.associacao)
