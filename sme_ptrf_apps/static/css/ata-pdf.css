@@ -148,7 +148,7 @@ header {
   font-size: 8pt !important;
 }
 
-.tabela-acoes th{
+.tabela-acoes th, .tabela-assinaturas th{
   padding: 5px !important;
   background-color: #F5F6F8 !important;
 }
@@ -183,6 +183,20 @@ header {
 .tabela-devolucoes-ao-tesouro th{
   background-color: #A4A4A4;
   color: #fff;
+}
+
+#parecer-do-conselho-fiscal-quebra-de-pagina{
+  page-break-before: always
+}
+
+.titulo-membros-conselho-fiscal{
+  color: #2B7D83;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.tabela-membros-conselho-fiscal thead{
+  background-color: #0c4309;
 }
 
 
