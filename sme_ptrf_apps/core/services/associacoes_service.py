@@ -1,6 +1,7 @@
 from .periodo_services import status_prestacao_conta_associacao
 from django.db.models import Q
 from django.core.exceptions import ValidationError
+from sme_ptrf_apps.core.choices import MembroEnum
 
 
 def retorna_status_prestacoes(periodos=None, status_pc=None, uuid=None):
@@ -29,9 +30,10 @@ def retorna_status_prestacoes(periodos=None, status_pc=None, uuid=None):
 
 def get_status_presidente(associacao):
     result = {
-                 'status_presidente': associacao.status_presidente,
-                 'cargo_substituto_presidente_ausente': associacao.cargo_substituto_presidente_ausente,
-             }
+        'status_presidente': associacao.status_presidente,
+        'cargo_substituto_presidente_ausente': associacao.cargo_substituto_presidente_ausente,
+        'cargo_substituto_presidente_ausente_value': MembroEnum[associacao.cargo_substituto_presidente_ausente].value
+     }
 
     return result
 
