@@ -1,3 +1,6 @@
+### 1.21.5 - 11/11/2021 - Hotfix
+* (53120) - Demonstrativo Financeiro: Bloco 5: Campo 33 não trazendo informações
+
 ### 1.21.4 - 09/11/2021 - Hotfix
 * (51942) - Demonstrativo Financeiro PDF - Correção do cálculo da coluna 19
 

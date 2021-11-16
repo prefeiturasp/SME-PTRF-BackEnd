@@ -638,15 +638,12 @@ def cria_despesas(rateios):
             rateio.especificacao_material_servico.descricao if rateio.especificacao_material_servico else ''
         tipo_despesa = rateio.aplicacao_recurso
 
-        tipo_transacao = ''
-        if rateio.conta_associacao.tipo_conta:
-            if rateio.conta_associacao.tipo_conta.nome == 'Cheque':
-                tipo_transacao = rateio.despesa.documento_transacao
-
-                if "CHEQUE" in rateio.despesa.tipo_transacao.nome.upper():
-                    tipo_transacao = f"Ch-{rateio.despesa.documento_transacao}"
-            else:
-                tipo_transacao = rateio.despesa.tipo_transacao.nome
+        """
+        Se o tipo de transação for cheque, deve ser exibido o número do cheque, caso contrário o tipo de transação.
+        """
+        tipo_transacao = rateio.despesa.tipo_transacao.nome
+        if "CHEQUE" in tipo_transacao.upper():
+            tipo_transacao = f"Ch-{rateio.despesa.documento_transacao}"
 
         data_documento = rateio.despesa.data_documento.strftime("%d/%m/%Y") if rateio.despesa.data_documento else ''
         data_transacao = rateio.despesa.data_transacao.strftime("%d/%m/%Y") if rateio.despesa.data_transacao else ''
