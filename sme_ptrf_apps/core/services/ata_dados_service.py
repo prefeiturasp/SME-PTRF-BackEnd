@@ -1,5 +1,7 @@
 import logging
 from datetime import datetime
+
+from sme_ptrf_apps.core.models import PresenteAta
 from sme_ptrf_apps.core.services.prestacao_contas_services import informacoes_financeiras_para_atas
 from sme_ptrf_apps.utils.numero_por_extenso import real
 
@@ -7,15 +9,16 @@ LOGGER = logging.getLogger(__name__)
 
 
 def gerar_dados_ata(prestacao_de_contas=None, ata=None, usuario=None):
-
     try:
         cabecalho = cria_cabecalho(ata)
         info_financeira_ata = informacoes_financeiras_para_atas(prestacao_de_contas)
+        presentes_na_ata = presentes_ata(ata)
         dados_ata = {
             "cabecalho": cabecalho,
             "info_financeira_ata": info_financeira_ata,
             "dados_da_ata": ata,
             "dados_texto_da_ata": dados_texto_ata(ata, usuario),
+            "presentes_na_ata": presentes_na_ata,
         }
     finally:
         LOGGER.info("Dados da ata gerado com sucesso")
@@ -23,8 +26,24 @@ def gerar_dados_ata(prestacao_de_contas=None, ata=None, usuario=None):
     return dados_ata
 
 
-def dados_texto_ata(ata, usuario):
+def presentes_ata(ata):
+    presentes_ata_membros = PresenteAta.objects.filter(ata=ata).filter(membro=True).filter(
+        conselho_fiscal=False).values()
+    presentes_ata_nao_membros = PresenteAta.objects.filter(ata=ata).filter(membro=False).filter(
+        conselho_fiscal=False).values()
+    presentes_ata_conselho_fiscal = PresenteAta.objects.filter(ata=ata).filter(membro=True).filter(
+        conselho_fiscal=True).values()
 
+    presentes_na_ata = {
+        "presentes_ata_membros": presentes_ata_membros,
+        "presentes_ata_nao_membros": presentes_ata_nao_membros,
+        "presentes_ata_conselho_fiscal": presentes_ata_conselho_fiscal,
+    }
+
+    return presentes_na_ata
+
+
+def dados_texto_ata(ata, usuario):
     periodo = ata.periodo.referencia.split('.')
 
     if periodo[1] == 'u'.lower():
@@ -56,7 +75,8 @@ def dados_texto_ata(ata, usuario):
 def data_por_extenso(data):
     data_extenso = '___ dias do mês de ___ de ___'
     if data:
-        mes_ext = {1: 'janeiro', 2: 'fevereiro', 3: 'março', 4: 'abril', 5: 'maio', 6: 'junho', 7: 'julho', 8: 'agosto', 9: 'setembro', 10: 'outubro', 11: 'novembro', 12: 'dezembro'}
+        mes_ext = {1: 'janeiro', 2: 'fevereiro', 3: 'março', 4: 'abril', 5: 'maio', 6: 'junho', 7: 'julho', 8: 'agosto',
+                   9: 'setembro', 10: 'outubro', 11: 'novembro', 12: 'dezembro'}
         aniver = str(data)
         ano, mes, dia = aniver.split("-")
         data_extenso = f'{real(dia)} dias do mês de {mes_ext[int(mes)]} de {real(ano)}'
@@ -72,8 +92,10 @@ def cria_cabecalho(ata):
         "subtitulo": "Prestação de Contas",
         "tipo_ata": 'Apresentação' if ata.tipo_ata == 'APRESENTACAO' else 'Retificação',
         "periodo_referencia": ata.periodo.referencia,
-        "periodo_data_inicio": formata_data(ata.periodo.data_inicio_realizacao_despesas) if ata.periodo.data_inicio_realizacao_despesas else "___",
-        "periodo_data_fim": formata_data(ata.periodo.data_fim_realizacao_despesas) if ata.periodo.data_fim_realizacao_despesas else "___",
+        "periodo_data_inicio": formata_data(
+            ata.periodo.data_inicio_realizacao_despesas) if ata.periodo.data_inicio_realizacao_despesas else "___",
+        "periodo_data_fim": formata_data(
+            ata.periodo.data_fim_realizacao_despesas) if ata.periodo.data_fim_realizacao_despesas else "___",
     }
 
     return cabecalho
@@ -86,4 +108,3 @@ def formata_data(data):
         data_formatada = d.strftime("%d/%m/%Y")
 
     return f'{data_formatada}'
-
