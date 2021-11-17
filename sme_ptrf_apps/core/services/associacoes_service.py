@@ -1,7 +1,11 @@
+import logging
+
 from .periodo_services import status_prestacao_conta_associacao
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from sme_ptrf_apps.core.choices import MembroEnum
+
+logger = logging.getLogger(__name__)
 
 
 def retorna_status_prestacoes(periodos=None, status_pc=None, uuid=None):
@@ -29,10 +33,18 @@ def retorna_status_prestacoes(periodos=None, status_pc=None, uuid=None):
 
 
 def get_status_presidente(associacao):
+    status_presidente = associacao.status_presidente if associacao else ""
+    cargo_substituto_presidente_ausente = associacao.cargo_substituto_presidente_ausente if associacao else ""
+    cargo_substituto_presidente_ausente_value = ""
+    if associacao and associacao.cargo_substituto_presidente_ausente:
+        cargo_substituto_presidente_ausente_value = MembroEnum[associacao.cargo_substituto_presidente_ausente].value
+
+    logger.info(f'Status presidente: {status_presidente} Cargo substituto: {cargo_substituto_presidente_ausente}, {cargo_substituto_presidente_ausente_value}')
+
     result = {
-        'status_presidente': associacao.status_presidente,
-        'cargo_substituto_presidente_ausente': associacao.cargo_substituto_presidente_ausente,
-        'cargo_substituto_presidente_ausente_value': MembroEnum[associacao.cargo_substituto_presidente_ausente].value
+        'status_presidente': status_presidente,
+        'cargo_substituto_presidente_ausente': cargo_substituto_presidente_ausente,
+        'cargo_substituto_presidente_ausente_value': cargo_substituto_presidente_ausente_value
      }
 
     return result
