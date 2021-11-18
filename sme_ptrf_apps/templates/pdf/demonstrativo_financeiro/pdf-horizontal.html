@@ -21,7 +21,7 @@
     </div>
     <div class="col-auto d-flex align-items-center justify-content-center mr-5 ml-5">
       <p class="mb-0">
-        <span class="titulo font-14"><strong>Programa de Transferências de Recuros Financeiros -  PTRF</strong></span><br/>
+        <span class="titulo font-14"><strong>Programa de Transferência de Recursos Financeiros -  PTRF</strong></span><br/>
         <span class="font-12 mb-0"><strong>Prestação de Contas -</strong> Demonstrativo Financeiro</span>
       </p>
     </div>
@@ -40,8 +40,8 @@
 {# ************************* Fim Cabecalho das páginas *************************  #}
 
 {# ************************* Rodape ************************* #}
-<p id="nome-associacao-rodape">
-  <i>{{ dados.identificacao_apm.nome_unidade }} - {{ dados.data_geracao_documento }}</i>
+<p id="nome-associacao-rodape" class="font-10">
+  <i>{{ dados.identificacao_apm.tipo_unidade }} {{ dados.identificacao_apm.nome_unidade }} - {{ dados.data_geracao_documento }}</i>
 </p>
 {# ************************* Fim Rodape ************************* #}
 
@@ -123,21 +123,21 @@
       </tr>
 
       <tr>
-        <th rowSpan="2" style="width: 7%"><strong>12. Ação</strong></th>
-        <th rowSpan="2" colSpan="2"><strong>13. Saldo reprogramado do período anterior</strong></th>
+        <th rowSpan="2" style="width: 7%"><strong>1. Ação</strong></th>
+        <th rowSpan="2" colSpan="2"><strong>2. Saldo reprogramado do período anterior</strong></th>
         <th colSpan="10" class="text-center"><strong>Valores do período</strong></th>
         <th colSpan="7" class="text-center"><strong>Conciliação bancária</strong></th>
       </tr>
 
       <tr>
-        <th colSpan="2" class="align-top">14. Créditos (Bloco 4)</th>
-        <th colSpan="2" class="align-top">15. Despesas demonstradas (Bloco 5)</th>
-        <th colSpan="2" class="align-top">16. Despesas não demonstradas (Bloco 6)</th>
-        <th colSpan="4" class="align-top"><strong>17. Saldo reprogramado para o próximo período (13+14-15-16)*</strong>
+        <th colSpan="2" class="align-top">3. Créditos (Bloco 4)</th>
+        <th colSpan="2" class="align-top">4. Despesas demonstradas (Bloco 5)</th>
+        <th colSpan="2" class="align-top">5. Despesas não demonstradas (Bloco 6)</th>
+        <th colSpan="4" class="align-top"><strong>6. Saldo reprogramado para o próximo período (2+3-4-5)*</strong>
         </th>
-        <th colSpan="2" class="align-top">18. Despesas não demonstradas de períodos anteriores (Bloco 7)
+        <th colSpan="2" class="align-top">7. Despesas não demonstradas de períodos anteriores (Bloco 7)
         </th>
-        <th colSpan="5" class="align-top"><strong>19. Saldo ao final do período <br/> (16+17+18)**</strong></th>
+        <th colSpan="5" class="align-top"><strong>8. Saldo ao final do período <br/> (5+6+7)**</strong></th>
       </tr>
       </thead>
 
@@ -277,12 +277,14 @@
     </p>
 
     <p class="font-10">
-      <i>Notas explicativas:<br> * Saldo Reprogramado (Campo 17) = Saldo reprogramado do período anterior (13) +
-        Créditos (14) - Despesas demonstradas (15) - Despesas não demonstradas do período (16). Quando o valor de
-        custeio e/ou capital forem menores que zero, as despesas são deduzidas do saldo de Livre Aplicação.<br>** Saldo
-        ao final do período (Campo 19) = Despesas não demonstradas do período (16) + Saldo reprogramado para o próximo
-        período (17) + Despesas não demonstradas de períodos anteriores (18). <br>*** Total geral: soma dos valores de
-        cada uma das ações. </i>
+      <i>Notas explicativas:
+        <br> * Saldo Reprogramado (Campo 6) = Saldo reprogramado do período anterior (2) +
+        Créditos (3) - Despesas demonstradas (4) - Despesas não demonstradas do período (5). Quando o valor de
+        custeio e/ou capital forem menores que zero, as despesas são deduzidas do saldo de Livre Aplicação.
+        <br>** Saldo ao final do período (Campo 8) = Despesas não demonstradas do período (5) + Saldo reprogramado para o próximo
+        período (6) + Despesas não demonstradas de períodos anteriores (7).
+        <br>*** Total geral: soma de cada coluna considerando o tipo de aplicação do recurso correspondente (C, L e K).
+      </i>
     </p>
   </article>
 
@@ -295,11 +297,11 @@
         </th>
       </tr>
       <tr>
-        <th><strong>20. Tipo de crédito</strong></th>
-        <th><strong>21. Detalhamento</strong></th>
-        <th><strong>22. Ação do Programa</strong></th>
-        <th><strong>23. Data</strong></th>
-        <th><strong>24. Valor</strong></th>
+        <th><strong>9. Tipo de crédito</strong></th>
+        <th><strong>10. Detalhamento</strong></th>
+        <th><strong>11. Ação do Programa</strong></th>
+        <th><strong>12. Data</strong></th>
+        <th><strong>13. Valor</strong></th>
       </tr>
       </thead>
       <tbody>
@@ -336,17 +338,17 @@
         <th colspan="3"><strong>Dados do pagamento</strong></th>
       </tr>
       <tr>
-        <th style="width:15%"><strong>25. Razão social</strong></th>
-        <th><strong>26. CNPJ ou CPF</strong></th>
-        <th><strong>27. Tipo do documento</strong></th>
-        <th style="width:8%"><strong>28. Número do documento</strong></th>
-        <th><strong>29. Data do documento</strong></th>
-        <th><strong>30. Ação do Programa</strong></th>
-        <th style="width:18%"><strong>31. Especificação do material ou serviço</strong></th>
-        <th style="width:7%"><strong>32. Tipo da despesa</strong></th>
-        <th><strong>33. Forma de pagamento</strong></th>
-        <th><strong>34. Data do pagamento</strong></th>
-        <th><strong>35. Valor</strong></th>
+        <th style="width:15%"><strong>14. Razão social</strong></th>
+        <th><strong>15. CNPJ ou CPF</strong></th>
+        <th style="width:6%"><strong>16. Tipo de documento</strong></th>
+        <th style="width:8%"><strong>17. Número do documento</strong></th>
+        <th style="width:6%"><strong>18. Data do documento</strong></th>
+        <th><strong>19. Ação do Programa</strong></th>
+        <th style="width:24%"><strong>20. Especificação do material ou serviço</strong></th>
+        <th style="width:7%"><strong>21. Tipo de despesa</strong></th>
+        <th><strong>22. Forma de pagamento</strong></th>
+        <th style="width:6%"><strong>23. Data do pagamento</strong></th>
+        <th><strong>24. Valor</strong></th>
       </tr>
       </thead>
       <tbody>
@@ -389,17 +391,17 @@
         <th colspan="3"><strong>Dados do pagamento</strong></th>
       </tr>
       <tr>
-        <th style="width:15%"><strong>36. Razão social</strong></th>
-        <th><strong>37. CNPJ ou CPF</strong></th>
-        <th><strong>38. Tipo do documento</strong></th>
-        <th style="width:8%"><strong>39. Número do documento</strong></th>
-        <th><strong>40. Data do documento</strong></th>
-        <th><strong>41. Ação do Programa</strong></th>
-        <th style="width:18%"><strong>42. Especificação do material ou serviço</strong></th>
-        <th style="width:7%"><strong>43. Tipo da despesa</strong></th>
-        <th><strong>44. Forma de pagamento</strong></th>
-        <th><strong>45. Data do pagamento</strong></th>
-        <th><strong>46. Valor</strong></th>
+        <th style="width:15%"><strong>25. Razão social</strong></th>
+        <th><strong>26. CNPJ ou CPF</strong></th>
+        <th style="width:6%"><strong>27. Tipo de documento</strong></th>
+        <th style="width:8%"><strong>28. Número do documento</strong></th>
+        <th style="width:6%"><strong>29. Data do documento</strong></th>
+        <th><strong>30. Ação do Programa</strong></th>
+        <th style="width:24%"><strong>31. Especificação do material ou serviço</strong></th>
+        <th style="width:7%"><strong>32. Tipo de despesa</strong></th>
+        <th><strong>33. Forma de pagamento</strong></th>
+        <th style="width:6%"><strong>34. Data do pagamento</strong></th>
+        <th><strong>35. Valor</strong></th>
       </tr>
       </thead>
       <tbody>
@@ -442,17 +444,17 @@
         <th colspan="3"><strong>Dados do pagamento</strong></th>
       </tr>
       <tr>
-        <th style="width:15%"><strong>47. Razão social</strong></th>
-        <th><strong>48. CNPJ ou CPF</strong></th>
-        <th><strong>49. Tipo do documento</strong></th>
-        <th style="width:8%"><strong>50. Número do documento</strong></th>
-        <th><strong>51. Data do documento</strong></th>
-        <th><strong>52. Ação do Programa</strong></th>
-        <th style="width:18%"><strong>53. Especificação do material ou serviço</strong></th>
-        <th style="width:7%"><strong>54. Tipo da despesa</strong></th>
-        <th><strong>55. Forma de pagamento</strong></th>
-        <th><strong>56. Data do pagamento</strong></th>
-        <th><strong>57. Valor</strong></th>
+        <th style="width:15%"><strong>36. Razão social</strong></th>
+        <th><strong>37. CNPJ ou CPF</strong></th>
+        <th style="width:6%"><strong>38. Tipo de documento</strong></th>
+        <th style="width:8%"><strong>39. Número do documento</strong></th>
+        <th style="width:6%"><strong>40. Data do documento</strong></th>
+        <th><strong>41. Ação do Programa</strong></th>
+        <th style="width:24%"><strong>42. Especificação do material ou serviço</strong></th>
+        <th style="width:7%"><strong>43. Tipo de despesa</strong></th>
+        <th><strong>44. Forma de pagamento</strong></th>
+        <th style="width:6%"><strong>45. Data do pagamento</strong></th>
+        <th><strong>46. Valor</strong></th>
       </tr>
       </thead>
       <tbody>
