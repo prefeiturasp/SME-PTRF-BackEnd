@@ -63,6 +63,7 @@ def test_get_status_presidente_presente(
 
     esperado = {
                    'status_presidente': 'PRESENTE',
+                   'cargo_substituto_presidente_ausente_value': '',
                    'cargo_substituto_presidente_ausente': None,
                }
 
@@ -83,6 +84,7 @@ def test_get_status_presidente_ausente(
 
     esperado = {
                    'status_presidente': 'AUSENTE',
+                   'cargo_substituto_presidente_ausente_value': 'Vice-Presidente da diretoria executiva',
                    'cargo_substituto_presidente_ausente': 'VICE_PRESIDENTE_DIRETORIA_EXECUTIVA',
                }
 
