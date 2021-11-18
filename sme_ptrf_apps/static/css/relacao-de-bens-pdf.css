@@ -11,7 +11,7 @@
 @page {
   size: A4 landscape;
   padding: 1cm 0 0 0;
-  margin: 3cm 1cm 1cm 1cm;
+  margin: 1.8cm 1cm 1cm 1cm;
   @top-center {
     content: element(cabecalho);
   }
@@ -19,7 +19,7 @@
   @bottom-right {
     color: #000;
     content: counter(page) "/" counter(pages);
-    font-size: 9pt;
+    font-size: 9px !important;
     padding: 0 1cm;
     margin: -2mm -10mm 0 0;
     font-weight: bold;
@@ -31,7 +31,7 @@
     content: element(nome-associacao);
     font-size: 9pt;
     padding: 0 1cm;
-    margin: -2mm 0 0 -10mm;
+    margin: 0 0 0 -10mm;
     font-style: normal;
   }
 }
@@ -44,7 +44,7 @@ html {
 }
 
 body {
-  font-family: Roboto;
+  font-family: Roboto, sans-serif;
   font-style: normal;
 }
 
@@ -99,6 +99,12 @@ header {
 
 .font-12 {
   font-size: 12px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-10 {
+  font-size: 10px;
   font-family: Roboto, serif;
   font-style: normal;
 }
