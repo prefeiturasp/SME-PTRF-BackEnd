@@ -22,6 +22,7 @@ def test_api_update_ata_associacao(jwt_authenticated_client_a, ata_2020_1_cheque
         "cargo_secretaria_reuniao": "SecretáriaXXX",
         "parecer_conselho": "REJEITADA",
         "comentarios": "TesteXXX",
+        'presentes_na_ata': [],
     }
 
     response = jwt_authenticated_client_a.patch(f'/api/atas-associacao/{ata_2020_1_cheque_aprovada.uuid}/', data=json.dumps(payload),

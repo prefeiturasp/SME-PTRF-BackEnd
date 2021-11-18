@@ -171,6 +171,22 @@ def associacao(unidade, periodo_anterior):
 
 
 @pytest.fixture
+def associacao_com_presidente_ausente(unidade, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste',
+        cnpj='52.302.275/0001-83',
+        unidade=unidade,
+        periodo_inicial=periodo_anterior,
+        ccm='0.000.00-0',
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456',
+        status_presidente='AUSENTE',
+        cargo_substituto_presidente_ausente=MembroEnum.VICE_PRESIDENTE_DIRETORIA_EXECUTIVA.name
+    )
+
+
+@pytest.fixture
 def outra_associacao(unidade, periodo_anterior):
     return baker.make(
         'Associacao',
@@ -439,6 +455,28 @@ def prestacao_conta_iniciada(periodo_2020_1, associacao):
         periodo=periodo_2020_1,
         associacao=associacao,
     )
+
+
+@pytest.fixture
+def prestacao_conta_devolvida(periodo, associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo,
+        associacao=associacao,
+        status=PrestacaoConta.STATUS_DEVOLVIDA
+    )
+
+
+@pytest.fixture
+def prestacao_conta_devolvida_posterior(periodo_futuro, associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_futuro,
+        associacao=associacao,
+        status=PrestacaoConta.STATUS_DEVOLVIDA
+    )
+
+
 
 
 @pytest.fixture
@@ -1300,6 +1338,41 @@ def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
         parecer_conselho='APROVADA'
     )
 
+@pytest.fixture
+def presente_ata_membro(ata_2020_1_cheque_aprovada):
+    return baker.make(
+        'PresenteAta',
+        ata=ata_2020_1_cheque_aprovada,
+        identificacao="123",
+        nome="membro",
+        cargo="teste cargo",
+        membro=True,
+        conselho_fiscal=False
+    )
+
+@pytest.fixture
+def presente_ata_membro_e_conselho_fiscal(ata_2020_1_cheque_aprovada):
+    return baker.make(
+        'PresenteAta',
+        ata=ata_2020_1_cheque_aprovada,
+        identificacao="123",
+        nome="membro",
+        cargo="teste cargo",
+        membro=True,
+        conselho_fiscal=True
+    )
+
+@pytest.fixture
+def presente_ata_nao_membro(ata_2020_1_cheque_aprovada):
+    return baker.make(
+        'PresenteAta',
+        ata=ata_2020_1_cheque_aprovada,
+        identificacao="123",
+        nome="membro",
+        cargo="teste cargo",
+        membro=False,
+        conselho_fiscal=False
+    )
 
 @pytest.fixture
 def ata_2020_1_retificacao(prestacao_conta_2020_1_conciliada):

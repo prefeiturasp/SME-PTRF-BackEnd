@@ -14,7 +14,7 @@ from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComL
 
 from ....utils.choices_to_json import choices_to_json
 from ...models import Ata
-from ..serializers import AtaSerializer
+from ..serializers import AtaSerializer, AtaCreateSerializer
 
 from django.http import HttpResponse
 
@@ -28,6 +28,12 @@ class AtasViewSet(mixins.RetrieveModelMixin,
     lookup_field = 'uuid'
     queryset = Ata.objects.all()
     serializer_class = AtaSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'partial_update':
+            return AtaCreateSerializer
+        else:
+            return AtaSerializer
 
     @action(detail=False, methods=['get'], url_path='gerar-arquivo-ata',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])

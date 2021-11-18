@@ -27,6 +27,20 @@ class Associacao(ModeloIdNome):
         (STATUS_REGULARIDADE_REGULAR, STATUS_REGULARIDADE_NOMES[STATUS_REGULARIDADE_REGULAR]),
     )
 
+    # Status do Presidente
+    STATUS_PRESIDENTE_PRESENTE = 'PRESENTE'
+    STATUS_PRESIDENTE_AUSENTE = 'AUSENTE'
+
+    STATUS_PRESIDENTE_NOMES = {
+        STATUS_PRESIDENTE_PRESENTE: 'Presente',
+        STATUS_PRESIDENTE_AUSENTE: 'Ausente',
+    }
+
+    STATUS_PRESIDENTE_CHOICES = (
+        (STATUS_PRESIDENTE_PRESENTE, STATUS_PRESIDENTE_NOMES[STATUS_PRESIDENTE_PRESENTE]),
+        (STATUS_PRESIDENTE_AUSENTE, STATUS_PRESIDENTE_NOMES[STATUS_PRESIDENTE_AUSENTE]),
+    )
+
     unidade = models.ForeignKey('Unidade', on_delete=models.PROTECT, related_name="associacoes", to_field="codigo_eol",
                                 null=True)
 
@@ -52,6 +66,21 @@ class Associacao(ModeloIdNome):
 
     motivo_nao_regularidade = models.CharField(
         'Motivo da não regularização da associação', max_length=300, default='', blank=True)
+
+    status_presidente = models.CharField(
+        'Status do Presidente',
+        max_length=15,
+        choices=STATUS_PRESIDENTE_CHOICES,
+        default=STATUS_PRESIDENTE_PRESENTE,
+    )
+
+    cargo_substituto_presidente_ausente = models.CharField(
+        'Cargo substituto do presidente ausente',
+        max_length=65,
+        blank=True,
+        null=True,
+        choices=MembroEnum.diretoria_executiva_choices(),
+        default=None)
 
     def apaga_implantacoes_de_saldo(self):
         self.fechamentos_associacao.filter(status='IMPLANTACAO').delete()

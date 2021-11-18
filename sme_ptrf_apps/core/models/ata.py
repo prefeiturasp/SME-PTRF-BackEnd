@@ -9,6 +9,8 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+from .presentes_ata import PresenteAta
+
 
 class Ata(ModeloBase):
     history = AuditlogHistoryField()

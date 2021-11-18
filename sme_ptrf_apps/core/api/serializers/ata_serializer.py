@@ -1,8 +1,12 @@
+import logging
+
 from rest_framework import serializers
 
 from ...api.serializers import AssociacaoInfoAtaSerializer
 from ...api.serializers.periodo_serializer import PeriodoLookUpSerializer
+from ...api.serializers.presentes_ata_serializer import PresentesAtaSerializer, PresentesAtaCreateSerializer
 from ...models import Ata, PrestacaoConta
+from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
 
 
 class AtaLookUpSerializer(serializers.ModelSerializer):
@@ -30,6 +34,8 @@ class AtaSerializer(serializers.ModelSerializer):
         queryset=PrestacaoConta.objects.all()
     )
 
+    presentes_na_ata = PresentesAtaSerializer(many=True)
+
     def get_nome_ata(self, obj):
         return obj.nome
 
@@ -54,5 +60,57 @@ class AtaSerializer(serializers.ModelSerializer):
             'cargo_secretaria_reuniao',
             'comentarios',
             'parecer_conselho',
-            'retificacoes'
+            'retificacoes',
+            'presentes_na_ata',
         )
+
+
+class AtaCreateSerializer(serializers.ModelSerializer):
+    nome = serializers.SerializerMethodField('get_nome_ata')
+    associacao = AssociacaoInfoAtaSerializer(many=False)
+    periodo = PeriodoLookUpSerializer(many=False)
+    prestacao_conta = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=PrestacaoConta.objects.all()
+    )
+
+    presentes_na_ata = PresentesAtaCreateSerializer(many=True, required=False)
+
+    def get_nome_ata(self, obj):
+        return obj.nome
+
+    def create(self, validated_data):
+        presentes_na_ata = validated_data.pop('presentes_na_ata')
+        ata = Ata.objects.create(**validated_data)
+
+        presentes_lista = []
+        for presente in presentes_na_ata:
+            presentes_object = PresentesAtaCreateSerializer().create(presente)
+            presentes_object.eh_conselho_fiscal()
+            presentes_lista.append(presentes_object)
+
+        ata.presentes_na_ata.set(presentes_lista)
+        ata.save()
+
+        return ata
+
+    def update(self, instance, validated_data):
+        presentes_json = validated_data.pop('presentes_na_ata')
+        instance.presentes_na_ata.all().delete()
+
+        presentes_lista = []
+        for presente in presentes_json:
+            presente_object = PresentesAtaCreateSerializer().create(presente)
+            presente_object.eh_conselho_fiscal()
+            presentes_lista.append(presente_object)
+
+        update_instance_from_dict(instance, validated_data)
+        instance.presentes_na_ata.set(presentes_lista)
+        instance.save()
+
+        return instance
+
+    class Meta:
+        model = Ata
+        exclude = ('id',)

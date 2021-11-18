@@ -18,7 +18,7 @@ from ..models import (
     AnaliseDocumentoPrestacaoConta,
     ContaAssociacao,
     TipoAcertoDocumento,
-    SolicitacaoAcertoDocumento
+    SolicitacaoAcertoDocumento,
 )
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens

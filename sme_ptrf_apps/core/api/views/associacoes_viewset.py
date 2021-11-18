@@ -38,7 +38,10 @@ from ...services import (
     implantacoes_de_saldo_da_associacao,
     info_painel_acoes_por_periodo_e_conta,
     status_prestacao_conta_associacao,
-    consulta_unidade
+    consulta_unidade,
+    get_status_presidente,
+    update_status_presidente,
+    get_implantacao_de_saldos_da_associacao
 )
 from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from ..serializers.associacao_serializer import (
@@ -161,72 +164,19 @@ class AssociacoesViewSet(ModelViewSet):
     @action(detail=True, url_path='permite-implantacao-saldos', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def permite_implantacao_saldos(self, request, uuid=None):
+        from ...services import associacao_pode_implantar_saldo
 
         associacao = self.get_object()
 
-        result = None
-
-        if not associacao.periodo_inicial:
-            result = {
-                'permite_implantacao': False,
-                'erro': 'periodo_inicial_nao_definido',
-                'mensagem': 'Período inicial não foi definido para essa associação. Verifique com o administrador.'
-            }
-
-        if associacao.prestacoes_de_conta_da_associacao.exists():
-            result = {
-                'permite_implantacao': False,
-                'erro': 'prestacao_de_contas_existente',
-                'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
-            }
-
-        if not result:
-            result = {
-                'permite_implantacao': True,
-                'erro': '',
-                'mensagem': 'Os saldos podem ser implantados normalmente.'
-            }
+        result = associacao_pode_implantar_saldo(associacao=associacao)
 
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, url_path='implantacao-saldos', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def implantacao_saldos(self, request, uuid=None):
-
-        associacao = self.get_object()
-
-        if not associacao.periodo_inicial:
-            erro = {
-                'erro': 'periodo_inicial_nao_definido',
-                'mensagem': 'Período inicial não foi definido para essa associação. Verifique com o administrador.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        if associacao.prestacoes_de_conta_da_associacao.exists():
-            erro = {
-                'erro': 'prestacao_de_contas_existente',
-                'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        saldos = []
-        implantacoes = implantacoes_de_saldo_da_associacao(associacao=associacao)
-        for implantacao in implantacoes:
-            saldo = {
-                'acao_associacao': AcaoAssociacaoLookUpSerializer(implantacao['acao_associacao']).data,
-                'conta_associacao': ContaAssociacaoLookUpSerializer(implantacao['conta_associacao']).data,
-                'aplicacao': implantacao['aplicacao'],
-                'saldo': implantacao['saldo']
-            }
-            saldos.append(saldo)
-
-        result = {
-            'associacao': f'{uuid}',
-            'periodo': PeriodoLookUpSerializer(associacao.periodo_inicial).data,
-            'saldos': saldos,
-        }
-
-        return Response(result)
+        result = get_implantacao_de_saldos_da_associacao(associacao=self.get_object())
+        return Response(result['conteudo'], result['status_code'])
 
     @action(detail=True, url_path='implanta-saldos', methods=['post'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
@@ -580,3 +530,35 @@ class AssociacoesViewSet(ModelViewSet):
         result = consulta_unidade(codigo_eol)
         status_code = status.HTTP_400_BAD_REQUEST if 'erro' in result.keys() else status.HTTP_200_OK
         return Response(result, status=status_code)
+
+    @action(detail=True, url_path='status-presidente', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def get_status_presidente(self, request, uuid=None):
+        associacao = self.get_object()
+
+        result = get_status_presidente(associacao=associacao)
+
+        return Response(result)
+
+    @action(detail=True, url_path='update-status-presidente', methods=['patch'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
+    def update_status_presidente(self, request, uuid=None):
+        associacao = self.get_object()
+
+        status_presidente = request.data.get('status_presidente')
+        cargo_substituto_presidente_ausente = request.data.get('cargo_substituto_presidente_ausente')
+
+        try:
+            result = update_status_presidente(
+                associacao=associacao,
+                status_presidente=status_presidente,
+                cargo_substituto_presidente_ausente=cargo_substituto_presidente_ausente
+            )
+            return Response(result)
+        except ValidationError as e:
+            result = {
+                'erro': 'Erro de validação.',
+                'mensagem': f'{e}'
+            }
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+

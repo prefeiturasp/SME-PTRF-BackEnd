@@ -67,5 +67,13 @@ class MembroAssociacao(ModeloBase):
 
         return associacoes
 
+    @classmethod
+    def cargos_diretoria_executiva_to_json(cls):
+        return [{
+                'id': choice[0],
+                'nome': choice[1]
+                }
+                for choice in MembroEnum.diretoria_executiva_choices()]
+
 
 auditlog.register(MembroAssociacao)
