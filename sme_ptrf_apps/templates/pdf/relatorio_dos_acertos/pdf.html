@@ -261,6 +261,17 @@
                   <span><strong>Tipo de Acerto</strong></span>
                   <br>
                   <span>{{ acertos.tipo_acerto.nome }}</span>
+
+                  {% if acertos.detalhamento %}
+                    <div class="row pb-1 mt-2">
+                      <div class="col-12">
+                        <span><strong>Detalhamento do acerto (opcional)</strong></span>
+                        <br>
+                        <span class="">{{ acertos.detalhamento }}</span>
+                      </div>
+                    </div>
+                  {% endif %}
+
                 </div>
               </div>
             {% endfor %}

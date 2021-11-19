@@ -5,9 +5,20 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.21.0
+Versão: 1.22.0
 
 ## Release Notes
+
+### 1.22.0 - 18/11/2021 - Entregas da Sprint 31
+* UE > Demonstrativos Financeiros agora são gerados apenas em PDF e não mais em Excel
+* UE > Relações de Bens agora são gerados apenas em PDF e não mais em Excel
+* UE > Agora é possível editar a implantação de valores reprogramados quando a PC inicial for devolvida para ajustes
+* UE > Agora é possível informar quando o presidente da Associação está ausente e qual cargo o esta substituindo
+* UE > Demonstrativos financeiros e Relações de Bens gerados durante a ausência do presidente terão o cargo substituto na linha de assinatura
+* UE > Reformulada a ata de PC para incluir lista de presentes e distinguir melhor a ata do parecer do conselho fiscal
+* UE > A consulta de resumo de acertos agora inclui o novo campo de detalhamento de acertos em documentos
+* UE > Alterações menores em textos diversos
+* 🐞 Correção de bugs
 
 ### 1.21.0 - 01/11/2021 - Entregas da Sprint 30
 * UE > Melhorias diversas no layout do Demonstrativo Financeiro (PDF)

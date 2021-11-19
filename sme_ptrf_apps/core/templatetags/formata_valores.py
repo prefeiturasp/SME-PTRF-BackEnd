@@ -1,4 +1,6 @@
 import decimal
+import re
+import unicodedata
 
 from django import template
 
@@ -39,3 +41,18 @@ def parecer_conselho(parecer_conselho):
         texto_parecer = "Os membros do Conselho Fiscal, à vista dos registros contábeis e verificando nos documentos apresentados, não consideram a presente prestação de contas em condições de ser aprovada emitindo parecer contrário à sua aprovação."
 
     return texto_parecer
+
+
+@register.simple_tag(name='replace_string_normalizada')
+def replace_string_normalizada(string, string_a_ser_removido):
+
+    string = unicodedata.normalize('NFD', string)
+    string = string.encode('ascii', 'ignore').decode('utf8').casefold()
+
+    string_a_ser_removido = unicodedata.normalize('NFD', string_a_ser_removido)
+    string_a_ser_removido = string_a_ser_removido.encode('ascii', 'ignore').decode('utf8').casefold()
+
+    if string_a_ser_removido in string:
+        return string.replace(string_a_ser_removido, '').upper()
+    else:
+        return string.upper()

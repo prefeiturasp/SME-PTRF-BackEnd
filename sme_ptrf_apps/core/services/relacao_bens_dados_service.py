@@ -124,7 +124,7 @@ def cria_relacao_de_bens_adquiridos_ou_produzidos(rateios):
 
     despesas = {
         "linhas": linhas,
-        "valor_total": valor_total
+        "valor_total": formata_valor(valor_total)
     }
     return despesas
 

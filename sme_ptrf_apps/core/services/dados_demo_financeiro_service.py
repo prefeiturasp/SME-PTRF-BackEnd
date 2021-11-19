@@ -699,7 +699,8 @@ def cria_observacoes(periodo, conta_associacao):
 
 
 def cria_justificativas(observacao_conciliacao):
-    return observacao_conciliacao.texto if observacao_conciliacao and observacao_conciliacao.texto else " "
+    texto_padrao = "Não houve justificativa ou informação adicional cadastrada."
+    return observacao_conciliacao.texto if observacao_conciliacao and observacao_conciliacao.texto else texto_padrao
 
 
 def cria_data_geracao_documento(usuario, previa):
