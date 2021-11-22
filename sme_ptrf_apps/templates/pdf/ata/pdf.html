@@ -1,9 +1,12 @@
+{% load mathfilters %}
+
 <!doctype html>
 <html lang="pt-br">
 {% load staticfiles %}
 {% load static %}
 {% load formata_valores %}
 {% load i18n %}
+
 <head>
   <!-- Required meta tags -->
   <meta charset="utf-8">
@@ -54,7 +57,7 @@
   </p>
   <p class="font-12">
     {{ dados.dados_texto_da_ata.data_reuniao_por_extenso }}
-    no(a) {{ dados.dados_texto_da_ata.local_reuniao }}, {{ dados.dados_texto_da_ata.unidade_tipo }} {{ dados.dados_texto_da_ata.unidade_nome }}
+    no(a) {{ dados.dados_texto_da_ata.local_reuniao }}, {{ dados.dados_texto_da_ata.unidade_tipo }} {{ dados.dados_texto_da_ata.unidade_nome }},
     reuniram-se os membros da {{ dados.dados_texto_da_ata.associacao_nome }},
     para tratar da seguinte pauta: Apresentação ao Conselho Fiscal da prestação de contas da verba do PTRF
     e suas ações agregadas, do período de {{ dados.cabecalho.periodo_data_inicio }} a {{ dados.cabecalho.periodo_data_fim }},
@@ -259,8 +262,9 @@
       conta nº {{ conta.conta_associacao.numero_conta }} do {{ conta.conta_associacao.banco_nome }},
       agência {{ conta.conta_associacao.agencia }} os valores de R$ {{ conta.totais.saldo_atual_custeio|formata_valor }}
       para despesas de custeio, R$ {{ conta.totais.saldo_atual_capital|formata_valor }}, para despesas de capital e
-      R$ {{ conta.totais.saldo_atual_livre|formata_valor }} para despesas de livre aplicação, totalizando de
-      R$ {{ conta.totais.saldo_atual_total|formata_valor }}, valores estes que foram reprogramados.</p>
+      R$ {{ conta.totais.saldo_atual_livre|formata_valor }} para despesas de livre aplicação, valores estes que foram
+      reprogramados, além de R$ {{ conta.totais.despesas_nao_conciliadas|addition:conta.totais.despesas_nao_conciliadas_anteriores|formata_valor }}
+      relativo a despesas pendentes de compensação bancária, totalizando R$ {{ conta.totais.saldo_bancario_total|formata_valor }}.</p>
     {% comment %} FIM Texto por ação {% endcomment %}
 
   {% endfor %} {% comment %} for conta in dados.info_financeira_ata.contas {% endcomment %}
@@ -268,7 +272,7 @@
   {% comment %} Comentários {% endcomment %}
   <p class="mt-4">{{ dados.dados_texto_da_ata.comentarios }}</p>
 
-  <p class="mt-4">Esgotados os assuntos o(a) senhor(a) presidente ofereceu a palavra a quem dela desejasse fazer uso e, como não houve manifestação agradeceu a presença de todos e considerou encerrada a reunião, a qual eu, {{ dados.dados_texto_da_ata.secretario_reuniao }} lavrei a presente ata, que vai por mim assinada e pelos demais presentes.</p>
+  <p class="mt-4">Esgotados os assuntos o(a) senhor(a) presidente ofereceu a palavra a quem dela desejasse fazer uso e, como não houve manifestação, agradeceu a presença de todos e considerou encerrada a reunião, a qual eu, {{ dados.dados_texto_da_ata.secretario_reuniao }}, lavrei a presente ata, que vai por mim assinada e pelos demais presentes.</p>
 
   {% language 'pt-br' %}
     <p class="mt-4">São Paulo, dia {{ dados.dados_da_ata.data_reuniao|date:"d" }}

@@ -384,13 +384,11 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
         despesas_nao_conciliadas_anteriores_capital = RateioDespesa.rateios_da_acao_associacao_em_periodo_anteriores(
             acao_associacao=acao_associacao, conta_associacao=conta, periodo=periodo, conferido=False,
             aplicacao_recurso=APLICACAO_CAPITAL).aggregate(valor=Sum('valor_rateio'))
-        logger.info(f"Despesas não conciliadas anteriores (capital) {acao_associacao}, {conta}, {periodo}, {despesas_nao_conciliadas_anteriores_capital['valor'] or 0}")
         despesas_nao_conciliadas_anteriores_capital = despesas_nao_conciliadas_anteriores_capital['valor'] or 0
 
         despesas_nao_conciliadas_anteriores_custeio = RateioDespesa.rateios_da_acao_associacao_em_periodo_anteriores(
             acao_associacao=acao_associacao, conta_associacao=conta, periodo=periodo, conferido=False,
             aplicacao_recurso=APLICACAO_CUSTEIO).aggregate(valor=Sum('valor_rateio'))
-        logger.info(f"Despesas não conciliadas anteriores (custeio) {acao_associacao}, {conta}, {periodo}, {despesas_nao_conciliadas_anteriores_custeio['valor'] or 0}")
         despesas_nao_conciliadas_anteriores_custeio = despesas_nao_conciliadas_anteriores_custeio['valor'] or 0
 
         info = {
