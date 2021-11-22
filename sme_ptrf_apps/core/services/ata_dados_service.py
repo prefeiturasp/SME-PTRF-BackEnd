@@ -73,13 +73,18 @@ def dados_texto_ata(ata, usuario):
 
 
 def data_por_extenso(data):
-    data_extenso = '___ dias do mês de ___ de ___'
-    if data:
-        mes_ext = {1: 'janeiro', 2: 'fevereiro', 3: 'março', 4: 'abril', 5: 'maio', 6: 'junho', 7: 'julho', 8: 'agosto',
-                   9: 'setembro', 10: 'outubro', 11: 'novembro', 12: 'dezembro'}
-        aniver = str(data)
-        ano, mes, dia = aniver.split("-")
-        data_extenso = f'{real(dia)} dias do mês de {mes_ext[int(mes)]} de {real(ano)}'
+    if not data:
+        return 'Aos ___ dias do mês de ___ de ___'
+
+    mes_ext = {1: 'janeiro', 2: 'fevereiro', 3: 'março', 4: 'abril', 5: 'maio', 6: 'junho', 7: 'julho', 8: 'agosto',
+               9: 'setembro', 10: 'outubro', 11: 'novembro', 12: 'dezembro'}
+    str_data = str(data)
+    ano, mes, dia = str_data.split("-")
+
+    if data.day == 1:
+        data_extenso = f'No primeiro dia do mês de {mes_ext[int(mes)]} de {real(ano)}'
+    else:
+        data_extenso = f'Aos {real(dia)} dias do mês de {mes_ext[int(mes)]} de {real(ano)}'
 
     return data_extenso
 
@@ -88,7 +93,7 @@ def cria_cabecalho(ata):
     """ GERA CABECALHO DOCUMENTO EM PDF ATA """
 
     cabecalho = {
-        "titulo": "Programa de Transferências de Recuros Financeiros - PTRF",
+        "titulo": "Programa de Transferência de Recursos Financeiros - PTRF",
         "subtitulo": "Prestação de Contas",
         "tipo_ata": 'Apresentação' if ata.tipo_ata == 'APRESENTACAO' else 'Retificação',
         "periodo_referencia": ata.periodo.referencia,

@@ -210,6 +210,14 @@ def informacoes_financeiras_para_atas(prestacao_contas):
             'despesas_nao_conciliadas_capital': 0,
             'despesas_nao_conciliadas_custeio': 0,
 
+            'despesas_nao_conciliadas_anteriores': 0,
+            'despesas_nao_conciliadas_anteriores_capital': 0,
+            'despesas_nao_conciliadas_anteriores_custeio': 0,
+
+            'despesas_conciliadas': 0,
+            'despesas_conciliadas_capital': 0,
+            'despesas_conciliadas_custeio': 0,
+
             'receitas_nao_conciliadas': 0,
             'receitas_nao_conciliadas_capital': 0,
             'receitas_nao_conciliadas_custeio': 0,
@@ -222,7 +230,13 @@ def informacoes_financeiras_para_atas(prestacao_contas):
 
             'repasses_nao_realizados_capital': 0,
             'repasses_nao_realizados_custeio': 0,
-            'repasses_nao_realizados_livre': 0
+            'repasses_nao_realizados_livre': 0,
+
+            # Saldo Atual + Despesas Não demonstradas no período + Despesas não demonstradas períodos anteriores
+            'saldo_bancario_custeio': 0,
+            'saldo_bancario_capital': 0,
+            'saldo_bancario_livre': 0,
+            'saldo_bancario_total': 0,
         }
         for info_acao in info_acoes:
             for key in totalizador.keys():
