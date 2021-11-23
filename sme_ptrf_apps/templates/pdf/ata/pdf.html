@@ -1,9 +1,12 @@
+{% load mathfilters %}
+
 <!doctype html>
 <html lang="pt-br">
 {% load staticfiles %}
 {% load static %}
 {% load formata_valores %}
 {% load i18n %}
+
 <head>
   <!-- Required meta tags -->
   <meta charset="utf-8">
@@ -32,7 +35,7 @@
     <div class="col-5 d-flex align-items-center justify-content-end">
       <p class="mb-0 font-12 border px-3 py-2">
         <span>Período de Realização:</span><br/>
-        <span><strong>{{ dados.cabecalho.periodo_referencia }} - {{ dados.cabecalho.periodo_data_inicio }} até {{ dados.cabecalho.periodo_data_fim }}</strong></span><br/>
+        <span><strong>{{ dados.cabecalho.periodo_referencia }} - {{ dados.cabecalho.periodo_data_inicio }} a {{ dados.cabecalho.periodo_data_fim }}</strong></span><br/>
       </p>
     </div>
   </div>
@@ -53,14 +56,11 @@
     </strong>
   </p>
   <p class="font-12">
-    Aos {{ dados.dados_texto_da_ata.data_reuniao_por_extenso }}, reuniram-se os membros
-    da {{ dados.dados_texto_da_ata.associacao_nome }}
-    do(a) {{ dados.dados_texto_da_ata.unidade_tipo }} {{ dados.dados_texto_da_ata.unidade_nome }}
-    ({{ dados.dados_texto_da_ata.unidade_cod_eol }})
-    no(a) {{ dados.dados_texto_da_ata.local_reuniao }}, para tratar da seguinte pauta: Apresentação ao Conselho Fiscal
-    da prestação de contas da verba do PTRF
-    e suas ações agregadas, do período de {{ dados.cabecalho.periodo_data_inicio }} até
-    {{ dados.cabecalho.periodo_data_fim }},
+    {{ dados.dados_texto_da_ata.data_reuniao_por_extenso }}
+    no(a) {{ dados.dados_texto_da_ata.local_reuniao }}, {{ dados.dados_texto_da_ata.unidade_tipo }} {{ dados.dados_texto_da_ata.unidade_nome }},
+    reuniram-se os membros da {{ dados.dados_texto_da_ata.associacao_nome }},
+    para tratar da seguinte pauta: Apresentação ao Conselho Fiscal da prestação de contas da verba do PTRF
+    e suas ações agregadas, do período de {{ dados.cabecalho.periodo_data_inicio }} a {{ dados.cabecalho.periodo_data_fim }},
     referente ao {{ dados.dados_texto_da_ata.periodo_referencia }}.
     Aberta a reunião em
     {% if dados.dados_da_ata.get_convocacao_display %}{{ dados.dados_da_ata.get_convocacao_display }}{% else %}
@@ -93,14 +93,14 @@
         </thead>
         <tbody>
         <tr>
-          <td>Saldo anterior</td>
+          <td>Saldo reprogramado do período anterior</td>
           <td>{{ info.saldo_reprogramado_custeio|formata_valor }}</td>
           <td>{{ info.saldo_reprogramado_capital|formata_valor }}</td>
           <td>{{ info.saldo_reprogramado_livre|formata_valor }}</td>
           <td>{{ info.saldo_reprogramado|formata_valor }}</td>
         </tr>
         <tr>
-          <td>Recebimento</td>
+          <td>Repasses</td>
           <td>{{ info.repasses_no_periodo_custeio|formata_valor }}</td>
           <td>{{ info.repasses_no_periodo_capital|formata_valor }}</td>
           <td>{{ info.repasses_no_periodo_livre|formata_valor }}</td>
@@ -114,46 +114,39 @@
           <td>{{ info.outras_receitas_no_periodo|formata_valor }}</td>
         </tr>
         <tr>
-          <td>Despesas</td>
-          <td>{{ info.despesas_no_periodo_custeio|formata_valor }}</td>
-          <td>{{ info.despesas_no_periodo_capital|formata_valor }}</td>
+          <td>Despesas demonstradas</td>
+          <td>{{ info.despesas_conciliadas_custeio|formata_valor }}</td>
+          <td>{{ info.despesas_conciliadas_capital|formata_valor }}</td>
           <td class="td-livre-aplicacao-ausente">-</td>
-          <td>{{ info.despesas_no_periodo|formata_valor }}</td>
+          <td>{{ info.despesas_conciliadas|formata_valor }}</td>
         </tr>
         <tr>
-          <td>Saldo atual</td>
-          <td>{{ info.saldo_atual_custeio|formata_valor }}</td>
-          <td>{{ info.saldo_atual_capital|formata_valor }}</td>
-          <td>{{ info.saldo_atual_livre|formata_valor }}</td>
-          <td>{{ info.saldo_atual_total|formata_valor }}</td>
-        </tr>
-        <tr>
-          <td>Pagamentos a compensar</td>
+          <td>Despesas não demonstradas no período</td>
           <td>{{ info.despesas_nao_conciliadas_custeio|formata_valor }}</td>
           <td>{{ info.despesas_nao_conciliadas_capital|formata_valor }}</td>
           <td class="td-livre-aplicacao-ausente">-</td>
           <td>{{ info.despesas_nao_conciliadas|formata_valor }}</td>
         </tr>
         <tr>
-          <td>Crédito não demonstrado</td>
-          <td>{{ info.receitas_nao_conciliadas_custeio|formata_valor }}</td>
-          <td>{{ info.receitas_nao_conciliadas_capital|formata_valor }}</td>
-          <td>{{ info.receitas_nao_conciliadas_livre|formata_valor }}</td>
-          <td>{{ info.receitas_nao_conciliadas|formata_valor }}</td>
+          <td>Saldo reprogramado para o próximo período</td>
+          <td>{{ info.saldo_atual_custeio|formata_valor }}</td>
+          <td>{{ info.saldo_atual_capital|formata_valor }}</td>
+          <td>{{ info.saldo_atual_livre|formata_valor }}</td>
+          <td>{{ info.saldo_atual_total|formata_valor }}</td>
         </tr>
         <tr>
-          <td>Crédito futuros</td>
-          <td>{{ info.repasses_nao_realizados_custeio|formata_valor }}</td>
-          <td>{{ info.repasses_nao_realizados_capital|formata_valor }}</td>
-          <td>{{ info.repasses_nao_realizados_livre|formata_valor }}</td>
-          <td>{% soma_valores info.repasses_nao_realizados_custeio info.repasses_nao_realizados_capital info.repasses_nao_realizados_livre %}</td>
+          <td>Despesas não demonstradas de períodos anteriores</td>
+          <td>{{ info.despesas_nao_conciliadas_anteriores_custeio|formata_valor }}</td>
+          <td>{{ info.despesas_nao_conciliadas_anteriores_capital|formata_valor }}</td>
+          <td class="td-livre-aplicacao-ausente">-</td>
+          <td>{{ info.despesas_nao_conciliadas_anteriores|formata_valor }}</td>
         </tr>
         <tr>
-          <td>Devolução a conta do PTRF</td>
-          <td>{{ info.receitas_devolucao_no_periodo_custeio|formata_valor }}</td>
-          <td>{{ info.receitas_devolucao_no_periodo_capital|formata_valor }}</td>
-          <td>{{ info.receitas_devolucao_no_periodo_livre|formata_valor }}</td>
-          <td>{{ info.receitas_devolucao_no_periodo|formata_valor }}</td>
+          <td>Saldo bancário ao final do período</td>
+          <td>{{ info.saldo_bancario_custeio|formata_valor }}</td>
+          <td>{{ info.saldo_bancario_capital|formata_valor }}</td>
+          <td>{{ info.saldo_bancario_livre|formata_valor }}</td>
+          <td>{{ info.saldo_bancario_total|formata_valor }}</td>
         </tr>
         </tbody>
       </table>
@@ -204,14 +197,14 @@
       </thead>
       <tbody>
       <tr>
-        <td>Saldo anterior</td>
+        <td>Saldo reprogramado do período anterior</td>
         <td>{{ conta.totais.saldo_reprogramado_custeio|formata_valor }}</td>
         <td>{{ conta.totais.saldo_reprogramado_capital|formata_valor }}</td>
         <td>{{ conta.totais.saldo_reprogramado_livre|formata_valor }}</td>
         <td>{{ conta.totais.saldo_reprogramado|formata_valor }}</td>
       </tr>
       <tr>
-        <td>Recebimento</td>
+        <td>Repasses</td>
         <td>{{ conta.totais.repasses_no_periodo_custeio|formata_valor }}</td>
         <td>{{ conta.totais.repasses_no_periodo_capital|formata_valor }}</td>
         <td>{{ conta.totais.repasses_no_periodo_livre|formata_valor }}</td>
@@ -225,46 +218,39 @@
         <td>{{ conta.totais.outras_receitas_no_periodo|formata_valor }}</td>
       </tr>
       <tr>
-        <td>Despesas</td>
-        <td>{{ conta.totais.despesas_no_periodo_custeio|formata_valor }}</td>
-        <td>{{ conta.totais.despesas_no_periodo_capital|formata_valor }}</td>
+        <td>Despesas demonstradas</td>
+        <td>{{ conta.totais.despesas_conciliadas_custeio|formata_valor }}</td>
+        <td>{{ conta.totais.despesas_conciliadas_capital|formata_valor }}</td>
         <td class="td-livre-aplicacao-ausente">-</td>
-        <td>{{ conta.totais.despesas_no_periodo|formata_valor }}</td>
+        <td>{{ conta.totais.despesas_conciliadas|formata_valor }}</td>
       </tr>
       <tr>
-        <td>Saldo atual</td>
-        <td>{{ conta.totais.saldo_atual_custeio|formata_valor }}</td>
-        <td>{{ conta.totais.saldo_atual_capital|formata_valor }}</td>
-        <td>{{ conta.totais.saldo_atual_livre|formata_valor }}</td>
-        <td>{{ conta.totais.saldo_atual_total|formata_valor }}</td>
-      </tr>
-      <tr>
-        <td>Pagamentos a compensar</td>
+        <td>Despesas não demonstradas no período</td>
         <td>{{ conta.totais.despesas_nao_conciliadas_custeio|formata_valor }}</td>
         <td>{{ conta.totais.despesas_nao_conciliadas_capital|formata_valor }}</td>
         <td class="td-livre-aplicacao-ausente">-</td>
         <td>{{ conta.totais.despesas_nao_conciliadas|formata_valor }}</td>
       </tr>
       <tr>
-        <td>Crédito não demonstrado</td>
-        <td>{{ conta.totais.receitas_nao_conciliadas_custeio|formata_valor }}</td>
-        <td>{{ conta.totais.receitas_nao_conciliadas_capital|formata_valor }}</td>
-        <td>{{ conta.totais.receitas_nao_conciliadas_livre|formata_valor }}</td>
-        <td>{{ conta.totais.receitas_nao_conciliadas|formata_valor }}</td>
+        <td>Saldo reprogramado para o próximo período</td>
+        <td>{{ conta.totais.saldo_atual_custeio|formata_valor }}</td>
+        <td>{{ conta.totais.saldo_atual_capital|formata_valor }}</td>
+        <td>{{ conta.totais.saldo_atual_livre|formata_valor }}</td>
+        <td>{{ conta.totais.saldo_atual_total|formata_valor }}</td>
       </tr>
       <tr>
-        <td>Crédito futuros</td>
-        <td>{{ conta.totais.repasses_nao_realizados_custeio|formata_valor }}</td>
-        <td>{{ conta.totais.repasses_nao_realizados_capital|formata_valor }}</td>
-        <td>{{ conta.totais.repasses_nao_realizados_livre|formata_valor }}</td>
-        <td>{% soma_valores conta.totais.repasses_nao_realizados_custeio conta.totais.repasses_nao_realizados_capital conta.totais.repasses_nao_realizados_livre %}</td>
+        <td>Despesas não demonstradas de períodos anteriores</td>
+        <td>{{ conta.totais.despesas_nao_conciliadas_anteriores_custeio|formata_valor }}</td>
+        <td>{{ conta.totais.despesas_nao_conciliadas_anteriores_capital|formata_valor }}</td>
+        <td class="td-livre-aplicacao-ausente">-</td>
+        <td>{{ conta.totais.despesas_nao_conciliadas_anteriores|formata_valor }}</td>
       </tr>
       <tr>
-        <td>Devolução a conta do PTRF</td>
-        <td>{{ conta.totais.receitas_devolucao_no_periodo_custeio|formata_valor }}</td>
-        <td>{{ conta.totais.receitas_devolucao_no_periodo_capital|formata_valor }}</td>
-        <td>{{ conta.totais.receitas_devolucao_no_periodo_livre|formata_valor }}</td>
-        <td>{% soma_valores conta.totais.receitas_devolucao_no_periodo_custeio conta.totais.receitas_devolucao_no_periodo_capital conta.totais.receitas_devolucao_no_periodo_livre %}</td>
+        <td>Saldo bancário ao final do período</td>
+        <td>{{ conta.totais.saldo_bancario_custeio|formata_valor }}</td>
+        <td>{{ conta.totais.saldo_bancario_capital|formata_valor }}</td>
+        <td>{{ conta.totais.saldo_bancario_livre|formata_valor }}</td>
+        <td>{{ conta.totais.saldo_bancario_total|formata_valor }}</td>
       </tr>
       </tbody>
     </table>
@@ -276,8 +262,9 @@
       conta nº {{ conta.conta_associacao.numero_conta }} do {{ conta.conta_associacao.banco_nome }},
       agência {{ conta.conta_associacao.agencia }} os valores de R$ {{ conta.totais.saldo_atual_custeio|formata_valor }}
       para despesas de custeio, R$ {{ conta.totais.saldo_atual_capital|formata_valor }}, para despesas de capital e
-      R$ {{ conta.totais.saldo_atual_livre|formata_valor }} para despesas de livre aplicação, totalizando de
-      R$ {{ conta.totais.saldo_atual_total|formata_valor }}, valores estes que foram reprogramados.</p>
+      R$ {{ conta.totais.saldo_atual_livre|formata_valor }} para despesas de livre aplicação, valores estes que foram
+      reprogramados, além de R$ {{ conta.totais.despesas_nao_conciliadas|addition:conta.totais.despesas_nao_conciliadas_anteriores|formata_valor }}
+      relativo a despesas pendentes de compensação bancária, totalizando R$ {{ conta.totais.saldo_bancario_total|formata_valor }}.</p>
     {% comment %} FIM Texto por ação {% endcomment %}
 
   {% endfor %} {% comment %} for conta in dados.info_financeira_ata.contas {% endcomment %}
@@ -285,27 +272,12 @@
   {% comment %} Comentários {% endcomment %}
   <p class="mt-4">{{ dados.dados_texto_da_ata.comentarios }}</p>
 
-  <p class="mt-4">Esgotados os assuntos o(a) senhor(a) presidente ofereceu a palavra a quem dela desejasse fazer uso e, como não houve manifestação agradeceu a presença de todos, considerando encerrada a reunião, a qual eu, {{ dados.dados_texto_da_ata.secretario_reuniao }} lavrei a presente ata, que vai por mim assinada e pelos demais presentes.</p>
+  <p class="mt-4">Esgotados os assuntos o(a) senhor(a) presidente ofereceu a palavra a quem dela desejasse fazer uso e, como não houve manifestação, agradeceu a presença de todos e considerou encerrada a reunião, a qual eu, {{ dados.dados_texto_da_ata.secretario_reuniao }}, lavrei a presente ata, que vai por mim assinada e pelos demais presentes.</p>
 
   {% language 'pt-br' %}
     <p class="mt-4">São Paulo, dia {{ dados.dados_da_ata.data_reuniao|date:"d" }}
       de {{ dados.dados_da_ata.data_reuniao|date:"F"|lower }} de {{ dados.dados_da_ata.data_reuniao|date:"Y" }}</p>
   {% endlanguage %}
-
-
-  <div class='row mt-5'>
-    <div class="col mt-5">
-      <p class="mb-0 text-center">________________________________________________________</p>
-      <p class="mb-0 text-center"><strong>{{ dados.dados_texto_da_ata.presidente_reuniao }}</strong></p>
-      <p class="mb-0 text-center">{{ dados.dados_texto_da_ata.cargo_presidente_reuniao }}</p>
-    </div>
-    <div class="col mt-5 ml-3">
-      <p class="mb-0 text-center">________________________________________________________</p>
-      <p class="mb-0 text-center"><strong>{{ dados.dados_texto_da_ata.secretario_reuniao }}</strong></p>
-      <p class="mb-0 text-center">{{ dados.dados_texto_da_ata.cargo_secretaria_reuniao }}</p>
-    </div>
-  </div>
-
 
   <p class="font-12 mt-5 titulo-membros-conselho-fiscal">Presentes</p>
   <table class="table table-bordered tabela-assinaturas">

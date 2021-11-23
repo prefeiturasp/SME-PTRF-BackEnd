@@ -68,10 +68,10 @@ def test_resultado_periodo_fechado(
             'despesas_nao_conciliadas_capital': Decimal('0.00'),
             'despesas_nao_conciliadas_custeio': Decimal('0.00'),
 
-            'receitas_nao_conciliadas': 0,
-            'receitas_nao_conciliadas_capital': 0,
-            'receitas_nao_conciliadas_custeio': 0,
-            'receitas_nao_conciliadas_livre': 0,
+            'receitas_nao_conciliadas': Decimal('0.00'),
+            'receitas_nao_conciliadas_capital': Decimal('0.00'),
+            'receitas_nao_conciliadas_custeio': Decimal('0.00'),
+            'receitas_nao_conciliadas_livre': Decimal('0.00'),
 
             'saldo_atual_capital': Decimal('9000.00'),
             'saldo_atual_custeio': Decimal('18000.00'),
@@ -84,6 +84,19 @@ def test_resultado_periodo_fechado(
             'repasses_nao_realizados_capital': 0,
             'repasses_nao_realizados_custeio': 0,
             'repasses_nao_realizados_livre': 0,
+
+            'despesas_conciliadas': Decimal('3000.00'),
+            'despesas_conciliadas_capital': Decimal('1000.00'),
+            'despesas_conciliadas_custeio': Decimal('2000.00'),
+
+            'despesas_nao_conciliadas_anteriores': 0,
+            'despesas_nao_conciliadas_anteriores_capital': 0,
+            'despesas_nao_conciliadas_anteriores_custeio': 0,
+
+            'saldo_bancario_capital': Decimal('9000.00'),
+            'saldo_bancario_custeio': Decimal('18000.00'),
+            'saldo_bancario_livre': Decimal('30000.00'),
+            'saldo_bancario_total': Decimal('57000.00'),
 
         },
     ]

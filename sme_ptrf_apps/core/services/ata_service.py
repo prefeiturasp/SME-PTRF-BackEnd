@@ -16,8 +16,8 @@ def gerar_arquivo_ata(prestacao_de_contas=None, ata=None, usuario=None):
         LOGGER.info(f'Gerando arquivo ata em PDF')
         ata.arquivo_pdf_concluir()
         return ata
-    except:
-        LOGGER.info(f'FALHA AO GERAR O ARQUIVO DA ATA')
+    except Exception as e:
+        LOGGER.info(f'FALHA AO GERAR O ARQUIVO DA ATA', e)
         ata.arquivo_pdf_nao_gerado()
         return None
 

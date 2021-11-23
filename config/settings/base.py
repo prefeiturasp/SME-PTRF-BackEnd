@@ -92,6 +92,7 @@ THIRD_PARTY_APPS = [
     "django_filters",
     "rangefilter",
     "ckeditor",
+    "mathfilters",
 ]
 
 LOCAL_APPS = [
