@@ -76,6 +76,19 @@ def test_action_painel_acoes_de_uma_conta(
                 'despesas_nao_conciliadas_capital': 200.0,
                 'despesas_nao_conciliadas_custeio': 100.0,
 
+                'despesas_nao_conciliadas_anteriores': 50.0,
+                'despesas_nao_conciliadas_anteriores_capital': 0,
+                'despesas_nao_conciliadas_anteriores_custeio': 50.0,
+
+                'saldo_bancario_capital': 0,
+                'saldo_bancario_custeio': 50.0,
+                'saldo_bancario_livre': 0,
+                'saldo_bancario_total': 50.0,
+
+                'despesas_conciliadas': 0,
+                'despesas_conciliadas_capital': 0,
+                'despesas_conciliadas_custeio': 0,
+
                 'receitas_nao_conciliadas': 400.0,
                 'receitas_nao_conciliadas_capital': 0,
                 'receitas_nao_conciliadas_custeio': 400.0,
@@ -204,6 +217,19 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
                 'despesas_nao_conciliadas': 300.0,
                 'despesas_nao_conciliadas_capital': 200.0,
                 'despesas_nao_conciliadas_custeio': 100.0,
+
+                'despesas_conciliadas': 0,
+                'despesas_conciliadas_capital': 0,
+                'despesas_conciliadas_custeio': 0,
+
+                'despesas_nao_conciliadas_anteriores': 50.0,
+                'despesas_nao_conciliadas_anteriores_capital': 0,
+                'despesas_nao_conciliadas_anteriores_custeio': 50.0,
+
+                'saldo_bancario_capital': 0,
+                'saldo_bancario_custeio': 50.0,
+                'saldo_bancario_livre': 0,
+                'saldo_bancario_total': 50.0,
 
                 'receitas_nao_conciliadas': 400.0,
                 'receitas_nao_conciliadas_capital': 0,
