@@ -5,9 +5,15 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.22.0
+Versão: 1.23.0
 
 ## Release Notes
+
+### 1.23.0 - 24/11/2021 - Entregas da Sprint 32 (Urgências)
+* UE > Foram feitas alterações de texto na Relação de Bens
+* UE > Foram feitas alterações de texto no Demonstrativo Financeiro
+* UE > O relatório de devolução para acertos em PDF agora inclui novo campo de detalhamento de ajustes em documento 
+* UE > Foram feitas alterações de texto e cálculo nas atas de apresentação e retificação de PCs. 
 
 ### 1.22.0 - 18/11/2021 - Entregas da Sprint 31
 * UE > Demonstrativos Financeiros agora são gerados apenas em PDF e não mais em Excel
