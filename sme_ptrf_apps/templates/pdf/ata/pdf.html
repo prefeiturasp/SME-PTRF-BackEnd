@@ -44,8 +44,8 @@
 
 {# ************************* Rodape ************************* #}
 <p id="nome-associacao-rodape" class="font-10">
-  <i>Ata PDF gerada pelo Sig_Escola em {% now "j/m/Y" %} pelo usuário {{ dados.dados_texto_da_ata.usuario }} para a APM
-    DA(O) {{ dados.dados_texto_da_ata.unidade_tipo }} {{ dados.dados_texto_da_ata.unidade_nome }}</i></p>
+  <i>{{ dados.dados_texto_da_ata.unidade_tipo }} {{ dados.dados_texto_da_ata.unidade_nome }} -
+    Ata gerada pelo usuário {{ dados.dados_texto_da_ata.usuario }}, via SIG - Escola, em: {% now "j/m/Y" %}</i>
 {# ************************* Fim Rodape ************************* #}
 
 <section class="conteudo">
@@ -121,7 +121,7 @@
           <td>{{ info.despesas_conciliadas|formata_valor }}</td>
         </tr>
         <tr>
-          <td>Despesas não demonstradas no período (Pagamentos a compensar)</td>
+          <td>Despesas não demonstradas no período</td>
           <td>{{ info.despesas_nao_conciliadas_custeio|formata_valor }}</td>
           <td>{{ info.despesas_nao_conciliadas_capital|formata_valor }}</td>
           <td class="td-livre-aplicacao-ausente">-</td>
@@ -135,7 +135,7 @@
           <td>{{ info.saldo_atual_total|formata_valor }}</td>
         </tr>
         <tr>
-          <td>Despesas não demonstradas de períodos anteriores (Pagamentos a compensar)</td>
+          <td>Despesas não demonstradas de períodos anteriores</td>
           <td>{{ info.despesas_nao_conciliadas_anteriores_custeio|formata_valor }}</td>
           <td>{{ info.despesas_nao_conciliadas_anteriores_capital|formata_valor }}</td>
           <td class="td-livre-aplicacao-ausente">-</td>
@@ -225,7 +225,7 @@
         <td>{{ conta.totais.despesas_conciliadas|formata_valor }}</td>
       </tr>
       <tr>
-        <td>Despesas não demonstradas no período (Pagamentos a compensar)</td>
+        <td>Despesas não demonstradas no período</td>
         <td>{{ conta.totais.despesas_nao_conciliadas_custeio|formata_valor }}</td>
         <td>{{ conta.totais.despesas_nao_conciliadas_capital|formata_valor }}</td>
         <td class="td-livre-aplicacao-ausente">-</td>
@@ -239,7 +239,7 @@
         <td>{{ conta.totais.saldo_atual_total|formata_valor }}</td>
       </tr>
       <tr>
-        <td>Despesas não demonstradas de períodos anteriores (Pagamentos a compensar)</td>
+        <td>Despesas não demonstradas de períodos anteriores</td>
         <td>{{ conta.totais.despesas_nao_conciliadas_anteriores_custeio|formata_valor }}</td>
         <td>{{ conta.totais.despesas_nao_conciliadas_anteriores_capital|formata_valor }}</td>
         <td class="td-livre-aplicacao-ausente">-</td>
