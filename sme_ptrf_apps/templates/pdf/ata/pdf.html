@@ -300,6 +300,7 @@
       {% endfor %}
     </table>
 
+{% if dados and dados.presentes_na_ata and dados.presentes_na_ata.presentes_ata_nao_membros %}
 <p class="font-12 mt-5 titulo-membros-conselho-fiscal">DEMAIS PRESENTES</p>
   <table class="table table-bordered tabela-assinaturas">
       <thead>
@@ -320,7 +321,7 @@
         </tbody>
       {% endfor %}
     </table>
-
+{% endif %}
 
   {% comment %} Texto dinâmico inferior - Parecer do conselho fiscal com quebra de página {% endcomment %}
   <div id="parecer-do-conselho-fiscal-quebra-de-pagina">

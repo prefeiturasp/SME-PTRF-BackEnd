@@ -1,3 +1,6 @@
+### 1.23.1 - 25/11/2021 - Hotfix
+* (53862) - Ata de retificação não oferece opção de geração em PDF e Tabela de demais presentes vazia
+
 ### 1.21.5 - 11/11/2021 - Hotfix
 * (53120) - Demonstrativo Financeiro: Bloco 5: Campo 33 não trazendo informações
 
