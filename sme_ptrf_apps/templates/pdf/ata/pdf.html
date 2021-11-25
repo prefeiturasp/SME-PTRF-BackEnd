@@ -256,15 +256,29 @@
     </table>
 
     {% comment %} Texto por ação {% endcomment %}
+    {% if conta.totais.despesas_nao_conciliadas > 0 or conta.totais.despesas_nao_conciliadas_anteriores > 0 %}
+      <p class="mt-3">O(a) Senhor(a) {{ dados.dados_texto_da_ata.presidente_reuniao }} esclareceu que as despesas
+        atenderam às prioridades registradas na(s) ata(a) da(s) reunião(ões) da Associação e em seguida informou que ao
+        término do período de realização das despesas do {{ dados.dados_texto_da_ata.periodo_referencia }}, restaram na
+        conta nº {{ conta.conta_associacao.numero_conta }} do {{ conta.conta_associacao.banco_nome }},
+        agência {{ conta.conta_associacao.agencia }} os valores de R$ {{ conta.totais.saldo_atual_custeio|formata_valor }}
+        para despesas de custeio, R$ {{ conta.totais.saldo_atual_capital|formata_valor }}, para despesas de capital e
+        R$ {{ conta.totais.saldo_atual_livre|formata_valor }} para despesas de livre aplicação, valores estes que foram
+        reprogramados, além de R$ {{ conta.totais.despesas_nao_conciliadas|addition:conta.totais.despesas_nao_conciliadas_anteriores|formata_valor }}
+        relativo a despesas pendentes de compensação bancária, totalizando R$ {{ conta.totais.saldo_bancario_total|formata_valor }}.</p>
+    {% endif %}
+
+    {% if conta.totais.despesas_nao_conciliadas == 0 and conta.totais.despesas_nao_conciliadas_anteriores == 0 %}
     <p class="mt-3">O(a) Senhor(a) {{ dados.dados_texto_da_ata.presidente_reuniao }} esclareceu que as despesas
-      atenderam às prioridades registradas na(s) ata(a) da(s) reunião(ões) da Associação e em seguida informou que ao
-      término do período de realização das despesas do {{ dados.dados_texto_da_ata.periodo_referencia }}, restaram na
-      conta nº {{ conta.conta_associacao.numero_conta }} do {{ conta.conta_associacao.banco_nome }},
-      agência {{ conta.conta_associacao.agencia }} os valores de R$ {{ conta.totais.saldo_atual_custeio|formata_valor }}
-      para despesas de custeio, R$ {{ conta.totais.saldo_atual_capital|formata_valor }}, para despesas de capital e
-      R$ {{ conta.totais.saldo_atual_livre|formata_valor }} para despesas de livre aplicação, valores estes que foram
-      reprogramados, além de R$ {{ conta.totais.despesas_nao_conciliadas|addition:conta.totais.despesas_nao_conciliadas_anteriores|formata_valor }}
-      relativo a despesas pendentes de compensação bancária, totalizando R$ {{ conta.totais.saldo_bancario_total|formata_valor }}.</p>
+        atenderam às prioridades registradas na(s) ata(a) da(s) reunião(ões) da Associação e em seguida informou que ao
+        término do período de realização das despesas do {{ dados.dados_texto_da_ata.periodo_referencia }}, restaram na
+        conta nº {{ conta.conta_associacao.numero_conta }} do {{ conta.conta_associacao.banco_nome }},
+        agência {{ conta.conta_associacao.agencia }} os valores de R$ {{ conta.totais.saldo_atual_custeio|formata_valor }}
+        para despesas de custeio, R$ {{ conta.totais.saldo_atual_capital|formata_valor }}, para despesas de capital e
+        R$ {{ conta.totais.saldo_atual_livre|formata_valor }} para despesas de livre aplicação, totalizando R$ {{ conta.totais.saldo_bancario_total|formata_valor }},
+       valores estes que foram reprogramados.</p>
+    {% endif %}
+
     {% comment %} FIM Texto por ação {% endcomment %}
 
   {% endfor %} {% comment %} for conta in dados.info_financeira_ata.contas {% endcomment %}
