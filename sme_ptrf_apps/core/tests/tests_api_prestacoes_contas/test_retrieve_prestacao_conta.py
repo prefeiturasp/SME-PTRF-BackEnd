@@ -13,7 +13,8 @@ from ...models import PrestacaoConta
 pytestmark = pytest.mark.django_db
 
 
-def test_api_retrieve_prestacao_conta_por_periodo_e_associacao(jwt_authenticated_client_a, prestacao_conta, prestacao_conta_anterior):
+def test_api_retrieve_prestacao_conta_por_periodo_e_associacao(jwt_authenticated_client_a, prestacao_conta,
+                                                               prestacao_conta_anterior):
     associacao_uuid = prestacao_conta.associacao.uuid
     periodo_uuid = prestacao_conta.periodo.uuid
 
@@ -166,6 +167,7 @@ def demonstrativo_financeiro_cheque(arquivo_demonstrativo, prestacao_conta, cont
         prestacao_conta=prestacao_conta,
         status='CONCLUIDO'
     )
+
 
 @pytest.fixture
 def arquivo_extrato():
@@ -341,6 +343,11 @@ def test_api_retrieve_prestacao_conta_por_uuid(
                 'uuid': f'{_analise_conta_prestacao_conta_2020_1.uuid}',
             }
         ],
+        'permite_analise_valores_reprogramados': {
+            'permite_analise': True,
+            'erro': '',
+            'mensagem': 'O período atual da PC é igual ao periodo_inicial.proximo_periodo da associacao'
+        },
         'motivos_aprovacao_ressalva': [
             {
                 'uuid': f'{motivo_aprovacao_ressalva_x.uuid}',
