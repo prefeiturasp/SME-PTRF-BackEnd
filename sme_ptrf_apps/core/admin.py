@@ -642,5 +642,5 @@ class PresenteAtaAdmin(admin.ModelAdmin):
 
 @admin.register(AnaliseValorReprogramadoPrestacaoConta)
 class AnaliseValorReprogramadoPrestacaoContaAdmin(admin.ModelAdmin):
-    list_display = ['analise_prestacao_conta', 'conta_associacao', 'acao_associacao']
+    list_display = ['analise_prestacao_conta', 'conta_associacao', 'acao_associacao', 'valor_saldo_reprogramado_correto']
     readonly_fields = ('uuid', 'id',)
