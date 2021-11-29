@@ -41,7 +41,8 @@ from .models import (
     TipoAcertoDocumento,
     AnaliseDocumentoPrestacaoConta,
     SolicitacaoAcertoDocumento,
-    PresenteAta
+    PresenteAta,
+    AnaliseValorReprogramadoPrestacaoConta
 )
 
 admin.site.register(Acao)
@@ -637,3 +638,9 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
 @admin.register(PresenteAta)
 class PresenteAtaAdmin(admin.ModelAdmin):
     list_display = ['uuid', 'ata', 'identificacao', 'nome', 'cargo', 'membro']
+
+
+@admin.register(AnaliseValorReprogramadoPrestacaoConta)
+class AnaliseValorReprogramadoPrestacaoContaAdmin(admin.ModelAdmin):
+    list_display = ['analise_prestacao_conta', 'conta_associacao', 'acao_associacao', 'valor_saldo_reprogramado_correto']
+    readonly_fields = ('uuid', 'id',)
