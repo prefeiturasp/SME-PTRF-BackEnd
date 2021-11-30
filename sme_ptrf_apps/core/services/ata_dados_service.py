@@ -30,7 +30,7 @@ def presentes_ata(ata):
     presentes_ata_membros = PresenteAta.objects.filter(ata=ata).filter(membro=True).filter(
         conselho_fiscal=False).values()
     presentes_ata_nao_membros = PresenteAta.objects.filter(ata=ata).filter(membro=False).filter(
-        conselho_fiscal=False).values()
+        conselho_fiscal=False).order_by('nome').values()
     presentes_ata_conselho_fiscal = PresenteAta.objects.filter(ata=ata).filter(membro=True).filter(
         conselho_fiscal=True).values()
 
