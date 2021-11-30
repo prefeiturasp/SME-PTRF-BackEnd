@@ -162,6 +162,14 @@ class Associacao(ModeloIdNome):
 
         return qry_periodos.all()
 
+    def membros_por_cargo(self):
+        cargos = []
+        for key in MembroEnum:
+            cargo = self.cargos.filter(cargo_associacao=key.name).first()
+            if cargo:
+                cargos.append(cargo)
+        return cargos
+
     @classmethod
     def acoes_da_associacao(cls, associacao_uuid):
         associacao = cls.objects.filter(uuid=associacao_uuid).first()
