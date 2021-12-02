@@ -55,6 +55,11 @@ class LoginView(ObtainJSONWebToken):
                         return Response({'data': {'detail': 'Usuário não encontrado.'}},
                                         status=status.HTTP_401_UNAUTHORIZED)
 
+                    if not user.is_active:
+                        logger.info("Usuário %s inativo no Admin do sistema.", login)
+                        return Response({'detail': 'Você está sem autorização de acesso à aplicação no momento. Entre em contato com o administrador do Sig.Escola.'},
+                                        status=status.HTTP_401_UNAUTHORIZED)
+
                     request._full_data = {'username': user_dict['login'], 'password': senha}
                     resp = super().post(request, *args, **kwargs)
                     unidades = []

@@ -13,6 +13,7 @@ from django.db.models import Q
 from sme_ptrf_apps.core.choices import MembroEnum, RepresentacaoCargo
 from rest_framework import status
 from django.core.exceptions import ValidationError
+from sme_ptrf_apps.utils.remove_digitos_str import remove_digitos
 
 
 class PresentesAtaViewSet(mixins.CreateModelMixin,
@@ -50,7 +51,7 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
 
         ata = Ata.objects.filter(uuid=ata_uuid).first()
         presentes_ata_membros = PresenteAta.objects.filter(ata=ata).filter(membro=True).values()
-        presentes_ata_nao_membros = PresenteAta.objects.filter(ata=ata).filter(membro=False).values()
+        presentes_ata_nao_membros = PresenteAta.objects.filter(ata=ata).filter(membro=False).order_by('nome').values()
         presentes_ata_conselho_fiscal = PresenteAta.objects.filter(
             ata=ata).filter(membro=True).filter(conselho_fiscal=True).values()
 
@@ -84,14 +85,14 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
 
         ata = Ata.objects.filter(uuid=ata_uuid).first()
 
-        membros_associacao = MembroAssociacao.objects.filter(associacao=ata.associacao)
+        membros_associacao = ata.associacao.membros_por_cargo()
 
         membros = []
         for membro in membros_associacao:
 
             dado = {
                 "ata": ata_uuid,
-                "cargo": MembroEnum[membro.cargo_associacao].value,
+                "cargo": remove_digitos(MembroEnum[membro.cargo_associacao].value),
                 "identificacao": membro.codigo_identificacao if membro.codigo_identificacao != "" else membro.cpf,
                 "nome": membro.nome,
                 "editavel": False,

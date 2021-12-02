@@ -5,9 +5,21 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.23.0
+Versão: 1.24.0
 
 ## Release Notes
+
+### 1.24.0 - 02/12/2021 - Entregas da Sprint 32 (Complemento)
+* UE > Atas de apresentação e retificação agora trazem a lista de presença de membros em ordem de cargo
+* UE > Atas de apresentação e retificação agora trazem a lista de presença de não membros em ordem alfabética
+* UE > Agora o campo número de documento em Despesas só aceita dígitos.
+* DRE > O resumo de acertos passa a só exibir a aba "Conferência Atual" em PCs em análise 
+* DRE > Implementado a solicitação de ajustes em valores reprogramados de períodos iniciais
+* DRE > Alterada a consulta de resumo de acertos para exibir ajustes em valores reprogramados de períodos iniciais
+* DRE > Alterado o relatório de devolução para acertos para exibir ajustes em valores reprogramados de períodos iniciais
+* ADM > Agora é possível inativar um usuário temporariamente sem ter que alterar seus grupos de acesso
+* Agora sub-menus sem itens visíveis são ocultados do menu
+* 🐞 Correção de bugs
 
 ### 1.23.0 - 24/11/2021 - Entregas da Sprint 32 (Urgências)
 * UE > Foram feitas alterações de texto na Relação de Bens
