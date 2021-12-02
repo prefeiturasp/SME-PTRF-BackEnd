@@ -284,3 +284,8 @@ def motivo_aprovacao_ressalva_y():
         'MotivoAprovacaoRessalva',
         motivo='Y'
     )
+
+
+@pytest.fixture
+def comissao_exame_contas():
+    return baker.make('Comissao', nome='Exame de Contas')
