@@ -6,7 +6,8 @@ from .acao_associacao_serializer import (
     AcaoAssociacaoLookUpSerializer,
     AcaoAssociacaoSerializer,
     AcaoAssociacaoRetrieveSerializer,
-    AcaoAssociacaoCreateSerializer
+    AcaoAssociacaoCreateSerializer,
+    AcaoAssociacaoAjustesValoresIniciasSerializer
 )
 from .associacao_serializer import (
     AssociacaoCreateSerializer,

@@ -16,6 +16,7 @@ from sme_ptrf_apps.users.permissoes import (
 
 from ...services import (
     lancamentos_da_prestacao,
+    ajustes_saldos_iniciais
 )
 
 from django.http import HttpResponse
@@ -32,6 +33,57 @@ class AnalisesPrestacoesContasViewSet(
     lookup_field = 'uuid'
     queryset = AnalisePrestacaoConta.objects.all().order_by('id')
     serializer_class = AnalisePrestacaoContaRetrieveSerializer
+
+    @action(detail=True, methods=['get'], url_path='verifica-reajustes',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def verifica_se_tem_reajustes(self, request, uuid):
+        try:
+            analise_prestacao = AnalisePrestacaoConta.by_uuid(uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao para o uuid {uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        result = ajustes_saldos_iniciais(uuid)
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='saldos-iniciais-com-ajustes',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def saldos_iniciais_com_ajuste(self, request, uuid):
+        try:
+            analise_prestacao = AnalisePrestacaoConta.by_uuid(uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao para o uuid {uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define a conta de conciliação
+        conta_associacao_uuid = self.request.query_params.get('conta_associacao')
+        if not conta_associacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da conta da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            conta_associacao = ContaAssociacao.objects.get(uuid=conta_associacao_uuid)
+        except ContaAssociacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto conta-associação para o uuid {conta_associacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        result = ajustes_saldos_iniciais(uuid, conta_associacao_uuid)
+        return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], url_path='lancamentos-com-ajustes',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
