@@ -6,4 +6,4 @@ from ...models import Comissao
 class ComissaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comissao
-        fields = ('uuid', 'nome')
+        fields = ('uuid', 'id', 'nome')

@@ -5,14 +5,22 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter
 
 from ...models import MembroComissao
-from ..serializers.membro_comissao_serializer import MembroComissaoSerializer
+from ..serializers.membro_comissao_serializer import (
+    MembroComissaoListSerializer,
+    MembroComissaoCreateSerializer,
+    MembroComissaoRetrieveSerializer
+)
+
+from sme_ptrf_apps.users.permissoes import (
+    PermissaoApiDre,
+)
 
 
 class MembrosComissoesViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated & PermissaoApiDre]
     lookup_field = 'uuid'
     queryset = MembroComissao.objects.all().order_by('nome')
-    serializer_class = MembroComissaoSerializer
+    serializer_class = MembroComissaoListSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
     filter_fields = ('dre__uuid',)
 
@@ -29,3 +37,11 @@ class MembrosComissoesViewSet(viewsets.ModelViewSet):
             qs = qs.filter(comissoes__uuid=comissao_uuid)
 
         return qs
+
+    def get_serializer_class(self):
+        if self.action in ('create', 'update', 'patch'):
+            return MembroComissaoCreateSerializer
+        elif self.action == 'retrieve':
+            return MembroComissaoRetrieveSerializer
+        else:
+            return MembroComissaoListSerializer
