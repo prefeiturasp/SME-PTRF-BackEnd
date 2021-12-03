@@ -142,13 +142,13 @@ header {
   font-size: 11px;
 }
 
-.tabela-acoes, .tabela-totais {
+.tabela-acoes, .tabela-totais, .tabela-devolucoes-ao-tesouro {
   max-width: 100%;
   color: #000 !important;
   font-size: 8pt !important;
 }
 
-.tabela-acoes th, .tabela-assinaturas th{
+.tabela-acoes th, .tabela-assinaturas th, .tabela-devolucoes-ao-tesouro th{
   padding: 5px !important;
   background-color: #F5F6F8 !important;
 }
@@ -159,7 +159,12 @@ header {
   color: #fff !important;
 }
 
-.tabela-acoes td, .tabela-totais td{
+.tabela-devolucoes-ao-tesouro th{
+  background-color: #A4A4A4 !important;
+  color: #fff !important;;
+}
+
+.tabela-acoes td, .tabela-totais td, .tabela-devolucoes-ao-tesouro td{
   padding: 3px !important;
 }
 .tr-titulo{
@@ -180,10 +185,7 @@ header {
   font-weight: bold;
 }
 
-.tabela-devolucoes-ao-tesouro th{
-  background-color: #A4A4A4;
-  color: #fff;
-}
+
 
 #parecer-do-conselho-fiscal-quebra-de-pagina{
   page-break-before: always
