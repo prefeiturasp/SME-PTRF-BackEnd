@@ -29,6 +29,17 @@ class AcaoAssociacaoLookUpSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'id', 'nome', 'e_recursos_proprios')
 
 
+class AcaoAssociacaoAjustesValoresIniciasSerializer(serializers.ModelSerializer):
+    nome = serializers.SerializerMethodField('get_nome_acao')
+
+    def get_nome_acao(self, obj):
+        return obj.acao.nome
+
+    class Meta:
+        model = AcaoAssociacao
+        fields = ('uuid', 'nome',)
+
+
 class AcaoAssociacaoCreateSerializer(serializers.ModelSerializer):
     associacao = serializers.SlugRelatedField(
         slug_field='uuid',
