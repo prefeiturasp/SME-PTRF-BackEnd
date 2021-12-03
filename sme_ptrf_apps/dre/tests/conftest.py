@@ -289,3 +289,16 @@ def motivo_aprovacao_ressalva_y():
 @pytest.fixture
 def comissao_exame_contas():
     return baker.make('Comissao', nome='Exame de Contas')
+
+
+@pytest.fixture
+def membro_comissao_exame_contas(comissao_exame_contas, dre_ipiranga):
+    membro = baker.make(
+        'MembroComissao',
+        rf='123456',
+        nome='Jose Testando',
+        email='jose@teste.com',
+        dre=dre_ipiranga,
+        comissoes=[comissao_exame_contas, ]
+    )
+    return membro

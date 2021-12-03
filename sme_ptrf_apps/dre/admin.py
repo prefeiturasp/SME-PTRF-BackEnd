@@ -3,7 +3,7 @@ from .models import (Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoR
                      ItemVerificacaoRegularidade,
                      VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq, RelatorioConsolidadoDRE,
                      JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE,
-                     ParametroFiqueDeOlhoRelDre, MotivoAprovacaoRessalva, MotivoReprovacao, Comissao)
+                     ParametroFiqueDeOlhoRelDre, MotivoAprovacaoRessalva, MotivoReprovacao, Comissao, MembroComissao)
 
 admin.site.register(ParametroFiqueDeOlhoRelDre)
 admin.site.register(MotivoAprovacaoRessalva)
@@ -162,3 +162,11 @@ class ComissaoAdmin(admin.ModelAdmin):
     list_display = ['nome', ]
     search_fields = ['nome', ]
     readonly_fields = ['id', 'uuid', 'criado_em', 'alterado_em']
+
+
+@admin.register(MembroComissao)
+class MembroComissaoAdmin(admin.ModelAdmin):
+    list_display = ['rf', 'nome', 'email', 'qtd_comissoes', 'dre']
+    search_fields = ['rf', 'nome', 'email', 'dre__nome', 'dre__codigo_eol']
+    readonly_fields = ['id', 'uuid', 'criado_em', 'alterado_em']
+    list_filter = ('dre', 'comissoes')
