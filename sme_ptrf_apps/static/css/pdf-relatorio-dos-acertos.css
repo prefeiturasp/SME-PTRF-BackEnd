@@ -236,3 +236,7 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
   position: running(data-geracao);
   font-style: normal;
 }
+
+.text-saldo-reprogramado {
+  color: #2B7D83 !important
+}
