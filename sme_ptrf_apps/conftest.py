@@ -129,6 +129,10 @@ def acao_role_cultural():
 def dre():
     return baker.make('Unidade', codigo_eol='99999', tipo_unidade='DRE', nome='DRE teste', sigla='TT')
 
+@pytest.fixture
+def dre_ipiranga():
+    return baker.make('Unidade', codigo_eol='108600', tipo_unidade='DRE', nome='DRE IPIRANGA', sigla='IP')
+
 
 @pytest.fixture
 def unidade(dre):
