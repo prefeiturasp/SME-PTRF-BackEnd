@@ -302,3 +302,14 @@ def membro_comissao_exame_contas(comissao_exame_contas, dre_ipiranga):
         comissoes=[comissao_exame_contas, ]
     )
     return membro
+
+
+@pytest.fixture
+def ano_analise_regularidade_2020():
+    return baker.make('AnoAnaliseRegularidade', ano=2020)
+
+
+@pytest.fixture
+def ano_analise_regularidade_2021():
+    return baker.make('AnoAnaliseRegularidade', ano=2021)
+
