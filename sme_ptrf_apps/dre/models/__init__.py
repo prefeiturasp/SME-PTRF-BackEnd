@@ -12,3 +12,5 @@ from .obs_devolucao_relatorio_consolidado_dre import ObsDevolucaoRelatorioConsol
 from .parametro_fique_de_olho_rel_dre import ParametroFiqueDeOlhoRelDre
 from .motivo_aprovacao_ressalva import MotivoAprovacaoRessalva
 from .motivo_reprovacao import MotivoReprovacao
+from .comissao import Comissao
+from .membro_comissao import MembroComissao
