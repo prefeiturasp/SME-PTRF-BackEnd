@@ -4,7 +4,7 @@ from .models import (Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoR
                      VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq, RelatorioConsolidadoDRE,
                      JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE,
                      ParametroFiqueDeOlhoRelDre, MotivoAprovacaoRessalva, MotivoReprovacao, Comissao, MembroComissao,
-                     AnoAnaliseRegularidade)
+                     AnoAnaliseRegularidade, AnaliseRegularidadeAssociacao)
 
 admin.site.register(ParametroFiqueDeOlhoRelDre)
 admin.site.register(MotivoAprovacaoRessalva)
@@ -178,3 +178,12 @@ class AnoAnaliseRegularidadeAdmin(admin.ModelAdmin):
     list_display = ['ano', ]
     search_fields = ['ano', ]
     readonly_fields = ['criado_em', 'alterado_em']
+
+
+@admin.register(AnaliseRegularidadeAssociacao)
+class AnaliseRegularidadeAssociacaoAdmin(admin.ModelAdmin):
+    list_display = ['associacao', 'ano_analise', 'status_regularidade']
+    search_fields = ['ano_analise__ano', 'associacao__nome', 'associacao__unidade__codigo_eol']
+    readonly_fields = ['criado_em', 'alterado_em', 'id', 'uuid']
+    list_filter = ['ano_analise', 'associacao', 'associacao__unidade__dre']
+    autocomplete_fields = ['associacao',]
