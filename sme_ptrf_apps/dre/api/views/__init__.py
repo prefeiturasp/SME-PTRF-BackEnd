@@ -8,3 +8,4 @@ from .motivo_aprovacao_ressalva_viewset import MotivoAprovacaoRessalvaViewSet
 from .motivo_reprovacao_viewset import MotivoReprovacaoViewSet
 from .comissoes_viewset import ComissoesViewSet
 from .membros_comissoes_viewset import MembrosComissoesViewSet
+from .anos_analise_regularidade_viewset import AnosAnaliseRegularidadeViewSet
