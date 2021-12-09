@@ -32,10 +32,24 @@ class AnaliseRegularidadeAssociacao(ModeloBase):
         default=STATUS_REGULARIDADE_PENDENTE,
     )
 
+    motivo_nao_regularidade = models.CharField(
+        'Motivo da não regularização da associação', max_length=300, default='', blank=True)
+
     def __str__(self):
         codigo_eol = self.associacao.unidade.codigo_eol if self.associacao and self.associacao.unidade else "?"
         ano_ref = self.ano_analise.ano if self.ano_analise else "?"
         return f'Análise:{self.id} EOL:{codigo_eol} Ano:{ano_ref}'
+
+    @classmethod
+    def status_regularidade_to_json(cls):
+        result = []
+        for choice in cls.STATUS_REGULARIDADE_CHOICES:
+            status = {
+                'id': choice[0],
+                'nome': choice[1]
+            }
+            result.append(status)
+        return result
 
     class Meta:
         verbose_name = 'Análise de regularidade de associação'

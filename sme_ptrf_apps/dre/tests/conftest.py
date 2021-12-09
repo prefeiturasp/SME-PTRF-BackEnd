@@ -292,18 +292,6 @@ def item_verificacao_regularidade_documentos_associacao_cnpj(lista_verificacao_r
 
 
 @pytest.fixture
-def verificacao_regularidade_associacao_documento_cnpj(grupo_verificacao_regularidade_documentos, lista_verificacao_regularidade_documentos_associacao,item_verificacao_regularidade_documentos_associacao_cnpj, associacao):
-    return baker.make(
-        'VerificacaoRegularidadeAssociacao',
-        associacao=associacao,
-        grupo_verificacao=grupo_verificacao_regularidade_documentos,
-        lista_verificacao=lista_verificacao_regularidade_documentos_associacao,
-        item_verificacao=item_verificacao_regularidade_documentos_associacao_cnpj,
-        regular=True
-    )
-
-
-@pytest.fixture
 def ano_analise_regularidade_2020():
     return baker.make('AnoAnaliseRegularidade', ano=2020)
 
@@ -325,3 +313,17 @@ def analise_regularidade_associacao(
         ano_analise=ano_analise_regularidade_2021,
         status_regularidade='REGULAR'
     )
+
+
+@pytest.fixture
+def verificacao_regularidade_associacao_documento_cnpj(
+    item_verificacao_regularidade_documentos_associacao_cnpj,
+    analise_regularidade_associacao
+):
+    return baker.make(
+        'VerificacaoRegularidadeAssociacao',
+        analise_regularidade=analise_regularidade_associacao,
+        item_verificacao=item_verificacao_regularidade_documentos_associacao_cnpj,
+        regular=True
+    )
+

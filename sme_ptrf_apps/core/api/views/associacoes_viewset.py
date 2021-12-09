@@ -68,7 +68,7 @@ class AssociacoesViewSet(ModelViewSet):
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
-    filter_fields = ('unidade__dre__uuid', 'status_regularidade', 'unidade__tipo_unidade')
+    filter_fields = ('unidade__dre__uuid', 'unidade__tipo_unidade')
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -269,7 +269,6 @@ class AssociacoesViewSet(ModelViewSet):
     def tabelas(self, _):
         result = {
             'tipos_unidade': Unidade.tipos_unidade_to_json(),
-            'status_regularidade': Associacao.status_regularidade_to_json(),
             'dres': Unidade.dres_to_json()
         }
         return Response(result)
@@ -370,158 +369,9 @@ class AssociacoesViewSet(ModelViewSet):
     @action(detail=True, url_path='verificacao-regularidade', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def verificacao_regularidade(self, request, uuid=None):
-        verificacao = verifica_regularidade_associacao(uuid)
+        ano = request.query_params.get('ano')
+        verificacao = verifica_regularidade_associacao(associacao_uuid=uuid, ano=ano)
         return Response(verificacao)
-
-    @action(detail=True, url_path='marca-item-verificacao', methods=['get'],
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
-    def marca_item_verificacao(self, request, uuid=None):
-        item = request.query_params.get('item')
-
-        if item is None:
-            erro = {
-                'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar o uuid do item de verificação pelo parâmetro item.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            marca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item)
-            result = {
-                'associacao': f'{uuid}',
-                'item_verificacao': f'{item}',
-                'mensagem': 'Item de verificação marcado.'
-            }
-            status_code = status.HTTP_200_OK
-        except ValidationError as e:
-            result = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f'{e}'
-            }
-            status_code = status.HTTP_400_BAD_REQUEST
-
-        return Response(result, status=status_code)
-
-    @action(detail=True, url_path='desmarca-item-verificacao', methods=['get'],
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
-    def desmarca_item_verificacao(self, request, uuid=None):
-        item = request.query_params.get('item')
-
-        if item is None:
-            erro = {
-                'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar o uuid do item de verificação pelo parâmetro item.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            desmarca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item)
-            result = {
-                'associacao': f'{uuid}',
-                'item_verificacao': f'{item}',
-                'mensagem': 'Item de verificação desmarcado.'
-            }
-            status_code = status.HTTP_200_OK
-        except ValidationError as e:
-            result = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f'{e}'
-            }
-            status_code = status.HTTP_400_BAD_REQUEST
-
-        return Response(result, status=status_code)
-
-    @action(detail=True, url_path='marca-lista-verificacao', methods=['get'],
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
-    def marca_lista_verificacao(self, request, uuid=None):
-        lista = request.query_params.get('lista')
-
-        if lista is None:
-            erro = {
-                'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar o uuid da lista de verificação pelo parâmetro lista.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            marca_lista_verificacao_associacao(associacao_uuid=uuid, lista_verificacao_uuid=lista)
-            result = {
-                'associacao': f'{uuid}',
-                'lista_verificacao': f'{lista}',
-                'mensagem': 'Itens da lista de verificação marcados.'
-            }
-            status_code = status.HTTP_200_OK
-        except ValidationError as e:
-            result = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f'{e}'
-            }
-            status_code = status.HTTP_400_BAD_REQUEST
-
-        return Response(result, status=status_code)
-
-    @action(detail=True, url_path='desmarca-lista-verificacao', methods=['get'],
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
-    def desmarca_lista_verificacao(self, request, uuid=None):
-        lista = request.query_params.get('lista')
-
-        if lista is None:
-            erro = {
-                'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar o uuid da lista de verificação pelo parâmetro lista.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            desmarca_lista_verificacao_associacao(associacao_uuid=uuid, lista_verificacao_uuid=lista)
-            result = {
-                'associacao': f'{uuid}',
-                'lista_verificacao': f'{lista}',
-                'mensagem': 'Itens da lista de verificação desmarcados.'
-            }
-            status_code = status.HTTP_200_OK
-        except ValidationError as e:
-            result = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f'{e}'
-            }
-            status_code = status.HTTP_400_BAD_REQUEST
-
-        return Response(result, status=status_code)
-
-    @action(detail=True, url_path='atualiza-itens-verificacao', methods=['post'],
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
-    def atualiza_itens_verificacao(self, request, uuid=None):
-        itens = request.data.get('itens')
-        motivo = request.data.get('motivo_nao_regularidade')
-
-        if not itens:
-            result_error = {
-                'erro': 'campo_requerido',
-                'mensagem': 'É necessário enviar os itens de verificacao com o seu status.'
-            }
-            return Response(result_error, status=status.HTTP_400_BAD_REQUEST)
-
-        for item in itens:
-            try:
-                if item['regular']:
-                    marca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'], motivo=motivo)
-                else:
-                    desmarca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'], motivo=motivo)
-
-            except ValidationError as e:
-                result = {
-                    'erro': 'Objeto não encontrado.',
-                    'mensagem': f'{e}'
-                }
-                status_code = status.HTTP_400_BAD_REQUEST
-
-        result = {
-            'associacao': f'{uuid}',
-            'mensagem': 'Itens de verificação atualizados.'
-        }
-        status_code = status.HTTP_200_OK
-        return Response(result, status=status_code)
 
     @action(detail=False, methods=['get'], url_path='eol',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
@@ -562,3 +412,36 @@ class AssociacoesViewSet(ModelViewSet):
             }
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, url_path='atualiza-itens-verificacao', methods=['post'],
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def atualiza_itens_verificacao(self, request, uuid=None):
+        itens = request.data.get('itens')
+        motivo = request.data.get('motivo_nao_regularidade')
+
+        if not itens:
+            result_error = {
+                'erro': 'campo_requerido',
+                'mensagem': 'É necessário enviar os itens de verificacao com o seu status.'
+            }
+            return Response(result_error, status=status.HTTP_400_BAD_REQUEST)
+
+        for item in itens:
+            try:
+                if item['regular']:
+                    marca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'], motivo=motivo)
+                else:
+                    desmarca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'], motivo=motivo)
+
+            except ValidationError as e:
+                result = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f'{e}'
+                }
+                status_code = status.HTTP_400_BAD_REQUEST
+
+        result = {
+            'associacao': f'{uuid}',
+            'mensagem': 'Itens de verificação atualizados.'
+        }
+        status_code = status.HTTP_200_OK
+        return Response(result, status=status_code)

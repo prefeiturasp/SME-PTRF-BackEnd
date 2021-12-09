@@ -50,14 +50,6 @@ class ItemVerificacaoRegularidadeAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id')
 
 
-@admin.register(VerificacaoRegularidadeAssociacao)
-class VerificacaoRegularidadeAssociacaoAdmin(admin.ModelAdmin):
-    list_display = ('item_verificacao', 'regular', 'lista_verificacao', 'associacao')
-    search_fields = ('uuid', 'item_verificacao__descricao')
-    list_filter = ('associacao', 'lista_verificacao', 'grupo_verificacao', 'item_verificacao')
-    readonly_fields = ('uuid', 'id')
-
-
 @admin.register(TecnicoDre)
 class TecnicoDreAdmin(admin.ModelAdmin):
     list_display = ('rf', 'nome', 'dre', 'telefone', 'email')
@@ -180,6 +172,11 @@ class AnoAnaliseRegularidadeAdmin(admin.ModelAdmin):
     readonly_fields = ['criado_em', 'alterado_em']
 
 
+class VerificacoesInline(admin.TabularInline):
+    extra = 1
+    model = VerificacaoRegularidadeAssociacao
+
+
 @admin.register(AnaliseRegularidadeAssociacao)
 class AnaliseRegularidadeAssociacaoAdmin(admin.ModelAdmin):
     list_display = ['associacao', 'ano_analise', 'status_regularidade']
@@ -187,3 +184,24 @@ class AnaliseRegularidadeAssociacaoAdmin(admin.ModelAdmin):
     readonly_fields = ['criado_em', 'alterado_em', 'id', 'uuid']
     list_filter = ['ano_analise', 'associacao', 'associacao__unidade__dre']
     autocomplete_fields = ['associacao',]
+    inlines = [VerificacoesInline, ]
+
+
+@admin.register(VerificacaoRegularidadeAssociacao)
+class VerificacaoRegularidadeAssociacaoAdmin(admin.ModelAdmin):
+    list_display = ('analise_regularidade', 'item_verificacao', 'regular',)
+    search_fields = (
+        'uuid',
+        'item_verificacao__descricao',
+        'analise_regularidade__associacao__nome',
+        'analise_regularidade__associacao__codigo_eol'
+    )
+    list_filter = (
+        'analise_regularidade__ano_analise',
+        'analise_regularidade__associacao__nome',
+        'item_verificacao__lista',
+        'item_verificacao__lista__grupo',
+        'item_verificacao__descricao'
+    )
+    readonly_fields = ['criado_em', 'alterado_em', 'id', 'uuid']
+
