@@ -1,9 +1,16 @@
 import logging
 
+from django.db.models import Q
+
 from rest_framework.exceptions import ValidationError
 
-from ..models import (GrupoVerificacaoRegularidade, VerificacaoRegularidadeAssociacao, ItemVerificacaoRegularidade,
-                      ListaVerificacaoRegularidade, AnaliseRegularidadeAssociacao)
+from ..models import (
+    GrupoVerificacaoRegularidade,
+    VerificacaoRegularidadeAssociacao,
+    ItemVerificacaoRegularidade,
+    ListaVerificacaoRegularidade,
+    AnaliseRegularidadeAssociacao
+)
 from ...core.models import Associacao
 
 logger = logging.getLogger(__name__)
@@ -181,3 +188,42 @@ def desmarca_lista_verificacao_associacao(associacao_uuid, lista_verificacao_uui
     #     desmarca_item_verificacao_associacao(associacao_uuid=associacao_uuid, item_verificacao_uuid=item.uuid)
     #
     # return 'OK' if associacao and lista_verificacao else None
+
+
+def lista_status_regularidade_associacoes_no_ano(
+    dre,
+    ano_analise_regularidade,
+    filtro_nome,
+    filtro_tipo_unidade,
+    filtro_status
+):
+    from sme_ptrf_apps.core.api.serializers.associacao_serializer import AssociacaoListSerializer
+
+    qs = Associacao.objects.filter(unidade__dre=dre).order_by('nome')
+
+    if filtro_nome is not None:
+        qs = qs.filter(
+            Q(nome__unaccent__icontains=filtro_nome) |
+            Q(unidade__nome__unaccent__icontains=filtro_nome)
+        )
+
+    if filtro_tipo_unidade is not None:
+        qs = qs.filter(unidade__tipo_unidade=filtro_tipo_unidade)
+
+    associacoes_status = []
+    for associacao in qs:
+        analise_regularidade = associacao.analises_regularidade_da_associacao.filter(
+            ano_analise=ano_analise_regularidade
+        ).first()
+
+        status_regularidade = analise_regularidade.status_regularidade if analise_regularidade else 'PENDENTE'
+
+        if not filtro_status or status_regularidade == filtro_status:
+            associacoes_status.append(
+                {
+                    'associacao': AssociacaoListSerializer(associacao).data,
+                    'status_regularidade': status_regularidade,
+                }
+            )
+
+    return associacoes_status

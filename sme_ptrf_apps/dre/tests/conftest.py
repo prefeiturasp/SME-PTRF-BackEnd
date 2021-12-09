@@ -304,7 +304,6 @@ def ano_analise_regularidade_2021():
 @pytest.fixture
 def analise_regularidade_associacao(
     associacao,
-    item_verificacao_regularidade_documentos_associacao_cnpj,
     ano_analise_regularidade_2021
 ):
     return baker.make(

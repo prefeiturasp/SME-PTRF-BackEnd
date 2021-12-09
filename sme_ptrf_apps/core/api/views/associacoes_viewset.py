@@ -21,14 +21,14 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPITodosComLeituraOuGravacao,
     PermissaoAPITodosComGravacao,
     PermissaoAPIApenasDreComGravacao,
+    PermissaoAPIApenasDreComLeituraOuGravacao
 )
 
 from ....dre.services import (
     desmarca_item_verificacao_associacao,
-    desmarca_lista_verificacao_associacao,
     marca_item_verificacao_associacao,
-    marca_lista_verificacao_associacao,
     verifica_regularidade_associacao,
+    lista_status_regularidade_associacoes_no_ano
 )
 from ...models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade
 from ...services import (
@@ -445,3 +445,64 @@ class AssociacoesViewSet(ModelViewSet):
         }
         status_code = status.HTTP_200_OK
         return Response(result, status=status_code)
+
+    @action(detail=False, url_path='lista-regularidade-ano',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def lista_regularidade_no_ano(self, _):
+        from sme_ptrf_apps.dre.models import AnoAnaliseRegularidade
+        # Determina o ano
+        ano = self.request.query_params.get('ano')
+
+        if not ano:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'operacao': 'lista-regularidade-ano',
+                'mensagem': 'Faltou informar o ano de análise de regularidade. ?ano=2021'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            ano_analise_regularidade = AnoAnaliseRegularidade.objects.get(ano=ano)
+        except AnoAnaliseRegularidade.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto AnoAnaliseRegularidade para o ano {ano} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Determina a DRE
+        dre_uuid = self.request.query_params.get('dre_uuid')
+
+        if not dre_uuid:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'operacao': 'lista-regularidade-ano',
+                'mensagem': 'Faltou informar o uuid da dre. ?dre_uuid=uuid_da_dre'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            dre = Unidade.dres.get(uuid=dre_uuid)
+        except Unidade.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Pega filtros
+        nome = self.request.query_params.get('nome')
+        tipo_unidade = self.request.query_params.get('tipo_unidade')
+        status_regularidade = self.request.query_params.get('status')
+
+        result = lista_status_regularidade_associacoes_no_ano(dre=dre,
+                                                              ano_analise_regularidade=ano_analise_regularidade,
+                                                              filtro_nome=nome,
+                                                              filtro_tipo_unidade=tipo_unidade,
+                                                              filtro_status=status_regularidade
+                                                              )
+        return Response(result)
