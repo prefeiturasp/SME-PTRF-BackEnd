@@ -22,9 +22,7 @@ class FuncDreAssociacoesDaDre(models.Model):
         permissions = (
             ('access_associacao_dre', '[DRE] Pode acessar Associações da DRE.'),
             ('access_dados_unidade_dre', '[DRE] Pode acessar dados de uma unidade.'),
-            ('access_regularidade_dre', '[DRE] Pode acessar regularidade de uma unidade.'),
             ('access_situacao_financeira_dre', '[DRE] Pode acessar a situação financeira de uma unidade.'),
-            ('change_regularidade', '[DRE] Pode atualizar a regularidade de uma unidade.'),
         )
 
 
@@ -158,4 +156,19 @@ class FuncDreFornecedores(models.Model):
         permissions = (
             ('access_fornecedores', '[DRE] Pode acessar cadastro de fornecedores.'),
             ('change_fornecedores', '[DRE] Pode atualizar cadastro de fornecedores.'),
+        )
+
+
+class FuncRegularidadeAssociacoes(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[DRE] Regularidade das Associações"
+        verbose_name_plural = "[DRE] Regularidade das Associações"
+
+        permissions = (
+            ('access_regularidade_dre', '[DRE] Pode acessar Regularidade das Associações.'),
+            ('change_regularidade', '[DRE] Pode atualizar a Regularidade das Associações.'),
         )
