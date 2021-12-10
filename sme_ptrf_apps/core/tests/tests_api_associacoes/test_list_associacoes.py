@@ -34,7 +34,6 @@ def associacao_valenca_ceu_vassouras_dre_1(ceu_vassouras_dre_1, periodo_anterior
         nome='Associacao Valença',
         cnpj='52.302.275/0001-83',
         unidade=ceu_vassouras_dre_1,
-        status_regularidade='PENDENTE'
     )
 
 
@@ -45,7 +44,6 @@ def associacao_pinheiros_emef_mendes_dre_2(emef_mendes_dre_2, periodo_anterior):
         nome='Associação Pinheiros',
         cnpj='05.861.145/0001-09',
         unidade=emef_mendes_dre_2,
-        status_regularidade='REGULAR'
     )
 
 
@@ -64,8 +62,6 @@ def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valen
                 'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
                 'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
-            'status_regularidade': associacao_valenca_ceu_vassouras_dre_1.status_regularidade,
-            'motivo_nao_regularidade': '',
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj
         },
         {
@@ -77,8 +73,6 @@ def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valen
                 'nome_com_tipo': associacao_pinheiros_emef_mendes_dre_2.unidade.nome_com_tipo,
                 'nome_dre': associacao_pinheiros_emef_mendes_dre_2.unidade.nome_dre
             },
-            'status_regularidade': associacao_pinheiros_emef_mendes_dre_2.status_regularidade,
-            'motivo_nao_regularidade': '',
             'cnpj': associacao_pinheiros_emef_mendes_dre_2.cnpj
         },
     ]
@@ -104,8 +98,6 @@ def test_api_list_associacoes_de_uma_dre(jwt_authenticated_client_a, associacao_
                 'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
                 'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
-            'status_regularidade': associacao_valenca_ceu_vassouras_dre_1.status_regularidade,
-            'motivo_nao_regularidade': '',
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj
         },
     ]
@@ -129,8 +121,6 @@ def test_api_list_associacoes_pelo_nome_associacao_ignorando_acentos(jwt_authent
                 'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
                 'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
-            'status_regularidade': associacao_valenca_ceu_vassouras_dre_1.status_regularidade,
-            'motivo_nao_regularidade': '',
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj
         },
     ]
@@ -154,33 +144,6 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a, assoc
                 'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
                 'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
-            'status_regularidade': associacao_valenca_ceu_vassouras_dre_1.status_regularidade,
-            'motivo_nao_regularidade': '',
-            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj
-        },
-    ]
-
-    assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
-
-
-def test_api_list_associacoes_pelo_status_regularidade(jwt_authenticated_client_a, associacao_valenca_ceu_vassouras_dre_1,
-                                                       associacao_pinheiros_emef_mendes_dre_2):
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/?status_regularidade=PENDENTE', content_type='application/json')
-    result = json.loads(response.content)
-
-    result_esperado = [
-        {
-            'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
-            'nome': associacao_valenca_ceu_vassouras_dre_1.nome,
-            'unidade': {
-                'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
-                'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
-                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
-                'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
-            },
-            'status_regularidade': associacao_valenca_ceu_vassouras_dre_1.status_regularidade,
-            'motivo_nao_regularidade': '',
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj
         },
     ]
@@ -204,8 +167,6 @@ def test_api_list_associacoes_pelo_tipo_unidade(jwt_authenticated_client_a, asso
                 'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
                 'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
-            'status_regularidade': associacao_valenca_ceu_vassouras_dre_1.status_regularidade,
-            'motivo_nao_regularidade': '',
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj
         },
     ]

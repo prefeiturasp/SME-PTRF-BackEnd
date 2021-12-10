@@ -158,8 +158,11 @@ def gerar(dre, periodo, tipo_conta, parcial=False):
         execucao_fisica(worksheet, dre, periodo)
 
         LOGGER.info("Iniciando associacoes pendentes...")
+
+
+        #TODO Impmentar busca de regularidade pendente por ano
         associacoes_pendentes = Associacao.objects.filter(
-            unidade__dre=dre, status_regularidade=Associacao.STATUS_REGULARIDADE_PENDENTE).exclude(cnpj__exact='')
+            unidade__dre=dre).exclude(cnpj__exact='')
 
         associacoes_nao_regularizadas(worksheet, associacoes_pendentes)
         LOGGER.info("Iniciando dados fisicos financeiros...")
@@ -276,8 +279,10 @@ def execucao_fisica(worksheet, dre, periodo):
     rows[LINHA_EXECUCAO_FISICA][0].value = dre.unidades_da_dre.count()
     quantidade_ues_cnpj = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').count()
     rows[LINHA_EXECUCAO_FISICA][2].value = quantidade_ues_cnpj
-    quantidade_regular = Associacao.objects.filter(
-        unidade__dre=dre, status_regularidade=Associacao.STATUS_REGULARIDADE_REGULAR).exclude(cnpj__exact='').count()
+
+    #TODO Implementar contagem de regulares considerando o ano
+    quantidade_regular = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').count()
+
     rows[LINHA_EXECUCAO_FISICA][4].value = quantidade_regular
 
     cards = PrestacaoConta.dashboard(periodo.uuid, dre.uuid, add_aprovado_ressalva=True)

@@ -29,8 +29,6 @@ def test_retrieve_acao_associacao(
                 'nome_com_tipo': acao_associacao.associacao.unidade.nome_com_tipo,
                 'nome_dre': acao_associacao.associacao.unidade.nome_dre
             },
-            'status_regularidade': acao_associacao.associacao.status_regularidade,
-            'motivo_nao_regularidade': '',
             'cnpj': acao_associacao.associacao.cnpj
         },
         'acao': {

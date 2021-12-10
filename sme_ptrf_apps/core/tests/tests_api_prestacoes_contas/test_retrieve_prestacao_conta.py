@@ -251,8 +251,6 @@ def test_api_retrieve_prestacao_conta_por_uuid(
                 'nome': ''
             },
             'processo_regularidade': '123456',
-            'status_regularidade': 'PENDENTE',
-            'motivo_nao_regularidade': '',
             'periodo_inicial': {
                 'data_fim_realizacao_despesas': '2019-08-31',
                 'data_inicio_realizacao_despesas': '2019-01-01',

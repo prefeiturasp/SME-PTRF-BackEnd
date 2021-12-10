@@ -13,20 +13,6 @@ from .periodo import Periodo
 class Associacao(ModeloIdNome):
     history = AuditlogHistoryField()
 
-    # Status de Regularidade
-    STATUS_REGULARIDADE_PENDENTE = 'PENDENTE'
-    STATUS_REGULARIDADE_REGULAR = 'REGULAR'
-
-    STATUS_REGULARIDADE_NOMES = {
-        STATUS_REGULARIDADE_PENDENTE: 'Pendente',
-        STATUS_REGULARIDADE_REGULAR: 'Regular',
-    }
-
-    STATUS_REGULARIDADE_CHOICES = (
-        (STATUS_REGULARIDADE_PENDENTE, STATUS_REGULARIDADE_NOMES[STATUS_REGULARIDADE_PENDENTE]),
-        (STATUS_REGULARIDADE_REGULAR, STATUS_REGULARIDADE_NOMES[STATUS_REGULARIDADE_REGULAR]),
-    )
-
     # Status do Presidente
     STATUS_PRESIDENTE_PRESENTE = 'PRESENTE'
     STATUS_PRESIDENTE_AUSENTE = 'AUSENTE'
@@ -55,17 +41,7 @@ class Associacao(ModeloIdNome):
 
     email = models.EmailField("E-mail", max_length=254, null=True, blank=True, default="")
 
-    status_regularidade = models.CharField(
-        'Status de Regularidade',
-        max_length=15,
-        choices=STATUS_REGULARIDADE_CHOICES,
-        default=STATUS_REGULARIDADE_PENDENTE,
-    )
-
     processo_regularidade = models.CharField('Nº processo regularidade', max_length=100, default='', blank=True)
-
-    motivo_nao_regularidade = models.CharField(
-        'Motivo da não regularização da associação', max_length=300, default='', blank=True)
 
     status_presidente = models.CharField(
         'Status do Presidente',
@@ -174,17 +150,6 @@ class Associacao(ModeloIdNome):
     def acoes_da_associacao(cls, associacao_uuid):
         associacao = cls.objects.filter(uuid=associacao_uuid).first()
         return associacao.acoes.all().order_by('acao__posicao_nas_pesquisas') if associacao else []
-
-    @classmethod
-    def status_regularidade_to_json(cls):
-        result = []
-        for choice in cls.STATUS_REGULARIDADE_CHOICES:
-            status = {
-                'id': choice[0],
-                'nome': choice[1]
-            }
-            result.append(status)
-        return result
 
     class Meta:
         verbose_name = "Associação"
