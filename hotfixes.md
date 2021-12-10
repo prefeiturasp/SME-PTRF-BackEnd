@@ -1,3 +1,6 @@
+### 1.24.3 - 09/12/2021 - Hotfix
+* (54736) - Relatório Consolidado - Correção data de geração do relatório
+
 ### 1.24.2 - 08/12/2021 - Hotfix
 * (54662) - Inclui status PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA para Salvar Devolucoes ao Tesouro
 
