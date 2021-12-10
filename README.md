@@ -5,7 +5,7 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.24.0
+Versão: 1.24.3
 
 ## Release Notes
 

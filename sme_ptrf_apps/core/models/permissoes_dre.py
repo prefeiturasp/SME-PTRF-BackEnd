@@ -159,3 +159,18 @@ class FuncDreFornecedores(models.Model):
             ('access_fornecedores', '[DRE] Pode acessar cadastro de fornecedores.'),
             ('change_fornecedores', '[DRE] Pode atualizar cadastro de fornecedores.'),
         )
+
+
+class FuncDreComissoes(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[DRE] Comissão"
+        verbose_name_plural = "[DRE] Comissões"
+
+        permissions = (
+            ('access_comissoes_dre', '[DRE] Pode acessar Comissões.'),
+            ('change_comissoes_dre', '[DRE] Pode atualizar Comissões.'),
+        )
