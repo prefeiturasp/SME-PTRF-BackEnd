@@ -69,8 +69,8 @@
 
 <section class="conteudo mt-4">
 
-  <article id="bloco-1" class="mt-4">
-    <p class="font-14 border-bottom pb-3"><strong>Bloco 1 - Identificação da Associação da Unidade Educacional</strong>
+  <article class="mt-4">
+    <p class="font-14 border-bottom pb-3"><strong>{{ dados.blocos.identificacao_associacao }}</strong>
     </p>
     <div class="col-12 border mt-4">
       <p class="pt-2"><strong>Nome da Associação:</strong> {{ dados.dados_associacao.nome_associacao }}</p>
@@ -118,175 +118,237 @@
     </div>
   </article>
 
-  <article id="bloco-2" class="mt-4">
-    <p class="font-14 border-bottom pb-3"><strong>Bloco 2 - Acertos nos lançamentos</strong></p>
+  {% if dados.dados_valores_reprogramados %}
+    <article class="mt-4">
+      <p class="font-14 border-bottom pb-3"><strong>{{ dados.blocos.acertos_saldos }}</strong></p>
+      {% for conta in dados.dados_valores_reprogramados %}
+        <p class="titulo-conta font-12 pb-2">Conta {{ conta.nome_conta }}</p>
 
-    {% for conta in dados.dados_contas %}
-      <p class="titulo-conta font-12 pb-2">Conta {{ conta.nome_conta }}</p>
+        <table class="table table-bordered tabela-resumo-por-acao">
+          <thead class="thead-light">
+            <tr>
+              <th style="width: 2%"></th>
+              <th class="font-9"><strong>Ação</strong></th>
+            </tr>
+          </thead>
 
+          <tbody>
+            {% for ajuste in conta.ajustes_saldos %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ ajuste.acao_associacao.nome }}</td>
+              </tr>
+
+              <tr>
+                <td rowspan="1"></td>
+                <td colspan="1">
+                  <div class="row mt-2 mb-2">
+                    {% if ajuste.novo_saldo_reprogramado_capital %}
+                      <div class="col-4">
+                          <strong><span class="text-saldo-reprogramado">Saldo Reprogramado Capital</span></strong>
+                          <br>
+                          <span class="font-9">R$ {{ ajuste.novo_saldo_reprogramado_capital|formata_valor }}</span>
+                      </div>
+                    {% endif %}
+
+                    {% if ajuste.novo_saldo_reprogramado_custeio %}
+                      <div class="col-4">
+                          <strong><span class="text-saldo-reprogramado">Saldo Reprogramado Custeio</span></strong>
+                          <br>
+                          <span class="font-9">R$ {{ ajuste.novo_saldo_reprogramado_custeio|formata_valor }}</span>
+                      </div>
+                    {% endif %}
+
+                    {% if ajuste.novo_saldo_reprogramado_livre %}
+                      <div class="col-4">
+                          <strong><span class="text-saldo-reprogramado">Saldo Reprogramado Livre</span></strong>
+                          <br>
+                          <span class="font-9">R$ {{ ajuste.novo_saldo_reprogramado_livre|formata_valor }}</span>
+                      </div>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endfor %}
+
+    </article>
+  {% endif %}
+
+  {% if dados.dados_lancamentos %}
+    <article class="mt-4">
+      <p class="font-14 border-bottom pb-3"><strong>{{ dados.blocos.acertos_lancamentos }}</strong></p>
+
+      {% for conta in dados.dados_lancamentos %}
+        <p class="titulo-conta font-12 pb-2">Conta {{ conta.nome_conta }}</p>
+
+        <table class="table table-bordered tabela-resumo-por-acao">
+          <thead class="thead-light">
+            <tr>
+              <th style="width: 2%"></th>
+              <th class="font-9"><strong>Data</strong></th>
+              <th class="font-9"><strong>Tipo de lançamento</strong></th>
+              <th class="font-9"><strong>Nº do documento</strong></th>
+              <th class="font-9" style="width: 40%"><strong>Descrição</strong></th>
+              <th class="font-9"><strong>Valor (R$)</strong></th>
+            </tr>
+          </thead>
+
+          <tbody>
+          {% for lancamento in conta.lancamentos %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ lancamento.data|date:'d/m/Y' }}</td>
+              {% if lancamento.tipo_transacao == 'Gasto' %}
+                <td>Despesa</td>
+              {% else %}
+                <td>{{ lancamento.tipo_transacao }}</td>
+              {% endif %}
+
+              {% if lancamento.numero_documento == '' %}
+                <td>-</td>
+              {% else %}
+                <td>{{ lancamento.numero_documento }}</td>
+              {% endif %}
+
+              <td>{{ lancamento.descricao }}</td>
+              <td>{{ lancamento.valor_transacao_total|formata_valor }}</td>
+            </tr>
+
+            <tr>
+              <td rowspan="1"></td>
+              <td colspan="5">
+
+                {% for acerto in lancamento.analise_lancamento.solicitacoes_de_ajuste_da_analise %}
+                  <p class="item mt-2 font-9">Item {{ forloop.counter }}</p>
+
+                  {% if acerto.tipo_acerto.categoria == 'BASICO' %}
+                    <div class="row pb-1">
+                      <div class="col-12">
+                        <span><strong>Tipo de Acerto</strong></span>
+                        <br>
+                        <span class="">{{ acerto.tipo_acerto.nome }}</span>
+                      </div>
+                    </div>
+
+                    {% if acerto.detalhamento %}
+                      <div class="row pb-1">
+                        <div class="col-12">
+                          <span><strong>Detalhamento do acerto (opcional)</strong></span>
+                          <br>
+                          <span class="">{{ acerto.detalhamento }}</span>
+                        </div>
+                      </div>
+                    {% endif %}
+
+                  {% else %}
+                    <div class="row">
+                      <div class="col-12">
+                        <span><strong>Tipo de Acerto</strong></span>
+                        <br>
+                        <span>{{ acerto.tipo_acerto.nome }}</span>
+                      </div>
+                    </div>
+
+                    <div class="row mt-2">
+                      <div class="col-12">
+                        <span><strong>Tipo de devolução</strong></span>
+                        <br>
+                        <span>{{ acerto.devolucao_ao_tesouro.tipo.nome }}</span>
+                      </div>
+                    </div>
+
+                    <div class="row mt-2">
+                      <div class="col-6">
+                        <span><strong>Valor total ou parcial da despesa</strong></span>
+                        <br>
+                        {% if acerto.devolucao_ao_tesouro.devolucao_total is True %}
+                          <span>Total</span>
+                        {% else %}
+                          <span>Parcial</span>
+                        {% endif %}
+                      </div>
+
+                      <div class="col-6">
+                        <span><strong>Valor (R$)</strong></span>
+                        <br>
+                        <span>{{ acerto.devolucao_ao_tesouro.valor }}</span>
+                      </div>
+                    </div>
+
+                    <div class="row mt-2 pb-1">
+                      <div class="col-12">
+                        <span><strong>Motivo</strong></span>
+                        <br>
+                        <span>{{ acerto.devolucao_ao_tesouro.motivo }}</span>
+                      </div>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% endfor %}
+
+    </article>
+  {% endif %}
+
+  {% if dados.dados_documentos %}
+    <article class="mt-4">
+      <p class="font-14 border-bottom pb-3"><strong>{{ dados.blocos.acertos_documentos }}</strong></p>
       <table class="table table-bordered tabela-resumo-por-acao">
         <thead class="thead-light">
           <tr>
             <th style="width: 2%"></th>
-            <th class="font-9"><strong>Data</strong></th>
-            <th class="font-9"><strong>Tipo de lançamento</strong></th>
-            <th class="font-9"><strong>Nº do documento</strong></th>
-            <th class="font-9" style="width: 40%"><strong>Descrição</strong></th>
-            <th class="font-9"><strong>Valor (R$)</strong></th>
+            <th><strong>Nome do documento</strong></th>
           </tr>
         </thead>
-
         <tbody>
-        {% for lancamento in conta.lancamentos %}
-          <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>{{ lancamento.data|date:'d/m/Y' }}</td>
-            {% if lancamento.tipo_transacao == 'Gasto' %}
-              <td>Despesa</td>
-            {% else %}
-              <td>{{ lancamento.tipo_transacao }}</td>
-            {% endif %}
-
-            {% if lancamento.numero_documento == '' %}
-              <td>-</td>
-            {% else %}
-              <td>{{ lancamento.numero_documento }}</td>
-            {% endif %}
-
-            <td>{{ lancamento.descricao }}</td>
-            <td>{{ lancamento.valor_transacao_total|formata_valor }}</td>
-          </tr>
-
+          {% for documento in dados.dados_documentos %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ documento.tipo_documento_prestacao_conta.nome }}</td>
+            </tr>
           <tr>
             <td rowspan="1"></td>
-            <td colspan="5">
-
-              {% for acerto in lancamento.analise_lancamento.solicitacoes_de_ajuste_da_analise %}
+            <td colspan="1">
+              {% for acertos in documento.solicitacoes_de_ajuste_da_analise %}
                 <p class="item mt-2 font-9">Item {{ forloop.counter }}</p>
+                <div class="row pb-1">
+                  <div class="col-12">
+                    <span><strong>Tipo de Acerto</strong></span>
+                    <br>
+                    <span>{{ acertos.tipo_acerto.nome }}</span>
 
-                {% if acerto.tipo_acerto.categoria == 'BASICO' %}
-                  <div class="row pb-1">
-                    <div class="col-12">
-                      <span><strong>Tipo de Acerto</strong></span>
-                      <br>
-                      <span class="">{{ acerto.tipo_acerto.nome }}</span>
-                    </div>
-                  </div>
-
-                  {% if acerto.detalhamento %}
-                    <div class="row pb-1">
-                      <div class="col-12">
-                        <span><strong>Detalhamento do acerto (opcional)</strong></span>
-                        <br>
-                        <span class="">{{ acerto.detalhamento }}</span>
+                    {% if acertos.detalhamento %}
+                      <div class="row pb-1 mt-2">
+                        <div class="col-12">
+                          <span><strong>Detalhamento do acerto (opcional)</strong></span>
+                          <br>
+                          <span class="">{{ acertos.detalhamento }}</span>
+                        </div>
                       </div>
-                    </div>
-                  {% endif %}
+                    {% endif %}
 
-                {% else %}
-                  <div class="row">
-                    <div class="col-12">
-                      <span><strong>Tipo de Acerto</strong></span>
-                      <br>
-                      <span>{{ acerto.tipo_acerto.nome }}</span>
-                    </div>
                   </div>
-
-                  <div class="row mt-2">
-                    <div class="col-12">
-                      <span><strong>Tipo de devolução</strong></span>
-                      <br>
-                      <span>{{ acerto.devolucao_ao_tesouro.tipo.nome }}</span>
-                    </div>
-                  </div>
-
-                  <div class="row mt-2">
-                    <div class="col-6">
-                      <span><strong>Valor total ou parcial da despesa</strong></span>
-                      <br>
-                      {% if acerto.devolucao_ao_tesouro.devolucao_total is True %}
-                        <span>Total</span>
-                      {% else %}
-                        <span>Parcial</span>
-                      {% endif %}
-                    </div>
-
-                    <div class="col-6">
-                      <span><strong>Valor (R$)</strong></span>
-                      <br>
-                      <span>{{ acerto.devolucao_ao_tesouro.valor }}</span>
-                    </div>
-                  </div>
-
-                  <div class="row mt-2 pb-1">
-                    <div class="col-12">
-                      <span><strong>Motivo</strong></span>
-                      <br>
-                      <span>{{ acerto.devolucao_ao_tesouro.motivo }}</span>
-                    </div>
-                  </div>
-                {% endif %}
+                </div>
               {% endfor %}
             </td>
           </tr>
-        {% endfor %}
+          {% endfor %}
         </tbody>
       </table>
-    {% endfor %}
-
-  </article>
-
-  <article id="bloco-3" class="mt-4">
-    <p class="font-14 border-bottom pb-3"><strong>Bloco 3 - Acertos nos documentos</strong></p>
-    <table class="table table-bordered tabela-resumo-por-acao">
-      <thead class="thead-light">
-        <tr>
-          <th style="width: 2%"></th>
-          <th><strong>Nome do documento</strong></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for documento in dados.dados_documentos %}
-          <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>{{ documento.tipo_documento_prestacao_conta.nome }}</td>
-          </tr>
-        <tr>
-          <td rowspan="1"></td>
-          <td colspan="1">
-            {% for acertos in documento.solicitacoes_de_ajuste_da_analise %}
-              <p class="item mt-2 font-9">Item {{ forloop.counter }}</p>
-              <div class="row pb-1">
-                <div class="col-12">
-                  <span><strong>Tipo de Acerto</strong></span>
-                  <br>
-                  <span>{{ acertos.tipo_acerto.nome }}</span>
-
-                  {% if acertos.detalhamento %}
-                    <div class="row pb-1 mt-2">
-                      <div class="col-12">
-                        <span><strong>Detalhamento do acerto (opcional)</strong></span>
-                        <br>
-                        <span class="">{{ acertos.detalhamento }}</span>
-                      </div>
-                    </div>
-                  {% endif %}
-
-                </div>
-              </div>
-            {% endfor %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </article>
+    </article>
+  {% endif %}
 
   {% if dados.versao_devolucao != "Rascunho" %}
-    <article id="bloco-4" class="mt-4">
-        <p class="font-14 border-bottom pb-3"><strong>Bloco 4 - Responsável pela análise da Prestação de Contas</strong>
+    <article class="mt-4">
+        <p class="font-14 border-bottom pb-3"><strong>{{ dados.blocos.responsavel_analise }}</strong>
         </p>
-
         <div class="col-12 border mt-4">
           <div class="row pb-3">
             <div class="col">

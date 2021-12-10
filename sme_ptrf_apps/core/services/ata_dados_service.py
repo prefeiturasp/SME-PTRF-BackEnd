@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 
-from sme_ptrf_apps.core.models import PresenteAta
+from sme_ptrf_apps.core.models import PresenteAta, DevolucaoAoTesouro
 from sme_ptrf_apps.core.services.prestacao_contas_services import informacoes_financeiras_para_atas
 from sme_ptrf_apps.utils.numero_por_extenso import real
 
@@ -9,12 +9,17 @@ LOGGER = logging.getLogger(__name__)
 
 
 def gerar_dados_ata(prestacao_de_contas=None, ata=None, usuario=None):
+
     try:
         cabecalho = cria_cabecalho(ata)
         info_financeira_ata = informacoes_financeiras_para_atas(prestacao_de_contas)
         presentes_na_ata = presentes_ata(ata)
+        retificacoes = ata.retificacoes
+        devolucoes_ao_tesouro = devolucoes_ao_tesouro_ata(ata, prestacao_de_contas)
         dados_ata = {
             "cabecalho": cabecalho,
+            "retificacoes": retificacoes,
+            "devolucoes_ao_tesouro": devolucoes_ao_tesouro,
             "info_financeira_ata": info_financeira_ata,
             "dados_da_ata": ata,
             "dados_texto_da_ata": dados_texto_ata(ata, usuario),
@@ -24,6 +29,30 @@ def gerar_dados_ata(prestacao_de_contas=None, ata=None, usuario=None):
         LOGGER.info("Dados da ata gerado com sucesso")
 
     return dados_ata
+
+
+def devolucoes_ao_tesouro_ata(ata, prestacao_de_contas):
+    lista_de_devolucoes = []
+
+    if ata.tipo_ata == 'RETIFICACAO':
+        devolucoes = DevolucaoAoTesouro.objects.filter(prestacao_conta=prestacao_de_contas)
+
+        for devolucao in devolucoes:
+
+            despesa = devolucao.despesa
+
+            devs = {
+                "tipo": devolucao.tipo.nome if devolucao.tipo.nome else '',
+                "data": formata_data(devolucao.data) if devolucao.data else '',
+                "numero_documento": despesa.numero_documento if despesa.numero_documento else '',
+                "cpf_cnpj_fornecedor": despesa.cpf_cnpj_fornecedor if despesa.cpf_cnpj_fornecedor else '',
+                "valor": devolucao.valor if devolucao.valor else '',
+                "motivo": devolucao.motivo if devolucao.motivo else '',
+            }
+
+            lista_de_devolucoes.append(devs)
+
+    return lista_de_devolucoes
 
 
 def presentes_ata(ata):

@@ -39,7 +39,7 @@ class MembrosComissoesViewSet(viewsets.ModelViewSet):
         return qs
 
     def get_serializer_class(self):
-        if self.action in ('create', 'update', 'patch'):
+        if self.action in ('create', 'update', 'partial_update'):
             return MembroComissaoCreateSerializer
         elif self.action == 'retrieve':
             return MembroComissaoRetrieveSerializer

@@ -1,4 +1,4 @@
-from sme_ptrf_apps.core.services.prestacao_contas_services import (lancamentos_da_prestacao)
+from sme_ptrf_apps.core.services.prestacao_contas_services import (lancamentos_da_prestacao, ajustes_saldos_iniciais)
 from ..api.serializers.analise_documento_prestacao_conta_serializer import AnaliseDocumentoPrestacaoContaRetrieveSerializer
 from datetime import date
 from ...utils.numero_ordinal import formata_numero_ordinal
@@ -24,7 +24,18 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
         'prazo_devolucao_associacao': analise_prestacao_conta.devolucao_prestacao_conta.data_limite_ue if analise_prestacao_conta.devolucao_prestacao_conta else "-"
     }
 
-    dados_contas = []
+    dados_valores_reprogramados = []
+    for conta in analise_prestacao_conta.prestacao_conta.associacao.contas.all():
+        ajustes_saldos = ajustes_saldos_iniciais(analise_prestacao_conta.uuid, conta.uuid)
+        if ajustes_saldos:
+            dados = {
+                'nome_conta': conta.tipo_conta.nome,
+                'ajustes_saldos': ajustes_saldos
+            }
+
+            dados_valores_reprogramados.append(dados)
+
+    dados_lancamentos = []
     for conta in analise_prestacao_conta.prestacao_conta.associacao.contas.all():
         lancamentos = lancamentos_da_prestacao(
             analise_prestacao_conta=analise_prestacao_conta,
@@ -32,12 +43,13 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
             com_ajustes=True
         )
 
-        dados = {
-            'nome_conta': conta.tipo_conta.nome,
-            'lancamentos': lancamentos
-        }
+        if lancamentos:
+            dados = {
+                'nome_conta': conta.tipo_conta.nome,
+                'lancamentos': lancamentos
+            }
 
-        dados_contas.append(dados)
+            dados_lancamentos.append(dados)
 
     dados_tecnico = {
         "responsavel": formata_tecnico_dre(analise_prestacao_conta),
@@ -55,11 +67,38 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
         'info_cabecalho': info_cabecalho,
         'dados_associacao': dados_associacao,
         'versao_devolucao': "Rascunho" if previa else verifica_versao_devolucao(analise_prestacao_conta),
-        'dados_contas': dados_contas,
+        'dados_valores_reprogramados': dados_valores_reprogramados,
+        'dados_lancamentos': dados_lancamentos,
         'dados_documentos': dados_documentos,
         'dados_tecnico': dados_tecnico,
-        'data_geracao_documento': data_geracao_documento
+        'data_geracao_documento': data_geracao_documento,
+        'blocos': nome_blocos(dados_valores_reprogramados, dados_lancamentos, dados_documentos, dados_tecnico, previa)
     }
+
+    return dados
+
+
+def nome_blocos(dados_valores_reprogramados, dados_lancamentos, dados_documentos, dados_tecnico, previa):
+    dados = {}
+    numero_bloco = 1
+
+    dados[f'identificacao_associacao'] = 'Bloco 1 - Identificação da Associação da Unidade Educacional'
+
+    if dados_valores_reprogramados:
+        numero_bloco = numero_bloco + 1
+        dados[f'acertos_saldos'] = f'Bloco {numero_bloco} - Acertos nos saldos inicias reprogramados'
+
+    if dados_lancamentos:
+        numero_bloco = numero_bloco + 1
+        dados[f'acertos_lancamentos'] = f'Bloco {numero_bloco} - Acertos nos lançamentos'
+
+    if dados_documentos:
+        numero_bloco = numero_bloco + 1
+        dados[f'acertos_documentos'] = f'Bloco {numero_bloco} - Acertos nos documentos'
+
+    if not previa and dados_tecnico:
+        numero_bloco = numero_bloco + 1
+        dados[f'responsavel_analise'] = f'Bloco {numero_bloco} - Responsável pela análise da Prestação de Contas'
 
     return dados
 

@@ -1,4 +1,5 @@
 import logging
+
 from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -6,7 +7,6 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
 from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
-from sme_ptrf_apps.core.models.periodo import Periodo
 from django.core.exceptions import ValidationError
 from sme_ptrf_apps.core.tasks import gerar_arquivo_ata_async
 
@@ -17,6 +17,7 @@ from ...models import Ata
 from ..serializers import AtaSerializer, AtaCreateSerializer
 
 from django.http import HttpResponse
+
 
 logger = logging.getLogger(__name__)
 

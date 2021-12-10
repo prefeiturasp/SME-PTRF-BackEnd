@@ -1,3 +1,12 @@
+### 1.24.3 - 09/12/2021 - Hotfix
+* (54736) - Relatório Consolidado - Correção data de geração do relatório
+
+### 1.24.2 - 08/12/2021 - Hotfix
+* (54662) - Inclui status PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA para Salvar Devolucoes ao Tesouro
+
+### 1.24.1 - 08/12/2021 - Hotfix
+* (54369 e 46124) - Inclui devoluções ao tesouro na Ata de Retificação e alinha justificado Ata Retificação e Apresentação
+
 ### 1.23.1 - 25/11/2021 - Hotfix
 * (53862) - Ata de retificação não oferece opção de geração em PDF e Tabela de demais presentes vazia
 

@@ -367,7 +367,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         devolucoes_ao_tesouro_da_prestacao = request.data.get('devolucoes_ao_tesouro_da_prestacao', [])
 
-        if prestacao_conta.status not in [PrestacaoConta.STATUS_EM_ANALISE, PrestacaoConta.STATUS_DEVOLVIDA]:
+        if prestacao_conta.status not in [PrestacaoConta.STATUS_EM_ANALISE, PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA]:
             response = {
                 'uuid': f'{uuid}',
                 'erro': 'status_nao_permite_operacao',

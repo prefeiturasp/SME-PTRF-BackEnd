@@ -172,3 +172,18 @@ class FuncRegularidadeAssociacoes(models.Model):
             ('access_regularidade_dre', '[DRE] Pode acessar Regularidade das Associações.'),
             ('change_regularidade', '[DRE] Pode atualizar a Regularidade das Associações.'),
         )
+        
+
+class FuncDreComissoes(models.Model):     
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions          
+        
+        verbose_name = "[DRE] Comissão"
+        verbose_name_plural = "[DRE] Comissões"
+
+        permissions = (
+            ('access_comissoes_dre', '[DRE] Pode acessar Comissões.'),
+            ('change_comissoes_dre', '[DRE] Pode atualizar Comissões.'),
+        )
