@@ -80,7 +80,7 @@ class RelatorioConsolidadoDRE(ModeloBase):
                 status_str = "Documento não gerado"
             else:
                 status_str = f"Prévia do documento {'final' if self.status == 'GERADO_TOTAL' else 'parcial'} " \
-                             f"gerada dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
+                             f"gerada dia {self.alterado_em.strftime('%d/%m/%Y %H:%M')}"
         elif self.versao == self.VERSAO_FINAL:
             if self.status == self.STATUS_EM_PROCESSAMENTO:
                 status_str = "Relatório sendo gerado. Aguarde."
@@ -88,7 +88,7 @@ class RelatorioConsolidadoDRE(ModeloBase):
                 status_str = "Documento não gerado"
             else:
                 status_str = f"Documento {'final' if self.status == 'GERADO_TOTAL' else 'parcial'} " \
-                             f"gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
+                             f"gerado dia {self.alterado_em.strftime('%d/%m/%Y %H:%M')}"
 
         return status_str
 
