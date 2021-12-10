@@ -497,7 +497,7 @@ class AssociacoesViewSet(ModelViewSet):
         # Pega filtros
         nome = self.request.query_params.get('nome')
         tipo_unidade = self.request.query_params.get('tipo_unidade')
-        status_regularidade = self.request.query_params.get('status')
+        status_regularidade = self.request.query_params.get('status_regularidade')
 
         result = lista_status_regularidade_associacoes_no_ano(dre=dre,
                                                               ano_analise_regularidade=ano_analise_regularidade,

@@ -248,7 +248,7 @@ def test_api_list_status_associacoes_pelo_status(
     analise_regularidade_associacao_vassouras
 ):
 
-    url = f'/api/associacoes/lista-regularidade-ano/?dre_uuid={dre_1.uuid}&ano=2021&status=REGULAR'
+    url = f'/api/associacoes/lista-regularidade-ano/?dre_uuid={dre_1.uuid}&ano=2021&status_regularidade=REGULAR'
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
 

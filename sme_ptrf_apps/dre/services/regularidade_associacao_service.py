@@ -201,13 +201,13 @@ def lista_status_regularidade_associacoes_no_ano(
 
     qs = Associacao.objects.filter(unidade__dre=dre).order_by('nome')
 
-    if filtro_nome is not None:
+    if filtro_nome:
         qs = qs.filter(
             Q(nome__unaccent__icontains=filtro_nome) |
             Q(unidade__nome__unaccent__icontains=filtro_nome)
         )
 
-    if filtro_tipo_unidade is not None:
+    if filtro_tipo_unidade:
         qs = qs.filter(unidade__tipo_unidade=filtro_tipo_unidade)
 
     associacoes_status = []
