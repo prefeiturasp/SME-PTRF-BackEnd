@@ -2,7 +2,7 @@ import pytest
 from django.contrib import admin
 
 from ...models import (GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade, ItemVerificacaoRegularidade,
-                       VerificacaoRegularidadeAssociacao)
+                       VerificacaoRegularidadeAssociacao, AnaliseRegularidadeAssociacao)
 from ....core.models import Associacao
 
 pytestmark = pytest.mark.django_db
@@ -11,17 +11,18 @@ pytestmark = pytest.mark.django_db
 def test_instance_model(verificacao_regularidade_associacao_documento_cnpj):
     model = verificacao_regularidade_associacao_documento_cnpj
     assert isinstance(model, VerificacaoRegularidadeAssociacao)
-    assert isinstance(model.associacao, Associacao)
-    assert isinstance(model.grupo_verificacao, GrupoVerificacaoRegularidade)
-    assert isinstance(model.lista_verificacao, ListaVerificacaoRegularidade)
     assert isinstance(model.item_verificacao, ItemVerificacaoRegularidade)
+    assert isinstance(model.analise_regularidade, AnaliseRegularidadeAssociacao)
     assert model.regular
     assert model.uuid
     assert model.id
 
 
 def test_srt_model(verificacao_regularidade_associacao_documento_cnpj):
-    assert verificacao_regularidade_associacao_documento_cnpj.__str__() == 'CNPJ - Regular'
+    analise_id = verificacao_regularidade_associacao_documento_cnpj.analise_regularidade.id
+    verificacao_id = verificacao_regularidade_associacao_documento_cnpj.id
+    esperado = f'Análise:{analise_id} EOL:123456 Ano:2021 Verificação:{verificacao_id}-CNPJ'
+    assert verificacao_regularidade_associacao_documento_cnpj.__str__() == esperado
 
 
 def test_meta_modelo(verificacao_regularidade_associacao_documento_cnpj):

@@ -14,3 +14,5 @@ from .motivo_aprovacao_ressalva import MotivoAprovacaoRessalva
 from .motivo_reprovacao import MotivoReprovacao
 from .comissao import Comissao
 from .membro_comissao import MembroComissao
+from .ano_analise_regularidade import AnoAnaliseRegularidade
+from .analise_regularidade_associacao import AnaliseRegularidadeAssociacao

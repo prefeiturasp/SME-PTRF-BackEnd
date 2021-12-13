@@ -7,17 +7,27 @@ from auditlog.registry import auditlog
 
 class VerificacaoRegularidadeAssociacao(ModeloBase):
     history = AuditlogHistoryField()
-    associacao = models.ForeignKey('core.Associacao', on_delete=models.PROTECT, related_name='verificacoes_regularidade')
-    grupo_verificacao = models.ForeignKey('GrupoVerificacaoRegularidade', on_delete=models.PROTECT,
-                                          related_name="grupos_de_verificacao")
-    lista_verificacao = models.ForeignKey('ListaVerificacaoRegularidade', on_delete=models.PROTECT,
-                                          related_name="listas_de_verificacao")
-    item_verificacao = models.ForeignKey('ItemVerificacaoRegularidade', on_delete=models.PROTECT,
-                                         related_name="itens_de_verificacao")
+
+    analise_regularidade = models.ForeignKey(
+        'AnaliseRegularidadeAssociacao',
+        on_delete=models.CASCADE,
+        related_name='verificacoes_da_analise',
+        null=True,
+    )
+
+    item_verificacao = models.ForeignKey(
+        'ItemVerificacaoRegularidade',
+        on_delete=models.PROTECT,
+        related_name="itens_de_verificacao"
+    )
+
     regular = models.BooleanField('Regular?', default=True)
 
     def __str__(self):
-        return f'{self.item_verificacao.descricao if self.item_verificacao else ""} - {"Regular" if self.regular else "Irregular"}'
+        verificacao_id = f'Verificação:{self.id}'
+        verificacao_nome = f'{self.item_verificacao.descricao if self.item_verificacao else "?"}'
+        analise = f'{self.analise_regularidade if self.analise_regularidade else "?"}'
+        return f'{analise} {verificacao_id}-{verificacao_nome}'
 
     class Meta:
         verbose_name = 'Verificação de regularidade de associação'

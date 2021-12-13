@@ -5,6 +5,7 @@ from .regularidade_associacao_service import (
     marca_item_verificacao_associacao,
     marca_lista_verificacao_associacao,
     verifica_regularidade_associacao,
+    lista_status_regularidade_associacoes_no_ano
 )
 from .relatorio_consolidado_service import (
     informacoes_devolucoes_a_conta_ptrf,

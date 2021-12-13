@@ -67,7 +67,6 @@ def associacao_271170(unidade_ue_271170):
         nome='Associacao 271170',
         cnpj='62.738.735/0001-74',
         unidade=unidade_ue_271170,
-        status_regularidade='PENDENTE'
     )
 
 

@@ -17,7 +17,6 @@ class AssociacaoSerializer(serializers.ModelSerializer):
             'cnpj',
             'email',
             'nome',
-            'status_regularidade',
             'unidade',
             'id',
             'processo_regularidade',
@@ -97,8 +96,6 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
             'nome',
             'cnpj',
             'unidade',
-            'status_regularidade',
-            'motivo_nao_regularidade'
         ]
 
 
@@ -112,14 +109,12 @@ class AssociacaoCompletoSerializer(serializers.ModelSerializer):
             'uuid',
             'nome',
             'unidade',
-            'status_regularidade',
             'cnpj',
             'ccm',
             'email',
             'presidente_associacao',
             'presidente_conselho_fiscal',
             'processo_regularidade',
-            'motivo_nao_regularidade',
             'periodo_inicial',
             'id'
         ]
