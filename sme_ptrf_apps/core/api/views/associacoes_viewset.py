@@ -25,10 +25,9 @@ from sme_ptrf_apps.users.permissoes import (
 )
 
 from ....dre.services import (
-    desmarca_item_verificacao_associacao,
-    marca_item_verificacao_associacao,
-    verifica_regularidade_associacao,
-    lista_status_regularidade_associacoes_no_ano
+    get_verificacao_regularidade_associacao,
+    get_lista_associacoes_e_status_regularidade_no_ano,
+    atualiza_itens_verificacao,
 )
 from ...models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade
 from ...services import (
@@ -366,13 +365,6 @@ class AssociacoesViewSet(ModelViewSet):
         processos = associacao.processos.all()
         return Response(ProcessoAssociacaoRetrieveSerializer(processos, many=True).data)
 
-    @action(detail=True, url_path='verificacao-regularidade', methods=['get'],
-            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def verificacao_regularidade(self, request, uuid=None):
-        ano = request.query_params.get('ano')
-        verificacao = verifica_regularidade_associacao(associacao_uuid=uuid, ano=ano)
-        return Response(verificacao)
-
     @action(detail=False, methods=['get'], url_path='eol',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def consulta_unidade(self, request):
@@ -411,40 +403,6 @@ class AssociacoesViewSet(ModelViewSet):
                 'mensagem': f'{e}'
             }
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, url_path='atualiza-itens-verificacao', methods=['post'],
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
-    def atualiza_itens_verificacao(self, request, uuid=None):
-        itens = request.data.get('itens')
-        motivo = request.data.get('motivo_nao_regularidade')
-
-        if not itens:
-            result_error = {
-                'erro': 'campo_requerido',
-                'mensagem': 'É necessário enviar os itens de verificacao com o seu status.'
-            }
-            return Response(result_error, status=status.HTTP_400_BAD_REQUEST)
-
-        for item in itens:
-            try:
-                if item['regular']:
-                    marca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'], motivo=motivo)
-                else:
-                    desmarca_item_verificacao_associacao(associacao_uuid=uuid, item_verificacao_uuid=item['uuid'], motivo=motivo)
-
-            except ValidationError as e:
-                result = {
-                    'erro': 'Objeto não encontrado.',
-                    'mensagem': f'{e}'
-                }
-                status_code = status.HTTP_400_BAD_REQUEST
-
-        result = {
-            'associacao': f'{uuid}',
-            'mensagem': 'Itens de verificação atualizados.'
-        }
-        status_code = status.HTTP_200_OK
-        return Response(result, status=status_code)
 
     @action(detail=False, url_path='lista-regularidade-ano',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
@@ -499,10 +457,42 @@ class AssociacoesViewSet(ModelViewSet):
         tipo_unidade = self.request.query_params.get('tipo_unidade')
         status_regularidade = self.request.query_params.get('status_regularidade')
 
-        result = lista_status_regularidade_associacoes_no_ano(dre=dre,
-                                                              ano_analise_regularidade=ano_analise_regularidade,
-                                                              filtro_nome=nome,
-                                                              filtro_tipo_unidade=tipo_unidade,
-                                                              filtro_status=status_regularidade
-                                                              )
+        result = get_lista_associacoes_e_status_regularidade_no_ano(dre=dre,
+                                                                    ano_analise_regularidade=ano_analise_regularidade,
+                                                                    filtro_nome=nome,
+                                                                    filtro_tipo_unidade=tipo_unidade,
+                                                                    filtro_status=status_regularidade
+                                                                    )
         return Response(result)
+
+    @action(detail=True, url_path='verificacao-regularidade', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def verificacao_regularidade(self, request, uuid=None):
+        ano = request.query_params.get('ano')
+        verificacao = get_verificacao_regularidade_associacao(associacao_uuid=uuid, ano=ano)
+        return Response(verificacao)
+
+    @action(detail=True, url_path='atualiza-itens-verificacao', methods=['post'],
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def atualiza_itens_verificacao(self, request, uuid=None):
+        itens = request.data.get('itens')
+        motivo = request.data.get('motivo_nao_regularidade')
+        ano = request.data.get('ano')
+
+        try:
+            result = atualiza_itens_verificacao(
+                associacao_uuid=uuid,
+                ano=ano,
+                itens_verificacao=itens,
+                motivo_nao_regularidade=motivo
+            )
+            status_code = status.HTTP_200_OK
+
+        except ValidationError as e:
+            result = {
+                'erro': 'Erro ao tentar atualizar regularidade da associação.',
+                'mensagem': f'{e}'
+            }
+            status_code = status.HTTP_400_BAD_REQUEST
+
+        return Response(result, status=status_code)

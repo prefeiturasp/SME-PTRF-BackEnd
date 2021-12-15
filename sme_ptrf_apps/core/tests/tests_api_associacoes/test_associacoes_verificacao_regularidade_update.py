@@ -4,7 +4,7 @@ import pytest
 from model_bakery import baker
 from rest_framework import status
 
-from ....dre.models import VerificacaoRegularidadeAssociacao
+from ....dre.models import VerificacaoRegularidadeAssociacao, AnaliseRegularidadeAssociacao
 
 pytestmark = pytest.mark.django_db
 
@@ -80,15 +80,18 @@ def verificacao_regularidade_associacao_documento_rais(item_verificacao_regulari
         regular=True
     )
 
-# TODO Reativar testes apos incluir ano no calculode regularidade
-def __test_atualiza_itens_verificacao(jwt_authenticated_client_a, associacao,
-                                    grupo_verificacao_regularidade_documentos,
-                                    lista_verificacao_regularidade_documentos_associacao,
-                                    item_verificacao_regularidade_documentos_associacao_cnpj,
-                                    item_verificacao_regularidade_documentos_associacao_rais,
-                                    verificacao_regularidade_associacao_documento_cnpj,
-                                    verificacao_regularidade_associacao_documento_rais
-                                    ):
+
+def test_atualiza_itens_verificacao_existentes(jwt_authenticated_client_a,
+                                               associacao,
+                                               grupo_verificacao_regularidade_documentos,
+                                               lista_verificacao_regularidade_documentos_associacao,
+                                               item_verificacao_regularidade_documentos_associacao_cnpj,
+                                               item_verificacao_regularidade_documentos_associacao_rais,
+                                               verificacao_regularidade_associacao_documento_cnpj,
+                                               verificacao_regularidade_associacao_documento_rais,
+                                               ano_analise_regularidade_2021,
+                                               analise_regularidade_associacao
+                                               ):
     payload = {
         'itens': [
             {
@@ -100,7 +103,8 @@ def __test_atualiza_itens_verificacao(jwt_authenticated_client_a, associacao,
                 'regular': True
             },
         ],
-        'motivo_nao_regularidade': ''
+        'motivo_nao_regularidade': '',
+        'ano': 2021
     }
 
     url = f'/api/associacoes/{associacao.uuid}/atualiza-itens-verificacao/'
@@ -115,22 +119,30 @@ def __test_atualiza_itens_verificacao(jwt_authenticated_client_a, associacao,
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
 
-    verificacao1 = VerificacaoRegularidadeAssociacao.objects.filter(associacao=associacao,
-                                                                    item_verificacao=item_verificacao_regularidade_documentos_associacao_cnpj)
+    analise_regularidade = AnaliseRegularidadeAssociacao.objects.get(
+        associacao=associacao,
+        ano_analise=ano_analise_regularidade_2021
+    )
+    verificacao1 = VerificacaoRegularidadeAssociacao.objects.filter(
+        analise_regularidade=analise_regularidade,
+        item_verificacao=item_verificacao_regularidade_documentos_associacao_cnpj
+    )
     assert verificacao1.count() == 0, 'Esse item não deveria existir'
 
-    verificacao2 = VerificacaoRegularidadeAssociacao.objects.filter(associacao=associacao,
-                                                                    item_verificacao=item_verificacao_regularidade_documentos_associacao_rais)
+    verificacao2 = VerificacaoRegularidadeAssociacao.objects.filter(
+        analise_regularidade=analise_regularidade,
+        item_verificacao=item_verificacao_regularidade_documentos_associacao_rais
+    )
     assert verificacao2.count() == 1, 'Esse item deveria existir'
 
 
-# TODO Reativar testes apos incluir ano no calculode regularidade
-def __test_atualiza_itens_verificacao_associacao_regular(jwt_authenticated_client_a, associacao,
-                                                       grupo_verificacao_regularidade_documentos,
-                                                       lista_verificacao_regularidade_documentos_associacao,
-                                                       item_verificacao_regularidade_documentos_associacao_cnpj,
-                                                       item_verificacao_regularidade_documentos_associacao_rais
-                                                       ):
+def test_atualiza_itens_verificacao_associacao_regular(
+    jwt_authenticated_client_a,
+    associacao,
+    item_verificacao_regularidade_documentos_associacao_cnpj,
+    item_verificacao_regularidade_documentos_associacao_rais,
+    ano_analise_regularidade_2021,
+):
 
     payload = {
         'itens': [
@@ -143,7 +155,8 @@ def __test_atualiza_itens_verificacao_associacao_regular(jwt_authenticated_clien
                 'regular': True
             },
         ],
-        'motivo_nao_regularidade': ''
+        'motivo_nao_regularidade': '',
+        'ano': 2021
     }
 
     response = jwt_authenticated_client_a.post(
@@ -156,9 +169,13 @@ def __test_atualiza_itens_verificacao_associacao_regular(jwt_authenticated_clien
         'mensagem': 'Itens de verificação atualizados.'
     }
 
-    from sme_ptrf_apps.core.models import Associacao
+    from sme_ptrf_apps.dre.models import AnaliseRegularidadeAssociacao
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
-    #TODO Alterar para status por ano
-    assert False, "Implementar. Verificar se o status ficou regular"
+
+    analise = AnaliseRegularidadeAssociacao.objects.get(
+        associacao=associacao,
+        ano_analise=ano_analise_regularidade_2021
+    )
+    assert analise.status_regularidade == 'REGULAR', "O status deveria estar regular."

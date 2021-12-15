@@ -1,7 +1,7 @@
 import pytest
 from model_bakery import baker
 
-from ...services import verifica_regularidade_associacao
+from ...services import get_verificacao_regularidade_associacao
 
 pytestmark = pytest.mark.django_db
 
@@ -102,7 +102,7 @@ def test_verificacao_regularidade_associacao_regular(
     analise = verificacao_regularidade_associacao_documento_cnpj_regular.analise_regularidade
     associacao = analise.associacao
 
-    result = verifica_regularidade_associacao(associacao.uuid, 2021)
+    result = get_verificacao_regularidade_associacao(associacao.uuid, 2021)
 
     esperado = {
         'uuid': f'{associacao.uuid}',
@@ -140,7 +140,7 @@ def test_verificacao_regularidade_associacao_pendente_quando_sem_verificacao(cli
                                                                              lista_verificacao_regularidade_documentos_associacao,
                                                                              item_verificacao_regularidade_documentos_associacao_cnpj
                                                                              ):
-    result = verifica_regularidade_associacao(associacao.uuid, 2021)
+    result = get_verificacao_regularidade_associacao(associacao.uuid, 2021)
 
     esperado = {
         'uuid': f'{associacao.uuid}',
@@ -181,7 +181,7 @@ def test_verificacao_regularidade_associacao_pendente_quando_com_verificacao_irr
                                                                                        verificacao_regularidade_associacao_documento_cnpj_regular,
                                                                                        verificacao_regularidade_associacao_documento_rais_irregular
                                                                                        ):
-    result = verifica_regularidade_associacao(associacao.uuid, 2021)
+    result = get_verificacao_regularidade_associacao(associacao.uuid, 2021)
 
     esperado = {
         'uuid': f'{associacao.uuid}',
