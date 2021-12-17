@@ -1,3 +1,6 @@
+### 1.24.4 - 17/12/2021 - Hotfix
+* (55121) - Relatório Consolidado - Inclui geração lauda em csv
+
 ### 1.24.3 - 09/12/2021 - Hotfix
 * (54736) - Relatório Consolidado - Correção data de geração do relatório
 
