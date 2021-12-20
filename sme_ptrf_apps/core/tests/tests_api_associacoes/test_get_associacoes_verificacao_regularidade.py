@@ -44,7 +44,8 @@ def analise_regularidade_associacao(
         'AnaliseRegularidadeAssociacao',
         associacao=associacao,
         ano_analise=ano_analise_regularidade_2021,
-        status_regularidade='REGULAR'
+        status_regularidade='REGULAR',
+        motivo_nao_regularidade='Está regular'
     )
 
 
@@ -71,7 +72,7 @@ def test_api_get_associacoes_verificacao_regularidade(jwt_authenticated_client_a
 
     esperado = {
         'uuid': f'{associacao.uuid}',
-        'motivo_nao_regularidade': '',
+        'motivo_nao_regularidade': 'Está regular',
         'verificacao_regularidade': {
             'grupos_verificacao': [
                 {

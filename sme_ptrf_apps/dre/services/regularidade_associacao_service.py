@@ -66,7 +66,7 @@ def get_verificacao_regularidade_associacao(associacao_uuid, ano):
         'verificacao_regularidade': {
             'grupos_verificacao': grupos
         },
-        'motivo_nao_regularidade': ''
+        'motivo_nao_regularidade': analise_regularidade_ano.motivo_nao_regularidade if analise_regularidade_ano else ""
 
     }
     return result
@@ -211,6 +211,7 @@ def atualiza_itens_verificacao(associacao_uuid, ano, itens_verificacao, motivo_n
     analise_regularidade = get_novo_analise_obj(associacao, ano_analise)
 
     for item in itens_verificacao:
+        logging.info(f"======> item[regula]={item['regular']}")
         if item['regular']:
             marca_item_verificacao_associacao(
                 analise_regularidade=analise_regularidade,
