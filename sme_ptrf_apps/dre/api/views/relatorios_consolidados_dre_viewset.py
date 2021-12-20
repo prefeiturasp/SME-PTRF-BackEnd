@@ -27,7 +27,7 @@ from ...services import (
     status_de_geracao_do_relatorio,
     update_observacao_devolucao,
 )
-from ...tasks import gerar_relatorio_consolidado_dre_async, gerar_previa_relatorio_consolidado_dre_async
+from ...tasks import gerar_relatorio_consolidado_dre_async, gerar_previa_relatorio_consolidado_dre_async, gerar_lauda_csv_async
 
 logger = logging.getLogger(__name__)
 
@@ -871,3 +871,72 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"OK": "Relatório Consolidado na fila para processamento."}, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, url_path="gerar-lauda", methods=['post'],
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def gerar_lauda(self, request):
+        dados = request.data
+
+        if (
+            not dados
+            or not dados.get('dre_uuid')
+            or not dados.get('periodo_uuid')
+            or not dados.get('tipo_conta_uuid')
+            or (dados.get('parcial') is None)
+        ):
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar os uuids da dre, período, conta e parcial.'
+            }
+            logger.info('Erro ao gerar lauda: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        dre_uuid, periodo_uuid, tipo_conta_uuid = dados['dre_uuid'], dados['periodo_uuid'], dados['tipo_conta_uuid']
+
+        try:
+            Unidade.dres.get(uuid=dre_uuid)
+        except Unidade.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            TipoConta.objects.get(uuid=tipo_conta_uuid)
+        except TipoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto tipo de conta para o uuid {tipo_conta_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            gerar_lauda_csv_async.delay(
+                dre_uuid,
+                tipo_conta_uuid,
+                periodo_uuid,
+                dados['parcial'],
+                request.user.username
+            )
+        except Exception as err:
+            erro = {
+                'erro': 'problema_geracao_lauda',
+                'mensagem': 'Ao gerar lauda.'
+            }
+            logger.info("Erro ao gerar lauda: %s", str(err))
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"OK": "Lauda na fila para processamento."}, status=status.HTTP_201_CREATED)
