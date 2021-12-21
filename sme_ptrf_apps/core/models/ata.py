@@ -151,6 +151,8 @@ class Ata(ModeloBase):
 
     retificacoes = models.TextField('Retificações', blank=True, default='')
 
+    hora_reuniao = models.TimeField("Hora da reunião", default="00:00")
+
     @property
     def nome(self):
         return f'Ata de {self.ATA_NOMES[self.tipo_ata]} da prestação de contas'
