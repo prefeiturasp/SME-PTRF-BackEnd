@@ -97,7 +97,9 @@ def dados_texto_ata(ata, usuario):
         "comentarios": ata.comentarios,
         "parecer_conselho": ata.parecer_conselho,
         "usuario": usuario,
+        "hora_reuniao": ata.hora_reuniao.strftime('%H:%M')
     }
+
     return dados_texto_da_ata
 
 
