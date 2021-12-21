@@ -8,15 +8,15 @@ from ..models import (
     GrupoVerificacaoRegularidade,
     VerificacaoRegularidadeAssociacao,
     ItemVerificacaoRegularidade,
-    ListaVerificacaoRegularidade,
-    AnaliseRegularidadeAssociacao
+    AnaliseRegularidadeAssociacao,
+    AnoAnaliseRegularidade
 )
 from ...core.models import Associacao
 
 logger = logging.getLogger(__name__)
 
 
-def verifica_regularidade_associacao(associacao_uuid, ano):
+def get_verificacao_regularidade_associacao(associacao_uuid, ano):
 
     analise_regularidade_ano = AnaliseRegularidadeAssociacao.objects.filter(
         associacao__uuid=associacao_uuid,
@@ -66,131 +66,13 @@ def verifica_regularidade_associacao(associacao_uuid, ano):
         'verificacao_regularidade': {
             'grupos_verificacao': grupos
         },
-        'motivo_nao_regularidade': ''
+        'motivo_nao_regularidade': analise_regularidade_ano.motivo_nao_regularidade if analise_regularidade_ano else ""
 
     }
     return result
 
 
-def marca_item_verificacao_associacao(associacao_uuid, item_verificacao_uuid, motivo=''):
-    #TODO Implementar nova estrutura de regularidade por ano
-    result = {}
-    # associacao = Associacao.by_uuid(associacao_uuid)
-    #
-    # if not associacao:
-    #     msgError = f'Associacao não encontrada. UUID:{associacao_uuid}'
-    #     logger.info(msgError)
-    #     raise ValidationError(msgError)
-    #
-    # item_verificacao = ItemVerificacaoRegularidade.by_uuid(item_verificacao_uuid)
-    #
-    # if not item_verificacao:
-    #     msgError = f'Item de verificação não encontrado. UUID:{item_verificacao_uuid}'
-    #     logger.info(msgError)
-    #     raise ValidationError(msgError)
-    #
-    # result = VerificacaoRegularidadeAssociacao.objects.get_or_create(
-    #     associacao=associacao,
-    #     item_verificacao=item_verificacao,
-    #     defaults={
-    #         'grupo_verificacao': item_verificacao.lista.grupo,
-    #         'lista_verificacao': item_verificacao.lista,
-    #         'regular': True,
-    #     }
-    # ) if associacao and item_verificacao else None
-    #
-    # if associacao:
-    #     atualiza_status_regularidade(associacao, motivo)
-    #
-    # logger.info(f'Item de verificação marcado {result}')
-
-    return result
-
-
-def desmarca_item_verificacao_associacao(associacao_uuid, item_verificacao_uuid, motivo=''):
-    #TODO Implementar nova estrutura de regularidade por ano
-    return None
-    # associacao = Associacao.by_uuid(associacao_uuid)
-    # item_verificacao = ItemVerificacaoRegularidade.by_uuid(item_verificacao_uuid)
-    #
-    # VerificacaoRegularidadeAssociacao.objects.filter(
-    #     associacao=associacao,
-    #     item_verificacao=item_verificacao
-    # ).delete()
-    #
-    # if associacao:
-    #     atualiza_status_regularidade(associacao, motivo=motivo)
-    #
-    # return 'OK' if associacao and item_verificacao else None
-
-
-def atualiza_status_regularidade(associacao, motivo=''):
-    #TODO Implementar nova estrutura de regularidade por ano
-    ...
-    # status = Associacao.STATUS_REGULARIDADE_PENDENTE
-    #
-    # if associacao.verificacoes_regularidade.count() == ItemVerificacaoRegularidade.objects.count():
-    #     if all(associacao.verificacoes_regularidade.values_list('regular', flat=True)):
-    #         status = Associacao.STATUS_REGULARIDADE_REGULAR
-    #
-    # if status == Associacao.STATUS_REGULARIDADE_PENDENTE:
-    #     associacao.motivo_nao_regularidade = motivo
-    # else:
-    #     associacao.motivo_nao_regularidade = ''
-    #
-    # associacao.status_regularidade = status
-    # associacao.save()
-
-
-def marca_lista_verificacao_associacao(associacao_uuid, lista_verificacao_uuid):
-    # TODO Implementar nova estrutura de regularidade por ano
-    return None
-    # associacao = Associacao.by_uuid(associacao_uuid)
-    #
-    # if not associacao:
-    #     msgError = f'Associacao não encontrada. UUID:{associacao_uuid}'
-    #     logger.info(msgError)
-    #     raise ValidationError(msgError)
-    #
-    # lista_verificacao = ListaVerificacaoRegularidade.by_uuid(lista_verificacao_uuid)
-    #
-    # if not lista_verificacao:
-    #     msgError = f'Lista de verificação não encontrada. UUID:{lista_verificacao_uuid}'
-    #     logger.info(msgError)
-    #     raise ValidationError(msgError)
-    #
-    # logger.info(f'Marcando itens da lista de verificação...')
-    # for item in lista_verificacao.itens_de_verificacao.all():
-    #     marca_item_verificacao_associacao(associacao_uuid=associacao_uuid, item_verificacao_uuid=item.uuid)
-    #
-    # return 'OK' if associacao and lista_verificacao else None
-
-
-def desmarca_lista_verificacao_associacao(associacao_uuid, lista_verificacao_uuid):
-    # TODO Implementar nova estrutura de regularidade por ano
-    return None
-    # associacao = Associacao.by_uuid(associacao_uuid)
-    #
-    # if not associacao:
-    #     msgError = f'Associacao não encontrada. UUID:{associacao_uuid}'
-    #     logger.info(msgError)
-    #     raise ValidationError(msgError)
-    #
-    # lista_verificacao = ListaVerificacaoRegularidade.by_uuid(lista_verificacao_uuid)
-    #
-    # if not lista_verificacao:
-    #     msgError = f'Lista de verificação não encontrada. UUID:{lista_verificacao_uuid}'
-    #     logger.info(msgError)
-    #     raise ValidationError(msgError)
-    #
-    # logger.info(f'Desmarcando itens da lista de verificação...')
-    # for item in lista_verificacao.itens_de_verificacao.all():
-    #     desmarca_item_verificacao_associacao(associacao_uuid=associacao_uuid, item_verificacao_uuid=item.uuid)
-    #
-    # return 'OK' if associacao and lista_verificacao else None
-
-
-def lista_status_regularidade_associacoes_no_ano(
+def get_lista_associacoes_e_status_regularidade_no_ano(
     dre,
     ano_analise_regularidade,
     filtro_nome,
@@ -227,3 +109,123 @@ def lista_status_regularidade_associacoes_no_ano(
             )
 
     return associacoes_status
+
+
+def atualiza_itens_verificacao(associacao_uuid, ano, itens_verificacao, motivo_nao_regularidade):
+
+    def valida_itens_verificacao():
+        if not itens_verificacao:
+            raise ValidationError({
+                'erro': 'campo_requerido',
+                'mensagem': 'É necessário enviar os itens de verificacao com o seu status.'
+            })
+
+    def get_associacao_obj():
+        try:
+            return Associacao.by_uuid(associacao_uuid)
+        except Associacao.DoesNotExist:
+            result_error = {
+                'erro': 'objeto_nao_encontrado',
+                'mensagem': f'Não foi encontrada uma Associação de uuid {associacao_uuid}.'
+            }
+            raise ValidationError(result_error)
+
+    def get_ano_analise_obj():
+        try:
+            return AnoAnaliseRegularidade.objects.get(ano=ano)
+        except AnoAnaliseRegularidade.DoesNotExist:
+            result_error = {
+                'erro': 'objeto_nao_encontrado',
+                'mensagem': f'Não foi encontrada o ano de Análise de Regularidade {ano}.'
+            }
+            raise ValidationError(result_error)
+
+    def apaga_analise_anterior(associacao, ano_analise):
+        analise = AnaliseRegularidadeAssociacao.objects.filter(
+            associacao=associacao,
+            ano_analise=ano_analise,
+        ).first()
+
+        if analise:
+            for verificacao in analise.verificacoes_da_analise.all():
+                verificacao.delete()
+            analise.delete()
+
+    def get_novo_analise_obj(associacao, ano_analise):
+        return AnaliseRegularidadeAssociacao.objects.create(
+            associacao=associacao,
+            ano_analise=ano_analise,
+            motivo_nao_regularidade=motivo_nao_regularidade
+        )
+
+    def marca_item_verificacao_associacao(analise_regularidade, item_verificacao_uuid):
+
+        item_verificacao = ItemVerificacaoRegularidade.by_uuid(item_verificacao_uuid)
+
+        if not item_verificacao:
+            msgError = f'Item de verificação não encontrado. UUID:{item_verificacao_uuid}'
+            logger.info(msgError)
+            raise ValidationError(msgError)
+
+        result = VerificacaoRegularidadeAssociacao.objects.get_or_create(
+            analise_regularidade=analise_regularidade,
+            item_verificacao=item_verificacao,
+            defaults={
+                'regular': True,
+            }
+        ) if analise_regularidade and item_verificacao else None
+
+        logger.info(f'Item de verificação marcado {result}')
+
+        return result
+
+    def desmarca_item_verificacao_associacao(analise_regularidade, item_verificacao_uuid):
+        item_verificacao = ItemVerificacaoRegularidade.by_uuid(item_verificacao_uuid)
+
+        VerificacaoRegularidadeAssociacao.objects.filter(
+            analise_regularidade=analise_regularidade,
+            item_verificacao=item_verificacao
+        ).delete()
+
+        return 'OK' if analise_regularidade and item_verificacao else None
+
+    def atualiza_status_regularidade(analise_regularidade, motivo=''):
+        status = AnaliseRegularidadeAssociacao.STATUS_REGULARIDADE_PENDENTE
+
+        if analise_regularidade.verificacoes_da_analise.count() == ItemVerificacaoRegularidade.objects.count():
+            if all(analise_regularidade.verificacoes_da_analise.values_list('regular', flat=True)):
+                status = AnaliseRegularidadeAssociacao.STATUS_REGULARIDADE_REGULAR
+
+        if status == AnaliseRegularidadeAssociacao.STATUS_REGULARIDADE_PENDENTE:
+            analise_regularidade.motivo_nao_regularidade = motivo
+        else:
+            analise_regularidade.motivo_nao_regularidade = ''
+
+        analise_regularidade.status_regularidade = status
+        analise_regularidade.save()
+
+    valida_itens_verificacao()
+    associacao = get_associacao_obj()
+    ano_analise = get_ano_analise_obj()
+    apaga_analise_anterior(associacao, ano_analise)
+    analise_regularidade = get_novo_analise_obj(associacao, ano_analise)
+
+    for item in itens_verificacao:
+        logging.info(f"======> item[regula]={item['regular']}")
+        if item['regular']:
+            marca_item_verificacao_associacao(
+                analise_regularidade=analise_regularidade,
+                item_verificacao_uuid=item['uuid']
+            )
+        else:
+            desmarca_item_verificacao_associacao(
+                analise_regularidade=analise_regularidade,
+                item_verificacao_uuid=item['uuid']
+            )
+
+    atualiza_status_regularidade(analise_regularidade=analise_regularidade, motivo=motivo_nao_regularidade)
+
+    return {
+        'associacao': f'{associacao_uuid}',
+        'mensagem': 'Itens de verificação atualizados.'
+    }
