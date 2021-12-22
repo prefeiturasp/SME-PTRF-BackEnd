@@ -26,6 +26,7 @@ class AtaLookUpSerializer(serializers.ModelSerializer):
 
 class AtaSerializer(serializers.ModelSerializer):
     nome = serializers.SerializerMethodField('get_nome_ata')
+    hora_reuniao = serializers.SerializerMethodField('get_hora_reuniao')
     associacao = AssociacaoInfoAtaSerializer(many=False)
     periodo = PeriodoLookUpSerializer(many=False)
     prestacao_conta = serializers.SlugRelatedField(
@@ -38,6 +39,9 @@ class AtaSerializer(serializers.ModelSerializer):
 
     def get_nome_ata(self, obj):
         return obj.nome
+
+    def get_hora_reuniao(self, obj):
+        return obj.hora_reuniao.strftime('%H:%M')
 
     class Meta:
         model = Ata
@@ -62,6 +66,7 @@ class AtaSerializer(serializers.ModelSerializer):
             'parecer_conselho',
             'retificacoes',
             'presentes_na_ata',
+            'hora_reuniao'
         )
 
 
@@ -98,7 +103,6 @@ class AtaCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         presentes_json = validated_data.pop('presentes_na_ata')
         instance.presentes_na_ata.all().delete()
-
         presentes_lista = []
         for presente in presentes_json:
             presente_object = PresentesAtaCreateSerializer().create(presente)
