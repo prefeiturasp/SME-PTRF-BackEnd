@@ -41,7 +41,17 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
                 'id': lancamento["mestre"].acao_associacao.id,
                 'nome': lancamento["mestre"].acao_associacao.acao.nome,
                 'e_recursos_proprios': lancamento["mestre"].acao_associacao.acao.e_recursos_proprios,
-                'uuid': f'{lancamento["mestre"].acao_associacao.uuid}'
+                'uuid': f'{lancamento["mestre"].acao_associacao.uuid}',
+                'acao': {
+                    'id': lancamento["mestre"].acao_associacao.acao.id,
+                    'uuid': f'{lancamento["mestre"].acao_associacao.acao.uuid}',
+                    'nome': lancamento["mestre"].acao_associacao.acao.nome,
+                    'e_recursos_proprios': False,
+                    'posicao_nas_pesquisas': lancamento["mestre"].acao_associacao.acao.posicao_nas_pesquisas,
+                    'aceita_capital': lancamento["mestre"].acao_associacao.acao.aceita_capital,
+                    'aceita_custeio': lancamento["mestre"].acao_associacao.acao.aceita_custeio,
+                    'aceita_livre': lancamento["mestre"].acao_associacao.acao.aceita_livre
+                }
             },
             'categoria_receita': lancamento["mestre"].categoria_receita,
             'tipo_receita': {'id': lancamento["mestre"].tipo_receita.id, 'nome': lancamento["mestre"].tipo_receita.nome},
@@ -75,6 +85,16 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
                     "id": rateio.acao_associacao.id,
                     "nome": rateio.acao_associacao.acao.nome,
                     "e_recursos_proprios": rateio.acao_associacao.acao.e_recursos_proprios,
+                    'acao': {
+                        'id': rateio.acao_associacao.acao.id,
+                        'uuid': f'{rateio.acao_associacao.acao.uuid}',
+                        'nome': rateio.acao_associacao.acao.nome,
+                        'e_recursos_proprios': False,
+                        'posicao_nas_pesquisas': rateio.acao_associacao.acao.posicao_nas_pesquisas,
+                        'aceita_capital': rateio.acao_associacao.acao.aceita_capital,
+                        'aceita_custeio': rateio.acao_associacao.acao.aceita_custeio,
+                        'aceita_livre': rateio.acao_associacao.acao.aceita_livre
+                    }
                 },
                 "conferido": rateio.conferido,
                 "valor_rateio": f'{rateio.valor_rateio:.2f}',

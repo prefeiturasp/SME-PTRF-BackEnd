@@ -15,6 +15,7 @@ class AcaoAssociacaoSerializer(serializers.ModelSerializer):
 
 
 class AcaoAssociacaoLookUpSerializer(serializers.ModelSerializer):
+    acao = AcaoSerializer()
     nome = serializers.SerializerMethodField('get_nome_acao')
     e_recursos_proprios = serializers.SerializerMethodField('get_recurso_proprio')
 
@@ -26,7 +27,7 @@ class AcaoAssociacaoLookUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AcaoAssociacao
-        fields = ('uuid', 'id', 'nome', 'e_recursos_proprios')
+        fields = ('uuid', 'id', 'nome', 'e_recursos_proprios', 'acao', )
 
 
 class AcaoAssociacaoAjustesValoresIniciasSerializer(serializers.ModelSerializer):
