@@ -6,42 +6,6 @@ from django.contrib.auth.models import Permission
 from sme_ptrf_apps.users.models import Grupo
 from django.contrib.contenttypes.models import ContentType
 
-
-@pytest.fixture
-def grupo_verificacao_regularidade_documentos():
-    return baker.make('GrupoVerificacaoRegularidade', titulo='Documentos')
-
-
-@pytest.fixture
-def lista_verificacao_regularidade_documentos_associacao(grupo_verificacao_regularidade_documentos):
-    return baker.make(
-        'ListaVerificacaoRegularidade',
-        titulo='Documentos da Associação',
-        grupo=grupo_verificacao_regularidade_documentos
-    )
-
-
-@pytest.fixture
-def item_verificacao_regularidade_documentos_associacao_cnpj(lista_verificacao_regularidade_documentos_associacao):
-    return baker.make(
-        'ItemVerificacaoRegularidade',
-        descricao='CNPJ',
-        lista=lista_verificacao_regularidade_documentos_associacao
-    )
-
-
-@pytest.fixture
-def verificacao_regularidade_associacao_documento_cnpj(grupo_verificacao_regularidade_documentos, lista_verificacao_regularidade_documentos_associacao,item_verificacao_regularidade_documentos_associacao_cnpj, associacao):
-    return baker.make(
-        'VerificacaoRegularidadeAssociacao',
-        associacao=associacao,
-        grupo_verificacao=grupo_verificacao_regularidade_documentos,
-        lista_verificacao=lista_verificacao_regularidade_documentos_associacao,
-        item_verificacao=item_verificacao_regularidade_documentos_associacao_cnpj,
-        regular=True
-    )
-
-
 @pytest.fixture
 def tecnico_dre(dre):
     return baker.make(
@@ -284,3 +248,81 @@ def motivo_aprovacao_ressalva_y():
         'MotivoAprovacaoRessalva',
         motivo='Y'
     )
+
+
+@pytest.fixture
+def comissao_exame_contas():
+    return baker.make('Comissao', nome='Exame de Contas')
+
+
+@pytest.fixture
+def membro_comissao_exame_contas(comissao_exame_contas, dre_ipiranga):
+    membro = baker.make(
+        'MembroComissao',
+        rf='123456',
+        nome='Jose Testando',
+        email='jose@teste.com',
+        dre=dre_ipiranga,
+        comissoes=[comissao_exame_contas, ]
+    )
+    return membro
+
+
+@pytest.fixture
+def grupo_verificacao_regularidade_documentos():
+    return baker.make('GrupoVerificacaoRegularidade', titulo='Documentos')
+
+
+@pytest.fixture
+def lista_verificacao_regularidade_documentos_associacao(grupo_verificacao_regularidade_documentos):
+    return baker.make(
+        'ListaVerificacaoRegularidade',
+        titulo='Documentos da Associação',
+        grupo=grupo_verificacao_regularidade_documentos
+    )
+
+
+@pytest.fixture
+def item_verificacao_regularidade_documentos_associacao_cnpj(lista_verificacao_regularidade_documentos_associacao):
+    return baker.make(
+        'ItemVerificacaoRegularidade',
+        descricao='CNPJ',
+        lista=lista_verificacao_regularidade_documentos_associacao
+    )
+
+
+@pytest.fixture
+def ano_analise_regularidade_2020():
+    return baker.make('AnoAnaliseRegularidade', ano=2020)
+
+
+@pytest.fixture
+def ano_analise_regularidade_2021():
+    return baker.make('AnoAnaliseRegularidade', ano=2021)
+
+
+@pytest.fixture
+def analise_regularidade_associacao(
+    associacao,
+    ano_analise_regularidade_2021
+):
+    return baker.make(
+        'AnaliseRegularidadeAssociacao',
+        associacao=associacao,
+        ano_analise=ano_analise_regularidade_2021,
+        status_regularidade='REGULAR'
+    )
+
+
+@pytest.fixture
+def verificacao_regularidade_associacao_documento_cnpj(
+    item_verificacao_regularidade_documentos_associacao_cnpj,
+    analise_regularidade_associacao
+):
+    return baker.make(
+        'VerificacaoRegularidadeAssociacao',
+        analise_regularidade=analise_regularidade_associacao,
+        item_verificacao=item_verificacao_regularidade_documentos_associacao_cnpj,
+        regular=True
+    )
+

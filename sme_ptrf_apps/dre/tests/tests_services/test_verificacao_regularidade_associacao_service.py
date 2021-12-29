@@ -1,7 +1,7 @@
 import pytest
 from model_bakery import baker
 
-from ...services import verifica_regularidade_associacao
+from ...services import get_verificacao_regularidade_associacao
 
 pytestmark = pytest.mark.django_db
 
@@ -30,15 +30,28 @@ def item_verificacao_regularidade_documentos_associacao_cnpj(lista_verificacao_r
 
 
 @pytest.fixture
-def verificacao_regularidade_associacao_documento_cnpj_regular(grupo_verificacao_regularidade_documentos,
-                                                               lista_verificacao_regularidade_documentos_associacao,
-                                                               item_verificacao_regularidade_documentos_associacao_cnpj,
-                                                               associacao):
+def analise_regularidade_associacao_rais_regular(
+    associacao,
+    ano_analise_regularidade_2021
+):
+    return baker.make(
+        'AnaliseRegularidadeAssociacao',
+        associacao=associacao,
+        ano_analise=ano_analise_regularidade_2021,
+        status_regularidade='REGULAR'
+    )
+
+
+@pytest.fixture
+def verificacao_regularidade_associacao_documento_cnpj_regular(
+    grupo_verificacao_regularidade_documentos,
+    lista_verificacao_regularidade_documentos_associacao,
+    item_verificacao_regularidade_documentos_associacao_cnpj,
+    analise_regularidade_associacao_rais_regular,
+):
     return baker.make(
         'dre.VerificacaoRegularidadeAssociacao',
-        associacao=associacao,
-        grupo_verificacao=grupo_verificacao_regularidade_documentos,
-        lista_verificacao=lista_verificacao_regularidade_documentos_associacao,
+        analise_regularidade=analise_regularidade_associacao_rais_regular,
         item_verificacao=item_verificacao_regularidade_documentos_associacao_cnpj,
         regular=True
     )
@@ -54,27 +67,42 @@ def item_verificacao_regularidade_documentos_associacao_rais(lista_verificacao_r
 
 
 @pytest.fixture
-def verificacao_regularidade_associacao_documento_rais_irregular(grupo_verificacao_regularidade_documentos,
-                                                                 lista_verificacao_regularidade_documentos_associacao,
-                                                                 item_verificacao_regularidade_documentos_associacao_rais,
-                                                                 associacao):
+def analise_regularidade_associacao_rais_irregular(
+    associacao,
+    ano_analise_regularidade_2021
+):
+    return baker.make(
+        'AnaliseRegularidadeAssociacao',
+        associacao=associacao,
+        ano_analise=ano_analise_regularidade_2021,
+        status_regularidade='PENDENTE'
+    )
+
+
+@pytest.fixture
+def verificacao_regularidade_associacao_documento_rais_irregular(
+    item_verificacao_regularidade_documentos_associacao_rais,
+    analise_regularidade_associacao_rais_irregular
+):
     return baker.make(
         'dre.VerificacaoRegularidadeAssociacao',
-        associacao=associacao,
-        grupo_verificacao=grupo_verificacao_regularidade_documentos,
-        lista_verificacao=lista_verificacao_regularidade_documentos_associacao,
+        analise_regularidade=analise_regularidade_associacao_rais_irregular,
         item_verificacao=item_verificacao_regularidade_documentos_associacao_rais,
         regular=False
     )
 
 
-def test_verificacao_regularidade_associacao_regular(client, associacao,
-                                                     grupo_verificacao_regularidade_documentos,
-                                                     lista_verificacao_regularidade_documentos_associacao,
-                                                     item_verificacao_regularidade_documentos_associacao_cnpj,
-                                                     verificacao_regularidade_associacao_documento_cnpj_regular
-                                                     ):
-    result = verifica_regularidade_associacao(associacao.uuid)
+def test_verificacao_regularidade_associacao_regular(
+    client,
+    grupo_verificacao_regularidade_documentos,
+    lista_verificacao_regularidade_documentos_associacao,
+    item_verificacao_regularidade_documentos_associacao_cnpj,
+    verificacao_regularidade_associacao_documento_cnpj_regular,
+):
+    analise = verificacao_regularidade_associacao_documento_cnpj_regular.analise_regularidade
+    associacao = analise.associacao
+
+    result = get_verificacao_regularidade_associacao(associacao.uuid, 2021)
 
     esperado = {
         'uuid': f'{associacao.uuid}',
@@ -112,7 +140,7 @@ def test_verificacao_regularidade_associacao_pendente_quando_sem_verificacao(cli
                                                                              lista_verificacao_regularidade_documentos_associacao,
                                                                              item_verificacao_regularidade_documentos_associacao_cnpj
                                                                              ):
-    result = verifica_regularidade_associacao(associacao.uuid)
+    result = get_verificacao_regularidade_associacao(associacao.uuid, 2021)
 
     esperado = {
         'uuid': f'{associacao.uuid}',
@@ -153,7 +181,7 @@ def test_verificacao_regularidade_associacao_pendente_quando_com_verificacao_irr
                                                                                        verificacao_regularidade_associacao_documento_cnpj_regular,
                                                                                        verificacao_regularidade_associacao_documento_rais_irregular
                                                                                        ):
-    result = verifica_regularidade_associacao(associacao.uuid)
+    result = get_verificacao_regularidade_associacao(associacao.uuid, 2021)
 
     esperado = {
         'uuid': f'{associacao.uuid}',

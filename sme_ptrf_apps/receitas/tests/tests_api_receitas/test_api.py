@@ -182,7 +182,17 @@ def test_get_tabelas(
                 'uuid': f'{acao_associacao.uuid}',
                 'id': acao_associacao.id,
                 'nome': acao_associacao.acao.nome,
-                'e_recursos_proprios': False
+                'e_recursos_proprios': False,
+                'acao': {
+                    'id': acao_associacao.acao.id,
+                    'uuid': f'{acao_associacao.acao.uuid}',
+                    'nome': acao_associacao.acao.nome,
+                    'e_recursos_proprios': False,
+                    'posicao_nas_pesquisas': acao_associacao.acao.posicao_nas_pesquisas,
+                    'aceita_capital': acao_associacao.acao.aceita_capital,
+                    'aceita_custeio': acao_associacao.acao.aceita_custeio,
+                    'aceita_livre': acao_associacao.acao.aceita_livre
+                }
             },
         ],
 
@@ -266,7 +276,17 @@ def test_get_receitas(
                 "uuid": str(acao_associacao.uuid),
                 "id": acao_associacao.id,
                 "nome": acao_associacao.acao.nome,
-                'e_recursos_proprios': False
+                'e_recursos_proprios': False,
+                'acao': {
+                    'id': acao_associacao.acao.id,
+                    'uuid': f'{acao_associacao.acao.uuid}',
+                    'nome': acao_associacao.acao.nome,
+                    'e_recursos_proprios': False,
+                    'posicao_nas_pesquisas': acao_associacao.acao.posicao_nas_pesquisas,
+                    'aceita_capital': acao_associacao.acao.aceita_capital,
+                    'aceita_custeio': acao_associacao.acao.aceita_custeio,
+                    'aceita_livre': acao_associacao.acao.aceita_livre
+                }
             },
             'conta_associacao': {
                 "uuid": str(conta_associacao.uuid),
@@ -441,7 +461,17 @@ def test_retrive_receitas(
             "uuid": str(acao_associacao.uuid),
             "id": acao_associacao.id,
             "nome": acao_associacao.acao.nome,
-            'e_recursos_proprios': False
+            'e_recursos_proprios': False,
+            'acao': {
+                'id': acao_associacao.acao.id,
+                'uuid': f'{acao_associacao.acao.uuid}',
+                'nome': acao_associacao.acao.nome,
+                'e_recursos_proprios': False,
+                'posicao_nas_pesquisas': acao_associacao.acao.posicao_nas_pesquisas,
+                'aceita_capital': acao_associacao.acao.aceita_capital,
+                'aceita_custeio': acao_associacao.acao.aceita_custeio,
+                'aceita_livre': acao_associacao.acao.aceita_livre
+            }
         },
         'conta_associacao': {
             "uuid": str(conta_associacao.uuid),

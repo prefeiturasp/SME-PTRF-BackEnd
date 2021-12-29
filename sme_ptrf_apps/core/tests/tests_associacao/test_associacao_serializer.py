@@ -45,7 +45,6 @@ def test_list_serializer(associacao):
     assert serializer.data['uuid']
     assert serializer.data['nome']
     assert serializer.data['unidade']
-    assert serializer.data['status_regularidade']
 
 
 def test_completo_serializer(associacao, membro_associacao_presidente_associacao, membro_associacao_presidente_conselho):

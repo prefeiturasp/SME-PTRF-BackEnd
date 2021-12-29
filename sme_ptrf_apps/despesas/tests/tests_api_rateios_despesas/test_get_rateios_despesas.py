@@ -30,7 +30,17 @@ def test_api_get_rateios_despesas(jwt_authenticated_client_d, associacao, despes
                 "uuid": f'{rateio_despesa_capital.acao_associacao.uuid}',
                 "id": rateio_despesa_capital.acao_associacao.id,
                 "nome": rateio_despesa_capital.acao_associacao.acao.nome,
-                "e_recursos_proprios": False
+                "e_recursos_proprios": False,
+                'acao': {
+                    'id': rateio_despesa_capital.acao_associacao.acao.id,
+                    'uuid': f'{rateio_despesa_capital.acao_associacao.acao.uuid}',
+                    'nome': rateio_despesa_capital.acao_associacao.acao.nome,
+                    'e_recursos_proprios': False,
+                    'posicao_nas_pesquisas': rateio_despesa_capital.acao_associacao.acao.posicao_nas_pesquisas,
+                    'aceita_capital': rateio_despesa_capital.acao_associacao.acao.aceita_capital,
+                    'aceita_custeio': rateio_despesa_capital.acao_associacao.acao.aceita_custeio,
+                    'aceita_livre': rateio_despesa_capital.acao_associacao.acao.aceita_livre
+                }
             },
             "valor_total": despesa.valor_total,
             "conferido": rateio_despesa_capital.conferido,

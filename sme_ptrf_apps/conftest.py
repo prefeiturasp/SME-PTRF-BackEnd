@@ -11,6 +11,7 @@ from .core.choices import MembroEnum, RepresentacaoCargo, StatusTag
 from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO
 from .core.models.prestacao_conta import PrestacaoConta
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
+import datetime
 
 
 @pytest.fixture
@@ -128,6 +129,10 @@ def acao_role_cultural():
 @pytest.fixture
 def dre():
     return baker.make('Unidade', codigo_eol='99999', tipo_unidade='DRE', nome='DRE teste', sigla='TT')
+
+@pytest.fixture
+def dre_ipiranga():
+    return baker.make('Unidade', codigo_eol='108600', tipo_unidade='DRE', nome='DRE IPIRANGA', sigla='IP')
 
 
 @pytest.fixture
@@ -1413,7 +1418,8 @@ def ata_prestacao_conta_iniciada(prestacao_conta_iniciada):
         secretario_reuniao='Ana',
         cargo_secretaria_reuniao='Secretaria',
         comentarios='Teste',
-        parecer_conselho='APROVADA'
+        parecer_conselho='APROVADA',
+        hora_reuniao=datetime.time(0, 0)
     )
 
 

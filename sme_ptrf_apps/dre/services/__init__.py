@@ -1,10 +1,8 @@
 from .planilha_relatorio_consolidado_service import gera_relatorio_dre, gera_previa_relatorio_dre
 from .regularidade_associacao_service import (
-    desmarca_item_verificacao_associacao,
-    desmarca_lista_verificacao_associacao,
-    marca_item_verificacao_associacao,
-    marca_lista_verificacao_associacao,
-    verifica_regularidade_associacao,
+    get_verificacao_regularidade_associacao,
+    get_lista_associacoes_e_status_regularidade_no_ano,
+    atualiza_itens_verificacao
 )
 from .relatorio_consolidado_service import (
     informacoes_devolucoes_a_conta_ptrf,

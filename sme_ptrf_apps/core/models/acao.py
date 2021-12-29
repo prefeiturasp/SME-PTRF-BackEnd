@@ -16,6 +16,9 @@ class Acao(ModeloIdNome):
     )
 
     e_recursos_proprios = models.BooleanField("Recursos Externos", default=False)
+    aceita_capital = models.BooleanField('Aceita capital?', default=False)
+    aceita_custeio = models.BooleanField('Aceita custeio?', default=False)
+    aceita_livre = models.BooleanField('Aceita livre aplicação?', default=False)
 
     class Meta:
         verbose_name = "Ação"

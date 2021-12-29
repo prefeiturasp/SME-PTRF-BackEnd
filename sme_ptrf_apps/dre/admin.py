@@ -3,7 +3,8 @@ from .models import (Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoR
                      ItemVerificacaoRegularidade,
                      VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq, RelatorioConsolidadoDRE,
                      JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE,
-                     ParametroFiqueDeOlhoRelDre, MotivoAprovacaoRessalva, MotivoReprovacao)
+                     ParametroFiqueDeOlhoRelDre, MotivoAprovacaoRessalva, MotivoReprovacao, Comissao, MembroComissao,
+                     AnoAnaliseRegularidade, AnaliseRegularidadeAssociacao)
 
 admin.site.register(ParametroFiqueDeOlhoRelDre)
 admin.site.register(MotivoAprovacaoRessalva)
@@ -46,14 +47,6 @@ class ItemVerificacaoRegularidadeAdmin(admin.ModelAdmin):
     list_display = ('descricao', 'lista')
     search_fields = ('uuid', 'descricao')
     list_filter = ('lista', 'lista__grupo')
-    readonly_fields = ('uuid', 'id')
-
-
-@admin.register(VerificacaoRegularidadeAssociacao)
-class VerificacaoRegularidadeAssociacaoAdmin(admin.ModelAdmin):
-    list_display = ('item_verificacao', 'regular', 'lista_verificacao', 'associacao')
-    search_fields = ('uuid', 'item_verificacao__descricao')
-    list_filter = ('associacao', 'lista_verificacao', 'grupo_verificacao', 'item_verificacao')
     readonly_fields = ('uuid', 'id')
 
 
@@ -155,3 +148,60 @@ class JObsDevolucaoRelatorioConsolidadoDREAdmin(admin.ModelAdmin):
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome', 'observacao')
+
+
+@admin.register(Comissao)
+class ComissaoAdmin(admin.ModelAdmin):
+    list_display = ['nome', ]
+    search_fields = ['nome', ]
+    readonly_fields = ['id', 'uuid', 'criado_em', 'alterado_em']
+
+
+@admin.register(MembroComissao)
+class MembroComissaoAdmin(admin.ModelAdmin):
+    list_display = ['rf', 'nome', 'email', 'qtd_comissoes', 'dre']
+    search_fields = ['rf', 'nome', 'email', 'dre__nome', 'dre__codigo_eol']
+    readonly_fields = ['id', 'uuid', 'criado_em', 'alterado_em']
+    list_filter = ('dre', 'comissoes')
+
+
+@admin.register(AnoAnaliseRegularidade)
+class AnoAnaliseRegularidadeAdmin(admin.ModelAdmin):
+    list_display = ['ano', ]
+    search_fields = ['ano', ]
+    readonly_fields = ['criado_em', 'alterado_em']
+
+
+class VerificacoesInline(admin.TabularInline):
+    extra = 1
+    model = VerificacaoRegularidadeAssociacao
+
+
+@admin.register(AnaliseRegularidadeAssociacao)
+class AnaliseRegularidadeAssociacaoAdmin(admin.ModelAdmin):
+    list_display = ['associacao', 'ano_analise', 'status_regularidade']
+    search_fields = ['ano_analise__ano', 'associacao__nome', 'associacao__unidade__codigo_eol']
+    readonly_fields = ['criado_em', 'alterado_em', 'id', 'uuid']
+    list_filter = ['ano_analise', 'associacao', 'associacao__unidade__dre']
+    autocomplete_fields = ['associacao',]
+    inlines = [VerificacoesInline, ]
+
+
+@admin.register(VerificacaoRegularidadeAssociacao)
+class VerificacaoRegularidadeAssociacaoAdmin(admin.ModelAdmin):
+    list_display = ('analise_regularidade', 'item_verificacao', 'regular',)
+    search_fields = (
+        'uuid',
+        'item_verificacao__descricao',
+        'analise_regularidade__associacao__nome',
+        'analise_regularidade__associacao__codigo_eol'
+    )
+    list_filter = (
+        'analise_regularidade__ano_analise',
+        'analise_regularidade__associacao__nome',
+        'item_verificacao__lista',
+        'item_verificacao__lista__grupo',
+        'item_verificacao__descricao'
+    )
+    readonly_fields = ['criado_em', 'alterado_em', 'id', 'uuid']
+

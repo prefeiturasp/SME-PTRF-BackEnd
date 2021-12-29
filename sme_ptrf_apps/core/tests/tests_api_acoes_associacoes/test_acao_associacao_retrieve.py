@@ -29,8 +29,6 @@ def test_retrieve_acao_associacao(
                 'nome_com_tipo': acao_associacao.associacao.unidade.nome_com_tipo,
                 'nome_dre': acao_associacao.associacao.unidade.nome_dre
             },
-            'status_regularidade': acao_associacao.associacao.status_regularidade,
-            'motivo_nao_regularidade': '',
             'cnpj': acao_associacao.associacao.cnpj
         },
         'acao': {
@@ -39,6 +37,9 @@ def test_retrieve_acao_associacao(
             'nome': acao_associacao.acao.nome,
             'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios,
             'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
+            "aceita_capital": acao_associacao.acao.aceita_capital,
+            "aceita_custeio": acao_associacao.acao.aceita_custeio,
+            "aceita_livre": acao_associacao.acao.aceita_livre
         },
         'status': acao_associacao.status,
         'criado_em': acao_associacao.criado_em.isoformat("T"),

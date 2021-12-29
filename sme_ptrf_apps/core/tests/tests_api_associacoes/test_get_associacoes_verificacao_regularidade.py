@@ -31,15 +31,30 @@ def item_verificacao_regularidade_documentos_associacao_cnpj(lista_verificacao_r
 
 
 @pytest.fixture
-def verificacao_regularidade_associacao_documento_cnpj(grupo_verificacao_regularidade_documentos,
-                                                       lista_verificacao_regularidade_documentos_associacao,
-                                                       item_verificacao_regularidade_documentos_associacao_cnpj,
-                                                       associacao):
+def ano_analise_regularidade_2021():
+    return baker.make('AnoAnaliseRegularidade', ano=2021)
+
+
+@pytest.fixture
+def analise_regularidade_associacao(
+    associacao,
+    ano_analise_regularidade_2021
+):
+    return baker.make(
+        'AnaliseRegularidadeAssociacao',
+        associacao=associacao,
+        ano_analise=ano_analise_regularidade_2021,
+        status_regularidade='REGULAR',
+        motivo_nao_regularidade='Está regular'
+    )
+
+
+@pytest.fixture
+def verificacao_regularidade_associacao_documento_cnpj(item_verificacao_regularidade_documentos_associacao_cnpj,
+                                                       analise_regularidade_associacao):
     return baker.make(
         'dre.VerificacaoRegularidadeAssociacao',
-        associacao=associacao,
-        grupo_verificacao=grupo_verificacao_regularidade_documentos,
-        lista_verificacao=lista_verificacao_regularidade_documentos_associacao,
+        analise_regularidade=analise_regularidade_associacao,
         item_verificacao=item_verificacao_regularidade_documentos_associacao_cnpj,
         regular=True
     )
@@ -51,13 +66,13 @@ def test_api_get_associacoes_verificacao_regularidade(jwt_authenticated_client_a
                                                       item_verificacao_regularidade_documentos_associacao_cnpj,
                                                       verificacao_regularidade_associacao_documento_cnpj
                                                       ):
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/verificacao-regularidade/',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/verificacao-regularidade/?ano=2021',
                           content_type='application/json')
     result = json.loads(response.content)
 
     esperado = {
         'uuid': f'{associacao.uuid}',
-        'motivo_nao_regularidade': '',
+        'motivo_nao_regularidade': 'Está regular',
         'verificacao_regularidade': {
             'grupos_verificacao': [
                 {
