@@ -57,6 +57,20 @@ def get_acao(nome):
         raise CargaRepassePrevistoException(f"Ação {nome} não encontrada.")
 
 
+def verifica_tipo_aplicacao(nome, valor_capital, valor_custeio, valor_livre):
+    if valor_capital:
+        if Acao.objects.filter(nome=nome).filter(aceita_capital=False):
+            raise CargaRepassePrevistoException(f"Ação {nome} não permite capital.")
+
+    if valor_custeio:
+        if Acao.objects.filter(nome=nome).filter(aceita_custeio=False):
+            raise CargaRepassePrevistoException(f"Ação {nome} não permite custeio.")
+
+    if valor_livre:
+        if Acao.objects.filter(nome=nome).filter(aceita_livre=False):
+            raise CargaRepassePrevistoException(f"Ação {nome} não permite livre aplicação.")
+
+
 def get_tipo_conta(nome):
     if TipoConta.objects.filter(nome=nome).exists():
         return TipoConta.objects.filter(nome=nome).get()
@@ -147,6 +161,8 @@ def processa_repasse(reader, tipo_conta, arquivo):
                 valor_livre = get_valor(row[__VR_LIVRE])
 
                 acao = get_acao(row[__ACAO])
+
+                verifica_tipo_aplicacao(row[__ACAO], valor_capital, valor_custeio, valor_livre)
 
                 acao_associacao = get_acao_associacao(acao, associacao)
                 conta_associacao = get_conta_associacao(tipo_conta, associacao)

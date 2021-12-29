@@ -136,7 +136,17 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados(jwt_authenticated_client
                     'id': acao_associacao_role_cultural.id,
                     'uuid': f'{acao_associacao_role_cultural.uuid}',
                     'nome': acao_associacao_role_cultural.acao.nome,
-                    'e_recursos_proprios': False
+                    'e_recursos_proprios': False,
+                    'acao': {
+                        'id': acao_associacao_role_cultural.acao.id,
+                        'uuid': f'{acao_associacao_role_cultural.acao.uuid}',
+                        'nome': acao_associacao_role_cultural.acao.nome,
+                        'e_recursos_proprios': False,
+                        'posicao_nas_pesquisas': acao_associacao_role_cultural.acao.posicao_nas_pesquisas,
+                        'aceita_capital': acao_associacao_role_cultural.acao.aceita_capital,
+                        'aceita_custeio': acao_associacao_role_cultural.acao.aceita_custeio,
+                        'aceita_livre': acao_associacao_role_cultural.acao.aceita_livre
+                    }
                 },
                 'conta_associacao': {
                     'uuid': f'{conta_associacao.uuid}',
@@ -150,7 +160,17 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados(jwt_authenticated_client
                     'id': acao_associacao_role_cultural.id,
                     'uuid': f'{acao_associacao_role_cultural.uuid}',
                     'nome': acao_associacao_role_cultural.acao.nome,
-                    'e_recursos_proprios': False
+                    'e_recursos_proprios': False,
+                    'acao': {
+                        'id': acao_associacao_role_cultural.acao.id,
+                        'uuid': f'{acao_associacao_role_cultural.acao.uuid}',
+                        'nome': acao_associacao_role_cultural.acao.nome,
+                        'e_recursos_proprios': False,
+                        'posicao_nas_pesquisas': acao_associacao_role_cultural.acao.posicao_nas_pesquisas,
+                        'aceita_capital': acao_associacao_role_cultural.acao.aceita_capital,
+                        'aceita_custeio': acao_associacao_role_cultural.acao.aceita_custeio,
+                        'aceita_livre': acao_associacao_role_cultural.acao.aceita_livre
+                    }
                 },
                 'conta_associacao': {
                     'uuid': f'{conta_associacao.uuid}',
@@ -192,7 +212,17 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_com_pc_devolvida(jwt_aut
                     'id': acao_associacao_role_cultural.id,
                     'uuid': f'{acao_associacao_role_cultural.uuid}',
                     'nome': acao_associacao_role_cultural.acao.nome,
-                    'e_recursos_proprios': False
+                    'e_recursos_proprios': False,
+                    'acao': {
+                        'id': acao_associacao_role_cultural.acao.id,
+                        'uuid': f'{acao_associacao_role_cultural.acao.uuid}',
+                        'nome': acao_associacao_role_cultural.acao.nome,
+                        'e_recursos_proprios': False,
+                        'posicao_nas_pesquisas': acao_associacao_role_cultural.acao.posicao_nas_pesquisas,
+                        'aceita_capital': acao_associacao_role_cultural.acao.aceita_capital,
+                        'aceita_custeio': acao_associacao_role_cultural.acao.aceita_custeio,
+                        'aceita_livre': acao_associacao_role_cultural.acao.aceita_livre
+                    }
                 },
                 'conta_associacao': {
                     'uuid': f'{conta_associacao.uuid}',
@@ -206,7 +236,17 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_com_pc_devolvida(jwt_aut
                     'id': acao_associacao_role_cultural.id,
                     'uuid': f'{acao_associacao_role_cultural.uuid}',
                     'nome': acao_associacao_role_cultural.acao.nome,
-                    'e_recursos_proprios': False
+                    'e_recursos_proprios': False,
+                    'acao': {
+                        'id': acao_associacao_role_cultural.acao.id,
+                        'uuid': f'{acao_associacao_role_cultural.acao.uuid}',
+                        'nome': acao_associacao_role_cultural.acao.nome,
+                        'e_recursos_proprios': False,
+                        'posicao_nas_pesquisas': acao_associacao_role_cultural.acao.posicao_nas_pesquisas,
+                        'aceita_capital': acao_associacao_role_cultural.acao.aceita_capital,
+                        'aceita_custeio': acao_associacao_role_cultural.acao.aceita_custeio,
+                        'aceita_livre': acao_associacao_role_cultural.acao.aceita_livre
+                    }
                 },
                 'conta_associacao': {
                     'uuid': f'{conta_associacao.uuid}',
@@ -435,7 +475,17 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_livre_aplicacao(jwt_auth
                     'id': acao_associacao_role_cultural.id,
                     'uuid': f'{acao_associacao_role_cultural.uuid}',
                     'nome': acao_associacao_role_cultural.acao.nome,
-                    'e_recursos_proprios': False
+                    'e_recursos_proprios': False,
+                    'acao': {
+                        'id': acao_associacao_role_cultural.acao.id,
+                        'uuid': f'{acao_associacao_role_cultural.acao.uuid}',
+                        'nome': acao_associacao_role_cultural.acao.nome,
+                        'e_recursos_proprios': False,
+                        'posicao_nas_pesquisas': acao_associacao_role_cultural.acao.posicao_nas_pesquisas,
+                        'aceita_capital': acao_associacao_role_cultural.acao.aceita_capital,
+                        'aceita_custeio': acao_associacao_role_cultural.acao.aceita_custeio,
+                        'aceita_livre': acao_associacao_role_cultural.acao.aceita_livre
+                    }
                 },
                 'conta_associacao': {
                     'uuid': f'{conta_associacao.uuid}',
@@ -449,7 +499,17 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_livre_aplicacao(jwt_auth
                     'id': acao_associacao_role_cultural.id,
                     'uuid': f'{acao_associacao_role_cultural.uuid}',
                     'nome': acao_associacao_role_cultural.acao.nome,
-                    'e_recursos_proprios': False
+                    'e_recursos_proprios': False,
+                    'acao': {
+                        'id': acao_associacao_role_cultural.acao.id,
+                        'uuid': f'{acao_associacao_role_cultural.acao.uuid}',
+                        'nome': acao_associacao_role_cultural.acao.nome,
+                        'e_recursos_proprios': False,
+                        'posicao_nas_pesquisas': acao_associacao_role_cultural.acao.posicao_nas_pesquisas,
+                        'aceita_capital': acao_associacao_role_cultural.acao.aceita_capital,
+                        'aceita_custeio': acao_associacao_role_cultural.acao.aceita_custeio,
+                        'aceita_livre': acao_associacao_role_cultural.acao.aceita_livre
+                    }
                 },
                 'conta_associacao': {
                     'uuid': f'{conta_associacao.uuid}',
@@ -463,7 +523,17 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_livre_aplicacao(jwt_auth
                     'id': acao_associacao_role_cultural.id,
                     'uuid': f'{acao_associacao_role_cultural.uuid}',
                     'nome': acao_associacao_role_cultural.acao.nome,
-                    'e_recursos_proprios': False
+                    'e_recursos_proprios': False,
+                    'acao': {
+                        'id': acao_associacao_role_cultural.acao.id,
+                        'uuid': f'{acao_associacao_role_cultural.acao.uuid}',
+                        'nome': acao_associacao_role_cultural.acao.nome,
+                        'e_recursos_proprios': False,
+                        'posicao_nas_pesquisas': acao_associacao_role_cultural.acao.posicao_nas_pesquisas,
+                        'aceita_capital': acao_associacao_role_cultural.acao.aceita_capital,
+                        'aceita_custeio': acao_associacao_role_cultural.acao.aceita_custeio,
+                        'aceita_livre': acao_associacao_role_cultural.acao.aceita_livre
+                    }
                 },
                 'conta_associacao': {
                     'uuid': f'{conta_associacao.uuid}',
