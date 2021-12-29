@@ -85,7 +85,7 @@ def acao_role_cultural_teste():
 def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao, tipo_receita_repasse,
                                    tipo_conta_cheque, acao_role_cultural, acao_role_cultural_teste):
     carrega_repasses_previstos(arquivo_carga_virgula_processado)
-    msg = """Erro na linha 2: Associação com código eol: 93238 não encontrado.
-Foram criados 1 repasses. Erro na importação de 1 repasse(s)."""
+    msg = """Erro na linha 1: Ação Role Cultural não permite capital.\nErro na linha 2: Associação com código eol: 93238 não encontrado.
+Foram criados 0 repasses. Erro na importação de 2 repasse(s)."""
     assert arquivo_carga_virgula_processado.log == msg
-    assert arquivo_carga_virgula_processado.status == PROCESSADO_COM_ERRO
+    assert arquivo_carga_virgula_processado.status == ERRO
