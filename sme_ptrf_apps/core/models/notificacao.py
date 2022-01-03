@@ -164,6 +164,11 @@ class Notificacao(ModeloBase):
     ):
 
         from sme_ptrf_apps.core.services.notificacao_services.enviar_email_notificacao import enviar_email_nova_notificacao
+        from sme_ptrf_apps.core.models import Parametros
+
+        if enviar_email:
+            # Caso a opção seja de enviar e-mail, verifica se a parametrização não desligou o envio de e-mails
+            enviar_email = Parametros.get().enviar_email_notificacao
 
         if tipo not in cls.TIPO_NOTIFICACAO_NOMES.keys():
             raise NotificacaoCreateException(f'Tipo {tipo} não é um tipo válido.')
