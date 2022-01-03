@@ -51,7 +51,7 @@ def notificar_comentario_pc(dado, enviar_email=True):
                     titulo=titulo,
                     descricao=comentario.comentario,
                     usuario=usuario,
-                    renotificar=False,
+                    renotificar=True,
                     enviar_email=enviar_email,
                 )
             logger.info("Notificações criadas com sucesso.")
