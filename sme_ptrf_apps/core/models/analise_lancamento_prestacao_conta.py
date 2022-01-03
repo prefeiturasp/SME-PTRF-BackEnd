@@ -42,10 +42,10 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         default=TIPO_LANCAMENTO_CREDITO
     )
 
-    despesa = models.ForeignKey('despesas.Despesa', on_delete=models.PROTECT,
+    despesa = models.ForeignKey('despesas.Despesa', on_delete=models.CASCADE,
                                 related_name='analises_de_lancamento_da_despesa', blank=True, null=True)
 
-    receita = models.ForeignKey('receitas.Receita', on_delete=models.PROTECT,
+    receita = models.ForeignKey('receitas.Receita', on_delete=models.CASCADE,
                                 related_name='analises_de_lancamento_da_receita', blank=True, null=True)
 
     resultado = models.CharField(
