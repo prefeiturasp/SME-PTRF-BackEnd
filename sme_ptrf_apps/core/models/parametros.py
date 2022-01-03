@@ -34,6 +34,8 @@ class Parametros(SingletonModel, ModeloBase):
         default=5
     )
 
+    enviar_email_notificacao = models.BooleanField('Envia e-mails de notificação?', default=True)
+
     def __str__(self):
         return 'Parâmetros do PTRF'
 
