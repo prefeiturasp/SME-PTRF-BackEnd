@@ -1,5 +1,5 @@
 from django.contrib import admin
-
+from rangefilter.filter import DateRangeFilter
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
 from .models import (
     Acao,
@@ -243,10 +243,32 @@ class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
 
 @admin.register(Notificacao)
 class NotificacaoAdmin(admin.ModelAdmin):
-    list_display = ("uuid", "titulo", "remetente", "categoria", "tipo", "hora")
-    readonly_fields = ('uuid', 'id')
-    list_filter = ("remetente", "categoria", "tipo")
-    search_fields = ("titulo",)
+    def get_codigo_eol(self, obj):
+        if obj and obj.unidade:
+            return obj.unidade.codigo_eol
+        else:
+            return ''
+
+    get_codigo_eol.short_description = 'EOL'
+
+    def get_referencia_pc(self, obj):
+        if obj and obj.prestacao_conta and obj.prestacao_conta.periodo:
+            return obj.prestacao_conta.periodo.referencia
+        else:
+            return ''
+
+    get_referencia_pc.short_description = 'PC'
+
+    list_display = ("titulo", "categoria", "usuario", "get_codigo_eol", "get_referencia_pc", "criado_em", "lido")
+    readonly_fields = ('uuid', 'id', 'criado_em', "hora")
+    list_filter = (
+        ('criado_em', DateRangeFilter),
+        "remetente", "categoria",
+        "tipo", "usuario",
+        "unidade", "prestacao_conta",
+        "lido",
+    )
+    search_fields = ("titulo", "unidade__nome", "usuario__name", "unidade__codigo_eol", "descricao", "prestacao_conta__periodo__referencia")
     autocomplete_fields = ['unidade', 'prestacao_conta']
 
 
