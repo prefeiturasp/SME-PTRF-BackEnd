@@ -1,3 +1,6 @@
+### 1.25.1 - 04/01/2022 - Hotfix
+* (55522) - Cria filtros no admin de notificações para debug de problema de duplicidade
+
 ### 1.24.4 - 17/12/2021 - Hotfix
 * (55121) - Relatório Consolidado - Inclui geração lauda em csv
 
