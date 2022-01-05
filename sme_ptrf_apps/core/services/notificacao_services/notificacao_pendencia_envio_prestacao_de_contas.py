@@ -27,6 +27,10 @@ def notificar_pendencia_envio_prestacao_de_contas(enviar_email=True):
 
         for associacao in associacoes:
 
+            if associacao.periodo_inicial and periodo.referencia <= associacao.periodo_inicial.referencia:
+                # A Associação está isenta de PC até o seu período inicial (inclusive)
+                continue
+
             prestacao_conta = PrestacaoConta.objects.filter(associacao=associacao, periodo=periodo).first()
 
             # Devem entrar apenas Prestações de contas não apresentadas ou não recebidas
