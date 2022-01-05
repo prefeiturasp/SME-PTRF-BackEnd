@@ -352,38 +352,24 @@ def documentos_de_despesa_conciliados_por_conta_e_acao_na_conciliacao(conta_asso
     return dataset.all()
 
 
-def transacoes_para_conciliacao(periodo, conta_associacao, conferido=False, acao_associacao=None, tipo_transacao=None):
+def transacoes_para_conciliacao(periodo, conta_associacao, conferido=False, acao_associacao=None):
     from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaConciliacaoSerializer
     from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaConciliacaoSerializer
-    from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
 
-    receitas = []
     despesas = []
 
-    if not tipo_transacao or tipo_transacao == "CREDITOS":
-        if conferido:
-            receitas = receitas_conciliadas_por_conta_e_acao_na_conciliacao(conta_associacao=conta_associacao,
-                                                                            acao_associacao=acao_associacao,
-                                                                            periodo=periodo)
-        else:
-            receitas = receitas_nao_conciliadas_por_conta_e_acao_no_periodo(conta_associacao=conta_associacao,
-                                                                            acao_associacao=acao_associacao,
-                                                                            periodo=periodo)
-        receitas = receitas.order_by("data")
+    if conferido:
+        despesas = documentos_de_despesa_conciliados_por_conta_e_acao_na_conciliacao(
+            conta_associacao=conta_associacao,
+            acao_associacao=acao_associacao,
+            periodo=periodo)
+    else:
+        despesas = documentos_de_despesa_nao_conciliados_por_conta_e_acao_no_periodo(
+            conta_associacao=conta_associacao,
+            acao_associacao=acao_associacao,
+            periodo=periodo)
 
-    if not tipo_transacao or tipo_transacao == "GASTOS":
-        if conferido:
-            despesas = documentos_de_despesa_conciliados_por_conta_e_acao_na_conciliacao(
-                conta_associacao=conta_associacao,
-                acao_associacao=acao_associacao,
-                periodo=periodo)
-        else:
-            despesas = documentos_de_despesa_nao_conciliados_por_conta_e_acao_no_periodo(
-                conta_associacao=conta_associacao,
-                acao_associacao=acao_associacao,
-                periodo=periodo)
-
-        despesas = despesas.order_by("data_transacao")
+    despesas = despesas.order_by("data_transacao")
 
     # Iniciar a lista de transacoes com a lista de despesas ordenada
     transacoes = []
@@ -415,66 +401,27 @@ def transacoes_para_conciliacao(periodo, conta_associacao, conferido=False, acao
         }
         transacoes.append(transacao)
 
-    # Percorrer a lista de créditos ordenada e para cada credito, buscar na lista de transacoes a posição correta
-    for receita in receitas:
-
-        nova_transacao = {
-            'periodo': f'{periodo.uuid}',
-            'conta': f'{conta_associacao.uuid}',
-            'data': receita.data,
-            'tipo_transacao': 'Crédito',
-            'numero_documento': '',
-            'descricao': receita.tipo_receita.nome if receita.tipo_receita else '',
-            'valor_transacao_total': receita.valor,
-            'valor_transacao_na_conta': receita.valor,
-            'valores_por_conta': [],
-            'conferido': receita.conferido,
-            'documento_mestre': ReceitaConciliacaoSerializer(receita, many=False).data,
-            'rateios': [],
-            'notificar_dias_nao_conferido': receita.notificar_dias_nao_conferido,
-        }
-
-        transacao_adicionada = False
-
-        if transacoes:
-            for idx, transacao in enumerate(transacoes):
-                if nova_transacao['data'] <= transacao['data']:
-                    transacoes.insert(idx, nova_transacao)
-                    transacao_adicionada = True
-                    break
-
-        if not transacao_adicionada:
-            transacoes.append(nova_transacao)
-
     return transacoes
 
 
-def conciliar_transacao(periodo, conta_associacao, transacao, tipo_transacao):
+def conciliar_transacao(periodo, conta_associacao, transacao):
     from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaConciliacaoSerializer
-    from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
 
-    if tipo_transacao == "CREDITO" and isinstance(transacao, Receita):
-        receita_conciliada = transacao.marcar_conferido(periodo_conciliacao=periodo)
-        return ReceitaConciliacaoSerializer(receita_conciliada, many=False).data
-
-    if tipo_transacao == "GASTO" and isinstance(transacao, Despesa):
-        rateios = transacao.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).filter(conferido=False)
+    if isinstance(transacao, Despesa):
+        rateios = transacao.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).filter(
+            conferido=False)
         for rateio in rateios:
             rateio.marcar_conferido(periodo_conciliacao=periodo)
         despesa_conciliada = Despesa.by_uuid(transacao.uuid)
         return DespesaConciliacaoSerializer(despesa_conciliada, many=False).data
 
 
-def desconciliar_transacao(conta_associacao, transacao, tipo_transacao):
+def desconciliar_transacao(conta_associacao, transacao):
     from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaConciliacaoSerializer
-    from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
 
-    if tipo_transacao == "CREDITO" and isinstance(transacao, Receita):
-        receita_desconciliada = transacao.desmarcar_conferido()
-        return ReceitaConciliacaoSerializer(receita_desconciliada, many=False).data
-
-    if tipo_transacao == "GASTO" and isinstance(transacao, Despesa):
-        rateios = transacao.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).filter(conferido=True)
+    if isinstance(transacao, Despesa):
+        rateios = transacao.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).filter(
+            conferido=True)
         for rateio in rateios:
             rateio.desmarcar_conferido()
         despesa_desconciliada = Despesa.by_uuid(transacao.uuid)

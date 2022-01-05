@@ -3,6 +3,7 @@ from rest_framework import status
 
 from sme_ptrf_apps.despesas.models import Despesa, RateioDespesa
 from sme_ptrf_apps.receitas.models import Receita
+import json
 
 pytestmark = pytest.mark.django_db
 
@@ -18,10 +19,9 @@ def test_api_deve_conciliar_transacao_despesa(
 
 ):
 
-    url = f'/api/conciliacoes/conciliar-transacao/?periodo={periodo_2020_1.uuid}'
+    url = f'/api/conciliacoes/conciliar-despesa/?periodo={periodo_2020_1.uuid}'
     url = f'{url}&conta_associacao={conta_associacao_cartao.uuid}'
     url = f'{url}&transacao={despesa_2020_1.uuid}'
-    url = f'{url}&tipo=GASTO'
 
     response = jwt_authenticated_client_a.patch(url, content_type='application/json')
 
@@ -35,7 +35,7 @@ def test_api_deve_conciliar_transacao_despesa(
     assert rateio_conciliado.periodo_conciliacao == periodo_2020_1, "Rateio deveria ter sido vinculada ao período."
 
 
-def test_api_deve_conciliar_transacao_receita(
+def test_api_nao_deve_conciliar_transacao_receita(
     jwt_authenticated_client_a,
     acao_associacao_role_cultural,
     receita_2020_1_ptrf_repasse_conferida,
@@ -45,19 +45,21 @@ def test_api_deve_conciliar_transacao_receita(
 
 ):
 
-    url = f'/api/conciliacoes/conciliar-transacao/?periodo={periodo_2020_1.uuid}'
+    url = f'/api/conciliacoes/conciliar-despesa/?periodo={periodo_2020_1.uuid}'
     url = f'{url}&conta_associacao={conta_associacao_cartao.uuid}'
     url = f'{url}&transacao={receita_2020_1_role_outras_nao_conferida.uuid}'
-    url = f'{url}&tipo=CREDITO'
 
     response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+    result = json.loads(response.content)
 
     receita_conciliada = Receita.by_uuid(receita_2020_1_role_outras_nao_conferida.uuid)
+    esperado = {
+        "erro": "Gasto não encontrado.",
+        "mensagem": f"O objeto de gasto para o uuid {receita_conciliada.uuid} não foi encontrado na base."
+    }
 
-    assert response.status_code == status.HTTP_200_OK
-
-    assert receita_conciliada.conferido, "Receita deveria ter sido marcada como conferida."
-    assert receita_conciliada.periodo_conciliacao == periodo_2020_1, "Receita deveria ter sido vinculada ao período."
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result == esperado
 
 
 def test_api_deve_desconciliar_transacao_despesa(
@@ -71,10 +73,9 @@ def test_api_deve_desconciliar_transacao_despesa(
 
 ):
 
-    url = f'/api/conciliacoes/desconciliar-transacao/?periodo={periodo_2020_1.uuid}'
+    url = f'/api/conciliacoes/desconciliar-despesa/?periodo={periodo_2020_1.uuid}'
     url = f'{url}&conta_associacao={conta_associacao_cartao.uuid}'
     url = f'{url}&transacao={despesa_2020_1.uuid}'
-    url = f'{url}&tipo=GASTO'
 
     response = jwt_authenticated_client_a.patch(url, content_type='application/json')
 
@@ -88,7 +89,7 @@ def test_api_deve_desconciliar_transacao_despesa(
     assert rateio_desconciliado.periodo_conciliacao is None, "Período deveria ter sido desvinculado."
 
 
-def test_api_deve_desconciliar_transacao_receita(
+def test_api_nao_deve_desconciliar_transacao_receita(
     jwt_authenticated_client_a,
     acao_associacao_role_cultural,
     receita_2020_1_ptrf_repasse_conferida,
@@ -98,17 +99,19 @@ def test_api_deve_desconciliar_transacao_receita(
 
 ):
 
-    url = f'/api/conciliacoes/desconciliar-transacao/'
+    url = f'/api/conciliacoes/desconciliar-despesa/'
     url = f'{url}?conta_associacao={conta_associacao_cartao.uuid}'
     url = f'{url}&transacao={receita_2020_1_ptrf_repasse_conferida.uuid}'
-    url = f'{url}&tipo=CREDITO'
 
     response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+    result = json.loads(response.content)
 
     receita_desconciliada = Receita.by_uuid(receita_2020_1_ptrf_repasse_conferida.uuid)
+    esperado = {
+        "erro": "Gasto não encontrado.",
+        "mensagem": f"O objeto de Gasto para o uuid {receita_desconciliada.uuid} não foi encontrado na base."
+    }
 
-    assert response.status_code == status.HTTP_200_OK
-
-    assert not receita_desconciliada.conferido, "Receita deveria ter sido desconciliada."
-    assert receita_desconciliada.periodo_conciliacao is None, "Receita deveria ter sido desvinculada do período."
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result == esperado
 
