@@ -1,6 +1,7 @@
 import pytest
 
 from model_bakery import baker
+from freezegun import freeze_time
 
 from ...models import Notificacao, NotificacaoCreateException
 
@@ -124,6 +125,7 @@ def test_notificar_re_notificar_false(notificacao, usuario_permissao_associacao)
     assert Notificacao.objects.count() == 1
 
 
+@freeze_time("2021-01-01 10:20:30")
 def test_notificar_re_notificar_true(notificacao, usuario_permissao_associacao):
 
     assert Notificacao.objects.count() == 1
