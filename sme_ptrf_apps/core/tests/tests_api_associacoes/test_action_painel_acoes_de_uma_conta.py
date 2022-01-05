@@ -89,9 +89,9 @@ def test_action_painel_acoes_de_uma_conta(
                 'despesas_conciliadas_capital': 0,
                 'despesas_conciliadas_custeio': 0,
 
-                'receitas_nao_conciliadas': 400.0,
+                'receitas_nao_conciliadas': 0,
                 'receitas_nao_conciliadas_capital': 0,
-                'receitas_nao_conciliadas_custeio': 400.0,
+                'receitas_nao_conciliadas_custeio': 0,
                 'receitas_nao_conciliadas_livre': 0,
 
                 'especificacoes_despesas_capital': ['Ar condicionado', ],
@@ -231,9 +231,9 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
                 'saldo_bancario_livre': 0,
                 'saldo_bancario_total': 50.0,
 
-                'receitas_nao_conciliadas': 400.0,
+                'receitas_nao_conciliadas': 0,
                 'receitas_nao_conciliadas_capital': 0,
-                'receitas_nao_conciliadas_custeio': 400.0,
+                'receitas_nao_conciliadas_custeio': 0,
                 'receitas_nao_conciliadas_livre': 0,
 
                 'especificacoes_despesas_capital': ['Ar condicionado', ],
