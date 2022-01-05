@@ -1,3 +1,7 @@
+import logging
+
+from datetime import datetime, date, time
+
 from django.contrib.auth import get_user_model
 from django.db import models
 
@@ -6,6 +10,7 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+logger = logging.getLogger(__name__)
 
 class NotificacaoCreateException(Exception):
     pass
@@ -164,6 +169,11 @@ class Notificacao(ModeloBase):
     ):
 
         from sme_ptrf_apps.core.services.notificacao_services.enviar_email_notificacao import enviar_email_nova_notificacao
+        from sme_ptrf_apps.core.models import Parametros
+
+        if enviar_email:
+            # Caso a opção seja de enviar e-mail, verifica se a parametrização não desligou o envio de e-mails
+            enviar_email = Parametros.get().enviar_email_notificacao
 
         if tipo not in cls.TIPO_NOTIFICACAO_NOMES.keys():
             raise NotificacaoCreateException(f'Tipo {tipo} não é um tipo válido.')
@@ -180,6 +190,23 @@ class Notificacao(ModeloBase):
         if not usuario:
             raise NotificacaoCreateException(f'É necessário definir o usuário destinatário.')
 
+        notificacao_existente_hoje = cls.objects.filter(
+            tipo=tipo,
+            categoria=categoria,
+            remetente=remetente,
+            titulo=titulo,
+            usuario=usuario,
+            descricao=descricao,
+            unidade=unidade,
+            prestacao_conta=prestacao_conta,
+            criado_em__range=(datetime.combine(date.today(), time.min), datetime.combine(date.today(), time.max))
+        )
+
+        if notificacao_existente_hoje:
+            logger.info(f'Notificação ignorada por já ter sido feita hoje ({date.today()}). categoria={categoria} usuario={usuario} titulo={titulo}')
+            return
+
+        notificacao_existente = False
         if not renotificar:
             notificacao_existente = cls.objects.filter(
                 tipo=tipo,
