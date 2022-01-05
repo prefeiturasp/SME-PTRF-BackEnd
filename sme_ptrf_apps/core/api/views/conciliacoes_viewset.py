@@ -429,9 +429,9 @@ class ConciliacoesViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
-    @action(detail=False, methods=['get'],
+    @action(detail=False, methods=['get'], url_path='transacoes-despesa',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def transacoes(self, request):
+    def transacoes_despesas(self, request):
 
         # Define o período de conciliação
         periodo_uuid = self.request.query_params.get('periodo')
@@ -506,25 +506,15 @@ class ConciliacoesViewSet(GenericViewSet):
 
         conferido = conferido == 'True'
 
-        # Define o tipo de transação para o filtro das transações
-        tipo_transacao = request.query_params.get('tipo')
-        if tipo_transacao and tipo_transacao not in ('CREDITOS', 'GASTOS'):
-            erro = {
-                'erro': 'parametro_inválido',
-                'mensagem': 'O parâmetro tipo pode receber como valor "CREDITOS" ou "GASTOS". O parâmetro é opcional.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
         transacoes = transacoes_para_conciliacao(periodo=periodo, conta_associacao=conta_associacao,
                                                  conferido=conferido,
-                                                 acao_associacao=acao_associacao,
-                                                 tipo_transacao=tipo_transacao)
+                                                 acao_associacao=acao_associacao)
 
         return Response(transacoes, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['patch'], url_path='conciliar-transacao',
+    @action(detail=False, methods=['patch'], url_path='conciliar-despesa',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
-    def conciliar_transacao(self, request):
+    def conciliar_despesa(self, request):
 
         # Define o período de conciliação
         periodo_uuid = self.request.query_params.get('periodo')
@@ -566,16 +556,6 @@ class ConciliacoesViewSet(GenericViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        # Define o tipo de transação
-        tipo_transacao = request.query_params.get('tipo')
-        if not tipo_transacao or tipo_transacao not in ('CREDITO', 'GASTO'):
-            erro = {
-                'erro': 'parametro_inválido',
-                'mensagem': 'O parâmetro "tipo" deve receber como valor "CREDITO" ou "GASTO". '
-                            'O parâmetro é obrigatório.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
         # Define a transação
         transacao_uuid = self.request.query_params.get('transacao')
 
@@ -587,15 +567,11 @@ class ConciliacoesViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            if tipo_transacao == 'GASTO':
-                transacao = Despesa.completas.get(uuid=transacao_uuid)
-            else:
-                transacao = Receita.objects.get(uuid=transacao_uuid)
-
-        except (Despesa.DoesNotExist, Receita.DoesNotExist):
+            transacao = Despesa.completas.get(uuid=transacao_uuid)
+        except Despesa.DoesNotExist:
             erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto de {tipo_transacao} para o uuid {transacao_uuid} não foi encontrado na base."
+                'erro': 'Gasto não encontrado.',
+                'mensagem': f"O objeto de gasto para o uuid {transacao_uuid} não foi encontrado na base."
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -604,14 +580,13 @@ class ConciliacoesViewSet(GenericViewSet):
             periodo=periodo,
             conta_associacao=conta_associacao,
             transacao=transacao,
-            tipo_transacao=tipo_transacao
         )
 
         return Response(transacao_conciliada, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['patch'], url_path='desconciliar-transacao',
+    @action(detail=False, methods=['patch'], url_path='desconciliar-despesa',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
-    def desconciliar_transacao(self, request):
+    def desconciliar_despesa(self, request):
 
         # Define a conta de conciliação
         conta_associacao_uuid = self.request.query_params.get('conta_associacao')
@@ -633,16 +608,6 @@ class ConciliacoesViewSet(GenericViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        # Define o tipo de transação
-        tipo_transacao = request.query_params.get('tipo')
-        if not tipo_transacao or tipo_transacao not in ('CREDITO', 'GASTO'):
-            erro = {
-                'erro': 'parametro_inválido',
-                'mensagem': 'O parâmetro "tipo" deve receber como valor "CREDITO" ou "GASTO". '
-                            'O parâmetro é obrigatório.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
         # Define a transação
         transacao_uuid = self.request.query_params.get('transacao')
 
@@ -654,15 +619,11 @@ class ConciliacoesViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            if tipo_transacao == 'GASTO':
-                transacao = Despesa.completas.get(uuid=transacao_uuid)
-            else:
-                transacao = Receita.objects.get(uuid=transacao_uuid)
-
+            transacao = Despesa.completas.get(uuid=transacao_uuid)
         except (Despesa.DoesNotExist, Receita.DoesNotExist):
             erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto de {tipo_transacao} para o uuid {transacao_uuid} não foi encontrado na base."
+                'erro': 'Gasto não encontrado.',
+                'mensagem': f"O objeto de Gasto para o uuid {transacao_uuid} não foi encontrado na base."
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -670,7 +631,6 @@ class ConciliacoesViewSet(GenericViewSet):
         transacao_desconciliada = desconciliar_transacao(
             conta_associacao=conta_associacao,
             transacao=transacao,
-            tipo_transacao=tipo_transacao
         )
 
         return Response(transacao_desconciliada, status=status.HTTP_200_OK)
