@@ -1,3 +1,7 @@
+### 1.25.2 - 05/01/2022 - Hotfix - Solução de problemas de notificação
+* (56034) - Corrige envio de notificações pendencia de PC no período inicial de associações
+* (55522) - Altera criação de notificação para não repetir no mesmo dia
+
 ### 1.25.1 - 04/01/2022 - Hotfix
 * (55522) - Cria filtros no admin de notificações para debug de problema de duplicidade
 
