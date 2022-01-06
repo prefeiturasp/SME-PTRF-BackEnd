@@ -178,8 +178,9 @@ class Receita(ModeloBase):
         return totais
 
     def marcar_conferido(self, periodo_conciliacao=None):
+        # A logica de conciliação está sendo feito no pre_save
+
         self.conferido = True
-        self.periodo_conciliacao = periodo_conciliacao
         self.save()
         return self
 
@@ -212,11 +213,15 @@ class Receita(ModeloBase):
 
 
 @receiver(pre_save, sender=Receita)
-def rateio_pre_save(instance, **kwargs):
+def receita_pre_save(instance, **kwargs):
     if instance.tipo_receita.tem_detalhamento():
         instance.detalhe_outros = ""
     else:
         instance.detalhe_tipo_receita = None
+
+    if instance.data:
+        periodo = Periodo.da_data(instance.data)
+        instance.periodo_conciliacao = periodo
 
 
 auditlog.register(Receita)
