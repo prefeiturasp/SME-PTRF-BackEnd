@@ -39,15 +39,15 @@ def test_tabela_valores_pendentes(
 
     esperado = {
         'saldo_anterior': 2000.0,
-        'receitas_conciliadas': 400.0,
+        'receitas_conciliadas': 500.0,
         'despesas_conciliadas': 300.0,
         'despesas_nao_conciliadas': 100.0,
         'receitas_nao_conciliadas': 200.0,
         'despesas_total': 400.0,
-        'receitas_total': 600.0,
-        'saldo_posterior_conciliado': 2100.0,
+        'receitas_total': 700.0,
+        'saldo_posterior_conciliado': 2200.0,
         'saldo_posterior_nao_conciliado': 100.0,
-        'saldo_posterior_total': 2200.0,
+        'saldo_posterior_total': 2300.0,
     }
 
     assert result == esperado

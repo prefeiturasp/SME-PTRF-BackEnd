@@ -67,8 +67,7 @@ def test_api_get_receitas_por_conta_associacao(jwt_authenticated_client_p,
 
 def test_api_get_receitas_por_conferido(jwt_authenticated_client_p,
                                         associacao,
-                                        receita_conferida,
-                                        receita_nao_conferida):
+                                        receita_conferida):
     response = jwt_authenticated_client_p.get(
         f'/api/receitas/?associacao__uuid={associacao.uuid}&conferido=True',
         content_type='application/json')

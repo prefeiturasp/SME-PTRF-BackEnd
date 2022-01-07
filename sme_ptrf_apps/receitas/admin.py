@@ -28,6 +28,7 @@ class ReceitaAdmin(admin.ModelAdmin):
     ordering = ('-data',)
     search_fields = ('detalhe_tipo_receita__nome', 'detalhe_outros')
     list_filter = (
+        ('conferido', customTitledFilter('Conferido')),
         ('data', DateRangeFilter),
         ('associacao__nome', customTitledFilter('Associação')),
         ('associacao__unidade__dre', customTitledFilter('DRE')),
@@ -39,6 +40,23 @@ class ReceitaAdmin(admin.ModelAdmin):
         'repasse',
     )
     readonly_fields = ('uuid', 'id',)
+    actions = ['conciliar_receita', 'desconciliar_receita', ]
+
+    def conciliar_receita(self, request, queryset):
+        for receita in queryset.all():
+            receita.marcar_conferido()
+
+        self.message_user(request, f"Processo Terminado. Verifique o status do processo.")
+
+    conciliar_receita.short_description = "Conciliar receitas."
+
+    def desconciliar_receita(self, request, queryset):
+        for receita in queryset.all():
+            receita.desmarcar_conferido()
+
+        self.message_user(request, f"Processo Terminado. Verifique o status do processo.")
+
+    desconciliar_receita.short_description = "Desconciliar receitas."
 
 
 @admin.register(Repasse)
