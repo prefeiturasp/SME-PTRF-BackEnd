@@ -173,7 +173,7 @@ class Notificacao(ModeloBase):
 
         if enviar_email:
             # Caso a opção seja de enviar e-mail, verifica se a parametrização não desligou o envio de e-mails
-            enviar_email = Parametros.get().enviar_email_notificacao
+            enviar_email = True  # Parametros.get().enviar_email_notificacao
 
         if tipo not in cls.TIPO_NOTIFICACAO_NOMES.keys():
             raise NotificacaoCreateException(f'Tipo {tipo} não é um tipo válido.')
