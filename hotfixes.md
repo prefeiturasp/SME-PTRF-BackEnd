@@ -1,3 +1,6 @@
+### 1.25.4 - 10/01/2022 - Hotfix - Problema de notificações duplicadas
+* (55522) - Resolve casos de duplicidade de notificação de proximidade de fim do prazo de ajuste de PC
+
 ### 1.25.3 - 07/01/2022 - Hotfix - Corrige problema introduzido no último hotfix
 * (55522) - Comenda verificação de parâmetro de envio de e-mail
 
