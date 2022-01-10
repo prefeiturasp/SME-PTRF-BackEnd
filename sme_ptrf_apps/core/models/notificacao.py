@@ -202,7 +202,7 @@ class Notificacao(ModeloBase):
             criado_em__range=(datetime.combine(date.today(), time.min), datetime.combine(date.today(), time.max))
         )
 
-        if notificacao_existente_hoje:
+        if notificacao_existente_hoje.exists():
             logger.info(f'Notificação ignorada por já ter sido feita hoje ({date.today()}). categoria={categoria} usuario={usuario} titulo={titulo}')
             return
 
@@ -217,7 +217,7 @@ class Notificacao(ModeloBase):
             )
 
         if renotificar or not notificacao_existente:
-            cls.objects.create(
+            nc = cls.objects.create(
                 tipo=tipo,
                 categoria=categoria,
                 remetente=remetente,
@@ -227,6 +227,7 @@ class Notificacao(ModeloBase):
                 unidade=unidade,
                 prestacao_conta=prestacao_conta,
             )
+            logger.info(f'===> Notificação criada: {nc.uuid}, usuário:{nc.usuario}, titulo:{nc.titulo}, descricao:{nc.descricao}, unidade:{nc.unidade if nc.unidade else ""}')
 
         if (renotificar or not notificacao_existente) and enviar_email:
             enviar_email_nova_notificacao(usuario=usuario, titulo=titulo, descricao=descricao)
