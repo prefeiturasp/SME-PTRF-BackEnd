@@ -224,6 +224,7 @@ def test_dashboard(
         'cards': [
             {
                 'titulo': 'Prestações de contas não recebidas',
+                'quantidade_nao_recebida': 1,
                 'quantidade_prestacoes': 2,  # Uma PC não recebida + Uma Associação sem PC.
                 'status': 'NAO_RECEBIDA'},
             {
@@ -273,6 +274,7 @@ def test_dashboard_add_aprovada_ressalva(
         'cards': [
             {
                 'titulo': 'Prestações de contas não recebidas',
+                'quantidade_nao_recebida': 1,
                 'quantidade_prestacoes': 2,
                 'status': 'NAO_RECEBIDA'},
             {
@@ -331,6 +333,7 @@ def test_dashboard_outro_periodo(jwt_authenticated_client_a, prestacao_conta_apr
         'cards': [
             {
                 'titulo': 'Prestações de contas não recebidas',
+                'quantidade_nao_recebida': 0,
                 'quantidade_prestacoes': 2,
                 'status': 'NAO_RECEBIDA'},
             {

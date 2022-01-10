@@ -389,6 +389,7 @@ class PrestacaoConta(ModeloBase):
         card_nao_recebidas = {
             "titulo": titulos_por_status['NAO_RECEBIDA'],
             "quantidade_prestacoes": quantidade_pcs_nao_apresentadas,
+            "quantidade_nao_recebida": qs.filter(status=cls.STATUS_NAO_RECEBIDA).count(),
             "status": 'NAO_RECEBIDA'
         }
         cards.insert(0, card_nao_recebidas)
