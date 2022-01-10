@@ -254,7 +254,7 @@ def test_api_get_info_execucao_financeira_relatorio(
         'saldo_reprogramado_proximo_periodo_livre': 2000,
         'saldo_reprogramado_proximo_periodo_total': 4250,
 
-        'devolucoes_ao_tesouro_no_periodo_total': 100,
+        'devolucoes_ao_tesouro_no_periodo_total': 0.0,
     }
 
     assert response.status_code == status.HTTP_200_OK

@@ -37,6 +37,46 @@ def despesa(associacao, tipo_documento, tipo_transacao):
         valor_total=100.00,
     )
 
+@pytest.fixture
+def despesa_com_rateios(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=date(2019, 9, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        data_transacao=date(2019, 9, 10),
+        valor_total=100.00,
+    )
+
+@pytest.fixture
+def especificacao_instalacao_eletrica_devolucao(tipo_aplicacao_recurso_custeio, tipo_custeio_servico):
+    return baker.make(
+        'EspecificacaoMaterialServico',
+        descricao='Instalação elétrica',
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+    )
+
+@pytest.fixture
+def rateio_despesa_devolucao(associacao, despesa_com_rateios, conta_associacao, acao, tipo_aplicacao_recurso_custeio,
+                    tipo_custeio_servico,
+                    especificacao_instalacao_eletrica_devolucao, acao_associacao_ptrf):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_com_rateios,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_ptrf,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica_devolucao,
+        valor_rateio=100.00,
+
+    )
 
 @pytest.fixture
 def tipo_devolucao_ao_tesouro():
@@ -44,26 +84,26 @@ def tipo_devolucao_ao_tesouro():
 
 
 @pytest.fixture
-def devolucao_ao_tesouro_1(prestacao_conta, tipo_devolucao_ao_tesouro, despesa):
+def devolucao_ao_tesouro_1(prestacao_conta, tipo_devolucao_ao_tesouro, despesa_com_rateios):
     return baker.make(
         'DevolucaoAoTesouro',
         prestacao_conta=prestacao_conta,
         tipo=tipo_devolucao_ao_tesouro,
         data=date(2020, 7, 1),
-        despesa=despesa,
+        despesa=despesa_com_rateios,
         devolucao_total=True,
         valor=100.00,
         motivo='teste 1'
     )
 
 @pytest.fixture
-def devolucao_ao_tesouro_2(prestacao_conta, tipo_devolucao_ao_tesouro, despesa):
+def devolucao_ao_tesouro_2(prestacao_conta, tipo_devolucao_ao_tesouro, despesa_com_rateios):
     return baker.make(
         'DevolucaoAoTesouro',
         prestacao_conta=prestacao_conta,
         tipo=tipo_devolucao_ao_tesouro,
         data=date(2020, 7, 1),
-        despesa=despesa,
+        despesa=despesa_com_rateios,
         devolucao_total=True,
         valor=100.00,
         motivo='teste 2'
@@ -90,7 +130,8 @@ def test_api_get_info_devolucoes_ao_tesouro_relatorio(
     tipo_devolucao_ao_tesouro,
     devolucao_ao_tesouro_1,
     devolucao_ao_tesouro_2,
-    obs_devolucao_tesouro_relatorio_dre_consolidado
+    obs_devolucao_tesouro_relatorio_dre_consolidado,
+    rateio_despesa_devolucao
 ):
     response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-devolucoes-ao-tesouro/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',

@@ -227,13 +227,15 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta):
 
         return totais
 
-    def _totaliza_devolucoes_ao_tesouro(dre, periodo, totais):
+    def _totaliza_devolucoes_ao_tesouro(dre, periodo, totais, tipo_conta):
         # Devoluções ao tesouro de PCs de Associações da DRE, no período e concluídas
         devolucoes = DevolucaoAoTesouro.objects.filter(
             prestacao_conta__periodo=periodo,
             prestacao_conta__associacao__unidade__dre=dre,
-            prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
-        )
+            prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+            despesa__rateios__conta_associacao__tipo_conta=tipo_conta
+        ).distinct("pk")
+
         for devolucao in devolucoes:
             totais['devolucoes_ao_tesouro_no_periodo_total'] += devolucao.valor
 
@@ -247,7 +249,7 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta):
 
     totais = _totaliza_previsoes_repasses_sme(dre, periodo, tipo_conta, totais)
 
-    totais = _totaliza_devolucoes_ao_tesouro(dre, periodo, totais)
+    totais = _totaliza_devolucoes_ao_tesouro(dre, periodo, totais, tipo_conta)
 
     return totais
 
@@ -255,7 +257,6 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta):
 def add_obs_devolucoes_dre(devolucoes, tipo_devolucao, dre, periodo, tipo_conta):
     result = []
     for dev in devolucoes:
-
         if tipo_devolucao == 'CONTA':
             registro_obs = ObsDevolucaoRelatorioConsolidadoDRE.objects.filter(
                 dre=dre,
@@ -314,11 +315,17 @@ def informacoes_devolucoes_a_conta_ptrf(dre, periodo, tipo_conta):
 
 def informacoes_devolucoes_ao_tesouro(dre, periodo, tipo_conta):
     # Devoluções ao tesouro de PCs de Associações da DRE, no período da conta e concluídas
-    devolucoes = DevolucaoAoTesouro.objects.filter(
+
+    # Necessário realizar as duas querys para usar o distinct e annotate
+    distinct_devolucoes = DevolucaoAoTesouro.objects.filter(
         prestacao_conta__periodo=periodo,
         prestacao_conta__associacao__unidade__dre=dre,
-        prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
-    ).values('tipo__nome', 'tipo__uuid').annotate(ocorrencias=Count('uuid'), valor=Sum('valor'))
+        prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+        despesa__rateios__conta_associacao__tipo_conta=tipo_conta
+    ).distinct("uuid")
+
+    devolucoes = DevolucaoAoTesouro.objects.values('tipo__nome', 'tipo__uuid').filter(
+        id__in=distinct_devolucoes).annotate(ocorrencias=Count('uuid'), valor=Sum('valor'))
 
     return add_obs_devolucoes_dre(devolucoes, 'TESOURO', dre=dre, periodo=periodo,
                                   tipo_conta=tipo_conta)
