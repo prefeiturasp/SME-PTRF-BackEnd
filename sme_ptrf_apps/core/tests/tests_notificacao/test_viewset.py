@@ -7,6 +7,8 @@ from model_bakery import baker
 from sme_ptrf_apps.core.services.notificacao_services import formata_data
 from sme_ptrf_apps.core.choices import MembroEnum, RepresentacaoCargo
 from sme_ptrf_apps.core.models import Notificacao
+from django.contrib.auth.models import Permission
+from sme_ptrf_apps.users.models import Grupo
 
 pytestmark = pytest.mark.django_db
 
@@ -140,9 +142,20 @@ def test_filtro_tipo(jwt_authenticated_client_a, notificacao, notificacao2):
 
     assert result == esperado
 
+@pytest.fixture
+def permissao_notificar():
+    return Permission.objects.filter(codename='recebe_notificacao_comentario_em_pc').first()
 
 @pytest.fixture
-def usuario_presidente(unidade):
+def grupo_com_permissao_notificar(permissao_notificar):
+    g = Grupo.objects.create(name="grupo1")
+    g.permissions.add(permissao_notificar)
+    g.descricao = "Descrição grupo 1"
+    g.save()
+    return g
+
+@pytest.fixture
+def usuario_presidente(unidade, grupo_com_permissao_notificar):
     from django.contrib.auth import get_user_model
     senha = 'Sgp8888'
     login = '7218888'
@@ -150,12 +163,13 @@ def usuario_presidente(unidade):
     User = get_user_model()
     user = User.objects.create_user(username=login, password=senha, email=email)
     user.unidades.add(unidade)
+    user.groups.add(grupo_com_permissao_notificar)
     user.save()
     return user
 
 
 @pytest.fixture
-def usuario_vice_presidente(unidade):
+def usuario_vice_presidente(unidade, grupo_com_permissao_notificar):
     from django.contrib.auth import get_user_model
     senha = 'Sgp9999'
     login = '7219999'
@@ -163,6 +177,19 @@ def usuario_vice_presidente(unidade):
     User = get_user_model()
     user = User.objects.create_user(username=login, password=senha, email=email)
     user.unidades.add(unidade)
+    user.groups.add(grupo_com_permissao_notificar)
+    user.save()
+    return user
+
+@pytest.fixture
+def usuario_apenas_com_permissao(grupo_com_permissao_notificar):
+    from django.contrib.auth import get_user_model
+    senha = 'Sgp0418'
+    login = '6605656'
+    email = 'sme@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.groups.add(grupo_com_permissao_notificar)
     user.save()
     return user
 
@@ -206,12 +233,12 @@ def comentario_analise_prestacao(prestacao_conta_2020_1_conciliada):
 
 
 def test_notificar(jwt_authenticated_client_a,
-                   membro_associacao_presidente_associacao,
-                   membro_associacao_vice_presidente_associacao,
                    associacao,
                    periodo_2020_1,
                    comentario_analise_prestacao,
-                   usuario_vice_presidente):
+                   usuario_presidente,
+                   usuario_vice_presidente,
+                   usuario_apenas_com_permissao):
     assert Notificacao.objects.count() == 0
 
     payload = {
@@ -228,8 +255,11 @@ def test_notificar(jwt_authenticated_client_a,
 
     result = json.loads(response.content)
     assert result == {"mensagem": "Processo de notificação enviado com sucesso."}
-    assert Notificacao.objects.count() == 2
+    assert Notificacao.objects.count() == 3
     assert Notificacao.objects.filter(
-        usuario__username=membro_associacao_presidente_associacao.codigo_identificacao).first()
+        usuario__username=usuario_presidente.username).first()
     assert Notificacao.objects.filter(
-        usuario__username=membro_associacao_vice_presidente_associacao.codigo_identificacao).first()
+        usuario__username=usuario_vice_presidente.username).first()
+    assert Notificacao.objects.filter(
+        usuario__username=usuario_apenas_com_permissao.username).first()
+
