@@ -26,9 +26,19 @@ def notificar_atraso_entrega_ajustes_prestacao_de_contas(enviar_email=True):
             associacao = prestacao_de_contas.associacao
             usuarios = users.filter(unidades__codigo_eol=associacao.unidade.codigo_eol)
 
+            devolucao_mais_recente_da_pc = prestacao_de_contas.devolucoes_da_prestacao.order_by('-id').first()
+
+            id_atual = devolucao.id if devolucao else ""
+            logger.info(f"Verificando devolução {id_atual} da PC:{prestacao_de_contas} Associação:{associacao}...")
+
+            if devolucao != devolucao_mais_recente_da_pc:
+                id_mais_recente = devolucao_mais_recente_da_pc.id if devolucao_mais_recente_da_pc else ""
+                logger.info(f"Ignorando devolução {id_atual} por não ser a mais recente. Mais recente:{id_mais_recente}.")
+                continue
+
             if usuarios:
                 for usuario in usuarios:
-                    logger.info(f"Gerando notificação de atraso na entrega de ajustes de PC para o usuario: {usuario}")
+                    logger.info(f"Gerando notificação de atraso na entrega de ajustes de PC para o usuario: {usuario} Devolução: {id_atual}")
 
                     # Gerando apenas 1 notificação por período e data ordenado decrescente por -data_limite_ue
                     Notificacao.notificar(
@@ -43,6 +53,8 @@ def notificar_atraso_entrega_ajustes_prestacao_de_contas(enviar_email=True):
                         usuario=usuario,
                         renotificar=False,
                         enviar_email=enviar_email,
+                        unidade=associacao.unidade if associacao else None,
+                        prestacao_conta=prestacao_de_contas,
                     )
     else:
         logger.info(f"Não foram encontrados prestações de contas a serem notificadas.")

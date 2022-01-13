@@ -1,3 +1,6 @@
+### 1.25.5 - 13/01/2022 - Hotfix - Problema de notificação de atraso devolução indevida
+* (55534) - Resolve notificação indevida de atraso em entrega de ajustes de PC
+
 ### 1.25.4 - 10/01/2022 - Hotfix - Problema de notificações duplicadas
 * (55522) - Resolve casos de duplicidade de notificação de proximidade de fim do prazo de ajuste de PC
 
