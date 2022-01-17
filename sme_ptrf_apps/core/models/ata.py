@@ -90,7 +90,13 @@ class Ata(ModeloBase):
 
     arquivo_pdf = models.FileField(blank=True, null=True, verbose_name='Relatório em PDF')
 
-    prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE, related_name='atas_da_prestacao')
+    prestacao_conta = models.ForeignKey(
+        'PrestacaoConta',
+        on_delete=models.CASCADE,
+        related_name='atas_da_prestacao',
+        blank=True,
+        null=True
+    )
 
     periodo = models.ForeignKey('Periodo', on_delete=models.PROTECT, related_name='+')
 
@@ -152,6 +158,8 @@ class Ata(ModeloBase):
     retificacoes = models.TextField('Retificações', blank=True, default='')
 
     hora_reuniao = models.TimeField("Hora da reunião", default="00:00")
+
+    previa = models.BooleanField("É prévia?", default=False)
 
     @property
     def nome(self):
