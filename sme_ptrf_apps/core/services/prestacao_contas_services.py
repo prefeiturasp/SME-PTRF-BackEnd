@@ -34,6 +34,8 @@ from ..api.serializers.analise_valor_reprogramado_prestacao_conta_serializer imp
 
 from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
 
+from ..api.serializers.associacao_serializer import AssociacaoCompletoSerializer
+
 logger = logging.getLogger(__name__)
 
 
@@ -906,3 +908,27 @@ def ajustes_saldos_iniciais(analise_prestacao_uuid, conta_associacao_uuid=None):
         result = AjustesSaldosIniciaisSerializer(qs, many=True).data
         return result
 
+
+def previa_prestacao_conta(associacao, periodo):
+    return {
+        'associacao': AssociacaoCompletoSerializer(associacao, many=False).data,
+        'periodo_uuid': periodo.uuid,
+        'status': 'NAO_APRESENTADA',
+        'uuid': None,
+        'tecnico_responsavel': None,
+        'data_recebimento': None,
+        'data_recebimento_apos_acertos': None,
+        'devolucoes_da_prestacao': [],
+        'processo_sei': '',
+        'data_ultima_analise': None,
+        'devolucao_ao_tesouro': '',
+        'analises_de_conta_da_prestacao': [],
+        'permite_analise_valores_reprogramados': None,
+        'motivos_aprovacao_ressalva': [],
+        'outros_motivos_aprovacao_ressalva': '',
+        'motivos_reprovacao': [],
+        'outros_motivos_reprovacao': '',
+        'devolucoes_ao_tesouro_da_prestacao': [],
+        'arquivos_referencia': [],
+        'analise_atual': None,
+    }
