@@ -1,3 +1,5 @@
+import logging
+
 from datetime import datetime
 
 from django.db import models
@@ -10,6 +12,8 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 from .presentes_ata import PresenteAta
+
+logger = logging.getLogger(__name__)
 
 
 class Ata(ModeloBase):
@@ -167,29 +171,44 @@ class Ata(ModeloBase):
 
     @classmethod
     def iniciar(cls, prestacao_conta, retificacao=False):
+        logger.info(f'Iniciando Ata PC={prestacao_conta}, Retificação={retificacao}...')
 
         previa_ata = Ata.objects.filter(
             associacao=prestacao_conta.associacao,
             periodo=prestacao_conta.periodo,
-            prestacao_conta=None,
+            prestacao_conta=prestacao_conta if retificacao else None,
+            tipo_ata='RETIFICACAO' if retificacao else 'APRESENTACAO',
             previa=True
         ).first()
 
         if previa_ata:
-            previa_ata.prestacao_conta = prestacao_conta
-            previa_ata.previa = False
+            previa = False
+            if retificacao and prestacao_conta.status == 'DEVOLVIDA':
+                # Atas de retificação criadas enquanto a PC esta devolvida são apenas prévias.
+                previa = True
+            logger.info(f'Encontrada uma prévia da ata. previa={previa}')
+            if not retificacao:
+                previa_ata.prestacao_conta = prestacao_conta
+            previa_ata.previa = previa
             previa_ata.save()
             return previa_ata
         else:
+            previa = False
+            if retificacao and prestacao_conta.status == 'DEVOLVIDA':
+                # Atas de retificação criadas enquanto a PC esta devolvida são apenas prévias.
+                previa = True
+            logger.info(f'Não encontrada prévia de ata. Criando nova ata. previa={previa}')
             return Ata.objects.create(
                 prestacao_conta=prestacao_conta,
                 periodo=prestacao_conta.periodo,
                 associacao=prestacao_conta.associacao,
-                tipo_ata='RETIFICACAO' if retificacao else 'APRESENTACAO'
+                tipo_ata='RETIFICACAO' if retificacao else 'APRESENTACAO',
+                previa=previa
             )
 
     @classmethod
     def iniciar_previa(cls, associacao, periodo, retificacao=False):
+        logger.info(f'Criando prévia de ata. associacao={associacao}, periodo={periodo}, retificacao={retificacao}')
         return Ata.objects.create(
             prestacao_conta=None,
             periodo=periodo,
