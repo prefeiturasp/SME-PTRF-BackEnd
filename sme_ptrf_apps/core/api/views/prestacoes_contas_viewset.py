@@ -1531,3 +1531,61 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         previa_info = previa_informacoes_financeiras_para_atas(associacao=associacao, periodo=periodo)
         return Response(previa_info)
+
+    @action(detail=False, methods=['post'], url_path='iniciar-previa-ata',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
+    def iniciar_previa_ata(self, request):
+        # Determinar Associação
+        associacao_uuid = request.query_params.get('associacao')
+        if not associacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'operacao': 'previa',
+                'mensagem': 'É necessário informar o uuid da associação. ?associacao=uuida_da_associacao'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            associacao = Associacao.objects.get(uuid=associacao_uuid)
+        except Associacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto associação para o uuid {associacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Determina o período
+        periodo_uuid = self.request.query_params.get('periodo')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'operacao': 'previa',
+                'mensagem': 'Faltou informar o uuid do período. ?periodo=uuid_do_periodo'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        ata = Ata.objects.filter(associacao=associacao, periodo=periodo)
+
+        if ata:
+            erro = {
+                'erro': 'ata-ja-iniciada',
+                'mensagem': 'Já existe uma ata iniciada para esse período e associação.'
+            }
+            return Response(erro, status=status.HTTP_409_CONFLICT)
+
+        ata = Ata.iniciar_previa(associacao=associacao, periodo=periodo)
+
+        return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)

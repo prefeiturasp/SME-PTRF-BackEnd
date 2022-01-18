@@ -524,4 +524,10 @@ class AssociacoesViewSet(ModelViewSet):
 
         ata_previa = Ata.objects.filter(associacao=associacao, periodo=periodo, previa=True).first()
 
+        if not ata_previa:
+            erro = {
+                'mensagem': 'Ainda não existe uma prévia de ata para essa associação e período.'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
         return Response(AtaLookUpSerializer(ata_previa, many=False).data, status=status.HTTP_200_OK)

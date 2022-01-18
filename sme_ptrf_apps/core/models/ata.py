@@ -167,11 +167,35 @@ class Ata(ModeloBase):
 
     @classmethod
     def iniciar(cls, prestacao_conta, retificacao=False):
-        return Ata.objects.create(
-            prestacao_conta=prestacao_conta,
-            periodo=prestacao_conta.periodo,
+
+        previa_ata = Ata.objects.filter(
             associacao=prestacao_conta.associacao,
-            tipo_ata='RETIFICACAO' if retificacao else 'APRESENTACAO'
+            periodo=prestacao_conta.periodo,
+            prestacao_conta=None,
+            previa=True
+        ).first()
+
+        if previa_ata:
+            previa_ata.prestacao_conta = prestacao_conta
+            previa_ata.previa = False
+            previa_ata.save()
+            return previa_ata
+        else:
+            return Ata.objects.create(
+                prestacao_conta=prestacao_conta,
+                periodo=prestacao_conta.periodo,
+                associacao=prestacao_conta.associacao,
+                tipo_ata='RETIFICACAO' if retificacao else 'APRESENTACAO'
+            )
+
+    @classmethod
+    def iniciar_previa(cls, associacao, periodo, retificacao=False):
+        return Ata.objects.create(
+            prestacao_conta=None,
+            periodo=periodo,
+            associacao=associacao,
+            tipo_ata='RETIFICACAO' if retificacao else 'APRESENTACAO',
+            previa=True,
         )
 
     def __str__(self):
