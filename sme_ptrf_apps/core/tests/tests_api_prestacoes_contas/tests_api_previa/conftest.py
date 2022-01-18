@@ -320,10 +320,11 @@ def rateio_despesa_2020_role_nao_conferido(associacao, despesa_2020_1, conta_ass
 
 
 @pytest.fixture
-def rateio_despesa_2020_ptrf_conferido(associacao, despesa_2020_1, conta_associacao_cartao, acao,
+def rateio_despesa_2020_ptrf_conferido(associacao, despesa_2020_1, conta_associacao_cartao,
                                        tipo_aplicacao_recurso_custeio,
                                        tipo_custeio_servico,
-                                       especificacao_instalacao_eletrica, acao_associacao_ptrf,
+                                       especificacao_instalacao_eletrica,
+                                       acao_associacao_ptrf,
                                        periodo_2020_1):
     return baker.make(
         'RateioDespesa',
@@ -525,13 +526,13 @@ def repasse_2020_1_realizado(associacao, conta_associacao, acao_associacao, peri
 
 
 @pytest.fixture
-def fechamento_periodo_2019_2_1000(periodo_2019_2, associacao, conta_associacao_cartao, acao_associacao, ):
+def fechamento_periodo_2019_2_1000(periodo_2019_2, associacao, conta_associacao_cartao, acao_associacao_ptrf, ):
     return baker.make(
         'FechamentoPeriodo',
         periodo=periodo_2019_2,
         associacao=associacao,
         conta_associacao=conta_associacao_cartao,
-        acao_associacao=acao_associacao,
+        acao_associacao=acao_associacao_ptrf,
         fechamento_anterior=None,
         total_receitas_capital=1000,
         status='FECHADO'

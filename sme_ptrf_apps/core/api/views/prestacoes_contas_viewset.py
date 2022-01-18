@@ -44,7 +44,8 @@ from ...services import (
     marca_documentos_como_corretos,
     marca_documentos_como_nao_conferidos,
     solicita_acertos_de_documentos,
-    previa_prestacao_conta
+    previa_prestacao_conta,
+    previa_informacoes_financeiras_para_atas,
 )
 from ....dre.services import (dashboard_sme)
 from ..serializers import (
@@ -1436,7 +1437,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=False, methods=['get'], url_path="previa",
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def previa(self, request):
+    def previa_pc(self, request):
         # Determinar Associação
         associacao_uuid = request.query_params.get('associacao')
         if not associacao_uuid:
@@ -1482,3 +1483,51 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         previa_pc = previa_prestacao_conta(associacao=associacao, periodo=periodo)
 
         return Response(previa_pc)
+
+    @action(detail=False, methods=['get'], url_path="previa-info-para-ata",
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def get_previa_info_para_ata(self, request):
+        # Determinar Associação
+        associacao_uuid = request.query_params.get('associacao')
+        if not associacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'operacao': 'previa',
+                'mensagem': 'É necessário informar o uuid da associação. ?associacao=uuida_da_associacao'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            associacao = Associacao.objects.get(uuid=associacao_uuid)
+        except Associacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto associação para o uuid {associacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Determina o período
+        periodo_uuid = self.request.query_params.get('periodo')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'operacao': 'previa',
+                'mensagem': 'Faltou informar o uuid do período. ?periodo=uuid_do_periodo'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        previa_info = previa_informacoes_financeiras_para_atas(associacao=associacao, periodo=periodo)
+        return Response(previa_info)

@@ -932,3 +932,106 @@ def previa_prestacao_conta(associacao, periodo):
         'arquivos_referencia': [],
         'analise_atual': None,
     }
+
+
+def previa_informacoes_financeiras_para_atas(associacao, periodo):
+    def totaliza_info_acoes(info_acoes):
+        totalizador = {
+            'saldo_reprogramado': 0,
+            'saldo_reprogramado_capital': 0,
+            'saldo_reprogramado_custeio': 0,
+            'saldo_reprogramado_livre': 0,
+
+            'receitas_no_periodo': 0,
+
+            'receitas_devolucao_no_periodo': 0,
+            'receitas_devolucao_no_periodo_custeio': 0,
+            'receitas_devolucao_no_periodo_capital': 0,
+            'receitas_devolucao_no_periodo_livre': 0,
+
+            'repasses_no_periodo': 0,
+            'repasses_no_periodo_capital': 0,
+            'repasses_no_periodo_custeio': 0,
+            'repasses_no_periodo_livre': 0,
+
+            'outras_receitas_no_periodo': 0,
+            'outras_receitas_no_periodo_capital': 0,
+            'outras_receitas_no_periodo_custeio': 0,
+            'outras_receitas_no_periodo_livre': 0,
+
+            'despesas_no_periodo': 0,
+            'despesas_no_periodo_capital': 0,
+            'despesas_no_periodo_custeio': 0,
+
+            'despesas_nao_conciliadas': 0,
+            'despesas_nao_conciliadas_capital': 0,
+            'despesas_nao_conciliadas_custeio': 0,
+
+            'despesas_nao_conciliadas_anteriores': 0,
+            'despesas_nao_conciliadas_anteriores_capital': 0,
+            'despesas_nao_conciliadas_anteriores_custeio': 0,
+
+            'despesas_conciliadas': 0,
+            'despesas_conciliadas_capital': 0,
+            'despesas_conciliadas_custeio': 0,
+
+            'receitas_nao_conciliadas': 0,
+            'receitas_nao_conciliadas_capital': 0,
+            'receitas_nao_conciliadas_custeio': 0,
+            'receitas_nao_conciliadas_livre': 0,
+
+            'saldo_atual_custeio': 0,
+            'saldo_atual_capital': 0,
+            'saldo_atual_livre': 0,
+            'saldo_atual_total': 0,
+
+            'repasses_nao_realizados_capital': 0,
+            'repasses_nao_realizados_custeio': 0,
+            'repasses_nao_realizados_livre': 0,
+
+            # Saldo Atual + Despesas Não demonstradas no período + Despesas não demonstradas períodos anteriores
+            'saldo_bancario_custeio': 0,
+            'saldo_bancario_capital': 0,
+            'saldo_bancario_livre': 0,
+            'saldo_bancario_total': 0,
+        }
+        for info_acao in info_acoes:
+            for key in totalizador.keys():
+                totalizador[key] += info_acao[key]
+
+        return totalizador
+
+    logger.info(
+        f'Get prévia de info financeiras para ata. Associacao:{associacao.uuid} Período:{periodo}')
+
+    info_contas = []
+    for conta_associacao in associacao.contas.all():
+        logger.info(
+            f'Get prévia info financeiras por conta para a ata. Associacao:{associacao.uuid} Conta:{conta_associacao}')
+        info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=associacao.uuid,
+                                                      periodo=periodo,
+                                                      conta=conta_associacao)
+
+        info_acoes = [info for info in info_acoes if
+                      info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+
+        info_contas.append(
+            {
+                'conta_associacao': {
+                    'uuid': f'{conta_associacao.uuid}',
+                    'nome': f'{conta_associacao.tipo_conta.nome}',
+                    'banco_nome': f'{conta_associacao.banco_nome}',
+                    'agencia': f'{conta_associacao.agencia}',
+                    'numero_conta': f'{conta_associacao.numero_conta}',
+                },
+                'acoes': info_acoes,
+                'totais': totaliza_info_acoes(info_acoes),
+            }
+        )
+
+    info = {
+        'uuid': None,
+        'contas': info_contas,
+    }
+
+    return info
