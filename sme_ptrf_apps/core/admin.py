@@ -187,11 +187,11 @@ class AtaAdmin(admin.ModelAdmin):
     list_display = (
         'get_eol_unidade', 'get_referencia_periodo', 'data_reuniao', 'tipo_ata', 'tipo_reuniao',
         'convocacao',
-        'parecer_conselho')
+        'parecer_conselho', 'previa')
     list_filter = (
-        'parecer_conselho', 'tipo_ata', 'tipo_reuniao', 'convocacao', 'associacao')
+        'parecer_conselho', 'tipo_ata', 'tipo_reuniao', 'convocacao', 'associacao', 'previa')
     list_display_links = ('get_eol_unidade',)
-    readonly_fields = ('uuid', 'id')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('associacao__unidade__codigo_eol',)
 
 
