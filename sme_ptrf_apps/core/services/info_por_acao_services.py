@@ -341,6 +341,20 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
             info['saldo_atual_livre'] += info['saldo_atual_capital']
             info['saldo_atual_capital'] = 0
 
+        info['saldo_bancario_capital'] += (
+            info['saldo_atual_capital'] +
+            info['despesas_nao_conciliadas_capital']
+        )
+
+        info['saldo_bancario_custeio'] += (
+            info['saldo_atual_custeio'] +
+            info['despesas_nao_conciliadas_custeio']
+        )
+
+        info['saldo_bancario_livre'] += (
+            info['saldo_atual_livre']
+        )
+
         return info
 
     fechamentos_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(acao_associacao=acao_associacao,
