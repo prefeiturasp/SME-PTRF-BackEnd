@@ -29,7 +29,7 @@ from ....dre.services import (
     get_lista_associacoes_e_status_regularidade_no_ano,
     atualiza_itens_verificacao,
 )
-from ...models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade
+from ...models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade, Ata
 from ...services import (
     atualiza_dados_unidade,
     gerar_planilha,
@@ -57,6 +57,8 @@ from ..serializers.conta_associacao_serializer import (
 )
 from ..serializers.periodo_serializer import PeriodoLookUpSerializer
 from ..serializers.processo_associacao_serializer import ProcessoAssociacaoRetrieveSerializer
+
+from ..serializers.ata_serializer import AtaLookUpSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -496,3 +498,36 @@ class AssociacoesViewSet(ModelViewSet):
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(result, status=status_code)
+
+    @action(detail=True, url_path='previa-ata', methods=['get'],
+            permission_classes=[IsAuthenticated, PermissaoAPITodosComLeituraOuGravacao])
+    def previa_ata(self, request, uuid=None):
+        associacao = self.get_object()
+
+        periodo_uuid = request.query_params.get('periodo_uuid')
+        if not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário informar o uuid do período.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        ata_previa = Ata.objects.filter(associacao=associacao, periodo=periodo, previa=True).first()
+
+        if not ata_previa:
+            erro = {
+                'mensagem': 'Ainda não existe uma prévia de ata para essa associação e período.'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(AtaLookUpSerializer(ata_previa, many=False).data, status=status.HTTP_200_OK)

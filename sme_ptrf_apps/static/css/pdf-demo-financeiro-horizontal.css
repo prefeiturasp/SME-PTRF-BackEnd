@@ -178,6 +178,12 @@ html body .conteudo .tabela-resumo-por-acao thead th.sem-borda {
   width: auto;
 }
 
+/*Resolve o Problema de quebrar a linha em 02 páginas!!*/
+html body .conteudo .nao-quebra-linha tbody tr {
+  break-after: avoid !important;
+}
+
+
 html body .conteudo .tabela-resumo-por-acao tbody td.sem-borda {
   border: none !important;
   width: auto;
