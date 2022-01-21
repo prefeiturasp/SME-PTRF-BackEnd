@@ -564,6 +564,7 @@ def informacoes_execucao_financeira_unidades(
 
                     'status_prestacao_contas': status_prestacao_conta,
                     'valores': totais,
+                    'uuid_pc': prestacao_conta.uuid
                 }
             )
 
