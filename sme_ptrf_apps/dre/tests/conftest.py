@@ -5,6 +5,7 @@ from model_bakery import baker
 from django.contrib.auth.models import Permission
 from sme_ptrf_apps.users.models import Grupo
 from django.contrib.contenttypes.models import ContentType
+from datetime import date
 
 @pytest.fixture
 def tecnico_dre(dre):
@@ -326,3 +327,17 @@ def verificacao_regularidade_associacao_documento_cnpj(
         regular=True
     )
 
+
+@pytest.fixture
+def ata_parecer_tecnico(dre, periodo):
+    return baker.make(
+        'AtaParecerTecnico',
+        arquivo_pdf=None,
+        periodo=periodo,
+        dre=dre,
+        status_geracao_pdf='NAO_GERADO',
+        numero_ata=1,
+        data_reuniao=date(2020, 7, 1),
+        local_reuniao='Escola Teste',
+        comentarios='Teste',
+    )

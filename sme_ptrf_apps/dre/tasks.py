@@ -8,6 +8,10 @@ from sme_ptrf_apps.core.models import (
     TipoConta
 )
 
+from sme_ptrf_apps.dre.models import (
+    AtaParecerTecnico
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +59,10 @@ def gerar_relatorio_consolidado_dre_async(periodo_uuid, dre_uuid, tipo_conta_uui
 
     try:
         gera_relatorio_dre(dre, periodo, tipo_conta, parcial)
+        AtaParecerTecnico.iniciar(
+            dre=dre,
+            periodo=periodo
+        )
     except Exception as err:
         erro = {
             'erro': 'problema_geracao_relatorio',
