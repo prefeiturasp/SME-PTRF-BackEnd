@@ -263,6 +263,7 @@ def membro_comissao_exame_contas(comissao_exame_contas, dre_ipiranga):
         rf='123456',
         nome='Jose Testando',
         email='jose@teste.com',
+        cargo='teste',
         dre=dre_ipiranga,
         comissoes=[comissao_exame_contas, ]
     )
