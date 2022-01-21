@@ -63,6 +63,16 @@ class AtaParecerTecnico(ModeloBase):
 
     @classmethod
     def iniciar(cls, dre, periodo):
+        ata_atual = AtaParecerTecnico.objects.filter(
+            dre=dre,
+            periodo=periodo
+        ).first()
+
+        if ata_atual:
+            logger.info(f"Ata de parecer técnico: {ata_atual.uuid} será excluida")
+            ata_atual.delete()
+
+        logger.info(f"Gerando nova ata...")
         ata = AtaParecerTecnico.objects.create(
             dre=dre,
             periodo=periodo
