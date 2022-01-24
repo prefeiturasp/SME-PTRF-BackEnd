@@ -10,7 +10,7 @@ pytestmark = pytest.mark.django_db
 
 def test_create_membro_comissao(jwt_authenticated_client_dre, dre_x, comissao_a, comissao_b):
     payload = {
-        'rf': '1234567',
+        'rf': '6605656',
         'nome': 'Pedro Antunes',
         'email': 'tecnico.sobrenome@sme.prefeitura.sp.gov.br',
         'dre': f'{dre_x.uuid}',

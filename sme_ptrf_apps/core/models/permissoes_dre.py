@@ -82,6 +82,7 @@ class FuncDreRelatorioConsolidado(models.Model):
             ('access_relatorio_consolidado_dre', '[DRE] Pode acessar Relatório Consolidado.'),
             ('change_relatorio_consolidado_dre', '[DRE] Pode atualizar informações dos Relatórios Consolidados.'),
             ('gerar_relatorio_consolidado_dre', '[DRE] Pode gerar Relatório Consolidado.'),
+            ('change_ata_parecer_tecnico', '[DRE] Pode atualizar atas de Parecer Tecnico.'),
         )
 
 
@@ -172,14 +173,14 @@ class FuncRegularidadeAssociacoes(models.Model):
             ('access_regularidade_dre', '[DRE] Pode acessar Regularidade das Associações.'),
             ('change_regularidade', '[DRE] Pode atualizar a Regularidade das Associações.'),
         )
-        
 
-class FuncDreComissoes(models.Model):     
+
+class FuncDreComissoes(models.Model):
 
     class Meta:
         managed = False  # No database table creation.
-        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions          
-        
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
         verbose_name = "[DRE] Comissão"
         verbose_name_plural = "[DRE] Comissões"
 

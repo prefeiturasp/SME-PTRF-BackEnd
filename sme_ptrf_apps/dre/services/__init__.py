@@ -17,3 +17,7 @@ from .relatorio_consolidado_service import (
 from .csv_lauda_service import (
     gerar_csv
 )
+
+from .ata_parecer_tecnico_service import (
+    informacoes_execucao_financeira_unidades_ata_parecer_tecnico
+)

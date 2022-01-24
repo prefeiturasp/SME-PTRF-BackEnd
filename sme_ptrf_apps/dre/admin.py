@@ -4,11 +4,12 @@ from .models import (Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoR
                      VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq, RelatorioConsolidadoDRE,
                      JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE,
                      ParametroFiqueDeOlhoRelDre, MotivoAprovacaoRessalva, MotivoReprovacao, Comissao, MembroComissao,
-                     AnoAnaliseRegularidade, AnaliseRegularidadeAssociacao)
+                     AnoAnaliseRegularidade, AnaliseRegularidadeAssociacao, ParametrosDre, AtaParecerTecnico, PresenteAtaDre)
 
 admin.site.register(ParametroFiqueDeOlhoRelDre)
 admin.site.register(MotivoAprovacaoRessalva)
 admin.site.register(MotivoReprovacao)
+admin.site.register(ParametrosDre)
 
 
 class ListasVerificacaoInline(admin.TabularInline):
@@ -205,3 +206,14 @@ class VerificacaoRegularidadeAssociacaoAdmin(admin.ModelAdmin):
     )
     readonly_fields = ['criado_em', 'alterado_em', 'id', 'uuid']
 
+
+@admin.register(AtaParecerTecnico)
+class AtaParecerTecnicoAdmin(admin.ModelAdmin):
+    list_display = ('uuid', 'periodo', 'dre')
+    readonly_fields = ('uuid', 'id')
+
+
+@admin.register(PresenteAtaDre)
+class PresentesAtaDreAdmin(admin.ModelAdmin):
+    list_display = ('rf', 'nome', 'cargo', 'ata')
+    readonly_fields = ('uuid', 'id')
