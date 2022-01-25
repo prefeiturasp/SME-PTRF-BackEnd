@@ -27,7 +27,7 @@ from ...services import (
     status_de_geracao_do_relatorio,
     update_observacao_devolucao,
 )
-from ...tasks import gerar_relatorio_consolidado_dre_async, gerar_previa_relatorio_consolidado_dre_async, gerar_lauda_csv_async
+from ...tasks import gerar_relatorio_consolidado_dre_async, gerar_previa_relatorio_consolidado_dre_async, gerar_lauda_csv_async, gerar_lauda_txt_async
 
 logger = logging.getLogger(__name__)
 
@@ -924,13 +924,23 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            gerar_lauda_csv_async.delay(
+            # gerar_lauda_csv_async.delay(
+            #     dre_uuid,
+            #     tipo_conta_uuid,
+            #     periodo_uuid,
+            #     dados['parcial'],
+            #     request.user.username
+            # )
+
+            gerar_lauda_txt_async.delay(
                 dre_uuid,
                 tipo_conta_uuid,
                 periodo_uuid,
                 dados['parcial'],
                 request.user.username
             )
+
+
         except Exception as err:
             erro = {
                 'erro': 'problema_geracao_lauda',

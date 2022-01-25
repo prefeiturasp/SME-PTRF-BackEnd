@@ -42,6 +42,87 @@ def gerar_csv(dre, periodo, tipo_conta, obj_arquivo_download, parcial=False):
             obj_arquivo_download.save()
 
 
+def gerar_txt(dre, periodo, tipo_conta, obj_arquivo_download, ata, parcial=False):
+    logger.info("txt lauda em processamento.")
+
+    with NamedTemporaryFile(mode="r+", newline='', encoding='utf-8', prefix='lauda', suffix='.docx.txt') as tmp:
+        dados = gerar_dados_lauda(dre, periodo, tipo_conta)
+        status_separados = separa_status(dados)
+        linhas = []
+
+        titulo = f"((TITULO))DIRETORIA REGIONAL DE EDUCAÇÃO - {formata_nome_dre(dre)} " \
+                 f"PROGRAMA DE TRANSFERÊNCIA DE RECURSOS FINANCEIROS PTRF \n\n"
+
+        texto = f"((TEXTO)) No exercício da atribuição a mim conferida pela Portaria SME nº 5.318/2020, torno " \
+                f"público o Parecer Técnico Conclusivo da Comissão de Prestação de Contas do PTRF da DRE " \
+                f"{formata_nome_dre(dre, capitalize=True)}, expedido através da ata nº {formata_numero_ata(ata)}, " \
+                f"relativo à prestação de contas do Programa de Transferência de Recursos Financeiros - PTRF " \
+                f"{formata_periodo_repasse(ata)}: \n"
+
+        ng_aprovadas = " ((NG)) Prestações de contas aprovadas((CL)) \n" \
+                       "ORDEM	CÓD EOL	UNIDADE	RECEITA	DESPESAS	SALDO 	" \
+                       "CUSTEIO	LIVRE APLIC.	CAPITAL	" \
+                       "CUSTEIO	CAPITAL	" \
+                       "CUSTEIO	LIVRE APLIC.	CAPITAL\n"
+
+        linhas.append(titulo)
+        linhas.append(texto)
+        linhas.append(ng_aprovadas)
+
+        for status in status_separados["aprovadas"]:
+            linha = f"{status['ordem']} {status['codigo_eol']} {status['unidade']}" \
+                    f"{status['receita']['total']}  {status['despesa']['total']}  {status['saldo']['total']} " \
+                    f"{status['receita']['custeio']} {status['receita']['livre_aplicacao']} {status['receita']['capital']} " \
+                    f"{status['despesa']['custeio']} {status['despesa']['capital']} " \
+                    f"{status['saldo']['custeio']} {status['saldo']['livre_aplicacao']} {status['saldo']['capital']}\n"
+            linhas.append(linha)
+
+        ng_aprovadas_ressalva = " ((NG)) Prestações de contas aprovadas com ressalva((CL)) \n" \
+                                "ORDEM	CÓD EOL	UNIDADE	RECEITA	DESPESAS	SALDO 	" \
+                                "CUSTEIO	LIVRE APLIC.	CAPITAL	" \
+                                "CUSTEIO	CAPITAL	" \
+                                "CUSTEIO	LIVRE APLIC.	CAPITAL\n"
+
+        linhas.append(ng_aprovadas_ressalva)
+
+        for status in status_separados["aprovadas_ressalva"]:
+            linha = f"{status['ordem']} {status['codigo_eol']} {status['unidade']}" \
+                    f"{status['receita']['total']}  {status['despesa']['total']}  {status['saldo']['total']} " \
+                    f"{status['receita']['custeio']} {status['receita']['livre_aplicacao']} {status['receita']['capital']} " \
+                    f"{status['despesa']['custeio']} {status['despesa']['capital']} " \
+                    f"{status['saldo']['custeio']} {status['saldo']['livre_aplicacao']} {status['saldo']['capital']}\n"
+            linhas.append(linha)
+
+        ng_rejeitadas = " ((NG)) Prestações de contas rejeitadas((CL)) \n" \
+                        "ORDEM	CÓD EOL	UNIDADE	RECEITA	DESPESAS	SALDO 	" \
+                        "CUSTEIO	LIVRE APLIC.	CAPITAL	" \
+                        "CUSTEIO	CAPITAL	" \
+                        "CUSTEIO	LIVRE APLIC.	CAPITAL\n"
+
+        linhas.append(ng_rejeitadas)
+
+        for status in status_separados["rejeitadas"]:
+            linha = f"{status['ordem']} {status['codigo_eol']} {status['unidade']}" \
+                    f"{status['receita']['total']}  {status['despesa']['total']}  {status['saldo']['total']} " \
+                    f"{status['receita']['custeio']} {status['receita']['livre_aplicacao']} {status['receita']['capital']} " \
+                    f"{status['despesa']['custeio']} {status['despesa']['capital']} " \
+                    f"{status['saldo']['custeio']} {status['saldo']['livre_aplicacao']} {status['saldo']['capital']}\n"
+            linhas.append(linha)
+
+        tmp.file.writelines(linhas)
+
+        tmp.seek(0)
+
+        try:
+            obj_arquivo_download.arquivo.save(name=obj_arquivo_download.identificador, content=File(tmp))
+            obj_arquivo_download.status = ArquivoDownload.STATUS_CONCLUIDO
+            obj_arquivo_download.save()
+        except Exception as e:
+            obj_arquivo_download.status = ArquivoDownload.STATUS_ERRO
+            obj_arquivo_download.msg_erro = str(e)
+            obj_arquivo_download.save()
+
+
 def gerar_dados_lauda(dre, periodo, tipo_conta):
     lista = []
     ordem = 1
@@ -61,15 +142,18 @@ def gerar_dados_lauda(dre, periodo, tipo_conta):
             "codigo_eol": str(info["unidade"]["codigo_eol"]),
             "unidade": str(unidade),
             "receita": {
+                "total": formata_valor(info["valores"]["receitas_totais_no_periodo_total"]),
                 "custeio": formata_valor(0),
                 "capital": formata_valor(0),
                 "livre_aplicacao": formata_valor(0)
             },
             "despesa": {
+                "total": formata_valor(info["valores"]["despesas_no_periodo_total"]),
                 "custeio": formata_valor(0),
                 "capital": formata_valor(0),
             },
             "saldo": {
+                "total": formata_valor(info["valores"]["saldo_reprogramado_proximo_periodo_total"]),
                 "custeio": formata_valor(0),
                 "capital": formata_valor(0),
                 "livre_aplicacao": formata_valor(0)
@@ -181,3 +265,48 @@ def pc_em_analise(resultado):
         return True
 
     return False
+
+
+def formata_nome_dre(dre, capitalize=False):
+    nome_dre = dre.nome.upper()
+    if "DIRETORIA REGIONAL DE EDUCACAO" in nome_dre:
+        nome_dre = nome_dre.replace("DIRETORIA REGIONAL DE EDUCACAO", "")
+        nome_dre = nome_dre.strip()
+
+    if capitalize:
+        nome_dre = nome_dre.capitalize()
+
+    return nome_dre
+
+
+def formata_numero_ata(ata):
+    numero_ata = ata.numero_ata
+    data_reuniao = ata.data_reuniao
+
+    if numero_ata and data_reuniao:
+        return f"{numero_ata}/{data_reuniao.strftime('%Y')}"
+
+
+def formata_periodo_repasse(ata):
+    return ata.periodo.referencia_por_extenso
+
+
+def separa_status(dados):
+    lista_aprovadas = []
+    lista_aprovadas_ressalva = []
+    lista_rejeitadas = []
+    for dado in dados:
+        if dado['status_prestacao_contas'] == "Aprovada":
+            lista_aprovadas.append(dado)
+        elif dado['status_prestacao_contas'] == "Aprovada com ressalvas":
+            lista_aprovadas_ressalva.append(dado)
+        elif dado['status_prestacao_contas'] == "Rejeitada":
+            lista_rejeitadas.append(dado)
+
+    status = {
+        "aprovadas": lista_aprovadas,
+        "aprovadas_ressalva": lista_aprovadas_ressalva,
+        "rejeitadas": lista_rejeitadas
+    }
+
+    return status
