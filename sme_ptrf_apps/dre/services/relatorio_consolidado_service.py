@@ -552,27 +552,75 @@ def informacoes_execucao_financeira_unidades(
                 }
             )
         else:
-            resultado.append(
-                {
-                    'unidade': {
-                        'uuid': f'{associacao.unidade.uuid}',
-                        'codigo_eol': associacao.unidade.codigo_eol,
-                        'tipo_unidade': associacao.unidade.tipo_unidade,
-                        'nome': associacao.unidade.nome,
-                        'sigla': associacao.unidade.sigla,
-                    },
 
-                    'status_prestacao_contas': status_prestacao_conta,
-                    'valores': totais,
-                    'uuid_pc': prestacao_conta.uuid
-                }
-            )
+            dado = {
+                'unidade': {
+                    'uuid': f'{associacao.unidade.uuid}',
+                    'codigo_eol': associacao.unidade.codigo_eol,
+                    'tipo_unidade': associacao.unidade.tipo_unidade,
+                    'nome': associacao.unidade.nome,
+                    'sigla': associacao.unidade.sigla,
+                },
+
+                'status_prestacao_contas': status_prestacao_conta,
+                'valores': totais,
+                'uuid_pc': prestacao_conta.uuid,
+            }
+
+            if status_prestacao_conta == "REPROVADA":
+                dado["motivos_reprovacao"] = teste_motivos_reprovacao(prestacao_conta)
+            elif status_prestacao_conta == "APROVADA_RESSALVA":
+                dado["motivos_aprovada_ressalva"] = teste_motivos_aprovacao_ressalva(prestacao_conta)
+
+            resultado.append(dado)
+
+            # resultado.append(
+            #     {
+            #         'unidade': {
+            #             'uuid': f'{associacao.unidade.uuid}',
+            #             'codigo_eol': associacao.unidade.codigo_eol,
+            #             'tipo_unidade': associacao.unidade.tipo_unidade,
+            #             'nome': associacao.unidade.nome,
+            #             'sigla': associacao.unidade.sigla,
+            #         },
+            #
+            #         'status_prestacao_contas': status_prestacao_conta,
+            #         'valores': totais,
+            #         'uuid_pc': prestacao_conta.uuid
+            #     }
+            # )
 
     resultado = sorted(resultado, key=lambda row: row['status_prestacao_contas'])
     resultado.extend(resultado_nao_apresentada)
 
     return resultado
 
+def teste_motivos_aprovacao_ressalva(prestacao_conta):
+    lista_motivos_e_outros = []
+
+    motivos = prestacao_conta.motivos_aprovacao_ressalva.values("motivo")
+    for motivo in motivos:
+        lista_motivos_e_outros.append(motivo["motivo"])
+
+    outros_motivos = prestacao_conta.outros_motivos_aprovacao_ressalva
+    if outros_motivos:
+        lista_motivos_e_outros.append(outros_motivos)
+
+    return lista_motivos_e_outros
+
+
+def teste_motivos_reprovacao(prestacao_conta):
+    lista_motivos_e_outros = []
+
+    motivos = prestacao_conta.motivos_reprovacao.values("motivo")
+    for motivo in motivos:
+        lista_motivos_e_outros.append(motivo["motivo"])
+
+    outros_motivos = prestacao_conta.outros_motivos_reprovacao
+    if outros_motivos:
+        lista_motivos_e_outros.append(outros_motivos)
+
+    return lista_motivos_e_outros
 
 def update_observacao_devolucao(dre, tipo_conta, periodo, tipo_devolucao, subtipo_devolucao, observacao):
     if not observacao:

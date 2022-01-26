@@ -1,8 +1,35 @@
+import datetime
+import logging
 from sme_ptrf_apps.core.models import TipoConta, PrestacaoConta
 from sme_ptrf_apps.dre.services import informacoes_execucao_financeira_unidades
+from sme_ptrf_apps.dre.services.ata_pdf_parecer_tecnico_service import gerar_arquivo_ata_parecer_tecnico_pdf
+from sme_ptrf_apps.core.services.ata_dados_service import data_por_extenso
+from sme_ptrf_apps.core.services.dados_demo_financeiro_service import formata_data
+from sme_ptrf_apps.utils.numero_por_extenso import real
 
 
-def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo):
+LOGGER = logging.getLogger(__name__)
+
+
+def gerar_arquivo_ata_parecer_tecnico(ata=None, dre=None, periodo=None, usuario=None):
+    LOGGER.info(f"Gerando Arquivo da Ata, Ata {ata}, DRE {dre} e Período {periodo}")
+
+    ata.arquivo_pdf_iniciar()
+
+    try:
+        dados_da_ata = informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, ata, usuario)
+        gerar_arquivo_ata_parecer_tecnico_pdf(dados_da_ata, ata)
+        LOGGER.info(f'Gerando arquivo ata parecer técnico em PDF')
+        ata.arquivo_pdf_concluir()
+        return ata
+
+    except Exception as e:
+        LOGGER.info(f'FALHA AO GERAR O ARQUIVO DA ATA', e)
+        ata.arquivo_pdf_nao_gerado()
+        return None
+
+
+def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, ata=None, usuario=None):
     # Está primeira conta encontrada será usada para PCs reprovadas, pois não necessitam de distinção por conta
     primeira_conta_encontrada = TipoConta.objects.first()
 
@@ -13,6 +40,22 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo):
     lista_motivos_aprovadas_ressalva = []
     lista_motivos_reprovacao = []
     lista_reprovadas = []  # PCs reprovadas não precisam ser separadas por conta
+
+    cabecalho = {
+        "titulo": "Programa de Transferência de Recursos Financeiros -  PTRF",
+        "sub_titulo": f"Diretoria Regional de Educação - {formata_nome_dre(dre.nome)}",
+        "nome_ata": f"Ata de Parecer Técnico Conclusivo",
+        "nome_dre": f"{formata_nome_dre(dre.nome)}",
+        "data_geracao_documento": cria_data_geracao_documento(usuario, dre.nome)
+    }
+    dados_texto_da_ata = {
+        "data_reuniao_por_extenso": data_por_extenso(ata.data_reuniao) if ata and ata.data_reuniao else "---",
+        "hora_reuniao": hora_por_extenso(ata.hora_reuniao) if ata and ata.hora_reuniao else "---",
+        "numero_ata": ata.numero_ata if ata and ata.numero_ata else "---",
+        'data_reuniao': ata.data_reuniao if ata and ata.data_reuniao else "---",
+        "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas),
+        "periodo_data_fim": formata_data(periodo.data_fim_realizacao_despesas),
+    }
 
     for conta in contas:
         lista_aprovadas = []  # Lista usada para separar por status aprovada
@@ -61,6 +104,8 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo):
             lista_contas_aprovadas_ressalva.append(dados_aprovadas_ressalva)
 
     dado = {
+        "cabecalho": cabecalho,
+        "dados_texto_da_ata": dados_texto_da_ata,
         "aprovadas": {
             "contas": lista_contas_aprovadas
         },
@@ -75,6 +120,53 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo):
     }
 
     return dado
+
+
+def cria_data_geracao_documento(usuario, dre_nome):
+    data_geracao = datetime.date.today().strftime("%d/%m/%Y")
+    quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}"
+    texto = f"Ata PDF gerada pelo Sig_Escola em {data_geracao} {quem_gerou} para a DIRETORIA REGIONAL DE EDUCAÇÃO {formata_nome_dre(dre_nome)}"
+
+    return texto
+
+
+def hora_por_extenso(hora_da_reuniao):
+    hora_reuniao = hora_da_reuniao.strftime('%H:%M')
+    hora, minuto = hora_reuniao.split(":")
+
+    # Corrigindo os plurais de hora e minuto
+    if hora == "01" or hora == "00":
+        texto_hora = "hora"
+    else:
+        texto_hora = "horas"
+
+    if minuto == "01" or minuto == "00":
+        texto_minuto = "minuto"
+    else:
+        texto_minuto = "minutos"
+
+    # Corrigindo o genero de hora
+    hora_genero = real(hora).replace("um", "uma").replace("dois", "duas")
+
+    if real(minuto) == "zero":
+        hora_extenso = f'{hora_genero} {texto_hora}'
+    else:
+        hora_extenso = f'{hora_genero} {texto_hora} e {real(minuto)} {texto_minuto}'
+
+    return hora_extenso
+
+
+def formata_nome_dre(nome):
+    if nome:
+        nome_dre = nome.upper()
+        if "DIRETORIA REGIONAL DE EDUCACAO" in nome_dre:
+            nome_dre = nome_dre.replace("DIRETORIA REGIONAL DE EDUCACAO", "")
+            nome_dre = nome_dre.strip()
+            return nome_dre
+        else:
+            return nome_dre
+    else:
+        return ""
 
 
 def motivos_aprovacao_ressalva(uuid_pc):
