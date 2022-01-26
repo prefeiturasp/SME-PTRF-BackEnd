@@ -22,6 +22,26 @@ logger = logging.getLogger(__name__)
     time_limit=333333,
     soft_time_limit=333333
 )
+def gerar_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario):
+    logger.info(f'Iniciando a geração da Ata de Parecer Técnico em PDF Async. DRE {dre_uuid} e Período {periodo_uuid}')
+    from .services import gerar_arquivo_ata_parecer_tecnico
+
+    ata = AtaParecerTecnico.by_uuid(ata_uuid)
+    dre = Unidade.dres.get(uuid=dre_uuid)
+    periodo = Periodo.by_uuid(periodo_uuid)
+
+    arquivo_ata = gerar_arquivo_ata_parecer_tecnico(ata=ata, dre=dre, periodo=periodo, usuario=usuario)
+
+    if arquivo_ata is not None:
+        logger.info(f'Arquivo ata parecer técnico: {arquivo_ata} gerado com sucesso.')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limit=333333,
+    soft_time_limit=333333
+)
 def gerar_relatorio_consolidado_dre_async(periodo_uuid, dre_uuid, tipo_conta_uuid, parcial):
     logger.info(f'Iniciando Relatório DRE. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
 
