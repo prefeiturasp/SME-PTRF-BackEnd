@@ -50,15 +50,19 @@ class AtaParecerTecnico(ModeloBase):
 
     numero_ata = models.IntegerField('Numero da ata', blank=True, null=True)
 
-    data_reuniao = models.DateField('data da reunião', blank=True, null=True)
+    data_reuniao = models.DateField('Data da reunião', blank=True, null=True)
 
     hora_reuniao = models.TimeField("Hora da reunião", default="00:00")
 
-    local_reuniao = models.CharField('local da reunião', max_length=200, blank=True, default='')
+    local_reuniao = models.CharField('Local da reunião', max_length=200, blank=True, default='')
 
     comentarios = models.TextField('Manifestações, comentários e justificativas', blank=True, default='')
 
     preenchida_em = models.DateTimeField("Preenchida em", blank=True, null=True)
+
+    numero_portaria = models.IntegerField('Numero da portaria', blank=True, null=True)
+
+    data_portaria = models.DateField('Data da portaria', blank=True, null=True)
 
 
     @classmethod
