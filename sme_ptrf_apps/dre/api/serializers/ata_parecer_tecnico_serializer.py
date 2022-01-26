@@ -52,7 +52,9 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
             'comentarios',
             'hora_reuniao',
             'presentes_na_ata',
-            'alterado_em'
+            'alterado_em',
+            'numero_portaria',
+            'data_portaria',
         )
 
 
