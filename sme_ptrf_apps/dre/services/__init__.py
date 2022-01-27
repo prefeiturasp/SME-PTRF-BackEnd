@@ -20,5 +20,8 @@ from .lauda_service import (
 )
 
 from .ata_parecer_tecnico_service import (
-    informacoes_execucao_financeira_unidades_ata_parecer_tecnico
+    informacoes_execucao_financeira_unidades_ata_parecer_tecnico,
+    gerar_arquivo_ata_parecer_tecnico,
 )
+
+

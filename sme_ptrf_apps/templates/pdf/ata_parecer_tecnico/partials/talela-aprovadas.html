@@ -1,0 +1,64 @@
+{% load staticfiles %}
+{% load formata_valores %}
+
+{% if dados.aprovadas.contas %}
+        {% for dados in dados.aprovadas.contas %}
+          <p class="font-12 border-bottom pb-1 texto-verde"><strong>Conta {{ dados.nome }}</strong></p>
+
+          <table class="table table-bordered tabela-status-pc">
+            <thead>
+            <tr>
+              <th scope="col" style="width: 2%; ">Ordem</th>
+              <th scope="col" style="width: 25%; ">Unidade educacional</th>
+              <th scope="col">Tipo de recurso</th>
+              <th scope="col">Reprogramado período anterior</th>
+              <th scope="col">Repasse</th>
+              <th scope="col">Rendimentos</th>
+              <th scope="col">Demais créditos</th>
+              <th scope="col">Despesa realizada</th>
+              <th scope="col">Saldo</th>
+              <th scope="col">Devolução ao tesouro</th>
+            </tr>
+            </thead>
+
+            {% for info in dados.info %}
+              <tbody>
+              <tr>
+                <td rowSpan="3">{{ forloop.counter }}</td>
+                <td rowSpan="3"><strong>{{info.unidade.codigo_eol}} - {{info.unidade.tipo_unidade}} {{info.unidade.nome}}</strong></td>
+                <td>Custeio</td>
+                <td>{{info.valores.saldo_reprogramado_periodo_anterior_custeio|formata_valor}}</td>
+                <td>{{info.valores.repasses_no_periodo_custeio|formata_valor}}</td>
+                <td class="{% if info.valores.receitas_rendimento_no_periodo_custeio|formata_valor_rendimento == '-' %}fundo-cinza {% endif %}">{{info.valores.receitas_rendimento_no_periodo_custeio|formata_valor_rendimento}}</td>
+                <td>{{info.valores.demais_creditos_no_periodo_custeio|formata_valor}}</td>
+                <td>{{info.valores.despesas_no_periodo_custeio|formata_valor}}</td>
+                <td>{{info.valores.saldo_reprogramado_proximo_periodo_custeio|formata_valor}}</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td>Capital</td>
+                <td>{{info.valores.saldo_reprogramado_periodo_anterior_capital|formata_valor}}</td>
+                <td>{{info.valores.repasses_no_periodo_capital|formata_valor}}</td>
+                <td class="{% if info.valores.receitas_rendimento_no_periodo_capital|formata_valor_rendimento == '-' %}fundo-cinza {% endif %}">{{info.valores.receitas_rendimento_no_periodo_capital|formata_valor_rendimento}}</td>
+                <td>{{info.valores.demais_creditos_no_periodo_capital|formata_valor}}</td>
+                <td>{{info.valores.despesas_no_periodo_capital|formata_valor}}</td>
+                <td>{{info.valores.saldo_reprogramado_proximo_periodo_capital|formata_valor}}</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td>RLA</td>
+                <td>{{info.valores.saldo_reprogramado_periodo_anterior_livre|formata_valor}}</td>
+                <td>{{info.valores.repasses_no_periodo_livre|formata_valor}}</td>
+                <td class="{% if info.valores.receitas_rendimento_no_periodo_livre|formata_valor_rendimento == '-' %}fundo-cinza {% endif %}">{{info.valores.receitas_rendimento_no_periodo_livre|formata_valor_rendimento}}</td>
+                <td>{{info.valores.demais_creditos_no_periodo_livre|formata_valor}}</td>
+                <td>-</td>
+                <td>{{info.valores.saldo_reprogramado_proximo_periodo_livre|formata_valor}}</td>
+                <td>{{info.valores.devolucoes_ao_tesouro_no_periodo_total|formata_valor}}</td>
+              </tr>
+              </tbody>
+            {% endfor %}
+          </table>
+        {% endfor %}
+      {% else %}
+        <p>Nenhuma associação aprovada</p>
+      {% endif %}

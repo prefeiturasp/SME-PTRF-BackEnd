@@ -32,7 +32,9 @@ def test_api_retrieve_ata_parecer_tecnico(jwt_authenticated_client_dre, ata_pare
         'presentes_na_ata': [],
         'status_geracao_pdf': 'NAO_GERADO',
         'uuid': f'{ata_parecer_tecnico.uuid}',
-        'hora_reuniao': '00:00'
+        'hora_reuniao': '00:00',
+        'data_portaria': None,
+        'numero_portaria': None,
     }
 
     assert response.status_code == status.HTTP_200_OK
