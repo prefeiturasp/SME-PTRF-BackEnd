@@ -240,6 +240,17 @@ html body .conteudo .tabela-status-pc tbody:nth-child(odd) {
     background-color: #F3F3F3 !important;
 }
 
+.box-assinaturas {
+    border: 1px solid #A4A4A4;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #42474A;
+}
+
+.linha-assinatura {
+    border-top: 1px solid #A4A4A4 !important;
+}
+
 html body .conteudo .tabela-status-pc {
   font-size: 10px;
 }

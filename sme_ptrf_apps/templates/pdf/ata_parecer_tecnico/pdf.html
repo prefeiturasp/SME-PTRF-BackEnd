@@ -121,6 +121,36 @@
     </p>
   </article>
 
+  <article class="col-12 pl-0">
+    {% if dados.presentes_na_ata.presentes %}
+      {% for presente in dados.presentes_na_ata.presentes %}
+
+        <div class="row box-assinaturas ml-0 mr-0 mb-3">
+
+          <div class="col-7 p-2 align-self-center">
+
+            <p class="mb-0 ml-2"><strong>Nome: </strong>{{ presente.nome }}</p>
+            <p class="mb-0 ml-2"><strong>Cargo: </strong>{{ presente.cargo }}</p>
+            <p class="mb-0 ml-2"><strong>RF: </strong>{{ presente.rf }}</p>
+
+          </div>
+
+          <div class="col-5 pt-5 pb-2 align-self-center text-center">
+
+            <hr class="mb-1 linha-assinatura mr-2"/>
+            <p class="mt-0 mr-2"><strong>Assinatura</strong></p>
+
+          </div>
+        </div>
+
+
+      {% endfor %}
+    {% else %}
+      <p>Não existem membros cadastrados</p>
+
+    {% endif %}
+  </article>
+
 
 </section>
 

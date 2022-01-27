@@ -1,6 +1,7 @@
 import datetime
 import logging
 from sme_ptrf_apps.core.models import TipoConta, PrestacaoConta
+from sme_ptrf_apps.dre.models import PresenteAtaDre
 from sme_ptrf_apps.dre.services import informacoes_execucao_financeira_unidades
 from sme_ptrf_apps.dre.services.ata_pdf_parecer_tecnico_service import gerar_arquivo_ata_parecer_tecnico_pdf
 from sme_ptrf_apps.core.services.ata_dados_service import data_por_extenso
@@ -56,6 +57,9 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
         "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas),
         "periodo_data_fim": formata_data(periodo.data_fim_realizacao_despesas),
     }
+    presentes_na_ata = {
+        "presentes": get_presentes_na_ata(ata)
+    }
 
     for conta in contas:
         lista_aprovadas = []  # Lista usada para separar por status aprovada
@@ -106,6 +110,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
     dado = {
         "cabecalho": cabecalho,
         "dados_texto_da_ata": dados_texto_da_ata,
+        "presentes_na_ata": presentes_na_ata,
         "aprovadas": {
             "contas": lista_contas_aprovadas
         },
@@ -120,6 +125,23 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
     }
 
     return dado
+
+
+def get_presentes_na_ata(ata):
+    ata_id = ata.id if ata and ata.id else None
+    presentes_na_ata = []
+
+    if ata_id:
+        queryset_presentes_na_ata = PresenteAtaDre.objects.filter(ata=ata_id)
+        for presente in queryset_presentes_na_ata:
+            dados_presentes = {
+                "nome": presente.nome if presente.nome else "",
+                "rf": presente.rf if presente.rf else "",
+                "cargo": presente.cargo if presente.cargo else ""
+            }
+            presentes_na_ata.append(dados_presentes)
+
+    return presentes_na_ata
 
 
 def cria_data_geracao_documento(usuario, dre_nome):
