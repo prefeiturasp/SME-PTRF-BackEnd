@@ -9,10 +9,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
         integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
-  {#  <link href="{{ base_static_url }}/css/ata-parecer-tecnico-pdf.css" rel="stylesheet">#}
-
-  <link href="/home/ollyver/projetos/SME-PTRF-Back/sme_ptrf_apps/static/css/ata-parecer-tecnico-pdf.css"
-        rel="stylesheet">
+  <link href="{{ base_static_url }}/css/ata-parecer-tecnico-pdf.css" rel="stylesheet">
 
   <title>Ata Parecer Técnico PTRF</title>
 </head>
@@ -47,13 +44,12 @@
   <section class="row">
 
     <article class="col-12 pr-0 mr-0">
-      <p class="font-16 border-bottom pb-3"><strong>ATA DE PARECER TÉCNICO
-        CONCLUSIVO {{ dados.dados_texto_da_ata.numero_ata }}/{{ dados.dados_texto_da_ata.data_reuniao|date:"Y" }}</strong>
+      <p class="font-16 border-bottom pb-3"><strong>ATA DE PARECER TÉCNICO CONCLUSIVO {{ dados.dados_texto_da_ata.numero_ata }}/{{ dados.dados_texto_da_ata.data_reuniao|date:"Y" }}</strong>
       </p>
       <p class="font-12">{{ dados.dados_texto_da_ata.data_reuniao_por_extenso }},
         à(s) {{ dados.dados_texto_da_ata.hora_reuniao }},
         reuniu-se a Comissão de Prestação de Contas do PTRF da Diretoria Regional de
-        Educação {{ dados.cabecalho.nome_dre }}, instituída pela Portaria DRE-ABCD nº XXX/aaaa de dd/mm/aaaa, para
+        Educação {{ dados.cabecalho.nome_dre }}, instituída pela Portaria DRE - {{ dados.cabecalho.nome_dre }} nº {{ dados.cabecalho.numero_portaria }}/{{ dados.cabecalho.data_portaria|date:"Y" }} de {{ dados.cabecalho.data_portaria|date:"d/m/Y" }}, para
         análise das prestações de contas dos recursos transferidos pelo Programa de Transferência de Recursos
         Financeiros - PTRF, período de {{ dados.dados_texto_da_ata.periodo_data_inicio }}
         até {{ dados.dados_texto_da_ata.periodo_data_fim }}, conforme inciso III e IV do art. 34 da Portaria SME nº
@@ -102,7 +98,7 @@
   </article>
 
   <article class="col-12 pl-0">
-    <p class="mt-5 titulo-assinaturas font-12">
+    <p class="mt-4 titulo-assinaturas font-12">
       d) Submeter ao Sr. Diretor Regional de Educação, a presente Ata, com o parecer conclusivo desta Comissão atendendo
       ao inciso IV, do art. 34 da Portaria SME nº 6.634/2021, manter sob custódia até a publicação do despacho no DOC e
       juntar cópia desta Ata ao processo.
@@ -119,6 +115,36 @@
         São Paulo, dia {% now "j" %} de {% now "F" %} de {% now "Y" %}
       {% endlanguage %}
     </p>
+  </article>
+
+  <article class="col-12 pl-0">
+    {% if dados.presentes_na_ata.presentes %}
+      {% for presente in dados.presentes_na_ata.presentes %}
+
+        <div class="row box-assinaturas ml-0 mr-0 mb-3">
+
+          <div class="col-7 p-2 align-self-center">
+
+            <p class="mb-0 ml-2"><strong>Nome: </strong>{{ presente.nome }}</p>
+            <p class="mb-0 ml-2"><strong>Cargo: </strong>{{ presente.cargo }}</p>
+            <p class="mb-0 ml-2"><strong>RF: </strong>{{ presente.rf }}</p>
+
+          </div>
+
+          <div class="col-5 pt-5 pb-2 align-self-center text-center">
+
+            <hr class="mb-1 linha-assinatura mr-2"/>
+            <p class="mt-0 mr-2"><strong>Assinatura</strong></p>
+
+          </div>
+        </div>
+
+
+      {% endfor %}
+    {% else %}
+      <p>Não existem membros cadastrados</p>
+
+    {% endif %}
   </article>
 
 

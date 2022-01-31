@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
     soft_time_limit=333333
 )
 def gerar_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario):
-    logger.info(f'Iniciando a geração da Ata de Parecer Técnico em PDF Async. DRE {dre_uuid} e Período {periodo_uuid}')
+    logger.info(f'Iniciando a geração da Ata de Parecer Técnico Async. DRE {dre_uuid} e Período {periodo_uuid}')
     from .services import gerar_arquivo_ata_parecer_tecnico
 
     ata = AtaParecerTecnico.by_uuid(ata_uuid)

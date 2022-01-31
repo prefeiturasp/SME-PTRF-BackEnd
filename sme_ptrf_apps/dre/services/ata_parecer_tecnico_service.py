@@ -1,6 +1,7 @@
 import datetime
 import logging
 from sme_ptrf_apps.core.models import TipoConta, PrestacaoConta
+from sme_ptrf_apps.dre.models import PresenteAtaDre
 from sme_ptrf_apps.dre.services import informacoes_execucao_financeira_unidades
 from sme_ptrf_apps.dre.services.ata_pdf_parecer_tecnico_service import gerar_arquivo_ata_parecer_tecnico_pdf
 from sme_ptrf_apps.core.services.ata_dados_service import data_por_extenso
@@ -46,7 +47,9 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
         "sub_titulo": f"Diretoria Regional de Educação - {formata_nome_dre(dre.nome)}",
         "nome_ata": f"Ata de Parecer Técnico Conclusivo",
         "nome_dre": f"{formata_nome_dre(dre.nome)}",
-        "data_geracao_documento": cria_data_geracao_documento(usuario, dre.nome)
+        "data_geracao_documento": cria_data_geracao_documento(usuario, dre.nome),
+        "numero_portaria": ata.numero_portaria if ata and ata.numero_portaria else "--",
+        "data_portaria": ata.data_portaria if ata and ata.data_portaria else "--",
     }
     dados_texto_da_ata = {
         "data_reuniao_por_extenso": data_por_extenso(ata.data_reuniao) if ata and ata.data_reuniao else "---",
@@ -55,6 +58,9 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
         'data_reuniao': ata.data_reuniao if ata and ata.data_reuniao else "---",
         "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas),
         "periodo_data_fim": formata_data(periodo.data_fim_realizacao_despesas),
+    }
+    presentes_na_ata = {
+        "presentes": get_presentes_na_ata(ata)
     }
 
     for conta in contas:
@@ -106,6 +112,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
     dado = {
         "cabecalho": cabecalho,
         "dados_texto_da_ata": dados_texto_da_ata,
+        "presentes_na_ata": presentes_na_ata,
         "aprovadas": {
             "contas": lista_contas_aprovadas
         },
@@ -120,6 +127,23 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
     }
 
     return dado
+
+
+def get_presentes_na_ata(ata):
+    ata_id = ata.id if ata and ata.id else None
+    presentes_na_ata = []
+
+    if ata_id:
+        queryset_presentes_na_ata = PresenteAtaDre.objects.filter(ata=ata_id)
+        for presente in queryset_presentes_na_ata:
+            dados_presentes = {
+                "nome": presente.nome if presente.nome else "",
+                "rf": presente.rf if presente.rf else "",
+                "cargo": presente.cargo if presente.cargo else ""
+            }
+            presentes_na_ata.append(dados_presentes)
+
+    return presentes_na_ata
 
 
 def cria_data_geracao_documento(usuario, dre_nome):
@@ -162,9 +186,8 @@ def formata_nome_dre(nome):
         if "DIRETORIA REGIONAL DE EDUCACAO" in nome_dre:
             nome_dre = nome_dre.replace("DIRETORIA REGIONAL DE EDUCACAO", "")
             nome_dre = nome_dre.strip()
-            return nome_dre
-        else:
-            return nome_dre
+
+        return nome_dre
     else:
         return ""
 
