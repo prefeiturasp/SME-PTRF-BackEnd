@@ -9,13 +9,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from weasyprint import HTML, CSS
 
 LOGGER = logging.getLogger(__name__)
-# LOGGER = logging.getLogger("weasyprint")
-# LOGGER.addHandler(logging.NullHandler())
-# LOGGER.setLevel(40)  # Only show errors, use 50
 
 
 def gerar_arquivo_ata_parecer_tecnico_pdf(dados_ata, ata):
-    LOGGER.info(f'XXXXXXXXXXXXXXXX DADOS DA ATA {dados_ata}')
 
     html_template = get_template('pdf/ata_parecer_tecnico/pdf.html')
 

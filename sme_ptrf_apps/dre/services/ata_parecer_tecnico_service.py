@@ -47,7 +47,9 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
         "sub_titulo": f"Diretoria Regional de Educação - {formata_nome_dre(dre.nome)}",
         "nome_ata": f"Ata de Parecer Técnico Conclusivo",
         "nome_dre": f"{formata_nome_dre(dre.nome)}",
-        "data_geracao_documento": cria_data_geracao_documento(usuario, dre.nome)
+        "data_geracao_documento": cria_data_geracao_documento(usuario, dre.nome),
+        "numero_portaria": ata.numero_portaria if ata and ata.numero_portaria else "--",
+        "data_portaria": ata.data_portaria if ata and ata.data_portaria else "--",
     }
     dados_texto_da_ata = {
         "data_reuniao_por_extenso": data_por_extenso(ata.data_reuniao) if ata and ata.data_reuniao else "---",
@@ -184,9 +186,8 @@ def formata_nome_dre(nome):
         if "DIRETORIA REGIONAL DE EDUCACAO" in nome_dre:
             nome_dre = nome_dre.replace("DIRETORIA REGIONAL DE EDUCACAO", "")
             nome_dre = nome_dre.strip()
-            return nome_dre
-        else:
-            return nome_dre
+
+        return nome_dre
     else:
         return ""
 
