@@ -17,7 +17,9 @@ class AtaParecerTecnicoLookUpSerializer(serializers.ModelSerializer):
         model = AtaParecerTecnico
         fields = (
             'uuid',
-            'alterado_em'
+            'alterado_em',
+            'status_geracao_pdf',
+            'arquivo_pdf'
         )
 
 
