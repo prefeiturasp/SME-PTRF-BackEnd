@@ -5,6 +5,7 @@
 {% load staticfiles %}
 {% load static %}
 {% load formata_valores %}
+{% load paracer_do_conselho %}
 {% load i18n %}
 
 <head>
@@ -419,7 +420,7 @@
   {% comment %} Texto dinâmico inferior - Parecer do conselho fiscal com quebra de página {% endcomment %}
   <div id="parecer-do-conselho-fiscal-quebra-de-pagina">
     <p class="font-12"><strong>PARECER DO CONSELHO FISCAL</strong></p>
-    <p class="mt-4 texto-justificado">{% parecer_conselho dados.dados_texto_da_ata.parecer_conselho %}</p>
+    <p class="mt-4 texto-justificado">{% parecer_do_conselho dados.dados_texto_da_ata.parecer_conselho %}</p>
 
     {% language 'pt-br' %}
       <p class="mt-5">São Paulo, dia {{ dados.dados_da_ata.data_reuniao|date:"d" }}
