@@ -125,7 +125,9 @@ def gerar_txt(dre, periodo, tipo_conta, obj_arquivo_download, ata, parcial=False
 
 def gerar_dados_lauda(dre, periodo, tipo_conta):
     lista = []
-    ordem = 1
+    ordem_aprovadas = 0
+    ordem_aprovadas_ressalva = 0
+    ordem_rejeitadas = 0
     informacao_unidades = informacoes_execucao_financeira_unidades(dre, periodo, tipo_conta)
     for linha, info in enumerate(informacao_unidades):
         if pc_em_analise(info["status_prestacao_contas"]):
@@ -138,7 +140,7 @@ def gerar_dados_lauda(dre, periodo, tipo_conta):
         unidade = info["unidade"]["tipo_unidade"] + " " + info["unidade"]["nome"]
 
         dado = {
-            "ordem": ordem,
+            "ordem": None,
             "codigo_eol": str(info["unidade"]["codigo_eol"]),
             "unidade": str(unidade),
             "receita": {
@@ -160,6 +162,16 @@ def gerar_dados_lauda(dre, periodo, tipo_conta):
             },
             "status_prestacao_contas": formata_resultado_analise(info["status_prestacao_contas"])
         }
+
+        if info["status_prestacao_contas"] == "APROVADA":
+            ordem_aprovadas = ordem_aprovadas + 1
+            dado["ordem"] = ordem_aprovadas
+        elif info["status_prestacao_contas"] == "APROVADA_RESSALVA":
+            ordem_aprovadas_ressalva = ordem_aprovadas_ressalva + 1
+            dado["ordem"] = ordem_aprovadas_ressalva
+        elif info["status_prestacao_contas"] == "NAO_APRESENTADA" or info["status_prestacao_contas"] == "REPROVADA":
+            ordem_rejeitadas = ordem_rejeitadas + 1
+            dado["ordem"] = ordem_rejeitadas
 
         for index in range(3):
             if index == 0:
@@ -225,7 +237,6 @@ def gerar_dados_lauda(dre, periodo, tipo_conta):
                 dado["saldo"]["livre_aplicacao"] = formata_valor(saldo_livre)
 
         lista.append(dado)
-        ordem = ordem + 1
 
     return lista
 
@@ -285,6 +296,7 @@ def formata_numero_ata(ata):
 
     if numero_ata and data_reuniao:
         return f"{numero_ata}/{data_reuniao.strftime('%Y')}"
+    return "-"
 
 
 def formata_periodo_repasse(ata):
