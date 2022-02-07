@@ -128,7 +128,15 @@ class PrestacaoConta(ModeloBase):
         return self.atas_da_prestacao.filter(tipo_ata='RETIFICACAO', previa=False).last()
 
     def concluir(self, e_retorno_devolucao=False):
-        self.status = self.STATUS_DEVOLVIDA_RETORNADA if e_retorno_devolucao else self.STATUS_NAO_RECEBIDA
+        from ..models import DevolucaoPrestacaoConta
+        if e_retorno_devolucao:
+            self.status = self.STATUS_DEVOLVIDA_RETORNADA
+            ultima_devolucao = DevolucaoPrestacaoConta.objects.filter(prestacao_conta=self).order_by('id').last()
+            ultima_devolucao.data_retorno_ue = date.today()
+            ultima_devolucao.save()
+        else:
+            self.status = self.STATUS_NAO_RECEBIDA
+
         self.save()
         return self
 

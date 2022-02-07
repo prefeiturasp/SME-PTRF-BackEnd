@@ -11,6 +11,8 @@ class DevolucaoPrestacaoConta(ModeloBase):
 
     data_limite_ue = models.DateField('data limite para a ue')
 
+    data_retorno_ue = models.DateField('data do retorno pela ue', null=True, blank=True)
+
     def __str__(self):
         return f"{self.data} - {self.data_limite_ue}"
 
