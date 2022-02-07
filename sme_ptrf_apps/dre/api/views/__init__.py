@@ -9,3 +9,4 @@ from .motivo_reprovacao_viewset import MotivoReprovacaoViewSet
 from .comissoes_viewset import ComissoesViewSet
 from .membros_comissoes_viewset import MembrosComissoesViewSet
 from .anos_analise_regularidade_viewset import AnosAnaliseRegularidadeViewSet
+from .ata_parecer_tecnico_viewset import AtaParecerTecnicoViewset

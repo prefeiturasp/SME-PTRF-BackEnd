@@ -31,7 +31,7 @@ class Receita(ModeloBase):
 
     tipo_receita = models.ForeignKey('TipoReceita', on_delete=models.PROTECT, blank=True, null=True)
 
-    conferido = models.BooleanField('Conferido?', default=False)
+    conferido = models.BooleanField('Conferido?', default=True)
 
     update_conferido = models.BooleanField('Atualiza conferido?', default=False)
 
@@ -178,14 +178,13 @@ class Receita(ModeloBase):
         return totais
 
     def marcar_conferido(self, periodo_conciliacao=None):
-        self.update_conferido = True
+        # A logica de conciliação está sendo feito no pre_save
+
         self.conferido = True
-        self.periodo_conciliacao = periodo_conciliacao
         self.save()
         return self
 
     def desmarcar_conferido(self):
-        self.update_conferido = True
         self.conferido = False
         self.periodo_conciliacao = None
         self.save()
@@ -214,16 +213,15 @@ class Receita(ModeloBase):
 
 
 @receiver(pre_save, sender=Receita)
-def rateio_pre_save(instance, **kwargs):
+def receita_pre_save(instance, **kwargs):
     if instance.tipo_receita.tem_detalhamento():
         instance.detalhe_outros = ""
     else:
         instance.detalhe_tipo_receita = None
 
-    if not instance.update_conferido:
-        instance.conferido = False
-        instance.periodo_conciliacao = None
+    if instance.data:
+        periodo = Periodo.da_data(instance.data)
+        instance.periodo_conciliacao = periodo
 
-    instance.update_conferido = False
 
 auditlog.register(Receita)

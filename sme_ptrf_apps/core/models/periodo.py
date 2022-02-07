@@ -63,6 +63,9 @@ class Periodo(ModeloBase):
         # O período não pode ser editado pelo usuário se houver um período que o referencia como período anterior
         return not self.periodo_seguinte.exists()
 
+    def data_pertence_ao_periodo(self, data):
+        return self.data_inicio_realizacao_despesas <= data <= self.data_fim_realizacao_despesas
+
     @classmethod
     def periodo_atual(cls):
         return cls.objects.latest('data_inicio_realizacao_despesas') if cls.objects.exists() else None
@@ -72,6 +75,7 @@ class Periodo(ModeloBase):
         periodos_da_data = cls.objects.filter(data_inicio_realizacao_despesas__lte=data).filter(
             Q(data_fim_realizacao_despesas__gte=data) | Q(data_fim_realizacao_despesas__isnull=True))
         return periodos_da_data.first() if periodos_da_data else None
+
 
     def notificacao_inicio_prestacao_de_contas_realizada(self):
         self.notificacao_inicio_periodo_pc_realizada = True

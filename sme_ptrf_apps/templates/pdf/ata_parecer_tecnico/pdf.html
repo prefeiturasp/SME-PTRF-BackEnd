@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+{% load staticfiles %}
+{% load formata_valores %}
+{% load i18n %}
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+        integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+  <link href="{{ base_static_url }}/css/ata-parecer-tecnico-pdf.css" rel="stylesheet">
+
+  <title>Ata Parecer Técnico PTRF</title>
+</head>
+<body>
+
+{# ************************* Cabecalho das páginas *************************  #}
+<header>
+  <div class="d-flex">
+    <div class="col-4 d-flex align-items-center">
+      <img src="{{ base_static_url }}/images/logo-color.svg" alt="logo">
+    </div>
+    <div class="col-8 d-flex align-items-center justify-content-center text-center">
+      <p class="mb-0">
+        <span class="titulo font-14"><strong>{{ dados.cabecalho.titulo }}</strong></span><br/>
+        <span class="font-12 mb-0 texto-verde"><strong>{{ dados.cabecalho.sub_titulo }}</strong></span></br>
+        <span class="font-12 mb-0"><strong>{{ dados.cabecalho.nome_ata }}</strong></span></br>
+      </p>
+    </div>
+  </div>
+</header>
+{# ************************* Fim Cabecalho das páginas *************************  #}
+
+{# ************************* Rodape ************************* #}
+<p id="nome-associacao-rodape" class="font-10">
+  <i>{{ dados.cabecalho.data_geracao_documento }}</i>
+</p>
+{# ************************* Fim Rodape ************************* #}
+
+
+<section class="conteudo mt-0">
+
+  <section class="row">
+
+    <article class="col-12 pr-0 mr-0">
+      <p class="font-16 border-bottom pb-3"><strong>ATA DE PARECER TÉCNICO CONCLUSIVO {{ dados.dados_texto_da_ata.numero_ata }}/{{ dados.dados_texto_da_ata.data_reuniao|date:"Y" }}</strong>
+      </p>
+      <p class="font-12">{{ dados.dados_texto_da_ata.data_reuniao_por_extenso }},
+        à(s) {{ dados.dados_texto_da_ata.hora_reuniao }},
+        reuniu-se a Comissão de Prestação de Contas do PTRF da Diretoria Regional de
+        Educação {{ dados.cabecalho.nome_dre }}, instituída pela Portaria DRE - {{ dados.cabecalho.nome_dre }} nº {{ dados.cabecalho.numero_portaria }}/{{ dados.cabecalho.data_portaria|date:"Y" }} de {{ dados.cabecalho.data_portaria|date:"d/m/Y" }}, para
+        análise das prestações de contas dos recursos transferidos pelo Programa de Transferência de Recursos
+        Financeiros - PTRF, período de {{ dados.dados_texto_da_ata.periodo_data_inicio }}
+        até {{ dados.dados_texto_da_ata.periodo_data_fim }}, conforme inciso III e IV do art. 34 da Portaria SME nº
+        6.634/2021 e deliberou:</p>
+
+    </article>
+  </section>
+
+  <article class="col-12 pl-0">
+    <p class="titulo-tabelas">
+      a) <span class="titulo-tabelas-aprovadas"><strong>APROVAR</strong></span> as prestações de contas das
+      Associações das unidades abaixo relacionadas,
+      analisadas sob aspecto de exatidão numérica e obediência à legislação, conforme inciso
+      I do art. 36 da Portaria SME nº 6.634/2021:
+    </p>
+  </article>
+
+  <article class="col-12 pl-0">
+    {# Incluindo tabela de Aprovadas, passando dados como parametro #}
+    {% include "./partials/talela-aprovadas.html" with dados=dados %}
+  </article>
+
+  <article class="col-12 pl-0">
+    <p class="titulo-tabelas">
+      b) <span class="titulo-tabelas-aprovadas"><strong>APROVAR COM RESSALVAS</strong></span> as prestações de
+      contas das Associações das unidades abaixo relacionadas,
+      analisadas sob aspecto de exatidão numérica e obediência à legislação, conforme inciso
+      II do art. 36 da Portaria SME nº 6.634/2021:
+    </p>
+  </article>
+
+  <article class="col-12 pl-0">
+    {# Incluindo tabela de Aprovadas com Ressalvas, passando dados como parametro #}
+    {% include "./partials/tabela-aprovada-com-ressalvas.html" with dados=dados %}
+  </article>
+
+  <article class="col-12 pl-0">
+    <p class="titulo-tabelas mt-4">
+      c) <span class="titulo-tabelas-reprovadas"><strong>REJEITAR</strong></span> as prestações de contas das
+      Associações das unidades abaixo relacionadas,
+      conforme inciso III do art. 36 da Portaria SME nº 6.634/2021:
+    </p>
+
+    {# Incluindo tabela de Reprovadas, passando dados como parametro #}
+    {% include "./partials/tabela-rejeitadas.html" with dados=dados %}
+  </article>
+
+  <article class="col-12 pl-0">
+    <p class="mt-4 titulo-assinaturas font-12">
+      d) Submeter ao Sr. Diretor Regional de Educação, a presente Ata, com o parecer conclusivo desta Comissão atendendo
+      ao inciso IV, do art. 34 da Portaria SME nº 6.634/2021, manter sob custódia até a publicação do despacho no DOC e
+      juntar cópia desta Ata ao processo.
+      Nada mais a ser tratado, os trabalho foram encerrados, a Ata lida e achada conforme, vai assinada pelos membros da
+      Comissão.
+    </p>
+    <p class="mt-3 titulo-assinaturas font-12">
+      Nada mais a ser tratado, os trabalhos foram encerrados, a Ata lida e achada conforme,
+      vai assinada pelos membros da Comissão.
+    </p>
+
+    <p class="mt-3 mb-3 titulo-assinaturas font-12">
+      {% language 'pt-br' %}
+        São Paulo, dia {% now "j" %} de {% now "F" %} de {% now "Y" %}
+      {% endlanguage %}
+    </p>
+  </article>
+
+  <article class="col-12 pl-0">
+    {% if dados.presentes_na_ata.presentes %}
+      {% for presente in dados.presentes_na_ata.presentes %}
+
+        <div class="row box-assinaturas ml-0 mr-0 mb-3">
+
+          <div class="col-7 p-2 align-self-center">
+
+            <p class="mb-0 ml-2"><strong>Nome: </strong>{{ presente.nome }}</p>
+            <p class="mb-0 ml-2"><strong>Cargo: </strong>{{ presente.cargo }}</p>
+            <p class="mb-0 ml-2"><strong>RF: </strong>{{ presente.rf }}</p>
+
+          </div>
+
+          <div class="col-5 pt-5 pb-2 align-self-center text-center">
+
+            <hr class="mb-1 linha-assinatura mr-2"/>
+            <p class="mt-0 mr-2"><strong>Assinatura</strong></p>
+
+          </div>
+        </div>
+
+
+      {% endfor %}
+    {% else %}
+      <p>Não existem membros cadastrados</p>
+
+    {% endif %}
+  </article>
+
+
+</section>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
+        crossorigin="anonymous"></script>
+
+</body>
+</html>

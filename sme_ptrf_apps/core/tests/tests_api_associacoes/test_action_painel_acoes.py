@@ -82,9 +82,9 @@ def test_action_painel_acoes(
                 'despesas_nao_conciliadas_anteriores_capital': 0,
                 'despesas_nao_conciliadas_anteriores_custeio': 50.0,
 
-                'receitas_nao_conciliadas': 400.0,
+                'receitas_nao_conciliadas': 0,
                 'receitas_nao_conciliadas_capital': 0,
-                'receitas_nao_conciliadas_custeio': 400.0,
+                'receitas_nao_conciliadas_custeio': 0,
                 'receitas_nao_conciliadas_livre': 0,
 
                 'especificacoes_despesas_capital': ['Ar condicionado', ],
@@ -94,10 +94,10 @@ def test_action_painel_acoes(
                 'repasses_nao_realizados_custeio': 0.0,
                 'repasses_nao_realizados_livre': 0.0,
 
-                'saldo_bancario_capital': 0,
-                'saldo_bancario_custeio': 50.0,
-                'saldo_bancario_livre': 0,
-                'saldo_bancario_total': 50.0,
+                'saldo_bancario_capital': 200,
+                'saldo_bancario_custeio': 450.0,
+                'saldo_bancario_livre': -200,
+                'saldo_bancario_total': 450.0,
             }
         ],
         'info_conta': None,
@@ -287,9 +287,9 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
                 'despesas_nao_conciliadas_anteriores_custeio': 0,
 
                 'saldo_bancario_capital': 0,
-                'saldo_bancario_custeio': 0,
+                'saldo_bancario_custeio': 100,
                 'saldo_bancario_livre': 0,
-                'saldo_bancario_total': 0,
+                'saldo_bancario_total': 100,
 
                 'saldo_atual_custeio': 100.0,
                 'saldo_atual_capital': 0,
@@ -300,9 +300,9 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
                 'despesas_nao_conciliadas_capital': 0,
                 'despesas_nao_conciliadas_custeio': 0,
 
-                'receitas_nao_conciliadas': 100.0,
+                'receitas_nao_conciliadas': 0,
                 'receitas_nao_conciliadas_capital': 0,
-                'receitas_nao_conciliadas_custeio': 100.0,
+                'receitas_nao_conciliadas_custeio': 0,
                 'receitas_nao_conciliadas_livre': 0,
 
                 'especificacoes_despesas_capital': [],
@@ -361,13 +361,13 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
                 'despesas_nao_conciliadas_anteriores_custeio': 0,
 
                 'saldo_bancario_capital': 0,
-                'saldo_bancario_custeio': 0,
+                'saldo_bancario_custeio': 100,
                 'saldo_bancario_livre': 0,
-                'saldo_bancario_total': 0,
+                'saldo_bancario_total': 100,
 
-                'receitas_nao_conciliadas': 100.0,
+                'receitas_nao_conciliadas': 0,
                 'receitas_nao_conciliadas_capital': 0,
-                'receitas_nao_conciliadas_custeio': 100.0,
+                'receitas_nao_conciliadas_custeio': 0,
                 'receitas_nao_conciliadas_livre': 0,
 
                 'especificacoes_despesas_capital': [],

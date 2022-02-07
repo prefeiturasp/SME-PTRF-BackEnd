@@ -296,11 +296,13 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
                 info['despesas_no_periodo_custeio'] += rateio.valor_rateio
                 info['saldo_atual_custeio'] -= rateio.valor_rateio
                 info['despesas_nao_conciliadas_custeio'] += rateio.valor_rateio if not rateio.conferido else 0
+                info['despesas_conciliadas_custeio'] += rateio.valor_rateio if rateio.conferido else 0
 
             else:
                 info['despesas_no_periodo_capital'] += rateio.valor_rateio
                 info['saldo_atual_capital'] -= rateio.valor_rateio
                 info['despesas_nao_conciliadas_capital'] += rateio.valor_rateio if not rateio.conferido else 0
+                info['despesas_conciliadas_capital'] += rateio.valor_rateio if rateio.conferido else 0
 
         return info
 
@@ -338,6 +340,20 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
             logger.debug(f'Usado saldo de livre aplicação para cobertura de capital')
             info['saldo_atual_livre'] += info['saldo_atual_capital']
             info['saldo_atual_capital'] = 0
+
+        info['saldo_bancario_capital'] += (
+            info['saldo_atual_capital'] +
+            info['despesas_nao_conciliadas_capital']
+        )
+
+        info['saldo_bancario_custeio'] += (
+            info['saldo_atual_custeio'] +
+            info['despesas_nao_conciliadas_custeio']
+        )
+
+        info['saldo_bancario_livre'] += (
+            info['saldo_atual_livre']
+        )
 
         return info
 

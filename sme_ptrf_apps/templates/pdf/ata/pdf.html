@@ -5,6 +5,7 @@
 {% load staticfiles %}
 {% load static %}
 {% load formata_valores %}
+{% load paracer_do_conselho %}
 {% load i18n %}
 
 <head>
@@ -56,6 +57,26 @@
       do(a) {{ dados.dados_texto_da_ata.unidade_tipo }} {{ dados.dados_texto_da_ata.unidade_nome }}
     </strong>
   </p>
+  {% if dados.cabecalho.tipo_ata == 'Retificação' %}
+    <p class="font-12 texto-justificado">
+      {{ dados.dados_texto_da_ata.data_reuniao_por_extenso }}
+      no(a) {{ dados.dados_texto_da_ata.local_reuniao }}, {{ dados.dados_texto_da_ata.unidade_tipo }} {{ dados.dados_texto_da_ata.unidade_nome }},
+      com início às {{ dados.dados_texto_da_ata.hora_reuniao }}, reuniram-se os membros
+      da {{ dados.dados_texto_da_ata.associacao_nome }},
+      para tratar da seguinte pauta: Retificação da Prestação de Contas do PTRF e suas ações agregadas, do período
+      de {{ dados.cabecalho.periodo_data_inicio }}
+      a {{ dados.cabecalho.periodo_data_fim }},
+      referente ao {{ dados.dados_texto_da_ata.periodo_referencia }}.
+      Aberta a reunião em
+      {% if dados.dados_da_ata.get_convocacao_display %}{{ dados.dados_da_ata.get_convocacao_display }}{% else %}
+        "___"{% endif %},
+      pelo(a) Senhor(a) {{ dados.dados_texto_da_ata.presidente_reuniao }},
+      {{ dados.dados_texto_da_ata.cargo_presidente_reuniao }} e verificada a existência de número legal de membros
+      presentes, o(a) senhor(a)
+      {{ dados.dados_texto_da_ata.presidente_reuniao }} apresentou as alterações realizadas, conforme solicitado pela
+      DRE, resultando nos dados consolidados, conforme segue:
+    </p>
+  {% else %}
   <p class="font-12 texto-justificado">
     {{ dados.dados_texto_da_ata.data_reuniao_por_extenso }}
     no(a) {{ dados.dados_texto_da_ata.local_reuniao }}, {{ dados.dados_texto_da_ata.unidade_tipo }} {{ dados.dados_texto_da_ata.unidade_nome }},
@@ -73,15 +94,13 @@
     {{ dados.dados_texto_da_ata.presidente_reuniao }} apresentou os documentos fiscais referentes às despesas realizadas
     no período para análise dos presentes, conforme segue:
   </p>
+  {% endif %}
 
   {% if dados.cabecalho.tipo_ata == 'Retificação' %}
 
     {% if dados.retificacoes %}
       <p><strong>Retificações</strong></p>
       <p>{{ dados.retificacoes|linebreaks }}</p>
-    {% else %}
-      <p class="mb-0"><strong>Retificações</strong></p>
-      <p>...</p>
     {% endif %}
 
     {% if dados.devolucoes_ao_tesouro %}
@@ -109,10 +128,6 @@
           </tbody>
         {% endfor %}
       </table>
-
-    {% else %}
-      <p class="mb-0"><strong>Devoluções ao tesouro</strong></p>
-      <p>...</p>
 
     {% endif %}
 
@@ -336,10 +351,18 @@
   {% comment %} Comentários {% endcomment %}
   <p class="mt-4 texto-justificado">{{ dados.dados_texto_da_ata.comentarios }}</p>
 
-  <p class="mt-4 texto-justificado">Esgotados os assuntos o(a) senhor(a) presidente ofereceu a palavra a quem dela desejasse fazer uso e,
-    como não houve manifestação, agradeceu a presença de todos e considerou encerrada a reunião, a qual
-    eu, {{ dados.dados_texto_da_ata.secretario_reuniao }}, lavrei a presente ata, que vai por mim assinada e pelos
-    demais presentes.</p>
+  {% if not dados.dados_texto_da_ata.comentarios %}
+    <p class="mt-4 texto-justificado">Esgotados os assuntos o(a) senhor(a) presidente ofereceu a palavra a quem dela desejasse fazer uso e,
+      como não houve manifestação, agradeceu a presença de todos e considerou encerrada a reunião, a qual
+      eu, {{ dados.dados_texto_da_ata.secretario_reuniao }}, lavrei a presente ata, que vai por mim assinada e pelos
+      demais presentes.</p>
+  {% endif %}
+
+  {% if dados.dados_texto_da_ata.comentarios %}
+    <p class="mt-4 texto-justificado">Esgotados os assuntos o(a) senhor(a) presidente agradeceu a presença de todos e
+      considerou encerrada a reunião, a qual  eu, {{ dados.dados_texto_da_ata.secretario_reuniao }},
+      lavrei a presente ata, que vai por mim assinada e pelos demais presentes.</p>
+  {% endif %}
 
   {% language 'pt-br' %}
     <p class="mt-4">São Paulo, dia {{ dados.dados_da_ata.data_reuniao|date:"d" }}
@@ -393,7 +416,7 @@
   {% comment %} Texto dinâmico inferior - Parecer do conselho fiscal com quebra de página {% endcomment %}
   <div id="parecer-do-conselho-fiscal-quebra-de-pagina">
     <p class="font-12"><strong>PARECER DO CONSELHO FISCAL</strong></p>
-    <p class="mt-4 texto-justificado">{% parecer_conselho dados.dados_texto_da_ata.parecer_conselho %}</p>
+    <p class="mt-4 texto-justificado">{% parecer_do_conselho dados.dados_texto_da_ata.parecer_conselho %}</p>
 
     {% language 'pt-br' %}
       <p class="mt-5">São Paulo, dia {{ dados.dados_da_ata.data_reuniao|date:"d" }}

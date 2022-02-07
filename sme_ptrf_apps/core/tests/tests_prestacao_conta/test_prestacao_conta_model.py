@@ -60,6 +60,7 @@ def test_dash_board(prestacao_conta1, prestacao_conta2, periodo, dre):
     esperado = [
         {
             'titulo': 'Prestações de contas não recebidas',
+            'quantidade_nao_recebida': 0,
             'quantidade_prestacoes': 0,
             'status': 'NAO_RECEBIDA'},
         {

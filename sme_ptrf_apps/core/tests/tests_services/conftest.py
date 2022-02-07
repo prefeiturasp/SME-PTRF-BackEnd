@@ -337,7 +337,7 @@ def rateio_despesa_2020_ptrf_conferido(associacao, despesa_2020_1, conta_associa
         valor_rateio=100.00,
         update_conferido=True,
         conferido=True,
-
+        periodo_conciliacao=periodo_2020_1,
     )
 
 

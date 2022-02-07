@@ -227,13 +227,15 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta):
 
         return totais
 
-    def _totaliza_devolucoes_ao_tesouro(dre, periodo, totais):
+    def _totaliza_devolucoes_ao_tesouro(dre, periodo, totais, tipo_conta):
         # Devoluções ao tesouro de PCs de Associações da DRE, no período e concluídas
         devolucoes = DevolucaoAoTesouro.objects.filter(
             prestacao_conta__periodo=periodo,
             prestacao_conta__associacao__unidade__dre=dre,
-            prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
-        )
+            prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+            despesa__rateios__conta_associacao__tipo_conta=tipo_conta
+        ).distinct("pk")
+
         for devolucao in devolucoes:
             totais['devolucoes_ao_tesouro_no_periodo_total'] += devolucao.valor
 
@@ -247,7 +249,7 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta):
 
     totais = _totaliza_previsoes_repasses_sme(dre, periodo, tipo_conta, totais)
 
-    totais = _totaliza_devolucoes_ao_tesouro(dre, periodo, totais)
+    totais = _totaliza_devolucoes_ao_tesouro(dre, periodo, totais, tipo_conta)
 
     return totais
 
@@ -255,7 +257,6 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta):
 def add_obs_devolucoes_dre(devolucoes, tipo_devolucao, dre, periodo, tipo_conta):
     result = []
     for dev in devolucoes:
-
         if tipo_devolucao == 'CONTA':
             registro_obs = ObsDevolucaoRelatorioConsolidadoDRE.objects.filter(
                 dre=dre,
@@ -314,11 +315,17 @@ def informacoes_devolucoes_a_conta_ptrf(dre, periodo, tipo_conta):
 
 def informacoes_devolucoes_ao_tesouro(dre, periodo, tipo_conta):
     # Devoluções ao tesouro de PCs de Associações da DRE, no período da conta e concluídas
-    devolucoes = DevolucaoAoTesouro.objects.filter(
+
+    # Necessário realizar as duas querys para usar o distinct e annotate
+    distinct_devolucoes = DevolucaoAoTesouro.objects.filter(
         prestacao_conta__periodo=periodo,
         prestacao_conta__associacao__unidade__dre=dre,
-        prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
-    ).values('tipo__nome', 'tipo__uuid').annotate(ocorrencias=Count('uuid'), valor=Sum('valor'))
+        prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+        despesa__rateios__conta_associacao__tipo_conta=tipo_conta
+    ).distinct("uuid")
+
+    devolucoes = DevolucaoAoTesouro.objects.values('tipo__nome', 'tipo__uuid').filter(
+        id__in=distinct_devolucoes).annotate(ocorrencias=Count('uuid'), valor=Sum('valor'))
 
     return add_obs_devolucoes_dre(devolucoes, 'TESOURO', dre=dre, periodo=periodo,
                                   tipo_conta=tipo_conta)
@@ -545,25 +552,60 @@ def informacoes_execucao_financeira_unidades(
                 }
             )
         else:
-            resultado.append(
-                {
-                    'unidade': {
-                        'uuid': f'{associacao.unidade.uuid}',
-                        'codigo_eol': associacao.unidade.codigo_eol,
-                        'tipo_unidade': associacao.unidade.tipo_unidade,
-                        'nome': associacao.unidade.nome,
-                        'sigla': associacao.unidade.sigla,
-                    },
 
-                    'status_prestacao_contas': status_prestacao_conta,
-                    'valores': totais,
-                }
-            )
+            dado = {
+                'unidade': {
+                    'uuid': f'{associacao.unidade.uuid}',
+                    'codigo_eol': associacao.unidade.codigo_eol,
+                    'tipo_unidade': associacao.unidade.tipo_unidade,
+                    'nome': associacao.unidade.nome,
+                    'sigla': associacao.unidade.sigla,
+                },
+
+                'status_prestacao_contas': status_prestacao_conta,
+                'valores': totais,
+                'uuid_pc': prestacao_conta.uuid,
+            }
+
+            if status_prestacao_conta == "REPROVADA":
+                dado["motivos_reprovacao"] = get_teste_motivos_reprovacao(prestacao_conta)
+            elif status_prestacao_conta == "APROVADA_RESSALVA":
+                dado["motivos_aprovada_ressalva"] = get_motivos_aprovacao_ressalva(prestacao_conta)
+
+            resultado.append(dado)
 
     resultado = sorted(resultado, key=lambda row: row['status_prestacao_contas'])
     resultado.extend(resultado_nao_apresentada)
 
     return resultado
+
+
+def get_motivos_aprovacao_ressalva(prestacao_conta):
+    lista_motivos_e_outros = []
+
+    motivos = prestacao_conta.motivos_aprovacao_ressalva.values("motivo")
+    for motivo in motivos:
+        lista_motivos_e_outros.append(motivo["motivo"])
+
+    outros_motivos = prestacao_conta.outros_motivos_aprovacao_ressalva
+    if outros_motivos:
+        lista_motivos_e_outros.append(outros_motivos)
+
+    return lista_motivos_e_outros
+
+
+def get_teste_motivos_reprovacao(prestacao_conta):
+    lista_motivos_e_outros = []
+
+    motivos = prestacao_conta.motivos_reprovacao.values("motivo")
+    for motivo in motivos:
+        lista_motivos_e_outros.append(motivo["motivo"])
+
+    outros_motivos = prestacao_conta.outros_motivos_reprovacao
+    if outros_motivos:
+        lista_motivos_e_outros.append(outros_motivos)
+
+    return lista_motivos_e_outros
 
 
 def update_observacao_devolucao(dre, tipo_conta, periodo, tipo_devolucao, subtipo_devolucao, observacao):

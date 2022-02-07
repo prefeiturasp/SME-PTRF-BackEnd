@@ -29,6 +29,7 @@ def membro_beto_comissao_a_b_dre_x(comissao_a, comissao_b, dre_x):
         'MembroComissao',
         rf='123456',
         nome='Beto',
+        cargo='teste',
         email='beto@teste.com',
         dre=dre_x,
         comissoes=[comissao_a, comissao_b]
@@ -42,6 +43,7 @@ def membro_alex_comissao_a_dre_x(comissao_a, dre_x):
         'MembroComissao',
         rf='123457',
         nome='Alex',
+        cargo='teste',
         email='alex@teste.com',
         dre=dre_x,
         comissoes=[comissao_a, ]
@@ -55,6 +57,7 @@ def membro_jose_comissao_a_b_dre_y(comissao_a, comissao_b, dre_y):
         'MembroComissao',
         rf='123458',
         nome='José',
+        cargo='teste',
         email='ze@teste.com',
         dre=dre_y,
         comissoes=[comissao_a, comissao_b]

@@ -377,6 +377,7 @@ def test_api_get_info_execucao_financeira_por_unidade(
         },
 
         'status_prestacao_contas': 'APROVADA',
+        'uuid_pc': f'{prestacao_conta.uuid}',
         'valores': totais_esperados_associacao,
     }
 

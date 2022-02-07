@@ -122,10 +122,10 @@ class PrestacaoConta(ModeloBase):
             demonstrativo.delete()
 
     def ultima_ata(self):
-        return self.atas_da_prestacao.filter(tipo_ata='APRESENTACAO').last()
+        return self.atas_da_prestacao.filter(tipo_ata='APRESENTACAO', previa=False).last()
 
     def ultima_ata_retificacao(self):
-        return self.atas_da_prestacao.filter(tipo_ata='RETIFICACAO').last()
+        return self.atas_da_prestacao.filter(tipo_ata='RETIFICACAO', previa=False).last()
 
     def concluir(self, e_retorno_devolucao=False):
         self.status = self.STATUS_DEVOLVIDA_RETORNADA if e_retorno_devolucao else self.STATUS_NAO_RECEBIDA
@@ -389,6 +389,7 @@ class PrestacaoConta(ModeloBase):
         card_nao_recebidas = {
             "titulo": titulos_por_status['NAO_RECEBIDA'],
             "quantidade_prestacoes": quantidade_pcs_nao_apresentadas,
+            "quantidade_nao_recebida": qs.filter(status=cls.STATUS_NAO_RECEBIDA).count(),
             "status": 'NAO_RECEBIDA'
         }
         cards.insert(0, card_nao_recebidas)

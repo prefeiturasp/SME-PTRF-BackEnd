@@ -1,0 +1,38 @@
+{% load staticfiles %}
+{% load formata_valores %}
+
+{% if dados.reprovadas.info %}
+  <table class="table table-bordered tabela-status-pc">
+    <thead>
+    <tr>
+      <th scope="col" style="width: 2%; ">Ordem</th>
+      <th scope="col" style="width: 25%; ">Unidade educacional</th>
+      <th scope="col">Motivo(s)</th>
+    </tr>
+    </thead>
+
+    {% for dados in dados.reprovadas.info %}
+      <tbody>
+      <tr>
+        <td rowSpan="4">{{ forloop.counter }}</td>
+        <td rowSpan="3">
+          <strong>{{ dados.unidade.codigo_eol }}- {{ dados.unidade.tipo_unidade }} {{ dados.unidade.nome }}</strong>
+        </td>
+        <td class="pt-2 pb-2">
+          <strong>Motivo(s):</strong>
+          {% if dados.motivos_reprovacao %}
+            {% for motivo in dados.motivos_reprovacao %}
+              <span> {{ motivo }}, </span>
+            {% endfor %}
+          {% else %}
+            <span>Não existem motivos cadastrados</span>
+          {% endif %}
+        </td>
+      </tr>
+      </tbody>
+
+    {% endfor %}
+  </table>
+{% else %}
+  <p class="font-12">Nenhuma prestação de contas reprovada</p>
+{% endif %}

@@ -82,9 +82,9 @@ def test_resultado_periodo_aberto_sem_receitas_sem_despesas(
         'despesas_conciliadas_capital': 0.0,
         'despesas_conciliadas_custeio': 0.0,
 
-        'saldo_bancario_capital': 0.0,
-        'saldo_bancario_custeio': 0.0,
-        'saldo_bancario_livre': 0.0,
+        'saldo_bancario_capital': 100.0,
+        'saldo_bancario_custeio': 200.0,
+        'saldo_bancario_livre': 2000.0,
 
     }
     resultado = info_acao_associacao_no_periodo(acao_associacao, periodo)
@@ -109,7 +109,7 @@ def test_resultado_periodo_aberto_com_receitas_sem_despesas(
         'despesas_no_periodo_custeio': 0,
         'saldo_atual_custeio': 800,
         'despesas_nao_conciliadas_custeio': 0.0,
-        'receitas_nao_conciliadas_custeio': 600.0,
+        'receitas_nao_conciliadas_custeio': 0.0,
 
         'receitas_devolucao_no_periodo_capital': 0.0,
         'receitas_devolucao_no_periodo_custeio': 0.0,
@@ -126,15 +126,15 @@ def test_resultado_periodo_aberto_com_receitas_sem_despesas(
         'saldo_anterior_livre': 2000,
         'receitas_no_periodo_livre': 1000,
         'repasses_no_periodo_livre': 0,
-        'saldo_atual_livre': 3000,
-        'receitas_nao_conciliadas_livre': 1000.0,
+        'saldo_atual_livre': 3000.00,
+        'receitas_nao_conciliadas_livre': 0.0,
 
         'despesas_conciliadas_capital': 0.0,
         'despesas_conciliadas_custeio': 0.0,
 
-        'saldo_bancario_capital': 0.0,
-        'saldo_bancario_custeio': 0.0,
-        'saldo_bancario_livre': 0.0,
+        'saldo_bancario_capital': 100.0,
+        'saldo_bancario_custeio': 800.0,
+        'saldo_bancario_livre': 3000.0,
 
     }
     resultado = info_acao_associacao_no_periodo(acao_associacao, periodo)
@@ -183,9 +183,9 @@ def test_resultado_periodo_aberto_com_despesas_sem_receitas(
         'despesas_conciliadas_capital': 0.0,
         'despesas_conciliadas_custeio': 0.0,
 
-        'saldo_bancario_capital': 0.0,
-        'saldo_bancario_custeio': 0.0,
-        'saldo_bancario_livre': 0.0,
+        'saldo_bancario_capital': 200.0,
+        'saldo_bancario_custeio': 200.0,
+        'saldo_bancario_livre': 1900.0,
 
     }
     resultado = info_acao_associacao_no_periodo(acao_associacao, periodo)
@@ -215,7 +215,7 @@ def test_resultado_periodo_aberto_com_despesas_e_receitas(
         'despesas_no_periodo_custeio': 100,
         'saldo_atual_custeio': 700,
         'despesas_nao_conciliadas_custeio': 100.0,
-        'receitas_nao_conciliadas_custeio': 600.0,
+        'receitas_nao_conciliadas_custeio': 0.0,
 
         'receitas_devolucao_no_periodo_capital': 0.0,
         'receitas_devolucao_no_periodo_custeio': 0.0,
@@ -238,9 +238,9 @@ def test_resultado_periodo_aberto_com_despesas_e_receitas(
         'despesas_conciliadas_capital': 0.0,
         'despesas_conciliadas_custeio': 0.0,
 
-        'saldo_bancario_capital': 0.0,
-        'saldo_bancario_custeio': 0.0,
-        'saldo_bancario_livre': 0.0,
+        'saldo_bancario_capital': 200.0,
+        'saldo_bancario_custeio': 800.0,
+        'saldo_bancario_livre': 1900.0,
 
     }
     resultado = info_acao_associacao_no_periodo(acao_associacao, periodo)
@@ -275,7 +275,7 @@ def test_resultado_periodo_aberto_consumo_do_saldo_livre_aplicacao(
         'despesas_no_periodo_capital': 1500,
         'saldo_atual_capital': 0,
         'despesas_nao_conciliadas_capital': 1500.0,
-        'receitas_nao_conciliadas_capital': 100.0,
+        'receitas_nao_conciliadas_capital': 0.0,
 
         'saldo_anterior_livre': 2000,
         'receitas_no_periodo_livre': 0,
@@ -286,9 +286,9 @@ def test_resultado_periodo_aberto_consumo_do_saldo_livre_aplicacao(
         'despesas_conciliadas_capital': 0.0,
         'despesas_conciliadas_custeio': 0.0,
 
-        'saldo_bancario_capital': 0.0,
+        'saldo_bancario_capital': 1500.0,
         'saldo_bancario_custeio': 0.0,
-        'saldo_bancario_livre': 0.0,
+        'saldo_bancario_livre': 1600.0,
 
     }
     resultado = info_acao_associacao_no_periodo(acao_associacao, periodo)
