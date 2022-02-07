@@ -12,6 +12,7 @@ def test_instance_model(devolucao_prestacao_conta_2020_1):
     assert isinstance(model.prestacao_conta, PrestacaoConta)
     assert model.data
     assert model.data_limite_ue
+    assert not model.data_retorno_ue
 
 
 def test_srt_model(devolucao_prestacao_conta_2020_1):

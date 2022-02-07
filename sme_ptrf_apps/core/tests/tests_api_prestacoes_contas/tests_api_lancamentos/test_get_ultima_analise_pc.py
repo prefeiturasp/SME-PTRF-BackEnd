@@ -60,7 +60,9 @@ def test_get_ultima_analise_pc(jwt_authenticated_client_a, analise_prestacao_con
             'devolucao_prestacao_conta': {
                 'uuid': f'{analise_prestacao.devolucao_prestacao_conta.uuid}',
                 'prestacao_conta': f'{analise_prestacao.prestacao_conta.uuid}',
-                'data': '2020-10-05', 'data_limite_ue': '2020-08-01',
+                'data': '2020-10-05',
+                'data_limite_ue': '2020-08-01',
+                'data_retorno_ue': None,
                 'cobrancas_da_devolucao': []
             },
             'status': 'DEVOLVIDA',
