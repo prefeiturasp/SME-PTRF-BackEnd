@@ -5,9 +5,29 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.25.0
+Versão: 1.26.0
 
 ## Release Notes
+
+### 1.26.0 - 07/02/2022 - Entregas da Sprint 34
+* UE > A conciliação bancária agora só trada de gastos; créditos são conciliados automaticamente 
+* UE > Várias mudanças na forma que a conciliação bancária trata transações de períodos anteriores
+* UE > Algumas mudanças de layout na conciliação bancária
+* UE > Notificações de comentários agora são recebidos por qualquer usuário com a permissão 
+* UE > Agora é possível gerar prévias de atas de apresentação e retificação antes de concluir o período
+* UE > O formulário de devoluções ao tesouro na ata de retificação foi simplificado
+* UE > Foram feitas várias mudanças de textos nas atas de apresentação e retificação de PC
+* UE > Agora no Demonstrativo Financeiro em PDF não ocorre mais quebra de página no meio de uma ação no bloco 3
+* DRE > Implementada a ata de parecer técnico em tela e PDF
+* DRE > Implementada a geração das laudas de parecer técnico
+* DRE > Em Dados da Diretória não é mais obrigatório a digitação do CNPJ
+* DRE > Melhoria na distribuição das colunas na análise de lançamentos de uma PC
+* DRE > Agora o dashboard de acompanhamento de PCs chama a atenção para a existência de PCs apresentadas
+* DRE > Agora a análise de prestações de contas mantém o último estado de seleções e posição para facilitar o uso
+* ADM > Agora é possível desativar o envio de e-mails em notificações
+* Ajustes de textos diversos
+* 🐞 Correção de bugs
+
 
 ### 1.25.0 - 29/12/2021 - Entregas da Sprint 33
 * UE > Atas de apresentação e retificação agora incluem o horário da reunião
