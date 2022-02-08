@@ -282,6 +282,13 @@ class PrestacaoConta(ModeloBase):
     @transaction.atomic
     def concluir_analise(self, resultado_analise, analises_de_conta_da_prestacao, motivos_aprovacao_ressalva,
                          outros_motivos_aprovacao_ressalva, data_limite_ue, motivos_reprovacao, outros_motivos_reprovacao):
+
+        from ..services.notificacao_services import notificar_prestacao_de_contas_aprovada
+
+        from ..services.notificacao_services import notificar_prestacao_de_contas_aprovada_com_ressalvas
+
+        from ..services.notificacao_services import notificar_prestacao_de_contas_reprovada
+
         prestacao_atualizada = self.salvar_analise(resultado_analise=resultado_analise,
                                                    analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
                                                    motivos_aprovacao_ressalva=motivos_aprovacao_ressalva,
@@ -291,6 +298,15 @@ class PrestacaoConta(ModeloBase):
 
         if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
             prestacao_atualizada = prestacao_atualizada.devolver(data_limite_ue=data_limite_ue)
+
+        if resultado_analise == PrestacaoConta.STATUS_APROVADA:
+            notificar_prestacao_de_contas_aprovada(self)
+
+        if resultado_analise == PrestacaoConta.STATUS_APROVADA_RESSALVA:
+            notificar_prestacao_de_contas_aprovada_com_ressalvas(self, motivos_aprovacao_ressalva, outros_motivos_aprovacao_ressalva)
+
+        if resultado_analise == PrestacaoConta.STATUS_REPROVADA:
+            notificar_prestacao_de_contas_reprovada(self, motivos_reprovacao, outros_motivos_reprovacao)
 
         return prestacao_atualizada
 
