@@ -1,3 +1,6 @@
+### 1.25.6 - 08/02/2022 - Hotfix - Problema na geração de PDF ao concluir período
+* (55534) - Relação de Bens em PDF - Cria templatetag separada - replace_string_normalizada
+
 ### 1.25.5 - 13/01/2022 - Hotfix - Problema de notificação de atraso devolução indevida
 * (55534) - Resolve notificação indevida de atraso em entrega de ajustes de PC
 
