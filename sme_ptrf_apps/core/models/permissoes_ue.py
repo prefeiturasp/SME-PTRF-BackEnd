@@ -158,4 +158,7 @@ class FuncUeRecebimentoDeNotificacoes(models.Model):
             ('recebe_notificacao_atraso_entrega_ajustes_prestacao_de_contas', '[UE] Pode receber Notificação Atraso Entrega Ajustes Prestação de Contas'),
             ('recebe_notificacao_proximidade_fim_prazo_ajustes_prestacao_de_contas', '[UE] Pode receber Notificação Proximidade Fim Prazo Ajustes Prestação de Contas'),
             ('recebe_notificacao_comentario_em_pc', '[UE] Pode receber Notificação de Comentários'),
+            ('recebe_notificacao_aprovacao_pc', '[UE] Pode receber Notificação Prestação de Contas Aprovada'),
+            ('recebe_notificacao_reprovacao_pc_nao_incluindo_motivos', '[UE] Pode receber Notificação Prestação de Contas Reprovada Não Incluindo Motivos'),
+            ('recebe_notificacao_reprovacao_pc_incluindo_motivos', '[UE] Pode receber Notificação Prestação de Contas Reprovada Incluindo Motivos'),
         )
