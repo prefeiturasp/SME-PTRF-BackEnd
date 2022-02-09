@@ -1623,6 +1623,7 @@ def devolucao_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada):
         prestacao_conta=prestacao_conta_2020_1_conciliada,
         data=date(2020, 7, 1),
         data_limite_ue=date(2020, 8, 1),
+        data_retorno_ue=None
     )
 
 

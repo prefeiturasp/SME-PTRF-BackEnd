@@ -314,6 +314,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(
                 ],
                 'data': '2020-07-01',
                 'data_limite_ue': '2020-08-01',
+                'data_retorno_ue': None,
                 'prestacao_conta': f'{prestacao_conta.uuid}',
                 'uuid': f'{_devolucao_prestacao_conta.uuid}'
             }
