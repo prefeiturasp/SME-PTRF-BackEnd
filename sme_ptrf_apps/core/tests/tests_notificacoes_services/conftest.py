@@ -72,6 +72,21 @@ def permissao_recebe_notificacao_proximidade_fim_entrega_ajustes_pc():
 
 
 @pytest.fixture
+def permissao_recebe_notificacao_pc_aprovada():
+    return Permission.objects.filter(codename='recebe_notificacao_aprovacao_pc').first()
+
+
+@pytest.fixture
+def permissao_recebe_notificacao_pc_aprovada_com_ressalvas():
+    return Permission.objects.filter(codename='recebe_notificacao_aprovacao_pc').first()
+
+
+@pytest.fixture
+def permissao_recebe_notificacao_pc_reprovada():
+    return Permission.objects.filter(codename='recebe_notificacao_reprovacao_pc_incluindo_motivos').first()
+
+
+@pytest.fixture
 def grupo_notificavel(
     permissao_recebe_notificacao_proximidade_inicio_pc,
     permissao_recebe_notificacao_inicio_pc,
@@ -80,6 +95,9 @@ def grupo_notificavel(
     permissao_recebe_notificacao_proximidade_fim_pc,
     permissao_recebe_notificacao_atraso_entrega_ajustes_pc,
     permissao_recebe_notificacao_proximidade_fim_entrega_ajustes_pc,
+    permissao_recebe_notificacao_pc_aprovada,
+    permissao_recebe_notificacao_pc_aprovada_com_ressalvas,
+    permissao_recebe_notificacao_pc_reprovada,
     visao_ue
 ):
     g = Grupo.objects.create(name="grupo_notificavel")
@@ -90,6 +108,9 @@ def grupo_notificavel(
     g.permissions.add(permissao_recebe_notificacao_proximidade_fim_pc)
     g.permissions.add(permissao_recebe_notificacao_atraso_entrega_ajustes_pc)
     g.permissions.add(permissao_recebe_notificacao_proximidade_fim_entrega_ajustes_pc)
+    g.permissions.add(permissao_recebe_notificacao_pc_aprovada)
+    g.permissions.add(permissao_recebe_notificacao_pc_aprovada_com_ressalvas)
+    g.permissions.add(permissao_recebe_notificacao_pc_reprovada)
     g.visoes.add(visao_ue)
     g.descricao = "Grupo que recebe notificações"
     g.save()
@@ -257,12 +278,70 @@ def periodo_notifica_proximidade_fim_pc():
 
 
 @pytest.fixture
+def periodo_notifica_pc_aprovada():
+    return baker.make(
+        'Periodo',
+        referencia='2021.2',
+        data_inicio_realizacao_despesas=date(2021, 6, 16),
+        data_fim_realizacao_despesas=date(2021, 12, 31),
+        data_prevista_repasse=date(2022, 1, 1),
+        data_inicio_prestacao_contas=date(2021, 12, 25),
+        data_fim_prestacao_contas=date(2021, 12, 31),
+        periodo_anterior=None,
+        notificacao_inicio_periodo_pc_realizada=False
+    )
+
+
+@pytest.fixture
 def prestacao_notifica_pc_devolvida_para_acertos(periodo_notifica_pendencia_envio_pc, associacao_a):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_notifica_pendencia_envio_pc,
         associacao=associacao_a,
         status="DEVOLVIDA"
+    )
+
+@pytest.fixture
+def prestacao_notifica_pc_aprovada(periodo_notifica_pc_aprovada, associacao_a):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_notifica_pc_aprovada,
+        associacao=associacao_a,
+        status="APROVADA"
+    )
+
+@pytest.fixture
+def prestacao_notifica_pc_aprovada_com_ressalvas(periodo_notifica_pc_aprovada, associacao_a):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_notifica_pc_aprovada,
+        associacao=associacao_a,
+        status="APROVADA_RESSALVA"
+    )
+
+
+@pytest.fixture
+def prestacao_notifica_pc_reprovada(periodo_notifica_pc_aprovada, associacao_a):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_notifica_pc_aprovada,
+        associacao=associacao_a,
+        status="REPROVADA"
+    )
+
+
+@pytest.fixture
+def motivo_aprovacao_ressalva_x():
+    return baker.make(
+        'dre.MotivoAprovacaoRessalva',
+        motivo='X'
+    )
+
+@pytest.fixture
+def motivo_reprovacao_x():
+    return baker.make(
+        'dre.MotivoReprovacao',
+        motivo='X'
     )
 
 
