@@ -209,6 +209,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'arquivos_referencia',
             'analise_atual',
             'permite_analise_valores_reprogramados',
+            'recomendacoes',
         )
 
 

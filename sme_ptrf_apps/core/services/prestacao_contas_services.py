@@ -928,6 +928,7 @@ def previa_prestacao_conta(associacao, periodo):
         'outros_motivos_aprovacao_ressalva': '',
         'motivos_reprovacao': [],
         'outros_motivos_reprovacao': '',
+        'recomendacoes': '',
         'devolucoes_ao_tesouro_da_prestacao': [],
         'arquivos_referencia': [],
         'analise_atual': None,
