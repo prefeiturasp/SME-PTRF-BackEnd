@@ -361,6 +361,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(
             }
         ],
         'outros_motivos_reprovacao': 'Outros motivos reprovacao',
+        'recomendacoes': 'recomendacao',
         'devolucoes_ao_tesouro_da_prestacao': [
             {
                 'data': '2020-07-01',

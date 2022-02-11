@@ -93,6 +93,7 @@ def test_api_previa_prestacao_conta_por_periodo_e_associacao(jwt_authenticated_c
         'outros_motivos_aprovacao_ressalva': '',
         'motivos_reprovacao': [],
         'outros_motivos_reprovacao': '',
+        'recomendacoes': '',
         'devolucoes_ao_tesouro_da_prestacao': [],
         'arquivos_referencia': [],
         'analise_atual': None,
