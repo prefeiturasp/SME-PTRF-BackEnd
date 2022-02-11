@@ -88,7 +88,7 @@ def test_api_nao_reabre_prestacao_conta_pc_posterior(jwt_authenticated_client_a,
             'uuid': f'{prestacao_conta_01.uuid}',
             'erro': 'prestacao_de_contas_posteriores',
             'operacao': 'reabrir',
-            'mensagem': 'Essa prestação de contas não pode ser reaberta porque há prestação de contas dessa mesma associação de um período posterior. Se necessário, reabra primeiramente a prestação de contas mais recente.'
+            'mensagem': 'Essa prestação de contas não pode ser devolvida, ou reaberta porque há prestação de contas dessa associação de um período posterior. Se necessário, reabra ou devolva primeiro a prestação de contas mais recente.'
         }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
