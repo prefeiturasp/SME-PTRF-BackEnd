@@ -1340,7 +1340,7 @@ def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
         secretario_reuniao='Ana',
         cargo_secretaria_reuniao='Secretária',
         comentarios='Teste',
-        parecer_conselho='APROVADA'
+        parecer_conselho='APROVADA',
     )
 
 @pytest.fixture
@@ -1807,3 +1807,20 @@ def analise_valor_reprogramado_por_acao(analise_prestacao_conta_2020_1, conta_as
         novo_saldo_reprogramado_capital="2.00",
         novo_saldo_reprogramado_livre="3.00",
     )
+
+
+# Testes Action Repasses Pendentes
+@pytest.fixture
+def repasse(associacao, conta_associacao, acao_associacao, periodo):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo,
+        valor_custeio=1000.40,
+        valor_capital=1000.28,
+        valor_livre=0,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE'
+    )
+
