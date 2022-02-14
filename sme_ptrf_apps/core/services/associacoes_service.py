@@ -4,8 +4,25 @@ from .periodo_services import status_prestacao_conta_associacao
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from sme_ptrf_apps.core.choices import MembroEnum
+from sme_ptrf_apps.receitas.models import Repasse
 
 logger = logging.getLogger(__name__)
+
+
+def retorna_repasses_pendentes_periodos_ate_agora(associacao, periodo):
+    repasses = Repasse.objects.filter(associacao=associacao, periodo__referencia__lte=periodo.referencia)
+
+    resultado = []
+    for repasse in repasses:
+        resultado.append(
+            {
+                'repasse_periodo': repasse.periodo.referencia,
+                'repasse_acao': repasse.acao_associacao.acao.nome,
+                'repasse_total': repasse.valor_capital + repasse.valor_custeio + repasse.valor_livre,
+            }
+        )
+
+    return resultado
 
 
 def retorna_status_prestacoes(periodos=None, status_pc=None, uuid=None):
@@ -39,19 +56,19 @@ def get_status_presidente(associacao):
     if associacao and associacao.cargo_substituto_presidente_ausente:
         cargo_substituto_presidente_ausente_value = MembroEnum[associacao.cargo_substituto_presidente_ausente].value
 
-    logger.info(f'Status presidente: {status_presidente} Cargo substituto: {cargo_substituto_presidente_ausente}, {cargo_substituto_presidente_ausente_value}')
+    logger.info(
+        f'Status presidente: {status_presidente} Cargo substituto: {cargo_substituto_presidente_ausente}, {cargo_substituto_presidente_ausente_value}')
 
     result = {
         'status_presidente': status_presidente,
         'cargo_substituto_presidente_ausente': cargo_substituto_presidente_ausente,
         'cargo_substituto_presidente_ausente_value': cargo_substituto_presidente_ausente_value
-     }
+    }
 
     return result
 
 
 def update_status_presidente(associacao, status_presidente, cargo_substituto_presidente_ausente):
-
     if not status_presidente or status_presidente not in ['PRESENTE', 'AUSENTE']:
         result_error = {
             'erro': 'campo_requerido',
@@ -71,9 +88,9 @@ def update_status_presidente(associacao, status_presidente, cargo_substituto_pre
     associacao.save()
 
     result = {
-                 'status_presidente': associacao.status_presidente,
-                 'cargo_substituto_presidente_ausente': associacao.cargo_substituto_presidente_ausente,
-             }
+        'status_presidente': associacao.status_presidente,
+        'cargo_substituto_presidente_ausente': associacao.cargo_substituto_presidente_ausente,
+    }
 
     return result
 

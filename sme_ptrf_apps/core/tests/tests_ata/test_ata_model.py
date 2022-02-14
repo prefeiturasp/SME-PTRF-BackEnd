@@ -30,6 +30,7 @@ def test_instance_model(ata_2020_1_cheque_aprovada):
     assert model.uuid
     assert model.id
     assert model.preenchida_em is None
+    assert model.justificativa_repasses_pendentes is ''
 
 
 def test_instance_mode_ata_retificacao(ata_2020_1_retificacao):

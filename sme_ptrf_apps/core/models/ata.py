@@ -165,6 +165,8 @@ class Ata(ModeloBase):
 
     previa = models.BooleanField("É prévia?", default=False)
 
+    justificativa_repasses_pendentes = models.TextField('Justificativa repasses pendentes', blank=True, default='')
+
     @property
     def nome(self):
         return f'Ata de {self.ATA_NOMES[self.tipo_ata]} da prestação de contas'

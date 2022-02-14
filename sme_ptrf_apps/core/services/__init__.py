@@ -49,5 +49,6 @@ from .associacoes_service import (
     update_status_presidente,
     cargo_diretoria_executiva_valido,
     associacao_pode_implantar_saldo,
-    get_implantacao_de_saldos_da_associacao
+    get_implantacao_de_saldos_da_associacao,
+    retorna_repasses_pendentes_periodos_ate_agora
 )

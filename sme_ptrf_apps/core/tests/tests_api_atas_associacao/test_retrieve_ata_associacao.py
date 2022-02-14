@@ -38,7 +38,8 @@ def test_api_retrieve_ata_associacao(jwt_authenticated_client_a, associacao, ata
         'tipo_reuniao': 'ORDINARIA',
         'uuid': f'{ata_2020_1_cheque_aprovada.uuid}',
         'retificacoes': '',
-        'hora_reuniao': '00:00'
+        'hora_reuniao': '00:00',
+        'justificativa_repasses_pendentes':'',
     }
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado
@@ -76,7 +77,9 @@ def test_api_retrieve_ata_retificacao_associacao(jwt_authenticated_client_a, ass
         'tipo_reuniao': 'ORDINARIA',
         'uuid': f'{ata_2020_1_retificacao.uuid}',
         'retificacoes': 'Teste',
-        'hora_reuniao': '00:00'
+        'hora_reuniao': '00:00',
+        'justificativa_repasses_pendentes': '',
+
     }
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado
