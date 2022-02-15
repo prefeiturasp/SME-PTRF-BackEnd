@@ -93,9 +93,10 @@ def valida_datas_periodo(
     mensagem = "Período de realização de despesas válido."
     valido = True
 
-    if data_inicio_realizacao_despesas > data_fim_realizacao_despesas:
-        mensagem = "Data fim de realização de despesas precisa ser posterior à data de início."
-        valido = False
+    if data_fim_realizacao_despesas:
+        if data_inicio_realizacao_despesas > data_fim_realizacao_despesas:
+            mensagem = "Data fim de realização de despesas precisa ser posterior à data de início."
+            valido = False
 
     if periodo_anterior:
         if periodo_anterior.data_fim_realizacao_despesas is None:
