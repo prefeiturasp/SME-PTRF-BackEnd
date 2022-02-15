@@ -86,15 +86,6 @@ class PeriodosViewSet(mixins.ListModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         data_fim_realizacao_despesas = request.query_params.get('data_fim_realizacao_despesas', None)
-        if not data_fim_realizacao_despesas:
-            erro = {
-                'erro': 'falta_de_informacoes',
-                'operacao': 'verificar-datas',
-                'mensagem': 'Faltou informar a data de fim da realização de despesas. ?data_fim_realizacao_despesas= '
-            }
-
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
         periodo_anterior_uuid = request.query_params.get('periodo_anterior_uuid', None)
 
         if periodo_anterior_uuid:
@@ -114,7 +105,7 @@ class PeriodosViewSet(mixins.ListModelMixin,
 
         result = valida_datas_periodo(
             data_inicio_realizacao_despesas=datetime.strptime(data_inicio_realizacao_despesas, '%Y-%m-%d').date(),
-            data_fim_realizacao_despesas=datetime.strptime(data_fim_realizacao_despesas, '%Y-%m-%d').date(),
+            data_fim_realizacao_despesas=datetime.strptime(data_fim_realizacao_despesas, '%Y-%m-%d').date() if data_fim_realizacao_despesas else None,
             periodo_anterior=periodo_anterior,
             periodo_uuid=periodo_uuid
         )
