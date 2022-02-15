@@ -40,7 +40,8 @@ from ...services import (
     consulta_unidade,
     get_status_presidente,
     update_status_presidente,
-    get_implantacao_de_saldos_da_associacao
+    get_implantacao_de_saldos_da_associacao,
+    retorna_repasses_pendentes_periodos_ate_agora
 )
 from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from ..serializers.associacao_serializer import (
@@ -112,6 +113,33 @@ class AssociacoesViewSet(ModelViewSet):
                 unidade__nome__unaccent__icontains=nome))
 
         return qs
+
+    @action(detail=True, url_path='repasses-pendentes-por-periodo', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def repasses_pendentes_por_periodo(self, request, uuid=None):
+
+        associacao = self.get_object()
+        periodo_uuid = request.query_params.get('periodo_uuid')
+
+        if periodo_uuid is None or not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid do período.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
+        except (ValidationError, Exception):
+            erro = {
+                'erro': 'parametro_invalido',
+                'mensagem': f"Não foi encontrado o objeto periodo para o uuid {periodo_uuid}"
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        resultado = retorna_repasses_pendentes_periodos_ate_agora(associacao, periodo)
+
+        return Response(resultado)
 
     @action(detail=True, url_path='painel-acoes',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])

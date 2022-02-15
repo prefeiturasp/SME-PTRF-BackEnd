@@ -1,8 +1,9 @@
 import logging
 from datetime import datetime
 
-from sme_ptrf_apps.core.models import PresenteAta, DevolucaoAoTesouro
+from sme_ptrf_apps.core.models import PresenteAta, DevolucaoAoTesouro, Associacao, Periodo
 from sme_ptrf_apps.core.services.prestacao_contas_services import informacoes_financeiras_para_atas
+from sme_ptrf_apps.core.services.associacoes_service import retorna_repasses_pendentes_periodos_ate_agora
 from sme_ptrf_apps.utils.numero_por_extenso import real
 
 LOGGER = logging.getLogger(__name__)
@@ -16,6 +17,7 @@ def gerar_dados_ata(prestacao_de_contas=None, ata=None, usuario=None):
         presentes_na_ata = presentes_ata(ata)
         retificacoes = ata.retificacoes
         devolucoes_ao_tesouro = devolucoes_ao_tesouro_ata(ata, prestacao_de_contas)
+        repasses_pendentes = get_repasses_pendentes(ata)
         dados_ata = {
             "cabecalho": cabecalho,
             "retificacoes": retificacoes,
@@ -24,11 +26,24 @@ def gerar_dados_ata(prestacao_de_contas=None, ata=None, usuario=None):
             "dados_da_ata": ata,
             "dados_texto_da_ata": dados_texto_ata(ata, usuario),
             "presentes_na_ata": presentes_na_ata,
+            "repasses_pendentes": repasses_pendentes,
+            "justificativa_repasses_pendentes": ata.justificativa_repasses_pendentes,
         }
     finally:
         LOGGER.info("Dados da ata gerado com sucesso")
 
     return dados_ata
+
+
+def get_repasses_pendentes(ata):
+    associacao = Associacao.by_uuid(ata.associacao.uuid)
+    periodo = Periodo.by_uuid(ata.periodo.uuid)
+
+    dados = retorna_repasses_pendentes_periodos_ate_agora(associacao, periodo)
+
+    return dados
+
+
 
 
 def devolucoes_ao_tesouro_ata(ata, prestacao_de_contas):

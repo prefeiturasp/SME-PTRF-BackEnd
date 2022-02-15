@@ -38,3 +38,4 @@ def test_serializer(ata_prestacao_conta_iniciada):
     assert serializer.data['nome']
     assert serializer.data['retificacoes'] == ''
     assert serializer.data['hora_reuniao'] == "00:00"
+    assert serializer.data['justificativa_repasses_pendentes'] == ""

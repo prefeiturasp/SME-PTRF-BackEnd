@@ -93,6 +93,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     arquivos_referencia = serializers.SerializerMethodField('get_arquivos_referencia')
     analise_atual = AnalisePrestacaoContaSerializer(many=False)
     permite_analise_valores_reprogramados = serializers.SerializerMethodField()
+    pode_reabrir = serializers.SerializerMethodField('get_pode_reabrir')
 
     def get_permite_analise_valores_reprogramados(self, obj):
 
@@ -186,6 +187,15 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
                 )
         return result
 
+    def get_pode_reabrir(self, obj):
+        associacao = obj.associacao
+        prestacao_de_contas_posteriores = PrestacaoConta.objects.filter(associacao=associacao,
+                                                                        id__gt=obj.id)
+        if prestacao_de_contas_posteriores:
+            return False
+        else:
+            return True
+
     class Meta:
         model = PrestacaoConta
         fields = (
@@ -210,6 +220,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'analise_atual',
             'permite_analise_valores_reprogramados',
             'recomendacoes',
+            'pode_reabrir'
         )
 
 
