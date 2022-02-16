@@ -28,7 +28,7 @@ def test_deve_notificar_usuarios_5_dias_antes(
     assert notificacao.tipo == Notificacao.TIPO_NOTIFICACAO_INFORMACAO
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_ANALISE_PC
     assert notificacao.remetente == Notificacao.REMETENTE_NOTIFICACAO_SISTEMA
-    assert notificacao.titulo == f"O prazo para envio dos ajustes da PC está se aproximando {devolucao_notifica_proximidade_fim_entrega_ajustes_pc.prestacao_conta.periodo.referencia}"
+    assert notificacao.titulo == f"O prazo para envio dos ajustes da PC está se aproximando {devolucao_notifica_proximidade_fim_entrega_ajustes_pc.prestacao_conta.periodo.referencia} | Prazo: 5 dia(s)"
     assert notificacao.descricao == f"Faltam apenas 5 dia(s) para o fim do prazo de envio dos ajustes de sua prestações de contas de {devolucao_notifica_proximidade_fim_entrega_ajustes_pc.prestacao_conta.periodo.referencia}. Fique atento para não perder o prazo e realize os ajustes solicitados."
     assert notificacao.usuario == usuario_notificavel
 
