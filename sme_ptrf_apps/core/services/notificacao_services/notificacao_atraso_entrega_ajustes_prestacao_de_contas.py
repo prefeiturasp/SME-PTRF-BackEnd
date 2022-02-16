@@ -45,7 +45,7 @@ def notificar_atraso_entrega_ajustes_prestacao_de_contas(enviar_email=True):
                         tipo=Notificacao.TIPO_NOTIFICACAO_ALERTA,
                         categoria=Notificacao.CATEGORIA_NOTIFICACAO_ANALISE_PC,
                         remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
-                        titulo=f"Devolução de ajustes na PC atrasada {prestacao_de_contas.periodo.referencia}",
+                        titulo=f"Devolução de ajustes na PC atrasada {prestacao_de_contas.periodo.referencia} | Prazo: {formata_data_dd_mm_yyyy(devolucao.data_limite_ue)}",
                         descricao=f"Sua unidade ainda não enviou os ajustes "
                                   f"solicitados pela DRE em sua prestação de contas do período "
                                   f"{prestacao_de_contas.periodo.referencia}. "
