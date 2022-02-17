@@ -144,6 +144,39 @@ class RateioDespesa(ModeloBase):
         return dataset.all()
 
     @classmethod
+    def rateios_da_acao_entre_periodos(
+        cls,
+        acao_associacao,
+        periodo_inicial,
+        periodo_final,
+        conferido=None,
+        conta_associacao=None,
+        exclude_despesa=None,
+        aplicacao_recurso=None
+    ):
+        if periodo_final.data_fim_realizacao_despesas:
+            dataset = cls.completos.filter(acao_associacao=acao_associacao).filter(
+                despesa__data_transacao__range=(
+                    periodo_inicial.data_inicio_realizacao_despesas, periodo_final.data_fim_realizacao_despesas))
+        else:
+            dataset = cls.completos.filter(acao_associacao=acao_associacao).filter(
+                despesa__data_transacao__gte=periodo_inicial.data_inicio_realizacao_despesas)
+
+        if conferido is not None:
+            dataset = dataset.filter(conferido=conferido)
+
+        if conta_associacao:
+            dataset = dataset.filter(conta_associacao=conta_associacao)
+
+        if exclude_despesa:
+            dataset = dataset.exclude(despesa__uuid=exclude_despesa)
+
+        if aplicacao_recurso:
+            dataset = dataset.filter(aplicacao_recurso=aplicacao_recurso)
+
+        return dataset.all()
+
+    @classmethod
     def rateios_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None,
                                                exclude_despesa=None, aplicacao_recurso=None, acao_associacao=None):
         if periodo.data_fim_realizacao_despesas:
@@ -153,6 +186,39 @@ class RateioDespesa(ModeloBase):
         else:
             dataset = cls.completos.filter(conta_associacao=conta_associacao).filter(
                 despesa__data_transacao__gte=periodo.data_inicio_realizacao_despesas)
+
+        if conferido is not None:
+            dataset = dataset.filter(conferido=conferido)
+
+        if exclude_despesa:
+            dataset = dataset.exclude(despesa__uuid=exclude_despesa)
+
+        if aplicacao_recurso:
+            dataset = dataset.filter(aplicacao_recurso=aplicacao_recurso)
+
+        if acao_associacao:
+            dataset = dataset.filter(acao_associacao=acao_associacao)
+
+        return dataset.all()
+
+    @classmethod
+    def rateios_da_conta_entre_periodos(
+        cls,
+        conta_associacao,
+        periodo_inicial,
+        periodo_final,
+        conferido=None,
+        exclude_despesa=None,
+        aplicacao_recurso=None,
+        acao_associacao=None
+    ):
+        if periodo_final.data_fim_realizacao_despesas:
+            dataset = cls.completos.filter(conta_associacao=conta_associacao).filter(
+                despesa__data_transacao__range=(
+                    periodo_inicial.data_inicio_realizacao_despesas, periodo_final.data_fim_realizacao_despesas))
+        else:
+            dataset = cls.completos.filter(conta_associacao=conta_associacao).filter(
+                despesa__data_transacao__gte=periodo_inicial.data_inicio_realizacao_despesas)
 
         if conferido is not None:
             dataset = dataset.filter(conferido=conferido)

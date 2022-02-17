@@ -19,7 +19,7 @@ def test_deve_notificar_usuarios(prestacao_notifica_pc_devolvida_para_acertos, u
     assert notificacao.tipo == Notificacao.TIPO_NOTIFICACAO_ALERTA
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_PC
     assert notificacao.remetente == Notificacao.REMETENTE_NOTIFICACAO_DRE
-    assert notificacao.titulo == f"Ajustes necessários na PC"
+    assert notificacao.titulo == f"Ajustes necessários na PC | Prazo: {formata_data_dd_mm_yyyy(data_limite_ue)}"
     assert notificacao.descricao == f"A DRE solicitou alguns ajustes em sua prestação de contas do período {prestacao_notifica_pc_devolvida_para_acertos.periodo.referencia}. O seu prazo para envio das mudanças é {formata_data_dd_mm_yyyy(data_limite_ue)}"
     assert notificacao.usuario == usuario_notificavel
 
