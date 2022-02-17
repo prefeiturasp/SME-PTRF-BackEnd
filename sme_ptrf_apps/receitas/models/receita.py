@@ -107,6 +107,34 @@ class Receita(ModeloBase):
         return dataset.all()
 
     @classmethod
+    def receitas_da_acao_associacao_entre_periodos(
+        cls,
+        acao_associacao,
+        periodo_inicial,
+        periodo_final,
+        conferido=None,
+        conta_associacao=None,
+        categoria_receita=None
+    ):
+        if periodo_final.data_fim_realizacao_despesas:
+            dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
+                data__range=(periodo_inicial.data_inicio_realizacao_despesas, periodo_final.data_fim_realizacao_despesas))
+        else:
+            dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
+                data__gte=periodo_inicial.data_inicio_realizacao_despesas)
+
+        if conferido is not None:
+            dataset = dataset.filter(conferido=conferido)
+
+        if conta_associacao:
+            dataset = dataset.filter(conta_associacao=conta_associacao)
+
+        if categoria_receita:
+            dataset = dataset.filter(categoria_receita=categoria_receita)
+
+        return dataset.all()
+
+    @classmethod
     def receitas_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None, acao_associacao=None):
         if periodo.data_fim_realizacao_despesas:
             dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
@@ -114,6 +142,33 @@ class Receita(ModeloBase):
         else:
             dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
                 data__gte=periodo.data_inicio_realizacao_despesas).order_by('data')
+
+        if conferido is not None:
+            dataset = dataset.filter(conferido=conferido).order_by('data')
+
+        if acao_associacao:
+            dataset = dataset.filter(acao_associacao=acao_associacao).order_by('data')
+
+        return dataset.all()
+
+    @classmethod
+    def receitas_da_conta_associacao_entre_periodos(
+        cls,
+        conta_associacao,
+        periodo_inicial,
+        periodo_final,
+        conferido=None,
+        acao_associacao=None
+    ):
+        if periodo_final.data_fim_realizacao_despesas:
+            dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+                data__range=(
+                    periodo_inicial.data_inicio_realizacao_despesas,
+                    periodo_final.data_fim_realizacao_despesas
+                )).order_by('data')
+        else:
+            dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+                data__gte=periodo_inicial.data_inicio_realizacao_despesas).order_by('data')
 
         if conferido is not None:
             dataset = dataset.filter(conferido=conferido).order_by('data')

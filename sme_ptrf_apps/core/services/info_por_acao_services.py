@@ -68,6 +68,8 @@ def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
         saldo_conta = saldos_conta['saldo_atual_custeio'] + saldos_conta['saldo_atual_capital'] + saldos_conta[
             'saldo_atual_livre']
 
+        logger.info(f"Saldo calculado: {saldo_conta}  Conta:{conta_associacao}")
+
         if saldo_conta < gasto_conta_associacao:
             saldo_insuficiente = {
                 'conta': conta_associacao.tipo_conta.nome,
@@ -105,6 +107,7 @@ def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
 
 
 def valida_rateios_quanto_aos_saldos(rateios, associacao, data_documento=None, exclude_despesa=None):
+    logger.info(f"Valida saldo para rateios. Data documento:{data_documento}")
 
     if not data_documento:
         """
@@ -133,6 +136,9 @@ def valida_rateios_quanto_aos_saldos(rateios, associacao, data_documento=None, e
     Verifica se os rateios informados causarão algum saldo negativo.
     """
     periodo_despesa = Periodo.da_data(data_documento)
+
+    logger.info(f"Período da despesa validada: {periodo_despesa}")
+
     saldos_insuficientes = saldos_insuficientes_para_rateios(
         rateios=rateios,
         periodo=periodo_despesa,
@@ -140,6 +146,7 @@ def valida_rateios_quanto_aos_saldos(rateios, associacao, data_documento=None, e
     )
 
     if not saldos_insuficientes['saldos_insuficientes']:
+        logger.info("Saldos suficientes nas contas e ações.")
         """
         Caso não sejam encontrados saldos insuficientes.
         """
@@ -151,6 +158,7 @@ def valida_rateios_quanto_aos_saldos(rateios, associacao, data_documento=None, e
         }
 
     if saldos_insuficientes['tipo_saldo'] == 'CONTA':
+        logger.info("Saldos insuficientes em contas.")
         result = {
             'situacao_do_saldo': 'saldo_conta_insuficiente',
             'mensagem': 'Não há saldo disponível em alguma das contas da despesa.',
@@ -158,6 +166,7 @@ def valida_rateios_quanto_aos_saldos(rateios, associacao, data_documento=None, e
             'aceitar_lancamento': Parametros.get().permite_saldo_conta_negativo
         }
     else:
+        logger.info("Saldos insuficientes em Ações.")
         result = {
             'situacao_do_saldo': 'saldo_insuficiente',
             'mensagem': 'Não há saldo disponível em alguma das ações da despesa.',
@@ -254,8 +263,12 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
 
         return info
 
-    def sumariza_receitas_do_periodo_e_acao(periodo, acao_associacao, info, conta=None):
-        receitas = Receita.receitas_da_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo)
+    def sumariza_receitas_acao_entre_periodos(periodo_inicial, periodo_final, acao_associacao, info, conta=None):
+        receitas = Receita.receitas_da_acao_associacao_entre_periodos(
+            acao_associacao=acao_associacao,
+            periodo_inicial=periodo_inicial,
+            periodo_final=periodo_final
+        )
 
         for receita in receitas:
             if conta and receita.conta_associacao != conta: continue
@@ -284,10 +297,20 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
 
         return info
 
-    def sumariza_despesas_do_periodo_e_acao(periodo, acao_associacao, info, exclude_despesa=exclude_despesa,
-                                            conta=None):
-        rateios = RateioDespesa.rateios_da_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo,
-                                                                      exclude_despesa=exclude_despesa)
+    def sumariza_despesas_acao_entre_periodos(
+        periodo_inicial,
+        periodo_final,
+        acao_associacao,
+        info,
+        exclude_despesa=exclude_despesa,
+        conta=None
+    ):
+        rateios = RateioDespesa.rateios_da_acao_entre_periodos(
+            acao_associacao=acao_associacao,
+            periodo_inicial=periodo_inicial,
+            periodo_final=periodo_final,
+            exclude_despesa=exclude_despesa
+        )
 
         for rateio in rateios:
             if conta and rateio.conta_associacao != conta: continue
@@ -312,24 +335,43 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
         if not periodo:
             return info
 
-        if periodo.periodo_anterior:
-            fechamentos_periodo_anterior = FechamentoPeriodo.fechamentos_da_acao_no_periodo(
-                acao_associacao=acao_associacao,
-                periodo=periodo.periodo_anterior)
-            if fechamentos_periodo_anterior:
-                sumario_periodo_anterior = fechamento_sumarizado_por_acao(fechamentos_periodo_anterior, conta=conta)
-                info['saldo_anterior_capital'] = sumario_periodo_anterior['saldo_atual_capital']
-                info['saldo_atual_capital'] = info['saldo_anterior_capital']
-                info['saldo_anterior_custeio'] = sumario_periodo_anterior['saldo_atual_custeio']
-                info['saldo_atual_custeio'] = info['saldo_anterior_custeio']
-                info['saldo_anterior_livre'] = sumario_periodo_anterior['saldo_atual_livre']
-                info['saldo_atual_livre'] = info['saldo_anterior_livre']
+        fechamentos_periodo_anterior = FechamentoPeriodo.fechamentos_da_acao_imediatamente_antes_do_periodo(
+            acao_associacao=acao_associacao,
+            periodo=periodo,
+            conta_associacao=conta,
+        )
 
-        info = sumariza_receitas_do_periodo_e_acao(periodo=periodo, acao_associacao=acao_associacao, info=info,
-                                                   conta=conta)
+        if fechamentos_periodo_anterior:
+            sumario_periodo_anterior = fechamento_sumarizado_por_acao(fechamentos_periodo_anterior, conta=conta)
+            info['saldo_anterior_capital'] = sumario_periodo_anterior['saldo_atual_capital']
+            info['saldo_atual_capital'] = info['saldo_anterior_capital']
+            info['saldo_anterior_custeio'] = sumario_periodo_anterior['saldo_atual_custeio']
+            info['saldo_atual_custeio'] = info['saldo_anterior_custeio']
+            info['saldo_anterior_livre'] = sumario_periodo_anterior['saldo_atual_livre']
+            info['saldo_atual_livre'] = info['saldo_anterior_livre']
 
-        info = sumariza_despesas_do_periodo_e_acao(periodo=periodo, acao_associacao=acao_associacao, info=info,
-                                                   conta=conta)
+        periodo_do_saldo = fechamentos_periodo_anterior.first().periodo if fechamentos_periodo_anterior else periodo
+
+        if periodo_do_saldo and periodo_do_saldo.proximo_periodo:
+            periodo_inicial_transacoes = periodo_do_saldo.proximo_periodo
+        else:
+            periodo_inicial_transacoes = periodo
+
+        info = sumariza_receitas_acao_entre_periodos(
+            periodo_inicial=periodo_inicial_transacoes,
+            periodo_final=periodo,
+            acao_associacao=acao_associacao,
+            info=info,
+            conta=conta
+        )
+
+        info = sumariza_despesas_acao_entre_periodos(
+            periodo_inicial=periodo_inicial_transacoes,
+            periodo_final=periodo,
+            acao_associacao=acao_associacao,
+            info=info,
+            conta=conta
+        )
 
         if info['saldo_atual_custeio'] < 0:
             logger.debug(f'Usado saldo de livre aplicação para cobertura de custeio')
@@ -555,10 +597,16 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
 
         return info
 
-    def sumariza_receitas_do_periodo_e_conta(periodo, conta_associacao, info):
-        receitas = Receita.receitas_da_conta_associacao_no_periodo(conta_associacao=conta_associacao, periodo=periodo)
+    def sumariza_receitas_conta_entre_periodos(periodo_inicial, periodo_final, conta_associacao, info):
+        logger.info(f"Sumarizando receitas entre os períodos {periodo_inicial} e {periodo_final}. Conta:{conta_associacao}")
+        receitas = Receita.receitas_da_conta_associacao_entre_periodos(
+            conta_associacao=conta_associacao,
+            periodo_inicial=periodo_inicial,
+            periodo_final=periodo_final,
+        )
 
         for receita in receitas:
+            logger.info(f"Somando receita {receita.id} {receita.data} {receita.valor}")
             if receita.categoria_receita == APLICACAO_CUSTEIO:
                 info['receitas_no_periodo_custeio'] += receita.valor
                 info['saldo_atual_custeio'] += receita.valor
@@ -576,12 +624,24 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
 
         return info
 
-    def sumariza_despesas_do_periodo_e_conta(periodo, conta_associacao, info, exclude_despesa=exclude_despesa):
-        rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(conta_associacao=conta_associacao,
-                                                                       periodo=periodo,
-                                                                       exclude_despesa=exclude_despesa)
+    def sumariza_despesas_conta_entre_periodos(
+        periodo_inicial,
+        periodo_final,
+        conta_associacao,
+        info,
+        exclude_despesa=exclude_despesa
+    ):
+        logger.info(f"Sumarizando despesas entre os períodos {periodo_inicial} e {periodo_final}")
+
+        rateios = RateioDespesa.rateios_da_conta_entre_periodos(
+            conta_associacao=conta_associacao,
+            periodo_inicial=periodo_inicial,
+            periodo_final=periodo_final,
+            exclude_despesa=exclude_despesa
+        )
 
         for rateio in rateios:
+            logger.info(f"Subtraindo rateio {rateio.id} {rateio.despesa.data_transacao} {rateio.valor_rateio}")
             if rateio.aplicacao_recurso == APLICACAO_CUSTEIO:
                 info['despesas_no_periodo_custeio'] += rateio.valor_rateio
                 info['saldo_atual_custeio'] -= rateio.valor_rateio
@@ -592,16 +652,19 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
         return info
 
     def periodo_aberto_sumarizado_por_conta(periodo, conta_associacao):
+        logger.info(f"O período está aberto. Sumarizando por conta. Período:{periodo} Conta:{conta_associacao}")
         info = resultado_vazio()
 
         if not periodo or not periodo.periodo_anterior:
+            logger.info("Periodo indefinido ou sem período anterior. Retornando vazio.")
             return info
 
-        fechamentos_periodo_anterior = FechamentoPeriodo.fechamentos_da_conta_no_periodo(
+        fechamentos_periodo_anterior = FechamentoPeriodo.fechamentos_da_conta_imediatamente_antes_do_periodo(
             conta_associacao=conta_associacao,
-            periodo=periodo.periodo_anterior)
+            periodo=periodo)
 
         if fechamentos_periodo_anterior:
+            logger.info(f'Encontrados fechamentos de períodos anteriores ao período {periodo} para a conta {conta_associacao}')
             sumario_periodo_anterior = fechamento_sumarizado_por_conta(fechamentos_periodo_anterior)
 
             info['saldo_anterior_capital'] = sumario_periodo_anterior['saldo_atual_capital']
@@ -613,9 +676,22 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
             info['saldo_anterior_livre'] = sumario_periodo_anterior['saldo_atual_livre']
             info['saldo_atual_livre'] = info['saldo_anterior_livre']
 
-        info = sumariza_receitas_do_periodo_e_conta(periodo=periodo, conta_associacao=conta_associacao, info=info)
+        periodo_do_saldo = fechamentos_periodo_anterior.first().periodo if fechamentos_periodo_anterior else periodo
+        logger.info(f'Usando saldos do período {periodo_do_saldo}')
+        logger.info(f"Saldo capital:{info['saldo_atual_capital']} custeio:{info['saldo_atual_custeio']} livre:{info['saldo_atual_livre']}")
 
-        info = sumariza_despesas_do_periodo_e_conta(periodo=periodo, conta_associacao=conta_associacao, info=info)
+        info = sumariza_receitas_conta_entre_periodos(
+            periodo_inicial=periodo_do_saldo.proximo_periodo,
+            periodo_final=periodo,
+            conta_associacao=conta_associacao,
+            info=info
+        )
+        info = sumariza_despesas_conta_entre_periodos(
+            periodo_inicial=periodo_do_saldo.proximo_periodo,
+            periodo_final=periodo,
+            conta_associacao=conta_associacao,
+            info=info
+        )
 
         if info['saldo_atual_custeio'] < 0:
             info['saldo_atual_livre'] += info['saldo_atual_custeio']
@@ -630,8 +706,10 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
     fechamentos_periodo = FechamentoPeriodo.fechamentos_da_conta_no_periodo(conta_associacao=conta_associacao,
                                                                             periodo=periodo)
     if fechamentos_periodo:
+        logger.info(f'Encontrato fechamentos no período {periodo} e conta {conta_associacao}. Usando fechamento.')
         return fechamento_sumarizado_por_conta(fechamentos_periodo)
     else:
+        logger.info(f'Não encontrato fechamentos no período {periodo} e conta {conta_associacao}. Calculando saldo.')
         return periodo_aberto_sumarizado_por_conta(periodo, conta_associacao)
 
 
