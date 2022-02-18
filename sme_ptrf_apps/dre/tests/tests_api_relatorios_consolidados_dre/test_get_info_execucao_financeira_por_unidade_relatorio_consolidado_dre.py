@@ -242,51 +242,51 @@ def associacao_que_nao_apresentou_prestacao(unidade_que_nao_apresentou_prestacao
 @pytest.fixture
 def totais_esperados_associacao():
     return {
-        'saldo_reprogramado_periodo_anterior_custeio': 500,
-        'saldo_reprogramado_periodo_anterior_capital': 500,
-        'saldo_reprogramado_periodo_anterior_livre': 1000,
-        'saldo_reprogramado_periodo_anterior_total': 2000,
+        'saldo_reprogramado_periodo_anterior_custeio': 500.0,
+        'saldo_reprogramado_periodo_anterior_capital': 500.0,
+        'saldo_reprogramado_periodo_anterior_livre': 1000.0,
+        'saldo_reprogramado_periodo_anterior_total': 2000.0,
 
-        'repasses_previstos_sme_custeio': 1000,
-        'repasses_previstos_sme_capital': 2000,
-        'repasses_previstos_sme_livre': 3000,
-        'repasses_previstos_sme_total': 6000,
+        'repasses_previstos_sme_custeio': 1000.0,
+        'repasses_previstos_sme_capital': 2000.0,
+        'repasses_previstos_sme_livre': 3000.0,
+        'repasses_previstos_sme_total': 6000.0,
 
-        'repasses_no_periodo_custeio': 1000,
-        'repasses_no_periodo_capital': 1000,
-        'repasses_no_periodo_livre': 1000,
-        'repasses_no_periodo_total': 3000,
+        'repasses_no_periodo_custeio': 1000.0,
+        'repasses_no_periodo_capital': 1000.0,
+        'repasses_no_periodo_livre': 1000.0,
+        'repasses_no_periodo_total': 3000.0,
 
-        'receitas_rendimento_no_periodo_custeio': 100,
+        'receitas_rendimento_no_periodo_custeio': 100.0,
         'receitas_rendimento_no_periodo_capital': 0,
         'receitas_rendimento_no_periodo_livre': 0,
-        'receitas_rendimento_no_periodo_total': 100,
+        'receitas_rendimento_no_periodo_total': 100.0,
 
-        'receitas_devolucao_no_periodo_custeio': 100,
-        'receitas_devolucao_no_periodo_capital': 0,
-        'receitas_devolucao_no_periodo_livre': 0,
-        'receitas_devolucao_no_periodo_total': 100,
+        'receitas_devolucao_no_periodo_custeio': 100.0,
+        'receitas_devolucao_no_periodo_capital': 0.0,
+        'receitas_devolucao_no_periodo_livre': 0.0,
+        'receitas_devolucao_no_periodo_total': 100.0,
 
-        'demais_creditos_no_periodo_custeio': 0,
-        'demais_creditos_no_periodo_capital': 50,
-        'demais_creditos_no_periodo_livre': 0,
-        'demais_creditos_no_periodo_total': 50,
+        'demais_creditos_no_periodo_custeio': 0.0,
+        'demais_creditos_no_periodo_capital': 50.0,
+        'demais_creditos_no_periodo_livre': 0.0,
+        'demais_creditos_no_periodo_total': 50.0,
 
-        'receitas_totais_no_periodo_custeio': 1200,
-        'receitas_totais_no_periodo_capital': 1050,
-        'receitas_totais_no_periodo_livre': 1000,
-        'receitas_totais_no_periodo_total': 3250,
+        'receitas_totais_no_periodo_custeio': 1200.0,
+        'receitas_totais_no_periodo_capital': 1050.0,
+        'receitas_totais_no_periodo_livre': 1000.0,
+        'receitas_totais_no_periodo_total': 3250.0,
 
-        'despesas_no_periodo_custeio': 500,
-        'despesas_no_periodo_capital': 500,
-        'despesas_no_periodo_total': 1000,
+        'despesas_no_periodo_custeio': 500.0,
+        'despesas_no_periodo_capital': 500.0,
+        'despesas_no_periodo_total': 1000.0,
 
-        'saldo_reprogramado_proximo_periodo_custeio': 1200,
-        'saldo_reprogramado_proximo_periodo_capital': 1050,
-        'saldo_reprogramado_proximo_periodo_livre': 2000,
-        'saldo_reprogramado_proximo_periodo_total': 4250,
+        'saldo_reprogramado_proximo_periodo_custeio': 1200.0,
+        'saldo_reprogramado_proximo_periodo_capital': 1050.0,
+        'saldo_reprogramado_proximo_periodo_livre': 2000.0,
+        'saldo_reprogramado_proximo_periodo_total': 4250.0,
 
-        'devolucoes_ao_tesouro_no_periodo_total': 100,
+        'devolucoes_ao_tesouro_no_periodo_total': 100.0,
     }
 
 @pytest.fixture
@@ -339,6 +339,13 @@ def totais_esperados_associacao_que_nao_apresentou_pc():
         'devolucoes_ao_tesouro_no_periodo_total': 0,
     }
 
+@pytest.fixture
+def conta_associacao_cheque_associacao_que_nao_apresentou_prestacao(associacao_que_nao_apresentou_prestacao, tipo_conta_cheque):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao_que_nao_apresentou_prestacao,
+        tipo_conta=tipo_conta_cheque
+    )
 
 def test_api_get_info_execucao_financeira_por_unidade(
     jwt_authenticated_client_relatorio_consolidado,
@@ -353,6 +360,7 @@ def test_api_get_info_execucao_financeira_por_unidade(
     devolucao_ao_tesouro,
     receita_rendimento,
     conta_associacao_cheque,
+    conta_associacao_cheque_associacao_que_nao_apresentou_prestacao,
     acao_associacao,
     previsao_repasse_sme_conta_cartao,
     previsao_repasse_sme_conta_cheque,
@@ -415,6 +423,7 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_nome_escola(
     devolucao_ao_tesouro,
     receita_rendimento,
     conta_associacao_cheque,
+    conta_associacao_cheque_associacao_que_nao_apresentou_prestacao,
     acao_associacao,
     previsao_repasse_sme_conta_cartao,
     previsao_repasse_sme_conta_cheque,
@@ -462,6 +471,7 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_nome_associacao
     devolucao_ao_tesouro,
     receita_rendimento,
     conta_associacao_cheque,
+    conta_associacao_cheque_associacao_que_nao_apresentou_prestacao,
     acao_associacao,
     previsao_repasse_sme_conta_cartao,
     previsao_repasse_sme_conta_cheque,
@@ -510,6 +520,7 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_tipo_unidade(
     devolucao_ao_tesouro,
     receita_rendimento,
     conta_associacao_cheque,
+    conta_associacao_cheque_associacao_que_nao_apresentou_prestacao,
     acao_associacao,
     previsao_repasse_sme_conta_cartao,
     previsao_repasse_sme_conta_cheque,
@@ -559,6 +570,7 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_status(
     devolucao_ao_tesouro,
     receita_rendimento,
     conta_associacao_cheque,
+    conta_associacao_cheque_associacao_que_nao_apresentou_prestacao,
     acao_associacao,
     previsao_repasse_sme_conta_cartao,
     previsao_repasse_sme_conta_cheque,
