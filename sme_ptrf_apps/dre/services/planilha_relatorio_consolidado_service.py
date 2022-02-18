@@ -381,8 +381,7 @@ def dados_fisicos_financeiros(worksheet, dre, periodo, tipo_conta, acc=0, start_
                 devolucao_custeio = info.get("valores").get('receitas_devolucao_no_periodo_custeio')
                 demais_creditos_custeio = info.get("valores").get('demais_creditos_no_periodo_custeio')
                 despesas_custeio = info.get("valores").get('despesas_no_periodo_custeio')
-                saldo_custeio = saldo_reprogramado_anterior_custeio + repasse_custeio + devolucao_custeio + \
-                    demais_creditos_custeio + despesas_custeio
+                saldo_custeio = info.get("valores").get('saldo_reprogramado_proximo_periodo_custeio')
 
                 row[3].value = formata_valor(saldo_reprogramado_anterior_custeio)
                 row[4].value = formata_valor(repasse_custeio)
@@ -405,8 +404,7 @@ def dados_fisicos_financeiros(worksheet, dre, periodo, tipo_conta, acc=0, start_
                 devolucao_capital = info.get("valores").get('receitas_devolucao_no_periodo_capital')
                 demais_creditos_capital = info.get("valores").get('demais_creditos_no_periodo_capital')
                 despesas_capital = info.get("valores").get('despesas_no_periodo_capital')
-                saldo_capital = saldo_reprogramado_anterior_capital + repasse_capital + devolucao_capital + \
-                    demais_creditos_capital + despesas_capital
+                saldo_capital = info.get("valores").get('saldo_reprogramado_proximo_periodo_capital')
 
                 row[0].value = linha + 1
                 row[1].value = info["unidade"]["nome"]
@@ -432,8 +430,7 @@ def dados_fisicos_financeiros(worksheet, dre, periodo, tipo_conta, acc=0, start_
                 receita_rendimento_livre = info.get("valores").get('receitas_rendimento_no_periodo_livre')
                 devolucao_livre = info.get("valores").get('receitas_devolucao_no_periodo_livre')
                 demais_creditos_livre = info.get("valores").get('demais_creditos_no_periodo_livre')
-                saldo_livre = saldo_reprogramado_anterior_livre + repasse_livre + devolucao_livre + \
-                    demais_creditos_livre + receita_rendimento_livre
+                saldo_livre = info.get("valores").get('saldo_reprogramado_proximo_periodo_livre')
 
                 row[3].value = formata_valor(saldo_reprogramado_anterior_livre)
                 row[4].value = formata_valor(repasse_livre)
@@ -442,12 +439,18 @@ def dados_fisicos_financeiros(worksheet, dre, periodo, tipo_conta, acc=0, start_
                 row[7].value = formata_valor(demais_creditos_livre)
                 row[9].value = formata_valor(saldo_livre)
 
-                total_saldo_reprogramado_anterior_custeio += saldo_reprogramado_anterior_livre
+                # total_saldo_reprogramado_anterior_custeio += saldo_reprogramado_anterior_livre
+                total_saldo_reprogramado_anterior_livre += saldo_reprogramado_anterior_livre
+
                 total_repasse_custeio += repasse_livre
                 total_receita_rendimento_livre += receita_rendimento_livre
                 total_devolucao_custeio += devolucao_livre
-                total_demais_creditos_custeio += demais_creditos_livre
-                total_saldo_custeio += saldo_livre
+
+                #total_demais_creditos_custeio += demais_creditos_livre
+                total_demais_creditos_livre += demais_creditos_livre
+
+                # total_saldo_custeio += saldo_livre
+                total_saldo_livre += saldo_livre
             lin += 1
 
     rows = list(worksheet.rows)
