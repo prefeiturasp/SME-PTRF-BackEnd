@@ -28,37 +28,37 @@
           <td rowSpan="3"><strong>{{ info.unidade.codigo_eol }}
             - {{ info.unidade.tipo_unidade }} {{ info.unidade.nome }}</strong></td>
           <td>Custeio</td>
-          <td>{{ info.valores.saldo_reprogramado_periodo_anterior_custeio|formata_valor }}</td>
-          <td>{{ info.valores.repasses_no_periodo_custeio|formata_valor }}</td>
+          <td>{{ info.valores.saldo_reprogramado_periodo_anterior_custeio|formata_valor_vazio }}</td>
+          <td>{{ info.valores.repasses_no_periodo_custeio|formata_valor_vazio }}</td>
           <td
             class="{% if info.valores.receitas_rendimento_no_periodo_custeio|formata_valor_rendimento == '-' %}fundo-cinza {% endif %}">{{ info.valores.receitas_rendimento_no_periodo_custeio|formata_valor_rendimento }}</td>
-          <td>{{ info.valores.demais_creditos_no_periodo_custeio|formata_valor }}</td>
-          <td>{{ info.valores.despesas_no_periodo_custeio|formata_valor }}</td>
-          <td>{{ info.valores.saldo_reprogramado_proximo_periodo_custeio|formata_valor }}</td>
+          <td>{{ info.valores.demais_creditos_no_periodo_custeio|formata_valor_vazio }}</td>
+          <td>{{ info.valores.despesas_no_periodo_custeio|formata_valor_vazio }}</td>
+          <td>{{ info.valores.saldo_reprogramado_proximo_periodo_custeio|formata_valor_vazio }}</td>
           <td>-</td>
         </tr>
         <tr>
           <td>Capital</td>
-          <td>{{ info.valores.saldo_reprogramado_periodo_anterior_capital|formata_valor }}</td>
-          <td>{{ info.valores.repasses_no_periodo_capital|formata_valor }}</td>
+          <td>{{ info.valores.saldo_reprogramado_periodo_anterior_capital|formata_valor_vazio }}</td>
+          <td>{{ info.valores.repasses_no_periodo_capital|formata_valor_vazio }}</td>
           <td
             class="{% if info.valores.receitas_rendimento_no_periodo_capital|formata_valor_rendimento == '-' %}fundo-cinza {% endif %}">{{ info.valores.receitas_rendimento_no_periodo_capital|formata_valor_rendimento }}</td>
-          <td>{{ info.valores.demais_creditos_no_periodo_capital|formata_valor }}</td>
-          <td>{{ info.valores.despesas_no_periodo_capital|formata_valor }}</td>
-          <td>{{ info.valores.saldo_reprogramado_proximo_periodo_capital|formata_valor }}</td>
+          <td>{{ info.valores.demais_creditos_no_periodo_capital|formata_valor_vazio }}</td>
+          <td>{{ info.valores.despesas_no_periodo_capital|formata_valor_vazio }}</td>
+          <td>{{ info.valores.saldo_reprogramado_proximo_periodo_capital|formata_valor_vazio }}</td>
           <td>-</td>
         </tr>
 
         <tr>
           <td>RLA</td>
-          <td>{{ info.valores.saldo_reprogramado_periodo_anterior_livre|formata_valor }}</td>
-          <td>{{ info.valores.repasses_no_periodo_livre|formata_valor }}</td>
+          <td>{{ info.valores.saldo_reprogramado_periodo_anterior_livre|formata_valor_vazio }}</td>
+          <td>{{ info.valores.repasses_no_periodo_livre|formata_valor_vazio }}</td>
           <td
             class="{% if info.valores.receitas_rendimento_no_periodo_livre|formata_valor_rendimento == '-' %}fundo-cinza {% endif %}">{{ info.valores.receitas_rendimento_no_periodo_livre|formata_valor_rendimento }}</td>
-          <td>{{ info.valores.demais_creditos_no_periodo_livre|formata_valor }}</td>
+          <td>{{ info.valores.demais_creditos_no_periodo_livre|formata_valor_vazio }}</td>
           <td>-</td>
-          <td>{{ info.valores.saldo_reprogramado_proximo_periodo_livre|formata_valor }}</td>
-          <td>{{ info.valores.devolucoes_ao_tesouro_no_periodo_total|formata_valor }}</td>
+          <td>{{ info.valores.saldo_reprogramado_proximo_periodo_livre|formata_valor_vazio }}</td>
+          <td>{{ info.valores.devolucoes_ao_tesouro_no_periodo_total|formata_valor_vazio }}</td>
         </tr>
 
         <tr>
