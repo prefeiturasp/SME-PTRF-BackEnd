@@ -314,10 +314,12 @@ def test_api_retrieve_prestacao_conta_por_uuid(
                 ],
                 'data': '2020-07-01',
                 'data_limite_ue': '2020-08-01',
+                'data_retorno_ue': None,
                 'prestacao_conta': f'{prestacao_conta.uuid}',
                 'uuid': f'{_devolucao_prestacao_conta.uuid}'
             }
         ],
+        'pode_reabrir': True,
         'processo_sei': '123456',
         'data_ultima_analise': f'{prestacao_conta.data_ultima_analise}',
         'devolucao_ao_tesouro': '100,00',
@@ -360,6 +362,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(
             }
         ],
         'outros_motivos_reprovacao': 'Outros motivos reprovacao',
+        'recomendacoes': 'recomendacao',
         'devolucoes_ao_tesouro_da_prestacao': [
             {
                 'data': '2020-07-01',

@@ -450,7 +450,9 @@ def prestacao_conta(periodo, associacao, motivo_aprovacao_ressalva_x, motivo_rep
         motivos_reprovacao=[motivo_reprovacao_x, ],
         outros_motivos_reprovacao="Outros motivos reprovacao",
         motivos_aprovacao_ressalva=[motivo_aprovacao_ressalva_x, ],
-        outros_motivos_aprovacao_ressalva="Outros motivos")
+        outros_motivos_aprovacao_ressalva="Outros motivos",
+        recomendacoes="recomendacao"
+    )
 
 
 @pytest.fixture
@@ -1340,7 +1342,7 @@ def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
         secretario_reuniao='Ana',
         cargo_secretaria_reuniao='Secretária',
         comentarios='Teste',
-        parecer_conselho='APROVADA'
+        parecer_conselho='APROVADA',
     )
 
 @pytest.fixture
@@ -1623,6 +1625,7 @@ def devolucao_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada):
         prestacao_conta=prestacao_conta_2020_1_conciliada,
         data=date(2020, 7, 1),
         data_limite_ue=date(2020, 8, 1),
+        data_retorno_ue=None
     )
 
 
@@ -1806,3 +1809,20 @@ def analise_valor_reprogramado_por_acao(analise_prestacao_conta_2020_1, conta_as
         novo_saldo_reprogramado_capital="2.00",
         novo_saldo_reprogramado_livre="3.00",
     )
+
+
+# Testes Action Repasses Pendentes
+@pytest.fixture
+def repasse(associacao, conta_associacao, acao_associacao, periodo):
+    return baker.make(
+        'Repasse',
+        associacao=associacao,
+        periodo=periodo,
+        valor_custeio=1000.40,
+        valor_capital=1000.28,
+        valor_livre=0,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        status='PENDENTE'
+    )
+

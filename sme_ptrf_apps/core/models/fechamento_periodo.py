@@ -220,6 +220,36 @@ class FechamentoPeriodo(ModeloBase):
         return FechamentoPeriodo.objects.filter(conta_associacao=conta_associacao, periodo=periodo).all()
 
     @classmethod
+    def fechamentos_da_conta_imediatamente_antes_do_periodo(cls, conta_associacao, periodo):
+        periodo_anterior = periodo.periodo_anterior
+        fechamentos = []
+        while not fechamentos and periodo_anterior:
+            fechamentos = FechamentoPeriodo.objects.filter(
+                conta_associacao=conta_associacao,
+                periodo=periodo_anterior
+            ).all()
+            periodo_anterior = periodo_anterior.periodo_anterior
+
+        return fechamentos
+
+    @classmethod
+    def fechamentos_da_acao_imediatamente_antes_do_periodo(cls, acao_associacao, periodo, conta_associacao=None):
+        periodo_anterior = periodo.periodo_anterior
+        fechamentos = []
+        while not fechamentos and periodo_anterior:
+            fechamentos = FechamentoPeriodo.objects.filter(
+                acao_associacao=acao_associacao,
+                periodo=periodo_anterior
+            )
+
+            if conta_associacao:
+                fechamentos = fechamentos.filter(conta_associacao=conta_associacao)
+
+            periodo_anterior = periodo_anterior.periodo_anterior
+
+        return fechamentos.all()
+
+    @classmethod
     def criar(cls,
               prestacao_conta,
               acao_associacao,

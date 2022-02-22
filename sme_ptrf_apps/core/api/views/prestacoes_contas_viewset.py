@@ -224,7 +224,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                     'uuid': f'{uuid}',
                     'erro': 'prestacao_de_contas_posteriores',
                     'operacao': 'reabrir',
-                    'mensagem': 'Essa prestação de contas não pode ser reaberta porque há prestação de contas dessa mesma associação de um período posterior. Se necessário, reabra primeiramente a prestação de contas mais recente.'
+                    'mensagem': 'Essa prestação de contas não pode ser devolvida, ou reaberta porque há prestação de contas dessa associação de um período posterior. Se necessário, reabra ou devolva primeiro a prestação de contas mais recente.'
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -482,6 +482,17 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        recomendacoes = request.data.get('recomendacoes', '')
+
+        if resultado_analise == PrestacaoConta.STATUS_APROVADA_RESSALVA and not recomendacoes:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'falta_de_informacoes',
+                'operacao': 'concluir-analise',
+                'mensagem': 'Para concluir como APROVADO_RESSALVA é necessário informar as recomendações.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
         data_limite_ue = request.data.get('data_limite_ue', None)
 
         if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA and not data_limite_ue:
@@ -504,7 +515,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                     'uuid': f'{uuid}',
                     'erro': 'prestacao_de_contas_posteriores',
                     'operacao': 'concluir-analise',
-                    'mensagem': 'Essa prestação de contas não pode ser devolvida porque há prestação de contas dessa mesma associação de um período posterior. Se necessário, devolva para ajuste a prestação de contas mais recente.'
+                    'mensagem': 'Essa prestação de contas não pode ser devolvida, ou reaberta porque há prestação de contas dessa associação de um período posterior. Se necessário, reabra ou devolva primeiro a prestação de contas mais recente.'
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -518,6 +529,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             data_limite_ue=data_limite_ue,
             motivos_reprovacao=motivos_reprovacao,
             outros_motivos_reprovacao=outros_motivos_reprovacao,
+            recomendacoes=recomendacoes
         )
 
         if prestacao_conta.status == PrestacaoConta.STATUS_DEVOLVIDA:

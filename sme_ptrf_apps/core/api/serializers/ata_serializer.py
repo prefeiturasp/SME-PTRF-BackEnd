@@ -66,7 +66,8 @@ class AtaSerializer(serializers.ModelSerializer):
             'parecer_conselho',
             'retificacoes',
             'presentes_na_ata',
-            'hora_reuniao'
+            'hora_reuniao',
+            'justificativa_repasses_pendentes',
         )
 
 

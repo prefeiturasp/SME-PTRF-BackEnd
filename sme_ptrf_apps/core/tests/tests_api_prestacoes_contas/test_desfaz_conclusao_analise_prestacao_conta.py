@@ -36,6 +36,7 @@ def test_api_desfaz_conclusao_analise_prestacao_conta_aprovada_com_ressalva(jwt_
     assert prestacao_atualizada.status == PrestacaoConta.STATUS_EM_ANALISE, 'Status não atualizado para EM_ANALISE.'
     assert prestacao_atualizada.outros_motivos_aprovacao_ressalva == '', 'Não limpou outros motivos.'
     assert not prestacao_atualizada.motivos_aprovacao_ressalva.exists(), 'Não limpou motivos de aprovação com ressalva'
+    assert prestacao_atualizada.recomendacoes == '', 'Não limpou recomendacoes.'
 
 
 @pytest.fixture

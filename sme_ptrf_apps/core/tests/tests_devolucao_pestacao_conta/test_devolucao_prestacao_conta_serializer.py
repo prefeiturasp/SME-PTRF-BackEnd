@@ -13,3 +13,4 @@ def test_devolucao_prestacao_conta_retrieve_serializer(devolucao_prestacao_conta
     assert serializer.data['data']
     assert serializer.data['data_limite_ue']
     assert serializer.data['cobrancas_da_devolucao']
+    assert not serializer.data['data_retorno_ue']

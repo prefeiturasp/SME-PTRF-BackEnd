@@ -22,7 +22,7 @@ def notificar_prestacao_de_contas_devolvida_para_acertos(prestacao_de_contas, da
                 tipo=Notificacao.TIPO_NOTIFICACAO_ALERTA,
                 categoria=Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_PC,
                 remetente=Notificacao.REMETENTE_NOTIFICACAO_DRE,
-                titulo=f"Ajustes necessários na PC",
+                titulo=f"Ajustes necessários na PC | Prazo: {formata_data_dd_mm_yyyy(data_limite_ue)}",
                 descricao=f"A DRE solicitou alguns ajustes em sua prestação de contas do período {prestacao_de_contas.periodo.referencia}. O seu prazo para envio das mudanças é {formata_data_dd_mm_yyyy(data_limite_ue)}",
                 usuario=usuario,
                 renotificar=True,

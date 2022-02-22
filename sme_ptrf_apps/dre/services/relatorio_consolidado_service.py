@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 
 from django.db.models import Count, Sum, F, Q
 
@@ -335,7 +336,9 @@ def informacoes_execucao_financeira_unidades(
     dre,
     periodo,
     tipo_conta,
-    filtro_nome=None, filtro_tipo_unidade=None, filtro_status=None
+    filtro_nome=None,
+    filtro_tipo_unidade=None,
+    filtro_status=None
 ):
     from sme_ptrf_apps.core.models import Associacao
 
@@ -389,6 +392,7 @@ def informacoes_execucao_financeira_unidades(
         }
 
     def _soma_fechamento(totalizador, fechamento):
+
         # Saldo Anterior
         totalizador['saldo_reprogramado_periodo_anterior_custeio'] += fechamento.saldo_anterior_custeio
         totalizador['saldo_reprogramado_periodo_anterior_capital'] += fechamento.saldo_anterior_capital
@@ -485,6 +489,7 @@ def informacoes_execucao_financeira_unidades(
 
     def _totaliza_previsoes_repasses_sme(associacao, periodo, tipo_conta, totais):
         # Previsões para o período e conta com o tipo de conta para Associações da DRE
+
         previsoes = associacao.previsoes_de_repasse_sme_para_a_associacao.filter(
             periodo=periodo,
             conta_associacao__tipo_conta=tipo_conta,
@@ -508,8 +513,7 @@ def informacoes_execucao_financeira_unidades(
     resultado = []
     resultado_nao_apresentada = []
 
-    associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').\
-        order_by('unidade__tipo_unidade', 'unidade__nome')
+    associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).filter(contas__tipo_conta__nome=tipo_conta).exclude(cnpj__exact='').order_by('unidade__tipo_unidade', 'unidade__nome')
 
     if filtro_nome is not None:
         associacoes_da_dre = associacoes_da_dre.filter(Q(nome__unaccent__icontains=filtro_nome) | Q(

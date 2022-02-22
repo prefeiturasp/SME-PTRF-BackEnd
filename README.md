@@ -5,9 +5,17 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.26.0
+Versão: 1.27.0
 
 ## Release Notes
+
+### 1.27.0 - 22/02/2022 - Entregas da Sprint 35
+* UE > Notificações de reprovação agora informam ou não os motivos dependendo das permissões do destinatário
+* UE > Ata de apresentação passa a pedir e exibir justificativa para a existência de repasses pendentes
+* UE e DRE > Consulta de resumo de acertos passa a exibir informação de data de retorno de devolução
+* UE > Verificação de saldo no momento de lançamento de despesa agora considera saldos anteriores mesmo de períodos abertos
+* DRE > Inclusão de campo para informação de recomendações ao aprovar uma PC com ressalvas
+* 🐞 Correção de bugs
 
 ### 1.26.0 - 07/02/2022 - Entregas da Sprint 34
 * UE > A conciliação bancária agora só trada de gastos; créditos são conciliados automaticamente 

@@ -93,6 +93,8 @@ class PrestacaoConta(ModeloBase):
                                       related_name='+',
                                       blank=True, null=True)
 
+    recomendacoes = models.TextField('Recomendações para aprovação com ressalvas pela DRE', blank=True, default='')
+
     @property
     def tecnico_responsavel(self):
         atribuicoes = Atribuicao.search(
@@ -128,7 +130,15 @@ class PrestacaoConta(ModeloBase):
         return self.atas_da_prestacao.filter(tipo_ata='RETIFICACAO', previa=False).last()
 
     def concluir(self, e_retorno_devolucao=False):
-        self.status = self.STATUS_DEVOLVIDA_RETORNADA if e_retorno_devolucao else self.STATUS_NAO_RECEBIDA
+        from ..models import DevolucaoPrestacaoConta
+        if e_retorno_devolucao:
+            self.status = self.STATUS_DEVOLVIDA_RETORNADA
+            ultima_devolucao = DevolucaoPrestacaoConta.objects.filter(prestacao_conta=self).order_by('id').last()
+            ultima_devolucao.data_retorno_ue = date.today()
+            ultima_devolucao.save()
+        else:
+            self.status = self.STATUS_NAO_RECEBIDA
+
         self.save()
         return self
 
@@ -215,7 +225,8 @@ class PrestacaoConta(ModeloBase):
 
     @transaction.atomic
     def salvar_analise(self, analises_de_conta_da_prestacao, resultado_analise=None,
-                       motivos_aprovacao_ressalva=[], outros_motivos_aprovacao_ressalva='', motivos_reprovacao=[], outros_motivos_reprovacao=''):
+                       motivos_aprovacao_ressalva=[], outros_motivos_aprovacao_ressalva='', motivos_reprovacao=[],
+                       outros_motivos_reprovacao='', recomendacoes=''):
         from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
         from ..models.conta_associacao import ContaAssociacao
 
@@ -233,6 +244,8 @@ class PrestacaoConta(ModeloBase):
 
         self.motivos_reprovacao.set(motivos_reprovacao)
         self.outros_motivos_reprovacao = outros_motivos_reprovacao
+
+        self.recomendacoes = recomendacoes
 
         self.save()
 
@@ -273,16 +286,33 @@ class PrestacaoConta(ModeloBase):
 
     @transaction.atomic
     def concluir_analise(self, resultado_analise, analises_de_conta_da_prestacao, motivos_aprovacao_ressalva,
-                         outros_motivos_aprovacao_ressalva, data_limite_ue, motivos_reprovacao, outros_motivos_reprovacao):
+                         outros_motivos_aprovacao_ressalva, data_limite_ue, motivos_reprovacao, outros_motivos_reprovacao, recomendacoes):
+
+        from ..services.notificacao_services import notificar_prestacao_de_contas_aprovada
+
+        from ..services.notificacao_services import notificar_prestacao_de_contas_aprovada_com_ressalvas
+
+        from ..services.notificacao_services import notificar_prestacao_de_contas_reprovada
+
         prestacao_atualizada = self.salvar_analise(resultado_analise=resultado_analise,
                                                    analises_de_conta_da_prestacao=analises_de_conta_da_prestacao,
                                                    motivos_aprovacao_ressalva=motivos_aprovacao_ressalva,
                                                    outros_motivos_aprovacao_ressalva=outros_motivos_aprovacao_ressalva,
                                                    motivos_reprovacao=motivos_reprovacao,
-                                                   outros_motivos_reprovacao=outros_motivos_reprovacao)
+                                                   outros_motivos_reprovacao=outros_motivos_reprovacao,
+                                                   recomendacoes=recomendacoes)
 
         if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
             prestacao_atualizada = prestacao_atualizada.devolver(data_limite_ue=data_limite_ue)
+
+        if resultado_analise == PrestacaoConta.STATUS_APROVADA:
+            notificar_prestacao_de_contas_aprovada(self)
+
+        if resultado_analise == PrestacaoConta.STATUS_APROVADA_RESSALVA:
+            notificar_prestacao_de_contas_aprovada_com_ressalvas(self, motivos_aprovacao_ressalva, outros_motivos_aprovacao_ressalva)
+
+        if resultado_analise == PrestacaoConta.STATUS_REPROVADA:
+            notificar_prestacao_de_contas_reprovada(self, motivos_reprovacao, outros_motivos_reprovacao)
 
         return prestacao_atualizada
 
@@ -291,6 +321,7 @@ class PrestacaoConta(ModeloBase):
         self.outros_motivos_aprovacao_ressalva = ''
         self.motivos_reprovacao.set([])
         self.outros_motivos_reprovacao = ''
+        self.recomendacoes = ''
         self.status = self.STATUS_EM_ANALISE
         self.save()
         return self
