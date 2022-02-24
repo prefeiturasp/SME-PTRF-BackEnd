@@ -6,9 +6,12 @@ from rest_framework.exceptions import ValidationError
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
+from sme_ptrf_apps.core.models import AcaoAssociacao, Associacao, ContaAssociacao, Periodo
+
 from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaListSerializer
 from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
-from sme_ptrf_apps.core.models import AcaoAssociacao, Associacao, ContaAssociacao, Periodo
+from sme_ptrf_apps.despesas.models import RateioDespesa
+
 from sme_ptrf_apps.receitas.models import Receita, Repasse
 
 from ...services import atualiza_repasse_para_pendente, atualiza_repasse_para_realizado
@@ -48,6 +51,12 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
         slug_field='uuid',
         required=False,
         queryset=Periodo.objects.all()
+    )
+
+    rateio_estornado = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=RateioDespesa.objects.all()
     )
 
     def create(self, validated_data):
