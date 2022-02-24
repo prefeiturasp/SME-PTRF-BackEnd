@@ -92,6 +92,32 @@ def test_create_receita_repasse(
         assert Repasse.objects.get(uuid=repasse.uuid).status == 'PENDENTE'
 
 
+def test_create_receita_estorno(
+    jwt_authenticated_client_p,
+    tipo_receita,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    repasse,
+    payload_receita_estorno,
+    rateio_no_periodo_100_custeio
+):
+    response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita_estorno),
+                                               content_type='application/json')
+
+    assert response.status_code == status.HTTP_201_CREATED
+
+    result = json.loads(response.content)
+
+    assert Receita.objects.filter(uuid=result["uuid"]).exists()
+
+    receita = Receita.objects.get(uuid=result["uuid"])
+
+    assert receita.rateio_estornado == rateio_no_periodo_100_custeio
+
+
 def test_create_receita_repasse_valor_diferente(
     jwt_authenticated_client_p,
     tipo_receita,

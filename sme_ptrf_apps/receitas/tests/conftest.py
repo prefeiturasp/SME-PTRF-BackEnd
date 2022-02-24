@@ -153,6 +153,22 @@ def payload_receita_repasse_livre_aplicacao(associacao, conta_associacao, acao_a
 
 
 @pytest.fixture
+def payload_receita_estorno(associacao, conta_associacao, acao_associacao, tipo_receita_estorno, rateio_no_periodo_100_custeio):
+    payload = {
+        'associacao': str(associacao.uuid),
+        'data': '2019-09-26',
+        'valor': 1000.28,
+        'categoria_receita': 'CAPITAL',
+        'conta_associacao': str(conta_associacao.uuid),
+        'acao_associacao': str(acao_associacao.uuid),
+        'tipo_receita': tipo_receita_estorno.id,
+        'rateio_estornado': str(rateio_no_periodo_100_custeio.uuid),
+    }
+    return payload
+
+
+
+@pytest.fixture
 def receita_xxx_estorno(associacao, conta_associacao_cheque, acao_associacao_ptrf, tipo_receita_estorno):
     return baker.make(
         'Receita',
