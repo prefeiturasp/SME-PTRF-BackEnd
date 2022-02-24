@@ -102,6 +102,7 @@ def payload_receita(associacao, conta_associacao, acao_associacao, tipo_conta, t
         'tipo_receita': tipo_receita.id,
         'detalhe_tipo_receita': detalhe_tipo_receita.id,
         'detalhe_outros': 'teste',
+        'rateio_estornado': None,
     }
     return payload
 
