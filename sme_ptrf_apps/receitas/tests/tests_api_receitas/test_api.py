@@ -141,12 +141,13 @@ def test_get_tabelas(
             {
                 'id': tipo_receita.id,
                 'nome': tipo_receita.nome,
-                'e_repasse': tipo_receita.e_repasse,
                 'aceita_capital': tipo_receita.aceita_capital,
                 'aceita_custeio': tipo_receita.aceita_custeio,
                 'aceita_livre': tipo_receita.aceita_livre,
+                'e_repasse': tipo_receita.e_repasse,
                 'e_devolucao': False,
                 'e_recursos_proprios': False,
+                'e_estorno': False,
                 'mensagem_usuario': tipo_receita.mensagem_usuario,
                 'possui_detalhamento': tipo_receita.possui_detalhamento,
                 'tipos_conta': [{
