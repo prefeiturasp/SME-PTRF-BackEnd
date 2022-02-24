@@ -38,7 +38,7 @@ class PrestacaoConta(ModeloBase):
         STATUS_RECEBIDA: 'Recebida',
         STATUS_EM_ANALISE: 'Em análise',
         STATUS_DEVOLVIDA: 'Devolvida para acertos',
-        STATUS_DEVOLVIDA_RETORNADA: 'Retornada após acertos',
+        STATUS_DEVOLVIDA_RETORNADA: 'Apresentada após acertos',
         STATUS_DEVOLVIDA_RECEBIDA: 'Recebida após acertos',
         STATUS_APROVADA: 'Aprovada',
         STATUS_APROVADA_RESSALVA: 'Aprovada com ressalvas',

@@ -24,7 +24,7 @@ class SmeIntegracaoApiService:
     def get_informacao_aluno(cls, codigo_eol):
         logger.info('Buscando informações na API EOL SmeIntegração para o código eol: %s.', codigo_eol)
         try:
-            response = requests.get(f'{settings.SME_INTEGRACAO_URL}/api/alunos/{codigo_eol}/turmas',
+            response = requests.get(f'{settings.SME_INTEGRACAO_URL}/api/alunos/alunos?codigosAluno={codigo_eol}',
                                     headers=cls.headers, timeout=cls.timeout)
         except Exception as e:
             logger.info(f'Erro ao acessar api smeintegracaoapi.sme.prefeitura.sp.gov.br: {str(e)}')
