@@ -300,7 +300,8 @@ def test_get_receitas(
                 'nome': detalhe_tipo_receita.nome
             },
             'detalhe_outros': receita.detalhe_outros,
-            'notificar_dias_nao_conferido': 0
+            'notificar_dias_nao_conferido': 0,
+            'rateio_estornado': None,
         },
     ]
 
@@ -485,7 +486,8 @@ def test_retrive_receitas(
             'nome': detalhe_tipo_receita.nome
         },
         'detalhe_outros': receita.detalhe_outros,
-        'notificar_dias_nao_conferido': 0
+        'notificar_dias_nao_conferido': 0,
+        'rateio_estornado': None,
     }
 
     assert response.status_code == status.HTTP_200_OK

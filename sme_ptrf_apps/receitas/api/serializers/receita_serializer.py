@@ -7,6 +7,7 @@ from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAs
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
 from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaListSerializer
+from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from sme_ptrf_apps.core.models import AcaoAssociacao, Associacao, ContaAssociacao, Periodo
 from sme_ptrf_apps.receitas.models import Receita, Repasse
 
@@ -86,6 +87,7 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
     referencia_devolucao = PeriodoLookUpSerializer()
     repasse = RepasseSerializer()
     saida_do_recurso = DespesaListSerializer()
+    rateio_estornado = RateioDespesaListaSerializer()
 
     class Meta:
         model = Receita
@@ -104,6 +106,7 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
             'notificar_dias_nao_conferido',
             'repasse',
             'saida_do_recurso',
+            'rateio_estornado'
         )
 
 
