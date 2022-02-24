@@ -141,12 +141,13 @@ def test_get_tabelas(
             {
                 'id': tipo_receita.id,
                 'nome': tipo_receita.nome,
-                'e_repasse': tipo_receita.e_repasse,
                 'aceita_capital': tipo_receita.aceita_capital,
                 'aceita_custeio': tipo_receita.aceita_custeio,
                 'aceita_livre': tipo_receita.aceita_livre,
+                'e_repasse': tipo_receita.e_repasse,
                 'e_devolucao': False,
                 'e_recursos_proprios': False,
+                'e_estorno': False,
                 'mensagem_usuario': tipo_receita.mensagem_usuario,
                 'possui_detalhamento': tipo_receita.possui_detalhamento,
                 'tipos_conta': [{
@@ -299,7 +300,8 @@ def test_get_receitas(
                 'nome': detalhe_tipo_receita.nome
             },
             'detalhe_outros': receita.detalhe_outros,
-            'notificar_dias_nao_conferido': 0
+            'notificar_dias_nao_conferido': 0,
+            'rateio_estornado': None,
         },
     ]
 
@@ -484,7 +486,8 @@ def test_retrive_receitas(
             'nome': detalhe_tipo_receita.nome
         },
         'detalhe_outros': receita.detalhe_outros,
-        'notificar_dias_nao_conferido': 0
+        'notificar_dias_nao_conferido': 0,
+        'rateio_estornado': None,
     }
 
     assert response.status_code == status.HTTP_200_OK
