@@ -56,6 +56,8 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
     rateio_estornado = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
+        allow_empty=True,
+        allow_null=True,
         queryset=RateioDespesa.objects.all()
     )
 
