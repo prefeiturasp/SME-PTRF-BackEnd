@@ -629,6 +629,10 @@ def cria_creditos_demonstrados(receitas_demonstradas):
             "data": receita.data.strftime("%d/%m/%Y"),
             "valor": receita.valor
         }
+
+        if receita.rateio_estornado:
+            linha["data_estorno"] = receita.rateio_estornado.despesa.data_documento.strftime("%d/%m/%Y")
+
         linhas.append(linha)
 
     valor_total = sum(r.valor for r in receitas_demonstradas)
@@ -678,6 +682,11 @@ def cria_despesas(rateios):
             "data_transacao": data_transacao,
             "valor": valor
         }
+
+        if rateio.estorno.first():
+            receita = rateio.estorno.first()
+            linha["data_estorno"] = receita.data.strftime("%d/%m/%Y")
+
         linhas.append(linha)
 
     despesas = {

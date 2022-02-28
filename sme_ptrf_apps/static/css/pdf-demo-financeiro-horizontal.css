@@ -214,3 +214,8 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
 .container-texto-justificativas{
   min-height: 64px;
 }
+
+.texto-estorno {
+  color: #086397 !important;
+  font-weight: bold !important;
+}
