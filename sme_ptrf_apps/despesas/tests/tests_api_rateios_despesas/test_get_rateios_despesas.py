@@ -42,6 +42,7 @@ def test_api_get_rateios_despesas(jwt_authenticated_client_d, associacao, despes
                     'aceita_livre': rateio_despesa_capital.acao_associacao.acao.aceita_livre
                 }
             },
+            'estorno': None,
             "valor_total": despesa.valor_total,
             "conferido": rateio_despesa_capital.conferido,
             "cpf_cnpj_fornecedor": despesa.cpf_cnpj_fornecedor,
