@@ -21,7 +21,6 @@ def test_serializer(rateio_despesa_capital):
     assert serializer.data['quantidade_itens_capital']
     assert serializer.data['valor_item_capital']
     assert serializer.data['numero_processo_incorporacao_capital']
-    assert serializer.data['estorno'] is None
 
 
 def test_serializer_lista(rateio_despesa_capital):

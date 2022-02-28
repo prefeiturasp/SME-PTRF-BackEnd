@@ -28,7 +28,10 @@ class RateioDespesaSerializer(serializers.ModelSerializer):
     estorno = serializers.SerializerMethodField(method_name="get_estorno")
 
     def get_estorno(self, rateio):
-        return rateio.estorno.first()
+        from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaLookUpSerializer
+        # return rateio.estorno.first() if rateio.estorno.exists() else None
+        estorno = rateio.estorno.first()
+        return ReceitaLookUpSerializer(estorno, many=False).data
 
     class Meta:
         model = RateioDespesa
@@ -191,7 +194,7 @@ class RateioDespesaTabelaGastosEscolaSerializer(serializers.ModelSerializer):
 
 class RateioDespesaEstornoLookupSerializer(serializers.ModelSerializer):
     despesa = serializers.SlugRelatedField(
-        slug_field='id',
+        slug_field='uuid',
         required=False,
         queryset=Despesa.objects.all()
     )

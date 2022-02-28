@@ -144,3 +144,20 @@ class ReceitaConciliacaoSerializer(serializers.ModelSerializer):
             'conferido',
             'uuid',
         )
+
+
+class ReceitaLookUpSerializer(serializers.ModelSerializer):
+
+    tipo_receita = TipoReceitaSerializer()
+
+    class Meta:
+        model = Receita
+        fields = (
+            'uuid',
+            'data',
+            'valor',
+            'tipo_receita',
+            'categoria_receita',
+            'detalhe_tipo_receita',
+            'detalhe_outros',
+        )
