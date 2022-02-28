@@ -122,7 +122,6 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
     def get_estorno(self, rateio):
         return rateio.estorno.first()
 
-
     class Meta:
         model = RateioDespesa
         fields = (
@@ -184,6 +183,27 @@ class RateioDespesaTabelaGastosEscolaSerializer(serializers.ModelSerializer):
     especificacao_material_servico = EspecificacaoMaterialServicoSerializer()
     tipo_custeio = TipoCusteioSerializer()
     tag = TagLookupSerializer()
+
+    class Meta:
+        model = RateioDespesa
+        fields = '__all__'
+
+
+class RateioDespesaEstornoLookupSerializer(serializers.ModelSerializer):
+    despesa = serializers.SlugRelatedField(
+        slug_field='id',
+        required=False,
+        queryset=Despesa.objects.all()
+    )
+    associacao = AssociacaoSerializer()
+    conta_associacao = ContaAssociacaoSerializer()
+    acao_associacao = AcaoAssociacaoSerializer()
+    especificacao_material_servico = EspecificacaoMaterialServicoSerializer()
+    tipo_custeio = TipoCusteioSerializer()
+    tag = TagLookupSerializer()
+
+    def get_estorno(self, rateio):
+        return rateio.estorno.first()
 
     class Meta:
         model = RateioDespesa
