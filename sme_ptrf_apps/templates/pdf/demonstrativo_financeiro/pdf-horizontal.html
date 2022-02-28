@@ -313,6 +313,14 @@
           <td>{{ receita.data }}</td>
           <td>{{ receita.valor|formata_valor }}</td>
         </tr>
+
+        {% if receita.tipo_receita == 'Estorno' and receita.data_estorno %}
+          <tr>
+            <td colspan="5" class="texto-estorno">
+              Este estorno está vinculado a despesa de {{ receita.data_estorno }}
+            </td>
+          </tr>
+        {% endif %}
       {% endfor %}
       <tr>
         <td class="total sem-borda" style="border-right: 1px solid #F5F6F8; !important;"><strong>Total</strong></td>
@@ -366,6 +374,14 @@
           <td>{{ despesa.data_transacao }}</td>
           <td class="text-right">{{ despesa.valor|formata_valor }}</td>
         </tr>
+
+        {% if despesa.data_estorno %}
+          <tr>
+            <td colspan="11" class="texto-estorno">
+                O estorno do dia {{ despesa.data_estorno }} está vinculado a essa despesa
+            </td>
+          </tr>
+        {% endif %}
       {% endfor %}
       <tr>
         <td class="total sem-borda" style="border-right: 1px solid #F5F6F8; !important;"><strong>Total</strong></td>
@@ -419,6 +435,14 @@
           <td>{{ despesa.data_transacao }}</td>
           <td class="text-right">{{ despesa.valor|formata_valor }}</td>
         </tr>
+
+        {% if despesa.data_estorno %}
+          <tr>
+            <td colspan="11" class="texto-estorno">
+                O estorno do dia {{ despesa.data_estorno }} está vinculado a essa despesa
+            </td>
+          </tr>
+        {% endif %}
       {% endfor %}
       <tr>
         <td class="total sem-borda" style="border-right: 1px solid #F5F6F8; !important;"><strong>Total</strong></td>
@@ -472,6 +496,14 @@
           <td>{{ despesa.data_transacao }}</td>
           <td class="text-right">{{ despesa.valor|formata_valor }}</td>
         </tr>
+
+        {% if despesa.data_estorno %}
+          <tr>
+            <td colspan="11" class="texto-estorno">
+                O estorno do dia {{ despesa.data_estorno }} está vinculado a essa despesa
+            </td>
+          </tr>
+        {% endif %}
       {% endfor %}
       <tr>
         <td class="total sem-borda" style="border-right: 1px solid #F5F6F8; !important;"><strong>Total</strong></td>

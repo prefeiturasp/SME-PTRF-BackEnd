@@ -102,6 +102,7 @@ def payload_receita(associacao, conta_associacao, acao_associacao, tipo_conta, t
         'tipo_receita': tipo_receita.id,
         'detalhe_tipo_receita': detalhe_tipo_receita.id,
         'detalhe_outros': 'teste',
+        'rateio_estornado': None,
     }
     return payload
 
@@ -150,6 +151,22 @@ def payload_receita_repasse_livre_aplicacao(associacao, conta_associacao, acao_a
         'repasse': str(repasse_2020_1_livre_aplicacao_pendente.uuid)
     }
     return payload
+
+
+@pytest.fixture
+def payload_receita_estorno(associacao, conta_associacao, acao_associacao, tipo_receita_estorno, rateio_no_periodo_100_custeio):
+    payload = {
+        'associacao': str(associacao.uuid),
+        'data': '2019-09-26',
+        'valor': 1000.28,
+        'categoria_receita': 'CAPITAL',
+        'conta_associacao': str(conta_associacao.uuid),
+        'acao_associacao': str(acao_associacao.uuid),
+        'tipo_receita': tipo_receita_estorno.id,
+        'rateio_estornado': str(rateio_no_periodo_100_custeio.uuid),
+    }
+    return payload
+
 
 
 @pytest.fixture
