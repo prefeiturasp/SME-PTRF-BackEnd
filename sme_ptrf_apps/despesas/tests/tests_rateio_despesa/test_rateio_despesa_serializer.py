@@ -21,6 +21,7 @@ def test_serializer(rateio_despesa_capital):
     assert serializer.data['quantidade_itens_capital']
     assert serializer.data['valor_item_capital']
     assert serializer.data['numero_processo_incorporacao_capital']
+    assert serializer.data['estorno'] is None
 
 
 def test_serializer_lista(rateio_despesa_capital):
@@ -42,9 +43,11 @@ def test_serializer_lista(rateio_despesa_capital):
         'tipo_documento_nome',
         'tipo_transacao_nome',
         'data_transacao',
-        'notificar_dias_nao_conferido'
+        'notificar_dias_nao_conferido',
     )
     assert serializer.data is not None
     for field in expected_fields:
         assert serializer.data[field] is not None
+
+    assert serializer.data['estorno'] is None
 

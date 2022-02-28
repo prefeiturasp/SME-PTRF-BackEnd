@@ -25,6 +25,10 @@ class RateioDespesaSerializer(serializers.ModelSerializer):
     especificacao_material_servico = EspecificacaoMaterialServicoSerializer()
     tipo_custeio = TipoCusteioSerializer()
     tag = TagLookupSerializer()
+    estorno = serializers.SerializerMethodField(method_name="get_estorno")
+
+    def get_estorno(self, rateio):
+        return rateio.estorno.first()
 
     class Meta:
         model = RateioDespesa
@@ -83,6 +87,7 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
     nome_fornecedor = serializers.SerializerMethodField('get_nome_fornecedor')
     data_transacao = serializers.SerializerMethodField('get_data_transacao')
     receitas_saida_do_recurso = serializers.SerializerMethodField('get_recurso_externo')
+    estorno = serializers.SerializerMethodField(method_name="get_estorno")
 
     def get_numero_documento(self, rateio):
         return rateio.despesa.numero_documento
@@ -114,6 +119,10 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
     def get_recurso_externo(self, rateio):
         return rateio.despesa.receitas_saida_do_recurso.first().uuid if rateio.despesa.receitas_saida_do_recurso.exists() else None
 
+    def get_estorno(self, rateio):
+        return rateio.estorno.first()
+
+
     class Meta:
         model = RateioDespesa
         fields = (
@@ -134,6 +143,7 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
             'notificar_dias_nao_conferido',
             'receitas_saida_do_recurso',
             'conta_associacao',
+            'estorno',
         )
 
 
