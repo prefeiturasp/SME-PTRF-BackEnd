@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+
 from .especificacao_material_servico_serializer import (
     EspecificacaoMaterialServicoLookUpSerializer,
     EspecificacaoMaterialServicoSerializer,
@@ -142,6 +143,16 @@ class RateioDespesaConciliacaoSerializer(serializers.ModelSerializer):
     especificacao_material_servico = EspecificacaoMaterialServicoLookUpSerializer()
     tipo_custeio = TipoCusteioSerializer()
     tag = TagLookupSerializer()
+    estorno = serializers.SerializerMethodField('get_estorno')
+
+    def get_estorno(self, rateio):
+        from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
+        qs = rateio.estorno.first() if rateio.estorno.exists() else None
+        response = None
+        if qs:
+            response = ReceitaConciliacaoSerializer(instance=qs).data
+
+        return response
 
     class Meta:
         model = RateioDespesa
@@ -155,6 +166,7 @@ class RateioDespesaConciliacaoSerializer(serializers.ModelSerializer):
             'notificar_dias_nao_conferido',
             'tipo_custeio',
             'tag',
+            'estorno',
         )
 
 

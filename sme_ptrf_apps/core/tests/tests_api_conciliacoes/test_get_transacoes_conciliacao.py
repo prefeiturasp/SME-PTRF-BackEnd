@@ -51,6 +51,7 @@ def monta_result_esperado(transacoes_esperadas, periodo, conta):
                     "ativa": True,
                 },
                 "notificar_dias_nao_conferido": rateio.notificar_dias_nao_conferido,
+                'estorno': None,
                 "aplicacao_recurso": rateio.aplicacao_recurso,
                 "acao_associacao": {
                     "uuid": f'{rateio.acao_associacao.uuid}',
