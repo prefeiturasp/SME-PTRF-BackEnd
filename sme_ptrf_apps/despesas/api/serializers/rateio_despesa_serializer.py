@@ -38,6 +38,8 @@ class RateioDespesaSerializer(serializers.ModelSerializer):
 
 
 class RateioDespesaCreateSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(required=False)
+
     associacao = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
