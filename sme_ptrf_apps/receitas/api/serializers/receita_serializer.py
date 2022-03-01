@@ -129,6 +129,7 @@ class ReceitaConciliacaoSerializer(serializers.ModelSerializer):
     )
     tipo_receita = TipoReceitaLookUpSerializer()
     acao_associacao = AcaoAssociacaoLookUpSerializer()
+    rateio_estornado = RateioDespesaListaSerializer()
 
     class Meta:
         model = Receita
@@ -143,6 +144,7 @@ class ReceitaConciliacaoSerializer(serializers.ModelSerializer):
             'notificar_dias_nao_conferido',
             'conferido',
             'uuid',
+            'rateio_estornado',
         )
 
 
