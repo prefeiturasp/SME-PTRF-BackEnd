@@ -9,7 +9,8 @@ from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpS
 from sme_ptrf_apps.core.models import AcaoAssociacao, Associacao, ContaAssociacao, Periodo
 
 from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaListSerializer
-from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
+from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaEstornoLookupSerializer, \
+    RateioDespesaListaSerializer
 from sme_ptrf_apps.despesas.models import RateioDespesa
 
 from sme_ptrf_apps.receitas.models import Receita, Repasse
@@ -98,7 +99,7 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
     referencia_devolucao = PeriodoLookUpSerializer()
     repasse = RepasseSerializer()
     saida_do_recurso = DespesaListSerializer()
-    rateio_estornado = RateioDespesaListaSerializer()
+    rateio_estornado = RateioDespesaEstornoLookupSerializer()
 
     class Meta:
         model = Receita
@@ -129,6 +130,7 @@ class ReceitaConciliacaoSerializer(serializers.ModelSerializer):
     )
     tipo_receita = TipoReceitaLookUpSerializer()
     acao_associacao = AcaoAssociacaoLookUpSerializer()
+    rateio_estornado = RateioDespesaEstornoLookupSerializer()
 
     class Meta:
         model = Receita
@@ -143,4 +145,22 @@ class ReceitaConciliacaoSerializer(serializers.ModelSerializer):
             'notificar_dias_nao_conferido',
             'conferido',
             'uuid',
+            'rateio_estornado',
+        )
+
+
+class ReceitaLookUpSerializer(serializers.ModelSerializer):
+
+    tipo_receita = TipoReceitaSerializer()
+
+    class Meta:
+        model = Receita
+        fields = (
+            'uuid',
+            'data',
+            'valor',
+            'tipo_receita',
+            'categoria_receita',
+            'detalhe_tipo_receita',
+            'detalhe_outros',
         )
