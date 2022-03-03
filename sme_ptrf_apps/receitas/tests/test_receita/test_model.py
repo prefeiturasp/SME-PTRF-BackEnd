@@ -4,6 +4,7 @@ from freezegun import freeze_time
 from ...models import Receita
 from ...tipos_aplicacao_recurso_receitas import APLICACAO_LIVRE
 from ....core.models import Periodo
+from ....despesas.models import RateioDespesa
 
 pytestmark = pytest.mark.django_db
 
@@ -77,3 +78,8 @@ def test_notificar_nao_conferido_quando_limite_e_superior(receita_nao_conferida_
 def test_notificar_nao_conferido_quando_conferido(receita_conferida, parametros_tempo_nao_conferido_10_dias):
     assert receita_conferida.notificar_dias_nao_conferido == 0
 
+
+def test_instance_receita_estorno(receita_estorno):
+    model = receita_estorno
+    assert isinstance(model, Receita)
+    assert isinstance(model.rateio_estornado, RateioDespesa)

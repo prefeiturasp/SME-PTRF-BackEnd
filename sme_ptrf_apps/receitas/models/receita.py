@@ -8,7 +8,7 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models import Associacao, Periodo, Parametros
-from sme_ptrf_apps.despesas.models import Despesa
+from sme_ptrf_apps.despesas.models import Despesa, RateioDespesa
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from ..tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
 
@@ -53,12 +53,16 @@ class Receita(ModeloBase):
                                              related_name='+', blank=True, null=True)
 
     periodo_conciliacao = models.ForeignKey('core.Periodo', on_delete=models.SET_NULL, blank=True, null=True,
-                                        related_name='receitas_conciliadas_no_periodo',
-                                        verbose_name='período de conciliação')
+                                            related_name='receitas_conciliadas_no_periodo',
+                                            verbose_name='período de conciliação')
 
     saida_do_recurso = models.ForeignKey(Despesa, on_delete=models.SET_NULL, blank=True, null=True,
-                                        related_name='receitas_saida_do_recurso',
-                                        verbose_name='Saída do Recurso (Despesa)')
+                                         related_name='receitas_saida_do_recurso',
+                                         verbose_name='Saída do Recurso (Despesa)')
+
+    rateio_estornado = models.ForeignKey(RateioDespesa, on_delete=models.CASCADE, blank=True, null=True,
+                                         related_name='estorno',
+                                         verbose_name='Rateio estornado')
 
     def __str__(self):
         return f'RECEITA<{self.detalhamento} - {self.data} - {self.valor}>'

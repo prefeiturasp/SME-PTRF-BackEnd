@@ -38,6 +38,9 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
     filter_fields = ('aplicacao_recurso', 'acao_associacao__uuid', 'despesa__status', 'associacao__uuid', 'conferido', 'conta_associacao__uuid', 'tag__uuid')
 
     def get_queryset(self):
+        if self.action == 'retrieve':
+            return RateioDespesa.objects.filter(uuid=self.kwargs['uuid'])
+
         associacao_uuid = self.request.query_params.get('associacao_uuid') or self.request.query_params.get('associacao__uuid')
         if associacao_uuid is None:
             erro = {

@@ -4,6 +4,7 @@ from sme_ptrf_apps.receitas.models import TipoReceita
 
 pytestmark = pytest.mark.django_db
 
+
 def test_instance(tipo_receita):
     model = tipo_receita
     assert isinstance(model, TipoReceita)
@@ -17,6 +18,7 @@ def test_instance(tipo_receita):
     assert not model.aceita_custeio
     assert not model.aceita_livre
     assert not model.e_devolucao
+    assert not model.e_estorno
 
 
 def test_srt_model(tipo_receita):

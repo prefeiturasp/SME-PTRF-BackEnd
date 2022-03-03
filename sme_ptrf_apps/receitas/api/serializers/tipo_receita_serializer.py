@@ -19,16 +19,17 @@ class TipoReceitaEDetalhesSerializer(serializers.ModelSerializer):
         model = TipoReceita
         fields = ('id',
                   'nome',
-                  'e_repasse',
                   'aceita_capital',
                   'aceita_custeio',
                   'aceita_livre',
                   'detalhes_tipo_receita',
-                  'tipos_conta',
+                  'e_repasse',
                   'e_devolucao',
                   'e_recursos_proprios',
+                  'e_estorno',
                   'mensagem_usuario',
                   'possui_detalhamento',
+                  'tipos_conta',
                 )
 
 

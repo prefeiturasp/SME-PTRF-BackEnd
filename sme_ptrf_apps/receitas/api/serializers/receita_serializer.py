@@ -6,8 +6,13 @@ from rest_framework.exceptions import ValidationError
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
-from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaListSerializer
 from sme_ptrf_apps.core.models import AcaoAssociacao, Associacao, ContaAssociacao, Periodo
+
+from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaListSerializer
+from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaEstornoLookupSerializer, \
+    RateioDespesaListaSerializer
+from sme_ptrf_apps.despesas.models import RateioDespesa
+
 from sme_ptrf_apps.receitas.models import Receita, Repasse
 
 from ...services import atualiza_repasse_para_pendente, atualiza_repasse_para_realizado
@@ -49,6 +54,14 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
         queryset=Periodo.objects.all()
     )
 
+    rateio_estornado = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        allow_empty=True,
+        allow_null=True,
+        queryset=RateioDespesa.objects.all()
+    )
+
     def create(self, validated_data):
         if validated_data['conta_associacao'].tipo_conta.id not in [t.id for t in validated_data['tipo_receita'].tipos_conta.all()]:
             raise ValidationError(f"O tipo de receita {validated_data['tipo_receita'].nome} não permite salvar créditos com contas do tipo {validated_data['conta_associacao'].tipo_conta.nome}")
@@ -86,6 +99,7 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
     referencia_devolucao = PeriodoLookUpSerializer()
     repasse = RepasseSerializer()
     saida_do_recurso = DespesaListSerializer()
+    rateio_estornado = RateioDespesaEstornoLookupSerializer()
 
     class Meta:
         model = Receita
@@ -104,6 +118,7 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
             'notificar_dias_nao_conferido',
             'repasse',
             'saida_do_recurso',
+            'rateio_estornado'
         )
 
 
@@ -115,6 +130,7 @@ class ReceitaConciliacaoSerializer(serializers.ModelSerializer):
     )
     tipo_receita = TipoReceitaLookUpSerializer()
     acao_associacao = AcaoAssociacaoLookUpSerializer()
+    rateio_estornado = RateioDespesaEstornoLookupSerializer()
 
     class Meta:
         model = Receita
@@ -129,4 +145,22 @@ class ReceitaConciliacaoSerializer(serializers.ModelSerializer):
             'notificar_dias_nao_conferido',
             'conferido',
             'uuid',
+            'rateio_estornado',
+        )
+
+
+class ReceitaLookUpSerializer(serializers.ModelSerializer):
+
+    tipo_receita = TipoReceitaSerializer()
+
+    class Meta:
+        model = Receita
+        fields = (
+            'uuid',
+            'data',
+            'valor',
+            'tipo_receita',
+            'categoria_receita',
+            'detalhe_tipo_receita',
+            'detalhe_outros',
         )

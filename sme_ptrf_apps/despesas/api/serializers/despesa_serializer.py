@@ -2,12 +2,11 @@ import logging
 
 from rest_framework import serializers
 
-from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
 from .rateio_despesa_serializer import RateioDespesaSerializer, RateioDespesaTabelaGastosEscolaSerializer
 from .tipo_documento_serializer import TipoDocumentoSerializer, TipoDocumentoListSerializer
 from .tipo_transacao_serializer import TipoTransacaoSerializer
 from ..serializers.rateio_despesa_serializer import RateioDespesaCreateSerializer
-from ...models import Despesa
+from ...models import Despesa, RateioDespesa
 from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
 from ....core.models import Associacao
 
@@ -57,26 +56,40 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         return despesa
 
     def update(self, instance, validated_data):
-        rateios_json = validated_data.pop('rateios')
-        instance.rateios.all().delete()
-        instance.verifica_cnpj_zerado()
+        rateios = validated_data.pop('rateios')
 
-        rateios_lista = []
-        for rateio_json in rateios_json:
-            rateio_json["eh_despesa_sem_comprovacao_fiscal"] = instance.eh_despesa_sem_comprovacao_fiscal(
-                validated_data['cpf_cnpj_fornecedor']
-            )
-            rateios_object = RateioDespesaCreateSerializer(
-            ).create(rateio_json)
-            rateios_lista.append(rateios_object)
+        # Atualiza campos da despesa
+        Despesa.objects.filter(uuid=instance.uuid).update(**validated_data)
 
-        update_instance_from_dict(instance, validated_data)
-        instance.rateios.set(rateios_lista)
-        instance.verifica_data_documento_vazio()
-        instance.atualiza_status()
-        instance.save()
+        # Atualiza os rateios
+        log.info(f"Atualizando rateios da despesa {instance.uuid}")
+        keep_rateios = []  # rateios que serão mantidos. qualquer um que não estiver na lista será apagado.
+        for rateio in rateios:
+            if "uuid" in rateio.keys():
+                log.info(f"Encontrada chave uuid no rateio {rateio['uuid']} R${rateio['valor_rateio']}. Será atualizado.")
+                if RateioDespesa.objects.filter(uuid=rateio["uuid"]).exists():
+                    log.info(f"Rateio encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
+                    RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)
+                    rateio_updated = RateioDespesa.objects.get(uuid=rateio["uuid"])
+                    keep_rateios.append(rateio_updated.uuid)
+                else:
+                    log.info(f"Rateio NÃO encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
+                    continue
+            else:
+                log.info(f"Não encontrada chave uuid de rateio R${rateio['valor_rateio']}. Será criado.")
+                rateio_updated = RateioDespesa.objects.create(**rateio, despesa=instance)
+                keep_rateios.append(rateio_updated.uuid)
 
-        return instance
+        # Apaga rateios da despesa que não estão na lista de rateios a serem mantidos
+        for rateio in instance.rateios.all():
+            if rateio.uuid not in keep_rateios:
+                log.info(f"Rateio apagado {rateio.uuid} R${rateio.valor_rateio}")
+                rateio.delete()
+
+        # Retorna a despesa atualizada
+        despesa_updated = Despesa.objects.get(uuid=instance.uuid)
+
+        return despesa_updated
 
     class Meta:
         model = Despesa

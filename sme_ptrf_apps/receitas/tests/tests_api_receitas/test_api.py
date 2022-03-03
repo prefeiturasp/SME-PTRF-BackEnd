@@ -92,6 +92,32 @@ def test_create_receita_repasse(
         assert Repasse.objects.get(uuid=repasse.uuid).status == 'PENDENTE'
 
 
+def test_create_receita_estorno(
+    jwt_authenticated_client_p,
+    tipo_receita,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao,
+    repasse,
+    payload_receita_estorno,
+    rateio_no_periodo_100_custeio
+):
+    response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita_estorno),
+                                               content_type='application/json')
+
+    assert response.status_code == status.HTTP_201_CREATED
+
+    result = json.loads(response.content)
+
+    assert Receita.objects.filter(uuid=result["uuid"]).exists()
+
+    receita = Receita.objects.get(uuid=result["uuid"])
+
+    assert receita.rateio_estornado == rateio_no_periodo_100_custeio
+
+
 def test_create_receita_repasse_valor_diferente(
     jwt_authenticated_client_p,
     tipo_receita,
@@ -141,12 +167,13 @@ def test_get_tabelas(
             {
                 'id': tipo_receita.id,
                 'nome': tipo_receita.nome,
-                'e_repasse': tipo_receita.e_repasse,
                 'aceita_capital': tipo_receita.aceita_capital,
                 'aceita_custeio': tipo_receita.aceita_custeio,
                 'aceita_livre': tipo_receita.aceita_livre,
+                'e_repasse': tipo_receita.e_repasse,
                 'e_devolucao': False,
                 'e_recursos_proprios': False,
+                'e_estorno': False,
                 'mensagem_usuario': tipo_receita.mensagem_usuario,
                 'possui_detalhamento': tipo_receita.possui_detalhamento,
                 'tipos_conta': [{
@@ -299,7 +326,8 @@ def test_get_receitas(
                 'nome': detalhe_tipo_receita.nome
             },
             'detalhe_outros': receita.detalhe_outros,
-            'notificar_dias_nao_conferido': 0
+            'notificar_dias_nao_conferido': 0,
+            'rateio_estornado': None,
         },
     ]
 
@@ -484,7 +512,8 @@ def test_retrive_receitas(
             'nome': detalhe_tipo_receita.nome
         },
         'detalhe_outros': receita.detalhe_outros,
-        'notificar_dias_nao_conferido': 0
+        'notificar_dias_nao_conferido': 0,
+        'rateio_estornado': None,
     }
 
     assert response.status_code == status.HTTP_200_OK
