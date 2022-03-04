@@ -1,3 +1,6 @@
+### 1.28.1 - 08/02/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 37
+* (59592) - Ata: Exibição dos repasses pendentes de crédito, mesmo quando foram realizados 
+
 ### 1.25.6 - 08/02/2022 - Hotfix - Problema na geração de PDF ao concluir período
 * (55534) - Relação de Bens em PDF - Cria templatetag separada - replace_string_normalizada
 
