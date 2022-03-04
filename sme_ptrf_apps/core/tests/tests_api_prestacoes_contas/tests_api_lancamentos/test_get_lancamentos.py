@@ -61,6 +61,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
             'conferido': lancamento["mestre"].conferido,
             'notificar_dias_nao_conferido': lancamento["mestre"].notificar_dias_nao_conferido,
             'uuid': f'{lancamento["mestre"].uuid}',
+            'rateio_estornado': None,
         }
 
         rateios_esperados = []
