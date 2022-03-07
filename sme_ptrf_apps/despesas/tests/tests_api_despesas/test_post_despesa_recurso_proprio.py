@@ -62,9 +62,6 @@ def payload_despesa_recurso_proprio(
     return payload
 
 
-
-
-
 def test_cadastrar_despesa_recurso_proprio(jwt_authenticated_client_d,
     tipo_aplicacao_recurso,
     tipo_custeio,
@@ -79,33 +76,6 @@ def test_cadastrar_despesa_recurso_proprio(jwt_authenticated_client_d,
     from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
 
     response = jwt_authenticated_client_d.post('/api/despesas/', data=json.dumps(payload_despesa_recurso_proprio), content_type='application/json')
-
-    assert response.status_code == status.HTTP_201_CREATED
-
-    result = json.loads(response.content)
-
-    assert Despesa.objects.filter(uuid=result["uuid"]).exists()
-
-    despesa = Despesa.objects.get(uuid=result["uuid"])
-
-    assert despesa.associacao.uuid == associacao.uuid
-    assert despesa.status == STATUS_COMPLETO
-
-
-def test_cadastrar_despesa_cnpj_zerado(jwt_authenticated_client_d,
-    tipo_aplicacao_recurso,
-    tipo_custeio,
-    tipo_documento,
-    tipo_transacao,
-    acao,
-    acao_associacao_e_recurso_proprio,
-    associacao,
-    tipo_conta,
-    conta_associacao,
-    payload_despesa_cnpj_zerado):
-    from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
-
-    response = jwt_authenticated_client_d.post('/api/despesas/', data=json.dumps(payload_despesa_cnpj_zerado), content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED
 
