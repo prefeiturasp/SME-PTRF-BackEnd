@@ -36,15 +36,13 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         rateios = validated_data.pop('rateios')
 
         despesa = Despesa.objects.create(**validated_data)
-        despesa.verifica_cnpj_zerado()
+        # despesa.verifica_cnpj_zerado()
         despesa.verifica_data_documento_vazio()
         log.info("Criando despesa com uuid: {}".format(despesa.uuid))
 
         rateios_lista = []
         for rateio in rateios:
-            rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal(
-                validated_data['cpf_cnpj_fornecedor']
-            )
+            rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
             rateio_object = RateioDespesaCreateSerializer().create(rateio)
             rateios_lista.append(rateio_object)
         despesa.rateios.set(rateios_lista)
@@ -63,7 +61,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
         # Atualiza os rateios
         log.info(f"Atualizando rateios da despesa {instance.uuid}")
-        keep_rateios = []  # rateios que serão mantidos. qualquer um que não estiver na lista será apagado.
+        keep_rateios = []  # rateios que serão mantidos. Qualquer um que não estiver na lista será apagado.
         for rateio in rateios:
             if "uuid" in rateio.keys():
                 log.info(f"Encontrada chave uuid no rateio {rateio['uuid']} R${rateio['valor_rateio']}. Será atualizado.")
@@ -71,6 +69,10 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                     log.info(f"Rateio encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
                     RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)
                     rateio_updated = RateioDespesa.objects.get(uuid=rateio["uuid"])
+
+                    # Necessário para forçar a verificação se o rateio está completo
+                    rateio_updated.save()
+
                     keep_rateios.append(rateio_updated.uuid)
                 else:
                     log.info(f"Rateio NÃO encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
