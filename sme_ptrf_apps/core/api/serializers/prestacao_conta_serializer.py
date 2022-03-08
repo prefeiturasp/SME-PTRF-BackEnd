@@ -188,13 +188,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
         return result
 
     def get_pode_reabrir(self, obj):
-        associacao = obj.associacao
-        prestacao_de_contas_posteriores = PrestacaoConta.objects.filter(associacao=associacao,
-                                                                        id__gt=obj.id)
-        if prestacao_de_contas_posteriores:
-            return False
-        else:
-            return True
+        return obj.pode_reabrir()
 
     class Meta:
         model = PrestacaoConta

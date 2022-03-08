@@ -1,4 +1,7 @@
-### 1.28.1 - 08/02/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 37
+### 1.28.1 - 09/03/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 37
+* (59610) - Acompanhamento PC: Sistema não permitindo devolver PC com PC seguinte devolvida para acertos
+
+### 1.28.1 - 08/03/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 37
 * (59592) - Ata: Exibição dos repasses pendentes de crédito, mesmo quando foram realizados 
 
 ### 1.25.6 - 08/02/2022 - Hotfix - Problema na geração de PDF ao concluir período
