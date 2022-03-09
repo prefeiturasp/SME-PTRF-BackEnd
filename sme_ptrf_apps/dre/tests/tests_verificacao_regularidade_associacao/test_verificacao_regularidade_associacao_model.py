@@ -19,9 +19,8 @@ def test_instance_model(verificacao_regularidade_associacao_documento_cnpj):
 
 
 def test_srt_model(verificacao_regularidade_associacao_documento_cnpj):
-    analise_id = verificacao_regularidade_associacao_documento_cnpj.analise_regularidade.id
     verificacao_id = verificacao_regularidade_associacao_documento_cnpj.id
-    esperado = f'Análise:{analise_id} EOL:123456 Ano:2021 Verificação:{verificacao_id}-CNPJ'
+    esperado = f'Verificação:{verificacao_id}-CNPJ'
     assert verificacao_regularidade_associacao_documento_cnpj.__str__() == esperado
 
 

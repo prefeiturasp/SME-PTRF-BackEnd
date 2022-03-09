@@ -5,9 +5,16 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.27.0
+Versão: 1.28.0
 
 ## Release Notes
+
+### 1.28.0 - 03/03/2022 - Entregas da Sprint 36
+* UE > Implementada funcionalidade de estorno de gastos
+* UE > O demonstrativo financeiro passa a exibir informações de estornos
+* DRE > O Acompanhamento de PC passa a exibir informações de estorno
+* DRE > O status de PC "Retornada após acertos" passa a chamar "Apresentada após acertos"
+* 🐞 Correção de bugs
 
 ### 1.27.0 - 22/02/2022 - Entregas da Sprint 35
 * UE > Notificações de reprovação agora informam ou não os motivos dependendo das permissões do destinatário

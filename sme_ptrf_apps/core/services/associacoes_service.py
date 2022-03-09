@@ -4,13 +4,17 @@ from .periodo_services import status_prestacao_conta_associacao
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from sme_ptrf_apps.core.choices import MembroEnum
-from sme_ptrf_apps.receitas.models import Repasse
+from sme_ptrf_apps.receitas.models.repasse import Repasse, StatusRepasse
 
 logger = logging.getLogger(__name__)
 
 
 def retorna_repasses_pendentes_periodos_ate_agora(associacao, periodo):
-    repasses = Repasse.objects.filter(associacao=associacao, periodo__referencia__lte=periodo.referencia)
+    repasses = Repasse.objects.filter(
+        associacao=associacao,
+        periodo__referencia__lte=periodo.referencia,
+        status=StatusRepasse.PENDENTE.name
+    )
 
     resultado = []
     for repasse in repasses:
