@@ -26,8 +26,7 @@ class VerificacaoRegularidadeAssociacao(ModeloBase):
     def __str__(self):
         verificacao_id = f'Verificação:{self.id}'
         verificacao_nome = f'{self.item_verificacao.descricao if self.item_verificacao else "?"}'
-        analise = f'{self.analise_regularidade if self.analise_regularidade else "?"}'
-        return f'{analise} {verificacao_id}-{verificacao_nome}'
+        return f'{verificacao_id}-{verificacao_nome}'
 
     class Meta:
         verbose_name = 'Verificação de regularidade de associação'
