@@ -10,6 +10,11 @@ from auditlog.registry import auditlog
 from .periodo import Periodo
 
 
+class AssociacoesAtivasManager(models.Manager):
+    def get_queryset(self):
+        return super(AssociacoesAtivasManager, self).get_queryset().exclude(cnpj="")
+
+
 class Associacao(ModeloIdNome):
     history = AuditlogHistoryField()
 
@@ -150,6 +155,9 @@ class Associacao(ModeloIdNome):
     def acoes_da_associacao(cls, associacao_uuid):
         associacao = cls.objects.filter(uuid=associacao_uuid).first()
         return associacao.acoes.all().order_by('acao__posicao_nas_pesquisas') if associacao else []
+
+    objects = models.Manager()  # Manager Padrão
+    ativas = AssociacoesAtivasManager()
 
     class Meta:
         verbose_name = "Associação"
