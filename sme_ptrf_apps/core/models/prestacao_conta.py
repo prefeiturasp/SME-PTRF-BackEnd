@@ -326,6 +326,12 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
+    def pode_reabrir(self):
+        pode_rebrir_pc = not self.associacao.fechamentos_associacao.filter(
+            periodo__referencia__gt=self.periodo.referencia
+        ).exists()
+        return pode_rebrir_pc
+
     @classmethod
     @transaction.atomic
     def reabrir(cls, uuid):
