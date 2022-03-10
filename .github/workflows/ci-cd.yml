@@ -66,7 +66,7 @@ jobs:
         env: 
           RANCHER_URL: ${{ secrets.RANCHER_URL }}
           RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
-          NAMESPACE: sme-ptrf
+          NAMESPACE: sme-ptrf-hom2
           WORKLOAD: ptrf-backend,ptrf-celery,ptrf-flower
           
       - name: send failure message
