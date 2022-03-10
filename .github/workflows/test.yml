@@ -10,8 +10,8 @@ jobs:
   
     runs-on: self-hosted
     if: ${{ github.ref == 'refs/heads/master' }}
+    steps:
     
-        steps:
       - uses: actions/checkout@v2
 
       - name: Running Python Tests
@@ -21,4 +21,4 @@ jobs:
             pip install --user pipenv -r requirements/production.txt
             pytest
             flake8
-            
+          
