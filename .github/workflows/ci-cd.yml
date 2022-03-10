@@ -49,12 +49,13 @@ jobs:
           to: -752736369
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            🚀 Por favor me aprove ${{ github.ref_name	}}!!!!
+            😍 Por favor me aprove!!!!!
+            branch: ${{ github.ref_name	}}
             ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}            
             Repository: ${{ github.repository }}            
             See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            🚀🚀🚀
+            To aprove: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
              
   deploy-hom:
   
