@@ -22,13 +22,13 @@ jobs:
         #Criação do container de banco de dados e copia das variaveis que serão carregadas.
         run: |
           docker run -d --rm --cap-add SYS_TIME --name ptrf-db -p 5432 --network python-network -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:11-alpine
+          echo "copiando fontes..."
+          cp /srv/env/ptrf .
           
       - name: Running Python Tests
         uses: luizhpriotto/action_images@python36-v1.0
         with:
           command: |
-            echo "copiando fontes..."
-            cp /srv/env/ptrf .
             echo "Conectando o container a rede python..."
             docker network connect python-network $(hostname)
             echo "Carregando as variaveis de ambiente..."
