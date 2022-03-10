@@ -18,7 +18,6 @@ jobs:
         uses: luizhpriotto/action_images@python36-v1.0
         with:
           command: |
-            pip install --user pipenv -r requirements/production.txt
+            pip install --user pipenv -r requirements/local.txt
             pytest
             flake8
-          
