@@ -1,0 +1,24 @@
+name: Dev - CI/CD Pip Testfile
+ 
+on:
+
+  workflow_dispatch:
+
+jobs:
+
+  test:
+  
+    runs-on: self-hosted
+    if: ${{ github.ref == 'refs/heads/master' }}
+    
+        steps:
+      - uses: actions/checkout@v2
+
+      - name: Running Python Tests
+        uses: luizhpriotto/action_images@python36-v1.0
+        with:
+          command: |
+            pip install --user pipenv -r requirements/production.txt
+            pytest
+            flake8
+            
