@@ -54,6 +54,11 @@ class Despesa(ModeloBase):
 
     numero_boletim_de_ocorrencia = models.CharField('Nº boletim de ocorrência', max_length=100, default='', blank=True)
 
+    retem_imposto = models.BooleanField('Retém imposto?', default=False)
+
+    despesa_imposto = models.ForeignKey('Despesa', on_delete=models.SET_NULL, related_name='despesa_geradora_do_imposto',
+                            blank=True, null=True, to_field="uuid")
+
     status = models.CharField(
         'status',
         max_length=15,

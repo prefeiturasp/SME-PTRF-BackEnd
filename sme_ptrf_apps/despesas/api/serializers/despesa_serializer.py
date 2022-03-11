@@ -6,11 +6,37 @@ from .rateio_despesa_serializer import RateioDespesaSerializer, RateioDespesaTab
 from .tipo_documento_serializer import TipoDocumentoSerializer, TipoDocumentoListSerializer
 from .tipo_transacao_serializer import TipoTransacaoSerializer
 from ..serializers.rateio_despesa_serializer import RateioDespesaCreateSerializer
-from ...models import Despesa, RateioDespesa
+from ...models import Despesa, RateioDespesa, TipoDocumento, TipoTransacao
 from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
 from ....core.models import Associacao
 
 log = logging.getLogger(__name__)
+
+
+class DespesaImpostoSerializer(serializers.ModelSerializer):
+    associacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Associacao.objects.all()
+    )
+
+    tipo_documento = serializers.SlugRelatedField(
+        slug_field='id',
+        required=False,
+        queryset=TipoDocumento.objects.all()
+    )
+
+    tipo_transacao = serializers.SlugRelatedField(
+        slug_field='id',
+        required=False,
+        queryset=TipoTransacao.objects.all()
+    )
+
+    rateios = RateioDespesaCreateSerializer(many=True, required=False)
+
+    class Meta:
+        model = Despesa
+        fields='__all__'
 
 
 class DespesaSerializer(serializers.ModelSerializer):
@@ -18,6 +44,13 @@ class DespesaSerializer(serializers.ModelSerializer):
     tipo_documento = TipoDocumentoSerializer()
     tipo_transacao = TipoTransacaoSerializer()
     rateios = RateioDespesaSerializer(many=True)
+    despesa_imposto = DespesaImpostoSerializer(many=False, required=False)
+
+    despesa_geradora_do_imposto = serializers.SerializerMethodField(method_name="get_despesa_de_imposto", required=False)
+
+    def get_despesa_de_imposto(self, despesa):
+        despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
+        return DespesaImpostoSerializer(despesa_geradora_do_imposto, many=False).data
 
     class Meta:
         model = Despesa
@@ -25,15 +58,20 @@ class DespesaSerializer(serializers.ModelSerializer):
 
 
 class DespesaCreateSerializer(serializers.ModelSerializer):
+
     associacao = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
         queryset=Associacao.objects.all()
     )
     rateios = RateioDespesaCreateSerializer(many=True, required=False)
+    despesa_imposto = DespesaImpostoSerializer(many=False, required=False, allow_null=True)
 
     def create(self, validated_data):
         rateios = validated_data.pop('rateios')
+
+        despesa_imposto = validated_data.pop('despesa_imposto') if validated_data.get('despesa_imposto') else None
+        rateios_imposto = despesa_imposto.pop('rateios') if despesa_imposto else None
 
         despesa = Despesa.objects.create(**validated_data)
         # despesa.verifica_cnpj_zerado()
@@ -51,10 +89,34 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
         log.info("Criação de despesa finalizada!")
 
+        # Despesa de Imposto
+        if despesa.retem_imposto and despesa_imposto:
+            despesa_do_imposto = Despesa.objects.create(**despesa_imposto)
+            log.info("Criando despesa de imposto com uuid: {}".format(despesa_do_imposto.uuid))
+
+            rateios_do_imposto_lista = []
+            for rateio in rateios_imposto:
+                rateio_object = RateioDespesaCreateSerializer().create(rateio)
+                rateios_do_imposto_lista.append(rateio_object)
+
+            despesa_do_imposto.rateios.set(rateios_do_imposto_lista)
+
+            despesa_do_imposto.atualiza_status()
+
+            despesa.despesa_imposto = despesa_do_imposto
+            despesa.save()
+
+            log.info("Despesa do imposto {}, Rateios do imposto: {}".format(despesa_do_imposto.uuid, rateios_do_imposto_lista))
+
+            log.info("Criação de despesa de imposto finalizada!")
+
         return despesa
 
     def update(self, instance, validated_data):
         rateios = validated_data.pop('rateios')
+
+        despesa_imposto = validated_data.pop('despesa_imposto') if validated_data.get('despesa_imposto') else None
+        rateios_imposto = despesa_imposto.pop('rateios') if despesa_imposto else None
 
         # Atualiza campos da despesa
         Despesa.objects.filter(uuid=instance.uuid).update(**validated_data)
@@ -87,6 +149,42 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             if rateio.uuid not in keep_rateios:
                 log.info(f"Rateio apagado {rateio.uuid} R${rateio.valor_rateio}")
                 rateio.delete()
+
+        # update_instance_from_dict(instance, validated_data)
+
+        # Despesa de Imposto
+        if validated_data.get('retem_imposto') and despesa_imposto:
+
+            if instance and instance.despesa_imposto and instance.despesa_imposto.uuid:
+                Despesa.objects.filter(uuid=instance.despesa_imposto.uuid).update(**despesa_imposto)
+                despesa_do_imposto = Despesa.objects.get(uuid=instance.despesa_imposto.uuid)
+            else:
+                despesa_do_imposto = Despesa.objects.create(**despesa_imposto)
+
+            rateios_do_imposto_lista = []
+            for rateio in rateios_imposto:
+                if "uuid" in rateio.keys():
+                    RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)
+                    rateio_updated = RateioDespesa.objects.get(uuid=rateio["uuid"])
+                    rateios_do_imposto_lista.append(rateio_updated)
+                else:
+                    log.info(f"Não encontrada chave uuid de rateio R${rateio['valor_rateio']}. Será criado.")
+                    rateio_object = RateioDespesaCreateSerializer().create(rateio)
+                    rateios_do_imposto_lista.append(rateio_object)
+
+            despesa_do_imposto.rateios.set(rateios_do_imposto_lista)
+            despesa_do_imposto.save()
+
+            despesa_do_imposto.atualiza_status()
+
+            instance.despesa_imposto = despesa_do_imposto
+            instance.save()
+
+        elif not validated_data.get('retem_imposto'):
+
+            if instance and instance.despesa_imposto and instance.despesa_imposto.uuid:
+                despesa_do_imposto = Despesa.objects.get(uuid=instance.despesa_imposto.uuid)
+                despesa_do_imposto.delete()
 
         # Retorna a despesa atualizada
         despesa_updated = Despesa.objects.get(uuid=instance.uuid)

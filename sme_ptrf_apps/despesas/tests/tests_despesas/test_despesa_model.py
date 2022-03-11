@@ -27,6 +27,11 @@ def test_instance_model(despesa):
     assert model.id
     assert model.status == STATUS_COMPLETO
     assert model.valor_original
+    assert model.eh_despesa_sem_comprovacao_fiscal is False
+    assert model.eh_despesa_reconhecida_pela_associacao
+    assert model.numero_boletim_de_ocorrencia is ""
+    assert model.retem_imposto is False
+    assert model.despesa_imposto is None
 
 
 def test_srt_model(despesa):

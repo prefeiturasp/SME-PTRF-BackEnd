@@ -137,6 +137,19 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
         obj = self.get_object()
 
+        despesa_do_imposto = obj.despesa_imposto
+
+        if despesa_do_imposto and despesa_do_imposto.uuid:
+            try:
+                despesa_do_imposto_para_apagar = Despesa.objects.filter(uuid=despesa_do_imposto.uuid).first()
+                self.perform_destroy(despesa_do_imposto_para_apagar)
+            except Exception as err:
+                erro = {
+                    'erro': 'despesa_do_imposto_nao_deletada',
+                    'mensagem': str(err)
+                }
+                return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
         try:
             self.perform_destroy(obj)
         except ProtectedError as exception:
