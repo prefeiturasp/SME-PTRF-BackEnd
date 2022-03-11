@@ -6,7 +6,7 @@ from ...models import TipoDocumento
 class TipoDocumentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoDocumento
-        fields = ('id', 'nome', 'apenas_digitos', 'numero_documento_digitado')
+        fields = ('id', 'nome', 'apenas_digitos', 'numero_documento_digitado', 'pode_reter_imposto', 'eh_documento_de_retencao_de_imposto')
 
 
 class TipoDocumentoListSerializer(serializers.ModelSerializer):

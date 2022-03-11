@@ -4,8 +4,6 @@ from rangefilter.filter import DateRangeFilter
 from .models import TipoTransacao, TipoDocumento, TipoCusteio, EspecificacaoMaterialServico, Despesa, RateioDespesa, \
     Fornecedor
 
-admin.site.register(TipoDocumento)
-
 
 def customTitledFilter(title):
     class Wrapper(admin.FieldListFilter):
@@ -17,9 +15,15 @@ def customTitledFilter(title):
     return Wrapper
 
 
+@admin.register(TipoDocumento)
+class TipoDocumentoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'pode_reter_imposto', 'eh_documento_de_retencao_de_imposto')
+    readonly_fields = ('id', 'uuid')
+
+
 @admin.register(TipoCusteio)
 class TipoCusteioAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'id', 'uuid')
+    list_display = ('nome', 'id', 'uuid', 'eh_tributos_e_tarifas')
     readonly_fields = ('id', 'uuid')
 
 
@@ -60,7 +64,7 @@ class RateioDespesaInLine(admin.TabularInline):
 @admin.register(Despesa)
 class DespesaAdmin(admin.ModelAdmin):
     list_display = (
-        'tipo_documento', 'numero_documento', 'data_documento', 'nome_fornecedor', 'valor_total', 'status', 'associacao')
+        'tipo_documento', 'numero_documento', 'data_documento', 'nome_fornecedor', 'valor_total', 'status', 'associacao', 'retem_imposto')
     ordering = ('-data_documento',)
     search_fields = ('numero_documento', 'nome_fornecedor', 'documento_transacao', 'associacao__nome', 'associacao__unidade__codigo_eol')
     list_filter = ('status', 'associacao')
