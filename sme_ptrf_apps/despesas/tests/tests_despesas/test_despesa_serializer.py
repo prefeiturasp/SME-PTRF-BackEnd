@@ -22,6 +22,11 @@ def test_serializer(despesa):
     assert serializer.data['data_transacao']
     assert serializer.data['valor_total']
     assert serializer.data['valor_recursos_proprios']
+    assert serializer.data['eh_despesa_sem_comprovacao_fiscal'] is False
+    assert serializer.data['eh_despesa_reconhecida_pela_associacao']
+    assert serializer.data['numero_boletim_de_ocorrencia'] is ""
+    assert serializer.data['retem_imposto'] is False
+    assert serializer.data['despesa_imposto'] is None
 
 
 def test_create_serializer(despesa, rateio_despesa_capital):

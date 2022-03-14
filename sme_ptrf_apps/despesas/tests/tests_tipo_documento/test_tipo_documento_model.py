@@ -16,6 +16,8 @@ def test_instance_model(tipo_documento):
     assert model.id
     assert model.apenas_digitos is not None
     assert model.numero_documento_digitado is not None
+    assert model.pode_reter_imposto is not None
+    assert model.eh_documento_de_retencao_de_imposto is not None
 
 
 def test_srt_model(tipo_documento):
