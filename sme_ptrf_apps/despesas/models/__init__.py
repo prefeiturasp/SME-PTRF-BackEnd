@@ -5,3 +5,4 @@ from .rateio_despesa import RateioDespesa
 from .tipo_custeio import TipoCusteio
 from .tipo_documento import TipoDocumento
 from .tipo_transacao import TipoTransacao
+from .motivo_pagamento_antecipado import MotivoPagamentoAntecipado

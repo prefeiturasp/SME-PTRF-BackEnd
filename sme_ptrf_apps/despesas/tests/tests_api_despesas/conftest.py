@@ -24,6 +24,8 @@ def payload_despesa_valida(
         "data_transacao": "2020-03-10",
         "valor_total": 11000.50,
         "valor_recursos_proprios": 1000.50,
+        "motivos_pagamento_antecipado": [],
+        "outros_motivos_pagamento_antecipado": "",
         "rateios": [
             {
                 "associacao": f'{associacao.uuid}',
@@ -57,6 +59,8 @@ def payload_despesa_sem_campos_nao_obrigatorios(
         "data_transacao": None,
         "valor_total": 0,
         "valor_recursos_proprios": 0,
+        "motivos_pagamento_antecipado": [],
+        "outros_motivos_pagamento_antecipado": "",
         "rateios": [
             {
                 "associacao": f'{associacao.uuid}',
@@ -90,6 +94,8 @@ def payload_despesa_sem_campos_nao_obrigatorios_sem_rateios(
         "data_transacao": None,
         "valor_total": 0,
         "valor_recursos_proprios": 0,
+        "motivos_pagamento_antecipado": [],
+        "outros_motivos_pagamento_antecipado": "",
         "rateios": []
     }
     return payload
@@ -119,6 +125,8 @@ def payload_despesa_valida_rateio_com_tag(
         "data_transacao": "2020-03-10",
         "valor_total": 11000.50,
         "valor_recursos_proprios": 1000.50,
+        "motivos_pagamento_antecipado": [],
+        "outros_motivos_pagamento_antecipado": "",
         "rateios": [
             {
                 "associacao": f'{associacao.uuid}',
@@ -154,6 +162,8 @@ def payload_despesa_status_incompleto_eh_despesa_sem_comprovacao_fiscal(
         "valor_total": 0,
         "valor_recursos_proprios": 0,
         "eh_despesa_sem_comprovacao_fiscal": True,
+        "motivos_pagamento_antecipado": [],
+        "outros_motivos_pagamento_antecipado": "",
         "rateios": [
             {
                 "associacao": f'{associacao.uuid}',
@@ -189,6 +199,8 @@ def payload_despesa_status_completo_eh_despesa_sem_comprovacao_fiscal(
         "valor_total": 100,
         "valor_recursos_proprios": 0,
         "eh_despesa_sem_comprovacao_fiscal": True,
+        "motivos_pagamento_antecipado": [],
+        "outros_motivos_pagamento_antecipado": "",
         "rateios": [
             {
                 "associacao": f'{associacao.uuid}',

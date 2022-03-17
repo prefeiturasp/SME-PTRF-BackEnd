@@ -2,7 +2,13 @@ from django.contrib import admin
 from rangefilter.filter import DateRangeFilter
 
 from .models import TipoTransacao, TipoDocumento, TipoCusteio, EspecificacaoMaterialServico, Despesa, RateioDespesa, \
-    Fornecedor
+    Fornecedor, MotivoPagamentoAntecipado
+
+
+@admin.register(MotivoPagamentoAntecipado)
+class MotivoPagamentoAntecipadoAdmin(admin.ModelAdmin):
+    list_display = ('motivo', 'uuid')
+    readonly_fields = ('id', 'uuid')
 
 
 def customTitledFilter(title):
@@ -29,7 +35,7 @@ class TipoCusteioAdmin(admin.ModelAdmin):
 
 @admin.register(RateioDespesa)
 class RateioDespesaAdmin(admin.ModelAdmin):
-    list_display = ('numero_documento', 'associacao', 'acao', 'valor_rateio', 'quantidade_itens_capital', 'status')
+    list_display = ("uuid", 'numero_documento', 'associacao', 'acao', 'valor_rateio', 'quantidade_itens_capital', 'status')
     search_fields = (
         'despesa__numero_documento', 'despesa__nome_fornecedor', 'especificacao_material_servico__descricao')
     list_filter = (
@@ -47,7 +53,7 @@ class RateioDespesaAdmin(admin.ModelAdmin):
         ('especificacao_material_servico__descricao', customTitledFilter('Especificação Material/Serviço')),)
 
     def numero_documento(self, obj):
-        return obj.despesa.numero_documento
+        return obj.despesa.numero_documento if obj and obj.despesa and obj.despesa.numero_documento else ""
 
     def associacao(self, obj):
         return obj.associacao.nome if obj.associacao else ''

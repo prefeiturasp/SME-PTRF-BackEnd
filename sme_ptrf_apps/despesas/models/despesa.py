@@ -59,6 +59,10 @@ class Despesa(ModeloBase):
     despesa_imposto = models.ForeignKey('Despesa', on_delete=models.SET_NULL, related_name='despesa_geradora_do_imposto',
                             blank=True, null=True, to_field="uuid")
 
+    motivos_pagamento_antecipado = models.ManyToManyField('MotivoPagamentoAntecipado', blank=True)
+
+    outros_motivos_pagamento_antecipado = models.TextField('Outros motivos para pagamento antecipado', blank=True, default='')
+
     status = models.CharField(
         'status',
         max_length=15,
