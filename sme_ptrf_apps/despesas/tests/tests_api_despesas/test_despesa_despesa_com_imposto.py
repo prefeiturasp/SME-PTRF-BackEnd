@@ -1,5 +1,4 @@
 import json
-from datetime import date
 
 import pytest
 from rest_framework import status
@@ -32,6 +31,8 @@ def payload_despesa_com_imposto(
         "data_transacao": "2022-03-10",
         "valor_total": 100,
         "valor_recursos_proprios": 0,
+        "motivos_pagamento_antecipado": [],
+        "outros_motivos_pagamento_antecipado": "",
         "despesa_imposto": {
             "associacao": f'{associacao.uuid}',
             "tipo_documento": tipo_documento.id,
@@ -93,6 +94,8 @@ def payload_despesa_remove_vinculo_com_imposto(
         "valor_total": 100,
         "valor_recursos_proprios": 0,
         "despesa_imposto": None,
+        "motivos_pagamento_antecipado": [],
+        "outros_motivos_pagamento_antecipado": "",
         "rateios": [
             {
                 "associacao": f'{associacao.uuid}',
@@ -241,6 +244,8 @@ def monta_result_esperado(
                 'documento_transacao': '',
                 'eh_despesa_reconhecida_pela_associacao': False,
                 'eh_despesa_sem_comprovacao_fiscal': False,
+                'motivos_pagamento_antecipado': [],
+                'outros_motivos_pagamento_antecipado': '',
                 'nome_fornecedor': '',
                 'numero_boletim_de_ocorrencia': '',
                 'numero_documento': '',
@@ -266,6 +271,8 @@ def monta_result_esperado(
             'eh_despesa_reconhecida_pela_associacao': True,
             'eh_despesa_sem_comprovacao_fiscal': False,
             'id': despesa_despesa_imposto.id,
+            'motivos_pagamento_antecipado': [],
+            'outros_motivos_pagamento_antecipado': '',
             'nome_fornecedor': f"{despesa_com_imposto.nome_fornecedor}",
             'numero_boletim_de_ocorrencia': f"{despesa_com_imposto.numero_boletim_de_ocorrencia}",
             'numero_documento': f"{despesa_com_imposto.numero_documento}",
@@ -307,6 +314,8 @@ def monta_result_esperado(
         'eh_despesa_reconhecida_pela_associacao': True,
         'eh_despesa_sem_comprovacao_fiscal': False,
         'id': despesa_com_imposto.id,
+        'motivos_pagamento_antecipado': [],
+        'outros_motivos_pagamento_antecipado': '',
         'nome_fornecedor': '',
         'numero_boletim_de_ocorrencia': '',
         'numero_documento': '',
