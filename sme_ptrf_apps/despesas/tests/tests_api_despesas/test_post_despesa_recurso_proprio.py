@@ -45,6 +45,8 @@ def payload_despesa_recurso_proprio(
         "data_transacao": "2020-03-10",
         "valor_total": 11000.50, # "valor_realizado"
         "valor_original": 11000.50, # "valor documento"
+        "motivos_pagamento_antecipado": [],
+        "outros_motivos_pagamento_antecipado": "",
         "rateios": [
             {
                 "associacao": f'{associacao.uuid}',

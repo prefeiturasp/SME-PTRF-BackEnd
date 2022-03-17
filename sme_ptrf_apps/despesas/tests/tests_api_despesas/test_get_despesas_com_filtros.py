@@ -138,6 +138,30 @@ def test_api_get_despesas_campos(jwt_authenticated_client_d, associacao, despesa
             'valor_total': '100.00',
             'valor_ptrf': 90.0,
             'data_transacao': '2020-03-10',
+            'despesa_geradora_do_imposto': {
+                'associacao': None,
+                'cpf_cnpj_fornecedor': '',
+                'data_documento': None,
+                'data_transacao': None,
+                'despesa_imposto': None,
+                'documento_transacao': '',
+                'eh_despesa_reconhecida_pela_associacao': False,
+                'eh_despesa_sem_comprovacao_fiscal': False,
+                'motivos_pagamento_antecipado': [],
+                'nome_fornecedor': '',
+                'numero_boletim_de_ocorrencia': '',
+                'numero_documento': '',
+                'outros_motivos_pagamento_antecipado': '',
+                'rateios': [],
+                'retem_imposto': False,
+                'status': None,
+                'tipo_documento': None,
+                'tipo_transacao': None,
+                'valor_original': None,
+                'valor_recursos_proprios': None,
+                'valor_total': None
+            },
+            'despesa_imposto': None,
             'tipo_transacao': {
                 'id': tipo_transacao.id,
                 'nome': tipo_transacao.nome,
@@ -199,11 +223,13 @@ def despesa_teste_filtro_por_tag(associacao, tipo_documento, tipo_transacao):
         valor_recursos_proprios=10.00,
     )
 
+
 @pytest.fixture
 def rateio_despesa_tag_teste_filtro_por_tag(associacao, despesa_teste_filtro_por_tag, conta_associacao, acao,
-                                tipo_aplicacao_recurso_custeio,
-                                tipo_custeio_servico,
-                                especificacao_instalacao_eletrica, acao_associacao_ptrf, tag_teste_filtro_por_tag):
+                                            tipo_aplicacao_recurso_custeio,
+                                            tipo_custeio_servico,
+                                            especificacao_instalacao_eletrica, acao_associacao_ptrf,
+                                            tag_teste_filtro_por_tag):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_teste_filtro_por_tag,
@@ -219,8 +245,9 @@ def rateio_despesa_tag_teste_filtro_por_tag(associacao, despesa_teste_filtro_por
     )
 
 
-def test_api_get_despesas_filtro_por_tag(jwt_authenticated_client_d, associacao, despesa_teste_filtro_por_tag, tipo_documento, tipo_transacao, rateio_despesa_tag_teste_filtro_por_tag, tag_teste_filtro_por_tag):
-
+def test_api_get_despesas_filtro_por_tag(jwt_authenticated_client_d, associacao, despesa_teste_filtro_por_tag,
+                                         tipo_documento, tipo_transacao, rateio_despesa_tag_teste_filtro_por_tag,
+                                         tag_teste_filtro_por_tag):
     response = jwt_authenticated_client_d.get(
         f'/api/despesas/?rateios__tag__uuid={tag_teste_filtro_por_tag.uuid}',
         content_type='application/json')
@@ -229,5 +256,3 @@ def test_api_get_despesas_filtro_por_tag(jwt_authenticated_client_d, associacao,
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 1, 'Deve encontrar pela tag_teste_filtro_por_tag'
-
-
