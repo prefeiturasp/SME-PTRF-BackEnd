@@ -24,16 +24,18 @@ class DespesaImpostoSerializer(serializers.ModelSerializer):
     tipo_documento = serializers.SlugRelatedField(
         slug_field='id',
         required=False,
-        queryset=TipoDocumento.objects.all()
+        queryset=TipoDocumento.objects.all(),
+        allow_null=True
     )
 
     tipo_transacao = serializers.SlugRelatedField(
         slug_field='id',
         required=False,
-        queryset=TipoTransacao.objects.all()
+        queryset=TipoTransacao.objects.all(),
+        allow_null=True
     )
 
-    rateios = RateioDespesaCreateSerializer(many=True, required=False)
+    rateios = RateioDespesaCreateSerializer(many=True, required=False, allow_null=True)
 
     class Meta:
         model = Despesa
@@ -45,9 +47,8 @@ class DespesaSerializer(serializers.ModelSerializer):
     tipo_documento = TipoDocumentoSerializer()
     tipo_transacao = TipoTransacaoSerializer()
     rateios = RateioDespesaSerializer(many=True)
-    despesa_imposto = DespesaImpostoSerializer(many=False, required=False)
-    despesa_geradora_do_imposto = serializers.SerializerMethodField(method_name="get_despesa_de_imposto",
-                                                                    required=False)
+    despesa_imposto = DespesaImpostoSerializer(many=False, required=False, allow_null=True)
+    despesa_geradora_do_imposto = serializers.SerializerMethodField(method_name="get_despesa_de_imposto", required=False, allow_null=True)
     motivos_pagamento_antecipado = MotivoPagamentoAntecipadoSerializer(many=True)
 
     def get_despesa_de_imposto(self, despesa):
