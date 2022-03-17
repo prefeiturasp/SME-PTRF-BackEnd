@@ -229,8 +229,11 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
             despesa_do_imposto.atualiza_status()
 
-            instance.despesa_imposto = despesa_do_imposto
-            instance.save()
+            despesa_updated = Despesa.objects.get(uuid=instance.uuid)
+
+            despesa_updated.despesa_imposto = despesa_do_imposto
+
+            despesa_updated.save()
 
         elif not validated_data.get('retem_imposto'):
 
@@ -281,6 +284,13 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
     rateios = RateioDespesaTabelaGastosEscolaSerializer(many=True)
 
     receitas_saida_do_recurso = serializers.SerializerMethodField('get_recurso_externo')
+    despesa_imposto = DespesaImpostoSerializer(many=False, required=False)
+    despesa_geradora_do_imposto = serializers.SerializerMethodField(method_name="get_despesa_de_imposto",
+                                                                    required=False)
+
+    def get_despesa_de_imposto(self, despesa):
+        despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
+        return DespesaImpostoSerializer(despesa_geradora_do_imposto, many=False).data
 
     def get_recurso_externo(self, despesa):
         return despesa.receitas_saida_do_recurso.first().uuid if despesa.receitas_saida_do_recurso.exists() else None
@@ -290,7 +300,7 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
         fields = (
         'uuid', 'associacao', 'numero_documento', 'status', 'tipo_documento', 'data_documento', 'cpf_cnpj_fornecedor',
         'nome_fornecedor', 'valor_total', 'valor_ptrf', 'data_transacao', 'tipo_transacao', 'documento_transacao',
-        'rateios', 'receitas_saida_do_recurso',)
+        'rateios', 'receitas_saida_do_recurso', 'despesa_imposto', 'despesa_geradora_do_imposto')
 
 
 class DespesaConciliacaoSerializer(serializers.ModelSerializer):
