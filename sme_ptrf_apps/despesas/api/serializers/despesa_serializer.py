@@ -156,6 +156,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
         # Atualiza campos da despesa
         Despesa.objects.filter(uuid=instance.uuid).update(**validated_data)
+        despesa_updated_somente_validade_data = Despesa.objects.get(uuid=instance.uuid)
 
         # Atualiza os rateios
         log.info(f"Atualizando rateios da despesa {instance.uuid}")
@@ -166,6 +167,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                     f"Encontrada chave uuid no rateio {rateio['uuid']} R${rateio['valor_rateio']}. Será atualizado.")
                 if RateioDespesa.objects.filter(uuid=rateio["uuid"]).exists():
                     log.info(f"Rateio encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
+                    rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa_updated_somente_validade_data.eh_despesa_sem_comprovacao_fiscal
                     RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)
                     rateio_updated = RateioDespesa.objects.get(uuid=rateio["uuid"])
 
@@ -178,6 +180,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                     continue
             else:
                 log.info(f"Não encontrada chave uuid de rateio R${rateio['valor_rateio']}. Será criado.")
+                rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa_updated_somente_validade_data.eh_despesa_sem_comprovacao_fiscal
                 rateio_updated = RateioDespesa.objects.create(**rateio, despesa=instance)
                 keep_rateios.append(rateio_updated.uuid)
 
@@ -247,6 +250,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
         despesa_updated.motivos_pagamento_antecipado.set(motivos_list)
         despesa_updated.outros_motivos_pagamento_antecipado = outros_motivos_pagamento_antecipado
+        despesa_updated.atualiza_status()
         despesa_updated.save()
 
         return despesa_updated
