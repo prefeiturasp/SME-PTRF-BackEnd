@@ -123,10 +123,10 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
             despesa_do_imposto.rateios.set(rateios_do_imposto_lista)
 
-            despesa_do_imposto.atualiza_status()
-
             despesa.despesa_imposto = despesa_do_imposto
             despesa.save()
+            despesa_do_imposto.verifica_data_documento_vazio()
+            despesa_do_imposto.atualiza_status()
 
             log.info("Despesa do imposto {}, Rateios do imposto: {}".format(despesa_do_imposto.uuid,
                                                                             rateios_do_imposto_lista))
@@ -231,6 +231,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             despesa_do_imposto.rateios.set(rateios_do_imposto_lista)
             despesa_do_imposto.save()
 
+            despesa_do_imposto.verifica_data_documento_vazio()
             despesa_do_imposto.atualiza_status()
 
             despesa_updated = Despesa.objects.get(uuid=instance.uuid)

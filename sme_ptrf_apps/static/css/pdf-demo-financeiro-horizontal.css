@@ -219,3 +219,7 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
   color: #086397 !important;
   font-weight: bold !important;
 }
+
+.texto-imposto {
+  color: #000 !important;
+}
