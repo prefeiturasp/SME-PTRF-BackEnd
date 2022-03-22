@@ -382,6 +382,27 @@
             </td>
           </tr>
         {% endif %}
+
+        {% if despesa.despesa_imposto %}
+          <tr>
+            <td colspan="11" class="texto-imposto">
+                <strong>Nota com retenção de imposto:</strong> Esse gasto teve retenção de imposto em
+                {{ despesa.despesa_imposto.data_transacao }}
+                no valor de R$ {{ despesa.despesa_imposto.valor|formata_valor }}.
+            </td>
+          </tr>
+        {% endif %}
+
+        {% if despesa.despesa_geradora %}
+          <tr>
+            <td colspan="11" class="texto-imposto">
+              <strong>Imposto retido:</strong> Esse gasto refere-se à retenção de imposto da nota
+              {{ despesa.despesa_geradora.numero_documento }}
+              de {{ despesa.despesa_geradora.data_transacao }} e valor R$ {{ despesa.despesa_geradora.valor|formata_valor }}.
+            </td>
+          </tr>
+        {% endif %}
+
       {% endfor %}
       <tr>
         <td class="total sem-borda" style="border-right: 1px solid #F5F6F8; !important;"><strong>Total</strong></td>
@@ -443,6 +464,27 @@
             </td>
           </tr>
         {% endif %}
+
+      {% if despesa.despesa_imposto %}
+        <tr>
+          <td colspan="11" class="texto-imposto">
+              <strong>Nota com retenção de imposto:</strong> Esse gasto teve retenção de imposto em
+              {{ despesa.despesa_imposto.data_transacao }}
+              no valor de R$ {{ despesa.despesa_imposto.valor|formata_valor }}.
+          </td>
+        </tr>
+      {% endif %}
+
+      {% if despesa.despesa_geradora %}
+        <tr>
+          <td colspan="11" class="texto-imposto">
+            <strong>Imposto retido:</strong> Esse gasto refere-se à retenção de imposto da nota
+            {{ despesa.despesa_geradora.numero_documento }}
+            de {{ despesa.despesa_geradora.data_transacao }} e valor R$ {{ despesa.despesa_geradora.valor|formata_valor }}.
+          </td>
+        </tr>
+      {% endif %}
+
       {% endfor %}
       <tr>
         <td class="total sem-borda" style="border-right: 1px solid #F5F6F8; !important;"><strong>Total</strong></td>
@@ -501,6 +543,26 @@
           <tr>
             <td colspan="11" class="texto-estorno">
                 O estorno do dia {{ despesa.data_estorno }} está vinculado a essa despesa
+            </td>
+          </tr>
+        {% endif %}
+
+        {% if despesa.despesa_imposto %}
+          <tr>
+            <td colspan="11" class="texto-imposto">
+                <strong>Nota com retenção de imposto:</strong> Esse gasto teve retenção de imposto em
+                {{ despesa.despesa_imposto.data_transacao }}
+                no valor de R$ {{ despesa.despesa_imposto.valor|formata_valor }}.
+            </td>
+          </tr>
+        {% endif %}
+
+        {% if despesa.despesa_geradora %}
+          <tr>
+            <td colspan="11" class="texto-imposto">
+              <strong>Imposto retido:</strong> Esse gasto refere-se à retenção de imposto da nota
+              {{ despesa.despesa_geradora.numero_documento }}
+              de {{ despesa.despesa_geradora.data_transacao }} e valor R$ {{ despesa.despesa_geradora.valor|formata_valor }}.
             </td>
           </tr>
         {% endif %}
