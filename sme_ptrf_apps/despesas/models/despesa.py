@@ -91,10 +91,10 @@ class Despesa(ModeloBase):
         completo = self.data_transacao and \
                    self.valor_total > 0
 
-        if completo and not self.eh_despesa_sem_comprovacao_fiscal:
+        if completo and not self.eh_despesa_sem_comprovacao_fiscal and not self.despesa_geradora_do_imposto.first():
             completo = completo and self.cpf_cnpj_fornecedor
 
-        if completo and not self.eh_despesa_sem_comprovacao_fiscal:
+        if completo and not self.eh_despesa_sem_comprovacao_fiscal and not self.despesa_geradora_do_imposto.first():
             completo = completo and self.nome_fornecedor
 
         if completo and not self.eh_despesa_sem_comprovacao_fiscal:
@@ -103,7 +103,7 @@ class Despesa(ModeloBase):
         if completo and not self.eh_despesa_sem_comprovacao_fiscal:
             completo = completo and self.tipo_documento
 
-        if completo and not self.eh_despesa_sem_comprovacao_fiscal:
+        if completo and not self.eh_despesa_sem_comprovacao_fiscal and not self.despesa_geradora_do_imposto.first():
             completo = completo and self.data_documento
 
         if completo and not self.eh_despesa_sem_comprovacao_fiscal:

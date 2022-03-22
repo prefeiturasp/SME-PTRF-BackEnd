@@ -651,7 +651,7 @@ def cria_despesas(rateios):
     linhas = []
     for _, rateio in enumerate(rateios):
         razao_social = rateio.despesa.nome_fornecedor
-        cnpj_cpf = rateio.despesa.cpf_cnpj_fornecedor
+        cnpj_cpf = rateio.despesa.cpf_cnpj_fornecedor if rateio.despesa.cpf_cnpj_fornecedor else ''
         tipo_documento = rateio.despesa.tipo_documento.nome if rateio.despesa.tipo_documento else ''
         numero_documento = rateio.despesa.numero_documento
         nome_acao_documento = rateio.acao_associacao.acao.nome if rateio and rateio.acao_associacao and rateio.acao_associacao.acao.nome else ""
@@ -686,6 +686,22 @@ def cria_despesas(rateios):
         if rateio.estorno.first():
             receita = rateio.estorno.first()
             linha["data_estorno"] = receita.data.strftime("%d/%m/%Y")
+
+        if rateio.despesa.despesa_imposto:
+            # Despesas que possuem despesa imposto são despesas geradoras
+            linha["despesa_imposto"] = {
+                "data_transacao": rateio.despesa.despesa_imposto.data_transacao.strftime("%d/%m/%Y") if rateio.despesa.despesa_imposto.data_transacao else "",
+                "valor": rateio.despesa.despesa_imposto.valor_total if rateio.despesa.despesa_imposto.valor_total else ""
+            }
+
+        if rateio.despesa.despesa_geradora_do_imposto.first():
+            # Despesas que possuem despesa geradora, são despesas imposto
+            despesa_geradora = rateio.despesa.despesa_geradora_do_imposto.first()
+            linha["despesa_geradora"] = {
+                "numero_documento": despesa_geradora.numero_documento if despesa_geradora.numero_documento else "",
+                "data_transacao": despesa_geradora.data_transacao.strftime("%d/%m/%Y") if despesa_geradora.data_transacao else "",
+                "valor": despesa_geradora.valor_total if despesa_geradora.valor_total else ""
+            }
 
         linhas.append(linha)
 
