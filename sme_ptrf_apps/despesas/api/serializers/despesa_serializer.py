@@ -89,7 +89,6 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                 outros_motivos_pagamento_antecipado = ""
 
         despesa = Despesa.objects.create(**validated_data)
-        # despesa.verifica_cnpj_zerado()
         despesa.verifica_data_documento_vazio()
         log.info("Criando despesa com uuid: {}".format(despesa.uuid))
 
@@ -118,6 +117,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
             rateios_do_imposto_lista = []
             for rateio in rateios_imposto:
+                rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
                 rateio_object = RateioDespesaCreateSerializer().create(rateio)
                 rateios_do_imposto_lista.append(rateio_object)
 
@@ -208,8 +208,11 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             for rateio in rateios_imposto:
                 if "uuid" in rateio.keys():
                     if RateioDespesa.objects.filter(uuid=rateio["uuid"]).exists():
+                        rateio[
+                            "eh_despesa_sem_comprovacao_fiscal"] = despesa_updated_somente_validade_data.eh_despesa_sem_comprovacao_fiscal
                         RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)
                         rateio_updated = RateioDespesa.objects.get(uuid=rateio["uuid"])
+                        rateio_updated.save()
                         rateios_do_imposto_lista.append(rateio_updated)
                         uuid_rateios_do_imposto_lista.append(rateio_updated.uuid)
                     else:
