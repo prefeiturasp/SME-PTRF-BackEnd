@@ -64,6 +64,11 @@ class Receita(ModeloBase):
                                          related_name='estorno',
                                          verbose_name='Rateio estornado')
 
+    motivos_estorno = models.ManyToManyField('MotivoEstorno', blank=True)
+
+    outros_motivos_estorno = models.TextField('Outros motivos para estorno', blank=True,
+                                                           default='')
+
     def __str__(self):
         return f'RECEITA<{self.detalhamento} - {self.data} - {self.valor}>'
 
@@ -254,6 +259,16 @@ class Receita(ModeloBase):
         self.save()
         despesa.atualiza_rateios_como_saida_recurso_externo()
         return self
+
+    def adiciona_motivos_estorno(self, motivos_estorno, outros_motivos_estorno):
+        motivos_list = []
+        for motivo in motivos_estorno:
+            motivos_list.append(motivo.id)
+
+        self.motivos_estorno.set(motivos_list)
+        self.outros_motivos_estorno = outros_motivos_estorno
+
+        self.save()
 
     @classmethod
     def conciliar(cls, uuid, periodo_conciliacao):

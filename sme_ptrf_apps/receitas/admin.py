@@ -1,7 +1,7 @@
 from django.contrib import admin
 from rangefilter.filter import DateRangeFilter
 
-from sme_ptrf_apps.receitas.models import Receita, TipoReceita, Repasse, DetalheTipoReceita
+from sme_ptrf_apps.receitas.models import Receita, TipoReceita, Repasse, DetalheTipoReceita, MotivoEstorno
 
 
 @admin.register(TipoReceita)
@@ -84,3 +84,10 @@ class DetalheTipoReceitaAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id')
     search_fields = ('nome',)
     list_filter = ('tipo_receita',)
+
+
+@admin.register(MotivoEstorno)
+class MotivoEstornoAdmin(admin.ModelAdmin):
+    list_display = ('motivo', 'uuid', )
+    readonly_fields = ('uuid', 'id')
+    search_fields = ('motivo', )
