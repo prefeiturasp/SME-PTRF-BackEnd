@@ -145,6 +145,7 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
     repasse = RepasseSerializer()
     saida_do_recurso = DespesaListSerializer()
     rateio_estornado = RateioDespesaEstornoLookupSerializer()
+    motivos_estorno = MotivoEstornoSerializer(many=True, required=False, allow_null=True)
 
     class Meta:
         model = Receita
