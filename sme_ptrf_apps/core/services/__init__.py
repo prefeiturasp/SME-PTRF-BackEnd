@@ -50,5 +50,6 @@ from .associacoes_service import (
     cargo_diretoria_executiva_valido,
     associacao_pode_implantar_saldo,
     get_implantacao_de_saldos_da_associacao,
-    retorna_repasses_pendentes_periodos_ate_agora
+    retorna_repasses_pendentes_periodos_ate_agora,
+    retorna_despesas_com_pagamento_antecipado_por_periodo
 )

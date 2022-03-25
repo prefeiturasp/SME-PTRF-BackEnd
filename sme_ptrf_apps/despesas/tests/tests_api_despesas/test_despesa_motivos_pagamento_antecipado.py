@@ -5,7 +5,6 @@ from rest_framework import status
 
 from model_bakery import baker
 
-from ...models import Despesa
 
 pytestmark = pytest.mark.django_db
 
