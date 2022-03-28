@@ -10,7 +10,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 def gerar_dados_ata(prestacao_de_contas=None, ata=None, usuario=None):
-
     try:
         cabecalho = cria_cabecalho(ata)
         info_financeira_ata = informacoes_financeiras_para_atas(prestacao_de_contas)
@@ -18,6 +17,7 @@ def gerar_dados_ata(prestacao_de_contas=None, ata=None, usuario=None):
         retificacoes = ata.retificacoes
         devolucoes_ao_tesouro = devolucoes_ao_tesouro_ata(ata, prestacao_de_contas)
         repasses_pendentes = get_repasses_pendentes(ata)
+        despesas_com_pagamento_antecipado = get_despesas_com_pagamento_antecipado(ata=ata)
         dados_ata = {
             "cabecalho": cabecalho,
             "retificacoes": retificacoes,
@@ -28,11 +28,23 @@ def gerar_dados_ata(prestacao_de_contas=None, ata=None, usuario=None):
             "presentes_na_ata": presentes_na_ata,
             "repasses_pendentes": repasses_pendentes,
             "justificativa_repasses_pendentes": ata.justificativa_repasses_pendentes,
+            "despesas_com_pagamento_antecipado": despesas_com_pagamento_antecipado,
         }
     finally:
         LOGGER.info("Dados da ata gerado com sucesso")
 
     return dados_ata
+
+
+def get_despesas_com_pagamento_antecipado(ata):
+    periodo = ata.periodo
+    associacao = ata.associacao
+
+    from sme_ptrf_apps.core.services.associacoes_service import retorna_despesas_com_pagamento_antecipado_por_periodo
+
+    despesas_com_pagamento_antecipado = retorna_despesas_com_pagamento_antecipado_por_periodo(associacao=associacao, periodo=periodo)
+
+    return despesas_com_pagamento_antecipado
 
 
 def get_repasses_pendentes(ata):
@@ -44,8 +56,6 @@ def get_repasses_pendentes(ata):
     return dados
 
 
-
-
 def devolucoes_ao_tesouro_ata(ata, prestacao_de_contas):
     lista_de_devolucoes = []
 
@@ -53,7 +63,6 @@ def devolucoes_ao_tesouro_ata(ata, prestacao_de_contas):
         devolucoes = DevolucaoAoTesouro.objects.filter(prestacao_conta=prestacao_de_contas)
 
         for devolucao in devolucoes:
-
             despesa = devolucao.despesa
 
             devs = {

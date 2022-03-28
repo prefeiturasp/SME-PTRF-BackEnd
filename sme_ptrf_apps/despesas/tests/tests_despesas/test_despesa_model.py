@@ -41,8 +41,8 @@ def test_srt_model(despesa):
 
 
 def test_meta_modelo(despesa):
-    assert despesa._meta.verbose_name == 'Despesa'
-    assert despesa._meta.verbose_name_plural == 'Despesas'
+    assert despesa._meta.verbose_name == 'Documento comprobatório da despesa'
+    assert despesa._meta.verbose_name_plural == 'Documentos comprobatórios das despesas'
 
 
 def test_admin():

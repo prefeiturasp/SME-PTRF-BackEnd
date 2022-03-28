@@ -143,8 +143,8 @@ class Despesa(ModeloBase):
             numero_documento=numero_documento).first()
 
     class Meta:
-        verbose_name = "Despesa"
-        verbose_name_plural = "Despesas"
+        verbose_name = "Documento comprobatório da despesa"
+        verbose_name_plural = "Documentos comprobatórios das despesas"
 
 
 @receiver(pre_save, sender=Despesa)
