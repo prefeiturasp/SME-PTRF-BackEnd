@@ -314,13 +314,23 @@
           <td>{{ receita.valor|formata_valor }}</td>
         </tr>
 
-        {% if receita.tipo_receita == 'Estorno' and receita.data_estorno %}
-          <tr>
-            <td colspan="5" class="texto-estorno">
-              Este estorno está vinculado a despesa de {{ receita.data_estorno }}
-            </td>
-          </tr>
+        {% if receita.estorno %}
+          {% if receita.estorno.numero_documento_despesa %}
+            <tr>
+                <td colspan="5" class="texto-estorno">
+                  Este estorno está vinculado à despesa de número {{ receita.estorno.numero_documento_despesa }},
+                  de {{ receita.estorno.data_estorno }}
+                </td>
+            </tr>
+          {% else %}
+            <tr>
+                <td colspan="5" class="texto-estorno">
+                  Este estorno está vinculado à despesa de {{ receita.estorno.data_estorno }}
+                </td>
+            </tr>
+          {% endif %}
         {% endif %}
+
       {% endfor %}
       <tr>
         <td class="total sem-borda" style="border-right: 1px solid #F5F6F8; !important;"><strong>Total</strong></td>
@@ -374,14 +384,6 @@
           <td>{{ despesa.data_transacao }}</td>
           <td class="text-right">{{ despesa.valor|formata_valor }}</td>
         </tr>
-
-        {% if despesa.data_estorno %}
-          <tr>
-            <td colspan="11" class="texto-estorno">
-                O estorno do dia {{ despesa.data_estorno }} está vinculado a essa despesa
-            </td>
-          </tr>
-        {% endif %}
 
         {% if despesa.despesa_imposto %}
           <tr>
@@ -457,14 +459,6 @@
           <td class="text-right">{{ despesa.valor|formata_valor }}</td>
         </tr>
 
-        {% if despesa.data_estorno %}
-          <tr>
-            <td colspan="11" class="texto-estorno">
-                O estorno do dia {{ despesa.data_estorno }} está vinculado a essa despesa
-            </td>
-          </tr>
-        {% endif %}
-
       {% if despesa.despesa_imposto %}
         <tr>
           <td colspan="11" class="texto-imposto">
@@ -538,14 +532,6 @@
           <td>{{ despesa.data_transacao }}</td>
           <td class="text-right">{{ despesa.valor|formata_valor }}</td>
         </tr>
-
-        {% if despesa.data_estorno %}
-          <tr>
-            <td colspan="11" class="texto-estorno">
-                O estorno do dia {{ despesa.data_estorno }} está vinculado a essa despesa
-            </td>
-          </tr>
-        {% endif %}
 
         {% if despesa.despesa_imposto %}
           <tr>

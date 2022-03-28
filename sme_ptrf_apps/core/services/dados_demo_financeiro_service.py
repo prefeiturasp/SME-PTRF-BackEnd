@@ -631,7 +631,10 @@ def cria_creditos_demonstrados(receitas_demonstradas):
         }
 
         if receita.rateio_estornado:
-            linha["data_estorno"] = receita.rateio_estornado.despesa.data_documento.strftime("%d/%m/%Y")
+            linha["estorno"] = {
+                "data_estorno": receita.rateio_estornado.despesa.data_documento.strftime("%d/%m/%Y"),
+                "numero_documento_despesa": receita.rateio_estornado.despesa.numero_documento if receita.rateio_estornado.despesa.numero_documento else ""
+            }
 
         linhas.append(linha)
 
@@ -682,10 +685,6 @@ def cria_despesas(rateios):
             "data_transacao": data_transacao,
             "valor": valor
         }
-
-        if rateio.estorno.first():
-            receita = rateio.estorno.first()
-            linha["data_estorno"] = receita.data.strftime("%d/%m/%Y")
 
         if rateio.despesa.despesa_imposto:
             # Despesas que possuem despesa imposto são despesas geradoras
