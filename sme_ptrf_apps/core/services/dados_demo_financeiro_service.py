@@ -631,9 +631,14 @@ def cria_creditos_demonstrados(receitas_demonstradas):
         }
 
         if receita.rateio_estornado:
+
+            motivos = [{"motivo": motivo.motivo} for motivo in receita.motivos_estorno.all()]
+
             linha["estorno"] = {
                 "data_estorno": receita.rateio_estornado.despesa.data_documento.strftime("%d/%m/%Y"),
-                "numero_documento_despesa": receita.rateio_estornado.despesa.numero_documento if receita.rateio_estornado.despesa.numero_documento else ""
+                "numero_documento_despesa": receita.rateio_estornado.despesa.numero_documento if receita.rateio_estornado.despesa.numero_documento else "",
+                "motivos_estorno": motivos,
+                "outros_motivos_estorno": receita.outros_motivos_estorno,
             }
 
         linhas.append(linha)
