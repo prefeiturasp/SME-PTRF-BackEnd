@@ -64,7 +64,7 @@ class Receita(ModeloBase):
                                          related_name='estorno',
                                          verbose_name='Rateio estornado')
 
-    motivos_estorno = models.ManyToManyField('MotivoEstorno', blank=True)
+    motivos_estorno = models.ManyToManyField('MotivoEstorno', blank=True, related_name='receitas_do_motivo')
 
     outros_motivos_estorno = models.TextField('Outros motivos para estorno', blank=True,
                                                            default='')

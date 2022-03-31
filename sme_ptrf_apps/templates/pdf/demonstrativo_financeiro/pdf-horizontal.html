@@ -6,7 +6,8 @@
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+        integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
   <link href="{{ base_static_url }}/css/pdf-demo-financeiro-horizontal.css" rel="stylesheet">
 
   <title>Demonstrativo Financeiro PTRF</title>
@@ -21,7 +22,8 @@
     </div>
     <div class="col-auto d-flex align-items-center justify-content-center mr-5 ml-5">
       <p class="mb-0">
-        <span class="titulo font-14"><strong>Programa de Transferência de Recursos Financeiros -  PTRF</strong></span><br/>
+        <span
+          class="titulo font-14"><strong>Programa de Transferência de Recursos Financeiros -  PTRF</strong></span><br/>
         <span class="font-12 mb-0"><strong>Prestação de Contas -</strong> Demonstrativo Financeiro</span>
       </p>
     </div>
@@ -41,7 +43,8 @@
 
 {# ************************* Rodape ************************* #}
 <p id="nome-associacao-rodape" class="font-10">
-  <i>{{ dados.identificacao_apm.tipo_unidade }} {{ dados.identificacao_apm.nome_unidade }} - {{ dados.data_geracao_documento }}</i>
+  <i>{{ dados.identificacao_apm.tipo_unidade }} {{ dados.identificacao_apm.nome_unidade }}
+    - {{ dados.data_geracao_documento }}</i>
 </p>
 {# ************************* Fim Rodape ************************* #}
 
@@ -114,7 +117,7 @@
 
   <article id="bloco-3" class="mt-0">
 
-    <table class="table table-bordered tabela-resumo-por-acao nao-quebra-linha" >
+    <table class="table table-bordered tabela-resumo-por-acao nao-quebra-linha">
       <thead class="thead-light">
       <tr>
         <th colSpan="20">
@@ -144,131 +147,152 @@
 
       {% for acoes in dados.resumo_por_acao.resumo_acoes %}
         <tbody style="border-top: none !important;">
-          <tr>
-            <td rowSpan="6"><strong>{{ acoes.acao_associacao }}</strong></td>
-            <td rowSpan="2" style="width: 2%; padding: 5px 0 5px 5px">C</td>
-            <td rowSpan="2" class="text-right">{{ acoes.linha_custeio.saldo_anterior|formata_valor }}</td>
-            <td rowSpan="2">C</td>
-            <td rowSpan="2" class="text-right">{{ acoes.linha_custeio.credito|formata_valor }}</td>
-            <td rowSpan="3" style="width: 2%">C</td>
-            <td rowSpan="3" class="text-right">{{ acoes.linha_custeio.despesa_realizada|formata_valor }}</td>
-            <td rowSpan="3" style="width: 2%">C</td>
-            <td rowSpan="3" class="text-right">{{ acoes.linha_custeio.despesa_nao_realizada|formata_valor }}</td>
-            <td rowSpan="2" style="width: 2%">C</td>
-            <td rowSpan="2" class="text-right">{{ acoes.linha_custeio.saldo_reprogramado_proximo|formata_valor }}</td>
-            <td rowSpan="6">T<br/>o<br/>t<br/>a<br/>l</td>
-            <td rowSpan='6' class="text-right">{{ acoes.total_valores|formata_valor }}</td>
-            <td rowSpan="3" style="width: 2%">C</td>
-            <td rowSpan="3" class="text-right">{{ acoes.linha_custeio.despesa_nao_demostrada_outros_periodos|formata_valor }}</td>
-            <td rowSpan="2" style="width: 2%">C</td>
-            <td rowSpan="2" class="text-right">{{ acoes.linha_custeio.valor_saldo_bancario_custeio|formata_valor }}</td>
-            <td rowSpan="6">T<br/>o<br/>t<br/>a<br/>l</td>
-            <td rowSpan='6' style="border-right:none !important; border-left: none !important; " class="text-right"> {{ acoes.saldo_bancario|formata_valor }}</td>
-          </tr>
-          <tr></tr>
-          <tr>
-            <td rowSpan="2" style="padding: 5px 0 5px 5px"> L</td>
-            <td rowSpan="2" class="text-right">{{ acoes.linha_livre.saldo_anterior|formata_valor }}</td>
-            <td rowSpan="2">L</td>
-            <td rowSpan="2" class="text-right">{{ acoes.linha_livre.credito|formata_valor }}</td>
-            <td rowSpan="2">L</td>
-            <td rowSpan="2" class="text-right">{{ acoes.linha_livre.saldo_reprogramado_proximo|formata_valor }}</td>
-            <td rowSpan="2"> L</td>
-            <td rowSpan="2" class="text-right">{{ acoes.linha_livre.valor_saldo_reprogramado_proximo_periodo_livre|formata_valor }}</td>
-            <td style="display: inline-table; border:none !important;"></td>
-          </tr>
-          <tr>
-            <td rowSpan="3"> K</td>
-            <td rowSpan="3" class="text-right">{{ acoes.linha_capital.despesa_realizada|formata_valor }}</td>
-            <td rowSpan="3"> K</td>
-            <td rowSpan="3" class="text-right">{{ acoes.linha_capital.despesa_nao_realizada|formata_valor }}</td>
-            <td rowSpan="3"> K</td>
-            <td rowSpan="3" class="text-right">{{ acoes.linha_capital.despesa_nao_demostrada_outros_periodos|formata_valor }}</td>
-          </tr>
-          <tr>
-            <td rowSpan="2" style="padding: 0 0 0 5px"> K</td>
-            <td rowSpan="2" class="text-right">{{ acoes.linha_capital.saldo_anterior|formata_valor }}</td>
-            <td rowSpan="2"> K</td>
-            <td rowSpan="2" class="text-right">{{ acoes.linha_capital.credito|formata_valor }}</td>
-            <td rowSpan="2"> K</td>
-            <td rowSpan="2" class="text-right">{{ acoes.linha_capital.saldo_reprogramado_proximo|formata_valor }}</td>
-            <td rowSpan="2"> K</td>
-            <td rowSpan="2" class="text-right">{{ acoes.linha_capital.valor_saldo_bancario_capital|formata_valor }}</td>
-          </tr>
+        <tr>
+          <td rowSpan="6"><strong>{{ acoes.acao_associacao }}</strong></td>
+          <td rowSpan="2" style="width: 2%; padding: 5px 0 5px 5px">C</td>
+          <td rowSpan="2" class="text-right">{{ acoes.linha_custeio.saldo_anterior|formata_valor }}</td>
+          <td rowSpan="2">C</td>
+          <td rowSpan="2" class="text-right">{{ acoes.linha_custeio.credito|formata_valor }}</td>
+          <td rowSpan="3" style="width: 2%">C</td>
+          <td rowSpan="3" class="text-right">{{ acoes.linha_custeio.despesa_realizada|formata_valor }}</td>
+          <td rowSpan="3" style="width: 2%">C</td>
+          <td rowSpan="3" class="text-right">{{ acoes.linha_custeio.despesa_nao_realizada|formata_valor }}</td>
+          <td rowSpan="2" style="width: 2%">C</td>
+          <td rowSpan="2" class="text-right">{{ acoes.linha_custeio.saldo_reprogramado_proximo|formata_valor }}</td>
+          <td rowSpan="6">T<br/>o<br/>t<br/>a<br/>l</td>
+          <td rowSpan='6' class="text-right">{{ acoes.total_valores|formata_valor }}</td>
+          <td rowSpan="3" style="width: 2%">C</td>
+          <td rowSpan="3"
+              class="text-right">{{ acoes.linha_custeio.despesa_nao_demostrada_outros_periodos|formata_valor }}</td>
+          <td rowSpan="2" style="width: 2%">C</td>
+          <td rowSpan="2" class="text-right">{{ acoes.linha_custeio.valor_saldo_bancario_custeio|formata_valor }}</td>
+          <td rowSpan="6">T<br/>o<br/>t<br/>a<br/>l</td>
+          <td rowSpan='6' style="border-right:none !important; border-left: none !important; "
+              class="text-right"> {{ acoes.saldo_bancario|formata_valor }}</td>
+        </tr>
+        <tr></tr>
+        <tr>
+          <td rowSpan="2" style="padding: 5px 0 5px 5px"> L</td>
+          <td rowSpan="2" class="text-right">{{ acoes.linha_livre.saldo_anterior|formata_valor }}</td>
+          <td rowSpan="2">L</td>
+          <td rowSpan="2" class="text-right">{{ acoes.linha_livre.credito|formata_valor }}</td>
+          <td rowSpan="2">L</td>
+          <td rowSpan="2" class="text-right">{{ acoes.linha_livre.saldo_reprogramado_proximo|formata_valor }}</td>
+          <td rowSpan="2"> L</td>
+          <td rowSpan="2"
+              class="text-right">{{ acoes.linha_livre.valor_saldo_reprogramado_proximo_periodo_livre|formata_valor }}</td>
+          <td style="display: inline-table; border:none !important;"></td>
+        </tr>
+        <tr>
+          <td rowSpan="3"> K</td>
+          <td rowSpan="3" class="text-right">{{ acoes.linha_capital.despesa_realizada|formata_valor }}</td>
+          <td rowSpan="3"> K</td>
+          <td rowSpan="3" class="text-right">{{ acoes.linha_capital.despesa_nao_realizada|formata_valor }}</td>
+          <td rowSpan="3"> K</td>
+          <td rowSpan="3"
+              class="text-right">{{ acoes.linha_capital.despesa_nao_demostrada_outros_periodos|formata_valor }}</td>
+        </tr>
+        <tr>
+          <td rowSpan="2" style="padding: 0 0 0 5px"> K</td>
+          <td rowSpan="2" class="text-right">{{ acoes.linha_capital.saldo_anterior|formata_valor }}</td>
+          <td rowSpan="2"> K</td>
+          <td rowSpan="2" class="text-right">{{ acoes.linha_capital.credito|formata_valor }}</td>
+          <td rowSpan="2"> K</td>
+          <td rowSpan="2" class="text-right">{{ acoes.linha_capital.saldo_reprogramado_proximo|formata_valor }}</td>
+          <td rowSpan="2"> K</td>
+          <td rowSpan="2" class="text-right">{{ acoes.linha_capital.valor_saldo_bancario_capital|formata_valor }}</td>
+        </tr>
         </tbody>
       {% endfor %}
 
       <tbody style="border-top: none !important;">
       <tr>
-          <td rowSpan="6" class="total"><strong>TOTAL GERAL***</strong></td>
-          <td rowSpan="2" style="width: 2%; padding: 5px 0 5px 5px" class="total">C</td>
-          <td rowSpan="2" class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_anterior.C|formata_valor }}</td>
+        <td rowSpan="6" class="total"><strong>TOTAL GERAL***</strong></td>
+        <td rowSpan="2" style="width: 2%; padding: 5px 0 5px 5px" class="total">C</td>
+        <td rowSpan="2"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_anterior.C|formata_valor }}</td>
 
-          <td rowSpan="2" class="total">C</td>
-          <td rowSpan="2" class="text-right total">{{ dados.resumo_por_acao.total_valores.credito.C|formata_valor }}</td>
+        <td rowSpan="2" class="total">C</td>
+        <td rowSpan="2" class="text-right total">{{ dados.resumo_por_acao.total_valores.credito.C|formata_valor }}</td>
 
-          <td rowSpan="3" class="total" style="width: 2%">C</td>
-          <td rowSpan="3" class="text-right total">{{ dados.resumo_por_acao.total_valores.despesa_realizada.C|formata_valor }}</td>
+        <td rowSpan="3" class="total" style="width: 2%">C</td>
+        <td rowSpan="3"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.despesa_realizada.C|formata_valor }}</td>
 
-          <td rowSpan="3" class="total" style="width: 2%">C</td>
-          <td rowSpan="3" class="text-right total">{{ dados.resumo_por_acao.total_valores.despesa_nao_realizada.C|formata_valor }}</td>
+        <td rowSpan="3" class="total" style="width: 2%">C</td>
+        <td rowSpan="3"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.despesa_nao_realizada.C|formata_valor }}</td>
 
-          <td rowSpan="2" class="total" style="width: 2%">C</td>
-          <td rowSpan="2" class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.C|formata_valor }}</td>
+        <td rowSpan="2" class="total" style="width: 2%">C</td>
+        <td rowSpan="2"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.C|formata_valor }}</td>
 
-          <td rowSpan="6" class="total">T<br/>o<br/>t<br/>a<br/>l</td>
+        <td rowSpan="6" class="total">T<br/>o<br/>t<br/>a<br/>l</td>
 
-          <td rowSpan='6' class="text-right total">{{ dados.resumo_por_acao.total_valores.total_valores|formata_valor }}</td>
+        <td rowSpan='6'
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.total_valores|formata_valor }}</td>
 
-          <td rowSpan="3" class="total" style="width: 2%">C</td>
-          <td rowSpan="3" class="text-right total">{{ dados.resumo_por_acao.total_valores.despesa_nao_demostrada_outros_periodos.C|formata_valor }}</td>
+        <td rowSpan="3" class="total" style="width: 2%">C</td>
+        <td rowSpan="3"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.despesa_nao_demostrada_outros_periodos.C|formata_valor }}</td>
 
-          <td rowSpan="2" class="total" style="width: 2%">C</td>
-          <td rowSpan="2" class="text-right total">{{ dados.resumo_por_acao.total_valores.valor_saldo_bancario.C|formata_valor }}</td>
+        <td rowSpan="2" class="total" style="width: 2%">C</td>
+        <td rowSpan="2"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.valor_saldo_bancario.C|formata_valor }}</td>
 
-          <td rowSpan="6" class="total">T<br/>o<br/>t<br/>a<br/>l</td>
+        <td rowSpan="6" class="total">T<br/>o<br/>t<br/>a<br/>l</td>
 
-          <td rowSpan='6' style="border:none !important;" class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_bancario|formata_valor }}</td>
-        </tr>
-        <tr></tr>
-        <tr>
-          <td rowSpan="2" class="total" style="padding: 5px 0 5px 5px"> L</td>
-          <td rowSpan="2" class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_anterior.L|formata_valor }}</td>
+        <td rowSpan='6' style="border:none !important;"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_bancario|formata_valor }}</td>
+      </tr>
+      <tr></tr>
+      <tr>
+        <td rowSpan="2" class="total" style="padding: 5px 0 5px 5px"> L</td>
+        <td rowSpan="2"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_anterior.L|formata_valor }}</td>
 
-          <td rowSpan="2" class="total">L</td>
-          <td rowSpan="2" class="text-right total">{{ dados.resumo_por_acao.total_valores.credito.L|formata_valor }}</td>
+        <td rowSpan="2" class="total">L</td>
+        <td rowSpan="2" class="text-right total">{{ dados.resumo_por_acao.total_valores.credito.L|formata_valor }}</td>
 
-          <td rowSpan="2" class="total">L</td>
-          <td rowSpan="2" class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.L|formata_valor }}</td>
+        <td rowSpan="2" class="total">L</td>
+        <td rowSpan="2"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.L|formata_valor }}</td>
 
-          <td rowSpan="2" class="total">L</td>
-          <td rowSpan="2" class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.L|formata_valor }}</td>
+        <td rowSpan="2" class="total">L</td>
+        <td rowSpan="2"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.L|formata_valor }}</td>
 
-          <td style="display: inline-table; border:none !important;" class="total"></td>
-        </tr>
-        <tr>
-          <td rowSpan="3" class="total">K</td>
-          <td rowSpan="3" class="text-right total">{{ dados.resumo_por_acao.total_valores.despesa_realizada.K|formata_valor }}</td>
+        <td style="display: inline-table; border:none !important;" class="total"></td>
+      </tr>
+      <tr>
+        <td rowSpan="3" class="total">K</td>
+        <td rowSpan="3"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.despesa_realizada.K|formata_valor }}</td>
 
-          <td rowSpan="3" class="total">K</td>
-          <td rowSpan="3" class="text-right total">{{ dados.resumo_por_acao.total_valores.despesa_nao_realizada.K|formata_valor }}</td>
+        <td rowSpan="3" class="total">K</td>
+        <td rowSpan="3"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.despesa_nao_realizada.K|formata_valor }}</td>
 
-          <td rowSpan="3" class="total">K</td>
-          <td rowSpan="3" class="text-right total">{{ dados.resumo_por_acao.total_valores.despesa_nao_demostrada_outros_periodos.K|formata_valor }}</td>
-        </tr>
-        <tr>
-          <td rowSpan="2" class="total" style="padding: 0 0 0 5px">K</td>
-          <td rowSpan="2" class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_anterior.K|formata_valor }}</td>
+        <td rowSpan="3" class="total">K</td>
+        <td rowSpan="3"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.despesa_nao_demostrada_outros_periodos.K|formata_valor }}</td>
+      </tr>
+      <tr>
+        <td rowSpan="2" class="total" style="padding: 0 0 0 5px">K</td>
+        <td rowSpan="2"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_anterior.K|formata_valor }}</td>
 
-          <td rowSpan="2" class="total">K</td>
-          <td rowSpan="2" class="text-right total">{{ dados.resumo_por_acao.total_valores.credito.K|formata_valor }}</td>
+        <td rowSpan="2" class="total">K</td>
+        <td rowSpan="2" class="text-right total">{{ dados.resumo_por_acao.total_valores.credito.K|formata_valor }}</td>
 
-          <td rowSpan="2" class="total">K</td>
-          <td rowSpan="2" class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.K|formata_valor }}</td>
+        <td rowSpan="2" class="total">K</td>
+        <td rowSpan="2"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.saldo_reprogramado_proximo.K|formata_valor }}</td>
 
-          <td rowSpan="2" class="total">K</td>
-          <td rowSpan="2" class="text-right total">{{ dados.resumo_por_acao.total_valores.valor_saldo_bancario.K|formata_valor }}</td>
-        </tr>
+        <td rowSpan="2" class="total">K</td>
+        <td rowSpan="2"
+            class="text-right total">{{ dados.resumo_por_acao.total_valores.valor_saldo_bancario.K|formata_valor }}</td>
+      </tr>
       </tbody>
     </table>
 
@@ -281,7 +305,8 @@
         <br> * Saldo Reprogramado (Campo 6) = Saldo reprogramado do período anterior (2) +
         Créditos (3) - Despesas demonstradas (4) - Despesas não demonstradas do período (5). Quando o valor de
         custeio e/ou capital forem menores que zero, as despesas são deduzidas do saldo de Livre Aplicação.
-        <br>** Saldo ao final do período (Campo 8) = Despesas não demonstradas do período (5) + Saldo reprogramado para o próximo
+        <br>** Saldo ao final do período (Campo 8) = Despesas não demonstradas do período (5) + Saldo reprogramado para
+        o próximo
         período (6) + Despesas não demonstradas de períodos anteriores (7).
         <br>*** Total geral: soma de cada coluna considerando o tipo de aplicação do recurso correspondente (C, L e K).
       </i>
@@ -311,25 +336,42 @@
           <td>{{ receita.detalhamento }}</td>
           <td>{{ receita.nome_acao }}</td>
           <td>{{ receita.data }}</td>
-          <td>{{ receita.valor|formata_valor }}</td>
+          <td class="text-right">{{ receita.valor|formata_valor }}</td>
         </tr>
 
         {% if receita.estorno %}
+
           {% if receita.estorno.numero_documento_despesa %}
             <tr>
-                <td colspan="5" class="texto-estorno">
-                  Este estorno está vinculado à despesa de número {{ receita.estorno.numero_documento_despesa }},
-                  de {{ receita.estorno.data_estorno }}
-                </td>
+              <td colspan="5" class="texto-estorno">
+                Este estorno está vinculado à despesa de número {{ receita.estorno.numero_documento_despesa }},
+                de {{ receita.estorno.data_estorno }}
+              </td>
             </tr>
           {% else %}
             <tr>
-                <td colspan="5" class="texto-estorno">
-                  Este estorno está vinculado à despesa de {{ receita.estorno.data_estorno }}
-                </td>
+              <td colspan="5" class="texto-estorno">
+                Este estorno está vinculado à despesa de {{ receita.estorno.data_estorno }}
+              </td>
             </tr>
           {% endif %}
+
+          {% if receita.estorno.motivos_estorno or receita.estorno.outros_motivos_estorno %}
+
+              <tr>
+                <td colspan="5">
+                  {% for motivo in receita.estorno.motivos_estorno %}
+                    <span class='pr-1'>{{ motivo.motivo }}</span>
+                  {% endfor %}
+                  <span>{{ receita.estorno.outros_motivos_estorno }}</span>
+                </td>
+              </tr>
+
+            {% endif %}
+
         {% endif %}
+
+
 
       {% endfor %}
       <tr>
@@ -388,9 +430,9 @@
         {% if despesa.despesa_imposto %}
           <tr>
             <td colspan="11" class="texto-imposto">
-                <strong>Nota com retenção de imposto:</strong> Esse gasto teve retenção de imposto em
-                {{ despesa.despesa_imposto.data_transacao }}
-                no valor de R$ {{ despesa.despesa_imposto.valor|formata_valor }}.
+              <strong>Nota com retenção de imposto:</strong> Esse gasto teve retenção de imposto em
+              {{ despesa.despesa_imposto.data_transacao }}
+              no valor de R$ {{ despesa.despesa_imposto.valor|formata_valor }}.
             </td>
           </tr>
         {% endif %}
@@ -400,7 +442,8 @@
             <td colspan="11" class="texto-imposto">
               <strong>Imposto retido:</strong> Esse gasto refere-se à retenção de imposto da nota
               {{ despesa.despesa_geradora.numero_documento }}
-              de {{ despesa.despesa_geradora.data_transacao }} e valor R$ {{ despesa.despesa_geradora.valor|formata_valor }}.
+              de {{ despesa.despesa_geradora.data_transacao }} e valor
+              R$ {{ despesa.despesa_geradora.valor|formata_valor }}.
             </td>
           </tr>
         {% endif %}
@@ -459,25 +502,26 @@
           <td class="text-right">{{ despesa.valor|formata_valor }}</td>
         </tr>
 
-      {% if despesa.despesa_imposto %}
-        <tr>
-          <td colspan="11" class="texto-imposto">
+        {% if despesa.despesa_imposto %}
+          <tr>
+            <td colspan="11" class="texto-imposto">
               <strong>Nota com retenção de imposto:</strong> Esse gasto teve retenção de imposto em
               {{ despesa.despesa_imposto.data_transacao }}
               no valor de R$ {{ despesa.despesa_imposto.valor|formata_valor }}.
-          </td>
-        </tr>
-      {% endif %}
+            </td>
+          </tr>
+        {% endif %}
 
-      {% if despesa.despesa_geradora %}
-        <tr>
-          <td colspan="11" class="texto-imposto">
-            <strong>Imposto retido:</strong> Esse gasto refere-se à retenção de imposto da nota
-            {{ despesa.despesa_geradora.numero_documento }}
-            de {{ despesa.despesa_geradora.data_transacao }} e valor R$ {{ despesa.despesa_geradora.valor|formata_valor }}.
-          </td>
-        </tr>
-      {% endif %}
+        {% if despesa.despesa_geradora %}
+          <tr>
+            <td colspan="11" class="texto-imposto">
+              <strong>Imposto retido:</strong> Esse gasto refere-se à retenção de imposto da nota
+              {{ despesa.despesa_geradora.numero_documento }}
+              de {{ despesa.despesa_geradora.data_transacao }} e valor
+              R$ {{ despesa.despesa_geradora.valor|formata_valor }}.
+            </td>
+          </tr>
+        {% endif %}
 
       {% endfor %}
       <tr>
@@ -536,9 +580,9 @@
         {% if despesa.despesa_imposto %}
           <tr>
             <td colspan="11" class="texto-imposto">
-                <strong>Nota com retenção de imposto:</strong> Esse gasto teve retenção de imposto em
-                {{ despesa.despesa_imposto.data_transacao }}
-                no valor de R$ {{ despesa.despesa_imposto.valor|formata_valor }}.
+              <strong>Nota com retenção de imposto:</strong> Esse gasto teve retenção de imposto em
+              {{ despesa.despesa_imposto.data_transacao }}
+              no valor de R$ {{ despesa.despesa_imposto.valor|formata_valor }}.
             </td>
           </tr>
         {% endif %}
@@ -548,7 +592,8 @@
             <td colspan="11" class="texto-imposto">
               <strong>Imposto retido:</strong> Esse gasto refere-se à retenção de imposto da nota
               {{ despesa.despesa_geradora.numero_documento }}
-              de {{ despesa.despesa_geradora.data_transacao }} e valor R$ {{ despesa.despesa_geradora.valor|formata_valor }}.
+              de {{ despesa.despesa_geradora.data_transacao }} e valor
+              R$ {{ despesa.despesa_geradora.valor|formata_valor }}.
             </td>
           </tr>
         {% endif %}
@@ -591,7 +636,8 @@
         <div class="col mr-2 ml-0 pt-5">
           <p class="mb-0 text-center">
             __________________________________________________________________________________</p>
-          <p class="font-12 text-center mb-0">Assinatura do {{ dados.identificacao_apm.cargo_substituto_presidente_ausente }} da Associação</p>
+          <p class="font-12 text-center mb-0">Assinatura
+            do {{ dados.identificacao_apm.cargo_substituto_presidente_ausente }} da Associação</p>
           <p class="text-center"><strong>{{ dados.identificacao_apm.presidente_diretoria_executiva }}</strong></p>
         </div>
         <div class="col ml-2 mr-0 pt-5">
