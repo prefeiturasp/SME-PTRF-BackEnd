@@ -39,6 +39,7 @@ jobs:
             echo "Carregando as variaveis de ambiente..."
             source ptrf
             pip install --user pipenv -r requirements/local.txt
+            python manage.py collectstatic --noinput
             pytest
             flake8
             
