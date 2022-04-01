@@ -32,7 +32,7 @@ class MotivosEstornoViewSet(mixins.ListModelMixin,
         if motivo.receitas_do_motivo.all():
             content = {
                 'erro': 'ProtectedError',
-                'mensagem': 'Esse motivo não pode ser excluído pois existem estornos cadastrados com esse motivo.'
+                'mensagem': 'Esse motivo não pode ser excluído, pois existem estornos já cadastrado com o mesmo.'
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
         else:
