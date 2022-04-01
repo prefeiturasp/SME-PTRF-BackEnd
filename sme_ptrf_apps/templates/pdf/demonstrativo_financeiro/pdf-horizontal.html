@@ -343,31 +343,22 @@
 
           {% if receita.estorno.numero_documento_despesa %}
             <tr>
-              <td colspan="5" class="texto-estorno">
-                Este estorno está vinculado à despesa de número {{ receita.estorno.numero_documento_despesa }},
-                de {{ receita.estorno.data_estorno }}
+              <td colspan="5">
+                <p class="texto-estorno mb-1">Este estorno está vinculado à despesa de número {{ receita.estorno.numero_documento_despesa }},
+                  de {{ receita.estorno.data_estorno }}</p>
+                {# Incluindo linha com motivos de estorno, passando dados como parametro #}
+                {% include "./partials/linha-com-motivos-estornos.html" with receita=receita %}
               </td>
             </tr>
           {% else %}
             <tr>
-              <td colspan="5" class="texto-estorno">
-                Este estorno está vinculado à despesa de {{ receita.estorno.data_estorno }}
+              <td colspan="5">
+                <p class="texto-estorno mb-1">Este estorno está vinculado à despesa de {{ receita.estorno.data_estorno }}</p>
+                {# Incluindo linha com motivos de estorno, passando dados como parametro #}
+                {% include "./partials/linha-com-motivos-estornos.html" with receita=receita %}
               </td>
             </tr>
           {% endif %}
-
-          {% if receita.estorno.motivos_estorno or receita.estorno.outros_motivos_estorno %}
-
-              <tr>
-                <td colspan="5">
-                  {% for motivo in receita.estorno.motivos_estorno %}
-                    <span class='pr-1'>{{ motivo.motivo }}</span>
-                  {% endfor %}
-                  <span>{{ receita.estorno.outros_motivos_estorno }}</span>
-                </td>
-              </tr>
-
-            {% endif %}
 
         {% endif %}
 
