@@ -11,6 +11,41 @@ on:
 
 jobs:
 
+  test:
+  
+    runs-on: self-hosted
+    if: ${{ github.ref == 'refs/heads/develop' }}
+    steps:
+    
+      - uses: actions/checkout@v2
+      
+      - name: Delete Container..
+        run: if [ ! -z $(docker ps -q --filter "name=ptrf-db") ]; then docker rm -f ptrf-db; fi
+
+
+      - name: Preparing Container...
+        #Criação do container de banco de dados e copia das variaveis que serão carregadas.
+        run: |
+          docker run -d --rm --cap-add SYS_TIME --name ptrf-db -p 5432 --network python-network -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:11-alpine
+          echo "copiando fontes..."
+          cp /srv/env/ptrf .
+          
+      - name: Running Python Tests
+        uses: luizhpriotto/action_images@python36-v1.0
+        with:
+          command: |
+            echo "Conectando o container a rede python..."
+            docker network connect python-network $(hostname)
+            echo "Carregando as variaveis de ambiente..."
+            source ptrf
+            pip install --user pipenv -r requirements/local.txt
+            pytest
+            flake8
+            
+      - name: Delete Container..
+        if: ${{ ( failure() ) || ( success() ) }}
+        run: if [ ! -z $(docker ps -q --filter "name=ptrf-db") ]; then docker rm -f ptrf-db; fi
+
   sonar:
   
     runs-on: self-hosted
