@@ -56,12 +56,16 @@ class Despesa(ModeloBase):
 
     retem_imposto = models.BooleanField('Retém imposto?', default=False)
 
-    despesa_imposto = models.ForeignKey('Despesa', on_delete=models.SET_NULL, related_name='despesa_geradora_do_imposto',
-                            blank=True, null=True, to_field="uuid")
+    despesa_imposto = models.ForeignKey('Despesa', on_delete=models.SET_NULL,
+                                        related_name='despesa_geradora_do_imposto',
+                                        blank=True, null=True, to_field="uuid")
+
+    despesas_impostos = models.ManyToManyField('Despesa', blank=True, related_name='despesa_geradora')
 
     motivos_pagamento_antecipado = models.ManyToManyField('MotivoPagamentoAntecipado', blank=True)
 
-    outros_motivos_pagamento_antecipado = models.TextField('Outros motivos para pagamento antecipado', blank=True, default='')
+    outros_motivos_pagamento_antecipado = models.TextField('Outros motivos para pagamento antecipado', blank=True,
+                                                           default='')
 
     status = models.CharField(
         'status',

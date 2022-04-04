@@ -32,6 +32,7 @@ def test_instance_model(despesa):
     assert model.numero_boletim_de_ocorrencia is ""
     assert model.retem_imposto is False
     assert model.despesa_imposto is None
+    assert not model.despesas_impostos.exists()
     assert model.motivos_pagamento_antecipado is not None
     assert model.outros_motivos_pagamento_antecipado is not None
 
