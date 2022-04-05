@@ -23,7 +23,7 @@ def customTitledFilter(title):
 
 @admin.register(TipoDocumento)
 class TipoDocumentoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'pode_reter_imposto', 'eh_documento_de_retencao_de_imposto')
+    list_display = ('nome', 'pode_reter_imposto', 'eh_documento_de_retencao_de_imposto', 'documento_comprobatorio_de_despesa')
     readonly_fields = ('id', 'uuid')
 
 
