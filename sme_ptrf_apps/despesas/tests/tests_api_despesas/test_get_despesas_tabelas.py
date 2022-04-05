@@ -39,6 +39,7 @@ def test_api_get_despesas_tabelas(associacao, jwt_authenticated_client_d, tipo_a
                 'id': tipo_documento.id,
                 'nome': tipo_documento.nome,
                 'apenas_digitos': tipo_documento.apenas_digitos,
+                'documento_comprobatorio_de_despesa': True,
                 'eh_documento_de_retencao_de_imposto': False,
                 'numero_documento_digitado': tipo_documento.numero_documento_digitado,
                 'pode_reter_imposto': False
