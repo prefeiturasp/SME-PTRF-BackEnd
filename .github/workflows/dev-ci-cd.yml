@@ -22,7 +22,10 @@ jobs:
       - name: Running Flake8
         uses: luizhpriotto/action_images@python36-v1.0
         with:
-          command: flake8
+          command: |
+            pip install --user pipenv -r requirements/local.txt
+            flake8
+            
 
   sonar:
   
