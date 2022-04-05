@@ -9,23 +9,7 @@ on:
   
   workflow_dispatch:
 
-jobs:
-
-  flake8:
-  
-    runs-on: self-hosted
-    if: ${{ github.ref == 'refs/heads/develop' }}
-    steps:
-    
-      - uses: actions/checkout@v2
-          
-      - name: Running Flake8
-        uses: luizhpriotto/action_images@python36-v1.0
-        with:
-          command: |
-            pip install --user pipenv -r requirements/local.txt
-            flake8
-            
+jobs:            
 
   sonar:
   
