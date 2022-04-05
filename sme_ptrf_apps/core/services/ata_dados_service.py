@@ -17,7 +17,8 @@ def gerar_dados_ata(prestacao_de_contas=None, ata=None, usuario=None):
         retificacoes = ata.retificacoes
         devolucoes_ao_tesouro = devolucoes_ao_tesouro_ata(ata, prestacao_de_contas)
         repasses_pendentes = get_repasses_pendentes(ata)
-        despesas_com_pagamento_antecipado = get_despesas_com_pagamento_antecipado(ata=ata)
+        # comentando bloco pagamento antecipado
+        # despesas_com_pagamento_antecipado = get_despesas_com_pagamento_antecipado(ata=ata)
         dados_ata = {
             "cabecalho": cabecalho,
             "retificacoes": retificacoes,
@@ -28,7 +29,7 @@ def gerar_dados_ata(prestacao_de_contas=None, ata=None, usuario=None):
             "presentes_na_ata": presentes_na_ata,
             "repasses_pendentes": repasses_pendentes,
             "justificativa_repasses_pendentes": ata.justificativa_repasses_pendentes,
-            "despesas_com_pagamento_antecipado": despesas_com_pagamento_antecipado,
+            # "despesas_com_pagamento_antecipado": despesas_com_pagamento_antecipado,
         }
     finally:
         LOGGER.info("Dados da ata gerado com sucesso")
