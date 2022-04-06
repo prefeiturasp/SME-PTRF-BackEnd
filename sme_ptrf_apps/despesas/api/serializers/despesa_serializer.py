@@ -15,6 +15,8 @@ log = logging.getLogger(__name__)
 
 
 class DespesaImpostoSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(required=False)
+
     associacao = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
@@ -48,12 +50,13 @@ class DespesaSerializer(serializers.ModelSerializer):
     tipo_transacao = TipoTransacaoSerializer()
     rateios = RateioDespesaSerializer(many=True)
     despesa_imposto = DespesaImpostoSerializer(many=False, required=False, allow_null=True)
+    despesas_impostos = DespesaImpostoSerializer(many=True, required=False, allow_null=True)
     despesa_geradora_do_imposto = serializers.SerializerMethodField(method_name="get_despesa_de_imposto", required=False, allow_null=True)
     motivos_pagamento_antecipado = MotivoPagamentoAntecipadoSerializer(many=True)
 
     def get_despesa_de_imposto(self, despesa):
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
-        return DespesaImpostoSerializer(despesa_geradora_do_imposto, many=False).data
+        return DespesaImpostoSerializer(despesa_geradora_do_imposto, many=False).data if despesa_geradora_do_imposto else None
 
     class Meta:
         model = Despesa
@@ -68,11 +71,14 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     )
     rateios = RateioDespesaCreateSerializer(many=True, required=False)
     despesa_imposto = DespesaImpostoSerializer(many=False, required=False, allow_null=True)
+    despesas_impostos = DespesaImpostoSerializer(many=True, required=False, allow_null=True)
 
     def create(self, validated_data):
         rateios = validated_data.pop('rateios')
+
         despesa_imposto = validated_data.pop('despesa_imposto') if validated_data.get('despesa_imposto') else None
-        rateios_imposto = despesa_imposto.pop('rateios') if despesa_imposto else None
+        # rateios_imposto = despesa_imposto.pop('rateios') if despesa_imposto else None
+        despesas_impostos = validated_data.pop('despesas_impostos') if validated_data.get('despesas_impostos') else None
 
         motivos_pagamento_antecipado = validated_data.pop('motivos_pagamento_antecipado')
         outros_motivos_pagamento_antecipado = validated_data['outros_motivos_pagamento_antecipado']
@@ -110,26 +116,34 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
         log.info("Criação de despesa finalizada!")
 
-        # Despesa de Imposto
-        if despesa.retem_imposto and despesa_imposto:
-            despesa_do_imposto = Despesa.objects.create(**despesa_imposto)
-            log.info("Criando despesa de imposto com uuid: {}".format(despesa_do_imposto.uuid))
+        # Despesa de Impostos
+        if despesa.retem_imposto and despesas_impostos:
+            log.info("Criando despesas de impostos gerados pela despesa")
+            despesas_impostos_lista = []
+            for despesa_imposto in despesas_impostos:
+                rateios_imposto = despesa_imposto.pop('rateios') if despesa_imposto else None
 
-            rateios_do_imposto_lista = []
-            for rateio in rateios_imposto:
-                rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
-                rateio_object = RateioDespesaCreateSerializer().create(rateio)
-                rateios_do_imposto_lista.append(rateio_object)
+                despesa_do_imposto = Despesa.objects.create(**despesa_imposto)
+                log.info(f"Criando despesa de imposto com uuid: {despesa_do_imposto.uuid}")
 
-            despesa_do_imposto.rateios.set(rateios_do_imposto_lista)
+                rateios_do_imposto_lista = []
+                for rateio in rateios_imposto:
+                    rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
+                    rateio_object = RateioDespesaCreateSerializer().create(rateio)
+                    rateios_do_imposto_lista.append(rateio_object)
 
-            despesa.despesa_imposto = despesa_do_imposto
-            despesa.save()
-            despesa_do_imposto.verifica_data_documento_vazio()
-            despesa_do_imposto.atualiza_status()
+                despesa_do_imposto.rateios.set(rateios_do_imposto_lista)
 
-            log.info("Despesa do imposto {}, Rateios do imposto: {}".format(despesa_do_imposto.uuid,
-                                                                            rateios_do_imposto_lista))
+                despesa_do_imposto.verifica_data_documento_vazio()
+                despesa_do_imposto.atualiza_status()
+
+                despesas_impostos_lista.append(despesa_do_imposto)
+
+                log.info(
+                    f"Despesa do imposto {despesa_do_imposto.uuid}, Rateios do imposto: {rateios_do_imposto_lista}"
+                )
+
+            despesa.despesas_impostos.set(despesas_impostos_lista)
 
             log.info("Criação de despesa de imposto finalizada!")
 
@@ -138,8 +152,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         rateios = validated_data.pop('rateios')
 
-        despesa_imposto = validated_data.pop('despesa_imposto') if validated_data.get('despesa_imposto') else None
-        rateios_imposto = despesa_imposto.pop('rateios') if despesa_imposto else None
+        despesas_impostos = validated_data.pop('despesas_impostos') if 'despesas_impostos' in validated_data else []
 
         motivos_pagamento_antecipado = validated_data.pop('motivos_pagamento_antecipado')
         outros_motivos_pagamento_antecipado = validated_data['outros_motivos_pagamento_antecipado']
@@ -194,60 +207,76 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         for motivo in motivos_pagamento_antecipado:
             motivos_list.append(motivo.id)
 
-        # Despesa de Imposto
-        if validated_data.get('retem_imposto') and despesa_imposto:
+        # Atualiza as Despesas de Impostos
+        if validated_data.get('retem_imposto') and despesas_impostos:
+            # Atualiza despesas de impostos
+            log.info(f"Atualizando despesas de impostos da despesa geradora {instance.uuid}")
+            keep_impostos = []  # impostos que serão mantidos. Qualquer um que não estiver na lista será apagado.
+            despesas_impostos_lista = []
+            for despesa_imposto in despesas_impostos:
+                rateios_imposto = despesa_imposto.pop('rateios') if despesa_imposto else None
 
-            if instance and instance.despesa_imposto and instance.despesa_imposto.uuid:
-                Despesa.objects.filter(uuid=instance.despesa_imposto.uuid).update(**despesa_imposto)
-                despesa_do_imposto = Despesa.objects.get(uuid=instance.despesa_imposto.uuid)
-            else:
-                despesa_do_imposto = Despesa.objects.create(**despesa_imposto)
+                if "uuid" in despesa_imposto.keys():
+                    log.info(
+                        f"Encontrada chave uuid na despesa imposto {despesa_imposto['uuid']}. Será atualizada.")
+                    if Despesa.objects.filter(uuid=despesa_imposto["uuid"]).exists():
+                        log.info(f"Despesa Imposto encontrada {despesa_imposto['uuid']}")
+                        Despesa.objects.filter(uuid=despesa_imposto["uuid"]).update(**despesa_imposto)
+                        despesa_imposto_updated = Despesa.by_uuid(despesa_imposto["uuid"])
+                        keep_impostos.append(despesa_imposto["uuid"])
+                        despesas_impostos_lista.append(despesa_imposto_updated)
 
-            rateios_do_imposto_lista = []
-            uuid_rateios_do_imposto_lista = []
-            for rateio in rateios_imposto:
-                if "uuid" in rateio.keys():
-                    if RateioDespesa.objects.filter(uuid=rateio["uuid"]).exists():
-                        rateio[
-                            "eh_despesa_sem_comprovacao_fiscal"] = despesa_updated_somente_validade_data.eh_despesa_sem_comprovacao_fiscal
-                        RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)
-                        rateio_updated = RateioDespesa.objects.get(uuid=rateio["uuid"])
-                        rateio_updated.save()
-                        rateios_do_imposto_lista.append(rateio_updated)
-                        uuid_rateios_do_imposto_lista.append(rateio_updated.uuid)
+                        # Atualiza os rateios da despesa imposto
+                        rateios_do_imposto_lista = []
+                        uuid_rateios_do_imposto_lista = []
+                        for rateio in rateios_imposto:
+                            if "uuid" in rateio.keys():
+                                if RateioDespesa.objects.filter(uuid=rateio["uuid"]).exists():
+                                    rateio[
+                                        "eh_despesa_sem_comprovacao_fiscal"] = despesa_updated_somente_validade_data.eh_despesa_sem_comprovacao_fiscal
+                                    RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)
+                                    rateio_updated = RateioDespesa.objects.get(uuid=rateio["uuid"])
+                                    rateio_updated.save()
+                                    rateios_do_imposto_lista.append(rateio_updated)
+                                    uuid_rateios_do_imposto_lista.append(rateio_updated.uuid)
+                                else:
+                                    log.info(f"Rateio NÃO encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
+                                    continue
+                            else:
+                                log.info(f"Não encontrada chave uuid de rateio R${rateio['valor_rateio']}. Será criado.")
+                                rateio_object = RateioDespesaCreateSerializer().create(rateio)
+                                rateios_do_imposto_lista.append(rateio_object)
+                                uuid_rateios_do_imposto_lista.append(rateio_object.uuid)
+
+                        # Apaga rateios da despesa de imposto que não estão na lista de rateios a serem mantidos
+                        if despesa_imposto_updated and despesa_imposto_updated.rateios.exists():
+                            for rateio in despesa_imposto_updated.rateios.all():
+                                if rateio.uuid not in uuid_rateios_do_imposto_lista:
+                                    log.info(f"Rateio de imposto será apagado {rateio.uuid}")
+                                    rateio.delete()
+                                    log.info(f"Apagado o rateio de imposto")
                     else:
-                        log.info(f"Rateio NÃO encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
+                        log.info(f"Despesa Imposto NÃO encontrada {despesa_imposto['uuid']}")
                         continue
                 else:
-                    log.info(f"Não encontrada chave uuid de rateio R${rateio['valor_rateio']}. Será criado.")
-                    rateio_object = RateioDespesaCreateSerializer().create(rateio)
-                    rateios_do_imposto_lista.append(rateio_object)
-                    uuid_rateios_do_imposto_lista.append(rateio_object.uuid)
+                    log.info(f"Não encontrada chave uuid de despesa imposto. Será criado.")
+                    despesa_imposto_updated = Despesa.objects.create(**despesa_imposto)
+                    despesa_imposto_updated.rateios.set(rateios_imposto)
+                    keep_impostos.append(despesa_imposto_updated.uuid)
+                    despesas_impostos_lista.append(despesa_imposto_updated)
 
-            # Apaga rateios da despesa de imposto que não estão na lista de rateios a serem mantidos
-            if instance.despesa_imposto and instance.despesa_imposto.rateios:
-                for rateio in instance.despesa_imposto.rateios.all():
-                    if rateio.uuid not in uuid_rateios_do_imposto_lista:
-                        log.info(f"Rateio apagado {rateio.uuid} R${rateio.valor_rateio}")
-                        rateio.delete()
+            # Apaga os impostos da despesa que não estão na lista de impostos a manter
+            for despesa_imposto in instance.despesas_impostos.all():
+                if despesa_imposto.uuid not in keep_impostos:
+                    log.info(f"Despesa imposto apagada {despesa_imposto.uuid}")
+                    despesa_imposto.delete()
 
-            despesa_do_imposto.rateios.set(rateios_do_imposto_lista)
-            despesa_do_imposto.save()
-
-            despesa_do_imposto.verifica_data_documento_vazio()
-            despesa_do_imposto.atualiza_status()
-
-            despesa_updated = Despesa.objects.get(uuid=instance.uuid)
-
-            despesa_updated.despesa_imposto = despesa_do_imposto
-
-            despesa_updated.save()
+            instance.despesas_impostos.set(despesas_impostos_lista)
 
         elif not validated_data.get('retem_imposto'):
-
-            if instance and instance.despesa_imposto and instance.despesa_imposto.uuid:
-                despesa_do_imposto = Despesa.objects.get(uuid=instance.despesa_imposto.uuid)
-                despesa_do_imposto.delete()
+            if instance and instance.despesas_impostos.exists():
+                for despesa_imposto in instance.despesas_impostos.all():
+                    despesa_imposto.delete()
 
         # Retorna a despesa atualizada
         despesa_updated = Despesa.objects.get(uuid=instance.uuid)
@@ -258,6 +287,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         despesa_updated.save()
 
         return despesa_updated
+
 
     class Meta:
         model = Despesa
@@ -294,12 +324,13 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
 
     receitas_saida_do_recurso = serializers.SerializerMethodField('get_recurso_externo')
     despesa_imposto = DespesaImpostoSerializer(many=False, required=False)
+    despesas_impostos = DespesaImpostoSerializer(many=True, required=False)
     despesa_geradora_do_imposto = serializers.SerializerMethodField(method_name="get_despesa_de_imposto",
                                                                     required=False)
 
     def get_despesa_de_imposto(self, despesa):
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
-        return DespesaImpostoSerializer(despesa_geradora_do_imposto, many=False).data
+        return DespesaImpostoSerializer(despesa_geradora_do_imposto, many=False).data if despesa_geradora_do_imposto else None
 
     def get_recurso_externo(self, despesa):
         return despesa.receitas_saida_do_recurso.first().uuid if despesa.receitas_saida_do_recurso.exists() else None
@@ -309,7 +340,7 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
         fields = (
         'uuid', 'associacao', 'numero_documento', 'status', 'tipo_documento', 'data_documento', 'cpf_cnpj_fornecedor',
         'nome_fornecedor', 'valor_total', 'valor_ptrf', 'data_transacao', 'tipo_transacao', 'documento_transacao',
-        'rateios', 'receitas_saida_do_recurso', 'despesa_imposto', 'despesa_geradora_do_imposto')
+        'rateios', 'receitas_saida_do_recurso', 'despesa_imposto', 'despesa_geradora_do_imposto', 'despesas_impostos')
 
 
 class DespesaConciliacaoSerializer(serializers.ModelSerializer):

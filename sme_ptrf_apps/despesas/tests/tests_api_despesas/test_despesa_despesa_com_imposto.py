@@ -33,27 +33,29 @@ def payload_despesa_com_imposto(
         "valor_recursos_proprios": 0,
         "motivos_pagamento_antecipado": [],
         "outros_motivos_pagamento_antecipado": "",
-        "despesa_imposto": {
-            "associacao": f'{associacao.uuid}',
-            "tipo_documento": tipo_documento.id,
-            "data_transacao": None,
-            "tipo_transacao": tipo_transacao.id,
-
-            "rateios": [{
-                "tipo_custeio": tipo_custeio.id,
-                "especificacao_material_servico": especificacao_material_servico.id,
-                "acao_associacao": f"{acao_associacao.uuid}",
-                "aplicacao_recurso": "CUSTEIO",
+        "despesas_impostos": [
+            {
                 "associacao": f'{associacao.uuid}',
-                "conta_associacao": f"{conta_associacao.uuid}",
-                "escolha_tags": "nao",
-                "numero_processo_incorporacao_capital": "",
-                "quantidade_itens_capital": 0,
-                "valor_item_capital": 0,
-                "valor_original": 222,
-                "valor_rateio": 222
-            }]
-        },
+                "tipo_documento": tipo_documento.id,
+                "data_transacao": None,
+                "tipo_transacao": tipo_transacao.id,
+
+                "rateios": [{
+                    "tipo_custeio": tipo_custeio.id,
+                    "especificacao_material_servico": especificacao_material_servico.id,
+                    "acao_associacao": f"{acao_associacao.uuid}",
+                    "aplicacao_recurso": "CUSTEIO",
+                    "associacao": f'{associacao.uuid}',
+                    "conta_associacao": f"{conta_associacao.uuid}",
+                    "escolha_tags": "nao",
+                    "numero_processo_incorporacao_capital": "",
+                    "quantidade_itens_capital": 0,
+                    "valor_item_capital": 0,
+                    "valor_original": 222,
+                    "valor_rateio": 222
+                }]
+            }
+        ],
         "rateios": [
             {
                 "associacao": f'{associacao.uuid}',
@@ -94,6 +96,7 @@ def payload_despesa_remove_vinculo_com_imposto(
         "valor_total": 100,
         "valor_recursos_proprios": 0,
         "despesa_imposto": None,
+        "despesas_impostos": [],
         "motivos_pagamento_antecipado": [],
         "outros_motivos_pagamento_antecipado": "",
         "rateios": [
@@ -193,7 +196,8 @@ def despesa_com_imposto(
         data_transacao="2022-03-10",
         valor_total=100,
         valor_recursos_proprios=0,
-        despesa_imposto=despesa_despesa_imposto
+        despesa_imposto=None,
+        despesas_impostos=[despesa_despesa_imposto,]
     )
 
 
@@ -234,32 +238,8 @@ def monta_result_esperado(
         'criado_em': despesa_com_imposto.criado_em.strftime("%Y-%m-%dT%H:%M:%S.%f"),
         'data_documento': None,
         'data_transacao': f"{despesa_com_imposto.data_transacao}",
-        'despesa_geradora_do_imposto':
-            {
-                'associacao': None,
-                'cpf_cnpj_fornecedor': '',
-                'data_documento': None,
-                'data_transacao': None,
-                'despesa_imposto': None,
-                'documento_transacao': '',
-                'eh_despesa_reconhecida_pela_associacao': False,
-                'eh_despesa_sem_comprovacao_fiscal': False,
-                'motivos_pagamento_antecipado': [],
-                'outros_motivos_pagamento_antecipado': '',
-                'nome_fornecedor': '',
-                'numero_boletim_de_ocorrencia': '',
-                'numero_documento': '',
-                'rateios': [],
-                'retem_imposto': False,
-                'status': None,
-                'tipo_documento': None,
-                'tipo_transacao': None,
-                'valor_original': None,
-                'valor_recursos_proprios': None,
-                'valor_total': None
-            },
-
-        'despesa_imposto': {
+        'despesa_geradora_do_imposto': None,
+        'despesas_impostos': [{
             'alterado_em': despesa_despesa_imposto.alterado_em.strftime("%Y-%m-%dT%H:%M:%S.%f"),
             "associacao": f'{associacao.uuid}',
             'cpf_cnpj_fornecedor': f"{despesa_com_imposto.cpf_cnpj_fornecedor}",
@@ -267,6 +247,7 @@ def monta_result_esperado(
             'data_documento': None,
             'data_transacao': None,
             'despesa_imposto': None,
+            'despesas_impostos': [],
             'documento_transacao': '',
             'eh_despesa_reconhecida_pela_associacao': True,
             'eh_despesa_sem_comprovacao_fiscal': False,
@@ -309,7 +290,8 @@ def monta_result_esperado(
             'valor_original': '0.00',
             'valor_recursos_proprios': '0.00',
             'valor_total': '0.00'
-        },
+        },],
+        'despesa_imposto': None,
         'documento_transacao': '',
         'eh_despesa_reconhecida_pela_associacao': True,
         'eh_despesa_sem_comprovacao_fiscal': False,
@@ -509,12 +491,15 @@ def test_delete_despesa_geradora_de_imposto_e_com_isso_deve_apagar_despesa_de_im
     rateio_despesa_com_imposto,
     rateio_despesa_despesa_imposto,
 ):
-    assert Despesa.objects.filter(uuid=despesa_com_imposto.uuid).exists()
-    assert Despesa.objects.filter(uuid=despesa_despesa_imposto.uuid).exists()
+    despesa_imposto_uuid = despesa_despesa_imposto.uuid
+    despesa_com_imposto_uuid = despesa_com_imposto.uuid
+
+    assert Despesa.objects.filter(uuid=despesa_com_imposto_uuid).exists()
+    assert Despesa.objects.filter(uuid=despesa_imposto_uuid).exists()
 
     response = jwt_authenticated_client_d.delete(f'/api/despesas/{despesa_com_imposto.uuid}/', content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
-    assert not Despesa.objects.filter(uuid=despesa_com_imposto.uuid).exists()
-    assert not Despesa.objects.filter(uuid=despesa_despesa_imposto.uuid).exists()
+    assert not Despesa.objects.filter(uuid=despesa_com_imposto_uuid).exists()
+    assert not Despesa.objects.filter(uuid=despesa_imposto_uuid).exists()
