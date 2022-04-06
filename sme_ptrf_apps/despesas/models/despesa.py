@@ -56,10 +56,6 @@ class Despesa(ModeloBase):
 
     retem_imposto = models.BooleanField('Retém imposto?', default=False)
 
-    despesa_imposto = models.ForeignKey('Despesa', on_delete=models.SET_NULL,
-                                        related_name='despesa_geradora_do_imposto',
-                                        blank=True, null=True, to_field="uuid")
-
     despesas_impostos = models.ManyToManyField('Despesa', blank=True, related_name='despesa_geradora')
 
     motivos_pagamento_antecipado = models.ManyToManyField('MotivoPagamentoAntecipado', blank=True)
@@ -84,6 +80,11 @@ class Despesa(ModeloBase):
     @property
     def conferido(self):
         return not self.rateios.filter(conferido=False).exists()
+
+    @property
+    def despesa_geradora_do_imposto(self):
+        # Na criação de uma nova instância (ainda sem id) retorna um queryset vazio.
+        return self.despesa_geradora if self.id else Despesa.objects.none()
 
     valor_ptrf.fget.short_description = 'Valor coberto pelo PTRF'
 

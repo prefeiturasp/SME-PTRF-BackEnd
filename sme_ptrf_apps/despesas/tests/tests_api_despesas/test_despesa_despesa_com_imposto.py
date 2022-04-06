@@ -95,7 +95,6 @@ def payload_despesa_remove_vinculo_com_imposto(
         "data_transacao": "2022-03-10",
         "valor_total": 100,
         "valor_recursos_proprios": 0,
-        "despesa_imposto": None,
         "despesas_impostos": [],
         "motivos_pagamento_antecipado": [],
         "outros_motivos_pagamento_antecipado": "",
@@ -196,7 +195,6 @@ def despesa_com_imposto(
         data_transacao="2022-03-10",
         valor_total=100,
         valor_recursos_proprios=0,
-        despesa_imposto=None,
         despesas_impostos=[despesa_despesa_imposto,]
     )
 
@@ -246,7 +244,6 @@ def monta_result_esperado(
             'criado_em': despesa_despesa_imposto.criado_em.strftime("%Y-%m-%dT%H:%M:%S.%f"),
             'data_documento': None,
             'data_transacao': None,
-            'despesa_imposto': None,
             'despesas_impostos': [],
             'documento_transacao': '',
             'eh_despesa_reconhecida_pela_associacao': True,
@@ -291,7 +288,6 @@ def monta_result_esperado(
             'valor_recursos_proprios': '0.00',
             'valor_total': '0.00'
         },],
-        'despesa_imposto': None,
         'documento_transacao': '',
         'eh_despesa_reconhecida_pela_associacao': True,
         'eh_despesa_sem_comprovacao_fiscal': False,
@@ -438,7 +434,7 @@ def test_put_despesa_remove_vinculo_com_a_despesa_de_imposto(
 
     despesa = Despesa.objects.get(uuid=result["uuid"])
 
-    assert despesa.despesa_imposto is None
+    assert not despesa.despesas_impostos.exists()
 
 
 def test_post_despesa_com_imposto_e_deve_criar_vinculo_com_a_despesa_de_imposto(

@@ -49,7 +49,6 @@ class DespesaSerializer(serializers.ModelSerializer):
     tipo_documento = TipoDocumentoSerializer()
     tipo_transacao = TipoTransacaoSerializer()
     rateios = RateioDespesaSerializer(many=True)
-    despesa_imposto = DespesaImpostoSerializer(many=False, required=False, allow_null=True)
     despesas_impostos = DespesaImpostoSerializer(many=True, required=False, allow_null=True)
     despesa_geradora_do_imposto = serializers.SerializerMethodField(method_name="get_despesa_de_imposto", required=False, allow_null=True)
     motivos_pagamento_antecipado = MotivoPagamentoAntecipadoSerializer(many=True)
@@ -70,14 +69,11 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         queryset=Associacao.objects.all()
     )
     rateios = RateioDespesaCreateSerializer(many=True, required=False)
-    despesa_imposto = DespesaImpostoSerializer(many=False, required=False, allow_null=True)
     despesas_impostos = DespesaImpostoSerializer(many=True, required=False, allow_null=True)
 
     def create(self, validated_data):
         rateios = validated_data.pop('rateios')
 
-        despesa_imposto = validated_data.pop('despesa_imposto') if validated_data.get('despesa_imposto') else None
-        # rateios_imposto = despesa_imposto.pop('rateios') if despesa_imposto else None
         despesas_impostos = validated_data.pop('despesas_impostos') if validated_data.get('despesas_impostos') else None
 
         motivos_pagamento_antecipado = validated_data.pop('motivos_pagamento_antecipado')
@@ -323,7 +319,6 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
     rateios = RateioDespesaTabelaGastosEscolaSerializer(many=True)
 
     receitas_saida_do_recurso = serializers.SerializerMethodField('get_recurso_externo')
-    despesa_imposto = DespesaImpostoSerializer(many=False, required=False)
     despesas_impostos = DespesaImpostoSerializer(many=True, required=False)
     despesa_geradora_do_imposto = serializers.SerializerMethodField(method_name="get_despesa_de_imposto",
                                                                     required=False)
@@ -340,7 +335,7 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
         fields = (
         'uuid', 'associacao', 'numero_documento', 'status', 'tipo_documento', 'data_documento', 'cpf_cnpj_fornecedor',
         'nome_fornecedor', 'valor_total', 'valor_ptrf', 'data_transacao', 'tipo_transacao', 'documento_transacao',
-        'rateios', 'receitas_saida_do_recurso', 'despesa_imposto', 'despesa_geradora_do_imposto', 'despesas_impostos')
+        'rateios', 'receitas_saida_do_recurso', 'despesa_geradora_do_imposto', 'despesas_impostos')
 
 
 class DespesaConciliacaoSerializer(serializers.ModelSerializer):

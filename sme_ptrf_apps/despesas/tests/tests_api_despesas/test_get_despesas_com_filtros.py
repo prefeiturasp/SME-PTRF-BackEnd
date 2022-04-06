@@ -139,7 +139,6 @@ def test_api_get_despesas_campos(jwt_authenticated_client_d, associacao, despesa
             'valor_ptrf': 90.0,
             'data_transacao': '2020-03-10',
             'despesa_geradora_do_imposto': None,
-            'despesa_imposto': None,
             'despesas_impostos': [],
             'tipo_transacao': {
                 'id': tipo_transacao.id,
