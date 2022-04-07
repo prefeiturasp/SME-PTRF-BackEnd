@@ -691,12 +691,13 @@ def cria_despesas(rateios):
             "valor": valor
         }
 
-        if rateio.despesa.despesa_imposto:
-            # Despesas que possuem despesa imposto são despesas geradoras
-            linha["despesa_imposto"] = {
-                "data_transacao": rateio.despesa.despesa_imposto.data_transacao.strftime("%d/%m/%Y") if rateio.despesa.despesa_imposto.data_transacao else "",
-                "valor": rateio.despesa.despesa_imposto.valor_total if rateio.despesa.despesa_imposto.valor_total else ""
-            }
+        # TODO Será resolvido na 61603
+        # if rateio.despesa.despesa_imposto:
+        #     # Despesas que possuem despesa imposto são despesas geradoras
+        #     linha["despesa_imposto"] = {
+        #         "data_transacao": rateio.despesa.despesa_imposto.data_transacao.strftime("%d/%m/%Y") if rateio.despesa.despesa_imposto.data_transacao else "",
+        #         "valor": rateio.despesa.despesa_imposto.valor_total if rateio.despesa.despesa_imposto.valor_total else ""
+        #     }
 
         if rateio.despesa.despesa_geradora_do_imposto.first():
             # Despesas que possuem despesa geradora, são despesas imposto
