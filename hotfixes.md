@@ -1,5 +1,6 @@
-### 1.28.3 - 07/04/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 39
+### 1.28.3 - 08/04/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 39
 * (61676) - Cadastro de despesas: Sistema não exibe mensagem de saldo insuficiente
+* (59610) - Acompanhamento de PCs: Sistema não permite devolver uma PC quando existe uma PC devolvida no período seguinte
 
 ### 1.28.2 - 09/03/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 37
 * (59610) - Acompanhamento PC: Sistema não permitindo devolver PC com PC seguinte devolvida para acertos
