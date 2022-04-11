@@ -76,6 +76,7 @@ class DespesaAdmin(admin.ModelAdmin):
     list_filter = ('status', 'associacao')
     inlines = [RateioDespesaInLine, ]
     readonly_fields = ('uuid', 'id')
+    filter_horizontal = ('despesas_impostos', 'motivos_pagamento_antecipado')
 
     def associacao(self, obj):
         return obj.associacao.nome if obj.associacao else ''
