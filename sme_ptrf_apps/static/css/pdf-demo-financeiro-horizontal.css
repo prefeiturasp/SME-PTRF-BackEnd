@@ -82,8 +82,6 @@ html body section#cabecalho .subtitulo, html body header .subtitulo {
   font-style: normal;
 }
 
-
-
 #nome-associacao-rodape {
   position: running(nome-associacao);
   font-style: normal;
@@ -222,4 +220,8 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
 
 .texto-imposto {
   color: #000 !important;
+}
+
+.detalhe-linha-tabela {
+  margin-bottom: 0px;
 }

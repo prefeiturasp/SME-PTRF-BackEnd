@@ -691,13 +691,25 @@ def cria_despesas(rateios):
             "valor": valor
         }
 
-        # TODO Será resolvido na 61603
-        # if rateio.despesa.despesa_imposto:
-        #     # Despesas que possuem despesa imposto são despesas geradoras
-        #     linha["despesa_imposto"] = {
-        #         "data_transacao": rateio.despesa.despesa_imposto.data_transacao.strftime("%d/%m/%Y") if rateio.despesa.despesa_imposto.data_transacao else "",
-        #         "valor": rateio.despesa.despesa_imposto.valor_total if rateio.despesa.despesa_imposto.valor_total else ""
-        #     }
+        if rateio.despesa.despesas_impostos.exists():
+            # Despesas que possuem despesa imposto são despesas geradoras
+            logging.info(f'Obtendo lista de impostos da despesa {rateio.despesa.uuid}')
+            linha["despesas_impostos"] = []
+            for despesa_imposto in rateio.despesa.despesas_impostos.all():
+                logging.info(f'Encontrado imposto {despesa_imposto.valor_total if despesa_imposto.valor_total else ""}')
+                if despesa_imposto.data_transacao:
+                    data_transacao = despesa_imposto.data_transacao.strftime("%d/%m/%Y")
+                    info_pagamento = f'pago em {data_transacao}'
+                else:
+                    data_transacao = ""
+                    info_pagamento = "pagamento ainda não realizado"
+                linha["despesas_impostos"].append(
+                    {
+                        "data_transacao": data_transacao,
+                        "info_pagamento": info_pagamento,
+                        "valor": despesa_imposto.valor_total if despesa_imposto.valor_total else ""
+                    }
+                )
 
         if rateio.despesa.despesa_geradora_do_imposto.first():
             # Despesas que possuem despesa geradora, são despesas imposto

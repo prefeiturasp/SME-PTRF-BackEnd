@@ -418,12 +418,22 @@
           <td class="text-right">{{ despesa.valor|formata_valor }}</td>
         </tr>
 
-        {% if despesa.despesa_imposto %}
+        {% if despesa.despesas_impostos|length == 1  %}
           <tr>
             <td colspan="11" class="texto-imposto">
-              <strong>Nota com retenção de imposto:</strong> Esse gasto teve retenção de imposto em
-              {{ despesa.despesa_imposto.data_transacao }}
-              no valor de R$ {{ despesa.despesa_imposto.valor|formata_valor }}.
+              Esse gasto teve retenção de imposto:
+              R$ {{ despesa.despesas_impostos.0.valor }}, {{ despesa.despesas_impostos.0.info_pagamento }}.
+            </td>
+          </tr>
+        {% elif despesa.despesas_impostos|length >= 2  %}
+          <tr>
+            <td colspan="11" class="texto-imposto">
+              Esse gasto teve retenções de impostos:
+              {% for despesa_imposto in despesa.despesas_impostos %}
+                <p class="detalhe-linha-tabela">
+                  R$ {{ despesa_imposto.valor|formata_valor }}, {{ despesa_imposto.info_pagamento }}.
+                </p>
+              {% endfor %}
             </td>
           </tr>
         {% endif %}
@@ -493,12 +503,22 @@
           <td class="text-right">{{ despesa.valor|formata_valor }}</td>
         </tr>
 
-        {% if despesa.despesa_imposto %}
+        {% if despesa.despesas_impostos|length == 1  %}
           <tr>
             <td colspan="11" class="texto-imposto">
-              <strong>Nota com retenção de imposto:</strong> Esse gasto teve retenção de imposto em
-              {{ despesa.despesa_imposto.data_transacao }}
-              no valor de R$ {{ despesa.despesa_imposto.valor|formata_valor }}.
+              Esse gasto teve retenção de imposto:
+              R$ {{ despesa.despesas_impostos.0.valor }}, {{ despesa.despesas_impostos.0.info_pagamento }}.
+            </td>
+          </tr>
+        {% elif despesa.despesas_impostos|length >= 2  %}
+          <tr>
+            <td colspan="11" class="texto-imposto">
+              Esse gasto teve retenções de impostos:
+              {% for despesa_imposto in despesa.despesas_impostos %}
+                <p class="detalhe-linha-tabela">
+                  R$ {{ despesa_imposto.valor|formata_valor }}, {{ despesa_imposto.info_pagamento }}.
+                </p>
+              {% endfor %}
             </td>
           </tr>
         {% endif %}
@@ -568,12 +588,22 @@
           <td class="text-right">{{ despesa.valor|formata_valor }}</td>
         </tr>
 
-        {% if despesa.despesa_imposto %}
+        {% if despesa.despesas_impostos|length == 1  %}
           <tr>
             <td colspan="11" class="texto-imposto">
-              <strong>Nota com retenção de imposto:</strong> Esse gasto teve retenção de imposto em
-              {{ despesa.despesa_imposto.data_transacao }}
-              no valor de R$ {{ despesa.despesa_imposto.valor|formata_valor }}.
+              Esse gasto teve retenção de imposto:
+              R$ {{ despesa.despesas_impostos.0.valor }}, {{ despesa.despesas_impostos.0.info_pagamento }}.
+            </td>
+          </tr>
+        {% elif despesa.despesas_impostos|length >= 2  %}
+          <tr>
+            <td colspan="11" class="texto-imposto">
+              Esse gasto teve retenções de impostos:
+              {% for despesa_imposto in despesa.despesas_impostos %}
+                <p class="detalhe-linha-tabela">
+                  R$ {{ despesa_imposto.valor|formata_valor }}, {{ despesa_imposto.info_pagamento }}.
+                </p>
+              {% endfor %}
             </td>
           </tr>
         {% endif %}
