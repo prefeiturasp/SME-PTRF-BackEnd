@@ -121,13 +121,37 @@ jobs:
       name: production
     steps:
   
-      - name: Redeploy
+      - name: Redeploy Prod
         uses: luizhpriotto/action_images@kubectl-v2.0
         env: 
           RANCHER_URL: ${{ secrets.RANCHER_URL }}
           RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
           NAMESPACE: sme-ptrf
           WORKLOAD: ptrf-backend,ptrf-celery,ptrf-flower
+          
+      - name: Redeploy Treinamento
+        uses: luizhpriotto/action_images@kubectl-v2.0
+        env: 
+          RANCHER_URL: ${{ secrets.RANCHER_URL }}
+          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
+          NAMESPACE: sigescola-treinamento
+          WORKLOAD: treinamento-backend,treinamento-celery,treinamento-flower
+          
+      - name: Redeploy Treinamento 2
+        uses: luizhpriotto/action_images@kubectl-v2.0
+        env: 
+          RANCHER_URL: ${{ secrets.RANCHER_URL }}
+          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
+          NAMESPACE: sigescola-treinamento2
+          WORKLOAD: treinamento-backend,treinamento-celery,treinamento-flower
+          
+      - name: Redeploy Pre Prod
+        uses: luizhpriotto/action_images@kubectl-v2.0
+        env: 
+          RANCHER_URL: ${{ secrets.RANCHER_URL }}
+          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
+          NAMESPACE: sme-sigescola-pre
+          WORKLOAD: sigescolapre-backend,sigescolapre-celery,sigescolapre-flower
           
       - name: send failure message
         if: ${{ failure() }}

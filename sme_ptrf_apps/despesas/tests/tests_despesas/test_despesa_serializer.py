@@ -26,7 +26,6 @@ def test_serializer(despesa):
     assert serializer.data['eh_despesa_reconhecida_pela_associacao']
     assert serializer.data['numero_boletim_de_ocorrencia'] is ""
     assert serializer.data['retem_imposto'] is False
-    assert serializer.data['despesa_imposto'] is None
     assert serializer.data['motivos_pagamento_antecipado'] is not None
     assert serializer.data['outros_motivos_pagamento_antecipado'] is not None
 

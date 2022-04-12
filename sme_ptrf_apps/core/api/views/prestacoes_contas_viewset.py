@@ -505,12 +505,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
-
-            associacao = prestacao_conta.associacao
-            prestacao_de_contas_posteriores = PrestacaoConta.objects.filter(associacao=associacao,
-                                                                            id__gt=prestacao_conta.id)
-
-            if prestacao_de_contas_posteriores:
+            if not prestacao_conta.pode_reabrir():
                 response = {
                     'uuid': f'{uuid}',
                     'erro': 'prestacao_de_contas_posteriores',
