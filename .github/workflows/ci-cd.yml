@@ -3,7 +3,7 @@ name: CI/CD
 on:
 
   push:
-    branches: [ master, homolog, homolog-r2, pre-prod ]
+    branches: [ master, homolog, homolog-r2 ]
     paths-ignore:
     - ".github/workflows/**"  
   
@@ -160,37 +160,6 @@ jobs:
             See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
             Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             
-      - name: send success message
-        if: ${{ success() }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            🚀 Success in ${{ github.ref_name	}}!
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}            
-            Repository: ${{ github.repository }}            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-  deploy-pre-prod:
-  
-    runs-on: self-hosted
-    needs: [ build ]
-    if: ${{ github.ref == 'refs/heads/pre-prod' }}
-    environment:
-      name: production
-    steps:
-    
-      - name: Redeploy Pre Prod
-        uses: luizhpriotto/action_images@kubectl-v2.0
-        env: 
-          RANCHER_URL: ${{ secrets.RANCHER_URL }}
-          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
-          NAMESPACE: sme-sigescola-pre
-          WORKLOAD: sigescolapre-backend,sigescolapre-celery,sigescolapre-flower
-          
       - name: send success message
         if: ${{ success() }}
         uses: appleboy/telegram-action@master
