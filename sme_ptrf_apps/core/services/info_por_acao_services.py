@@ -318,14 +318,20 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
             if rateio.aplicacao_recurso == APLICACAO_CUSTEIO:
                 info['despesas_no_periodo_custeio'] += rateio.valor_rateio
                 info['saldo_atual_custeio'] -= rateio.valor_rateio
-                info['despesas_nao_conciliadas_custeio'] += rateio.valor_rateio if not rateio.conferido else 0
-                info['despesas_conciliadas_custeio'] += rateio.valor_rateio if rateio.conferido else 0
+
+                if not rateio.conferido or rateio.conferido and rateio.periodo_conciliacao.referencia > periodo_final.referencia:
+                    info['despesas_nao_conciliadas_custeio'] += rateio.valor_rateio
+                else:
+                    info['despesas_conciliadas_custeio'] += rateio.valor_rateio
 
             else:
                 info['despesas_no_periodo_capital'] += rateio.valor_rateio
                 info['saldo_atual_capital'] -= rateio.valor_rateio
-                info['despesas_nao_conciliadas_capital'] += rateio.valor_rateio if not rateio.conferido else 0
-                info['despesas_conciliadas_capital'] += rateio.valor_rateio if rateio.conferido else 0
+
+                if not rateio.conferido or rateio.conferido and rateio.periodo_conciliacao.referencia > periodo_final.referencia:
+                    info['despesas_nao_conciliadas_capital'] += rateio.valor_rateio
+                else:
+                    info['despesas_conciliadas_capital'] += rateio.valor_rateio
 
         return info
 
