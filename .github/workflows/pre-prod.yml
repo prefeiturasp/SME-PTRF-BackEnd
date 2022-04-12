@@ -1,4 +1,4 @@
-  name: Pre-Prod CI/CD
+name: Pre-Prod CI/CD
  
 on:
 
