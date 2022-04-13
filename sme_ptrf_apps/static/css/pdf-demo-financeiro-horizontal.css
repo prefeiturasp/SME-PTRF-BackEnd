@@ -1,7 +1,5 @@
 @charset "UTF-8";
 
-{% load static %}
-
 @font-face {
   font-family: Roboto;
   font-weight: 400;
