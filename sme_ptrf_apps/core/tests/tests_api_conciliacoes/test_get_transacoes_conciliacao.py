@@ -102,6 +102,8 @@ def monta_result_esperado(transacoes_esperadas, periodo, conta):
                 'numero_documento': transacao["mestre"].numero_documento if transacao["tipo"] == "Gasto" else "",
                 'descricao': transacao["mestre"].nome_fornecedor if transacao["tipo"] == "Gasto" else transacao[
                     "mestre"].tipo_receita.nome,
+                'despesa_geradora_do_imposto': None,
+                'despesas_impostos': None,
                 'valor_transacao_total': transacao["mestre"].valor_total if transacao["tipo"] == "Gasto" else transacao[
                     "mestre"].valor,
                 'valor_transacao_na_conta': transacao["valor_transacao_na_conta"],
