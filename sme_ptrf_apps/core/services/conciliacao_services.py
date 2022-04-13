@@ -490,35 +490,8 @@ def transacoes_para_conciliacao_agrupado_por_impostos(despesas, periodo, conta_a
                     # e verifica se o rateio atual tem a mesma ação passada no filtro
                     rateios = despesa_imposto.rateios.all()
                     for rateio in rateios:
-                        if despesa_imposto.conferido == despesa_geradora_do_imposto.conferido and rateio.acao_associacao == acao_associacao and (
-                            str(despesa_imposto.uuid) not in existe_em_transacoes):
-                            # transacao = {
-                            #     'periodo': f'{periodo.uuid}',
-                            #     'conta': f'{conta_associacao.uuid}',
-                            #     'data': despesa_imposto.data_transacao,
-                            #     'tipo_transacao': 'Gasto',
-                            #     'numero_documento': despesa_imposto.numero_documento,
-                            #     'descricao': despesa_imposto.nome_fornecedor,
-                            #     'valor_transacao_total': despesa_imposto.valor_total,
-                            #     'valor_transacao_na_conta':
-                            #         despesa_imposto.rateios.filter(status=STATUS_COMPLETO).filter(
-                            #             conta_associacao=conta_associacao).aggregate(Sum('valor_rateio'))[
-                            #             'valor_rateio__sum'],
-                            #     'valores_por_conta': despesa_imposto.rateios.filter(status=STATUS_COMPLETO).values(
-                            #         'conta_associacao__tipo_conta__nome').annotate(
-                            #         Sum('valor_rateio')),
-                            #     'conferido': despesa_imposto.conferido,
-                            #     'documento_mestre': DespesaConciliacaoSerializer(despesa_imposto, many=False).data,
-                            #     'rateios': RateioDespesaConciliacaoSerializer(
-                            #         despesa_imposto.rateios.filter(status=STATUS_COMPLETO).filter(
-                            #             conta_associacao=conta_associacao).order_by('id'),
-                            #         many=True).data,
-                            #     'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
-                            #     'despesa_geradora_do_imposto': DespesaImpostoSerializer(despesa_geradora_do_imposto,
-                            #                                                             many=False).data if despesa_geradora_do_imposto else None,
-                            #     'despesas_impostos': None,
-                            #     'uuid': str(despesa_imposto.uuid)
-                            # }
+                        if despesa_imposto.conferido == despesa_geradora_do_imposto.conferido and rateio.acao_associacao == acao_associacao and (str(despesa_imposto.uuid) not in existe_em_transacoes):
+
                             transacao = monta_item_de_despesa_imposto_para_lista_de_transacoes(periodo,
                                                                                                conta_associacao,
                                                                                                despesa_imposto,
