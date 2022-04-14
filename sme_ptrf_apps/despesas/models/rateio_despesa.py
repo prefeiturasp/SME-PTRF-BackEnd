@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from django.db import models
+from django.db.models import Q
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
@@ -135,8 +136,12 @@ class RateioDespesa(ModeloBase):
             dataset = cls.completos.filter(acao_associacao=acao_associacao).filter(
                 despesa__data_transacao__gte=periodo.data_inicio_realizacao_despesas)
 
+        # Para determinar se a despesa está ou não conciliada é necessário considera-se o período de conciliação
         if conferido is not None:
-            dataset = dataset.filter(conferido=conferido)
+            if conferido:
+                dataset = dataset.filter(conferido=True, periodo_conciliacao__referencia__lte=periodo.referencia)
+            else:
+                dataset = dataset.filter(Q(conferido=False) | Q(periodo_conciliacao__referencia__gt=periodo.referencia))
 
         if conta_associacao:
             dataset = dataset.filter(conta_associacao=conta_associacao)
@@ -194,7 +199,10 @@ class RateioDespesa(ModeloBase):
                 despesa__data_transacao__gte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
-            dataset = dataset.filter(conferido=conferido)
+            if conferido:
+                dataset = dataset.filter(conferido=True, periodo_conciliacao__referencia__lte=periodo.referencia)
+            else:
+                dataset = dataset.filter(Q(conferido=False) | Q(periodo_conciliacao__referencia__gt=periodo.referencia))
 
         if exclude_despesa:
             dataset = dataset.exclude(despesa__uuid=exclude_despesa)
@@ -248,7 +256,10 @@ class RateioDespesa(ModeloBase):
             despesa__data_transacao__lte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
-            dataset = dataset.filter(conferido=conferido)
+            if conferido:
+                dataset = dataset.filter(conferido=True, periodo_conciliacao__referencia__lte=periodo.referencia)
+            else:
+                dataset = dataset.filter(Q(conferido=False) | Q(periodo_conciliacao__referencia__gt=periodo.referencia))
 
         if exclude_despesa:
             dataset = dataset.exclude(despesa__uuid=exclude_despesa)
@@ -311,7 +322,10 @@ class RateioDespesa(ModeloBase):
                                        despesa__data_transacao__lte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
-            dataset = dataset.filter(conferido=conferido)
+            if conferido:
+                dataset = dataset.filter(conferido=True, periodo_conciliacao__referencia__lte=periodo.referencia)
+            else:
+                dataset = dataset.filter(Q(conferido=False) | Q(periodo_conciliacao__referencia__gt=periodo.referencia))
 
         if exclude_despesa:
             dataset = dataset.exclude(despesa__uuid=exclude_despesa)

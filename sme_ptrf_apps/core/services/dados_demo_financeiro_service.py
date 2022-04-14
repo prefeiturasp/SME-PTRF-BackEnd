@@ -180,35 +180,35 @@ def cria_resumo_por_acao(acoes, conta_associacao, periodo):
 
         resumo_acoes (lista com os valores por ação):
 
-            12-Ação                         : acao_associacao
+             1-Ação                         : acao_associacao
 
-            13-Saldo anterior           (C): linha_custeio.saldo_anterior
+             2-Saldo anterior           (C): linha_custeio.saldo_anterior
                                         (K): linha_capital.saldo_anterior
                                         (L): linha_livre.saldo_anterior
 
-            14-Créditos                 (C): linha_custeio.credito
+             3-Créditos                 (C): linha_custeio.credito
                                         (K): linha_capital.credito
                                         (L): linha_livre.credito
 
-            15-Despesas Demonstradas    (C): linha_custeio.despesa_realizada
+             4-Despesas Demonstradas    (C): linha_custeio.despesa_realizada
                                         (K): linha_capital.despesa_realizada
                                         (L): XXXXX Não tem
 
-            16-Despesas Ñ Demonstradas  (C): linha_custeio.despesa_nao_realizada
+             5-Despesas Ñ Demonstradas  (C): linha_custeio.despesa_nao_realizada
                                         (K): linha_capital.despesa_nao_realizada
                                         (L): XXXXX Não tem
 
-            17-Saldo próximo período    (C): linha_custeio.saldo_reprogramado_proximo
+             6-Saldo próximo período    (C): linha_custeio.saldo_reprogramado_proximo
                                         (K): linha_capital.saldo_reprogramado_proximo
                                         (L): linha_livre.saldo_reprogramado_proximo
                                         (T): total_valores
                                         (*): 13+14-15-16
 
-            18-Despesas Ñ Demonstr.Ant. (C): linha_custeio.despesa_nao_demostrada_outros_periodos
+             7-Despesas Ñ Demonstr.Ant. (C): linha_custeio.despesa_nao_demostrada_outros_periodos
                                         (K): linha_capital.despesa_nao_demostrada_outros_periodos
                                         (L): XXXXX Não tem
 
-            19-Saldo parcial próximo    (C): linha_custeio.valor_saldo_bancario_custeio
+             8-Saldo parcial próximo    (C): linha_custeio.valor_saldo_bancario_custeio
                                         (K): linha_capital.valor_saldo_bancario_capital
                                         (L): linha_livre.saldo_reprogramado_proximo  (mesmo da coluna 17)
                                         (T): saldo_bancario
@@ -216,33 +216,33 @@ def cria_resumo_por_acao(acoes, conta_associacao, periodo):
 
         total_valores (Totais):
 
-            13-Saldo anterior           (C): saldo_anterior.C
+             2-Saldo anterior           (C): saldo_anterior.C
                                         (K): saldo_anterior.K
                                         (L): saldo_anterior.L
 
-            14-Créditos                 (C): credito.C
+             3-Créditos                 (C): credito.C
                                         (K): credito.K
                                         (L): credito.L
 
-            15-Despesas Demonstradas    (C): despesa_realizada.C
+             4-Despesas Demonstradas    (C): despesa_realizada.C
                                         (K): despesa_realizada.K
                                         (L): XXXXX Não tem
 
-            16-Despesas Ñ Demonstradas  (C): despesa_nao_realizada.C
+             5-Despesas Ñ Demonstradas  (C): despesa_nao_realizada.C
                                         (K): despesa_nao_realizada.K
                                         (L): XXXXX Não tem
 
-            17-Saldo próximo período    (C): saldo_reprogramado_proximo.C
+             6-Saldo próximo período    (C): saldo_reprogramado_proximo.C
                                         (K): saldo_reprogramado_proximo.K
                                         (L): saldo_reprogramado_proximo.L
                                         (T): total_valores
 
 
-            18-Despesas Ñ Demonstr.Ant. (C): despesa_nao_demostrada_outros_periodos.C
+             7-Despesas Ñ Demonstr.Ant. (C): despesa_nao_demostrada_outros_periodos.C
                                         (K): despesa_nao_demostrada_outros_periodos.K
                                         (L): XXXXX Não tem
 
-            19-Saldo parcial próximo    (C): valor_saldo_bancario.C
+             8-Saldo parcial próximo    (C): valor_saldo_bancario.C
                                         (K): valor_saldo_bancario.K
                                         (L): saldo_reprogramado_proximo.L  (mesmo da coluna 17)
                                         (T): saldo_bancario
