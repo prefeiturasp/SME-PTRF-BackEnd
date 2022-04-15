@@ -1011,7 +1011,9 @@ def previa_informacoes_financeiras_para_atas(associacao, periodo):
             f'Get prévia info financeiras por conta para a ata. Associacao:{associacao.uuid} Conta:{conta_associacao}')
         info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=associacao.uuid,
                                                       periodo=periodo,
-                                                      conta=conta_associacao)
+                                                      conta=conta_associacao,
+                                                      apenas_transacoes_do_periodo=True,
+                                                      )
 
         info_acoes = [info for info in info_acoes if
                       info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
