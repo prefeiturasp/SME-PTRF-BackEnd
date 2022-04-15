@@ -379,7 +379,8 @@ class RateioDespesa(ModeloBase):
             else:
                 totais['total_despesas_custeio'] += despesa.valor_rateio
 
-            if not despesa.conferido:
+            # Se não conferida ou conferida em período posterior
+            if (not despesa.conferido) or (despesa.periodo_conciliacao and despesa.periodo_conciliacao.referencia > periodo.referencia):
                 if despesa.aplicacao_recurso == APLICACAO_CAPITAL:
                     totais['total_despesas_nao_conciliadas_capital'] += despesa.valor_rateio
                 else:
