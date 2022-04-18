@@ -436,8 +436,7 @@ def transacoes_para_conciliacao_agrupado_por_impostos(despesas, periodo, conta_a
 
         # Se despesa_geradora_do_imposto não estiver atribuido,
         # ou seja for None então ela é a despesa geradora do imposto
-        if (not despesa_geradora_do_imposto) or (
-            str(despesa.uuid) not in existe_em_transacoes and despesa.conferido == conferido):
+        if (not despesa_geradora_do_imposto) or (str(despesa.uuid) not in existe_em_transacoes and despesa.conferido == conferido and despesa.cadastro_completo()):
             transacao = {
                 'periodo': f'{periodo.uuid}',
                 'conta': f'{conta_associacao.uuid}',
@@ -474,8 +473,7 @@ def transacoes_para_conciliacao_agrupado_por_impostos(despesas, periodo, conta_a
 
                 # Se o filtro de ação nao foi passado, simplesmente retorna as despesas
                 if not acao_associacao:
-                    if despesa_imposto.conferido == despesa_geradora_do_imposto.conferido and (
-                        str(despesa_imposto.uuid) not in existe_em_transacoes):
+                    if despesa_imposto.conferido == despesa_geradora_do_imposto.conferido and str(despesa_imposto.uuid) not in existe_em_transacoes and despesa_imposto.cadastro_completo():
                         transacao = monta_item_de_despesa_imposto_para_lista_de_transacoes(periodo,
                                                                                            conta_associacao,
                                                                                            despesa_imposto,
@@ -490,7 +488,7 @@ def transacoes_para_conciliacao_agrupado_por_impostos(despesas, periodo, conta_a
                     # e verifica se o rateio atual tem a mesma ação passada no filtro
                     rateios = despesa_imposto.rateios.all()
                     for rateio in rateios:
-                        if despesa_imposto.conferido == despesa_geradora_do_imposto.conferido and rateio.acao_associacao == acao_associacao and (str(despesa_imposto.uuid) not in existe_em_transacoes):
+                        if despesa_imposto.conferido == despesa_geradora_do_imposto.conferido and rateio.acao_associacao == acao_associacao and (str(despesa_imposto.uuid) not in existe_em_transacoes) and despesa_imposto.cadastro_completo():
 
                             transacao = monta_item_de_despesa_imposto_para_lista_de_transacoes(periodo,
                                                                                                conta_associacao,
