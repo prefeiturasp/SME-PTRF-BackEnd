@@ -1,9 +1,9 @@
-name: CI/CD
+name: Pre-Prod CI/CD
  
 on:
 
   push:
-    branches: [ master, homolog, homolog-r2 ]
+    branches: [ pre-prod ]
     paths-ignore:
     - ".github/workflows/**"  
   
@@ -36,7 +36,7 @@ jobs:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            💥 Failed in ${{ github.ref_name	}}!
+            💥 Failed in ${{ github.ref_name }}!
             ${{ github.actor }} created commit:
             Commit message: ${{ github.event.commits[0].message }}            
             Repository: ${{ github.repository }}            
@@ -44,108 +44,37 @@ jobs:
             Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             
       - name: send message asking for aprove
-        if: ${{ ( github.ref == 'refs/heads/master') && ( success() ) }}
+        if: ${{ success() }}
         uses: appleboy/telegram-action@master
         with:
           to: -752736369
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
             😍 Por favor me aprove!!!!!
-            branch: ${{ github.ref_name	}}
+            branch: ${{ github.ref_name }}
             ${{ github.actor }} created commit:
             Repository: ${{ github.repository }}            
             See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
             🚀🚀🚀
             To aprove: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
              
-  deploy-hom:
+  deploy-pre-prod:
   
     runs-on: self-hosted
     needs: [ build ]
-    if: ${{ github.ref != 'refs/heads/master' }}
-    
-    environment:
-      name: release
-    steps:
-      - name: Redeploy Hom
-        if: ${{ github.ref == 'refs/heads/homolog' }}
-        uses: luizhpriotto/action_images@kubectl-v2.0
-        env: 
-          RANCHER_URL: ${{ secrets.RANCHER_URL }}
-          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
-          NAMESPACE: sme-ptrf
-          WORKLOAD: ptrf-backend,ptrf-celery,ptrf-flower
-          
-      - name: Redeploy Hom2
-        if: ${{ github.ref == 'refs/heads/homolog-r2' }}
-        uses: luizhpriotto/action_images@kubectl-v2.0
-        env: 
-          RANCHER_URL: ${{ secrets.RANCHER_URL }}
-          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
-          NAMESPACE: sme-ptrf-hom2
-          WORKLOAD: ptrf-backend,ptrf-celery,ptrf-flower
-          
-      - name: send failure message
-        if: ${{ failure() }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            💥 Failed in ${{ github.ref_name	}}!
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}            
-            Repository: ${{ github.repository }}            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
-      - name: send success message
-        if: ${{ success() }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            🚀 Success in ${{ github.ref_name	}}!
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}            
-            Repository: ${{ github.repository }}            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
-  deploy-prod:
-  
-    runs-on: self-hosted
-    needs: [ build ]
-    if: ${{ github.ref == 'refs/heads/master' }}
+    if: ${{ github.ref == 'refs/heads/pre-prod' }}
     environment:
       name: production
     steps:
-  
-      - name: Redeploy Prod
+    
+      - name: Redeploy Pre Prod
         uses: luizhpriotto/action_images@kubectl-v2.0
         env: 
           RANCHER_URL: ${{ secrets.RANCHER_URL }}
           RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
-          NAMESPACE: sme-ptrf
-          WORKLOAD: ptrf-backend,ptrf-celery,ptrf-flower
-          
-      - name: Redeploy Treinamento
-        uses: luizhpriotto/action_images@kubectl-v2.0
-        env: 
-          RANCHER_URL: ${{ secrets.RANCHER_URL }}
-          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
-          NAMESPACE: sigescola-treinamento
-          WORKLOAD: treinamento-backend,treinamento-celery,treinamento-flower
-          
-      - name: Redeploy Treinamento 2
-        uses: luizhpriotto/action_images@kubectl-v2.0
-        env: 
-          RANCHER_URL: ${{ secrets.RANCHER_URL }}
-          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
-          NAMESPACE: sigescola-treinamento2
-          WORKLOAD: treinamento-backend,treinamento-celery,treinamento-flower
-          
+          NAMESPACE: sme-sigescola-pre
+          WORKLOAD: sigescolapre-backend,sigescolapre-celery,sigescolapre-flower
+
       - name: send failure message
         if: ${{ failure() }}
         uses: appleboy/telegram-action@master
