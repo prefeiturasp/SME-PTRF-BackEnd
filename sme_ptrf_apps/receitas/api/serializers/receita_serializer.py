@@ -19,6 +19,7 @@ from ...services import atualiza_repasse_para_pendente, atualiza_repasse_para_re
 from .detalhe_tipo_receita_serializer import DetalheTipoReceitaSerializer
 from .tipo_receita_serializer import TipoReceitaSerializer, TipoReceitaLookUpSerializer
 from .repasse_serializer import RepasseSerializer
+from .motivo_estorno_serializer import MotivoEstornoSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +70,28 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
         if validated_data['tipo_receita'].e_repasse:
             atualiza_repasse_para_realizado(validated_data)
 
+        # Retirando motivos estorno do validated_data
+        try:
+            motivos_estorno = validated_data.pop('motivos_estorno')
+        except KeyError:
+            motivos_estorno = []
+
+        # Retirando outros motivos estorno do validated_data
+        try:
+            outros_motivos_estorno = validated_data.pop('outros_motivos_estorno')
+        except KeyError:
+            outros_motivos_estorno = ""
+
+        # Cria receita
         receita = Receita.objects.create(**validated_data)
+
+        # Caso seja estorno, será adicionado os motivos e outros motivos a receita
+        if validated_data['tipo_receita'].e_estorno:
+            if not motivos_estorno and not outros_motivos_estorno:
+                raise ValidationError({
+                    "detail": "Para salvar um crédito do tipo estorno, é necessário informar o campo 'motivos_estorno' ou 'outros_motivos_estorno'"
+                })
+            receita.adiciona_motivos_estorno(motivos_estorno, outros_motivos_estorno)
 
         return receita
 
@@ -83,7 +105,30 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
         if validated_data['tipo_receita'].e_repasse:
             atualiza_repasse_para_realizado(validated_data)
 
-        return super().update(instance, validated_data)
+        # Retirando motivos estorno do validated_data
+        try:
+            motivos_estorno = validated_data.pop('motivos_estorno')
+        except KeyError:
+            motivos_estorno = []
+
+        # Retirando outros motivos estorno do validated_data
+        try:
+            outros_motivos_estorno = validated_data.pop('outros_motivos_estorno')
+        except KeyError:
+            outros_motivos_estorno = ""
+
+        receita_atualizada = super().update(instance, validated_data)
+
+        # Caso seja estorno, será adicionado os motivos e outros motivos a receita
+        if validated_data['tipo_receita'].e_estorno:
+            if not motivos_estorno and not outros_motivos_estorno:
+                raise ValidationError({
+                    "detail": "Para salvar um crédito do tipo estorno, é necessário informar o campo 'motivos_estorno' ou 'outros_motivos_estorno'"
+                })
+
+            receita_atualizada.adiciona_motivos_estorno(motivos_estorno, outros_motivos_estorno)
+
+        return receita_atualizada
 
     class Meta:
         model = Receita
@@ -100,6 +145,7 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
     repasse = RepasseSerializer()
     saida_do_recurso = DespesaListSerializer()
     rateio_estornado = RateioDespesaEstornoLookupSerializer()
+    motivos_estorno = MotivoEstornoSerializer(many=True, required=False, allow_null=True)
 
     class Meta:
         model = Receita
@@ -118,7 +164,9 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
             'notificar_dias_nao_conferido',
             'repasse',
             'saida_do_recurso',
-            'rateio_estornado'
+            'rateio_estornado',
+            'motivos_estorno',
+            'outros_motivos_estorno',
         )
 
 

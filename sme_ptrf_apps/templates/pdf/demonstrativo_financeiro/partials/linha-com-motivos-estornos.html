@@ -1,0 +1,10 @@
+{% load staticfiles %}
+
+{% if receita.estorno.motivos_estorno or receita.estorno.outros_motivos_estorno %}
+
+  {% for motivo in receita.estorno.motivos_estorno %}
+    <span class='pr-1'>{{ motivo.motivo }}</span>
+  {% endfor %}
+  <span>{{ receita.estorno.outros_motivos_estorno }}</span>
+
+{% endif %}

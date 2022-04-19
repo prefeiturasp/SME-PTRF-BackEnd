@@ -328,6 +328,8 @@ def test_get_receitas(
             'detalhe_outros': receita.detalhe_outros,
             'notificar_dias_nao_conferido': 0,
             'rateio_estornado': None,
+            'motivos_estorno': [],
+            'outros_motivos_estorno': '',
         },
     ]
 
@@ -514,6 +516,8 @@ def test_retrive_receitas(
         'detalhe_outros': receita.detalhe_outros,
         'notificar_dias_nao_conferido': 0,
         'rateio_estornado': None,
+        'motivos_estorno': [],
+        'outros_motivos_estorno': '',
     }
 
     assert response.status_code == status.HTTP_200_OK

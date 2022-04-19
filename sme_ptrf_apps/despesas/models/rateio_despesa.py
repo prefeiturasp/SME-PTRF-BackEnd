@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from django.db import models
+from django.db.models import Q
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
@@ -91,16 +92,22 @@ class RateioDespesa(ModeloBase):
                    self.aplicacao_recurso and \
                    self.valor_rateio
 
-        if not self.saida_de_recurso_externo and not self.eh_despesa_sem_comprovacao_fiscal:
+        if completo and not self.saida_de_recurso_externo and not self.eh_despesa_sem_comprovacao_fiscal:
             completo = completo and self.especificacao_material_servico
 
-        if self.aplicacao_recurso == APLICACAO_CUSTEIO:
+        if completo and self.aplicacao_recurso == APLICACAO_CUSTEIO:
             if not self.saida_de_recurso_externo and not self.eh_despesa_sem_comprovacao_fiscal:
                 completo = completo and self.tipo_custeio
-        elif self.aplicacao_recurso == APLICACAO_CAPITAL:
-            completo = completo and \
-                       self.quantidade_itens_capital > 0 and \
-                       self.valor_item_capital > 0 and self.numero_processo_incorporacao_capital
+
+        elif completo and self.aplicacao_recurso == APLICACAO_CAPITAL:
+            if not self.eh_despesa_sem_comprovacao_fiscal:
+                completo = completo and \
+                           self.quantidade_itens_capital > 0 and \
+                           self.valor_item_capital > 0 and self.numero_processo_incorporacao_capital
+            else:
+                completo = completo and \
+                           self.quantidade_itens_capital > 0 and \
+                           self.valor_item_capital > 0
 
         return completo
 
@@ -129,8 +136,12 @@ class RateioDespesa(ModeloBase):
             dataset = cls.completos.filter(acao_associacao=acao_associacao).filter(
                 despesa__data_transacao__gte=periodo.data_inicio_realizacao_despesas)
 
+        # Para determinar se a despesa está ou não conciliada é necessário considera-se o período de conciliação
         if conferido is not None:
-            dataset = dataset.filter(conferido=conferido)
+            if conferido:
+                dataset = dataset.filter(conferido=True, periodo_conciliacao__referencia__lte=periodo.referencia)
+            else:
+                dataset = dataset.filter(Q(conferido=False) | Q(periodo_conciliacao__referencia__gt=periodo.referencia))
 
         if conta_associacao:
             dataset = dataset.filter(conta_associacao=conta_associacao)
@@ -188,7 +199,10 @@ class RateioDespesa(ModeloBase):
                 despesa__data_transacao__gte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
-            dataset = dataset.filter(conferido=conferido)
+            if conferido:
+                dataset = dataset.filter(conferido=True, periodo_conciliacao__referencia__lte=periodo.referencia)
+            else:
+                dataset = dataset.filter(Q(conferido=False) | Q(periodo_conciliacao__referencia__gt=periodo.referencia))
 
         if exclude_despesa:
             dataset = dataset.exclude(despesa__uuid=exclude_despesa)
@@ -242,7 +256,10 @@ class RateioDespesa(ModeloBase):
             despesa__data_transacao__lte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
-            dataset = dataset.filter(conferido=conferido)
+            if conferido:
+                dataset = dataset.filter(conferido=True, periodo_conciliacao__referencia__lte=periodo.referencia)
+            else:
+                dataset = dataset.filter(Q(conferido=False) | Q(periodo_conciliacao__referencia__gt=periodo.referencia))
 
         if exclude_despesa:
             dataset = dataset.exclude(despesa__uuid=exclude_despesa)
@@ -305,7 +322,10 @@ class RateioDespesa(ModeloBase):
                                        despesa__data_transacao__lte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
-            dataset = dataset.filter(conferido=conferido)
+            if conferido:
+                dataset = dataset.filter(conferido=True, periodo_conciliacao__referencia__lte=periodo.referencia)
+            else:
+                dataset = dataset.filter(Q(conferido=False) | Q(periodo_conciliacao__referencia__gt=periodo.referencia))
 
         if exclude_despesa:
             dataset = dataset.exclude(despesa__uuid=exclude_despesa)
@@ -359,7 +379,8 @@ class RateioDespesa(ModeloBase):
             else:
                 totais['total_despesas_custeio'] += despesa.valor_rateio
 
-            if not despesa.conferido:
+            # Se não conferida ou conferida em período posterior
+            if (not despesa.conferido) or (despesa.periodo_conciliacao and despesa.periodo_conciliacao.referencia > periodo.referencia):
                 if despesa.aplicacao_recurso == APLICACAO_CAPITAL:
                     totais['total_despesas_nao_conciliadas_capital'] += despesa.valor_rateio
                 else:

@@ -1,5 +1,3 @@
-{% load static %}
-
 @charset "UTF-8";
 
 @font-face {
@@ -123,6 +121,10 @@ header {
   width: calc(100% / 5) !important;
 }
 
+.tabela-despesas-com-pagamento-antecipado{
+  width: 100% !important;
+}
+
 .tabela-acoes .td-livre-aplicacao-ausente {
   background-color: #E5E5E5 !important;
 }
@@ -136,19 +138,19 @@ header {
   font-weight: bold;
 }
 
-.titulo-tabela-acoes {
+.titulo-tabela-acoes, .titulo-tabela-despesas-com-pagamento-antecipado {
   color: #00585E;
   font-weight: bold;
   font-size: 11px;
 }
 
-.tabela-acoes, .tabela-totais, .tabela-devolucoes-ao-tesouro {
+.tabela-acoes, .tabela-totais, .tabela-devolucoes-ao-tesouro, .tabela-despesas-com-pagamento-antecipado{
   max-width: 100%;
   color: #000 !important;
   font-size: 8pt !important;
 }
 
-.tabela-acoes th, .tabela-assinaturas th, .tabela-devolucoes-ao-tesouro th{
+.tabela-acoes th, .tabela-assinaturas th, .tabela-devolucoes-ao-tesouro th, .tabela-despesas-com-pagamento-antecipado th{
   padding: 5px !important;
   background-color: #F5F6F8 !important;
 }
@@ -203,6 +205,10 @@ header {
 
 .texto-justificado{
   text-align: justify;
+}
+
+html body .conteudo .nao-quebra-linha tbody tr {
+  break-after: avoid !important;
 }
 
 
