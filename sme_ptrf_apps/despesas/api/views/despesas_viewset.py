@@ -24,7 +24,6 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Subquery
 
-
 DEFAULT_PAGE = 1
 DEFAULT_PAGE_SIZE = 10
 
@@ -59,7 +58,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
     serializer_class = DespesaSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     filter_fields = ('associacao__uuid', 'cpf_cnpj_fornecedor', 'tipo_documento__uuid',
-                     'numero_documento', 'tipo_documento__id', 'status' )
+                     'numero_documento', 'tipo_documento__id', 'status')
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -156,7 +155,8 @@ class DespesasViewSet(mixins.CreateModelMixin,
                     if isinstance(excecao, QuerySet):
                         for ex in excecao:
                             if isinstance(ex, DevolucaoAoTesouro):
-                                erros.append(f'{ex._meta.verbose_name}: {ex.data.strftime("%d/%m/%Y") if ex.data else "Sem data"} - {ex.tipo}')
+                                erros.append(
+                                    f'{ex._meta.verbose_name}: {ex.data.strftime("%d/%m/%Y") if ex.data else "Sem data"} - {ex.tipo}')
                             else:
                                 erros.append(f'{ex._meta.verbose_name}: {ex}')
 
@@ -252,3 +252,39 @@ class DespesasViewSet(mixins.CreateModelMixin,
         }
 
         return Response(result)
+
+    @action(detail=False, url_path='ordenar-por-imposto',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def retorna_despesas_ordenadas_por_imposto(self, request):
+        from ...services.despesa_service import ordena_despesas_por_imposto
+
+        associacao_uuid = request.query_params.get('associacao__uuid')
+        ordenar_por_imposto = request.query_params.get('ordenar_por_imposto')
+
+        if associacao_uuid is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da associação (associacao_uuid) como parâmetro.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if not ordenar_por_imposto or ordenar_por_imposto not in ['true', 'false']:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar true ou false no parametro ordenar por imposto'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = Despesa.objects.filter(associacao__uuid=associacao_uuid).order_by('-data_documento')
+
+        if ordenar_por_imposto == 'true':
+            queryset = ordena_despesas_por_imposto(queryset)
+
+        # *** Paginação ***
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = DespesaListComRateiosSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = DespesaListComRateiosSerializer(queryset, many=True)
+        return Response(serializer.data)
