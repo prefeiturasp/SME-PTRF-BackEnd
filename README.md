@@ -5,9 +5,18 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.28.0
+Versão: 1.29.0
 
 ## Release Notes
+
+### 1.29.0 - 25/04/2022 - Entregas da Release 3 - Sprints 37 a 39
+* Implementado o registro de justificativas de pagamentos antecipados
+* Implementado o recurso de retenção de impostos nas despesas
+* Aprimorado o cadastro de despesas sem comprovação fiscal
+* Agora os estornos pedem a informação dos motivos de estorno
+* A app agora considera o período de conciliação para determinar se uma despesa está ou não demonstrada
+* Melhorias visuais diversas
+* 🐞 Correção de bugs 
 
 ### 1.28.0 - 03/03/2022 - Entregas da Sprint 36
 * UE > Implementada funcionalidade de estorno de gastos
