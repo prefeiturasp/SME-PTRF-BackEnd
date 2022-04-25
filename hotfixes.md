@@ -1,3 +1,6 @@
+### 1.29.2 - 19/04/2021 - Hotfix em pre-produção - Rever exibição demonstrativo financeiro release 1.29.
+* (63005) - Rever exibição Bloco 4 - Créditos no demonstrativo financeiro
+
 ### 1.29.1 - 19/04/2021 - Hotfix em pre-produção - Ajustes em pre-produção da release 1.29.
 * (62982) - Erro ao gerar prévia de demonstrativo financeiro
 
