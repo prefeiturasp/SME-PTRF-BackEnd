@@ -2,9 +2,13 @@ from django.contrib import admin
 from rangefilter.filter import DateRangeFilter
 
 from .models import TipoTransacao, TipoDocumento, TipoCusteio, EspecificacaoMaterialServico, Despesa, RateioDespesa, \
-    Fornecedor
+    Fornecedor, MotivoPagamentoAntecipado
 
-admin.site.register(TipoDocumento)
+
+@admin.register(MotivoPagamentoAntecipado)
+class MotivoPagamentoAntecipadoAdmin(admin.ModelAdmin):
+    list_display = ('motivo', 'uuid')
+    readonly_fields = ('id', 'uuid')
 
 
 def customTitledFilter(title):
@@ -17,15 +21,21 @@ def customTitledFilter(title):
     return Wrapper
 
 
+@admin.register(TipoDocumento)
+class TipoDocumentoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'pode_reter_imposto', 'eh_documento_de_retencao_de_imposto', 'documento_comprobatorio_de_despesa')
+    readonly_fields = ('id', 'uuid')
+
+
 @admin.register(TipoCusteio)
 class TipoCusteioAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'id', 'uuid')
+    list_display = ('nome', 'id', 'uuid', 'eh_tributos_e_tarifas')
     readonly_fields = ('id', 'uuid')
 
 
 @admin.register(RateioDespesa)
 class RateioDespesaAdmin(admin.ModelAdmin):
-    list_display = ('numero_documento', 'associacao', 'acao', 'valor_rateio', 'quantidade_itens_capital', 'status')
+    list_display = ("uuid", 'numero_documento', 'associacao', 'acao', 'valor_rateio', 'quantidade_itens_capital', 'status')
     search_fields = (
         'despesa__numero_documento', 'despesa__nome_fornecedor', 'especificacao_material_servico__descricao')
     list_filter = (
@@ -43,7 +53,7 @@ class RateioDespesaAdmin(admin.ModelAdmin):
         ('especificacao_material_servico__descricao', customTitledFilter('Especificação Material/Serviço')),)
 
     def numero_documento(self, obj):
-        return obj.despesa.numero_documento
+        return obj.despesa.numero_documento if obj and obj.despesa and obj.despesa.numero_documento else ""
 
     def associacao(self, obj):
         return obj.associacao.nome if obj.associacao else ''
@@ -60,12 +70,13 @@ class RateioDespesaInLine(admin.TabularInline):
 @admin.register(Despesa)
 class DespesaAdmin(admin.ModelAdmin):
     list_display = (
-        'tipo_documento', 'numero_documento', 'data_documento', 'nome_fornecedor', 'valor_total', 'status', 'associacao')
+        'tipo_documento', 'numero_documento', 'data_documento', 'nome_fornecedor', 'valor_total', 'status', 'associacao', 'retem_imposto')
     ordering = ('-data_documento',)
     search_fields = ('numero_documento', 'nome_fornecedor', 'documento_transacao', 'associacao__nome', 'associacao__unidade__codigo_eol')
     list_filter = ('status', 'associacao')
     inlines = [RateioDespesaInLine, ]
     readonly_fields = ('uuid', 'id')
+    filter_horizontal = ('despesas_impostos', 'motivos_pagamento_antecipado')
 
     def associacao(self, obj):
         return obj.associacao.nome if obj.associacao else ''

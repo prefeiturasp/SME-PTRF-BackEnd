@@ -15,6 +15,7 @@ def test_instance_model(tipo_custeio):
     assert model.alterado_em
     assert model.uuid
     assert model.id
+    assert model.eh_tributos_e_tarifas is not None
 
 
 def test_srt_model(tipo_custeio):

@@ -1,0 +1,51 @@
+{% load staticfiles %}
+{% load formata_valores %}
+
+{% if dados.despesas_com_pagamento_antecipado %}
+  <p class='titulo-tabela-acoes mt-4'>Justificativas de pagamento com data anterior à data do documento fiscal</p>
+  <table class="table table-bordered tabela-despesas-com-pagamento-antecipado mb-0 mt-3 nao-quebra-linha">
+    <thead>
+    <tr class="tr-titulo-presentes">
+      <th style="width: 2%;">&nbsp;</th>
+      <th colSpan='5'>Dados documento comprobatório da despesa</th>
+      <th colSpan='3'>Dados do pagamento</th>
+    </tr>
+    <tr class="tr-titulo-presentes">
+      <th style="width: 2%;" scope="col">&nbsp;</th>
+      <th scope="col">Razão social</th>
+      <th scope="col">CNPJ ou CPF</th>
+      <th scope="col">Tipo do documento</th>
+      <th scope="col">Número do documento</th>
+      <th scope="col">Data do documento</th>
+      <th scope="col">Tipo de transação</th>
+      <th scope="col">Data da transação</th>
+      <th scope="col">Valor (R$)</th>
+    </tr>
+    </thead>
+    {% for despesa in dados.despesas_com_pagamento_antecipado %}
+      <tbody>
+      <tr>
+        <td style="width: 2%; border-bottom: none !important;">{{ forloop.counter }}</td>
+        <td>{{ despesa.nome_fornecedor }}</td>
+        <td>{{ despesa.cpf_cnpj_fornecedor }}</td>
+        <td>{{ despesa.tipo_documento }}</td>
+        <td>{{ despesa.numero_documento }}</td>
+        <td>{{ despesa.data_documento }}</td>
+        <td>{{ despesa.tipo_transacao }}</td>
+        <td>{{ despesa.data_transacao }}</td>
+        <td>{{ despesa.valor_total|formata_valor }}</td>
+      </tr>
+      <tr>
+        <td style="width: 2%; border-top: none !important;">&nbsp;</td>
+        <td colSpan='8'>
+          <p><strong>Justificativa do pagamento antecipado</strong></p>
+          {% for motivo in despesa.motivos_pagamento_antecipado %}
+            <span class='pr-1'>{{motivo.motivo}}</span>
+          {% endfor %}
+          <span>{{despesa.outros_motivos_pagamento_antecipado}}</span>
+        </td>
+      </tr>
+      </tbody>
+    {% endfor %}
+  </table>
+{% endif %}

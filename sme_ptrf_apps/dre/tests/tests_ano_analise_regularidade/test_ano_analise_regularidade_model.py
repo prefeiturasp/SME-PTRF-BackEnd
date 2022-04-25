@@ -11,6 +11,8 @@ def test_instance_model(ano_analise_regularidade_2021):
     assert model.ano
     assert model.criado_em
     assert model.alterado_em
+    assert model.atualizacao_em_massa is False
+    assert model.status_atualizacao
 
 
 def test_str_model(ano_analise_regularidade_2021):

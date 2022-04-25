@@ -67,6 +67,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
         for rateio in lancamento["rateios"]:
             rateio_esperado = {
                 "tipo_custeio": {
+                    'eh_tributos_e_tarifas': False,
                     'id': rateio.tipo_custeio.id,
                     'nome': rateio.tipo_custeio.nome,
                     'uuid': f"{rateio.tipo_custeio.uuid}"

@@ -36,6 +36,35 @@ class AtasViewSet(mixins.RetrieveModelMixin,
         else:
             return AtaSerializer
 
+    @action(detail=False, methods=['get'], url_path='ata-despesas-com-pagamento-antecipado',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def ata_despesas_com_pagamento_antecipado(self, request):
+
+        from ...services.ata_dados_service import get_despesas_com_pagamento_antecipado
+
+        ata_uuid = request.query_params.get('ata-uuid')
+
+        if not ata_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid ata.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            ata = Ata.by_uuid(ata_uuid)
+        except ValidationError:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ata para o uuid {ata_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        despesas_com_pagamento_antecipado = get_despesas_com_pagamento_antecipado(ata)
+
+        return Response(despesas_com_pagamento_antecipado, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['get'], url_path='gerar-arquivo-ata',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def gerar_arquivo_ata(self, request):

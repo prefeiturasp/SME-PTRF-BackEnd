@@ -27,6 +27,7 @@ def test_api_get_despesas_tabelas(associacao, jwt_authenticated_client_d, tipo_a
 
         'tipos_custeio': [
             {
+                'eh_tributos_e_tarifas': False,
                 'id': tipo_custeio.id,
                 'nome': tipo_custeio.nome,
                 'uuid': f'{tipo_custeio.uuid}'
@@ -38,7 +39,10 @@ def test_api_get_despesas_tabelas(associacao, jwt_authenticated_client_d, tipo_a
                 'id': tipo_documento.id,
                 'nome': tipo_documento.nome,
                 'apenas_digitos': tipo_documento.apenas_digitos,
-                'numero_documento_digitado': tipo_documento.numero_documento_digitado
+                'documento_comprobatorio_de_despesa': True,
+                'eh_documento_de_retencao_de_imposto': False,
+                'numero_documento_digitado': tipo_documento.numero_documento_digitado,
+                'pode_reter_imposto': False
             },
         ],
 

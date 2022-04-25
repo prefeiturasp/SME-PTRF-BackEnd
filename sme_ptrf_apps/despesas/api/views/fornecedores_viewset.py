@@ -31,16 +31,6 @@ class FornecedoresViewSet(viewsets.ModelViewSet):
         return qs
 
     def list(self, request, *args, **kwargs):
-
-        cpf_cnpj = self.request.query_params.get('cpf_cnpj')
-
-        if cpf_cnpj == "00.000.000/0000-00":
-            context = [{
-                'cpf_cnpj': '00.000.000/0000-00',
-                'nome': 'Despesa sem comprovação fiscal'
-            }]
-            return Response(context)
-        else:
-            queryset = self.get_queryset()
-            return Response(FornecedorSerializer(queryset, many=True).data)
+        queryset = self.get_queryset()
+        return Response(FornecedorSerializer(queryset, many=True).data)
 

@@ -1,3 +1,6 @@
+### 1.29.1 - 19/04/2021 - Hotfix em pre-produção - Ajustes em pre-produção da release 1.29.
+* (62982) - Erro ao gerar prévia de demonstrativo financeiro
+
 ### 1.28.3 - 11/04/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 39
 * (61676) - Cadastro de despesas: Sistema não exibe mensagem de saldo insuficiente
 * (59610) - Acompanhamento de PCs: Sistema não permite devolver uma PC quando existe uma PC devolvida no período seguinte

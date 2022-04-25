@@ -168,9 +168,10 @@ class MembroComissaoAdmin(admin.ModelAdmin):
 
 @admin.register(AnoAnaliseRegularidade)
 class AnoAnaliseRegularidadeAdmin(admin.ModelAdmin):
-    list_display = ['ano', ]
+    list_display = ['ano', 'atualizacao_em_massa', 'status_atualizacao', ]
     search_fields = ['ano', ]
     readonly_fields = ['criado_em', 'alterado_em']
+    list_filter = ('atualizacao_em_massa', 'status_atualizacao',)
 
 
 class VerificacoesInline(admin.TabularInline):
