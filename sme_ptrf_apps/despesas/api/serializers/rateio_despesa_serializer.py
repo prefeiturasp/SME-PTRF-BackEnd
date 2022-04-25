@@ -163,15 +163,6 @@ class RateioDespesaConciliacaoSerializer(serializers.ModelSerializer):
         estorno = rateio.estorno.first()
         return ReceitaLookUpSerializer(estorno, many=False).data
 
-    # def get_estorno(self, rateio):
-    #     from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaLookUpSerializer
-    #     qs = rateio.estorno.first() if rateio.estorno.exists() else None
-    #     response = None
-    #     if qs:
-    #         response = ReceitaLookUpSerializer(instance=qs).data
-
-       # return response
-
     class Meta:
         model = RateioDespesa
         fields = (

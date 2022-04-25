@@ -135,12 +135,20 @@ class DespesasViewSet(mixins.CreateModelMixin,
         from django.db.models.deletion import ProtectedError
         from ....core.models import DevolucaoAoTesouro
 
-        obj = self.get_object()
+        despesa = self.get_object()
+        for despesa_imposto in despesa.despesas_impostos.all():
+            try:
+                self.perform_destroy(despesa_imposto)
+            except Exception as err:
+                erro = {
+                    'erro': 'despesa_do_imposto_nao_deletada',
+                    'mensagem': str(err)
+                }
+                return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            self.perform_destroy(obj)
+            self.perform_destroy(despesa)
         except ProtectedError as exception:
-
             erros = []
 
             if exception.args:

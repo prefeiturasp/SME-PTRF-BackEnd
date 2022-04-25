@@ -27,6 +27,13 @@ def test_instance_model(despesa):
     assert model.id
     assert model.status == STATUS_COMPLETO
     assert model.valor_original
+    assert model.eh_despesa_sem_comprovacao_fiscal is False
+    assert model.eh_despesa_reconhecida_pela_associacao
+    assert model.numero_boletim_de_ocorrencia is ""
+    assert model.retem_imposto is False
+    assert not model.despesas_impostos.exists()
+    assert model.motivos_pagamento_antecipado is not None
+    assert model.outros_motivos_pagamento_antecipado is not None
 
 
 def test_srt_model(despesa):
@@ -34,8 +41,8 @@ def test_srt_model(despesa):
 
 
 def test_meta_modelo(despesa):
-    assert despesa._meta.verbose_name == 'Despesa'
-    assert despesa._meta.verbose_name_plural == 'Despesas'
+    assert despesa._meta.verbose_name == 'Documento comprobatório da despesa'
+    assert despesa._meta.verbose_name_plural == 'Documentos comprobatórios das despesas'
 
 
 def test_admin():

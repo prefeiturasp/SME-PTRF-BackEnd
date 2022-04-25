@@ -177,7 +177,13 @@ def valida_rateios_quanto_aos_saldos(rateios, associacao, data_documento=None, e
     return result
 
 
-def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=None, conta=None):
+def info_acao_associacao_no_periodo(
+    acao_associacao,
+    periodo,
+    exclude_despesa=None,
+    conta=None,
+    apenas_transacoes_do_periodo=False
+):
     def resultado_vazio():
         return {
             'saldo_anterior_custeio': 0,
@@ -303,7 +309,7 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
         acao_associacao,
         info,
         exclude_despesa=exclude_despesa,
-        conta=None
+        conta=None,
     ):
         rateios = RateioDespesa.rateios_da_acao_entre_periodos(
             acao_associacao=acao_associacao,
@@ -318,18 +324,29 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
             if rateio.aplicacao_recurso == APLICACAO_CUSTEIO:
                 info['despesas_no_periodo_custeio'] += rateio.valor_rateio
                 info['saldo_atual_custeio'] -= rateio.valor_rateio
-                info['despesas_nao_conciliadas_custeio'] += rateio.valor_rateio if not rateio.conferido else 0
-                info['despesas_conciliadas_custeio'] += rateio.valor_rateio if rateio.conferido else 0
+
+                if (not rateio.conferido) or (rateio.periodo_conciliacao and rateio.periodo_conciliacao.referencia > periodo_final.referencia):
+                    info['despesas_nao_conciliadas_custeio'] += rateio.valor_rateio
+                else:
+                    info['despesas_conciliadas_custeio'] += rateio.valor_rateio
 
             else:
                 info['despesas_no_periodo_capital'] += rateio.valor_rateio
                 info['saldo_atual_capital'] -= rateio.valor_rateio
-                info['despesas_nao_conciliadas_capital'] += rateio.valor_rateio if not rateio.conferido else 0
-                info['despesas_conciliadas_capital'] += rateio.valor_rateio if rateio.conferido else 0
+
+                if (not rateio.conferido) or (rateio.periodo_conciliacao and rateio.periodo_conciliacao.referencia > periodo_final.referencia):
+                    info['despesas_nao_conciliadas_capital'] += rateio.valor_rateio
+                else:
+                    info['despesas_conciliadas_capital'] += rateio.valor_rateio
 
         return info
 
-    def periodo_aberto_sumarizado_por_acao(periodo, acao_associacao, conta=None):
+    def periodo_aberto_sumarizado_por_acao(
+        periodo,
+        acao_associacao,
+        conta=None,
+        apenas_transacoes_do_periodo=False,
+    ):
         info = resultado_vazio()
 
         if not periodo:
@@ -352,7 +369,7 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
 
         periodo_do_saldo = fechamentos_periodo_anterior.first().periodo if fechamentos_periodo_anterior else periodo
 
-        if periodo_do_saldo and periodo_do_saldo.proximo_periodo:
+        if (not apenas_transacoes_do_periodo) and periodo_do_saldo and periodo_do_saldo.proximo_periodo:
             periodo_inicial_transacoes = periodo_do_saldo.proximo_periodo
         else:
             periodo_inicial_transacoes = periodo
@@ -362,7 +379,7 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
             periodo_final=periodo,
             acao_associacao=acao_associacao,
             info=info,
-            conta=conta
+            conta=conta,
         )
 
         info = sumariza_despesas_acao_entre_periodos(
@@ -370,7 +387,7 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
             periodo_final=periodo,
             acao_associacao=acao_associacao,
             info=info,
-            conta=conta
+            conta=conta,
         )
 
         if info['saldo_atual_custeio'] < 0:
@@ -402,11 +419,15 @@ def info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=No
     fechamentos_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(acao_associacao=acao_associacao,
                                                                            periodo=periodo)
     if fechamentos_periodo:
-        logger.debug(f'Get fechamentos sumarizados por ação. Conta:{conta}')
+        logger.info(f'Get fechamentos sumarizados por ação. Conta:{conta}')
         return fechamento_sumarizado_por_acao(fechamentos_periodo, conta=conta)
     else:
-        logger.debug(f'Get periodo aberto sumarizado por ação. Período:{periodo} Ação:{acao_associacao} Conta:{conta}')
-        return periodo_aberto_sumarizado_por_acao(periodo, acao_associacao, conta=conta)
+        logger.info(f'Get periodo aberto sumarizado por ação. Período:{periodo} Ação:{acao_associacao} Conta:{conta}')
+        return periodo_aberto_sumarizado_por_acao(periodo,
+                                                  acao_associacao,
+                                                  conta=conta,
+                                                  apenas_transacoes_do_periodo=apenas_transacoes_do_periodo
+                                                  )
 
 
 def info_repasses_pendentes_acao_associacao_no_periodo(acao_associacao, periodo, conta=None):
@@ -427,12 +448,17 @@ def info_repasses_pendentes_acao_associacao_no_periodo(acao_associacao, periodo,
     return total_repasses
 
 
-def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None):
+def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None, apenas_transacoes_do_periodo=False):
     acoes_associacao = Associacao.acoes_da_associacao(associacao_uuid=associacao_uuid)
     result = []
     for acao_associacao in acoes_associacao:
         logger.debug(f'Get info ação no período. Ação:{acao_associacao} Período:{periodo} Conta:{conta}')
-        info_acao = info_acao_associacao_no_periodo(acao_associacao=acao_associacao, periodo=periodo, conta=conta)
+        info_acao = info_acao_associacao_no_periodo(
+            acao_associacao=acao_associacao,
+            periodo=periodo,
+            conta=conta,
+            apenas_transacoes_do_periodo=apenas_transacoes_do_periodo,
+        )
         especificacoes_despesas = especificacoes_despesas_acao_associacao_no_periodo(acao_associacao=acao_associacao,
                                                                                      periodo=periodo, conta=conta)
 

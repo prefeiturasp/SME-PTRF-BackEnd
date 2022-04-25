@@ -1,7 +1,5 @@
 @charset "UTF-8";
 
-{% load static %}
-
 @font-face {
   font-family: Roboto;
   font-weight: 400;
@@ -81,8 +79,6 @@ html body section#cabecalho .subtitulo, html body header .subtitulo {
   font-family: Roboto, serif;
   font-style: normal;
 }
-
-
 
 #nome-associacao-rodape {
   position: running(nome-associacao);
@@ -218,4 +214,12 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
 .texto-estorno {
   color: #086397 !important;
   font-weight: bold !important;
+}
+
+.texto-imposto {
+  color: #000 !important;
+}
+
+.detalhe-linha-tabela {
+  margin-bottom: 0px;
 }

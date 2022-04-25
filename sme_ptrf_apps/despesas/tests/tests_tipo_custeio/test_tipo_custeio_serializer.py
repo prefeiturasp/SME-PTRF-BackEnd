@@ -13,3 +13,4 @@ def test_serializer(tipo_custeio):
     assert serializer.data['nome']
     assert serializer.data['id']
     assert serializer.data['uuid']
+    assert serializer.data['eh_tributos_e_tarifas'] is not None

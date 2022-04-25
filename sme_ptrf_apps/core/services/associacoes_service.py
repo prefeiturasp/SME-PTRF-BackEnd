@@ -5,8 +5,53 @@ from django.db.models import Q
 from django.core.exceptions import ValidationError
 from sme_ptrf_apps.core.choices import MembroEnum
 from sme_ptrf_apps.receitas.models.repasse import Repasse, StatusRepasse
+from ...despesas.models import Despesa
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
+
+
+def retorna_despesas_com_pagamento_antecipado_por_periodo(associacao, periodo):
+    data_inicio_realizacao_despesas = periodo.data_inicio_realizacao_despesas
+    data_fim_realizacao_despesas = periodo.data_fim_realizacao_despesas
+
+    if data_fim_realizacao_despesas:
+        despesas = Despesa.objects.filter(
+            Q(associacao=associacao) &
+            Q(data_documento__gte=data_inicio_realizacao_despesas) &
+            Q(data_documento__lte=data_fim_realizacao_despesas) &
+            Q(data_transacao__gte=data_inicio_realizacao_despesas) &
+            Q(data_transacao__lte=data_fim_realizacao_despesas)
+        )
+    else:
+        despesas = Despesa.objects.filter(
+            Q(associacao=associacao) &
+            Q(data_documento__gte=data_inicio_realizacao_despesas) &
+            Q(data_transacao__gte=data_inicio_realizacao_despesas)
+        )
+
+    despesas_com_pagamento_antecipado = []
+    for despesa in despesas:
+
+        if despesa.data_transacao < despesa.data_documento and not despesa.despesa_geradora_do_imposto.first():
+
+            motivos = [{"motivo": motivo.motivo} for motivo in despesa.motivos_pagamento_antecipado.all()]
+
+            despesas_com_pagamento_antecipado.append(
+                {
+                    "nome_fornecedor": despesa.nome_fornecedor,
+                    "cpf_cnpj_fornecedor": despesa.cpf_cnpj_fornecedor,
+                    "tipo_documento": despesa.tipo_documento.nome if despesa and despesa.tipo_documento and despesa.tipo_documento.nome else "",
+                    "numero_documento": despesa.numero_documento,
+                    "data_documento": formata_data(despesa.data_documento),
+                    "tipo_transacao": despesa.tipo_transacao.nome if despesa and despesa.tipo_transacao and despesa.tipo_transacao.nome else "",
+                    "data_transacao": formata_data(despesa.data_transacao),
+                    "valor_total": despesa.valor_total,
+                    "motivos_pagamento_antecipado": motivos,
+                    "outros_motivos_pagamento_antecipado": despesa.outros_motivos_pagamento_antecipado,
+                })
+
+    return despesas_com_pagamento_antecipado
 
 
 def retorna_repasses_pendentes_periodos_ate_agora(associacao, periodo):
@@ -188,3 +233,12 @@ def get_implantacao_de_saldos_da_associacao(associacao):
         'conteudo': result,
         'status_code': status.HTTP_200_OK
     }
+
+
+def formata_data(data):
+    data_formatada = " - "
+    if data:
+        d = datetime.strptime(str(data), '%Y-%m-%d')
+        data_formatada = d.strftime("%d/%m/%Y")
+
+    return f'{data_formatada}'

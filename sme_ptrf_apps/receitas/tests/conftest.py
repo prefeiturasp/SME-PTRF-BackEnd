@@ -46,7 +46,9 @@ def receita(associacao, conta_associacao, acao_associacao, tipo_receita, prestac
         detalhe_tipo_receita=detalhe_tipo_receita,
         detalhe_outros='teste',
         periodo_conciliacao=periodo_2020_1,
-        saida_do_recurso=despesa_saida_recurso
+        saida_do_recurso=despesa_saida_recurso,
+        motivos_estorno=[],
+        outros_motivos_estorno="",
     )
 
 
@@ -529,4 +531,22 @@ def receita_saida_recurso(associacao, conta_associacao, acao_associacao, tipo_re
         detalhe_outros='teste',
         periodo_conciliacao=periodo_2020_1,
         saida_do_recurso=despesa_saida_recurso,
+    )
+
+
+# Motivos estorno
+
+@pytest.fixture
+def motivo_estorno_01():
+    return baker.make(
+        'MotivoEstorno',
+        motivo="Motivo de estorno 01"
+    )
+
+
+@pytest.fixture
+def motivo_estorno_02():
+    return baker.make(
+        'MotivoEstorno',
+        motivo="Motivo de estorno 02"
     )
