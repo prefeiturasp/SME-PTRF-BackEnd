@@ -949,11 +949,21 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        ordenar_por_imposto = request.query_params.get('ordenar_por_imposto')
+
+        if ordenar_por_imposto and ordenar_por_imposto not in ['true', 'false']:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar true ou false no parametro ordenar por imposto'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
         lancamentos = lancamentos_da_prestacao(
             analise_prestacao_conta=analise_prestacao,
             conta_associacao=conta_associacao,
             acao_associacao=acao_associacao,
-            tipo_transacao=tipo_transacao
+            tipo_transacao=tipo_transacao,
+            ordenar_por_imposto=ordenar_por_imposto
         )
 
         return Response(lancamentos, status=status.HTTP_200_OK)
