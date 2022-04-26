@@ -1,7 +1,7 @@
 import logging
 
 from django.db import transaction
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Count, Max
 
 from ..models import (
     PrestacaoConta,
@@ -431,6 +431,126 @@ def tem_solicitacao_acerto_do_tipo(analise_lancamento, tipo_acerto):
     return analise_lancamento.solicitacoes_de_ajuste_da_analise.filter(tipo_acerto=tipo_acerto).exists()
 
 
+def retorna_lancamentos_despesas_ordenadas_por_imposto(despesas, conta_associacao, analise_prestacao_conta, tipo_acerto, com_ajustes, prestacao_conta, DespesaDocumentoMestreSerializer, RateioDespesaConciliacaoSerializer, DespesaImpostoSerializer, AnaliseLancamentoPrestacaoContaRetrieveSerializer):
+    # Iniciar a lista de lançamentos com a lista de despesas ordenada
+    lancamentos = []
+    for despesa in despesas:
+
+        max_notificar_dias_nao_conferido = 0
+        for rateio in despesa.rateios.filter(status=STATUS_COMPLETO, conta_associacao=conta_associacao):
+            if rateio.notificar_dias_nao_conferido > max_notificar_dias_nao_conferido:
+                max_notificar_dias_nao_conferido = rateio.notificar_dias_nao_conferido
+
+        analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(despesa=despesa).first()
+
+        if analise_lancamento and tipo_acerto and not tem_solicitacao_acerto_do_tipo(analise_lancamento, tipo_acerto):
+            continue
+
+        if com_ajustes and (not analise_lancamento or analise_lancamento.resultado != 'AJUSTE'):
+            continue
+
+        despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
+        despesas_impostos = despesa.despesas_impostos.all()
+
+        # Se despesa_geradora_do_imposto não estiver atribuido,
+        # ou seja for None então ela é a despesa geradora do imposto
+        if not despesa_geradora_do_imposto:
+            lancamento = {
+                'periodo': f'{prestacao_conta.periodo.uuid}',
+                'conta': f'{conta_associacao.uuid}',
+                'data': despesa.data_transacao,
+                'tipo_transacao': 'Gasto',
+                'numero_documento': despesa.numero_documento,
+                'descricao': despesa.nome_fornecedor,
+                'valor_transacao_total': despesa.valor_total,
+                'valor_transacao_na_conta':
+                    despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).aggregate(
+                        Sum('valor_rateio'))[
+                        'valor_rateio__sum'],
+                'valores_por_conta': despesa.rateios.filter(status=STATUS_COMPLETO).values(
+                    'conta_associacao__tipo_conta__nome').annotate(
+                    Sum('valor_rateio')),
+                'conferido': despesa.conferido,
+                'documento_mestre': DespesaDocumentoMestreSerializer(despesa, many=False).data,
+                'rateios': RateioDespesaConciliacaoSerializer(
+                    despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by('id'),
+                    many=True).data,
+                'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
+                'analise_lancamento': {'resultado': analise_lancamento.resultado,
+                                       'uuid': analise_lancamento.uuid} if analise_lancamento else None,
+
+                'despesa_geradora_do_imposto': DespesaImpostoSerializer(despesa_geradora_do_imposto,
+                                                                        many=False).data if despesa_geradora_do_imposto else None,
+                'despesas_impostos': DespesaImpostoSerializer(despesas_impostos, many=True,
+                                                              required=False).data if despesas_impostos else None,
+            }
+
+            if com_ajustes:
+                lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaRetrieveSerializer(analise_lancamento,
+                                                                                                     many=False).data
+            else:
+                lancamento['analise_lancamento'] = {'resultado': analise_lancamento.resultado,
+                                                    'uuid': analise_lancamento.uuid} if analise_lancamento else None
+
+            lancamentos.append(lancamento)
+
+        if despesas_impostos:
+            for despesa_imposto in despesas_impostos:
+
+                analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(despesa=despesa_imposto).first()
+
+                if analise_lancamento and tipo_acerto and not tem_solicitacao_acerto_do_tipo(analise_lancamento,tipo_acerto):
+                    continue
+
+                if com_ajustes and (not analise_lancamento or analise_lancamento.resultado != 'AJUSTE'):
+                    continue
+
+                despesa_geradora_do_imposto = despesa_imposto.despesa_geradora_do_imposto.first()
+
+                lancamento = {
+                    'periodo': f'{prestacao_conta.periodo.uuid}',
+                    'conta': f'{conta_associacao.uuid}',
+                    'data': despesa_imposto.data_transacao,
+                    'tipo_transacao': 'Gasto',
+                    'numero_documento': despesa_imposto.numero_documento,
+                    'descricao': despesa_imposto.nome_fornecedor,
+                    'valor_transacao_total': despesa_imposto.valor_total,
+                    'valor_transacao_na_conta':
+                        despesa_imposto.rateios.filter(status=STATUS_COMPLETO).filter(
+                            conta_associacao=conta_associacao).aggregate(
+                            Sum('valor_rateio'))[
+                            'valor_rateio__sum'],
+                    'valores_por_conta': despesa_imposto.rateios.filter(status=STATUS_COMPLETO).values(
+                        'conta_associacao__tipo_conta__nome').annotate(
+                        Sum('valor_rateio')),
+                    'conferido': despesa_geradora_do_imposto.conferido,
+                    'documento_mestre': DespesaDocumentoMestreSerializer(despesa_imposto, many=False).data,
+                    'rateios': RateioDespesaConciliacaoSerializer(
+                        despesa_imposto.rateios.filter(status=STATUS_COMPLETO).filter(
+                            conta_associacao=conta_associacao).order_by('id'),
+                        many=True).data,
+                    'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
+                    'analise_lancamento': {'resultado': analise_lancamento.resultado,
+                                           'uuid': analise_lancamento.uuid} if analise_lancamento else None,
+
+                    'despesa_geradora_do_imposto': DespesaImpostoSerializer(despesa_imposto,
+                                                                            many=False).data if despesa_imposto else None,
+                    'despesas_impostos': None,
+                }
+
+                if com_ajustes:
+                    lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaRetrieveSerializer(
+                        analise_lancamento,
+                        many=False).data
+                else:
+                    lancamento['analise_lancamento'] = {'resultado': analise_lancamento.resultado,
+                                                        'uuid': analise_lancamento.uuid} if analise_lancamento else None
+
+                lancamentos.append(lancamento)
+
+    return lancamentos
+
+
 def lancamentos_da_prestacao(
     analise_prestacao_conta,
     conta_associacao,
@@ -438,8 +558,9 @@ def lancamentos_da_prestacao(
     tipo_transacao=None,
     tipo_acerto=None,
     com_ajustes=False,
+    ordenar_por_imposto=None,
 ):
-    from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaDocumentoMestreSerializer
+    from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaDocumentoMestreSerializer, DespesaImpostoSerializer
     from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaConciliacaoSerializer
     from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
     from sme_ptrf_apps.core.api.serializers.analise_lancamento_prestacao_conta_serializer import AnaliseLancamentoPrestacaoContaRetrieveSerializer
@@ -477,58 +598,67 @@ def lancamentos_da_prestacao(
             periodo=prestacao_conta.periodo
         )
 
-        despesas = despesas.order_by("data_transacao")
-
-    # Iniciar a lista de lançamentos com a lista de despesas ordenada
     lancamentos = []
-    for despesa in despesas:
 
-        max_notificar_dias_nao_conferido = 0
-        for rateio in despesa.rateios.filter(status=STATUS_COMPLETO, conta_associacao=conta_associacao):
-            if rateio.notificar_dias_nao_conferido > max_notificar_dias_nao_conferido:
-                max_notificar_dias_nao_conferido = rateio.notificar_dias_nao_conferido
+    if ordenar_por_imposto != 'true':
+        # Iniciar a lista de lançamentos com a lista de despesas ordenada
+        despesas = despesas.order_by("data_transacao")
+        for despesa in despesas:
 
-        analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(despesa=despesa).first()
+            max_notificar_dias_nao_conferido = 0
+            for rateio in despesa.rateios.filter(status=STATUS_COMPLETO, conta_associacao=conta_associacao):
+                if rateio.notificar_dias_nao_conferido > max_notificar_dias_nao_conferido:
+                    max_notificar_dias_nao_conferido = rateio.notificar_dias_nao_conferido
 
-        if analise_lancamento and tipo_acerto and not tem_solicitacao_acerto_do_tipo(analise_lancamento, tipo_acerto):
-            continue
+            analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(despesa=despesa).first()
 
-        if com_ajustes and (not analise_lancamento or analise_lancamento.resultado != 'AJUSTE'):
-            continue
+            if analise_lancamento and tipo_acerto and not tem_solicitacao_acerto_do_tipo(analise_lancamento, tipo_acerto):
+                continue
 
-        lancamento = {
-            'periodo': f'{prestacao_conta.periodo.uuid}',
-            'conta': f'{conta_associacao.uuid}',
-            'data': despesa.data_transacao,
-            'tipo_transacao': 'Gasto',
-            'numero_documento': despesa.numero_documento,
-            'descricao': despesa.nome_fornecedor,
-            'valor_transacao_total': despesa.valor_total,
-            'valor_transacao_na_conta':
-                despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).aggregate(
-                    Sum('valor_rateio'))[
-                    'valor_rateio__sum'],
-            'valores_por_conta': despesa.rateios.filter(status=STATUS_COMPLETO).values(
-                'conta_associacao__tipo_conta__nome').annotate(
-                Sum('valor_rateio')),
-            'conferido': despesa.conferido,
-            'documento_mestre': DespesaDocumentoMestreSerializer(despesa, many=False).data,
-            'rateios': RateioDespesaConciliacaoSerializer(
-                despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by('id'),
-                many=True).data,
-            'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
-            'analise_lancamento': {'resultado': analise_lancamento.resultado,
-                                   'uuid': analise_lancamento.uuid} if analise_lancamento else None
-        }
+            if com_ajustes and (not analise_lancamento or analise_lancamento.resultado != 'AJUSTE'):
+                continue
 
-        if com_ajustes:
-            lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaRetrieveSerializer(analise_lancamento,
-                                                                                                 many=False).data
-        else:
-            lancamento['analise_lancamento'] = {'resultado': analise_lancamento.resultado,
-                                                'uuid': analise_lancamento.uuid} if analise_lancamento else None
+            despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
+            despesas_impostos = despesa.despesas_impostos.all()
 
-        lancamentos.append(lancamento)
+            lancamento = {
+                'periodo': f'{prestacao_conta.periodo.uuid}',
+                'conta': f'{conta_associacao.uuid}',
+                'data': despesa.data_transacao,
+                'tipo_transacao': 'Gasto',
+                'numero_documento': despesa.numero_documento,
+                'descricao': despesa.nome_fornecedor,
+                'valor_transacao_total': despesa.valor_total,
+                'valor_transacao_na_conta':
+                    despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).aggregate(
+                        Sum('valor_rateio'))[
+                        'valor_rateio__sum'],
+                'valores_por_conta': despesa.rateios.filter(status=STATUS_COMPLETO).values(
+                    'conta_associacao__tipo_conta__nome').annotate(
+                    Sum('valor_rateio')),
+                'conferido': despesa.conferido,
+                'documento_mestre': DespesaDocumentoMestreSerializer(despesa, many=False).data,
+                'rateios': RateioDespesaConciliacaoSerializer(
+                    despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by('id'),
+                    many=True).data,
+                'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
+                'analise_lancamento': {'resultado': analise_lancamento.resultado,
+                                       'uuid': analise_lancamento.uuid} if analise_lancamento else None,
+
+                'despesa_geradora_do_imposto': DespesaImpostoSerializer(despesa_geradora_do_imposto,
+                                                                        many=False).data if despesa_geradora_do_imposto else None,
+                'despesas_impostos': DespesaImpostoSerializer(despesas_impostos, many=True,
+                                                              required=False).data if despesas_impostos else None,
+            }
+
+            if com_ajustes:
+                lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaRetrieveSerializer(analise_lancamento,
+                                                                                                     many=False).data
+            else:
+                lancamento['analise_lancamento'] = {'resultado': analise_lancamento.resultado,
+                                                    'uuid': analise_lancamento.uuid} if analise_lancamento else None
+
+            lancamentos.append(lancamento)
 
     # Percorrer a lista de créditos ordenada e para cada credito, buscar na lista de lançamentos a posição correta
     for receita in receitas:
@@ -578,6 +708,21 @@ def lancamentos_da_prestacao(
 
         if not lancamento_adicionado:
             lancamentos.append(novo_lancamento)
+
+    # A verificação de ordenar por imposto foi a última para trazer os impostos para os primeiros registros
+    if ordenar_por_imposto == 'true':
+        despesas = despesas.annotate(c=Count('despesas_impostos'), c2=Count('despesa_geradora'),
+                                     c3=Max('data_transacao')).order_by('-c', 'c3', '-c2')
+        lancamentos_ordenadas_por_imposto = retorna_lancamentos_despesas_ordenadas_por_imposto(despesas, conta_associacao,
+                                                                                               analise_prestacao_conta,
+                                                                                               tipo_acerto, com_ajustes,
+                                                                                               prestacao_conta,
+                                                                                               DespesaDocumentoMestreSerializer,
+                                                                                               RateioDespesaConciliacaoSerializer,
+                                                                                               DespesaImpostoSerializer,
+                                                                                               AnaliseLancamentoPrestacaoContaRetrieveSerializer)
+
+        lancamentos = lancamentos_ordenadas_por_imposto + lancamentos
 
     return lancamentos
 
