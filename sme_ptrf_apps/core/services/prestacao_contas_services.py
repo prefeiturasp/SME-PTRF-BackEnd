@@ -721,11 +721,8 @@ def lancamentos_da_prestacao(
                                                                                                RateioDespesaConciliacaoSerializer,
                                                                                                DespesaImpostoSerializer,
                                                                                                AnaliseLancamentoPrestacaoContaRetrieveSerializer)
-        # lancamentos = lancamentos_ordenadas_por_imposto
-        # lancamentos.extend(lancamentos_ordenadas_por_imposto)
 
         lancamentos = lancamentos_ordenadas_por_imposto + lancamentos
-        # lancamentos.extend(lancamentos_ordenadas_por_imposto)
 
     return lancamentos
 
