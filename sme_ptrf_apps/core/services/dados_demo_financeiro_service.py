@@ -21,15 +21,16 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
     try:
         LOGGER.info("GERANDO DADOS DEMONSTRATIVO...")
         rateios_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
-            conta_associacao=conta_associacao, periodo=periodo, conferido=True).order_by('despesa__data_transacao')
+            conta_associacao=conta_associacao, periodo=periodo, conferido=True).order_by(
+            'despesa__data_transacao', 'despesa__numero_documento')
 
-        rateios_nao_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(conta_associacao=conta_associacao,
-                                                                                      periodo=periodo,
-                                                                                      conferido=False).order_by(
-            'despesa__data_transacao')
+        rateios_nao_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
+            conta_associacao=conta_associacao, periodo=periodo, conferido=False).order_by(
+            'despesa__data_transacao', 'despesa__numero_documento')
 
         rateios_nao_conferidos_periodos_anteriores = RateioDespesa.rateios_da_conta_associacao_em_periodos_anteriores(
-            conta_associacao=conta_associacao, periodo=periodo, conferido=False).order_by('despesa__data_transacao')
+            conta_associacao=conta_associacao, periodo=periodo, conferido=False).order_by(
+            'despesa__data_transacao', 'despesa__numero_documento')
 
         receitas_demonstradas = Receita.receitas_da_conta_associacao_no_periodo(
             conta_associacao=conta_associacao, periodo=periodo, conferido=True)
