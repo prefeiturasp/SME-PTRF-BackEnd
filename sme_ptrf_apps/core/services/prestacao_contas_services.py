@@ -515,7 +515,7 @@ def retorna_lancamentos_despesas_ordenadas_por_imposto(despesas, conta_associaca
                 rateios = despesa_imposto.rateios.all()
 
                 for rateio in rateios:
-                    if rateio.conta_associacao == conta_associacao and str(despesa_imposto.uuid) not in existe_em_lancamentos:
+                    if rateio.conta_associacao == conta_associacao and str(despesa_imposto.uuid) not in existe_em_lancamentos and despesa_imposto.cadastro_completo():
 
                         lancamento = {
                             'periodo': f'{prestacao_conta.periodo.uuid}',
