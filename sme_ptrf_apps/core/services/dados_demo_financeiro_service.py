@@ -634,9 +634,6 @@ def cria_creditos_demonstrados(receitas_demonstradas):
 
             motivos = [{"motivo": motivo.motivo} for motivo in receita.motivos_estorno.all()]
 
-            LOGGER.info(f'XXXXXXXXXXXXX data_transacao {receita.rateio_estornado.despesa.data_transacao}')
-            LOGGER.info(f'XXXXXXXXXXXXX data_documento {receita.rateio_estornado.despesa.data_documento}')
-
             if receita.rateio_estornado.despesa.data_transacao:
                 data_a_ser_exibida = receita.rateio_estornado.despesa.data_transacao.strftime("%d/%m/%Y")
             elif receita.rateio_estornado.despesa.data_documento:
