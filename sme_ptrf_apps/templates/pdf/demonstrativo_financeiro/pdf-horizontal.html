@@ -314,7 +314,7 @@
   </article>
 
   <article id="bloco-4" class="mt-4">
-    <table class="table table-bordered tabela-resumo-por-acao tabela-quebra-palavra tabela-bloco-4">
+    <table class="table table-bordered tabela-resumo-por-acao tabela-quebra-palavra tabela-bloco-4 nao-quebra-linha">
       <thead class="thead-light">
       <tr>
         <th colspan="5">
@@ -329,42 +329,46 @@
         <th><strong>13. Valor</strong></th>
       </tr>
       </thead>
-      <tbody>
+
       {% for receita in dados.creditos_demonstrados.linhas %}
-        <tr>
-          <td>{{ receita.tipo_receita }}</td>
-          <td>{{ receita.detalhamento }}</td>
-          <td>{{ receita.nome_acao }}</td>
-          <td>{{ receita.data }}</td>
-          <td class="text-right">{{ receita.valor|formata_valor }}</td>
-        </tr>
+        <tbody>
 
         {% if receita.estorno %}
+          <tr>
+            <td>{{ receita.tipo_receita }}</td>
 
-          {% if receita.estorno.numero_documento_despesa %}
-            <tr>
-              <td colspan="5">
-                <p class="texto-estorno mb-1">Este estorno está vinculado à despesa de número {{ receita.estorno.numero_documento_despesa }},
+            {% if receita.estorno.numero_documento_despesa %}
+              <td>
+                <p class="texto-estorno mb-1">Este estorno está vinculado à despesa de
+                  número {{ receita.estorno.numero_documento_despesa }},
                   de {{ receita.estorno.data_estorno }}</p>
                 {# Incluindo linha com motivos de estorno, passando dados como parametro #}
                 {% include "./partials/linha-com-motivos-estornos.html" with receita=receita %}
               </td>
-            </tr>
-          {% else %}
-            <tr>
-              <td colspan="5">
-                <p class="texto-estorno mb-1">Este estorno está vinculado à despesa de {{ receita.estorno.data_estorno }}</p>
+            {% else %}
+              <td>
+                <p class="texto-estorno mb-1">Este estorno está vinculado à despesa
+                  de {{ receita.estorno.data_estorno }}</p>
                 {# Incluindo linha com motivos de estorno, passando dados como parametro #}
                 {% include "./partials/linha-com-motivos-estornos.html" with receita=receita %}
               </td>
-            </tr>
-          {% endif %}
-
+            {% endif %}
+            <td>{{ receita.nome_acao }}</td>
+            <td>{{ receita.data }}</td>
+            <td class="text-right">{{ receita.valor|formata_valor }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td>{{ receita.tipo_receita }}</td>
+            <td>{{ receita.detalhamento }}</td>
+            <td>{{ receita.nome_acao }}</td>
+            <td>{{ receita.data }}</td>
+            <td class="text-right">{{ receita.valor|formata_valor }}</td>
+          </tr>
         {% endif %}
-
-
-
+        </tbody>
       {% endfor %}
+      <tbody>
       <tr>
         <td class="total sem-borda" style="border-right: 1px solid #F5F6F8; !important;"><strong>Total</strong></td>
         <td class="total sem-borda" colspan="3" style="border-right: 1px solid #F5F6F8; !important;"></td>
@@ -418,14 +422,14 @@
           <td class="text-right">{{ despesa.valor|formata_valor }}</td>
         </tr>
 
-        {% if despesa.despesas_impostos|length == 1  %}
+        {% if despesa.despesas_impostos|length == 1 %}
           <tr>
             <td colspan="11" class="texto-imposto">
               Esse gasto teve retenção de imposto:
               R$ {{ despesa.despesas_impostos.0.valor }}, {{ despesa.despesas_impostos.0.info_pagamento }}.
             </td>
           </tr>
-        {% elif despesa.despesas_impostos|length >= 2  %}
+        {% elif despesa.despesas_impostos|length >= 2 %}
           <tr>
             <td colspan="11" class="texto-imposto">
               Esse gasto teve retenções de impostos:
@@ -503,14 +507,14 @@
           <td class="text-right">{{ despesa.valor|formata_valor }}</td>
         </tr>
 
-        {% if despesa.despesas_impostos|length == 1  %}
+        {% if despesa.despesas_impostos|length == 1 %}
           <tr>
             <td colspan="11" class="texto-imposto">
               Esse gasto teve retenção de imposto:
               R$ {{ despesa.despesas_impostos.0.valor }}, {{ despesa.despesas_impostos.0.info_pagamento }}.
             </td>
           </tr>
-        {% elif despesa.despesas_impostos|length >= 2  %}
+        {% elif despesa.despesas_impostos|length >= 2 %}
           <tr>
             <td colspan="11" class="texto-imposto">
               Esse gasto teve retenções de impostos:
@@ -588,14 +592,14 @@
           <td class="text-right">{{ despesa.valor|formata_valor }}</td>
         </tr>
 
-        {% if despesa.despesas_impostos|length == 1  %}
+        {% if despesa.despesas_impostos|length == 1 %}
           <tr>
             <td colspan="11" class="texto-imposto">
               Esse gasto teve retenção de imposto:
               R$ {{ despesa.despesas_impostos.0.valor }}, {{ despesa.despesas_impostos.0.info_pagamento }}.
             </td>
           </tr>
-        {% elif despesa.despesas_impostos|length >= 2  %}
+        {% elif despesa.despesas_impostos|length >= 2 %}
           <tr>
             <td colspan="11" class="texto-imposto">
               Esse gasto teve retenções de impostos:
