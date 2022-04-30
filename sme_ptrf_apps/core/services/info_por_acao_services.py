@@ -31,10 +31,6 @@ def especificacoes_despesas_acao_associacao_no_periodo(acao_associacao, periodo,
 
 def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
     def sumariza_rateios_por_acao(rateios):
-        totalizador_aplicacoes = {
-            'CUSTEIO': Decimal(0.00),
-            'CAPITAL': Decimal(0.00)
-        }
         totalizador_acoes = dict()
         totalizador_contas = dict()
         for rateio in rateios:
@@ -45,7 +41,10 @@ def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
             if not acao_key or not aplicacao: continue
 
             if acao_key not in totalizador_acoes:
-                totalizador_acoes[acao_key] = totalizador_aplicacoes
+                totalizador_acoes[acao_key] = {
+                    'CUSTEIO': Decimal(0.00),
+                    'CAPITAL': Decimal(0.00)
+                }
 
             totalizador_acoes[acao_key][aplicacao] += Decimal(rateio['valor_rateio'])
 
@@ -173,6 +172,8 @@ def valida_rateios_quanto_aos_saldos(rateios, associacao, data_documento=None, e
             'saldos_insuficientes': saldos_insuficientes['saldos_insuficientes'],
             'aceitar_lancamento': True
         }
+
+        print(result)
 
     return result
 
