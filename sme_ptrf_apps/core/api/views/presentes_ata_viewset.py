@@ -187,11 +187,7 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
                 "cargo": MembroEnum[membro.cargo_associacao].value
             }
         else:
-            result = {
-                "mensagem": "membro-nao-encontrado",
-                "nome": "",
-                "cargo": ""
-            }
+            result = PresenteAta.get_informacao_servidor(identificador)
 
         return Response(result)
 
