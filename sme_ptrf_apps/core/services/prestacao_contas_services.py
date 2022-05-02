@@ -609,11 +609,12 @@ def lancamentos_da_prestacao(
             periodo=prestacao_conta.periodo
         )
 
+        despesas = despesas.order_by("data_transacao")
+
     lancamentos = []
 
     if ordenar_por_imposto != 'true':
         # Iniciar a lista de lançamentos com a lista de despesas ordenada
-        despesas = despesas.order_by("data_transacao")
         for despesa in despesas:
 
             max_notificar_dias_nao_conferido = 0
