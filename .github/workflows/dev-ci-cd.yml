@@ -40,7 +40,8 @@ jobs:
             source ptrf
             pip install --user pipenv -r requirements/local.txt
             python manage.py collectstatic --noinput
-            pytest --junitxml=coverage.xml
+            coverage run -m pytest --junitxml=pytest-report.xml
+            coverage xml
             ls -ltra
             
       - name: Delete Container..
@@ -56,13 +57,13 @@ jobs:
       - uses: actions/checkout@v2
           
       - name: Sonar
-        uses: luizhpriotto/action_images@sonarscannercli-v1.0
+        uses: luizhpriotto/action_images@sonarscannercli-v2.0
         env:
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST: http://sonar.sme.prefeitura.sp.gov.br/
           SONAR_EXTRA_ARG: >
-            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.python.coverage.reportPaths=*.xml
           
       - name: send failure message
         if: ${{ failure() }}
