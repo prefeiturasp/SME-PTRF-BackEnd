@@ -11,40 +11,9 @@ on:
 
 jobs:            
 
-  sonar:
-  
-    runs-on: self-hosted
-    if: ${{ github.ref == 'refs/heads/develop' }}
-    steps:
-      - uses: actions/checkout@v2
-          
-      - name: Sonar
-        uses: luizhpriotto/action_images@sonarscannercli-v1.0
-        env:
-          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST: http://sonar.sme.prefeitura.sp.gov.br/
-          SONAR_EXTRA_ARG: >
-            -Dsonar.scm.provider=git
-          
-      - name: send failure message
-        if: ${{ failure() }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            💥 Failed in ${{ github.ref_name	}}!
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}            
-            Repository: ${{ github.repository }}            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
   pytest:
   
     runs-on: self-hosted
-    needs: [ sonar ]
     if: ${{ github.ref == 'refs/heads/develop' }}
     steps:
     
@@ -72,10 +41,41 @@ jobs:
             pip install --user pipenv -r requirements/local.txt
             python manage.py collectstatic --noinput
             pytest
+            ls -ltra
+            find . -name *coverage-*.xml
             
       - name: Delete Container..
         if: ${{ ( failure() ) || ( success() ) }}
         run: if [ ! -z $(docker ps -q --filter "name=ptrf-db") ]; then docker rm -f ptrf-db; fi
+
+  sonar:
+  
+    runs-on: self-hosted
+    needs: [ pytest ]
+    if: ${{ github.ref == 'refs/heads/develop' }}
+    steps:
+      - uses: actions/checkout@v2
+          
+      - name: Sonar
+        uses: luizhpriotto/action_images@sonarscannercli-v1.0
+        env:
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST: http://sonar.sme.prefeitura.sp.gov.br/
+          
+      - name: send failure message
+        if: ${{ failure() }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            💥 Failed in ${{ github.ref_name	}}!
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}            
+            Repository: ${{ github.repository }}            
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
   build:
 
