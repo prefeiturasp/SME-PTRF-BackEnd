@@ -65,7 +65,7 @@ class TerceirizadasService:
             results = response.json()['results']
             logger.info("Dados do servidor: %r", results)
             if len(results) >= 1:
-                return seleciona_cargo_servidor(results)
+                return results
             raise TerceirizadasException(f'Não foram encontrados resultados para o RF: {registro_funcional}.')
         else:
             raise TerceirizadasException(f'API EOL com erro. Status: {response.status_code}')

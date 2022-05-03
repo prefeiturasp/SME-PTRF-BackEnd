@@ -142,6 +142,30 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
         except SmeIntegracaoApiException as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=['get'], url_path='lista-cargos',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def lista_cargos(self, request):
+        rf = self.request.query_params.get('rf')
+
+        if not rf:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o rf.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            result = TerceirizadasService.get_informacao_servidor(rf)
+            return Response(result)
+        except SmeIntegracaoApiException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except TerceirizadasException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except ReadTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+        except ConnectTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+
     def membro_ja_cadastrado(self, **kwargs):
         if MembroAssociacao.objects.filter(**kwargs).exists():
             raise SmeIntegracaoApiException('Membro já cadastrado.')

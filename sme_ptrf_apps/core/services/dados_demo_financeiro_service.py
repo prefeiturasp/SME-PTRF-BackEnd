@@ -21,15 +21,16 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
     try:
         LOGGER.info("GERANDO DADOS DEMONSTRATIVO...")
         rateios_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
-            conta_associacao=conta_associacao, periodo=periodo, conferido=True).order_by('despesa__data_transacao')
+            conta_associacao=conta_associacao, periodo=periodo, conferido=True).order_by(
+            'despesa__data_transacao', 'despesa__numero_documento')
 
-        rateios_nao_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(conta_associacao=conta_associacao,
-                                                                                      periodo=periodo,
-                                                                                      conferido=False).order_by(
-            'despesa__data_transacao')
+        rateios_nao_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
+            conta_associacao=conta_associacao, periodo=periodo, conferido=False).order_by(
+            'despesa__data_transacao', 'despesa__numero_documento')
 
         rateios_nao_conferidos_periodos_anteriores = RateioDespesa.rateios_da_conta_associacao_em_periodos_anteriores(
-            conta_associacao=conta_associacao, periodo=periodo, conferido=False).order_by('despesa__data_transacao')
+            conta_associacao=conta_associacao, periodo=periodo, conferido=False).order_by(
+            'despesa__data_transacao', 'despesa__numero_documento')
 
         receitas_demonstradas = Receita.receitas_da_conta_associacao_no_periodo(
             conta_associacao=conta_associacao, periodo=periodo, conferido=True)
@@ -634,8 +635,15 @@ def cria_creditos_demonstrados(receitas_demonstradas):
 
             motivos = [{"motivo": motivo.motivo} for motivo in receita.motivos_estorno.all()]
 
+            if receita.rateio_estornado.despesa.data_transacao:
+                data_a_ser_exibida = receita.rateio_estornado.despesa.data_transacao.strftime("%d/%m/%Y")
+            elif receita.rateio_estornado.despesa.data_documento:
+                data_a_ser_exibida = receita.rateio_estornado.despesa.data_documento.strftime("%d/%m/%Y")
+            else:
+                data_a_ser_exibida = ""
+
             linha["estorno"] = {
-                "data_estorno": receita.rateio_estornado.despesa.data_documento.strftime("%d/%m/%Y") if receita.rateio_estornado.despesa.data_documento else "",
+                "data_estorno": data_a_ser_exibida,
                 "numero_documento_despesa": receita.rateio_estornado.despesa.numero_documento if receita.rateio_estornado.despesa.numero_documento else "",
                 "motivos_estorno": motivos,
                 "outros_motivos_estorno": receita.outros_motivos_estorno,

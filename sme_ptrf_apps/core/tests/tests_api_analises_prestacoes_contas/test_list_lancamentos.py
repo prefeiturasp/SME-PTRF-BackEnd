@@ -134,6 +134,8 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
                 'numero_documento': lancamento["mestre"].numero_documento if lancamento["tipo"] == "Gasto" else "",
                 'descricao': lancamento["mestre"].nome_fornecedor if lancamento["tipo"] == "Gasto" else lancamento[
                     "mestre"].tipo_receita.nome,
+                'despesa_geradora_do_imposto': None,
+                'despesas_impostos': None,
                 'valor_transacao_total': lancamento["mestre"].valor_total if lancamento["tipo"] == "Gasto" else lancamento[
                     "mestre"].valor,
                 'valor_transacao_na_conta': lancamento["valor_transacao_na_conta"],
