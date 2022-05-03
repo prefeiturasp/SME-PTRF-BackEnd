@@ -1,5 +1,5 @@
 [run]
 include = sme_ptrf_apps/*
-omit = *migrations*, *tests*
+omit = *migrations*, *tests*, sme_ptrf_apps/templates/*
 plugins =
     django_coverage_plugin
