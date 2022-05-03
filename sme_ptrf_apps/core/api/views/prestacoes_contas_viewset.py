@@ -16,6 +16,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPITodosComGravacao,
     PermissaoAPIApenasDreComGravacao,
 )
+from ....despesas.models import TipoDocumento, TipoTransacao
 
 from ....dre.models import Atribuicao, TecnicoDre, MotivoAprovacaoRessalva, MotivoReprovacao
 from ...models import (
@@ -949,6 +950,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        # Define se deve ordenar por imposto
         ordenar_por_imposto = request.query_params.get('ordenar_por_imposto')
 
         if ordenar_por_imposto and ordenar_por_imposto not in ['true', 'false']:
@@ -958,12 +960,54 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        # Define o número do documento para filtro
+        numero_de_documento = request.query_params.get('filtrar_por_numero_de_documento')
+
+        # Define data de início para filtro
+        filtrar_por_data_inicio = request.query_params.get('filtrar_por_data_inicio')
+
+        # Define data de início para filtro
+        filtrar_por_data_fim = request.query_params.get('filtrar_por_data_fim')
+
+        # Define o tipo de documento para o filtro
+        filtrar_por_tipo_de_documento = request.query_params.get('filtrar_por_tipo_de_documento')
+        tipo_de_documento=None
+        if filtrar_por_tipo_de_documento:
+            try:
+                tipo_de_documento = TipoDocumento.objects.get(id=filtrar_por_tipo_de_documento)
+            except TipoDocumento.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto tipo de documento para o id {filtrar_por_tipo_de_documento} não foi encontrado."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define o tipo de pagamento para o filtro
+        filtrar_por_tipo_de_pagamento = request.query_params.get('filtrar_por_tipo_de_pagamento')
+        tipo_de_pagamento=None
+        if filtrar_por_tipo_de_pagamento:
+            try:
+                tipo_de_pagamento = TipoTransacao.objects.get(id=filtrar_por_tipo_de_pagamento)
+            except TipoTransacao.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto tipo de transação para o uuid {filtrar_por_tipo_de_pagamento} não foi encontrado."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
         lancamentos = lancamentos_da_prestacao(
             analise_prestacao_conta=analise_prestacao,
             conta_associacao=conta_associacao,
             acao_associacao=acao_associacao,
             tipo_transacao=tipo_transacao,
-            ordenar_por_imposto=ordenar_por_imposto
+            ordenar_por_imposto=ordenar_por_imposto,
+            numero_de_documento=numero_de_documento,
+            tipo_de_documento=tipo_de_documento,
+            tipo_de_pagamento=tipo_de_pagamento,
+            filtrar_por_data_inicio=filtrar_por_data_inicio,
+            filtrar_por_data_fim=filtrar_por_data_fim,
         )
 
         return Response(lancamentos, status=status.HTTP_200_OK)
