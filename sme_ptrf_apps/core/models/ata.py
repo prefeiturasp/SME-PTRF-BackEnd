@@ -171,6 +171,34 @@ class Ata(ModeloBase):
     def nome(self):
         return f'Ata de {self.ATA_NOMES[self.tipo_ata]} da prestação de contas'
 
+    @property
+    def completa(self):
+        from sme_ptrf_apps.core.services.associacoes_service import tem_repasses_pendentes_periodos_ate_agora
+
+        esta_completa = (
+            self.tipo_ata and
+            self.tipo_reuniao and
+            self.convocacao and
+            self.data_reuniao and
+            self.local_reuniao and
+            self.presidente_reuniao and
+            self.cargo_presidente_reuniao and
+            self.secretario_reuniao and
+            self.cargo_secretaria_reuniao and
+            self.hora_reuniao
+        )
+
+        if tem_repasses_pendentes_periodos_ate_agora(associacao=self.associacao, periodo=self.periodo):
+            esta_completa = esta_completa and self.justificativa_repasses_pendentes
+
+        presidente_presente = self.presentes_na_ata.filter(nome=self.presidente_reuniao).exists()
+        esta_completa = esta_completa and presidente_presente
+
+        secretario_presente = self.presentes_na_ata.filter(nome=self.secretario_reuniao).exists()
+        esta_completa = esta_completa and secretario_presente
+
+        return esta_completa
+
     @classmethod
     def iniciar(cls, prestacao_conta, retificacao=False):
         logger.info(f'Iniciando Ata PC={prestacao_conta}, Retificação={retificacao}...')
