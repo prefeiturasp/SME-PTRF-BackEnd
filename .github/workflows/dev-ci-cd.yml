@@ -41,7 +41,7 @@ jobs:
             pip install --user pipenv -r requirements/local.txt
             python manage.py collectstatic --noinput
             echo "##### COVERAGE ####"
-            coverage run -m pytest --ignore=path sme_ptrf_apps/templates
+            coverage run -m pytest --ignore=sme_ptrf_apps/templates
             echo "#### COVERAGE XML ####"
             coverage xml
             ls -ltra
