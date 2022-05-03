@@ -24,6 +24,8 @@ jobs:
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST: http://sonar.sme.prefeitura.sp.gov.br/
+          SONAR_EXTRA_ARG: >
+            -Dsonar.scm.provider=git
           
       - name: send failure message
         if: ${{ failure() }}
