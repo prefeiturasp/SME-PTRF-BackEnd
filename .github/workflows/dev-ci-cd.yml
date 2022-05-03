@@ -40,7 +40,9 @@ jobs:
             source ptrf
             pip install --user pipenv -r requirements/local.txt
             python manage.py collectstatic --noinput
+            echo "##### COVERAGE ####"
             coverage run -m pytest
+            echo "#### COVERAGE XML ####"
             coverage xml
             ls -ltra
             
