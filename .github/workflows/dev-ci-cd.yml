@@ -40,9 +40,8 @@ jobs:
             source ptrf
             pip install --user pipenv -r requirements/local.txt
             python manage.py collectstatic --noinput
-            pytest
+            pytest --junitxml=coverage.xml
             ls -ltra
-            find . -name *coverage-*.xml
             
       - name: Delete Container..
         if: ${{ ( failure() ) || ( success() ) }}
@@ -62,6 +61,8 @@ jobs:
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST: http://sonar.sme.prefeitura.sp.gov.br/
+          SONAR_EXTRA_ARG: >
+            -Dsonar.python.coverage.reportPaths=coverage.xml
           
       - name: send failure message
         if: ${{ failure() }}
@@ -81,7 +82,7 @@ jobs:
 
     runs-on: self-hosted
     if: ${{ github.ref == 'refs/heads/develop' }}
-    needs: [ pytest ]
+    needs: [ sonar ]
     steps:
       - uses: actions/checkout@v2     
       -  name: Login to registry
