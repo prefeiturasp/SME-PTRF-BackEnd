@@ -43,6 +43,8 @@ jobs:
             echo "##### COVERAGE ####"
             coverage run -m pytest
             coverage xml
+            ls -ltra
+            cat coverage.xml
             
       - name: Delete Container..
         if: ${{ ( failure() ) || ( success() ) }}
@@ -64,6 +66,7 @@ jobs:
           SONAR_HOST: http://sonar.sme.prefeitura.sp.gov.br/
           SONAR_EXTRA_ARG: >
             -Dsonar.python.coverage.reportPaths=*.xml
+            -Dsonar.scm.provider=git
           
       - name: send failure message
         if: ${{ failure() }}
