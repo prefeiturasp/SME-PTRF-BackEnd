@@ -42,6 +42,7 @@ jobs:
             python manage.py collectstatic --noinput
             echo "##### COVERAGE ####"
             coverage run -m pytest
+            coverage xml
             
       - name: Delete Container..
         if: ${{ ( failure() ) || ( success() ) }}
