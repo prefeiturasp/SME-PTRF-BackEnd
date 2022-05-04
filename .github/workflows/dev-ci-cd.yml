@@ -45,6 +45,14 @@ jobs:
             coverage xml
             ls -ltra
             
+      - name: Upload Reports
+        uses: actions/upload-artifact@v2
+        with:
+          name: reports
+          path: |
+                pytest-report.xml
+                coverage.xml
+            
       - name: Delete Container..
         if: ${{ ( failure() ) || ( success() ) }}
         run: if [ ! -z $(docker ps -q --filter "name=ptrf-db") ]; then docker rm -f ptrf-db; fi
@@ -56,6 +64,11 @@ jobs:
     if: ${{ github.ref == 'refs/heads/develop' }}
     steps:
       - uses: actions/checkout@v2
+      
+      - name: Download Reports
+        uses: actions/download-artifact@v2
+        with:
+          name: reports
           
       - name: Sonar
         uses: luizhpriotto/action_images@sonarscannercli-v2.2
