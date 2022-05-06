@@ -206,20 +206,22 @@ class PrestacaoConta(ModeloBase):
         from ..models.tipo_devolucao_ao_tesouro import TipoDevolucaoAoTesouro
         from ...despesas.models.despesa import Despesa
 
-        self.devolucoes_ao_tesouro_da_prestacao.all().delete()
         for devolucao in devolucoes_ao_tesouro_da_prestacao:
             tipo_devolucao = TipoDevolucaoAoTesouro.by_uuid(devolucao['tipo'])
             despesa = Despesa.by_uuid(devolucao['despesa'])
-            DevolucaoAoTesouro.objects.create(
-                prestacao_conta=self,
-                tipo=tipo_devolucao,
-                despesa=despesa,
-                data=devolucao['data'],
-                devolucao_total=devolucao['devolucao_total'],
-                motivo=devolucao['motivo'],
-                valor=devolucao['valor'],
-                visao_criacao=devolucao['visao_criacao'],
-            )
+            devolucao_uuid = devolucao['uuid']
+            devolucao_atual = DevolucaoAoTesouro.by_uuid(uuid=devolucao_uuid)
+
+            devolucao_atual.prestacao_conta = self
+            devolucao_atual.tipo = tipo_devolucao
+            devolucao_atual.despesa = despesa
+            devolucao_atual.data = devolucao['data']
+            devolucao_atual.devolucao_total = devolucao['devolucao_total']
+            devolucao_atual.motivo = devolucao['motivo']
+            devolucao_atual.valor = devolucao['valor']
+            devolucao_atual.visao_criacao = devolucao['visao_criacao']
+
+            devolucao_atual.save()
 
         return self
 
