@@ -26,7 +26,7 @@ def get_verificacao_regularidade_associacao(associacao_uuid, ano):
     grupos = []
     for grupo in GrupoVerificacaoRegularidade.objects.all():
         listas = []
-        for lista in grupo.listas_de_verificacao.all():
+        for lista in grupo.listas_de_verificacao.all().order_by('-id'):
             itens = []
             qtd_irregulares = 0
             for item in lista.itens_de_verificacao.all():
