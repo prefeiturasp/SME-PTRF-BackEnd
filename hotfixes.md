@@ -1,7 +1,11 @@
-### 1.29.2 - 28/04/2021 - Hotfix - Soluções de bugs urgentes durante a sprint 40
+### 1.30.1 - 09/05/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 41
+* (63533) -  Regularidade: as listas de verificação de regularidade não são ordenadas pelo id
+* (63574) -  Ata de retificação: Duplicação de devolução ao tesouro
+
+### 1.29.2 - 28/04/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 40
 * (63366) - Cadastro de despesas: Sistema não exibe corretamente total dos rateios em mensagem de saldo insuficiente da ação
 
-### 1.29.1 - 19/04/2021 - Hotfix em pre-produção - Ajustes em pre-produção da release 1.29.
+### 1.29.1 - 19/04/2022 - Hotfix em pre-produção - Ajustes em pre-produção da release 1.29.
 * (62982) - Erro ao gerar prévia de demonstrativo financeiro
 
 ### 1.28.3 - 11/04/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 39
