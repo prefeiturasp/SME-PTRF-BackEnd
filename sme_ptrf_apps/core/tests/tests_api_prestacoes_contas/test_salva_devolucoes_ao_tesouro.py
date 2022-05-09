@@ -46,7 +46,7 @@ def tipo_devolucao_ao_tesouro():
 
 @freeze_time('2020-09-01')
 def test_api_salva_devolucoes_ao_tesouro(jwt_authenticated_client_a, prestacao_conta_em_analise, conta_associacao,
-                                         tipo_devolucao_ao_tesouro, despesa):
+                                         tipo_devolucao_ao_tesouro, despesa, devolucao_ao_tesouro):
     payload = {
         'devolucoes_ao_tesouro_da_prestacao': [
             {
@@ -56,7 +56,8 @@ def test_api_salva_devolucoes_ao_tesouro(jwt_authenticated_client_a, prestacao_c
                 'valor': 100.00,
                 'tipo': f'{tipo_devolucao_ao_tesouro.uuid}',
                 'despesa': f'{despesa.uuid}',
-                'visao_criacao': 'UE'
+                'visao_criacao': 'UE',
+                'uuid': f"{devolucao_ao_tesouro.uuid}",
             }
         ]
     }
@@ -87,7 +88,7 @@ def devolucao_ao_tesouro(prestacao_conta_em_analise, tipo_devolucao_ao_tesouro, 
         despesa=despesa,
         devolucao_total=True,
         valor=100.00,
-        motivo='teste'
+        motivo='teste',
     )
 
 
@@ -99,5 +100,3 @@ def test_api_salvar_devolucoes_ao_tesouro_sem_devolucao_tesouro(jwt_authenticate
 
     assert response.status_code == status.HTTP_200_OK
 
-    prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_em_analise.uuid)
-    assert not prestacao_atualizada.devolucoes_ao_tesouro_da_prestacao.exists(), 'Não apagou as devoluções ao tesouro'
