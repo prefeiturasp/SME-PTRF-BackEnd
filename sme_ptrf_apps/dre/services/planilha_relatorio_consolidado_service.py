@@ -221,7 +221,9 @@ def execucao_financeira(worksheet, dre, periodo, tipo_conta):
         info['receitas_devolucao_no_periodo_custeio'] + info['demais_creditos_no_periodo_custeio']
     rows[LINHA_CUSTEIO][COL_VALOR_TOTAL].value = formata_valor(valor_total_custeio)
     rows[LINHA_CUSTEIO][COL_DESPESA_NO_PERIODO].value = formata_valor(info['despesas_no_periodo_custeio'])
-    rows[LINHA_CUSTEIO][COL_SALDO_REPROGRAMADO_PROXIMO].value = formata_valor(valor_total_custeio)
+
+    # rows[LINHA_CUSTEIO][COL_SALDO_REPROGRAMADO_PROXIMO].value = formata_valor(valor_total_custeio)
+    rows[LINHA_CUSTEIO][COL_SALDO_REPROGRAMADO_PROXIMO].value = formata_valor(info['saldo_reprogramado_proximo_periodo_custeio'])
 
     # LINHA CAPITAL
     rows[LINHA_CAPITAL][COL_SALDO_REPROGRAMADO_ANTERIOR].value = formata_valor(
@@ -234,7 +236,9 @@ def execucao_financeira(worksheet, dre, periodo, tipo_conta):
         info['receitas_devolucao_no_periodo_capital'] + info['demais_creditos_no_periodo_capital']
     rows[LINHA_CAPITAL][COL_VALOR_TOTAL].value = formata_valor(valor_total_capital)
     rows[LINHA_CAPITAL][COL_DESPESA_NO_PERIODO].value = formata_valor(info['despesas_no_periodo_capital'])
-    rows[LINHA_CAPITAL][COL_SALDO_REPROGRAMADO_PROXIMO].value = formata_valor(valor_total_capital)
+
+    #rows[LINHA_CAPITAL][COL_SALDO_REPROGRAMADO_PROXIMO].value = formata_valor(valor_total_capital)
+    rows[LINHA_CAPITAL][COL_SALDO_REPROGRAMADO_PROXIMO].value = formata_valor(info['saldo_reprogramado_proximo_periodo_capital'])
 
     # LINHA RLA
     rows[LINHA_RLA][COL_SALDO_REPROGRAMADO_ANTERIOR].value = formata_valor(
@@ -248,7 +252,9 @@ def execucao_financeira(worksheet, dre, periodo, tipo_conta):
         info['repasses_no_periodo_livre'] + info['receitas_devolucao_no_periodo_livre'] + \
         info['demais_creditos_no_periodo_livre']
     rows[LINHA_RLA][COL_VALOR_TOTAL].value = formata_valor(valor_total_livre)
-    rows[LINHA_RLA][COL_SALDO_REPROGRAMADO_PROXIMO].value = formata_valor(valor_total_livre)
+
+    #rows[LINHA_RLA][COL_SALDO_REPROGRAMADO_PROXIMO].value = formata_valor(valor_total_livre)
+    rows[LINHA_RLA][COL_SALDO_REPROGRAMADO_PROXIMO].value = formata_valor(info['saldo_reprogramado_proximo_periodo_livre'])
 
     # LINHA TOTAIS
     rows[LINHA_TOTAL][COL_SALDO_REPROGRAMADO_ANTERIOR].value = formata_valor(
@@ -263,7 +269,9 @@ def execucao_financeira(worksheet, dre, periodo, tipo_conta):
         info['demais_creditos_no_periodo_total']
     rows[LINHA_TOTAL][COL_VALOR_TOTAL].value = formata_valor(valor_total)
     rows[LINHA_TOTAL][COL_DESPESA_NO_PERIODO].value = formata_valor(info['despesas_no_periodo_total'])
-    rows[LINHA_TOTAL][COL_SALDO_REPROGRAMADO_PROXIMO].value = formata_valor(valor_total)
+
+    #rows[LINHA_TOTAL][COL_SALDO_REPROGRAMADO_PROXIMO].value = formata_valor(valor_total)
+    rows[LINHA_TOTAL][COL_SALDO_REPROGRAMADO_PROXIMO].value = formata_valor(info['saldo_reprogramado_proximo_periodo_total'])
 
     rows[LINHA_TOTAL][COL_DEVOLUCAO_TESOURO].value = formata_valor(info['devolucoes_ao_tesouro_no_periodo_total'])
 
