@@ -177,6 +177,43 @@
     </article>
   {% endif %}
 
+  {% if dados.dados_ajustes_contas %}
+    <article class="mt-4">
+      <p class="font-14 border-bottom pb-3"><strong>{{ dados.blocos.acertos_contas }}</strong></p>
+      {% for ajuste_conta in dados.dados_ajustes_contas %}
+        <p class="titulo-conta font-12 pb-2">Conta {{ ajuste_conta.nome_conta }}</p>
+
+        <table class="table table-bordered tabela-resumo-por-acao">
+          <tbody>
+            <tr>
+                <td>
+                  <div class="row mt-2 mb-2">
+                    {% if ajuste_conta.data_extrato %}
+                      <div class="col-4">
+                          <strong><span class="text-saldo-reprogramado">Ajuste da data do extrato</span></strong>
+                          <br>
+                          <span class="font-9">{{ ajuste_conta.data_extrato|date:'d/m/Y' }}</span>
+                      </div>
+                    {% endif %}
+
+                    {% if ajuste_conta.saldo_extrato %}
+                      <div class="col-4">
+                          <strong><span class="text-saldo-reprogramado">Ajuste no saldo do extrato</span></strong>
+                          <br>
+                          <span class="font-9">R$ {{ ajuste_conta.saldo_extrato|formata_valor }}</span>
+                      </div>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+          </tbody>
+        </table>
+      {% endfor %}
+
+    </article>
+  {% endif %}
+
+
   {% if dados.dados_lancamentos %}
     <article class="mt-4">
       <p class="font-14 border-bottom pb-3"><strong>{{ dados.blocos.acertos_lancamentos }}</strong></p>
