@@ -362,6 +362,8 @@ def dados_fisicos_financeiros(worksheet, dre, periodo, tipo_conta, acc=0, start_
     total_demais_creditos_livre = 0
     total_saldo_livre = 0
 
+    total_devolucoes_ao_tesouro = 0
+
     informacao_unidades = informacoes_execucao_financeira_unidades(dre, periodo, tipo_conta)
     for linha, info in enumerate(informacao_unidades):
         if linha > 0:
@@ -440,25 +442,35 @@ def dados_fisicos_financeiros(worksheet, dre, periodo, tipo_conta, acc=0, start_
                 demais_creditos_livre = info.get("valores").get('demais_creditos_no_periodo_livre')
                 saldo_livre = info.get("valores").get('saldo_reprogramado_proximo_periodo_livre')
 
+                # Recupera o valor total de devoluções ao tesouro da associacao
+                devolucoes_ao_tesouro = info.get('valores').get('devolucoes_ao_tesouro_no_periodo_total')
+
                 row[3].value = formata_valor(saldo_reprogramado_anterior_livre)
                 row[4].value = formata_valor(repasse_livre)
                 row[5].value = formata_valor(receita_rendimento_livre)
                 row[6].value = formata_valor(devolucao_livre)
                 row[7].value = formata_valor(demais_creditos_livre)
                 row[9].value = formata_valor(saldo_livre)
+                row[10].value = formata_valor(devolucoes_ao_tesouro)
 
                 # total_saldo_reprogramado_anterior_custeio += saldo_reprogramado_anterior_livre
                 total_saldo_reprogramado_anterior_livre += saldo_reprogramado_anterior_livre
 
-                total_repasse_custeio += repasse_livre
+                # total_repasse_custeio += repasse_livre
+                total_repasse_livre += repasse_livre
+
                 total_receita_rendimento_livre += receita_rendimento_livre
-                total_devolucao_custeio += devolucao_livre
+
+                # total_devolucao_custeio += devolucao_livre
+                total_devolucao_livre += devolucao_livre
 
                 #total_demais_creditos_custeio += demais_creditos_livre
                 total_demais_creditos_livre += demais_creditos_livre
 
                 # total_saldo_custeio += saldo_livre
                 total_saldo_livre += saldo_livre
+
+                total_devolucoes_ao_tesouro += devolucoes_ao_tesouro
             lin += 1
 
     rows = list(worksheet.rows)
@@ -485,6 +497,8 @@ def dados_fisicos_financeiros(worksheet, dre, periodo, tipo_conta, acc=0, start_
     row[6].value = formata_valor(total_devolucao_livre)
     row[7].value = formata_valor(total_demais_creditos_livre)
     row[9].value = formata_valor(total_saldo_livre)
+
+    row[10].value = formata_valor(total_devolucoes_ao_tesouro)
 
     devolucoes_ao_tesouro = informacoes_devolucoes_ao_tesouro(dre, periodo, tipo_conta)
     for linha, devolucao in enumerate(devolucoes_ao_tesouro):
