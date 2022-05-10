@@ -215,6 +215,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(
     _processo_associacao_prestacao_conta,
     _analise_conta_prestacao_conta_2020_1,
     conta_associacao_cheque,
+    conta_associacao_cartao,
     devolucao_ao_tesouro,
     motivo_aprovacao_ressalva_x,
     relacao_bens_cheque,
@@ -325,6 +326,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(
         'devolucao_ao_tesouro': '100,00',
         'analises_de_conta_da_prestacao': [
             {
+                'analise_prestacao_conta': None,
                 'conta_associacao': {
                     'agencia': '67945',
                     'banco_nome': 'Banco do Inter',
@@ -348,6 +350,9 @@ def test_api_retrieve_prestacao_conta_por_uuid(
             'erro': '',
             'mensagem': 'O período atual da PC é igual ao periodo_inicial.proximo_periodo da associacao'
         },
+        'informacoes_conciliacao_ue': [{'conta_uuid': f'{prestacao_conta.associacao.observacoes_conciliacao_da_associacao.first().conta_associacao.uuid}',
+                                        'data_extrato': '2019-11-30',
+                                        'saldo_extrato': 1000.0}],
         'motivos_aprovacao_ressalva': [
             {
                 'uuid': f'{motivo_aprovacao_ressalva_x.uuid}',

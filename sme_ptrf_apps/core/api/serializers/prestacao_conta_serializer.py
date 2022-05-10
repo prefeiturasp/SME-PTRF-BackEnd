@@ -80,6 +80,12 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             model = AnalisePrestacaoConta
             fields = ('uuid', 'id', 'devolucao_prestacao_conta', 'status', 'criado_em')
 
+    class ConciliacaoBancariaSerializer(serializers.ModelSerializer):
+        class Meta:
+            from sme_ptrf_apps.core.models import ObservacaoConciliacao
+            model = ObservacaoConciliacao
+            fields = ('saldo_extrato')
+
     associacao = AssociacaoCompletoSerializer(many=False)
     periodo_uuid = serializers.SerializerMethodField('get_periodo_uuid')
     tecnico_responsavel = TecnicoResponsavelSerializer(many=False)
@@ -94,6 +100,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     analise_atual = AnalisePrestacaoContaSerializer(many=False)
     permite_analise_valores_reprogramados = serializers.SerializerMethodField()
     pode_reabrir = serializers.SerializerMethodField('get_pode_reabrir')
+    informacoes_conciliacao_ue = serializers.SerializerMethodField('get_conciliacao_bancaria_ue')
 
     def get_permite_analise_valores_reprogramados(self, obj):
 
@@ -187,6 +194,18 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
                 )
         return result
 
+    def get_conciliacao_bancaria_ue(self, prestacao_contas):
+        result = []
+
+        for conciliacao in prestacao_contas.associacao.observacoes_conciliacao_da_associacao.all():
+            result.append({
+                'conta_uuid': f'{conciliacao.conta_associacao.uuid}',
+                'data_extrato': conciliacao.data_extrato,
+                'saldo_extrato': conciliacao.saldo_extrato
+            })
+
+        return result
+
     def get_pode_reabrir(self, obj):
         return obj.pode_reabrir()
 
@@ -214,7 +233,8 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'analise_atual',
             'permite_analise_valores_reprogramados',
             'recomendacoes',
-            'pode_reabrir'
+            'pode_reabrir',
+            'informacoes_conciliacao_ue'
         )
 
 

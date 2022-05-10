@@ -12,7 +12,10 @@ class AnaliseContaPrestacaoConta(ModeloBase):
 
     data_extrato = models.DateField('data do extrato', blank=True, null=True)
 
-    saldo_extrato = models.DecimalField('saldo do extrato', max_digits=12, decimal_places=2, default=0)
+    saldo_extrato = models.DecimalField('saldo do extrato', max_digits=12, decimal_places=2, blank=True, null=True)
+
+    analise_prestacao_conta = models.ForeignKey('AnalisePrestacaoConta', on_delete=models.CASCADE,
+                                                related_name='analises_de_extratos', null=True, blank=True, default=None)
 
     def __str__(self):
         return f"{self.conta_associacao} - {self.data_extrato} - {self.saldo_extrato}"

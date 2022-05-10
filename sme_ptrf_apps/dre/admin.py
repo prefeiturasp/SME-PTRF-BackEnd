@@ -34,7 +34,7 @@ class GrupoVerificacaoRegularidadeAdmin(admin.ModelAdmin):
 
 @admin.register(ListaVerificacaoRegularidade)
 class ListaVerificacaoRegularidadeAdmin(admin.ModelAdmin):
-    list_display = ['titulo', 'grupo']
+    list_display = ['titulo', 'grupo', 'id']
     search_fields = ['titulo', ]
     readonly_fields = ['id', 'uuid']
     inlines = [
