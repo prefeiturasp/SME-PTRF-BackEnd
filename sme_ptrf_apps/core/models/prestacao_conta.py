@@ -226,7 +226,7 @@ class PrestacaoConta(ModeloBase):
         return self
 
     @transaction.atomic
-    def salvar_analise(self, analises_de_conta_da_prestacao, resultado_analise=None,
+    def salvar_analise(self, analises_de_conta_da_prestacao=None, resultado_analise=None,
                        motivos_aprovacao_ressalva=[], outros_motivos_aprovacao_ressalva='', motivos_reprovacao=[],
                        outros_motivos_reprovacao='', recomendacoes=''):
         from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
@@ -250,16 +250,6 @@ class PrestacaoConta(ModeloBase):
         self.recomendacoes = recomendacoes
 
         self.save()
-
-        self.analises_de_conta_da_prestacao.all().delete()
-        for analise in analises_de_conta_da_prestacao:
-            conta_associacao = ContaAssociacao.by_uuid(analise['conta_associacao'])
-            AnaliseContaPrestacaoConta.objects.create(
-                prestacao_conta=self,
-                conta_associacao=conta_associacao,
-                data_extrato=analise['data_extrato'],
-                saldo_extrato=analise['saldo_extrato']
-            )
 
         return self
 

@@ -49,13 +49,6 @@ def test_api_salva_analise_prestacao_conta(jwt_authenticated_client_a, prestacao
                                            tipo_devolucao_ao_tesouro, despesa):
     payload = {
         'devolucao_tesouro': True,
-        'analises_de_conta_da_prestacao': [
-            {
-                'conta_associacao': f'{conta_associacao.uuid}',
-                'data_extrato': '2020-07-01',
-                'saldo_extrato': 100.00,
-            },
-        ],
     }
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/salvar-analise/'
@@ -67,34 +60,6 @@ def test_api_salva_analise_prestacao_conta(jwt_authenticated_client_a, prestacao
     prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_em_analise.uuid)
     assert prestacao_atualizada.status == PrestacaoConta.STATUS_EM_ANALISE, 'Status deveria ter sido mantido.'
     assert prestacao_atualizada.data_ultima_analise == date(2020, 9, 1), 'Data de última análise não atualizada.'
-    assert prestacao_atualizada.analises_de_conta_da_prestacao.exists(), 'Não gravou a análise de conta'
-    assert prestacao_atualizada.analises_de_conta_da_prestacao.first().data_extrato == date(2020, 7,
-                                                                                            1), 'Não atualizou a data do extrato.'
-    assert prestacao_atualizada.analises_de_conta_da_prestacao.first().saldo_extrato == 100.00, 'Não atualizou a saldo do extrato.'
-
-
-def test_api_salvar_prestacao_conta_exige_analises_de_conta_da_prestacao(jwt_authenticated_client_a,
-                                                                         prestacao_conta_em_analise):
-    payload = {
-        'devolucao_tesouro': True,
-    }
-
-    url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/salvar-analise/'
-
-    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    result = json.loads(response.content)
-
-    result_esperado = {
-        'uuid': f'{prestacao_conta_em_analise.uuid}',
-        'erro': 'falta_de_informacoes',
-        'operacao': 'salvar-analise',
-        'mensagem': 'Faltou informar o campo analises_de_conta_da_prestacao.'
-    }
-
-    assert result == result_esperado, "Deveria ter retornado erro falta_de_informacoes."
 
 
 @pytest.fixture
