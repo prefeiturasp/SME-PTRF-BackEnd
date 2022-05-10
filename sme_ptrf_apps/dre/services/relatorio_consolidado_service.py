@@ -1,5 +1,4 @@
 import logging
-from decimal import Decimal
 
 from django.db.models import Count, Sum, F, Q
 
@@ -8,7 +7,6 @@ from sme_ptrf_apps.core.models import (
     FechamentoPeriodo,
     PrevisaoRepasseSme,
     DevolucaoAoTesouro,
-    Unidade
 )
 from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE
 from sme_ptrf_apps.receitas.models import Receita
