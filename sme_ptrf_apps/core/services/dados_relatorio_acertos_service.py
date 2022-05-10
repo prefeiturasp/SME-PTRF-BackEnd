@@ -35,6 +35,19 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
 
             dados_valores_reprogramados.append(dados)
 
+    dados_ajustes_contas = []
+    logger.info(f'Análise de PC {analise_prestacao_conta.id}')
+    for analise_conta in analise_prestacao_conta.analises_de_extratos.all():
+        logger.info(f'Análise de conta {analise_conta.id}')
+        if analise_conta.data_extrato or analise_conta.saldo_extrato:
+            dados = {
+                'nome_conta': analise_conta.conta_associacao.tipo_conta.nome,
+                'data_extrato': analise_conta.data_extrato,
+                'saldo_extrato': analise_conta.saldo_extrato,
+            }
+            logger.info(f'Ajuste em conta:{dados["nome_conta"]} data:{dados["data_extrato"]} saldo:{dados["saldo_extrato"]}')
+            dados_ajustes_contas.append(dados)
+
     dados_lancamentos = []
     for conta in analise_prestacao_conta.prestacao_conta.associacao.contas.all():
         lancamentos = lancamentos_da_prestacao(
@@ -68,17 +81,18 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
         'dados_associacao': dados_associacao,
         'versao_devolucao': "Rascunho" if previa else verifica_versao_devolucao(analise_prestacao_conta),
         'dados_valores_reprogramados': dados_valores_reprogramados,
+        'dados_ajustes_contas': dados_ajustes_contas,
         'dados_lancamentos': dados_lancamentos,
         'dados_documentos': dados_documentos,
         'dados_tecnico': dados_tecnico,
         'data_geracao_documento': data_geracao_documento,
-        'blocos': nome_blocos(dados_valores_reprogramados, dados_lancamentos, dados_documentos, dados_tecnico, previa)
+        'blocos': nome_blocos(dados_valores_reprogramados, dados_ajustes_contas, dados_lancamentos, dados_documentos, dados_tecnico, previa)
     }
 
     return dados
 
 
-def nome_blocos(dados_valores_reprogramados, dados_lancamentos, dados_documentos, dados_tecnico, previa):
+def nome_blocos(dados_valores_reprogramados, dados_ajustes_contas, dados_lancamentos, dados_documentos, dados_tecnico, previa):
     dados = {}
     numero_bloco = 1
 
@@ -87,6 +101,10 @@ def nome_blocos(dados_valores_reprogramados, dados_lancamentos, dados_documentos
     if dados_valores_reprogramados:
         numero_bloco = numero_bloco + 1
         dados[f'acertos_saldos'] = f'Bloco {numero_bloco} - Acertos nos saldos inicias reprogramados'
+
+    if dados_ajustes_contas:
+        numero_bloco = numero_bloco + 1
+        dados[f'acertos_contas'] = f'Bloco {numero_bloco} - Acertos nas informações de extrato bancário'
 
     if dados_lancamentos:
         numero_bloco = numero_bloco + 1
