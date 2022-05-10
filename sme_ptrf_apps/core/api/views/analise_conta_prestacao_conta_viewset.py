@@ -19,6 +19,54 @@ class AnaliseContaPrestacaoContaViewSet(viewsets.ModelViewSet):
     queryset = AnaliseContaPrestacaoConta.objects.all()
     serializer_class = AnaliseContaPrestacaoContaRetrieveSerializer
 
+    @action(detail=False, methods=['get'], url_path='get-ajustes-saldo-conta',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def get_ajustes_saldo_conta(self, request):
+
+        analise_prestacao_conta_uuid = request.query_params.get('analise_prestacao_conta')
+        prestacao_conta_uuid = request.query_params.get('prestacao_conta')
+
+        if not prestacao_conta_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da PC.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            prestacao_conta = PrestacaoConta.by_uuid(prestacao_conta_uuid)
+        except (PrestacaoConta.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto prestacao_conta para o uuid {prestacao_conta_uuid} não foi encontrado na base."
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        conta_associacao_uuid = self.request.query_params.get('conta_associacao')
+        if not conta_associacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da conta da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            conta_associacao = ContaAssociacao.objects.get(uuid=conta_associacao_uuid)
+        except (ContaAssociacao.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto conta-associação para o uuid {conta_associacao_uuid} não foi encontrado na base."
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        qs = AnaliseContaPrestacaoConta.objects.all()
+        qs = qs.filter(Q(conta_associacao__uuid=conta_associacao_uuid) & Q(
+            prestacao_conta__uuid=prestacao_conta_uuid))
+
+        result = AnaliseContaPrestacaoContaRetrieveSerializer(qs, many=True).data
+
+        return Response(result, status=status.HTTP_200_OK)
+
     @action(detail=False, url_path='salvar-ajustes-saldo-conta', methods=['post'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def salvar_ajustes_saldo_conta(self, request):

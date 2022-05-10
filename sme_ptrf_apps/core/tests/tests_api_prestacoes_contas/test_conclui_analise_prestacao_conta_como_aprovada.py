@@ -48,7 +48,4 @@ def test_api_conclui_analise_prestacao_conta_aprovada(jwt_authenticated_client_a
     prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_em_analise.uuid)
     assert prestacao_atualizada.status == PrestacaoConta.STATUS_APROVADA, 'Status deveria ter passado para APROVADA.'
     assert prestacao_atualizada.data_ultima_analise == date(2020, 9, 1), 'Data de última análise não atualizada.'
-    assert prestacao_atualizada.analises_de_conta_da_prestacao.exists(), 'Não gravou a análise de conta'
-    assert prestacao_atualizada.analises_de_conta_da_prestacao.first().data_extrato == date(2020, 7,
-                                                                                            1), 'Não atualizou a data do extrato.'
-    assert prestacao_atualizada.analises_de_conta_da_prestacao.first().saldo_extrato == 100.00, 'Não atualizou a saldo do extrato.'
+
