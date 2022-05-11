@@ -330,6 +330,36 @@ def informacoes_devolucoes_ao_tesouro(dre, periodo, tipo_conta):
                                   tipo_conta=tipo_conta)
 
 
+def get_status_label(status):
+
+    if status == 'APROVADA':
+        status_label = 'Aprovada'
+    elif status == 'APROVADA_RESSALVA':
+        status_label = 'Aprovada com ressalvas'
+    elif status == 'REPROVADA':
+        status_label = 'Reprovada'
+    elif status == 'NAO_RECEBIDA':
+        status_label = 'Não recebida'
+    elif status == 'RECEBIDA':
+        status_label = 'Recebida'
+    elif status == 'EM_ANALISE':
+        status_label = 'Em análise'
+    elif status == 'NAO_APRESENTADA':
+        status_label = 'Não apresentada'
+    elif status == 'DEVOLVIDA':
+        status_label = 'Devolvida para acertos'
+    elif status == 'DEVOLVIDA_RETORNADA':
+        status_label = 'Apresentada após acertos'
+    elif status == 'DEVOLVIDA_RECEBIDA':
+        status_label = 'Recebida após acertos'
+    elif status == 'EM_PROCESSAMENTO':
+        status_label = 'Em processamento'
+    else:
+        status_label = 'Sem status'
+
+    return status_label
+
+
 def informacoes_execucao_financeira_unidades(
     dre,
     periodo,
