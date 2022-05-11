@@ -92,7 +92,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     devolucoes_da_prestacao = DevolucaoPrestacaoContaRetrieveSerializer(many=True)
     processo_sei = serializers.SerializerMethodField('get_processo_sei')
     devolucao_ao_tesouro = serializers.SerializerMethodField('get_devolucao_ao_tesouro')
-    analises_de_conta_da_prestacao = AnaliseContaPrestacaoContaRetrieveSerializer(many=True)
+    analises_de_conta_da_prestacao = serializers.SerializerMethodField('get_ajustes_por_analise')
     devolucoes_ao_tesouro_da_prestacao = DevolucaoAoTesouroRetrieveSerializer(many=True)
     motivos_aprovacao_ressalva = MotivoAprovacaoRessalvaSerializer(many=True)
     motivos_reprovacao = MotivoReprovacaoSerializer(many=True)
@@ -208,6 +208,45 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
 
     def get_pode_reabrir(self, obj):
         return obj.pode_reabrir()
+
+    def get_ajustes_por_analise(self, prestacao_contas):
+        result = []
+
+        analise_atual = prestacao_contas.analise_atual
+        analises_de_contas = []
+
+        if analise_atual:
+            analises_de_contas = analise_atual.analises_de_extratos.all()
+        else:
+            if prestacao_contas.analises_da_prestacao.all():
+                ultima_analise = prestacao_contas.analises_da_prestacao.latest('id')
+                if ultima_analise:
+                    analises_de_contas = ultima_analise.analises_de_extratos.all()
+
+        for analise in analises_de_contas:
+            result.append(
+                {
+                    "uuid": f'{analise.uuid}',
+                    "prestacao_conta": f'{analise.prestacao_conta.uuid}',
+                    "conta_associacao": {
+                        "uuid": f'{analise.conta_associacao.uuid}',
+                        "tipo_conta": {
+                            "uuid": f'{analise.conta_associacao.tipo_conta.uuid}',
+                            "id": analise.conta_associacao.tipo_conta.id,
+                            "nome": analise.conta_associacao.tipo_conta.nome,
+                            "apenas_leitura": analise.conta_associacao.tipo_conta.apenas_leitura
+                        },
+                        "banco_nome": analise.conta_associacao.banco_nome,
+                        "agencia": analise.conta_associacao.agencia,
+                        "numero_conta": analise.conta_associacao.numero_conta
+                    },
+                    "data_extrato": analise.data_extrato,
+                    "saldo_extrato": analise.saldo_extrato,
+                    "analise_prestacao_conta": f'{analise.analise_prestacao_conta.uuid}'
+                }
+            )
+
+        return result
 
     class Meta:
         model = PrestacaoConta

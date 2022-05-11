@@ -338,16 +338,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def salvar_analise(self, request, uuid):
         prestacao_conta = self.get_object()
 
-        analises_de_conta_da_prestacao = request.data.get('analises_de_conta_da_prestacao', None)
-        if analises_de_conta_da_prestacao is None:
-            response = {
-                'uuid': f'{uuid}',
-                'erro': 'falta_de_informacoes',
-                'operacao': 'salvar-analise',
-                'mensagem': 'Faltou informar o campo analises_de_conta_da_prestacao.'
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
         if prestacao_conta.status != PrestacaoConta.STATUS_EM_ANALISE:
             response = {
                 'uuid': f'{uuid}',
@@ -358,7 +348,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        prestacao_salva = prestacao_conta.salvar_analise(analises_de_conta_da_prestacao=analises_de_conta_da_prestacao)
+        prestacao_salva = prestacao_conta.salvar_analise()
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
