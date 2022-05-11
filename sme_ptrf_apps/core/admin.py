@@ -329,13 +329,36 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
 
     get_referencia_periodo.short_description = 'Período'
 
+    def get_id_analise_prestacao_contas(self, obj):
+        return obj.analise_prestacao_conta.id if obj and obj.analise_prestacao_conta and obj.analise_prestacao_conta.id else ''
+
+    get_id_analise_prestacao_contas.short_description = 'Análise de Prestação de contas'
+
     list_display = (
-        'get_associacao', 'get_referencia_periodo', 'data_extrato', 'saldo_extrato')
-    list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
+        'get_associacao', 'get_referencia_periodo', 'data_extrato', 'saldo_extrato', 'get_id_analise_prestacao_contas')
+    list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta',
+                   'analise_prestacao_conta')
     list_display_links = ('get_associacao',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
+
+    actions = ['vincula_analise_prestacao_contas', ]
+
+    def vincula_analise_prestacao_contas(self, request, queryset):
+        for analise_conta in queryset.all():
+            # verifica se ja possui analise de pc
+            if not analise_conta.analise_prestacao_conta:
+                # verifica se existe alguma analise de pc para essa pc
+                if analise_conta.prestacao_conta.analises_da_prestacao.all():
+                    ultima_analise = analise_conta.prestacao_conta.analises_da_prestacao.latest('id')
+                    if ultima_analise:
+                        analise_conta.analise_prestacao_conta = ultima_analise
+                        analise_conta.save()
+
+        self.message_user(request, f"Vinculação Concluída.")
+
+    vincula_analise_prestacao_contas.short_description = "Víncular a ultima análise de prestação de contas"
 
 
 @admin.register(TipoDevolucaoAoTesouro)

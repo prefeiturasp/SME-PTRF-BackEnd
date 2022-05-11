@@ -61,7 +61,7 @@ class AnaliseContaPrestacaoContaViewSet(viewsets.ModelViewSet):
 
         qs = AnaliseContaPrestacaoConta.objects.all()
         qs = qs.filter(Q(conta_associacao__uuid=conta_associacao_uuid) & Q(
-            prestacao_conta__uuid=prestacao_conta_uuid))
+            prestacao_conta__uuid=prestacao_conta_uuid) & Q(analise_prestacao_conta__uuid=analise_prestacao_conta_uuid))
 
         result = AnaliseContaPrestacaoContaRetrieveSerializer(qs, many=True).data
 
