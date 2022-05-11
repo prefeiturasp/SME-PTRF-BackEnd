@@ -324,27 +324,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(
         'processo_sei': '123456',
         'data_ultima_analise': f'{prestacao_conta.data_ultima_analise}',
         'devolucao_ao_tesouro': '100,00',
-        'analises_de_conta_da_prestacao': [
-            {
-                'analise_prestacao_conta': None,
-                'conta_associacao': {
-                    'agencia': '67945',
-                    'banco_nome': 'Banco do Inter',
-                    'numero_conta': '935556-x',
-                    'tipo_conta': {
-                        'uuid': f'{conta_associacao_cheque.tipo_conta.uuid}',
-                        'id': conta_associacao_cheque.tipo_conta.id,
-                        'nome': 'Cheque',
-                        'apenas_leitura': False
-                    },
-                    'uuid': f'{_analise_conta_prestacao_conta_2020_1.conta_associacao.uuid}'
-                },
-                'data_extrato': '2020-07-01',
-                'prestacao_conta': f'{prestacao_conta.uuid}',
-                'saldo_extrato': '100.00',
-                'uuid': f'{_analise_conta_prestacao_conta_2020_1.uuid}',
-            }
-        ],
+        'analises_de_conta_da_prestacao': [],
         'permite_analise_valores_reprogramados': {
             'permite_analise': True,
             'erro': '',
