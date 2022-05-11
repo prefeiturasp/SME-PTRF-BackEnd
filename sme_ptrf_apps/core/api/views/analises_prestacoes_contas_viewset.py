@@ -16,7 +16,8 @@ from sme_ptrf_apps.users.permissoes import (
 
 from ...services import (
     lancamentos_da_prestacao,
-    ajustes_saldos_iniciais
+    ajustes_saldos_iniciais,
+    get_ajustes_extratos_bancarios
 )
 
 from django.http import HttpResponse
@@ -84,6 +85,43 @@ class AnalisesPrestacoesContasViewSet(
 
         result = ajustes_saldos_iniciais(uuid, conta_associacao_uuid)
         return Response(result, status=status.HTTP_200_OK)
+
+
+    @action(detail=True, methods=['get'], url_path='ajustes-extratos-bancarios',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def ajustes_em_extratos_bancarios(self, request, uuid):
+        try:
+            analise_prestacao = AnalisePrestacaoConta.by_uuid(uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao para o uuid {uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define a conta
+        conta_associacao_uuid = self.request.query_params.get('conta_associacao')
+        if not conta_associacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da conta da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            conta_associacao = ContaAssociacao.objects.get(uuid=conta_associacao_uuid)
+        except ContaAssociacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto conta-associação para o uuid {conta_associacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        result = get_ajustes_extratos_bancarios(analise_prestacao, conta_associacao)
+        return Response(result, status=status.HTTP_200_OK)
+
 
     @action(detail=True, methods=['get'], url_path='lancamentos-com-ajustes',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
