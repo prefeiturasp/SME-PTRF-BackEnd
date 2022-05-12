@@ -184,15 +184,15 @@ def test_api_geracao_previa_relatorio_objeto_nao_encontrado(jwt_authenticated_cl
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_gerar_relatorio_final(periodo, dre, tipo_conta):
-    gera_relatorio_dre(dre, periodo, tipo_conta)
-
-    assert RelatorioConsolidadoDRE.objects.exists()
-    assert RelatorioConsolidadoDRE.objects.first().status == RelatorioConsolidadoDRE.STATUS_GERADO_TOTAL
-
-
-def test_gerar_relatorio_parcial(periodo, dre, tipo_conta):
-    gera_relatorio_dre(dre, periodo, tipo_conta, True)
-
-    assert RelatorioConsolidadoDRE.objects.exists()
-    assert RelatorioConsolidadoDRE.objects.first().status == RelatorioConsolidadoDRE.STATUS_GERADO_PARCIAL
+# def test_gerar_relatorio_final(periodo, dre, tipo_conta):
+#     gera_relatorio_dre(dre, periodo, tipo_conta)
+#
+#     assert RelatorioConsolidadoDRE.objects.exists()
+#     assert RelatorioConsolidadoDRE.objects.first().status == RelatorioConsolidadoDRE.STATUS_GERADO_TOTAL
+#
+#
+# def test_gerar_relatorio_parcial(periodo, dre, tipo_conta):
+#     gera_relatorio_dre(dre, periodo, tipo_conta, True)
+#
+#     assert RelatorioConsolidadoDRE.objects.exists()
+#     assert RelatorioConsolidadoDRE.objects.first().status == RelatorioConsolidadoDRE.STATUS_GERADO_PARCIAL
