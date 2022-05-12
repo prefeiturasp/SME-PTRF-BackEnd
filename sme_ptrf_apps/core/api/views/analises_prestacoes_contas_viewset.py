@@ -122,6 +122,21 @@ class AnalisesPrestacoesContasViewSet(
         result = get_ajustes_extratos_bancarios(analise_prestacao, conta_associacao)
         return Response(result, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['get'], url_path='verifica-ajustes-extratos',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def verifica_se_tem_ajustes_extratos(self, request, uuid):
+        try:
+            analise_prestacao = AnalisePrestacaoConta.by_uuid(uuid)
+        except AnalisePrestacaoConta.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao para o uuid {uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        result = get_ajustes_extratos_bancarios(analise_prestacao)
+        return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], url_path='lancamentos-com-ajustes',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
