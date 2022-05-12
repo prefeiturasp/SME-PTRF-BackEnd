@@ -1,5 +1,4 @@
 import logging
-from decimal import Decimal
 
 from django.db.models import Count, Sum, F, Q
 
@@ -8,7 +7,6 @@ from sme_ptrf_apps.core.models import (
     FechamentoPeriodo,
     PrevisaoRepasseSme,
     DevolucaoAoTesouro,
-    Unidade
 )
 from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE
 from sme_ptrf_apps.receitas.models import Receita
@@ -332,6 +330,36 @@ def informacoes_devolucoes_ao_tesouro(dre, periodo, tipo_conta):
                                   tipo_conta=tipo_conta)
 
 
+def get_status_label(status):
+
+    if status == 'APROVADA':
+        status_label = 'Aprovada'
+    elif status == 'APROVADA_RESSALVA':
+        status_label = 'Aprovada com ressalvas'
+    elif status == 'REPROVADA':
+        status_label = 'Reprovada'
+    elif status == 'NAO_RECEBIDA':
+        status_label = 'Não recebida'
+    elif status == 'RECEBIDA':
+        status_label = 'Recebida'
+    elif status == 'EM_ANALISE':
+        status_label = 'Em análise'
+    elif status == 'NAO_APRESENTADA':
+        status_label = 'Não apresentada'
+    elif status == 'DEVOLVIDA':
+        status_label = 'Devolvida para acertos'
+    elif status == 'DEVOLVIDA_RETORNADA':
+        status_label = 'Apresentada após acertos'
+    elif status == 'DEVOLVIDA_RECEBIDA':
+        status_label = 'Recebida após acertos'
+    elif status == 'EM_PROCESSAMENTO':
+        status_label = 'Em processamento'
+    else:
+        status_label = 'Sem status'
+
+    return status_label
+
+
 def informacoes_execucao_financeira_unidades(
     dre,
     periodo,
@@ -575,6 +603,7 @@ def informacoes_execucao_financeira_unidades(
                 dado["motivos_reprovacao"] = get_teste_motivos_reprovacao(prestacao_conta)
             elif status_prestacao_conta == "APROVADA_RESSALVA":
                 dado["motivos_aprovada_ressalva"] = get_motivos_aprovacao_ressalva(prestacao_conta)
+                dado["recomendacoes"] = prestacao_conta.recomendacoes
 
             resultado.append(dado)
 

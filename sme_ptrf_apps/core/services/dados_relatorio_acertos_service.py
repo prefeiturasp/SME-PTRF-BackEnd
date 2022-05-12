@@ -19,7 +19,7 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
         'nome_associacao': analise_prestacao_conta.prestacao_conta.associacao.nome,
         'cnpj_associacao': analise_prestacao_conta.prestacao_conta.associacao.cnpj,
         'codigo_eol_associacao': analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol,
-        'nome_dre': analise_prestacao_conta.prestacao_conta.associacao.unidade.dre.nome,
+        'nome_dre': formata_nome_dre(analise_prestacao_conta.prestacao_conta.associacao),
         'data_devolucao_dre': analise_prestacao_conta.devolucao_prestacao_conta.data if analise_prestacao_conta.devolucao_prestacao_conta else "-",
         'prazo_devolucao_associacao': analise_prestacao_conta.devolucao_prestacao_conta.data_limite_ue if analise_prestacao_conta.devolucao_prestacao_conta else "-"
     }
@@ -125,7 +125,7 @@ def cria_data_geracao_documento(usuario, previa):
     data_geracao = date.today().strftime("%d/%m/%Y")
     tipo_texto = "rascunho" if previa else "final"
     quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}. "
-    texto = f"Documento {tipo_texto} gerado pelo Sig_Escola em {data_geracao} {quem_gerou}"
+    texto = f"Documento {tipo_texto} gerado pelo SIG-Escola em {data_geracao} {quem_gerou}"
 
     return texto
 
@@ -150,3 +150,16 @@ def formata_tecnico_dre(analise_prestacao_conta):
         return f"{tecnico.nome} - RF: {tecnico.rf}"
 
     return "-"
+
+
+def formata_nome_dre(associacao):
+    if associacao.unidade.dre:
+        nome_dre = associacao.unidade.dre.nome.upper()
+        if "DIRETORIA REGIONAL DE EDUCACAO" in nome_dre:
+            nome_dre = nome_dre.replace("DIRETORIA REGIONAL DE EDUCACAO", "")
+            nome_dre = nome_dre.strip()
+            return nome_dre
+        else:
+            return nome_dre
+    else:
+        return ""
