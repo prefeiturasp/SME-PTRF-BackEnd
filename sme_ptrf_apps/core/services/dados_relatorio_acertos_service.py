@@ -39,7 +39,7 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
     logger.info(f'Análise de PC {analise_prestacao_conta.id}')
     for analise_conta in analise_prestacao_conta.analises_de_extratos.all():
         logger.info(f'Análise de conta {analise_conta.id}')
-        if analise_conta.data_extrato or analise_conta.saldo_extrato:
+        if analise_conta.data_extrato or analise_conta.saldo_extrato is not None:
             dados = {
                 'nome_conta': analise_conta.conta_associacao.tipo_conta.nome,
                 'data_extrato': analise_conta.data_extrato,
