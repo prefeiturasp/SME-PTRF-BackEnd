@@ -238,7 +238,7 @@
                       </div>
                     {% endif %}
 
-                    {% if ajuste_conta.saldo_extrato %}
+                    {% if ajuste_conta.saldo_extrato is not None %}
                       <div class="col-4">
                           <strong class="font-12 ml-4"><span class="text-saldo-reprogramado">Ajuste no saldo do extrato</span></strong>
                           <br>
