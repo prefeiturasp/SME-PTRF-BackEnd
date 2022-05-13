@@ -211,7 +211,7 @@ def motivos_aprovacao_ressalva(uuid_pc):
             'nome': pc.associacao.unidade.nome,
         },
         "motivos": lista_motivos_e_outros,
-        "recomendacoes": 'teste'
+        "recomendacoes": pc.recomendacoes
     }
 
     return dados
