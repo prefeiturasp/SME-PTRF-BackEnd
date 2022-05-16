@@ -37,7 +37,7 @@ class TipoCusteioAdmin(admin.ModelAdmin):
 @admin.register(RateioDespesa)
 class RateioDespesaAdmin(admin.ModelAdmin):
     list_display = (
-    "uuid", 'numero_documento', 'associacao', 'acao', 'valor_rateio', 'quantidade_itens_capital', 'status', 'tag')
+    "uuid", 'numero_documento', 'associacao', 'acao', 'valor_rateio', 'quantidade_itens_capital', 'status',)
     search_fields = (
         'despesa__numero_documento', 'despesa__nome_fornecedor', 'especificacao_material_servico__descricao',
         'associacao__unidade__codigo_eol', 'associacao__unidade__nome',)
