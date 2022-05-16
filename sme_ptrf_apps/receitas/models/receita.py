@@ -6,6 +6,7 @@ from auditlog.registry import auditlog
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from django.db.models import Q
 
 from sme_ptrf_apps.core.models import Associacao, Periodo, Parametros
 from sme_ptrf_apps.despesas.models import Despesa, RateioDespesa
@@ -144,7 +145,7 @@ class Receita(ModeloBase):
         return dataset.all()
 
     @classmethod
-    def receitas_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None, acao_associacao=None):
+    def receitas_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None, acao_associacao=None, filtrar_por_data_inicio=None, filtrar_por_data_fim=None):
         if periodo.data_fim_realizacao_despesas:
             dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
                 data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas)).order_by('data')
@@ -157,6 +158,19 @@ class Receita(ModeloBase):
 
         if acao_associacao:
             dataset = dataset.filter(acao_associacao=acao_associacao).order_by('data')
+
+        if filtrar_por_data_inicio and filtrar_por_data_fim:
+            dataset = dataset.filter(data__range=[filtrar_por_data_inicio, filtrar_por_data_fim]).order_by('data')
+
+        elif filtrar_por_data_inicio and not filtrar_por_data_fim:
+            dataset = dataset.filter(
+                Q(data__gte=filtrar_por_data_inicio)
+            ).order_by('data')
+
+        elif not filtrar_por_data_inicio and filtrar_por_data_fim:
+            dataset = dataset.filter(
+                Q(data__lte=filtrar_por_data_fim)
+            ).order_by('data')
 
         return dataset.all()
 

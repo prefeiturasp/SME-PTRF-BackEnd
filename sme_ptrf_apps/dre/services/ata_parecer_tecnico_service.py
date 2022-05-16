@@ -82,16 +82,16 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
                 if not conta.nome == primeira_conta_encontrada.nome:
                     continue
 
-                teste = motivos_aprovacao_ressalva(info["uuid_pc"])
-                lista_motivos_aprovadas_ressalva.append(teste)
+                motivos = motivos_aprovacao_ressalva(info["uuid_pc"])
+                lista_motivos_aprovadas_ressalva.append(motivos)
             elif info["status_prestacao_contas"] == "REPROVADA":
                 # PCs com status de reprovada não necessitam de distinção por conta
                 if not conta.nome == primeira_conta_encontrada.nome:
                     continue
 
                 lista_reprovadas.append(info)
-                teste = motivos_reprovacao(info["uuid_pc"])
-                lista_motivos_reprovacao.append(teste)
+                motivos = motivos_reprovacao(info["uuid_pc"])
+                lista_motivos_reprovacao.append(motivos)
 
         if len(lista_aprovadas) > 0:
             dados_aprovadas = {
@@ -210,7 +210,8 @@ def motivos_aprovacao_ressalva(uuid_pc):
             'tipo_unidade': pc.associacao.unidade.tipo_unidade,
             'nome': pc.associacao.unidade.nome,
         },
-        "motivos": lista_motivos_e_outros
+        "motivos": lista_motivos_e_outros,
+        "recomendacoes": pc.recomendacoes
     }
 
     return dados

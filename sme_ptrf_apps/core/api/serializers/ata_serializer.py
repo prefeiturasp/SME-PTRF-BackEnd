@@ -21,7 +21,7 @@ class AtaLookUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ata
-        fields = ('uuid', 'nome', 'alterado_em')
+        fields = ('uuid', 'nome', 'alterado_em', "completa")
 
 
 class AtaSerializer(serializers.ModelSerializer):

@@ -603,6 +603,7 @@ def informacoes_execucao_financeira_unidades(
                 dado["motivos_reprovacao"] = get_teste_motivos_reprovacao(prestacao_conta)
             elif status_prestacao_conta == "APROVADA_RESSALVA":
                 dado["motivos_aprovada_ressalva"] = get_motivos_aprovacao_ressalva(prestacao_conta)
+                dado["recomendacoes"] = prestacao_conta.recomendacoes
 
             resultado.append(dado)
 

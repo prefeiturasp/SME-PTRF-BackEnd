@@ -255,11 +255,11 @@ def test_notificar(jwt_authenticated_client_a,
 
     result = json.loads(response.content)
     assert result == {"mensagem": "Processo de notificação enviado com sucesso."}
-    assert Notificacao.objects.count() == 3
+    assert Notificacao.objects.count() == 2
     assert Notificacao.objects.filter(
         usuario__username=usuario_presidente.username).first()
     assert Notificacao.objects.filter(
         usuario__username=usuario_vice_presidente.username).first()
-    assert Notificacao.objects.filter(
+    assert not Notificacao.objects.filter(
         usuario__username=usuario_apenas_com_permissao.username).first()
 
