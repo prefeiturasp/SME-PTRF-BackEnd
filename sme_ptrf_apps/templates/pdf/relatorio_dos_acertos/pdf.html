@@ -283,8 +283,8 @@
             </tr>
           </thead>
 
-          <tbody>
           {% for lancamento in conta.lancamentos %}
+            <tbody>
             <tr>
               <td class="fundo-cinza font-12">{{ forloop.counter }}</td>
               <td class="fundo-cinza font-12">{{ lancamento.data|date:'d/m/Y' }}</td>
@@ -372,8 +372,8 @@
                 {% endfor %}
               </td>
             </tr>
+            </tbody>
           {% endfor %}
-          </tbody>
         </table>
       {% endfor %}
 
@@ -396,8 +396,9 @@
             <th class="fundo-th-cinza font-10"><strong>Nome do documento</strong></th>
           </tr>
         </thead>
-        <tbody>
+
           {% for documento in dados.dados_documentos %}
+          <tbody>
             <tr>
               <td class="fundo-cinza font-12">{{ forloop.counter }}</td>
               <td class="fundo-cinza font-12">{{ documento.tipo_documento_prestacao_conta.nome }}</td>
@@ -426,15 +427,16 @@
               {% endfor %}
             </td>
           </tr>
+          </tbody>
           {% endfor %}
-        </tbody>
+
       </table>
     </article>
   {% endif %}
 
   {% if dados.versao_devolucao != "Rascunho" %}
     <article class="mt-4">
-      <table class="table table-bordered tabela-resumo-por-acao nao-quebra-linha">
+      <table class="table table-bordered tabela-resumo-por-acao">
         <thead class="">
           <tr class="">
             <th colSpan="1">
