@@ -5,9 +5,18 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.30.0
+Versão: 1.31.0
 
 ## Release Notes
+
+### 1.31.0 - 16/05/2022 - Entregas da Release 4b - Sprint 41
+* DRE > Novos filtros na confêrencia de lançamentos na análise de PC
+* DRE > Solicitação de ajustes de saldo bancário em análise de PC
+* DRE > Exibição de data da transação no estorno em análise de PC 
+* DRE > Exibição de informações de ajustes de saldo bancário em resumo de acertos
+* DRE > Melhorias no relatório de acertos em PDF
+* DRE > Melhorias na ata de parecer técnico em PDF
+* 🐞 Correção de bugs
 
 ### 1.30.0 - 02/05/2022 - Entregas da Release 4 - Sprint 40
 * UE > Melhorias no cadastro e edição de presentes da ata de prestação de contas
