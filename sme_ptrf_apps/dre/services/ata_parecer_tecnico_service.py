@@ -38,9 +38,12 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
 
     lista_contas_aprovadas = []  # PCs aprovadas precisam ser separadas por conta
     lista_contas_aprovadas_ressalva = []  # PCs aprovadas com ressalva precisam ser separadas por conta
+    lista_contas_reprovadas = []  # PCs reprovadas precisam ser separadas por conta
     lista_motivos_aprovadas_ressalva = []
     lista_motivos_reprovacao = []
-    lista_reprovadas = []  # PCs reprovadas não precisam ser separadas por conta
+
+    # lista utilizada para não duplicar contas reprovadas, remover ao refatorar
+    # lista_reprovadas = []  # PCs reprovadas não precisam ser separadas por conta
 
     cabecalho = {
         "titulo": "Programa de Transferência de Recursos Financeiros -  PTRF",
@@ -66,6 +69,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
     for conta in contas:
         lista_aprovadas = []  # Lista usada para separar por status aprovada
         lista_aprovadas_ressalva = []  # Lista usada para separar por status aprovada com ressalva
+        lista_reprovadas = []  # Lista usada para separar por status reprovada
 
         informacoes = informacoes_execucao_financeira_unidades(
             dre=dre,
@@ -85,13 +89,24 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
                 motivos = motivos_aprovacao_ressalva(info["uuid_pc"])
                 lista_motivos_aprovadas_ressalva.append(motivos)
             elif info["status_prestacao_contas"] == "REPROVADA":
-                # PCs com status de reprovada não necessitam de distinção por conta
+                lista_reprovadas.append(info)  # Separando por reprovadas
+
                 if not conta.nome == primeira_conta_encontrada.nome:
                     continue
 
-                lista_reprovadas.append(info)
                 motivos = motivos_reprovacao(info["uuid_pc"])
                 lista_motivos_reprovacao.append(motivos)
+
+                # Essa lógica estava sendo utilizada para não duplicar informações de contas reprovadas, pois não eram
+                # separadas por tipo de conta, agora serão separadas por tipo de conta, ao refatorar,
+                # remover essa logica
+                # PCs com status de reprovada não necessitam de distinção por conta
+                # if not conta.nome == primeira_conta_encontrada.nome:
+                #     continue
+                #
+                # lista_reprovadas.append(info)
+                # motivos = motivos_reprovacao(info["uuid_pc"])
+                # lista_motivos_reprovacao.append(motivos)
 
         if len(lista_aprovadas) > 0:
             dados_aprovadas = {
@@ -109,6 +124,14 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
             # Inserindo lista de PCs aprovadas com ressalva por conta
             lista_contas_aprovadas_ressalva.append(dados_aprovadas_ressalva)
 
+        if len(lista_reprovadas) > 0:
+            dados_reprovadas = {
+                "nome": f"{conta.nome}",
+                "info": lista_reprovadas
+            }
+            # Inserindo lista de PCs reprovadas com ressalva por conta
+            lista_contas_reprovadas.append(dados_reprovadas)
+
     dado = {
         "cabecalho": cabecalho,
         "dados_texto_da_ata": dados_texto_da_ata,
@@ -121,7 +144,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
             "motivos": lista_motivos_aprovadas_ressalva
         },
         "reprovadas": {
-            "info": lista_reprovadas,
+            "contas": lista_contas_reprovadas,
             "motivos": lista_motivos_reprovacao
         }
     }
