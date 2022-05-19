@@ -19,6 +19,26 @@ class ComentariosAnalisesPrestacoesViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filter_fields = ('prestacao_conta__uuid',)
 
+    def destroy(self, request, *args, **kwargs):
+        comentario = self.get_object()
+        if comentario.notificado:
+            erro = {
+                'erro': 'comentario_ja_notificado',
+                'mensagem': 'Comentários já notificados não podem mais ser editados ou removidos.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            self.perform_destroy(comentario)
+        except Exception as err:
+            erro = {
+                'erro': 'comentario_nao_excluido',
+                'mensagem': str(err)
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     @action(detail=False, url_path='comentarios', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def comentarios_nao_notificados_e_notificados(self, request):
@@ -41,10 +61,15 @@ class ComentariosAnalisesPrestacoesViewSet(viewsets.ModelViewSet):
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        comentarios_nao_notificados = ComentarioAnalisePrestacao.objects.filter(notificado=False,
-                                                                                prestacao_conta=prestacao_de_conta)
-        comentarios_notificados = ComentarioAnalisePrestacao.objects.filter(notificado=True,
-                                                                            prestacao_conta=prestacao_de_conta)
+        comentarios_nao_notificados = ComentarioAnalisePrestacao.objects.filter(
+            notificado=False,
+            prestacao_conta=prestacao_de_conta
+        )
+
+        comentarios_notificados = ComentarioAnalisePrestacao.objects.filter(
+            notificado=True,
+            prestacao_conta=prestacao_de_conta
+        ).order_by('-notificado_em')
 
         result = {
             'comentarios_nao_notificados': self.serializer_class(comentarios_nao_notificados, many=True).data,

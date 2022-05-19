@@ -29,9 +29,11 @@ class ComentarioAnalisePrestacao(ModeloBase):
             comentario.save()
 
     def set_comentario_notificado(self):
-        self.notificado = True
-        self.notificado_em = date.today()
-        self.save()
+
+        if not self.notificado:
+            self.notificado = True
+            self.notificado_em = date.today()
+            self.save()
 
     class Meta:
         verbose_name = "Observação de análise de prestação de contas"
