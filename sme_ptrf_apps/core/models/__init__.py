@@ -4,7 +4,6 @@ from .acao_associacao import AcaoAssociacao
 from .arquivo import Arquivo
 from .associacao import Associacao
 from .ata import Ata
-from .cobranca_prestacao_conta import CobrancaPrestacaoConta
 from .conta_associacao import ContaAssociacao
 from .demonstrativo_financeiro import DemonstrativoFinanceiro
 from .fechamento_periodo import STATUS_ABERTO, STATUS_FECHADO, STATUS_IMPLANTACAO, FechamentoPeriodo

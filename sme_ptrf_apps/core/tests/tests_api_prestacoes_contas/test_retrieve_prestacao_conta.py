@@ -65,17 +65,6 @@ def _devolucao_prestacao_conta(prestacao_conta):
 
 
 @pytest.fixture
-def _cobranca_prestacao_devolucao(prestacao_conta, _devolucao_prestacao_conta):
-    return baker.make(
-        'CobrancaPrestacaoConta',
-        prestacao_conta=prestacao_conta,
-        tipo='DEVOLUCAO',
-        data=date(2020, 7, 1),
-        devolucao_prestacao=_devolucao_prestacao_conta
-    )
-
-
-@pytest.fixture
 def _processo_associacao_prestacao_conta(associacao):
     return baker.make(
         'ProcessoAssociacao',
@@ -211,7 +200,6 @@ def test_api_retrieve_prestacao_conta_por_uuid(
     _prestacao_de_contas_com_analise_corrente,
     _atribuicao,
     _devolucao_prestacao_conta,
-    _cobranca_prestacao_devolucao,
     _processo_associacao_prestacao_conta,
     _analise_conta_prestacao_conta_2020_1,
     conta_associacao_cheque,
@@ -303,16 +291,6 @@ def test_api_retrieve_prestacao_conta_por_uuid(
         'data_recebimento_apos_acertos': '2020-10-01',
         'devolucoes_da_prestacao': [
             {
-                'cobrancas_da_devolucao': [
-                    {
-                        'data': '2020-07-01',
-                        'prestacao_conta': f'{prestacao_conta.uuid}',
-                        'tipo': 'DEVOLUCAO',
-                        'uuid': f'{_cobranca_prestacao_devolucao.uuid}',
-                        'associacao': f'{_cobranca_prestacao_devolucao.associacao.uuid}',
-                        'periodo': f'{_cobranca_prestacao_devolucao.periodo.uuid}',
-                    }
-                ],
                 'data': '2020-07-01',
                 'data_limite_ue': '2020-08-01',
                 'data_retorno_ue': None,

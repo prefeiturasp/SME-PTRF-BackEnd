@@ -65,8 +65,7 @@ def test_api_analise_prestacao_contas_list_devolucoes(
     result_esperado = [
         {
             'criado_em': analise_prestacao.criado_em.isoformat("T"),
-            'devolucao_prestacao_conta': {'cobrancas_da_devolucao': [],
-                                          'data': '2020-10-05',
+            'devolucao_prestacao_conta': {'data': '2020-10-05',
                                           'data_limite_ue': '2020-08-01',
                                           'data_retorno_ue': None,
                                           'prestacao_conta': f'{analise_prestacao.prestacao_conta.uuid}',
