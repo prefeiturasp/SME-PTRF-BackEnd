@@ -13,4 +13,4 @@ class ComentarioAnalisePrestacaoRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComentarioAnalisePrestacao
         order_by = 'ordem'
-        fields = ('uuid', 'prestacao_conta', 'ordem', 'comentario')
+        fields = ('uuid', 'prestacao_conta', 'ordem', 'comentario', 'notificado', 'notificado_em')

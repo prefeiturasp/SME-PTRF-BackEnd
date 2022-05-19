@@ -21,7 +21,6 @@ from .models import (
     TipoConta,
     Unidade,
     Notificacao,
-    CobrancaPrestacaoConta,
     DevolucaoPrestacaoConta,
     AnaliseContaPrestacaoConta,
     TipoDevolucaoAoTesouro,
@@ -272,28 +271,6 @@ class NotificacaoAdmin(admin.ModelAdmin):
     autocomplete_fields = ['unidade', 'prestacao_conta']
 
 
-@admin.register(CobrancaPrestacaoConta)
-class CobrancaPrestacaoContaAdmin(admin.ModelAdmin):
-
-    def get_associacao(self, obj):
-        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''
-
-    get_associacao.short_description = 'Associação'
-
-    def get_referencia_periodo(self, obj):
-        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
-
-    get_referencia_periodo.short_description = 'Período'
-
-    list_display = (
-        'get_associacao', 'get_referencia_periodo', 'data', 'tipo')
-    list_filter = ('tipo', 'prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
-    list_display_links = ('get_associacao',)
-    readonly_fields = ('uuid', 'id')
-    search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
-                     'prestacao_conta__associacao__nome')
-
-
 @admin.register(DevolucaoPrestacaoConta)
 class DevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
 
@@ -408,7 +385,7 @@ class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
     get_referencia_periodo.short_description = 'Período'
 
     list_display = (
-        'get_associacao', 'get_referencia_periodo', 'ordem', 'comentario')
+        'get_associacao', 'get_referencia_periodo', 'ordem', 'comentario', 'notificado_em')
     list_filter = (
         'prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
     list_display_links = ('get_associacao',)

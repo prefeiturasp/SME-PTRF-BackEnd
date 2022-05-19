@@ -30,6 +30,8 @@ def test_list_comentarios_analise_prestacao(client, prestacao_conta_2020_1_conci
             'prestacao_conta': f'{prestacao_conta_2020_1_conciliada.uuid}',
             'ordem': 1,
             'comentario': 'Teste',
+            'notificado': False,
+            'notificado_em': None,
         },
     ]
 
