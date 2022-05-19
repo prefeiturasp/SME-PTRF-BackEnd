@@ -1,3 +1,10 @@
+### 1.31.1 - 17/05/2022 - Hotfix em pre-produção - Ajustes em pre-produção da release 4b
+* (64921) -  Quebra de página entre blocos e exibição de linhas na vertical que não deveriam ser exibidas
+
+### 1.30.2 - 12/05/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 41
+* (63850) -  Demonstrativo financeiro: o cálculo do saldo reprogramado (campo 15) não considera a despesa realizada (campo 14) 
+* (64374) -  Uma notificação de comentário foi disparada para 367 usuários indevidamente 
+
 ### 1.30.1 - 09/05/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 41
 * (63533) -  Regularidade: as listas de verificação de regularidade não são ordenadas pelo id
 * (63574) -  Ata de retificação: Duplicação de devolução ao tesouro

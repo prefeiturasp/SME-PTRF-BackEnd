@@ -4,7 +4,7 @@ import copy
 from sme_ptrf_apps.core.services.dados_relatorio_acertos_service import (gerar_dados_relatorio_acertos)
 from sme_ptrf_apps.core.services.relatorio_acertos_pdf_service import (gerar_arquivo_relatorio_acertos_pdf)
 
-from sme_ptrf_apps.core.models import AnalisePrestacaoConta
+from sme_ptrf_apps.core.models import AnalisePrestacaoConta, AnaliseContaPrestacaoConta
 
 logger = logging.getLogger(__name__)
 
@@ -91,3 +91,14 @@ def _gerar_arquivos_relatorio_acertos(analise_prestacao_conta, previa, usuario="
     )
 
     gerar_arquivo_relatorio_acertos_pdf(dados_relatorio_acertos, analise_prestacao_conta)
+
+
+def get_ajustes_extratos_bancarios(analise_prestacao, conta_associacao=None):
+    from sme_ptrf_apps.core.api.serializers.analise_conta_prestacao_conta_serializer import AnaliseContaPrestacaoContaRetrieveSerializer
+
+    qs = analise_prestacao.analises_de_extratos
+
+    if conta_associacao:
+        qs = qs.filter(conta_associacao=conta_associacao).first()
+
+    return AnaliseContaPrestacaoContaRetrieveSerializer(qs, many=not conta_associacao).data if qs else None

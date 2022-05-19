@@ -74,6 +74,15 @@ def retorna_repasses_pendentes_periodos_ate_agora(associacao, periodo):
     return resultado
 
 
+def tem_repasses_pendentes_periodos_ate_agora(associacao, periodo):
+    repasses_pendentes = Repasse.objects.filter(
+        associacao=associacao,
+        periodo__referencia__lte=periodo.referencia,
+        status=StatusRepasse.PENDENTE.name
+    )
+    return repasses_pendentes.exists()
+
+
 def retorna_status_prestacoes(periodos=None, status_pc=None, uuid=None):
     lista_de_periodos = []
     if periodos:
