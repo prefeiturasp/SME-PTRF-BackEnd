@@ -53,3 +53,4 @@ from .associacoes_service import (
     retorna_repasses_pendentes_periodos_ate_agora,
     retorna_despesas_com_pagamento_antecipado_por_periodo
 )
+from .analise_prestacao_conta_service import get_ajustes_extratos_bancarios

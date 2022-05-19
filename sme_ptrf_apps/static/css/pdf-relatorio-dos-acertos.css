@@ -149,6 +149,12 @@ header {
   font-style: normal;
 }
 
+.font-10 {
+  font-size: 10px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
 .font-9 {
   font-size: 9px;
   font-family: Roboto, serif;
@@ -184,11 +190,27 @@ html body .conteudo .tabela-quebra-palavra{
   table-layout: fixed;
 }
 
+/*Resolve o Problema de quebrar a linha em 02 páginas!!*/
+html body .conteudo .nao-quebra-linha tbody tr {
+  break-after: avoid !important;
+}
+
 html body .conteudo .tabela-resumo-por-acao thead th, html body .conteudo .tabela-resumo-por-acao thead th.align-top, html body .conteudo .tabela-resumo-por-acao thead th.sem-borda, html body .conteudo .tabela-resumo-por-acao tbody td.total {
-  background-color: #F5F6F8 !important;
+  background-color: #FFF !important;
   font-weight: normal !important;
   vertical-align: middle;
 }
+
+html body .conteudo .tabela-resumo-por-acao thead th.fundo-verde {
+  background-color: #2B7D83 !important;
+  color: #FFFFFF !important;
+}
+
+html body .conteudo .tabela-resumo-por-acao thead th.fundo-th-cinza {
+  background-color: #F5F6F8 !important;
+  color: #000000 !important;
+}
+
 
 html body .conteudo .tabela-resumo-por-acao thead th.align-top {
   vertical-align: top;
@@ -203,7 +225,7 @@ html body .conteudo .tabela-resumo-por-acao tbody td.sem-borda {
 }
 
 html body .conteudo .tabela-resumo-por-acao tbody td.fundo-cinza {
-  background-color: #DADADA !important;
+  background-color: #EEEEEE !important;
 }
 
 html body .conteudo .tabela-resumo-por-acao tbody td {
@@ -219,10 +241,7 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
 }
 
 .item {
-  border-bottom-color: #00585e;
-  border-bottom-style: solid;
-  border-bottom-width: 1px;
-  color: #00585e;
+  color: #2B7D83;
 }
 
 #data-geracao-rodape {
@@ -232,4 +251,8 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
 
 .text-saldo-reprogramado {
   color: #2B7D83 !important
+}
+
+.titulo-bloco {
+  color: #2B7D83 !important;
 }

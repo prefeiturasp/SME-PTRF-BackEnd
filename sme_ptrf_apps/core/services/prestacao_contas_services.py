@@ -388,7 +388,6 @@ def lista_prestacoes_de_conta_todos_os_status(
 
 def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, prestacao=None, usuario="",
                                              previa=False, criar_arquivos=True):
-
     logger.info(f'Criando registro do demonstrativo financeiro da conta {conta_associacao}.')
     demonstrativo, _ = DemonstrativoFinanceiro.objects.update_or_create(
         conta_associacao=conta_associacao,
@@ -399,7 +398,8 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
     )
 
     try:
-        observacao_conciliacao = ObservacaoConciliacao.objects.get(periodo__uuid=periodo.uuid, conta_associacao__uuid=conta_associacao.uuid)
+        observacao_conciliacao = ObservacaoConciliacao.objects.get(periodo__uuid=periodo.uuid,
+                                                                   conta_associacao__uuid=conta_associacao.uuid)
     except Exception:
         observacao_conciliacao = None
 
@@ -431,7 +431,10 @@ def tem_solicitacao_acerto_do_tipo(analise_lancamento, tipo_acerto):
     return analise_lancamento.solicitacoes_de_ajuste_da_analise.filter(tipo_acerto=tipo_acerto).exists()
 
 
-def retorna_lancamentos_despesas_ordenadas_por_imposto(despesas, conta_associacao, analise_prestacao_conta, tipo_acerto, com_ajustes, prestacao_conta, DespesaDocumentoMestreSerializer, RateioDespesaConciliacaoSerializer, DespesaImpostoSerializer, AnaliseLancamentoPrestacaoContaRetrieveSerializer):
+def retorna_lancamentos_despesas_ordenadas_por_imposto(despesas, conta_associacao, analise_prestacao_conta, tipo_acerto,
+                                                       com_ajustes, prestacao_conta, DespesaDocumentoMestreSerializer,
+                                                       RateioDespesaConciliacaoSerializer, DespesaImpostoSerializer,
+                                                       AnaliseLancamentoPrestacaoContaRetrieveSerializer):
     # Iniciar a lista de lançamentos com a lista de despesas ordenada
     lancamentos = []
     for despesa in despesas:
@@ -477,7 +480,8 @@ def retorna_lancamentos_despesas_ordenadas_por_imposto(despesas, conta_associaca
                 'conferido': despesa.conferido,
                 'documento_mestre': DespesaDocumentoMestreSerializer(despesa, many=False).data,
                 'rateios': RateioDespesaConciliacaoSerializer(
-                    despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by('id'),
+                    despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by(
+                        'id'),
                     many=True).data,
                 'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
                 'analise_lancamento': {'resultado': analise_lancamento.resultado,
@@ -502,9 +506,11 @@ def retorna_lancamentos_despesas_ordenadas_por_imposto(despesas, conta_associaca
         if despesas_impostos:
             for despesa_imposto in despesas_impostos:
 
-                analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(despesa=despesa_imposto).first()
+                analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(
+                    despesa=despesa_imposto).first()
 
-                if analise_lancamento and tipo_acerto and not tem_solicitacao_acerto_do_tipo(analise_lancamento,tipo_acerto):
+                if analise_lancamento and tipo_acerto and not tem_solicitacao_acerto_do_tipo(analise_lancamento,
+                                                                                             tipo_acerto):
                     continue
 
                 if com_ajustes and (not analise_lancamento or analise_lancamento.resultado != 'AJUSTE'):
@@ -515,7 +521,8 @@ def retorna_lancamentos_despesas_ordenadas_por_imposto(despesas, conta_associaca
                 rateios = despesa_imposto.rateios.all()
 
                 for rateio in rateios:
-                    if rateio.conta_associacao == conta_associacao and str(despesa_imposto.uuid) not in existe_em_lancamentos and despesa_imposto.cadastro_completo():
+                    if rateio.conta_associacao == conta_associacao and str(
+                        despesa_imposto.uuid) not in existe_em_lancamentos and despesa_imposto.cadastro_completo():
 
                         lancamento = {
                             'periodo': f'{prestacao_conta.periodo.uuid}',
@@ -570,13 +577,29 @@ def lancamentos_da_prestacao(
     tipo_acerto=None,
     com_ajustes=False,
     ordenar_por_imposto=None,
+    numero_de_documento=None,
+    tipo_de_documento=None,
+    tipo_de_pagamento=None,
+    filtrar_por_data_inicio=None,
+    filtrar_por_data_fim=None,
 ):
-    from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaDocumentoMestreSerializer, DespesaImpostoSerializer
+    from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaDocumentoMestreSerializer, \
+        DespesaImpostoSerializer
     from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaConciliacaoSerializer
     from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
-    from sme_ptrf_apps.core.api.serializers.analise_lancamento_prestacao_conta_serializer import AnaliseLancamentoPrestacaoContaRetrieveSerializer
+    from sme_ptrf_apps.core.api.serializers.analise_lancamento_prestacao_conta_serializer import \
+        AnaliseLancamentoPrestacaoContaRetrieveSerializer
 
-    def documentos_de_despesa_por_conta_e_acao_no_periodo(conta_associacao, acao_associacao, periodo):
+    def documentos_de_despesa_por_conta_e_acao_no_periodo(
+        conta_associacao,
+        acao_associacao,
+        periodo,
+        numero_de_documento,
+        tipo_de_documento,
+        tipo_de_pagamento,
+        filtrar_por_data_inicio,
+        filtrar_por_data_fim,
+    ):
         rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
             conta_associacao=conta_associacao,
             acao_associacao=acao_associacao,
@@ -585,6 +608,32 @@ def lancamentos_da_prestacao(
         despesas_com_rateios = rateios.values_list('despesa__id', flat=True).distinct()
 
         dataset = Despesa.completas.filter(id__in=despesas_com_rateios)
+
+        if filtrar_por_data_inicio and filtrar_por_data_fim:
+            dataset = dataset.filter(data_transacao__range=[filtrar_por_data_inicio, filtrar_por_data_fim])
+
+        elif filtrar_por_data_inicio and not filtrar_por_data_fim:
+            dataset = dataset.filter(
+                Q(data_transacao__gte=filtrar_por_data_inicio)
+            )
+
+        elif not filtrar_por_data_inicio and filtrar_por_data_fim:
+            dataset = dataset.filter(
+                Q(data_transacao__lte=filtrar_por_data_fim)
+            )
+
+        if numero_de_documento:
+            dataset = dataset.filter(
+                Q(numero_documento__unaccent__icontains=numero_de_documento) |
+                Q(numero_documento__unaccent__istartswith=numero_de_documento) |
+                Q(numero_documento__unaccent__iendswith=numero_de_documento)
+            )
+
+        if tipo_de_documento:
+            dataset = dataset.filter(tipo_documento=tipo_de_documento)
+
+        if tipo_de_pagamento:
+            dataset = dataset.filter(tipo_transacao=tipo_de_pagamento)
 
         return dataset.all()
 
@@ -597,7 +646,9 @@ def lancamentos_da_prestacao(
         receitas = Receita.receitas_da_conta_associacao_no_periodo(
             conta_associacao=conta_associacao,
             acao_associacao=acao_associacao,
-            periodo=prestacao_conta.periodo
+            periodo=prestacao_conta.periodo,
+            filtrar_por_data_inicio=filtrar_por_data_inicio,
+            filtrar_por_data_fim=filtrar_por_data_fim,
         )
 
         receitas = receitas.order_by("data")
@@ -606,14 +657,20 @@ def lancamentos_da_prestacao(
         despesas = documentos_de_despesa_por_conta_e_acao_no_periodo(
             conta_associacao=conta_associacao,
             acao_associacao=acao_associacao,
-            periodo=prestacao_conta.periodo
+            periodo=prestacao_conta.periodo,
+            numero_de_documento=numero_de_documento,
+            tipo_de_documento=tipo_de_documento,
+            tipo_de_pagamento=tipo_de_pagamento,
+            filtrar_por_data_inicio=filtrar_por_data_inicio,
+            filtrar_por_data_fim=filtrar_por_data_fim,
         )
+
+        despesas = despesas.order_by("data_transacao")
 
     lancamentos = []
 
     if ordenar_por_imposto != 'true':
         # Iniciar a lista de lançamentos com a lista de despesas ordenada
-        despesas = despesas.order_by("data_transacao")
         for despesa in despesas:
 
             max_notificar_dias_nao_conferido = 0
@@ -623,7 +680,8 @@ def lancamentos_da_prestacao(
 
             analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(despesa=despesa).first()
 
-            if analise_lancamento and tipo_acerto and not tem_solicitacao_acerto_do_tipo(analise_lancamento, tipo_acerto):
+            if analise_lancamento and tipo_acerto and not tem_solicitacao_acerto_do_tipo(analise_lancamento,
+                                                                                         tipo_acerto):
                 continue
 
             if com_ajustes and (not analise_lancamento or analise_lancamento.resultado != 'AJUSTE'):
@@ -650,7 +708,8 @@ def lancamentos_da_prestacao(
                 'conferido': despesa.conferido,
                 'documento_mestre': DespesaDocumentoMestreSerializer(despesa, many=False).data,
                 'rateios': RateioDespesaConciliacaoSerializer(
-                    despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by('id'),
+                    despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by(
+                        'id'),
                     many=True).data,
                 'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
                 'analise_lancamento': {'resultado': analise_lancamento.resultado,
@@ -724,7 +783,8 @@ def lancamentos_da_prestacao(
     if ordenar_por_imposto == 'true':
         despesas = despesas.annotate(c=Count('despesas_impostos'), c2=Count('despesa_geradora'),
                                      c3=Max('data_transacao')).order_by('-c', 'c3', '-c2')
-        lancamentos_ordenadas_por_imposto = retorna_lancamentos_despesas_ordenadas_por_imposto(despesas, conta_associacao,
+        lancamentos_ordenadas_por_imposto = retorna_lancamentos_despesas_ordenadas_por_imposto(despesas,
+                                                                                               conta_associacao,
                                                                                                analise_prestacao_conta,
                                                                                                tipo_acerto, com_ajustes,
                                                                                                prestacao_conta,
@@ -771,7 +831,8 @@ def marca_lancamentos_como_corretos(analise_prestacao, lancamentos_corretos):
 
 def marca_lancamentos_como_nao_conferidos(analise_prestacao, lancamentos_nao_conferidos):
     def marca_credito_nao_conferido(credito_uuid):
-        logging.info(f'Apagando analise de lançamento do crédito {credito_uuid} na análise de PC {analise_prestacao.uuid}.')
+        logging.info(
+            f'Apagando analise de lançamento do crédito {credito_uuid} na análise de PC {analise_prestacao.uuid}.')
         analise_prestacao.analises_de_lancamentos.filter(receita__uuid=credito_uuid).delete()
 
     def marca_gasto_nao_conferido(gasto_uuid):
@@ -884,7 +945,8 @@ def __atualiza_analise_lancamento_para_acerto(analise_lancamento):
 
 def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes_acerto):
     atualizacao_em_lote = len(lancamentos) > 1
-    logging.info(f'Criando solicitações de acerto na análise de PC {analise_prestacao.uuid}. em_lote={atualizacao_em_lote}')
+    logging.info(
+        f'Criando solicitações de acerto na análise de PC {analise_prestacao.uuid}. em_lote={atualizacao_em_lote}')
 
     for lancamento in lancamentos:
 
@@ -972,7 +1034,8 @@ def marca_documentos_como_corretos(analise_prestacao, documentos_corretos):
 
 def marca_documentos_como_nao_conferidos(analise_prestacao, documentos_nao_conferidos):
     def marca_documento_nao_conferido(tipo_documento_uuid, conta_associacao_uuid=None):
-        logging.info(f'Apagando analise de documento {tipo_documento_uuid} conta {conta_associacao_uuid} na análise de PC {analise_prestacao.uuid}.')
+        logging.info(
+            f'Apagando analise de documento {tipo_documento_uuid} conta {conta_associacao_uuid} na análise de PC {analise_prestacao.uuid}.')
         analise_prestacao.analises_de_documento.filter(
             tipo_documento_prestacao_conta__uuid=tipo_documento_uuid,
             conta_associacao__uuid=conta_associacao_uuid
@@ -987,7 +1050,6 @@ def marca_documentos_como_nao_conferidos(analise_prestacao, documentos_nao_confe
 
 
 def solicita_acertos_de_documentos(analise_prestacao, documentos, solicitacoes_acerto):
-
     def apaga_solicitacoes_acerto_documento(_analise_documento):
         logging.info(
             f'Apagando solicitações de ajustes existentes para a análise de documento {analise_documento.uuid}.')
@@ -1051,8 +1113,9 @@ def solicita_acertos_de_documentos(analise_prestacao, documentos, solicitacoes_a
 def ajustes_saldos_iniciais(analise_prestacao_uuid, conta_associacao_uuid=None):
     if conta_associacao_uuid:
         qs = AnaliseValorReprogramadoPrestacaoConta.objects.all()
-        qs = qs.filter(valor_saldo_reprogramado_correto=False).filter(Q(analise_prestacao_conta__uuid=analise_prestacao_uuid) & Q(
-            conta_associacao__uuid=conta_associacao_uuid))
+        qs = qs.filter(valor_saldo_reprogramado_correto=False).filter(
+            Q(analise_prestacao_conta__uuid=analise_prestacao_uuid) & Q(
+                conta_associacao__uuid=conta_associacao_uuid))
 
         result = AjustesSaldosIniciaisSerializer(qs, many=True).data
         return result

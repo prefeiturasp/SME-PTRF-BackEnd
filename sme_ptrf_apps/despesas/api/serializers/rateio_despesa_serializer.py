@@ -214,6 +214,7 @@ class RateioDespesaEstornoLookupSerializer(serializers.ModelSerializer):
         queryset=Despesa.objects.all()
     )
     data_documento = serializers.SerializerMethodField(method_name="get_data_documento")
+    data_transacao = serializers.SerializerMethodField(method_name="get_data_transacao")
     associacao = AssociacaoSerializer()
     conta_associacao = ContaAssociacaoSerializer()
     acao_associacao = AcaoAssociacaoSerializer()
@@ -226,6 +227,9 @@ class RateioDespesaEstornoLookupSerializer(serializers.ModelSerializer):
 
     def get_data_documento(self, rateio):
         return rateio.despesa.data_documento if rateio.despesa else None
+
+    def get_data_transacao(self, rateio):
+        return rateio.despesa.data_transacao if rateio.despesa else None
 
     class Meta:
         model = RateioDespesa
