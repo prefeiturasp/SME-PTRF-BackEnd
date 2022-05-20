@@ -63,7 +63,6 @@ def test_get_ultima_analise_pc(jwt_authenticated_client_a, analise_prestacao_con
                 'data': '2020-10-05',
                 'data_limite_ue': '2020-08-01',
                 'data_retorno_ue': None,
-                'cobrancas_da_devolucao': []
             },
             'status': 'DEVOLVIDA',
             'criado_em': analise_prestacao.criado_em.isoformat("T"),

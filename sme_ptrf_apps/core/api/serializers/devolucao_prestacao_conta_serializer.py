@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from ...models import PrestacaoConta, DevolucaoPrestacaoConta
-from ...api.serializers import CobrancaPrestacaoContaListSerializer
 
 
 class DevolucaoPrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
@@ -11,9 +10,7 @@ class DevolucaoPrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
         queryset=PrestacaoConta.objects.all()
     )
 
-    cobrancas_da_devolucao = CobrancaPrestacaoContaListSerializer(many=True)
-
     class Meta:
         model = DevolucaoPrestacaoConta
         order_by = 'id'
-        fields = ('uuid', 'prestacao_conta', 'data', 'data_limite_ue', 'cobrancas_da_devolucao', 'data_retorno_ue')
+        fields = ('uuid', 'prestacao_conta', 'data', 'data_limite_ue', 'data_retorno_ue')
