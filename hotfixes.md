@@ -1,3 +1,6 @@
+### 1.31.2 - 23/05/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 42 
+* (62205) -  Lauda: os valores exibidos não estão corretos 
+
 ### 1.31.1 - 17/05/2022 - Hotfix em pre-produção - Ajustes em pre-produção da release 4b
 * (64921) -  Quebra de página entre blocos e exibição de linhas na vertical que não deveriam ser exibidas
 
