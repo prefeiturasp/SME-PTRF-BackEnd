@@ -57,57 +57,71 @@ def gerar_txt(dre, periodo, tipo_conta, obj_arquivo_download, ata, parcial=False
                 f"público o Parecer Técnico Conclusivo da Comissão de Prestação de Contas do PTRF da DRE " \
                 f"{formata_nome_dre(dre, capitalize=True)}, expedido através da ata nº {formata_numero_ata(ata)}, " \
                 f"relativo à prestação de contas do Programa de Transferência de Recursos Financeiros - PTRF " \
-                f"{formata_periodo_repasse(ata)}: \n"
-
-        ng_aprovadas = " ((NG)) Prestações de contas aprovadas((CL)) \n" \
-                       "ORDEM	CÓD EOL	UNIDADE	RECEITA	DESPESAS	SALDO 	" \
-                       "CUSTEIO	LIVRE APLIC.	CAPITAL	" \
-                       "CUSTEIO	CAPITAL	" \
-                       "CUSTEIO	LIVRE APLIC.	CAPITAL\n"
+                f"{formata_periodo_repasse(ata)}:\n\n"
 
         linhas.append(titulo)
         linhas.append(texto)
-        linhas.append(ng_aprovadas)
 
-        for status in status_separados["aprovadas"]:
-            linha = f"{status['ordem']} {status['codigo_eol']} {status['unidade']}" \
-                    f"{status['receita']['total']}  {status['despesa']['total']}  {status['saldo']['total']} " \
-                    f"{status['receita']['custeio']} {status['receita']['livre_aplicacao']} {status['receita']['capital']} " \
-                    f"{status['despesa']['custeio']} {status['despesa']['capital']} " \
-                    f"{status['saldo']['custeio']} {status['saldo']['livre_aplicacao']} {status['saldo']['capital']}\n"
-            linhas.append(linha)
+        if len(status_separados["aprovadas"]) > 0:
+            # Atenção para não mudar a formatação da string
+            ng_aprovadas = "((NG)) Prestações de contas aprovadas((CL))\n" \
+                           "				RECEITA		DESPESAS			SALDO	\n" \
+                           "ORDEM	CÓD EOL	UNIDADE	" \
+                           "CUSTEIO	LIVRE APLIC.	CAPITAL	" \
+                           "CUSTEIO	CAPITAL	" \
+                           "CUSTEIO	LIVRE APLIC.	CAPITAL\n"
 
-        ng_aprovadas_ressalva = " ((NG)) Prestações de contas aprovadas com ressalva((CL)) \n" \
-                                "ORDEM	CÓD EOL	UNIDADE	RECEITA	DESPESAS	SALDO 	" \
-                                "CUSTEIO	LIVRE APLIC.	CAPITAL	" \
-                                "CUSTEIO	CAPITAL	" \
-                                "CUSTEIO	LIVRE APLIC.	CAPITAL\n"
+            linhas.append(ng_aprovadas)
 
-        linhas.append(ng_aprovadas_ressalva)
+            for status in status_separados["aprovadas"]:
+                # Atenção para não mudar a formatação da string
+                linha = f"{status['ordem']}	{status['codigo_eol']}	{status['unidade']}	" \
+                        f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
+                        f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
+                        f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
+                linhas.append(linha)
 
-        for status in status_separados["aprovadas_ressalva"]:
-            linha = f"{status['ordem']} {status['codigo_eol']} {status['unidade']}" \
-                    f"{status['receita']['total']}  {status['despesa']['total']}  {status['saldo']['total']} " \
-                    f"{status['receita']['custeio']} {status['receita']['livre_aplicacao']} {status['receita']['capital']} " \
-                    f"{status['despesa']['custeio']} {status['despesa']['capital']} " \
-                    f"{status['saldo']['custeio']} {status['saldo']['livre_aplicacao']} {status['saldo']['capital']}\n"
-            linhas.append(linha)
+            linhas.append("\n")
 
-        ng_rejeitadas = " ((NG)) Prestações de contas rejeitadas((CL)) \n" \
-                        "ORDEM	CÓD EOL	UNIDADE	RECEITA	DESPESAS	SALDO 	" \
-                        "CUSTEIO	LIVRE APLIC.	CAPITAL	" \
-                        "CUSTEIO	CAPITAL	" \
-                        "CUSTEIO	LIVRE APLIC.	CAPITAL\n"
+        if len(status_separados["aprovadas_ressalva"]) > 0:
+            # Atenção para não mudar a formatação da string
+            ng_aprovadas_ressalva = "((NG)) Prestações de contas aprovadas com ressalva((CL))\n" \
+                                    "				RECEITA		DESPESAS			SALDO	\n" \
+                                    "ORDEM	CÓD EOL	UNIDADE	" \
+                                    "CUSTEIO	LIVRE APLIC.	CAPITAL	" \
+                                    "CUSTEIO	CAPITAL	" \
+                                    "CUSTEIO	LIVRE APLIC.	CAPITAL\n"
 
-        linhas.append(ng_rejeitadas)
+            linhas.append(ng_aprovadas_ressalva)
 
-        for status in status_separados["rejeitadas"]:
-            linha = f"{status['ordem']} {status['codigo_eol']} {status['unidade']}" \
-                    f"{status['receita']['total']}  {status['despesa']['total']}  {status['saldo']['total']} " \
-                    f"{status['receita']['custeio']} {status['receita']['livre_aplicacao']} {status['receita']['capital']} " \
-                    f"{status['despesa']['custeio']} {status['despesa']['capital']} " \
-                    f"{status['saldo']['custeio']} {status['saldo']['livre_aplicacao']} {status['saldo']['capital']}\n"
-            linhas.append(linha)
+            for status in status_separados["aprovadas_ressalva"]:
+                # Atenção para não mudar a formatação da string
+                linha = f"{status['ordem']}	{status['codigo_eol']}	{status['unidade']}	" \
+                        f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
+                        f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
+                        f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
+                linhas.append(linha)
+
+            linhas.append("\n")
+
+        if len(status_separados["rejeitadas"]) > 0:
+            # Atenção para não mudar a formatação da string
+            ng_rejeitadas = "((NG)) Prestações de contas rejeitadas((CL))\n" \
+                            "				RECEITA		DESPESAS			SALDO	\n" \
+                            "ORDEM	CÓD EOL	UNIDADE	" \
+                            "CUSTEIO	LIVRE APLIC.	CAPITAL	" \
+                            "CUSTEIO	CAPITAL	" \
+                            "CUSTEIO	LIVRE APLIC.	CAPITAL\n"
+
+            linhas.append(ng_rejeitadas)
+
+            for status in status_separados["rejeitadas"]:
+                # Atenção para não mudar a formatação da string
+                linha = f"{status['ordem']}	{status['codigo_eol']}	{status['unidade']}	" \
+                        f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
+                        f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
+                        f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
+                linhas.append(linha)
 
         tmp.file.writelines(linhas)
 
@@ -133,10 +147,6 @@ def gerar_dados_lauda(dre, periodo, tipo_conta):
         if pc_em_analise(info["status_prestacao_contas"]):
             continue
 
-        saldo_custeio = formata_valor(0)
-        saldo_capital = formata_valor(0)
-        saldo_livre = formata_valor(0)
-
         unidade = info["unidade"]["tipo_unidade"] + " " + info["unidade"]["nome"]
 
         dado = {
@@ -144,18 +154,15 @@ def gerar_dados_lauda(dre, periodo, tipo_conta):
             "codigo_eol": str(info["unidade"]["codigo_eol"]),
             "unidade": str(unidade),
             "receita": {
-                "total": formata_valor(info["valores"]["receitas_totais_no_periodo_total"]),
                 "custeio": formata_valor(0),
                 "capital": formata_valor(0),
                 "livre_aplicacao": formata_valor(0)
             },
             "despesa": {
-                "total": formata_valor(info["valores"]["despesas_no_periodo_total"]),
                 "custeio": formata_valor(0),
                 "capital": formata_valor(0),
             },
             "saldo": {
-                "total": formata_valor(info["valores"]["saldo_reprogramado_proximo_periodo_total"]),
                 "custeio": formata_valor(0),
                 "capital": formata_valor(0),
                 "livre_aplicacao": formata_valor(0)
@@ -179,62 +186,45 @@ def gerar_dados_lauda(dre, periodo, tipo_conta):
 
                 # Receita
                 repasse_custeio = info.get("valores").get('repasses_no_periodo_custeio')
-                devolucao_custeio = info.get("valores").get('receitas_devolucao_no_periodo_custeio')
-                demais_creditos_custeio = info.get("valores").get('demais_creditos_no_periodo_custeio')
-
-                dado["receita"]["custeio"] = formata_valor(repasse_custeio + devolucao_custeio + demais_creditos_custeio)
+                dado["receita"]["custeio"] = formata_valor(repasse_custeio)
 
                 # Despesa
                 despesas_custeio = info.get("valores").get('despesas_no_periodo_custeio')
-
                 dado["despesa"]["custeio"] = formata_valor(despesas_custeio)
 
                 # Saldo
-                saldo_reprogramado_anterior_custeio = info.get("valores").get(
-                    'saldo_reprogramado_periodo_anterior_custeio')
-                saldo_custeio = saldo_reprogramado_anterior_custeio + repasse_custeio + devolucao_custeio + \
-                                demais_creditos_custeio + despesas_custeio
-
-                dado["saldo"]["custeio"] = formata_valor(saldo_custeio)
+                saldo_reprogramado_proximo_periodo_custeio = info.get("valores").get(
+                    'saldo_reprogramado_proximo_periodo_custeio')
+                dado["saldo"]["custeio"] = formata_valor(saldo_reprogramado_proximo_periodo_custeio)
             elif index == 1:
                 # CAPITAL
 
                 # Receita
                 repasse_capital = info.get("valores").get('repasses_no_periodo_capital')
-                devolucao_capital = info.get("valores").get('receitas_devolucao_no_periodo_capital')
-                demais_creditos_capital = info.get("valores").get('demais_creditos_no_periodo_capital')
-
-                dado["receita"]["capital"] = formata_valor(repasse_capital + devolucao_capital + demais_creditos_capital)
+                dado["receita"]["capital"] = formata_valor(repasse_capital)
 
                 # Despesa
                 despesas_capital = info.get("valores").get('despesas_no_periodo_capital')
                 dado["despesa"]["capital"] = formata_valor(despesas_capital)
 
                 # Saldo
-                saldo_reprogramado_anterior_capital = info.get("valores").get(
-                    'saldo_reprogramado_periodo_anterior_capital')
-                saldo_capital = saldo_reprogramado_anterior_capital + repasse_capital + devolucao_capital + \
-                                demais_creditos_capital + despesas_capital
-
-                dado["saldo"]["capital"] = formata_valor(saldo_capital)
+                saldo_reprogramado_proximo_periodo_capital = info.get("valores").get(
+                    'saldo_reprogramado_proximo_periodo_capital')
+                dado["saldo"]["capital"] = formata_valor(saldo_reprogramado_proximo_periodo_capital)
             else:
                 # LIVRE APLICACAO
 
                 # Receita
                 repasse_livre = info.get("valores").get('repasses_no_periodo_livre')
-                receita_rendimento_livre = info.get("valores").get('receitas_rendimento_no_periodo_livre')
-                devolucao_livre = info.get("valores").get('receitas_devolucao_no_periodo_livre')
-                demais_creditos_livre = info.get("valores").get('demais_creditos_no_periodo_livre')
+                dado["receita"]["livre_aplicacao"] = formata_valor(repasse_livre)
 
-                dado["receita"]["livre_aplicacao"] = formata_valor(repasse_livre + receita_rendimento_livre + devolucao_livre + \
-                                                     demais_creditos_livre)
+                # Despesa
+                # Despesa não possui livre aplicação
 
                 # Saldo
-                saldo_reprogramado_anterior_livre = info.get("valores").get('saldo_reprogramado_periodo_anterior_livre')
-                saldo_livre = saldo_reprogramado_anterior_livre + repasse_livre + devolucao_livre + \
-                              demais_creditos_livre + receita_rendimento_livre
-
-                dado["saldo"]["livre_aplicacao"] = formata_valor(saldo_livre)
+                saldo_reprogramado_proximo_periodo_livre = info.get("valores").get(
+                    'saldo_reprogramado_proximo_periodo_livre')
+                dado["saldo"]["livre_aplicacao"] = formata_valor(saldo_reprogramado_proximo_periodo_livre)
 
         lista.append(dado)
 
