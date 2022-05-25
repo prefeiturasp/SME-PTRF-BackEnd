@@ -1,3 +1,6 @@
+### 1.31.3 - 25/05/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 42 
+* (64877) -  Prestação de contas em processamento - EMEF Maria Aparecida Rodrigues Cintra
+
 ### 1.31.2 - 23/05/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 42 
 * (62205) -  Lauda: os valores exibidos não estão corretos 
 
