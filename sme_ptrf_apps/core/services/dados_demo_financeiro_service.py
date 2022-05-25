@@ -678,7 +678,7 @@ def cria_despesas(rateios):
         """
         Se o tipo de transação for cheque, deve ser exibido o número do cheque, caso contrário o tipo de transação.
         """
-        tipo_transacao = rateio.despesa.tipo_transacao.nome
+        tipo_transacao = rateio.despesa.tipo_transacao.nome if rateio and rateio.despesa and rateio.despesa.tipo_transacao and rateio.despesa.tipo_transacao.nome else ""
         if "CHEQUE" in tipo_transacao.upper():
             tipo_transacao = f"Ch-{rateio.despesa.documento_transacao}"
 
