@@ -1,8 +1,13 @@
 import logging
+from functools import reduce
+from django.db.models import Q
+from operator import or_
 
 import requests
 from django.conf import settings
 from rest_framework import status
+
+from sme_ptrf_apps.core.models import MembroAssociacao
 
 logger = logging.getLogger(__name__)
 
@@ -97,3 +102,27 @@ def seleciona_cargo_servidor(result_info_servidor):
 
     return [result]
 
+
+def retorna_membros_do_conselho_fiscal_por_associacao(associacao):
+    cargos_membros_conselho_fiscal = ["PRESIDENTE_CONSELHO_FISCAL", "CONSELHEIRO_1", "CONSELHEIRO_2", "CONSELHEIRO_3",
+                                      "CONSELHEIRO_4"]
+    result = MembroAssociacao.objects.filter(associacao=associacao).filter(
+        reduce(or_, [Q(cargo_associacao__icontains=c) for c in cargos_membros_conselho_fiscal]))
+
+    lista_content = []
+
+    for membro in result:
+        content = {
+            'alterado_em': membro.alterado_em,
+            'cargo': membro.get_cargo_associacao_display(),
+            'criado_em': membro.criado_em,
+            'id': membro.id,
+            'identificacao': membro.codigo_identificacao,
+            'nome': membro.nome,
+            'cargo_associacao_key': membro.cargo_associacao,
+            'uuid': membro.uuid,
+        }
+
+        lista_content.append(content)
+
+    return lista_content

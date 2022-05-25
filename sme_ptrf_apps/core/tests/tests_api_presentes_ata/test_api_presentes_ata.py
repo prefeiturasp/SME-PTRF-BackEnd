@@ -22,7 +22,11 @@ def test_get_presentes_ata_nao_agrupados(
 
 
 def test_get_presentes_agrupados(
-    jwt_authenticated_client_a, presente_ata_membro, presente_ata_membro_e_conselho_fiscal, presente_ata_nao_membro
+    jwt_authenticated_client_a,
+    presente_ata_membro,
+    presente_ata_membro_e_conselho_fiscal,
+    presente_ata_nao_membro,
+    membro_associacao_presidente_conselho_01
 ):
     response = jwt_authenticated_client_a.get(
         f'/api/presentes-ata/membros-e-nao-membros/?ata_uuid={presente_ata_membro.ata.uuid}',
