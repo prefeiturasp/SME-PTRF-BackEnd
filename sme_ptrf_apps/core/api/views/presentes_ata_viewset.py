@@ -31,6 +31,8 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
     @action(detail=False, url_path='membros-e-nao-membros',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def membros_e_nao_membros(self, request):
+        from ...services.membro_associacao_service import retorna_membros_do_conselho_fiscal_por_associacao
+
         ata_uuid = request.query_params.get('ata_uuid')
 
         if not ata_uuid:
@@ -52,8 +54,10 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
         ata = Ata.objects.filter(uuid=ata_uuid).first()
         presentes_ata_membros = PresenteAta.objects.filter(ata=ata).filter(membro=True).values()
         presentes_ata_nao_membros = PresenteAta.objects.filter(ata=ata).filter(membro=False).order_by('nome').values()
-        presentes_ata_conselho_fiscal = PresenteAta.objects.filter(
-            ata=ata).filter(membro=True).filter(conselho_fiscal=True).values()
+
+        associacao = ata.associacao
+        # presentes_ata_conselho_fiscal = PresenteAta.objects.filter(ata=ata).filter(membro=True).filter(conselho_fiscal=True).values()
+        presentes_ata_conselho_fiscal = retorna_membros_do_conselho_fiscal_por_associacao(associacao)
 
         result = {
             'presentes_membros': presentes_ata_membros,
