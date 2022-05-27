@@ -1,3 +1,7 @@
+### 1.31.4 - 27/05/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 42 
+* (64318) -  Ata da PC: o parecer do conselho fiscal deve exibir a lista com todos os membros do conselho fiscal e não apenas dos presentes
+* (63012) -  Demonstrativo: a exibição dos impostos no bloco de despesas permite a quebra no conjunto de linhas relativas ao imposto
+
 ### 1.31.3 - 25/05/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 42 
 * (64877) -  Prestação de contas em processamento - EMEF Maria Aparecida Rodrigues Cintra
 
