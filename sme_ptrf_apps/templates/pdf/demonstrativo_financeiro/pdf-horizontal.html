@@ -465,7 +465,7 @@
   </article>
 
   <article id="bloco-6" class="mt-4">
-    <table class="table table-bordered tabela-resumo-por-acao tabela-quebra-palavra">
+    <table class="table table-bordered tabela-resumo-por-acao tabela-quebra-palavra nao-quebra-linha">
       <thead class="thead-light">
       <tr>
         <th colspan="11">
@@ -491,22 +491,57 @@
         <th><strong>35. Valor</strong></th>
       </tr>
       </thead>
-      <tbody>
-      {% for despesa in dados.despesas_nao_demonstradas.linhas %}
-        <tr>
-          <td>{{ despesa.razao_social }}</td>
-          <td>{{ despesa.cnpj_cpf }}</td>
-          <td>{{ despesa.tipo_documento }}</td>
-          <td style="word-break:break-all;" class="text-break">{{ despesa.numero_documento }}</td>
-          <td>{{ despesa.data_documento }}</td>
-          <td>{{ despesa.nome_acao_documento }}</td>
-          <td>{{ despesa.especificacao_material }}</td>
-          <td>{{ despesa.tipo_despesa }}</td>
-          <td>{{ despesa.tipo_transacao }}</td>
-          <td>{{ despesa.data_transacao }}</td>
-          <td class="text-right">{{ despesa.valor|formata_valor }}</td>
-        </tr>
 
+      {% for despesa in dados.despesas_nao_demonstradas.linhas %}
+        <tbody>
+
+        <tr>
+          {% if despesa.despesas_impostos|length > 0 %}
+            <td rowspan="2">{{ despesa.razao_social }}</td>
+            <td>{{ despesa.cnpj_cpf }}</td>
+            <td>{{ despesa.tipo_documento }}</td>
+            <td style="word-break:break-all;" class="text-break">{{ despesa.numero_documento }}</td>
+            <td>{{ despesa.data_documento }}</td>
+            <td>{{ despesa.nome_acao_documento }}</td>
+            <td>{{ despesa.especificacao_material }}</td>
+            <td>{{ despesa.tipo_despesa }}</td>
+            <td>{{ despesa.tipo_transacao }}</td>
+            <td>{{ despesa.data_transacao }}</td>
+            <td class="text-right">{{ despesa.valor|formata_valor }}</td>
+
+          {% elif despesa.despesa_geradora %}
+            <td colspan="2" class="texto-imposto">
+              <strong>Imposto retido:</strong> Esse gasto refere-se à retenção de imposto da nota
+              {{ despesa.despesa_geradora.numero_documento }}
+              de {{ despesa.despesa_geradora.data_transacao }} e valor
+              R$ {{ despesa.despesa_geradora.valor|formata_valor }}.
+            </td>
+            <td>{{ despesa.tipo_documento }}</td>
+            <td style="word-break:break-all;" class="text-break">{{ despesa.numero_documento }}</td>
+            <td>{{ despesa.data_documento }}</td>
+            <td>{{ despesa.nome_acao_documento }}</td>
+            <td>{{ despesa.especificacao_material }}</td>
+            <td>{{ despesa.tipo_despesa }}</td>
+            <td>{{ despesa.tipo_transacao }}</td>
+            <td>{{ despesa.data_transacao }}</td>
+            <td class="text-right">{{ despesa.valor|formata_valor }}</td>
+
+          {% else %}
+            <td>{{ despesa.razao_social }}</td>
+            <td>{{ despesa.cnpj_cpf }}</td>
+            <td>{{ despesa.tipo_documento }}</td>
+            <td style="word-break:break-all;" class="text-break">{{ despesa.numero_documento }}</td>
+            <td>{{ despesa.data_documento }}</td>
+            <td>{{ despesa.nome_acao_documento }}</td>
+            <td>{{ despesa.especificacao_material }}</td>
+            <td>{{ despesa.tipo_despesa }}</td>
+            <td>{{ despesa.tipo_transacao }}</td>
+            <td>{{ despesa.data_transacao }}</td>
+            <td class="text-right">{{ despesa.valor|formata_valor }}</td>
+
+          {% endif %}
+
+        </tr>
         {% if despesa.despesas_impostos|length == 1 %}
           <tr>
             <td colspan="11" class="texto-imposto">
@@ -526,19 +561,9 @@
             </td>
           </tr>
         {% endif %}
-
-        {% if despesa.despesa_geradora %}
-          <tr>
-            <td colspan="11" class="texto-imposto">
-              <strong>Imposto retido:</strong> Esse gasto refere-se à retenção de imposto da nota
-              {{ despesa.despesa_geradora.numero_documento }}
-              de {{ despesa.despesa_geradora.data_transacao }} e valor
-              R$ {{ despesa.despesa_geradora.valor|formata_valor }}.
-            </td>
-          </tr>
-        {% endif %}
-
+        </tbody>
       {% endfor %}
+      <tbody>
       <tr>
         <td class="total sem-borda" style="border-right: 1px solid #F5F6F8; !important;"><strong>Total</strong></td>
         <td class="total sem-borda" colspan="9" style="border-right: 1px solid #F5F6F8; !important;"></td>
