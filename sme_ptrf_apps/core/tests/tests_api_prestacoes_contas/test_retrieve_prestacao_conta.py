@@ -330,9 +330,14 @@ def test_api_retrieve_prestacao_conta_por_uuid(
             'erro': '',
             'mensagem': 'O período atual da PC é igual ao periodo_inicial.proximo_periodo da associacao'
         },
-        'informacoes_conciliacao_ue': [{'conta_uuid': f'{prestacao_conta.associacao.observacoes_conciliacao_da_associacao.first().conta_associacao.uuid}',
-                                        'data_extrato': '2019-11-30',
-                                        'saldo_extrato': 1000.0}],
+        'informacoes_conciliacao_ue': [
+            {
+                'conta_uuid': f'{prestacao_conta.associacao.observacoes_conciliacao_da_associacao.first().conta_associacao.uuid}',
+                'data_extrato': '2019-11-30',
+                'saldo_extrato': 1000.0,
+                'periodo_uuid': f'{prestacao_conta.associacao.observacoes_conciliacao_da_associacao.first().periodo.uuid}'
+            }
+        ],
         'motivos_aprovacao_ressalva': [
             {
                 'uuid': f'{motivo_aprovacao_ressalva_x.uuid}',
