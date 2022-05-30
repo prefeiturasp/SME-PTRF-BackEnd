@@ -1,5 +1,6 @@
 {% load staticfiles %}
 {% load formata_valores %}
+{% load divide_lista %}
 
 {% if dados.aprovadas.contas %}
         {% for dados in dados.aprovadas.contas %}
@@ -21,7 +22,9 @@
             </tr>
             </thead>
 
-            {% for info in dados.info %}
+            {% divide_lista_por_numero_de_corte dados.info 8 as lista_dividida %}
+            {% for info in lista_dividida %}
+            {% comment %}{% for info in dados.info %}{% endcomment %}
               <tbody>
               <tr>
                 <td rowSpan="3">{{ forloop.counter }}</td>

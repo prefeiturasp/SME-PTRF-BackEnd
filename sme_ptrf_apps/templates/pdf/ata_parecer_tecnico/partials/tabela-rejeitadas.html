@@ -1,38 +1,40 @@
 {% load staticfiles %}
 {% load formata_valores %}
 
-{% if dados.reprovadas.info %}
-  <table class="table table-bordered tabela-status-pc">
-    <thead>
-    <tr>
-      <th scope="col" style="width: 2%; ">Ordem</th>
-      <th scope="col" style="width: 25%; ">Unidade educacional</th>
-      <th scope="col">Motivo(s)</th>
-    </tr>
-    </thead>
+{% if dados.reprovadas.contas %}
 
-    {% for dados in dados.reprovadas.info %}
-      <tbody>
-      <tr>
-        <td rowSpan="4">{{ forloop.counter }}</td>
-        <td rowSpan="3">
-          <strong>{{ dados.unidade.codigo_eol }}- {{ dados.unidade.tipo_unidade }} {{ dados.unidade.nome }}</strong>
-        </td>
-        <td class="pt-2 pb-2">
-          <strong>Motivo(s):</strong>
-          {% if dados.motivos_reprovacao %}
-            {% for motivo in dados.motivos_reprovacao %}
-              <span> {{ motivo }}, </span>
-            {% endfor %}
-          {% else %}
-            <span>Não existem motivos cadastrados</span>
-          {% endif %}
-        </td>
-      </tr>
-      </tbody>
+  {% for dados in dados.reprovadas.contas %}
+    <p class="font-12 border-bottom pb-1 texto-verde"><strong>Conta {{ dados.nome }}</strong></p>
 
-    {% endfor %}
-  </table>
+    <table class="table table-bordered tabela-status-pc">
+      <thead>
+          <tr>
+              <th scope="col" style="width: 3%">Ordem</th>
+              <th scope="col" style="width: 35%">Unidade educacional</th>
+              <th scope="col" style="width: 50%">Motivos</th>
+          </tr>
+      </thead>
+
+      {% for info in dados.info %}
+        <tbody>
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ info.unidade.codigo_eol }} - {{ info.unidade.tipo_unidade }} {{ info.unidade.nome }}</td>
+            <td>
+            {% if info.motivos_reprovacao %}
+              {% for motivo in info.motivos_reprovacao %}
+                <p class="mb-0">{{motivo}}</p>
+              {% endfor %}
+            {% else %}
+              <p class="mb-0">Não existem motivos cadastrados</p>
+            {% endif %}
+          </td>
+        </tr>
+        </tbody>
+
+      {% endfor %}
+    </table>
+  {% endfor %}
 {% else %}
   <p class="font-12">Nenhuma prestação de contas reprovada</p>
 {% endif %}
