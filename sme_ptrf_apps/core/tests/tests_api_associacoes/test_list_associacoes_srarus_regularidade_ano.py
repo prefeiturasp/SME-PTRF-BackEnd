@@ -113,6 +113,7 @@ def test_api_list_status_associacoes_dre_1(
                 'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             },
             'status_regularidade': 'REGULAR',
+            'motivo': '',
         },
         {
             'associacao': {
@@ -127,7 +128,7 @@ def test_api_list_status_associacoes_dre_1(
                 'cnpj': associacao_pinheiros_emef_mendes_dre_1.cnpj,
             },
             'status_regularidade': 'PENDENTE',
-            'motivo': ''
+            'motivo': '',
         },
     ]
 
