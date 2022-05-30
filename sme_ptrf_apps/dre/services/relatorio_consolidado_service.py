@@ -11,6 +11,10 @@ from sme_ptrf_apps.core.models import (
 from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE
 from sme_ptrf_apps.receitas.models import Receita
 
+
+from ..services.dados_demo_execucao_fisico_financeira_service import gerar_dados_demo_execucao_fisico_financeira
+from .demo_execucao_fisico_financeiro_pdf_service import gerar_arquivo_demonstrativo_execucao_fisico_financeiro_pdf
+
 logger = logging.getLogger(__name__)
 
 
@@ -780,3 +784,86 @@ def dashboard_sme(periodo):
     }
 
     return dashboard
+
+
+def _criar_previa_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, usuario, parcial=False):
+    logger.info("Prévia relatório consolidado em processamento...")
+
+    relatorio_consolidado = _gerar_arquivos_demonstrativo_execucao_fisico_financeiro(
+                                dre=dre,
+                                periodo=periodo,
+                                tipo_conta=tipo_conta,
+                                parcial=parcial,
+                                usuario=usuario,
+                                previa=True,
+                            )
+
+    logger.info("Prévia relatório Consolidado Gerado: uuid: %s, status: %s",
+                relatorio_consolidado.uuid, relatorio_consolidado.status)
+
+
+def _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, usuario, parcial=False):
+    logger.info("Relatório consolidado em processamento...")
+
+    relatorio_consolidado = _gerar_arquivos_demonstrativo_execucao_fisico_financeiro(
+                                dre=dre,
+                                periodo=periodo,
+                                tipo_conta=tipo_conta,
+                                parcial=parcial,
+                                usuario=usuario,
+                                previa=False,
+                            )
+
+    logger.info("Relatório Consolidado Gerado: uuid: %s, status: %s",
+                relatorio_consolidado.uuid, relatorio_consolidado.status)
+
+
+def _gerar_arquivos_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, parcial, usuario, previa):
+    logger.info(f'Criando registro do demonstrativo execução fisico financeiro da conta {tipo_conta}.')
+
+    relatorio_consolidado, _ = RelatorioConsolidadoDRE.objects.update_or_create(
+        dre=dre,
+        periodo=periodo,
+        tipo_conta=tipo_conta,
+        defaults={'status': RelatorioConsolidadoDRE.STATUS_EM_PROCESSAMENTO},
+    )
+
+    relatorio_consolidado.versao = RelatorioConsolidadoDRE.VERSAO_PREVIA if previa else RelatorioConsolidadoDRE.VERSAO_FINAL
+    relatorio_consolidado.save()
+
+    logger.info(f'Gerando demonstrativo financeiro em PDF da conta {tipo_conta}.')
+
+    dados_demonstrativo = gerar_dados_demo_execucao_fisico_financeira(dre, periodo, tipo_conta, usuario, parcial)
+
+    gerar_arquivo_demonstrativo_execucao_fisico_financeiro_pdf(dados_demonstrativo, relatorio_consolidado)
+
+    relatorio_consolidado.status = (
+        RelatorioConsolidadoDRE.STATUS_GERADO_PARCIAL if parcial
+        else RelatorioConsolidadoDRE.STATUS_GERADO_TOTAL
+    )
+    relatorio_consolidado.save()
+
+    return relatorio_consolidado
+
+    # TODO Remover Excel
+    # if criar_arquivos:
+    #     logger.info(f'Gerando demonstrativo financeiro em XLSX da conta {conta_associacao}.')
+    #     demonstrativo = gerar_arquivo_demonstrativo_financeiro_xlsx(acoes=acoes, periodo=periodo,
+    #                                                                 conta_associacao=conta_associacao,
+    #                                                                 prestacao=prestacao,
+    #                                                                 previa=previa,
+    #                                                                 demonstrativo_financeiro=demonstrativo,
+    #                                                                 observacao_conciliacao=observacao_conciliacao,
+    #                                                                 )
+
+    # logger.info(f'Gerando demonstrativo financeiro em PDF da conta {conta_associacao}.')
+    # dados_demonstrativo = gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao,
+    #                                                            prestacao, observacao_conciliacao=observacao_conciliacao,
+    #                                                            previa=previa)
+    #
+    # if criar_arquivos:
+    #     gerar_arquivo_demonstrativo_financeiro_pdf(dados_demonstrativo, demonstrativo)
+    #
+    # demonstrativo.arquivo_concluido()
+
+    # return demonstrativo

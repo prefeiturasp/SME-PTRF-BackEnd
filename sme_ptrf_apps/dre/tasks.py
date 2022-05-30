@@ -47,10 +47,14 @@ def gerar_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario):
     time_limit=333333,
     soft_time_limit=333333
 )
-def gerar_relatorio_consolidado_dre_async(periodo_uuid, dre_uuid, tipo_conta_uuid, parcial):
+def gerar_relatorio_consolidado_dre_async(periodo_uuid, dre_uuid, tipo_conta_uuid, parcial, usuario):
     logger.info(f'Iniciando Relatório DRE. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
 
-    from sme_ptrf_apps.dre.services import gera_relatorio_dre
+    # Remover excel
+    # Essa linha esta sendo mantida para comparação do excel e pdf
+    # Após aprovação do pdf, remover excel
+    # from sme_ptrf_apps.dre.services import gera_relatorio_dre
+    from sme_ptrf_apps.dre.services import _criar_demonstrativo_execucao_fisico_financeiro
 
     try:
         periodo = Periodo.objects.get(uuid=periodo_uuid)
@@ -83,7 +87,11 @@ def gerar_relatorio_consolidado_dre_async(periodo_uuid, dre_uuid, tipo_conta_uui
         raise Exception(erro)
 
     try:
-        gera_relatorio_dre(dre, periodo, tipo_conta, parcial)
+        # Remover excel
+        # Essa linha esta sendo mantida para comparação do excel e pdf
+        # Após aprovação do pdf, remover excel
+        # gera_relatorio_dre(dre, periodo, tipo_conta, parcial)
+        _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, usuario, parcial)
         AtaParecerTecnico.iniciar(
             dre=dre,
             periodo=periodo
@@ -105,9 +113,13 @@ def gerar_relatorio_consolidado_dre_async(periodo_uuid, dre_uuid, tipo_conta_uui
     time_limit=333333,
     soft_time_limit=333333
 )
-def gerar_previa_relatorio_consolidado_dre_async(dre_uuid, tipo_conta_uuid, periodo_uuid, parcial):
+def gerar_previa_relatorio_consolidado_dre_async(dre_uuid, tipo_conta_uuid, periodo_uuid, parcial, usuario):
     logger.info(f'Iniciando Prévia Relatório DRE. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
-    from sme_ptrf_apps.dre.services import gera_previa_relatorio_dre
+    # Remover excel
+    # Essa linha esta sendo mantida para comparação do excel e pdf
+    # Após aprovação do pdf, remover excel
+    # from sme_ptrf_apps.dre.services import gera_previa_relatorio_dre
+    from sme_ptrf_apps.dre.services import _criar_previa_demonstrativo_execucao_fisico_financeiro
 
     try:
         periodo = Periodo.objects.get(uuid=periodo_uuid)
@@ -140,7 +152,11 @@ def gerar_previa_relatorio_consolidado_dre_async(dre_uuid, tipo_conta_uuid, peri
         raise Exception(erro)
 
     try:
-        gera_previa_relatorio_dre(dre, periodo, tipo_conta, parcial)
+        # Remover excel
+        # Essa linha esta sendo mantida para comparação do excel e pdf
+        # Após aprovação do pdf, remover excel
+        # gera_previa_relatorio_dre(dre, periodo, tipo_conta, parcial)
+        _criar_previa_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, usuario, parcial)
     except Exception as err:
         erro = {
             'erro': 'problema_geracao_relatorio',
