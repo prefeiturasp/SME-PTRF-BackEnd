@@ -19,7 +19,6 @@ def gerar_arquivo_ata_parecer_tecnico(ata=None, dre=None, periodo=None, usuario=
 
     try:
         dados_da_ata = informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, ata, usuario)
-        LOGGER.info(f"XXXXXXXXXXXXXXXXX DADOS ATA {dados_da_ata}")
         gerar_arquivo_ata_parecer_tecnico_pdf(dados_da_ata, ata)
         LOGGER.info(f'Gerando arquivo ata parecer técnico em PDF')
         ata.arquivo_pdf_concluir()

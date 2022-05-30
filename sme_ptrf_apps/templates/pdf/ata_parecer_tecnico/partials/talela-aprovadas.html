@@ -3,65 +3,39 @@
 {% load divide_lista %}
 
 {% if dados.aprovadas.contas %}
-        {% for dados in dados.aprovadas.contas %}
-          <p class="font-12 border-bottom pb-1 texto-verde"><strong>Conta {{ dados.nome }}</strong></p>
 
-          <table class="table table-bordered tabela-status-pc nao-quebra-linha">
-          <thead>
+  {% for conta in dados.aprovadas.contas %}
+
+    <div class="col-12 {% if forloop.counter > 1 %} mb-3 {% endif %}">
+      <p class="font-12 border-bottom texto-verde"><strong>Conta {{ conta.nome }}</strong></p>
+    </div>
+
+      {% divide_lista_por_numero_de_corte conta 8 as lista_dividida %}
+      {% for dados in lista_dividida %}
+
+        <div class="col-4 pr-0">
+          <table class="table table-bordered tabela-status-pc">
+            <thead>
             <tr>
-              <th scope="col" style="width: 2%; ">Ordem</th>
-              <th scope="col" style="width: 18%; ">Unidade educacional</th>
-              <th scope="col" style="width: 8%; ">Tipo de recurso</th>
-              <th scope="col" style="width: 10%; ">Reprogramado <br/>período anterior</th>
-              <th scope="col" style="width: 10%; ">Repasse</th>
-              <th scope="col" style="width: 10%; ">Rendimentos</th>
-              <th scope="col" style="width: 10%; ">Demais créditos</th>
-              <th scope="col" style="width: 10%; ">Despesa realizada</th>
-              <th scope="col" style="width: 10%; ">Saldo</th>
-              <th scope="col" style="width: 10%; ">Devolução ao tesouro</th>
+              <th scope="col" style="width: 3%">Ordem</th>
+              <th scope="col" style="width: 97%">Unidade educacional</th>
             </tr>
             </thead>
 
-            {% divide_lista_por_numero_de_corte dados.info 8 as lista_dividida %}
-            {% for info in lista_dividida %}
-            {% comment %}{% for info in dados.info %}{% endcomment %}
+            {% for dado in dados %}
               <tbody>
               <tr>
-                <td rowSpan="3">{{ forloop.counter }}</td>
-                <td rowSpan="3"><strong>{{info.unidade.codigo_eol}} - {{info.unidade.tipo_unidade}} {{info.unidade.nome}}</strong></td>
-                <td>Custeio</td>
-                <td style="text-align:right;">{{info.valores.saldo_reprogramado_periodo_anterior_custeio|formata_valor}}</td>
-                <td style="text-align:right;">{{info.valores.repasses_no_periodo_custeio|formata_valor}}</td>
-                <td style="text-align:right;" class="fundo-cinza">-</td>
-                <td style="text-align:right;">{{info.valores.demais_creditos_no_periodo_custeio|formata_valor}}</td>
-                <td style="text-align:right;">{{info.valores.despesas_no_periodo_custeio|formata_valor}}</td>
-                <td style="text-align:right;">{{info.valores.saldo_reprogramado_proximo_periodo_custeio|formata_valor}}</td>
-                <td style="text-align:right;">-</td>
-              </tr>
-              <tr>
-                <td>Capital</td>
-                <td style="text-align:right;">{{info.valores.saldo_reprogramado_periodo_anterior_capital|formata_valor}}</td>
-                <td style="text-align:right;">{{info.valores.repasses_no_periodo_capital|formata_valor}}</td>
-                <td style="text-align:right;" class="fundo-cinza">-</td>
-                <td style="text-align:right;">{{info.valores.demais_creditos_no_periodo_capital|formata_valor}}</td>
-                <td style="text-align:right;">{{info.valores.despesas_no_periodo_capital|formata_valor}}</td>
-                <td style="text-align:right;">{{info.valores.saldo_reprogramado_proximo_periodo_capital|formata_valor}}</td>
-                <td style="text-align:right;">-</td>
-              </tr>
-              <tr>
-                <td>RLA</td>
-                <td style="text-align:right;">{{info.valores.saldo_reprogramado_periodo_anterior_livre|formata_valor}}</td>
-                <td style="text-align:right;">{{info.valores.repasses_no_periodo_livre|formata_valor}}</td>
-                <td style="text-align:right;">{{info.valores.receitas_rendimento_no_periodo_livre|formata_valor}}</td>
-                <td style="text-align:right;">{{info.valores.demais_creditos_no_periodo_livre|formata_valor}}</td>
-                <td style="text-align:right;">-</td>
-                <td style="text-align:right;">{{info.valores.saldo_reprogramado_proximo_periodo_livre|formata_valor}}</td>
-                <td style="text-align:right;">{{info.valores.devolucoes_ao_tesouro_no_periodo_total|formata_valor}}</td>
+                <td>{{ dado.ordem }}</td>
+                <td>{{ dado.unidade.codigo_eol }} - {{ dado.unidade.tipo_unidade }} {{ dado.unidade.nome }}</td>
               </tr>
               </tbody>
             {% endfor %}
+
           </table>
-        {% endfor %}
-      {% else %}
-        <p class="font-12">Nenhuma prestação de contas aprovada</p>
-      {% endif %}
+        </div>
+
+      {% endfor %}
+  {% endfor %}
+{% else %}
+  <p class="font-12">Nenhuma prestação de contas aprovada</p>
+{% endif %}
