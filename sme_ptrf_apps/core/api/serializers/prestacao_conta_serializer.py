@@ -201,7 +201,8 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             result.append({
                 'conta_uuid': f'{conciliacao.conta_associacao.uuid}',
                 'data_extrato': conciliacao.data_extrato,
-                'saldo_extrato': conciliacao.saldo_extrato
+                'saldo_extrato': conciliacao.saldo_extrato,
+                'periodo_uuid': conciliacao.periodo.uuid,
             })
 
         return result

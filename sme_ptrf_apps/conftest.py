@@ -1358,6 +1358,19 @@ def presente_ata_membro(ata_2020_1_cheque_aprovada):
     )
 
 @pytest.fixture
+def membro_associacao_presidente_conselho_01(associacao):
+    return baker.make(
+        'MembroAssociacao',
+        nome='Arthur Nobrega Junior',
+        associacao=associacao,
+        cargo_associacao='PRESIDENTE_CONSELHO_FISCAL',
+        cargo_educacao='Coordenador',
+        representacao=RepresentacaoCargo.SERVIDOR.value,
+        codigo_identificacao='967499',
+        email='ollyverottoboni@gmail.com'
+    )
+
+@pytest.fixture
 def presente_ata_membro_e_conselho_fiscal(ata_2020_1_cheque_aprovada):
     return baker.make(
         'PresenteAta',
