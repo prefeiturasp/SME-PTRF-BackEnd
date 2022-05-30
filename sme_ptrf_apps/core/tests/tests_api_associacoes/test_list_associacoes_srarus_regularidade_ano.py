@@ -127,6 +127,7 @@ def test_api_list_status_associacoes_dre_1(
                 'cnpj': associacao_pinheiros_emef_mendes_dre_1.cnpj,
             },
             'status_regularidade': 'PENDENTE',
+            'motivo': ''
         },
     ]
 
@@ -162,6 +163,7 @@ def test_api_list_status_associacoes_pelo_nome_associacao_ignorando_acentos(
                 'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             },
             'status_regularidade': 'REGULAR',
+            'motivo': ''
         },
     ]
 
@@ -196,6 +198,7 @@ def test_api_list_status_associacoes_pelo_nome_escola(
                 'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             },
             'status_regularidade': 'REGULAR',
+            'motivo': ''
         },
     ]
 
@@ -232,6 +235,7 @@ def test_api_list_status_associacoes_pelo_tipo_unidade(
                 'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             },
             'status_regularidade': 'REGULAR',
+            'motivo': ''
         },
     ]
     assert response.status_code == status.HTTP_200_OK
@@ -267,6 +271,7 @@ def test_api_list_status_associacoes_pelo_status(
                 'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             },
             'status_regularidade': 'REGULAR',
+            'motivo': ''
         },
     ]
     assert response.status_code == status.HTTP_200_OK
