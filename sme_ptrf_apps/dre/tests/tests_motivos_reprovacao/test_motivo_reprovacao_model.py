@@ -25,3 +25,14 @@ def test_meta_model(motivo_reprovacao_x):
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[MotivoReprovacao]
+
+
+def test_audit_log(motivo_reprovacao_x):
+    assert motivo_reprovacao_x.history.count() == 1  # Um log de inclusão
+    assert motivo_reprovacao_x.history.latest().action == 0  # 0-Inclusão
+
+    motivo_reprovacao_x.motivo = "TESTE"
+    motivo_reprovacao_x.save()
+    assert motivo_reprovacao_x.history.count() == 2  # Um log de inclusão e outro de edição
+    assert motivo_reprovacao_x.history.latest().action == 1  # 1-Edição
+
