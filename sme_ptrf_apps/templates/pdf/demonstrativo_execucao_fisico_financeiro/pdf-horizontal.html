@@ -50,8 +50,8 @@
 
 <section class="conteudo mt-0">
 
-  <section class="row">
-    <article id="bloco-1" class="col">
+  <section class="">
+    <article id="bloco-1" class="">
       <p class="font-14 border-bottom pb-3 titulo"><strong>Bloco 1 - Identificação</strong></p>
       <div class="col-12 border mt-4">
         <div class="row">
@@ -69,19 +69,19 @@
     </article>
   </section>
 
-  <section class="row mt-2">
-    <article id="bloco-2" class="mt-0 col">
+  <section class="mt-4">
+    <article id="bloco-2" class="mt-0 ">
       <p class="font-14 border-bottom pb-3 titulo"><strong>Bloco 2 - SÍNTESE DA EXECUÇÃO FINANCEIRA (R$)</strong></p>
-      <table class="table table-bordered tabela-relatorio-dre">
+      <table class="table table-bordered tabela-relatorio-dre mt-4">
         <thead class="thead-light">
           <tr>
-            <th colSpan="2" style="width: 12%"><strong>01 - Saldo reprogramado período anterior</strong></th>
+            <th colSpan="2" style="width: 15%"><strong>01 - Saldo reprogramado período anterior</strong></th>
             <th colSpan="2" style="width: 10%"><strong>02 - Previsto SME</strong></th>
-            <th colSpan="2" style="width: 11%"><strong>03 - Transferido pela DRE no período</strong></th>
+            <th colSpan="2" style="width: 15%"><strong>03 - Transferido pela DRE no período</strong></th>
             <th colSpan="2" style="width: 10%"><strong>04 - Outros créditos</strong></th>
             <th colSpan="2"><strong>05 - Valor total (01+03+04)</strong></th>
             <th colSpan="2"><strong>06 - Despesa realizada</strong></th>
-            <th colSpan="2"><strong>07 - Saldo reprogramado próximo período *</strong></th>
+            <th colSpan="2" style="width: 15%"><strong>07 - Saldo reprogramado próximo período *</strong></th>
             <th colSpan="2"><strong>08 - Devolução ao tesouro</strong></th>
           </tr>
         </thead>
@@ -110,9 +110,7 @@
             <td rowSpan="2" style="width: 4%">C</td>
             <td rowSpan="2" class="text-right">{{ dados.execucao_financeira.custeio.saldo_reprogramado_proximo_periodo_custeio }}</td>
 
-            <td rowSpan="6" style="width: 4%" class="sem-borda fundo-cinza"></td>
-            <td rowSpan="6" class="text-right sem-borda fundo-cinza"></td>
-
+            <td rowSpan="6" colspan="2"  class="text-center">{{ dados.execucao_financeira.totais.devolucoes_ao_tesouro_no_periodo_total }}</td>
           </tr>
           <tr></tr>
           <tr>
@@ -196,8 +194,8 @@
   </section>
 
   {% if dados.execucao_financeira.justificativa %}
-    <section class="row">
-      <article id="bloco-2-justificativas" class="mt-0 col">
+    <section class="mt-4">
+      <article id="bloco-2-justificativas" class="mt-0 ">
         <div class="col-12 border mt-4">
           <div class="row">
             <div class="col d-flex align-items-center justify-content-start">
@@ -220,22 +218,23 @@
     </section>
   {% endif %}
 
-  <section class="row">
-    <article id="bloco-2-legenda" class="mt-0 col">
-      <p class="font-10 titulo pt-4 pb-0">Legenda: C=Custeio K=Capital e L=Livre aplicação</p>
+  <section class="mt-4">
+    <article id="bloco-2-legenda" class="mt-0 ">
+      <p class="font-10 titulo pb-0">Legenda: C=Custeio K=Capital e L=Livre aplicação</p>
 
-      <p class="font-10 titulo pt-0 pb-0">Notas explicativas:</p>
+      <p class="font-10 titulo pt-0 pb-0">Nota explicativa:</p>
       <p class="font-10 titulo ml-2">
-        * Soma dos valores de saldo reprogramado das unidades, considerando o tipo de recurso, se custeio, capital ou livre aplicação.
+        * O total do saldo reprogramado não pode ser obtido a partir da soma do total de créditos, subtraindo-se as despesas, em virtude do recurso de livre aplicação, que pode ser utilizado para despesas de custeio e capital.
+O total de cada coluna refere-se à soma dos valores das unidades, considerando o tipo de recurso.
       </p>
     </article>
   </section>
 
-  <section class="row">
-    <article id="bloco-3" class="mt-4 col">
+  <section class="mt-4">
+    <article id="bloco-3" class="">
       <p class="font-14 border-bottom pb-3 titulo"><strong>Bloco 3 - EXECUÇÃO FÍSICA</strong></p>
 
-      <table class="table table-bordered tabela-relatorio-dre">
+      <table class="table table-bordered tabela-relatorio-dre mt-4">
         <thead class="thead-light">
           <tr>
             <th class="titulo" colspan="4"><strong>Atendimento</strong></th>
@@ -243,21 +242,21 @@
           </tr>
 
           <tr>
-            <th class="titulo"><strong>09 - UEs da DRE</strong></th>
-            <th class="titulo"><strong>10 - UEs com Associação</strong></th>
-            <th class="titulo"><strong>11 - UEs desativadas</strong></th>
-            <th class="titulo"><strong>12 - Associações regulares</strong></th>
-            <th class="titulo"><strong>13 - Aprovadas</strong></th>
-            <th class="titulo"><strong>14 - Aprovadas com ressalva</strong></th>
-            <th class="titulo"><strong>15 - Rejeitadas</strong></th>
+            <th class="titulo" style="width: 10%"><strong>09 - UEs da DRE</strong></th>
+            <th class="titulo" style="width: 10%"><strong>10 - UEs com Associação</strong></th>
+            <th class="titulo" style="width: 10%"><strong>11 - UEs desativadas</strong></th>
+            <th class="titulo" style="width: 10%"><strong>12 - Associações regulares</strong></th>
+            <th class="titulo" style="width: 10%"><strong>13 - Aprovadas</strong></th>
+            <th class="titulo" style="width: 10%"><strong>14 - Aprovadas com ressalva</strong></th>
+            <th class="titulo" style="width: 10%"><strong>15 - Rejeitadas</strong></th>
             {% if dados.versao_relatorio == "PARCIAL" %}
-              <th class="titulo" style="width: 8%"><strong>16 - Em análise</strong></th>
+              <th class="titulo" style="width: 10%"><strong>16 - Em análise</strong></th>
             {% else %}
-              <th class="titulo fundo-th-cinza" style="width: 8%"></th>
+              <th class="titulo fundo-th-cinza" style="width: 10%"></th>
             {% endif %}
 
-            <th class="titulo"><strong>17 - Não apresentadas</strong></th>
-            <th class="titulo"><strong>18 - Total</strong></th>
+            <th class="titulo" style="width: 10%"><strong>17 - Não apresentadas</strong></th>
+            <th class="titulo" style="width: 10%"><strong>18 - Total</strong></th>
           </tr>
         </thead>
 
@@ -292,43 +291,48 @@
             <td class="fundo-cinza" colspan="4"><strong>20 - Unidades Educacionais com Associação não regularizada</strong></td>
             <td class="fundo-cinza" colspan="5"><strong>21 - Motivo</strong></td>
           </tr>
+        </tbody>
 
-          <tr>
-            {% if dados.associacoes_nao_regularizadas.todas_regularizadas %}
-                <td>-</td>
-                <td colspan="4">-</td>
-                <td colspan="5">{{ dados.associacoes_nao_regularizadas.texto }}</td>
-            {% else %}
-              {% for info in dados.associacoes_nao_regularizadas.dados %}
+
+        {% if dados.associacoes_nao_regularizadas.todas_regularizadas %}
+          <tbody>
+            <tr>
+              <td>-</td>
+              <td colspan="4">-</td>
+              <td colspan="5">{{ dados.associacoes_nao_regularizadas.texto }}</td>
+            </tr>
+          </tbody>
+        {% else %}
+          {% for info in dados.associacoes_nao_regularizadas.dados %}
+            <tbody>
+              <tr>
                 <td>{{ info.linha }}</td>
                 <td colspan="4">{{ info.associacao }}</td>
                 <td colspan="5">{{ info.motivo }}</td>
-              {% endfor %}
-            {% endif %}
-          </tr>
-        </tbody>
+              </tr>
+            </tbody>
+          {% endfor %}
+        {% endif %}
 
       </table>
 
     </article>
   </section>
 
-
-  <section class="row mt-3">
-    <article id="bloco-4" class="col">
+    <article id="bloco-4" class="mt-4">
       <p class="font-14 border-bottom pb-3 titulo"><strong>Bloco 4 - DADOS FÍSICO-FINANCEIROS DA EXECUÇÃO (R$)</strong></p>
-      <table class="table table-bordered tabela-relatorio-dre nao-quebra-linha">
+      <table class="table table-bordered tabela-relatorio-dre nao-quebra-linha mt-4">
         <thead class="thead-light">
           <tr>
             <th style="width: 7%"><strong>22 - Ordem</strong></th>
-            <th style="width: 23%"><strong>23 - Unidade educacional</strong></th>
-            <th colspan="2" style="width: 12%"><strong>24 - Saldo reprogramado período anterior</strong></th>
+            <th style="width: 17%"><strong>23 - Unidade educacional</strong></th>
+            <th colspan="2" style="width: 13%"><strong>24 - Saldo reprogramado período anterior</strong></th>
             <th colspan="2" style="width: 10%"><strong>25 - Transferido no período</strong></th>
             <th colspan="2" style="width: 10%"><strong>26 - Outros créditos</strong></th>
             <th colspan="2" style="width: 10%"><strong>27 - Despesa realizada</strong></th>
-            <th colspan="2" style="width: 12%"><strong>28 - Saldo reprogramado próximo período</strong></th>
-            <th colspan="2" style="width: 8%"><strong>29 - Devolução ao tesouro</strong></th>
-            <th style="width: 8%"><strong>30 - Situação da PC</strong></th>
+            <th colspan="2" style="width: 13%"><strong>28 - Saldo reprogramado próximo período</strong></th>
+            <th colspan="2" style="width: 10%"><strong>29 - Devolução ao tesouro</strong></th>
+            <th style="width: 10%"><strong>30 - Situação da PC</strong></th>
           </tr>
         </thead>
 
@@ -467,11 +471,9 @@
         </tbody>
       </table>
     </article>
-  </section>
 
-
-  <section class="row">
-    <article id="bloco-5" class="mt-4 col">
+  <section class="mt-4">
+    <article id="bloco-5" class="">
       <p class="font-14 border-bottom pb-3 titulo"><strong>Bloco 5 - AUTENTICAÇÃO</strong></p>
 
       <div class="col-12 border mt-4">
@@ -513,6 +515,13 @@
   </section>
 
 </section>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
+        crossorigin="anonymous"></script>
 
 </body>
 </html>

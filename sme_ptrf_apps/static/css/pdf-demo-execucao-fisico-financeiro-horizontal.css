@@ -143,7 +143,7 @@ html body .conteudo .tabela-relatorio-dre thead th.sem-borda {
 }
 
 /*Resolve o Problema de quebrar a linha em 02 páginas!!*/
-html body .conteudo .nao-quebra-linha tbody tr {
+html body .conteudo #bloco-4 .nao-quebra-linha tbody tr {
   break-after: avoid !important;
 }
 
