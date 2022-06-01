@@ -7,7 +7,7 @@ from auditlog.registry import auditlog
 
 class TipoCusteio(ModeloIdNome):
     history = AuditlogHistoryField()
-    eh_tributos_e_tarifas = models.BooleanField('É Tributos e Tarifas?', default=False)
+    eh_tributos_e_tarifas = models.BooleanField('Impostos de serviço', default=False)
 
     class Meta:
         verbose_name = "Tipo de despesa de custeio"

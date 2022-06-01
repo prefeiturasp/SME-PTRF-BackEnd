@@ -23,7 +23,8 @@ def customTitledFilter(title):
 
 @admin.register(TipoDocumento)
 class TipoDocumentoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'pode_reter_imposto', 'eh_documento_de_retencao_de_imposto', 'documento_comprobatorio_de_despesa')
+    list_display = (
+    'nome', 'pode_reter_imposto', 'eh_documento_de_retencao_de_imposto', 'documento_comprobatorio_de_despesa')
     readonly_fields = ('id', 'uuid')
 
 
@@ -35,11 +36,14 @@ class TipoCusteioAdmin(admin.ModelAdmin):
 
 @admin.register(RateioDespesa)
 class RateioDespesaAdmin(admin.ModelAdmin):
-    list_display = ("uuid", 'numero_documento', 'associacao', 'acao', 'valor_rateio', 'quantidade_itens_capital', 'status')
+    list_display = (
+    "uuid", 'numero_documento', 'associacao', 'acao', 'valor_rateio', 'quantidade_itens_capital', 'status',)
     search_fields = (
-        'despesa__numero_documento', 'despesa__nome_fornecedor', 'especificacao_material_servico__descricao')
+        'despesa__numero_documento', 'despesa__nome_fornecedor', 'especificacao_material_servico__descricao',
+        'associacao__unidade__codigo_eol', 'associacao__unidade__nome',)
     list_filter = (
-        ('despesa__data_documento', DateRangeFilter),
+        ('conferido', customTitledFilter('Conferido')),
+        ('tag', customTitledFilter('Tag')),
         ('associacao__nome', customTitledFilter('Associação')),
         ('associacao__unidade__dre', customTitledFilter('DRE')),
         ('acao_associacao__acao__nome', customTitledFilter('Ação')),
@@ -70,9 +74,11 @@ class RateioDespesaInLine(admin.TabularInline):
 @admin.register(Despesa)
 class DespesaAdmin(admin.ModelAdmin):
     list_display = (
-        'tipo_documento', 'numero_documento', 'data_documento', 'nome_fornecedor', 'valor_total', 'status', 'associacao', 'retem_imposto')
+        'tipo_documento', 'numero_documento', 'data_documento', 'nome_fornecedor', 'valor_total', 'status',
+        'associacao', 'retem_imposto')
     ordering = ('-data_documento',)
-    search_fields = ('numero_documento', 'nome_fornecedor', 'documento_transacao', 'associacao__nome', 'associacao__unidade__codigo_eol')
+    search_fields = (
+    'numero_documento', 'nome_fornecedor', 'documento_transacao', 'associacao__nome', 'associacao__unidade__codigo_eol')
     list_filter = ('status', 'associacao')
     inlines = [RateioDespesaInLine, ]
     readonly_fields = ('uuid', 'id')

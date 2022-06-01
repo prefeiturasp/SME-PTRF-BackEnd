@@ -48,4 +48,7 @@ def notificar_comentario_pc(dado, enviar_email=True):
                 enviar_email=enviar_email,
                 unidade=associacao.unidade,
             )
+
+            comentario.set_comentario_notificado()
+
         logger.info("Notificações criadas com sucesso.")

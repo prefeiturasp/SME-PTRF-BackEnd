@@ -11,7 +11,10 @@ from .relatorio_consolidado_service import (
     informacoes_execucao_financeira_unidades,
     status_de_geracao_do_relatorio,
     update_observacao_devolucao,
-    dashboard_sme
+    dashboard_sme,
+    _criar_previa_demonstrativo_execucao_fisico_financeiro,
+    _criar_demonstrativo_execucao_fisico_financeiro,
+    _gerar_arquivos_demonstrativo_execucao_fisico_financeiro
 )
 
 from .lauda_service import (

@@ -798,7 +798,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            gerar_relatorio_consolidado_dre_async.delay(periodo_uuid, dre_uuid, tipo_conta_uuid, parcial)
+            gerar_relatorio_consolidado_dre_async.delay(periodo_uuid, dre_uuid, tipo_conta_uuid, parcial, request.user.username)
         except Exception as err:
             erro = {
                 'erro': 'problem_geracao_relatorio',
@@ -861,7 +861,8 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            gerar_previa_relatorio_consolidado_dre_async.delay(dre_uuid, tipo_conta_uuid, periodo_uuid, dados['parcial'])
+            gerar_previa_relatorio_consolidado_dre_async.delay(
+                dre_uuid, tipo_conta_uuid, periodo_uuid, dados['parcial'], request.user.username)
         except Exception as err:
             erro = {
                 'erro': 'problem_geracao_relatorio',
