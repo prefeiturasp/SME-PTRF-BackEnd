@@ -1,9 +1,14 @@
 from django.db import models
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
 class AnaliseValorReprogramadoPrestacaoConta(ModeloBase):
+    history = AuditlogHistoryField()
+
     analise_prestacao_conta = models.ForeignKey('AnalisePrestacaoConta', on_delete=models.CASCADE,
                                                 related_name='analises_de_valores_reprogramados')
 
@@ -32,3 +37,6 @@ class AnaliseValorReprogramadoPrestacaoConta(ModeloBase):
         verbose_name = "Análise de valor reprogramado de PC"
         verbose_name_plural = "16.8) Análises de valores reprogramados de PC"
         unique_together = ['analise_prestacao_conta', 'conta_associacao', 'acao_associacao', ]
+
+
+auditlog.register(AnaliseValorReprogramadoPrestacaoConta)
