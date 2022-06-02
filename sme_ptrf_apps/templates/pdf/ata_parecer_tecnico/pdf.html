@@ -11,7 +11,9 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
         integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
 
-    <link href="{{ base_static_url }}/css/ata-parecer-tecnico-pdf.css" rel="stylesheet">
+    {% comment %}<link href="{{ base_static_url }}/css/ata-parecer-tecnico-pdf.css" rel="stylesheet">{% endcomment %}
+    <link href="/home/ollyver/projetos/SME-PTRF-Back/sme_ptrf_apps/static/css/ata-parecer-tecnico-pdf.css"
+        rel="stylesheet">
 
   <title>Ata Parecer Técnico PTRF</title>
 </head>
@@ -71,11 +73,12 @@
         I do art. 36 da Portaria SME nº 6.634/2021:
       </p>
     </article>
+  </section>
 
+<article class="col-12 pl-0">
     {# Incluindo tabela de Aprovadas, passando dados como parametro #}
     {% include "./partials/talela-aprovadas.html" with dados=dados %}
-
-  </section>
+</article>
 
   <article class="col-12 pl-0">
     <p class="titulo-tabelas mt-4">

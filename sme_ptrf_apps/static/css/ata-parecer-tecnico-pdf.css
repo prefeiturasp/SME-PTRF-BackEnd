@@ -267,3 +267,8 @@ html body .conteudo .tabela-status-pc tbody td.fundo-cinza {
   background-color: #DADADA !important;
 }
 
+/* Resolve a quebra de colunas */
+#columns section {
+  columns: 3;
+  column-gap: 0.5cm;
+}
