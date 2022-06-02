@@ -1,4 +1,4 @@
-### 1.32.1 - 30/05/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 43 
+### 1.32.1 - 02/06/2022 - Hotfix em pre-produção - Soluções de bugs urgentes durante a sprint 43 
 * (64225) -  Não habitação do botão "Cadastro de valores reprogramados"
 
 ### 1.31.5 - 30/05/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 42 
