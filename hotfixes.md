@@ -1,3 +1,6 @@
+### 1.32.1 - 30/05/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 43 
+* (64225) -  Não habitação do botão "Cadastro de valores reprogramados"
+
 ### 1.31.5 - 30/05/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 42 
 * (65643) -  O saldo das PCs 2022.1 e 2021.3 da DRE Ipiranga exibe os dados da PC 2021.2
 

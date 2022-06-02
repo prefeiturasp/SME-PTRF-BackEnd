@@ -171,14 +171,16 @@ def associacao_pode_implantar_saldo(associacao):
             'mensagem': 'Período inicial não foi definido para essa associação. Verifique com o administrador.'
         }
 
-    if associacao.prestacoes_de_conta_da_associacao.exclude(
-        Q(periodo=periodo_primeira_pc) & Q(status='DEVOLVIDA')
-    ).exists():
-        result = {
-            'permite_implantacao': False,
-            'erro': 'prestacao_de_contas_existente',
-            'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
-        }
+    if associacao.prestacoes_de_conta_da_associacao.exists():
+        if not associacao.prestacoes_de_conta_da_associacao.filter(
+            Q(periodo=periodo_primeira_pc) & Q(status='DEVOLVIDA')
+        ).exists():
+            result = {
+                'permite_implantacao': False,
+                'erro': 'prestacao_de_contas_nao-encontrada',
+                'mensagem': 'Os saldos não podem ser implantados, não existe uma prestação de contas do periodo inicial'
+                            ' e devolivida.'
+            }
 
     if not result:
         result = {
@@ -209,17 +211,19 @@ def get_implantacao_de_saldos_da_associacao(associacao):
             'status_code': status.HTTP_400_BAD_REQUEST
         }
 
-    if associacao.prestacoes_de_conta_da_associacao.exclude(
-        Q(periodo=periodo_primeira_pc) & Q(status='DEVOLVIDA')
-    ).exists():
-        erro = {
-            'erro': 'prestacao_de_contas_existente',
-            'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
-        }
-        return {
-            'conteudo': erro,
-            'status_code': status.HTTP_400_BAD_REQUEST
-        }
+    if associacao.prestacoes_de_conta_da_associacao.exists():
+        if not associacao.prestacoes_de_conta_da_associacao.filter(
+            Q(periodo=periodo_primeira_pc) & Q(status='DEVOLVIDA')
+        ).exists():
+            erro = {
+                'erro': 'prestacao_de_contas_nao-encontrada',
+                'mensagem': 'Os saldos não podem ser implantados, não existe uma prestação de contas do periodo inicial'
+                            ' e devolivida.'
+            }
+            return {
+                'conteudo': erro,
+                'status_code': status.HTTP_400_BAD_REQUEST
+            }
 
     saldos = []
     implantacoes = implantacoes_de_saldo_da_associacao(associacao=associacao)
