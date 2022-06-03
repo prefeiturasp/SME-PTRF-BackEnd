@@ -1,10 +1,15 @@
 from django.db import models
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from datetime import datetime
 
 
 class AnalisePrestacaoConta(ModeloBase):
+    history = AuditlogHistoryField()
+
     # Status Choice
     STATUS_EM_ANALISE = 'EM_ANALISE'
     STATUS_DEVOLVIDA = 'DEVOLVIDA'
@@ -151,3 +156,4 @@ class AnalisePrestacaoConta(ModeloBase):
         verbose_name_plural = "16.0) Análises de prestações de contas"
 
 
+auditlog.register(AnalisePrestacaoConta)

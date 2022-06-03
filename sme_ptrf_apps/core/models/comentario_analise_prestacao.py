@@ -2,10 +2,15 @@ from django.db import models
 from django.db import transaction
 from datetime import date
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
 class ComentarioAnalisePrestacao(ModeloBase):
+    history = AuditlogHistoryField()
+
     prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE,
                                         related_name='comentarios_de_analise_da_prestacao')
 
@@ -38,3 +43,6 @@ class ComentarioAnalisePrestacao(ModeloBase):
     class Meta:
         verbose_name = "Observação de análise de prestação de contas"
         verbose_name_plural = "09.9) Observações de análise de prestações de contas"
+
+
+auditlog.register(ComentarioAnalisePrestacao)

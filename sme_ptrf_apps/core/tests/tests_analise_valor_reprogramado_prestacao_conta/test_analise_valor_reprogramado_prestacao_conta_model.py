@@ -28,3 +28,14 @@ def test_srt_model(analise_valor_reprogramado_por_acao, conta_associacao, acao_a
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[AnaliseValorReprogramadoPrestacaoConta]
+
+
+def test_audit_log(analise_valor_reprogramado_por_acao):
+    assert analise_valor_reprogramado_por_acao.history.count() == 1  # Um log de inclusão
+    assert analise_valor_reprogramado_por_acao.history.latest().action == 0  # 0-Inclusão
+
+    analise_valor_reprogramado_por_acao.novo_saldo_reprogramado_custeio = 100.00
+    analise_valor_reprogramado_por_acao.save()
+    assert analise_valor_reprogramado_por_acao.history.count() == 2  # Um log de inclusão e outro de edição
+    assert analise_valor_reprogramado_por_acao.history.latest().action == 1  # 1-Edição
+

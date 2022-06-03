@@ -5,9 +5,19 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.31.0
+Versão: 1.32.0
 
 ## Release Notes
+
+### 1.32.0 - 01/06/2022 - Entregas da Release 4c - Sprint 42
+* DRE > Exibição do período e remoção do histórico de devoluções em análise de PC
+* DRE > Remoção do bloco "Cobrança da PC" e revisão do bloco "Comentários" em análise de PC
+* DRE > Substituição do formato do relatório de Demonstrativo da execução físico-financeira de Excel para PDF
+* DRE > Melhorias na ata de parecer técnico em PDF
+* DRE > Melhorias na ata de parecer técnico em tela
+* DRE > Implementada ação para retirar atribuições em atribuições por unidade
+* Melhorias na área de administração do sistema
+* 🐞 Correção de bugs
 
 ### 1.31.0 - 16/05/2022 - Entregas da Release 4b - Sprint 41
 * DRE > Novos filtros na confêrencia de lançamentos na análise de PC

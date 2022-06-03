@@ -1,9 +1,14 @@
 from django.db import models
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
 class DevolucaoAoTesouro(ModeloBase):
+    history = AuditlogHistoryField()
+
     # visao_criacao Choice
     VISAO_DRE = 'DRE'
     VISAO_UE = 'UE'
@@ -48,3 +53,6 @@ class DevolucaoAoTesouro(ModeloBase):
     class Meta:
         verbose_name = "Devolução ao tesouro prestação de contas"
         verbose_name_plural = "09.9) Devoluções ao tesouro prestações de contas"
+
+
+auditlog.register(DevolucaoAoTesouro)

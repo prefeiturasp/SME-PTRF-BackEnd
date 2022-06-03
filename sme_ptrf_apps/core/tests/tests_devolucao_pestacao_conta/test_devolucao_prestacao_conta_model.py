@@ -22,3 +22,14 @@ def test_srt_model(devolucao_prestacao_conta_2020_1):
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[DevolucaoPrestacaoConta]
+
+
+def test_audit_log(devolucao_prestacao_conta_2020_1):
+    assert devolucao_prestacao_conta_2020_1.history.count() == 1  # Um log de inclusão
+    assert devolucao_prestacao_conta_2020_1.history.latest().action == 0  # 0-Inclusão
+
+    devolucao_prestacao_conta_2020_1.data_limite_ue = "2022-06-03"
+    devolucao_prestacao_conta_2020_1.save()
+    assert devolucao_prestacao_conta_2020_1.history.count() == 2  # Um log de inclusão e outro de edição
+    assert devolucao_prestacao_conta_2020_1.history.latest().action == 1  # 1-Edição
+

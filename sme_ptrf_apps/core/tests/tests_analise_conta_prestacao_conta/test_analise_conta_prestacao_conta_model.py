@@ -22,3 +22,14 @@ def test_srt_model(analise_conta_prestacao_conta_2020_1):
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[AnaliseContaPrestacaoConta]
+
+
+def test_audit_log(analise_conta_prestacao_conta_2020_1):
+    assert analise_conta_prestacao_conta_2020_1.history.count() == 1  # Um log de inclusão
+    assert analise_conta_prestacao_conta_2020_1.history.latest().action == 0  # 0-Inclusão
+
+    analise_conta_prestacao_conta_2020_1.saldo_extrato = 100.00
+    analise_conta_prestacao_conta_2020_1.save()
+    assert analise_conta_prestacao_conta_2020_1.history.count() == 2  # Um log de inclusão e outro de edição
+    assert analise_conta_prestacao_conta_2020_1.history.latest().action == 1  # 1-Edição
+
