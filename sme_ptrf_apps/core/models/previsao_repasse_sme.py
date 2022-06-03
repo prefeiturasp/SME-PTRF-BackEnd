@@ -1,9 +1,16 @@
 from django.db import models
+
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
-#TODO Adicionar divisão livre, custeio e capital e conta
+# TODO Adicionar divisão livre, custeio e capital e conta
+
 
 class PrevisaoRepasseSme(ModeloBase):
+    history = AuditlogHistoryField()
+
     periodo = models.ForeignKey('Periodo', on_delete=models.PROTECT, related_name='previsoes_repasse_sme')
 
     associacao = models.ForeignKey('Associacao', on_delete=models.PROTECT,
@@ -26,8 +33,10 @@ class PrevisaoRepasseSme(ModeloBase):
     def __str__(self):
         return f"{self.periodo.referencia} - {self.associacao}"
 
-
     class Meta:
         verbose_name = "Previsão repasse SME"
         verbose_name_plural = "12.0) Previsões de repasse"
         unique_together = ['associacao', 'periodo', 'conta_associacao']
+
+
+auditlog.register(PrevisaoRepasseSme)
