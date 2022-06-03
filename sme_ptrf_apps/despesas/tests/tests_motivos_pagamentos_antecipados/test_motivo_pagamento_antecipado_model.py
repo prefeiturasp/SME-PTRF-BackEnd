@@ -24,3 +24,12 @@ def test_meta_modelo(motivo_pagamento_adiantado_01):
     assert motivo_pagamento_adiantado_01._meta.verbose_name == 'Motivo de pagamento antecipado'
     assert motivo_pagamento_adiantado_01._meta.verbose_name_plural == 'Motivos de pagamento antecipado'
 
+
+def test_audit_log(motivo_pagamento_adiantado_01):
+    assert motivo_pagamento_adiantado_01.history.count() == 1  # Um log de inclusão
+    assert motivo_pagamento_adiantado_01.history.latest().action == 0  # 0-Inclusão
+
+    motivo_pagamento_adiantado_01.motivo = "TESTE"
+    motivo_pagamento_adiantado_01.save()
+    assert motivo_pagamento_adiantado_01.history.count() == 2  # Um log de inclusão e outro de edição
+    assert motivo_pagamento_adiantado_01.history.latest().action == 1  # 1-Edição

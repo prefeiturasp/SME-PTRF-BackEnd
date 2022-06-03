@@ -1,9 +1,14 @@
 from django.db import models
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
 class SolicitacaoAcertoLancamento(ModeloBase):
+    history = AuditlogHistoryField()
+
     analise_lancamento = models.ForeignKey('AnaliseLancamentoPrestacaoConta', on_delete=models.CASCADE,
                                            related_name='solicitacoes_de_ajuste_da_analise')
 
@@ -22,3 +27,6 @@ class SolicitacaoAcertoLancamento(ModeloBase):
     class Meta:
         verbose_name = "Solicitação de acerto em lançamento"
         verbose_name_plural = "16.3) Solicitações de acertos em lançamentos"
+
+
+auditlog.register(SolicitacaoAcertoLancamento)
