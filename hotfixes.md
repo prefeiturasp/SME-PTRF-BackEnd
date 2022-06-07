@@ -1,3 +1,6 @@
+### 1.32.2 - 07/06/2022 - Hotfix em pre-produção - Soluções de bugs urgentes durante a sprint 43 
+* (66396) -  Valores nulos no quadro resumo em Conciliação bancária
+
 ### 1.32.1 - 02/06/2022 - Hotfix em pre-produção - Soluções de bugs urgentes durante a sprint 43 
 * (64225) -  Não habitação do botão "Cadastro de valores reprogramados"
 
