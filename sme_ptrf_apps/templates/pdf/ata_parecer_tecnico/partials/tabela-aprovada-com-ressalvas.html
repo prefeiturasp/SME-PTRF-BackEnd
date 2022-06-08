@@ -5,77 +5,31 @@
   {% for dados in dados.aprovadas_ressalva.contas %}
     <p class="font-12 border-bottom pb-1 texto-verde"><strong>Conta {{ dados.nome }}</strong></p>
 
-    <table class="table table-bordered tabela-status-pc nao-quebra-linha">
-      <thead>
-      <tr>
-        <th scope="col" style="width: 2%; ">Ordem</th>
-        <th scope="col" style="width: 18%; ">Unidade educacional</th>
-        <th scope="col" style="width: 8%; ">Tipo de recurso</th>
-        <th scope="col" style="width: 10%; ">Reprogramado <br/>período anterior</th>
-        <th scope="col" style="width: 10%; ">Repasse</th>
-        <th scope="col" style="width: 10%; ">Rendimentos</th>
-        <th scope="col" style="width: 10%; ">Demais créditos</th>
-        <th scope="col" style="width: 10%; ">Despesa realizada</th>
-        <th scope="col" style="width: 10%; ">Saldo</th>
-        <th scope="col" style="width: 10%; ">Devolução ao tesouro</th>
-      </tr>
-      </thead>
+    <table class="table table-bordered tabela-status-pc">
+        <thead>
+            <tr>
+                <th scope="col" style="width: 3%">Ordem</th>
+                <th scope="col" style="width: 35%">Unidade educacional</th>
+                <th scope="col" style="width: 25%">Motivos</th>
+                <th scope="col" style="width: 25%">Recomendações</th>
+            </tr>
+        </thead>
 
       {% for info in dados.info %}
         <tbody>
-        <tr>
-          <td rowSpan="5">{{ forloop.counter }}</td>
-          <td rowSpan="3"><strong>{{ info.unidade.codigo_eol }}
-            - {{ info.unidade.tipo_unidade }} {{ info.unidade.nome }}</strong></td>
-          <td>Custeio</td>
-          <td style="text-align:right;">{{ info.valores.saldo_reprogramado_periodo_anterior_custeio|formata_valor }}</td>
-          <td style="text-align:right;">{{ info.valores.repasses_no_periodo_custeio|formata_valor }}</td>
-          <td style="text-align:right;" class="fundo-cinza">-</td>
-          <td style="text-align:right;">{{ info.valores.demais_creditos_no_periodo_custeio|formata_valor }}</td>
-          <td style="text-align:right;">{{ info.valores.despesas_no_periodo_custeio|formata_valor }}</td>
-          <td style="text-align:right;">{{ info.valores.saldo_reprogramado_proximo_periodo_custeio|formata_valor }}</td>
-          <td style="text-align:right;">-</td>
-        </tr>
-        <tr>
-          <td>Capital</td>
-          <td style="text-align:right;">{{ info.valores.saldo_reprogramado_periodo_anterior_capital|formata_valor }}</td>
-          <td style="text-align:right;">{{ info.valores.repasses_no_periodo_capital|formata_valor }}</td>
-          <td style="text-align:right;" class="fundo-cinza">-</td>
-          <td style="text-align:right;">{{ info.valores.demais_creditos_no_periodo_capital|formata_valor }}</td>
-          <td style="text-align:right;">{{ info.valores.despesas_no_periodo_capital|formata_valor }}</td>
-          <td style="text-align:right;">{{ info.valores.saldo_reprogramado_proximo_periodo_capital|formata_valor }}</td>
-          <td style="text-align:right;">-</td>
-        </tr>
-
-        <tr>
-          <td>RLA</td>
-          <td style="text-align:right;">{{ info.valores.saldo_reprogramado_periodo_anterior_livre|formata_valor }}</td>
-          <td style="text-align:right;">{{ info.valores.repasses_no_periodo_livre|formata_valor }}</td>
-          <td style="text-align:right;">{{ info.valores.receitas_rendimento_no_periodo_livre|formata_valor }}</td>
-          <td style="text-align:right;">{{ info.valores.demais_creditos_no_periodo_livre|formata_valor }}</td>
-          <td style="text-align:right;">-</td>
-          <td style="text-align:right;">{{ info.valores.saldo_reprogramado_proximo_periodo_livre|formata_valor }}</td>
-          <td style="text-align:right;">{{ info.valores.devolucoes_ao_tesouro_no_periodo_total|formata_valor }}</td>
-        </tr>
-
-        <tr>
-          <td colspan="8">
-            <strong>Motivo(s):</strong>
+          <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ info.unidade.codigo_eol}} - {{ info.unidade.tipo_unidade}} {{ info.unidade.nome}}</td>
+          <td>
             {% if info.motivos_aprovada_ressalva %}
               {% for motivo in info.motivos_aprovada_ressalva %}
-                <span> {{ motivo }}, </span>
+                <p class="mb-0">{{motivo}}</p>
               {% endfor %}
             {% else %}
-              <span>Não existem motivos cadastrados</span>
+              <p class="mb-0">Não existem motivos cadastrados</p>
             {% endif %}
           </td>
-        </tr>
-
-        <tr>
-          <td colspan="8">
-            <strong>Recomendações:</strong>
-            <span>{{ info.recomendacoes }}</span>
-          </td>
+          <td>{{info.recomendacoes}}</td>
         </tr>
         </tbody>
       {% endfor %}

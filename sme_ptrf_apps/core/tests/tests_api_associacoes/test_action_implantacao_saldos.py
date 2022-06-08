@@ -47,8 +47,9 @@ def test_get_permite_implantacao_com_prestacao_contas(jwt_authenticated_client_a
 
     esperado = {
         'permite_implantacao': False,
-        'erro': 'prestacao_de_contas_existente',
-        'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
+        'erro': 'prestacao_de_contas_nao-encontrada',
+        'mensagem': 'Os saldos não podem ser implantados, não existe uma prestação de contas do periodo inicial'
+                    ' e devolivida.'
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -84,8 +85,9 @@ def test_get_permite_implantacao_com_prestacao_contas_devolvida_periodo_posterio
 
     esperado = {
         'permite_implantacao': False,
-        'erro': 'prestacao_de_contas_existente',
-        'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
+        'erro': 'prestacao_de_contas_nao-encontrada',
+        'mensagem': 'Os saldos não podem ser implantados, não existe uma prestação de contas do periodo inicial'
+                    ' e devolivida.'
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -275,8 +277,9 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_com_pc_devolvida_posteri
     result = json.loads(response.content)
 
     esperado = {
-        'erro': 'prestacao_de_contas_existente',
-        'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
+        'erro': 'prestacao_de_contas_nao-encontrada',
+        'mensagem': 'Os saldos não podem ser implantados, não existe uma prestação de contas do periodo inicial'
+                    ' e devolivida.'
     }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -316,8 +319,9 @@ def test_post_implanta_saldos_com_prestacao_contas(jwt_authenticated_client_a, a
     result = json.loads(response.content)
 
     esperado = {
-        'erro': 'prestacao_de_contas_existente',
-        'mensagem': 'Os saldos não podem ser implantados, já existe uma prestação de contas da associação.'
+        'erro': 'prestacao_de_contas_nao-encontrada',
+        'mensagem': 'Os saldos não podem ser implantados, não existe uma prestação de contas do periodo inicial'
+                    ' e devolivida.'
     }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST

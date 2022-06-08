@@ -1,0 +1,207 @@
+@charset "UTF-8";
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  src: url(../fonts/Roboto-Regular.ttf);
+}
+
+@page {
+  size: A4 landscape;
+  margin: 3cm -2mm 2cm -2mm;
+  padding: 0;
+  @top-center {
+    content: element(heading);
+  }
+    @bottom-right {
+    color: #000;
+    content: counter(page) "/" counter(pages);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: 1.4cm 0;
+    font-weight: bold;
+    font-style: italic;
+  }
+
+  @bottom-center {
+    content: none;
+  }
+
+  @bottom-left {
+    color: #000;
+    content: element(nome-associacao);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: 1.5cm 0;
+    font-style: normal;
+  }
+}
+
+@media print {
+  body, page {
+    margin: 0;
+  }
+}
+
+html {
+  font-family: Roboto, sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 10pt;
+}
+
+body {
+  font-family: Roboto;
+  font-style: normal;
+}
+
+html body section#cabecalho, header {
+  background: #EEEEEE;
+  margin: 0;
+  padding: 0 0 0.5cm 0.5cm;
+  width: 100%;
+}
+
+header {
+  position: running(heading);
+  width: 315mm;
+  padding: 0.3cm 1.8cm 0.3cm 1cm;
+  margin: 0 0 0.7cm 3.5cm;
+}
+
+html body section#cabecalho .titulo, html body section#cabecalho .subtitulo, html body header .subtitulo {
+  font-weight: bold;
+  color: #0c0c0c;
+  font-family: Roboto, serif;
+}
+
+html body section#cabecalho .subtitulo, html body header .subtitulo {
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+#nome-associacao-rodape {
+  position: running(nome-associacao);
+  font-style: normal;
+  color: #000;
+}
+
+.divisao {
+  margin: 0 1.5cm 0 0.5cm;
+}
+
+.borda-box-cabecalho-left {
+  border-top: solid 1px #A4A4A4;
+  border-bottom: solid 1px #A4A4A4;
+  border-left: solid 1px #A4A4A4;
+}
+
+.borda-box-cabecalho-right {
+  border-top: solid 1px #A4A4A4;
+  border-bottom: solid 1px #A4A4A4;
+  border-left: solid 1px #A4A4A4;
+  border-right: solid 1px #A4A4A4;
+}
+
+.conteudo {
+  margin: 0 1cm;
+  width: 280mm;
+  font-family: Roboto, serif;
+  font-style: normal;
+  color: #42474A !important;
+}
+
+.titulo {
+  color: #000000 !important;
+}
+
+html body .conteudo .tabela-relatorio-dre {
+  font-size: 7pt !important;
+  max-width: 100% !important;
+  width: auto;
+}
+
+html body .conteudo .tabela-assinaturas {
+  font-size: 7pt !important;
+}
+
+html body .conteudo .tabela-relatorio-dre thead th, html body .conteudo .tabela-relatorio-dre thead th.align-top, html body .conteudo .tabela-relatorio-dre thead th.sem-borda, html body .conteudo .tabela-relatorio-dre tbody td.total {
+  background-color: #F5F6F8 !important;
+  font-weight: normal !important;
+  vertical-align: middle;
+  width: auto;
+}
+
+html body .conteudo .tabela-relatorio-dre thead th.align-top {
+  vertical-align: top;
+  width: auto;
+}
+
+html body .conteudo .tabela-relatorio-dre thead th.sem-borda {
+  border: none !important;
+  width: auto;
+}
+
+/*Resolve o Problema de quebrar a linha em 02 páginas!!*/
+html body .conteudo #bloco-4 .nao-quebra-linha tbody tr {
+  break-after: avoid !important;
+}
+
+html body .conteudo .tabela-relatorio-dre tbody td.sem-borda {
+  border: none !important;
+  width: auto;
+}
+
+html body .conteudo .tabela-relatorio-dre tbody td.sem-borda-direita {
+  border-right: none !important;
+  width: auto;
+}
+
+html body .conteudo .tabela-relatorio-dre tbody td.fundo-cinza {
+  background-color: #F5F6F8 !important;
+  width: auto;
+}
+
+html body .conteudo .tabela-relatorio-dre thead th.fundo-th-cinza {
+  background-color: #F5F6F8 !important;
+}
+
+html body .conteudo .tabela-relatorio-dre thead th.th-fundo-branco {
+  background-color: #FFFFFF !important;
+}
+
+html body .conteudo .tabela-assinaturas thead th.fundo-th-cinza {
+  background-color: #F5F6F8 !important;
+}
+
+html body .conteudo .tabela-relatorio-dre tbody td {
+  vertical-align: middle;
+  padding: 2px 5px;
+  word-wrap: break-word !important;
+  word-break: break-all !important;
+  width: auto;
+}
+
+.font-14 {
+  font-size: 14px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-12 {
+  font-size: 12px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-10 {
+  font-size: 10px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-8 {
+  font-size: 8px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}

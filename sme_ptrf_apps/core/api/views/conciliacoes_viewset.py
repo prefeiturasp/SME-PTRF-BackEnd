@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
     PermissaoAPITodosComLeituraOuGravacao,
-    PermissaoAPITodosComGravacao, PermissaoAPIApenasSmeComLeituraOuGravacao,
+    PermissaoAPITodosComGravacao,
 )
 
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
@@ -372,7 +372,7 @@ class ConciliacoesViewSet(GenericViewSet):
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='download-extrato-bancario',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao]
             )
     def download_extrato_bancario(self, request):
         # Define o observacao da conciliacao
@@ -642,7 +642,7 @@ class ConciliacoesViewSet(GenericViewSet):
         return Response(transacao_desconciliada, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], url_path='extrato-bancario',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao]
             )
     def extrato_bancario(self, request, uuid):
 
