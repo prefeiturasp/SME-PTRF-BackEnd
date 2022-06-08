@@ -313,7 +313,11 @@ def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
 
         dados = {
             "ordem": linha + 1,
-            "associacao": info["unidade"]["nome"],
+            "associacao": {
+                "nome": info["unidade"]["nome"],
+                "codigo_eol": info["unidade"]["codigo_eol"],
+                "tipo": info["unidade"]["tipo_unidade"],
+            },
             "situacao_pc": get_status_label(info['status_prestacao_contas']),
             "custeio": None,
             "capital": None,
@@ -474,10 +478,21 @@ def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
 
 def cria_assinaturas_dre(dre):
     """Bloco 5 - Autenticação: Parte de assinaturas"""
-    comissoes = ParametrosDre.get().comissao_exame_contas
-    membros = comissoes.membros.filter(dre=dre).values("rf", "nome", "cargo")
 
-    return membros
+    membros = []
+
+    if ParametrosDre.objects.all():
+        comissoes = ParametrosDre.get().comissao_exame_contas
+        membros = comissoes.membros.filter(dre=dre).values("rf", "nome", "cargo")
+    else:
+        LOGGER.info(f"Não foi encontrado nenhum Parametro DRE, verificar no admin")
+
+    dados = {
+        "membros": membros,
+        "data_assinatura": date.today().strftime("%d/%m/%Y")
+    }
+
+    return dados
 
 
 def cria_data_geracao_documento(usuario, dre, parcial=False):

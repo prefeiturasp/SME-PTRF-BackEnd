@@ -81,7 +81,7 @@
             <th colSpan="2" style="width: 10%"><strong>04 - Outros créditos</strong></th>
             <th colSpan="2"><strong>05 - Valor total (01+03+04)</strong></th>
             <th colSpan="2"><strong>06 - Despesa realizada</strong></th>
-            <th colSpan="2" style="width: 15%"><strong>07 - Saldo reprogramado próximo período *</strong></th>
+            <th colSpan="2" style="width: 15%"><strong>07 - Saldo reprogramado próximo período</strong></th>
             <th colSpan="2"><strong>08 - Devolução ao tesouro</strong></th>
           </tr>
         </thead>
@@ -224,7 +224,7 @@
 
       <p class="font-10 titulo pt-0 pb-0">Nota explicativa:</p>
       <p class="font-10 titulo ml-2">
-        * O total do saldo reprogramado não pode ser obtido a partir da soma do total de créditos, subtraindo-se as despesas, em virtude do recurso de livre aplicação, que pode ser utilizado para despesas de custeio e capital.
+        O total do saldo reprogramado não pode ser obtido a partir da soma do total de créditos, subtraindo-se as despesas, em virtude do recurso de livre aplicação, que pode ser utilizado para despesas de custeio e capital.
 O total de cada coluna refere-se à soma dos valores das unidades, considerando o tipo de recurso.
       </p>
     </article>
@@ -232,10 +232,14 @@ O total de cada coluna refere-se à soma dos valores das unidades, considerando 
 
   <section class="mt-4">
     <article id="bloco-3" class="">
-      <p class="font-14 border-bottom pb-3 titulo"><strong>Bloco 3 - EXECUÇÃO FÍSICA</strong></p>
-
-      <table class="table table-bordered tabela-relatorio-dre mt-4">
+      <table class="table table-bordered tabela-relatorio-dre mt-4" style="border: none !important;">
         <thead class="thead-light">
+          <tr>
+            <th colSpan="10" class="th-fundo-branco ml-0 pl-0" style="border: none !important;">
+                  <p class="font-14 border-bottom pb-3 titulo"><strong>Bloco 3 - EXECUÇÃO FÍSICA</strong></p>
+            </th>
+          </tr>
+
           <tr>
             <th class="titulo" colspan="4"><strong>Atendimento</strong></th>
             <th class="titulo" colspan="6"><strong>Prestação de contas das Associações</strong></th>
@@ -320,12 +324,17 @@ O total de cada coluna refere-se à soma dos valores das unidades, considerando 
   </section>
 
     <article id="bloco-4" class="mt-4">
-      <p class="font-14 border-bottom pb-3 titulo"><strong>Bloco 4 - DADOS FÍSICO-FINANCEIROS DA EXECUÇÃO (R$)</strong></p>
-      <table class="table table-bordered tabela-relatorio-dre nao-quebra-linha mt-4">
+      <table class="table table-bordered tabela-relatorio-dre nao-quebra-linha mt-4" style="border: none !important;">
         <thead class="thead-light">
           <tr>
-            <th style="width: 7%"><strong>22 - Ordem</strong></th>
-            <th style="width: 17%"><strong>23 - Unidade educacional</strong></th>
+            <th colSpan="19" class="th-fundo-branco ml-0 pl-0" style="border: none !important;">
+              <p class="font-14 border-bottom pb-3 titulo"><strong>Bloco 4 - DADOS FÍSICO-FINANCEIROS DA EXECUÇÃO (R$)</strong></p>
+            </th>
+          </tr>
+
+          <tr>
+            <th style="width: 5%"><strong>22 - Ordem</strong></th>
+            <th style="width: 19%"><strong>23 - Unidade educacional</strong></th>
             <th colspan="2" style="width: 13%"><strong>24 - Saldo reprogramado período anterior</strong></th>
             <th colspan="2" style="width: 10%"><strong>25 - Transferido no período</strong></th>
             <th colspan="2" style="width: 10%"><strong>26 - Outros créditos</strong></th>
@@ -341,7 +350,7 @@ O total de cada coluna refere-se à soma dos valores das unidades, considerando 
           <tbody style="border-top: none !important;">
             <tr>
               <td rowspan="6">{{ info.ordem }}</td>
-              <td rowspan="6">{{ info.associacao }}</td>
+              <td rowspan="6">{{ info.associacao.codigo_eol }} - {{ info.associacao.tipo }} {{ info.associacao.nome }}</td>
 
               <td rowSpan="2" style="width: 4%; padding: 5px 0 5px 5px">C</td>
               <td rowSpan="2" class="text-right">{{ info.custeio.saldo_reprogramado_anterior_custeio }}</td>
@@ -358,8 +367,7 @@ O total de cada coluna refere-se à soma dos valores das unidades, considerando 
               <td rowSpan="2" style="width: 4%">C</td>
               <td rowSpan="2" class="text-right">{{ info.custeio.saldo_custeio }}</td>
 
-              <td rowSpan="6" style="width: 4%">L</td>
-              <td rowSpan="6" class="text-right">{{ info.livre.devolucoes_ao_tesouro }}</td>
+              <td rowSpan="6" colspan="2" class="text-center">{{ info.livre.devolucoes_ao_tesouro }}</td>
 
               <td rowspan="6">{{ info.situacao_pc }}</td>
 
@@ -425,8 +433,7 @@ O total de cada coluna refere-se à soma dos valores das unidades, considerando 
             <td rowSpan="2" class="total">C</td>
             <td rowSpan="2" class="text-right total">{{ dados.dados_fisicos_financeiros.totais.custeio.total_saldo_custeio }}</td>
 
-            <td rowSpan="6" class="total">L</td>
-            <td rowSpan="6" class="text-right total">{{ dados.dados_fisicos_financeiros.totais.livre.total_devolucoes_ao_tesouro }}</td>
+            <td rowSpan="6" colspan="2" class="text-center total">{{ dados.dados_fisicos_financeiros.totais.livre.total_devolucoes_ao_tesouro }}</td>
 
             <td rowSpan="6" style="padding: 5px 0 5px 5px" class="total"></td>
           </tr>
@@ -485,7 +492,7 @@ O total de cada coluna refere-se à soma dos valores das unidades, considerando 
 
         <div class="row">
           <div class="col d-flex align-items-center justify-content-start">
-            <p class="pt-2 pb-2 mb-1 font-10">Data: <strong>05/02/2021</strong></p>
+            <p class="pt-2 pb-2 mb-1 font-10">Data: <strong>{{ dados.assinatura_dre.data_assinatura }}</strong></p>
           </div>
         </div>
       </div>
@@ -501,7 +508,7 @@ O total de cada coluna refere-se à soma dos valores das unidades, considerando 
             </thead>
 
             <tbody>
-              {% for membro in dados.assinatura_dre %}
+              {% for membro in dados.assinatura_dre.membros %}
                 <tr>
                   <td>{{ membro.nome }}</td>
                   <td>{{ membro.cargo }}</td>
