@@ -99,12 +99,14 @@ def get_lista_associacoes_e_status_regularidade_no_ano(
         ).first()
 
         status_regularidade = analise_regularidade.status_regularidade if analise_regularidade else 'PENDENTE'
+        motivo = analise_regularidade.motivo_nao_regularidade if analise_regularidade else ''
 
         if not filtro_status or status_regularidade == filtro_status:
             associacoes_status.append(
                 {
                     'associacao': AssociacaoListSerializer(associacao).data,
                     'status_regularidade': status_regularidade,
+                    'motivo': motivo
                 }
             )
 

@@ -18,7 +18,6 @@ from sme_ptrf_apps.core.api.views import (
     ConciliacoesViewSet,
     NotificacaoViewSet,
     DresViewSet,
-    CobrancasPrestacoesContasViewSet,
     TiposDevolucaoAoTesouroViewSet,
     TiposContaViewSet,
     ComentariosAnalisesPrestacoesViewSet,
@@ -96,7 +95,6 @@ router.register("atribuicoes", AtribuicaoViewset)
 router.register("conciliacoes", ConciliacoesViewSet, basename='conciliacoes')
 router.register("notificacoes", NotificacaoViewSet)
 router.register("dres", DresViewSet)
-router.register("cobrancas-prestacoes-contas", CobrancasPrestacoesContasViewSet)
 router.register("tipos-devolucao-ao-tesouro", TiposDevolucaoAoTesouroViewSet)
 router.register("tipos-conta", TiposContaViewSet)
 router.register("comentarios-de-analises", ComentariosAnalisesPrestacoesViewSet)

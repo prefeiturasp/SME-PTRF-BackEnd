@@ -1,3 +1,12 @@
+### 1.32.2 - 07/06/2022 - Hotfix em pre-produção - Soluções de bugs urgentes durante a sprint 43 
+* (66396) -  Valores nulos no quadro resumo em Conciliação bancária
+
+### 1.32.1 - 02/06/2022 - Hotfix em pre-produção - Soluções de bugs urgentes durante a sprint 43 
+* (64225) -  Não habitação do botão "Cadastro de valores reprogramados"
+
+### 1.31.5 - 30/05/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 42 
+* (65643) -  O saldo das PCs 2022.1 e 2021.3 da DRE Ipiranga exibe os dados da PC 2021.2
+
 ### 1.31.4 - 27/05/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 42 
 * (64318) -  Ata da PC: o parecer do conselho fiscal deve exibir a lista com todos os membros do conselho fiscal e não apenas dos presentes
 * (63012) -  Demonstrativo: a exibição dos impostos no bloco de despesas permite a quebra no conjunto de linhas relativas ao imposto
