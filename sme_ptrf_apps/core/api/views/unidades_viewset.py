@@ -7,7 +7,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from ..serializers import UnidadeSerializer
+from ..serializers import UnidadeSerializer, UnidadeListSerializer
 from ...models import Unidade
 from ...services import monta_unidade_para_atribuicao
 from sme_ptrf_apps.users.permissoes import (
@@ -19,7 +19,7 @@ from sme_ptrf_apps.users.permissoes import (
 class UnidadesViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
-    queryset = Unidade.objects.all()
+    queryset = Unidade.objects.all().order_by("tipo_unidade", "nome")
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
     filters = (filters.DjangoFilterBackend, SearchFilter,)
     serializer_class = UnidadeSerializer
@@ -45,6 +45,12 @@ class UnidadesViewSet(viewsets.ModelViewSet):
             qs = qs.filter(Q(codigo_eol=search) | Q(nome__unaccent__icontains=search))
 
         return qs
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return UnidadeListSerializer
+        else:
+            return UnidadeSerializer
 
     @action(detail=False, url_path='para-atribuicao',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])

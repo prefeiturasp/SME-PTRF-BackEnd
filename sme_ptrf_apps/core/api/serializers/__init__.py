@@ -31,7 +31,12 @@ from .prestacao_conta_serializer import (PrestacaoContaLookUpSerializer, Prestac
                                          PrestacaoContaRetrieveSerializer)
 from .processo_associacao_serializer import ProcessoAssociacaoRetrieveSerializer, ProcessoAssociacaoCreateSerializer
 from .tipo_conta_serializer import TipoContaSerializer
-from .unidade_serializer import UnidadeInfoAtaSerializer, UnidadeLookUpSerializer, UnidadeSerializer
+from .unidade_serializer import (
+    UnidadeInfoAtaSerializer,
+    UnidadeLookUpSerializer,
+    UnidadeSerializer,
+    UnidadeListSerializer
+)
 from .comentario_analise_prestacao_serializer import ComentarioAnalisePrestacaoRetrieveSerializer
 from .arquivo_serializer import ArquivoSerializer
 from .modelo_carga_serializer import ModeloCargaSerializer
