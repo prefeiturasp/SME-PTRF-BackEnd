@@ -1,4 +1,6 @@
 from django_filters import rest_framework as filters
+from django.db.models import Q
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -40,7 +42,7 @@ class UnidadesViewSet(viewsets.ModelViewSet):
 
         search = self.request.query_params.get('search')
         if search is not None:
-            qs = qs.filter(nome__unaccent__icontains=search)
+            qs = qs.filter(Q(codigo_eol=search) | Q(nome__unaccent__icontains=search))
 
         return qs
 

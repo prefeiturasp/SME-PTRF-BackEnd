@@ -46,7 +46,13 @@ def unidade_paulo_camilhier_florencano_dre_1(dre_01):
     )
 
 
-def test_api_list_unidades_todas(jwt_authenticated_client_a, unidade_paulo_camilhier_florencano_dre_1, dre_01, dre, unidade):
+def test_api_list_unidades_todas(
+    jwt_authenticated_client_a,
+    unidade_paulo_camilhier_florencano_dre_1,
+    dre_01,
+    dre,
+    unidade
+):
     response = jwt_authenticated_client_a.get(f'/api/unidades/', content_type='application/json')
     result = json.loads(response.content)
 
@@ -160,112 +166,94 @@ def test_api_list_unidades_todas(jwt_authenticated_client_a, unidade_paulo_camil
     assert result == result_esperado
 
 
-@pytest.fixture
-def tecnico_dre(dre):
-    return baker.make(
-        'TecnicoDre',
-        dre=dre,
-        nome='José Testando',
-        rf='271170',
-    )
-
-
-@pytest.fixture
-def atribuicao(tecnico_dre, unidade, periodo):
-    return baker.make(
-        'Atribuicao',
-        tecnico=tecnico_dre,
-        unidade=unidade,
-        periodo=periodo,
-    )
-
-
-@pytest.fixture
-def unidade_2(dre):
-    return baker.make(
-        'Unidade',
-        nome='Escola Unidade 2',
-        tipo_unidade='EMEI',
-        codigo_eol='123459',
-        dre=dre,
-        sigla='ET2',
-        cep='5868120',
-        tipo_logradouro='Travessa',
-        logradouro='dos Testes',
-        bairro='COHAB INSTITUTO ADVENTISTA',
-        numero='100',
-        complemento='fundos',
-        telefone='99212627',
-        email='emeijopfilho@sme.prefeitura.sp.gov.br',
-        diretor_nome='Amaro Pedro',
-        dre_cnpj='63.058.286/0001-86',
-        dre_diretor_regional_rf='1234567',
-        dre_diretor_regional_nome='Anthony Edward Stark',
-        dre_designacao_portaria='Portaria nº 0.000',
-        dre_designacao_ano='2017',
-    )
-
-
-def test_unidades_para_atribuicao(jwt_authenticated_client_a, unidade, periodo, tecnico_dre, atribuicao):
-    response = jwt_authenticated_client_a.get(
-        f'/api/unidades/para-atribuicao/?dre_uuid={unidade.dre.uuid}&periodo={periodo.uuid}', content_type='application/json')
+def test_api_list_unidades_por_nome(
+    jwt_authenticated_client_a,
+    unidade_paulo_camilhier_florencano_dre_1,
+    dre_01,
+    dre,
+    unidade
+):
+    response = jwt_authenticated_client_a.get(f'/api/unidades/?search=Escola', content_type='application/json')
     result = json.loads(response.content)
 
-    resultado_esperado = [
+    result_esperado = [
         {
-            'uuid': str(unidade.uuid),
-            'codigo_eol': unidade.codigo_eol,
-            'nome': f'{unidade.tipo_unidade} {unidade.nome}',
-            'atribuicao': {
-                'id': atribuicao.id,
-                'tecnico': {
-                    'uuid': str(tecnico_dre.uuid),
-                    'rf': tecnico_dre.rf,
-                    'nome': tecnico_dre.nome,
-                    'email': tecnico_dre.email,
-                    'telefone': tecnico_dre.telefone
-                }
-            }
-        }]
+            'bairro': 'COHAB INSTITUTO ADVENTISTA',
+            'cep': '5868120',
+            'codigo_eol': '123456',
+            'complemento': 'fundos',
+            'diretor_nome': 'Pedro Amaro',
+            'dre': {'codigo_eol': '99999',
+                    'nome': 'DRE teste',
+                    'sigla': 'TT',
+                    'tipo_unidade': 'DRE',
+                    'uuid': str(dre.uuid)},
+            'dre_cnpj': '63.058.286/0001-86',
+            'dre_designacao_ano': '2017',
+            'dre_designacao_portaria': 'Portaria nº 0.000',
+            'dre_diretor_regional_nome': 'Anthony Edward Stark',
+            'dre_diretor_regional_rf': '1234567',
+            'email': 'emefjopfilho@sme.prefeitura.sp.gov.br',
+            'logradouro': 'dos Testes',
+            'nome': 'Escola Teste',
+            'numero': '200',
+            'qtd_alunos': 0,
+            'sigla': 'ET',
+            'telefone': '58212627',
+            'tipo_logradouro': 'Travessa',
+            'tipo_unidade': 'CEU',
+            'uuid': str(unidade.uuid)
+        },
 
-    assert response.status_code == 200
-    assert resultado_esperado == result
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == result_esperado
 
 
-def test_unidades_para_atribuicao_filtro_tipo_unidade(jwt_authenticated_client_a, unidade, unidade_2, periodo, tecnico_dre, atribuicao):
-    response = jwt_authenticated_client_a.get(
-        f'/api/unidades/para-atribuicao/?dre_uuid={unidade.dre.uuid}&periodo={periodo.uuid}&tipo_unidade={unidade.tipo_unidade}', content_type='application/json')
+def test_api_list_unidades_por_codigo_eol(
+    jwt_authenticated_client_a,
+    unidade_paulo_camilhier_florencano_dre_1,
+    dre_01,
+    dre,
+    unidade
+):
+    response = jwt_authenticated_client_a.get(f'/api/unidades/?search=123456', content_type='application/json')
     result = json.loads(response.content)
 
-    resultado_esperado = [
+    result_esperado = [
         {
-            'uuid': str(unidade.uuid),
-            'codigo_eol': unidade.codigo_eol,
-            'nome': f'{unidade.tipo_unidade} {unidade.nome}',
-            'atribuicao': {
-                'id': atribuicao.id,
-                'tecnico': {
-                    'uuid': str(tecnico_dre.uuid),
-                    'rf': tecnico_dre.rf,
-                    'nome': tecnico_dre.nome,
-                    'email': tecnico_dre.email,
-                    'telefone': tecnico_dre.telefone
-                }
-            }
-        }]
+            'bairro': 'COHAB INSTITUTO ADVENTISTA',
+            'cep': '5868120',
+            'codigo_eol': '123456',
+            'complemento': 'fundos',
+            'diretor_nome': 'Pedro Amaro',
+            'dre': {'codigo_eol': '99999',
+                    'nome': 'DRE teste',
+                    'sigla': 'TT',
+                    'tipo_unidade': 'DRE',
+                    'uuid': str(dre.uuid)},
+            'dre_cnpj': '63.058.286/0001-86',
+            'dre_designacao_ano': '2017',
+            'dre_designacao_portaria': 'Portaria nº 0.000',
+            'dre_diretor_regional_nome': 'Anthony Edward Stark',
+            'dre_diretor_regional_rf': '1234567',
+            'email': 'emefjopfilho@sme.prefeitura.sp.gov.br',
+            'logradouro': 'dos Testes',
+            'nome': 'Escola Teste',
+            'numero': '200',
+            'qtd_alunos': 0,
+            'sigla': 'ET',
+            'telefone': '58212627',
+            'tipo_logradouro': 'Travessa',
+            'tipo_unidade': 'CEU',
+            'uuid': str(unidade.uuid)
+        },
 
-    assert response.status_code == 200
-    assert resultado_esperado == result
+    ]
 
-
-def test_unidades_para_atribuicao_filtro_nome_unidade_qualquer_termo(jwt_authenticated_client_a, unidade, unidade_2, periodo, tecnico_dre, atribuicao):
-    response = jwt_authenticated_client_a.get(
-        f'/api/unidades/para-atribuicao/?dre_uuid={unidade.dre.uuid}&periodo={periodo.uuid}&search=Unid', content_type='application/json')
-    result = json.loads(response.content)
-
-    assert response.status_code == 200
-    assert len(result) == 1
-    assert result[0]['nome'] == f'{unidade_2.tipo_unidade} {unidade_2.nome}'
+    assert response.status_code == status.HTTP_200_OK
+    assert result == result_esperado
 
 
 def test_api_list_unidades_filtro_por_tipo(
