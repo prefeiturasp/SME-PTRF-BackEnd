@@ -54,6 +54,10 @@ class RelatorioConsolidadoDRE(ModeloBase):
     periodo = models.ForeignKey('core.Periodo', on_delete=models.PROTECT,
                                 related_name='relatorios_consolidados_dre_do_periodo')
 
+    consolidado_dre = models.ForeignKey('ConsolidadoDRE', on_delete=models.PROTECT,
+                                        related_name='relatorios_consolidados_dre_do_consolidado_dre',
+                                        blank=True, null=True)
+
     status = models.CharField(
         'status',
         max_length=20,
@@ -69,8 +73,8 @@ class RelatorioConsolidadoDRE(ModeloBase):
     )
 
     class Meta:
-        verbose_name = 'Relatório consolidado DRE'
-        verbose_name_plural = 'Relatórios consolidados DREs'
+        verbose_name = 'Relatório físico-financeiro DRE'
+        verbose_name_plural = 'Relatórios físico-financeiros DREs'
 
     def __str__(self):
         if self.versao == self.VERSAO_PREVIA:
