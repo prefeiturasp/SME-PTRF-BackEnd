@@ -173,3 +173,26 @@ def test_api_list_associacoes_pelo_tipo_unidade(jwt_authenticated_client_a, asso
 
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado
+
+
+def test_api_list_associacoes_pelo_codigo_eol(jwt_authenticated_client_a, associacao_valenca_ceu_vassouras_dre_1,
+                                               associacao_pinheiros_emef_mendes_dre_2):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/?nome=00011', content_type='application/json')
+    result = json.loads(response.content)
+
+    result_esperado = [
+        {
+            'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
+            'nome': associacao_valenca_ceu_vassouras_dre_1.nome,
+            'unidade': {
+                'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
+                'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
+                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
+                'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
+            },
+            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj
+        },
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == result_esperado
