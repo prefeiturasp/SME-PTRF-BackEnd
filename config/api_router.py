@@ -54,6 +54,7 @@ from sme_ptrf_apps.dre.api.views import (
     MembrosComissoesViewSet,
     AnosAnaliseRegularidadeViewSet,
     AtaParecerTecnicoViewset,
+    ConsolidadosDreViewSet,
     ParametrosDreViewSet
 )
 from sme_ptrf_apps.sme.api.views import (
@@ -129,6 +130,7 @@ router.register("anos-analise-regularidade", AnosAnaliseRegularidadeViewSet)
 router.register("ata-parecer-tecnico", AtaParecerTecnicoViewset)
 router.register("motivos-pagamento-antecipado", MotivosPagamentoAntecipadoViewSet)
 router.register("motivos-estorno", MotivosEstornoViewSet)
+router.register("consolidados-dre", ConsolidadosDreViewSet)
 router.register("parametros-dre", ParametrosDreViewSet)
 router.register("parametros-sme", ParametrosSmeViewSet)
 

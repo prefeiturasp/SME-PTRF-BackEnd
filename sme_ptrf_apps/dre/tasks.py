@@ -14,11 +14,22 @@ from sme_ptrf_apps.dre.models import (
     AnoAnaliseRegularidade,
     AnaliseRegularidadeAssociacao,
     ItemVerificacaoRegularidade,
-    VerificacaoRegularidadeAssociacao
+    VerificacaoRegularidadeAssociacao, ConsolidadoDRE
 )
 
-
 logger = logging.getLogger(__name__)
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limit=333333,
+    soft_time_limit=333333
+)
+def concluir_consolidado_dre_async(dre_uuid=None, periodo_uuid=None, parcial=None, consolidado_dre_uuid=None, usuario=None):
+    from .services.consolidado_dre_service import _criar_documentos
+    tipos_contas = TipoConta.objects.all()
+    _criar_documentos(dre_uuid, periodo_uuid, parcial, consolidado_dre_uuid, tipos_contas, usuario)
 
 
 @shared_task(
@@ -47,7 +58,7 @@ def gerar_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario):
     time_limit=333333,
     soft_time_limit=333333
 )
-def gerar_relatorio_consolidado_dre_async(periodo_uuid, dre_uuid, tipo_conta_uuid, parcial, usuario):
+def gerar_relatorio_consolidado_dre_async(dre_uuid, periodo_uuid, parcial, consolidado_dre_uuid, tipo_conta_uuid, usuario, ):
     logger.info(f'Iniciando Relatório DRE. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
 
     # Remover excel
@@ -87,11 +98,21 @@ def gerar_relatorio_consolidado_dre_async(periodo_uuid, dre_uuid, tipo_conta_uui
         raise Exception(erro)
 
     try:
+        consolidado_dre = ConsolidadoDRE.objects.get(uuid=consolidado_dre_uuid)
+    except ConsolidadoDRE.DoesNotExist:
+        erro = {
+            'erro': 'Objeto não encontrado.',
+            'mensagem': f"O objeto consolidado para o uuid {consolidado_dre_uuid} não foi encontrado na base."
+        }
+        logger.error('Erro: %r', erro)
+        raise Exception(erro)
+
+    try:
         # Remover excel
         # Essa linha esta sendo mantida para comparação do excel e pdf
         # Após aprovação do pdf, remover excel
         # gera_relatorio_dre(dre, periodo, tipo_conta, parcial)
-        _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, usuario, parcial)
+        _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, usuario, parcial, consolidado_dre)
         AtaParecerTecnico.iniciar(
             dre=dre,
             periodo=periodo
@@ -175,9 +196,11 @@ def gerar_previa_relatorio_consolidado_dre_async(dre_uuid, tipo_conta_uuid, peri
     soft_time_limit=300
 )
 def gerar_lauda_csv_async(dre_uuid, tipo_conta_uuid, periodo_uuid, parcial, username):
-    logger.info(f'Iniciando a geração do arquivo csv da lauda async. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
+    logger.info(
+        f'Iniciando a geração do arquivo csv da lauda async. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
     from sme_ptrf_apps.dre.services import gerar_csv
-    from sme_ptrf_apps.core.services.arquivo_download_service import gerar_arquivo_download, atualiza_arquivo_download, atualiza_arquivo_download_erro
+    from sme_ptrf_apps.core.services.arquivo_download_service import gerar_arquivo_download, atualiza_arquivo_download, \
+        atualiza_arquivo_download_erro
 
     try:
         periodo = Periodo.objects.get(uuid=periodo_uuid)
@@ -227,7 +250,8 @@ def gerar_lauda_csv_async(dre_uuid, tipo_conta_uuid, periodo_uuid, parcial, user
         logger.error("Erro ao gerar lauda: %s", str(err))
         raise Exception(erro)
 
-    logger.info(f'Finalizado geração arquivo csv da lauda async. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
+    logger.info(
+        f'Finalizado geração arquivo csv da lauda async. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
 
 
 @shared_task(
@@ -237,9 +261,11 @@ def gerar_lauda_csv_async(dre_uuid, tipo_conta_uuid, periodo_uuid, parcial, user
     soft_time_limit=300
 )
 def gerar_lauda_txt_async(dre_uuid, tipo_conta_uuid, periodo_uuid, parcial, username):
-    logger.info(f'Iniciando a geração do arquivo txt da lauda async. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
+    logger.info(
+        f'Iniciando a geração do arquivo txt da lauda async. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
     from sme_ptrf_apps.dre.services import gerar_txt
-    from sme_ptrf_apps.core.services.arquivo_download_service import gerar_arquivo_download, atualiza_arquivo_download, atualiza_arquivo_download_erro
+    from sme_ptrf_apps.core.services.arquivo_download_service import gerar_arquivo_download, atualiza_arquivo_download, \
+        atualiza_arquivo_download_erro
 
     try:
         periodo = Periodo.objects.get(uuid=periodo_uuid)
@@ -299,7 +325,8 @@ def gerar_lauda_txt_async(dre_uuid, tipo_conta_uuid, periodo_uuid, parcial, user
         logger.error("Erro ao gerar lauda: %s", str(err))
         raise Exception(erro)
 
-    logger.info(f'Finalizado geração arquivo txt da lauda async. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
+    logger.info(
+        f'Finalizado geração arquivo txt da lauda async. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
 
 
 @shared_task(
