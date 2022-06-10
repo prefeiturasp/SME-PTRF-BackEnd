@@ -27,4 +27,6 @@ from .ata_parecer_tecnico_service import (
     gerar_arquivo_ata_parecer_tecnico,
 )
 
+from .consolidado_dre_service import concluir_consolidado_dre, verificar_se_status_parcial_ou_total, status_consolidado_dre
+
 
