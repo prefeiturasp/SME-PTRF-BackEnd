@@ -56,6 +56,13 @@ class UnidadeInfoAtaSerializer(serializers.ModelSerializer):
 class UnidadeListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Unidade
+        fields = ('uuid', 'codigo_eol', 'nome_com_tipo', 'nome_dre')
+
+
+# TODO integrar com UnidadeListSerializer - Criado para resolver com urgência testes quebrando.
+class UnidadeListComNomeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Unidade
         fields = ('uuid', 'codigo_eol', 'nome_com_tipo', 'nome_dre', 'nome')
 
 

@@ -35,7 +35,8 @@ from .unidade_serializer import (
     UnidadeInfoAtaSerializer,
     UnidadeLookUpSerializer,
     UnidadeSerializer,
-    UnidadeListSerializer
+    UnidadeListSerializer,
+    UnidadeListComNomeSerializer
 )
 from .comentario_analise_prestacao_serializer import ComentarioAnalisePrestacaoRetrieveSerializer
 from .arquivo_serializer import ArquivoSerializer
