@@ -64,7 +64,10 @@ class Periodo(ModeloBase):
         return not self.periodo_seguinte.exists()
 
     def data_pertence_ao_periodo(self, data):
-        return self.data_inicio_realizacao_despesas <= data <= self.data_fim_realizacao_despesas
+        if self.data_fim_realizacao_despesas:
+            return self.data_inicio_realizacao_despesas <= data <= self.data_fim_realizacao_despesas
+        else:
+            return data >= self.data_inicio_realizacao_despesas
 
     @classmethod
     def periodo_atual(cls):

@@ -1,9 +1,14 @@
 from django.db import models
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
 class AnaliseDocumentoPrestacaoConta(ModeloBase):
+    history = AuditlogHistoryField()
+
     # Status Choice
     RESULTADO_CORRETO = 'CORRETO'
     RESULTADO_AJUSTE = 'AJUSTE'
@@ -40,3 +45,6 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
     class Meta:
         verbose_name = "Análise de documentos de PC"
         verbose_name_plural = "16.6) Análises de documentos de PC"
+
+
+auditlog.register(AnaliseDocumentoPrestacaoConta)

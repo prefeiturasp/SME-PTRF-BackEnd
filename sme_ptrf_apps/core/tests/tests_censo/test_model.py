@@ -27,3 +27,13 @@ def test_model_censo(censo):
 def test_censo_admin():
     # pylint: disable=W0212
     assert admin.site._registry[Censo]
+
+
+def test_audit_log(censo):
+    assert censo.history.count() == 1  # Um log de inclusão
+    assert censo.history.latest().action == 0  # 0-Inclusão
+
+    censo.ano = "2022"
+    censo.save()
+    assert censo.history.count() == 2  # Um log de inclusão e outro de edição
+    assert censo.history.latest().action == 1  # 1-Edição

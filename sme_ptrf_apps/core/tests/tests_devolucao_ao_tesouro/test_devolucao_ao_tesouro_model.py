@@ -63,3 +63,13 @@ def test_srt_model(devolucao_ao_tesouro):
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[DevolucaoAoTesouro]
+
+
+def test_audit_log(devolucao_ao_tesouro):
+    assert devolucao_ao_tesouro.history.count() == 1  # Um log de inclusão
+    assert devolucao_ao_tesouro.history.latest().action == 0  # 0-Inclusão
+
+    devolucao_ao_tesouro.valor = 100.00
+    devolucao_ao_tesouro.save()
+    assert devolucao_ao_tesouro.history.count() == 2  # Um log de inclusão e outro de edição
+    assert devolucao_ao_tesouro.history.latest().action == 1  # 1-Edição

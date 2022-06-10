@@ -56,7 +56,7 @@ class UnidadeInfoAtaSerializer(serializers.ModelSerializer):
 class UnidadeListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Unidade
-        fields = ('uuid', 'codigo_eol', 'nome_com_tipo', 'nome_dre')
+        fields = ('uuid', 'codigo_eol', 'nome_com_tipo', 'nome_dre', 'nome')
 
 
 class UnidadeCreateSerializer(serializers.ModelSerializer):

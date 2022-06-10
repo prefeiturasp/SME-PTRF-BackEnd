@@ -3,39 +3,29 @@
 {% load divide_lista %}
 
 {% if dados.aprovadas.contas %}
-
-  {% for conta in dados.aprovadas.contas %}
-
-    <div class="col-12 {% if forloop.counter > 1 %} mb-3 {% endif %}">
+  <article id="columns">
+    {% for conta in dados.aprovadas.contas %}
       <p class="font-12 border-bottom texto-verde"><strong>Conta {{ conta.nome }}</strong></p>
-    </div>
-
-      {% divide_lista_por_numero_de_corte conta 8 as lista_dividida %}
-      {% for dados in lista_dividida %}
-
-        <div class="col-4 pr-0">
-          <table class="table table-bordered tabela-status-pc">
-            <thead>
+      <section>
+        <table class="table table-bordered tabela-status-pc">
+          <thead>
+          <tr>
+            <th scope="col" style="width: 3%">Ordem</th>
+            <th scope="col" style="width: 97%">Unidade educacional</th>
+          </tr>
+          </thead>
+          {% for dado in conta.info %}
+            <tbody>
             <tr>
-              <th scope="col" style="width: 3%">Ordem</th>
-              <th scope="col" style="width: 97%">Unidade educacional</th>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ dado.unidade.codigo_eol }} - {{ dado.unidade.tipo_unidade }} {{ dado.unidade.nome }}</td>
             </tr>
-            </thead>
-
-            {% for dado in dados %}
-              <tbody>
-              <tr>
-                <td>{{ dado.ordem }}</td>
-                <td>{{ dado.unidade.codigo_eol }} - {{ dado.unidade.tipo_unidade }} {{ dado.unidade.nome }}</td>
-              </tr>
-              </tbody>
-            {% endfor %}
-
-          </table>
-        </div>
-
-      {% endfor %}
-  {% endfor %}
+            </tbody>
+          {% endfor %}
+        </table>
+      </section>
+    {% endfor %}
+  </article>
 {% else %}
   <p class="font-12">Nenhuma prestação de contas aprovada</p>
 {% endif %}

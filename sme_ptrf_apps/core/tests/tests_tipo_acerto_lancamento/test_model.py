@@ -31,3 +31,14 @@ def test_srt_model(tipo_acerto_lancamento):
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[TipoAcertoLancamento]
+
+
+def test_audit_log(tipo_acerto_lancamento):
+    assert tipo_acerto_lancamento.history.count() == 1  # Um log de inclusão
+    assert tipo_acerto_lancamento.history.latest().action == 0  # 0-Inclusão
+
+    tipo_acerto_lancamento.nome = "TESTE"
+    tipo_acerto_lancamento.save()
+    assert tipo_acerto_lancamento.history.count() == 2  # Um log de inclusão e outro de edição
+    assert tipo_acerto_lancamento.history.latest().action == 1  # 1-Edição
+

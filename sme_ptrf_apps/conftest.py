@@ -1272,6 +1272,9 @@ def parametros():
         permite_saldo_conta_negativo=True,
         fique_de_olho='',
         fique_de_olho_relatorio_dre='',
+        texto_pagina_suporte_dre='Teste DRE',
+        texto_pagina_suporte_sme='Teste SME',
+
     )
 
 

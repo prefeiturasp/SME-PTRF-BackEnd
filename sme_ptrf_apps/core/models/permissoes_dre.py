@@ -188,3 +188,17 @@ class FuncDreComissoes(models.Model):
             ('access_comissoes_dre', '[DRE] Pode acessar Comissões.'),
             ('change_comissoes_dre', '[DRE] Pode atualizar Comissões.'),
         )
+
+
+class FuncDreSuporteUnidades(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[DRE] Suporte às unidades"
+        verbose_name_plural = "[DRE] Suporte às unidades"
+
+        permissions = (
+            ('access_suporte_unidades_dre', '[DRE] Pode acessar o suporte às unidades (DRE).'),
+        )
