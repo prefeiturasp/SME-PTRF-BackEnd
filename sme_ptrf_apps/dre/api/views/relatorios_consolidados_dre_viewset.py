@@ -1,8 +1,6 @@
 import logging
-from io import BytesIO
 
 from django.http import HttpResponse
-from openpyxl.writer.excel import save_virtual_workbook
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -19,7 +17,6 @@ from sme_ptrf_apps.users.permissoes import (
 
 from ...models import RelatorioConsolidadoDRE
 from ...services import (
-    gera_previa_relatorio_dre,
     informacoes_devolucoes_a_conta_ptrf,
     informacoes_devolucoes_ao_tesouro,
     informacoes_execucao_financeira,
@@ -27,7 +24,7 @@ from ...services import (
     status_de_geracao_do_relatorio,
     update_observacao_devolucao,
 )
-from ...tasks import gerar_relatorio_consolidado_dre_async, gerar_previa_relatorio_consolidado_dre_async, gerar_lauda_csv_async, gerar_lauda_txt_async
+from ...tasks import gerar_previa_relatorio_consolidado_dre_async, gerar_lauda_txt_async
 
 logger = logging.getLogger(__name__)
 
@@ -744,70 +741,6 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         return response
-
-    @action(detail=False, url_path="gerar-relatorio", methods=['post'],
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
-    def gerar_relatorio(self, request):
-        dados = request.data
-
-        if (
-            not dados
-            or not dados.get('dre_uuid')
-            or not dados.get('periodo_uuid')
-            or not dados.get('tipo_conta_uuid')
-            or (dados.get('parcial') is None)
-        ):
-            erro = {
-                'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar os uuids da dre, período, conta e parcial.'
-            }
-            logger.info('Erro ao gerar relatório consolidado: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        dre_uuid, periodo_uuid, tipo_conta_uuid = dados['dre_uuid'], dados['periodo_uuid'], dados['tipo_conta_uuid']
-        parcial = dados['parcial']
-
-        try:
-            Unidade.dres.get(uuid=dre_uuid)
-        except Unidade.DoesNotExist:
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            TipoConta.objects.get(uuid=tipo_conta_uuid)
-        except TipoConta.DoesNotExist:
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto tipo de conta para o uuid {tipo_conta_uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            Periodo.objects.get(uuid=periodo_uuid)
-        except Periodo.DoesNotExist:
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            gerar_relatorio_consolidado_dre_async.delay(periodo_uuid, dre_uuid, tipo_conta_uuid, parcial, request.user.username)
-        except Exception as err:
-            erro = {
-                'erro': 'problem_geracao_relatorio',
-                'mensagem': 'Ao gerar relatório.'
-            }
-            logger.info("Erro ao gerar relatório consolidado: %s", str(err))
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response({"OK": "Relatório Consolidado na fila para processamento."}, status=status.HTTP_201_CREATED)
 
     @action(detail=False, url_path="previa", methods=['post'],
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])

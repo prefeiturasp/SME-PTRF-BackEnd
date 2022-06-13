@@ -54,9 +54,15 @@ from sme_ptrf_apps.dre.api.views import (
     MembrosComissoesViewSet,
     AnosAnaliseRegularidadeViewSet,
     AtaParecerTecnicoViewset,
+    ConsolidadosDreViewSet,
+    ParametrosDreViewSet,
     ValoresReprogramadosViewSet
 )
-from sme_ptrf_apps.sme.api.views import SaldosBancariosSMEViewSet, SaldosBancariosSmeDetalhesAsocciacoesViewSet
+from sme_ptrf_apps.sme.api.views import (
+    SaldosBancariosSMEViewSet,
+    SaldosBancariosSmeDetalhesAsocciacoesViewSet,
+    ParametrosSmeViewSet
+)
 from sme_ptrf_apps.receitas.api.views import ReceitaViewSet, RepasseViewSet, MotivosEstornoViewSet
 from sme_ptrf_apps.users.api.views import EsqueciMinhaSenhaViewSet, LoginView, RedefinirSenhaViewSet, UserViewSet
 
@@ -125,6 +131,9 @@ router.register("anos-analise-regularidade", AnosAnaliseRegularidadeViewSet)
 router.register("ata-parecer-tecnico", AtaParecerTecnicoViewset)
 router.register("motivos-pagamento-antecipado", MotivosPagamentoAntecipadoViewSet)
 router.register("motivos-estorno", MotivosEstornoViewSet)
+router.register("consolidados-dre", ConsolidadosDreViewSet)
+router.register("parametros-dre", ParametrosDreViewSet)
+router.register("parametros-sme", ParametrosSmeViewSet)
 router.register("valores-reprogramados", ValoresReprogramadosViewSet)
 
 

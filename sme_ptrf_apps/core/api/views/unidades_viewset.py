@@ -1,11 +1,13 @@
 from django_filters import rest_framework as filters
+from django.db.models import Q
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from ..serializers import UnidadeSerializer
+from ..serializers import UnidadeSerializer, UnidadeListComNomeSerializer
 from ...models import Unidade
 from ...services import monta_unidade_para_atribuicao
 from sme_ptrf_apps.users.permissoes import (
@@ -17,7 +19,7 @@ from sme_ptrf_apps.users.permissoes import (
 class UnidadesViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
-    queryset = Unidade.objects.all()
+    queryset = Unidade.objects.all().order_by("tipo_unidade", "nome")
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
     filters = (filters.DjangoFilterBackend, SearchFilter,)
     serializer_class = UnidadeSerializer
@@ -40,9 +42,15 @@ class UnidadesViewSet(viewsets.ModelViewSet):
 
         search = self.request.query_params.get('search')
         if search is not None:
-            qs = qs.filter(nome__unaccent__icontains=search)
+            qs = qs.filter(Q(codigo_eol=search) | Q(nome__unaccent__icontains=search))
 
         return qs
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return UnidadeListComNomeSerializer
+        else:
+            return UnidadeSerializer
 
     @action(detail=False, url_path='para-atribuicao',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])

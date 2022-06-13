@@ -10,4 +10,6 @@ from .comissoes_viewset import ComissoesViewSet
 from .membros_comissoes_viewset import MembrosComissoesViewSet
 from .anos_analise_regularidade_viewset import AnosAnaliseRegularidadeViewSet
 from .ata_parecer_tecnico_viewset import AtaParecerTecnicoViewset
+from .consolidados_dre_viewset import ConsolidadosDreViewSet
+from .parametros_dre_viewset import ParametrosDreViewSet
 from .valores_reprogramados_viewset import ValoresReprogramadosViewSet

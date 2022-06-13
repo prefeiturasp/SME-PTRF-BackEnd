@@ -802,7 +802,7 @@ def _criar_previa_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_co
                 relatorio_consolidado.uuid, relatorio_consolidado.status)
 
 
-def _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, usuario, parcial=False):
+def _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, usuario, parcial=False, consolidado_dre=None):
     logger.info("Relatório consolidado em processamento...")
 
     relatorio_consolidado = _gerar_arquivos_demonstrativo_execucao_fisico_financeiro(
@@ -812,13 +812,14 @@ def _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, us
                                 parcial=parcial,
                                 usuario=usuario,
                                 previa=False,
+                                consolidado_dre=consolidado_dre,
                             )
 
     logger.info("Relatório Consolidado Gerado: uuid: %s, status: %s",
                 relatorio_consolidado.uuid, relatorio_consolidado.status)
 
 
-def _gerar_arquivos_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, parcial, usuario, previa):
+def _gerar_arquivos_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, parcial, usuario, previa, consolidado_dre):
     logger.info(f'Criando registro do demonstrativo execução fisico financeiro da conta {tipo_conta}.')
 
     relatorio_consolidado, _ = RelatorioConsolidadoDRE.objects.update_or_create(
@@ -826,6 +827,7 @@ def _gerar_arquivos_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_
         periodo=periodo,
         tipo_conta=tipo_conta,
         defaults={'status': RelatorioConsolidadoDRE.STATUS_EM_PROCESSAMENTO},
+        consolidado_dre=consolidado_dre,
     )
 
     relatorio_consolidado.versao = RelatorioConsolidadoDRE.VERSAO_PREVIA if previa else RelatorioConsolidadoDRE.VERSAO_FINAL
