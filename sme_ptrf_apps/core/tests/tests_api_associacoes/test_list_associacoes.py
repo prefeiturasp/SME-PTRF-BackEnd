@@ -56,6 +56,7 @@ def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valen
         {
             'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
             'nome': associacao_valenca_ceu_vassouras_dre_1.nome,
+            'status_valores_reprogramados': associacao_valenca_ceu_vassouras_dre_1.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
                 'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
@@ -67,6 +68,7 @@ def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valen
         {
             'uuid': f'{associacao_pinheiros_emef_mendes_dre_2.uuid}',
             'nome': associacao_pinheiros_emef_mendes_dre_2.nome,
+            'status_valores_reprogramados': associacao_pinheiros_emef_mendes_dre_2.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_pinheiros_emef_mendes_dre_2.unidade.uuid}',
                 'codigo_eol': associacao_pinheiros_emef_mendes_dre_2.unidade.codigo_eol,
@@ -92,6 +94,7 @@ def test_api_list_associacoes_de_uma_dre(jwt_authenticated_client_a, associacao_
         {
             'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
             'nome': associacao_valenca_ceu_vassouras_dre_1.nome,
+            'status_valores_reprogramados': associacao_valenca_ceu_vassouras_dre_1.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
                 'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
@@ -115,6 +118,7 @@ def test_api_list_associacoes_pelo_nome_associacao_ignorando_acentos(jwt_authent
         {
             'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
             'nome': associacao_valenca_ceu_vassouras_dre_1.nome,
+            'status_valores_reprogramados': associacao_valenca_ceu_vassouras_dre_1.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
                 'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
@@ -138,6 +142,7 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a, assoc
         {
             'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
             'nome': associacao_valenca_ceu_vassouras_dre_1.nome,
+            'status_valores_reprogramados': associacao_valenca_ceu_vassouras_dre_1.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
                 'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
@@ -161,6 +166,7 @@ def test_api_list_associacoes_pelo_tipo_unidade(jwt_authenticated_client_a, asso
         {
             'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
             'nome': associacao_valenca_ceu_vassouras_dre_1.nome,
+            'status_valores_reprogramados': associacao_valenca_ceu_vassouras_dre_1.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
                 'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
@@ -184,6 +190,7 @@ def test_api_list_associacoes_pelo_codigo_eol(jwt_authenticated_client_a, associ
         {
             'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
             'nome': associacao_valenca_ceu_vassouras_dre_1.nome,
+            'status_valores_reprogramados': associacao_valenca_ceu_vassouras_dre_1.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
                 'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
