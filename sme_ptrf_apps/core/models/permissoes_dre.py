@@ -202,3 +202,18 @@ class FuncDreSuporteUnidades(models.Model):
         permissions = (
             ('access_suporte_unidades_dre', '[DRE] Pode acessar o suporte às unidades (DRE).'),
         )
+
+
+class FuncValoresReprogramadosDRE(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[DRE] Valor Reprogramado"
+        verbose_name_plural = "[DRE] Valores Reprogramados"
+
+        permissions = (
+            ('access_valores_reprogramados_dre', '[DRE] Pode acessar Valores Reprogramados.'),
+            ('change_valores_reprogramados_dre', '[DRE] Pode atualizar Valores Reprogramados.'),
+        )
