@@ -26,10 +26,29 @@ logger = logging.getLogger(__name__)
     time_limit=333333,
     soft_time_limit=333333
 )
-def concluir_consolidado_dre_async(dre_uuid=None, periodo_uuid=None, parcial=None, consolidado_dre_uuid=None, usuario=None):
-    from .services.consolidado_dre_service import _criar_documentos
-    tipos_contas = TipoConta.objects.all()
-    _criar_documentos(dre_uuid, periodo_uuid, parcial, consolidado_dre_uuid, tipos_contas, usuario)
+def concluir_consolidado_dre_async(dre_uuid=None, periodo_uuid=None, parcial=None, usuario=None, consolidado_dre_uuid=None):
+    tipo_contas = TipoConta.objects.all()
+
+    dre = Unidade.dres.get(uuid=dre_uuid)
+    periodo = Periodo.objects.get(uuid=periodo_uuid)
+
+    for tipo_conta in tipo_contas:
+        logger.info(f'Criando documento do Relatório Físico-Financeiro conta {tipo_conta}')
+
+        tipo_conta_uuid = tipo_conta.uuid
+
+        gerar_relatorio_consolidado_dre_async(
+            dre_uuid=dre_uuid,
+            periodo_uuid=periodo_uuid,
+            tipo_conta_uuid=tipo_conta_uuid,
+            usuario=usuario,
+            parcial=parcial,
+            consolidado_dre_uuid=consolidado_dre_uuid,
+        )
+
+    consolidado_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo).first()
+
+    consolidado_dre.passar_para_status_gerado(parcial)
 
 
 @shared_task(
@@ -58,7 +77,7 @@ def gerar_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario):
     time_limit=333333,
     soft_time_limit=333333
 )
-def gerar_relatorio_consolidado_dre_async(dre_uuid, periodo_uuid, parcial, consolidado_dre_uuid, tipo_conta_uuid, usuario, ):
+def gerar_relatorio_consolidado_dre_async(dre_uuid, periodo_uuid, parcial, tipo_conta_uuid, usuario, consolidado_dre_uuid):
     logger.info(f'Iniciando Relatório DRE. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
 
     # Remover excel
@@ -102,7 +121,7 @@ def gerar_relatorio_consolidado_dre_async(dre_uuid, periodo_uuid, parcial, conso
     except ConsolidadoDRE.DoesNotExist:
         erro = {
             'erro': 'Objeto não encontrado.',
-            'mensagem': f"O objeto consolidado para o uuid {consolidado_dre_uuid} não foi encontrado na base."
+            'mensagem': f"O objeto Consolidado DRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."
         }
         logger.error('Erro: %r', erro)
         raise Exception(erro)
