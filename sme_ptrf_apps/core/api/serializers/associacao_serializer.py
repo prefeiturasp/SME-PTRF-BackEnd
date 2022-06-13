@@ -95,7 +95,8 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
             'uuid',
             'nome',
             'cnpj',
-            'unidade',
+            'status_valores_reprogramados',
+            'unidade'
         ]
 
 

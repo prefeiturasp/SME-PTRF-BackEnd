@@ -155,7 +155,8 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados(jwt_authenticated_client
                     'nome': f'{conta_associacao.tipo_conta.nome}'
                 },
                 'aplicacao': 'CAPITAL',
-                'saldo': 1000.0
+                'saldo': 1000.0,
+                'status': associacao.status_valores_reprogramados
             },
             {
                 'acao_associacao': {
@@ -179,7 +180,8 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados(jwt_authenticated_client
                     'nome': f'{conta_associacao.tipo_conta.nome}'
                 },
                 'aplicacao': 'CUSTEIO',
-                'saldo': 2000.0
+                'saldo': 2000.0,
+                'status': associacao.status_valores_reprogramados
             }
         ],
     }
@@ -231,7 +233,8 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_com_pc_devolvida(jwt_aut
                     'nome': f'{conta_associacao.tipo_conta.nome}'
                 },
                 'aplicacao': 'CAPITAL',
-                'saldo': 1000.0
+                'saldo': 1000.0,
+                'status': associacao.status_valores_reprogramados
             },
             {
                 'acao_associacao': {
@@ -255,7 +258,8 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_com_pc_devolvida(jwt_aut
                     'nome': f'{conta_associacao.tipo_conta.nome}'
                 },
                 'aplicacao': 'CUSTEIO',
-                'saldo': 2000.0
+                'saldo': 2000.0,
+                'status': associacao.status_valores_reprogramados
             }
         ],
     }
@@ -496,7 +500,8 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_livre_aplicacao(jwt_auth
                     'nome': f'{conta_associacao.tipo_conta.nome}'
                 },
                 'aplicacao': 'CAPITAL',
-                'saldo': 1000.0
+                'saldo': 1000.0,
+                'status': associacao.status_valores_reprogramados
             },
             {
                 'acao_associacao': {
@@ -520,7 +525,8 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_livre_aplicacao(jwt_auth
                     'nome': f'{conta_associacao.tipo_conta.nome}'
                 },
                 'aplicacao': 'CUSTEIO',
-                'saldo': 2000.0
+                'saldo': 2000.0,
+                'status': associacao.status_valores_reprogramados
             },
             {
                 'acao_associacao': {
@@ -544,7 +550,8 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_livre_aplicacao(jwt_auth
                     'nome': f'{conta_associacao.tipo_conta.nome}'
                 },
                 'aplicacao': 'LIVRE',
-                'saldo': 3000.0
+                'saldo': 3000.0,
+                'status': associacao.status_valores_reprogramados
             }
         ],
     }

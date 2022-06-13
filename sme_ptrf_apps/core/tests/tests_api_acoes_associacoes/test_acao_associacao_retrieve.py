@@ -23,6 +23,7 @@ def test_retrieve_acao_associacao(
         'associacao': {
             'uuid': f'{acao_associacao.associacao.uuid}',
             'nome': acao_associacao.associacao.nome,
+            'status_valores_reprogramados': acao_associacao.associacao.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{acao_associacao.associacao.unidade.uuid}',
                 'codigo_eol': acao_associacao.associacao.unidade.codigo_eol,

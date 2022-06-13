@@ -54,6 +54,7 @@ from sme_ptrf_apps.dre.api.views import (
     MembrosComissoesViewSet,
     AnosAnaliseRegularidadeViewSet,
     AtaParecerTecnicoViewset,
+    ValoresReprogramadosViewSet
 )
 from sme_ptrf_apps.sme.api.views import SaldosBancariosSMEViewSet, SaldosBancariosSmeDetalhesAsocciacoesViewSet
 from sme_ptrf_apps.receitas.api.views import ReceitaViewSet, RepasseViewSet, MotivosEstornoViewSet
@@ -124,6 +125,7 @@ router.register("anos-analise-regularidade", AnosAnaliseRegularidadeViewSet)
 router.register("ata-parecer-tecnico", AtaParecerTecnicoViewset)
 router.register("motivos-pagamento-antecipado", MotivosPagamentoAntecipadoViewSet)
 router.register("motivos-estorno", MotivosEstornoViewSet)
+router.register("valores-reprogramados", ValoresReprogramadosViewSet)
 
 
 app_name = "api"
