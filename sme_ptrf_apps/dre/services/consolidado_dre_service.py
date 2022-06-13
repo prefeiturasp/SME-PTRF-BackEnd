@@ -1,7 +1,7 @@
 import logging
-from django.db.models import Q, Sum, Count, Max
+from django.db.models import Q
 from ..models import ConsolidadoDRE
-from ..tasks import concluir_consolidado_dre_async, gerar_relatorio_consolidado_dre_async
+from ..tasks import concluir_consolidado_dre_async
 from ...core.models import Unidade, PrestacaoConta
 
 logger = logging.getLogger(__name__)
@@ -78,35 +78,12 @@ def concluir_consolidado_dre(dre, periodo, parcial, usuario):
         dre_uuid=dre_uuid,
         periodo_uuid=periodo_uuid,
         parcial=parcial,
+        usuario=usuario,
         consolidado_dre_uuid=consolidado_dre_uuid,
-        usuario=usuario
     )
 
     return consolidado_dre
 
-
-def _criar_documentos(dre_uuid=None, periodo_uuid=None, parcial=None, consolidado_dre_uuid=None, tipo_contas=None, usuario=None):
-
-    consolidado_dre = ConsolidadoDRE.objects.get(uuid=consolidado_dre_uuid)
-
-    for tipo_conta in tipo_contas:
-        logger.info(f'Criando documento do Relatório Físico-Financeiro conta {tipo_conta}')
-
-        tipo_conta_uuid = tipo_conta.uuid
-
-        gerar_relatorio_consolidado_dre_async.delay(
-            dre_uuid=dre_uuid,
-            periodo_uuid=periodo_uuid,
-            tipo_conta_uuid=tipo_conta_uuid,
-            usuario=usuario,
-            parcial=parcial,
-            consolidado_dre_uuid=consolidado_dre_uuid
-        )
-
-    """
-    TODO ERRO AQUI
-    """
-    consolidado_dre.passar_para_status_gerado(parcial)
 
 
 

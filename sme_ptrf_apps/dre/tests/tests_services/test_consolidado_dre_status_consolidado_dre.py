@@ -1,7 +1,5 @@
 import pytest
-from ...models import ConsolidadoDRE, RelatorioConsolidadoDRE
-from sme_ptrf_apps.core.models import TipoConta
-from ...services.consolidado_dre_service import concluir_consolidado_dre, _criar_documentos, status_consolidado_dre
+from ...services.consolidado_dre_service import status_consolidado_dre
 
 pytestmark = pytest.mark.django_db
 
