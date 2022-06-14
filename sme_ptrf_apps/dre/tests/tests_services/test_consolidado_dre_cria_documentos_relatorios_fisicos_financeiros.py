@@ -1,7 +1,7 @@
 import pytest
-from ...models import ConsolidadoDRE, RelatorioConsolidadoDRE
+from ...models import RelatorioConsolidadoDRE
 from sme_ptrf_apps.core.models import TipoConta
-from ...services.consolidado_dre_service import concluir_consolidado_dre, _criar_documentos
+from ...services.consolidado_dre_service import concluir_consolidado_dre
 
 pytestmark = pytest.mark.django_db
 
@@ -41,18 +41,18 @@ def test_criar_documentos_relatorio_fisico_financeiro_todas_as_contas(
     # Ou seja, as tarefas serão executadas localmente em vez de serem enviadas para a fila.
     settings.CELERY_TASK_ALWAYS_EAGER = True
 
-    dre_uuid = dre_teste_service_consolidado_dre.uuid
-    periodo_uuid = periodo_teste_service_consolidado_dre.uuid
     parcial = retorna_parcial_false
-    consolidado_dre_uuid = consolidado_dre_teste_service_consolidado_dre.uuid
-    tipo_contas = TipoConta.objects.all()
     usuario = retorna_username
     qtde_contas = 2  # Conta Cheque e Conta Cartão que foram criadas com @pytest.fixture
 
     assert TipoConta.objects.count() == qtde_contas
 
-    _criar_documentos(dre_uuid=dre_uuid, periodo_uuid=periodo_uuid, parcial=parcial,
-                      consolidado_dre_uuid=consolidado_dre_uuid, tipo_contas=tipo_contas, usuario=usuario)
+    concluir_consolidado_dre(
+        dre=dre_teste_service_consolidado_dre,
+        periodo=periodo_teste_service_consolidado_dre,
+        parcial=parcial,
+        usuario=usuario,
+    )
 
     qtde_relatorios_gerados = consolidado_dre_teste_service_consolidado_dre \
         .relatorios_consolidados_dre_do_consolidado_dre \
@@ -63,13 +63,3 @@ def test_criar_documentos_relatorio_fisico_financeiro_todas_as_contas(
 
     assert RelatorioConsolidadoDRE.objects.all().count() == qtde_contas
 
-    for tipo_conta in tipo_contas:
-        assert RelatorioConsolidadoDRE.objects.filter(
-            dre=dre_teste_service_consolidado_dre,
-            tipo_conta=tipo_conta,
-            consolidado_dre=consolidado_dre_teste_service_consolidado_dre
-        ).exists()
-
-    consolidado_dre_atualizado_status = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
-
-    assert consolidado_dre_atualizado_status.status == 'GERADOS_TOTAIS'
