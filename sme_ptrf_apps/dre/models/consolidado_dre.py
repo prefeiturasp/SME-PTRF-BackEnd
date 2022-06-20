@@ -1,8 +1,12 @@
 from django.db import models
 from ...core.models_abstracts import ModeloBase
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
 
 
 class ConsolidadoDRE(ModeloBase):
+    history = AuditlogHistoryField()
+
     STATUS_NAO_GERADOS = 'NAO_GERADOS'
     STATUS_GERADOS_PARCIAIS = 'GERADOS_PARCIAIS'
     STATUS_GERADOS_TOTAIS = 'GERADOS_TOTAIS'
@@ -77,3 +81,5 @@ class ConsolidadoDRE(ModeloBase):
     def get_valor_status_choice(self):
         return self.get_status_display()
 
+
+auditlog.register(ConsolidadoDRE)
