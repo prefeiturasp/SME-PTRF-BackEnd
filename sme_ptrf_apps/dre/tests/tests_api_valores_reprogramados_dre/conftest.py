@@ -53,6 +53,20 @@ def associacao_2(unidade_valores_reprogramados, periodo_anterior):
 
 
 @pytest.fixture
+def associacao_3(unidade_valores_reprogramados, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Antonio',
+        cnpj='52.302.275/0001-87',
+        unidade=unidade_valores_reprogramados,
+        periodo_inicial=None,
+        ccm='0.000.00-0',
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456'
+    )
+
+
+@pytest.fixture
 def fechamento_conta_cheque_valores_reprogramados(periodo_anterior, associacao, conta_associacao_cheque, acao_associacao):
     return baker.make(
         'FechamentoPeriodo',
