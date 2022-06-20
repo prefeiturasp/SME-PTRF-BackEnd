@@ -117,7 +117,7 @@ def gerar_relatorio_consolidado_dre_async(dre_uuid, periodo_uuid, parcial, tipo_
         raise Exception(erro)
 
     try:
-        consolidado_dre = ConsolidadoDRE.objects.get(uuid=consolidado_dre_uuid)
+        consolidado_dre = ConsolidadoDRE.criar(dre=dre, periodo=periodo)
     except ConsolidadoDRE.DoesNotExist:
         erro = {
             'erro': 'Objeto não encontrado.',
