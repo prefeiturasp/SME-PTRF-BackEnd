@@ -57,14 +57,11 @@ class ConsolidadoDRE(ModeloBase):
 
     @classmethod
     def criar(cls, dre, periodo):
-        consolidado_dre = cls.objects.filter(dre=dre, periodo=periodo).first()
-
-        if not consolidado_dre:
-            consolidado_dre = ConsolidadoDRE.objects.create(
-                dre=dre,
-                periodo=periodo,
-                status=cls.STATUS_NAO_GERADOS
-            )
+        consolidado_dre, _ = cls.objects.get_or_create(
+            dre=dre,
+            periodo=periodo,
+            defaults={'status': cls.STATUS_NAO_GERADOS},
+        )
 
         return consolidado_dre
 
