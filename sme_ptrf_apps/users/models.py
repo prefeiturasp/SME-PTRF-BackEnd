@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from sme_ptrf_apps.core.models import Unidade
-from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
+from sme_ptrf_apps.core.models_abstracts import ModeloIdNome, ModeloBase
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -237,3 +237,28 @@ m2m_changed.connect(m2m_changed_group_visoes, sender=Grupo.visoes.through)
 
 auditlog.register(Grupo)
 auditlog.register(Visao)
+
+
+class UnidadeEmSuporte(ModeloBase):
+    history = AuditlogHistoryField()
+
+    unidade = models.ForeignKey(
+        'core.Unidade',
+        on_delete=models.CASCADE,
+        related_name="acessos_de_suporte",
+        to_field="codigo_eol",
+    )
+
+    user = models.ForeignKey(
+        'User',
+        on_delete=models.CASCADE,
+        related_name="acessos_de_suporte",
+    )
+
+    def __str__(self):
+        return f'Unidade {self.unidade.codigo_eol} em suporte por {self.user.username}. ID:{self.id}'
+
+    class Meta:
+        verbose_name = 'Unidade em suporte'
+        verbose_name_plural = 'Unidades em suporte'
+        unique_together = ('unidade', 'user',)
