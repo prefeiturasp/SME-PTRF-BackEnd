@@ -40,7 +40,8 @@ def test_lista_usuarios_filtro_por_visao(
                     'uuid': f'{unidade.uuid}',
                     'nome': unidade.nome,
                     'codigo_eol': unidade.codigo_eol,
-                    'tipo_unidade': unidade.tipo_unidade
+                    'tipo_unidade': unidade.tipo_unidade,
+                    'acesso_de_suporte': False
                 }
             ]
         },
@@ -63,7 +64,8 @@ def test_lista_usuarios_filtro_por_visao(
                     'uuid': f'{unidade.uuid}',
                     'nome': unidade.nome,
                     'codigo_eol': unidade.codigo_eol,
-                    'tipo_unidade': unidade.tipo_unidade
+                    'tipo_unidade': unidade.tipo_unidade,
+                    'acesso_de_suporte': False
                 }
             ]
         }
@@ -107,7 +109,8 @@ def test_lista_usuarios_filtro_por_grupo(
                     'uuid': f'{unidade_diferente.uuid}',
                     'nome': unidade_diferente.nome,
                     'codigo_eol': '123459',
-                    'tipo_unidade': unidade_diferente.tipo_unidade
+                    'tipo_unidade': unidade_diferente.tipo_unidade,
+                    'acesso_de_suporte': False
                 }
             ]
 
@@ -153,7 +156,8 @@ def test_lista_usuarios_filtro_por_nome(
                  'uuid': f'{unidade.uuid}',
                  'nome': unidade.nome,
                  'codigo_eol': unidade.codigo_eol,
-                 'tipo_unidade': unidade.tipo_unidade
+                 'tipo_unidade': unidade.tipo_unidade,
+                 'acesso_de_suporte': False
              }
          ]
          }
@@ -197,7 +201,8 @@ def test_lista_usuarios_filtro_por_nome_ou_username(
                  'uuid': f'{unidade.uuid}',
                  'nome': unidade.nome,
                  'codigo_eol': unidade.codigo_eol,
-                 'tipo_unidade': unidade.tipo_unidade
+                 'tipo_unidade': unidade.tipo_unidade,
+                 'acesso_de_suporte': False
              }
          ]
          }
@@ -239,7 +244,8 @@ def test_lista_usuarios_filtro_por_associacao(
                     'uuid': f'{unidade.uuid}',
                     'nome': unidade.nome,
                     'codigo_eol': unidade.codigo_eol,
-                    'tipo_unidade': unidade.tipo_unidade
+                    'tipo_unidade': unidade.tipo_unidade,
+                    'acesso_de_suporte': False
                 }
             ]
         },
@@ -262,7 +268,8 @@ def test_lista_usuarios_filtro_por_associacao(
                     'uuid': f'{unidade.uuid}',
                     'nome': unidade.nome,
                     'codigo_eol': unidade.codigo_eol,
-                    'tipo_unidade': unidade.tipo_unidade
+                    'tipo_unidade': unidade.tipo_unidade,
+                    'acesso_de_suporte': False
                 }
             ]
         }
@@ -302,7 +309,8 @@ def test_lista_usuarios_filtro_por_e_servidor_true(
                     'uuid': f'{unidade.uuid}',
                     'nome': unidade.nome,
                     'codigo_eol': unidade.codigo_eol,
-                    'tipo_unidade': unidade.tipo_unidade
+                    'tipo_unidade': unidade.tipo_unidade,
+                    'acesso_de_suporte': False
                 }
             ]
         }
@@ -335,7 +343,8 @@ def test_lista_usuarios_filtro_por_e_servidor_false(
                     'uuid': f'{unidade.uuid}',
                     'nome': unidade.nome,
                     'codigo_eol': unidade.codigo_eol,
-                    'tipo_unidade': unidade.tipo_unidade
+                    'tipo_unidade': unidade.tipo_unidade,
+                    'acesso_de_suporte': False
                 }
             ]
         }
@@ -375,7 +384,8 @@ def test_lista_usuarios_filtro_por_unidade_uuid(
                     'uuid': f'{unidade.uuid}',
                     'nome': unidade.nome,
                     'codigo_eol': unidade.codigo_eol,
-                    'tipo_unidade': unidade.tipo_unidade
+                    'tipo_unidade': unidade.tipo_unidade,
+                    'acesso_de_suporte': False
                 }
             ]
         },
@@ -398,7 +408,8 @@ def test_lista_usuarios_filtro_por_unidade_uuid(
                     'uuid': f'{unidade.uuid}',
                     'nome': unidade.nome,
                     'codigo_eol': unidade.codigo_eol,
-                    'tipo_unidade': unidade.tipo_unidade
+                    'tipo_unidade': unidade.tipo_unidade,
+                    'acesso_de_suporte': False
                 }
             ]
         }
@@ -440,7 +451,8 @@ def test_lista_usuarios_filtro_por_unidade_nome(
                     'uuid': f'{unidade.uuid}',
                     'nome': unidade.nome,
                     'codigo_eol': unidade.codigo_eol,
-                    'tipo_unidade': unidade.tipo_unidade
+                    'tipo_unidade': unidade.tipo_unidade,
+                    'acesso_de_suporte': False
                 }
             ]
         },
@@ -463,7 +475,8 @@ def test_lista_usuarios_filtro_por_unidade_nome(
                     'uuid': f'{unidade.uuid}',
                     'nome': unidade.nome,
                     'codigo_eol': unidade.codigo_eol,
-                    'tipo_unidade': unidade.tipo_unidade
+                    'tipo_unidade': unidade.tipo_unidade,
+                    'acesso_de_suporte': False
                 }
             ]
         }
@@ -508,10 +521,10 @@ def test_lista_usuarios_filtro_por_username(
                  'uuid': f'{unidade.uuid}',
                  'nome': unidade.nome,
                  'codigo_eol': unidade.codigo_eol,
-                 'tipo_unidade': unidade.tipo_unidade
+                 'tipo_unidade': unidade.tipo_unidade,
+                 'acesso_de_suporte': False
              }
          ]
          }
     ]
     assert result == esperado
-
