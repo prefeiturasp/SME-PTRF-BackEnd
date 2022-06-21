@@ -2,3 +2,4 @@ from .sme_integracao_service import SmeIntegracaoService, SmeIntegracaoException
 from .usuario_core_sso_service import cria_ou_atualiza_usuario_core_sso
 from .validacao_username_service import validar_username
 from .criar_acesso_de_suporte_service import criar_acesso_de_suporte, CriaAcessoSuporteException
+from .get_unidades_usuario_service import get_unidades_do_usuario

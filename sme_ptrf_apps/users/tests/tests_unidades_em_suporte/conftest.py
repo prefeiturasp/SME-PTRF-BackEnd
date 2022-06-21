@@ -31,6 +31,16 @@ def unidade_do_suporte(dre):
 
 
 @pytest.fixture
+def associacao_em_suporte(unidade_do_suporte):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste Suporte',
+        cnpj='52.302.275/0001-83',
+        unidade=unidade_do_suporte,
+    )
+
+
+@pytest.fixture
 def unidade_do_suporte_tipo_dre():
     return baker.make(
         'Unidade',
