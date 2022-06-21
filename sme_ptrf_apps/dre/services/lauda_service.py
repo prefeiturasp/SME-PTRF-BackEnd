@@ -57,7 +57,7 @@ def gerar_txt(dre, periodo, tipo_conta, obj_arquivo_download, ata, parcial=False
                 f"público o Parecer Técnico Conclusivo da Comissão de Prestação de Contas do PTRF da DRE " \
                 f"{formata_nome_dre(dre, capitalize=True)}, expedido através da ata nº {formata_numero_ata(ata)}, " \
                 f"relativo à prestação de contas do Programa de Transferência de Recursos Financeiros - PTRF " \
-                f"{formata_periodo_repasse(ata)}:\n\n"
+                f"- {formata_nome_tipo_conta(tipo_conta, upper=True)} - {formata_periodo_repasse(ata)}:\n\n"
 
         linhas.append(titulo)
         linhas.append(texto)
@@ -65,7 +65,7 @@ def gerar_txt(dre, periodo, tipo_conta, obj_arquivo_download, ata, parcial=False
         if len(status_separados["aprovadas"]) > 0:
             # Atenção para não mudar a formatação da string
             ng_aprovadas = "((NG)) Prestações de contas aprovadas((CL))\n" \
-                           "				RECEITA		DESPESAS			SALDO	\n" \
+                           "			RECEITA			DESPESAS		SALDO	\n" \
                            "ORDEM	CÓD EOL	UNIDADE	" \
                            "CUSTEIO	LIVRE APLIC.	CAPITAL	" \
                            "CUSTEIO	CAPITAL	" \
@@ -86,7 +86,7 @@ def gerar_txt(dre, periodo, tipo_conta, obj_arquivo_download, ata, parcial=False
         if len(status_separados["aprovadas_ressalva"]) > 0:
             # Atenção para não mudar a formatação da string
             ng_aprovadas_ressalva = "((NG)) Prestações de contas aprovadas com ressalva((CL))\n" \
-                                    "				RECEITA		DESPESAS			SALDO	\n" \
+                                    "			RECEITA			DESPESAS		SALDO	\n" \
                                     "ORDEM	CÓD EOL	UNIDADE	" \
                                     "CUSTEIO	LIVRE APLIC.	CAPITAL	" \
                                     "CUSTEIO	CAPITAL	" \
@@ -107,7 +107,7 @@ def gerar_txt(dre, periodo, tipo_conta, obj_arquivo_download, ata, parcial=False
         if len(status_separados["rejeitadas"]) > 0:
             # Atenção para não mudar a formatação da string
             ng_rejeitadas = "((NG)) Prestações de contas rejeitadas((CL))\n" \
-                            "				RECEITA		DESPESAS			SALDO	\n" \
+                            "			RECEITA			DESPESAS		SALDO	\n" \
                             "ORDEM	CÓD EOL	UNIDADE	" \
                             "CUSTEIO	LIVRE APLIC.	CAPITAL	" \
                             "CUSTEIO	CAPITAL	" \
@@ -266,6 +266,18 @@ def pc_em_analise(resultado):
         return True
 
     return False
+
+
+def formata_nome_tipo_conta(tipo_conta, upper=False, capitalize=False):
+    nome_conta = tipo_conta.nome
+
+    if upper:
+        nome_conta = nome_conta.upper()
+
+    if capitalize:
+        nome_conta = nome_conta.capitalize()
+
+    return nome_conta
 
 
 def formata_nome_dre(dre, capitalize=False):
