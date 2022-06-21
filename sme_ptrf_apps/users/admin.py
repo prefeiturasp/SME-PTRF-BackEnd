@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 
 from sme_ptrf_apps.users.forms import UserChangeForm, UserCreationForm
-from sme_ptrf_apps.users.models import Visao, Grupo
+from sme_ptrf_apps.users.models import Visao, Grupo, UnidadeEmSuporte
 from sme_ptrf_apps.core.models import Unidade
 
 User = get_user_model()
@@ -67,4 +67,21 @@ class GrupoAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(UnidadeEmSuporte)
+class UnidadeEmSuporteAdmin(admin.ModelAdmin):
+    def get_nome_user(self, obj):
+        return obj.user.name if obj and obj.user else ''
+
+    get_nome_user.short_description = 'Nome Usuário'
+
+    list_display = ('unidade', 'user', 'get_nome_user', 'criado_em')
+    list_filter = ('unidade__dre', 'unidade__tipo_unidade',)
+    list_display_links = ('unidade', 'user')
+    readonly_fields = ('uuid', 'id')
+    search_fields = ('unidade__nome', 'unidade__codigo_eol', 'user__name', 'user__username')
+    autocomplete_fields = ['unidade', 'user',]
+
+
 admin.site.register(Visao)
+
+
