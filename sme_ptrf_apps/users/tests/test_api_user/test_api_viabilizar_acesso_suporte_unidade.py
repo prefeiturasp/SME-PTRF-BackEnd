@@ -25,7 +25,7 @@ def test_viabiizar_acesso_usuario_unidade(
     assert list(u.unidades.values_list('codigo_eol', flat=True)) == [unidade.codigo_eol, ]
 
     response = jwt_authenticated_client_u.post(
-        f"/api/usuarios/{usuario_3.id}/viabilizar-acesso-suporte/",
+        f"/api/usuarios/{usuario_3.username}/viabilizar-acesso-suporte/",
         data=json.dumps(payload),
         content_type='application/json'
     )
@@ -44,7 +44,7 @@ def test_viabiizar_acesso_usuario_unidade_sem_passar_codigo_eol(
     }
 
     response = jwt_authenticated_client_u.post(
-        f"/api/usuarios/{usuario_3.id}/viabilizar-acesso-suporte/",
+        f"/api/usuarios/{usuario_3.username}/viabilizar-acesso-suporte/",
         data=json.dumps(payload),
         content_type='application/json'
     )

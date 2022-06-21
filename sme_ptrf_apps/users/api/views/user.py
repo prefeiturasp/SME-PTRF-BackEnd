@@ -340,9 +340,8 @@ class UserViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='viabilizar-acesso-suporte')
     def viabilizar_acesso_suporte_usuario_unidade(self, request, id):
-        """ (post) /usuarios/{usuario.id}/viabilizar-acesso-suporte/  """
-        usuario = self.get_object()
-
+        """ (post) /usuarios/{usuario.username}/viabilizar-acesso-suporte/  """
+        usuario = User.objects.get(username=id)
         codigo_eol = request.data.get('codigo_eol')
         if not codigo_eol:
             return Response("Campo 'codigo_eol' não encontrado no payload.", status=status.HTTP_400_BAD_REQUEST)
