@@ -60,9 +60,32 @@ class UnidadeListEmAssociacoesSerializer(serializers.ModelSerializer):
 
 
 class UnidadeListSerializer(serializers.ModelSerializer):
+    associacao_uuid = serializers.SerializerMethodField('get_associacao_uuid')
+    associacao_nome = serializers.SerializerMethodField('get_associacao_nome')
+    visao = serializers.SerializerMethodField('get_visao')
+
+    def get_associacao_uuid(self, obj):
+        return obj.associacoes.first().uuid if obj.associacoes.exists() else ''
+
+    def get_associacao_nome(self, obj):
+        return obj.associacoes.first().nome if obj.associacoes.exists() else ''
+
+    def get_visao(self, obj):
+        return 'DRE' if obj.tipo_unidade == 'DRE' else 'UE'
+
     class Meta:
         model = Unidade
-        fields = ('uuid', 'codigo_eol', 'nome_com_tipo', 'nome_dre', 'nome', 'tipo_unidade')
+        fields = (
+            'uuid',
+            'codigo_eol',
+            'nome_com_tipo',
+            'nome_dre',
+            'nome',
+            'tipo_unidade',
+            'associacao_uuid',
+            'associacao_nome',
+            'visao'
+        )
 
 
 class UnidadeCreateSerializer(serializers.ModelSerializer):
