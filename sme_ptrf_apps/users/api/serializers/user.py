@@ -14,7 +14,7 @@ from sme_ptrf_apps.users.api.validations.usuario_validations import (
 )
 from sme_ptrf_apps.users.services import (SmeIntegracaoException, SmeIntegracaoService,
                                           cria_ou_atualiza_usuario_core_sso)
-from sme_ptrf_apps.users.models import Grupo, Visao
+from sme_ptrf_apps.users.models import Grupo, Visao, UnidadeEmSuporte
 
 from ....core.models import Unidade
 
@@ -43,9 +43,14 @@ class GrupoComVisaoSerializer(serializers.ModelSerializer):
 
 
 class UnidadeSerializer(serializers.ModelSerializer):
+    acesso_de_suporte = SerializerMethodField()
+
     class Meta:
         model = Unidade
-        fields = ['uuid', 'nome', 'codigo_eol', 'tipo_unidade']
+        fields = ['uuid', 'nome', 'codigo_eol', 'tipo_unidade', 'acesso_de_suporte']
+
+    def get_acesso_de_suporte(self, instance):
+        return UnidadeEmSuporte.objects.filter(unidade=instance).exists()
 
 
 class UserSerializer(serializers.ModelSerializer):
