@@ -61,12 +61,14 @@ def test_api_list_unidades_todas(
             'codigo_eol': '99999',
             'nome': 'DRE teste',
             'nome_com_tipo': 'DRE DRE teste',
+            'tipo_unidade': 'DRE',
             'uuid': str(dre.uuid)
         },
         {
             'codigo_eol': '123456',
             'nome': 'Escola Teste',
             'nome_com_tipo': 'CEU Escola Teste',
+            'tipo_unidade': 'CEU',
             'uuid': str(unidade.uuid),
             'nome_dre': 'DRE teste',
         },
@@ -74,12 +76,14 @@ def test_api_list_unidades_todas(
             "codigo_eol": f'{dre_01.codigo_eol}',
             "nome": f'{dre_01.nome}',
             "nome_com_tipo": f'{dre_01.nome_com_tipo}',
+            'tipo_unidade': 'DRE',
             "uuid": f'{dre_01.uuid}',
         },
         {
             "codigo_eol": f'{unidade_paulo_camilhier_florencano_dre_1.codigo_eol}',
             "nome": f'{unidade_paulo_camilhier_florencano_dre_1.nome}',
             "nome_com_tipo": f'{unidade_paulo_camilhier_florencano_dre_1.nome_com_tipo}',
+            'tipo_unidade': f'{unidade_paulo_camilhier_florencano_dre_1.tipo_unidade}',
             "uuid": f'{unidade_paulo_camilhier_florencano_dre_1.uuid}',
             'nome_dre': unidade_paulo_camilhier_florencano_dre_1.dre.nome,
         }
@@ -106,6 +110,7 @@ def test_api_list_unidades_por_nome(
             'nome_dre': 'DRE teste',
             'nome': 'Escola Teste',
             'nome_com_tipo': 'CEU Escola Teste',
+            'tipo_unidade': 'CEU',
             'uuid': str(unidade.uuid)
         },
 
@@ -131,6 +136,7 @@ def test_api_list_unidades_por_codigo_eol(
             'nome_dre': 'DRE teste',
             'nome': 'Escola Teste',
             'nome_com_tipo': 'CEU Escola Teste',
+            'tipo_unidade': 'CEU',
             'uuid': str(unidade.uuid)
         },
 
@@ -155,6 +161,7 @@ def test_api_list_unidades_filtro_por_tipo(
             'codigo_eol': '99999',
             'nome': 'DRE teste',
             'nome_com_tipo': 'DRE DRE teste',
+            'tipo_unidade': 'DRE',
             'uuid': str(dre.uuid)
         },
         {
@@ -162,6 +169,7 @@ def test_api_list_unidades_filtro_por_tipo(
             "codigo_eol": f'{dre_01.codigo_eol}',
             "nome": f'{dre_01.nome}',
             "nome_com_tipo": f'{dre_01.nome_com_tipo}',
+            'tipo_unidade': 'DRE',
         },
     ]
 
@@ -185,6 +193,7 @@ def test_api_list_unidades_por_dre(
             'nome_dre': 'DRE teste',
             'nome': 'Escola Teste',
             'nome_com_tipo': 'CEU Escola Teste',
+            'tipo_unidade': 'CEU',
             'uuid': str(unidade.uuid)
         },
     ]

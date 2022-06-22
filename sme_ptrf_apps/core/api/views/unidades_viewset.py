@@ -7,7 +7,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from ..serializers import UnidadeSerializer, UnidadeListComNomeSerializer
+from ..serializers import UnidadeSerializer, UnidadeListSerializer
 from ...models import Unidade
 from ...services import monta_unidade_para_atribuicao
 from sme_ptrf_apps.users.permissoes import (
@@ -48,7 +48,7 @@ class UnidadesViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return UnidadeListComNomeSerializer
+            return UnidadeListSerializer
         else:
             return UnidadeSerializer
 
