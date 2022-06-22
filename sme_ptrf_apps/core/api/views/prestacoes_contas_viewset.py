@@ -59,7 +59,7 @@ from ..serializers import (
     AnalisePrestacaoContaRetrieveSerializer
 )
 
-from sme_ptrf_apps.core.tasks import gerar_previa_relatorio_acertos_async
+from sme_ptrf_apps.core.tasks import gerar_previa_relatorio_acertos_async, concluir_prestacao_de_contas_async
 from ...services.analise_prestacao_conta_service import _criar_documento_final_relatorio_acertos
 
 from django.core.exceptions import ValidationError
@@ -198,8 +198,15 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            prestacao_de_contas = concluir_prestacao_de_contas(associacao=associacao, periodo=periodo,
-                                                               usuario=request.user.username)
+            dados = concluir_prestacao_de_contas(associacao=associacao, periodo=periodo)
+            prestacao_de_contas = dados["prestacao"]
+
+            concluir_prestacao_de_contas_async.delay(
+                periodo.uuid,
+                associacao.uuid,
+                usuario=request.user.username,
+                e_retorno_devolucao=dados["e_retorno_devolucao"]
+            )
         except(IntegrityError):
             erro = {
                 'erro': 'prestacao_ja_iniciada',
