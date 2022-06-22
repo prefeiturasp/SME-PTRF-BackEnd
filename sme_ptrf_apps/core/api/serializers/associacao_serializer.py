@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from ...api.serializers.unidade_serializer import (UnidadeInfoAtaSerializer, UnidadeLookUpSerializer,
-                                                   UnidadeListSerializer, UnidadeSerializer, UnidadeCreateSerializer)
+                                                   UnidadeListEmAssociacoesSerializer, UnidadeSerializer, UnidadeCreateSerializer)
 from ...api.serializers.periodo_serializer import PeriodoLookUpSerializer
 from ...models import Associacao, Unidade, Periodo
 
@@ -87,7 +87,7 @@ class AssociacaoInfoAtaSerializer(serializers.ModelSerializer):
 
 
 class AssociacaoListSerializer(serializers.ModelSerializer):
-    unidade = UnidadeListSerializer(many=False)
+    unidade = UnidadeListEmAssociacoesSerializer(many=False)
 
     class Meta:
         model = Associacao
