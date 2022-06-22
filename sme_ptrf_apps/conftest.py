@@ -451,7 +451,9 @@ def prestacao_conta(periodo, associacao, motivo_aprovacao_ressalva_x, motivo_rep
         outros_motivos_reprovacao="Outros motivos reprovacao",
         motivos_aprovacao_ressalva=[motivo_aprovacao_ressalva_x, ],
         outros_motivos_aprovacao_ressalva="Outros motivos",
-        recomendacoes="recomendacao"
+        recomendacoes="recomendacao",
+        publicada=None,
+        consolidado_dre=None,
     )
 
 

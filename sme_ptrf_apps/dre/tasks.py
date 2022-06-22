@@ -1,4 +1,5 @@
 import logging
+from django.db.models import Q
 
 from celery import shared_task
 
@@ -6,7 +7,7 @@ from sme_ptrf_apps.core.models import (
     Periodo,
     Unidade,
     TipoConta,
-    Associacao
+    Associacao, PrestacaoConta
 )
 
 from sme_ptrf_apps.dre.models import (
@@ -18,6 +19,24 @@ from sme_ptrf_apps.dre.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limit=333333,
+    soft_time_limit=333333
+)
+def passar_pcs_do_relatorio_para_publicadas_async(dre, periodo, consolidado_dre):
+    dre_uuid = dre.uuid
+    periodo_uuid = periodo.uuid
+
+    prestacoes = PrestacaoConta.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid)
+    prestacoes = prestacoes.filter(Q(status='APROVADA') | Q(status='APROVADA_RESSALVA') | Q(status='REPROVADA'))
+
+    for prestacao in prestacoes:
+        logger.info(f'Passando Prestação de Contas para Publicada e Atrelando o Consolidado DRE: Prestação {prestacao}. Consolidado Dre {consolidado_dre}')
+        prestacao.passar_para_publicada(consolidado_dre)
 
 
 @shared_task(
@@ -46,7 +65,13 @@ def concluir_consolidado_dre_async(dre_uuid=None, periodo_uuid=None, parcial=Non
             consolidado_dre_uuid=consolidado_dre_uuid,
         )
 
-    consolidado_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo).first()
+    consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo)
+
+    passar_pcs_do_relatorio_para_publicadas_async(
+        dre=dre,
+        periodo=periodo,
+        consolidado_dre=consolidado_dre,
+    )
 
     consolidado_dre.passar_para_status_gerado(parcial)
 

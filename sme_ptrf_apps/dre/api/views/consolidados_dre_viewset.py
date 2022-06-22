@@ -9,7 +9,7 @@ from rest_framework.decorators import action
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
-from sme_ptrf_apps.core.models import Unidade, Periodo
+from sme_ptrf_apps.core.models import Unidade, Periodo, Associacao
 from ...models import ConsolidadoDRE, RelatorioConsolidadoDRE, AnoAnaliseRegularidade
 
 from ..serializers.consolidado_dre_serializer import ConsolidadoDreSerializer
@@ -19,7 +19,8 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasDreComLeituraOuGravacao
 )
 
-from ...services import concluir_consolidado_dre, verificar_se_status_parcial_ou_total, status_consolidado_dre
+from ...services import concluir_consolidado_dre, verificar_se_status_parcial_ou_total, status_consolidado_dre, \
+    retornar_trilha_de_status
 
 logger = logging.getLogger(__name__)
 
@@ -215,7 +216,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         try:
             arquivo = relatorio_fisico_financeiro.arquivo.path
-        except (ValueError, ):
+        except (ValueError,):
             erro = {
                 'erro': 'Objeto não encontrado.',
                 'mensagem': f"Não foi encontrado o arquivo solicitado"
@@ -231,3 +232,54 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         return response
+
+    @action(detail=False, methods=['get'], url_path='trilha-de-status',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def trilha_de_status(self, request):
+        dre_uuid = request.query_params.get('dre')
+        periodo_uuid = request.query_params.get('periodo')
+        par_add_aprovados_ressalva = request.query_params.get('add_aprovadas_ressalva')
+        add_aprovados_ressalva = par_add_aprovados_ressalva == 'SIM'
+
+        if not dre_uuid or not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid da dre (dre_uuid) e o periodo como parâmetros.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            dre = Unidade.dres.get(uuid=dre_uuid)
+        except (Unidade.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except (Periodo.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        total_associacoes_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
+
+        cards = retornar_trilha_de_status(
+            dre_uuid=dre_uuid,
+            periodo_uuid=periodo_uuid,
+            add_aprovado_ressalva=add_aprovados_ressalva,
+            add_info_devolvidas_retornadas=True
+        )
+
+        trilha_de_status = {
+            "total_associacoes_dre": total_associacoes_dre,
+            "cards": cards
+        }
+
+        return Response(trilha_de_status)
