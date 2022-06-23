@@ -1,5 +1,6 @@
 import base64
 import uuid
+import logging
 
 from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
@@ -14,6 +15,7 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.db.models.signals import m2m_changed
 
+logger = logging.getLogger(__name__)
 
 class Visao(ModeloIdNome):
     history = AuditlogHistoryField()
@@ -91,12 +93,14 @@ class User(AbstractUser):
             if visao_obj:
                 self.visoes.add(visao_obj)
                 self.save()
+                logger.info(f'Visão {visao_obj} adicionada para o usuário {self}.')
 
     def add_unidade_se_nao_existir(self, codigo_eol):
         if not self.unidades.filter(codigo_eol=codigo_eol).exists():
             unidade = Unidade.objects.get(codigo_eol=codigo_eol)
             self.unidades.add(unidade)
             self.save()
+            logger.info(f'Unidade {codigo_eol} adicionada para o usuário {self}.')
 
     def remove_unidade_se_existir(self, codigo_eol):
         if self.unidades.filter(codigo_eol=codigo_eol).exists():
