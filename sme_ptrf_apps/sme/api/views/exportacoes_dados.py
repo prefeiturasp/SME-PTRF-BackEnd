@@ -24,7 +24,7 @@ class ExportacoesDadosViewSet(GenericViewSet):
         permission_classes=permission_classes
         )
     def creditos(self, request):
-        exportar_receitas_async(
+        exportar_receitas_async.delay(
             data_inicio=request.query_params.get('data_inicio'),
             data_final=request.query_params.get('data_final'),
             username=request.user.username

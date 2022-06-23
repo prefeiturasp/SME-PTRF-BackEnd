@@ -107,3 +107,17 @@ class FuncSmeSuporteUnidades(models.Model):
         permissions = (
             ('access_suporte_unidades_sme', '[SME] Pode acessar o suporte às unidades (SME).'),
         )
+
+
+class FuncSmeExtracaoDeDados(models.Model):
+
+    class Meta:
+        managed = False
+        default_permissions = ()
+
+        verbose_name = "[SME] Extração de dados"
+        verbose_name_plural = "[SME] Extração de dados"
+
+        permissions = (
+            ('access_extracao_de_dados_sme', '[SME] Pode acessar Extração de dados da SME.'),
+        )
