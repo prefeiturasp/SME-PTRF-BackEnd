@@ -1,8 +1,6 @@
-from pyexpat import model
-from pytest import Instance
 
 
-def get_recursive_attr(instance: model, fields: str) -> Instance:
+def get_recursive_attr(instance, fields):
     """
     Esse serviço existe para realizar o getattr do python recursivamente.
     Exemplo usando getattr -> getattr(instance, items, default),
