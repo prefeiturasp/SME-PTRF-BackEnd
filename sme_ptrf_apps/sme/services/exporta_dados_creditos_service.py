@@ -77,6 +77,7 @@ class ExportacoesDadosCreditosService:
         self.cabecalho = CABECALHO_MOTIVOS_ESTORNO[0]
         logger.info("Filtrando data motivos estorno")
         self.filtra_range_data('data')
+        logger.info("Entrando em exportar motivos estorno csv")
         self.exporta_credito_csv()
 
     def exporta_credito_csv(self) -> BinaryIO:
