@@ -101,6 +101,7 @@ class ExportacoesDadosCreditosService:
                         campo = getattr(instance, campo)
                         linha.append(datetime.datetime.strftime(campo, "%d/%m/%Y"))
                         logger.info(f"if campo == data -> {linha[-1]}")
+
                     elif campo == 'valor':
                         campo = str(getattr(instance, campo)).replace(".", ",")
                         linha.append(campo)
