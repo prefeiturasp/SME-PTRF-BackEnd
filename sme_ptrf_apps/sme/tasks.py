@@ -18,6 +18,7 @@ def exportar_receitas_async(data_inicio, data_final, username):
     logger.info("Exportando csv em processamento...")
     queryset = Receita.objects.all()
     try:
+        logger.info("Criando arquivo %s creditos_principal.csv")
         params = {
             'queryset': queryset,
             'data_inicio': data_inicio,
@@ -28,6 +29,7 @@ def exportar_receitas_async(data_inicio, data_final, username):
             **params,
             nome_arquivo='creditos_principal.csv'
         ).exporta_creditos_principal()
+        logger.info("Criando arquivo %s creditos_motivo_estorno.csv")
         ExportacoesDadosCreditosService(
             **params,
             nome_arquivo='creditos_motivos_estorno.csv'

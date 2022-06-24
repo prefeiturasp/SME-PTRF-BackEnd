@@ -1,4 +1,5 @@
 import csv
+import datetime
 import logging
 
 from django.core.files import File
@@ -64,13 +65,19 @@ class ExportacoesDadosCreditosService:
         self.user = kwargs.get('user', None)
 
     def exporta_creditos_principal(self):
+        logger.info("Adicionando cabecalho creditos principal")
         self.cabecalho = CABECALHO_RECEITA[0]
+        logger.info("Filtrando data creditos principal")
         self.filtra_range_data('data')
+        logger.info("Entrando em exportar creditos csv")
         self.exporta_credito_csv()
 
     def exporta_creditos_motivos_estorno(self):
+        logger.info("Adicionando cabecalho motivos estorno")
         self.cabecalho = CABECALHO_MOTIVOS_ESTORNO[0]
+        logger.info("Filtrando data motivos estorno")
         self.filtra_range_data('data')
+        logger.info("Entrando em exportar motivos estorno csv")
         self.exporta_credito_csv()
 
     def exporta_credito_csv(self) -> BinaryIO:
@@ -82,16 +89,30 @@ class ExportacoesDadosCreditosService:
             prefix=self.nome_arquivo,
             suffix='.csv'
         ) as tmp:
-            write = csv.writer(tmp.file)
+            write = csv.writer(tmp.file, delimiter=";")
+            logger.info(f"Escreve cabeçalho com dados {self.cabecalho}.")
             write.writerow([cabecalho[0] for cabecalho in self.cabecalho])
 
             for instance in self.queryset:
                 for _, campo in self.cabecalho:
+                    logger.info(f"Gerando campo {campo} em instance {instance}.")
 
-                    if isinstance(campo, tuple) and campo[1] == 'categoria_receita':
+                    if campo == 'data':
+                        campo = getattr(instance, campo)
+                        linha.append(datetime.datetime.strftime(campo, "%d/%m/%Y"))
+                        logger.info(f"if campo == data -> {linha[-1]}")
+
+                    elif campo == 'valor':
+                        campo = str(getattr(instance, campo)).replace(".", ",")
+                        linha.append(campo)
+                        logger.info(f"if == valor -> {linha[-1]}")
+
+                    elif isinstance(campo, tuple) and campo[1] == 'categoria_receita':
+                        logger.info(f" Gerando campo {campo} em instance {instance.__repr__}.")
                         linha.append(campo[0][getattr(instance, campo[1])])
 
                     elif type(campo) == tuple and getattr(instance, campo[1]).__class__.__name__ == 'ManyRelatedManager':
+                        logger.info(f"Gerando campo {campo} ManyRelatedManager.")
                         for instance_m2m in getattr(instance, campo[1]).all():
                             linha.append(getattr(instance, campo[0]))
                             linha.append(getattr(instance_m2m, self.cabecalho[1][1]))
@@ -100,8 +121,10 @@ class ExportacoesDadosCreditosService:
                             linha.clear()
 
                     elif self.cabecalho != CABECALHO_MOTIVOS_ESTORNO[0]:
+                        logger.info(f"Gerando campo generico {campo}.")
                         linha.append(get_recursive_attr(instance, campo))
 
+                logger.info(f"Escrevendo linha {linha} no arquivo csv.")
                 write.writerow(linha) if linha else None
                 linha.clear()
             self.envia_arquivo_central_download(tmp)
@@ -122,20 +145,24 @@ class ExportacoesDadosCreditosService:
         return self.queryset
 
     def envia_arquivo_central_download(self, tmp) -> None:
+        logger.info("Gerando arquivo download...")
         obj_arquivo_download = gerar_arquivo_download(
             self.user,
             self.nome_arquivo
         )
 
         try:
+            logger.info("Salvando arquivo download...")
             obj_arquivo_download.arquivo.save(
                 name=obj_arquivo_download.identificador,
                 content=File(tmp)
             )
             obj_arquivo_download.status = ArquivoDownload.STATUS_CONCLUIDO
             obj_arquivo_download.save()
+            logger.info("Arquivo salvo com sucesso...")
 
         except Exception as e:
+            logger.info("Erro arquivo download...")
             obj_arquivo_download.status = ArquivoDownload.STATUS_ERRO
             obj_arquivo_download.msg_erro = str(e)
             obj_arquivo_download.save()
