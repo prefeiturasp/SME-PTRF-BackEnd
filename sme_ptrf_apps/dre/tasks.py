@@ -27,6 +27,35 @@ logger = logging.getLogger(__name__)
     time_limit=333333,
     soft_time_limit=333333
 )
+def verificar_se_gera_ata_parecer_tecnico_async(dre=None, periodo=None, consolidado_dre=None, usuario=None):
+    from .services.consolidado_dre_service import verificar_se_status_parcial_ou_total
+
+    logger.info(f'Iniciando a verificação para gerar ata de parecer técnico')
+
+    dre_uuid = dre.uuid
+    periodo_uuid = periodo.uuid
+
+    parcial = verificar_se_status_parcial_ou_total(dre_uuid, periodo_uuid)
+
+    if not parcial:
+        ata = AtaParecerTecnico.criar_ou_retornar_ata(dre, periodo, consolidado_dre)
+        if ata and ata.preenchida_em:
+            logger.info(
+                f'Iniciando a geração do Arquivo da Ata de Parecer Técnico da DRE {dre}, Período {periodo} e Consolidado DRE {consolidado_dre}')
+            ata_uuid = ata.uuid
+            gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario)
+        else:
+            logger.info("Ata não preenchida, portanto não será gerada")
+    else:
+        logger.info("Ainda constam prestações de contas das associações em análise, ata não será gerada")
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limit=333333,
+    soft_time_limit=333333
+)
 def passar_pcs_do_relatorio_para_publicadas_async(dre, periodo, consolidado_dre):
     dre_uuid = dre.uuid
     periodo_uuid = periodo.uuid
@@ -35,7 +64,8 @@ def passar_pcs_do_relatorio_para_publicadas_async(dre, periodo, consolidado_dre)
     prestacoes = prestacoes.filter(Q(status='APROVADA') | Q(status='APROVADA_RESSALVA') | Q(status='REPROVADA'))
 
     for prestacao in prestacoes:
-        logger.info(f'Passando Prestação de Contas para Publicada e Atrelando o Consolidado DRE: Prestação {prestacao}. Consolidado Dre {consolidado_dre}')
+        logger.info(
+            f'Passando Prestação de Contas para Publicada e Atrelando o Consolidado DRE: Prestação {prestacao}. Consolidado Dre {consolidado_dre}')
         prestacao.passar_para_publicada(consolidado_dre)
 
 
@@ -45,7 +75,8 @@ def passar_pcs_do_relatorio_para_publicadas_async(dre, periodo, consolidado_dre)
     time_limit=333333,
     soft_time_limit=333333
 )
-def concluir_consolidado_dre_async(dre_uuid=None, periodo_uuid=None, parcial=None, usuario=None, consolidado_dre_uuid=None):
+def concluir_consolidado_dre_async(dre_uuid=None, periodo_uuid=None, parcial=None, usuario=None,
+                                   consolidado_dre_uuid=None):
     tipo_contas = TipoConta.objects.all()
 
     dre = Unidade.dres.get(uuid=dre_uuid)
@@ -73,6 +104,13 @@ def concluir_consolidado_dre_async(dre_uuid=None, periodo_uuid=None, parcial=Non
         consolidado_dre=consolidado_dre,
     )
 
+    verificar_se_gera_ata_parecer_tecnico_async(
+        dre=dre,
+        periodo=periodo,
+        consolidado_dre=consolidado_dre,
+        usuario=usuario,
+    )
+
     consolidado_dre.passar_para_status_gerado(parcial)
 
 
@@ -82,7 +120,7 @@ def concluir_consolidado_dre_async(dre_uuid=None, periodo_uuid=None, parcial=Non
     time_limit=333333,
     soft_time_limit=333333
 )
-def gerar_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario):
+def gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario):
     logger.info(f'Iniciando a geração da Ata de Parecer Técnico Async. DRE {dre_uuid} e Período {periodo_uuid}')
     from .services import gerar_arquivo_ata_parecer_tecnico
 
@@ -102,7 +140,8 @@ def gerar_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario):
     time_limit=333333,
     soft_time_limit=333333
 )
-def gerar_relatorio_consolidado_dre_async(dre_uuid, periodo_uuid, parcial, tipo_conta_uuid, usuario, consolidado_dre_uuid):
+def gerar_relatorio_consolidado_dre_async(dre_uuid, periodo_uuid, parcial, tipo_conta_uuid, usuario,
+                                          consolidado_dre_uuid):
     logger.info(f'Iniciando Relatório DRE. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
 
     # Remover excel
@@ -157,10 +196,13 @@ def gerar_relatorio_consolidado_dre_async(dre_uuid, periodo_uuid, parcial, tipo_
         # Após aprovação do pdf, remover excel
         # gera_relatorio_dre(dre, periodo, tipo_conta, parcial)
         _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, usuario, parcial, consolidado_dre)
-        AtaParecerTecnico.iniciar(
-            dre=dre,
-            periodo=periodo
-        )
+
+        # Comentei para remover posteriormente
+        # AtaParecerTecnico.iniciar(
+        #     dre=dre,
+        #     periodo=periodo
+        # )
+
     except Exception as err:
         erro = {
             'erro': 'problema_geracao_relatorio',
