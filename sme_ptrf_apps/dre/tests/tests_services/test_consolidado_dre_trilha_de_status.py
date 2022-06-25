@@ -25,13 +25,13 @@ def test_retorna_trilha_de_status_sem_nenhuma_pc(
             'estilo_css': 1,
             'quantidade_prestacoes': 0,
             'status': 'RECEBIDA',
-            'titulo': 'Recebida e aguardando análise'
+            'titulo': 'Recebida e<br/>aguardando análise'
         },
         {
             'estilo_css': 1,
             'quantidade_prestacoes': 0,
             'status': 'DEVOLVIDA',
-            'titulo': 'Devolvido para acertos'
+            'titulo': 'Devolvido<br/>para acertos'
         },
         {
             'estilo_css': 1,
@@ -43,7 +43,7 @@ def test_retorna_trilha_de_status_sem_nenhuma_pc(
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'CONCLUIDO',
-            'titulo': 'Concluído e aguardando publicação'
+            'titulo': 'Concluído e<br/>aguardando publicação'
         },
         {
             'estilo_css': 0,
@@ -90,13 +90,13 @@ def test_retorna_trilha_de_status_uma_pc_aprovada_e_uma_concluida(
             'estilo_css': 1,
             'quantidade_prestacoes': 0,
             'status': 'RECEBIDA',
-            'titulo': 'Recebida e aguardando análise'
+            'titulo': 'Recebida e<br/>aguardando análise'
         },
         {
             'estilo_css': 1,
             'quantidade_prestacoes': 0,
             'status': 'DEVOLVIDA',
-            'titulo': 'Devolvido para acertos'
+            'titulo': 'Devolvido<br/>para acertos'
         },
         {
             'estilo_css': 1,
@@ -108,7 +108,7 @@ def test_retorna_trilha_de_status_uma_pc_aprovada_e_uma_concluida(
             'estilo_css': 0,
             'quantidade_prestacoes': 1,
             'status': 'CONCLUIDO',
-            'titulo': 'Concluído e aguardando publicação'
+            'titulo': 'Concluído e<br/>aguardando publicação'
         },
         {
             'estilo_css': 0,
@@ -157,13 +157,13 @@ def test_retorna_trilha_de_status_uma_pc_reprovada_uma_concluida_e_uma_publicada
             'estilo_css': 1,
             'quantidade_prestacoes': 0,
             'status': 'RECEBIDA',
-            'titulo': 'Recebida e aguardando análise'
+            'titulo': 'Recebida e<br/>aguardando análise'
         },
         {
             'estilo_css': 1,
             'quantidade_prestacoes': 0,
             'status': 'DEVOLVIDA',
-            'titulo': 'Devolvido para acertos'
+            'titulo': 'Devolvido<br/>para acertos'
         },
         {
             'estilo_css': 1,
@@ -175,7 +175,7 @@ def test_retorna_trilha_de_status_uma_pc_reprovada_uma_concluida_e_uma_publicada
             'estilo_css': 0,
             'quantidade_prestacoes': 1,
             'status': 'CONCLUIDO',
-            'titulo': 'Concluído e aguardando publicação'
+            'titulo': 'Concluído e<br/>aguardando publicação'
         },
         {
             'estilo_css': 0,

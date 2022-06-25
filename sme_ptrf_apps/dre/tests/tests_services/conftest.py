@@ -113,6 +113,29 @@ def retorna_parcial_false():
 def retorna_username():
     return '6375548'
 
+@pytest.fixture
+def conta_associacao_teste_service(associacao_teste_service_02, tipo_conta_cheque_teste_service):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao_teste_service_02,
+        tipo_conta=tipo_conta_cheque_teste_service,
+        banco_nome='Banco do Brasil',
+        agencia='12345',
+        numero_conta='123456-x',
+        numero_cartao='534653264523'
+    )
+
+@pytest.fixture
+def conta_associacao_teste_service_02(associacao_teste_service, tipo_conta_cartao_teste_service):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao_teste_service,
+        tipo_conta=tipo_conta_cartao_teste_service,
+        banco_nome='Banco do Brasil',
+        agencia='12345',
+        numero_conta='123456-x',
+        numero_cartao='534653264523'
+    )
 
 @pytest.fixture
 def unidade_teste_service(dre_teste_service_consolidado_dre):
@@ -185,7 +208,7 @@ def prestacao_conta_aprovada_teste_service(periodo_teste_service_consolidado_dre
         periodo=periodo_teste_service_consolidado_dre,
         associacao=associacao_teste_service,
         data_recebimento=date(2022, 1, 2),
-        status=PrestacaoConta.STATUS_APROVADA
+        status=PrestacaoConta.STATUS_APROVADA,
     )
 
 @pytest.fixture
@@ -196,6 +219,19 @@ def prestacao_conta_reprovada_teste_service_publicada(periodo_teste_service_cons
         associacao=associacao_teste_service_02,
         data_recebimento=date(2022, 1, 2),
         status=PrestacaoConta.STATUS_REPROVADA,
+        publicada=True,
+        consolidado_dre=consolidado_dre_teste_service_consolidado_dre
+    )
+
+
+@pytest.fixture
+def prestacao_conta_aprovada_teste_service_pc_aprovada_info_pc(periodo_teste_service_consolidado_dre, associacao_teste_service, consolidado_dre_teste_service_consolidado_dre):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_teste_service_consolidado_dre,
+        associacao=associacao_teste_service,
+        data_recebimento=date(2022, 1, 2),
+        status=PrestacaoConta.STATUS_APROVADA,
         publicada=True,
         consolidado_dre=consolidado_dre_teste_service_consolidado_dre
     )

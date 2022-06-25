@@ -14,7 +14,8 @@ from .relatorio_consolidado_service import (
     dashboard_sme,
     _criar_previa_demonstrativo_execucao_fisico_financeiro,
     _criar_demonstrativo_execucao_fisico_financeiro,
-    _gerar_arquivos_demonstrativo_execucao_fisico_financeiro
+    _gerar_arquivos_demonstrativo_execucao_fisico_financeiro,
+    informacoes_pcs_do_consolidado_dre
 )
 
 from .lauda_service import (

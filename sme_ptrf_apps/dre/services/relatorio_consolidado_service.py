@@ -8,7 +8,7 @@ from sme_ptrf_apps.core.models import (
     PrevisaoRepasseSme,
     DevolucaoAoTesouro,
 )
-from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE
+from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE, ConsolidadoDRE
 from sme_ptrf_apps.receitas.models import Receita
 
 
@@ -362,6 +362,44 @@ def get_status_label(status):
         status_label = 'Sem status'
 
     return status_label
+
+
+def informacoes_pcs_do_consolidado_dre(dre, periodo, tipo_conta):
+    resultado = []
+
+    consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo)
+
+    prestacoes = consolidado_dre.prestacoes_de_conta_do_consolidado_dre.all()
+    prestacoes = prestacoes.filter(associacao__contas__tipo_conta__nome=tipo_conta)
+
+    for prestacao in prestacoes:
+
+        status_prestacao_conta = prestacao.status
+
+        dado = {
+            'unidade': {
+                'uuid': f'{prestacao.associacao.unidade.uuid}',
+                'codigo_eol': prestacao.associacao.unidade.codigo_eol,
+                'tipo_unidade': prestacao.associacao.unidade.tipo_unidade,
+                'nome': prestacao.associacao.unidade.nome,
+                'sigla': prestacao.associacao.unidade.sigla,
+            },
+
+            'status_prestacao_contas': status_prestacao_conta,
+            'uuid_pc': prestacao.uuid,
+        }
+
+        if status_prestacao_conta == "REPROVADA":
+            dado["motivos_reprovacao"] = get_teste_motivos_reprovacao(prestacao)
+        elif status_prestacao_conta == "APROVADA_RESSALVA":
+            dado["motivos_aprovada_ressalva"] = get_motivos_aprovacao_ressalva(prestacao)
+            dado["recomendacoes"] = prestacao.recomendacoes
+
+        resultado.append(dado)
+
+    resultado = sorted(resultado, key=lambda row: row['status_prestacao_contas'])
+
+    return resultado
 
 
 def informacoes_execucao_financeira_unidades(

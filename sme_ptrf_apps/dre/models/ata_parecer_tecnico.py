@@ -64,6 +64,21 @@ class AtaParecerTecnico(ModeloBase):
 
     data_portaria = models.DateField('Data da portaria', blank=True, null=True)
 
+    consolidado_dre = models.ForeignKey('ConsolidadoDRE', on_delete=models.PROTECT,
+                                        related_name='atas_de_parecer_tecnico_do_consolidado_dre',
+                                        blank=True, null=True)
+
+
+    @classmethod
+    def criar_ou_retornar_ata(cls, dre, periodo, consolidado_dre):
+        ata, _ = cls.objects.get_or_create(
+            dre=dre,
+            periodo=periodo,
+            consolidado_dre=consolidado_dre,
+            defaults={'dre': dre, 'periodo': periodo, 'consolidado_dre': consolidado_dre},
+        )
+
+        return ata
 
     @classmethod
     def iniciar(cls, dre, periodo):
