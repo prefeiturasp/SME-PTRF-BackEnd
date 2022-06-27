@@ -1,4 +1,5 @@
 import csv
+import datetime
 import logging
 
 from django.core.files import File
@@ -82,13 +83,21 @@ class ExportacoesDadosCreditosService:
             prefix=self.nome_arquivo,
             suffix='.csv'
         ) as tmp:
-            write = csv.writer(tmp.file)
+            write = csv.writer(tmp.file, delimiter=";")
             write.writerow([cabecalho[0] for cabecalho in self.cabecalho])
 
             for instance in self.queryset:
                 for _, campo in self.cabecalho:
 
-                    if isinstance(campo, tuple) and campo[1] == 'categoria_receita':
+                    if campo == 'data':
+                        campo = getattr(instance, campo)
+                        linha.append(datetime.datetime.strftime(campo, "%d/%m/%Y"))
+
+                    elif campo == 'valor':
+                        campo = str(getattr(instance, campo)).replace(".", ",")
+                        linha.append(campo)
+
+                    elif isinstance(campo, tuple) and campo[1] == 'categoria_receita':
                         linha.append(campo[0][getattr(instance, campo[1])])
 
                     elif type(campo) == tuple and getattr(instance, campo[1]).__class__.__name__ == 'ManyRelatedManager':
@@ -102,6 +111,7 @@ class ExportacoesDadosCreditosService:
                     elif self.cabecalho != CABECALHO_MOTIVOS_ESTORNO[0]:
                         linha.append(get_recursive_attr(instance, campo))
 
+                logger.info(f"Escrevendo linha {linha} do crédito {instance.id}.")
                 write.writerow(linha) if linha else None
                 linha.clear()
             self.envia_arquivo_central_download(tmp)
@@ -122,20 +132,24 @@ class ExportacoesDadosCreditosService:
         return self.queryset
 
     def envia_arquivo_central_download(self, tmp) -> None:
+        logger.info("Gerando arquivo download...")
         obj_arquivo_download = gerar_arquivo_download(
             self.user,
             self.nome_arquivo
         )
 
         try:
+            logger.info("Salvando arquivo download...")
             obj_arquivo_download.arquivo.save(
                 name=obj_arquivo_download.identificador,
                 content=File(tmp)
             )
             obj_arquivo_download.status = ArquivoDownload.STATUS_CONCLUIDO
             obj_arquivo_download.save()
+            logger.info("Arquivo salvo com sucesso...")
 
         except Exception as e:
             obj_arquivo_download.status = ArquivoDownload.STATUS_ERRO
             obj_arquivo_download.msg_erro = str(e)
             obj_arquivo_download.save()
+            logger.error("Erro arquivo download...")

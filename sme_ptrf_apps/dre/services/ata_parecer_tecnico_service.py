@@ -2,12 +2,11 @@ import datetime
 import logging
 from sme_ptrf_apps.core.models import TipoConta, PrestacaoConta
 from sme_ptrf_apps.dre.models import PresenteAtaDre
-from sme_ptrf_apps.dre.services import informacoes_execucao_financeira_unidades
+from sme_ptrf_apps.dre.services import informacoes_pcs_do_consolidado_dre
 from sme_ptrf_apps.dre.services.ata_pdf_parecer_tecnico_service import gerar_arquivo_ata_parecer_tecnico_pdf
 from sme_ptrf_apps.core.services.ata_dados_service import data_por_extenso
 from sme_ptrf_apps.core.services.dados_demo_financeiro_service import formata_data
 from sme_ptrf_apps.utils.numero_por_extenso import real
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -71,7 +70,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
         lista_aprovadas_ressalva = []  # Lista usada para separar por status aprovada com ressalva
         lista_reprovadas = []  # Lista usada para separar por status reprovada
 
-        informacoes = informacoes_execucao_financeira_unidades(
+        informacoes = informacoes_pcs_do_consolidado_dre(
             dre=dre,
             periodo=periodo,
             tipo_conta=conta,
@@ -262,5 +261,3 @@ def motivos_reprovacao(uuid_pc):
     }
 
     return dados
-
-

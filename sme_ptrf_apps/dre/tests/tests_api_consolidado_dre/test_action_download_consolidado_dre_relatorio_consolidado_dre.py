@@ -15,7 +15,7 @@ def test_relatorio_final(
 
     relatorio_uuid = relatorio_dre_consolidado_gerado_final_teste_api.uuid
 
-    url = f'/api/consolidados-dre/{relatorio_uuid}/download/'
+    url = f'/api/consolidados-dre/{relatorio_uuid}/download-relatorio-consolidado/'
 
     response = jwt_authenticated_client_relatorio_consolidado.get(url)
 

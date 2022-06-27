@@ -228,7 +228,8 @@ class VerificacaoRegularidadeAssociacaoAdmin(admin.ModelAdmin):
 
 @admin.register(AtaParecerTecnico)
 class AtaParecerTecnicoAdmin(admin.ModelAdmin):
-    list_display = ('uuid', 'periodo', 'dre')
+    list_display = ('uuid', 'periodo', 'dre', 'consolidado_dre')
+    list_filter = ['periodo', 'dre', 'consolidado_dre']
     readonly_fields = ('uuid', 'id')
 
 

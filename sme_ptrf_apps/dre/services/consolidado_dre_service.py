@@ -34,12 +34,12 @@ def retornar_trilha_de_status(dre_uuid=None, periodo_uuid=None, add_aprovado_res
             },
         'RECEBIDA':
             {
-                'titulo': 'Recebida e aguardando análise',
+                'titulo': 'Recebida e<br/>aguardando análise',
                 'estilo_css': 1
             },
         'DEVOLVIDA':
             {
-                'titulo': 'Devolvido para acertos',
+                'titulo': 'Devolvido<br/>para acertos',
                 'estilo_css': 1
             },
         'EM_ANALISE':
@@ -49,7 +49,7 @@ def retornar_trilha_de_status(dre_uuid=None, periodo_uuid=None, add_aprovado_res
             },
         'CONCLUIDO':
             {
-                'titulo': 'Concluído e aguardando publicação',
+                'titulo': 'Concluído e<br/>aguardando publicação',
                 'estilo_css': 0
             },
         'PUBLICADO':

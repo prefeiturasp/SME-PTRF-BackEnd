@@ -21,7 +21,7 @@ from ...services import (
 )
 from django.core.exceptions import ValidationError
 
-from ...tasks import gerar_ata_parecer_tecnico_async
+from ...tasks import gerar_arquivo_ata_parecer_tecnico_async
 
 from django.http import HttpResponse
 
@@ -87,7 +87,7 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        gerar_ata_parecer_tecnico_async.delay(
+        gerar_arquivo_ata_parecer_tecnico_async.delay(
             ata_uuid=ata_uuid,
             dre_uuid=dre_uuid,
             periodo_uuid=periodo_uuid,

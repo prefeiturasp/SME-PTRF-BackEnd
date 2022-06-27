@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
 from sme_ptrf_apps.core.models import Unidade, Periodo, Associacao
-from ...models import ConsolidadoDRE, RelatorioConsolidadoDRE, AnoAnaliseRegularidade
+from ...models import ConsolidadoDRE, RelatorioConsolidadoDRE, AnoAnaliseRegularidade, AtaParecerTecnico
 
 from ..serializers.consolidado_dre_serializer import ConsolidadoDreSerializer
 
@@ -180,9 +180,9 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         return Response(status_do_consolidado_da_dre)
 
-    @action(detail=True, methods=['get'], url_path='download',
+    @action(detail=True, methods=['get'], url_path='download-relatorio-consolidado',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
-    def download(self, request, uuid):
+    def download_relatorio_consolidado(self, request, uuid):
         relatorio_fisico_financeiro_uuid = uuid
 
         if not relatorio_fisico_financeiro_uuid:
@@ -231,6 +231,47 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        return response
+
+    @action(detail=False, methods=['get'], url_path='download-ata-parecer-tecnico',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def download_ata_parecer_tecnico(self, request):
+        logger.info("Download da Ata de Parecer Técnico.")
+
+        ata_uuid = request.query_params.get('ata')
+
+        if not ata_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da Ata.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            ata = AtaParecerTecnico.objects.get(uuid=ata_uuid)
+        except (ValidationError, Exception):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ata para o uuid {ata_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            filename = 'ata_parecer_tecnico.pdf'
+            response = HttpResponse(
+                open(ata.arquivo_pdf.path, 'rb'),
+                content_type='application/pdf'
+            )
+            response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        except Exception as err:
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': str(err)
+            }
+            logger.info("Erro: %s", str(err))
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
         return response
 
     @action(detail=False, methods=['get'], url_path='trilha-de-status',

@@ -2,7 +2,8 @@ from rest_framework import serializers
 from sme_ptrf_apps.core.api.serializers.unidade_serializer import DreSerializer
 from sme_ptrf_apps.core.api.serializers import PeriodoLookUpSerializer
 from ..serializers.relatorio_consolidado_dre_serializer import RelatorioConsolidadoDreSerializer
-from ...models import ConsolidadoDRE
+from ..serializers.ata_parecer_tecnico_serializer import AtaParecerTecnicoLookUpSerializer
+from ...models import ConsolidadoDRE, AtaParecerTecnico
 
 
 class ConsolidadoDreSerializer(serializers.ModelSerializer):
@@ -16,7 +17,13 @@ class ConsolidadoDreSerializer(serializers.ModelSerializer):
 
 class ConsolidadoDreComDocumentosSerializer(serializers.ModelSerializer):
     relatorios_consolidados_dre_do_consolidado_dre = RelatorioConsolidadoDreSerializer(many=True)
+    atas_de_parecer_tecnico_do_consolidado_dre = AtaParecerTecnicoLookUpSerializer(many=True)
 
     class Meta:
         model = ConsolidadoDRE
-        fields = ('uuid', 'status', 'relatorios_consolidados_dre_do_consolidado_dre')
+        fields = (
+            'uuid',
+            'status',
+            'relatorios_consolidados_dre_do_consolidado_dre',
+            'atas_de_parecer_tecnico_do_consolidado_dre',
+        )
