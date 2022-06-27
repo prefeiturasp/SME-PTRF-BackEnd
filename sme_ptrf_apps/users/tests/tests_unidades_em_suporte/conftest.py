@@ -61,10 +61,30 @@ def usuario_do_suporte(
     email = 'sme@amcom.com.br'
     User = get_user_model()
     user = User.objects.create_user(username=login, password=senha, email=email)
-    user.unidades.add(dre)
+    # user.unidades.add(dre)
     user.visoes.add(visao_sme)
     user.save()
     return user
+
+
+@pytest.fixture
+def usuario_do_suporte_com_acesso_dre(
+        dre,
+        visao_dre,
+        visao_sme
+):
+
+    senha = 'Sgp0418'
+    login = '2711702'
+    email = 'sme2@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(dre)
+    user.visoes.add(visao_sme)
+    user.visoes.add(visao_dre)
+    user.save()
+    return user
+
 
 
 @pytest.fixture
@@ -73,4 +93,13 @@ def unidade_em_suporte(unidade_do_suporte, usuario_do_suporte):
         'UnidadeEmSuporte',
         unidade=unidade_do_suporte,
         user=usuario_do_suporte,
+    )
+
+
+@pytest.fixture
+def unidade_dre_em_suporte(dre, usuario_do_suporte_com_acesso_dre):
+    return baker.make(
+        'UnidadeEmSuporte',
+        unidade=dre,
+        user=usuario_do_suporte_com_acesso_dre,
     )
