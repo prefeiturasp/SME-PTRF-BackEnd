@@ -12,7 +12,7 @@ def test_encerrar_acesso_usuario_unidade(
         dre,
 ):
     payload = {
-        'codigo_eol': dre.codigo_eol
+        'unidade_suporte_uuid': f'{dre.uuid}'
     }
 
     response = jwt_authenticated_client_u.post(

@@ -369,16 +369,16 @@ class UserViewSet(ModelViewSet):
     def encerrar_acesso_suporte_usuario_unidade(self, request, id):
         """ (post) /usuarios/{usuario.username}/encerrar-acesso-suporte/  """
         usuario = User.objects.get(username=id)
-        codigo_eol = request.data.get('codigo_eol')
-        if not codigo_eol:
-            return Response("Campo 'codigo_eol' não encontrado no payload.", status=status.HTTP_400_BAD_REQUEST)
+        unidade_suporte_uuid = request.data.get('unidade_suporte_uuid')
+        if not unidade_suporte_uuid:
+            return Response("Campo 'unidade_suporte_uuid' não encontrado no payload.", status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            unidade = Unidade.objects.get(codigo_eol=codigo_eol)
+            unidade = Unidade.objects.get(uuid=unidade_suporte_uuid)
         except Unidade.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto Unidade para o código EOL {codigo_eol} não foi encontrado na base."
+                'mensagem': f"O objeto Unidade para o UUID {unidade_suporte_uuid} não foi encontrado na base."
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
