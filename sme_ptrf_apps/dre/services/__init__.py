@@ -21,6 +21,7 @@ from .relatorio_consolidado_service import (
 from .lauda_service import (
     gerar_csv,
     gerar_txt,
+    gerar_arquivo_lauda_txt_consolidado_dre,
 )
 
 from .ata_parecer_tecnico_service import (

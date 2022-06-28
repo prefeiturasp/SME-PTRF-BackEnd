@@ -6,7 +6,7 @@ from .models import (
     JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE,
     ParametroFiqueDeOlhoRelDre, MotivoAprovacaoRessalva, MotivoReprovacao, Comissao, MembroComissao,
     AnoAnaliseRegularidade, AnaliseRegularidadeAssociacao, ParametrosDre, AtaParecerTecnico,
-    PresenteAtaDre, ConsolidadoDRE
+    PresenteAtaDre, ConsolidadoDRE, Lauda
 )
 
 admin.site.register(ParametroFiqueDeOlhoRelDre)
@@ -23,6 +23,26 @@ class ListasVerificacaoInline(admin.TabularInline):
 class ItensVerificacaoInline(admin.TabularInline):
     extra = 1
     model = ItemVerificacaoRegularidade
+
+
+@admin.register(Lauda)
+class LaudaAdmin(admin.ModelAdmin):
+
+    def get_nome_dre(self, obj):
+        return obj.dre.nome if obj and obj.dre else ''
+
+    get_nome_dre.short_description = 'DRE'
+
+    def get_nome_tipo_conta(self, obj):
+        return obj.tipo_conta.nome if obj and obj.tipo_conta else ''
+
+    get_nome_tipo_conta.short_description = 'Tipo de conta'
+
+    list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'consolidado_dre', 'status')
+    list_filter = ('status', 'dre', 'periodo', 'tipo_conta', 'consolidado_dre')
+    list_display_links = ('get_nome_dre',)
+    readonly_fields = ('uuid', 'id')
+    search_fields = ('dre__nome',)
 
 
 @admin.register(ConsolidadoDRE)

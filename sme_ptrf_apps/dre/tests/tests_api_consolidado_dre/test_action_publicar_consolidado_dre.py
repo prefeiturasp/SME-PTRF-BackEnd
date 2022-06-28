@@ -17,13 +17,14 @@ def payload_publicar_consolidado_dre(dre_teste_api_consolidado_dre, periodo_test
     return payload
 
 
-def test_publicar_consolidado_dre(
+def test_publicar_consolidado_dre_ata_preenchida_deve_passar(
     jwt_authenticated_client_dre,
     dre_teste_api_consolidado_dre,
     periodo_teste_api_consolidado_dre,
     payload_publicar_consolidado_dre,
     consolidado_dre_teste_api_consolidado_dre,
-    ano_analise_regularidade_2022_teste_api
+    ano_analise_regularidade_2022_teste_api,
+    ata_parecer_tecnico_teste_api_preenchida
 ):
     response = jwt_authenticated_client_dre.post(
         '/api/consolidados-dre/publicar/',
@@ -36,6 +37,33 @@ def test_publicar_consolidado_dre(
     assert response.status_code == status.HTTP_200_OK
 
     assert ConsolidadoDRE.objects.filter(uuid=result['uuid']).exists()
+
+
+def test_publicar_consolidado_dre_ata_nao_prenchida(
+    jwt_authenticated_client_dre,
+    dre_teste_api_consolidado_dre,
+    periodo_teste_api_consolidado_dre,
+    payload_publicar_consolidado_dre,
+    consolidado_dre_teste_api_consolidado_dre,
+    ano_analise_regularidade_2022_teste_api,
+    ata_parecer_tecnico_teste_api
+):
+    response = jwt_authenticated_client_dre.post(
+        '/api/consolidados-dre/publicar/',
+        data=json.dumps(payload_publicar_consolidado_dre),
+        content_type='application/json'
+    )
+
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+                'erro': 'Ata não preenchida',
+                'mensagem': f"Para fazer a publicação você precisa preencher as informações da ata."
+            }
+
+    assert result == resultado_esperado
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def test_publicar_consolidado_dre_sem_periodo_uuid(

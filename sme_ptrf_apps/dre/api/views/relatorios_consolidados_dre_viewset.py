@@ -719,6 +719,7 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response({"OK": "Relatório Consolidado na fila para processamento."}, status=status.HTTP_201_CREATED)
 
+    # TODO: Remover este método, pois foi criado o novo gerar_lauda dentro do Consolidado Dre
     @action(detail=False, url_path="gerar-lauda", methods=['post'],
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def gerar_lauda(self, request):
