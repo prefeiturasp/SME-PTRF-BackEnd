@@ -102,7 +102,7 @@ class AtasViewSet(mixins.RetrieveModelMixin,
         ata_valida = validar_campos_ata(ata)
         if not ata_valida['is_valid']:
             return Response({
-                'campos': ata_valida['campos']},
+                'campos_invalidos': ata_valida['campos']},
                 status=status.HTTP_422_UNPROCESSABLE_ENTITY
             )
 

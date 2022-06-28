@@ -25,7 +25,7 @@ def gerar_arquivo_ata(prestacao_de_contas=None, ata=None, usuario=None):
         return None
 
 
-def validar_campos_ata(ata: Ata = None):
+def validar_campos_ata(ata: Ata = None) -> dict:
     campos_invalidos, campos_nao_required = list(), [
         'arquivo_pdf',
         'comentarios',
