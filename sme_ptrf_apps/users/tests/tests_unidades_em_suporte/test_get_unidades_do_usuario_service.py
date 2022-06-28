@@ -13,20 +13,6 @@ def test_obtem_lista_de_unidades_do_usuario_sem_acesso_suporte(
 ):
     unidades_esperadas = [
         {
-            'associacao':
-                {
-                    'nome': '',
-                    'uuid': ''
-                },
-            'nome': 'DRE teste',
-            'notificacao_uuid': None,
-            'notificar_devolucao_pc_uuid': None,
-            'notificar_devolucao_referencia': None,
-            'tipo_unidade': 'DRE',
-            'uuid': dre.uuid,
-            'acesso_de_suporte': False
-        },
-        {
             'associacao': {
                 'nome': '',
                 'uuid': ''
@@ -54,20 +40,6 @@ def test_obtem_lista_de_unidades_do_usuario_com_acesso_suporte(
     associacao_em_suporte
 ):
     unidades_esperadas = [
-        {
-            'associacao':
-                {
-                    'nome': '',
-                    'uuid': ''
-                },
-            'nome': 'DRE teste',
-            'notificacao_uuid': None,
-            'notificar_devolucao_pc_uuid': None,
-            'notificar_devolucao_referencia': None,
-            'tipo_unidade': 'DRE',
-            'uuid': dre.uuid,
-            'acesso_de_suporte': False
-        },
         {
             'associacao': {
                 'nome': 'Escola Teste Suporte',
