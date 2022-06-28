@@ -40,5 +40,5 @@ def test_encerrar_acesso_usuario_unidade_sem_passar_codigo_eol(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     result = json.loads(response.content)
-    assert result == "Campo 'codigo_eol' não encontrado no payload."
+    assert result == "Campo 'unidade_suporte_uuid' não encontrado no payload."
 
