@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
 from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
+from sme_ptrf_apps.core.services.ata_service import validar_campos_ata
 from django.core.exceptions import ValidationError
 from sme_ptrf_apps.core.tasks import gerar_arquivo_ata_async
 
@@ -68,7 +69,6 @@ class AtasViewSet(mixins.RetrieveModelMixin,
     @action(detail=False, methods=['get'], url_path='gerar-arquivo-ata',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def gerar_arquivo_ata(self, request):
-
         prestacao_de_contas_uuid = request.query_params.get('prestacao-de-conta-uuid')
         ata_uuid = request.query_params.get('ata-uuid')
 
@@ -99,13 +99,23 @@ class AtasViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        ata_valida = validar_campos_ata(ata)
+        if not ata_valida['is_valid']:
+            return Response({
+                'campos': ata_valida['campos']},
+                status=status.HTTP_422_UNPROCESSABLE_ENTITY
+            )
+
         gerar_arquivo_ata_async.delay(
             prestacao_de_contas_uuid=prestacao_de_contas_uuid,
             ata_uuid=ata_uuid,
             usuario=request.user.username,
         )
 
-        return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
+        return Response({
+            'mensagem': 'Arquivo na fila para processamento.'},
+            status=status.HTTP_200_OK
+        )
 
     @action(detail=False, methods=['get'], url_path='download-arquivo-ata',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])

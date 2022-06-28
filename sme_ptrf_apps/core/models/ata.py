@@ -11,7 +11,6 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
-from .presentes_ata import PresenteAta
 
 logger = logging.getLogger(__name__)
 
