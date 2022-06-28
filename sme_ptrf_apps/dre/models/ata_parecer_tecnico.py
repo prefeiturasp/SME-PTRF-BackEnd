@@ -70,12 +70,11 @@ class AtaParecerTecnico(ModeloBase):
 
 
     @classmethod
-    def criar_ou_retornar_ata(cls, dre, periodo, consolidado_dre):
+    def criar_ou_retornar_ata_sem_consolidado_dre(cls, dre, periodo):
         ata, _ = cls.objects.get_or_create(
             dre=dre,
             periodo=periodo,
-            consolidado_dre=consolidado_dre,
-            defaults={'dre': dre, 'periodo': periodo, 'consolidado_dre': consolidado_dre},
+            defaults={'dre': dre, 'periodo': periodo},
         )
 
         return ata
@@ -118,6 +117,11 @@ class AtaParecerTecnico(ModeloBase):
     def arquivo_pdf_nao_gerado(self):
         self.status_geracao_pdf = self.STATUS_NAO_GERADO
         self.save()
+
+    def atrelar_consolidado_dre(self, consolidado_dre):
+        self.consolidado_dre = consolidado_dre
+        self.save()
+        return self
 
 
 @receiver(pre_save, sender=AtaParecerTecnico)

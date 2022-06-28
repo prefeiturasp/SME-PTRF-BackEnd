@@ -6,6 +6,7 @@ from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from .relatorio_consolidado_service import (
     informacoes_execucao_financeira_unidades
 )
+from ..models import Lauda
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,101 @@ def gerar_csv(dre, periodo, tipo_conta, obj_arquivo_download, parcial=False):
             obj_arquivo_download.save()
 
 
+def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, tipo_conta, ata, nome_dre, nome_conta,  parcial=False):
+    logger.info("Arquivo Lauda txt em processamento.")
+
+    with NamedTemporaryFile(mode="r+", newline='', encoding='utf-8', prefix='lauda', suffix='.docx.txt') as tmp:
+        dados = gerar_dados_lauda(dre, periodo, tipo_conta)
+        status_separados = separa_status(dados)
+        linhas = []
+
+        titulo = f"((TITULO))DIRETORIA REGIONAL DE EDUCAÇÃO - {formata_nome_dre(dre)} " \
+                 f"PROGRAMA DE TRANSFERÊNCIA DE RECURSOS FINANCEIROS PTRF \n\n"
+
+        texto = f"((TEXTO)) No exercício da atribuição a mim conferida pela Portaria SME nº 5.318/2020, torno " \
+                f"público o Parecer Técnico Conclusivo da Comissão de Prestação de Contas do PTRF da DRE " \
+                f"{formata_nome_dre(dre, capitalize=True)}, expedido através da ata nº {formata_numero_ata(ata)}, " \
+                f"relativo à prestação de contas do Programa de Transferência de Recursos Financeiros - PTRF " \
+                f"- {formata_nome_tipo_conta(tipo_conta, upper=True)} - {formata_periodo_repasse(ata)}:\n\n"
+
+        linhas.append(titulo)
+        linhas.append(texto)
+
+        if len(status_separados["aprovadas"]) > 0:
+            # Atenção para não mudar a formatação da string
+            ng_aprovadas = "((NG)) Prestações de contas aprovadas((CL))\n" \
+                           "			RECEITA			DESPESAS		SALDO	\n" \
+                           "ORDEM	CÓD EOL	UNIDADE	" \
+                           "CUSTEIO	LIVRE APLIC.	CAPITAL	" \
+                           "CUSTEIO	CAPITAL	" \
+                           "CUSTEIO	LIVRE APLIC.	CAPITAL\n"
+
+            linhas.append(ng_aprovadas)
+
+            for status in status_separados["aprovadas"]:
+                # Atenção para não mudar a formatação da string
+                linha = f"{status['ordem']}	{status['codigo_eol']}	{status['unidade']}	" \
+                        f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
+                        f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
+                        f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
+                linhas.append(linha)
+
+            linhas.append("\n")
+
+        if len(status_separados["aprovadas_ressalva"]) > 0:
+            # Atenção para não mudar a formatação da string
+            ng_aprovadas_ressalva = "((NG)) Prestações de contas aprovadas com ressalva((CL))\n" \
+                                    "			RECEITA			DESPESAS		SALDO	\n" \
+                                    "ORDEM	CÓD EOL	UNIDADE	" \
+                                    "CUSTEIO	LIVRE APLIC.	CAPITAL	" \
+                                    "CUSTEIO	CAPITAL	" \
+                                    "CUSTEIO	LIVRE APLIC.	CAPITAL\n"
+
+            linhas.append(ng_aprovadas_ressalva)
+
+            for status in status_separados["aprovadas_ressalva"]:
+                # Atenção para não mudar a formatação da string
+                linha = f"{status['ordem']}	{status['codigo_eol']}	{status['unidade']}	" \
+                        f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
+                        f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
+                        f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
+                linhas.append(linha)
+
+            linhas.append("\n")
+
+        if len(status_separados["rejeitadas"]) > 0:
+            # Atenção para não mudar a formatação da string
+            ng_rejeitadas = "((NG)) Prestações de contas rejeitadas((CL))\n" \
+                            "			RECEITA			DESPESAS		SALDO	\n" \
+                            "ORDEM	CÓD EOL	UNIDADE	" \
+                            "CUSTEIO	LIVRE APLIC.	CAPITAL	" \
+                            "CUSTEIO	CAPITAL	" \
+                            "CUSTEIO	LIVRE APLIC.	CAPITAL\n"
+
+            linhas.append(ng_rejeitadas)
+
+            for status in status_separados["rejeitadas"]:
+                # Atenção para não mudar a formatação da string
+                linha = f"{status['ordem']}	{status['codigo_eol']}	{status['unidade']}	" \
+                        f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
+                        f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
+                        f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
+                linhas.append(linha)
+
+        tmp.file.writelines(linhas)
+
+        tmp.seek(0)
+
+        try:
+            nome_lauda = f"Lauda_{nome_dre}_{nome_conta}.docx.txt"
+            lauda.arquivo_lauda_txt.save(name=nome_lauda, content=File(tmp))
+            lauda.passar_para_status_gerado(parcial)
+        except Exception as err:
+            logger.error("Erro ao gerar arquivo txt lauda: %s", str(err))
+            raise Exception(err)
+
+
+# TODO: Remover este método, pois foi criado um novo acima quando desenvolvido o Consolidado DRE
 def gerar_txt(dre, periodo, tipo_conta, obj_arquivo_download, ata, parcial=False):
     logger.info("txt lauda em processamento.")
 

@@ -39,6 +39,25 @@ def periodo_teste_service_consolidado_dre(periodo_anterior_teste_service_consoli
         periodo_anterior=periodo_anterior_teste_service_consolidado_dre,
     )
 
+@pytest.fixture
+def ata_parecer_tecnico_teste_service(
+    dre_teste_service_consolidado_dre,
+    periodo_teste_service_consolidado_dre,
+    consolidado_dre_teste_service_consolidado_dre,
+):
+    return baker.make(
+        'AtaParecerTecnico',
+        periodo=periodo_teste_service_consolidado_dre,
+        dre=dre_teste_service_consolidado_dre,
+        status_geracao_pdf='CONCLUIDO',
+        numero_ata=1,
+        data_reuniao=date(2022, 6, 25),
+        local_reuniao='Escola Teste',
+        comentarios='Teste',
+        consolidado_dre=consolidado_dre_teste_service_consolidado_dre
+    )
+
+
 
 @pytest.fixture
 def consolidado_dre_teste_service_consolidado_dre(periodo_teste_service_consolidado_dre,
