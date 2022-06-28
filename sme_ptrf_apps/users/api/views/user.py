@@ -18,7 +18,12 @@ from sme_ptrf_apps.users.api.serializers import (
     UserRetrieveSerializer
 )
 from sme_ptrf_apps.users.models import Grupo, Visao
-from sme_ptrf_apps.users.services import SmeIntegracaoException, SmeIntegracaoService, criar_acesso_de_suporte
+from sme_ptrf_apps.users.services import (
+    SmeIntegracaoException,
+    SmeIntegracaoService,
+    criar_acesso_de_suporte,
+    encerrar_acesso_de_suporte
+)
 from sme_ptrf_apps.users.services.unidades_e_permissoes_service import unidades_do_usuario_e_permissoes_na_visao
 from sme_ptrf_apps.users.services.validacao_username_service import validar_username
 from sme_ptrf_apps.core.models import Unidade
@@ -359,3 +364,25 @@ class UserViewSet(ModelViewSet):
         criar_acesso_de_suporte(unidade_do_suporte=unidade, usuario_do_suporte=usuario)
 
         return Response({"mensagem": "Acesso de suporte viabilizado."}, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='encerrar-acesso-suporte')
+    def encerrar_acesso_suporte_usuario_unidade(self, request, id):
+        """ (post) /usuarios/{usuario.username}/encerrar-acesso-suporte/  """
+        usuario = User.objects.get(username=id)
+        unidade_suporte_uuid = request.data.get('unidade_suporte_uuid')
+        if not unidade_suporte_uuid:
+            return Response("Campo 'unidade_suporte_uuid' não encontrado no payload.", status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            unidade = Unidade.objects.get(uuid=unidade_suporte_uuid)
+        except Unidade.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto Unidade para o UUID {unidade_suporte_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        encerrar_acesso_de_suporte(unidade_do_suporte=unidade, usuario_do_suporte=usuario)
+
+        return Response({"mensagem": "Acesso de suporte encerrado."}, status=status.HTTP_200_OK)
