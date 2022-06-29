@@ -36,7 +36,7 @@ def concluir_prestacao_de_contas_async(
 
     periodo = Periodo.by_uuid(periodo_uuid)
     associacao = Associacao.by_uuid(associacao_uuid)
-    prestacao = PrestacaoConta.abrir(periodo=periodo, associacao=associacao)
+    prestacao = PrestacaoConta.by_periodo(associacao=associacao, periodo=periodo)
 
     acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
     contas = associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
