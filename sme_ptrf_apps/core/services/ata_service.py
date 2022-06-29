@@ -26,6 +26,16 @@ def gerar_arquivo_ata(prestacao_de_contas=None, ata=None, usuario=None):
 
 
 def validar_campos_ata(ata: Ata = None) -> dict:
+    campos_traduzidos = {
+        'cargo_presidente_reuniao': 'Cargo Presidente',
+        'cargo_secretaria_reuniao': 'Cargo Secretário',
+        'data_reuniao': 'Data',
+        'hora_reuniao': 'Hora',
+        'justificativa_repasses_pendentes': 'Justificativa',
+        'local_reuniao': 'Local da reunião',
+        'presidente_reuniao': 'Presidente da reunião',
+        'secretario_reuniao': 'Secretário da reunião',
+    }
     campos_invalidos, campos_nao_required = list(), [
         'arquivo_pdf',
         'comentarios',
@@ -44,6 +54,26 @@ def validar_campos_ata(ata: Ata = None) -> dict:
 
     if repasse_pendentes and ata.justificativa_repasses_pendentes == '':
         campos_invalidos.append('justificativa_repasses_pendentes')
+
+    presidente_presente = ata.presentes_na_ata.filter(
+        nome=ata.presidente_reuniao
+    ).exists()
+
+    secretario_presente = ata.presentes_na_ata.filter(
+        nome=ata.secretario_reuniao
+    ).exists()
+
+    msg = ''
+    if ata.presidente_reuniao and not presidente_presente:
+        msg = 'informe um presidente presente.'
+
+    if ata.secretario_reuniao and not secretario_presente:
+        msg = 'informe um secretario presente.'
+
+    if (ata.presidente_reuniao and ata.secretario_reuniao) and (not presidente_presente and not secretario_presente):
+        msg = 'informe um presidente presente, informe um secretário presente.'
+
+    campos_invalidos.append({'msg_presente': msg}) if msg else None
 
     if campos_invalidos:
         return {'is_valid': False, 'campos': campos_invalidos}
