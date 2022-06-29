@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 @transaction.atomic
-def concluir_prestacao_de_contas(periodo, associacao, usuario=""):
+def concluir_prestacao_de_contas(periodo, associacao):
     prestacao = PrestacaoConta.abrir(periodo=periodo, associacao=associacao)
     logger.info(f'Aberta a prestação de contas {prestacao}.')
 
@@ -48,14 +48,11 @@ def concluir_prestacao_de_contas(periodo, associacao, usuario=""):
 
     prestacao.em_processamento()
     logger.info(f'Prestação de contas em processamento {prestacao}.')
-    concluir_prestacao_de_contas_async.delay(
-        periodo.uuid,
-        associacao.uuid,
-        usuario=usuario,
-        e_retorno_devolucao=e_retorno_devolucao
-    )
 
-    return prestacao
+    return {
+        "prestacao": prestacao,
+        "e_retorno_devolucao": e_retorno_devolucao
+    }
 
 
 def gerar_doc_previa_demonstrativo_financeiro(acoes, conta, periodo):
@@ -465,7 +462,7 @@ def retorna_lancamentos_despesas_ordenadas_por_imposto(despesas, conta_associaca
             lancamento = {
                 'periodo': f'{prestacao_conta.periodo.uuid}',
                 'conta': f'{conta_associacao.uuid}',
-                'data': despesa.data_transacao,
+                'data': despesa.data_documento if despesa.data_documento else '',
                 'tipo_transacao': 'Gasto',
                 'numero_documento': despesa.numero_documento,
                 'descricao': despesa.nome_fornecedor,
@@ -527,7 +524,7 @@ def retorna_lancamentos_despesas_ordenadas_por_imposto(despesas, conta_associaca
                         lancamento = {
                             'periodo': f'{prestacao_conta.periodo.uuid}',
                             'conta': f'{conta_associacao.uuid}',
-                            'data': despesa_imposto.data_transacao,
+                            'data': despesa_imposto.data_documento if despesa_imposto.data_documento else '',
                             'tipo_transacao': 'Gasto',
                             'numero_documento': despesa_imposto.numero_documento,
                             'descricao': despesa_imposto.nome_fornecedor,
@@ -693,7 +690,7 @@ def lancamentos_da_prestacao(
             lancamento = {
                 'periodo': f'{prestacao_conta.periodo.uuid}',
                 'conta': f'{conta_associacao.uuid}',
-                'data': despesa.data_transacao,
+                'data': despesa.data_documento if despesa.data_documento else '',
                 'tipo_transacao': 'Gasto',
                 'numero_documento': despesa.numero_documento,
                 'descricao': despesa.nome_fornecedor,

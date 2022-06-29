@@ -11,7 +11,8 @@ from ....services import concluir_prestacao_de_contas
 @pytest.mark.usefixtures('celery_session_app')
 @pytest.mark.usefixtures('celery_session_worker')
 def test_prestacao_de_contas_deve_ser_criada(associacao, periodo, settings):
-    prestacao = concluir_prestacao_de_contas(associacao=associacao, periodo=periodo)
+    dados = concluir_prestacao_de_contas(associacao=associacao, periodo=periodo)
+    prestacao = dados["prestacao"]
 
     assert prestacao.status == PrestacaoConta.STATUS_EM_PROCESSAMENTO, "A PC deveria estar como Em_processamento."
 
@@ -37,6 +38,7 @@ def test_fechamentos_devem_ser_criados_por_acao(associacao,
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
+    prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
     task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
@@ -63,6 +65,7 @@ def test_deve_sumarizar_transacoes_incluindo_nao_conferidas(associacao,
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
+    prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
     task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
@@ -171,6 +174,7 @@ def test_fechamentos_devem_ser_vinculados_a_anteriores(_fechamento_2019_2,
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
+    prestacao_criada = PrestacaoConta.abrir(periodo=_periodo_2020_1, associacao=associacao)
     task_result = concluir_prestacao_de_contas_async.delay(_periodo_2020_1.uuid, associacao.uuid)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=_periodo_2020_1, associacao=associacao).first()
@@ -195,6 +199,7 @@ def test_deve_gravar_lista_de_especificacoes_despesas(associacao,
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
+    prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
     task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
@@ -230,6 +235,7 @@ def test_deve_sumarizar_transacoes_considerando_conta(associacao,
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
+    prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
     task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
@@ -288,6 +294,7 @@ def test_demonstrativos_financeiros_devem_ser_criados_por_conta_e_acao(associaca
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
+    prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
     task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid, criar_arquivos=False)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
@@ -317,6 +324,7 @@ def test_relacoes_de_bens_devem_ser_criadas_por_conta(associacao,
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
+    prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
     task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid, criar_arquivos=False)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
