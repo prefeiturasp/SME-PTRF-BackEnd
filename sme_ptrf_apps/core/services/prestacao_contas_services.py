@@ -462,7 +462,7 @@ def retorna_lancamentos_despesas_ordenadas_por_imposto(despesas, conta_associaca
             lancamento = {
                 'periodo': f'{prestacao_conta.periodo.uuid}',
                 'conta': f'{conta_associacao.uuid}',
-                'data': despesa.data_transacao,
+                'data': despesa.data_documento if despesa.data_documento else '',
                 'tipo_transacao': 'Gasto',
                 'numero_documento': despesa.numero_documento,
                 'descricao': despesa.nome_fornecedor,
@@ -524,7 +524,7 @@ def retorna_lancamentos_despesas_ordenadas_por_imposto(despesas, conta_associaca
                         lancamento = {
                             'periodo': f'{prestacao_conta.periodo.uuid}',
                             'conta': f'{conta_associacao.uuid}',
-                            'data': despesa_imposto.data_transacao,
+                            'data': despesa_imposto.data_documento if despesa_imposto.data_documento else '',
                             'tipo_transacao': 'Gasto',
                             'numero_documento': despesa_imposto.numero_documento,
                             'descricao': despesa_imposto.nome_fornecedor,
@@ -690,7 +690,7 @@ def lancamentos_da_prestacao(
             lancamento = {
                 'periodo': f'{prestacao_conta.periodo.uuid}',
                 'conta': f'{conta_associacao.uuid}',
-                'data': despesa.data_transacao,
+                'data': despesa.data_documento if despesa.data_documento else '',
                 'tipo_transacao': 'Gasto',
                 'numero_documento': despesa.numero_documento,
                 'descricao': despesa.nome_fornecedor,
