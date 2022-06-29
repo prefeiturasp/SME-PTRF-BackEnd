@@ -95,6 +95,13 @@ class User(AbstractUser):
                 self.save()
                 logger.info(f'Visão {visao_obj} adicionada para o usuário {self}.')
 
+    def remove_visao_se_existir(self, visao):
+        if self.visoes.filter(nome=visao).exists():
+            visao_obj = Visao.objects.get(nome=visao)
+            self.visoes.remove(visao_obj)
+            self.save()
+            logger.info(f'Visão {visao} removida do usuário {self}.')
+
     def add_unidade_se_nao_existir(self, codigo_eol):
         if not self.unidades.filter(codigo_eol=codigo_eol).exists():
             unidade = Unidade.objects.get(codigo_eol=codigo_eol)
@@ -107,6 +114,7 @@ class User(AbstractUser):
             unidade = Unidade.objects.get(codigo_eol=codigo_eol)
             self.unidades.remove(unidade)
             self.save()
+            logger.info(f'Unidade {codigo_eol} removida do usuário {self}.')
 
     @classmethod
     def criar_usuario(cls, dados):

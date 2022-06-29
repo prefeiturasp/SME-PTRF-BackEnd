@@ -113,3 +113,25 @@ def ata_parecer_tecnico_teste_api(
         consolidado_dre=consolidado_dre_teste_api_consolidado_dre
     )
 
+@pytest.fixture
+@freeze_time('2022-06-25 13:59:00')
+def ata_parecer_tecnico_teste_api_preenchida(
+    dre_teste_api_consolidado_dre,
+    periodo_teste_api_consolidado_dre,
+    consolidado_dre_teste_api_consolidado_dre,
+    arquivo_gerado_ata_parecer_tecnico_teste_api
+):
+    return baker.make(
+        'AtaParecerTecnico',
+        arquivo_pdf=arquivo_gerado_ata_parecer_tecnico_teste_api,
+        periodo=periodo_teste_api_consolidado_dre,
+        dre=dre_teste_api_consolidado_dre,
+        status_geracao_pdf='CONCLUIDO',
+        numero_ata=1,
+        data_reuniao=date(2022, 6, 25),
+        preenchida_em=date(2022, 6, 25),
+        local_reuniao='Escola Teste',
+        comentarios='Teste',
+        consolidado_dre=consolidado_dre_teste_api_consolidado_dre
+    )
+

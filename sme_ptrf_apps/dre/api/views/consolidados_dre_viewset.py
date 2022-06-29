@@ -88,6 +88,26 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            ata = AtaParecerTecnico.objects.get(dre=dre, periodo=periodo)
+        except (AtaParecerTecnico.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto Ata para a DRE {dre} e Período {periodo} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        alterado_em = ata.preenchida_em
+
+        if not alterado_em:
+            erro = {
+                'erro': 'Ata não preenchida',
+                'mensagem': f"Para fazer a publicação você precisa preencher as informações da ata."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
             ano = str(periodo.data_inicio_realizacao_despesas.year)
             ano_analise_regularidade = AnoAnaliseRegularidade.objects.get(ano=ano)
         except (AnoAnaliseRegularidade.DoesNotExist, ValidationError):
@@ -99,8 +119,12 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            consolidado_dre = concluir_consolidado_dre(dre=dre, periodo=periodo, parcial=parcial,
-                                                       usuario=request.user.username)
+            consolidado_dre = concluir_consolidado_dre(
+                dre=dre, periodo=periodo,
+                parcial=parcial,
+                usuario=request.user.username,
+                ata=ata
+            )
             logger.info(f"Consolidado DRE finalizado. Status: {consolidado_dre.get_valor_status_choice()}")
 
         except(IntegrityError):

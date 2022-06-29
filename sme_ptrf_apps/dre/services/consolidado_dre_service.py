@@ -204,7 +204,7 @@ def verificar_se_status_parcial_ou_total(dre_uuid, periodo_uuid):
     return qtde_prestacoes > 0
 
 
-def concluir_consolidado_dre(dre, periodo, parcial, usuario):
+def concluir_consolidado_dre(dre, periodo, parcial, usuario, ata):
     consolidado_dre = ConsolidadoDRE.criar(dre=dre, periodo=periodo)
     logger.info(f'Criado Consolidado DRE  {consolidado_dre}.')
 
@@ -214,6 +214,7 @@ def concluir_consolidado_dre(dre, periodo, parcial, usuario):
     dre_uuid = dre.uuid
     periodo_uuid = periodo.uuid
     consolidado_dre_uuid = consolidado_dre.uuid
+    ata_uuid = ata.uuid
 
     concluir_consolidado_dre_async.delay(
         dre_uuid=dre_uuid,
@@ -221,6 +222,7 @@ def concluir_consolidado_dre(dre, periodo, parcial, usuario):
         parcial=parcial,
         usuario=usuario,
         consolidado_dre_uuid=consolidado_dre_uuid,
+        ata_uuid=ata_uuid,
     )
 
     return consolidado_dre

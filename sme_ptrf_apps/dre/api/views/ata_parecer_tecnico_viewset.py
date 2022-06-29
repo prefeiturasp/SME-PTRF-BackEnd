@@ -293,13 +293,72 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        ata = AtaParecerTecnico.objects.filter(dre=dre).filter(periodo=periodo).last()
-
-        if not ata:
+        try:
+            ata = AtaParecerTecnico.criar_ou_retornar_ata_sem_consolidado_dre(dre, periodo)
+        except (AtaParecerTecnico.DoesNotExist, ValidationError):
             erro = {
-                'mensagem': 'Ainda não existe uma ata de parecer tecnico para essa DRE.'
+                'mensagem': 'Falhar ao criar Ata método: criar_ou_retornar_ata_sem_consolidado_dre'
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
         return Response(AtaParecerTecnicoLookUpSerializer(ata, many=False).data,
                         status=status.HTTP_200_OK)
+
+    # TODO Remover
+    # @action(detail=False, methods=['get'], url_path='status-ata',
+    #         permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    # def status_ata(self, request):
+    #     # Determina a DRE
+    #     dre_uuid = self.request.query_params.get('dre')
+    #
+    #     if not dre_uuid:
+    #         erro = {
+    #             'erro': 'falta_de_informacoes',
+    #             'operacao': 'info-execucao-financeira-unidades',
+    #             'mensagem': 'Faltou informar o uuid da dre. ?dre=uuid_da_dre'
+    #         }
+    #         logger.info('Erro: %r', erro)
+    #         return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+    #
+    #     try:
+    #         dre = Unidade.dres.get(uuid=dre_uuid)
+    #     except Unidade.DoesNotExist:
+    #         erro = {
+    #             'erro': 'Objeto não encontrado.',
+    #             'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+    #         }
+    #         logger.info('Erro: %r', erro)
+    #         return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+    #
+    #     # Determina o período
+    #     periodo_uuid = self.request.query_params.get('periodo')
+    #
+    #     if not periodo_uuid:
+    #         erro = {
+    #             'erro': 'falta_de_informacoes',
+    #             'operacao': 'info-execucao-financeira-unidades',
+    #             'mensagem': 'Faltou informar o uuid do período. ?periodo=uuid_do_periodo'
+    #         }
+    #         logger.info('Erro: %r', erro)
+    #         return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+    #
+    #     try:
+    #         periodo = Periodo.objects.get(uuid=periodo_uuid)
+    #     except Periodo.DoesNotExist:
+    #         erro = {
+    #             'erro': 'Objeto não encontrado.',
+    #             'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+    #         }
+    #         logger.info('Erro: %r', erro)
+    #         return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+    #
+    #     ata = AtaParecerTecnico.objects.filter(dre=dre).filter(periodo=periodo).last()
+    #
+    #     if not ata:
+    #         erro = {
+    #             'mensagem': 'Ainda não existe uma ata de parecer tecnico para essa DRE.'
+    #         }
+    #         return Response(erro, status=status.HTTP_404_NOT_FOUND)
+    #
+    #     return Response(AtaParecerTecnicoLookUpSerializer(ata, many=False).data,
+    #                     status=status.HTTP_200_OK)
