@@ -285,6 +285,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
     total_demais_creditos_custeio = 0
     total_despesas_custeio = 0
     total_saldo_custeio = 0
+    total_outros_creditos_custeio = 0
 
     total_saldo_reprogramado_anterior_capital = 0
     total_repasse_capital = 0
@@ -292,6 +293,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
     total_demais_creditos_capital = 0
     total_despesas_capital = 0
     total_saldo_capital = 0
+    total_outros_creditos_capital = 0
 
     total_saldo_reprogramado_anterior_livre = 0
     total_repasse_livre = 0
@@ -299,6 +301,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
     total_devolucao_livre = 0
     total_demais_creditos_livre = 0
     total_saldo_livre = 0
+    total_outros_creditos_livre = 0
 
     total_devolucoes_ao_tesouro = 0
 
@@ -333,9 +336,9 @@ def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
                 demais_creditos_custeio = info.get("valores").get('demais_creditos_no_periodo_custeio')
                 despesas_custeio = info.get("valores").get('despesas_no_periodo_custeio')
                 saldo_custeio = info.get("valores").get('saldo_reprogramado_proximo_periodo_custeio')
-                receitas_rendimento_livre = info.get("valores").get('receitas_rendimento_no_periodo_livre')
+                total_receitas_custeio = info.get("valores").get('receitas_totais_no_periodo_custeio')
 
-                outros_creditos = receitas_rendimento_livre + devolucao_custeio + demais_creditos_custeio
+                outros_creditos_custeio = total_receitas_custeio - repasse_custeio
 
                 custeio = {
                     "saldo_reprogramado_anterior_custeio": formata_valor(saldo_reprogramado_anterior_custeio),
@@ -344,7 +347,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
                     "demais_creditos_custeio": formata_valor(demais_creditos_custeio),
                     "despesas_custeio": formata_valor(despesas_custeio),
                     "saldo_custeio": formata_valor(saldo_custeio),
-                    "outros_creditos": formata_valor(outros_creditos)
+                    "outros_creditos": formata_valor(outros_creditos_custeio)
                 }
 
                 dados["custeio"] = custeio
@@ -355,6 +358,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
                 total_demais_creditos_custeio += demais_creditos_custeio
                 total_despesas_custeio += despesas_custeio
                 total_saldo_custeio += saldo_custeio
+                total_outros_creditos_custeio += outros_creditos_custeio
             elif index == 1:
                 saldo_reprogramado_anterior_capital = info.get("valores").get(
                     'saldo_reprogramado_periodo_anterior_capital')
@@ -363,9 +367,9 @@ def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
                 demais_creditos_capital = info.get("valores").get('demais_creditos_no_periodo_capital')
                 despesas_capital = info.get("valores").get('despesas_no_periodo_capital')
                 saldo_capital = info.get("valores").get('saldo_reprogramado_proximo_periodo_capital')
-                receitas_rendimento_livre = info.get("valores").get('receitas_rendimento_no_periodo_livre')
+                total_receitas_capital = info.get("valores").get('receitas_totais_no_periodo_capital')
 
-                outros_creditos = receitas_rendimento_livre + devolucao_capital + demais_creditos_capital
+                outros_creditos_capital = total_receitas_capital - repasse_capital
 
                 capital = {
                     "saldo_reprogramado_anterior_capital": formata_valor(saldo_reprogramado_anterior_capital),
@@ -374,7 +378,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
                     "demais_creditos_capital": formata_valor(demais_creditos_capital),
                     "despesas_capital": formata_valor(despesas_capital),
                     "saldo_capital": formata_valor(saldo_capital),
-                    "outros_creditos": formata_valor(outros_creditos)
+                    "outros_creditos": formata_valor(outros_creditos_capital)
                 }
 
                 dados["capital"] = capital
@@ -385,6 +389,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
                 total_demais_creditos_capital += demais_creditos_capital
                 total_despesas_capital += despesas_capital
                 total_saldo_capital += saldo_capital
+                total_outros_creditos_capital += outros_creditos_capital
             else:
                 saldo_reprogramado_anterior_livre = info.get("valores").get('saldo_reprogramado_periodo_anterior_livre')
                 repasse_livre = info.get("valores").get('repasses_no_periodo_livre')
@@ -392,8 +397,9 @@ def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
                 devolucao_livre = info.get("valores").get('receitas_devolucao_no_periodo_livre')
                 demais_creditos_livre = info.get("valores").get('demais_creditos_no_periodo_livre')
                 saldo_livre = info.get("valores").get('saldo_reprogramado_proximo_periodo_livre')
+                total_receitas_livre = info.get("valores").get('receitas_totais_no_periodo_livre')
 
-                outros_creditos = receita_rendimento_livre + devolucao_livre + demais_creditos_livre
+                outros_creditos_livre = total_receitas_livre - repasse_livre
 
                 # Recupera o valor total de devoluções ao tesouro da associacao
                 devolucoes_ao_tesouro = info.get('valores').get('devolucoes_ao_tesouro_no_periodo_total')
@@ -406,7 +412,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
                     "demais_creditos_livre": formata_valor(demais_creditos_livre),
                     "saldo_livre": formata_valor(saldo_livre),
                     "devolucoes_ao_tesouro": formata_valor(devolucoes_ao_tesouro),
-                    "outros_creditos": formata_valor(outros_creditos)
+                    "outros_creditos": formata_valor(outros_creditos_livre)
                 }
 
                 dados["livre"] = livre
@@ -425,17 +431,9 @@ def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
 
                 total_devolucoes_ao_tesouro += devolucoes_ao_tesouro
 
+                total_outros_creditos_livre += outros_creditos_livre
+
         lista.append(dados)
-
-    # Calcula totais de outros creditos
-    total_outros_creditos_custeio = total_receita_rendimento_livre + \
-        total_devolucao_custeio + total_demais_creditos_custeio
-
-    total_outros_creditos_capital = total_receita_rendimento_livre + \
-        total_devolucao_capital + total_demais_creditos_capital
-
-    total_outros_creditos_livre = total_receita_rendimento_livre + \
-        total_devolucao_livre + total_demais_creditos_livre
 
     totais = {
         "custeio": {
