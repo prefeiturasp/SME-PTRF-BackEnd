@@ -1,3 +1,9 @@
+### 1.32.3 - 29/06/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 44
+* (66548) -  Associação: Prestação de contas em processamento
+* (67689) -  Relatório DRE: campo 26 "Outros créditos" repetindo valores
+* (67882) -  Acompanhamento de PC: A data de documento exibe a data de pagamento
+* (65722) -  Acompanhamento de PC: A data do documento do tipo crédito não é exibida
+
 ### 1.32.2 - 07/06/2022 - Hotfix em pre-produção - Soluções de bugs urgentes durante a sprint 43 
 * (66396) -  Valores nulos no quadro resumo em Conciliação bancária
 
