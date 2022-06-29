@@ -50,12 +50,13 @@ class UnidadeSerializer(serializers.ModelSerializer):
         fields = ['uuid', 'nome', 'codigo_eol', 'tipo_unidade', 'acesso_de_suporte']
 
     def get_acesso_de_suporte(self, instance):
-        return UnidadeEmSuporte.objects.filter(unidade=instance).exists()
+        user = self.context["user"]
+        return UnidadeEmSuporte.objects.filter(unidade=instance, user=user).exists()
 
 
 class UserSerializer(serializers.ModelSerializer):
     groups = SerializerMethodField()
-    unidades = UnidadeSerializer(many=True)
+    unidades = SerializerMethodField()
 
     class Meta:
         model = User
@@ -73,11 +74,14 @@ class UserSerializer(serializers.ModelSerializer):
         groups_extendido = Grupo.objects.filter(id__in=groups_padrao).order_by('id')
         return GrupoSerializer(groups_extendido, many=True).data
 
+    def get_unidades(selfself, instance):
+        return UnidadeSerializer(instance.unidades, many=True, context={'user': instance}).data
+
 
 class UserRetrieveSerializer(serializers.ModelSerializer):
     visoes = VisaoSerializer(many=True)
     groups = SerializerMethodField()
-    unidades = UnidadeSerializer(many=True)
+    unidades = SerializerMethodField()
 
     def get_groups(self, instance):
         """
@@ -86,6 +90,9 @@ class UserRetrieveSerializer(serializers.ModelSerializer):
         groups_padrao = instance.groups.values_list("id", flat=True)
         groups_extendido = Grupo.objects.filter(id__in=groups_padrao).order_by('id')
         return GrupoComVisaoSerializer(groups_extendido, many=True).data
+
+    def get_unidades(selfself, instance):
+        return UnidadeSerializer(instance.unidades, many=True, context={'user': instance}).data
 
     class Meta:
         model = User
