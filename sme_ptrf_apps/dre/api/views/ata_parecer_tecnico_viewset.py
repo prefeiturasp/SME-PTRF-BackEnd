@@ -294,12 +294,16 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            ata = AtaParecerTecnico.criar_ou_retornar_ata_sem_consolidado_dre(dre, periodo)
+            ata = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo).order_by('criado_em').last()
+            if not ata:
+                ata = AtaParecerTecnico.criar_ou_retornar_ata_sem_consolidado_dre(dre, periodo)
         except (AtaParecerTecnico.DoesNotExist, ValidationError):
             erro = {
-                'mensagem': 'Falhar ao criar Ata método: criar_ou_retornar_ata_sem_consolidado_dre'
+                'erro': 'status-ata',
+                'mensagem': f"Não foi possível retornar ou criar uma ata."
             }
-            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(AtaParecerTecnicoLookUpSerializer(ata, many=False).data,
                         status=status.HTTP_200_OK)
