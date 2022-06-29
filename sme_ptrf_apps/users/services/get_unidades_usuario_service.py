@@ -50,7 +50,7 @@ def get_unidades_do_usuario(user):
             'notificar_devolucao_referencia': notificar_devolucao_referencia,
             'notificar_devolucao_pc_uuid': notificar_devolucao_pc_uuid,
             'notificacao_uuid': notificacao_uuid,
-            'acesso_de_suporte': UnidadeEmSuporte.objects.filter(unidade=unidade).exists()
+            'acesso_de_suporte': UnidadeEmSuporte.objects.filter(unidade=unidade, user=user).exists()
         })
 
     # Como a visão SME não tem uma Unidade real, cria a unidade caso o usuário tenha essa visão

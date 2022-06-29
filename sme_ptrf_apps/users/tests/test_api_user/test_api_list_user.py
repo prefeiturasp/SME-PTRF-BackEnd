@@ -16,6 +16,7 @@ def test_lista_usuarios_filtro_por_visao(
     grupo_2,
     unidade,
     dre,
+    unidade_em_suporte_usuario_3,
 ):
 
     response = jwt_authenticated_client_u.get(f"/api/usuarios/?visao=DRE&unidade_uuid={dre.uuid}", content_type='application/json')
@@ -41,7 +42,7 @@ def test_lista_usuarios_filtro_por_visao(
                     'nome': unidade.nome,
                     'codigo_eol': unidade.codigo_eol,
                     'tipo_unidade': unidade.tipo_unidade,
-                    'acesso_de_suporte': False
+                    'acesso_de_suporte': True
                 }
             ]
         },

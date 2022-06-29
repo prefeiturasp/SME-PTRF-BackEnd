@@ -88,7 +88,9 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            ata = AtaParecerTecnico.objects.get(dre=dre, periodo=periodo)
+            ata = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo).order_by('criado_em').last()
+            if not ata:
+                raise ValidationError(f"O objeto Ata para a DRE {dre} e Período {periodo} não foi encontrado na base.")
         except (AtaParecerTecnico.DoesNotExist, ValidationError):
             erro = {
                 'erro': 'Objeto não encontrado.',
