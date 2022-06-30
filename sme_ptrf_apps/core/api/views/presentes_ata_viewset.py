@@ -194,4 +194,3 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
             result = PresenteAta.get_informacao_servidor(identificador)
 
         return Response(result)
-
