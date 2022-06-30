@@ -51,7 +51,6 @@ def validar_campos_ata(ata: Ata = None) -> dict:
 
         if valor in [None, ''] and campo not in campos_nao_required:
             campos_invalidos.append(campo)
-
     if repasse_pendentes and ata.justificativa_repasses_pendentes == '':
         campos_invalidos.append('justificativa_repasses_pendentes')
 
@@ -63,18 +62,22 @@ def validar_campos_ata(ata: Ata = None) -> dict:
         nome=ata.secretario_reuniao
     ).exists()
 
+    campos_invalidos_traduzidos = list()
+    for campo, valor in campos_traduzidos.items():
+        if campo in campos_invalidos:
+            campos_invalidos_traduzidos.append(valor)
     msg = ''
     if ata.presidente_reuniao and not presidente_presente:
-        msg = 'informe um presidente presente.'
+        msg = 'informe um presidente presente'
 
     if ata.secretario_reuniao and not secretario_presente:
-        msg = 'informe um secretario presente.'
+        msg = 'informe um secretario presente'
 
     if (ata.presidente_reuniao and ata.secretario_reuniao) and (not presidente_presente and not secretario_presente):
-        msg = 'informe um presidente presente, informe um secretário presente.'
+        msg = 'informe um presidente presente, informe um secretário presente'
 
-    campos_invalidos.append({'msg_presente': msg}) if msg else None
+    campos_invalidos_traduzidos.append({'msg_presente': msg}) if msg else None
 
-    if campos_invalidos:
-        return {'is_valid': False, 'campos': campos_invalidos}
+    if campos_invalidos_traduzidos:
+        return {'is_valid': False, 'campos': campos_invalidos_traduzidos}
     return {'is_valid': True}
