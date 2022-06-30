@@ -30,8 +30,14 @@ logger = logging.getLogger(__name__)
     time_limit=333333,
     soft_time_limit=333333
 )
-def verificar_se_gera_lauda(dre=None, periodo=None, consolidado_dre=None, usuario=None, tipo_contas=None,
-                            parcial=False):
+def verificar_se_gera_lauda(
+    dre=None,
+    periodo=None,
+    consolidado_dre=None,
+    usuario=None,
+    tipo_contas=None,
+    parcial=False
+):
     if not parcial:
         ata = AtaParecerTecnico.objects.get(dre=dre, periodo=periodo, consolidado_dre=consolidado_dre)
         if ata and ata.preenchida_em:
@@ -58,7 +64,6 @@ def verificar_se_gera_lauda(dre=None, periodo=None, consolidado_dre=None, usuari
     soft_time_limit=333333
 )
 def verificar_se_gera_ata_parecer_tecnico_async(dre=None, periodo=None, consolidado_dre=None, usuario=None, ata=None):
-
     logger.info(f'Iniciando a verificação para gerar ata de parecer técnico')
 
     dre_uuid = dre.uuid
@@ -67,12 +72,12 @@ def verificar_se_gera_ata_parecer_tecnico_async(dre=None, periodo=None, consolid
     if ata and ata.preenchida_em:
         logger.info(f'Atrelando a Ata de Parecer Técnico {ata} ao Consolidado DRE {consolidado_dre}')
         ata.atrelar_consolidado_dre(consolidado_dre)
-        logger.info(f'Iniciando a geração do Arquivo da Ata de Parecer Técnico da DRE {dre}, Período {periodo} e Consolidado DRE {consolidado_dre}')
+        logger.info(
+            f'Iniciando a geração do Arquivo da Ata de Parecer Técnico da DRE {dre}, Período {periodo} e Consolidado DRE {consolidado_dre}')
         ata_uuid = ata.uuid
         gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario)
     else:
         logger.info("Ata não preenchida, portanto Arquivo PDF não será gerado")
-
 
 
 @shared_task(
@@ -144,14 +149,16 @@ def concluir_consolidado_dre_async(
         ata=ata,
     )
 
-    # verificar_se_gera_lauda(
-    #     consolidado_dre=consolidado_dre,
-    #     dre=dre,
-    #     periodo=periodo,
-    #     tipo_contas=tipo_contas,
-    #     parcial=parcial,
-    #     usuario=usuario,
-    # )
+    for tipo_conta in tipo_contas:
+
+        gerar_lauda_txt_consolidado_dre_async(
+            consolidado_dre=consolidado_dre,
+            dre=dre,
+            periodo=periodo,
+            tipo_conta=tipo_conta,
+            parcial=parcial,
+            usuario=usuario
+        )
 
     consolidado_dre.passar_para_status_gerado(parcial)
 

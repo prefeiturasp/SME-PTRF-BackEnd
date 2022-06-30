@@ -3,6 +3,7 @@ import pytest
 from model_bakery import baker
 from freezegun import freeze_time
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.contrib.auth import get_user_model
 
 from ...models import ConsolidadoDRE
 
@@ -63,7 +64,6 @@ def ano_analise_regularidade_2022_teste_api():
 @freeze_time('2020-10-27 13:59:00')
 def arquivo_gerado_em_2020_10_27_13_59_00_teste_api():
     return SimpleUploadedFile(f'arquivo.txt', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding="utf-8"))
-
 
 
 @pytest.fixture
@@ -133,5 +133,53 @@ def ata_parecer_tecnico_teste_api_preenchida(
         local_reuniao='Escola Teste',
         comentarios='Teste',
         consolidado_dre=consolidado_dre_teste_api_consolidado_dre
+    )
+
+@pytest.fixture
+def visao_dre_teste_api():
+    return baker.make('Visao', nome='DRE')
+
+
+@pytest.fixture
+def usuario_dre_teste_api(
+    dre_teste_api_consolidado_dre,
+    visao_dre_teste_api,
+):
+    senha = 'Sgp0418'
+    login = '8989877'
+    email = 'teste.api@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(dre_teste_api_consolidado_dre)
+    user.visoes.add(visao_dre_teste_api)
+    user.save()
+    return user
+
+@pytest.fixture
+@freeze_time('2022-06-25 13:59:00')
+def arquivo_gerado_lauda_teste_api():
+    return SimpleUploadedFile(f'arquivo.txt', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding="utf-8"))
+
+
+@pytest.fixture
+@freeze_time('2022-06-25 13:59:00')
+def lauda_teste_api(
+    arquivo_gerado_lauda_teste_api,
+    consolidado_dre_teste_api_consolidado_dre,
+    dre_teste_api_consolidado_dre,
+    periodo_teste_api_consolidado_dre,
+    tipo_conta_cheque_teste_api,
+    usuario_dre_teste_api
+
+):
+    return baker.make(
+        'Lauda',
+        arquivo_lauda_txt=arquivo_gerado_lauda_teste_api,
+        consolidado_dre=consolidado_dre_teste_api_consolidado_dre,
+        dre=dre_teste_api_consolidado_dre,
+        periodo=periodo_teste_api_consolidado_dre,
+        tipo_conta=tipo_conta_cheque_teste_api,
+        usuario=usuario_dre_teste_api,
+        status='GERADA_TOTAL',
     )
 

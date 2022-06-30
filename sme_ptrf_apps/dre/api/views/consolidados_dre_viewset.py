@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
 from sme_ptrf_apps.core.models import Unidade, Periodo, Associacao
-from ...models import ConsolidadoDRE, RelatorioConsolidadoDRE, AnoAnaliseRegularidade, AtaParecerTecnico
+from ...models import ConsolidadoDRE, RelatorioConsolidadoDRE, AnoAnaliseRegularidade, AtaParecerTecnico, Lauda
 
 from ..serializers.consolidado_dre_serializer import ConsolidadoDreSerializer
 
@@ -21,6 +21,8 @@ from sme_ptrf_apps.users.permissoes import (
 
 from ...services import concluir_consolidado_dre, verificar_se_status_parcial_ou_total, status_consolidado_dre, \
     retornar_trilha_de_status
+
+import mimetypes
 
 logger = logging.getLogger(__name__)
 
@@ -299,6 +301,56 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
         return response
+
+    @action(detail=False, methods=['get'], url_path='download-lauda',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def download_lauda(self, request):
+        logger.info("Download da Ata de Parecer Técnico.")
+
+        lauda_uuid = request.query_params.get('lauda')
+
+        if not lauda_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da Lauda.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            lauda = Lauda.objects.get(uuid=lauda_uuid)
+        except (ValidationError, Exception):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto Lauda para o uuid {lauda_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if lauda and lauda.arquivo_lauda_txt and lauda.arquivo_lauda_txt.name:
+            arquivo_nome = lauda.arquivo_lauda_txt.name
+            arquivo_path = lauda.arquivo_lauda_txt.path
+            arquivo_file_mime = mimetypes.guess_type(lauda.arquivo_lauda_txt.name)[0]
+
+            try:
+                response = HttpResponse(
+                    open(arquivo_path, 'rb'),
+                    content_type=arquivo_file_mime
+                )
+                response['Content-Disposition'] = 'attachment; filename=%s' % arquivo_nome
+            except Exception as err:
+                erro = {
+                    'erro': 'arquivo_nao_gerado',
+                    'mensagem': str(err)
+                }
+                return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+            return response
+        else:
+            erro = {
+                'erro': 'arquivo_nao_encontrado',
+                'mensagem': 'Arquivo não encontrado'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=False, methods=['get'], url_path='trilha-de-status',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
