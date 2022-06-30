@@ -35,6 +35,19 @@ def periodo_2020_1(periodo_2019_2):
         periodo_anterior=periodo_2019_2
     )
 
+@pytest.fixture
+def periodo_2022_1(periodo_2019_2):
+    return baker.make(
+        'Periodo',
+        referencia='2020.1',
+        data_inicio_realizacao_despesas=datetime.date(2020, 1, 1),
+        data_fim_realizacao_despesas=datetime.date(2020, 6, 30),
+        data_prevista_repasse=datetime.date(2020, 1, 1),
+        data_inicio_prestacao_contas=datetime.date(2020, 7, 1),
+        data_fim_prestacao_contas=datetime.date(2020, 7, 10),
+        periodo_anterior=periodo_2019_2
+    )
+
 
 @pytest.fixture
 def tipo_receita_repasse():
@@ -422,4 +435,100 @@ def prestacao_conta_2020_1_nao_conciliada(periodo_2020_1, associacao):
         'PrestacaoConta',
         periodo=periodo_2020_1,
         associacao=associacao,
+    )
+
+
+@pytest.fixture
+def ata_2020_1_teste(prestacao_conta_2020_1_conciliada):
+    return baker.make(
+        'Ata',
+        arquivo_pdf=None,
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        periodo=prestacao_conta_2020_1_conciliada.periodo,
+        associacao=prestacao_conta_2020_1_conciliada.associacao,
+        tipo_ata='APRESENTACAO',
+        tipo_reuniao='ORDINARIA',
+        convocacao='PRIMEIRA',
+        status_geracao_pdf='NAO_GERADO',
+        data_reuniao=datetime.date(2020, 7, 1),
+        local_reuniao='Escola Teste',
+        presidente_reuniao='José',
+        cargo_presidente_reuniao='Presidente',
+        secretario_reuniao='Ana',
+        cargo_secretaria_reuniao='Secretária',
+        comentarios='Teste',
+        parecer_conselho='APROVADA',
+    )
+
+
+@pytest.fixture
+def ata_2022_2_teste_valido(prestacao_conta_2020_1_conciliada):
+    return baker.make(
+        'Ata',
+        arquivo_pdf=None,
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        periodo=prestacao_conta_2020_1_conciliada.periodo,
+        associacao=prestacao_conta_2020_1_conciliada.associacao,
+        tipo_ata='APRESENTACAO',
+        tipo_reuniao='ORDINARIA',
+        convocacao='PRIMEIRA',
+        status_geracao_pdf='NAO_GERADO',
+        data_reuniao=datetime.date(2022, 7, 2),
+        local_reuniao='Escola Teste',
+        presidente_reuniao='Arnaldo',
+        cargo_presidente_reuniao='Presidente',
+        secretario_reuniao='Falcao',
+        cargo_secretaria_reuniao='Secretária',
+        comentarios='Teste',
+        justificativa_repasses_pendentes='teste justificativa',
+        parecer_conselho='APROVADA',
+    )
+
+
+@pytest.fixture
+def presente_ata_membro_arnaldo(ata_2022_2_teste_valido):
+    return baker.make(
+        'PresenteAta',
+        ata=ata_2022_2_teste_valido,
+        identificacao="0001",
+        nome="Arnaldo",
+        cargo="Presidente",
+        membro=True,
+        conselho_fiscal=False
+    )
+
+
+@pytest.fixture
+def presente_ata_membro_falcao(ata_2022_2_teste_valido):
+    return baker.make(
+        'PresenteAta',
+        ata=ata_2022_2_teste_valido,
+        identificacao="0001",
+        nome="Falcao",
+        cargo="Secretario",
+        membro=True,
+        conselho_fiscal=False
+    )
+
+
+@pytest.fixture
+def ata_2022_test_campos_invalidos(prestacao_conta_2020_1_conciliada):
+    return baker.make(
+        'Ata',
+        arquivo_pdf=None,
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        periodo=prestacao_conta_2020_1_conciliada.periodo,
+        associacao=prestacao_conta_2020_1_conciliada.associacao,
+        tipo_ata='APRESENTACAO',
+        tipo_reuniao='ORDINARIA',
+        convocacao='PRIMEIRA',
+        status_geracao_pdf='NAO_GERADO',
+        data_reuniao=datetime.date(2022, 7, 2),
+        local_reuniao='',
+        presidente_reuniao='',
+        cargo_presidente_reuniao='',
+        secretario_reuniao='',
+        cargo_secretaria_reuniao='',
+        comentarios='Teste',
+        parecer_conselho='APROVADA',
     )
