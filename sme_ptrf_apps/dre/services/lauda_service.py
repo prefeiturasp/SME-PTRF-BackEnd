@@ -6,7 +6,6 @@ from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from .relatorio_consolidado_service import (
     informacoes_execucao_financeira_unidades
 )
-from ..models import Lauda
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +129,7 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, tipo_conta, ata
 
         try:
             nome_lauda = f"Lauda_{nome_dre}_{nome_conta}.docx.txt"
-            lauda.arquivo_lauda_txt.save(name=nome_lauda, content=File(tmp))
+            lauda.arquivo_lauda_txt.save(name=f'{nome_lauda}', content=File(tmp))
             lauda.passar_para_status_gerado(parcial)
         except Exception as err:
             logger.error("Erro ao gerar arquivo txt lauda: %s", str(err))
