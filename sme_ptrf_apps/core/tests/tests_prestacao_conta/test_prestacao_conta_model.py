@@ -27,6 +27,8 @@ def test_instance_model(prestacao_conta):
     assert model.outros_motivos_aprovacao_ressalva
     assert model.recomendacoes
     assert model.analise_atual is None
+    assert model.publicada is None
+    assert model.consolidado_dre is None
 
 
 def test_srt_model(prestacao_conta):

@@ -95,6 +95,12 @@ class PrestacaoConta(ModeloBase):
 
     recomendacoes = models.TextField('Recomendações para aprovação com ressalvas pela DRE', blank=True, default='')
 
+    publicada = models.BooleanField('Publicada', blank=True, null=True, default=False)
+
+    consolidado_dre = models.ForeignKey('dre.ConsolidadoDRE', on_delete=models.PROTECT,
+                                        related_name='prestacoes_de_conta_do_consolidado_dre',
+                                        blank=True, null=True)
+
     @property
     def tecnico_responsavel(self):
         atribuicoes = Atribuicao.search(
@@ -110,6 +116,18 @@ class PrestacaoConta(ModeloBase):
 
     def __str__(self):
         return f"{self.periodo} - {self.status}"
+
+    def remove_publicada_e_consolidado_dre(self):
+        self.publicada = False
+        self.consolidado_dre = None
+        self.save()
+        return self
+
+    def passar_para_publicada(self, consolidado_dre):
+        self.publicada = True
+        self.consolidado_dre = consolidado_dre
+        self.save()
+        return self
 
     def apaga_fechamentos(self):
         for fechamento in self.fechamentos_da_prestacao.all():
@@ -309,6 +327,7 @@ class PrestacaoConta(ModeloBase):
         return prestacao_atualizada
 
     def desfazer_conclusao_analise(self):
+        self.remove_publicada_e_consolidado_dre()
         self.motivos_aprovacao_ressalva.set([])
         self.outros_motivos_aprovacao_ressalva = ''
         self.motivos_reprovacao.set([])

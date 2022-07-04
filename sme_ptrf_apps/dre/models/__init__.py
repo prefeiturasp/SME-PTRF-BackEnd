@@ -19,3 +19,5 @@ from .analise_regularidade_associacao import AnaliseRegularidadeAssociacao
 from .ata_parecer_tecnico import AtaParecerTecnico
 from .parametros_dre import ParametrosDre
 from .presentes_ata_dre import PresenteAtaDre
+from .consolidado_dre import ConsolidadoDRE
+from .lauda import Lauda

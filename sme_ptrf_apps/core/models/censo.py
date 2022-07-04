@@ -1,9 +1,14 @@
 from django.db import models
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
 class Censo(ModeloBase):
+    history = AuditlogHistoryField()
+
     unidade = models.ForeignKey('Unidade', on_delete=models.PROTECT, related_name="censos", to_field="codigo_eol",
                                 null=True)
     quantidade_alunos = models.IntegerField("Quantidade Alunos", blank=True, default=0)
@@ -15,3 +20,6 @@ class Censo(ModeloBase):
     class Meta:
         verbose_name = "Censo"
         verbose_name_plural = '13.0) Censos'
+
+
+auditlog.register(Censo)

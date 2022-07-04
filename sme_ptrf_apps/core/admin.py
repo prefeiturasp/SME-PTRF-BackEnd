@@ -1,6 +1,7 @@
 from django.contrib import admin
 from rangefilter.filter import DateRangeFilter
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
+from sme_ptrf_apps.core.services import associacao_pode_implantar_saldo
 from .models import (
     Acao,
     AcaoAssociacao,
@@ -61,6 +62,18 @@ class AssociacaoAdmin(admin.ModelAdmin):
     list_filter = ('unidade__dre', 'periodo_inicial')
     readonly_fields = ('uuid', 'id')
     list_display_links = ('nome', 'cnpj')
+
+    actions = ['define_status_nao_finalizado_valores_reprogramados', ]
+
+    def define_status_nao_finalizado_valores_reprogramados(self, request, queryset):
+        for associacao in queryset.all():
+            implantacao = associacao_pode_implantar_saldo(associacao=associacao)
+
+            if implantacao["permite_implantacao"]:
+                associacao.status_valores_reprogramados = Associacao.STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO
+                associacao.save()
+
+        self.message_user(request, f"Status definido com sucesso!")
 
 
 @admin.register(ContaAssociacao)
@@ -163,8 +176,8 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
 
     get_eol_unidade.short_description = 'EOL'
 
-    list_display = ('get_eol_unidade', 'periodo', 'status')
-    list_filter = ('status', 'associacao', 'periodo')
+    list_display = ('get_eol_unidade', 'periodo', 'status', 'publicada', 'consolidado_dre')
+    list_filter = ('status', 'associacao', 'periodo', 'publicada', 'consolidado_dre')
     list_display_links = ('periodo',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('associacao__unidade__codigo_eol',)

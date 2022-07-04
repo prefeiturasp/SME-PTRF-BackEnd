@@ -39,7 +39,8 @@ def test_retrieve_usuarios(
                 'uuid': f'{unidade.uuid}',
                 'nome': unidade.nome,
                 'codigo_eol': unidade.codigo_eol,
-                'tipo_unidade': unidade.tipo_unidade
+                'tipo_unidade': unidade.tipo_unidade,
+                'acesso_de_suporte': False
             }
         ],
         'visoes': [

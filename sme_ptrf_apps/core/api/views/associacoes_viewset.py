@@ -109,7 +109,7 @@ class AssociacoesViewSet(ModelViewSet):
 
         nome = self.request.query_params.get('nome')
         if nome is not None:
-            qs = qs.filter(Q(nome__unaccent__icontains=nome) | Q(
+            qs = qs.filter(Q(unidade__codigo_eol=nome) | Q(nome__unaccent__icontains=nome) | Q(
                 unidade__nome__unaccent__icontains=nome))
 
         return qs

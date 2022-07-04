@@ -1,10 +1,13 @@
 from django.contrib import admin
-from .models import (Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade,
-                     ItemVerificacaoRegularidade,
-                     VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq, RelatorioConsolidadoDRE,
-                     JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE,
-                     ParametroFiqueDeOlhoRelDre, MotivoAprovacaoRessalva, MotivoReprovacao, Comissao, MembroComissao,
-                     AnoAnaliseRegularidade, AnaliseRegularidadeAssociacao, ParametrosDre, AtaParecerTecnico, PresenteAtaDre)
+from .models import (
+    Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade,
+    ItemVerificacaoRegularidade,
+    VerificacaoRegularidadeAssociacao, TecnicoDre, FaqCategoria, Faq, RelatorioConsolidadoDRE,
+    JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE,
+    ParametroFiqueDeOlhoRelDre, MotivoAprovacaoRessalva, MotivoReprovacao, Comissao, MembroComissao,
+    AnoAnaliseRegularidade, AnaliseRegularidadeAssociacao, ParametrosDre, AtaParecerTecnico,
+    PresenteAtaDre, ConsolidadoDRE, Lauda
+)
 
 admin.site.register(ParametroFiqueDeOlhoRelDre)
 admin.site.register(MotivoAprovacaoRessalva)
@@ -20,6 +23,41 @@ class ListasVerificacaoInline(admin.TabularInline):
 class ItensVerificacaoInline(admin.TabularInline):
     extra = 1
     model = ItemVerificacaoRegularidade
+
+
+@admin.register(Lauda)
+class LaudaAdmin(admin.ModelAdmin):
+
+    def get_nome_dre(self, obj):
+        return obj.dre.nome if obj and obj.dre else ''
+
+    get_nome_dre.short_description = 'DRE'
+
+    def get_nome_tipo_conta(self, obj):
+        return obj.tipo_conta.nome if obj and obj.tipo_conta else ''
+
+    get_nome_tipo_conta.short_description = 'Tipo de conta'
+
+    list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'consolidado_dre', 'status')
+    list_filter = ('status', 'dre', 'periodo', 'tipo_conta', 'consolidado_dre')
+    list_display_links = ('get_nome_dre',)
+    readonly_fields = ('uuid', 'id')
+    search_fields = ('dre__nome',)
+
+
+@admin.register(ConsolidadoDRE)
+class ConsolidadoDREAdmin(admin.ModelAdmin):
+
+    def get_nome_dre(self, obj):
+        return obj.dre.nome if obj and obj.dre else ''
+
+    get_nome_dre.short_description = 'DRE'
+
+    list_display = ('get_nome_dre', 'periodo', 'status')
+    list_filter = ('status', 'dre', 'periodo')
+    list_display_links = ('get_nome_dre',)
+    readonly_fields = ('uuid', 'id')
+    search_fields = ('dre__nome',)
 
 
 @admin.register(GrupoVerificacaoRegularidade)
@@ -185,7 +223,7 @@ class AnaliseRegularidadeAssociacaoAdmin(admin.ModelAdmin):
     search_fields = ['ano_analise__ano', 'associacao__nome', 'associacao__unidade__codigo_eol']
     readonly_fields = ['criado_em', 'alterado_em', 'id', 'uuid']
     list_filter = ['ano_analise', 'associacao', 'associacao__unidade__dre']
-    autocomplete_fields = ['associacao',]
+    autocomplete_fields = ['associacao', ]
     inlines = [VerificacoesInline, ]
 
 
@@ -210,7 +248,8 @@ class VerificacaoRegularidadeAssociacaoAdmin(admin.ModelAdmin):
 
 @admin.register(AtaParecerTecnico)
 class AtaParecerTecnicoAdmin(admin.ModelAdmin):
-    list_display = ('uuid', 'periodo', 'dre')
+    list_display = ('uuid', 'periodo', 'dre', 'consolidado_dre')
+    list_filter = ['periodo', 'dre', 'consolidado_dre']
     readonly_fields = ('uuid', 'id')
 
 

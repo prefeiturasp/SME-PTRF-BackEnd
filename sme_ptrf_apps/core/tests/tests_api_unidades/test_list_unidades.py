@@ -46,112 +46,59 @@ def unidade_paulo_camilhier_florencano_dre_1(dre_01):
     )
 
 
-def test_api_list_unidades_todas(jwt_authenticated_client_a, unidade_paulo_camilhier_florencano_dre_1, dre_01, dre, unidade):
+def test_api_list_unidades_todas(
+    jwt_authenticated_client_a,
+    unidade_paulo_camilhier_florencano_dre_1,
+    dre_01,
+    dre,
+    unidade,
+    associacao
+):
     response = jwt_authenticated_client_a.get(f'/api/unidades/', content_type='application/json')
     result = json.loads(response.content)
 
     result_esperado = [
         {
-            'bairro': '',
-            'cep': '',
             'codigo_eol': '99999',
-            'complemento': '',
-            'diretor_nome': '',
-            'dre': None,
-            'dre_cnpj': '',
-            'dre_designacao_ano': '',
-            'dre_designacao_portaria': '',
-            'dre_diretor_regional_nome': '',
-            'dre_diretor_regional_rf': '',
-            'email': '',
-            'logradouro': '',
             'nome': 'DRE teste',
-            'numero': '',
-            'qtd_alunos': 0,
-            'sigla': 'TT',
-            'telefone': '',
-            'tipo_logradouro': '',
+            'nome_com_tipo': 'DRE DRE teste',
             'tipo_unidade': 'DRE',
-            'uuid': str(dre.uuid)
+            'uuid': str(dre.uuid),
+            'associacao_nome': '',
+            'associacao_uuid': '',
+            'visao': 'DRE',
         },
         {
-            'bairro': 'COHAB INSTITUTO ADVENTISTA',
-            'cep': '5868120',
             'codigo_eol': '123456',
-            'complemento': 'fundos',
-            'diretor_nome': 'Pedro Amaro',
-            'dre': {'codigo_eol': '99999',
-                    'nome': 'DRE teste',
-                    'sigla': 'TT',
-                    'tipo_unidade': 'DRE',
-                    'uuid': str(dre.uuid)},
-            'dre_cnpj': '63.058.286/0001-86',
-            'dre_designacao_ano': '2017',
-            'dre_designacao_portaria': 'Portaria nº 0.000',
-            'dre_diretor_regional_nome': 'Anthony Edward Stark',
-            'dre_diretor_regional_rf': '1234567',
-            'email': 'emefjopfilho@sme.prefeitura.sp.gov.br',
-            'logradouro': 'dos Testes',
             'nome': 'Escola Teste',
-            'numero': '200',
-            'qtd_alunos': 0,
-            'sigla': 'ET',
-            'telefone': '58212627',
-            'tipo_logradouro': 'Travessa',
+            'nome_com_tipo': 'CEU Escola Teste',
             'tipo_unidade': 'CEU',
-            'uuid': str(unidade.uuid)
+            'uuid': str(unidade.uuid),
+            'nome_dre': 'DRE teste',
+            'associacao_nome': 'Escola Teste',
+            'associacao_uuid': f'{associacao.uuid}',
+            'visao': 'UE',
         },
         {
-            "uuid": f'{dre_01.uuid}',
             "codigo_eol": f'{dre_01.codigo_eol}',
-            "tipo_unidade": f'{dre_01.tipo_unidade}',
             "nome": f'{dre_01.nome}',
-            "sigla": f'{dre_01.sigla}',
-            "dre": None,
-            "email": f'{dre_01.email}',
-            "telefone": f'{dre_01.telefone}',
-            "tipo_logradouro": f'{dre_01.tipo_logradouro}',
-            "logradouro": f'{dre_01.logradouro}',
-            "numero": f'{dre_01.numero}',
-            "complemento": f'{dre_01.complemento}',
-            "bairro": f'{dre_01.bairro}',
-            "cep": f'{dre_01.cep}',
-            "qtd_alunos": 0,
-            "diretor_nome": f'{dre_01.diretor_nome}',
-            "dre_cnpj": f'{dre_01.dre_cnpj}',
-            "dre_diretor_regional_rf": f'{dre_01.dre_diretor_regional_rf}',
-            "dre_diretor_regional_nome": f'{dre_01.dre_diretor_regional_nome}',
-            "dre_designacao_portaria": f'{dre_01.dre_designacao_portaria}',
-            "dre_designacao_ano": f'{dre_01.dre_designacao_ano}',
+            "nome_com_tipo": f'{dre_01.nome_com_tipo}',
+            'tipo_unidade': 'DRE',
+            "uuid": f'{dre_01.uuid}',
+            'associacao_nome': '',
+            'associacao_uuid': '',
+            'visao': 'DRE',
         },
         {
-            "uuid": f'{unidade_paulo_camilhier_florencano_dre_1.uuid}',
             "codigo_eol": f'{unidade_paulo_camilhier_florencano_dre_1.codigo_eol}',
-            "tipo_unidade": f'{unidade_paulo_camilhier_florencano_dre_1.tipo_unidade}',
             "nome": f'{unidade_paulo_camilhier_florencano_dre_1.nome}',
-            "sigla": f'{unidade_paulo_camilhier_florencano_dre_1.sigla}',
-            "dre": {
-                'uuid': f'{unidade_paulo_camilhier_florencano_dre_1.dre.uuid}',
-                'codigo_eol': f'{unidade_paulo_camilhier_florencano_dre_1.dre.codigo_eol}',
-                'tipo_unidade': f'{unidade_paulo_camilhier_florencano_dre_1.dre.tipo_unidade}',
-                'nome': f'{unidade_paulo_camilhier_florencano_dre_1.dre.nome}',
-                'sigla': f'{unidade_paulo_camilhier_florencano_dre_1.dre.sigla}',
-            },
-            "email": f'{unidade_paulo_camilhier_florencano_dre_1.email}',
-            "telefone": f'{unidade_paulo_camilhier_florencano_dre_1.telefone}',
-            "tipo_logradouro": f'{unidade_paulo_camilhier_florencano_dre_1.tipo_logradouro}',
-            "logradouro": f'{unidade_paulo_camilhier_florencano_dre_1.logradouro}',
-            "numero": f'{unidade_paulo_camilhier_florencano_dre_1.numero}',
-            "complemento": f'{unidade_paulo_camilhier_florencano_dre_1.complemento}',
-            "bairro": f'{unidade_paulo_camilhier_florencano_dre_1.bairro}',
-            "cep": f'{unidade_paulo_camilhier_florencano_dre_1.cep}',
-            "qtd_alunos": 0,
-            "diretor_nome": f'{unidade_paulo_camilhier_florencano_dre_1.diretor_nome}',
-            "dre_cnpj": f'{unidade_paulo_camilhier_florencano_dre_1.dre_cnpj}',
-            "dre_diretor_regional_rf": f'{unidade_paulo_camilhier_florencano_dre_1.dre_diretor_regional_rf}',
-            "dre_diretor_regional_nome": f'{unidade_paulo_camilhier_florencano_dre_1.dre_diretor_regional_nome}',
-            "dre_designacao_portaria": f'{unidade_paulo_camilhier_florencano_dre_1.dre_designacao_portaria}',
-            "dre_designacao_ano": f'{unidade_paulo_camilhier_florencano_dre_1.dre_designacao_ano}',
+            "nome_com_tipo": f'{unidade_paulo_camilhier_florencano_dre_1.nome_com_tipo}',
+            'tipo_unidade': f'{unidade_paulo_camilhier_florencano_dre_1.tipo_unidade}',
+            "uuid": f'{unidade_paulo_camilhier_florencano_dre_1.uuid}',
+            'nome_dre': unidade_paulo_camilhier_florencano_dre_1.dre.nome,
+            'associacao_nome': '',
+            'associacao_uuid': '',
+            'visao': 'UE',
         }
 
     ]
@@ -160,112 +107,62 @@ def test_api_list_unidades_todas(jwt_authenticated_client_a, unidade_paulo_camil
     assert result == result_esperado
 
 
-@pytest.fixture
-def tecnico_dre(dre):
-    return baker.make(
-        'TecnicoDre',
-        dre=dre,
-        nome='José Testando',
-        rf='271170',
-    )
-
-
-@pytest.fixture
-def atribuicao(tecnico_dre, unidade, periodo):
-    return baker.make(
-        'Atribuicao',
-        tecnico=tecnico_dre,
-        unidade=unidade,
-        periodo=periodo,
-    )
-
-
-@pytest.fixture
-def unidade_2(dre):
-    return baker.make(
-        'Unidade',
-        nome='Escola Unidade 2',
-        tipo_unidade='EMEI',
-        codigo_eol='123459',
-        dre=dre,
-        sigla='ET2',
-        cep='5868120',
-        tipo_logradouro='Travessa',
-        logradouro='dos Testes',
-        bairro='COHAB INSTITUTO ADVENTISTA',
-        numero='100',
-        complemento='fundos',
-        telefone='99212627',
-        email='emeijopfilho@sme.prefeitura.sp.gov.br',
-        diretor_nome='Amaro Pedro',
-        dre_cnpj='63.058.286/0001-86',
-        dre_diretor_regional_rf='1234567',
-        dre_diretor_regional_nome='Anthony Edward Stark',
-        dre_designacao_portaria='Portaria nº 0.000',
-        dre_designacao_ano='2017',
-    )
-
-
-def test_unidades_para_atribuicao(jwt_authenticated_client_a, unidade, periodo, tecnico_dre, atribuicao):
-    response = jwt_authenticated_client_a.get(
-        f'/api/unidades/para-atribuicao/?dre_uuid={unidade.dre.uuid}&periodo={periodo.uuid}', content_type='application/json')
+def test_api_list_unidades_por_nome(
+    jwt_authenticated_client_a,
+    unidade_paulo_camilhier_florencano_dre_1,
+    dre_01,
+    dre,
+    unidade
+):
+    response = jwt_authenticated_client_a.get(f'/api/unidades/?search=Escola', content_type='application/json')
     result = json.loads(response.content)
 
-    resultado_esperado = [
+    result_esperado = [
         {
+            'codigo_eol': '123456',
+            'nome_dre': 'DRE teste',
+            'nome': 'Escola Teste',
+            'nome_com_tipo': 'CEU Escola Teste',
+            'tipo_unidade': 'CEU',
             'uuid': str(unidade.uuid),
-            'codigo_eol': unidade.codigo_eol,
-            'nome': f'{unidade.tipo_unidade} {unidade.nome}',
-            'atribuicao': {
-                'id': atribuicao.id,
-                'tecnico': {
-                    'uuid': str(tecnico_dre.uuid),
-                    'rf': tecnico_dre.rf,
-                    'nome': tecnico_dre.nome,
-                    'email': tecnico_dre.email,
-                    'telefone': tecnico_dre.telefone
-                }
-            }
-        }]
+            'associacao_nome': '',
+            'associacao_uuid': '',
+            'visao': 'UE'
+        },
 
-    assert response.status_code == 200
-    assert resultado_esperado == result
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == result_esperado
 
 
-def test_unidades_para_atribuicao_filtro_tipo_unidade(jwt_authenticated_client_a, unidade, unidade_2, periodo, tecnico_dre, atribuicao):
-    response = jwt_authenticated_client_a.get(
-        f'/api/unidades/para-atribuicao/?dre_uuid={unidade.dre.uuid}&periodo={periodo.uuid}&tipo_unidade={unidade.tipo_unidade}', content_type='application/json')
+def test_api_list_unidades_por_codigo_eol(
+    jwt_authenticated_client_a,
+    unidade_paulo_camilhier_florencano_dre_1,
+    dre_01,
+    dre,
+    unidade
+):
+    response = jwt_authenticated_client_a.get(f'/api/unidades/?search=123456', content_type='application/json')
     result = json.loads(response.content)
 
-    resultado_esperado = [
+    result_esperado = [
         {
+            'codigo_eol': '123456',
+            'nome_dre': 'DRE teste',
+            'nome': 'Escola Teste',
+            'nome_com_tipo': 'CEU Escola Teste',
+            'tipo_unidade': 'CEU',
             'uuid': str(unidade.uuid),
-            'codigo_eol': unidade.codigo_eol,
-            'nome': f'{unidade.tipo_unidade} {unidade.nome}',
-            'atribuicao': {
-                'id': atribuicao.id,
-                'tecnico': {
-                    'uuid': str(tecnico_dre.uuid),
-                    'rf': tecnico_dre.rf,
-                    'nome': tecnico_dre.nome,
-                    'email': tecnico_dre.email,
-                    'telefone': tecnico_dre.telefone
-                }
-            }
-        }]
+            'associacao_nome': '',
+            'associacao_uuid': '',
+            'visao': 'UE'
+        },
 
-    assert response.status_code == 200
-    assert resultado_esperado == result
+    ]
 
-
-def test_unidades_para_atribuicao_filtro_nome_unidade_qualquer_termo(jwt_authenticated_client_a, unidade, unidade_2, periodo, tecnico_dre, atribuicao):
-    response = jwt_authenticated_client_a.get(
-        f'/api/unidades/para-atribuicao/?dre_uuid={unidade.dre.uuid}&periodo={periodo.uuid}&search=Unid', content_type='application/json')
-    result = json.loads(response.content)
-
-    assert response.status_code == 200
-    assert len(result) == 1
-    assert result[0]['nome'] == f'{unidade_2.tipo_unidade} {unidade_2.nome}'
+    assert response.status_code == status.HTTP_200_OK
+    assert result == result_esperado
 
 
 def test_api_list_unidades_filtro_por_tipo(
@@ -280,50 +177,24 @@ def test_api_list_unidades_filtro_por_tipo(
 
     result_esperado = [
         {
-            'bairro': '',
-            'cep': '',
             'codigo_eol': '99999',
-            'complemento': '',
-            'diretor_nome': '',
-            'dre': None,
-            'dre_cnpj': '',
-            'dre_designacao_ano': '',
-            'dre_designacao_portaria': '',
-            'dre_diretor_regional_nome': '',
-            'dre_diretor_regional_rf': '',
-            'email': '',
-            'logradouro': '',
             'nome': 'DRE teste',
-            'numero': '',
-            'qtd_alunos': 0,
-            'sigla': 'TT',
-            'telefone': '',
-            'tipo_logradouro': '',
+            'nome_com_tipo': 'DRE DRE teste',
             'tipo_unidade': 'DRE',
-            'uuid': str(dre.uuid)
+            'uuid': str(dre.uuid),
+            'associacao_nome': '',
+            'associacao_uuid': '',
+            'visao': 'DRE'
         },
         {
             "uuid": f'{dre_01.uuid}',
             "codigo_eol": f'{dre_01.codigo_eol}',
-            "tipo_unidade": f'{dre_01.tipo_unidade}',
             "nome": f'{dre_01.nome}',
-            "sigla": f'{dre_01.sigla}',
-            "dre": None,
-            "email": f'{dre_01.email}',
-            "telefone": f'{dre_01.telefone}',
-            "tipo_logradouro": f'{dre_01.tipo_logradouro}',
-            "logradouro": f'{dre_01.logradouro}',
-            "numero": f'{dre_01.numero}',
-            "complemento": f'{dre_01.complemento}',
-            "bairro": f'{dre_01.bairro}',
-            "cep": f'{dre_01.cep}',
-            "qtd_alunos": 0,
-            "diretor_nome": f'{dre_01.diretor_nome}',
-            "dre_cnpj": f'{dre_01.dre_cnpj}',
-            "dre_diretor_regional_rf": f'{dre_01.dre_diretor_regional_rf}',
-            "dre_diretor_regional_nome": f'{dre_01.dre_diretor_regional_nome}',
-            "dre_designacao_portaria": f'{dre_01.dre_designacao_portaria}',
-            "dre_designacao_ano": f'{dre_01.dre_designacao_ano}',
+            "nome_com_tipo": f'{dre_01.nome_com_tipo}',
+            'tipo_unidade': 'DRE',
+            'associacao_nome': '',
+            'associacao_uuid': '',
+            'visao': 'DRE'
         },
     ]
 
@@ -343,31 +214,15 @@ def test_api_list_unidades_por_dre(
 
     result_esperado = [
         {
-            'bairro': 'COHAB INSTITUTO ADVENTISTA',
-            'cep': '5868120',
             'codigo_eol': '123456',
-            'complemento': 'fundos',
-            'diretor_nome': 'Pedro Amaro',
-            'dre': {'codigo_eol': '99999',
-                    'nome': 'DRE teste',
-                    'sigla': 'TT',
-                    'tipo_unidade': 'DRE',
-                    'uuid': str(dre.uuid)},
-            'dre_cnpj': '63.058.286/0001-86',
-            'dre_designacao_ano': '2017',
-            'dre_designacao_portaria': 'Portaria nº 0.000',
-            'dre_diretor_regional_nome': 'Anthony Edward Stark',
-            'dre_diretor_regional_rf': '1234567',
-            'email': 'emefjopfilho@sme.prefeitura.sp.gov.br',
-            'logradouro': 'dos Testes',
+            'nome_dre': 'DRE teste',
             'nome': 'Escola Teste',
-            'numero': '200',
-            'qtd_alunos': 0,
-            'sigla': 'ET',
-            'telefone': '58212627',
-            'tipo_logradouro': 'Travessa',
+            'nome_com_tipo': 'CEU Escola Teste',
             'tipo_unidade': 'CEU',
-            'uuid': str(unidade.uuid)
+            'uuid': str(unidade.uuid),
+            'associacao_nome': '',
+            'associacao_uuid': '',
+            'visao': 'UE'
         },
     ]
 

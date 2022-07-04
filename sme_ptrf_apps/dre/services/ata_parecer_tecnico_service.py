@@ -2,12 +2,11 @@ import datetime
 import logging
 from sme_ptrf_apps.core.models import TipoConta, PrestacaoConta
 from sme_ptrf_apps.dre.models import PresenteAtaDre
-from sme_ptrf_apps.dre.services import informacoes_execucao_financeira_unidades
 from sme_ptrf_apps.dre.services.ata_pdf_parecer_tecnico_service import gerar_arquivo_ata_parecer_tecnico_pdf
 from sme_ptrf_apps.core.services.ata_dados_service import data_por_extenso
 from sme_ptrf_apps.core.services.dados_demo_financeiro_service import formata_data
 from sme_ptrf_apps.utils.numero_por_extenso import real
-
+from django.db.models import Q
 
 LOGGER = logging.getLogger(__name__)
 
@@ -71,7 +70,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
         lista_aprovadas_ressalva = []  # Lista usada para separar por status aprovada com ressalva
         lista_reprovadas = []  # Lista usada para separar por status reprovada
 
-        informacoes = informacoes_execucao_financeira_unidades(
+        informacoes = informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_por_conta(
             dre=dre,
             periodo=periodo,
             tipo_conta=conta,
@@ -150,6 +149,52 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
     }
 
     return dado
+
+
+def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_por_conta(dre, periodo, tipo_conta):
+
+    from ..services.relatorio_consolidado_service import get_teste_motivos_reprovacao, get_motivos_aprovacao_ressalva
+
+    prestacoes = PrestacaoConta.objects.filter(
+        periodo=periodo,
+        associacao__unidade__dre=dre,
+        associacao__contas__tipo_conta__nome=tipo_conta
+    )
+    prestacoes = prestacoes.filter(
+        Q(status=PrestacaoConta.STATUS_APROVADA) |
+        Q(status=PrestacaoConta.STATUS_APROVADA_RESSALVA) |
+        Q(status=PrestacaoConta.STATUS_REPROVADA)
+    )
+
+    resultado = []
+    for prestacao in prestacoes:
+
+        status_prestacao_conta = prestacao.status
+
+        dado = {
+            'unidade': {
+                'uuid': f'{prestacao.associacao.unidade.uuid}',
+                'codigo_eol': prestacao.associacao.unidade.codigo_eol,
+                'tipo_unidade': prestacao.associacao.unidade.tipo_unidade,
+                'nome': prestacao.associacao.unidade.nome,
+                'sigla': prestacao.associacao.unidade.sigla,
+            },
+
+            'status_prestacao_contas': status_prestacao_conta,
+            'uuid_pc': prestacao.uuid,
+        }
+
+        if status_prestacao_conta == "REPROVADA":
+            dado["motivos_reprovacao"] = get_teste_motivos_reprovacao(prestacao)
+        elif status_prestacao_conta == "APROVADA_RESSALVA":
+            dado["motivos_aprovada_ressalva"] = get_motivos_aprovacao_ressalva(prestacao)
+            dado["recomendacoes"] = prestacao.recomendacoes
+
+        resultado.append(dado)
+
+    resultado = sorted(resultado, key=lambda row: row['status_prestacao_contas'])
+
+    return resultado
 
 
 def get_presentes_na_ata(ata):
@@ -262,5 +307,3 @@ def motivos_reprovacao(uuid_pc):
     }
 
     return dados
-
-

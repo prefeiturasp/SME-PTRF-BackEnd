@@ -451,7 +451,9 @@ def prestacao_conta(periodo, associacao, motivo_aprovacao_ressalva_x, motivo_rep
         outros_motivos_reprovacao="Outros motivos reprovacao",
         motivos_aprovacao_ressalva=[motivo_aprovacao_ressalva_x, ],
         outros_motivos_aprovacao_ressalva="Outros motivos",
-        recomendacoes="recomendacao"
+        recomendacoes="recomendacao",
+        publicada=None,
+        consolidado_dre=None,
     )
 
 
@@ -1272,6 +1274,9 @@ def parametros():
         permite_saldo_conta_negativo=True,
         fique_de_olho='',
         fique_de_olho_relatorio_dre='',
+        texto_pagina_suporte_dre='Teste DRE',
+        texto_pagina_suporte_sme='Teste SME',
+
     )
 
 

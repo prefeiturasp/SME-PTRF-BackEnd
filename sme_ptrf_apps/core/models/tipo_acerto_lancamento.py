@@ -1,9 +1,14 @@
 from django.db import models
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 
 
 class TipoAcertoLancamento(ModeloIdNome):
+    history = AuditlogHistoryField()
+
     # Categoria Choices
     CATEGORIA_BASICO = 'BASICO'
     CATEGORIA_DEVOLUCAO = 'DEVOLUCAO'
@@ -28,3 +33,6 @@ class TipoAcertoLancamento(ModeloIdNome):
     class Meta:
         verbose_name = "Tipo de acerto em lançamentos"
         verbose_name_plural = "16.2) Tipos de acerto em lançamentos"
+
+
+auditlog.register(TipoAcertoLancamento)

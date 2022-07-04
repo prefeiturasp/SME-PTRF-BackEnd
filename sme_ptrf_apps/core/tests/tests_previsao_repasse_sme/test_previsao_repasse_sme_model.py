@@ -20,6 +20,7 @@ def test_instance_model(previsao_repasse_sme):
     assert model.valor_custeio
     assert model.valor_livre
 
+
 def test_srt_model(previsao_repasse_sme):
     assert previsao_repasse_sme.__str__() == '2019.2 - Escola Teste'
 
@@ -27,3 +28,13 @@ def test_srt_model(previsao_repasse_sme):
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[PrevisaoRepasseSme]
+
+
+def test_audit_log(previsao_repasse_sme):
+    assert previsao_repasse_sme.history.count() == 1  # Um log de inclusão
+    assert previsao_repasse_sme.history.latest().action == 0  # 0-Inclusão
+
+    previsao_repasse_sme.valor_capital = 100.00
+    previsao_repasse_sme.save()
+    assert previsao_repasse_sme.history.count() == 2  # Um log de inclusão e outro de edição
+    assert previsao_repasse_sme.history.latest().action == 1  # 1-Edição
