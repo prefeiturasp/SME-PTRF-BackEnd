@@ -362,7 +362,12 @@ def rateio_despesa_2020_ptrf_nao_conferido(associacao, despesa_2020_1, conta_ass
 
 
 @pytest.fixture
-def despesa_2020_1_fornecedor_antonio_jose(associacao, tipo_documento, tipo_transacao):
+def tipo_transacao_pix():
+    return baker.make('TipoTransacao', nome='PIX')
+
+
+@pytest.fixture
+def despesa_2020_1_fornecedor_antonio_jose(associacao, tipo_documento, tipo_transacao_pix):
     return baker.make(
         'Despesa',
         associacao=associacao,
@@ -371,7 +376,7 @@ def despesa_2020_1_fornecedor_antonio_jose(associacao, tipo_documento, tipo_tran
         tipo_documento=tipo_documento,
         cpf_cnpj_fornecedor='11.478.276/0001-04',
         nome_fornecedor='Antônio José SA',
-        tipo_transacao=tipo_transacao,
+        tipo_transacao=tipo_transacao_pix,
         data_transacao=datetime.date(2020, 3, 10),
         valor_total=100.00,
         valor_recursos_proprios=10.00,
