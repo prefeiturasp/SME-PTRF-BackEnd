@@ -5,9 +5,21 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.32.0
+Versão: 1.33.0
 
 ## Release Notes
+
+### 1.33.0 - 04/07/2022 - Entregas da Release 5 - (Parcial até a Sprint 44)
+* UE > Na emissão da ata, agora a aplicação informa quais campos estão incompletos.
+* DRE > Melhorias no demonstrativo da execução físico-financeira
+* DRE > Mudanças no layout da lauda
+* DRE > Nova funcionalidade de Acesso de Suporte para DREs e SME
+* DRE > Novo fluxo de aprovação de valores reprogramados iniciais (Parcial)
+* DRE > Novo processo de geração de relatórios consolidados (Parcial)
+* SME > Nova central de extração de dados
+* SME > Extração de dados de créditos
+* ADM > Registro de movimentações nos arquivos de análise de PCs para fins de auditoria
+* 🐞 Correção de bugs
 
 ### 1.32.0 - 01/06/2022 - Entregas da Release 4c - Sprint 42
 * DRE > Exibição do período e remoção do histórico de devoluções em análise de PC
