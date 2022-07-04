@@ -495,7 +495,7 @@ def cria_assinaturas_dre(dre):
 
 def cria_data_geracao_documento(usuario, dre, parcial=False):
     LOGGER.info("Iniciando rodapé...")
-    data_geracao = date.today().strftime("%d/%m/%Y")
+    data_geracao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     tipo_texto = "parcial" if parcial else "final"
     quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}"
     dre = formata_nome_dre(dre)
