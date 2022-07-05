@@ -64,7 +64,7 @@ def verificar_se_gera_lauda(
     soft_time_limit=333333
 )
 def verificar_se_gera_ata_parecer_tecnico_async(dre=None, periodo=None, consolidado_dre=None, usuario=None, ata=None):
-    logger.info(f'Iniciando a verificação para gerar ata de parecer técnico')
+    logger.info(f'Iniciando a verificação para gerar a Ata de Parecer Técnico')
 
     dre_uuid = dre.uuid
     periodo_uuid = periodo.uuid
@@ -73,7 +73,8 @@ def verificar_se_gera_ata_parecer_tecnico_async(dre=None, periodo=None, consolid
         logger.info(f'Atrelando a Ata de Parecer Técnico {ata} ao Consolidado DRE {consolidado_dre}')
         ata.atrelar_consolidado_dre(consolidado_dre)
         logger.info(
-            f'Iniciando a geração do Arquivo da Ata de Parecer Técnico da DRE {dre}, Período {periodo} e Consolidado DRE {consolidado_dre}')
+            f'Iniciando a geração do Arquivo da Ata de Parecer Técnico da DRE {dre}, Período {periodo} '
+            f'e Consolidado DRE {consolidado_dre}')
         ata_uuid = ata.uuid
         gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario)
     else:
@@ -97,6 +98,47 @@ def passar_pcs_do_relatorio_para_publicadas_async(dre, periodo, consolidado_dre)
         logger.info(
             f'Passando Prestação de Contas para Publicada e Atrelando o Consolidado DRE: Prestação {prestacao}. Consolidado Dre {consolidado_dre}')
         prestacao.passar_para_publicada(consolidado_dre)
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limit=333333,
+    soft_time_limit=333333
+)
+def gerar_previa_consolidado_dre_async(
+    dre_uuid=None,
+    periodo_uuid=None,
+    parcial=None,
+    usuario=None,
+    consolidado_dre_uuid=None,
+    ata_uuid=None
+):
+    tipo_contas = TipoConta.objects.all()
+
+    dre = Unidade.dres.get(uuid=dre_uuid)
+    periodo = Periodo.objects.get(uuid=periodo_uuid)
+    ata = AtaParecerTecnico.objects.get(uuid=ata_uuid)
+
+    for tipo_conta in tipo_contas:
+        logger.info(f'Criando documento Prévia do Relatório Físico-Financeiro conta {tipo_conta}')
+
+        tipo_conta_uuid = tipo_conta.uuid
+
+        gerar_previa_relatorio_consolidado_dre_async(
+            dre_uuid=dre_uuid,
+            periodo_uuid=periodo_uuid,
+            tipo_conta_uuid=tipo_conta_uuid,
+            usuario=usuario,
+            parcial=parcial,
+            consolidado_dre_uuid=consolidado_dre_uuid,
+        )
+
+    consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo)
+
+    ata.atrelar_consolidado_dre(consolidado_dre)
+
+    consolidado_dre.passar_para_status_gerado(parcial)
 
 
 @shared_task(
@@ -150,7 +192,6 @@ def concluir_consolidado_dre_async(
     )
 
     for tipo_conta in tipo_contas:
-
         gerar_lauda_txt_consolidado_dre_async(
             consolidado_dre=consolidado_dre,
             dre=dre,
@@ -269,13 +310,18 @@ def gerar_relatorio_consolidado_dre_async(dre_uuid, periodo_uuid, parcial, tipo_
     time_limit=333333,
     soft_time_limit=333333
 )
-def gerar_previa_relatorio_consolidado_dre_async(dre_uuid, tipo_conta_uuid, periodo_uuid, parcial, usuario):
-    logger.info(f'Iniciando Prévia Relatório DRE. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
-    # Remover excel
-    # Essa linha esta sendo mantida para comparação do excel e pdf
-    # Após aprovação do pdf, remover excel
-    # from sme_ptrf_apps.dre.services import gera_previa_relatorio_dre
+def gerar_previa_relatorio_consolidado_dre_async(
+    dre_uuid,
+    periodo_uuid,
+    parcial,
+    tipo_conta_uuid,
+    usuario,
+    consolidado_dre_uuid
+):
     from sme_ptrf_apps.dre.services import _criar_previa_demonstrativo_execucao_fisico_financeiro
+
+    logger.info(
+        f'Iniciando a Prévia do Relatório DRE. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
 
     try:
         periodo = Periodo.objects.get(uuid=periodo_uuid)
@@ -308,20 +354,34 @@ def gerar_previa_relatorio_consolidado_dre_async(dre_uuid, tipo_conta_uuid, peri
         raise Exception(erro)
 
     try:
-        # Remover excel
-        # Essa linha esta sendo mantida para comparação do excel e pdf
-        # Após aprovação do pdf, remover excel
-        # gera_previa_relatorio_dre(dre, periodo, tipo_conta, parcial)
-        _criar_previa_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, usuario, parcial)
-    except Exception as err:
+        consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo)
+    except ConsolidadoDRE.DoesNotExist:
         erro = {
-            'erro': 'problema_geracao_relatorio',
-            'mensagem': 'Erro ao gerar relatório.'
+            'erro': 'Objeto não encontrado.',
+            'mensagem': f"O objeto Consolidado DRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."
         }
-        logger.error("Erro ao gerar relatório consolidado: %s", str(err))
+        logger.error('Erro: %r', erro)
         raise Exception(erro)
 
-    logger.info(f'Finalizado Prévia Relatório DRE. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
+    try:
+        _criar_previa_demonstrativo_execucao_fisico_financeiro(
+            dre,
+            periodo,
+            tipo_conta,
+            usuario,
+            consolidado_dre,
+            parcial
+        )
+    except Exception as err:
+        erro = {
+            'erro': 'problema_geracao_previa_relatorio',
+            'mensagem': 'Erro ao gerar prévia do relatório.'
+        }
+        logger.error("Erro ao gerar prévia relatório consolidado: %s", str(err))
+        raise Exception(erro)
+
+    logger.info(
+        f'Finalizado Prévia do Relatório DRE. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
 
 
 @shared_task(

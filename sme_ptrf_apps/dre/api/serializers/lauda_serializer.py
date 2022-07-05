@@ -19,10 +19,11 @@ class LaudaSerializer(serializers.ModelSerializer):
 
 class LaudaLookupSerializer(serializers.ModelSerializer):
     usuario = serializers.SerializerMethodField(method_name="get_usuario", required=False, allow_null=True)
+    tipo_conta = TipoContaSerializer()
 
     def get_usuario(self, lauda):
         return lauda.usuario.username if lauda.usuario.username else ''
 
     class Meta:
         model = Lauda
-        fields = ('uuid', 'arquivo_lauda_txt', 'usuario', 'status')
+        fields = ('uuid', 'arquivo_lauda_txt', 'usuario', 'status', 'tipo_conta', 'alterado_em')
