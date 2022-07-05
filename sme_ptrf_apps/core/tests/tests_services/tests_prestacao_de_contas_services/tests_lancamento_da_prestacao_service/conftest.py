@@ -377,7 +377,7 @@ def despesa_2020_1_fornecedor_antonio_jose(associacao, tipo_documento, tipo_tran
         cpf_cnpj_fornecedor='11.478.276/0001-04',
         nome_fornecedor='Antônio José SA',
         tipo_transacao=tipo_transacao_pix,
-        data_transacao=datetime.date(2020, 3, 9),
+        data_transacao=datetime.date(2020, 3, 10),
         valor_total=100.00,
         valor_recursos_proprios=10.00,
     )
@@ -405,6 +405,29 @@ def rateio_despesa_2020_antonio_jose(associacao, despesa_2020_1_fornecedor_anton
         tag=tag_teste,
 
     )
+
+
+@pytest.fixture
+def tipo_receita_e_estorno():
+    return baker.make('TipoReceita', nome='Estorno', e_estorno=True)
+
+
+@pytest.fixture
+def receita_estorno_do_rateio_despesa_2020_antonio_jose(tipo_receita_e_estorno, rateio_despesa_2020_antonio_jose):
+    rateio = rateio_despesa_2020_antonio_jose
+    return baker.make(
+        'Receita',
+        associacao=rateio.despesa.associacao,
+        data=rateio.despesa.data_transacao,
+        valor=rateio.valor_rateio,
+        conta_associacao=rateio.conta_associacao,
+        acao_associacao=rateio.acao_associacao,
+        tipo_receita=tipo_receita_e_estorno,
+        conferido=True,
+        categoria_receita=rateio.aplicacao_recurso,
+        rateio_estornado=rateio
+    )
+
 
 @pytest.fixture
 def despesa_2019_2(associacao, tipo_documento, tipo_transacao):

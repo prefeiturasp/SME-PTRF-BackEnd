@@ -19,6 +19,7 @@ class DespesasCompletasManager(models.Manager):
 class Despesa(ModeloBase):
     # Tags de informações
     TAG_ANTECIPADO = {"id": "1", "nome": "Antecipado", "descricao": "Data do pagamento anterior à data do documento."}
+    TAG_ESTORNADO = {"id": "2", "nome": "Estornado", "descricao": "Gasto estornado."}
 
     history = AuditlogHistoryField()
 
@@ -100,6 +101,12 @@ class Despesa(ModeloBase):
                 f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à data do documento ({self.data_documento:%d/%m/%Y}).')
             )
 
+        if self.possui_estornos():
+            tags.append(tag_informacao(
+                self.TAG_ESTORNADO,
+                f'Esse gasto possui estornos.')
+            )
+
         return tags
 
     def __str__(self):
@@ -157,6 +164,9 @@ class Despesa(ModeloBase):
 
     def teve_pagamento_antecipado(self):
         return self.data_transacao and self.data_documento and self.data_transacao < self.data_documento
+
+    def possui_estornos(self):
+        return self.rateios.filter(estorno__isnull=False).exists()
 
     @classmethod
     def by_documento(cls, tipo_documento, numero_documento, cpf_cnpj_fornecedor, associacao__uuid):
