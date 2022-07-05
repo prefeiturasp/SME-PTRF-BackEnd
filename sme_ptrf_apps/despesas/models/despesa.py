@@ -17,6 +17,9 @@ class DespesasCompletasManager(models.Manager):
 
 
 class Despesa(ModeloBase):
+    # Tags de informações
+    TAG_ANTECIPADO = {"id": "1", "nome": "Antecipado", "descricao": "Data do pagamento anterior à data do documento."}
+
     history = AuditlogHistoryField()
 
     associacao = models.ForeignKey(Associacao, on_delete=models.PROTECT, related_name='despesas', blank=True,
@@ -88,6 +91,17 @@ class Despesa(ModeloBase):
 
     valor_ptrf.fget.short_description = 'Valor coberto pelo PTRF'
 
+    @property
+    def tags_de_informacao(self):
+        tags = []
+        if self.teve_pagamento_antecipado():
+            tags.append(tag_informacao(
+                self.TAG_ANTECIPADO,
+                f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à data do documento ({self.data_documento:%d/%m/%Y}).')
+            )
+
+        return tags
+
     def __str__(self):
         return f"{self.numero_documento} - {self.data_documento} - {self.valor_total:.2f}"
 
@@ -141,6 +155,9 @@ class Despesa(ModeloBase):
                 self.data_documento = self.data_transacao
                 self.save()
 
+    def teve_pagamento_antecipado(self):
+        return self.data_transacao and self.data_documento and self.data_transacao < self.data_documento
+
     @classmethod
     def by_documento(cls, tipo_documento, numero_documento, cpf_cnpj_fornecedor, associacao__uuid):
         return cls.objects.filter(associacao__uuid=associacao__uuid).filter(
@@ -156,6 +173,7 @@ class Despesa(ModeloBase):
 def proponente_pre_save(instance, **kwargs):
     instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
 
+
 @receiver(post_save, sender=Despesa)
 def rateio_post_save(instance, created, **kwargs):
     """
@@ -165,6 +183,14 @@ def rateio_post_save(instance, created, **kwargs):
     """
     if instance and instance.cpf_cnpj_fornecedor and instance.nome_fornecedor:
         Fornecedor.atualiza_ou_cria(cpf_cnpj=instance.cpf_cnpj_fornecedor, nome=instance.nome_fornecedor)
+
+
+def tag_informacao(tipo_de_tag, hint):
+    return {
+        'tag_id': tipo_de_tag['id'],
+        'tag_nome': tipo_de_tag['nome'],
+        'tag_hint': hint,
+    }
 
 
 auditlog.register(Despesa)
