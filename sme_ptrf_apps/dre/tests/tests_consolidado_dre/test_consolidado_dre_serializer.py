@@ -13,3 +13,4 @@ def test_serializer(consolidado_dre_teste_model_consolidado_dre):
     assert serializer.data['dre']
     assert serializer.data['periodo']
     assert serializer.data['status']
+    assert serializer.data['versao']

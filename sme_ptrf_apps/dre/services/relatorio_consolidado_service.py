@@ -786,7 +786,7 @@ def dashboard_sme(periodo):
     return dashboard
 
 
-def _criar_previa_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, usuario, parcial=False):
+def _criar_previa_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, usuario, consolidado_dre, parcial=False):
     logger.info("Prévia relatório consolidado em processamento...")
 
     relatorio_consolidado = _gerar_arquivos_demonstrativo_execucao_fisico_financeiro(
@@ -796,6 +796,7 @@ def _criar_previa_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_co
                                 parcial=parcial,
                                 usuario=usuario,
                                 previa=True,
+                                consolidado_dre=consolidado_dre,
                             )
 
     logger.info("Prévia relatório Consolidado Gerado: uuid: %s, status: %s",

@@ -120,7 +120,7 @@ class AtaParecerTecnico(ModeloBase):
 
     def atrelar_consolidado_dre(self, consolidado_dre):
         self.consolidado_dre = consolidado_dre
-        self.save()
+        self.save(update_fields=['consolidado_dre'])
         return self
 
 

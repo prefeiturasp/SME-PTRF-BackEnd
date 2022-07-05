@@ -30,7 +30,7 @@ from .ata_parecer_tecnico_service import (
 )
 
 from .consolidado_dre_service import concluir_consolidado_dre, verificar_se_status_parcial_ou_total, \
-    status_consolidado_dre, retornar_trilha_de_status
+    status_consolidado_dre, retornar_trilha_de_status, gerar_previa_consolidado_dre
 
 from .valores_reprogramados_dre_service import (
     calcula_total_conta_um,

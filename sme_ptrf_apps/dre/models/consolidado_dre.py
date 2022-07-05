@@ -26,6 +26,20 @@ class ConsolidadoDRE(ModeloBase):
         (STATUS_EM_PROCESSAMENTO, STATUS_NOMES[STATUS_EM_PROCESSAMENTO]),
     )
 
+    # Versao Choice
+    VERSAO_FINAL = 'FINAL'
+    VERSAO_PREVIA = 'PREVIA'
+
+    VERSAO_NOMES = {
+        VERSAO_FINAL: 'final',
+        VERSAO_PREVIA: 'prévia',
+    }
+
+    VERSAO_CHOICES = (
+        (VERSAO_FINAL, VERSAO_NOMES[VERSAO_FINAL]),
+        (VERSAO_PREVIA, VERSAO_NOMES[VERSAO_PREVIA]),
+    )
+
     dre = models.ForeignKey('core.Unidade', on_delete=models.PROTECT, related_name='consolidados_dre_da_dre',
                             to_field="codigo_eol", blank=True, null=True, limit_choices_to={'tipo_unidade': 'DRE'})
 
@@ -37,6 +51,13 @@ class ConsolidadoDRE(ModeloBase):
         max_length=20,
         choices=STATUS_CHOICES,
         default=STATUS_NAO_GERADOS
+    )
+
+    versao = models.CharField(
+        'versão',
+        max_length=20,
+        choices=VERSAO_CHOICES,
+        default=VERSAO_FINAL
     )
 
     class Meta:
@@ -72,6 +93,11 @@ class ConsolidadoDRE(ModeloBase):
 
     def passar_para_status_gerado(self, parcial):
         self.status = self.STATUS_GERADOS_TOTAIS if not parcial else self.STATUS_GERADOS_PARCIAIS
+        self.save()
+        return self
+
+    def atribuir_versao(self, previa):
+        self.versao = self.VERSAO_PREVIA if previa else self.VERSAO_FINAL
         self.save()
         return self
 

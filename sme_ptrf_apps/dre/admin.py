@@ -53,8 +53,8 @@ class ConsolidadoDREAdmin(admin.ModelAdmin):
 
     get_nome_dre.short_description = 'DRE'
 
-    list_display = ('get_nome_dre', 'periodo', 'status')
-    list_filter = ('status', 'dre', 'periodo')
+    list_display = ('get_nome_dre', 'periodo', 'status', 'versao')
+    list_filter = ('status', 'dre', 'periodo', 'versao')
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome',)
@@ -141,7 +141,7 @@ class RelatorioConsolidadoDREAdmin(admin.ModelAdmin):
 
     get_nome_tipo_conta.short_description = 'Tipo de conta'
 
-    list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'status')
+    list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'status', 'versao')
     list_filter = ('status', 'dre', 'periodo', 'tipo_conta')
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
