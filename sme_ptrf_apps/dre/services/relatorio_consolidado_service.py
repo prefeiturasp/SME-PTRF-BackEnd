@@ -836,7 +836,7 @@ def _gerar_arquivos_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_
 
     logger.info(f'Gerando demonstrativo financeiro em PDF da conta {tipo_conta}.')
 
-    dados_demonstrativo = gerar_dados_demo_execucao_fisico_financeira(dre, periodo, tipo_conta, usuario, parcial)
+    dados_demonstrativo = gerar_dados_demo_execucao_fisico_financeira(dre, periodo, tipo_conta, usuario, parcial, previa)
 
     gerar_arquivo_demonstrativo_execucao_fisico_financeiro_pdf(dados_demonstrativo, relatorio_consolidado)
 

@@ -11,12 +11,12 @@ from sme_ptrf_apps.dre.models import ParametrosDre
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, tipo_conta, usuario, parcial=False):
+def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, tipo_conta, usuario, parcial=False, previa=False):
     try:
         LOGGER.info("Gerando relatório consolidado...")
 
         cabecalho = cria_cabecalho(periodo, tipo_conta, parcial)
-        data_geracao_documento = cria_data_geracao_documento(usuario, dre, parcial)
+        data_geracao_documento = cria_data_geracao_documento(usuario, dre, parcial, previa)
         identificacao_dre = cria_identificacao_dre(dre)
         execucao_financeira = cria_execucao_financeira(dre, periodo, tipo_conta)
         execucao_fisica = cria_execucao_fisica(dre, periodo)
@@ -493,13 +493,13 @@ def cria_assinaturas_dre(dre):
     return dados
 
 
-def cria_data_geracao_documento(usuario, dre, parcial=False):
+def cria_data_geracao_documento(usuario, dre, parcial=False, previa=False):
     LOGGER.info("Iniciando rodapé...")
-    data_geracao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    tipo_texto = "parcial" if parcial else "final"
+    data_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
     quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}"
     dre = formata_nome_dre(dre)
-    texto = f"DRE {dre} - Documento {tipo_texto} gerado {quem_gerou}, via SIG-Escola, em: {data_geracao}"
+    previa_ou_final = 'Versão prévia' if previa else 'Versão final'
+    texto = f"DRE {dre} - {previa_ou_final} do documento gerado {quem_gerou}, via SIG-Escola, em {data_geracao}"
     return texto
 
 
