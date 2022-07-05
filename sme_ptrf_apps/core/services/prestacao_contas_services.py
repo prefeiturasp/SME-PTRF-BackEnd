@@ -722,6 +722,7 @@ def lancamentos_da_prestacao(
                                                                         many=False).data if despesa_geradora_do_imposto else None,
                 'despesas_impostos': DespesaImpostoSerializer(despesas_impostos, many=True,
                                                               required=False).data if despesas_impostos else None,
+                'informacoes': despesa.tags_de_informacao,
             }
 
             if com_ajustes:

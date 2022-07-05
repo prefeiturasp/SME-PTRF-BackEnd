@@ -377,7 +377,7 @@ def despesa_2020_1_fornecedor_antonio_jose(associacao, tipo_documento, tipo_tran
         cpf_cnpj_fornecedor='11.478.276/0001-04',
         nome_fornecedor='Antônio José SA',
         tipo_transacao=tipo_transacao_pix,
-        data_transacao=datetime.date(2020, 3, 10),
+        data_transacao=datetime.date(2020, 3, 9),
         valor_total=100.00,
         valor_recursos_proprios=10.00,
     )
