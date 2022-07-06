@@ -2,6 +2,7 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.db import models
 from django.db.models.signals import pre_save, post_save
+from django.db.models import Count
 from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
@@ -20,6 +21,7 @@ class Despesa(ModeloBase):
     # Tags de informações
     TAG_ANTECIPADO = {"id": "1", "nome": "Antecipado", "descricao": "Data do pagamento anterior à data do documento."}
     TAG_ESTORNADO = {"id": "2", "nome": "Estornado", "descricao": "Gasto estornado."}
+    TAG_PARCIAL = {"id": "3", "nome": "Parcial", "descricao": "Parte da despesa paga com recursos próprios ou de mais de uma conta."}
     TAG_IMPOSTO = {"id": "4", "nome": "Imposto", "descricao": "Despesa com recolhimento de imposto."}
     TAG_IMPOSTO_PAGO = {"id": "5", "nome": "Imposto Pago", "descricao": "Imposto recolhido relativo a uma despesa de serviço."}
 
@@ -121,6 +123,12 @@ class Despesa(ModeloBase):
                 self.__hint_imposto_pago()
             ))
 
+        if self.tem_pagamento_com_recursos_proprios() or self.tem_pagamentos_em_multiplas_contas():
+            tags.append(tag_informacao(
+                self.TAG_PARCIAL,
+                'Parte da despesa foi paga com recursos próprios ou por mais de uma conta.'
+            ))
+
         return tags
 
     def __str__(self):
@@ -213,6 +221,12 @@ class Despesa(ModeloBase):
 
     def e_despesa_de_imposto(self):
         return self.despesa_geradora.exists()
+
+    def tem_pagamento_com_recursos_proprios(self):
+        return self.valor_recursos_proprios > 0
+
+    def tem_pagamentos_em_multiplas_contas(self):
+        return self.rateios.values('conta_associacao').order_by('conta_associacao').annotate(count=Count('conta_associacao')).count() > 1
 
     @classmethod
     def by_documento(cls, tipo_documento, numero_documento, cpf_cnpj_fornecedor, associacao__uuid):

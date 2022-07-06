@@ -379,7 +379,6 @@ def despesa_2020_1_fornecedor_antonio_jose(associacao, tipo_documento, tipo_tran
         tipo_transacao=tipo_transacao_pix,
         data_transacao=datetime.date(2020, 3, 10),
         valor_total=100.00,
-        valor_recursos_proprios=10.00,
     )
 
 
@@ -876,4 +875,110 @@ def rateio_despesa_com_retencao_imposto_2(associacao, despesa_com_retencao_impos
         aplicacao_recurso="CUSTEIO",
         valor_rateio=120,
         valor_original=120,
+    )
+
+
+@pytest.fixture
+def despesa_2020_1_recurso_proprio(associacao, tipo_documento, tipo_transacao_pix):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='José Recurso próprio',
+        tipo_transacao=tipo_transacao_pix,
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=110.00,
+        valor_recursos_proprios=10.00,
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_recurso_proprio(associacao, despesa_2020_1_recurso_proprio, conta_associacao_cartao, acao,
+                                        tipo_aplicacao_recurso_custeio,
+                                        tipo_custeio_servico,
+                                        especificacao_instalacao_eletrica, acao_associacao_role_cultural,
+                                        periodo_2020_1, tag_teste):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1_recurso_proprio,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=100.00,
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
+        tag=tag_teste,
+    )
+
+
+
+@pytest.fixture
+def despesa_2020_1_multiplas_contas(associacao, tipo_documento, tipo_transacao_pix):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='José Multiplas Contas',
+        tipo_transacao=tipo_transacao_pix,
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=200.00,
+        valor_recursos_proprios=0.00,
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_multiplas_contas_cartao(associacao, despesa_2020_1_multiplas_contas, conta_associacao_cartao,
+                                                acao,
+                                                tipo_aplicacao_recurso_custeio,
+                                                tipo_custeio_servico,
+                                                especificacao_instalacao_eletrica, acao_associacao_role_cultural,
+                                                periodo_2020_1, tag_teste):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1_multiplas_contas,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=100.00,
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
+        tag=tag_teste,
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_multiplas_contas_cheque(associacao, despesa_2020_1_multiplas_contas, conta_associacao_cheque,
+                                                acao,
+                                                tipo_aplicacao_recurso_custeio,
+                                                tipo_custeio_servico,
+                                                especificacao_instalacao_eletrica, acao_associacao_role_cultural,
+                                                periodo_2020_1, tag_teste):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1_multiplas_contas,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=100.00,
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
+        tag=tag_teste,
     )

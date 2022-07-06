@@ -180,3 +180,68 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_p
         'tag_nome': 'Imposto Pago',
         'tag_hint': 'Esse imposto está relacionado à despesa 123315 / Antônio José SA.',
     }, ]
+
+
+def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_parcial_recurso_proprio(
+    jwt_authenticated_client_a,
+    despesa_2020_1_recurso_proprio,
+    rateio_despesa_2020_recurso_proprio,
+    periodo_2020_1,
+    conta_associacao_cartao,
+    acao_associacao_ptrf,
+    prestacao_conta_2020_1_em_analise,
+    analise_prestacao_conta_2020_1_em_analise,
+    analise_lancamento_receita_prestacao_conta_2020_1_em_analise,
+    analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
+    tipo_transacao_pix,
+):
+
+    lancamentos = lancamentos_da_prestacao(
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise,
+        conta_associacao=conta_associacao_cartao,
+        tipo_transacao='GASTOS',
+        filtrar_por_nome_fornecedor="Recurso próprio"
+    )
+
+    assert len(lancamentos) == 1
+
+    lancamento = lancamentos[0]
+    assert lancamento['documento_mestre']['uuid'] == f'{despesa_2020_1_recurso_proprio.uuid}'
+    assert lancamento['informacoes'] == [{
+        'tag_id': '3',
+        'tag_nome': 'Parcial',
+        'tag_hint': 'Parte da despesa foi paga com recursos próprios ou por mais de uma conta.',
+    }, ]
+
+
+def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_parcial_multiplas_contas(
+    jwt_authenticated_client_a,
+    despesa_2020_1_multiplas_contas,
+    rateio_despesa_2020_multiplas_contas_cartao,
+    rateio_despesa_2020_multiplas_contas_cheque,
+    periodo_2020_1,
+    conta_associacao_cartao,
+    acao_associacao_ptrf,
+    prestacao_conta_2020_1_em_analise,
+    analise_prestacao_conta_2020_1_em_analise,
+    analise_lancamento_receita_prestacao_conta_2020_1_em_analise,
+    analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
+    tipo_transacao_pix,
+):
+
+    lancamentos = lancamentos_da_prestacao(
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise,
+        conta_associacao=conta_associacao_cartao,
+        tipo_transacao='GASTOS',
+        filtrar_por_nome_fornecedor="Multiplas"
+    )
+
+    assert len(lancamentos) == 1
+
+    lancamento = lancamentos[0]
+    assert lancamento['documento_mestre']['uuid'] == f'{despesa_2020_1_multiplas_contas.uuid}'
+    assert lancamento['informacoes'] == [{
+        'tag_id': '3',
+        'tag_nome': 'Parcial',
+        'tag_hint': 'Parte da despesa foi paga com recursos próprios ou por mais de uma conta.',
+    }, ]
