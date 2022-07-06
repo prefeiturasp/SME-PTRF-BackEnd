@@ -20,6 +20,7 @@ class Despesa(ModeloBase):
     # Tags de informações
     TAG_ANTECIPADO = {"id": "1", "nome": "Antecipado", "descricao": "Data do pagamento anterior à data do documento."}
     TAG_ESTORNADO = {"id": "2", "nome": "Estornado", "descricao": "Gasto estornado."}
+    TAG_IMPOSTO = {"id": "4", "nome": "Imposto", "descricao": "Despesa com recolhimento de imposto."}
 
     history = AuditlogHistoryField()
 
@@ -107,10 +108,32 @@ class Despesa(ModeloBase):
                 f'Esse gasto possui estornos.')
             )
 
+        if self.possui_retencao_de_impostos():
+            tags.append((tag_informacao(
+                self.TAG_IMPOSTO,
+                self.__hint_impostos()
+            )))
+
         return tags
 
     def __str__(self):
         return f"{self.numero_documento} - {self.data_documento} - {self.valor_total:.2f}"
+
+    def __hint_impostos(self):
+        if not self.despesas_impostos.exists():
+            return []
+
+        linhas_hint = []
+        if self.despesas_impostos.count() == 1:
+            linhas_hint.append('Essa despesa teve retenção de imposto:')
+        else:
+            linhas_hint.append('Essa despesa teve retenções de impostos:')
+
+        for imposto in self.despesas_impostos.all():
+            pagamento = f'pago em {imposto.data_transacao:%d/%m/%Y}' if imposto.data_transacao else 'pagamento ainda não realizado'
+            linhas_hint.append(f'R$ {str(imposto.valor_total).replace(".",",")}, {pagamento}.')
+
+        return linhas_hint
 
     def cadastro_completo(self):
 
@@ -168,6 +191,9 @@ class Despesa(ModeloBase):
     def possui_estornos(self):
         return self.rateios.filter(estorno__isnull=False).exists()
 
+    def possui_retencao_de_impostos(self):
+        return self.despesas_impostos.exists()
+
     @classmethod
     def by_documento(cls, tipo_documento, numero_documento, cpf_cnpj_fornecedor, associacao__uuid):
         return cls.objects.filter(associacao__uuid=associacao__uuid).filter(
@@ -201,6 +227,5 @@ def tag_informacao(tipo_de_tag, hint):
         'tag_nome': tipo_de_tag['nome'],
         'tag_hint': hint,
     }
-
 
 auditlog.register(Despesa)

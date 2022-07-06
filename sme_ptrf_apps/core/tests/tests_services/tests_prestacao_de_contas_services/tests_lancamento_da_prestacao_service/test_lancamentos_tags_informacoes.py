@@ -72,3 +72,77 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_estornado
         'tag_nome': 'Estornado',
         'tag_hint': 'Esse gasto possui estornos.'
     }, ]
+
+
+def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_apenas_um_imposto_retido(
+    jwt_authenticated_client_a,
+    despesa_com_retencao_imposto,
+    rateio_despesa_com_retencao_imposto,
+    despesa_imposto_retido,
+    rateio_despesa_imposto_retido,
+    periodo_2020_1,
+    conta_associacao_cartao,
+    acao_associacao_ptrf,
+    prestacao_conta_2020_1_em_analise,
+    analise_prestacao_conta_2020_1_em_analise,
+    analise_lancamento_receita_prestacao_conta_2020_1_em_analise,
+    analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
+    tipo_transacao_pix,
+):
+
+    lancamentos = lancamentos_da_prestacao(
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise,
+        conta_associacao=conta_associacao_cartao,
+        tipo_transacao='GASTOS',
+        filtrar_por_nome_fornecedor="Antônio José"
+    )
+
+    assert len(lancamentos) == 1
+
+    lancamento = lancamentos[0]
+    assert lancamento['documento_mestre']['uuid'] == f'{despesa_com_retencao_imposto.uuid}'
+    assert lancamento['informacoes'] == [{
+        'tag_id': '4',
+        'tag_nome': 'Imposto',
+        'tag_hint': ['Essa despesa teve retenção de imposto:', 'R$ 10,00, pago em 10/03/2020.']
+    }, ]
+
+
+def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_apenas_dois_impostos_retidos(
+    jwt_authenticated_client_a,
+    despesa_com_retencao_imposto_2,
+    rateio_despesa_com_retencao_imposto_2,
+    despesa_imposto_retido,
+    rateio_despesa_imposto_retido,
+    despesa_imposto_retido_2,
+    rateio_despesa_imposto_retido_2,
+    periodo_2020_1,
+    conta_associacao_cartao,
+    acao_associacao_ptrf,
+    prestacao_conta_2020_1_em_analise,
+    analise_prestacao_conta_2020_1_em_analise,
+    analise_lancamento_receita_prestacao_conta_2020_1_em_analise,
+    analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
+    tipo_transacao_pix,
+):
+
+    lancamentos = lancamentos_da_prestacao(
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise,
+        conta_associacao=conta_associacao_cartao,
+        tipo_transacao='GASTOS',
+        filtrar_por_nome_fornecedor="Antônio José"
+    )
+
+    assert len(lancamentos) == 1
+
+    lancamento = lancamentos[0]
+    assert lancamento['documento_mestre']['uuid'] == f'{despesa_com_retencao_imposto_2.uuid}'
+    assert lancamento['informacoes'] == [{
+        'tag_id': '4',
+        'tag_nome': 'Imposto',
+        'tag_hint': [
+            'Essa despesa teve retenções de impostos:',
+            'R$ 10,00, pago em 10/03/2020.',
+            'R$ 10,00, pagamento ainda não realizado.'
+        ]
+    }, ]
