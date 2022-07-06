@@ -146,3 +146,37 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_a
             'R$ 10,00, pagamento ainda não realizado.'
         ]
     }, ]
+
+
+def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_pago(
+    jwt_authenticated_client_a,
+    despesa_com_retencao_imposto,
+    rateio_despesa_com_retencao_imposto,
+    despesa_imposto_retido,
+    rateio_despesa_imposto_retido,
+    periodo_2020_1,
+    conta_associacao_cartao,
+    acao_associacao_ptrf,
+    prestacao_conta_2020_1_em_analise,
+    analise_prestacao_conta_2020_1_em_analise,
+    analise_lancamento_receita_prestacao_conta_2020_1_em_analise,
+    analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
+    tipo_transacao_pix,
+):
+
+    lancamentos = lancamentos_da_prestacao(
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise,
+        conta_associacao=conta_associacao_cartao,
+        tipo_transacao='GASTOS',
+        filtrar_por_nome_fornecedor="Prefeitura"
+    )
+
+    assert len(lancamentos) == 1
+
+    lancamento = lancamentos[0]
+    assert lancamento['documento_mestre']['uuid'] == f'{despesa_imposto_retido.uuid}'
+    assert lancamento['informacoes'] == [{
+        'tag_id': '5',
+        'tag_nome': 'Imposto Pago',
+        'tag_hint': 'Esse imposto está relacionado à despesa 123315 / Antônio José SA.',
+    }, ]

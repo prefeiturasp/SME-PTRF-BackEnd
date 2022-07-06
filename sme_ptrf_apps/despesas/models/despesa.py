@@ -21,6 +21,7 @@ class Despesa(ModeloBase):
     TAG_ANTECIPADO = {"id": "1", "nome": "Antecipado", "descricao": "Data do pagamento anterior à data do documento."}
     TAG_ESTORNADO = {"id": "2", "nome": "Estornado", "descricao": "Gasto estornado."}
     TAG_IMPOSTO = {"id": "4", "nome": "Imposto", "descricao": "Despesa com recolhimento de imposto."}
+    TAG_IMPOSTO_PAGO = {"id": "5", "nome": "Imposto Pago", "descricao": "Imposto recolhido relativo a uma despesa de serviço."}
 
     history = AuditlogHistoryField()
 
@@ -109,10 +110,16 @@ class Despesa(ModeloBase):
             )
 
         if self.possui_retencao_de_impostos():
-            tags.append((tag_informacao(
+            tags.append(tag_informacao(
                 self.TAG_IMPOSTO,
                 self.__hint_impostos()
-            )))
+            ))
+
+        if self.e_despesa_de_imposto():
+            tags.append(tag_informacao(
+                self.TAG_IMPOSTO_PAGO,
+                self.__hint_imposto_pago()
+            ))
 
         return tags
 
@@ -134,6 +141,16 @@ class Despesa(ModeloBase):
             linhas_hint.append(f'R$ {str(imposto.valor_total).replace(".",",")}, {pagamento}.')
 
         return linhas_hint
+
+    def __hint_imposto_pago(self):
+        if not self.despesa_geradora.exists():
+            return ""
+
+        despesa_geradora = self.despesa_geradora.first()
+        separador = ' / ' if despesa_geradora.numero_documento and despesa_geradora.nome_fornecedor else ''
+        referencia_despesa = f'{despesa_geradora.numero_documento}{separador}{despesa_geradora.nome_fornecedor}.'
+
+        return f'Esse imposto está relacionado à despesa {referencia_despesa}'
 
     def cadastro_completo(self):
 
@@ -194,6 +211,9 @@ class Despesa(ModeloBase):
     def possui_retencao_de_impostos(self):
         return self.despesas_impostos.exists()
 
+    def e_despesa_de_imposto(self):
+        return self.despesa_geradora.exists()
+
     @classmethod
     def by_documento(cls, tipo_documento, numero_documento, cpf_cnpj_fornecedor, associacao__uuid):
         return cls.objects.filter(associacao__uuid=associacao__uuid).filter(
@@ -227,5 +247,6 @@ def tag_informacao(tipo_de_tag, hint):
         'tag_nome': tipo_de_tag['nome'],
         'tag_hint': hint,
     }
+
 
 auditlog.register(Despesa)
