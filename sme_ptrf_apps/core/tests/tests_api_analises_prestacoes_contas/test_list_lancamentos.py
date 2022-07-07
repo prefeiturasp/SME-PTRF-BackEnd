@@ -204,7 +204,11 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
                     ],
                     'tipo_lancamento': 'GASTO',
                     'uuid': f'{lancamento["analise_lancamento"].uuid}'
-                } if lancamento["analise_lancamento"] else None
+                } if lancamento["analise_lancamento"] else None,
+                'informacoes': [{'tag_hint': 'Parte da despesa foi paga com recursos '
+                                             'próprios ou por mais de uma conta.',
+                                 'tag_id': '3',
+                                 'tag_nome': 'Parcial'}],
             }
         )
 
