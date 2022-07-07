@@ -234,6 +234,10 @@ class Despesa(ModeloBase):
             cpf_cnpj_fornecedor=cpf_cnpj_fornecedor).filter(tipo_documento=tipo_documento).filter(
             numero_documento=numero_documento).first()
 
+    @classmethod
+    def get_tags_informacoes_list(cls):
+        return [cls.TAG_ANTECIPADO, cls.TAG_ESTORNADO, cls.TAG_PARCIAL, cls.TAG_IMPOSTO, cls.TAG_IMPOSTO_PAGO]
+
     class Meta:
         verbose_name = "Documento comprobatório da despesa"
         verbose_name_plural = "Documentos comprobatórios das despesas"
