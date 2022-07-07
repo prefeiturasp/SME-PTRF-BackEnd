@@ -1,4 +1,5 @@
 import pytest
+
 from sme_ptrf_apps.core.services import lancamentos_da_prestacao
 
 pytestmark = pytest.mark.django_db

@@ -379,7 +379,6 @@ def despesa_2020_1_fornecedor_antonio_jose(associacao, tipo_documento, tipo_tran
         tipo_transacao=tipo_transacao_pix,
         data_transacao=datetime.date(2020, 3, 10),
         valor_total=100.00,
-        valor_recursos_proprios=10.00,
     )
 
 
@@ -405,6 +404,29 @@ def rateio_despesa_2020_antonio_jose(associacao, despesa_2020_1_fornecedor_anton
         tag=tag_teste,
 
     )
+
+
+@pytest.fixture
+def tipo_receita_e_estorno():
+    return baker.make('TipoReceita', nome='Estorno', e_estorno=True)
+
+
+@pytest.fixture
+def receita_estorno_do_rateio_despesa_2020_antonio_jose(tipo_receita_e_estorno, rateio_despesa_2020_antonio_jose):
+    rateio = rateio_despesa_2020_antonio_jose
+    return baker.make(
+        'Receita',
+        associacao=rateio.despesa.associacao,
+        data=rateio.despesa.data_transacao,
+        valor=rateio.valor_rateio,
+        conta_associacao=rateio.conta_associacao,
+        acao_associacao=rateio.acao_associacao,
+        tipo_receita=tipo_receita_e_estorno,
+        conferido=True,
+        categoria_receita=rateio.aplicacao_recurso,
+        rateio_estornado=rateio
+    )
+
 
 @pytest.fixture
 def despesa_2019_2(associacao, tipo_documento, tipo_transacao):
@@ -687,4 +709,276 @@ def solicitacao_acerto_lancamento_devolucao(
         tipo_acerto=tipo_acerto_lancamento_devolucao,
         devolucao_ao_tesouro=devolucao_ao_tesouro_parcial_ajuste,
         detalhamento="teste"
+    )
+
+
+# Despesas com retenção de impostos
+@pytest.fixture
+def despesa_imposto_retido(
+    associacao,
+    tipo_documento,
+    tipo_transacao,
+    tipo_custeio,
+    especificacao_instalacao_eletrica,
+    acao_associacao_role_cultural,
+    conta_associacao_cartao,
+):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='12331501',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Prefeitura',
+        tipo_transacao=tipo_transacao,
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=10.00,
+    )
+
+@pytest.fixture
+def rateio_despesa_imposto_retido(associacao, tipo_custeio, especificacao_instalacao_eletrica, acao_associacao_role_cultural,
+                                   conta_associacao_cartao, despesa_imposto_retido):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_imposto_retido,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso="CUSTEIO",
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        valor_original=10,
+        valor_rateio=10
+    )
+
+
+@pytest.fixture
+def despesa_com_retencao_imposto(
+    associacao,
+    tipo_documento,
+    tipo_transacao,
+    tipo_custeio,
+    especificacao_instalacao_eletrica,
+    acao_associacao_role_cultural,
+    conta_associacao_cartao,
+    despesa_imposto_retido
+):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123315',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Antônio José SA',
+        tipo_transacao=tipo_transacao,
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=110.00,
+        despesas_impostos=[despesa_imposto_retido,],
+    )
+
+
+@pytest.fixture
+def rateio_despesa_com_retencao_imposto(associacao, despesa_com_retencao_imposto, acao_associacao_role_cultural, conta_associacao_cartao, tipo_custeio, especificacao_instalacao_eletrica):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_com_retencao_imposto,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        acao_associacao=acao_associacao_role_cultural,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        aplicacao_recurso="CUSTEIO",
+        valor_rateio=100,
+        valor_original=10,
+    )
+
+
+@pytest.fixture
+def despesa_imposto_retido_2(
+    associacao,
+    tipo_documento,
+    tipo_transacao,
+    tipo_custeio,
+    especificacao_instalacao_eletrica,
+    acao_associacao_role_cultural,
+    conta_associacao_cartao,
+):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='12331502',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Prefeitura',
+        tipo_transacao=tipo_transacao,
+        data_transacao=None,
+        valor_total=10.00,
+    )
+
+
+@pytest.fixture
+def rateio_despesa_imposto_retido_2(associacao, tipo_custeio, especificacao_instalacao_eletrica, acao_associacao_role_cultural,
+                                   conta_associacao_cartao, despesa_imposto_retido_2):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_imposto_retido_2,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso="CUSTEIO",
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        valor_original=10,
+        valor_rateio=10
+    )
+
+@pytest.fixture
+def despesa_com_retencao_imposto_2(
+    associacao,
+    tipo_documento,
+    tipo_transacao,
+    tipo_custeio,
+    especificacao_instalacao_eletrica,
+    acao_associacao_role_cultural,
+    conta_associacao_cartao,
+    despesa_imposto_retido,
+    despesa_imposto_retido_2
+):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123315',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Antônio José SA',
+        tipo_transacao=tipo_transacao,
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=120.00,
+        despesas_impostos=[despesa_imposto_retido, despesa_imposto_retido_2],
+    )
+
+
+@pytest.fixture
+def rateio_despesa_com_retencao_imposto_2(associacao, despesa_com_retencao_imposto_2, acao_associacao_role_cultural, conta_associacao_cartao, tipo_custeio, especificacao_instalacao_eletrica):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_com_retencao_imposto_2,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        acao_associacao=acao_associacao_role_cultural,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        aplicacao_recurso="CUSTEIO",
+        valor_rateio=120,
+        valor_original=120,
+    )
+
+
+@pytest.fixture
+def despesa_2020_1_recurso_proprio(associacao, tipo_documento, tipo_transacao_pix):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='José Recurso próprio',
+        tipo_transacao=tipo_transacao_pix,
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=110.00,
+        valor_recursos_proprios=10.00,
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_recurso_proprio(associacao, despesa_2020_1_recurso_proprio, conta_associacao_cartao, acao,
+                                        tipo_aplicacao_recurso_custeio,
+                                        tipo_custeio_servico,
+                                        especificacao_instalacao_eletrica, acao_associacao_role_cultural,
+                                        periodo_2020_1, tag_teste):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1_recurso_proprio,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=100.00,
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
+        tag=tag_teste,
+    )
+
+
+
+@pytest.fixture
+def despesa_2020_1_multiplas_contas(associacao, tipo_documento, tipo_transacao_pix):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='José Multiplas Contas',
+        tipo_transacao=tipo_transacao_pix,
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=200.00,
+        valor_recursos_proprios=0.00,
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_multiplas_contas_cartao(associacao, despesa_2020_1_multiplas_contas, conta_associacao_cartao,
+                                                acao,
+                                                tipo_aplicacao_recurso_custeio,
+                                                tipo_custeio_servico,
+                                                especificacao_instalacao_eletrica, acao_associacao_role_cultural,
+                                                periodo_2020_1, tag_teste):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1_multiplas_contas,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=100.00,
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
+        tag=tag_teste,
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_multiplas_contas_cheque(associacao, despesa_2020_1_multiplas_contas, conta_associacao_cheque,
+                                                acao,
+                                                tipo_aplicacao_recurso_custeio,
+                                                tipo_custeio_servico,
+                                                especificacao_instalacao_eletrica, acao_associacao_role_cultural,
+                                                periodo_2020_1, tag_teste):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1_multiplas_contas,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=100.00,
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
+        tag=tag_teste,
     )

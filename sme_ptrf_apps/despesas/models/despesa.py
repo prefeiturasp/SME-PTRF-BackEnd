@@ -2,6 +2,7 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.db import models
 from django.db.models.signals import pre_save, post_save
+from django.db.models import Count
 from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
@@ -17,6 +18,13 @@ class DespesasCompletasManager(models.Manager):
 
 
 class Despesa(ModeloBase):
+    # Tags de informações
+    TAG_ANTECIPADO = {"id": "1", "nome": "Antecipado", "descricao": "Data do pagamento anterior à data do documento."}
+    TAG_ESTORNADO = {"id": "2", "nome": "Estornado", "descricao": "Gasto estornado."}
+    TAG_PARCIAL = {"id": "3", "nome": "Parcial", "descricao": "Parte da despesa paga com recursos próprios ou de mais de uma conta."}
+    TAG_IMPOSTO = {"id": "4", "nome": "Imposto", "descricao": "Despesa com recolhimento de imposto."}
+    TAG_IMPOSTO_PAGO = {"id": "5", "nome": "Imposto Pago", "descricao": "Imposto recolhido relativo a uma despesa de serviço."}
+
     history = AuditlogHistoryField()
 
     associacao = models.ForeignKey(Associacao, on_delete=models.PROTECT, related_name='despesas', blank=True,
@@ -88,8 +96,69 @@ class Despesa(ModeloBase):
 
     valor_ptrf.fget.short_description = 'Valor coberto pelo PTRF'
 
+    @property
+    def tags_de_informacao(self):
+        tags = []
+        if self.teve_pagamento_antecipado():
+            tags.append(tag_informacao(
+                self.TAG_ANTECIPADO,
+                f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à data do documento ({self.data_documento:%d/%m/%Y}).')
+            )
+
+        if self.possui_estornos():
+            tags.append(tag_informacao(
+                self.TAG_ESTORNADO,
+                f'Esse gasto possui estornos.')
+            )
+
+        if self.possui_retencao_de_impostos():
+            tags.append(tag_informacao(
+                self.TAG_IMPOSTO,
+                self.__hint_impostos()
+            ))
+
+        if self.e_despesa_de_imposto():
+            tags.append(tag_informacao(
+                self.TAG_IMPOSTO_PAGO,
+                self.__hint_imposto_pago()
+            ))
+
+        if self.tem_pagamento_com_recursos_proprios() or self.tem_pagamentos_em_multiplas_contas():
+            tags.append(tag_informacao(
+                self.TAG_PARCIAL,
+                'Parte da despesa foi paga com recursos próprios ou por mais de uma conta.'
+            ))
+
+        return tags
+
     def __str__(self):
         return f"{self.numero_documento} - {self.data_documento} - {self.valor_total:.2f}"
+
+    def __hint_impostos(self):
+        if not self.despesas_impostos.exists():
+            return []
+
+        linhas_hint = []
+        if self.despesas_impostos.count() == 1:
+            linhas_hint.append('Essa despesa teve retenção de imposto:')
+        else:
+            linhas_hint.append('Essa despesa teve retenções de impostos:')
+
+        for imposto in self.despesas_impostos.all():
+            pagamento = f'pago em {imposto.data_transacao:%d/%m/%Y}' if imposto.data_transacao else 'pagamento ainda não realizado'
+            linhas_hint.append(f'R$ {str(imposto.valor_total).replace(".",",")}, {pagamento}.')
+
+        return linhas_hint
+
+    def __hint_imposto_pago(self):
+        if not self.despesa_geradora.exists():
+            return ""
+
+        despesa_geradora = self.despesa_geradora.first()
+        separador = ' / ' if despesa_geradora.numero_documento and despesa_geradora.nome_fornecedor else ''
+        referencia_despesa = f'{despesa_geradora.numero_documento}{separador}{despesa_geradora.nome_fornecedor}.'
+
+        return f'Esse imposto está relacionado à despesa {referencia_despesa}'
 
     def cadastro_completo(self):
 
@@ -141,11 +210,33 @@ class Despesa(ModeloBase):
                 self.data_documento = self.data_transacao
                 self.save()
 
+    def teve_pagamento_antecipado(self):
+        return self.data_transacao and self.data_documento and self.data_transacao < self.data_documento
+
+    def possui_estornos(self):
+        return self.rateios.filter(estorno__isnull=False).exists()
+
+    def possui_retencao_de_impostos(self):
+        return self.despesas_impostos.exists()
+
+    def e_despesa_de_imposto(self):
+        return self.despesa_geradora.exists()
+
+    def tem_pagamento_com_recursos_proprios(self):
+        return self.valor_recursos_proprios > 0
+
+    def tem_pagamentos_em_multiplas_contas(self):
+        return self.rateios.values('conta_associacao').order_by('conta_associacao').annotate(count=Count('conta_associacao')).count() > 1
+
     @classmethod
     def by_documento(cls, tipo_documento, numero_documento, cpf_cnpj_fornecedor, associacao__uuid):
         return cls.objects.filter(associacao__uuid=associacao__uuid).filter(
             cpf_cnpj_fornecedor=cpf_cnpj_fornecedor).filter(tipo_documento=tipo_documento).filter(
             numero_documento=numero_documento).first()
+
+    @classmethod
+    def get_tags_informacoes_list(cls):
+        return [cls.TAG_ANTECIPADO, cls.TAG_ESTORNADO, cls.TAG_PARCIAL, cls.TAG_IMPOSTO, cls.TAG_IMPOSTO_PAGO]
 
     class Meta:
         verbose_name = "Documento comprobatório da despesa"
@@ -156,6 +247,7 @@ class Despesa(ModeloBase):
 def proponente_pre_save(instance, **kwargs):
     instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
 
+
 @receiver(post_save, sender=Despesa)
 def rateio_post_save(instance, created, **kwargs):
     """
@@ -165,6 +257,14 @@ def rateio_post_save(instance, created, **kwargs):
     """
     if instance and instance.cpf_cnpj_fornecedor and instance.nome_fornecedor:
         Fornecedor.atualiza_ou_cria(cpf_cnpj=instance.cpf_cnpj_fornecedor, nome=instance.nome_fornecedor)
+
+
+def tag_informacao(tipo_de_tag, hint):
+    return {
+        'tag_id': tipo_de_tag['id'],
+        'tag_nome': tipo_de_tag['nome'],
+        'tag_hint': hint,
+    }
 
 
 auditlog.register(Despesa)
