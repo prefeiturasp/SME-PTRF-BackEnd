@@ -20,7 +20,7 @@ from sme_ptrf_apps.users.permissoes import (
 )
 
 from ...services import concluir_consolidado_dre, verificar_se_status_parcial_ou_total, status_consolidado_dre, \
-    retornar_trilha_de_status
+    retornar_trilha_de_status, gerar_previa_consolidado_dre
 
 import mimetypes
 
@@ -47,6 +47,93 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             qs = qs.filter(periodo__uuid=periodo_uuid)
 
         return qs
+
+    @action(
+        detail=False,
+        methods=['post'],
+        url_path='gerar-previa',
+        permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao]
+    )
+    def gerar_previa_consolidado_dre(self, request):
+        dados = request.data
+
+        if (
+            not dados
+            or not dados.get('dre_uuid')
+            or not dados.get('periodo_uuid')
+        ):
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar os uuids da dre e período'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        dre_uuid, periodo_uuid = dados['dre_uuid'], dados['periodo_uuid']
+
+        parcial = verificar_se_status_parcial_ou_total(dre_uuid, periodo_uuid)
+
+        try:
+            dre = Unidade.dres.get(uuid=dre_uuid)
+        except (Unidade.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except (Periodo.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            ata = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo).order_by('criado_em').last()
+            if not ata:
+                raise ValidationError(f"O objeto Ata para a DRE {dre} e Período {periodo} não foi encontrado na base.")
+        except (AtaParecerTecnico.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto Ata para a DRE {dre} e Período {periodo} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            ano = str(periodo.data_inicio_realizacao_despesas.year)
+            ano_analise_regularidade = AnoAnaliseRegularidade.objects.get(ano=ano)
+        except (AnoAnaliseRegularidade.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"Não foi possível publicar o Consolidado Dre, pois o AnoAnaliseRegularidade para o ano {ano} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            consolidado_dre = gerar_previa_consolidado_dre(
+                dre=dre, periodo=periodo,
+                parcial=parcial,
+                usuario=request.user.username,
+                ata=ata
+            )
+            logger.info(f"Consolidado DRE finalizado. Status: {consolidado_dre.get_valor_status_choice()}")
+
+        except(IntegrityError):
+            erro = {
+                'erro': 'consolidado_dre_ja_criado',
+                'mensagem': 'Você não pode criar um Consolidado DRE que já existe'
+            }
+            return Response(erro, status=status.HTTP_409_CONFLICT)
+
+        return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data,
+                        status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'],
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
@@ -158,7 +245,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         try:
             consolidado_dre = ConsolidadoDRE.objects.get(uuid=consolidado_dre_uuid)
-        except (Periodo.DoesNotExist, ValidationError):
+        except (ConsolidadoDRE.DoesNotExist, ValidationError):
             erro = {
                 'erro': 'Objeto não encontrado.',
                 'mensagem': f"O objeto Consolidado DRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."

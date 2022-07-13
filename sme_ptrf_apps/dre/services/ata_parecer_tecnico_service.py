@@ -215,7 +215,7 @@ def get_presentes_na_ata(ata):
 
 
 def cria_data_geracao_documento(usuario, dre_nome):
-    data_geracao = datetime.date.today().strftime("%d/%m/%Y")
+    data_geracao = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}"
     texto = f"Ata PDF gerada pelo Sig_Escola em {data_geracao} {quem_gerou} para a DIRETORIA REGIONAL DE EDUCAÇÃO {formata_nome_dre(dre_nome)}"
 

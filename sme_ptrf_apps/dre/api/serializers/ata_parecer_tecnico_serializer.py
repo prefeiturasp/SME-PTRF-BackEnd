@@ -9,9 +9,13 @@ from sme_ptrf_apps.core.api.serializers.unidade_serializer import UnidadeLookUpS
 
 class AtaParecerTecnicoLookUpSerializer(serializers.ModelSerializer):
     alterado_em = serializers.SerializerMethodField('get_alterado_em')
+    versao = serializers.SerializerMethodField('get_versao')
 
     def get_alterado_em(self, obj):
         return obj.preenchida_em
+
+    def get_versao(self, obj):
+        return 'FINAL' if obj.arquivo_pdf else 'PREVIA'
 
     class Meta:
         model = AtaParecerTecnico
@@ -19,7 +23,8 @@ class AtaParecerTecnicoLookUpSerializer(serializers.ModelSerializer):
             'uuid',
             'alterado_em',
             'status_geracao_pdf',
-            'arquivo_pdf'
+            'arquivo_pdf',
+            'versao',
         )
 
 
@@ -34,11 +39,16 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
 
     presentes_na_ata = PresentesAtaDreSerializer(many=True)
 
+    versao = serializers.SerializerMethodField('get_versao')
+
     def get_hora_reuniao(self, obj):
         return obj.hora_reuniao.strftime('%H:%M')
 
     def get_alterado_em(self, obj):
         return obj.preenchida_em
+
+    def get_versao(self, obj):
+        return 'FINAL' if obj.arquivo_pdf else 'PREVIA'
 
     class Meta:
         model = AtaParecerTecnico
@@ -57,6 +67,7 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
             'alterado_em',
             'numero_portaria',
             'data_portaria',
+            'versao',
         )
 
 

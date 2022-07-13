@@ -754,7 +754,7 @@ def cria_justificativas(observacao_conciliacao):
 
 
 def cria_data_geracao_documento(usuario, previa):
-    data_geracao = date.today().strftime("%d/%m/%Y")
+    data_geracao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     tipo_texto = "parcial" if previa else "final"
     quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}, "
     texto = f"Documento {tipo_texto} gerado {quem_gerou}via SIG - Escola, em: {data_geracao}"
