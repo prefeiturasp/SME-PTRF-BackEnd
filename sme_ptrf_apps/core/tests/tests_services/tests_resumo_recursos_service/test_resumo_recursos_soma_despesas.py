@@ -44,11 +44,7 @@ def test_resumo_de_recursos_deve_somar_as_despesas_do_periodo_por_categoria_para
 
     assert resumo.despesas.total_custeio == Decimal(100.00), "Deve somar apenas os rateios do tipo custeio."
     assert resumo.despesas.total_capital == Decimal(200.00), "Deve somar apenas os rateios do tipo capital."
-    assert (
-               resumo.despesas.total_custeio +
-               resumo.despesas.total_capital ==
-               resumo.despesas.total_geral
-    ), "O somatório dos totais por categoria deve ser igual ao total geral."
+    assert resumo.despesas.total_geral == Decimal(300.00), "Deve somar apenas os rateios do tipo capital."
 
 
 def test_resumo_de_recursos_deve_somar_as_despesas_do_periodo_por_categoria_para_determinada_acao_e_todas_as_contas_se_conta_nao_for_definida(
@@ -68,11 +64,7 @@ def test_resumo_de_recursos_deve_somar_as_despesas_do_periodo_por_categoria_para
 
     assert resumo.despesas.total_custeio == Decimal(400.00), "Deve somar apenas os rateios do tipo custeio em todas as contas."
     assert resumo.despesas.total_capital == Decimal(200.00), "Deve somar apenas os rateios do tipo capital em todas as contas."
-    assert (
-               resumo.despesas.total_custeio +
-               resumo.despesas.total_capital ==
-               resumo.despesas.total_geral
-    ), "O somatório dos totais por categoria deve ser igual ao total geral."
+    assert resumo.despesas.total_geral == Decimal(600.00), "Deve somar apenas os rateios do tipo capital em todas as contas."
 
 
 def test_resumo_de_recursos_deve_usar_somatorio_de_despesas_dos_fechamentos_do_periodo_se_existirem(

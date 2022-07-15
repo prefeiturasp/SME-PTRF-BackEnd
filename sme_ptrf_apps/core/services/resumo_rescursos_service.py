@@ -23,7 +23,7 @@ class ResumoSaldo:
 
 
 class ResumoDespesas:
-    def __init__(self, periodo, acao_associacao, conta_associacao):
+    def __init__(self, periodo, acao_associacao, conta_associacao, fechamentos_no_periodo):
         self.periodo = periodo
         self.acao_associacao = acao_associacao
         self.conta_associacao = conta_associacao
@@ -31,27 +31,23 @@ class ResumoDespesas:
         self.total_capital = Decimal(0.00)
         self.total_geral = Decimal(0.00)
 
+        self.fechamentos_no_periodo = fechamentos_no_periodo
+
         self.__set_totais_despesas()
 
     def __set_totais_despesas(self):
-        fechamentos_no_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(
-            periodo=self.periodo,
-            acao_associacao=self.acao_associacao,
-            conta_associacao=self.conta_associacao,
-        )
-
-        if fechamentos_no_periodo:
-            self.__set_totais_despesas_pelos_fechamentos(fechamentos=fechamentos_no_periodo)
+        if self.fechamentos_no_periodo:
+            self.__set_totais_despesas_pelos_fechamentos()
         else:
             self.__set_total_despesas_pelo_movimento_do_periodo()
 
         self.total_geral += self.total_custeio + self.total_capital
 
-    def __set_totais_despesas_pelos_fechamentos(self, fechamentos):
+    def __set_totais_despesas_pelos_fechamentos(self):
         self.total_custeio = Decimal(0.00)
         self.total_capital = Decimal(0.00)
 
-        for fechamento in fechamentos:
+        for fechamento in self.fechamentos_no_periodo:
             self.total_custeio += fechamento.total_despesas_custeio
             self.total_capital += fechamento.total_despesas_capital
 
@@ -66,8 +62,6 @@ class ResumoDespesas:
             valor_total_aplicacao=Sum('valor_rateio'))
 
         for total in totais_despesa_por_aplicacao:
-            self.total_geral += total['valor_total_aplicacao']
-
             if total['aplicacao_recurso'] == 'CUSTEIO':
                 self.total_custeio += total['valor_total_aplicacao']
             elif total['aplicacao_recurso'] == 'CAPITAL':
@@ -78,7 +72,7 @@ class ResumoDespesas:
 
 
 class ResumoReceitas:
-    def __init__(self, periodo, acao_associacao, conta_associacao):
+    def __init__(self, periodo, acao_associacao, conta_associacao, fechamentos_no_periodo):
         self.periodo = periodo
         self.acao_associacao = acao_associacao
         self.conta_associacao = conta_associacao
@@ -87,28 +81,24 @@ class ResumoReceitas:
         self.total_livre = Decimal(0.00)
         self.total_geral = Decimal(0.00)
 
+        self.fechamentos_no_periodo = fechamentos_no_periodo
+
         self.__set_totais_receitas()
 
     def __set_totais_receitas(self):
-        fechamentos_no_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(
-            periodo=self.periodo,
-            acao_associacao=self.acao_associacao,
-            conta_associacao=self.conta_associacao,
-        )
-
-        if fechamentos_no_periodo:
-            self.__set_totais_receitas_pelos_fechamentos(fechamentos=fechamentos_no_periodo)
+        if self.fechamentos_no_periodo:
+            self.__set_totais_receitas_pelos_fechamentos()
         else:
             self.__set_totais_receitas_pelo_movimento_do_periodo()
 
         self.total_geral += self.total_custeio + self.total_capital + self.total_livre
 
-    def __set_totais_receitas_pelos_fechamentos(self, fechamentos):
+    def __set_totais_receitas_pelos_fechamentos(self):
         self.total_custeio = Decimal(0.00)
         self.total_capital = Decimal(0.00)
         self.total_livre = Decimal(0.00)
 
-        for fechamento in fechamentos:
+        for fechamento in self.fechamentos_no_periodo:
             self.total_custeio += fechamento.total_receitas_custeio
             self.total_capital += fechamento.total_receitas_capital
             self.total_livre += fechamento.total_receitas_livre
@@ -140,24 +130,25 @@ class ResumoRecursos:
         self.periodo = periodo
         self.acao_associacao = acao_associacao
         self.conta_associacao = conta_associacao
-        self.receitas = ResumoReceitas(periodo, acao_associacao, conta_associacao)
-        self.despesas = ResumoDespesas(periodo, acao_associacao, conta_associacao)
 
-        self.__set_saldos()
-
-    def __set_saldos(self):
-        fechamentos_no_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(
+        self.fechamentos_no_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(
             periodo=self.periodo,
             acao_associacao=self.acao_associacao,
             conta_associacao=self.conta_associacao,
         )
 
-        if fechamentos_no_periodo:
-            self.__set_saldos_pelos_fechamentos(fechamentos=fechamentos_no_periodo)
+        self.receitas = ResumoReceitas(periodo, acao_associacao, conta_associacao, fechamentos_no_periodo=self.fechamentos_no_periodo)
+        self.despesas = ResumoDespesas(periodo, acao_associacao, conta_associacao, fechamentos_no_periodo=self.fechamentos_no_periodo)
+
+        self.__set_saldos()
+
+    def __set_saldos(self):
+        if self.fechamentos_no_periodo:
+            self.__set_saldos_pelos_fechamentos()
         else:
             self.__set_saldos_por_calculo()
 
-    def __set_saldos_pelos_fechamentos(self, fechamentos):
+    def __set_saldos_pelos_fechamentos(self):
         saldo_anterior_custeio = Decimal(0.00)
         saldo_anterior_capital = Decimal(0.00)
         saldo_anterior_livre = Decimal(0.00)
@@ -166,7 +157,7 @@ class ResumoRecursos:
         saldo_posterior_capital = Decimal(0.00)
         saldo_posterior_livre = Decimal(0.00)
 
-        for fechamento in fechamentos:
+        for fechamento in self.fechamentos_no_periodo:
             saldo_anterior_custeio += fechamento.saldo_anterior_custeio
             saldo_anterior_capital += fechamento.saldo_anterior_capital
             saldo_anterior_livre += fechamento.saldo_anterior_livre
