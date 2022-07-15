@@ -66,10 +66,33 @@ class ResumoReceitas:
         self.total_livre = Decimal(0.00)
         self.total_geral = Decimal(0.00)
 
-        self.__set_total_receitas_do_periodo()
+        self.__set_totais_receitas()
 
-    def __set_total_receitas_do_periodo(self):
-        # TODO Verificar se existe um fechamento se houver pegar os valores do fechamento
+    def __set_totais_receitas(self):
+        fechamentos_no_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(
+            periodo=self.periodo,
+            acao_associacao=self.acao_associacao,
+            conta_associacao=self.conta_associacao,
+        )
+
+        if fechamentos_no_periodo:
+            self.__set_totais_receitas_pelos_fechamentos(fechamentos=fechamentos_no_periodo)
+        else:
+            self.__set_totais_receitas_pelo_movimento_do_periodo()
+
+        self.total_geral += self.total_custeio + self.total_capital + self.total_livre
+
+    def __set_totais_receitas_pelos_fechamentos(self, fechamentos):
+        self.total_custeio = Decimal(0.00)
+        self.total_capital = Decimal(0.00)
+        self.total_livre = Decimal(0.00)
+
+        for fechamento in fechamentos:
+            self.total_custeio += fechamento.total_receitas_custeio
+            self.total_capital += fechamento.total_receitas_capital
+            self.total_livre += fechamento.total_receitas_livre
+
+    def __set_totais_receitas_pelo_movimento_do_periodo(self):
         receitas = Receita.receitas_da_acao_associacao_no_periodo(
             acao_associacao=self.acao_associacao,
             conta_associacao=self.conta_associacao,
@@ -79,8 +102,6 @@ class ResumoReceitas:
             valor_total_categoria=Sum('valor'))
 
         for total in totais_receita_por_aplicacao:
-            self.total_geral += total['valor_total_categoria']
-
             if total['categoria_receita'] == 'CUSTEIO':
                 self.total_custeio += total['valor_total_categoria']
             elif total['categoria_receita'] == 'CAPITAL':
