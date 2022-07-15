@@ -31,10 +31,31 @@ class ResumoDespesas:
         self.total_capital = Decimal(0.00)
         self.total_geral = Decimal(0.00)
 
-        self.__set_total_despesas_do_periodo()
+        self.__set_totais_despesas()
 
-    def __set_total_despesas_do_periodo(self):
-        # TODO Verificar se existe um fechamento se houver pegar os valores do fechamento
+    def __set_totais_despesas(self):
+        fechamentos_no_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(
+            periodo=self.periodo,
+            acao_associacao=self.acao_associacao,
+            conta_associacao=self.conta_associacao,
+        )
+
+        if fechamentos_no_periodo:
+            self.__set_totais_despesas_pelos_fechamentos(fechamentos=fechamentos_no_periodo)
+        else:
+            self.__set_total_despesas_pelo_movimento_do_periodo()
+
+        self.total_geral += self.total_custeio + self.total_capital
+
+    def __set_totais_despesas_pelos_fechamentos(self, fechamentos):
+        self.total_custeio = Decimal(0.00)
+        self.total_capital = Decimal(0.00)
+
+        for fechamento in fechamentos:
+            self.total_custeio += fechamento.total_despesas_custeio
+            self.total_capital += fechamento.total_despesas_capital
+
+    def __set_total_despesas_pelo_movimento_do_periodo(self):
         despesas = RateioDespesa.rateios_da_acao_associacao_no_periodo(
             acao_associacao=self.acao_associacao,
             conta_associacao=self.conta_associacao,
