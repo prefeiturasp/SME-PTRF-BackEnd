@@ -1,5 +1,8 @@
+from decimal import Decimal
+
 from django.db.models import Sum
 
+from sme_ptrf_apps.core.models import FechamentoPeriodo
 from sme_ptrf_apps.receitas.models import Receita
 from sme_ptrf_apps.despesas.models import RateioDespesa
 
@@ -8,18 +11,30 @@ class ResumoRecursosException(Exception):
     pass
 
 
+class ResumoSaldo:
+    def __init__(self, periodo, acao_associacao, conta_associacao, total_custeio=Decimal(0.00), total_capital=Decimal(0.00), total_livre=Decimal(0.00)):
+        self.periodo = periodo
+        self.acao_associacao = acao_associacao
+        self.conta_associacao = conta_associacao
+        self.total_custeio = total_custeio
+        self.total_capital = total_capital
+        self.total_livre = total_livre
+        self.total_geral = total_custeio + total_capital + total_livre
+
+
 class ResumoDespesas:
     def __init__(self, periodo, acao_associacao, conta_associacao):
         self.periodo = periodo
         self.acao_associacao = acao_associacao
         self.conta_associacao = conta_associacao
-        self.total_custeio = 0
-        self.total_capital = 0
-        self.total_geral = 0
+        self.total_custeio = Decimal(0.00)
+        self.total_capital = Decimal(0.00)
+        self.total_geral = Decimal(0.00)
 
         self.__set_total_despesas_do_periodo()
 
     def __set_total_despesas_do_periodo(self):
+        # TODO Verificar se existe um fechamento se houver pegar os valores do fechamento
         despesas = RateioDespesa.rateios_da_acao_associacao_no_periodo(
             acao_associacao=self.acao_associacao,
             conta_associacao=self.conta_associacao,
@@ -46,14 +61,15 @@ class ResumoReceitas:
         self.periodo = periodo
         self.acao_associacao = acao_associacao
         self.conta_associacao = conta_associacao
-        self.total_custeio = 0
-        self.total_capital = 0
-        self.total_livre = 0
-        self.total_geral = 0
+        self.total_custeio = Decimal(0.00)
+        self.total_capital = Decimal(0.00)
+        self.total_livre = Decimal(0.00)
+        self.total_geral = Decimal(0.00)
 
         self.__set_total_receitas_do_periodo()
 
     def __set_total_receitas_do_periodo(self):
+        # TODO Verificar se existe um fechamento se houver pegar os valores do fechamento
         receitas = Receita.receitas_da_acao_associacao_no_periodo(
             acao_associacao=self.acao_associacao,
             conta_associacao=self.conta_associacao,
@@ -82,10 +98,92 @@ class ResumoRecursos:
         self.periodo = periodo
         self.acao_associacao = acao_associacao
         self.conta_associacao = conta_associacao
-        self.saldo_anterior = 0.00
         self.receitas = ResumoReceitas(periodo, acao_associacao, conta_associacao)
         self.despesas = ResumoDespesas(periodo, acao_associacao, conta_associacao)
-        self.saldo_posterior = 0.00
+
+        self.__set_saldos()
+
+    def __set_saldos(self):
+        fechamentos_no_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(
+            periodo=self.periodo,
+            acao_associacao=self.acao_associacao,
+            conta_associacao=self.conta_associacao,
+        )
+
+        if fechamentos_no_periodo:
+            self.__set_saldos_pelos_fechamentos(fechamentos=fechamentos_no_periodo)
+        else:
+            self.__set_saldos_por_calculo()
+
+    def __set_saldos_pelos_fechamentos(self, fechamentos):
+        saldo_anterior_custeio = Decimal(0.00)
+        saldo_anterior_capital = Decimal(0.00)
+        saldo_anterior_livre = Decimal(0.00)
+
+        saldo_posterior_custeio = Decimal(0.00)
+        saldo_posterior_capital = Decimal(0.00)
+        saldo_posterior_livre = Decimal(0.00)
+
+        for fechamento in fechamentos:
+            saldo_anterior_custeio += fechamento.saldo_anterior_custeio
+            saldo_anterior_capital += fechamento.saldo_anterior_capital
+            saldo_anterior_livre += fechamento.saldo_anterior_livre
+
+            saldo_posterior_custeio += fechamento.saldo_reprogramado_custeio
+            saldo_posterior_capital += fechamento.saldo_reprogramado_capital
+            saldo_posterior_livre += fechamento.saldo_reprogramado_livre
+
+        self.saldo_anterior = ResumoSaldo(
+            periodo=self.periodo,
+            acao_associacao=self.acao_associacao,
+            conta_associacao=self.conta_associacao,
+            total_custeio=saldo_anterior_custeio,
+            total_capital=saldo_anterior_capital,
+            total_livre=saldo_anterior_livre,
+        )
+
+        self.saldo_posterior = ResumoSaldo(
+            periodo=self.periodo,
+            acao_associacao=self.acao_associacao,
+            conta_associacao=self.conta_associacao,
+            total_custeio=saldo_posterior_custeio,
+            total_capital=saldo_posterior_capital,
+            total_livre=saldo_posterior_livre,
+        )
+
+    def __set_saldos_por_calculo(self):
+        if self.periodo.periodo_anterior:
+            resumo_anterior = ResumoRecursos(self.periodo.periodo_anterior, self.acao_associacao, self.conta_associacao)
+            self.saldo_anterior = resumo_anterior.saldo_posterior
+        else:
+            saldo_zerado = ResumoSaldo(self.periodo, self.acao_associacao, self.conta_associacao)
+            self.saldo_anterior = saldo_zerado
+
+        saldo_posterior_custeio = (
+            self.saldo_anterior.total_custeio
+            + self.receitas.total_custeio
+            - self.despesas.total_custeio
+        )
+
+        saldo_posterior_capital = (
+            self.saldo_anterior.total_capital
+            + self.receitas.total_capital
+            - self.despesas.total_capital
+        )
+
+        saldo_posterior_livre = (
+            self.saldo_anterior.total_livre
+            + self.receitas.total_livre
+        )
+
+        self.saldo_posterior = ResumoSaldo(
+            periodo=self.periodo,
+            acao_associacao=self.acao_associacao,
+            conta_associacao=self.conta_associacao,
+            total_custeio=saldo_posterior_custeio,
+            total_capital=saldo_posterior_capital,
+            total_livre=saldo_posterior_livre,
+        )
 
 
 class ResumoRecursosService:
