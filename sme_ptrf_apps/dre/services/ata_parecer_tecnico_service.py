@@ -11,13 +11,13 @@ from django.db.models import Q
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_arquivo_ata_parecer_tecnico(ata=None, dre=None, periodo=None, usuario=None):
+def gerar_arquivo_ata_parecer_tecnico(ata=None, dre=None, periodo=None, usuario=None, apenas_nao_publicadas=False, parcial=None):
     LOGGER.info(f"Gerando Arquivo da Ata, Ata {ata}, DRE {dre} e Período {periodo}")
 
     ata.arquivo_pdf_iniciar()
 
     try:
-        dados_da_ata = informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, ata, usuario)
+        dados_da_ata = informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, ata, usuario, apenas_nao_publicadas, parcial)
         gerar_arquivo_ata_parecer_tecnico_pdf(dados_da_ata, ata)
         LOGGER.info(f'Gerando arquivo ata parecer técnico em PDF')
         ata.arquivo_pdf_concluir()
@@ -29,7 +29,7 @@ def gerar_arquivo_ata_parecer_tecnico(ata=None, dre=None, periodo=None, usuario=
         return None
 
 
-def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, ata=None, usuario=None):
+def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, ata=None, usuario=None, apenas_nao_publicadas=False, parcial=None):
     # Está primeira conta encontrada será usada para PCs reprovadas, pois não necessitam de distinção por conta
     primeira_conta_encontrada = TipoConta.objects.first()
 
@@ -44,6 +44,17 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
     # lista utilizada para não duplicar contas reprovadas, remover ao refatorar
     # lista_reprovadas = []  # PCs reprovadas não precisam ser separadas por conta
 
+    titulo_sequencia_publicacao = None
+    if parcial:
+        eh_parcial = "Parcial" if parcial['parcial'] else "Final"
+
+        sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
+
+        if eh_parcial == "Parcial":
+            titulo_sequencia_publicacao = f'Parcial #{sequencia_de_publicacao}'
+        else:
+            titulo_sequencia_publicacao = "Ata final"
+
     cabecalho = {
         "titulo": "Programa de Transferência de Recursos Financeiros -  PTRF",
         "sub_titulo": f"Diretoria Regional de Educação - {formata_nome_dre(dre.nome)}",
@@ -52,6 +63,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
         "data_geracao_documento": cria_data_geracao_documento(usuario, dre.nome),
         "numero_portaria": ata.numero_portaria if ata and ata.numero_portaria else "--",
         "data_portaria": ata.data_portaria if ata and ata.data_portaria else "--",
+        "titulo_sequencia_publicacao": titulo_sequencia_publicacao,
     }
     dados_texto_da_ata = {
         "data_reuniao_por_extenso": data_por_extenso(ata.data_reuniao) if ata and ata.data_reuniao else "---",
@@ -74,6 +86,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
             dre=dre,
             periodo=periodo,
             tipo_conta=conta,
+            apenas_nao_publicadas=apenas_nao_publicadas,
         )
 
         for info in informacoes:
@@ -151,7 +164,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
     return dado
 
 
-def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_por_conta(dre, periodo, tipo_conta):
+def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_por_conta(dre, periodo, tipo_conta, apenas_nao_publicadas):
 
     from ..services.relatorio_consolidado_service import get_teste_motivos_reprovacao, get_motivos_aprovacao_ressalva
 
@@ -160,11 +173,20 @@ def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_por_conta(dre, p
         associacao__unidade__dre=dre,
         associacao__contas__tipo_conta__nome=tipo_conta
     )
-    prestacoes = prestacoes.filter(
-        Q(status=PrestacaoConta.STATUS_APROVADA) |
-        Q(status=PrestacaoConta.STATUS_APROVADA_RESSALVA) |
-        Q(status=PrestacaoConta.STATUS_REPROVADA)
-    )
+
+    if not apenas_nao_publicadas:
+        prestacoes = prestacoes.filter(
+            Q(status=PrestacaoConta.STATUS_APROVADA) |
+            Q(status=PrestacaoConta.STATUS_APROVADA_RESSALVA) |
+            Q(status=PrestacaoConta.STATUS_REPROVADA)
+        )
+    else:
+        prestacoes = prestacoes.filter(
+            Q(status=PrestacaoConta.STATUS_APROVADA) |
+            Q(status=PrestacaoConta.STATUS_APROVADA_RESSALVA) |
+            Q(status=PrestacaoConta.STATUS_REPROVADA)
+        )
+        prestacoes = prestacoes.filter(publicada=False)
 
     resultado = []
     for prestacao in prestacoes:

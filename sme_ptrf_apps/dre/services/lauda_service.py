@@ -42,16 +42,25 @@ def gerar_csv(dre, periodo, tipo_conta, obj_arquivo_download, parcial=False):
             obj_arquivo_download.save()
 
 
-def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, tipo_conta, ata, nome_dre, nome_conta,  parcial=False):
+def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, tipo_conta, ata, nome_dre, nome_conta,  parcial, apenas_nao_publicadas=False):
     logger.info("Arquivo Lauda txt em processamento.")
 
     with NamedTemporaryFile(mode="r+", newline='', encoding='utf-8', prefix='lauda', suffix='.docx.txt') as tmp:
-        dados = gerar_dados_lauda(dre, periodo, tipo_conta)
+        dados = gerar_dados_lauda(dre, periodo, tipo_conta, apenas_nao_publicadas)
         status_separados = separa_status(dados)
         linhas = []
 
+        eh_parcial = "Parcial" if parcial['parcial'] else "Final"
+
+        sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
+
+        if eh_parcial == "Parcial":
+            titulo_sequencia_publicacao = f'Parcial #{sequencia_de_publicacao}'
+        else:
+            titulo_sequencia_publicacao = "Lauda final"
+
         titulo = f"((TITULO))DIRETORIA REGIONAL DE EDUCAÇÃO - {formata_nome_dre(dre)} " \
-                 f"PROGRAMA DE TRANSFERÊNCIA DE RECURSOS FINANCEIROS PTRF \n\n"
+                 f"PROGRAMA DE TRANSFERÊNCIA DE RECURSOS FINANCEIROS PTRF - {titulo_sequencia_publicacao} \n\n"
 
         texto = f"((TEXTO)) No exercício da atribuição a mim conferida pela Portaria SME nº 5.318/2020, torno " \
                 f"público o Parecer Técnico Conclusivo da Comissão de Prestação de Contas do PTRF da DRE " \
@@ -130,7 +139,8 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, tipo_conta, ata
         try:
             nome_lauda = f"Lauda_{nome_dre}_{nome_conta}.docx.txt"
             lauda.arquivo_lauda_txt.save(name=f'{nome_lauda}', content=File(tmp))
-            lauda.passar_para_status_gerado(parcial)
+            eh_parcial = parcial['parcial']
+            lauda.passar_para_status_gerado(eh_parcial)
         except Exception as err:
             logger.error("Erro ao gerar arquivo txt lauda: %s", str(err))
             raise Exception(err)
@@ -232,12 +242,12 @@ def gerar_txt(dre, periodo, tipo_conta, obj_arquivo_download, ata, parcial=False
             obj_arquivo_download.save()
 
 
-def gerar_dados_lauda(dre, periodo, tipo_conta):
+def gerar_dados_lauda(dre, periodo, tipo_conta, apenas_nao_publicadas):
     lista = []
     ordem_aprovadas = 0
     ordem_aprovadas_ressalva = 0
     ordem_rejeitadas = 0
-    informacao_unidades = informacoes_execucao_financeira_unidades(dre, periodo, tipo_conta)
+    informacao_unidades = informacoes_execucao_financeira_unidades(dre, periodo, tipo_conta, apenas_nao_publicadas)
     for linha, info in enumerate(informacao_unidades):
         if pc_em_analise(info["status_prestacao_contas"]):
             continue

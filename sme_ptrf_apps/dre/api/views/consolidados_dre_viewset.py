@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
 from sme_ptrf_apps.core.models import Unidade, Periodo, Associacao
+from ..serializers.ata_parecer_tecnico_serializer import AtaParecerTecnicoLookUpSerializer
 from ...models import ConsolidadoDRE, RelatorioConsolidadoDRE, AnoAnaliseRegularidade, AtaParecerTecnico, Lauda
 
 from ..serializers.consolidado_dre_serializer import ConsolidadoDreSerializer
@@ -19,8 +20,10 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasDreComLeituraOuGravacao
 )
 
-from ...services import concluir_consolidado_dre, verificar_se_status_parcial_ou_total, status_consolidado_dre, \
-    retornar_trilha_de_status, gerar_previa_consolidado_dre
+from ...services import concluir_consolidado_dre, \
+    verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao, status_consolidado_dre, \
+    retornar_trilha_de_status, gerar_previa_consolidado_dre, retornar_consolidados_dre_ja_criados_e_proxima_criacao, \
+    criar_ata_e_atribuir_ao_consolidado_dre
 
 import mimetypes
 
@@ -48,6 +51,132 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         return qs
 
+    @action(detail=False, methods=['post'], url_path='criar-ata-e-atelar-ao-consolidado',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def criar_ata_e_atrelar_consolidado_dre(self, request):
+        dados = request.data
+
+        if (
+            not dados
+            or not dados.get('dre')
+            or not dados.get('periodo')
+        ):
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar os uuids da dre e período'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        dre_uuid, periodo_uuid, consolidado_uuid = dados['dre'], dados['periodo'], dados['consolidado']
+
+        try:
+            dre = Unidade.dres.get(uuid=dre_uuid)
+        except (Unidade.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except (Periodo.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        consolidado_dre = None
+        if consolidado_uuid:
+            try:
+                consolidado_dre = ConsolidadoDRE.objects.get(uuid=consolidado_uuid)
+            except (ConsolidadoDRE.DoesNotExist, ValidationError):
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto ConsolidadoDRE para o uuid {consolidado_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        sequencia_de_publicacao = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid,
+                                                                                                          periodo_uuid)
+
+        ata = criar_ata_e_atribuir_ao_consolidado_dre(dre=dre, periodo=periodo, consolidado_dre=consolidado_dre,
+                                                      sequencia_de_publicacao=sequencia_de_publicacao)
+
+        return Response(AtaParecerTecnicoLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='consolidado-dre-por-ata-uuid',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def consolidados_dre_por_ata_uuid(self, request):
+        ata_uuid = request.query_params.get('ata')
+
+        if not ata_uuid:
+            erro = {
+                'erro': 'parametros_requeridos - consolidados_dre_por_ata_uuid',
+                'mensagem': 'É necessário enviar o uuid da Ata de Parecer Técnico'
+            }
+            logger.info('Erro recuperar Consolidado DRE pelo uuid da Ata de Parecer Técnico: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            ata_parecer_tecnico = AtaParecerTecnico.objects.get(uuid=ata_uuid)
+        except (ValidationError, Exception):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ata para o uuid {ata_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        consolidado_dre = ata_parecer_tecnico.consolidado_dre
+
+        return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='publicados-e-proxima-publicacao',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def consolidados_dre_ja_criados_e_proxima_criacao(self, request):
+
+        dre_uuid = request.query_params.get('dre')
+        periodo_uuid = request.query_params.get('periodo')
+
+        if not dre_uuid or not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar os uuids da dre e período'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            dre = Unidade.dres.get(uuid=dre_uuid)
+        except (Unidade.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except (Periodo.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        consolidados_ja_criados_e_proxima = retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=dre,
+                                                                                                   periodo=periodo)
+
+        return Response(consolidados_ja_criados_e_proxima, status=status.HTTP_200_OK)
+
     @action(
         detail=False,
         methods=['post'],
@@ -71,8 +200,6 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         dre_uuid, periodo_uuid = dados['dre_uuid'], dados['periodo_uuid']
 
-        parcial = verificar_se_status_parcial_ou_total(dre_uuid, periodo_uuid)
-
         try:
             dre = Unidade.dres.get(uuid=dre_uuid)
         except (Unidade.DoesNotExist, ValidationError):
@@ -94,18 +221,6 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            ata = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo).order_by('criado_em').last()
-            if not ata:
-                raise ValidationError(f"O objeto Ata para a DRE {dre} e Período {periodo} não foi encontrado na base.")
-        except (AtaParecerTecnico.DoesNotExist, ValidationError):
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto Ata para a DRE {dre} e Período {periodo} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
             ano = str(periodo.data_inicio_realizacao_despesas.year)
             ano_analise_regularidade = AnoAnaliseRegularidade.objects.get(ano=ano)
         except (AnoAnaliseRegularidade.DoesNotExist, ValidationError):
@@ -116,12 +231,14 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        parcial = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid, periodo_uuid)
+
         try:
             consolidado_dre = gerar_previa_consolidado_dre(
-                dre=dre, periodo=periodo,
+                dre=dre,
+                periodo=periodo,
                 parcial=parcial,
                 usuario=request.user.username,
-                ata=ata
             )
             logger.info(f"Consolidado DRE finalizado. Status: {consolidado_dre.get_valor_status_choice()}")
 
@@ -154,8 +271,6 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         dre_uuid, periodo_uuid = dados['dre_uuid'], dados['periodo_uuid']
 
-        parcial = verificar_se_status_parcial_ou_total(dre_uuid, periodo_uuid)
-
         try:
             dre = Unidade.dres.get(uuid=dre_uuid)
         except (Unidade.DoesNotExist, ValidationError):
@@ -176,19 +291,23 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        parcial = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid, periodo_uuid)
+
         try:
-            ata = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo).order_by('criado_em').last()
-            if not ata:
+            sequencia_de_publicacao_atual = parcial['sequencia_de_publicacao_atual']
+            ata_parecer_tecnico = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo,
+                                                                   sequencia_de_publicacao=sequencia_de_publicacao_atual).last()
+            if not ata_parecer_tecnico:
                 raise ValidationError(f"O objeto Ata para a DRE {dre} e Período {periodo} não foi encontrado na base.")
         except (AtaParecerTecnico.DoesNotExist, ValidationError):
             erro = {
-                'erro': 'Objeto não encontrado.',
+                'erro': 'Erro método Consolidado Dre ViewSet publicar',
                 'mensagem': f"O objeto Ata para a DRE {dre} e Período {periodo} não foi encontrado na base."
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        alterado_em = ata.preenchida_em
+        alterado_em = ata_parecer_tecnico.preenchida_em
 
         if not alterado_em:
             erro = {
@@ -211,10 +330,10 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         try:
             consolidado_dre = concluir_consolidado_dre(
-                dre=dre, periodo=periodo,
+                dre=dre,
+                periodo=periodo,
                 parcial=parcial,
                 usuario=request.user.username,
-                ata=ata
             )
             logger.info(f"Consolidado DRE finalizado. Status: {consolidado_dre.get_valor_status_choice()}")
 
@@ -225,8 +344,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             }
             return Response(erro, status=status.HTTP_409_CONFLICT)
 
-        return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data,
-                        status=status.HTTP_200_OK)
+        return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], url_path='documentos',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])

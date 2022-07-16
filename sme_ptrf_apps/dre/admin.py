@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .models import (
     Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade,
     ItemVerificacaoRegularidade,
@@ -53,11 +54,25 @@ class ConsolidadoDREAdmin(admin.ModelAdmin):
 
     get_nome_dre.short_description = 'DRE'
 
-    list_display = ('get_nome_dre', 'periodo', 'status', 'versao')
+    list_display = ('get_nome_dre', 'periodo', 'status', 'versao', 'eh_parcial', 'sequencia_de_publicacao')
     list_filter = ('status', 'dre', 'periodo', 'versao')
     list_display_links = ('get_nome_dre',)
-    readonly_fields = ('uuid', 'id')
+    readonly_fields = ('uuid', 'id', 'sequencia_de_publicacao')
     search_fields = ('dre__nome',)
+
+    actions = ('atribui_valor_1_para_sequencia',)
+
+    def atribui_valor_1_para_sequencia(self, request, queryset):
+        count = queryset.update(sequencia_de_publicacao=1)
+
+        if count == 1:
+            msg = '{} Consolidado DRE foi atualizado.'
+        else:
+            msg = '{} Consolidados DRE foram atualizados.'
+
+        self.message_user(request, msg.format(count))
+
+    atribui_valor_1_para_sequencia.short_description = "Atribuir o valor de 1 para sequência de publicação"
 
 
 @admin.register(GrupoVerificacaoRegularidade)
@@ -248,9 +263,23 @@ class VerificacaoRegularidadeAssociacaoAdmin(admin.ModelAdmin):
 
 @admin.register(AtaParecerTecnico)
 class AtaParecerTecnicoAdmin(admin.ModelAdmin):
-    list_display = ('uuid', 'periodo', 'dre', 'consolidado_dre')
+    list_display = ('uuid', 'periodo', 'dre', 'consolidado_dre', 'sequencia_de_publicacao')
     list_filter = ['periodo', 'dre', 'consolidado_dre']
     readonly_fields = ('uuid', 'id')
+
+    actions = ('atribui_valor_1_para_sequencia',)
+
+    def atribui_valor_1_para_sequencia(self, request, queryset):
+        count = queryset.update(sequencia_de_publicacao=1)
+
+        if count == 1:
+            msg = '{} Ata de parecer técnico foi atualizada.'
+        else:
+            msg = '{} Atas de parecer técnico foram atualizadas.'
+
+        self.message_user(request, msg.format(count))
+
+    atribui_valor_1_para_sequencia.short_description = "Atribuir o valor de 1 para sequência de publicação"
 
 
 @admin.register(PresenteAtaDre)
