@@ -19,7 +19,6 @@ def test_concluir_consolidado_dre(
         periodo_teste_service_consolidado_dre,
         retorna_parcial_false,
         retorna_username,
-        ata_parecer_tecnico_teste_service
     )
 
     assert consolidado_dre.uuid == consolidado_dre_teste_service_consolidado_dre.uuid
@@ -38,6 +37,10 @@ def test_criar_documentos_relatorio_fisico_financeiro_todas_as_contas(
     membro_comissao_teste_service,
     parametros_dre_teste_service,
     ata_parecer_tecnico_teste_service,
+    unidade_teste_service_consolidado_dre_02,
+    unidade_teste_service_consolidado_dre_01,
+    associacao_teste_service_consolidado_dre_01,
+    associacao_teste_service_consolidado_dre_02,
     settings
 ):
     # Foi fundamental para o teste passar!!
@@ -59,7 +62,6 @@ def test_criar_documentos_relatorio_fisico_financeiro_todas_as_contas(
         periodo=periodo_teste_service_consolidado_dre,
         parcial=parcial,
         usuario=usuario,
-        ata=ata_parecer_tecnico_teste_service
     )
 
     qtde_relatorios_gerados = consolidado_dre_teste_service_consolidado_dre \

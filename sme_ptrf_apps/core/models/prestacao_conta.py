@@ -376,7 +376,7 @@ class PrestacaoConta(ModeloBase):
         return cls.objects.filter(associacao=associacao, periodo=periodo).first()
 
     @classmethod
-    def dashboard(cls, periodo_uuid, dre_uuid, add_aprovado_ressalva=False, add_info_devolvidas_retornadas=False):
+    def dashboard(cls, periodo_uuid, dre_uuid, add_aprovado_ressalva=False, add_info_devolvidas_retornadas=False, apenas_nao_publicadas=False):
         """
         :param add_aprovado_ressalva: True para retornar a quantidade de aprovados com ressalva separadamente ou
         False para retornar a quantidade de aprovadas com ressalva somada a quantidade de aprovadas
@@ -399,7 +399,10 @@ class PrestacaoConta(ModeloBase):
             titulos_por_status[cls.STATUS_APROVADA_RESSALVA] = "Prestações de contas aprovadas com ressalvas"
 
         cards = []
-        qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid)
+        if not apenas_nao_publicadas:
+            qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid)
+        else:
+            qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid, publicada=False)
 
         quantidade_pcs_apresentadas = 0
         for status, titulo in titulos_por_status.items():

@@ -46,6 +46,10 @@ class ConsolidadoDRE(ModeloBase):
     periodo = models.ForeignKey('core.Periodo', on_delete=models.PROTECT,
                                 related_name='consolidados_dre_do_periodo')
 
+    eh_parcial = models.BooleanField("É parcial?", default=True)
+
+    sequencia_de_publicacao = models.IntegerField('Sequência de publicação', blank=True, null=True)
+
     status = models.CharField(
         'status',
         max_length=20,
@@ -63,26 +67,40 @@ class ConsolidadoDRE(ModeloBase):
     class Meta:
         verbose_name = 'Consolidado DRE'
         verbose_name_plural = 'Consolidados DREs'
-        unique_together = ['periodo', 'dre']
+        unique_together = ['periodo', 'dre', 'sequencia_de_publicacao']
+        ordering = ['-sequencia_de_publicacao']
 
     def __str__(self):
         if self.status == self.STATUS_EM_PROCESSAMENTO:
             status_str = 'Documentos sendo gerados. Aguarde.'
+        elif self.versao == self.VERSAO_PREVIA:
+            status_str = f"Prévia gerada em {self.alterado_em.strftime('%d/%m/%Y às %H:%M')}"
         elif self.status == self.STATUS_NAO_GERADOS:
             status_str = 'Documentos não gerados'
         else:
             status_str = f"Documentos {'finais' if self.status == 'GERADOS_TOTAIS' else 'parciais'} " \
-                         f"gerados dia {self.alterado_em.strftime('%d/%m/%Y %H:%M')}"
+                         f"gerados dia {self.alterado_em.strftime('%d/%m/%Y às %H:%M')}"
 
         return status_str
 
     @classmethod
-    def criar(cls, dre, periodo):
-        consolidado_dre, _ = cls.objects.get_or_create(
-            dre=dre,
-            periodo=periodo,
-            defaults={'status': cls.STATUS_NAO_GERADOS},
-        )
+    def criar_ou_retornar_consolidado_dre(cls, dre, periodo, sequencia_de_publicacao):
+
+        # Verificando se existe alguma instancia criada antes da modificação do incremental
+        consolidado_dre = cls.objects.filter(dre=dre, periodo=periodo, sequencia_de_publicacao__isnull=True).last()
+
+        if consolidado_dre:
+            consolidado_dre.dre = dre
+            consolidado_dre.periodo = periodo
+            consolidado_dre.sequencia_de_publicacao = sequencia_de_publicacao
+            consolidado_dre.save()
+        else:
+            consolidado_dre, _ = cls.objects.get_or_create(
+                dre=dre,
+                periodo=periodo,
+                sequencia_de_publicacao=sequencia_de_publicacao,
+                defaults={'dre': dre, 'periodo': periodo, 'sequencia_de_publicacao': sequencia_de_publicacao, },
+            )
 
         return consolidado_dre
 
@@ -98,6 +116,11 @@ class ConsolidadoDRE(ModeloBase):
 
     def atribuir_versao(self, previa):
         self.versao = self.VERSAO_PREVIA if previa else self.VERSAO_FINAL
+        self.save()
+        return self
+
+    def atribuir_se_eh_parcial(self, parcial):
+        self.eh_parcial = parcial
         self.save()
         return self
 
