@@ -119,6 +119,20 @@ def rr_receita_110_2020_1_ptrf_cheque_custeio(rr_associacao, rr_conta_associacao
 
 
 @pytest.fixture
+def rr_receita_110_2020_1_ptrf_cheque_custeio_repasse(rr_associacao, rr_conta_associacao_cheque, rr_acao_associacao_ptrf, tipo_receita_repasse, rr_periodo_2020_1):
+    return baker.make(
+        'Receita',
+        associacao=rr_associacao,
+        data=date(2020, 1, 1),
+        valor=110.00,
+        conta_associacao=rr_conta_associacao_cheque,
+        acao_associacao=rr_acao_associacao_ptrf,
+        tipo_receita=tipo_receita_repasse,
+        categoria_receita='CUSTEIO'
+    )
+
+
+@pytest.fixture
 def rr_receita_220_2020_1_ptrf_cheque_capital(rr_associacao, rr_conta_associacao_cheque, rr_acao_associacao_ptrf, tipo_receita, rr_periodo_2020_1):
     return baker.make(
         'Receita',
@@ -133,6 +147,20 @@ def rr_receita_220_2020_1_ptrf_cheque_capital(rr_associacao, rr_conta_associacao
 
 
 @pytest.fixture
+def rr_receita_220_2020_1_ptrf_cheque_capital_repasse(rr_associacao, rr_conta_associacao_cheque, rr_acao_associacao_ptrf, tipo_receita_repasse, rr_periodo_2020_1):
+    return baker.make(
+        'Receita',
+        associacao=rr_associacao,
+        data=date(2020, 3, 1),
+        valor=220.00,
+        conta_associacao=rr_conta_associacao_cheque,
+        acao_associacao=rr_acao_associacao_ptrf,
+        tipo_receita=tipo_receita_repasse,
+        categoria_receita='CAPITAL'
+    )
+
+
+@pytest.fixture
 def rr_receita_300_2020_1_ptrf_cheque_livre(rr_associacao, rr_conta_associacao_cheque, rr_acao_associacao_ptrf, tipo_receita, rr_periodo_2020_1):
     return baker.make(
         'Receita',
@@ -142,6 +170,20 @@ def rr_receita_300_2020_1_ptrf_cheque_livre(rr_associacao, rr_conta_associacao_c
         conta_associacao=rr_conta_associacao_cheque,
         acao_associacao=rr_acao_associacao_ptrf,
         tipo_receita=tipo_receita,
+        categoria_receita='LIVRE'
+    )
+
+
+@pytest.fixture
+def rr_receita_300_2020_1_ptrf_cheque_livre_repasse(rr_associacao, rr_conta_associacao_cheque, rr_acao_associacao_ptrf, tipo_receita_repasse, rr_periodo_2020_1):
+    return baker.make(
+        'Receita',
+        associacao=rr_associacao,
+        data=date(2020, 3, 1),
+        valor=300.00,
+        conta_associacao=rr_conta_associacao_cheque,
+        acao_associacao=rr_acao_associacao_ptrf,
+        tipo_receita=tipo_receita_repasse,
         categoria_receita='LIVRE'
     )
 

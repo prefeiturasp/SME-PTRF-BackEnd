@@ -76,32 +76,49 @@ class ResumoReceitas:
         self.periodo = periodo
         self.acao_associacao = acao_associacao
         self.conta_associacao = conta_associacao
-        self.total_custeio = Decimal(0.00)
-        self.total_capital = Decimal(0.00)
-        self.total_livre = Decimal(0.00)
-        self.total_geral = Decimal(0.00)
 
         self.fechamentos_no_periodo = fechamentos_no_periodo
 
         self.__set_totais_receitas()
 
     def __set_totais_receitas(self):
+        self.__set_totais_receitas_com_zero()
+
         if self.fechamentos_no_periodo:
             self.__set_totais_receitas_pelos_fechamentos()
         else:
             self.__set_totais_receitas_pelo_movimento_do_periodo()
 
-        self.total_geral += self.total_custeio + self.total_capital + self.total_livre
+        self.total_geral = self.total_custeio + self.total_capital + self.total_livre
+        self.repasses_geral = self.repasses_custeio + self.repasses_capital + self.repasses_livre
+        self.outras_geral = self.outras_custeio + self.outras_capital + self.outras_livre
 
-    def __set_totais_receitas_pelos_fechamentos(self):
+    def __set_totais_receitas_com_zero(self):
         self.total_custeio = Decimal(0.00)
         self.total_capital = Decimal(0.00)
         self.total_livre = Decimal(0.00)
 
+        self.repasses_custeio = Decimal(0.00)
+        self.repasses_capital = Decimal(0.00)
+        self.repasses_livre = Decimal(0.00)
+
+        self.outras_custeio = Decimal(0.00)
+        self.outras_capital = Decimal(0.00)
+        self.outras_livre = Decimal(0.00)
+
+    def __set_totais_receitas_pelos_fechamentos(self):
         for fechamento in self.fechamentos_no_periodo:
             self.total_custeio += fechamento.total_receitas_custeio
             self.total_capital += fechamento.total_receitas_capital
             self.total_livre += fechamento.total_receitas_livre
+
+            self.repasses_custeio += fechamento.total_repasses_custeio
+            self.repasses_capital += fechamento.total_repasses_capital
+            self.repasses_livre += fechamento.total_repasses_livre
+
+            self.outras_custeio += (fechamento.total_receitas_custeio - fechamento.total_repasses_custeio)
+            self.outras_capital += (fechamento.total_receitas_capital - fechamento.total_repasses_capital)
+            self.outras_livre += (fechamento.total_receitas_livre - fechamento.total_repasses_livre)
 
     def __set_totais_receitas_pelo_movimento_do_periodo(self):
         receitas = Receita.receitas_da_acao_associacao_no_periodo(
@@ -109,19 +126,23 @@ class ResumoReceitas:
             conta_associacao=self.conta_associacao,
             periodo=self.periodo,
         )
-        totais_receita_por_aplicacao = receitas.values('categoria_receita').order_by('categoria_receita').annotate(
-            valor_total_categoria=Sum('valor'))
-
-        for total in totais_receita_por_aplicacao:
-            if total['categoria_receita'] == 'CUSTEIO':
-                self.total_custeio += total['valor_total_categoria']
-            elif total['categoria_receita'] == 'CAPITAL':
-                self.total_capital += total['valor_total_categoria']
-            elif total['categoria_receita'] == 'LIVRE':
-                self.total_livre += total['valor_total_categoria']
-            else:
-                erro = f'Existem receitas com categoria desconhecida. Categoria:{total["categoria_receita"]}'
+        for receita in receitas.all():
+            if receita.categoria_receita not in ['CUSTEIO', 'CAPITAL', 'LIVRE']:
+                erro = f'Categoria de receita desconhecida. Categoria:{receita.categoria_receita} Receita:{receita.id}'
                 raise ResumoRecursosException(erro)
+
+            if receita.tipo_receita.e_repasse:
+                self.repasses_custeio += receita.valor if receita.categoria_receita == 'CUSTEIO' else Decimal(0.00)
+                self.repasses_capital += receita.valor if receita.categoria_receita == 'CAPITAL' else Decimal(0.00)
+                self.repasses_livre += receita.valor if receita.categoria_receita == 'LIVRE' else Decimal(0.00)
+            else:
+                self.outras_custeio += receita.valor if receita.categoria_receita == 'CUSTEIO' else Decimal(0.00)
+                self.outras_capital += receita.valor if receita.categoria_receita == 'CAPITAL' else Decimal(0.00)
+                self.outras_livre += receita.valor if receita.categoria_receita == 'LIVRE' else Decimal(0.00)
+
+        self.total_custeio = self.repasses_custeio + self.outras_custeio
+        self.total_capital = self.repasses_capital + self.outras_capital
+        self.total_livre = self.repasses_livre + self.outras_livre
 
 
 class ResumoRecursos:

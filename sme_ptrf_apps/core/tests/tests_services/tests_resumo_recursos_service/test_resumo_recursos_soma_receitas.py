@@ -94,3 +94,33 @@ def test_resumo_de_recursos_deve_usar_somatorio_de_receitas_dos_fechamentos_do_p
     assert resumo.receitas.total_capital == Decimal(750.00), "Deve somar apenas as receitas do tipo capital em todas as contas."
     assert resumo.receitas.total_livre == Decimal(600.00), "Deve somar apenas as receitas do tipo livre em todas as contas."
     assert resumo.receitas.total_geral == Decimal(1950.00), "O somatório dos totais por categoria deve ser igual ao total geral."
+
+
+def test_resumo_de_recursos_deve_somar_as_receitas_do_periodo_por_categoria_separando_repasse_e_outras_receitas(
+    rr_periodo_2020_1,
+    rr_acao_associacao_ptrf,
+    rr_conta_associacao_cheque,
+    rr_receita_110_2020_1_ptrf_cheque_custeio,
+    rr_receita_110_2020_1_ptrf_cheque_custeio_repasse,
+    rr_receita_220_2020_1_ptrf_cheque_capital,
+    rr_receita_220_2020_1_ptrf_cheque_capital_repasse,
+    rr_receita_300_2020_1_ptrf_cheque_livre,
+    rr_receita_300_2020_1_ptrf_cheque_livre_repasse,
+    rr_receita_400_2020_1_ptrf_cartao_custeio,
+):
+    resumo = ResumoRecursosService.resumo_recursos(
+        rr_periodo_2020_1,
+        rr_acao_associacao_ptrf,
+    )
+
+    assert resumo.receitas.outras_custeio == Decimal(510.00), "Deve somar apenas as receitas do tipo custeio que não são repasses."
+    assert resumo.receitas.outras_capital == Decimal(220.00), "Deve somar apenas as receitas do tipo capital que não são repasses."
+    assert resumo.receitas.outras_livre == Decimal(300.00), "Deve somar apenas as receitas do tipo livre que não são repasses."
+    assert resumo.receitas.outras_geral == Decimal(1030.00), "Deve ser o total das receitas que não são repasses."
+
+    assert resumo.receitas.repasses_custeio == Decimal(110.00), "Deve somar apenas as receitas do tipo custeio que são repasses."
+    assert resumo.receitas.repasses_capital == Decimal(220.00), "Deve somar apenas as receitas do tipo capital que são repasses."
+    assert resumo.receitas.repasses_livre == Decimal(300.00), "Deve somar apenas as receitas do tipo livre que são repasses."
+    assert resumo.receitas.repasses_geral == Decimal(630.00), "Deve ser o total das receitas que são repasses."
+
+
