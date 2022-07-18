@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.core.services.periodo_services import status_prestacao_conta_associacao
@@ -7,7 +8,35 @@ from sme_ptrf_apps.core.services.resumo_rescursos_service import ResumoRecursosS
 
 class PainelResumoRecursosCardConta:
     def __init__(self, periodo, conta_associacao):
-        ...
+        self.conta_associacao_uuid = conta_associacao.uuid
+        self.conta_associacao_nome = conta_associacao.tipo_conta.nome
+        self.periodo = periodo
+
+        self.saldo_reprogramado = Decimal(0.00)
+        self.saldo_reprogramado_capital = Decimal(0.00)
+        self.saldo_reprogramado_custeio = Decimal(0.00)
+        self.saldo_reprogramado_livre = Decimal(0.00)
+
+        self.receitas_no_periodo = Decimal(0.00)
+
+        self.repasses_no_periodo = Decimal(0.00)
+        self.repasses_no_periodo_capital = Decimal(0.00)
+        self.repasses_no_periodo_custeio = Decimal(0.00)
+        self.repasses_no_periodo_livre = Decimal(0.00)
+
+        self.outras_receitas_no_periodo = Decimal(0.00)
+        self.outras_receitas_no_periodo_capital = Decimal(0.00)
+        self.outras_receitas_no_periodo_custeio = Decimal(0.00)
+        self.outras_receitas_no_periodo_livre = Decimal(0.00)
+
+        self.despesas_no_periodo = Decimal(0.00)
+        self.despesas_no_periodo_capital = Decimal(0.00)
+        self.despesas_no_periodo_custeio = Decimal(0.00)
+
+        self.saldo_atual_total = Decimal(0.00)
+        self.saldo_atual_capital = Decimal(0.00)
+        self.saldo_atual_custeio = Decimal(0.00)
+        self.saldo_atual_livre = Decimal(0.00)
 
 
 class PainelResumoRecursosCardAcao:
@@ -60,9 +89,9 @@ class PainelResumoRecursos:
             associacao_uuid=self.associacao.uuid
         )
         self.conta_associacao = conta_associacao
-        self.info_conta = PainelResumoRecursosCardConta(periodo=periodo, conta_associacao=conta_associacao)
 
         self.__set_info_acoes()
+        self.__set_info_contas()
 
     def __set_info_acoes(self):
         self.info_acoes = []
@@ -75,6 +104,19 @@ class PainelResumoRecursos:
                     conta_associacao=self.conta_associacao
                 )
             )
+
+    def __set_info_contas(self):
+        self.info_conta = PainelResumoRecursosCardConta(
+            periodo=self.periodo_referencia,
+            conta_associacao=self.conta_associacao
+        )
+
+        campos_nao_somaveis = ['acao_associacao_uuid', 'acao_associacao_nome', 'resumo_recursos']
+        for info_acao in self.info_acoes:
+            valores_info_acao = vars(info_acao)
+            for campo, valor_acao in valores_info_acao.items():
+                if campo not in campos_nao_somaveis:
+                    setattr(self.info_conta, campo, getattr(self.info_conta, campo) + valor_acao)
 
 
 class PainelResumoRecursosService:
