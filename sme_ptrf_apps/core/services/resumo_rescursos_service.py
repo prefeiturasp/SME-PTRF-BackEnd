@@ -230,6 +230,16 @@ class ResumoRecursos:
             + self.receitas.total_livre
         )
 
+        # O saldo de livre aplicação deve compensar saldos negativos de capital
+        if saldo_posterior_capital < Decimal(0.00):
+            saldo_posterior_livre += saldo_posterior_capital
+            saldo_posterior_capital = Decimal(0.00)
+
+        # O saldo de livre aplicação deve compensar saldos negativos de custeio
+        if saldo_posterior_custeio < Decimal(0.00):
+            saldo_posterior_livre += saldo_posterior_custeio
+            saldo_posterior_custeio = Decimal(0.00)
+
         self.saldo_posterior = ResumoSaldo(
             periodo=self.periodo,
             acao_associacao=self.acao_associacao,
