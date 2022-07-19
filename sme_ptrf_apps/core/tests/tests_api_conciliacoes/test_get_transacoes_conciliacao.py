@@ -108,6 +108,10 @@ def monta_result_esperado(transacoes_esperadas, periodo, conta):
                     "mestre"].valor,
                 'valor_transacao_na_conta': transacao["valor_transacao_na_conta"],
                 'valores_por_conta': transacao["valores_por_conta"],
+                'informacoes': [{'tag_hint': 'Parte da despesa foi paga com recursos '
+                                             'próprios ou por mais de uma conta.',
+                                 'tag_id': '3',
+                                 'tag_nome': 'Parcial'}],
                 'documento_mestre': mestre_esperado,
                 'rateios': rateios_esperados,
                 'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido if transacao["tipo"] == "Gasto" else

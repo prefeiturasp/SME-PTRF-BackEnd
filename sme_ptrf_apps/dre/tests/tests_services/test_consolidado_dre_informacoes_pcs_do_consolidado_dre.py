@@ -16,7 +16,8 @@ def test_retorna_informacoes_pcs_do_consolidado_dre_por_conta_cheque_pc_aprovada
     dado = informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_por_conta(
         dre_teste_service_consolidado_dre,
         periodo_teste_service_consolidado_dre,
-        tipo_conta_cartao_teste_service
+        tipo_conta_cartao_teste_service,
+        apenas_nao_publicadas=False
     )
 
     resultado_esperado = [
@@ -48,7 +49,8 @@ def test_retorna_informacoes_pcs_do_consolidado_dre_por_conta_cheque_pc_reprovad
     dado = informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_por_conta(
         dre_teste_service_consolidado_dre,
         periodo_teste_service_consolidado_dre,
-        tipo_conta_cheque_teste_service
+        tipo_conta_cheque_teste_service,
+        apenas_nao_publicadas=False
     )
 
     resultado_esperado = [

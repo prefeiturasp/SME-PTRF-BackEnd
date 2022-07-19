@@ -23,47 +23,13 @@ from django.contrib.auth import get_user_model
 
 logger = logging.getLogger(__name__)
 
-
 @shared_task(
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
     time_limit=333333,
     soft_time_limit=333333
 )
-def verificar_se_gera_lauda(
-    dre=None,
-    periodo=None,
-    consolidado_dre=None,
-    usuario=None,
-    tipo_contas=None,
-    parcial=False
-):
-    if not parcial:
-        ata = AtaParecerTecnico.objects.get(dre=dre, periodo=periodo, consolidado_dre=consolidado_dre)
-        if ata and ata.preenchida_em:
-            for tipo_conta in tipo_contas:
-                gerar_lauda_txt_consolidado_dre_async(
-                    consolidado_dre=consolidado_dre,
-                    dre=dre,
-                    periodo=periodo,
-                    tipo_conta=tipo_conta,
-                    parcial=parcial,
-                    usuario=usuario
-                )
-
-        else:
-            logger.info("Ata não preenchida, portanto não será gerada a Lauda")
-    else:
-        logger.info("Ainda constam prestações de contas das associações em análise, Lauda não será gerada")
-
-
-@shared_task(
-    retry_backoff=2,
-    retry_kwargs={'max_retries': 8},
-    time_limit=333333,
-    soft_time_limit=333333
-)
-def verificar_se_gera_ata_parecer_tecnico_async(dre=None, periodo=None, consolidado_dre=None, usuario=None, ata=None):
+def verificar_se_gera_ata_parecer_tecnico_async(dre=None, periodo=None, consolidado_dre=None, usuario=None, ata=None, parcial=None, apenas_nao_publicadas=False):
     logger.info(f'Iniciando a verificação para gerar a Ata de Parecer Técnico')
 
     dre_uuid = dre.uuid
@@ -76,7 +42,7 @@ def verificar_se_gera_ata_parecer_tecnico_async(dre=None, periodo=None, consolid
             f'Iniciando a geração do Arquivo da Ata de Parecer Técnico da DRE {dre}, Período {periodo} '
             f'e Consolidado DRE {consolidado_dre}')
         ata_uuid = ata.uuid
-        gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario)
+        gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario, apenas_nao_publicadas, parcial)
     else:
         logger.info("Ata não preenchida, portanto Arquivo PDF não será gerado")
 
@@ -112,13 +78,13 @@ def gerar_previa_consolidado_dre_async(
     parcial=None,
     usuario=None,
     consolidado_dre_uuid=None,
-    ata_uuid=None
+    sequencia_de_publicacao=None,
+    apenas_nao_publicadas=False,
 ):
     tipo_contas = TipoConta.objects.all()
 
     dre = Unidade.dres.get(uuid=dre_uuid)
     periodo = Periodo.objects.get(uuid=periodo_uuid)
-    ata = AtaParecerTecnico.objects.get(uuid=ata_uuid)
 
     for tipo_conta in tipo_contas:
         logger.info(f'Criando documento Prévia do Relatório Físico-Financeiro conta {tipo_conta}')
@@ -132,13 +98,14 @@ def gerar_previa_consolidado_dre_async(
             usuario=usuario,
             parcial=parcial,
             consolidado_dre_uuid=consolidado_dre_uuid,
+            sequencia_de_publicacao=sequencia_de_publicacao,
+            apenas_nao_publicadas=apenas_nao_publicadas,
         )
 
-    consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo)
-
-    ata.atrelar_consolidado_dre(consolidado_dre)
-
-    consolidado_dre.passar_para_status_gerado(parcial)
+    consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo,
+                                                 sequencia_de_publicacao=sequencia_de_publicacao)
+    eh_parcial = parcial['parcial']
+    consolidado_dre.passar_para_status_gerado(eh_parcial)
 
 
 @shared_task(
@@ -153,7 +120,9 @@ def concluir_consolidado_dre_async(
     parcial=None,
     usuario=None,
     consolidado_dre_uuid=None,
-    ata_uuid=None
+    ata_uuid=None,
+    sequencia_de_publicacao=None,
+    apenas_nao_publicadas=False,
 ):
     tipo_contas = TipoConta.objects.all()
 
@@ -173,15 +142,12 @@ def concluir_consolidado_dre_async(
             usuario=usuario,
             parcial=parcial,
             consolidado_dre_uuid=consolidado_dre_uuid,
+            sequencia_de_publicacao=sequencia_de_publicacao,
+            apenas_nao_publicadas=apenas_nao_publicadas,
         )
 
-    consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo)
-
-    passar_pcs_do_relatorio_para_publicadas_async(
-        dre=dre,
-        periodo=periodo,
-        consolidado_dre=consolidado_dre,
-    )
+    consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo,
+                                                 sequencia_de_publicacao=sequencia_de_publicacao)
 
     verificar_se_gera_ata_parecer_tecnico_async(
         dre=dre,
@@ -189,6 +155,8 @@ def concluir_consolidado_dre_async(
         consolidado_dre=consolidado_dre,
         usuario=usuario,
         ata=ata,
+        parcial=parcial,
+        apenas_nao_publicadas=apenas_nao_publicadas,
     )
 
     for tipo_conta in tipo_contas:
@@ -198,10 +166,18 @@ def concluir_consolidado_dre_async(
             periodo=periodo,
             tipo_conta=tipo_conta,
             parcial=parcial,
-            usuario=usuario
+            usuario=usuario,
+            apenas_nao_publicadas=apenas_nao_publicadas,
         )
 
-    consolidado_dre.passar_para_status_gerado(parcial)
+    passar_pcs_do_relatorio_para_publicadas_async(
+        dre=dre,
+        periodo=periodo,
+        consolidado_dre=consolidado_dre,
+    )
+
+    eh_parcial = parcial['parcial']
+    consolidado_dre.passar_para_status_gerado(eh_parcial)
 
 
 @shared_task(
@@ -210,7 +186,7 @@ def concluir_consolidado_dre_async(
     time_limit=333333,
     soft_time_limit=333333
 )
-def gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario):
+def gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario, apenas_nao_publicadas, parcial):
     logger.info(f'Iniciando a geração da Ata de Parecer Técnico Async. DRE {dre_uuid} e Período {periodo_uuid}')
     from .services import gerar_arquivo_ata_parecer_tecnico
 
@@ -218,7 +194,7 @@ def gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, us
     dre = Unidade.dres.get(uuid=dre_uuid)
     periodo = Periodo.by_uuid(periodo_uuid)
 
-    arquivo_ata = gerar_arquivo_ata_parecer_tecnico(ata=ata, dre=dre, periodo=periodo, usuario=usuario)
+    arquivo_ata = gerar_arquivo_ata_parecer_tecnico(ata=ata, dre=dre, periodo=periodo, usuario=usuario, apenas_nao_publicadas=apenas_nao_publicadas, parcial=parcial)
 
     if arquivo_ata is not None:
         logger.info(f'Arquivo ata parecer técnico: {arquivo_ata} gerado com sucesso.')
@@ -230,8 +206,16 @@ def gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, us
     time_limit=333333,
     soft_time_limit=333333
 )
-def gerar_relatorio_consolidado_dre_async(dre_uuid, periodo_uuid, parcial, tipo_conta_uuid, usuario,
-                                          consolidado_dre_uuid):
+def gerar_relatorio_consolidado_dre_async(
+    dre_uuid,
+    periodo_uuid,
+    parcial,
+    tipo_conta_uuid,
+    usuario,
+    consolidado_dre_uuid,
+    sequencia_de_publicacao,
+    apenas_nao_publicadas,
+):
     logger.info(f'Iniciando Relatório DRE. DRE:{dre_uuid} Período:{periodo_uuid} Tipo Conta:{tipo_conta_uuid}.')
 
     # Remover excel
@@ -271,7 +255,7 @@ def gerar_relatorio_consolidado_dre_async(dre_uuid, periodo_uuid, parcial, tipo_
         raise Exception(erro)
 
     try:
-        consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo)
+        consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo, sequencia_de_publicacao=sequencia_de_publicacao)
     except ConsolidadoDRE.DoesNotExist:
         erro = {
             'erro': 'Objeto não encontrado.',
@@ -281,18 +265,7 @@ def gerar_relatorio_consolidado_dre_async(dre_uuid, periodo_uuid, parcial, tipo_
         raise Exception(erro)
 
     try:
-        # Remover excel
-        # Essa linha esta sendo mantida para comparação do excel e pdf
-        # Após aprovação do pdf, remover excel
-        # gera_relatorio_dre(dre, periodo, tipo_conta, parcial)
-        _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, usuario, parcial, consolidado_dre)
-
-        # Comentei para remover posteriormente
-        # AtaParecerTecnico.iniciar(
-        #     dre=dre,
-        #     periodo=periodo
-        # )
-
+        _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, tipo_conta, usuario, parcial, consolidado_dre, apenas_nao_publicadas)
     except Exception as err:
         erro = {
             'erro': 'problema_geracao_relatorio',
@@ -316,7 +289,9 @@ def gerar_previa_relatorio_consolidado_dre_async(
     parcial,
     tipo_conta_uuid,
     usuario,
-    consolidado_dre_uuid
+    consolidado_dre_uuid,
+    sequencia_de_publicacao,
+    apenas_nao_publicadas,
 ):
     from sme_ptrf_apps.dre.services import _criar_previa_demonstrativo_execucao_fisico_financeiro
 
@@ -354,7 +329,8 @@ def gerar_previa_relatorio_consolidado_dre_async(
         raise Exception(erro)
 
     try:
-        consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo)
+        consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo,
+                                                     sequencia_de_publicacao=sequencia_de_publicacao)
     except ConsolidadoDRE.DoesNotExist:
         erro = {
             'erro': 'Objeto não encontrado.',
@@ -370,7 +346,8 @@ def gerar_previa_relatorio_consolidado_dre_async(
             tipo_conta,
             usuario,
             consolidado_dre,
-            parcial
+            parcial,
+            apenas_nao_publicadas
         )
     except Exception as err:
         erro = {
@@ -455,7 +432,7 @@ def gerar_lauda_csv_async(dre_uuid, tipo_conta_uuid, periodo_uuid, parcial, user
     time_limet=600,
     soft_time_limit=300
 )
-def gerar_lauda_txt_consolidado_dre_async(consolidado_dre, dre, tipo_conta, periodo, parcial, usuario):
+def gerar_lauda_txt_consolidado_dre_async(consolidado_dre, dre, tipo_conta, periodo, parcial, usuario, apenas_nao_publicadas):
     logger.info(
         f'Iniciando a geração do arquivo txt da lauda async. DRE:{dre} Período:{periodo} Tipo Conta:{tipo_conta} Consolidado DRE {consolidado_dre}.')
     from sme_ptrf_apps.dre.services import gerar_arquivo_lauda_txt_consolidado_dre
@@ -475,7 +452,9 @@ def gerar_lauda_txt_consolidado_dre_async(consolidado_dre, dre, tipo_conta, peri
     logger.info(f"Objeto {lauda} criado/retornado com sucesso")
 
     try:
-        ata = AtaParecerTecnico.objects.get(consolidado_dre=consolidado_dre, dre=dre, periodo=periodo)
+        ata = AtaParecerTecnico.objects.filter(consolidado_dre=consolidado_dre, dre=dre, periodo=periodo).last()
+        if not ata:
+            raise ValidationError(f"O objeto Ata para a DRE {dre} e Período {periodo} não foi encontrado na base.")
     except (AtaParecerTecnico.DoesNotExist, ValidationError):
         erro = {
             'erro': 'Objeto não encontrado.',
@@ -492,7 +471,7 @@ def gerar_lauda_txt_consolidado_dre_async(consolidado_dre, dre, tipo_conta, peri
 
         nome_dre = nome_dre.lower()
         nome_conta = tipo_conta.nome.lower()
-        gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, tipo_conta, ata, nome_dre, nome_conta, parcial)
+        gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, tipo_conta, ata, nome_dre, nome_conta, parcial, apenas_nao_publicadas)
     except Exception as err:
         erro = {
             'erro': 'problema_geracao_txt',
