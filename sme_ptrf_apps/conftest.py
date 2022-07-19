@@ -486,8 +486,6 @@ def prestacao_conta_devolvida_posterior(periodo_futuro, associacao):
     )
 
 
-
-
 @pytest.fixture
 def fechamento_periodo_anterior(periodo_anterior, associacao, conta_associacao, acao_associacao, ):
     return baker.make(
