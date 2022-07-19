@@ -77,7 +77,7 @@ class PainelResumoRecursosCardAcao:
 
 
 class PainelResumoRecursos:
-    def __init__(self, associacao, periodo, conta_associacao):
+    def __init__(self, associacao, periodo, conta_associacao=None):
         self.associacao = associacao
         self.periodo_referencia = periodo
         self.data_inicio_realizacao_despesas = periodo.data_inicio_realizacao_despesas
@@ -106,6 +106,10 @@ class PainelResumoRecursos:
             )
 
     def __set_info_contas(self):
+        if not self.conta_associacao:
+            self.info_conta = None
+            return
+
         self.info_conta = PainelResumoRecursosCardConta(
             periodo=self.periodo_referencia,
             conta_associacao=self.conta_associacao
@@ -118,9 +122,44 @@ class PainelResumoRecursos:
                 if campo not in campos_nao_somaveis:
                     setattr(self.info_conta, campo, getattr(self.info_conta, campo) + valor_acao)
 
+    @staticmethod
+    def __object_to_dict(obj, except_fields=None):
+        if except_fields is None:
+            except_fields = []
+
+        obj_dict = vars(obj)
+        for field in except_fields:
+            obj_dict.pop(field)
+
+        return obj_dict
+
+    def to_json(self):
+        json_info_acoes = []
+        for info_acao in self.info_acoes:
+            json_info_acoes.append(self.__object_to_dict(info_acao, except_fields=['resumo_recursos']))
+
+        if self.info_conta:
+            json_info_conta = self.__object_to_dict(self.info_conta, except_fields=['periodo'])
+        else:
+            json_info_conta = None
+
+        json = {
+            'associacao': self.associacao.uuid,
+            'periodo_referencia': self.periodo_referencia.referencia,
+            'prestacao_contas_status': self.prestacao_contas_status,
+            'data_inicio_realizacao_despesas': f'{self.data_inicio_realizacao_despesas}',
+            'data_fim_realizacao_despesas': f'{self.data_fim_realizacao_despesas}',
+            'data_prevista_repasse': f'{self.data_prevista_repasse}',
+            'ultima_atualizacao': f'{self.ultima_atualizacao}',
+            'info_acoes': json_info_acoes,
+            'info_conta': json_info_conta
+        }
+
+        return json
+
 
 class PainelResumoRecursosService:
     @classmethod
-    def painel_resumo_recursos(cls, associacao, periodo, conta_associacao=None):
+    def painel_resumo_recursos(cls, associacao, periodo=None, conta_associacao=None):
         return PainelResumoRecursos(associacao=associacao, periodo=periodo, conta_associacao=conta_associacao)
 

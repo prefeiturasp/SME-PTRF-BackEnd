@@ -39,38 +39,6 @@ def test_painel_resumo_recursos_retorna_info_conta(
         prr_conta_associacao_cheque
     )
 
-
-    # info_conta = {
-    #     'conta_associacao_uuid': f'{conta.uuid}',
-    #     'conta_associacao_nome': conta.tipo_conta.nome,
-    #
-    #     'saldo_reprogramado': 0,
-    #     'saldo_reprogramado_capital': 0,
-    #     'saldo_reprogramado_custeio': 0,
-    #     'saldo_reprogramado_livre': 0,
-    #
-    #     'receitas_no_periodo': 0,
-    #
-    #     'repasses_no_periodo': 0,
-    #     'repasses_no_periodo_capital': 0,
-    #     'repasses_no_periodo_custeio': 0,
-    #     'repasses_no_periodo_livre': 0,
-    #
-    #     'outras_receitas_no_periodo': 0,
-    #     'outras_receitas_no_periodo_capital': 0,
-    #     'outras_receitas_no_periodo_custeio': 0,
-    #     'outras_receitas_no_periodo_livre': 0,
-    #
-    #     'despesas_no_periodo': 0,
-    #     'despesas_no_periodo_capital': 0,
-    #     'despesas_no_periodo_custeio': 0,
-    #
-    #     'saldo_atual_custeio': 0,
-    #     'saldo_atual_capital': 0,
-    #     'saldo_atual_livre': 0,
-    #     'saldo_atual_total': 0
-    # }
-
     info_conta = painel.info_conta
 
     assert isinstance(info_conta, PainelResumoRecursosCardConta), "info_conta devem ser do tipo correto."

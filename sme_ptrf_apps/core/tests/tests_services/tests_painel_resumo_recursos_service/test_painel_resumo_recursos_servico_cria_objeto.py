@@ -20,17 +20,6 @@ def test_obtem_painel_resumo_recursos_por_associacao_periodo_conta(
     prr_conta_associacao_cheque,
     prr_acao_associacao_ptrf,
 ):
-    # result = {
-    #     'associacao': f'{associacao_uuid}',
-    #     'periodo_referencia': periodo.referencia,
-    #     'prestacao_contas_status': prestacao_contas_status,
-    #     'data_inicio_realizacao_despesas': f'{periodo.data_inicio_realizacao_despesas if periodo else ""}',
-    #     'data_fim_realizacao_despesas': f'{periodo.data_fim_realizacao_despesas if periodo else ""}',
-    #     'data_prevista_repasse': f'{periodo.data_prevista_repasse if periodo else ""}',
-    #     'ultima_atualizacao': f'{ultima_atualizacao}',
-    #     'info_acoes': info_acoes,
-    #     'info_conta': info_conta
-    # }
 
     painel = PainelResumoRecursosService.painel_resumo_recursos(
         prr_associacao,
