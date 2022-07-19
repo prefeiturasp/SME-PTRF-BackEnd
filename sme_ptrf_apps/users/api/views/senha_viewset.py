@@ -1,5 +1,7 @@
+import logging
+
 from django.contrib.auth import get_user_model
-from rest_framework import mixins, viewsets, status
+from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -9,7 +11,9 @@ from sme_ptrf_apps.users.api.serializers import (
     RedefinirSenhaSerializerCreator,
 )
 from sme_ptrf_apps.users.api.serializers.senha_serializer import EmailNaoCadastrado, ProblemaEnvioEmail
-from sme_ptrf_apps.users.services import SmeIntegracaoException
+
+logger = logging.getLogger(__name__)
+
 User = get_user_model()
 
 
@@ -18,7 +22,6 @@ class EsqueciMinhaSenhaViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     permission_classes = [AllowAny]
     serializer_class = EsqueciMinhaSenhaSerializer
-
 
     def update(self, request, *args, **kwargs):
         try:
@@ -50,6 +53,11 @@ class RedefinirSenhaViewSet(viewsets.ModelViewSet):
         validated_data = serialize.validate(request.data)
         usuario = User.objects.get(hash_redefinicao=validated_data.get('hash_redefinicao'))
         result = serialize.update(usuario, validated_data)
-        if isinstance(result, SmeIntegracaoException):
-            return Response(result)
+        if isinstance(result, Response):
+            logger.error('Erro ao alterar a senha:', result)
+            return result
         return Response({'detail': 'Senha redefinida com sucesso'}, status=status.HTTP_200_OK)
+
+
+
+
