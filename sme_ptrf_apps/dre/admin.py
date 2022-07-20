@@ -206,7 +206,16 @@ class JObsDevolucaoRelatorioConsolidadoDREAdmin(admin.ModelAdmin):
 
 @admin.register(Comissao)
 class ComissaoAdmin(admin.ModelAdmin):
-    list_display = ['nome', ]
+    from sme_ptrf_apps.dre.models import ParametrosDre
+
+    comissao_exame_conta = ParametrosDre.get().comissao_exame_contas
+
+    def get_e_exame_de_contas(self, obj):
+        return "X" if obj == self.comissao_exame_conta else ""
+
+    get_e_exame_de_contas.short_description = 'Exame de contas'
+
+    list_display = ['nome', 'get_e_exame_de_contas']
     search_fields = ['nome', ]
     readonly_fields = ['id', 'uuid', 'criado_em', 'alterado_em']
 
