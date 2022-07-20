@@ -9,9 +9,14 @@ from rest_framework import status
 from ....utils.choices_to_json import choices_to_json
 from ..serializers.valores_reprogramados_serializer import ValoresReprogramadosListSerializer
 from sme_ptrf_apps.users.permissoes import (
-    PermissaoApiDre,
+    PermissaoApiDre, PermissaoAPITodosComLeituraOuGravacao
 )
-from ...services import lista_valores_reprogramados
+from ...services import (
+    lista_valores_reprogramados,
+    salvar_e_concluir_valores_reprogramados,
+    monta_estrutura_valores_reprogramados,
+    barra_status
+)
 
 
 class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
@@ -120,3 +125,145 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
         }
 
         return Response(result)
+
+    @action(detail=False, methods=['patch'], url_path='salvar-valores-reprogramados',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def salvar_valores_reprogramados(self, request):
+        associacao_uuid = self.request.data.get('associacao_uuid', None)
+
+        try:
+            associacao = Associacao.objects.get(uuid=associacao_uuid)
+            periodo = associacao.periodo_inicial
+        except Associacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto associacao para o uuid {associacao_uuid} não foi encontrado na base."
+            }
+
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        dados = self.request.data.get('dadosForm', None)
+
+        if not dados:
+            erro = {
+                'erro': 'Dados não informados.',
+                'mensagem': f"Os dados necessários não foram informados."
+            }
+
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        visao_selecionada = self.request.data.get('visao', None)
+
+        if not visao_selecionada:
+            erro = {
+                'erro': 'Visão não informada.',
+                'mensagem': f"A visão não foi informada."
+            }
+
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        retorno = salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_selecionada)
+
+        result = {
+            "contas": monta_estrutura_valores_reprogramados(associacao),
+            "associacao": {
+                "uuid": f"{associacao.uuid}",
+                "status_valores_reprogramados": associacao.status_valores_reprogramados
+            }
+        }
+
+        return Response(result, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['patch'], url_path='concluir-valores-reprogramados',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def concluir(self, request):
+        associacao_uuid = self.request.data.get('associacao_uuid', None)
+
+        try:
+            associacao = Associacao.objects.get(uuid=associacao_uuid)
+            periodo = associacao.periodo_inicial
+        except Associacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto associacao para o uuid {associacao_uuid} não foi encontrado na base."
+            }
+
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        dados = self.request.data.get('dadosForm', None)
+
+        if not dados:
+            erro = {
+                'erro': 'Dados não informados.',
+                'mensagem': f"Os dados necessários não foram informados."
+            }
+
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        visao_selecionada = self.request.data.get('visao', None)
+
+        if not visao_selecionada:
+            erro = {
+                'erro': 'Visão não informada.',
+                'mensagem': f"A visão não foi informada."
+            }
+
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        retorno = salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_selecionada, concluir=True)
+
+        result = {
+            "contas": monta_estrutura_valores_reprogramados(associacao),
+            "associacao": {
+                "uuid": f"{associacao.uuid}",
+                "status_valores_reprogramados": associacao.status_valores_reprogramados
+            }
+        }
+
+        return Response(result, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['get'], url_path='get-valores-reprogramados',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def get_valores_reprogramados(self, request):
+        associacao_uuid = self.request.query_params.get("associacao_uuid")
+
+        try:
+            associacao = Associacao.objects.get(uuid=associacao_uuid)
+        except Associacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto associacao para o uuid {associacao_uuid} não foi encontrado na base."
+            }
+
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        result = {
+            "contas": monta_estrutura_valores_reprogramados(associacao),
+            "associacao": {
+                "uuid": f"{associacao.uuid}",
+                "status_valores_reprogramados": associacao.status_valores_reprogramados
+            }
+        }
+
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='get-status-valores-reprogramados',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def get_status_valores_reprogramados(self, request):
+        associacao_uuid = self.request.query_params.get("associacao_uuid")
+
+        try:
+            associacao = Associacao.objects.get(uuid=associacao_uuid)
+        except Associacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto associacao para o uuid {associacao_uuid} não foi encontrado na base."
+            }
+
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        result = {
+            "status": barra_status(associacao)
+        }
+
+        return Response(result, status=status.HTTP_200_OK)

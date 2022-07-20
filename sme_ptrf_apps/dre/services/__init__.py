@@ -35,5 +35,8 @@ from .consolidado_dre_service import concluir_consolidado_dre, verificar_se_stat
 from .valores_reprogramados_dre_service import (
     calcula_total_conta_um,
     calcula_total_conta_dois,
-    lista_valores_reprogramados
+    lista_valores_reprogramados,
+    salvar_e_concluir_valores_reprogramados,
+    monta_estrutura_valores_reprogramados,
+    barra_status
 )
