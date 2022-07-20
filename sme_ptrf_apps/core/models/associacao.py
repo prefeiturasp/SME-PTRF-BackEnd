@@ -187,6 +187,10 @@ class Associacao(ModeloIdNome):
         associacao = cls.objects.filter(uuid=associacao_uuid).first()
         return associacao.acoes.all().order_by('acao__posicao_nas_pesquisas') if associacao else []
 
+    def altera_status_valor_reprogramado(self, status):
+        self.status_valores_reprogramados = status
+        self.save()
+
     objects = models.Manager()  # Manager Padrão
     ativas = AssociacoesAtivasManager()
 

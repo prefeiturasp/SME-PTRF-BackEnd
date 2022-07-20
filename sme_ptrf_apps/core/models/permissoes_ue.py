@@ -49,7 +49,6 @@ class FuncUeCreditosDaEscola(models.Model):
 
         permissions = (
             ('access_receita', '[UE] Pode acessar Créditos da Escola.'),
-            ('add_valores_reprogramados', '[UE] Pode implantar valores reprogramados em Créditos da Escola.'),
             ('add_receita', '[UE] Pode incluir Créditos da Escola.'),
             ('change_receita', '[UE] Pode editar Créditos da Escola.'),
             ('delete_receita', '[UE] Pode excluir Créditos da Escola.'),
@@ -161,4 +160,19 @@ class FuncUeRecebimentoDeNotificacoes(models.Model):
             ('recebe_notificacao_aprovacao_pc', '[UE] Pode receber Notificação Prestação de Contas Aprovada'),
             ('recebe_notificacao_reprovacao_pc_nao_incluindo_motivos', '[UE] Pode receber Notificação Prestação de Contas Reprovada Não Incluindo Motivos'),
             ('recebe_notificacao_reprovacao_pc_incluindo_motivos', '[UE] Pode receber Notificação Prestação de Contas Reprovada Incluindo Motivos'),
+        )
+
+
+class FuncValoresReprogramadosUE(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[UE] Valor Reprogramado"
+        verbose_name_plural = "[UE] Valores Reprogramados"
+
+        permissions = (
+            ('access_valores_reprogramados_ue', '[UE] Pode acessar Valores Reprogramados.'),
+            ('change_valores_reprogramados_ue', '[UE] Pode atualizar Valores Reprogramados.'),
         )

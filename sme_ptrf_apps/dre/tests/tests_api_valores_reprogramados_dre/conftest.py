@@ -39,6 +39,20 @@ def unidade_valores_reprogramados(dre):
 
 
 @pytest.fixture
+def valores_reprogramados_valores_corretos(associacao_2, conta_associacao, acao_associacao_aceita_custeio):
+    return baker.make(
+        'ValoresReprogramados',
+        associacao=associacao_2,
+        periodo=associacao_2.periodo_inicial,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_aceita_custeio,
+        aplicacao_recurso="CUSTEIO",
+        valor_ue=0.10,
+        valor_dre=0.20
+    )
+
+
+@pytest.fixture
 def associacao_2(unidade_valores_reprogramados, periodo_anterior):
     return baker.make(
         'Associacao',

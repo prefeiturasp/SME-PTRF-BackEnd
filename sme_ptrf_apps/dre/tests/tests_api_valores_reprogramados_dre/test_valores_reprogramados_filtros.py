@@ -220,9 +220,9 @@ def test_api_valores_reprogramados_lista_associacoes_filtro_nome_unidade(
     associacao_2,
     associacao_3,
     periodo_anterior,
-    fechamento_conta_cheque_valores_reprogramados,
-    fechamento_conta_cheque_valores_reprogramados_2,
-    parametros_dre_valores_reprogramados
+    parametros_dre_valores_reprogramados,
+    valores_reprogramados_valores_corretos,
+    conta_associacao
 ):
     response = jwt_authenticated_client_dre.get(
         f'/api/valores-reprogramados/lista-associacoes/?dre_uuid={dre.uuid}&search=Duar', content_type='application/json')
@@ -250,7 +250,7 @@ def test_api_valores_reprogramados_lista_associacoes_filtro_nome_unidade(
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
                 'uuid': f'{periodo_anterior.uuid}'
             },
-            'total_conta_um': 300.0,
+            'total_conta_um': 0.1,
             'total_conta_dois': '-'
         }
     ]
@@ -268,9 +268,9 @@ def test_api_valores_reprogramados_lista_associacoes_filtro_nome_associacao(
     associacao_2,
     associacao_3,
     periodo_anterior,
-    fechamento_conta_cheque_valores_reprogramados,
-    fechamento_conta_cheque_valores_reprogramados_2,
-    parametros_dre_valores_reprogramados
+    parametros_dre_valores_reprogramados,
+    valores_reprogramados_valores_corretos,
+    conta_associacao
 ):
     response = jwt_authenticated_client_dre.get(
         f'/api/valores-reprogramados/lista-associacoes/?dre_uuid={dre.uuid}&search=Anton', content_type='application/json')
@@ -298,7 +298,7 @@ def test_api_valores_reprogramados_lista_associacoes_filtro_nome_associacao(
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
                 'uuid': f'{periodo_anterior.uuid}'
             },
-            'total_conta_um': 300.0,
+            'total_conta_um': 0.1,
             'total_conta_dois': "-"
         }
     ]
@@ -316,9 +316,9 @@ def test_api_valores_reprogramados_lista_associacoes_filtro_codigo_eol(
     associacao_2,
     associacao_3,
     periodo_anterior,
-    fechamento_conta_cheque_valores_reprogramados,
-    fechamento_conta_cheque_valores_reprogramados_2,
-    parametros_dre_valores_reprogramados
+    parametros_dre_valores_reprogramados,
+    valores_reprogramados_valores_corretos,
+    conta_associacao
 ):
     response = jwt_authenticated_client_dre.get(
         f'/api/valores-reprogramados/lista-associacoes/?dre_uuid={dre.uuid}&search=123457', content_type='application/json')
@@ -345,7 +345,7 @@ def test_api_valores_reprogramados_lista_associacoes_filtro_codigo_eol(
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
                 'uuid': f'{periodo_anterior.uuid}'
             },
-            'total_conta_um': 300.0,
+            'total_conta_um': 0.1,
             'total_conta_dois': "-"
         }
     ]
@@ -363,9 +363,9 @@ def test_api_valores_reprogramados_lista_associacoes_filtro_tipo_unidade(
     associacao_2,
     associacao_3,
     periodo_anterior,
-    fechamento_conta_cheque_valores_reprogramados,
-    fechamento_conta_cheque_valores_reprogramados_2,
-    parametros_dre_valores_reprogramados
+    parametros_dre_valores_reprogramados,
+    valores_reprogramados_valores_corretos,
+    conta_associacao
 ):
     response = jwt_authenticated_client_dre.get(
         f'/api/valores-reprogramados/lista-associacoes/?dre_uuid={dre.uuid}&tipo_unidade=EMEF', content_type='application/json')
@@ -393,7 +393,7 @@ def test_api_valores_reprogramados_lista_associacoes_filtro_tipo_unidade(
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
                 'uuid': f'{periodo_anterior.uuid}'
             },
-            'total_conta_um': 300.0,
+            'total_conta_um': 0.1,
             'total_conta_dois': "-"
         }
     ]
@@ -411,9 +411,9 @@ def test_api_valores_reprogramados_lista_associacoes_filtro_status(
     associacao_2,
     associacao_3,
     periodo_anterior,
-    fechamento_conta_cheque_valores_reprogramados,
-    fechamento_conta_cheque_valores_reprogramados_2,
-    parametros_dre_valores_reprogramados
+    parametros_dre_valores_reprogramados,
+    valores_reprogramados_valores_corretos,
+    conta_associacao
 ):
     response = jwt_authenticated_client_dre.get(
         f'/api/valores-reprogramados/lista-associacoes/?dre_uuid={dre.uuid}&status=VALORES_CORRETOS', content_type='application/json')
