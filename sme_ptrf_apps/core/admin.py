@@ -42,7 +42,8 @@ from .models import (
     AnaliseDocumentoPrestacaoConta,
     SolicitacaoAcertoDocumento,
     PresenteAta,
-    AnaliseValorReprogramadoPrestacaoConta
+    AnaliseValorReprogramadoPrestacaoConta,
+    ValoresReprogramados
 )
 
 admin.site.register(Acao)
@@ -679,3 +680,14 @@ class PresenteAtaAdmin(admin.ModelAdmin):
 class AnaliseValorReprogramadoPrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ['analise_prestacao_conta', 'conta_associacao', 'acao_associacao', 'valor_saldo_reprogramado_correto']
     readonly_fields = ('uuid', 'id',)
+
+
+@admin.register(ValoresReprogramados)
+class ValoresReprogramadosAdmin(admin.ModelAdmin):
+    list_display = ('associacao', 'conta_associacao', 'acao_associacao', 'aplicacao_recurso', 'valor_ue', 'valor_dre')
+    search_fields = ('uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
+    list_filter = ('associacao', 'associacao__status_valores_reprogramados', 'associacao__periodo_inicial',
+                   'associacao__unidade__dre', 'conta_associacao__tipo_conta',
+                   'acao_associacao__acao', 'aplicacao_recurso')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+

@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import admin
 
 from .models import (
@@ -14,6 +16,8 @@ admin.site.register(ParametroFiqueDeOlhoRelDre)
 admin.site.register(MotivoAprovacaoRessalva)
 admin.site.register(MotivoReprovacao)
 admin.site.register(ParametrosDre)
+
+logger = logging.getLogger(__name__)
 
 
 class ListasVerificacaoInline(admin.TabularInline):
@@ -206,9 +210,34 @@ class JObsDevolucaoRelatorioConsolidadoDREAdmin(admin.ModelAdmin):
 
 @admin.register(Comissao)
 class ComissaoAdmin(admin.ModelAdmin):
-    list_display = ['nome', ]
+
+    def get_e_exame_de_contas(self, obj):
+        comissao_exame_contas = ParametrosDre.objects.first().comissao_exame_contas if ParametrosDre.objects.exists() else None
+        return "X" if obj == comissao_exame_contas else ""
+
+    get_e_exame_de_contas.short_description = 'Exame de contas'
+
+    list_display = ['nome', 'get_e_exame_de_contas']
     search_fields = ['nome', ]
     readonly_fields = ['id', 'uuid', 'criado_em', 'alterado_em']
+
+    actions = ['define_como_exame_de_contas', ]
+
+    def define_como_exame_de_contas(self, request, queryset):
+        from django.contrib import messages
+        if queryset.count() != 1:
+            self.message_user(request, "Selecione apenas uma comissão para ser a de exame de contas.", level=messages.ERROR)
+            return
+
+        comissao = queryset.first()
+        parametros_dre = ParametrosDre.get()
+        parametros_dre.comissao_exame_contas = comissao
+        parametros_dre.save()
+
+        self.message_user(
+            request,
+            f"Comissão {comissao.nome} definida como exame de contas nos parâmetros da DRE.",
+        )
 
 
 @admin.register(MembroComissao)

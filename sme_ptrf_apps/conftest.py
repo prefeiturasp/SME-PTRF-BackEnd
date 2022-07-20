@@ -112,6 +112,11 @@ def acao():
 
 
 @pytest.fixture
+def acao_aceita_custeio():
+    return baker.make('Acao', nome='PTRF-aceita-custeio', aceita_custeio=True)
+
+
+@pytest.fixture
 def acao_ptrf(acao):
     return acao
 
@@ -133,6 +138,118 @@ def dre():
 @pytest.fixture
 def dre_ipiranga():
     return baker.make('Unidade', codigo_eol='108600', tipo_unidade='DRE', nome='DRE IPIRANGA', sigla='IP')
+
+@pytest.fixture
+def valores_reprogramados_nao_finalizado(associacao_status_nao_finalizado, conta_associacao, acao_associacao):
+    return baker.make(
+        'ValoresReprogramados',
+        associacao=associacao_status_nao_finalizado,
+        periodo=associacao_status_nao_finalizado.periodo_inicial,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso="CUSTEIO",
+        valor_ue=0.10,
+        valor_dre=0.20
+    )
+
+
+@pytest.fixture
+def valores_reprogramados_correcao_ue(associacao_status_correcao_ue, conta_associacao, acao_associacao):
+    return baker.make(
+        'ValoresReprogramados',
+        associacao=associacao_status_correcao_ue,
+        periodo=associacao_status_correcao_ue.periodo_inicial,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso="CUSTEIO",
+        valor_ue=0.10,
+        valor_dre=0.20
+    )
+
+
+@pytest.fixture
+def valores_reprogramados_correcao_ue_com_valores_iguais(associacao_status_correcao_ue, conta_associacao, acao_associacao):
+    return baker.make(
+        'ValoresReprogramados',
+        associacao=associacao_status_correcao_ue,
+        periodo=associacao_status_correcao_ue.periodo_inicial,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso="CUSTEIO",
+        valor_ue=0.10,
+        valor_dre=0.10
+    )
+
+
+@pytest.fixture
+def valores_reprogramados_conferencia_dre(associacao_status_conferencia_dre, conta_associacao, acao_associacao):
+    return baker.make(
+        'ValoresReprogramados',
+        associacao=associacao_status_conferencia_dre,
+        periodo=associacao_status_conferencia_dre.periodo_inicial,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso="CUSTEIO",
+        valor_ue=0.10,
+        valor_dre=0.20
+    )
+
+
+@pytest.fixture
+def valores_reprogramados_conferencia_dre_com_valores_iguais(associacao_status_conferencia_dre, conta_associacao, acao_associacao):
+    return baker.make(
+        'ValoresReprogramados',
+        associacao=associacao_status_conferencia_dre,
+        periodo=associacao_status_conferencia_dre.periodo_inicial,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso="CUSTEIO",
+        valor_ue=0.10,
+        valor_dre=0.10
+    )
+
+
+@pytest.fixture
+def valores_reprogramados_valores_corretos(associacao, conta_associacao, acao_associacao_aceita_custeio):
+    return baker.make(
+        'ValoresReprogramados',
+        associacao=associacao,
+        periodo=associacao.periodo_inicial,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_aceita_custeio,
+        aplicacao_recurso="CUSTEIO",
+        valor_ue=0.10,
+        valor_dre=0.20
+    )
+
+
+
+@pytest.fixture
+def valores_reprogramados_valores_corretos_com_valores_iguais(associacao, conta_associacao, acao_associacao):
+    return baker.make(
+        'ValoresReprogramados',
+        associacao=associacao,
+        periodo=associacao.periodo_inicial,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso="CUSTEIO",
+        valor_ue=0.10,
+        valor_dre=0.10
+    )
+
+
+@pytest.fixture
+def valores_reprogramados_valores_corretos_com_valores_iguais_2(associacao, conta_associacao, acao_associacao):
+    return baker.make(
+        'ValoresReprogramados',
+        associacao=associacao,
+        periodo=associacao.periodo_inicial,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso="CUSTEIO",
+        valor_ue=0.10,
+        valor_dre=0.10
+    )
 
 
 @pytest.fixture
@@ -172,6 +289,51 @@ def associacao(unidade, periodo_anterior):
         ccm='0.000.00-0',
         email="ollyverottoboni@gmail.com",
         processo_regularidade='123456'
+    )
+
+
+@pytest.fixture
+def associacao_status_nao_finalizado(unidade, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste',
+        cnpj='36.749.017/0001-93',
+        unidade=unidade,
+        periodo_inicial=periodo_anterior,
+        ccm='0.000.00-0',
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456',
+        status_valores_reprogramados="NAO_FINALIZADO"
+    )
+
+
+@pytest.fixture
+def associacao_status_correcao_ue(unidade, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste',
+        cnpj='20.686.126/0001-79',
+        unidade=unidade,
+        periodo_inicial=periodo_anterior,
+        ccm='0.000.00-0',
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456',
+        status_valores_reprogramados="EM_CORRECAO_UE"
+    )
+
+
+@pytest.fixture
+def associacao_status_conferencia_dre(unidade, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste',
+        cnpj='04.013.611/0001-25',
+        unidade=unidade,
+        periodo_inicial=periodo_anterior,
+        ccm='0.000.00-0',
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456',
+        status_valores_reprogramados="EM_CONFERENCIA_DRE"
     )
 
 
@@ -260,6 +422,15 @@ def acao_associacao(associacao, acao):
         'AcaoAssociacao',
         associacao=associacao,
         acao=acao
+    )
+
+
+@pytest.fixture
+def acao_associacao_aceita_custeio(associacao, acao_aceita_custeio):
+    return baker.make(
+        'AcaoAssociacao',
+        associacao=associacao,
+        acao=acao_aceita_custeio
     )
 
 
