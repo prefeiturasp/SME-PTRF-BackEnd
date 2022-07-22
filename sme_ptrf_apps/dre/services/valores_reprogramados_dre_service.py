@@ -335,7 +335,8 @@ def calcula_total_conta_um(associacao):
 
         if valores_reprogramados:
             for valor in valores_reprogramados:
-                total_conta_um = total_conta_um + valor.valor_ue
+                if valor.valor_ue:
+                    total_conta_um = total_conta_um + valor.valor_ue
 
             return total_conta_um
         else:
@@ -361,7 +362,8 @@ def calcula_total_conta_dois(associacao):
 
         if valores_reprogramados:
             for valor in valores_reprogramados:
-                total_conta_dois = total_conta_dois + valor.valor_ue
+                if valor.valor_ue:
+                    total_conta_dois = total_conta_dois + valor.valor_ue
 
             return total_conta_dois
         else:
