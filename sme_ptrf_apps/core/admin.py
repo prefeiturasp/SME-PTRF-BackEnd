@@ -631,7 +631,7 @@ class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
     list_display = ['nome', 'categoria']
     search_fields = ['nome', 'categoria']
     list_filter = ['nome', 'categoria']
-    readonly_fields = ('uuid', 'id',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 
 @admin.register(SolicitacaoAcertoLancamento)
