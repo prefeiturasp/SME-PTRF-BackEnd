@@ -630,7 +630,7 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
 class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
     list_display = ['nome', 'categoria']
     search_fields = ['nome', 'categoria']
-    list_filter = ['nome', 'categoria']
+    list_filter = ['nome', 'categoria', 'ativo']
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 
