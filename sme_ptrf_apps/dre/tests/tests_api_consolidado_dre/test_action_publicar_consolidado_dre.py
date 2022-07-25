@@ -24,7 +24,11 @@ def test_publicar_consolidado_dre_ata_preenchida_deve_passar(
     payload_publicar_consolidado_dre,
     consolidado_dre_teste_api_consolidado_dre,
     ano_analise_regularidade_2022_teste_api,
-    ata_parecer_tecnico_teste_api_preenchida
+    ata_parecer_tecnico_teste_api_preenchida,
+    unidade_teste_api_consolidado_dre_01,
+    associacao_teste_api_consolidado_dre_01,
+    unidade_teste_api_consolidado_dre_02,
+    associacao_teste_api_consolidado_dre_02
 ):
     response = jwt_authenticated_client_dre.post(
         '/api/consolidados-dre/publicar/',
@@ -46,7 +50,11 @@ def test_publicar_consolidado_dre_ata_nao_prenchida(
     payload_publicar_consolidado_dre,
     consolidado_dre_teste_api_consolidado_dre,
     ano_analise_regularidade_2022_teste_api,
-    ata_parecer_tecnico_teste_api
+    ata_parecer_tecnico_teste_api,
+    unidade_teste_api_consolidado_dre_01,
+    associacao_teste_api_consolidado_dre_01,
+    unidade_teste_api_consolidado_dre_02,
+    associacao_teste_api_consolidado_dre_02
 ):
     response = jwt_authenticated_client_dre.post(
         '/api/consolidados-dre/publicar/',

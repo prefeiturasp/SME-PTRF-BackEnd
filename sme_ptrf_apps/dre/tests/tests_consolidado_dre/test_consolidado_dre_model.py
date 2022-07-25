@@ -18,6 +18,7 @@ def test_instance_model(consolidado_dre_teste_model_consolidado_dre, dre_teste_m
     assert model.dre
     assert model.periodo
     assert model.status
+    assert model.versao
 
 
 def test_str_model(consolidado_dre_teste_model_consolidado_dre):

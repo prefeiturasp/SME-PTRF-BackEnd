@@ -11,17 +11,20 @@ from sme_ptrf_apps.dre.models import ParametrosDre
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, tipo_conta, usuario, parcial=False):
+def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, tipo_conta, usuario, parcial, previa=False, apenas_nao_publicadas=False):
     try:
         LOGGER.info("Gerando relatório consolidado...")
 
-        cabecalho = cria_cabecalho(periodo, tipo_conta, parcial)
-        data_geracao_documento = cria_data_geracao_documento(usuario, dre, parcial)
+        cabecalho = cria_cabecalho(periodo, tipo_conta, parcial, previa)
+        data_geracao_documento = cria_data_geracao_documento(usuario, dre, parcial, previa)
         identificacao_dre = cria_identificacao_dre(dre)
-        execucao_financeira = cria_execucao_financeira(dre, periodo, tipo_conta)
-        execucao_fisica = cria_execucao_fisica(dre, periodo)
+        execucao_financeira = cria_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas)
+        execucao_fisica = cria_execucao_fisica(dre, periodo, apenas_nao_publicadas)
+        dados_fisicos_financeiros = cria_dados_fisicos_financeiros(dre, periodo, tipo_conta, apenas_nao_publicadas)
+
+        # Não se preocupar
         associacoes_nao_regularizadas = cria_associacoes_nao_regularizadas(dre, periodo)
-        dados_fisicos_financeiros = cria_dados_fisicos_financeiros(dre, periodo, tipo_conta)
+
         assinatura_dre = cria_assinaturas_dre(dre)
 
         """
@@ -31,29 +34,18 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, tipo_conta, usuari
                 cabecalho
                 identificacao_dre
 
-            Bloco 2 - Identificação Bancária e Saldo
-                identificacao_conta
+            Bloco 2 - SÍNTESE DA EXECUÇÃO FINANCEIRA (R$)
+                execucao_financeira
+                associacoes_nao_regularizadas
 
-            Bloco 3 - Resumo por Ação
-                resumo_por_acao
+            Bloco 3 - EXECUÇÃO FÍSICA
+                execucao_fisica
 
-            Bloco 4 - Créditos
-                creditos_demonstrados
+            Bloco 4 - DADOS FÍSICO-FINANCEIROS DA EXECUÇÃO (R$)
+                dados_fisicos_financeiros
 
-            Bloco 5 - Despesas Demonstradas
-                despesas_demonstradas
-
-            Bloco 6 - Despesas Não Demonstradas
-                despesas_nao_demonstradas
-
-            Bloco 7 - Despesas de períodos anteriores não demonstradas
-                despesas_anteriores_nao_demonstradas
-
-            Bloco 8 - Justificativas e informações adicionais
-                justificativas
-
-            Bloco 9 - Assinaturas
-                data_geracao
+            Bloco 5 - AUTENTICAÇÃO
+                assinatura_dre
         """
 
         dados_demonstrativo = {
@@ -74,8 +66,20 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, tipo_conta, usuari
     return dados_demonstrativo
 
 
-def cria_cabecalho(periodo, tipo_conta, parcial):
+def cria_cabecalho(periodo, tipo_conta, parcial, previa):
     LOGGER.info("Iniciando cabecalho...")
+
+    eh_parcial = parcial['parcial']
+    sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
+
+    if previa and eh_parcial:
+        titulo_sequencia_publicacao = f'Prévia parcial #{sequencia_de_publicacao}'
+    elif previa and not eh_parcial:
+        titulo_sequencia_publicacao = f'Prévia final'
+    elif not previa and eh_parcial:
+        titulo_sequencia_publicacao = f'Parcial #{sequencia_de_publicacao}'
+    else:
+        titulo_sequencia_publicacao = 'Relatório Consolidado'
 
     cabecalho = {
         "periodo": str(periodo),
@@ -83,7 +87,8 @@ def cria_cabecalho(periodo, tipo_conta, parcial):
         "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas),
         "periodo_data_fim": formata_data(periodo.data_fim_realizacao_despesas),
         "conta": tipo_conta.nome,
-        "status": "PARCIAL" if parcial else "FINAL"
+        "status": "PARCIAL" if parcial else "FINAL",
+        "titulo_sequencia_publicacao": titulo_sequencia_publicacao
     }
 
     return cabecalho
@@ -99,11 +104,11 @@ def cria_identificacao_dre(dre):
     return identificacao
 
 
-def cria_execucao_financeira(dre, periodo, tipo_conta):
+def cria_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas):
     """BLOCO 2 - EXECUÇÃO FINANCEIRA"""
     from .relatorio_consolidado_service import informacoes_execucao_financeira
 
-    info = informacoes_execucao_financeira(dre, periodo, tipo_conta)
+    info = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas)
 
     # LINHA CUSTEIO
 
@@ -200,14 +205,14 @@ def cria_execucao_financeira(dre, periodo, tipo_conta):
     return execucao_financeira
 
 
-def cria_execucao_fisica(dre, periodo):
+def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas):
     """BLOCO 3 - EXECUÇÃO FÍSICA"""
     quantidade_ues_cnpj = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').count()
 
     # TODO Implementar contagem de regulares considerando o ano
     quantidade_regular = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').count()
 
-    cards = PrestacaoConta.dashboard(periodo.uuid, dre.uuid, add_aprovado_ressalva=True)
+    cards = PrestacaoConta.dashboard(periodo.uuid, dre.uuid, add_aprovado_ressalva=True, apenas_nao_publicadas=apenas_nao_publicadas)
 
     quantidade_aprovada = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'APROVADA'][0]
     quantidade_aprovada_ressalva = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'APROVADA_RESSALVA'][0]
@@ -275,7 +280,7 @@ def cria_associacoes_nao_regularizadas(dre, periodo):
     return regularizacao
 
 
-def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
+def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta, apenas_nao_publicadas):
     """Dados Físicos financeiros do bloco 4."""
     from .relatorio_consolidado_service import informacoes_execucao_financeira_unidades, get_status_label
 
@@ -305,7 +310,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, tipo_conta):
 
     total_devolucoes_ao_tesouro = 0
 
-    informacao_unidades = informacoes_execucao_financeira_unidades(dre, periodo, tipo_conta)
+    informacao_unidades = informacoes_execucao_financeira_unidades(dre, periodo, tipo_conta, apenas_nao_publicadas=apenas_nao_publicadas, filtro_nome=None, filtro_tipo_unidade=None, filtro_status=None)
 
     lista = []
 
@@ -493,13 +498,19 @@ def cria_assinaturas_dre(dre):
     return dados
 
 
-def cria_data_geracao_documento(usuario, dre, parcial=False):
+def cria_data_geracao_documento(usuario, dre, parcial, previa=False):
+    eh_parcial = "parcial" if parcial['parcial'] else "final"
+
+    if previa:
+        previa_ou_final = 'Versão prévia'
+    else:
+        previa_ou_final = f'Versão {eh_parcial}'
+
     LOGGER.info("Iniciando rodapé...")
-    data_geracao = date.today().strftime("%d/%m/%Y")
-    tipo_texto = "parcial" if parcial else "final"
+    data_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
     quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}"
     dre = formata_nome_dre(dre)
-    texto = f"DRE {dre} - Documento {tipo_texto} gerado {quem_gerou}, via SIG-Escola, em: {data_geracao}"
+    texto = f"DRE {dre} - {previa_ou_final} do documento gerado {quem_gerou}, via SIG-Escola, em {data_geracao}"
     return texto
 
 

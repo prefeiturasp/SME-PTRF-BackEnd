@@ -29,7 +29,7 @@ def get_verificacao_regularidade_associacao(associacao_uuid, ano):
         for lista in grupo.listas_de_verificacao.all().order_by('-id'):
             itens = []
             qtd_irregulares = 0
-            for item in lista.itens_de_verificacao.all():
+            for item in lista.itens_de_verificacao.all().order_by('id'):
                 item_esta_regular = False
                 if analise_regularidade_ano:
                     verificacao = analise_regularidade_ano.verificacoes_da_analise.filter(item_verificacao=item).first()

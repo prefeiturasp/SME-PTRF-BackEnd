@@ -11,6 +11,84 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
+def unidade_teste_api_consolidado_dre_01(dre_teste_api_consolidado_dre):
+    return baker.make(
+        'Unidade',
+        criado_em=date(2021, 6, 16),
+        nome='Escola Teste',
+        tipo_unidade='CEU',
+        codigo_eol='123456',
+        dre=dre_teste_api_consolidado_dre,
+        sigla='ET',
+        cep='5868120',
+        tipo_logradouro='Travessa',
+        logradouro='dos Testes',
+        bairro='COHAB INSTITUTO ADVENTISTA',
+        numero='200',
+        complemento='fundos',
+        telefone='58212627',
+        email='emefjopfilho@sme.prefeitura.sp.gov.br',
+        diretor_nome='Pedro Amaro',
+        dre_cnpj='63.058.286/0001-86',
+        dre_diretor_regional_rf='1234567',
+        dre_diretor_regional_nome='Anthony Edward Stark',
+        dre_designacao_portaria='Portaria nº 0.000',
+        dre_designacao_ano='2022',
+    )
+
+@pytest.fixture
+def unidade_teste_api_consolidado_dre_02(dre_teste_api_consolidado_dre):
+    return baker.make(
+        'Unidade',
+        criado_em=date(2021, 6, 16),
+        nome='Escola Teste 02',
+        tipo_unidade='CEU',
+        codigo_eol='123457',
+        dre=dre_teste_api_consolidado_dre,
+        sigla='ET',
+        cep='5868120',
+        tipo_logradouro='Travessa',
+        logradouro='dos Testes',
+        bairro='COHAB INSTITUTO ADVENTISTA',
+        numero='200',
+        complemento='fundos',
+        telefone='58212627',
+        email='emefjopfilho@sme.prefeitura.sp.gov.br',
+        diretor_nome='Pedro Amaro',
+        dre_cnpj='63.058.286/0001-86',
+        dre_diretor_regional_rf='1234567',
+        dre_diretor_regional_nome='Anthony Edward Stark',
+        dre_designacao_portaria='Portaria nº 0.000',
+        dre_designacao_ano='2022',
+    )
+
+@pytest.fixture
+def associacao_teste_api_consolidado_dre_01(unidade_teste_api_consolidado_dre_01, periodo_teste_api_consolidado_dre):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste',
+        cnpj='23.809.310/0001-57',
+        unidade=unidade_teste_api_consolidado_dre_01,
+        periodo_inicial=periodo_teste_api_consolidado_dre,
+        ccm='0.000.00-0',
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456'
+    )
+
+@pytest.fixture
+def associacao_teste_api_consolidado_dre_02(unidade_teste_api_consolidado_dre_02, periodo_teste_api_consolidado_dre):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste',
+        cnpj='67.462.804/0001-83',
+        unidade=unidade_teste_api_consolidado_dre_02,
+        periodo_inicial=periodo_teste_api_consolidado_dre,
+        ccm='0.000.00-0',
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456'
+    )
+
+@pytest.fixture
 def dre_teste_api_consolidado_dre():
     return baker.make(
         'Unidade',
@@ -110,7 +188,8 @@ def ata_parecer_tecnico_teste_api(
         data_reuniao=date(2022, 6, 25),
         local_reuniao='Escola Teste',
         comentarios='Teste',
-        consolidado_dre=consolidado_dre_teste_api_consolidado_dre
+        consolidado_dre=consolidado_dre_teste_api_consolidado_dre,
+        sequencia_de_publicacao=1
     )
 
 @pytest.fixture
@@ -132,7 +211,8 @@ def ata_parecer_tecnico_teste_api_preenchida(
         preenchida_em=date(2022, 6, 25),
         local_reuniao='Escola Teste',
         comentarios='Teste',
-        consolidado_dre=consolidado_dre_teste_api_consolidado_dre
+        consolidado_dre=consolidado_dre_teste_api_consolidado_dre,
+        sequencia_de_publicacao=1
     )
 
 @pytest.fixture

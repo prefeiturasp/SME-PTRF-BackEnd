@@ -68,13 +68,16 @@ class AtaParecerTecnico(ModeloBase):
                                         related_name='atas_de_parecer_tecnico_do_consolidado_dre',
                                         blank=True, null=True)
 
+    sequencia_de_publicacao = models.IntegerField('Sequência de publicação', blank=True, null=True)
+
 
     @classmethod
-    def criar_ou_retornar_ata_sem_consolidado_dre(cls, dre, periodo):
+    def criar_ou_retornar_ata_sem_consolidado_dre(cls, dre, periodo, sequencia_de_publicacao):
         ata, _ = cls.objects.get_or_create(
             dre=dre,
             periodo=periodo,
-            defaults={'dre': dre, 'periodo': periodo},
+            sequencia_de_publicacao=sequencia_de_publicacao,
+            defaults={'dre': dre, 'periodo': periodo, 'sequencia_de_publicacao': sequencia_de_publicacao},
         )
 
         return ata
@@ -120,7 +123,7 @@ class AtaParecerTecnico(ModeloBase):
 
     def atrelar_consolidado_dre(self, consolidado_dre):
         self.consolidado_dre = consolidado_dre
-        self.save()
+        self.save(update_fields=['consolidado_dre'])
         return self
 
 

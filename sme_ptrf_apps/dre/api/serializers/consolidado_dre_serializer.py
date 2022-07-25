@@ -12,7 +12,7 @@ class ConsolidadoDreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ConsolidadoDRE
-        fields = ('uuid', 'dre', 'periodo', 'status')
+        fields = ('uuid', 'dre', 'periodo', 'status', 'versao')
 
 
 class ConsolidadoDreComDocumentosSerializer(serializers.ModelSerializer):
