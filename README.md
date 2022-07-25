@@ -5,9 +5,19 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.33.0
+Versão: 1.34.0
 
 ## Release Notes
+
+### 1.34.0 - 22/07/2022 - Entregas da Release 5 - (Parcial até a Sprint 45)
+* UE > Novo fluxo de informação de valores reprogramados iniciais (Conclusão)
+* DRE > Novo fluxo de aprovação de valores reprogramados iniciais (Conclusão)
+* DRE > Melhorias na conferência de lançamentos do acompanhamento de PC: Tags de informações e novos filtros
+* DRE > Novo processo de geração de relatórios consolidados (Continuação)
+* ADM > Ação a partir de comissões para definição da comissão de exame de contas
+* Informação de critério de senha diferente das anteriores no formulário de alteração/redefinição de senha
+* Incluída a informação de hora de criação no rodapé de vários relatórios 
+* 🐞 Correção de bugs
 
 ### 1.33.0 - 04/07/2022 - Entregas da Release 5 - (Parcial até a Sprint 44)
 * UE > Na emissão da ata, agora a aplicação informa quais campos estão incompletos.
