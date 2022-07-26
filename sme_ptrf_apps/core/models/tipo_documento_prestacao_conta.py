@@ -11,6 +11,11 @@ class TipoDocumentoPrestacaoConta(ModeloIdNome):
 
     documento_por_conta = models.BooleanField('Documento por tipo de conta?', default=False)
 
+    @classmethod
+    def lista_documentos(cls):
+        documentos = TipoDocumentoPrestacaoConta.objects.all().order_by('-nome').values('id', 'nome')
+        return documentos
+
     class Meta:
         verbose_name = "Documento de prestação de contas"
         verbose_name_plural = "16.4) Documentos de prestação de contas"

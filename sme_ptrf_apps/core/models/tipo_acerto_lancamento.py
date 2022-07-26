@@ -4,7 +4,6 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
-from ...utils.choices_to_json import choices_to_json
 
 
 class TipoAcertoLancamento(ModeloIdNome):
