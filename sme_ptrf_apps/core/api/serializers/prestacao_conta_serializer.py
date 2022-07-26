@@ -101,6 +101,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     permite_analise_valores_reprogramados = serializers.SerializerMethodField()
     pode_reabrir = serializers.SerializerMethodField('get_pode_reabrir')
     informacoes_conciliacao_ue = serializers.SerializerMethodField('get_conciliacao_bancaria_ue')
+    referencia_consolidado_dre = serializers.SerializerMethodField('get_referencia_consolidado_dre')
 
     def get_permite_analise_valores_reprogramados(self, obj):
 
@@ -249,6 +250,9 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
 
         return result
 
+    def get_referencia_consolidado_dre(self, obj):
+        return obj.consolidado_dre.referencia if obj.consolidado_dre else ""
+
     class Meta:
         model = PrestacaoConta
         fields = (
@@ -274,7 +278,9 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'permite_analise_valores_reprogramados',
             'recomendacoes',
             'pode_reabrir',
-            'informacoes_conciliacao_ue'
+            'informacoes_conciliacao_ue',
+            'publicada',
+            'referencia_consolidado_dre',
         )
 
 

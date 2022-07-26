@@ -396,6 +396,8 @@ def test_api_retrieve_prestacao_conta_por_uuid(
             'status': 'EM_ANALISE',
             'criado_em': prestacao_conta.analise_atual.criado_em.isoformat("T")
         },
+        'publicada': None,
+        'referencia_consolidado_dre': '',
     }
 
     assert response.status_code == status.HTTP_200_OK
