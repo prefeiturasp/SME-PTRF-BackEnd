@@ -194,6 +194,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
                             },
                             'id': lancamento["solicitacao_ajuste"].id,
                             'tipo_acerto': {
+                                'ativo': True,
                                 'categoria': 'DEVOLUCAO',
                                 'id': lancamento["solicitacao_ajuste"].tipo_acerto.id,
                                 'nome': 'Devolução',
