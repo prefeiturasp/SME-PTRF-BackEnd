@@ -44,7 +44,6 @@ class TiposAcertoLancamentoViewSet(mixins.ListModelMixin,
         obj = self.get_object()
 
         try:
-
             self.perform_destroy(obj)
         except ProtectedError:
             content = {
