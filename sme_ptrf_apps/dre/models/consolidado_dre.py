@@ -83,6 +83,10 @@ class ConsolidadoDRE(ModeloBase):
 
         return status_str
 
+    @property
+    def referencia(self):
+        return "Único" if self.sequencia_de_publicacao == 0 else f'Parcial #{self.sequencia_de_publicacao}'
+
     @classmethod
     def criar_ou_retornar_consolidado_dre(cls, dre, periodo, sequencia_de_publicacao):
 
