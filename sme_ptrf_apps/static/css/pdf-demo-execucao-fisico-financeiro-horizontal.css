@@ -189,6 +189,12 @@ html body .conteudo .tabela-relatorio-dre thead th.separacao-de-colunas-da-tabel
   padding: 0 !important;
 }
 
+.font-16 {
+  font-size: 16px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
 .font-14 {
   font-size: 14px;
   font-family: Roboto, serif;
