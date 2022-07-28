@@ -39,7 +39,7 @@ class LaudaAdmin(admin.ModelAdmin):
 
     get_nome_tipo_conta.short_description = 'Tipo de conta'
 
-    list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'consolidado_dre', 'status')
+    list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'status', 'consolidado_dre')
     list_filter = ('status', 'dre', 'periodo', 'tipo_conta', 'consolidado_dre')
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
@@ -57,7 +57,7 @@ class ConsolidadoDREAdmin(admin.ModelAdmin):
     list_display = ('get_nome_dre', 'periodo', 'status', 'versao', 'eh_parcial', 'sequencia_de_publicacao')
     list_filter = ('status', 'dre', 'periodo', 'versao')
     list_display_links = ('get_nome_dre',)
-    readonly_fields = ('uuid', 'id', 'sequencia_de_publicacao')
+    readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome',)
 
     actions = ('atribui_valor_1_para_sequencia',)
@@ -156,8 +156,8 @@ class RelatorioConsolidadoDREAdmin(admin.ModelAdmin):
 
     get_nome_tipo_conta.short_description = 'Tipo de conta'
 
-    list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'status', 'versao')
-    list_filter = ('status', 'dre', 'periodo', 'tipo_conta')
+    list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'status', 'versao', 'consolidado_dre')
+    list_filter = ('status', 'dre', 'periodo', 'tipo_conta', 'consolidado_dre')
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome',)
