@@ -40,6 +40,16 @@ class TipoAcertoLancamento(ModeloIdNome):
 
     ativo = models.BooleanField('Ativo', default=True)
 
+    @classmethod
+    def agrupado_por_categoria(cls):
+        from sme_ptrf_apps.core.services import TipoAcertoLancamentoService
+        return TipoAcertoLancamentoService.agrupado_por_categoria(cls.CATEGORIA_CHOICES)
+
+    @classmethod
+    def categorias(cls):
+        from sme_ptrf_apps.core.services import TipoAcertoLancamentoService
+        return TipoAcertoLancamentoService.categorias(cls.CATEGORIA_CHOICES)
+
     class Meta:
         verbose_name = "Tipo de acerto em lançamentos"
         verbose_name_plural = "16.2) Tipos de acerto em lançamentos"
