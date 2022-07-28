@@ -57,3 +57,5 @@ from .analise_prestacao_conta_service import get_ajustes_extratos_bancarios
 from .resumo_rescursos_service import ResumoRecursosService
 from .painel_resumo_recursos_service import PainelResumoRecursosService
 from .tipos_acerto_lancamento_service import TipoAcertoLancamentoService
+from .tipos_acerto_documento_service import TipoAcertoDocumentoService
+
