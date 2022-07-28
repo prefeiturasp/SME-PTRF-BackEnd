@@ -161,7 +161,6 @@ class RelatorioConsolidadoDREAdmin(admin.ModelAdmin):
     get_nome_tipo_conta.short_description = 'Tipo de conta'
 
     list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'status', 'versao', 'consolidado_dre')
-
     list_filter = ('status', 'dre', 'periodo', 'tipo_conta', 'consolidado_dre')
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
