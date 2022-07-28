@@ -118,7 +118,7 @@ html body section#cabecalho .subtitulo, html body header .subtitulo {
 html body .conteudo .tabela-relatorio-dre {
   font-size: 7pt !important;
   max-width: 100% !important;
-  width: auto;
+  width: 100%;
 }
 
 html body .conteudo .tabela-assinaturas {
@@ -166,7 +166,7 @@ html body .conteudo .tabela-relatorio-dre thead th.fundo-th-cinza {
   background-color: #F5F6F8 !important;
 }
 
-html body .conteudo .tabela-relatorio-dre thead th.th-fundo-branco {
+html body .conteudo .tabela-relatorio-dre thead th.th-fundo-branco, html body .conteudo .tabela-relatorio-dre tbody td.td-fundo-branco {
   background-color: #FFFFFF !important;
 }
 
@@ -180,6 +180,13 @@ html body .conteudo .tabela-relatorio-dre tbody td {
   word-wrap: break-word !important;
   word-break: break-all !important;
   width: auto;
+}
+
+html body .conteudo .tabela-relatorio-dre thead th.separacao-de-colunas-da-tabela, html body .conteudo .tabela-relatorio-dre tbody td.separacao-de-colunas-da-tabela{
+  width: 5px !important;
+  border: none !important;
+  background-color: #ffffff !important;
+  padding: 0 !important;
 }
 
 .font-14 {

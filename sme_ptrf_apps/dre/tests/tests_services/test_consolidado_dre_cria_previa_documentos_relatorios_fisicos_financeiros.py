@@ -17,6 +17,7 @@ def test_gerar_previa_consolidado_dre(
     unidade_teste_service_consolidado_dre_01,
     associacao_teste_service_consolidado_dre_01,
     associacao_teste_service_consolidado_dre_02,
+    ano_analise_regularidade_2022_teste_service
 ):
     consolidado_dre = gerar_previa_consolidado_dre(
         dre_teste_service_consolidado_dre,
@@ -36,8 +37,6 @@ def test_criar_previa_documentos_relatorio_fisico_financeiro_todas_as_contas(
     consolidado_dre_teste_service_consolidado_dre,
     retorna_parcial_false,
     retorna_username,
-    tipo_conta_cartao_teste_service,
-    tipo_conta_cheque_teste_service,
     ano_analise_regularidade_2022_teste_service,
     comissao_exame_contas_teste_service,
     membro_comissao_teste_service,
@@ -55,9 +54,6 @@ def test_criar_previa_documentos_relatorio_fisico_financeiro_todas_as_contas(
 
     parcial = retorna_parcial_false
     usuario = retorna_username
-    qtde_contas = 2  # Conta Cheque e Conta Cartão que foram criadas com @pytest.fixture
-
-    assert TipoConta.objects.count() == qtde_contas
 
     gerar_previa_consolidado_dre(
         dre=dre_teste_service_consolidado_dre,
@@ -65,13 +61,6 @@ def test_criar_previa_documentos_relatorio_fisico_financeiro_todas_as_contas(
         parcial=parcial,
         usuario=usuario,
     )
-
-    qtde_relatorios_gerados = consolidado_dre_teste_service_consolidado_dre \
-        .relatorios_consolidados_dre_do_consolidado_dre \
-        .all() \
-        .count()
-
-    assert qtde_relatorios_gerados == qtde_contas
 
     assert consolidado_dre_teste_service_consolidado_dre \
            .relatorios_consolidados_dre_do_consolidado_dre \
@@ -85,4 +74,3 @@ def test_criar_previa_documentos_relatorio_fisico_financeiro_todas_as_contas(
 
     assert ata_parecer_tecnico_teste_service.consolidado_dre.uuid == consolidado_dre_teste_service_consolidado_dre.uuid
 
-    assert RelatorioConsolidadoDRE.objects.all().count() == qtde_contas
