@@ -123,9 +123,13 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
-    def passar_para_publicada(self, consolidado_dre):
-        self.publicada = True
+    def atrelar_consolidado_dre(self, consolidado_dre):
         self.consolidado_dre = consolidado_dre
+        self.save()
+        return self
+
+    def passar_para_publicada(self):
+        self.publicada = True
         self.save()
         return self
 

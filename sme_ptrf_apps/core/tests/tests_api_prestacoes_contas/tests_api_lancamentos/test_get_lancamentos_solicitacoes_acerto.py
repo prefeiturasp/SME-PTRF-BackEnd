@@ -66,7 +66,8 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
                     'visao_criacao': 'DRE'
                 },
                 'id': solicitacao_acerto_lancamento_devolucao.id,
-                'tipo_acerto': {'categoria': 'DEVOLUCAO',
+                'tipo_acerto': {'ativo': True,
+                                'categoria': 'DEVOLUCAO',
                                 'id': tipo_acerto_lancamento_devolucao.id,
                                 'nome': 'Devolução',
                                 'uuid': f'{tipo_acerto_lancamento_devolucao.uuid}'},
