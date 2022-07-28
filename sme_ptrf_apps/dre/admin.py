@@ -1,6 +1,6 @@
 import logging
 
-from django.contrib import admin
+from django.contrib import admin, messages
 
 from .models import (
     Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade,
@@ -166,6 +166,16 @@ class RelatorioConsolidadoDREAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome',)
 
+    actions = ['vincular_consolidado_dre', ]
+
+    def vincular_consolidado_dre(self, request, queryset):
+        from sme_ptrf_apps.dre.services.vincular_consolidado_service import VincularConsolidadoService
+
+        for relatorio in queryset.all():
+            VincularConsolidadoService.vincular_artefato(relatorio)
+
+        self.message_user(request, f"Relatórios vinculados com sucesso!")
+
 
 @admin.register(JustificativaRelatorioConsolidadoDRE)
 class JustificativaRelatorioConsolidadoDREAdmin(admin.ModelAdmin):
@@ -224,7 +234,6 @@ class ComissaoAdmin(admin.ModelAdmin):
     actions = ['define_como_exame_de_contas', ]
 
     def define_como_exame_de_contas(self, request, queryset):
-        from django.contrib import messages
         if queryset.count() != 1:
             self.message_user(request, "Selecione apenas uma comissão para ser a de exame de contas.", level=messages.ERROR)
             return
