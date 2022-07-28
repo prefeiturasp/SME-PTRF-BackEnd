@@ -6,7 +6,6 @@ from ...models import TipoAcertoLancamento
 from sme_ptrf_apps.users.permissoes import PermissaoApiDre
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from ....utils.choices_to_json import choices_to_json
 
 
 class TiposAcertoLancamentoViewSet(mixins.ListModelMixin,
@@ -58,7 +57,8 @@ class TiposAcertoLancamentoViewSet(mixins.ListModelMixin,
             permission_classes=[IsAuthenticated & PermissaoApiDre])
     def tabelas(self, request):
         result = {
-            "categorias": choices_to_json(TipoAcertoLancamento.CATEGORIA_CHOICES)
+            "categorias": TipoAcertoLancamento.categorias(),
+            "agrupado_por_categorias": TipoAcertoLancamento.agrupado_por_categoria()
         }
 
         return Response(result, status=status.HTTP_200_OK)
