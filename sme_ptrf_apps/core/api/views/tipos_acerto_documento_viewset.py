@@ -75,8 +75,9 @@ class TiposAcertoDocumentoViewSet(mixins.ListModelMixin,
             permission_classes=[IsAuthenticated & PermissaoApiDre])
     def tabelas(self, request):
         result = {
-            "categorias": choices_to_json(TipoAcertoDocumento.CATEGORIA_CHOICES),
-            "documentos": TipoDocumentoPrestacaoConta.lista_documentos()
+            "categorias": TipoAcertoDocumento.categorias(),
+            "agrupado_por_categorias": TipoAcertoDocumento.agrupado_por_categoria(),
+            "documentos": TipoDocumentoPrestacaoConta.lista_documentos(),
         }
 
         return Response(result, status=status.HTTP_200_OK)

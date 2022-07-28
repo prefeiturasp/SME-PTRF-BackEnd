@@ -107,7 +107,6 @@ def prestacao_conta_documento_delete(periodo_2020_1, associacao):
         status="EM_ANALISE"
     )
 
-# aqui serao colados o do list
 
 @pytest.fixture
 def tipo_documento_prestacao_conta_relacao_bens():

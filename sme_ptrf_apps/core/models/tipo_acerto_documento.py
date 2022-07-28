@@ -45,6 +45,16 @@ class TipoAcertoDocumento(ModeloIdNome):
         self.tipos_documento_prestacao.set(tipos_documentos_prestacao)
         self.save()
 
+    @classmethod
+    def agrupado_por_categoria(cls):
+        from sme_ptrf_apps.core.services import TipoAcertoDocumentoService
+        return TipoAcertoDocumentoService.agrupado_por_categoria(cls.CATEGORIA_CHOICES)
+
+    @classmethod
+    def categorias(cls):
+        from sme_ptrf_apps.core.services import TipoAcertoDocumentoService
+        return TipoAcertoDocumentoService.categorias(cls.CATEGORIA_CHOICES)
+
     class Meta:
         verbose_name = "Tipo de acerto em documentos"
         verbose_name_plural = "16.5) Tipos de acerto em documentos"
