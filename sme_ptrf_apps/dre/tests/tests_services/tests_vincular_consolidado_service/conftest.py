@@ -2,6 +2,7 @@ import pytest
 
 from datetime import date
 from model_bakery import baker
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from sme_ptrf_apps.dre.models import ConsolidadoDRE
 
@@ -92,4 +93,53 @@ def vcs_ata_parecer_tecnico_desvinculada(vcs_dre_ipiranga, vcs_periodo_2022_1):
         comentarios='Teste',
         consolidado_dre=None,
         sequencia_de_publicacao=None
+    )
+
+
+@pytest.fixture
+def vcs_arquivo_lauda():
+    return SimpleUploadedFile(f'arquivo.txt', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding="utf-8"))
+
+
+@pytest.fixture
+def vcs_visao_dre():
+    return baker.make('Visao', nome='DRE')
+
+
+@pytest.fixture
+def vcs_usuario_lauda(
+    vcs_dre_ipiranga,
+    vcs_visao_dre
+):
+    from django.contrib.auth import get_user_model
+
+    senha = 'Sgp0418'
+    login = '8989877'
+    email = 'teste.api@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(vcs_dre_ipiranga)
+    user.visoes.add(vcs_visao_dre)
+    user.save()
+    return user
+
+
+@pytest.fixture
+def vcs_lauda_desvinculada(
+    vcs_arquivo_lauda,
+    vcs_dre_ipiranga,
+    vcs_periodo_2022_1,
+    tipo_conta_cartao,
+    vcs_usuario_lauda
+
+):
+    return baker.make(
+        'Lauda',
+        arquivo_lauda_txt=vcs_arquivo_lauda,
+        consolidado_dre=None,
+        dre=vcs_dre_ipiranga,
+        periodo=vcs_periodo_2022_1,
+        tipo_conta=tipo_conta_cartao,
+        usuario=vcs_usuario_lauda,
+        status='GERADA_TOTAL',
     )

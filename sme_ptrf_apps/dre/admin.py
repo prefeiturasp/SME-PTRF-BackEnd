@@ -48,6 +48,15 @@ class LaudaAdmin(admin.ModelAdmin):
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome',)
+    actions = ['vincular_consolidado_dre', ]
+
+    def vincular_consolidado_dre(self, request, queryset):
+        from sme_ptrf_apps.dre.services.vincular_consolidado_service import VincularConsolidadoService
+
+        for lauda in queryset.all():
+            VincularConsolidadoService.vincular_artefato(lauda)
+
+        self.message_user(request, f"Laudas vinculadas com sucesso!")
 
 
 @admin.register(ConsolidadoDRE)
@@ -326,7 +335,7 @@ class AtaParecerTecnicoAdmin(admin.ModelAdmin):
         for ata in queryset.all():
             VincularConsolidadoService.vincular_artefato(ata)
 
-        self.message_user(request, f"Atas vinculados com sucesso!")
+        self.message_user(request, f"Atas vinculadas com sucesso!")
 
 
 @admin.register(PresenteAtaDre)
