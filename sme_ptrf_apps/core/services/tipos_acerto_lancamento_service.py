@@ -16,7 +16,7 @@ class TipoAcertoLancamentoAgrupadoPorCategoria:
             categoria_nome = choice[1]
 
             tipos_acertos_lancamentos = TipoAcertoLancamento.objects.filter(
-                categoria=categoria_id).filter(ativo=True).values("nome", "uuid")
+                categoria=categoria_id).filter(ativo=True).values("id", "nome", "categoria", "ativo", "uuid")
 
             if not tipos_acertos_lancamentos:
                 continue
@@ -24,13 +24,11 @@ class TipoAcertoLancamentoAgrupadoPorCategoria:
             info_categoria = self.__texto_e_cor_categoria(self, categoria_id)
 
             dados_categoria = {
-                "categoria": {
-                    "id": categoria_id,
-                    "nome": categoria_nome,
-                    "texto": info_categoria["texto"],
-                    "cor": info_categoria["cor"],
-                    "tipos_acerto_lancamento": list(tipos_acertos_lancamentos)
-                }
+                "id": categoria_id,
+                "nome": categoria_nome,
+                "texto": info_categoria["texto"],
+                "cor": info_categoria["cor"],
+                "tipos_acerto_lancamento": list(tipos_acertos_lancamentos)
             }
 
             self.agrupamento.append(dados_categoria)
