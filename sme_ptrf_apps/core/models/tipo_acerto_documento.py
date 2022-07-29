@@ -8,8 +8,52 @@ from .tipo_documento_prestacao_conta import TipoDocumentoPrestacaoConta
 
 
 class TipoAcertoDocumento(ModeloIdNome):
-    tipos_documento_prestacao = models.ManyToManyField(TipoDocumentoPrestacaoConta, blank=True)
     history = AuditlogHistoryField()
+
+    # Categoria Choices
+    CATEGORIA_INCLUSAO_CREDITO = 'INCLUSAO_CREDITO'
+    CATEGORIA_INCLUSAO_GASTO = 'INCLUSAO_GASTO'
+    CATEGORIA_AJUSTES_EXTERNOS = 'AJUSTES_EXTERNOS'
+    CATEGORIA_SOLICITACAO_ESCLARECIMENTO = 'SOLICITACAO_ESCLARECIMENTO'
+
+    CATEGORIA_NOMES = {
+        CATEGORIA_INCLUSAO_CREDITO: 'Inclusão de crédito',
+        CATEGORIA_INCLUSAO_GASTO: 'Inclusão de gasto',
+        CATEGORIA_AJUSTES_EXTERNOS: 'Ajustes externos',
+        CATEGORIA_SOLICITACAO_ESCLARECIMENTO: 'Solicitação de esclarecimento'
+    }
+
+    CATEGORIA_CHOICES = (
+        (CATEGORIA_INCLUSAO_CREDITO, CATEGORIA_NOMES[CATEGORIA_INCLUSAO_CREDITO]),
+        (CATEGORIA_INCLUSAO_GASTO, CATEGORIA_NOMES[CATEGORIA_INCLUSAO_GASTO]),
+        (CATEGORIA_AJUSTES_EXTERNOS, CATEGORIA_NOMES[CATEGORIA_AJUSTES_EXTERNOS]),
+        (CATEGORIA_SOLICITACAO_ESCLARECIMENTO, CATEGORIA_NOMES[CATEGORIA_SOLICITACAO_ESCLARECIMENTO])
+    )
+
+    tipos_documento_prestacao = models.ManyToManyField(TipoDocumentoPrestacaoConta, blank=True)
+
+    categoria = models.CharField(
+        'Categoria',
+        max_length=35,
+        choices=CATEGORIA_CHOICES,
+        default=CATEGORIA_SOLICITACAO_ESCLARECIMENTO
+    )
+
+    ativo = models.BooleanField('Ativo', default=True)
+
+    def adiciona_tipos_documentos_prestacao(self, tipos_documentos_prestacao):
+        self.tipos_documento_prestacao.set(tipos_documentos_prestacao)
+        self.save()
+
+    @classmethod
+    def agrupado_por_categoria(cls):
+        from sme_ptrf_apps.core.services import TipoAcertoDocumentoService
+        return TipoAcertoDocumentoService.agrupado_por_categoria(cls.CATEGORIA_CHOICES)
+
+    @classmethod
+    def categorias(cls):
+        from sme_ptrf_apps.core.services import TipoAcertoDocumentoService
+        return TipoAcertoDocumentoService.categorias(cls.CATEGORIA_CHOICES)
 
     class Meta:
         verbose_name = "Tipo de acerto em documentos"

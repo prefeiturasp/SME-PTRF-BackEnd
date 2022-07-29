@@ -1,6 +1,6 @@
 import logging
 
-from django.contrib import admin
+from django.contrib import admin, messages
 
 from .models import (
     Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade,
@@ -43,7 +43,7 @@ class LaudaAdmin(admin.ModelAdmin):
 
     get_nome_tipo_conta.short_description = 'Tipo de conta'
 
-    list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'consolidado_dre', 'status')
+    list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'status', 'consolidado_dre')
     list_filter = ('status', 'dre', 'periodo', 'tipo_conta', 'consolidado_dre')
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
@@ -61,7 +61,7 @@ class ConsolidadoDREAdmin(admin.ModelAdmin):
     list_display = ('get_nome_dre', 'periodo', 'status', 'versao', 'eh_parcial', 'sequencia_de_publicacao')
     list_filter = ('status', 'dre', 'periodo', 'versao')
     list_display_links = ('get_nome_dre',)
-    readonly_fields = ('uuid', 'id', 'sequencia_de_publicacao')
+    readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome',)
 
     actions = ('atribui_valor_1_para_sequencia',)
@@ -160,11 +160,21 @@ class RelatorioConsolidadoDREAdmin(admin.ModelAdmin):
 
     get_nome_tipo_conta.short_description = 'Tipo de conta'
 
-    list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'status', 'versao')
-    list_filter = ('status', 'dre', 'periodo', 'tipo_conta')
+    list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'status', 'versao', 'consolidado_dre')
+    list_filter = ('status', 'dre', 'periodo', 'tipo_conta', 'consolidado_dre')
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome',)
+
+    actions = ['vincular_consolidado_dre', ]
+
+    def vincular_consolidado_dre(self, request, queryset):
+        from sme_ptrf_apps.dre.services.vincular_consolidado_service import VincularConsolidadoService
+
+        for relatorio in queryset.all():
+            VincularConsolidadoService.vincular_artefato(relatorio)
+
+        self.message_user(request, f"Relatórios vinculados com sucesso!")
 
 
 @admin.register(JustificativaRelatorioConsolidadoDRE)
@@ -224,7 +234,6 @@ class ComissaoAdmin(admin.ModelAdmin):
     actions = ['define_como_exame_de_contas', ]
 
     def define_como_exame_de_contas(self, request, queryset):
-        from django.contrib import messages
         if queryset.count() != 1:
             self.message_user(request, "Selecione apenas uma comissão para ser a de exame de contas.", level=messages.ERROR)
             return

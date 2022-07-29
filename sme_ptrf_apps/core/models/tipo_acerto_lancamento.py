@@ -4,7 +4,6 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
-from ...utils.choices_to_json import choices_to_json
 
 
 class TipoAcertoLancamento(ModeloIdNome):
@@ -40,6 +39,16 @@ class TipoAcertoLancamento(ModeloIdNome):
     )
 
     ativo = models.BooleanField('Ativo', default=True)
+
+    @classmethod
+    def agrupado_por_categoria(cls):
+        from sme_ptrf_apps.core.services import TipoAcertoLancamentoService
+        return TipoAcertoLancamentoService.agrupado_por_categoria(cls.CATEGORIA_CHOICES)
+
+    @classmethod
+    def categorias(cls):
+        from sme_ptrf_apps.core.services import TipoAcertoLancamentoService
+        return TipoAcertoLancamentoService.categorias(cls.CATEGORIA_CHOICES)
 
     class Meta:
         verbose_name = "Tipo de acerto em lançamentos"

@@ -78,8 +78,8 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
             _relatorio = {
                 'uuid': relatorio.uuid,
                 'versao': relatorio.versao,
-                'tipo_conta': relatorio.tipo_conta.nome if relatorio.tipo_conta.nome else "",
-                'tipo_conta_uuid': relatorio.tipo_conta.uuid if relatorio.tipo_conta.uuid else "",
+                'tipo_conta': relatorio.tipo_conta.nome if relatorio.tipo_conta and relatorio.tipo_conta.nome else "",
+                'tipo_conta_uuid': relatorio.tipo_conta.uuid if relatorio.tipo_conta and relatorio.tipo_conta.uuid else "",
                 'status_geracao': relatorio.status,
                 'status_geracao_arquivo': relatorio.__str__(),
             }
@@ -118,8 +118,8 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
             _relatorio = {
                 'uuid': relatorio.uuid,
                 'versao': relatorio.versao,
-                'tipo_conta': relatorio.tipo_conta.nome if relatorio.tipo_conta.nome else "",
-                'tipo_conta_uuid': relatorio.tipo_conta.uuid if relatorio.tipo_conta.uuid else "",
+                'tipo_conta': relatorio.tipo_conta.nome if relatorio.tipo_conta and relatorio.tipo_conta.nome else "",
+                'tipo_conta_uuid': relatorio.tipo_conta.uuid if relatorio.tipo_conta and relatorio.tipo_conta.uuid else "",
                 'status_geracao': relatorio.status,
                 'status_geracao_arquivo': relatorio.__str__(),
             }
