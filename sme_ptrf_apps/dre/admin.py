@@ -305,8 +305,9 @@ class AtaParecerTecnicoAdmin(admin.ModelAdmin):
     list_filter = ['periodo', 'dre', 'consolidado_dre']
     readonly_fields = ('uuid', 'id')
 
-    actions = ('atribui_valor_1_para_sequencia',)
+    actions = ('atribui_valor_1_para_sequencia', 'vincular_consolidado_dre', )
 
+    # TODO Remover ação após implantação da release 5
     def atribui_valor_1_para_sequencia(self, request, queryset):
         count = queryset.update(sequencia_de_publicacao=1)
 
@@ -318,6 +319,14 @@ class AtaParecerTecnicoAdmin(admin.ModelAdmin):
         self.message_user(request, msg.format(count))
 
     atribui_valor_1_para_sequencia.short_description = "Atribuir o valor de 1 para sequência de publicação"
+
+    def vincular_consolidado_dre(self, request, queryset):
+        from sme_ptrf_apps.dre.services.vincular_consolidado_service import VincularConsolidadoService
+
+        for ata in queryset.all():
+            VincularConsolidadoService.vincular_artefato(ata)
+
+        self.message_user(request, f"Atas vinculados com sucesso!")
 
 
 @admin.register(PresenteAtaDre)
