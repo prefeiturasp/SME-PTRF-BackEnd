@@ -715,12 +715,11 @@ def formata_valor(valor):
     return f'{sinal}{valor_formatado}'
 
 
-def converte_string_value_formatada_para_float(value_string):
-    import locale
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF8')
-    conv = locale.localeconv()
-    raw_numbers = value_string.strip(conv['currency_symbol'])
-    amount = locale.atof(raw_numbers)
+def converte_string_value_formatada_para_float(string):
+    result = 0
+    if string:
+        [num, dec] = string.rsplit(',')
+        result += int(num.replace('.', ''))
+        result += (int(dec) / 100)
 
-    return amount
-
+    return result
