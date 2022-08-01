@@ -22,7 +22,7 @@ class TipoAcertoLancamentoSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         nome = validated_data.get("nome", None)
 
-        if nome:
+        if nome and instance.nome != nome:
             nome_ja_cadastrado = TipoAcertoLancamento.objects.filter(nome=nome).all()
 
             if nome_ja_cadastrado:
