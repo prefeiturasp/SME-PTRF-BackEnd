@@ -653,7 +653,7 @@ class TipoDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
 class TipoAcertoDocumentoAdmin(admin.ModelAdmin):
     list_display = ['nome']
     search_fields = ['nome']
-    list_filter = ["nome", "tipos_documento_prestacao", "categoria", "ativo"]
+    list_filter = ["tipos_documento_prestacao", "categoria", "ativo"]
     readonly_fields = ('uuid', 'id',)
 
 
