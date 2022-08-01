@@ -6,7 +6,8 @@ from sme_ptrf_apps.dre.services.ata_pdf_parecer_tecnico_service import gerar_arq
 from sme_ptrf_apps.core.services.ata_dados_service import data_por_extenso
 from sme_ptrf_apps.core.services.dados_demo_financeiro_service import formata_data
 from sme_ptrf_apps.utils.numero_por_extenso import real
-from django.db.models import Q
+from django.db.models import Q, Max, Value
+from django.db.models.functions import Coalesce
 
 LOGGER = logging.getLogger(__name__)
 
@@ -274,10 +275,7 @@ def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_em_tela(dre, per
 
     from ..services.relatorio_consolidado_service import get_teste_motivos_reprovacao, get_motivos_aprovacao_ressalva
 
-    consolidado_dre = None
-
-    if ata_de_parecer_tecnico:
-        consolidado_dre = ata_de_parecer_tecnico.consolidado_dre
+    consolidado_dre = ata_de_parecer_tecnico.consolidado_dre
 
     if consolidado_dre:
         prestacoes = consolidado_dre.prestacoes_de_conta_do_consolidado_dre.all()
