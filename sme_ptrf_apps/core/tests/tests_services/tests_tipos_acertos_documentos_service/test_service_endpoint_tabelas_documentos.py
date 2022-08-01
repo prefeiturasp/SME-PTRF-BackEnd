@@ -38,40 +38,36 @@ def test_service_tabelas_agrupado_por_categorias(
 
     resultado_esperado = [
         {
-            "categoria": {
-                "id": "INCLUSAO_CREDITO",
-                "nome": "Inclusão de crédito",
-                "texto": "Esse tipo de acerto reabre o período para inclusão de um crédito.",
-                "cor": 1,
-                "tipos_acerto_documento": [
-                    {
-                        "nome": "Teste",
-                        "uuid": tipo_acerto_documento_agrupa_categoria_01.uuid
-                    },
-                    {
-                        "nome": "Teste 2",
-                        "uuid": tipo_acerto_documento_agrupa_categoria_02.uuid
-                    },
-                    {
-                        "nome": "Teste 3",
-                        "uuid": tipo_acerto_documento_agrupa_categoria_03.uuid
-                    }
+            "id": "INCLUSAO_CREDITO",
+            "nome": "Inclusão de crédito",
+            "texto": "Esse tipo de acerto reabre o período para inclusão de um crédito.",
+            "cor": 1,
+            "tipos_acerto_documento": [
+                {
+                    "nome": "Teste",
+                    "uuid": tipo_acerto_documento_agrupa_categoria_01.uuid
+                },
+                {
+                    "nome": "Teste 2",
+                    "uuid": tipo_acerto_documento_agrupa_categoria_02.uuid
+                },
+                {
+                    "nome": "Teste 3",
+                    "uuid": tipo_acerto_documento_agrupa_categoria_03.uuid
+                }
                 ]
-            }
         },
         {
-            "categoria": {
-                "id": "INCLUSAO_GASTO",
-                "nome": "Inclusão de gasto",
-                "texto": "Esse tipo de acerto reabre o período para inclusão de um gasto.",
-                "cor": 1,
-                "tipos_acerto_documento": [
-                    {
-                        "nome": "Teste 4",
-                        "uuid": tipo_acerto_documento_agrupa_categoria_04.uuid
-                    }
-                ]
-            }
+            "id": "INCLUSAO_GASTO",
+            "nome": "Inclusão de gasto",
+            "texto": "Esse tipo de acerto reabre o período para inclusão de um gasto.",
+            "cor": 1,
+            "tipos_acerto_documento": [
+                {
+                    "nome": "Teste 4",
+                    "uuid": tipo_acerto_documento_agrupa_categoria_04.uuid
+                }
+            ]
         }
     ]
 

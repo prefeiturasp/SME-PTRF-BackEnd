@@ -7,7 +7,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasDreComLeituraOuGravacao, PermissaoAPITodosComGravacao
 )
 
-from sme_ptrf_apps.dre.models import AtaParecerTecnico
+from sme_ptrf_apps.dre.models import AtaParecerTecnico, ConsolidadoDRE
 from sme_ptrf_apps.dre.models import ParametrosDre
 from sme_ptrf_apps.core.models import Unidade, Periodo
 import logging
@@ -17,7 +17,7 @@ from sme_ptrf_apps.dre.api.serializers.ata_parecer_tecnico_serializer import (
     AtaParecerTecnicoLookUpSerializer
 )
 from ...services import (
-    informacoes_execucao_financeira_unidades_ata_parecer_tecnico
+    informacoes_execucao_financeira_unidades_ata_parecer_tecnico, informacoes_execucao_financeira_unidades_ata_parecer_tecnico_em_tela
 )
 from django.core.exceptions import ValidationError
 
@@ -242,7 +242,20 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        info = informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre=dre, periodo=periodo)
+        ata_uuid = self.request.query_params.get('ata')
+        ata_de_parecer_tecnico = None
+        if ata_uuid:
+            try:
+                ata_de_parecer_tecnico = AtaParecerTecnico.objects.get(uuid=ata_uuid)
+            except AtaParecerTecnico.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto Ata de Parecer Técnico para o uuid {ata_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        info = informacoes_execucao_financeira_unidades_ata_parecer_tecnico_em_tela(dre=dre, periodo=periodo, ata_de_parecer_tecnico=ata_de_parecer_tecnico)
 
         return Response(info)
 
