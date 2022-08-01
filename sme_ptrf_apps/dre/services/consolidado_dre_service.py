@@ -111,7 +111,11 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
 
     consolidado_dre_proxima_publicacao = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, sequencia_de_publicacao=sequencia_de_publicacao_atual).last()
     relatorios_fisico_financeiros_proxima_publicacao_list = []
+    uuid_consolidado_dre_proxima_publicacao = None
     if consolidado_dre_proxima_publicacao:
+
+        uuid_consolidado_dre_proxima_publicacao = consolidado_dre_proxima_publicacao.uuid
+
         relatorios_fisico_financeiros_proxima_publicacao = consolidado_dre_proxima_publicacao.relatorios_consolidados_dre_do_consolidado_dre.all()
 
         for relatorio in relatorios_fisico_financeiros_proxima_publicacao:
@@ -142,6 +146,7 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
         'laudas': [],
         'dre_uuid': dre.uuid,
         'periodo_uuid': periodo.uuid,
+        'uuid': uuid_consolidado_dre_proxima_publicacao,
     }
 
     result = {
