@@ -53,13 +53,13 @@ class TipoAcertoDocumentoAgrupadoPorCategoria:
         elif TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS == categoria_id:
             return {
                 "texto": "Esse tipo de acerto requer apenas ações externas ao sistema e "
-                         "não reabre lançamentos para alterações.",
+                         "não reabre o lançamento para alteração.",
                 "cor": 2
             }
         elif TipoAcertoDocumento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO == categoria_id:
             return {
                 "texto": "Esse tipo de acerto requer que o usuário digite uma justificativa e "
-                         "não reabre lançamentos para alterações.",
+                         "não reabre o lançamento para alteração.",
                 "cor": 2
             }
 
