@@ -628,7 +628,7 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
 
 @admin.register(TipoAcertoLancamento)
 class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'categoria']
+    list_display = ['nome', 'categoria', 'ativo']
     search_fields = ['nome', 'categoria']
     list_filter = ['nome', 'categoria', 'ativo']
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
@@ -651,9 +651,9 @@ class TipoDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
 
 @admin.register(TipoAcertoDocumento)
 class TipoAcertoDocumentoAdmin(admin.ModelAdmin):
-    list_display = ['nome']
+    list_display = ['nome', 'categoria', 'ativo']
     search_fields = ['nome']
-    list_filter = ["tipos_documento_prestacao", "categoria", "ativo"]
+    list_filter = ['tipos_documento_prestacao', 'categoria', 'ativo']
     readonly_fields = ('uuid', 'id',)
 
 
