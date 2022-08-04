@@ -305,3 +305,12 @@ def jwt_authenticated_client_u2(client, usuario_2):
         resp_data = resp.json()
         api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
     return api_client
+
+
+@pytest.fixture
+def unidade_em_suporte_usuario_3(unidade, usuario_3):
+    return baker.make(
+        'UnidadeEmSuporte',
+        unidade=unidade,
+        user=usuario_3,
+    )

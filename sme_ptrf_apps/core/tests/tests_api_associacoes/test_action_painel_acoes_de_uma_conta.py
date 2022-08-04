@@ -53,11 +53,6 @@ def test_action_painel_acoes_de_uma_conta(
                 'repasses_no_periodo_custeio': 300.0,
                 'repasses_no_periodo_livre': 0,
 
-                'receitas_devolucao_no_periodo': 0,
-                'receitas_devolucao_no_periodo_capital': 0,
-                'receitas_devolucao_no_periodo_custeio': 0,
-                'receitas_devolucao_no_periodo_livre': 0,
-
                 'outras_receitas_no_periodo': 100.0,
                 'outras_receitas_no_periodo_capital': 0,
                 'outras_receitas_no_periodo_custeio': 100.0,
@@ -72,34 +67,6 @@ def test_action_painel_acoes_de_uma_conta(
                 'saldo_atual_livre': -200,
                 'saldo_atual_total': 100.0,
 
-                'despesas_nao_conciliadas': 300.0,
-                'despesas_nao_conciliadas_capital': 200.0,
-                'despesas_nao_conciliadas_custeio': 100.0,
-
-                'despesas_nao_conciliadas_anteriores': 50.0,
-                'despesas_nao_conciliadas_anteriores_capital': 0,
-                'despesas_nao_conciliadas_anteriores_custeio': 50.0,
-
-                'saldo_bancario_capital': 200,
-                'saldo_bancario_custeio': 450.0,
-                'saldo_bancario_livre': -200,
-                'saldo_bancario_total': 450.0,
-
-                'despesas_conciliadas': 0,
-                'despesas_conciliadas_capital': 0,
-                'despesas_conciliadas_custeio': 0,
-
-                'receitas_nao_conciliadas': 0,
-                'receitas_nao_conciliadas_capital': 0,
-                'receitas_nao_conciliadas_custeio': 0,
-                'receitas_nao_conciliadas_livre': 0,
-
-                'especificacoes_despesas_capital': ['Ar condicionado', ],
-                'especificacoes_despesas_custeio': ['Material elétrico'],
-
-                'repasses_nao_realizados_capital': 0.0,
-                'repasses_nao_realizados_custeio': 0.0,
-                'repasses_nao_realizados_livre': 0.0
             }
         ],
         'info_conta': {
@@ -195,11 +162,6 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
                 'repasses_no_periodo_custeio': 300.0,
                 'repasses_no_periodo_livre': 0,
 
-                'receitas_devolucao_no_periodo': 0,
-                'receitas_devolucao_no_periodo_capital': 0,
-                'receitas_devolucao_no_periodo_custeio': 0,
-                'receitas_devolucao_no_periodo_livre': 0,
-
                 'outras_receitas_no_periodo': 100.0,
                 'outras_receitas_no_periodo_capital': 0,
                 'outras_receitas_no_periodo_custeio': 100.0,
@@ -214,34 +176,6 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
                 'saldo_atual_livre': -200,
                 'saldo_atual_total': 100.0,
 
-                'despesas_nao_conciliadas': 300.0,
-                'despesas_nao_conciliadas_capital': 200.0,
-                'despesas_nao_conciliadas_custeio': 100.0,
-
-                'despesas_conciliadas': 0,
-                'despesas_conciliadas_capital': 0,
-                'despesas_conciliadas_custeio': 0,
-
-                'despesas_nao_conciliadas_anteriores': 50.0,
-                'despesas_nao_conciliadas_anteriores_capital': 0,
-                'despesas_nao_conciliadas_anteriores_custeio': 50.0,
-
-                'saldo_bancario_capital': 200,
-                'saldo_bancario_custeio': 450.0,
-                'saldo_bancario_livre': -200,
-                'saldo_bancario_total': 450.0,
-
-                'receitas_nao_conciliadas': 0,
-                'receitas_nao_conciliadas_capital': 0,
-                'receitas_nao_conciliadas_custeio': 0,
-                'receitas_nao_conciliadas_livre': 0,
-
-                'especificacoes_despesas_capital': ['Ar condicionado', ],
-                'especificacoes_despesas_custeio': ['Material elétrico'],
-
-                'repasses_nao_realizados_capital': 0.0,
-                'repasses_nao_realizados_custeio': 0.0,
-                'repasses_nao_realizados_livre': 0.0
             }
         ],
         'info_conta': {
@@ -313,7 +247,7 @@ def test_action_painel_acoes_de_uma_conta_invalida(
 
     esperado = {'erro': 'UUID da conta inválido.'}
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_404_NOT_FOUND
     assert result == esperado
 
 
@@ -341,5 +275,5 @@ def test_action_painel_acoes_de_uma_periodo_invalida(
 
     esperado = {'erro': 'UUID do período inválido.'}
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_404_NOT_FOUND
     assert result == esperado

@@ -561,6 +561,7 @@ def transacoes_para_conciliacao(periodo, conta_associacao, conferido=False, acao
                     'conta_associacao__tipo_conta__nome').annotate(
                     Sum('valor_rateio')),
                 'conferido': despesa.conferido,
+                'informacoes': despesa.tags_de_informacao,
                 'documento_mestre': DespesaConciliacaoSerializer(despesa, many=False).data,
                 'rateios': RateioDespesaConciliacaoSerializer(
                     despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by(

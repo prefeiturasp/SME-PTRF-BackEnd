@@ -579,6 +579,7 @@ def lancamentos_da_prestacao(
     tipo_de_pagamento=None,
     filtrar_por_data_inicio=None,
     filtrar_por_data_fim=None,
+    filtrar_por_nome_fornecedor=None,
 ):
     from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaDocumentoMestreSerializer, \
         DespesaImpostoSerializer
@@ -596,6 +597,7 @@ def lancamentos_da_prestacao(
         tipo_de_pagamento,
         filtrar_por_data_inicio,
         filtrar_por_data_fim,
+        filtrar_por_nome_fornecedor=None,
     ):
         rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
             conta_associacao=conta_associacao,
@@ -632,6 +634,9 @@ def lancamentos_da_prestacao(
         if tipo_de_pagamento:
             dataset = dataset.filter(tipo_transacao=tipo_de_pagamento)
 
+        if filtrar_por_nome_fornecedor:
+            dataset = dataset.filter(nome_fornecedor__unaccent__icontains=filtrar_por_nome_fornecedor)
+
         return dataset.all()
 
     receitas = []
@@ -660,6 +665,7 @@ def lancamentos_da_prestacao(
             tipo_de_pagamento=tipo_de_pagamento,
             filtrar_por_data_inicio=filtrar_por_data_inicio,
             filtrar_por_data_fim=filtrar_por_data_fim,
+            filtrar_por_nome_fornecedor=filtrar_por_nome_fornecedor,
         )
 
         despesas = despesas.order_by("data_transacao")
@@ -716,6 +722,7 @@ def lancamentos_da_prestacao(
                                                                         many=False).data if despesa_geradora_do_imposto else None,
                 'despesas_impostos': DespesaImpostoSerializer(despesas_impostos, many=True,
                                                               required=False).data if despesas_impostos else None,
+                'informacoes': despesa.tags_de_informacao,
             }
 
             if com_ajustes:

@@ -32,6 +32,30 @@ class Associacao(ModeloIdNome):
         (STATUS_PRESIDENTE_AUSENTE, STATUS_PRESIDENTE_NOMES[STATUS_PRESIDENTE_AUSENTE]),
     )
 
+    # Status valores reprogramados iniciais
+    STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO = "NAO_FINALIZADO"
+    STATUS_VALORES_REPROGRAMADOS_EM_CONFERENCIA_DRE = "EM_CONFERENCIA_DRE"
+    STATUS_VALORES_REPROGRAMADOS_EM_CORRECAO_UE = "EM_CORRECAO_UE"
+    STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS = "VALORES_CORRETOS"
+
+    STATUS_VALORES_REPROGRAMADOS_NOMES = {
+        STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO: 'Não finalizado',
+        STATUS_VALORES_REPROGRAMADOS_EM_CONFERENCIA_DRE: 'Em conferência DRE',
+        STATUS_VALORES_REPROGRAMADOS_EM_CORRECAO_UE: 'Em correção UE',
+        STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS: 'Valores corretos',
+    }
+
+    STATUS_VALORES_REPROGRAMADOS_CHOICES = (
+        (STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO, STATUS_VALORES_REPROGRAMADOS_NOMES[
+            STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO]),
+        (STATUS_VALORES_REPROGRAMADOS_EM_CONFERENCIA_DRE, STATUS_VALORES_REPROGRAMADOS_NOMES[
+            STATUS_VALORES_REPROGRAMADOS_EM_CONFERENCIA_DRE]),
+        (STATUS_VALORES_REPROGRAMADOS_EM_CORRECAO_UE, STATUS_VALORES_REPROGRAMADOS_NOMES[
+            STATUS_VALORES_REPROGRAMADOS_EM_CORRECAO_UE]),
+        (STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS, STATUS_VALORES_REPROGRAMADOS_NOMES[
+            STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS]),
+    )
+
     unidade = models.ForeignKey('Unidade', on_delete=models.PROTECT, related_name="associacoes", to_field="codigo_eol",
                                 null=True)
 
@@ -62,6 +86,13 @@ class Associacao(ModeloIdNome):
         null=True,
         choices=MembroEnum.diretoria_executiva_choices(),
         default=None)
+
+    status_valores_reprogramados = models.CharField(
+        'Status dos valores reprogramados',
+        max_length=20,
+        choices=STATUS_VALORES_REPROGRAMADOS_CHOICES,
+        default=STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS
+    )
 
     def apaga_implantacoes_de_saldo(self):
         self.fechamentos_associacao.filter(status='IMPLANTACAO').delete()
@@ -155,6 +186,10 @@ class Associacao(ModeloIdNome):
     def acoes_da_associacao(cls, associacao_uuid):
         associacao = cls.objects.filter(uuid=associacao_uuid).first()
         return associacao.acoes.all().order_by('acao__posicao_nas_pesquisas') if associacao else []
+
+    def altera_status_valor_reprogramado(self, status):
+        self.status_valores_reprogramados = status
+        self.save()
 
     objects = models.Manager()  # Manager Padrão
     ativas = AssociacoesAtivasManager()

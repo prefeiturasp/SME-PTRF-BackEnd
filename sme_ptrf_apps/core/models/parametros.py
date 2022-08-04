@@ -36,6 +36,10 @@ class Parametros(SingletonModel, ModeloBase):
 
     enviar_email_notificacao = models.BooleanField('Envia e-mails de notificação?', default=True)
 
+    texto_pagina_suporte_dre = RichTextField(null=True, verbose_name='Texto da página de suporte (DRE)')
+
+    texto_pagina_suporte_sme = RichTextField(null=True, verbose_name='Texto da página de suporte (SME)')
+
     def __str__(self):
         return 'Parâmetros do PTRF'
 

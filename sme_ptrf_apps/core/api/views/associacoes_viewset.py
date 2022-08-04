@@ -109,7 +109,7 @@ class AssociacoesViewSet(ModelViewSet):
 
         nome = self.request.query_params.get('nome')
         if nome is not None:
-            qs = qs.filter(Q(nome__unaccent__icontains=nome) | Q(
+            qs = qs.filter(Q(unidade__codigo_eol=nome) | Q(nome__unaccent__icontains=nome) | Q(
                 unidade__nome__unaccent__icontains=nome))
 
         return qs
@@ -144,13 +144,34 @@ class AssociacoesViewSet(ModelViewSet):
     @action(detail=True, url_path='painel-acoes',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def painel_acoes(self, request, uuid=None):
+        from sme_ptrf_apps.core.services.painel_resumo_recursos_service import PainelResumoRecursosService
 
         periodo_uuid = request.query_params.get('periodo_uuid')
 
+        if periodo_uuid:
+            try:
+                periodo = Periodo.by_uuid(periodo_uuid)
+            except(ValidationError, Exception):
+                erro = {'erro': 'UUID do período inválido.'}
+                return Response(erro, status=status.HTTP_404_NOT_FOUND)
+        else:
+            periodo = Periodo.periodo_atual()
+
         conta_associacao_uuid = request.query_params.get('conta')
 
-        result = info_painel_acoes_por_periodo_e_conta(associacao_uuid=uuid, periodo_uuid=periodo_uuid,
-                                                       conta_associacao_uuid=conta_associacao_uuid)
+        try:
+            conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid) if conta_associacao_uuid else None
+        except(ValidationError, Exception):
+            erro = {'erro': 'UUID da conta inválido.'}
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        painel = PainelResumoRecursosService.painel_resumo_recursos(
+            self.get_object(),
+            periodo,
+            conta_associacao
+        )
+
+        result = painel.to_json()
 
         return Response(result)
 
