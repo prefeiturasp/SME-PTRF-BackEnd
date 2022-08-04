@@ -34,6 +34,7 @@ from sme_ptrf_apps.core.api.views import (
     PresentesAtaViewSet,
     AnaliseValorReprogramadoPrestacaoContaViewSet,
     AnaliseContaPrestacaoContaViewSet,
+    AnaliseLancamentoPrestacaoContaViewSet
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
@@ -127,6 +128,7 @@ router.register("analises-prestacoes-contas", AnalisesPrestacoesContasViewSet)
 router.register("presentes-ata", PresentesAtaViewSet)
 router.register("analises-valores-reprogramados", AnaliseValorReprogramadoPrestacaoContaViewSet)
 router.register("analises-conta-prestacao-conta", AnaliseContaPrestacaoContaViewSet)
+router.register("analises-lancamento-prestacao-conta", AnaliseLancamentoPrestacaoContaViewSet)
 router.register("comissoes", ComissoesViewSet)
 router.register("membros-comissoes", MembrosComissoesViewSet)
 router.register("anos-analise-regularidade", AnosAnaliseRegularidadeViewSet)
