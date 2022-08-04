@@ -39,4 +39,14 @@ class AnaliseLancamentoPrestacaoContaRetrieveSerializer(serializers.ModelSeriali
             'id',
             'uuid',
             'solicitacoes_de_ajuste_da_analise',
+            'status_realizacao',
+            'justificativa'
+        )
+
+
+class AnaliseLancamentoPrestacaoContaUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnaliseLancamentoPrestacaoConta
+        fields = (
+            'justificativa',
         )

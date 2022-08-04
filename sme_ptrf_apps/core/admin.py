@@ -621,7 +621,7 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
 
 @admin.register(AnaliseLancamentoPrestacaoConta)
 class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
-    list_display = ['analise_prestacao_conta', 'tipo_lancamento', 'resultado']
+    list_display = ['analise_prestacao_conta', 'tipo_lancamento', 'resultado', 'status_realizacao']
     list_filter = ('tipo_lancamento', 'analise_prestacao_conta__prestacao_conta__associacao__unidade', )
     readonly_fields = ('uuid', 'id',)
 
