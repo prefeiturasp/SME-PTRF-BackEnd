@@ -15,6 +15,7 @@ from .relatorio_consolidado_service import (
     _criar_previa_demonstrativo_execucao_fisico_financeiro,
     _criar_demonstrativo_execucao_fisico_financeiro,
     _gerar_arquivos_demonstrativo_execucao_fisico_financeiro,
+    retorna_informacoes_execucao_financeira_todas_as_contas
 )
 
 from .lauda_service import (

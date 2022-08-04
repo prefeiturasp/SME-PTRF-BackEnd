@@ -15,7 +15,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasDreComLeituraOuGravacao
 )
 
-from ...models import RelatorioConsolidadoDRE
+from ...models import RelatorioConsolidadoDRE, ConsolidadoDRE
 from ...services import (
     informacoes_devolucoes_a_conta_ptrf,
     informacoes_devolucoes_ao_tesouro,
@@ -23,8 +23,9 @@ from ...services import (
     informacoes_execucao_financeira_unidades,
     status_de_geracao_do_relatorio,
     update_observacao_devolucao,
+    retorna_informacoes_execucao_financeira_todas_as_contas
 )
-from ...tasks import gerar_previa_relatorio_consolidado_dre_async, gerar_lauda_txt_async
+from ...tasks import gerar_lauda_txt_async
 
 logger = logging.getLogger(__name__)
 
@@ -170,28 +171,6 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        # Determina o tipo de conta
-        tipo_conta_uuid = self.request.query_params.get('tipo_conta')
-
-        if not tipo_conta_uuid:
-            erro = {
-                'erro': 'falta_de_informacoes',
-                'operacao': 'info-execucao-financeira',
-                'mensagem': 'Faltou informar o uuid do tipo de conta. ?tipo_conta=uuid_do_tipo_conta'
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            tipo_conta = TipoConta.objects.get(uuid=tipo_conta_uuid)
-        except TipoConta.DoesNotExist:
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto tipo de conta para o uuid {tipo_conta_uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
         # Determina o período
         periodo_uuid = self.request.query_params.get('periodo')
 
@@ -214,7 +193,21 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        info = informacoes_execucao_financeira(dre=dre, periodo=periodo, tipo_conta=tipo_conta)
+        # Determina se existe o ConsolidadoDRE
+        consolidado_dre_uuid = self.request.query_params.get('consolidado_dre')
+        consolidado_dre = None
+        if consolidado_dre_uuid:
+            try:
+                consolidado_dre = ConsolidadoDRE.objects.get(uuid=consolidado_dre_uuid)
+            except ConsolidadoDRE.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        info = retorna_informacoes_execucao_financeira_todas_as_contas(dre=dre, periodo=periodo, consolidado_dre=consolidado_dre)
 
         return Response(info)
 
