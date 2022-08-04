@@ -1,4 +1,5 @@
 from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE, AtaParecerTecnico, Lauda, ConsolidadoDRE
+from sme_ptrf_apps.core.models import PrestacaoConta
 
 import logging
 
@@ -16,18 +17,24 @@ class VincularConsolidadoService:
         if not (
             isinstance(artefato, RelatorioConsolidadoDRE) or
             isinstance(artefato, AtaParecerTecnico) or
-            isinstance(artefato, Lauda)
+            isinstance(artefato, Lauda) or
+            isinstance(artefato, PrestacaoConta)
         ):
-            mensagem = 'Artefato precisa ser um RelatorioConsolidadoDRE, AtaParecerTecnico ou Lauda.'
+            mensagem = 'Artefato precisa ser um RelatorioConsolidadoDRE, AtaParecerTecnico, Lauda ou Prestação de Contas.'
             logger.error(mensagem)
             raise VincularConsolidadoServiceException(mensagem)
 
-        consolidado = cls.__obter_ou_criar_consolidado_dre(periodo=artefato.periodo, dre=artefato.dre)
+        dre = artefato.associacao.unidade.dre if isinstance(artefato, PrestacaoConta) else artefato.dre
+
+        consolidado = cls.__obter_ou_criar_consolidado_dre(periodo=artefato.periodo, dre=dre)
 
         artefato.consolidado_dre = consolidado
 
         if isinstance(artefato, AtaParecerTecnico):
             artefato.sequencia_de_publicacao = consolidado.sequencia_de_publicacao
+
+        if isinstance(artefato, PrestacaoConta):
+            artefato.publicada = True
 
         artefato.save()
 

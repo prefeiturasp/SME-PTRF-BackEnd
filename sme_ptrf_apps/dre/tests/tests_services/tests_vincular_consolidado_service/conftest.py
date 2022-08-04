@@ -143,3 +143,35 @@ def vcs_lauda_desvinculada(
         usuario=vcs_usuario_lauda,
         status='GERADA_TOTAL',
     )
+
+
+@pytest.fixture
+def vcs_unidade(vcs_dre_ipiranga):
+    return baker.make(
+        'Unidade',
+        nome='Escola Teste',
+        tipo_unidade='CEU',
+        codigo_eol='123456',
+        dre=vcs_dre_ipiranga,
+    )
+
+
+@pytest.fixture
+def vcs_associacao(vcs_unidade, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Outra',
+        cnpj='52.302.275/0001-99',
+        unidade=vcs_unidade,
+        periodo_inicial=periodo_anterior,
+    )
+
+
+@pytest.fixture
+def vcs_prestacao_conta_desvinculada(vcs_periodo_2022_1, vcs_associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=vcs_periodo_2022_1,
+        associacao=vcs_associacao,
+        status="APROVADA"
+    )

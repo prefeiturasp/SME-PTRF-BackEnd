@@ -180,8 +180,18 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ('get_eol_unidade', 'periodo', 'status', 'publicada', 'consolidado_dre')
     list_filter = ('status', 'associacao', 'periodo', 'publicada', 'consolidado_dre')
     list_display_links = ('periodo',)
-    readonly_fields = ('uuid', 'id')
-    search_fields = ('associacao__unidade__codigo_eol',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
+
+    actions = ['vincular_consolidado_dre', ]
+
+    def vincular_consolidado_dre(self, request, queryset):
+        from sme_ptrf_apps.dre.services.vincular_consolidado_service import VincularConsolidadoService
+
+        for prestacao_conta in queryset.all():
+            VincularConsolidadoService.vincular_artefato(prestacao_conta)
+
+        self.message_user(request, f"PCs vinculadas com sucesso!")
 
 
 @admin.register(Ata)
