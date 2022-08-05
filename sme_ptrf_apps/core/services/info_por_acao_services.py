@@ -368,7 +368,15 @@ def info_acao_associacao_no_periodo(
             info['saldo_anterior_livre'] = sumario_periodo_anterior['saldo_atual_livre']
             info['saldo_atual_livre'] = info['saldo_anterior_livre']
 
-        periodo_do_saldo = fechamentos_periodo_anterior.first().periodo if fechamentos_periodo_anterior else periodo
+        # Determina a partir de qual período considera o saldo
+        if fechamentos_periodo_anterior:
+            periodo_do_saldo = fechamentos_periodo_anterior.first().periodo
+        elif periodo.periodo_anterior:
+            periodo_do_saldo = periodo.periodo_anterior
+        else:
+            periodo_do_saldo = periodo
+
+        # periodo_do_saldo = fechamentos_periodo_anterior.first().periodo if fechamentos_periodo_anterior else periodo
 
         if (not apenas_transacoes_do_periodo) and periodo_do_saldo and periodo_do_saldo.proximo_periodo:
             periodo_inicial_transacoes = periodo_do_saldo.proximo_periodo
