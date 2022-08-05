@@ -65,6 +65,8 @@ def test_api_get_documentos_para_analise(
             },
             'uuid': f'{analise_doc_ata.uuid}',
             'id': analise_doc_ata.id,
+            'justificativa': None,
+            'status_realizacao': 'PENDENTE',
         },
         {
             'analise_prestacao_conta': f'{analise_pc.uuid}',
@@ -98,6 +100,8 @@ def test_api_get_documentos_para_analise(
             },
             'uuid': f'{analise_doc_declaracao.uuid}',
             'id': analise_doc_declaracao.id,
+            'justificativa': None,
+            'status_realizacao': 'PENDENTE',
         }
     ]
 

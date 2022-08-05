@@ -21,6 +21,8 @@ def test_api_get_solicitacoes_acerto_de_um_documento_nao_por_conta(
     resultado_esperado = {
         'uuid': f'{analise_documento_prestacao_conta_2020_1_ata_ajuste.uuid}',
         'id': analise_documento_prestacao_conta_2020_1_ata_ajuste.id,
+        'justificativa': None,
+        'status_realizacao': 'PENDENTE',
         'resultado': 'AJUSTE',
         'conta_associacao': None,
         'analise_prestacao_conta': f'{analise_prestacao.uuid}',
@@ -73,6 +75,8 @@ def test_api_get_solicitacoes_acerto_de_um_documento_por_conta(
     resultado_esperado = {
         'uuid': f'{analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste.uuid}',
         'id': analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste.id,
+        'justificativa': None,
+        'status_realizacao': 'PENDENTE',
         'resultado': 'AJUSTE',
         'conta_associacao': {
             'nome': 'Cartão',

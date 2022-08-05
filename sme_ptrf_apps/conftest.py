@@ -1930,6 +1930,22 @@ def analise_documento_prestacao_conta_2020_1_ata_correta(
 
 
 @pytest.fixture
+def analise_documento_prestacao_conta_com_justificativa_2020_1_ata_correta(
+    analise_prestacao_conta_2020_1,
+    tipo_documento_prestacao_conta_ata,
+    conta_associacao_cartao
+):
+    return baker.make(
+        'AnaliseDocumentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
+        tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_ata,
+        conta_associacao=conta_associacao_cartao,
+        resultado='CORRETO',
+        justificativa="TESTE"
+    )
+
+
+@pytest.fixture
 def analise_documento_prestacao_conta_2020_1_ata_ajuste(
     analise_prestacao_conta_2020_1,
     tipo_documento_prestacao_conta_ata,

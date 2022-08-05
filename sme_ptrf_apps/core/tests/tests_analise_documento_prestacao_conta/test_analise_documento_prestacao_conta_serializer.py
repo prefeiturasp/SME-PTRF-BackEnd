@@ -15,3 +15,12 @@ def test_retrieve_serializer(analise_documento_prestacao_conta_2020_1_ata_corret
     assert serializer.data['analise_prestacao_conta']
     assert serializer.data['tipo_documento_prestacao_conta']
     assert serializer.data['solicitacoes_de_ajuste_da_analise'] == []
+    assert serializer.data['justificativa'] is None
+    assert serializer.data['status_realizacao']
+
+
+def test_update_serializer(analise_documento_prestacao_conta_com_justificativa_2020_1_ata_correta):
+    serializer = AnaliseDocumentoPrestacaoContaRetrieveSerializer(
+        analise_documento_prestacao_conta_com_justificativa_2020_1_ata_correta)
+    assert serializer.data is not None
+    assert serializer.data['justificativa']
