@@ -1,6 +1,7 @@
 from django.contrib import admin
 from rangefilter.filter import DateRangeFilter
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
+from sme_ptrf_apps.core.services import associacao_pode_implantar_saldo
 from .models import (
     Acao,
     AcaoAssociacao,
@@ -41,7 +42,8 @@ from .models import (
     AnaliseDocumentoPrestacaoConta,
     SolicitacaoAcertoDocumento,
     PresenteAta,
-    AnaliseValorReprogramadoPrestacaoConta
+    AnaliseValorReprogramadoPrestacaoConta,
+    ValoresReprogramados
 )
 
 admin.site.register(Acao)
@@ -61,6 +63,18 @@ class AssociacaoAdmin(admin.ModelAdmin):
     list_filter = ('unidade__dre', 'periodo_inicial')
     readonly_fields = ('uuid', 'id')
     list_display_links = ('nome', 'cnpj')
+
+    actions = ['define_status_nao_finalizado_valores_reprogramados', ]
+
+    def define_status_nao_finalizado_valores_reprogramados(self, request, queryset):
+        for associacao in queryset.all():
+            implantacao = associacao_pode_implantar_saldo(associacao=associacao)
+
+            if implantacao["permite_implantacao"]:
+                associacao.status_valores_reprogramados = Associacao.STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO
+                associacao.save()
+
+        self.message_user(request, f"Status definido com sucesso!")
 
 
 @admin.register(ContaAssociacao)
@@ -163,11 +177,21 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
 
     get_eol_unidade.short_description = 'EOL'
 
-    list_display = ('get_eol_unidade', 'periodo', 'status')
-    list_filter = ('status', 'associacao', 'periodo')
+    list_display = ('get_eol_unidade', 'periodo', 'status', 'publicada', 'consolidado_dre')
+    list_filter = ('status', 'associacao', 'periodo', 'publicada', 'consolidado_dre')
     list_display_links = ('periodo',)
-    readonly_fields = ('uuid', 'id')
-    search_fields = ('associacao__unidade__codigo_eol',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
+
+    actions = ['vincular_consolidado_dre', ]
+
+    def vincular_consolidado_dre(self, request, queryset):
+        from sme_ptrf_apps.dre.services.vincular_consolidado_service import VincularConsolidadoService
+
+        for prestacao_conta in queryset.all():
+            VincularConsolidadoService.vincular_artefato(prestacao_conta)
+
+        self.message_user(request, f"PCs vinculadas com sucesso!")
 
 
 @admin.register(Ata)
@@ -666,3 +690,14 @@ class PresenteAtaAdmin(admin.ModelAdmin):
 class AnaliseValorReprogramadoPrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ['analise_prestacao_conta', 'conta_associacao', 'acao_associacao', 'valor_saldo_reprogramado_correto']
     readonly_fields = ('uuid', 'id',)
+
+
+@admin.register(ValoresReprogramados)
+class ValoresReprogramadosAdmin(admin.ModelAdmin):
+    list_display = ('associacao', 'conta_associacao', 'acao_associacao', 'aplicacao_recurso', 'valor_ue', 'valor_dre')
+    search_fields = ('uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
+    list_filter = ('associacao', 'associacao__status_valores_reprogramados', 'associacao__periodo_inicial',
+                   'associacao__unidade__dre', 'conta_associacao__tipo_conta',
+                   'acao_associacao__acao', 'aplicacao_recurso')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+

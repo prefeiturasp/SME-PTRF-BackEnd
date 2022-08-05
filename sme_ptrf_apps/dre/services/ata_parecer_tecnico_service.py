@@ -1,24 +1,23 @@
 import datetime
 import logging
 from sme_ptrf_apps.core.models import TipoConta, PrestacaoConta
-from sme_ptrf_apps.dre.models import PresenteAtaDre
-from sme_ptrf_apps.dre.services import informacoes_execucao_financeira_unidades
+from sme_ptrf_apps.dre.models import PresenteAtaDre, ConsolidadoDRE
 from sme_ptrf_apps.dre.services.ata_pdf_parecer_tecnico_service import gerar_arquivo_ata_parecer_tecnico_pdf
 from sme_ptrf_apps.core.services.ata_dados_service import data_por_extenso
 from sme_ptrf_apps.core.services.dados_demo_financeiro_service import formata_data
 from sme_ptrf_apps.utils.numero_por_extenso import real
-
+from django.db.models import Q
 
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_arquivo_ata_parecer_tecnico(ata=None, dre=None, periodo=None, usuario=None):
+def gerar_arquivo_ata_parecer_tecnico(ata=None, dre=None, periodo=None, usuario=None, apenas_nao_publicadas=False, parcial=None):
     LOGGER.info(f"Gerando Arquivo da Ata, Ata {ata}, DRE {dre} e Período {periodo}")
 
     ata.arquivo_pdf_iniciar()
 
     try:
-        dados_da_ata = informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, ata, usuario)
+        dados_da_ata = informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, ata, usuario, apenas_nao_publicadas, parcial)
         gerar_arquivo_ata_parecer_tecnico_pdf(dados_da_ata, ata)
         LOGGER.info(f'Gerando arquivo ata parecer técnico em PDF')
         ata.arquivo_pdf_concluir()
@@ -30,7 +29,113 @@ def gerar_arquivo_ata_parecer_tecnico(ata=None, dre=None, periodo=None, usuario=
         return None
 
 
-def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, ata=None, usuario=None):
+def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_em_tela(dre, periodo, ata=None, usuario=None, parcial=None, ata_de_parecer_tecnico=None):
+    lista_contas_aprovadas = []  # PCs aprovadas precisam ser separadas por conta
+    lista_contas_aprovadas_ressalva = []  # PCs aprovadas com ressalva precisam ser separadas por conta
+    lista_contas_reprovadas = []  # PCs reprovadas precisam ser separadas por conta
+    lista_motivos_aprovadas_ressalva = []
+    lista_motivos_reprovacao = []
+
+    titulo_sequencia_publicacao = None
+    if parcial:
+        eh_parcial = "Parcial" if parcial['parcial'] else "Final"
+
+        sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
+
+        if eh_parcial == "Parcial":
+            titulo_sequencia_publicacao = f'Parcial #{sequencia_de_publicacao}'
+        else:
+            titulo_sequencia_publicacao = "Ata final"
+
+    cabecalho = {
+        "titulo": "Programa de Transferência de Recursos Financeiros -  PTRF",
+        "sub_titulo": f"Diretoria Regional de Educação - {formata_nome_dre(dre.nome)}",
+        "nome_ata": f"Ata de Parecer Técnico Conclusivo",
+        "nome_dre": f"{formata_nome_dre(dre.nome)}",
+        "data_geracao_documento": cria_data_geracao_documento(usuario, dre.nome),
+        "numero_portaria": ata.numero_portaria if ata and ata.numero_portaria else "--",
+        "data_portaria": ata.data_portaria if ata and ata.data_portaria else "--",
+        "titulo_sequencia_publicacao": titulo_sequencia_publicacao,
+    }
+    dados_texto_da_ata = {
+        "data_reuniao_por_extenso": data_por_extenso(ata.data_reuniao) if ata and ata.data_reuniao else "---",
+        "hora_reuniao": hora_por_extenso(ata.hora_reuniao) if ata and ata.hora_reuniao else "---",
+        "numero_ata": ata.numero_ata if ata and ata.numero_ata else "---",
+        'data_reuniao': ata.data_reuniao if ata and ata.data_reuniao else "---",
+        "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas),
+        "periodo_data_fim": formata_data(periodo.data_fim_realizacao_despesas),
+    }
+    presentes_na_ata = {
+        "presentes": get_presentes_na_ata(ata)
+    }
+
+    lista_aprovadas = []  # Lista usada para separar por status aprovada
+    lista_aprovadas_ressalva = []  # Lista usada para separar por status aprovada com ressalva
+    lista_reprovadas = []  # Lista usada para separar por status reprovada
+
+    informacoes = informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_em_tela(
+        dre=dre,
+        periodo=periodo,
+        ata_de_parecer_tecnico=ata_de_parecer_tecnico
+    )
+
+    for info in informacoes:
+        if info["status_prestacao_contas"] == "APROVADA":
+            lista_aprovadas.append(info)  # Separando por aprovadas
+
+        elif info["status_prestacao_contas"] == "APROVADA_RESSALVA":
+            lista_aprovadas_ressalva.append(info)  # Separando por aprovadas com ressalva
+            motivos = motivos_aprovacao_ressalva(info["uuid_pc"])
+            lista_motivos_aprovadas_ressalva.append(motivos)
+
+        elif info["status_prestacao_contas"] == "REPROVADA":
+            lista_reprovadas.append(info)  # Separando por reprovadas
+            motivos = motivos_reprovacao(info["uuid_pc"])
+            lista_motivos_reprovacao.append(motivos)
+
+    if len(lista_aprovadas) > 0:
+        dados_aprovadas = {
+            "info": lista_aprovadas
+        }
+        # Inserindo lista de PCs aprovadas por conta
+        lista_contas_aprovadas.append(dados_aprovadas)
+
+    if len(lista_aprovadas_ressalva) > 0:
+        dados_aprovadas_ressalva = {
+            "info": lista_aprovadas_ressalva
+        }
+        # Inserindo lista de PCs aprovadas com ressalva por conta
+        lista_contas_aprovadas_ressalva.append(dados_aprovadas_ressalva)
+
+    if len(lista_reprovadas) > 0:
+        dados_reprovadas = {
+            "info": lista_reprovadas
+        }
+        # Inserindo lista de PCs reprovadas com ressalva por conta
+        lista_contas_reprovadas.append(dados_reprovadas)
+
+    dado = {
+        "cabecalho": cabecalho,
+        "dados_texto_da_ata": dados_texto_da_ata,
+        "presentes_na_ata": presentes_na_ata,
+        "aprovadas": {
+            "contas": lista_contas_aprovadas
+        },
+        "aprovadas_ressalva": {
+            "contas": lista_contas_aprovadas_ressalva,
+            "motivos": lista_motivos_aprovadas_ressalva
+        },
+        "reprovadas": {
+            "contas": lista_contas_reprovadas,
+            "motivos": lista_motivos_reprovacao
+        }
+    }
+
+    return dado
+
+
+# TODO futuramente a geração do PDF da ATA também não será agrupado por conta, utilizar o método informacoes_execucao_financeira_unidades_ata_parecer_tecnico_em_tela, renomear o método retirar _em_tela e apagar este
+def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, ata=None, usuario=None, apenas_nao_publicadas=False, parcial=None):
     # Está primeira conta encontrada será usada para PCs reprovadas, pois não necessitam de distinção por conta
     primeira_conta_encontrada = TipoConta.objects.first()
 
@@ -45,6 +150,17 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
     # lista utilizada para não duplicar contas reprovadas, remover ao refatorar
     # lista_reprovadas = []  # PCs reprovadas não precisam ser separadas por conta
 
+    titulo_sequencia_publicacao = None
+    if parcial:
+        eh_parcial = "Parcial" if parcial['parcial'] else "Final"
+
+        sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
+
+        if eh_parcial == "Parcial":
+            titulo_sequencia_publicacao = f'Parcial #{sequencia_de_publicacao}'
+        else:
+            titulo_sequencia_publicacao = "Ata final"
+
     cabecalho = {
         "titulo": "Programa de Transferência de Recursos Financeiros -  PTRF",
         "sub_titulo": f"Diretoria Regional de Educação - {formata_nome_dre(dre.nome)}",
@@ -53,6 +169,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
         "data_geracao_documento": cria_data_geracao_documento(usuario, dre.nome),
         "numero_portaria": ata.numero_portaria if ata and ata.numero_portaria else "--",
         "data_portaria": ata.data_portaria if ata and ata.data_portaria else "--",
+        "titulo_sequencia_publicacao": titulo_sequencia_publicacao,
     }
     dados_texto_da_ata = {
         "data_reuniao_por_extenso": data_por_extenso(ata.data_reuniao) if ata and ata.data_reuniao else "---",
@@ -71,10 +188,11 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
         lista_aprovadas_ressalva = []  # Lista usada para separar por status aprovada com ressalva
         lista_reprovadas = []  # Lista usada para separar por status reprovada
 
-        informacoes = informacoes_execucao_financeira_unidades(
+        informacoes = informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_por_conta(
             dre=dre,
             periodo=periodo,
             tipo_conta=conta,
+            apenas_nao_publicadas=apenas_nao_publicadas,
         )
 
         for info in informacoes:
@@ -152,6 +270,116 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre, periodo, a
     return dado
 
 
+def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_em_tela(dre, periodo, ata_de_parecer_tecnico):
+
+    from ..services.relatorio_consolidado_service import get_teste_motivos_reprovacao, get_motivos_aprovacao_ressalva
+
+    consolidado_dre = None
+
+    if ata_de_parecer_tecnico:
+        consolidado_dre = ata_de_parecer_tecnico.consolidado_dre
+
+    if consolidado_dre:
+        prestacoes = consolidado_dre.prestacoes_de_conta_do_consolidado_dre.all()
+    else:
+        prestacoes = PrestacaoConta.objects.filter(
+            periodo=periodo,
+            associacao__unidade__dre=dre,
+        )
+        prestacoes = prestacoes.filter(
+            Q(status=PrestacaoConta.STATUS_APROVADA) |
+            Q(status=PrestacaoConta.STATUS_APROVADA_RESSALVA) |
+            Q(status=PrestacaoConta.STATUS_REPROVADA)
+        )
+        prestacoes = prestacoes.filter(publicada=False)
+
+    resultado = []
+    for prestacao in prestacoes:
+
+        status_prestacao_conta = prestacao.status
+
+        dado = {
+            'unidade': {
+                'uuid': f'{prestacao.associacao.unidade.uuid}',
+                'codigo_eol': prestacao.associacao.unidade.codigo_eol,
+                'tipo_unidade': prestacao.associacao.unidade.tipo_unidade,
+                'nome': prestacao.associacao.unidade.nome,
+                'sigla': prestacao.associacao.unidade.sigla,
+            },
+
+            'status_prestacao_contas': status_prestacao_conta,
+            'uuid_pc': prestacao.uuid,
+        }
+
+        if status_prestacao_conta == "REPROVADA":
+            dado["motivos_reprovacao"] = get_teste_motivos_reprovacao(prestacao)
+        elif status_prestacao_conta == "APROVADA_RESSALVA":
+            dado["motivos_aprovada_ressalva"] = get_motivos_aprovacao_ressalva(prestacao)
+            dado["recomendacoes"] = prestacao.recomendacoes
+
+        resultado.append(dado)
+
+    resultado = sorted(resultado, key=lambda row: row['status_prestacao_contas'])
+
+    return resultado
+
+
+# TODO futuramente a geração do PDF da ATA também não será agrupado por conta, utilizar o método informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_em_tela, renomear o método retirar _em_tela e apagar este
+def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_por_conta(dre, periodo, tipo_conta, apenas_nao_publicadas):
+
+    from ..services.relatorio_consolidado_service import get_teste_motivos_reprovacao, get_motivos_aprovacao_ressalva
+
+    prestacoes = PrestacaoConta.objects.filter(
+        periodo=periodo,
+        associacao__unidade__dre=dre,
+        associacao__contas__tipo_conta__nome=tipo_conta
+    )
+
+    if not apenas_nao_publicadas:
+        prestacoes = prestacoes.filter(
+            Q(status=PrestacaoConta.STATUS_APROVADA) |
+            Q(status=PrestacaoConta.STATUS_APROVADA_RESSALVA) |
+            Q(status=PrestacaoConta.STATUS_REPROVADA)
+        )
+    else:
+        prestacoes = prestacoes.filter(
+            Q(status=PrestacaoConta.STATUS_APROVADA) |
+            Q(status=PrestacaoConta.STATUS_APROVADA_RESSALVA) |
+            Q(status=PrestacaoConta.STATUS_REPROVADA)
+        )
+        prestacoes = prestacoes.filter(publicada=False)
+
+    resultado = []
+    for prestacao in prestacoes:
+
+        status_prestacao_conta = prestacao.status
+
+        dado = {
+            'unidade': {
+                'uuid': f'{prestacao.associacao.unidade.uuid}',
+                'codigo_eol': prestacao.associacao.unidade.codigo_eol,
+                'tipo_unidade': prestacao.associacao.unidade.tipo_unidade,
+                'nome': prestacao.associacao.unidade.nome,
+                'sigla': prestacao.associacao.unidade.sigla,
+            },
+
+            'status_prestacao_contas': status_prestacao_conta,
+            'uuid_pc': prestacao.uuid,
+        }
+
+        if status_prestacao_conta == "REPROVADA":
+            dado["motivos_reprovacao"] = get_teste_motivos_reprovacao(prestacao)
+        elif status_prestacao_conta == "APROVADA_RESSALVA":
+            dado["motivos_aprovada_ressalva"] = get_motivos_aprovacao_ressalva(prestacao)
+            dado["recomendacoes"] = prestacao.recomendacoes
+
+        resultado.append(dado)
+
+    resultado = sorted(resultado, key=lambda row: row['status_prestacao_contas'])
+
+    return resultado
+
+
 def get_presentes_na_ata(ata):
     ata_id = ata.id if ata and ata.id else None
     presentes_na_ata = []
@@ -170,7 +398,7 @@ def get_presentes_na_ata(ata):
 
 
 def cria_data_geracao_documento(usuario, dre_nome):
-    data_geracao = datetime.date.today().strftime("%d/%m/%Y")
+    data_geracao = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}"
     texto = f"Ata PDF gerada pelo Sig_Escola em {data_geracao} {quem_gerou} para a DIRETORIA REGIONAL DE EDUCAÇÃO {formata_nome_dre(dre_nome)}"
 
@@ -262,5 +490,3 @@ def motivos_reprovacao(uuid_pc):
     }
 
     return dados
-
-

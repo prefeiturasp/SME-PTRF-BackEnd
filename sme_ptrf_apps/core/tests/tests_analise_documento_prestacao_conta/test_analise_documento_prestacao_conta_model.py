@@ -23,3 +23,14 @@ def test_srt_model(analise_documento_prestacao_conta_2020_1_ata_correta):
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[AnaliseDocumentoPrestacaoConta]
+
+
+def test_audit_log(analise_documento_prestacao_conta_2020_1_ata_correta):
+    assert analise_documento_prestacao_conta_2020_1_ata_correta.history.count() == 1  # Um log de inclusão
+    assert analise_documento_prestacao_conta_2020_1_ata_correta.history.latest().action == 0  # 0-Inclusão
+
+    analise_documento_prestacao_conta_2020_1_ata_correta.resultado = "AJUSTE"
+    analise_documento_prestacao_conta_2020_1_ata_correta.save()
+    assert analise_documento_prestacao_conta_2020_1_ata_correta.history.count() == 2  # Um log de inclusão e outro de edição
+    assert analise_documento_prestacao_conta_2020_1_ata_correta.history.latest().action == 1  # 1-Edição
+

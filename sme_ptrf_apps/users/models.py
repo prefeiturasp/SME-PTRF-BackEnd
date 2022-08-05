@@ -1,5 +1,6 @@
 import base64
 import uuid
+import logging
 
 from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
@@ -8,12 +9,13 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from sme_ptrf_apps.core.models import Unidade
-from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
+from sme_ptrf_apps.core.models_abstracts import ModeloIdNome, ModeloBase
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.db.models.signals import m2m_changed
 
+logger = logging.getLogger(__name__)
 
 class Visao(ModeloIdNome):
     history = AuditlogHistoryField()
@@ -91,18 +93,28 @@ class User(AbstractUser):
             if visao_obj:
                 self.visoes.add(visao_obj)
                 self.save()
+                logger.info(f'Visão {visao_obj} adicionada para o usuário {self}.')
+
+    def remove_visao_se_existir(self, visao):
+        if self.visoes.filter(nome=visao).exists():
+            visao_obj = Visao.objects.get(nome=visao)
+            self.visoes.remove(visao_obj)
+            self.save()
+            logger.info(f'Visão {visao} removida do usuário {self}.')
 
     def add_unidade_se_nao_existir(self, codigo_eol):
         if not self.unidades.filter(codigo_eol=codigo_eol).exists():
             unidade = Unidade.objects.get(codigo_eol=codigo_eol)
             self.unidades.add(unidade)
             self.save()
+            logger.info(f'Unidade {codigo_eol} adicionada para o usuário {self}.')
 
     def remove_unidade_se_existir(self, codigo_eol):
         if self.unidades.filter(codigo_eol=codigo_eol).exists():
             unidade = Unidade.objects.get(codigo_eol=codigo_eol)
             self.unidades.remove(unidade)
             self.save()
+            logger.info(f'Unidade {codigo_eol} removida do usuário {self}.')
 
     @classmethod
     def criar_usuario(cls, dados):
@@ -237,3 +249,28 @@ m2m_changed.connect(m2m_changed_group_visoes, sender=Grupo.visoes.through)
 
 auditlog.register(Grupo)
 auditlog.register(Visao)
+
+
+class UnidadeEmSuporte(ModeloBase):
+    history = AuditlogHistoryField()
+
+    unidade = models.ForeignKey(
+        'core.Unidade',
+        on_delete=models.CASCADE,
+        related_name="acessos_de_suporte",
+        to_field="codigo_eol",
+    )
+
+    user = models.ForeignKey(
+        'User',
+        on_delete=models.CASCADE,
+        related_name="acessos_de_suporte",
+    )
+
+    def __str__(self):
+        return f'Unidade {self.unidade.codigo_eol} em suporte por {self.user.username}. ID:{self.id}'
+
+    class Meta:
+        verbose_name = 'Unidade em suporte'
+        verbose_name_plural = 'Unidades em suporte'
+        unique_together = ('unidade', 'user',)

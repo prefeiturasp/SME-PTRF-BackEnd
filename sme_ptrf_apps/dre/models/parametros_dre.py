@@ -11,6 +11,12 @@ class ParametrosDre(SingletonModel, ModeloBase):
     comissao_exame_contas = models.ForeignKey('Comissao', on_delete=models.CASCADE,
                                               related_name='comissao_com_exame_contas')
 
+    tipo_conta_um = models.ForeignKey('core.TipoConta', on_delete=models.CASCADE,
+                                      related_name='tipo_conta_um', null=True, blank=True, default=None)
+
+    tipo_conta_dois = models.ForeignKey('core.TipoConta', on_delete=models.CASCADE,
+                                        related_name='tipo_conta_dois', null=True, blank=True, default=None)
+
     class Meta:
         verbose_name = "Parâmetro DRE"
         verbose_name_plural = "Parâmetros DRE"

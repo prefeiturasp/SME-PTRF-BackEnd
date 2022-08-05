@@ -1,7 +1,7 @@
 import pytest
 
 from ...api.serializers.unidade_serializer import (UnidadeLookUpSerializer, UnidadeSerializer, UnidadeInfoAtaSerializer,
-                                                   UnidadeListSerializer)
+                                                   UnidadeListEmAssociacoesSerializer)
 
 pytestmark = pytest.mark.django_db
 
@@ -46,7 +46,7 @@ def test_unidade_info_ata_serializer(unidade):
 
 
 def test_unidade_list_serializer(unidade):
-    unidade_serializer = UnidadeListSerializer(unidade)
+    unidade_serializer = UnidadeListEmAssociacoesSerializer(unidade)
     assert unidade_serializer.data is not None
     assert 'uuid' in unidade_serializer.data
     assert 'codigo_eol' in unidade_serializer.data

@@ -1,0 +1,302 @@
+{% load staticfiles %}
+
+{% for valor in dados.execucao_financeira.por_tipo_de_conta %}
+
+  <table class="table table-bordered tabela-relatorio-dre" >
+    <thead>
+    <tr>
+      <th colSpan="23" class="font-12"><strong>Execução financeira - Conta {{ valor.tipo_conta }}</strong></th>
+    </tr>
+      <tr>
+        <th colSpan="2" style="width: 15%" class="th-fundo-branco">01 - Saldo reprogramado do período anterior</th>
+        <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+
+        <th colSpan="2" style="width: 10%" class="th-fundo-branco">02 - Previsto pela SME</th>
+        <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+
+        <th colSpan="2" style="width: 15%" class="th-fundo-branco">03 - Transferido  pela DRE </th>
+        <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+
+        <th colSpan="2" style="width: 10%" class="th-fundo-branco">04 - Outros créditos</th>
+        <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+
+        <th colSpan="2" class="th-fundo-branco">05 - Valor total disponível</th>
+        <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+
+        <th colSpan="2" class="th-fundo-branco">06 - Despesa realizada</th>
+        <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+
+        <th colSpan="2" style="width: 15%" class="th-fundo-branco">07 - Saldo reprogramado para o próximo período</th>
+        <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+
+        <th colSpan="2" class="th-fundo-branco">08 - Devolução ao Tesouro</th>
+      </tr>
+    </thead>
+
+    <tbody style="border-top: none !important;">
+      <tr>
+
+        <td rowSpan="2" style="width: 4%; padding: 5px 0 5px 5px">C</td>
+        <td rowSpan="2" class="text-right">{{ valor.custeio.saldo_reprogramado_periodo_anterior_custeio }}</td>
+        <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
+
+        <td rowSpan="2" style="width: 4%">C</td>
+        <td rowSpan="2" class="text-right">{{ valor.custeio.repasses_previstos_sme_custeio }}</td>
+        <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
+
+        <td rowSpan="2" style="width: 4%">C</td>
+        <td rowSpan="2" class="text-right">{{ valor.custeio.repasses_no_periodo_custeio }}</td>
+        <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
+
+        <td rowSpan="2" style="width: 4%">C</td>
+        <td rowSpan="2" class="text-right">{{ valor.custeio.outros_creditos }}</td>
+        <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
+
+        <td rowSpan="2" style="width: 4%">C</td>
+        <td rowSpan="2" class="text-right">{{ valor.custeio.valor_total_custeio }}</td>
+        <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
+
+        <td rowSpan="3" style="width: 4%">C</td>
+        <td rowSpan="3" class="text-right">{{ valor.custeio.despesas_no_periodo_custeio }}</td>
+        <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
+
+        <td rowSpan="2" style="width: 4%">C</td>
+        <td rowSpan="2" class="text-right">{{ valor.custeio.saldo_reprogramado_proximo_periodo_custeio }}</td>
+        <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
+
+        <td rowSpan="6" colspan="2"  class="text-center">{{ valor.totais.devolucoes_ao_tesouro_no_periodo_total }}</td>
+      </tr>
+      <tr></tr>
+      <tr>
+        <td rowSpan="2" style="padding: 5px 0 5px 5px"> L</td>
+        <td rowSpan="2" class="text-right">{{ valor.livre.saldo_reprogramado_periodo_anterior_livre }}</td>
+
+        <td rowSpan="2">L</td>
+        <td rowSpan="2" class="text-right">{{ valor.livre.repasses_previstos_sme_livre }}</td>
+
+        <td rowSpan="2">L</td>
+        <td rowSpan="2" class="text-right">{{ valor.livre.repasses_no_periodo_livre }}</td>
+
+        <td rowSpan="2"> L</td>
+        <td rowSpan="2"
+            class="text-right">{{ valor.livre.outros_creditos }}</td>
+
+        <td rowSpan="2"> L</td>
+        <td rowSpan="2"
+            class="text-right">{{ valor.livre.valor_total_livre }}</td>
+
+        <td rowSpan="2"> L</td>
+        <td rowSpan="2"
+            class="text-right">{{ valor.livre.saldo_reprogramado_proximo_periodo_livre }}</td>
+        <td style="display: inline-table; border:none !important;"></td>
+
+      </tr>
+      <tr>
+        <td rowSpan="3"> K</td>
+        <td rowSpan="3" class="text-right">{{ valor.capital.despesas_no_periodo_capital }}</td>
+      </tr>
+      <tr>
+        <td rowSpan="2" style="padding: 0 0 0 5px"> K</td>
+        <td rowSpan="2" class="text-right">{{ valor.capital.saldo_reprogramado_periodo_anterior_capital }}</td>
+
+        <td rowSpan="2"> K</td>
+        <td rowSpan="2" class="text-right">{{ valor.capital.repasses_previstos_sme_capital }}</td>
+
+        <td rowSpan="2"> K</td>
+        <td rowSpan="2" class="text-right">{{ valor.capital.repasses_no_periodo_capital }}</td>
+
+        <td rowSpan="2"> K</td>
+        <td rowSpan="2" class="text-right">{{ valor.capital.outros_creditos }}</td>
+
+        <td rowSpan="2"> K</td>
+        <td rowSpan="2" class="text-right">{{ valor.capital.valor_total_capital }}</td>
+
+        <td rowSpan="2"> K</td>
+        <td rowSpan="2" class="text-right">{{ valor.capital.saldo_reprogramado_proximo_periodo_capital }}</td>
+      </tr>
+      <tr></tr>
+      <tr>
+
+        <td rowSpan="2" style="padding: 5px 0 5px 5px"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.saldo_reprogramado_periodo_anterior_total }}</strong></td>
+
+        <td rowSpan="2"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.repasses_previstos_sme_total }}</strong></td>
+
+        <td rowSpan="2"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.repasses_no_periodo_total }}</strong></td>
+
+        <td rowSpan="2"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.outros_creditos }}</strong></td>
+
+        <td rowSpan="2"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.valor_total }}</strong></td>
+
+        <td rowSpan="2"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.despesas_no_periodo_total }}</strong></td>
+
+        <td rowSpan="2"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.saldo_reprogramado_proximo_periodo_total }}</strong></td>
+
+        <td rowSpan="2"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
+      </tr>
+      <tr> </tr>
+      <tr>
+        <td colSpan="23" class="font-10 py-2"><strong>Justificativa da diferença entre o valor previsto pela SME e o transferido pela DRE no período</strong></td>
+      </tr>
+      {% if valor.justificativa %}
+      <tr>
+        <td colSpan="23" class="font-10 py-3">{{ valor.justificativa }}</td>
+      </tr>
+    {% endif %}
+    </tbody>
+  </table>
+
+{% endfor %}
+
+{% for valor in dados.execucao_financeira.total_todas_as_contas %}
+
+  <table class="table table-bordered tabela-relatorio-dre" >
+    <thead>
+    <tr>
+      <th colSpan="23" class="font-12"><strong>Execução financeira - {{ valor.tipo_conta }}</strong></th>
+    </tr>
+      <tr>
+        <th colSpan="2" style="width: 15%" class="th-fundo-branco">01 - Saldo reprogramado do período anterior</th>
+        <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+
+        <th colSpan="2" style="width: 10%" class="th-fundo-branco">02 - Previsto pela SME</th>
+        <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+
+        <th colSpan="2" style="width: 15%" class="th-fundo-branco">03 - Transferido  pela DRE </th>
+        <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+
+        <th colSpan="2" style="width: 10%" class="th-fundo-branco">04 - Outros créditos</th>
+        <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+
+        <th colSpan="2" class="th-fundo-branco">05 - Valor total disponível</th>
+        <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+
+        <th colSpan="2" class="th-fundo-branco">06 - Despesa realizada</th>
+        <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+
+        <th colSpan="2" style="width: 15%" class="th-fundo-branco">07 - Saldo reprogramado para o próximo período</th>
+        <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+
+        <th colSpan="2" class="th-fundo-branco">08 - Devolução ao Tesouro</th>
+      </tr>
+    </thead>
+
+    <tbody style="border-top: none !important;">
+      <tr>
+
+        <td rowSpan="2" style="width: 4%; padding: 5px 0 5px 5px">C</td>
+        <td rowSpan="2" class="text-right">{{ valor.custeio.saldo_reprogramado_periodo_anterior_custeio }}</td>
+        <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
+
+        <td rowSpan="2" style="width: 4%">C</td>
+        <td rowSpan="2" class="text-right">{{ valor.custeio.repasses_previstos_sme_custeio }}</td>
+        <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
+
+        <td rowSpan="2" style="width: 4%">C</td>
+        <td rowSpan="2" class="text-right">{{ valor.custeio.repasses_no_periodo_custeio }}</td>
+        <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
+
+        <td rowSpan="2" style="width: 4%">C</td>
+        <td rowSpan="2" class="text-right">{{ valor.custeio.outros_creditos }}</td>
+        <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
+
+        <td rowSpan="2" style="width: 4%">C</td>
+        <td rowSpan="2" class="text-right">{{ valor.custeio.valor_total_custeio }}</td>
+        <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
+
+        <td rowSpan="3" style="width: 4%">C</td>
+        <td rowSpan="3" class="text-right">{{ valor.custeio.despesas_no_periodo_custeio }}</td>
+        <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
+
+        <td rowSpan="2" style="width: 4%">C</td>
+        <td rowSpan="2" class="text-right">{{ valor.custeio.saldo_reprogramado_proximo_periodo_custeio }}</td>
+        <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
+
+        <td rowSpan="6" colspan="2"  class="text-center">{{ valor.totais.devolucoes_ao_tesouro_no_periodo_total }}</td>
+      </tr>
+      <tr></tr>
+      <tr>
+        <td rowSpan="2" style="padding: 5px 0 5px 5px"> L</td>
+        <td rowSpan="2" class="text-right">{{ valor.livre.saldo_reprogramado_periodo_anterior_livre }}</td>
+
+        <td rowSpan="2">L</td>
+        <td rowSpan="2" class="text-right">{{ valor.livre.repasses_previstos_sme_livre }}</td>
+
+        <td rowSpan="2">L</td>
+        <td rowSpan="2" class="text-right">{{ valor.livre.repasses_no_periodo_livre }}</td>
+
+        <td rowSpan="2"> L</td>
+        <td rowSpan="2"
+            class="text-right">{{ valor.livre.outros_creditos }}</td>
+
+        <td rowSpan="2"> L</td>
+        <td rowSpan="2"
+            class="text-right">{{ valor.livre.valor_total_livre }}</td>
+
+        <td rowSpan="2"> L</td>
+        <td rowSpan="2"
+            class="text-right">{{ valor.livre.saldo_reprogramado_proximo_periodo_livre }}</td>
+        <td style="display: inline-table; border:none !important;"></td>
+
+      </tr>
+      <tr>
+        <td rowSpan="3"> K</td>
+        <td rowSpan="3" class="text-right">{{ valor.capital.despesas_no_periodo_capital }}</td>
+      </tr>
+      <tr>
+        <td rowSpan="2" style="padding: 0 0 0 5px"> K</td>
+        <td rowSpan="2" class="text-right">{{ valor.capital.saldo_reprogramado_periodo_anterior_capital }}</td>
+
+        <td rowSpan="2"> K</td>
+        <td rowSpan="2" class="text-right">{{ valor.capital.repasses_previstos_sme_capital }}</td>
+
+        <td rowSpan="2"> K</td>
+        <td rowSpan="2" class="text-right">{{ valor.capital.repasses_no_periodo_capital }}</td>
+
+        <td rowSpan="2"> K</td>
+        <td rowSpan="2" class="text-right">{{ valor.capital.outros_creditos }}</td>
+
+        <td rowSpan="2"> K</td>
+        <td rowSpan="2" class="text-right">{{ valor.capital.valor_total_capital }}</td>
+
+        <td rowSpan="2"> K</td>
+        <td rowSpan="2" class="text-right">{{ valor.capital.saldo_reprogramado_proximo_periodo_capital }}</td>
+      </tr>
+      <tr></tr>
+      <tr>
+
+        <td rowSpan="2" style="padding: 5px 0 5px 5px"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.saldo_reprogramado_periodo_anterior_total }}</strong></td>
+
+        <td rowSpan="2"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.repasses_previstos_sme_total }}</strong></td>
+
+        <td rowSpan="2"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.repasses_no_periodo_total }}</strong></td>
+
+        <td rowSpan="2"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.outros_creditos }}</strong></td>
+
+        <td rowSpan="2"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.valor_total }}</strong></td>
+
+        <td rowSpan="2"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.despesas_no_periodo_total }}</strong></td>
+
+        <td rowSpan="2"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.saldo_reprogramado_proximo_periodo_total }}</strong></td>
+
+        <td rowSpan="2"><strong>T</strong></td>
+        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+{% endfor %}
