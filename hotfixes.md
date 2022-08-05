@@ -1,4 +1,7 @@
-### 1.32.5 - 04/08/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 47
+### 1.32.6 - 05/08/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 47
+* (71372) -  Corrige cálculo do campo outros créditos no concolidado DRE
+
+### 1.32.5 - 05/08/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 47
 * (71317) -  Corrige verificação de saldos na despesa em ações
 
 ### 1.32.4 - 04/08/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 47
