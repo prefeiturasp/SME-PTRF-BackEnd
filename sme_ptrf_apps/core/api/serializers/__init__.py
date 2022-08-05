@@ -50,7 +50,10 @@ from .analise_lancamento_prestacao_conta_serializer import (
     AnaliseLancamentoPrestacaoContaUpdateSerializer
 )
 from .solicitacao_acerto_documento_serializer import SolicitacaoAcertoDocumentoRetrieveSerializer
-from .analise_documento_prestacao_conta_serializer import AnaliseDocumentoPrestacaoContaRetrieveSerializer
+from .analise_documento_prestacao_conta_serializer import (
+    AnaliseDocumentoPrestacaoContaRetrieveSerializer,
+    AnaliseDocumentoPrestacaoContaUpdateSerializer
+)
 from .tipo_documento_prestacao_conta_serializer import TipoDocumentoPrestacaoContaSerializer
 from .presentes_ata_serializer import PresentesAtaSerializer, PresentesAtaCreateSerializer
 from .analise_valor_reprogramado_prestacao_conta_serializer import AnaliseValorReprogramadoPrestacaoContaSerializer
