@@ -1,0 +1,54 @@
+{% load staticfiles %}
+{% load formata_valores %}
+
+{% if dados.presentes_na_ata.presentes %}
+    <table class="table table-bordered tabela-assinaturas">
+      <thead>
+      <tr>
+        <th style=" background-color: #F5F6F8 !important;" scope="col">Nome e cargo</th>
+        <th style=" background-color: #F5F6F8 !important;" scope="col">Assinatura</th>
+      </tr>
+      </thead>
+      {% for info in dados.presentes_na_ata.presentes %}
+        <tbody>
+        <tr>
+          <td>
+            <p class='mb-0'><strong>{{ info.nome }} </strong></p>
+            <p class='mb-0'>{{ info.cargo }} </p>
+          </td>
+          <td></td>
+        </tr>
+        </tbody>
+      {% endfor %}
+    </table>
+{% else %}
+  <p>Não existem membros cadastrados</p>
+{% endif %}
+
+{#    {% if dados.presentes_na_ata.presentes %}#}
+{#      <table class="table table-bordered tabela-status-pc">#}
+{#        <thead>#}
+{#        <tr>#}
+{#          <th scope="col" style="width: 40%">Nome</th>#}
+{#          <th scope="col" style="width: 40%">Cargo</th>#}
+{#          <th scope="col" style="width: 20%">RF</th>#}
+{#        </tr>#}
+{#        </thead>#}
+{##}
+{#        {% for presente in dados.presentes_na_ata.presentes %}#}
+{##}
+{#          <tbody>#}
+{#          <tr>#}
+{#            <td class="py-2">{{ presente.nome }}</td>#}
+{#            <td class="py-2">{{ presente.cargo }}</td>#}
+{#            <td class="py-2">{{ presente.rf }}</td>#}
+{#          </tr>#}
+{#          </tbody>#}
+{##}
+{##}
+{#        {% endfor %}#}
+{#      </table>#}
+{#    {% else %}#}
+{#      <p>Não existem membros cadastrados</p>#}
+{##}
+{#    {% endif %}#}

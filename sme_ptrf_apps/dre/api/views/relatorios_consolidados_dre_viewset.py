@@ -648,7 +648,6 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response(info)
 
-    # TODO: Remover este método, pois foi criado o novo gerar_lauda dentro do Consolidado Dre
     @action(detail=False, url_path="gerar-lauda", methods=['post'],
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def gerar_lauda(self, request):
