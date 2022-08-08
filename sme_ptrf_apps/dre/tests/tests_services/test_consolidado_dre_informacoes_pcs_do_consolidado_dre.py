@@ -1,6 +1,6 @@
 import pytest
 
-from sme_ptrf_apps.dre.services import informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_por_conta
+from sme_ptrf_apps.dre.services import informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre
 
 pytestmark = pytest.mark.django_db
 
@@ -11,13 +11,14 @@ def test_retorna_informacoes_pcs_do_consolidado_dre_por_conta_cheque_pc_aprovada
     prestacao_conta_aprovada_teste_service_pc_aprovada_info_pc,
     associacao_teste_service_02,
     tipo_conta_cartao_teste_service,
-    conta_associacao_teste_service_02
+    conta_associacao_teste_service_02,
+    ata_parecer_tecnico_teste_service,
+    consolidado_dre_teste_service_consolidado_dre
 ):
-    dado = informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_por_conta(
+    dado = informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre(
         dre_teste_service_consolidado_dre,
         periodo_teste_service_consolidado_dre,
-        tipo_conta_cartao_teste_service,
-        apenas_nao_publicadas=False
+        ata_parecer_tecnico_teste_service,
     )
 
     resultado_esperado = [
@@ -44,13 +45,14 @@ def test_retorna_informacoes_pcs_do_consolidado_dre_por_conta_cheque_pc_reprovad
     prestacao_conta_reprovada_teste_service_publicada,
     associacao_teste_service_02,
     tipo_conta_cheque_teste_service,
-    conta_associacao_teste_service
+    conta_associacao_teste_service,
+    ata_parecer_tecnico_teste_service,
+    consolidado_dre_teste_service_consolidado_dre
 ):
-    dado = informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_por_conta(
+    dado = informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre(
         dre_teste_service_consolidado_dre,
         periodo_teste_service_consolidado_dre,
-        tipo_conta_cheque_teste_service,
-        apenas_nao_publicadas=False
+        ata_parecer_tecnico_teste_service,
     )
 
     resultado_esperado = [

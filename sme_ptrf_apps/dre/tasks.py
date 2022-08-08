@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
     time_limit=333333,
     soft_time_limit=333333
 )
-def verificar_se_gera_ata_parecer_tecnico_async(dre=None, periodo=None, consolidado_dre=None, usuario=None, ata=None, parcial=None, apenas_nao_publicadas=False):
+def verificar_se_gera_ata_parecer_tecnico_async(dre=None, periodo=None, consolidado_dre=None, usuario=None, ata=None, parcial=None):
     logger.info(f'Iniciando a verificação para gerar a Ata de Parecer Técnico')
 
     dre_uuid = dre.uuid
@@ -42,7 +42,7 @@ def verificar_se_gera_ata_parecer_tecnico_async(dre=None, periodo=None, consolid
             f'Iniciando a geração do Arquivo da Ata de Parecer Técnico da DRE {dre}, Período {periodo} '
             f'e Consolidado DRE {consolidado_dre}')
         ata_uuid = ata.uuid
-        gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario, apenas_nao_publicadas, parcial)
+        gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario, parcial)
     else:
         logger.info("Ata não preenchida, portanto Arquivo PDF não será gerado")
 
@@ -174,7 +174,6 @@ def concluir_consolidado_dre_async(
         usuario=usuario,
         ata=ata,
         parcial=parcial,
-        apenas_nao_publicadas=apenas_nao_publicadas,
     )
 
     for tipo_conta in tipo_contas:
@@ -203,7 +202,7 @@ def concluir_consolidado_dre_async(
     time_limit=333333,
     soft_time_limit=333333
 )
-def gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario, apenas_nao_publicadas, parcial):
+def gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario, parcial):
     logger.info(f'Iniciando a geração da Ata de Parecer Técnico Async. DRE {dre_uuid} e Período {periodo_uuid}')
     from .services import gerar_arquivo_ata_parecer_tecnico
 
@@ -211,7 +210,7 @@ def gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, us
     dre = Unidade.dres.get(uuid=dre_uuid)
     periodo = Periodo.by_uuid(periodo_uuid)
 
-    arquivo_ata = gerar_arquivo_ata_parecer_tecnico(ata=ata, dre=dre, periodo=periodo, usuario=usuario, apenas_nao_publicadas=apenas_nao_publicadas, parcial=parcial)
+    arquivo_ata = gerar_arquivo_ata_parecer_tecnico(ata=ata, dre=dre, periodo=periodo, usuario=usuario, parcial=parcial)
 
     if arquivo_ata is not None:
         logger.info(f'Arquivo ata parecer técnico: {arquivo_ata} gerado com sucesso.')
@@ -478,7 +477,6 @@ def gerar_lauda_txt_consolidado_dre_async(consolidado_dre, dre, tipo_conta, peri
         f'Finalizado geração arquivo txt da lauda async. DRE:{dre} Período:{periodo} Tipo Conta:{tipo_conta}.')
 
 
-# TODO: Remover este método, pois foi criado um novo acima quando desenvolvido o Consolidado DRE
 @shared_task(
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},

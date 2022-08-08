@@ -30,7 +30,7 @@ class Lauda(ModeloBase):
 
     arquivo_lauda_txt = models.FileField(blank=True, null=True, verbose_name='Arquivo Lauda TXT')
 
-    consolidado_dre = models.ForeignKey('ConsolidadoDRE', on_delete=models.PROTECT,
+    consolidado_dre = models.ForeignKey('ConsolidadoDRE', on_delete=models.CASCADE,
                                         related_name='laudas_do_consolidado_dre',
                                         blank=True, null=True)
 

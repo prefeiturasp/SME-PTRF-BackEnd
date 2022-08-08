@@ -73,20 +73,6 @@ class ConsolidadoDREAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome',)
 
-    actions = ('atribui_valor_1_para_sequencia',)
-
-    def atribui_valor_1_para_sequencia(self, request, queryset):
-        count = queryset.update(sequencia_de_publicacao=1)
-
-        if count == 1:
-            msg = '{} Consolidado DRE foi atualizado.'
-        else:
-            msg = '{} Consolidados DRE foram atualizados.'
-
-        self.message_user(request, msg.format(count))
-
-    atribui_valor_1_para_sequencia.short_description = "Atribuir o valor de 1 para sequência de publicação"
-
 
 @admin.register(GrupoVerificacaoRegularidade)
 class GrupoVerificacaoRegularidadeAdmin(admin.ModelAdmin):
@@ -314,20 +300,7 @@ class AtaParecerTecnicoAdmin(admin.ModelAdmin):
     list_filter = ['periodo', 'dre', 'consolidado_dre']
     readonly_fields = ('uuid', 'id')
 
-    actions = ('atribui_valor_1_para_sequencia', 'vincular_consolidado_dre', )
-
-    # TODO Remover ação após implantação da release 5
-    def atribui_valor_1_para_sequencia(self, request, queryset):
-        count = queryset.update(sequencia_de_publicacao=1)
-
-        if count == 1:
-            msg = '{} Ata de parecer técnico foi atualizada.'
-        else:
-            msg = '{} Atas de parecer técnico foram atualizadas.'
-
-        self.message_user(request, msg.format(count))
-
-    atribui_valor_1_para_sequencia.short_description = "Atribuir o valor de 1 para sequência de publicação"
+    actions = ('vincular_consolidado_dre', )
 
     def vincular_consolidado_dre(self, request, queryset):
         from sme_ptrf_apps.dre.services.vincular_consolidado_service import VincularConsolidadoService
