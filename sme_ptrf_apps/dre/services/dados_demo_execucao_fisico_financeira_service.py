@@ -118,8 +118,10 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas):
         valor_total_custeio = info['saldo_reprogramado_periodo_anterior_custeio'] + info['repasses_no_periodo_custeio'] + \
             info['receitas_devolucao_no_periodo_custeio'] + info['demais_creditos_no_periodo_custeio']
 
-        outros_creditos = info['receitas_rendimento_no_periodo_livre'] + info['receitas_devolucao_no_periodo_custeio'] + \
-            info['demais_creditos_no_periodo_custeio']
+        # outros_creditos = info['receitas_rendimento_no_periodo_livre'] + info['receitas_devolucao_no_periodo_custeio'] + \
+        #     info['demais_creditos_no_periodo_custeio']
+
+        outros_creditos_custeio = info['receitas_totais_no_periodo_custeio'] - info['repasses_no_periodo_custeio']
 
         custeio = {
             "saldo_reprogramado_periodo_anterior_custeio": formata_valor(info['saldo_reprogramado_periodo_anterior_custeio']),
@@ -129,7 +131,7 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas):
             "valor_total_custeio": formata_valor(valor_total_custeio),
             "despesas_no_periodo_custeio": formata_valor(info['despesas_no_periodo_custeio']),
             "saldo_reprogramado_proximo_periodo_custeio": formata_valor(info['saldo_reprogramado_proximo_periodo_custeio']),
-            "outros_creditos": formata_valor(outros_creditos)
+            "outros_creditos": formata_valor(outros_creditos_custeio)
         }
 
         # LINHA CAPITAL
@@ -137,8 +139,10 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas):
         valor_total_capital = info['saldo_reprogramado_periodo_anterior_capital'] + info['repasses_no_periodo_capital'] + \
             info['receitas_devolucao_no_periodo_capital'] + info['demais_creditos_no_periodo_capital']
 
-        outros_creditos = info['receitas_rendimento_no_periodo_livre'] + info['receitas_devolucao_no_periodo_capital'] + \
-            info['demais_creditos_no_periodo_capital']
+        # outros_creditos = info['receitas_rendimento_no_periodo_livre'] + info['receitas_devolucao_no_periodo_capital'] + \
+        #     info['demais_creditos_no_periodo_capital']
+
+        outros_creditos_capital = info['receitas_totais_no_periodo_capital'] - info['repasses_no_periodo_capital']
 
         capital = {
             "saldo_reprogramado_periodo_anterior_capital": formata_valor(info['saldo_reprogramado_periodo_anterior_capital']),
@@ -148,7 +152,7 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas):
             "valor_total_capital": formata_valor(valor_total_capital),
             "despesas_no_periodo_capital": formata_valor(info['despesas_no_periodo_capital']),
             "saldo_reprogramado_proximo_periodo_capital": formata_valor(info['saldo_reprogramado_proximo_periodo_capital']),
-            "outros_creditos": formata_valor(outros_creditos)
+            "outros_creditos": formata_valor(outros_creditos_capital)
         }
 
         # LINHA RLA
@@ -157,8 +161,10 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas):
             info['repasses_no_periodo_livre'] + info['receitas_devolucao_no_periodo_livre'] + \
             info['demais_creditos_no_periodo_livre']
 
-        outros_creditos = info['receitas_rendimento_no_periodo_livre'] + info['receitas_devolucao_no_periodo_livre'] + \
-            info['demais_creditos_no_periodo_livre']
+        # outros_creditos = info['receitas_rendimento_no_periodo_livre'] + info['receitas_devolucao_no_periodo_livre'] + \
+        #     info['demais_creditos_no_periodo_livre']
+
+        outros_creditos_livre = info['receitas_totais_no_periodo_livre'] - info['repasses_no_periodo_livre']
 
         rla = {
             "saldo_reprogramado_periodo_anterior_livre": formata_valor(info['saldo_reprogramado_periodo_anterior_livre']),
@@ -168,7 +174,7 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas):
             "valor_total_livre": formata_valor(valor_total_livre),
             "saldo_reprogramado_proximo_periodo_livre": formata_valor(info['saldo_reprogramado_proximo_periodo_livre']),
             "devolucoes_ao_tesouro_no_periodo_total": formata_valor(info['devolucoes_ao_tesouro_no_periodo_total']),
-            "outros_creditos": formata_valor(outros_creditos)
+            "outros_creditos": formata_valor(outros_creditos_livre)
         }
 
         # LINHA TOTAIS
@@ -176,8 +182,10 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas):
             info['repasses_no_periodo_total'] + info['receitas_devolucao_no_periodo_total'] + \
             info['demais_creditos_no_periodo_total']
 
-        outros_creditos = info['receitas_rendimento_no_periodo_livre'] + \
-            info['receitas_devolucao_no_periodo_total'] + info['demais_creditos_no_periodo_total']
+        # outros_creditos = info['receitas_rendimento_no_periodo_livre'] + \
+        #     info['receitas_devolucao_no_periodo_total'] + info['demais_creditos_no_periodo_total']
+
+        outros_creditos_total = info['receitas_totais_no_periodo_total'] - info['repasses_no_periodo_total']
 
         totais = {
             "saldo_reprogramado_periodo_anterior_total": formata_valor(info['saldo_reprogramado_periodo_anterior_total']),
@@ -188,7 +196,7 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas):
             "despesas_no_periodo_total": formata_valor(info['despesas_no_periodo_total']),
             "saldo_reprogramado_proximo_periodo_total": formata_valor(info['saldo_reprogramado_proximo_periodo_total']),
             "devolucoes_ao_tesouro_no_periodo_total": formata_valor(info['devolucoes_ao_tesouro_no_periodo_total']),
-            "outros_creditos": formata_valor(outros_creditos)
+            "outros_creditos": formata_valor(outros_creditos_total)
         }
 
         # Justificativa

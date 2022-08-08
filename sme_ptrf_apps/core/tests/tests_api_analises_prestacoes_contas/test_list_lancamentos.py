@@ -149,6 +149,8 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
                     'analise_prestacao_conta': f'{lancamento["analise_lancamento"].analise_prestacao_conta.uuid}',
                     'despesa': f'{lancamento["mestre"].uuid}',
                     'id': lancamento["analise_lancamento"].id,
+                    'justificativa': None,
+                    'status_realizacao': 'PENDENTE',
                     'receita': None,
                     'resultado': 'AJUSTE',
                     'solicitacoes_de_ajuste_da_analise': [

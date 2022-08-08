@@ -1829,6 +1829,18 @@ def analise_lancamento_receita_prestacao_conta_2020_1(analise_prestacao_conta_20
 
 
 @pytest.fixture
+def analise_lancamento_receita_prestacao_conta_2020_1_com_justificativa(analise_prestacao_conta_2020_1, receita_no_periodo_2020_1):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
+        tipo_lancamento='CREDITO',
+        receita=receita_no_periodo_2020_1,
+        resultado='CORRETO',
+        justificativa="teste"
+    )
+
+
+@pytest.fixture
 def despesa_no_periodo_2020_1(prestacao_conta_2020_1_conciliada, tipo_documento, tipo_transacao, periodo_2020_1):
     return baker.make(
         'Despesa',
@@ -1914,6 +1926,22 @@ def analise_documento_prestacao_conta_2020_1_ata_correta(
         tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_ata,
         conta_associacao=conta_associacao_cartao,
         resultado='CORRETO'
+    )
+
+
+@pytest.fixture
+def analise_documento_prestacao_conta_com_justificativa_2020_1_ata_correta(
+    analise_prestacao_conta_2020_1,
+    tipo_documento_prestacao_conta_ata,
+    conta_associacao_cartao
+):
+    return baker.make(
+        'AnaliseDocumentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
+        tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_ata,
+        conta_associacao=conta_associacao_cartao,
+        resultado='CORRETO',
+        justificativa="TESTE"
     )
 
 

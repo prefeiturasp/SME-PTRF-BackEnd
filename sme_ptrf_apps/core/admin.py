@@ -631,7 +631,7 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
 
 @admin.register(AnaliseLancamentoPrestacaoConta)
 class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
-    list_display = ['analise_prestacao_conta', 'tipo_lancamento', 'resultado']
+    list_display = ['analise_prestacao_conta', 'tipo_lancamento', 'resultado', 'status_realizacao']
     list_filter = ('tipo_lancamento', 'analise_prestacao_conta__prestacao_conta__associacao__unidade', )
     readonly_fields = ('uuid', 'id',)
 
@@ -669,7 +669,7 @@ class TipoAcertoDocumentoAdmin(admin.ModelAdmin):
 
 @admin.register(AnaliseDocumentoPrestacaoConta)
 class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
-    list_display = ['analise_prestacao_conta', 'tipo_documento_prestacao_conta', 'resultado']
+    list_display = ['analise_prestacao_conta', 'tipo_documento_prestacao_conta', 'resultado', 'status_realizacao']
     list_filter = ['tipo_documento_prestacao_conta', 'analise_prestacao_conta__prestacao_conta__associacao__unidade',]
     readonly_fields = ('uuid', 'id',)
 

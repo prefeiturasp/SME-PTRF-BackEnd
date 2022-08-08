@@ -54,7 +54,7 @@ class RelatorioConsolidadoDRE(ModeloBase):
     periodo = models.ForeignKey('core.Periodo', on_delete=models.PROTECT,
                                 related_name='relatorios_consolidados_dre_do_periodo')
 
-    consolidado_dre = models.ForeignKey('ConsolidadoDRE', on_delete=models.PROTECT,
+    consolidado_dre = models.ForeignKey('ConsolidadoDRE', on_delete=models.CASCADE,
                                         related_name='relatorios_consolidados_dre_do_consolidado_dre',
                                         blank=True, null=True)
 
