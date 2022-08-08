@@ -97,7 +97,7 @@ class PrestacaoConta(ModeloBase):
 
     publicada = models.BooleanField('Publicada', blank=True, null=True, default=False)
 
-    consolidado_dre = models.ForeignKey('dre.ConsolidadoDRE', on_delete=models.PROTECT,
+    consolidado_dre = models.ForeignKey('dre.ConsolidadoDRE', on_delete=models.SET_NULL,
                                         related_name='prestacoes_de_conta_do_consolidado_dre',
                                         blank=True, null=True)
 

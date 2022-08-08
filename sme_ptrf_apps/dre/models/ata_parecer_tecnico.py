@@ -64,7 +64,7 @@ class AtaParecerTecnico(ModeloBase):
 
     data_portaria = models.DateField('Data da portaria', blank=True, null=True)
 
-    consolidado_dre = models.ForeignKey('ConsolidadoDRE', on_delete=models.PROTECT,
+    consolidado_dre = models.ForeignKey('ConsolidadoDRE', on_delete=models.CASCADE,
                                         related_name='atas_de_parecer_tecnico_do_consolidado_dre',
                                         blank=True, null=True)
 

@@ -25,11 +25,9 @@ from .lauda_service import (
 )
 
 from .ata_parecer_tecnico_service import (
-    informacoes_execucao_financeira_unidades_ata_parecer_tecnico,
     gerar_arquivo_ata_parecer_tecnico,
-    informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_por_conta,
-    informacoes_execucao_financeira_unidades_ata_parecer_tecnico_em_tela,
-    informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_em_tela
+    informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre,
+    informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre
 )
 
 from .consolidado_dre_service import concluir_consolidado_dre, verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao, \

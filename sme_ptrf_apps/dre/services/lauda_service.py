@@ -146,7 +146,6 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, tipo_conta, ata
             raise Exception(err)
 
 
-# TODO: Remover este método, pois foi criado um novo acima quando desenvolvido o Consolidado DRE
 def gerar_txt(dre, periodo, tipo_conta, obj_arquivo_download, ata, parcial=False):
     logger.info("txt lauda em processamento.")
 
