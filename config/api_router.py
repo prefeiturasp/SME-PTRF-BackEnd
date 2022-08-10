@@ -34,7 +34,7 @@ from sme_ptrf_apps.core.api.views import (
     PresentesAtaViewSet,
     AnaliseValorReprogramadoPrestacaoContaViewSet,
     AnaliseContaPrestacaoContaViewSet,
-    ParametrosUeViewSet
+    ParametrosUeViewSet,
     AnaliseLancamentoPrestacaoContaViewSet,
     AnaliseDocumentoPrestacaoContaViewSet
 )
