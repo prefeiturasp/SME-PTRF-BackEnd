@@ -34,6 +34,7 @@ from sme_ptrf_apps.core.api.views import (
     PresentesAtaViewSet,
     AnaliseValorReprogramadoPrestacaoContaViewSet,
     AnaliseContaPrestacaoContaViewSet,
+    ParametrosUeViewSet
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
@@ -134,6 +135,7 @@ router.register("ata-parecer-tecnico", AtaParecerTecnicoViewset)
 router.register("motivos-pagamento-antecipado", MotivosPagamentoAntecipadoViewSet)
 router.register("motivos-estorno", MotivosEstornoViewSet)
 router.register("consolidados-dre", ConsolidadosDreViewSet)
+router.register("parametros-ue", ParametrosUeViewSet)
 router.register("parametros-dre", ParametrosDreViewSet)
 router.register("parametros-sme", ParametrosSmeViewSet)
 router.register("valores-reprogramados", ValoresReprogramadosViewSet)
