@@ -66,7 +66,8 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
                     'visao_criacao': 'DRE'
                 },
                 'id': solicitacao_acerto_lancamento_devolucao.id,
-                'tipo_acerto': {'categoria': 'DEVOLUCAO',
+                'tipo_acerto': {'ativo': True,
+                                'categoria': 'DEVOLUCAO',
                                 'id': tipo_acerto_lancamento_devolucao.id,
                                 'nome': 'Devolução',
                                 'uuid': f'{tipo_acerto_lancamento_devolucao.uuid}'},
@@ -74,6 +75,8 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
             }
         ],
         'id': analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.id,
+        'justificativa': None,
+        'status_realizacao': 'PENDENTE',
         'uuid': f'{analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}'
     }
 

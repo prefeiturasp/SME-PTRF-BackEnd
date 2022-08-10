@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ...models import SolicitacaoAcertoDocumento, AnalisePrestacaoConta, AnaliseLancamentoPrestacaoConta
+from ...models import SolicitacaoAcertoDocumento, AnalisePrestacaoConta, AnaliseLancamentoPrestacaoConta, AnaliseDocumentoPrestacaoConta
 
 from .solicitacao_acerto_documento_serializer import SolicitacaoAcertoDocumentoRetrieveSerializer
 from .tipo_documento_prestacao_conta_serializer import TipoDocumentoPrestacaoContaSerializer
@@ -35,4 +35,14 @@ class AnaliseDocumentoPrestacaoContaRetrieveSerializer(serializers.ModelSerializ
             'id',
             'uuid',
             'solicitacoes_de_ajuste_da_analise',
+            'status_realizacao',
+            'justificativa',
+        )
+
+
+class AnaliseDocumentoPrestacaoContaUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnaliseDocumentoPrestacaoConta
+        fields = (
+            'justificativa',
         )
