@@ -15,3 +15,6 @@ def test_parametros_model(parametros):
     assert parametros.enviar_email_notificacao
     assert parametros.texto_pagina_suporte_dre == 'Teste DRE'
     assert parametros.texto_pagina_suporte_sme == 'Teste SME'
+    assert parametros.texto_pagina_valores_reprogramados_ue == 'Teste UE'
+    assert parametros.texto_pagina_valores_reprogramados_dre == 'Teste DRE'
+

@@ -39,5 +39,6 @@ from .valores_reprogramados_dre_service import (
     lista_valores_reprogramados,
     salvar_e_concluir_valores_reprogramados,
     monta_estrutura_valores_reprogramados,
+    monta_estrutura_associacao,
     barra_status
 )

@@ -177,7 +177,7 @@ def monta_estrutura_valores_reprogramados(associacao):
     for conta_associacao in associacao.contas.all():
         acoes = []
 
-        for acao_associacao in associacao.acoes.all():
+        for acao_associacao in associacao.acoes.exclude(acao__e_recursos_proprios=True):
             dados_acao = {
                 "nome": acao_associacao.acao.nome,
                 "uuid": f"{acao_associacao.uuid}"
@@ -242,6 +242,24 @@ def monta_dados_acao(valores_reprogramados, aplicacao):
             return dados_acao
 
     return dados_acao
+
+
+def monta_estrutura_associacao(associacao):
+    dados_associacao = {
+        "associacao": {
+            "uuid": f"{associacao.uuid}",
+            "status_valores_reprogramados": associacao.status_valores_reprogramados,
+            "nome": associacao.nome,
+            "codigo_eol": associacao.unidade.codigo_eol,
+            "periodo_inicial": {
+                "referencia": associacao.periodo_inicial.referencia,
+                "data_inicio_realizacao_despesas": associacao.periodo_inicial.data_inicio_realizacao_despesas,
+                "data_fim_realizacao_despesas": associacao.periodo_inicial.data_fim_realizacao_despesas
+            }
+        }
+    }
+
+    return dados_associacao
 
 
 def barra_status(associacao):
