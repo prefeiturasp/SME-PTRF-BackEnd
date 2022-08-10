@@ -117,6 +117,11 @@ def acao_aceita_custeio():
 
 
 @pytest.fixture
+def acao_recurso_externo_valor_reprogramado():
+    return baker.make('Acao', nome='PTRF', e_recursos_proprios=True)
+
+
+@pytest.fixture
 def acao_ptrf(acao):
     return acao
 
@@ -431,6 +436,15 @@ def acao_associacao_aceita_custeio(associacao, acao_aceita_custeio):
         'AcaoAssociacao',
         associacao=associacao,
         acao=acao_aceita_custeio
+    )
+
+
+@pytest.fixture
+def acao_associacao_aceita_recurso_externo(associacao, acao_recurso_externo_valor_reprogramado):
+    return baker.make(
+        'AcaoAssociacao',
+        associacao=associacao,
+        acao=acao_recurso_externo_valor_reprogramado
     )
 
 
@@ -1445,7 +1459,8 @@ def parametros():
         fique_de_olho_relatorio_dre='',
         texto_pagina_suporte_dre='Teste DRE',
         texto_pagina_suporte_sme='Teste SME',
-
+        texto_pagina_valores_reprogramados_ue='Teste UE',
+        texto_pagina_valores_reprogramados_dre='Teste DRE'
     )
 
 

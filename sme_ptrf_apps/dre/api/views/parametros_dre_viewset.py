@@ -25,3 +25,10 @@ class ParametrosDreViewSet(GenericViewSet):
         texto = Parametros.get().texto_pagina_suporte_dre
 
         return Response({'detail': texto}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='texto-pagina-valores-reprogramados',
+            permission_classes=[IsAuthenticated, PermissaoAPIApenasDreComLeituraOuGravacao])
+    def texto_pagina_valores_reprogramados(self, request):
+        texto = Parametros.get().texto_pagina_valores_reprogramados_dre
+
+        return Response({'detail': texto}, status=status.HTTP_200_OK)
