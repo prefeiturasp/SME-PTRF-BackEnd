@@ -115,6 +115,7 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
             'valores': totais,
             'justificativa_texto': justificativa.texto if justificativa else '',
             'justificativa_uuid': justificativa.uuid if justificativa else None,
+            'tipo_conta_uuid': justificativa.tipo_conta.uuid if justificativa and justificativa.tipo_conta else None,
         })
 
     dados['por_tipo_de_conta'] = objeto_tipo_de_conta
