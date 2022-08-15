@@ -36,7 +36,12 @@
             {{ info.ordem }}
           </td>
           <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}">
-            {{ info.associacao.codigo_eol }} - {{ info.associacao.tipo }} {{ info.associacao.nome }}
+            <p class="mb-2">{{ info.associacao.codigo_eol }} - {{ info.associacao.tipo }} {{ info.associacao.nome }}</p>
+
+            {% if info.referencia_consolidado %}
+             <p class="font-9"><i>{{ info.referencia_consolidado }}</i></p>
+            {% endif %}
+
           </td>
         {% endif %}
 
@@ -60,7 +65,8 @@
         <td rowSpan="2" style="width: 4%">C</td>
         <td rowSpan="2" class="text-right">{{ conta.custeio.saldo_custeio }}</td>
 
-        <td rowSpan="7" colspan="2" class="text-center">{{ conta.livre.devolucoes_ao_tesouro }}</td>
+        <td rowSpan="8"><strong>T</strong></td>
+        <td class="text-right" rowSpan="8"><strong>{{ conta.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
 
         {% if forloop.counter == 1 %}
           <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}">{{ info.situacao_pc }}</td>
@@ -134,11 +140,7 @@
           <strong>{{ conta.totais.despesas_no_periodo_total }}</strong></td>
 
         <td style="border-top: none !important;"><strong>T</strong></td>
-        <td class="text-right" style="border-top: none !important;">
-          <strong>{{ conta.totais.saldo_reprogramado_proximo_periodo_total }}</strong></td>
-
-        <td><strong>T</strong></td>
-        <td class="text-right"><strong>{{ conta.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
+        <td class="text-right" style="border-top: none !important;"><strong>{{ conta.totais.saldo_reprogramado_proximo_periodo_total }}</strong></td>
       </tr>
     {% endfor %}
 

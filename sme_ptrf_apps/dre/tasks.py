@@ -202,6 +202,35 @@ def concluir_consolidado_dre_async(
     time_limit=333333,
     soft_time_limit=333333
 )
+def concluir_consolidado_de_publicacoes_parciais_async(
+    dre_uuid=None,
+    periodo_uuid=None,
+    usuario=None,
+):
+    parcial = {
+        "parcial": False,
+        "sequencia_de_publicacao_atual": None,
+    }
+
+    gerar_relatorio_consolidado_dre_async(
+        dre_uuid=dre_uuid,
+        periodo_uuid=periodo_uuid,
+        usuario=usuario,
+        parcial=parcial,
+        consolidado_dre_uuid=None,
+        sequencia_de_publicacao=None,
+        apenas_nao_publicadas=False,
+        eh_consolidado_de_publicacoes_parciais=True,
+    )
+
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limit=333333,
+    soft_time_limit=333333
+)
 def gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario, parcial):
     logger.info(f'Iniciando a geração da Ata de Parecer Técnico Async. DRE {dre_uuid} e Período {periodo_uuid}')
     from .services import gerar_arquivo_ata_parecer_tecnico
@@ -230,13 +259,10 @@ def gerar_relatorio_consolidado_dre_async(
     consolidado_dre_uuid,
     sequencia_de_publicacao,
     apenas_nao_publicadas,
+    eh_consolidado_de_publicacoes_parciais=False,
 ):
     logger.info(f'Iniciando Relatório DRE. DRE:{dre_uuid} Período:{periodo_uuid}')
 
-    # Remover excel
-    # Essa linha esta sendo mantida para comparação do excel e pdf
-    # Após aprovação do pdf, remover excel
-    # from sme_ptrf_apps.dre.services import gera_relatorio_dre
     from sme_ptrf_apps.dre.services import _criar_demonstrativo_execucao_fisico_financeiro
 
     try:
@@ -259,18 +285,20 @@ def gerar_relatorio_consolidado_dre_async(
         logger.error('Erro: %r', erro)
         raise Exception(erro)
 
-    try:
-        consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo, sequencia_de_publicacao=sequencia_de_publicacao)
-    except ConsolidadoDRE.DoesNotExist:
-        erro = {
-            'erro': 'Objeto não encontrado.',
-            'mensagem': f"O objeto Consolidado DRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."
-        }
-        logger.error('Erro: %r', erro)
-        raise Exception(erro)
+    consolidado_dre = None
+    if not eh_consolidado_de_publicacoes_parciais:
+        try:
+            consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo, sequencia_de_publicacao=sequencia_de_publicacao)
+        except ConsolidadoDRE.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto Consolidado DRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."
+            }
+            logger.error('Erro: %r', erro)
+            raise Exception(erro)
 
     try:
-        _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, usuario, parcial, consolidado_dre, apenas_nao_publicadas)
+        _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, usuario, parcial, consolidado_dre, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais)
     except Exception as err:
         erro = {
             'erro': 'problema_geracao_relatorio',
