@@ -315,6 +315,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',
+                'tipo_conta_uuid': None,
                 'valores': {
                     'demais_creditos_no_periodo_capital': 0,
                     'demais_creditos_no_periodo_custeio': 0,
@@ -358,6 +359,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
+                'tipo_conta_uuid': None,
                 'valores':
                     {
                         'demais_creditos_no_periodo_capital': 0,
@@ -438,6 +440,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',
+                'tipo_conta_uuid': None,
                 'valores':
                     {
                         'demais_creditos_no_periodo_capital': 0,
@@ -482,6 +485,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
+                'tipo_conta_uuid': None,
                 'valores':
                     {
                         'demais_creditos_no_periodo_capital': 0,
@@ -561,6 +565,7 @@ def test_api_get_info_execucao_financeira_relatorio(
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
+                'tipo_conta_uuid': None,
                 'valores': {
                     'demais_creditos_no_periodo_capital': 50.0,
                     'demais_creditos_no_periodo_custeio': 0.0,
@@ -602,6 +607,7 @@ def test_api_get_info_execucao_financeira_relatorio(
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',
+                'tipo_conta_uuid': None,
                 'valores': {
                     'demais_creditos_no_periodo_capital': 100.0,
                     'demais_creditos_no_periodo_custeio': 200.0,
@@ -642,7 +648,7 @@ def test_api_get_info_execucao_financeira_relatorio(
                 }
             }
         ],
-        'titulo_parcial': 'Final 1 unidade(s)'
+        'titulo_parcial': 'Relatório consolidado'
     }
 
     assert response.status_code == status.HTTP_200_OK

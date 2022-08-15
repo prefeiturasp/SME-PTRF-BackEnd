@@ -30,8 +30,14 @@ from .ata_parecer_tecnico_service import (
     informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre
 )
 
-from .consolidado_dre_service import concluir_consolidado_dre, verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao, \
-    status_consolidado_dre, retornar_trilha_de_status, gerar_previa_consolidado_dre, retornar_consolidados_dre_ja_criados_e_proxima_criacao, criar_ata_e_atribuir_ao_consolidado_dre
+from .consolidado_dre_service import concluir_consolidado_dre, \
+    verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao, \
+    status_consolidado_dre, \
+    retornar_trilha_de_status, \
+    gerar_previa_consolidado_dre, \
+    retornar_consolidados_dre_ja_criados_e_proxima_criacao, \
+    criar_ata_e_atribuir_ao_consolidado_dre, \
+    concluir_consolidado_de_publicacoes_parciais
 
 from .valores_reprogramados_dre_service import (
     calcula_total_conta_um,

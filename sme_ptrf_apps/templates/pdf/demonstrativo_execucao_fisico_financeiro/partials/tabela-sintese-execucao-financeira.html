@@ -1,11 +1,20 @@
 {% load staticfiles %}
 
 {% for valor in dados.execucao_financeira.por_tipo_de_conta %}
-
-  <table class="table table-bordered tabela-relatorio-dre" >
+  {% comment %}
+    *************** Não remover <div> </div> ***************
+    Esta tag HTML que tem display block impede que a tabela quebre dentro da linha mesclada durante o for.
+    Na tabela, para evitar a quebra, foi utilizado a classe CSS nao-quebra-linha, que usa a regra break-after: avoid !important;.
+    Ref: Documentação do WeasyPrint. Its a miracle.
+  {% endcomment %}
+  <div> </div>
+  {% comment %}
+    *************** FIM Não remover <div> </div> ***************
+  {% endcomment %}
+  <table class="table table-bordered tabela-relatorio-dre nao-quebra-linha" >
     <thead>
     <tr>
-      <th colSpan="23" class="font-12"><strong>Execução financeira - Conta {{ valor.tipo_conta }}</strong></th>
+      <th colSpan="24" class="font-12"><strong>Execução financeira - Conta {{ valor.tipo_conta }}</strong></th>
     </tr>
       <tr>
         <th colSpan="2" style="width: 15%" class="th-fundo-branco">01 - Saldo reprogramado do período anterior</th>
@@ -29,7 +38,7 @@
         <th colSpan="2" style="width: 15%" class="th-fundo-branco">07 - Saldo reprogramado para o próximo período</th>
         <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
 
-        <th colSpan="2" class="th-fundo-branco">08 - Devolução ao Tesouro</th>
+        <th colSpan="3" class="th-fundo-branco">08 - Devolução ao Tesouro</th>
       </tr>
     </thead>
 
@@ -64,7 +73,8 @@
         <td rowSpan="2" class="text-right">{{ valor.custeio.saldo_reprogramado_proximo_periodo_custeio }}</td>
         <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
 
-        <td rowSpan="6" colspan="2"  class="text-center">{{ valor.totais.devolucoes_ao_tesouro_no_periodo_total }}</td>
+        <td rowSpan="8" colspan="2" class="text-center" style="width: 2%"><strong>T</strong></td>
+        <td rowSpan="8" colspan="2" class="text-right"><strong>{{ valor.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
       </tr>
       <tr></tr>
       <tr>
@@ -137,19 +147,16 @@
 
         <td rowSpan="2"><strong>T</strong></td>
         <td rowSpan="2" class="text-right"><strong>{{ valor.totais.saldo_reprogramado_proximo_periodo_total }}</strong></td>
-
-        <td rowSpan="2"><strong>T</strong></td>
-        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
       </tr>
       <tr> </tr>
-      <tr>
-        <td colSpan="23" class="font-10 py-2"><strong>Justificativa da diferença entre o valor previsto pela SME e o transferido pela DRE no período</strong></td>
-      </tr>
       {% if valor.justificativa %}
-      <tr>
-        <td colSpan="23" class="font-10 py-3">{{ valor.justificativa }}</td>
-      </tr>
-    {% endif %}
+        <tr>
+          <td colSpan="24" class="font-10 py-2"><strong>Justificativa da diferença entre o valor previsto pela SME e o transferido pela DRE no período</strong></td>
+        </tr>
+        <tr>
+          <td colSpan="24" class="font-10 py-3">{{ valor.justificativa }}</td>
+        </tr>
+      {% endif %}
     </tbody>
   </table>
 
@@ -157,10 +164,21 @@
 
 {% for valor in dados.execucao_financeira.total_todas_as_contas %}
 
-  <table class="table table-bordered tabela-relatorio-dre" >
+    {% comment %}
+    *************** Não remover <div> </div> ***************
+    Esta tag HTML que tem display block impede que a tabela quebre dentro da linha mesclada durante o for.
+    Na tabela, para evitar a quebra, foi utilizado a classe CSS nao-quebra-linha, que usa a regra break-after: avoid !important;.
+    Ref: Documentação do WeasyPrint. Its a miracle.
+  {% endcomment %}
+  <div> </div>
+  {% comment %}
+    *************** FIM Não remover <div> </div> ***************
+  {% endcomment %}
+
+  <table class="table table-bordered tabela-relatorio-dre nao-quebra-linha" >
     <thead>
     <tr>
-      <th colSpan="23" class="font-12"><strong>Execução financeira - {{ valor.tipo_conta }}</strong></th>
+      <th colSpan="24" class="font-12"><strong>Execução financeira - {{ valor.tipo_conta }}</strong></th>
     </tr>
       <tr>
         <th colSpan="2" style="width: 15%" class="th-fundo-branco">01 - Saldo reprogramado do período anterior</th>
@@ -184,7 +202,7 @@
         <th colSpan="2" style="width: 15%" class="th-fundo-branco">07 - Saldo reprogramado para o próximo período</th>
         <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
 
-        <th colSpan="2" class="th-fundo-branco">08 - Devolução ao Tesouro</th>
+        <th colSpan="3" class="th-fundo-branco">08 - Devolução ao Tesouro</th>
       </tr>
     </thead>
 
@@ -219,7 +237,8 @@
         <td rowSpan="2" class="text-right">{{ valor.custeio.saldo_reprogramado_proximo_periodo_custeio }}</td>
         <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
 
-        <td rowSpan="6" colspan="2"  class="text-center">{{ valor.totais.devolucoes_ao_tesouro_no_periodo_total }}</td>
+        <td rowSpan="8" colspan="2" class="text-center" style="width: 2%"><strong>T</strong></td>
+        <td rowSpan="8" colspan="2" class="text-right"><strong>{{ valor.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
       </tr>
       <tr></tr>
       <tr>
@@ -292,9 +311,6 @@
 
         <td rowSpan="2"><strong>T</strong></td>
         <td rowSpan="2" class="text-right"><strong>{{ valor.totais.saldo_reprogramado_proximo_periodo_total }}</strong></td>
-
-        <td rowSpan="2"><strong>T</strong></td>
-        <td rowSpan="2" class="text-right"><strong>{{ valor.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
       </tr>
     </tbody>
   </table>

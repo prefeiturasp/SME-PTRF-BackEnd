@@ -81,14 +81,20 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
     if consolidado_dre:
         qtde_unidades = PrestacaoConta.objects.filter(consolidado_dre=consolidado_dre).count()
         sequencia_de_publicacao_do_consolidado = consolidado_dre.sequencia_de_publicacao
-        titulo_parcial = f"Parcial #{sequencia_de_publicacao_do_consolidado} - {qtde_unidades} unidade(s)" if eh_parcial else f"Final {qtde_unidades} unidade(s)"
+        if sequencia_de_publicacao_do_consolidado > 0:
+            titulo_parcial = f"Parcial #{sequencia_de_publicacao_do_consolidado} - {qtde_unidades} unidade(s)" if eh_parcial else f"Final {qtde_unidades} unidade(s)"
+        else:
+            titulo_parcial = "Relatório consolidado"
     else:
         qtde_unidades = PrestacaoConta.objects.filter(
             periodo=periodo,
             status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
             associacao__unidade__dre=dre
         ).count()
-        titulo_parcial = f"Parcial #{sequencia_de_publicacao} - {qtde_unidades} unidade(s)" if eh_parcial else f"Final {qtde_unidades} unidade(s)"
+        if sequencia_de_publicacao > 0:
+            titulo_parcial = f"Parcial #{sequencia_de_publicacao} - {qtde_unidades} unidade(s)" if eh_parcial else f"Final {qtde_unidades} unidade(s)"
+        else:
+            titulo_parcial = "Relatório consolidado"
 
     dados = {
         "periodo_referencia": periodo.referencia if periodo.referencia else "",
@@ -115,6 +121,7 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
             'valores': totais,
             'justificativa_texto': justificativa.texto if justificativa else '',
             'justificativa_uuid': justificativa.uuid if justificativa else None,
+            'tipo_conta_uuid': justificativa.tipo_conta.uuid if justificativa and justificativa.tipo_conta else None,
         })
 
     dados['por_tipo_de_conta'] = objeto_tipo_de_conta
@@ -752,6 +759,8 @@ def informacoes_execucao_financeira_unidades(
 def informacoes_execucao_financeira_unidades_do_consolidado_dre(
     dre,
     periodo,
+    apenas_nao_publicadas=False,
+    eh_consolidado_de_publicacoes_parciais=False,
 ):
     from sme_ptrf_apps.core.models import Associacao
 
@@ -886,12 +895,19 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
     def _totaliza_fechamentos(associacao, periodo, tipo_conta, totais):
         # Fechamentos no período da conta de PCs de Associações da DRE, concluídas
 
-        fechamentos = associacao.fechamentos_associacao.filter(
-            periodo=periodo,
-            conta_associacao__tipo_conta=tipo_conta,
-            prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
-            prestacao_conta__publicada=False
-        )
+        if not apenas_nao_publicadas:
+            fechamentos = associacao.fechamentos_associacao.filter(
+                periodo=periodo,
+                conta_associacao__tipo_conta=tipo_conta,
+                prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+            )
+        else:
+            fechamentos = associacao.fechamentos_associacao.filter(
+                periodo=periodo,
+                conta_associacao__tipo_conta=tipo_conta,
+                prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+                prestacao_conta__publicada=False
+            )
 
         for fechamento in fechamentos:
             totais = _soma_fechamento(totais, fechamento)
@@ -906,11 +922,17 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
     def _totaliza_previsoes_repasses_sme(associacao, periodo, tipo_conta, totais):
         # Previsões para o período e conta com o tipo de conta para Associações da DRE
 
-        previsoes = associacao.previsoes_de_repasse_sme_para_a_associacao.filter(
-            periodo=periodo,
-            conta_associacao__tipo_conta=tipo_conta,
-            associacao__prestacoes_de_conta_da_associacao__publicada=False,
-        )
+        if not apenas_nao_publicadas:
+            previsoes = associacao.previsoes_de_repasse_sme_para_a_associacao.filter(
+                periodo=periodo,
+                conta_associacao__tipo_conta=tipo_conta,
+            )
+        else:
+            previsoes = associacao.previsoes_de_repasse_sme_para_a_associacao.filter(
+                periodo=periodo,
+                conta_associacao__tipo_conta=tipo_conta,
+                associacao__prestacoes_de_conta_da_associacao__publicada=False,
+            )
 
         for previsao in previsoes:
             totais['repasses_previstos_sme_custeio'] += previsao.valor_custeio
@@ -930,19 +952,27 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
 
     resultado = []
 
-    associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by(
-        'unidade__tipo_unidade', 'unidade__nome')
-    associacoes_da_dre = associacoes_da_dre.filter(
-        prestacoes_de_conta_da_associacao__periodo=periodo,
-        prestacoes_de_conta_da_associacao__publicada=False,
-        prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
-    )
+    associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by('unidade__tipo_unidade', 'unidade__nome')
+
+    if not apenas_nao_publicadas:
+        associacoes_da_dre = associacoes_da_dre.filter(
+            prestacoes_de_conta_da_associacao__periodo=periodo,
+            prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
+        )
+    else:
+        associacoes_da_dre = associacoes_da_dre.filter(
+            prestacoes_de_conta_da_associacao__periodo=periodo,
+            prestacoes_de_conta_da_associacao__publicada=False,
+            prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
+        )
 
     for associacao in associacoes_da_dre.all():
 
         prestacao_conta = associacao.prestacoes_de_conta_da_associacao.filter(periodo=periodo).first()
 
         status_prestacao_conta = prestacao_conta.status if prestacao_conta else 'NAO_APRESENTADA'
+
+        referencia_consolidado = prestacao_conta.consolidado_dre.sequencia_de_publicacao if eh_consolidado_de_publicacoes_parciais and prestacao_conta.consolidado_dre and prestacao_conta.consolidado_dre.sequencia_de_publicacao else None
 
         dado = []
         objeto_tipo_de_conta = []
@@ -978,6 +1008,7 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
                     },
                     'status_prestacao_contas': status_prestacao_conta,
                     'uuid_pc': prestacao_conta.uuid,
+                    'referencia_consolidado': referencia_consolidado,
                 }
 
                 objeto_tipo_de_conta.append({
@@ -1190,8 +1221,15 @@ def _criar_previa_demonstrativo_execucao_fisico_financeiro(dre, periodo, usuario
                 relatorio_consolidado.uuid, relatorio_consolidado.status)
 
 
-def _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, usuario, parcial, consolidado_dre=None,
-                                                    apenas_nao_publicadas=False, ):
+def _criar_demonstrativo_execucao_fisico_financeiro(
+    dre,
+    periodo,
+    usuario,
+    parcial,
+    consolidado_dre=None,
+    apenas_nao_publicadas=False,
+    eh_consolidado_de_publicacoes_parciais=False,
+):
     logger.info("Relatório consolidado em processamento...")
 
     relatorio_consolidado = _gerar_arquivos_demonstrativo_execucao_fisico_financeiro(
@@ -1201,7 +1239,8 @@ def _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, usuario, parci
         parcial=parcial,
         consolidado_dre=consolidado_dre,
         previa=False,
-        apenas_nao_publicadas=apenas_nao_publicadas
+        apenas_nao_publicadas=apenas_nao_publicadas,
+        eh_consolidado_de_publicacoes_parciais=eh_consolidado_de_publicacoes_parciais
 
     )
 
@@ -1209,8 +1248,16 @@ def _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, usuario, parci
                 relatorio_consolidado.uuid, relatorio_consolidado.status)
 
 
-def _gerar_arquivos_demonstrativo_execucao_fisico_financeiro(dre, periodo, usuario, parcial, previa, consolidado_dre,
-                                                             apenas_nao_publicadas):
+def _gerar_arquivos_demonstrativo_execucao_fisico_financeiro(
+    dre,
+    periodo,
+    usuario,
+    parcial,
+    previa,
+    consolidado_dre,
+    apenas_nao_publicadas,
+    eh_consolidado_de_publicacoes_parciais=False,
+):
     logger.info(f'Criando registro do demonstrativo execução fisico financeiro')
 
     relatorio_consolidado, _ = RelatorioConsolidadoDRE.objects.update_or_create(
@@ -1221,13 +1268,20 @@ def _gerar_arquivos_demonstrativo_execucao_fisico_financeiro(dre, periodo, usuar
         consolidado_dre=consolidado_dre,
     )
 
-    relatorio_consolidado.versao = RelatorioConsolidadoDRE.VERSAO_PREVIA if previa else RelatorioConsolidadoDRE.VERSAO_FINAL
+    relatorio_consolidado.versao = RelatorioConsolidadoDRE.VERSAO_CONSOLIDADA if eh_consolidado_de_publicacoes_parciais else RelatorioConsolidadoDRE.VERSAO_PREVIA if previa else RelatorioConsolidadoDRE.VERSAO_FINAL
     relatorio_consolidado.save()
 
     logger.info(f'Gerando arquivos do demonstrativo financeiro em PDF')
 
-    dados_demonstrativo = gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, previa,
-                                                                      apenas_nao_publicadas)
+    dados_demonstrativo = gerar_dados_demo_execucao_fisico_financeira(
+        dre,
+        periodo,
+        usuario,
+        parcial,
+        previa,
+        apenas_nao_publicadas,
+        eh_consolidado_de_publicacoes_parciais,
+    )
 
     gerar_arquivo_demonstrativo_execucao_fisico_financeiro_pdf(dados_demonstrativo, relatorio_consolidado)
 

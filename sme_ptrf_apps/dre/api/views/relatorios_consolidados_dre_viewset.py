@@ -1,6 +1,5 @@
 import logging
 
-from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -19,7 +18,6 @@ from ...models import RelatorioConsolidadoDRE, ConsolidadoDRE
 from ...services import (
     informacoes_devolucoes_a_conta_ptrf,
     informacoes_devolucoes_ao_tesouro,
-    informacoes_execucao_financeira,
     informacoes_execucao_financeira_unidades,
     status_de_geracao_do_relatorio,
     update_observacao_devolucao,
