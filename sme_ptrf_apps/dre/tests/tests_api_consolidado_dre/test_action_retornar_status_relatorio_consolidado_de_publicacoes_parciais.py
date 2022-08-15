@@ -7,7 +7,7 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def payload_publicar_consolidado_dre(dre_teste_api_consolidado_dre, periodo_teste_api_consolidado_dre):
+def payload_get_relatorio_consolidado_de_publicacoes_parciais(dre_teste_api_consolidado_dre, periodo_teste_api_consolidado_dre):
     payload = {
         'dre_uuid': f'{dre_teste_api_consolidado_dre.uuid}',
         'periodo_uuid': f'{periodo_teste_api_consolidado_dre.uuid}',
@@ -15,7 +15,7 @@ def payload_publicar_consolidado_dre(dre_teste_api_consolidado_dre, periodo_test
     return payload
 
 
-def test_trilha_de_status_consolidado_dre(
+def test_retornar_relatorio_consolidado_de_publicacoes_parciais(
     jwt_authenticated_client_dre,
     dre_teste_api_consolidado_dre,
     periodo_teste_api_consolidado_dre,
@@ -24,13 +24,13 @@ def test_trilha_de_status_consolidado_dre(
     periodo_uuid = periodo_teste_api_consolidado_dre.uuid
 
     response = jwt_authenticated_client_dre.get(
-        f'/api/consolidados-dre/trilha-de-status/?dre={dre_uuid}&periodo={periodo_uuid}',
+        f'/api/consolidados-dre/retorna-status-relatorio-consolidado-de-publicacoes-parciais/?dre={dre_uuid}&periodo={periodo_uuid}',
         content_type='application/json'
     )
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_trilha_de_status_consolidado_dre_sem_dre_uuid(
+def test_retornar_relatorio_consolidado_de_publicacoes_parciais_sem_dre_uuid(
     jwt_authenticated_client_dre,
     dre_teste_api_consolidado_dre,
     periodo_teste_api_consolidado_dre,
@@ -52,7 +52,7 @@ def test_trilha_de_status_consolidado_dre_sem_dre_uuid(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_trilha_de_status_consolidado_dre_sem_periodo_uuid(
+def test_retornar_relatorio_consolidado_de_publicacoes_parciais_sem_periodo_uuid(
     jwt_authenticated_client_dre,
     dre_teste_api_consolidado_dre,
     periodo_teste_api_consolidado_dre,
@@ -74,7 +74,7 @@ def test_trilha_de_status_consolidado_dre_sem_periodo_uuid(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_trilha_de_status_consolidado_dre_objeto_dre_nao_encontrado(
+def test_retornar_relatorio_consolidado_de_publicacoes_parciais_dre_nao_encontrado(
     jwt_authenticated_client_dre,
     dre_teste_api_consolidado_dre,
     periodo_teste_api_consolidado_dre,
@@ -97,7 +97,7 @@ def test_trilha_de_status_consolidado_dre_objeto_dre_nao_encontrado(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_trilha_de_status_consolidado_dre_objeto_periodo_nao_encontrado(
+def retornar_relatorio_consolidado_de_publicacoes_parciais_periodo_nao_encontrado(
     jwt_authenticated_client_dre,
     dre_teste_api_consolidado_dre,
     periodo_teste_api_consolidado_dre,
