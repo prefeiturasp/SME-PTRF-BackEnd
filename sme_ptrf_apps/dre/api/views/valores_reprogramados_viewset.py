@@ -15,6 +15,7 @@ from ...services import (
     lista_valores_reprogramados,
     salvar_e_concluir_valores_reprogramados,
     monta_estrutura_valores_reprogramados,
+    monta_estrutura_associacao,
     barra_status
 )
 
@@ -166,10 +167,7 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
 
         result = {
             "contas": monta_estrutura_valores_reprogramados(associacao),
-            "associacao": {
-                "uuid": f"{associacao.uuid}",
-                "status_valores_reprogramados": associacao.status_valores_reprogramados
-            }
+            "associacao": monta_estrutura_associacao(associacao)["associacao"]
         }
 
         return Response(result, status=status.HTTP_201_CREATED)
@@ -214,10 +212,7 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
 
         result = {
             "contas": monta_estrutura_valores_reprogramados(associacao),
-            "associacao": {
-                "uuid": f"{associacao.uuid}",
-                "status_valores_reprogramados": associacao.status_valores_reprogramados
-            }
+            "associacao": monta_estrutura_associacao(associacao)["associacao"]
         }
 
         return Response(result, status=status.HTTP_201_CREATED)
@@ -239,10 +234,7 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
 
         result = {
             "contas": monta_estrutura_valores_reprogramados(associacao),
-            "associacao": {
-                "uuid": f"{associacao.uuid}",
-                "status_valores_reprogramados": associacao.status_valores_reprogramados
-            }
+            "associacao": monta_estrutura_associacao(associacao)["associacao"]
         }
 
         return Response(result, status=status.HTTP_200_OK)
