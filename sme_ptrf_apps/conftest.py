@@ -1967,19 +1967,6 @@ def solicitacao_acerto_documento_ata(
         detalhamento="Detalhamento motivo acerto no documento",
     )
 
-@pytest.fixture
-def analise_valor_reprogramado_por_acao(analise_prestacao_conta_2020_1, conta_associacao, acao_associacao):
-    return baker.make(
-        'AnaliseValorReprogramadoPrestacaoConta',
-        analise_prestacao_conta=analise_prestacao_conta_2020_1,
-        conta_associacao=conta_associacao,
-        acao_associacao=acao_associacao,
-        valor_saldo_reprogramado_correto=False,
-        novo_saldo_reprogramado_custeio="1.00",
-        novo_saldo_reprogramado_capital="2.00",
-        novo_saldo_reprogramado_livre="3.00",
-    )
-
 
 # Testes Action Repasses Pendentes
 @pytest.fixture
