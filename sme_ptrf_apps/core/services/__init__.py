@@ -36,7 +36,6 @@ from .prestacao_contas_services import (
     marca_documentos_como_corretos,
     marca_documentos_como_nao_conferidos,
     solicita_acertos_de_documentos,
-    ajustes_saldos_iniciais,
     previa_prestacao_conta,
     previa_informacoes_financeiras_para_atas
 )

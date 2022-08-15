@@ -303,11 +303,6 @@ def test_api_retrieve_prestacao_conta_por_uuid(
         'data_ultima_analise': f'{prestacao_conta.data_ultima_analise}',
         'devolucao_ao_tesouro': '100,00',
         'analises_de_conta_da_prestacao': [],
-        'permite_analise_valores_reprogramados': {
-            'permite_analise': True,
-            'erro': '',
-            'mensagem': 'O período atual da PC é igual ao periodo_inicial.proximo_periodo da associacao'
-        },
         'informacoes_conciliacao_ue': [
             {
                 'conta_uuid': f'{prestacao_conta.associacao.observacoes_conciliacao_da_associacao.first().conta_associacao.uuid}',

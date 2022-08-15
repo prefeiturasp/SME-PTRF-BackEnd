@@ -65,6 +65,5 @@ from .tipo_acerto_documento import TipoAcertoDocumento
 from .analise_documento_prestacao_conta import AnaliseDocumentoPrestacaoConta
 from .solicitacao_acerto_documento import SolicitacaoAcertoDocumento
 from .presentes_ata import PresenteAta
-from .analise_valor_reprogramado_prestacao_conta import AnaliseValorReprogramadoPrestacaoConta
 from .valores_reprogramados import ValoresReprogramados
 
