@@ -1,0 +1,28 @@
+{% load staticfiles %}
+
+{% if dados.bloco_consolidado_das_publicacoes_parciais %}
+
+  <table class="table table-bordered">
+    <thead>
+    <tr>
+      <th class="py-2 font-12" scope="col" style="width: 50%">Consolidação das Publicações Parciais:</th>
+      <th class="py-2 font-12" scope="col">Data de Publicação:</th>
+      <th class="py-2 font-12" scope="col">Número de Unidades:</th>
+    </tr>
+    </thead>
+
+    {% for info in dados.bloco_consolidado_das_publicacoes_parciais %}
+
+      <tbody>
+      <tr>
+        <td class="py-2 font-12">{{ info.titulo_parcial }}</td>
+        <td class="py-2 font-12">{{ info.data_publicacao }}</td>
+        <td class="py-2 font-12">{{ info.numero_unidades }}</td>
+      </tr>
+      </tbody>
+
+    {% endfor %}
+
+  </table>
+
+{% endif %}

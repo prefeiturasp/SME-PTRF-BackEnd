@@ -648,7 +648,7 @@ def test_api_get_info_execucao_financeira_relatorio(
                 }
             }
         ],
-        'titulo_parcial': 'Final 1 unidade(s)'
+        'titulo_parcial': 'Relatório consolidado'
     }
 
     assert response.status_code == status.HTTP_200_OK

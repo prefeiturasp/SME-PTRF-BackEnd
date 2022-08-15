@@ -33,15 +33,18 @@ class RelatorioConsolidadoDRE(ModeloBase):
     # Versao Choice
     VERSAO_FINAL = 'FINAL'
     VERSAO_PREVIA = 'PREVIA'
+    VERSAO_CONSOLIDADA = 'CONSOLIDADA'
 
     VERSAO_NOMES = {
         VERSAO_FINAL: 'final',
         VERSAO_PREVIA: 'prévio',
+        VERSAO_CONSOLIDADA: 'consolidado',
     }
 
     VERSAO_CHOICES = (
         (VERSAO_FINAL, VERSAO_NOMES[VERSAO_FINAL]),
         (VERSAO_PREVIA, VERSAO_NOMES[VERSAO_PREVIA]),
+        (VERSAO_CONSOLIDADA, VERSAO_NOMES[VERSAO_CONSOLIDADA]),
     )
 
     arquivo = models.FileField(blank=True, null=True)
@@ -77,6 +80,7 @@ class RelatorioConsolidadoDRE(ModeloBase):
         verbose_name_plural = 'Relatórios físico-financeiros DREs'
 
     def __str__(self):
+        status_str = ""
         if self.versao == self.VERSAO_PREVIA:
             if self.status == self.STATUS_EM_PROCESSAMENTO:
                 status_str = "Previa do relatório sendo gerada. Aguarde."
@@ -85,7 +89,7 @@ class RelatorioConsolidadoDRE(ModeloBase):
             else:
                 status_str = f"Prévia do documento {'final' if self.status == 'GERADO_TOTAL' else 'parcial'} " \
                              f"gerada dia {self.alterado_em.strftime('%d/%m/%Y %H:%M')}"
-        elif self.versao == self.VERSAO_FINAL:
+        elif self.versao == self.VERSAO_FINAL or self.versao == self.VERSAO_CONSOLIDADA:
             if self.status == self.STATUS_EM_PROCESSAMENTO:
                 status_str = "Relatório sendo gerado. Aguarde."
             elif self.status == self.STATUS_NAO_GERADO:
