@@ -111,15 +111,15 @@ class AtaParecerTecnico(ModeloBase):
 
     def arquivo_pdf_iniciar(self):
         self.status_geracao_pdf = self.STATUS_EM_PROCESSAMENTO
-        self.save()
+        self.save(update_fields=['status_geracao_pdf'])
 
     def arquivo_pdf_concluir(self):
         self.status_geracao_pdf = self.STATUS_CONCLUIDO
-        self.save()
+        self.save(update_fields=['status_geracao_pdf'])
 
     def arquivo_pdf_nao_gerado(self):
         self.status_geracao_pdf = self.STATUS_NAO_GERADO
-        self.save()
+        self.save(update_fields=['status_geracao_pdf'])
 
     def atrelar_consolidado_dre(self, consolidado_dre):
         self.consolidado_dre = consolidado_dre

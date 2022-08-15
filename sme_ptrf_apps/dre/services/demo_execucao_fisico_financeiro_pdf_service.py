@@ -8,6 +8,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from weasyprint import HTML, CSS
 
+from sme_ptrf_apps.core.models import TipoConta
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -15,7 +17,24 @@ def gerar_arquivo_demonstrativo_execucao_fisico_financeiro_pdf(dados_demonstrati
 
     html_template = get_template('pdf/demonstrativo_execucao_fisico_financeiro/pdf-horizontal.html')
 
-    rendered_html = html_template.render({'dados': dados_demonstrativo, 'base_static_url': staticfiles_storage.location})
+    tipos_de_contas = TipoConta.objects.all()
+
+    tipos_de_conta_list = []
+
+    for tipo_de_conta in tipos_de_contas:
+        objeto_tipo_de_conta = {
+            "nome": tipo_de_conta.nome
+        }
+
+        tipos_de_conta_list.append(objeto_tipo_de_conta)
+
+    dados = {
+        'dados': dados_demonstrativo,
+        'tipos_de_conta_list': tipos_de_conta_list
+    }
+
+    # rendered_html = html_template.render({'dados': dados_demonstrativo, 'tipos_de_conta_list': tipos_de_conta_list, 'base_static_url': staticfiles_storage.location})
+    rendered_html = html_template.render({'dados': dados_demonstrativo, 'tipos_de_conta_list': tipos_de_conta_list, 'base_static_url': staticfiles_storage.location})
 
     LOGGER.info(f'base_url: {os.path.basename(staticfiles_storage.location)}')
     LOGGER.info(f'store: {staticfiles_storage.location}')

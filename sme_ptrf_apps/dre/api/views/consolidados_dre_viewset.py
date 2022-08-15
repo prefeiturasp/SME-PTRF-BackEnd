@@ -21,9 +21,13 @@ from sme_ptrf_apps.users.permissoes import (
 )
 
 from ...services import concluir_consolidado_dre, \
-    verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao, status_consolidado_dre, \
-    retornar_trilha_de_status, gerar_previa_consolidado_dre, retornar_consolidados_dre_ja_criados_e_proxima_criacao, \
-    criar_ata_e_atribuir_ao_consolidado_dre
+    verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao, \
+    status_consolidado_dre, \
+    retornar_trilha_de_status, \
+    gerar_previa_consolidado_dre, \
+    retornar_consolidados_dre_ja_criados_e_proxima_criacao, \
+    criar_ata_e_atribuir_ao_consolidado_dre, \
+    concluir_consolidado_de_publicacoes_parciais
 
 import mimetypes
 
@@ -345,6 +349,111 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_409_CONFLICT)
 
         return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'],
+            url_path='gerar-consolidado-de-publicacoes-parciais',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def gerar_consolidado_de_publicacoes_parciais(self, request):
+        dados = request.data
+
+        if (
+            not dados
+            or not dados.get('dre_uuid')
+            or not dados.get('periodo_uuid')
+        ):
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar os uuids da dre e período'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        dre_uuid, periodo_uuid = dados['dre_uuid'], dados['periodo_uuid']
+
+        try:
+            dre = Unidade.dres.get(uuid=dre_uuid)
+        except (Unidade.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except (Periodo.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            concluir_consolidado_de_publicacoes_parciais(
+                dre,
+                periodo,
+                usuario=request.user.username,
+            )
+
+            return Response({"data": "Consolidado de publicações parciais gerados com sucesso"},
+                            status=status.HTTP_200_OK)
+        except:
+            erro = {
+                'erro': 'erro_ao_gerar_consolidado_de_publicacoes_parciais',
+                'mensagem': f"Erro ao gerar Consolidado de publicações parciais"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+
+    @action(detail=False, methods=['get'],
+            url_path='retorna-status-relatorio-consolidado-de-publicacoes-parciais',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def retornar_status_relatorio_consolidado_de_publicacoes_parciais(self, request):
+        dre_uuid = request.query_params.get('dre')
+        periodo_uuid = request.query_params.get('periodo')
+
+        if not dre_uuid or not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar os uuids da dre e período'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            dre = Unidade.dres.get(uuid=dre_uuid)
+        except (Unidade.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except (Periodo.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        relatorio_consolidado_publicacoes_parciais = RelatorioConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao="CONSOLIDADA").last()
+        status_relatorio_consolidado_publicacoes_parciais = {
+            'status': None
+        }
+
+        if relatorio_consolidado_publicacoes_parciais:
+            status_relatorio_consolidado_publicacoes_parciais = {
+                'status': relatorio_consolidado_publicacoes_parciais.status
+            }
+
+        return Response(status_relatorio_consolidado_publicacoes_parciais, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], url_path='documentos',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])

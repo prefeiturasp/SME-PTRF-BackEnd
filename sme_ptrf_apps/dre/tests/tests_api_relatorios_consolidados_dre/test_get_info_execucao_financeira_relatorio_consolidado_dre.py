@@ -298,7 +298,8 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
     previsao_repasse_sme_conta_cartao,
     previsao_repasse_sme_conta_cheque,
     consolidado_dre,
-
+    tipo_conta_cartao,
+    tipo_conta_cheque,
 ):
     response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-execucao-financeira/?dre={dre.uuid}&periodo={periodo.uuid}&consolidado_dre={consolidado_dre.uuid}',
@@ -315,7 +316,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',
-                'tipo_conta_uuid': None,
+                'tipo_conta_uuid': f'{tipo_conta_cartao.uuid}',
                 'valores': {
                     'demais_creditos_no_periodo_capital': 0,
                     'demais_creditos_no_periodo_custeio': 0,
@@ -359,7 +360,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
-                'tipo_conta_uuid': None,
+                'tipo_conta_uuid': f'{tipo_conta_cheque.uuid}',
                 'valores':
                     {
                         'demais_creditos_no_periodo_capital': 0,
@@ -423,6 +424,8 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
     previsao_repasse_sme_conta_cartao,
     previsao_repasse_sme_conta_cheque,
     consolidado_dre,
+    tipo_conta_cheque,
+    tipo_conta_cartao
 
 ):
     response = jwt_authenticated_client_relatorio_consolidado.get(
@@ -440,7 +443,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',
-                'tipo_conta_uuid': None,
+                'tipo_conta_uuid': f'{tipo_conta_cartao.uuid}',
                 'valores':
                     {
                         'demais_creditos_no_periodo_capital': 0,
@@ -485,7 +488,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
-                'tipo_conta_uuid': None,
+                'tipo_conta_uuid': f'{tipo_conta_cheque.uuid}',
                 'valores':
                     {
                         'demais_creditos_no_periodo_capital': 0,
@@ -539,6 +542,7 @@ def test_api_get_info_execucao_financeira_relatorio(
     dre,
     periodo,
     tipo_conta_cheque,
+    tipo_conta_cartao,
     prestacao_conta,
     fechamento_conta_cartao,
     fechamento_conta_cheque,
@@ -565,7 +569,7 @@ def test_api_get_info_execucao_financeira_relatorio(
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
-                'tipo_conta_uuid': None,
+                'tipo_conta_uuid': f'{tipo_conta_cheque.uuid}',
                 'valores': {
                     'demais_creditos_no_periodo_capital': 50.0,
                     'demais_creditos_no_periodo_custeio': 0.0,
@@ -607,7 +611,7 @@ def test_api_get_info_execucao_financeira_relatorio(
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',
-                'tipo_conta_uuid': None,
+                'tipo_conta_uuid': f'{tipo_conta_cartao.uuid}',
                 'valores': {
                     'demais_creditos_no_periodo_capital': 100.0,
                     'demais_creditos_no_periodo_custeio': 200.0,
@@ -648,7 +652,7 @@ def test_api_get_info_execucao_financeira_relatorio(
                 }
             }
         ],
-        'titulo_parcial': 'Final 1 unidade(s)'
+        'titulo_parcial': 'Relatório consolidado'
     }
 
     assert response.status_code == status.HTTP_200_OK

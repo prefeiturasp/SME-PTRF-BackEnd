@@ -56,4 +56,3 @@ from .analise_documento_prestacao_conta_serializer import (
 )
 from .tipo_documento_prestacao_conta_serializer import TipoDocumentoPrestacaoContaSerializer
 from .presentes_ata_serializer import PresentesAtaSerializer, PresentesAtaCreateSerializer
-from .analise_valor_reprogramado_prestacao_conta_serializer import AnaliseValorReprogramadoPrestacaoContaSerializer

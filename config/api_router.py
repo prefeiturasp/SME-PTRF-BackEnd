@@ -32,7 +32,6 @@ from sme_ptrf_apps.core.api.views import (
     TiposAcertoDocumentoViewSet,
     AnalisesPrestacoesContasViewSet,
     PresentesAtaViewSet,
-    AnaliseValorReprogramadoPrestacaoContaViewSet,
     AnaliseContaPrestacaoContaViewSet,
     ParametrosUeViewSet,
     AnaliseLancamentoPrestacaoContaViewSet,
@@ -128,7 +127,6 @@ router.register("tipos-acerto-lancamento", TiposAcertoLancamentoViewSet)
 router.register("tipos-acerto-documento", TiposAcertoDocumentoViewSet)
 router.register("analises-prestacoes-contas", AnalisesPrestacoesContasViewSet)
 router.register("presentes-ata", PresentesAtaViewSet)
-router.register("analises-valores-reprogramados", AnaliseValorReprogramadoPrestacaoContaViewSet)
 router.register("analises-conta-prestacao-conta", AnaliseContaPrestacaoContaViewSet)
 router.register("analises-lancamento-prestacao-conta", AnaliseLancamentoPrestacaoContaViewSet)
 router.register("analises-documento-prestacao-conta", AnaliseDocumentoPrestacaoContaViewSet)

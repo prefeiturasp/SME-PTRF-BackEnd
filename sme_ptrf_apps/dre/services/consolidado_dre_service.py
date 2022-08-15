@@ -3,8 +3,11 @@ from django.db.models import Q, Max, Value
 from django.db.models.functions import Coalesce
 
 from ..api.serializers.ata_parecer_tecnico_serializer import AtaParecerTecnicoLookUpSerializer
-from ..models import ConsolidadoDRE, AtaParecerTecnico
-from ..tasks import concluir_consolidado_dre_async, gerar_previa_consolidado_dre_async
+from ..models import ConsolidadoDRE, AtaParecerTecnico, RelatorioConsolidadoDRE
+from ..tasks import concluir_consolidado_dre_async, \
+    gerar_previa_consolidado_dre_async, \
+    concluir_consolidado_de_publicacoes_parciais_async
+
 from ...core.models import Unidade, PrestacaoConta, Periodo, Associacao
 
 logger = logging.getLogger(__name__)
@@ -18,20 +21,12 @@ def criar_ata_e_atribuir_ao_consolidado_dre(dre=None, periodo=None, consolidado_
     if consolidado_dre:
         ata.consolidado_dre = consolidado_dre
         ata.sequencia_de_publicacao = consolidado_dre.sequencia_de_publicacao
-        ata.save()
+        ata.save(update_fields=['consolidado_dre', 'sequencia_de_publicacao'])
 
     return ata
 
 
-def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=None):
-
-    dre_uuid = dre.uuid
-    periodo_uuid = periodo.uuid
-
-    sequencia_de_publicacao = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid, periodo_uuid)
-
-    sequencia_de_publicacao_atual = sequencia_de_publicacao['sequencia_de_publicacao_atual']
-
+def retornar_ja_publicadas(dre, periodo):
     consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao='FINAL')
 
     publicacoes_anteriores = []
@@ -53,6 +48,7 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
             'uuid': consolidado_dre.uuid,
             'dre_uuid': dre.uuid,
             'periodo_uuid': periodo.uuid,
+            'eh_consolidado_de_publicacoes_parciais': False,
         }
 
         atas_de_parecer_tecnico = consolidado_dre.atas_de_parecer_tecnico_do_consolidado_dre.all()
@@ -106,10 +102,15 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
 
         publicacoes_anteriores.append(consolidado)
 
+    return publicacoes_anteriores
+
+
+def retornar_proxima_publicacao(dre, periodo, sequencia_de_publicacao, sequencia_de_publicacao_atual):
     ata_de_parecer_tecnico = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo,
                                                               sequencia_de_publicacao=sequencia_de_publicacao_atual).last()
 
-    consolidado_dre_proxima_publicacao = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, sequencia_de_publicacao=sequencia_de_publicacao_atual).last()
+    consolidado_dre_proxima_publicacao = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo,
+                                                                       sequencia_de_publicacao=sequencia_de_publicacao_atual).last()
     relatorios_fisico_financeiros_proxima_publicacao_list = []
     uuid_consolidado_dre_proxima_publicacao = None
     if consolidado_dre_proxima_publicacao:
@@ -147,7 +148,90 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
         'dre_uuid': dre.uuid,
         'periodo_uuid': periodo.uuid,
         'uuid': uuid_consolidado_dre_proxima_publicacao,
+        'eh_consolidado_de_publicacoes_parciais': False,
     }
+
+    return proxima_publicacao
+
+
+def retornar_consolidado_de_publicacoes_parciais(dre, periodo, sequencia_de_publicacao_atual):
+    relatorios_fisico_financeiros_consolidado_de_publicacoes_parciais = RelatorioConsolidadoDRE.objects.filter(
+        dre=dre,
+        periodo=periodo,
+        consolidado_dre__isnull=True,
+        versao='CONSOLIDADA'
+    )
+
+    relatorios_fisico_financeiros_consolidado_de_publicacoes_parciais_list = []
+
+    for relatorio in relatorios_fisico_financeiros_consolidado_de_publicacoes_parciais:
+        _relatorio = {
+            'uuid': relatorio.uuid,
+            'versao': relatorio.versao,
+            'tipo_conta': relatorio.tipo_conta.nome if relatorio.tipo_conta and relatorio.tipo_conta.nome else "",
+            'tipo_conta_uuid': relatorio.tipo_conta.uuid if relatorio.tipo_conta and relatorio.tipo_conta.uuid else "",
+            'status_geracao': relatorio.status,
+            'status_geracao_arquivo': relatorio.__str__(),
+        }
+
+        relatorios_fisico_financeiros_consolidado_de_publicacoes_parciais_list.append(_relatorio)
+
+    proxima_publicacao_consolidado_de_publicacoes_parciais = {
+        'titulo_relatorio': "Relatório consolidado",
+        'sequencia': sequencia_de_publicacao_atual,
+        'ja_publicado': False,
+        'dre_nome': dre.nome,
+        'relatorios_fisico_financeiros': relatorios_fisico_financeiros_consolidado_de_publicacoes_parciais_list,
+        'ata_de_parecer_tecnico': {},
+        'laudas': [],
+        'dre_uuid': dre.uuid,
+        'periodo_uuid': periodo.uuid,
+        'uuid': None,
+        'eh_consolidado_de_publicacoes_parciais': True,
+    }
+
+    return proxima_publicacao_consolidado_de_publicacoes_parciais
+
+
+def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=None):
+    dre_uuid = dre.uuid
+    periodo_uuid = periodo.uuid
+
+    sequencia_de_publicacao = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid,
+                                                                                                      periodo_uuid)
+
+    sequencia_de_publicacao_atual = sequencia_de_publicacao['sequencia_de_publicacao_atual']
+
+    publicacoes_anteriores = retornar_ja_publicadas(dre, periodo)
+
+    quantidade_ues_cnpj = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').count()
+    # quantidade_ues_cnpj = 2
+    quantidade_pcs_publicadas = PrestacaoConta.objects.filter(periodo__uuid=periodo_uuid,
+                                                              associacao__unidade__dre__uuid=dre_uuid,
+                                                              publicada=True).count()
+    quantidade_consolidados_dre_publicados = ConsolidadoDRE.objects.filter(
+        dre=dre,
+        periodo=periodo,
+        versao="FINAL",
+        sequencia_de_publicacao__gt=0,
+        eh_parcial=True
+    ).count()
+
+    consolidado_de_publicacoes_parciais = (quantidade_pcs_publicadas == quantidade_ues_cnpj) and quantidade_consolidados_dre_publicados > 0
+
+    if consolidado_de_publicacoes_parciais:
+        proxima_publicacao = retornar_consolidado_de_publicacoes_parciais(
+            dre,
+            periodo,
+            sequencia_de_publicacao_atual
+        )
+    else:
+        proxima_publicacao = retornar_proxima_publicacao(
+            dre,
+            periodo,
+            sequencia_de_publicacao,
+            sequencia_de_publicacao_atual
+        )
 
     result = {
         'proxima_publicacao': proxima_publicacao,
@@ -340,7 +424,8 @@ def status_consolidado_dre(dre, periodo):
 
             status_txt_geracao = f'{status_txt_analise} {status_txt_consolidado_dre}'
 
-            cor_idx = LEGENDA_COR[status_consolidado_dre]['com_pcs_em_analise' if pcs_em_analise else 'sem_pcs_em_analise']
+            cor_idx = LEGENDA_COR[status_consolidado_dre][
+                'com_pcs_em_analise' if pcs_em_analise else 'sem_pcs_em_analise']
 
             status = {
                 'pcs_em_analise': pcs_em_analise,
@@ -385,6 +470,7 @@ def verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_
     results = retornar_trilha_de_status(dre_uuid, periodo_uuid)
 
     total_associacoes_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
+    # total_associacoes_dre = 2
     total_concluido = [d['quantidade_prestacoes'] for d in results if d['status'] == "CONCLUIDO"][0]
 
     eh_parcial = total_concluido < total_associacoes_dre
@@ -395,7 +481,8 @@ def verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_
     ).aggregate(max_sequencia_de_publicacao=Coalesce(Max('sequencia_de_publicacao'), Value(0)))[
         'max_sequencia_de_publicacao']
 
-    ultimo_consolidado_criado = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, sequencia_de_publicacao=sequencia_de_publicacao_atual).last()
+    ultimo_consolidado_criado = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo,
+                                                              sequencia_de_publicacao=sequencia_de_publicacao_atual).last()
     versao_ultimo_consolidado_criado_for_publicado = True if ultimo_consolidado_criado and ultimo_consolidado_criado.versao == 'FINAL' else False
 
     if not eh_parcial:
@@ -435,7 +522,7 @@ def gerar_previa_consolidado_dre(dre, periodo, parcial, usuario):
     if ata_parecer_tecnico:
         ata_parecer_tecnico.consolidado_dre = consolidado_dre
         ata_parecer_tecnico.sequencia_de_publicacao = consolidado_dre.sequencia_de_publicacao
-        ata_parecer_tecnico.save()
+        ata_parecer_tecnico.save(update_fields=['consolidado_dre', 'sequencia_de_publicacao'])
 
     dre_uuid = dre.uuid
     periodo_uuid = periodo.uuid
@@ -477,7 +564,7 @@ def concluir_consolidado_dre(dre, periodo, parcial, usuario):
 
     ata_parecer_tecnico.consolidado_dre = consolidado_dre
     ata_parecer_tecnico.sequencia_de_publicacao = consolidado_dre.sequencia_de_publicacao
-    ata_parecer_tecnico.save()
+    ata_parecer_tecnico.save(update_fields=['consolidado_dre', 'sequencia_de_publicacao'])
 
     concluir_consolidado_dre_async.delay(
         dre_uuid=dre_uuid,
@@ -491,3 +578,16 @@ def concluir_consolidado_dre(dre, periodo, parcial, usuario):
     )
 
     return consolidado_dre
+
+
+def concluir_consolidado_de_publicacoes_parciais(dre, periodo, usuario):
+    logger.info(f'Iniciando a criação do Consolidado de publicacoes parciais')
+
+    dre_uuid = dre.uuid
+    periodo_uuid = periodo.uuid
+
+    concluir_consolidado_de_publicacoes_parciais_async.delay(
+        dre_uuid=dre_uuid,
+        periodo_uuid=periodo_uuid,
+        usuario=usuario,
+    )

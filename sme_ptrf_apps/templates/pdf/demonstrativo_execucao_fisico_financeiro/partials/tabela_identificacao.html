@@ -1,0 +1,18 @@
+{% load staticfiles %}
+<table class="table table-bordered mb-0">
+  <thead>
+    <tr>
+      <th scope="col" colspan="2" class="py-2">
+        <p class="font-14 titulo mb-0 mt-0"><strong>Bloco 1 - Identificação</strong></p>
+      </th>
+      <tr>
+          <th scope="col" style="width: 50%" class="py-2">
+            <p class="mb-0 titulo font-12"><strong>Diretoria Regional de Educação:</strong>{{ dados.identificacao_dre.nome_dre }}</p>
+          </th>
+          <th scope="col" class="py-2">
+            <p class="mb-0 titulo font-12"><strong>CNPJ:</strong> {{ dados.identificacao_dre.cnpj_dre }}
+            </p>
+          </th>
+        </tr>
+  </thead>
+</table>

@@ -136,7 +136,6 @@ def ata_parecer_tecnico_teste_service(
     )
 
 
-
 @pytest.fixture
 def consolidado_dre_teste_service_consolidado_dre(periodo_teste_service_consolidado_dre,
                                                   dre_teste_service_consolidado_dre):
@@ -145,6 +144,34 @@ def consolidado_dre_teste_service_consolidado_dre(periodo_teste_service_consolid
         dre=dre_teste_service_consolidado_dre,
         periodo=periodo_teste_service_consolidado_dre,
         status=ConsolidadoDRE.STATUS_NAO_GERADOS
+    )
+
+
+@pytest.fixture
+def consolidado_dre_teste_service_consolidado_dre_versao_final(periodo_teste_service_consolidado_dre,
+                                                  dre_teste_service_consolidado_dre):
+    return baker.make(
+        'ConsolidadoDRE',
+        dre=dre_teste_service_consolidado_dre,
+        periodo=periodo_teste_service_consolidado_dre,
+        status=ConsolidadoDRE.STATUS_NAO_GERADOS,
+        versao='FINAL',
+        sequencia_de_publicacao=1,
+        eh_parcial=True
+    )
+
+
+@pytest.fixture
+def consolidado_dre_teste_service_consolidado_dre_versao_final_02(periodo_teste_service_consolidado_dre,
+                                                  dre_teste_service_consolidado_dre):
+    return baker.make(
+        'ConsolidadoDRE',
+        dre=dre_teste_service_consolidado_dre,
+        periodo=periodo_teste_service_consolidado_dre,
+        status=ConsolidadoDRE.STATUS_NAO_GERADOS,
+        versao='FINAL',
+        sequencia_de_publicacao=2,
+        eh_parcial=True
     )
 
 
