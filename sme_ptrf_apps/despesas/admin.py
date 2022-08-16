@@ -78,8 +78,26 @@ class DespesaAdmin(admin.ModelAdmin):
         'associacao', 'retem_imposto')
     ordering = ('-data_documento',)
     search_fields = (
-    'numero_documento', 'nome_fornecedor', 'documento_transacao', 'associacao__nome', 'associacao__unidade__codigo_eol')
-    list_filter = ('status', 'associacao')
+        'numero_documento',
+        'nome_fornecedor',
+        'documento_transacao',
+        'associacao__nome',
+        'associacao__unidade__codigo_eol'
+    )
+    list_filter = (
+        'associacao',
+        'associacao__unidade__dre',
+        'associacao__unidade__tipo_unidade',
+        ('data_documento', DateRangeFilter),
+        ('data_transacao', DateRangeFilter),
+        'status',
+        'nome_fornecedor',
+        'tipo_documento',
+        'tipo_transacao',
+        'eh_despesa_sem_comprovacao_fiscal',
+        'eh_despesa_reconhecida_pela_associacao',
+        'retem_imposto',
+    )
     inlines = [RateioDespesaInLine, ]
     readonly_fields = ('uuid', 'id')
     filter_horizontal = ('despesas_impostos', 'motivos_pagamento_antecipado')
