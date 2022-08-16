@@ -1,3 +1,6 @@
+### 1.32.7 - 16/08/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 47
+* (71609) -  Inclui novos filtros no Admin de Despesas
+
 ### 1.32.6 - 05/08/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 47
 * (71372) -  Corrige cálculo do campo outros créditos no concolidado DRE
 
