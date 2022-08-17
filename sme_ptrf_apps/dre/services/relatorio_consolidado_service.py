@@ -89,7 +89,8 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
         qtde_unidades = PrestacaoConta.objects.filter(
             periodo=periodo,
             status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
-            associacao__unidade__dre=dre
+            associacao__unidade__dre=dre,
+            publicada=False
         ).count()
         if sequencia_de_publicacao > 0:
             titulo_parcial = f"Parcial #{sequencia_de_publicacao} - {qtde_unidades} unidade(s)" if eh_parcial else f"Final {qtde_unidades} unidade(s)"
