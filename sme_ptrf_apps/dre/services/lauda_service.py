@@ -289,8 +289,8 @@ def gerar_dados_lauda(dre, periodo, tipo_conta, apenas_nao_publicadas):
                 # CUSTEIO
 
                 # Receita
-                repasse_custeio = info.get("valores").get('repasses_no_periodo_custeio')
-                dado["receita"]["custeio"] = formata_valor(repasse_custeio)
+                receita_custeio = info.get("valores").get('receitas_totais_no_periodo_custeio')
+                dado["receita"]["custeio"] = formata_valor(receita_custeio)
 
                 # Despesa
                 despesas_custeio = info.get("valores").get('despesas_no_periodo_custeio')
@@ -304,8 +304,8 @@ def gerar_dados_lauda(dre, periodo, tipo_conta, apenas_nao_publicadas):
                 # CAPITAL
 
                 # Receita
-                repasse_capital = info.get("valores").get('repasses_no_periodo_capital')
-                dado["receita"]["capital"] = formata_valor(repasse_capital)
+                receita_capital = info.get("valores").get('receitas_totais_no_periodo_capital')
+                dado["receita"]["capital"] = formata_valor(receita_capital)
 
                 # Despesa
                 despesas_capital = info.get("valores").get('despesas_no_periodo_capital')
@@ -319,8 +319,8 @@ def gerar_dados_lauda(dre, periodo, tipo_conta, apenas_nao_publicadas):
                 # LIVRE APLICACAO
 
                 # Receita
-                repasse_livre = info.get("valores").get('repasses_no_periodo_livre')
-                dado["receita"]["livre_aplicacao"] = formata_valor(repasse_livre)
+                receita_livre = info.get("valores").get('receitas_totais_no_periodo_livre')
+                dado["receita"]["livre_aplicacao"] = formata_valor(receita_livre)
 
                 # Despesa
                 # Despesa não possui livre aplicação
