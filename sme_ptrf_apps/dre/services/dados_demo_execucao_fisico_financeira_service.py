@@ -14,7 +14,7 @@ from django.db.models.functions import Coalesce
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, previa=False, apenas_nao_publicadas=False, eh_consolidado_de_publicacoes_parciais=False):
+def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, previa=False, apenas_nao_publicadas=False, eh_consolidado_de_publicacoes_parciais=False, consolidado_dre=False):
     try:
         LOGGER.info("Gerando relatório consolidado...")
 
@@ -22,7 +22,7 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
         bloco_consolidado_das_publicacoes_parciais = cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo, eh_consolidado_de_publicacoes_parciais)
         data_geracao_documento = cria_data_geracao_documento(usuario, dre, parcial, previa)
         identificacao_dre = cria_identificacao_dre(dre)
-        execucao_financeira = cria_execucao_financeira(dre, periodo, apenas_nao_publicadas)
+        execucao_financeira = cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dre)
         execucao_fisica = cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais)
         dados_fisicos_financeiros = cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais)
 
@@ -95,13 +95,16 @@ def cria_cabecalho(periodo, parcial, previa):
     sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
 
     if previa and eh_parcial:
-        titulo_sequencia_publicacao = f'Prévia parcial #{sequencia_de_publicacao}'
+        titulo_sequencia_publicacao = f'Publicação Parcial #{sequencia_de_publicacao} (Prévia)'
     elif previa and not eh_parcial:
-        titulo_sequencia_publicacao = f'Prévia final'
+        titulo_sequencia_publicacao = f'Publicação Única (Prévia)'
     elif not previa and eh_parcial:
-        titulo_sequencia_publicacao = f'Parcial #{sequencia_de_publicacao}'
+        titulo_sequencia_publicacao = f'Publicação Parcial #{sequencia_de_publicacao}'
+    elif not previa and not eh_parcial and sequencia_de_publicacao == 0:
+        titulo_sequencia_publicacao = 'Publicação Única'
     else:
-        titulo_sequencia_publicacao = 'Relatório Consolidado'
+        # Nesse caso é o relatório do consolidado de publicações parciais
+        titulo_sequencia_publicacao = f'Relatório Consolidado'
 
     cabecalho = {
         "periodo": str(periodo),
@@ -125,7 +128,7 @@ def cria_identificacao_dre(dre):
     return identificacao
 
 
-def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas):
+def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dre):
     """BLOCO 2 - EXECUÇÃO FINANCEIRA"""
     from .relatorio_consolidado_service import informacoes_execucao_financeira
 
@@ -135,7 +138,7 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas):
         'total_todas_as_contas': []
     }
     for tipo_conta in tipos_contas:
-        info = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas)
+        info = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas, consolidado_dre)
 
         # LINHA CUSTEIO
         valor_total_custeio = info['saldo_reprogramado_periodo_anterior_custeio'] + info['repasses_no_periodo_custeio'] + \
