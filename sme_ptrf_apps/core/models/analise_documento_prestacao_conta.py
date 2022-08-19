@@ -65,6 +65,14 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
 
     justificativa = models.TextField('Justificativa', max_length=300, blank=True, null=True, default=None)
 
+    despesa_incluida = models.ForeignKey('despesas.Despesa', on_delete=models.SET_NULL,
+                                         related_name='analise_de_documento_que_incluiu_a_despesa', blank=True, null=True)
+
+    receita_incluida = models.ForeignKey('receitas.Receita', on_delete=models.SET_NULL,
+                                         related_name='analise_de_documento_que_incluiu_a_receita', blank=True, null=True)
+
+    esclarecimentos = models.TextField('Esclarecimentos', max_length=300, blank=True, null=True, default=None)
+
     def __str__(self):
         return f"Análise de documento {self.uuid} - Resultado:{self.resultado}"
 
