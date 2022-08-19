@@ -22,25 +22,25 @@ def test_retorna_trilha_de_status_sem_nenhuma_pc(
             'titulo': 'Não recebido'
         },
         {
-            'estilo_css': 1,
+            'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'RECEBIDA',
             'titulo': 'Recebida e<br/>aguardando análise'
         },
         {
-            'estilo_css': 1,
+            'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'DEVOLVIDA',
             'titulo': 'Devolvido<br/>para acertos'
         },
         {
-            'estilo_css': 1,
+            'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'EM_ANALISE',
             'titulo': 'Em análise'
         },
         {
-            'estilo_css': 0,
+            'estilo_css': 1,
             'quantidade_prestacoes': 0,
             'status': 'CONCLUIDO',
             'titulo': 'Concluído e<br/>aguardando publicação'
@@ -52,13 +52,13 @@ def test_retorna_trilha_de_status_sem_nenhuma_pc(
             'titulo': 'Publicado'
         },
         {
-            'estilo_css': 1,
+            'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'APROVADA',
             'titulo': 'Aprovado'
         },
         {
-            'estilo_css': 1,
+            'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'REPROVADA',
             'titulo': 'Reprovado'
@@ -87,25 +87,25 @@ def test_retorna_trilha_de_status_uma_pc_aprovada_e_uma_concluida(
             'titulo': 'Não recebido'
         },
         {
-            'estilo_css': 1,
+            'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'RECEBIDA',
             'titulo': 'Recebida e<br/>aguardando análise'
         },
         {
-            'estilo_css': 1,
+            'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'DEVOLVIDA',
             'titulo': 'Devolvido<br/>para acertos'
         },
         {
-            'estilo_css': 1,
+            'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'EM_ANALISE',
             'titulo': 'Em análise'
         },
         {
-            'estilo_css': 0,
+            'estilo_css': 1,
             'quantidade_prestacoes': 1,
             'status': 'CONCLUIDO',
             'titulo': 'Concluído e<br/>aguardando publicação'
@@ -117,13 +117,13 @@ def test_retorna_trilha_de_status_uma_pc_aprovada_e_uma_concluida(
             'titulo': 'Publicado'
         },
         {
-            'estilo_css': 1,
+            'estilo_css': 0,
             'quantidade_prestacoes': 1,
             'status': 'APROVADA',
             'titulo': 'Aprovado'
         },
         {
-            'estilo_css': 1,
+            'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'REPROVADA',
             'titulo': 'Reprovado'
@@ -154,25 +154,25 @@ def test_retorna_trilha_de_status_uma_pc_reprovada_uma_concluida_e_uma_publicada
             'titulo': 'Não recebido'
         },
         {
-            'estilo_css': 1,
+            'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'RECEBIDA',
             'titulo': 'Recebida e<br/>aguardando análise'
         },
         {
-            'estilo_css': 1,
+            'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'DEVOLVIDA',
             'titulo': 'Devolvido<br/>para acertos'
         },
         {
-            'estilo_css': 1,
+            'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'EM_ANALISE',
             'titulo': 'Em análise'
         },
         {
-            'estilo_css': 0,
+            'estilo_css': 1,
             'quantidade_prestacoes': 1,
             'status': 'CONCLUIDO',
             'titulo': 'Concluído e<br/>aguardando publicação'
@@ -184,13 +184,13 @@ def test_retorna_trilha_de_status_uma_pc_reprovada_uma_concluida_e_uma_publicada
             'titulo': 'Publicado'
         },
         {
-            'estilo_css': 1,
+            'estilo_css': 0,
             'quantidade_prestacoes': 1,
             'status': 'APROVADA',
             'titulo': 'Aprovado'
         },
         {
-            'estilo_css': 1,
+            'estilo_css': 0,
             'quantidade_prestacoes': 1,
             'status': 'REPROVADA',
             'titulo': 'Reprovado'
