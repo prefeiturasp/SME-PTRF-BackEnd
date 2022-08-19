@@ -30,3 +30,28 @@ pytestmark = pytest.mark.django_db
 #     assert MembroComissao.objects.filter(uuid=result['uuid']).exists()
 #
 #     assert Comissao.objects.get(id=comissao_b.id).membros.filter(uuid=result['uuid']).exists()
+
+def test_create_membro_comissao_nome_igual(
+    jwt_authenticated_client_dre, dre_x, dre_y, comissao_a, comissao_b, membro_jose_comissao_a_b_dre_y
+):
+    payload = {
+        'rf': '123458',
+        'nome': 'Pedro Antunes',
+        'email': 'tecnico.sobrenome@sme.prefeitura.sp.gov.br',
+        'dre': f'{dre_y.uuid}',
+        'telefone': '1259275127',
+        'comissoes': [f'{comissao_a.id}', f'{comissao_b.id}']
+    }
+
+    response = jwt_authenticated_client_dre.post(
+            '/api/membros-comissoes/', data=json.dumps(payload), content_type='application/json')
+
+    result = json.loads(response.content)
+    resultado_esperado = {
+        'detail': 'Já existe um membro de comissão com esse Registro Funcional.'
+    }
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert len(MembroComissao.objects.filter(rf='123458').all()) == 1
+    assert resultado_esperado == result
+
