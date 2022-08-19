@@ -402,7 +402,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
                     }
             }
         ],
-        'titulo_parcial': 'Parcial #1 - 2 unidade(s)'
+        'titulo_parcial': 'Publicação Parcial #1 - 2 unidade(s)'
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -530,7 +530,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
                     }
             }
         ],
-        'titulo_parcial': 'Final 1 unidade(s)'
+        'titulo_parcial': 'Publicação Única 1 unidade(s)'
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -595,10 +595,10 @@ def test_api_get_info_execucao_financeira_relatorio(
                     'repasses_no_periodo_custeio': 1000.0,
                     'repasses_no_periodo_livre': 1000.0,
                     'repasses_no_periodo_total': 3000.0,
-                    'repasses_previstos_sme_capital': 4000.0,
-                    'repasses_previstos_sme_custeio': 2000.0,
-                    'repasses_previstos_sme_livre': 6000.0,
-                    'repasses_previstos_sme_total': 12000.0,
+                    'repasses_previstos_sme_capital': 2000.0,
+                    'repasses_previstos_sme_custeio': 1000.0,
+                    'repasses_previstos_sme_livre': 3000.0,
+                    'repasses_previstos_sme_total': 6000.0,
                     'saldo_reprogramado_periodo_anterior_capital': 500.0,
                     'saldo_reprogramado_periodo_anterior_custeio': 500.0,
                     'saldo_reprogramado_periodo_anterior_livre': 1000.0,
@@ -637,10 +637,10 @@ def test_api_get_info_execucao_financeira_relatorio(
                     'repasses_no_periodo_custeio': 1800.0,
                     'repasses_no_periodo_livre': 0.0,
                     'repasses_no_periodo_total': 2700.0,
-                    'repasses_previstos_sme_capital': 2.0,
-                    'repasses_previstos_sme_custeio': 2.0,
-                    'repasses_previstos_sme_livre': 2.0,
-                    'repasses_previstos_sme_total': 6.0,
+                    'repasses_previstos_sme_capital': 1.0,
+                    'repasses_previstos_sme_custeio': 1.0,
+                    'repasses_previstos_sme_livre': 1.0,
+                    'repasses_previstos_sme_total': 3.0,
                     'saldo_reprogramado_periodo_anterior_capital': 0,
                     'saldo_reprogramado_periodo_anterior_custeio': 0,
                     'saldo_reprogramado_periodo_anterior_livre': 0,
@@ -652,7 +652,7 @@ def test_api_get_info_execucao_financeira_relatorio(
                 }
             }
         ],
-        'titulo_parcial': 'Relatório consolidado'
+        'titulo_parcial': 'Publicação Única'
     }
 
     assert response.status_code == status.HTTP_200_OK
