@@ -1,10 +1,13 @@
 from rest_framework import serializers
 
-from ...models import SolicitacaoAcertoDocumento, AnalisePrestacaoConta, AnaliseLancamentoPrestacaoConta, AnaliseDocumentoPrestacaoConta
+from ...models import AnalisePrestacaoConta, AnaliseDocumentoPrestacaoConta
 
 from .solicitacao_acerto_documento_serializer import SolicitacaoAcertoDocumentoRetrieveSerializer
 from .tipo_documento_prestacao_conta_serializer import TipoDocumentoPrestacaoContaSerializer
 from .conta_associacao_serializer import ContaAssociacaoLookUpSerializer
+
+from sme_ptrf_apps.despesas.models import Despesa
+from sme_ptrf_apps.receitas.models import Receita
 
 
 class AnaliseDocumentoPrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
@@ -18,6 +21,20 @@ class AnaliseDocumentoPrestacaoContaRetrieveSerializer(serializers.ModelSerializ
     tipo_documento_prestacao_conta = TipoDocumentoPrestacaoContaSerializer(many=False)
     conta_associacao = ContaAssociacaoLookUpSerializer(many=False)
     solicitacoes_de_ajuste_da_analise = SolicitacaoAcertoDocumentoRetrieveSerializer(many=True)
+    despesa_incluida = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Despesa.objects.all(),
+        allow_null=True,
+        allow_empty=True,
+    )
+    receita_incluida = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Receita.objects.all(),
+        allow_null=True,
+        allow_empty=True,
+    )
 
     def get_nome_documento(self, obj):
         _documento = obj.tipo_documento_prestacao_conta
@@ -25,7 +42,7 @@ class AnaliseDocumentoPrestacaoContaRetrieveSerializer(serializers.ModelSerializ
         return f'{_documento.nome} {_conta_associacao.tipo_conta.nome}' if _conta_associacao else _documento.nome
 
     class Meta:
-        model = AnaliseLancamentoPrestacaoConta
+        model = AnaliseDocumentoPrestacaoConta
         fields = (
             'analise_prestacao_conta',
             'documento',
@@ -37,6 +54,9 @@ class AnaliseDocumentoPrestacaoContaRetrieveSerializer(serializers.ModelSerializ
             'solicitacoes_de_ajuste_da_analise',
             'status_realizacao',
             'justificativa',
+            'esclarecimentos',
+            'despesa_incluida',
+            'receita_incluida',
         )
 
 
