@@ -67,6 +67,13 @@ def test_api_get_documentos_para_analise(
             'id': analise_doc_ata.id,
             'justificativa': None,
             'status_realizacao': 'PENDENTE',
+            'despesa_incluida': None,
+            'esclarecimentos': None,
+            'receita_incluida': None,
+            'requer_ajuste_externo': False,
+            'requer_esclarecimentos': True,
+            'requer_inclusao_credito': False,
+            'requer_inclusao_gasto': False,
         },
         {
             'analise_prestacao_conta': f'{analise_pc.uuid}',
@@ -102,6 +109,13 @@ def test_api_get_documentos_para_analise(
             'id': analise_doc_declaracao.id,
             'justificativa': None,
             'status_realizacao': 'PENDENTE',
+            'despesa_incluida': None,
+            'esclarecimentos': None,
+            'receita_incluida': None,
+            'requer_ajuste_externo': False,
+            'requer_esclarecimentos': True,
+            'requer_inclusao_credito': False,
+            'requer_inclusao_gasto': False,
         }
     ]
 

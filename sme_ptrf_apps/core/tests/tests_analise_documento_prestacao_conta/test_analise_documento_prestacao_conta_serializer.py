@@ -24,6 +24,10 @@ def test_retrieve_serializer(
     assert serializer.data['esclarecimentos'] == "teste"
     assert serializer.data['despesa_incluida'] == despesa_no_periodo.uuid
     assert serializer.data['receita_incluida'] == receita_100_no_periodo.uuid
+    assert serializer.data['requer_esclarecimentos'] is not None
+    assert serializer.data['requer_inclusao_credito'] is not None
+    assert serializer.data['requer_inclusao_gasto'] is not None
+    assert serializer.data['requer_ajuste_externo'] is not None
 
 
 def test_update_serializer(analise_documento_prestacao_conta_com_justificativa_2020_1_ata_correta):

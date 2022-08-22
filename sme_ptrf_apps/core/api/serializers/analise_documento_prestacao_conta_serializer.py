@@ -57,6 +57,10 @@ class AnaliseDocumentoPrestacaoContaRetrieveSerializer(serializers.ModelSerializ
             'esclarecimentos',
             'despesa_incluida',
             'receita_incluida',
+            'requer_esclarecimentos',
+            'requer_inclusao_credito',
+            'requer_inclusao_gasto',
+            'requer_ajuste_externo',
         )
 
 

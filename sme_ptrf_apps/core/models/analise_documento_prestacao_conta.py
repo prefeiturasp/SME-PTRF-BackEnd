@@ -4,6 +4,7 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from ...utils.choices_to_json import choices_to_json
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.core.models import TipoAcertoDocumento
 
 
 class AnaliseDocumentoPrestacaoConta(ModeloBase):
@@ -72,6 +73,34 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
                                          related_name='analise_de_documento_que_incluiu_a_receita', blank=True, null=True)
 
     esclarecimentos = models.TextField('Esclarecimentos', max_length=300, blank=True, null=True, default=None)
+
+    @property
+    def requer_esclarecimentos(self):
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoDocumento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO
+        ).exists()
+        return requer
+
+    @property
+    def requer_inclusao_credito(self):
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoDocumento.CATEGORIA_INCLUSAO_CREDITO
+        ).exists()
+        return requer
+
+    @property
+    def requer_inclusao_gasto(self):
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoDocumento.CATEGORIA_INCLUSAO_GASTO
+        ).exists()
+        return requer
+
+    @property
+    def requer_ajuste_externo(self):
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS
+        ).exists()
+        return requer
 
     def __str__(self):
         return f"Análise de documento {self.uuid} - Resultado:{self.resultado}"
