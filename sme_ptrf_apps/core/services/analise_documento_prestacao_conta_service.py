@@ -1,4 +1,5 @@
 from sme_ptrf_apps.core.models import AnaliseDocumentoPrestacaoConta
+from sme_ptrf_apps.receitas.models import Receita
 from rest_framework import status
 
 
@@ -157,3 +158,31 @@ class AnaliseDocumentoPrestacaoContaService:
     @classmethod
     def marcar_como_realizado(cls, uuids_analises_documentos):
         return MarcarRealizacao(uuids_analises_documentos=uuids_analises_documentos).response
+
+    @classmethod
+    def marcar_como_credito_incluido(cls, uuid_analise_documento, uuid_credito_incluido):
+        try:
+            analise_documento = AnaliseDocumentoPrestacaoConta.by_uuid(uuid_analise_documento)
+        except(AnaliseDocumentoPrestacaoConta.DoesNotExist, Exception):
+            return {
+                "erro": "Objeto não encontrado.",
+                "mensagem": f"O objeto AnaliseDocumentoPrestacaoConta para o uuid {uuid_analise_documento} não foi encontrado.",
+                "status": status.HTTP_404_NOT_FOUND
+            }
+
+        try:
+            credito_incluido = Receita.by_uuid(uuid_credito_incluido)
+        except(Receita.DoesNotExist, Exception):
+            return {
+                "erro": "Objeto não encontrado.",
+                "mensagem": f"O objeto Receita para o uuid {uuid_credito_incluido} não foi encontrado.",
+                "status": status.HTTP_404_NOT_FOUND
+            }
+
+        analise_documento.receita_incluida = credito_incluido
+        analise_documento.save()
+
+        return {
+            "mensagem": "Crédito incluído atualizado com sucesso.",
+            "status": status.HTTP_200_OK
+        }

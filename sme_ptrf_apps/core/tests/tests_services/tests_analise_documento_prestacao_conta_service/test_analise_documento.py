@@ -212,3 +212,17 @@ def test_service_justificar_nao_realizado_status_justificado(analise_documento_j
     )
 
     assert resultado_esperado == result
+
+
+def test_service_marcar_como_credito_incluido(analise_documento_justificado_service_01, receita_100_no_periodo):
+    resultado_esperado = {
+        "mensagem": "Crédito incluído atualizado com sucesso.",
+        "status": status.HTTP_200_OK,
+    }
+
+    result = AnaliseDocumentoPrestacaoContaService.marcar_como_credito_incluido(
+        uuid_analise_documento=analise_documento_justificado_service_01.uuid,
+        uuid_credito_incluido=receita_100_no_periodo.uuid
+    )
+
+    assert result == resultado_esperado
