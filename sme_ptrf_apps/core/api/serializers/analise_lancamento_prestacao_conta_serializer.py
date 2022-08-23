@@ -40,7 +40,9 @@ class AnaliseLancamentoPrestacaoContaRetrieveSerializer(serializers.ModelSeriali
             'uuid',
             'solicitacoes_de_ajuste_da_analise',
             'status_realizacao',
-            'justificativa'
+            'justificativa',
+            'devolucao_tesouro_atualizada',
+            'requer_atualizacao_devolucao_ao_tesouro',
         )
 
 

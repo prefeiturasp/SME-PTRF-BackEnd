@@ -157,3 +157,7 @@ class AnaliseLancamentoPrestacaoContaService:
     @classmethod
     def marcar_como_realizado(cls, uuids_analises_lancamentos):
         return MarcarRealizacao(uuids_analises_lancamentos=uuids_analises_lancamentos).response
+
+    @classmethod
+    def marcar_devolucao_tesouro_como_atualizada(cls, analise_lancamento):
+        return analise_lancamento.passar_devolucao_tesouro_para_atualizada()
