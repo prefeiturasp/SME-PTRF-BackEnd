@@ -231,3 +231,53 @@ def test_endpoint_justificar_nao_realizado_status_justificar(
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_endpoint_marcar_como_credito_incluido(
+    jwt_authenticated_client_a,
+    analise_documento_pendente_01,
+    receita_100_no_periodo
+):
+    payload = {
+        "uuid_credito_incluido": f"{receita_100_no_periodo.uuid}"
+    }
+
+    response = jwt_authenticated_client_a.post(
+        f'/api/analises-documento-prestacao-conta/{analise_documento_pendente_01.uuid}/marcar-como-credito-incluido/', data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_endpoint_marcar_como_gasto_incluido(
+    jwt_authenticated_client_a,
+    analise_documento_pendente_01,
+    despesa_no_periodo
+):
+    payload = {
+        "uuid_gasto_incluido": f"{despesa_no_periodo.uuid}"
+    }
+
+    response = jwt_authenticated_client_a.post(
+        f'/api/analises-documento-prestacao-conta/{analise_documento_pendente_01.uuid}/marcar-como-gasto-incluido/', data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_endpoint_marcar_como_esclarecido(
+    jwt_authenticated_client_a,
+    analise_documento_pendente_01,
+):
+    payload = {
+        "esclarecimento": "Teste de esclarecimento."
+    }
+
+    response = jwt_authenticated_client_a.post(
+        f'/api/analises-documento-prestacao-conta/{analise_documento_pendente_01.uuid}/marcar-como-esclarecido/', data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_200_OK

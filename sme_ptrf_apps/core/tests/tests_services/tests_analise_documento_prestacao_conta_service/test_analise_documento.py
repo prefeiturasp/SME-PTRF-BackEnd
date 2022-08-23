@@ -226,3 +226,31 @@ def test_service_marcar_como_credito_incluido(analise_documento_justificado_serv
     )
 
     assert result == resultado_esperado
+
+
+def test_service_marcar_como_gasto_incluido(analise_documento_justificado_service_01, despesa_no_periodo):
+    resultado_esperado = {
+        "mensagem": "Gasto incluído atualizado com sucesso.",
+        "status": status.HTTP_200_OK,
+    }
+
+    result = AnaliseDocumentoPrestacaoContaService.marcar_como_gasto_incluido(
+        uuid_analise_documento=analise_documento_justificado_service_01.uuid,
+        uuid_gasto_incluido=despesa_no_periodo.uuid
+    )
+
+    assert result == resultado_esperado
+
+
+def test_service_marcar_como_esclarecido(analise_documento_justificado_service_01):
+    resultado_esperado = {
+        "mensagem": "Esclarecimento atualizado com sucesso.",
+        "status": status.HTTP_200_OK,
+    }
+
+    result = AnaliseDocumentoPrestacaoContaService.marcar_como_esclarecido(
+        uuid_analise_documento=analise_documento_justificado_service_01.uuid,
+        esclarecimento="Teste esclarecimento."
+    )
+
+    assert result == resultado_esperado

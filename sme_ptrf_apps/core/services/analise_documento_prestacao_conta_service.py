@@ -1,5 +1,6 @@
 from sme_ptrf_apps.core.models import AnaliseDocumentoPrestacaoConta
 from sme_ptrf_apps.receitas.models import Receita
+from sme_ptrf_apps.despesas.models import Despesa
 from rest_framework import status
 
 
@@ -184,5 +185,60 @@ class AnaliseDocumentoPrestacaoContaService:
 
         return {
             "mensagem": "Crédito incluído atualizado com sucesso.",
+            "status": status.HTTP_200_OK
+        }
+
+    @classmethod
+    def marcar_como_gasto_incluido(cls, uuid_analise_documento, uuid_gasto_incluido):
+        try:
+            analise_documento = AnaliseDocumentoPrestacaoConta.by_uuid(uuid_analise_documento)
+        except(AnaliseDocumentoPrestacaoConta.DoesNotExist, Exception):
+            return {
+                "erro": "Objeto não encontrado.",
+                "mensagem": f"O objeto AnaliseDocumentoPrestacaoConta para o uuid {uuid_analise_documento} não foi encontrado.",
+                "status": status.HTTP_404_NOT_FOUND
+            }
+
+        try:
+            gasto_incluido = Despesa.by_uuid(uuid_gasto_incluido)
+        except(Receita.DoesNotExist, Exception):
+            return {
+                "erro": "Objeto não encontrado.",
+                "mensagem": f"O objeto Despesa para o uuid {uuid_gasto_incluido} não foi encontrado.",
+                "status": status.HTTP_404_NOT_FOUND
+            }
+
+        analise_documento.despesa_incluida = gasto_incluido
+        analise_documento.save()
+
+        return {
+            "mensagem": "Gasto incluído atualizado com sucesso.",
+            "status": status.HTTP_200_OK
+        }
+
+
+    @classmethod
+    def marcar_como_esclarecido(cls, uuid_analise_documento, esclarecimento):
+        try:
+            analise_documento = AnaliseDocumentoPrestacaoConta.by_uuid(uuid_analise_documento)
+        except(AnaliseDocumentoPrestacaoConta.DoesNotExist, Exception):
+            return {
+                "erro": "Objeto não encontrado.",
+                "mensagem": f"O objeto AnaliseDocumentoPrestacaoConta para o uuid {uuid_analise_documento} não foi encontrado.",
+                "status": status.HTTP_404_NOT_FOUND
+            }
+
+        if not esclarecimento:
+            return {
+                "erro": "Esclarecimento não informado.",
+                "mensagem": f"O texto do esclarecimento não foi informado.",
+                "status": status.HTTP_400_BAD_REQUEST
+            }
+
+        analise_documento.esclarecimento = esclarecimento
+        analise_documento.save()
+
+        return {
+            "mensagem": "Esclarecimento atualizado com sucesso.",
             "status": status.HTTP_200_OK
         }
