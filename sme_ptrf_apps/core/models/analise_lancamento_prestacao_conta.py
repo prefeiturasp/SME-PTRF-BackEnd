@@ -86,6 +86,8 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
 
     justificativa = models.TextField('Justificativa', max_length=300, blank=True, null=True, default=None)
 
+    devolucao_tesouro_atualizada = models.BooleanField("Devolução ao Tesouro Atualizada?", default=False)
+
     def __str__(self):
         return f"{self.analise_prestacao_conta} - Resultado:{self.resultado}"
 
@@ -97,6 +99,19 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
     @classmethod
     def status_realizacao_choices_to_json(cls):
         return choices_to_json(cls.STATUS_REALIZACAO_CHOICES)
+
+    @property
+    def requer_atualizacao_devolucao_ao_tesouro(self):
+        from . import TipoAcertoLancamento
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_DEVOLUCAO
+        ).exists()
+        return requer
+
+    def passar_devolucao_tesouro_para_atualizada(self):
+        self.devolucao_tesouro_atualizada = True
+        self.save()
+        return self
 
     class Meta:
         verbose_name = "Análise de lançamento"

@@ -153,6 +153,8 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
                     'status_realizacao': 'PENDENTE',
                     'receita': None,
                     'resultado': 'AJUSTE',
+                    'requer_atualizacao_devolucao_ao_tesouro': True,
+                    'devolucao_tesouro_atualizada': False,
                     'solicitacoes_de_ajuste_da_analise': [
                         {
                             'analise_lancamento': f'{lancamento["analise_lancamento"].uuid}',
