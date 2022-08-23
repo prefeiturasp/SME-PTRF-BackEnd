@@ -3,7 +3,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 from ...models import AnaliseDocumentoPrestacaoConta
 from ..serializers import AnaliseDocumentoPrestacaoContaUpdateSerializer
-from sme_ptrf_apps.core.services import AnaliseDocumentoPrestacaoContaService
+from sme_ptrf_apps.core.services.analise_documento_prestacao_conta_service import (
+    AnaliseDocumentoPrestacaoContaService,
+)
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -64,3 +66,45 @@ class AnaliseDocumentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
         }
 
         return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='marcar-como-credito-incluido',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def marcar_como_credito_incluido(self, request, uuid):
+        uuid_credito_incluido = request.data.get('uuid_credito_incluido', None)
+
+        response = AnaliseDocumentoPrestacaoContaService.marcar_como_credito_incluido(
+            uuid_analise_documento=uuid,
+            uuid_credito_incluido=uuid_credito_incluido
+        )
+
+        status_response = response.pop("status")
+
+        return Response(response, status=status_response)
+
+    @action(detail=True, methods=['post'], url_path='marcar-como-gasto-incluido',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def marcar_como_gasto_incluido(self, request, uuid):
+        uuid_gasto_incluido = request.data.get('uuid_gasto_incluido', None)
+
+        response = AnaliseDocumentoPrestacaoContaService.marcar_como_gasto_incluido(
+            uuid_analise_documento=uuid,
+            uuid_gasto_incluido=uuid_gasto_incluido
+        )
+
+        status_response = response.pop("status")
+
+        return Response(response, status=status_response)
+
+    @action(detail=True, methods=['post'], url_path='marcar-como-esclarecido',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def marcar_como_esclarecido(self, request, uuid):
+        esclarecimento = request.data.get('esclarecimento', None)
+
+        response = AnaliseDocumentoPrestacaoContaService.marcar_como_esclarecido(
+            uuid_analise_documento=uuid,
+            esclarecimento=esclarecimento,
+        )
+
+        status_response = response.pop("status")
+
+        return Response(response, status=status_response)
