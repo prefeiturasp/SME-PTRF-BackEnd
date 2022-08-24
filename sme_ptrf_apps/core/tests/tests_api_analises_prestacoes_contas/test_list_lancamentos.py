@@ -155,6 +155,13 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
                     'resultado': 'AJUSTE',
                     'requer_atualizacao_devolucao_ao_tesouro': True,
                     'devolucao_tesouro_atualizada': False,
+                    'requer_atualizacao_lancamento': False,
+                    'lancamento_atualizado': False,
+                    'requer_exclusao_lancamento': False,
+                    'lancamento_excluido': False,
+                    'requer_ajustes_externos': False,
+                    'requer_esclarecimentos': False,
+                    'esclarecimentos': None,
                     'solicitacoes_de_ajuste_da_analise': [
                         {
                             'analise_lancamento': f'{lancamento["analise_lancamento"].uuid}',

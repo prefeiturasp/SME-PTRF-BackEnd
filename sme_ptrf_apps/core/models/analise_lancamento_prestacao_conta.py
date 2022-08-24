@@ -88,6 +88,12 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
 
     devolucao_tesouro_atualizada = models.BooleanField("Devolução ao Tesouro Atualizada?", default=False)
 
+    lancamento_atualizado = models.BooleanField("Lançamento Atualizado?", default=False)
+
+    lancamento_excluido = models.BooleanField("Lançamento Excluído?", default=False)
+
+    esclarecimentos = models.TextField('Esclarecimentos', max_length=300, blank=True, null=True, default=None)
+
     def __str__(self):
         return f"{self.analise_prestacao_conta} - Resultado:{self.resultado}"
 
@@ -110,6 +116,53 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
 
     def passar_devolucao_tesouro_para_atualizada(self):
         self.devolucao_tesouro_atualizada = True
+        self.save()
+        return self
+
+    @property
+    def requer_atualizacao_lancamento(self):
+        from . import TipoAcertoLancamento
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO
+        ).exists()
+        return requer
+
+    def passar_lancamento_para_atualizado(self):
+        self.lancamento_atualizado = True
+        self.save()
+        return self
+
+    @property
+    def requer_exclusao_lancamento(self):
+        from . import TipoAcertoLancamento
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO
+        ).exists()
+        return requer
+
+    def passar_lancamento_para_excluido(self):
+        self.lancamento_excluido = True
+        self.save()
+        return self
+
+    @property
+    def requer_ajustes_externos(self):
+        from . import TipoAcertoLancamento
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_AJUSTES_EXTERNOS
+        ).exists()
+        return requer
+
+    @property
+    def requer_esclarecimentos(self):
+        from . import TipoAcertoLancamento
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO
+        ).exists()
+        return requer
+
+    def incluir_esclarecimentos(self, esclarecimentos):
+        self.esclarecimentos = esclarecimentos
         self.save()
         return self
 

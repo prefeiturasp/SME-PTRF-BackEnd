@@ -43,6 +43,13 @@ class AnaliseLancamentoPrestacaoContaRetrieveSerializer(serializers.ModelSeriali
             'justificativa',
             'devolucao_tesouro_atualizada',
             'requer_atualizacao_devolucao_ao_tesouro',
+            'lancamento_atualizado',
+            'requer_atualizacao_lancamento',
+            'lancamento_excluido',
+            'requer_exclusao_lancamento',
+            'requer_ajustes_externos',
+            'requer_esclarecimentos',
+            'esclarecimentos',
         )
 
 

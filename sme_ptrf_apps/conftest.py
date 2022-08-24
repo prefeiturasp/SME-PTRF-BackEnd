@@ -1930,6 +1930,93 @@ def solicitacao_acerto_lancamento_devolucao(
 
 
 @pytest.fixture
+def tipo_acerto_edicao_de_lancamento():
+    return baker.make('TipoAcertoLancamento', nome='Edição de Lançamento', categoria='EDICAO_LANCAMENTO')
+
+
+@pytest.fixture
+def solicitacao_acerto_edicao_lancamento(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_edicao_de_lancamento,
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_edicao_de_lancamento,
+        detalhamento="teste"
+    )
+
+
+@pytest.fixture
+def tipo_acerto_exclusao_de_lancamento():
+    return baker.make('TipoAcertoLancamento', nome='Exclusão de Lançamento', categoria='EXCLUSAO_LANCAMENTO')
+
+
+@pytest.fixture
+def solicitacao_acerto_exclusao_lancamento(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_exclusao_de_lancamento,
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_exclusao_de_lancamento,
+        detalhamento="teste"
+    )
+
+
+@pytest.fixture
+def tipo_acerto_requer_ajuste_externo():
+    return baker.make('TipoAcertoLancamento', nome='Requer Ajuste Externo', categoria='AJUSTES_EXTERNOS')
+
+
+@pytest.fixture
+def solicitacao_acerto_requer_ajuste_externo(
+    analise_lancamento_receita_requer_ajustes_externos,
+    tipo_acerto_requer_ajuste_externo,
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_requer_ajustes_externos,
+        tipo_acerto=tipo_acerto_requer_ajuste_externo,
+        detalhamento="teste"
+    )
+
+
+@pytest.fixture
+def tipo_acerto_esclarecimento():
+    return baker.make('TipoAcertoLancamento', nome='Requer Esclarecimento', categoria='SOLICITACAO_ESCLARECIMENTO')
+
+
+@pytest.fixture
+def solicitacao_acerto_esclarecimento(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_esclarecimento,
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_esclarecimento,
+        detalhamento="teste"
+    )
+
+
+@pytest.fixture
+def analise_lancamento_receita_requer_ajustes_externos(
+    analise_prestacao_conta_2020_1,
+    receita_no_periodo_2020_1
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
+        tipo_lancamento='CREDITO',
+        receita=receita_no_periodo_2020_1,
+        resultado='AJUSTE',
+        justificativa="teste"
+    )
+
+
+@pytest.fixture
 def tipo_documento_prestacao_conta_ata():
     return baker.make('TipoDocumentoPrestacaoConta', nome='Cópia da ata da prestação de contas')
 
