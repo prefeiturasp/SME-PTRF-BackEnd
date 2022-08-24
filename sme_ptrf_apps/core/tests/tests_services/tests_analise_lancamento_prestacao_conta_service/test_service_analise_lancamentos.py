@@ -227,3 +227,58 @@ def test_marcar_devolucao_tesouro_atualizada(
     )
 
     assert result.devolucao_tesouro_atualizada
+
+
+def test_marcar_lancamento_atualizado(
+    analise_lancamento_despesa_prestacao_conta_2020_1,
+    tipo_acerto_edicao_de_lancamento,
+    solicitacao_acerto_edicao_lancamento
+):
+    assert not analise_lancamento_despesa_prestacao_conta_2020_1.lancamento_atualizado
+
+    result = AnaliseLancamentoPrestacaoContaService.marcar_lancamento_como_atualizado(
+        analise_lancamento_despesa_prestacao_conta_2020_1
+    )
+
+    assert result.lancamento_atualizado
+
+
+def test_marcar_lancamento_excluido(
+    analise_lancamento_despesa_prestacao_conta_2020_1,
+    tipo_acerto_exclusao_de_lancamento,
+    solicitacao_acerto_exclusao_lancamento
+):
+    assert not analise_lancamento_despesa_prestacao_conta_2020_1.lancamento_excluido
+
+    result = AnaliseLancamentoPrestacaoContaService.marcar_lancamento_como_excluido(
+        analise_lancamento_despesa_prestacao_conta_2020_1
+    )
+
+    assert result.lancamento_excluido
+
+
+def test_marcar_como_esclarecido(
+    analise_lancamento_despesa_prestacao_conta_2020_1,
+    tipo_acerto_esclarecimento,
+    solicitacao_acerto_esclarecimento
+):
+    assert analise_lancamento_despesa_prestacao_conta_2020_1.esclarecimentos is None
+
+    uuid_analise_lancamento = f"{analise_lancamento_despesa_prestacao_conta_2020_1.uuid}"
+
+    result = AnaliseLancamentoPrestacaoContaService.marcar_como_esclarecido(
+        uuid_analise_lancamento=uuid_analise_lancamento,
+        esclarecimento="Este é o esclarecimento"
+    )
+
+    analise_lancamento = AnaliseLancamentoPrestacaoConta.by_uuid(uuid_analise_lancamento)
+
+    resultado_esperado = {
+        "mensagem": "Esclarecimento atualizado com sucesso.",
+        "status": status.HTTP_200_OK,
+    }
+
+    assert analise_lancamento.esclarecimentos
+    assert analise_lancamento.esclarecimentos == 'Este é o esclarecimento'
+    assert result == resultado_esperado
+

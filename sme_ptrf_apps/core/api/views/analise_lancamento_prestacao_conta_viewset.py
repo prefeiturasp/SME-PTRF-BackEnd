@@ -99,3 +99,98 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
                 'mensagem': f'Não foi possível passar a Devolução ao Tesouro da Análise de Lançamento da PC {uuid_analise_lancamento} para atualizada'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], url_path='marcar-lancamento-atualizado',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def marcar_lancamento_atualizado(self, request, uuid):
+        uuid_analise_lancamento = uuid
+
+        if not uuid_analise_lancamento:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da Análise de Lançamento da PC'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_lancamento = self.get_object()
+        except (ValidationError, Exception):
+            erro = {
+                'erro': 'objeto_analise_lancamento_pc_nao_encontrado',
+                'mensagem': f'Não foi encontrado um objeto Análise de Lançamento da PC com o uuid {uuid_analise_lancamento} na base'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            response = AnaliseLancamentoPrestacaoContaService.marcar_lancamento_como_atualizado(
+                analise_lancamento=analise_lancamento
+            )
+
+            return Response(AnaliseLancamentoPrestacaoContaRetrieveSerializer(response, many=False).data, status=status.HTTP_200_OK)
+
+        except:
+            erro = {
+                'erro': 'erro_ao_passar_devolucao_ao_tesouro_para_autalizada',
+                'mensagem': f'Não foi possível passar o Lançamento da Análise UUID: {uuid_analise_lancamento} para atualizado'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], url_path='marcar-lancamento-excluido',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def marcar_lancamento_excluido(self, request, uuid):
+        uuid_analise_lancamento = uuid
+
+        if not uuid_analise_lancamento:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da Análise de Lançamento da PC'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_lancamento = self.get_object()
+        except (ValidationError, Exception):
+            erro = {
+                'erro': 'objeto_analise_lancamento_pc_nao_encontrado',
+                'mensagem': f'Não foi encontrado um objeto Análise de Lançamento da PC com o uuid {uuid_analise_lancamento} na base'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            response = AnaliseLancamentoPrestacaoContaService.marcar_lancamento_como_excluido(
+                analise_lancamento=analise_lancamento
+            )
+
+            return Response(AnaliseLancamentoPrestacaoContaRetrieveSerializer(response, many=False).data, status=status.HTTP_200_OK)
+
+        except:
+            erro = {
+                'erro': 'erro_ao_passar_devolucao_ao_tesouro_para_autalizada',
+                'mensagem': f'Não foi possível passar o Lançamento da Análise UUID: {uuid_analise_lancamento} para excluído'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], url_path='marcar-como-esclarecido',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def marcar_como_esclarecido(self, request, uuid):
+        esclarecimento = request.data.get('esclarecimento', None)
+
+        uuid_analise_lancamento = uuid
+
+        if not uuid_analise_lancamento:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da Análise de Lançamento da PC'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        response = AnaliseLancamentoPrestacaoContaService.marcar_como_esclarecido(
+            uuid_analise_lancamento=uuid_analise_lancamento,
+            esclarecimento=esclarecimento,
+        )
+
+        status_response = response.pop("status")
+
+        return Response(response, status=status_response)
+
+

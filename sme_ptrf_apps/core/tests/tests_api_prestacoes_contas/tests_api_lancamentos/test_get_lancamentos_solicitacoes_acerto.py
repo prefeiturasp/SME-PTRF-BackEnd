@@ -35,6 +35,13 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
         'resultado': 'CORRETO',
         'devolucao_tesouro_atualizada': False,
         'requer_atualizacao_devolucao_ao_tesouro': True,
+        'requer_atualizacao_lancamento': False,
+        'lancamento_atualizado': False,
+        'requer_exclusao_lancamento': False,
+        'lancamento_excluido': False,
+        'requer_ajustes_externos': False,
+        'requer_esclarecimentos': False,
+        'esclarecimentos': None,
         'solicitacoes_de_ajuste_da_analise': [
             {
                 'analise_lancamento': f'{analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}',
