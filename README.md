@@ -5,31 +5,34 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.34.0
+Versão: 1.33.0
 
 ## Release Notes
 
-### 1.34.0 - 22/07/2022 - Entregas da Release 5 - (Parcial até a Sprint 45)
-* UE > Novo fluxo de informação de valores reprogramados iniciais (Conclusão)
-* DRE > Novo fluxo de aprovação de valores reprogramados iniciais (Conclusão)
-* DRE > Melhorias na conferência de lançamentos do acompanhamento de PC: Tags de informações e novos filtros
-* DRE > Novo processo de geração de relatórios consolidados (Continuação)
-* ADM > Ação a partir de comissões para definição da comissão de exame de contas
-* Informação de critério de senha diferente das anteriores no formulário de alteração/redefinição de senha
-* Incluída a informação de hora de criação no rodapé de vários relatórios 
-* 🐞 Correção de bugs
-
-### 1.33.0 - 04/07/2022 - Entregas da Release 5 - (Parcial até a Sprint 44)
-* UE > Na emissão da ata, agora a aplicação informa quais campos estão incompletos.
-* DRE > Melhorias no demonstrativo da execução físico-financeira
-* DRE > Mudanças no layout da lauda
-* DRE > Nova funcionalidade de Acesso de Suporte para DREs e SME
-* DRE > Novo fluxo de aprovação de valores reprogramados iniciais (Parcial)
-* DRE > Novo processo de geração de relatórios consolidados (Parcial)
-* SME > Nova central de extração de dados
-* SME > Extração de dados de créditos
-* ADM > Registro de movimentações nos arquivos de análise de PCs para fins de auditoria
-* 🐞 Correção de bugs
+### 1.33.0 - 24/08/2022 - Entregas da Release 5 - (Sprints 43 a 47)
+* UE  > Na emissão da ata, agora a aplicação informa quais campos estão incompletos.
+* UE  > Novo fluxo de informação de valores reprogramados iniciais. 
+* DRE > Novo fluxo de aprovação de valores reprogramados iniciais.
+* DRE > Novo processo de geração de relatórios consolidados, agora é possível gerações parciais.
+* DRE > Após completar as gerações parciais de um relatório consolidado, é possível gerar uma versão unificada com todas as parciais. 
+* DRE > Relatório de Execução Físico-Financeira agora é único para todas as contas.
+* DRE > Nova consulta em tela do relatório de Execução Físico-Financeira, agora em uma versão mais simplificada e com todas as contas em uma mesma tela.
+* DRE > Ata de parecer técnico não exibe mais valores financeiros e agrupa as PCs apenas por status, não mais por conta.
+* DRE > Melhorias na conferência de lançamentos do acompanhamento de PC: Tags de informações e novos filtros.
+* DRE > Mudanças no layout da lauda.
+* DRE > No acompanhamento de PCs, as PCs que constam em relatórios consolidados não podem mais voltar para análise.
+* DRE > Nova funcionalidade de Acesso de Suporte às unidades educacionais.
+* SME > Nova funcionalidade de Acesso de Suporte às diretorias e unidades educacionais.
+* SME > Nova central de extração de dados.
+* SME > Extração de dados de créditos.
+* ADM > Ação a partir de comissões para definição da comissão de exame de contas.
+* ADM > Novos filtros em tipos de acertos em lançamentos.
+* ADM > Novos filtros em tipos de acertos em documentos.
+* ADM > Registro de movimentações nos arquivos de análise de PCs para fins de auditoria.
+* GLO > Formulário de login agora exibe informação sobre o critério de senha diferente das anteriores.
+* GLO > A redefinição de Senha agora exibe informação sobre o critério de senha diferente das anteriores.
+* GLO > Incluída a informação de hora de criação no rodapé de vários relatórios.
+* GLO > 🐞 Correção de bugs.
 
 ### 1.32.0 - 01/06/2022 - Entregas da Release 4c - Sprint 42
 * DRE > Exibição do período e remoção do histórico de devoluções em análise de PC
