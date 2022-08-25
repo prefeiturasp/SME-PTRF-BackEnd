@@ -102,6 +102,25 @@ class AnalisePrestacaoConta(ModeloBase):
 
     arquivo_pdf_criado_em = models.DateTimeField("Arquivo pdf gerado em", null=True)
 
+    @property
+    def requer_alteracao_em_lancamentos(self):
+        from sme_ptrf_apps.core.models import TipoAcertoDocumento, TipoAcertoLancamento
+        categorias_que_requerem_alteracoes = [
+            TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
+            TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO,
+            TipoAcertoDocumento.CATEGORIA_INCLUSAO_GASTO,
+            TipoAcertoDocumento.CATEGORIA_INCLUSAO_CREDITO
+        ]
+        analises_de_lancamentos_requerem_alteracoes = self.analises_de_lancamentos.filter(
+            solicitacoes_de_ajuste_da_analise__tipo_acerto__categoria__in=categorias_que_requerem_alteracoes
+        ).exists()
+
+        analises_de_documentos_requerem_alteracoes = self.analises_de_documento.filter(
+            solicitacoes_de_ajuste_da_analise__tipo_acerto__categoria__in=categorias_que_requerem_alteracoes
+        ).exists()
+
+        return analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes
+
     def __str__(self):
         return f"{self.prestacao_conta.periodo} - Análise #{self.pk}"
 
