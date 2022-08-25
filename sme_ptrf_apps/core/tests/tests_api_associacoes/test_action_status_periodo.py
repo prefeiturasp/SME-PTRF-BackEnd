@@ -150,11 +150,11 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
     esperado = {
         'associacao': f'{associacao.uuid}',
         'periodo_referencia': periodo.referencia,
-        'aceita_alteracoes': True,
+        'aceita_alteracoes': False,
         'prestacao_contas_status': {
             'documentos_gerados': False,
             'legenda_cor': 3,
-            'periodo_bloqueado': False,
+            'periodo_bloqueado': True,
             'periodo_encerrado': True,
             'status_prestacao': 'DEVOLVIDA',
             'texto_status': 'Período finalizado. Prestação de contas devolvida para ajustes.',

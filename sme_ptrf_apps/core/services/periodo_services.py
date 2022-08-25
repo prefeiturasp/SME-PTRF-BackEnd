@@ -68,7 +68,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
             mensagem_prestacao = ''
             cor = LEGENDA_COR[STATUS_PERIODO_EM_ANDAMENTO]
 
-    periodo_bloqueado = True if prestacao and prestacao.status != PrestacaoConta.STATUS_DEVOLVIDA else False
+    periodo_bloqueado = True if prestacao else False
 
     status = {
         'periodo_encerrado': periodo.encerrado,
