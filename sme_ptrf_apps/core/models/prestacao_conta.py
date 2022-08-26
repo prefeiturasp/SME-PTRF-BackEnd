@@ -284,16 +284,23 @@ class PrestacaoConta(ModeloBase):
             data=date.today(),
             data_limite_ue=data_limite_ue
         )
+        devolucao_requer_alteracoes = False
+
         if self.analise_atual:
+            devolucao_requer_alteracoes = self.analise_atual.requer_alteracao_em_lancamentos
             self.analise_atual.devolucao_prestacao_conta = devolucao
             self.analise_atual.save()
 
         self.analise_atual = None
         self.save()
 
-        self.apaga_fechamentos()
-        self.apaga_relacao_bens()
-        self.apaga_demonstrativos_financeiros()
+        if devolucao_requer_alteracoes:
+            logging.info('Solicitações de ajustes requerem apagar fechamentos e documentos.')
+            self.apaga_fechamentos()
+            self.apaga_relacao_bens()
+            self.apaga_demonstrativos_financeiros()
+        else:
+            logging.info('Solicitações de ajustes NÃO requerem apagar fechamentos e documentos.')
 
         notificar_prestacao_de_contas_devolvida_para_acertos(self, data_limite_ue)
         return self

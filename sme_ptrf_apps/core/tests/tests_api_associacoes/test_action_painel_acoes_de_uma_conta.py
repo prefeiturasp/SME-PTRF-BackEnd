@@ -108,6 +108,7 @@ def test_action_painel_acoes_de_uma_conta(
             'status_prestacao': 'NAO_APRESENTADA',
             'texto_status': 'Período finalizado. Documentos pendentes de geração.',
             'prestacao_de_contas_uuid': None,
+            'requer_retificacao': False,
         },
     }
 
@@ -217,6 +218,7 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
             'status_prestacao': 'NAO_APRESENTADA',
             'texto_status': 'Período finalizado. Documentos pendentes de geração.',
             'prestacao_de_contas_uuid': None,
+            'requer_retificacao': False,
         },
     }
 
