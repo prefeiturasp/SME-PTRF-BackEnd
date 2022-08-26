@@ -177,9 +177,39 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
 
     get_eol_unidade.short_description = 'EOL'
 
-    list_display = ('get_eol_unidade', 'periodo', 'status', 'publicada', 'consolidado_dre')
-    list_filter = ('status', 'associacao', 'periodo', 'publicada', 'consolidado_dre')
-    list_display_links = ('periodo',)
+    def get_nome_unidade(self, obj):
+        return obj.associacao.unidade.nome if obj and obj.associacao and obj.associacao.unidade else ''
+
+    get_nome_unidade.short_description = 'Unidade Educacional'
+
+    def get_relatorio_referencia(self, obj):
+        return obj.consolidado_dre.referencia if obj.consolidado_dre else ""
+
+    get_relatorio_referencia.short_description = 'Publicação'
+
+    def get_periodo_referencia(self, obj):
+        return obj.periodo.referencia if obj.periodo else ""
+
+    get_periodo_referencia.short_description = 'Período'
+
+    list_display = (
+        'get_eol_unidade',
+        'get_nome_unidade',
+        'get_periodo_referencia',
+        'status',
+        'publicada',
+        'get_relatorio_referencia'
+    )
+    list_filter = (
+        'status',
+        'associacao__unidade__dre',
+        'associacao',
+        'periodo',
+        'publicada',
+        'consolidado_dre__sequencia_de_publicacao',
+        'consolidado_dre'
+    )
+    list_display_links = ('get_nome_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
 
