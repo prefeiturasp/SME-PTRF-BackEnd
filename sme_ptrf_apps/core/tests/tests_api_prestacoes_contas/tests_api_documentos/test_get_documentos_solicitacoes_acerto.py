@@ -49,6 +49,13 @@ def test_api_get_solicitacoes_acerto_de_um_documento_nao_por_conta(
                 'uuid': f'{solicitacao_acerto_documento_ata.uuid}'
             },
         ],
+        'despesa_incluida': None,
+        'esclarecimentos': None,
+        'receita_incluida': None,
+        'requer_ajuste_externo': False,
+        'requer_esclarecimentos': True,
+        'requer_inclusao_credito': False,
+        'requer_inclusao_gasto': False,
     }
 
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/analises-de-documento/?analise_documento={analise_documento_prestacao_conta_2020_1_ata_ajuste.uuid}'
@@ -106,6 +113,13 @@ def test_api_get_solicitacoes_acerto_de_um_documento_por_conta(
                 'uuid': f'{solicitacao_acerto_documento_declaracao_cartao.uuid}'
             },
         ],
+        'despesa_incluida': None,
+        'esclarecimentos': None,
+        'receita_incluida': None,
+        'requer_ajuste_externo': False,
+        'requer_esclarecimentos': True,
+        'requer_inclusao_credito': False,
+        'requer_inclusao_gasto': False,
     }
 
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/analises-de-documento/?analise_documento={analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste.uuid}'

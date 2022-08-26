@@ -157,3 +157,40 @@ class AnaliseLancamentoPrestacaoContaService:
     @classmethod
     def marcar_como_realizado(cls, uuids_analises_lancamentos):
         return MarcarRealizacao(uuids_analises_lancamentos=uuids_analises_lancamentos).response
+
+    @classmethod
+    def marcar_devolucao_tesouro_como_atualizada(cls, analise_lancamento):
+        return analise_lancamento.passar_devolucao_tesouro_para_atualizada()
+
+    @classmethod
+    def marcar_lancamento_como_atualizado(cls, analise_lancamento):
+        return analise_lancamento.passar_lancamento_para_atualizado()
+
+    @classmethod
+    def marcar_lancamento_como_excluido(cls, analise_lancamento):
+        return analise_lancamento.passar_lancamento_para_excluido()
+
+    @classmethod
+    def marcar_como_esclarecido(cls, uuid_analise_lancamento, esclarecimento):
+        try:
+            analise_lancamento = AnaliseLancamentoPrestacaoConta.by_uuid(uuid_analise_lancamento)
+        except(AnaliseLancamentoPrestacaoConta.DoesNotExist, Exception):
+            return {
+                "erro": "Objeto não encontrado.",
+                "mensagem": f"O objeto AnaliseLancamentoPrestacaoConta para o uuid {uuid_analise_lancamento} não foi encontrado.",
+                "status": status.HTTP_404_NOT_FOUND
+            }
+
+        if not esclarecimento:
+            return {
+                "erro": "Esclarecimento não informado.",
+                "mensagem": f"O texto do esclarecimento não foi informado.",
+                "status": status.HTTP_400_BAD_REQUEST
+            }
+
+        analise_lancamento.incluir_esclarecimentos(esclarecimento)
+
+        return {
+            "mensagem": "Esclarecimento atualizado com sucesso.",
+            "status": status.HTTP_200_OK
+        }

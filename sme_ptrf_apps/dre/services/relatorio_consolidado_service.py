@@ -82,19 +82,20 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
         qtde_unidades = PrestacaoConta.objects.filter(consolidado_dre=consolidado_dre).count()
         sequencia_de_publicacao_do_consolidado = consolidado_dre.sequencia_de_publicacao
         if sequencia_de_publicacao_do_consolidado > 0:
-            titulo_parcial = f"Parcial #{sequencia_de_publicacao_do_consolidado} - {qtde_unidades} unidade(s)" if eh_parcial else f"Final {qtde_unidades} unidade(s)"
+            titulo_parcial = f"Publicação Parcial #{sequencia_de_publicacao_do_consolidado} - {qtde_unidades} unidade(s)" if eh_parcial else f"Publicação Única {qtde_unidades} unidade(s)"
         else:
-            titulo_parcial = "Relatório consolidado"
+            titulo_parcial = "Publicação Única"
     else:
         qtde_unidades = PrestacaoConta.objects.filter(
             periodo=periodo,
             status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
-            associacao__unidade__dre=dre
+            associacao__unidade__dre=dre,
+            publicada=False
         ).count()
         if sequencia_de_publicacao > 0:
-            titulo_parcial = f"Parcial #{sequencia_de_publicacao} - {qtde_unidades} unidade(s)" if eh_parcial else f"Final {qtde_unidades} unidade(s)"
+            titulo_parcial = f"Publicação Parcial #{sequencia_de_publicacao} - {qtde_unidades} unidade(s)" if eh_parcial else f"Publicação Única {qtde_unidades} unidade(s)"
         else:
-            titulo_parcial = "Relatório consolidado"
+            titulo_parcial = "Publicação Única"
 
     dados = {
         "periodo_referencia": periodo.referencia if periodo.referencia else "",
@@ -299,23 +300,31 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publica
         if consolidado_dre:
             previsoes = PrevisaoRepasseSme.objects.filter(
                 associacao__prestacoes_de_conta_da_associacao__consolidado_dre=consolidado_dre,
+                associacao__prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA',
+                                                                           'REPROVADA'],
                 periodo=periodo,
                 conta_associacao__tipo_conta=tipo_conta,
                 associacao__unidade__dre=dre,
-            )
+            ).distinct()
         elif not apenas_nao_publicadas:
             previsoes = PrevisaoRepasseSme.objects.filter(
-                periodo=periodo,
-                conta_associacao__tipo_conta=tipo_conta,
-                associacao__unidade__dre=dre
-            )
-        else:
-            previsoes = PrevisaoRepasseSme.objects.filter(
+                associacao__prestacoes_de_conta_da_associacao__periodo=periodo,
                 periodo=periodo,
                 conta_associacao__tipo_conta=tipo_conta,
                 associacao__unidade__dre=dre,
+                associacao__prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA',
+                                                                           'REPROVADA'],
+            ).distinct()
+        else:
+            previsoes = PrevisaoRepasseSme.objects.filter(
+                associacao__prestacoes_de_conta_da_associacao__periodo=periodo,
                 associacao__prestacoes_de_conta_da_associacao__publicada=False,
-            )
+                associacao__prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA',
+                                                                           'REPROVADA'],
+                periodo=periodo,
+                conta_associacao__tipo_conta=tipo_conta,
+                associacao__unidade__dre=dre,
+            ).distinct()
 
         for previsao in previsoes:
             totais['repasses_previstos_sme_custeio'] += previsao.valor_custeio
@@ -1281,6 +1290,7 @@ def _gerar_arquivos_demonstrativo_execucao_fisico_financeiro(
         previa,
         apenas_nao_publicadas,
         eh_consolidado_de_publicacoes_parciais,
+        consolidado_dre,
     )
 
     gerar_arquivo_demonstrativo_execucao_fisico_financeiro_pdf(dados_demonstrativo, relatorio_consolidado)

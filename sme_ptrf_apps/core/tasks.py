@@ -29,7 +29,8 @@ def concluir_prestacao_de_contas_async(
     associacao_uuid,
     usuario="",
     criar_arquivos=True,
-    e_retorno_devolucao=False
+    e_retorno_devolucao=False,
+    requer_geracao_documentos=True,
 ):
     from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_documentos, _criar_fechamentos,
                                                                        _apagar_previas_documentos)
@@ -41,14 +42,17 @@ def concluir_prestacao_de_contas_async(
     acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
     contas = associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
 
-    _criar_fechamentos(acoes, contas, periodo, prestacao)
-    logger.info('Fechamentos criados para a prestação de contas %s.', prestacao)
+    if requer_geracao_documentos:
+        _criar_fechamentos(acoes, contas, periodo, prestacao)
+        logger.info('Fechamentos criados para a prestação de contas %s.', prestacao)
 
-    _apagar_previas_documentos(contas=contas, periodo=periodo, prestacao=prestacao)
-    logger.info('Prévias apagadas.')
+        _apagar_previas_documentos(contas=contas, periodo=periodo, prestacao=prestacao)
+        logger.info('Prévias apagadas.')
 
-    _criar_documentos(acoes, contas, periodo, prestacao, usuario=usuario, criar_arquivos=criar_arquivos)
-    logger.info('Documentos gerados para a prestação de contas %s.', prestacao)
+        _criar_documentos(acoes, contas, periodo, prestacao, usuario=usuario, criar_arquivos=criar_arquivos)
+        logger.info('Documentos gerados para a prestação de contas %s.', prestacao)
+    else:
+        logger.info('PC não requer geração de documentos e cálculo de fechamentos.')
 
     prestacao = prestacao.concluir(e_retorno_devolucao=e_retorno_devolucao)
     logger.info('Concluída a prestação de contas %s.', prestacao)

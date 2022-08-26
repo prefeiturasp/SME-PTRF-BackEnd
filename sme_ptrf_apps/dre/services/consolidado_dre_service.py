@@ -32,13 +32,13 @@ def retornar_ja_publicadas(dre, periodo):
     publicacoes_anteriores = []
     for consolidado_dre in consolidados_dre:
 
-        tipo_publicacao = "Parcial" if consolidado_dre.eh_parcial else "Total"
+        tipo_publicacao = "Parcial" if consolidado_dre.eh_parcial else "Única"
         sequencia = consolidado_dre.sequencia_de_publicacao
 
         if tipo_publicacao == 'Parcial':
             nome_publicacao = f'Publicação {tipo_publicacao} #{sequencia}'
         else:
-            nome_publicacao = 'Relatório Consolidado'
+            nome_publicacao = 'Publicação Única'
 
         consolidado = {
             'titulo_relatorio': nome_publicacao,
@@ -132,9 +132,9 @@ def retornar_proxima_publicacao(dre, periodo, sequencia_de_publicacao, sequencia
             relatorios_fisico_financeiros_proxima_publicacao_list.append(_relatorio)
 
     if sequencia_de_publicacao['parcial']:
-        titulo_relatorio = f'Publicação parcial #{sequencia_de_publicacao_atual}'
+        titulo_relatorio = f'Publicação Parcial #{sequencia_de_publicacao_atual}'
     else:
-        titulo_relatorio = 'Relatório Consolidado'
+        titulo_relatorio = 'Publicação Única'
 
     proxima_publicacao = {
         'titulo_relatorio': titulo_relatorio,
@@ -177,7 +177,7 @@ def retornar_consolidado_de_publicacoes_parciais(dre, periodo, sequencia_de_publ
         relatorios_fisico_financeiros_consolidado_de_publicacoes_parciais_list.append(_relatorio)
 
     proxima_publicacao_consolidado_de_publicacoes_parciais = {
-        'titulo_relatorio': "Relatório consolidado",
+        'titulo_relatorio': "Relatório Consolidado",
         'sequencia': sequencia_de_publicacao_atual,
         'ja_publicado': False,
         'dre_nome': dre.nome,
@@ -269,22 +269,22 @@ def retornar_trilha_de_status(dre_uuid=None, periodo_uuid=None, add_aprovado_res
         'RECEBIDA':
             {
                 'titulo': 'Recebida e<br/>aguardando análise',
-                'estilo_css': 1
+                'estilo_css': 0
             },
         'DEVOLVIDA':
             {
                 'titulo': 'Devolvido<br/>para acertos',
-                'estilo_css': 1
+                'estilo_css': 0
             },
         'EM_ANALISE':
             {
                 'titulo': 'Em análise',
-                'estilo_css': 1
+                'estilo_css': 0
             },
         'CONCLUIDO':
             {
                 'titulo': 'Concluído e<br/>aguardando publicação',
-                'estilo_css': 0
+                'estilo_css': 1
             },
         'PUBLICADO':
             {
@@ -294,12 +294,12 @@ def retornar_trilha_de_status(dre_uuid=None, periodo_uuid=None, add_aprovado_res
         'APROVADA':
             {
                 'titulo': 'Aprovado',
-                'estilo_css': 1
+                'estilo_css': 0
             },
         'REPROVADA':
             {
                 'titulo': 'Reprovado',
-                'estilo_css': 1
+                'estilo_css': 0
             },
 
     }
