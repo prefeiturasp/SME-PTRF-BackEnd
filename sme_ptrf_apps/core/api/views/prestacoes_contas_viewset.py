@@ -205,7 +205,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 periodo.uuid,
                 associacao.uuid,
                 usuario=request.user.username,
-                e_retorno_devolucao=dados["e_retorno_devolucao"]
+                e_retorno_devolucao=dados["e_retorno_devolucao"],
+                requer_geracao_documentos=dados["requer_geracao_documentos"],
             )
         except(IntegrityError):
             erro = {
