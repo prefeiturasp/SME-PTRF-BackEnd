@@ -401,14 +401,22 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_
     quantidade_devolvida = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'DEVOLVIDA'][0]
     quantidade_nao_recebida = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'NAO_RECEBIDA'][0]
 
-    # - todos os outros status com exceção dos quantidade_recebida e quantidade_devolvida (Porque não aparecem nesse bloco)
-    quantidade_nao_apresentada = \
-        quantidade_ues_cnpj \
-        - quantidade_aprovada \
-        - quantidade_aprovada_ressalva \
-        - quantidade_nao_aprovada\
-        - quantidade_em_analise \
-        - quantidade_publicacoes_anteriores
+    # (-) todos os outros status com exceção dos quantidade_recebida e quantidade_devolvida (Porque não aparecem nesse bloco)
+    if not eh_consolidado_de_publicacoes_parciais:
+        quantidade_nao_apresentada = \
+            quantidade_ues_cnpj \
+            - quantidade_aprovada \
+            - quantidade_aprovada_ressalva \
+            - quantidade_nao_aprovada\
+            - quantidade_em_analise \
+            - quantidade_publicacoes_anteriores
+    else:
+        quantidade_nao_apresentada = \
+            quantidade_ues_cnpj \
+            - quantidade_aprovada \
+            - quantidade_aprovada_ressalva \
+            - quantidade_nao_aprovada\
+            - quantidade_em_analise
 
     total = \
         quantidade_nao_recebida \
