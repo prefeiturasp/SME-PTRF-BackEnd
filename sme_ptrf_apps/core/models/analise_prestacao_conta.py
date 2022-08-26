@@ -121,6 +121,14 @@ class AnalisePrestacaoConta(ModeloBase):
 
         return analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes
 
+    @property
+    def requer_informacao_devolucao_ao_tesouro(self):
+        from sme_ptrf_apps.core.models import TipoAcertoLancamento
+
+        return self.analises_de_lancamentos.filter(
+            solicitacoes_de_ajuste_da_analise__tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_DEVOLUCAO
+        ).exists()
+
     def __str__(self):
         return f"{self.prestacao_conta.periodo} - Análise #{self.pk}"
 

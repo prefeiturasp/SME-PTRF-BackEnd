@@ -3,7 +3,7 @@ from datetime import timedelta
 
 
 def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
-    '''
+    """
     Status Período	Status Documentos PC	Status PC na DRE	Parte Período	        Parte Prestação de Contas	                    Exibe Cadeado	Cor
     Em andamento	Não gerados	            N/A	                Período em andamento.	 		                                                        1
     Em andamento	Gerados	                N/A	                Período em andamento.	Documentos gerados para prestação de contas.	            X	2
@@ -16,7 +16,16 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     Encerrado	    Gerados	                Devolvida Recebida  Período finalizado.	    Prestação de Contas recebida após acertos.		            X   4
     Encerrado	    Gerados	                Aprovada	        Período finalizado.	    Prestação de Contas aprovada pela DRE.	                    X	5
     Encerrado	    Gerados	                Reprovada	        Período finalizado.	    Prestação de Contas reprovada pela DRE.	                    X	3
-    '''
+    """
+
+    def pc_requer_ata_retificacao(prestacao_conta):
+        if not prestacao_conta or prestacao_conta.status not in (PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA):
+            return False
+
+        ultima_analise = prestacao_conta.analises_da_prestacao.last()
+
+        return ultima_analise is not None and (ultima_analise.requer_alteracao_em_lancamentos or ultima_analise.requer_informacao_devolucao_ao_tesouro)
+
     periodo = Periodo.by_uuid(periodo_uuid)
     associacao = Associacao.by_uuid(associacao_uuid)
     prestacao = PrestacaoConta.by_periodo(associacao=associacao, periodo=periodo)
@@ -78,7 +87,8 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         'texto_status': mensagem_periodo + ' ' + mensagem_prestacao,
         'periodo_bloqueado': periodo_bloqueado,
         'legenda_cor': cor,
-        'prestacao_de_contas_uuid': prestacao.uuid if prestacao and prestacao.uuid else None
+        'prestacao_de_contas_uuid': prestacao.uuid if prestacao and prestacao.uuid else None,
+        'requer_retificacao': pc_requer_ata_retificacao(prestacao),
     }
 
     return status
