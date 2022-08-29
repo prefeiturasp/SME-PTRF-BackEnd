@@ -19,7 +19,6 @@ from ..models import (
     ContaAssociacao,
     TipoAcertoDocumento,
     SolicitacaoAcertoDocumento,
-    AnaliseValorReprogramadoPrestacaoConta
 )
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
@@ -30,7 +29,6 @@ from ..tasks import concluir_prestacao_de_contas_async, gerar_previa_demonstrati
 
 from ..services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
 from .demonstrativo_financeiro_pdf_service import gerar_arquivo_demonstrativo_financeiro_pdf
-from ..api.serializers.analise_valor_reprogramado_prestacao_conta_serializer import AjustesSaldosIniciaisSerializer
 
 from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
 
@@ -579,6 +577,7 @@ def lancamentos_da_prestacao(
     tipo_de_pagamento=None,
     filtrar_por_data_inicio=None,
     filtrar_por_data_fim=None,
+    filtrar_por_nome_fornecedor=None,
 ):
     from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaDocumentoMestreSerializer, \
         DespesaImpostoSerializer
@@ -596,6 +595,7 @@ def lancamentos_da_prestacao(
         tipo_de_pagamento,
         filtrar_por_data_inicio,
         filtrar_por_data_fim,
+        filtrar_por_nome_fornecedor=None,
     ):
         rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
             conta_associacao=conta_associacao,
@@ -632,6 +632,9 @@ def lancamentos_da_prestacao(
         if tipo_de_pagamento:
             dataset = dataset.filter(tipo_transacao=tipo_de_pagamento)
 
+        if filtrar_por_nome_fornecedor:
+            dataset = dataset.filter(nome_fornecedor__unaccent__icontains=filtrar_por_nome_fornecedor)
+
         return dataset.all()
 
     receitas = []
@@ -660,6 +663,7 @@ def lancamentos_da_prestacao(
             tipo_de_pagamento=tipo_de_pagamento,
             filtrar_por_data_inicio=filtrar_por_data_inicio,
             filtrar_por_data_fim=filtrar_por_data_fim,
+            filtrar_por_nome_fornecedor=filtrar_por_nome_fornecedor,
         )
 
         despesas = despesas.order_by("data_transacao")
@@ -716,6 +720,7 @@ def lancamentos_da_prestacao(
                                                                         many=False).data if despesa_geradora_do_imposto else None,
                 'despesas_impostos': DespesaImpostoSerializer(despesas_impostos, many=True,
                                                               required=False).data if despesas_impostos else None,
+                'informacoes': despesa.tags_de_informacao,
             }
 
             if com_ajustes:
@@ -1105,24 +1110,6 @@ def solicita_acertos_de_documentos(analise_prestacao, documentos, solicitacoes_a
 
         if not solicitacoes_acerto:
             apaga_analise_documento(_analise_prestacao=analise_prestacao, _tipo_documento=tipo_documento, _conta=conta)
-
-
-def ajustes_saldos_iniciais(analise_prestacao_uuid, conta_associacao_uuid=None):
-    if conta_associacao_uuid:
-        qs = AnaliseValorReprogramadoPrestacaoConta.objects.all()
-        qs = qs.filter(valor_saldo_reprogramado_correto=False).filter(
-            Q(analise_prestacao_conta__uuid=analise_prestacao_uuid) & Q(
-                conta_associacao__uuid=conta_associacao_uuid))
-
-        result = AjustesSaldosIniciaisSerializer(qs, many=True).data
-        return result
-    else:
-        qs = AnaliseValorReprogramadoPrestacaoConta.objects.all()
-        qs = qs.filter(valor_saldo_reprogramado_correto=False).filter(
-            Q(analise_prestacao_conta__uuid=analise_prestacao_uuid))
-
-        result = AjustesSaldosIniciaisSerializer(qs, many=True).data
-        return result
 
 
 def previa_prestacao_conta(associacao, periodo):

@@ -33,15 +33,18 @@ class RelatorioConsolidadoDRE(ModeloBase):
     # Versao Choice
     VERSAO_FINAL = 'FINAL'
     VERSAO_PREVIA = 'PREVIA'
+    VERSAO_CONSOLIDADA = 'CONSOLIDADA'
 
     VERSAO_NOMES = {
         VERSAO_FINAL: 'final',
         VERSAO_PREVIA: 'prévio',
+        VERSAO_CONSOLIDADA: 'consolidado',
     }
 
     VERSAO_CHOICES = (
         (VERSAO_FINAL, VERSAO_NOMES[VERSAO_FINAL]),
         (VERSAO_PREVIA, VERSAO_NOMES[VERSAO_PREVIA]),
+        (VERSAO_CONSOLIDADA, VERSAO_NOMES[VERSAO_CONSOLIDADA]),
     )
 
     arquivo = models.FileField(blank=True, null=True)
@@ -53,6 +56,10 @@ class RelatorioConsolidadoDRE(ModeloBase):
 
     periodo = models.ForeignKey('core.Periodo', on_delete=models.PROTECT,
                                 related_name='relatorios_consolidados_dre_do_periodo')
+
+    consolidado_dre = models.ForeignKey('ConsolidadoDRE', on_delete=models.CASCADE,
+                                        related_name='relatorios_consolidados_dre_do_consolidado_dre',
+                                        blank=True, null=True)
 
     status = models.CharField(
         'status',
@@ -69,10 +76,11 @@ class RelatorioConsolidadoDRE(ModeloBase):
     )
 
     class Meta:
-        verbose_name = 'Relatório consolidado DRE'
-        verbose_name_plural = 'Relatórios consolidados DREs'
+        verbose_name = 'Relatório físico-financeiro DRE'
+        verbose_name_plural = 'Relatórios físico-financeiros DREs'
 
     def __str__(self):
+        status_str = ""
         if self.versao == self.VERSAO_PREVIA:
             if self.status == self.STATUS_EM_PROCESSAMENTO:
                 status_str = "Previa do relatório sendo gerada. Aguarde."
@@ -81,7 +89,7 @@ class RelatorioConsolidadoDRE(ModeloBase):
             else:
                 status_str = f"Prévia do documento {'final' if self.status == 'GERADO_TOTAL' else 'parcial'} " \
                              f"gerada dia {self.alterado_em.strftime('%d/%m/%Y %H:%M')}"
-        elif self.versao == self.VERSAO_FINAL:
+        elif self.versao == self.VERSAO_FINAL or self.versao == self.VERSAO_CONSOLIDADA:
             if self.status == self.STATUS_EM_PROCESSAMENTO:
                 status_str = "Relatório sendo gerado. Aguarde."
             elif self.status == self.STATUS_NAO_GERADO:

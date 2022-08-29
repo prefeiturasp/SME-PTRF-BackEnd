@@ -288,3 +288,11 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
         serializer = DespesaListComRateiosSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, url_path='tags-informacoes',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def tags_informacoes_list(self, request):
+
+        result = Despesa.get_tags_informacoes_list()
+
+        return Response(result)

@@ -1,0 +1,52 @@
+{% load staticfiles %}
+
+<table class="table table-bordered tabela-relatorio-dre">
+  <thead>
+      <tr>
+      <th colspan="10" class="th-fundo-branco py-2 pl-2">
+        <p class="font-14 titulo mb-0 mt-0 px-0"><strong>Bloco 3: Execução Física</strong></p>
+      </th>
+    </tr>
+    <tr>
+      <th class="titulo" colspan="3"><strong>Atendimento</strong></th>
+      <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+      <th class="titulo" colspan="7"><strong>Prestação de contas das Associações</strong></th>
+    </tr>
+
+    <tr>
+      <th class="th-fundo-branco">09 - UEs da DRE</th>
+      <th class="th-fundo-branco">10 - UEs com Associação</th>
+
+      <th class="th-fundo-branco">11 - Associações regulares</th>
+
+      <th class="th-fundo-branco">12 - Aprovadas</th>
+      <th class="th-fundo-branco">13 - Aprovadas com ressalva</th>
+      <th class="th-fundo-branco">14 - Rejeitadas</th>
+
+      <th class="th-fundo-branco">15 - Em análise</th>
+
+
+      <th class="th-fundo-branco">16 - Não apresentadas</th>
+      <th class="th-fundo-branco">17 - Publicadas anteriormente</th>
+      <th class="th-fundo-branco">18 - Total</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td class="text-right">{{ dados.execucao_fisica.ues_da_dre }}</td>
+      <td class="text-right">{{ dados.execucao_fisica.ues_com_associacao }}</td>
+
+      <td class="text-right">{{ dados.execucao_fisica.associacoes_regulares }}</td>
+      <td rowspan="1" class="separacao-de-colunas-da-tabela"> </td>
+
+      <td class="text-right">{{ dados.execucao_fisica.aprovada }}</td>
+      <td class="text-right">{{ dados.execucao_fisica.aprovada_ressalva }}</td>
+      <td class="text-right">{{ dados.execucao_fisica.rejeitada }}</td>
+      <td class="text-right">{{ dados.execucao_fisica.analise }}</td>
+      <td class="text-right">{{ dados.execucao_fisica.nao_apresentadas }}</td>
+      <td class="text-right">{{ dados.execucao_fisica.publicadas_anteriormente}}</td>
+      <td class="text-right">{{ dados.execucao_fisica.total }}</td>
+    </tr>
+  </tbody>
+</table>

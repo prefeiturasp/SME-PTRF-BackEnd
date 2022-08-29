@@ -98,54 +98,9 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     motivos_reprovacao = MotivoReprovacaoSerializer(many=True)
     arquivos_referencia = serializers.SerializerMethodField('get_arquivos_referencia')
     analise_atual = AnalisePrestacaoContaSerializer(many=False)
-    permite_analise_valores_reprogramados = serializers.SerializerMethodField()
     pode_reabrir = serializers.SerializerMethodField('get_pode_reabrir')
     informacoes_conciliacao_ue = serializers.SerializerMethodField('get_conciliacao_bancaria_ue')
-
-    def get_permite_analise_valores_reprogramados(self, obj):
-
-        result = None
-
-        periodo_atual_pc = obj.periodo
-        if not periodo_atual_pc:
-            result = {
-                'permite_analise': False,
-                'erro': 'periodo_atual_pc_nao_definido',
-                'mensagem': 'Período atual não foi definido para essa prestação de contas. Verifique com o administrador.'
-            }
-
-        associacao = obj.associacao
-        periodo_inicial_associacao = associacao.periodo_inicial
-        if not periodo_inicial_associacao:
-            result = {
-                'permite_analise': False,
-                'erro': 'periodo_inicial_associacao_nao_definido',
-                'mensagem': 'Período inicial não foi definido para essa associação. Verifique com o administrador.'
-            }
-
-        proximo_perido_associacao = periodo_inicial_associacao.proximo_periodo
-        if not proximo_perido_associacao:
-            result = {
-                'permite_analise': False,
-                'erro': 'proximo_perido_associacao_nao_definido',
-                'mensagem': 'Próximo período não foi definido para essa associação. Verifique com o administrador.'
-            }
-
-        if periodo_atual_pc != proximo_perido_associacao:
-            result = {
-                'permite_analise': False,
-                'erro': 'proximo_perido_associacao_diferente',
-                'mensagem': 'O período atual da PC não é igual ao periodo_inicial.proximo_periodo da associacao'
-            }
-
-        if not result:
-            result = {
-                'permite_analise': True,
-                'erro': '',
-                'mensagem': 'O período atual da PC é igual ao periodo_inicial.proximo_periodo da associacao'
-            }
-
-        return result
+    referencia_consolidado_dre = serializers.SerializerMethodField('get_referencia_consolidado_dre')
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
@@ -249,6 +204,9 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
 
         return result
 
+    def get_referencia_consolidado_dre(self, obj):
+        return obj.consolidado_dre.referencia if obj.consolidado_dre else ""
+
     class Meta:
         model = PrestacaoConta
         fields = (
@@ -271,10 +229,11 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'outros_motivos_aprovacao_ressalva',
             'arquivos_referencia',
             'analise_atual',
-            'permite_analise_valores_reprogramados',
             'recomendacoes',
             'pode_reabrir',
-            'informacoes_conciliacao_ue'
+            'informacoes_conciliacao_ue',
+            'publicada',
+            'referencia_consolidado_dre',
         )
 
 

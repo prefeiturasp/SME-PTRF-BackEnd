@@ -994,6 +994,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        # Define o filtro por nome do fornecedor
+        filtrar_por_nome_fornecedor = request.query_params.get('filtrar_por_nome_fornecedor')
+
         lancamentos = lancamentos_da_prestacao(
             analise_prestacao_conta=analise_prestacao,
             conta_associacao=conta_associacao,
@@ -1005,6 +1008,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             tipo_de_pagamento=tipo_de_pagamento,
             filtrar_por_data_inicio=filtrar_por_data_inicio,
             filtrar_por_data_fim=filtrar_por_data_fim,
+            filtrar_por_nome_fornecedor=filtrar_por_nome_fornecedor,
         )
 
         return Response(lancamentos, status=status.HTTP_200_OK)

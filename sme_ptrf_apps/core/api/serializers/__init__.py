@@ -31,7 +31,13 @@ from .prestacao_conta_serializer import (PrestacaoContaLookUpSerializer, Prestac
                                          PrestacaoContaRetrieveSerializer)
 from .processo_associacao_serializer import ProcessoAssociacaoRetrieveSerializer, ProcessoAssociacaoCreateSerializer
 from .tipo_conta_serializer import TipoContaSerializer
-from .unidade_serializer import UnidadeInfoAtaSerializer, UnidadeLookUpSerializer, UnidadeSerializer
+from .unidade_serializer import (
+    UnidadeInfoAtaSerializer,
+    UnidadeLookUpSerializer,
+    UnidadeSerializer,
+    UnidadeListEmAssociacoesSerializer,
+    UnidadeListSerializer
+)
 from .comentario_analise_prestacao_serializer import ComentarioAnalisePrestacaoRetrieveSerializer
 from .arquivo_serializer import ArquivoSerializer
 from .modelo_carga_serializer import ModeloCargaSerializer
@@ -44,4 +50,3 @@ from .solicitacao_acerto_documento_serializer import SolicitacaoAcertoDocumentoR
 from .analise_documento_prestacao_conta_serializer import AnaliseDocumentoPrestacaoContaRetrieveSerializer
 from .tipo_documento_prestacao_conta_serializer import TipoDocumentoPrestacaoContaSerializer
 from .presentes_ata_serializer import PresentesAtaSerializer, PresentesAtaCreateSerializer
-from .analise_valor_reprogramado_prestacao_conta_serializer import AnaliseValorReprogramadoPrestacaoContaSerializer
