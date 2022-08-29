@@ -29,6 +29,7 @@ def test_instance_model(prestacao_conta):
     assert model.analise_atual is None
     assert model.publicada is None
     assert model.consolidado_dre is None
+    assert model.justificativa_pendencia_realizacao
 
 
 def test_srt_model(prestacao_conta):

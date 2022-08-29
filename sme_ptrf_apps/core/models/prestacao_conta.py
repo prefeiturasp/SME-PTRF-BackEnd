@@ -101,6 +101,8 @@ class PrestacaoConta(ModeloBase):
                                         related_name='prestacoes_de_conta_do_consolidado_dre',
                                         blank=True, null=True)
 
+    justificativa_pendencia_realizacao = models.TextField('Justificativa de pendências de realização de ajustes.', blank=True, default='')
+
     @property
     def tecnico_responsavel(self):
         atribuicoes = Atribuicao.search(
