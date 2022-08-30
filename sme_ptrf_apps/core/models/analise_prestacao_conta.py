@@ -134,10 +134,12 @@ class AnalisePrestacaoConta(ModeloBase):
         from sme_ptrf_apps.core.models import AnaliseLancamentoPrestacaoConta, AnaliseDocumentoPrestacaoConta
 
         tem_analises_de_lancamentos_pendentes = self.analises_de_lancamentos.filter(
-           status_realizacao=AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
+            resultado=AnaliseLancamentoPrestacaoConta.RESULTADO_AJUSTE).filter(
+            status_realizacao=AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
         ).exists()
 
         tem_analises_de_documentos_pendentes = self.analises_de_documento.filter(
+            resultado=AnaliseDocumentoPrestacaoConta.RESULTADO_AJUSTE).filter(
             status_realizacao=AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
         ).exists()
 
