@@ -31,6 +31,7 @@ def concluir_prestacao_de_contas_async(
     criar_arquivos=True,
     e_retorno_devolucao=False,
     requer_geracao_documentos=True,
+    justificativa_acertos_pendentes='',
 ):
     from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_documentos, _criar_fechamentos,
                                                                        _apagar_previas_documentos)
@@ -54,7 +55,10 @@ def concluir_prestacao_de_contas_async(
     else:
         logger.info('PC não requer geração de documentos e cálculo de fechamentos.')
 
-    prestacao = prestacao.concluir(e_retorno_devolucao=e_retorno_devolucao)
+    prestacao = prestacao.concluir(
+        e_retorno_devolucao=e_retorno_devolucao,
+        justificativa_acertos_pendentes=justificativa_acertos_pendentes
+    )
     logger.info('Concluída a prestação de contas %s.', prestacao)
 
 

@@ -153,7 +153,7 @@ class PrestacaoConta(ModeloBase):
     def ultima_ata_retificacao(self):
         return self.atas_da_prestacao.filter(tipo_ata='RETIFICACAO', previa=False).last()
 
-    def concluir(self, e_retorno_devolucao=False):
+    def concluir(self, e_retorno_devolucao=False, justificativa_acertos_pendentes=''):
         from ..models import DevolucaoPrestacaoConta
         if e_retorno_devolucao:
             self.status = self.STATUS_DEVOLVIDA_RETORNADA
@@ -162,7 +162,7 @@ class PrestacaoConta(ModeloBase):
             ultima_devolucao.save()
         else:
             self.status = self.STATUS_NAO_RECEBIDA
-
+        self.justificativa_pendencia_realizacao = justificativa_acertos_pendentes
         self.save()
         return self
 
