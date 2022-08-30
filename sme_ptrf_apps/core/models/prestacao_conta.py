@@ -101,6 +101,8 @@ class PrestacaoConta(ModeloBase):
                                         related_name='prestacoes_de_conta_do_consolidado_dre',
                                         blank=True, null=True)
 
+    justificativa_pendencia_realizacao = models.TextField('Justificativa de pendências de realização de ajustes.', blank=True, default='')
+
     @property
     def tecnico_responsavel(self):
         atribuicoes = Atribuicao.search(
@@ -151,7 +153,7 @@ class PrestacaoConta(ModeloBase):
     def ultima_ata_retificacao(self):
         return self.atas_da_prestacao.filter(tipo_ata='RETIFICACAO', previa=False).last()
 
-    def concluir(self, e_retorno_devolucao=False):
+    def concluir(self, e_retorno_devolucao=False, justificativa_acertos_pendentes=''):
         from ..models import DevolucaoPrestacaoConta
         if e_retorno_devolucao:
             self.status = self.STATUS_DEVOLVIDA_RETORNADA
@@ -160,7 +162,7 @@ class PrestacaoConta(ModeloBase):
             ultima_devolucao.save()
         else:
             self.status = self.STATUS_NAO_RECEBIDA
-
+        self.justificativa_pendencia_realizacao = justificativa_acertos_pendentes
         self.save()
         return self
 
@@ -251,8 +253,6 @@ class PrestacaoConta(ModeloBase):
     def salvar_analise(self, analises_de_conta_da_prestacao=None, resultado_analise=None,
                        motivos_aprovacao_ressalva=[], outros_motivos_aprovacao_ressalva='', motivos_reprovacao=[],
                        outros_motivos_reprovacao='', recomendacoes=''):
-        from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
-        from ..models.conta_associacao import ContaAssociacao
 
         self.data_ultima_analise = date.today()
 
@@ -292,6 +292,7 @@ class PrestacaoConta(ModeloBase):
             self.analise_atual.save()
 
         self.analise_atual = None
+        self.justificativa_pendencia_realizacao = ""
         self.save()
 
         if devolucao_requer_alteracoes:
