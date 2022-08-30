@@ -253,8 +253,6 @@ class PrestacaoConta(ModeloBase):
     def salvar_analise(self, analises_de_conta_da_prestacao=None, resultado_analise=None,
                        motivos_aprovacao_ressalva=[], outros_motivos_aprovacao_ressalva='', motivos_reprovacao=[],
                        outros_motivos_reprovacao='', recomendacoes=''):
-        from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
-        from ..models.conta_associacao import ContaAssociacao
 
         self.data_ultima_analise = date.today()
 
@@ -294,6 +292,7 @@ class PrestacaoConta(ModeloBase):
             self.analise_atual.save()
 
         self.analise_atual = None
+        self.justificativa_pendencia_realizacao = ""
         self.save()
 
         if devolucao_requer_alteracoes:
