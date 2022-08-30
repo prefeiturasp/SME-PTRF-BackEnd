@@ -644,6 +644,7 @@ def prestacao_conta(periodo, associacao, motivo_aprovacao_ressalva_x, motivo_rep
         recomendacoes="recomendacao",
         publicada=None,
         consolidado_dre=None,
+        justificativa_pendencia_realizacao="Teste de justificativa.",
     )
 
 

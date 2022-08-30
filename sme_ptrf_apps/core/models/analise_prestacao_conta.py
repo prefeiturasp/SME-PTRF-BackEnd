@@ -129,6 +129,22 @@ class AnalisePrestacaoConta(ModeloBase):
             solicitacoes_de_ajuste_da_analise__tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_DEVOLUCAO
         ).exists()
 
+    @property
+    def tem_acertos_pendentes(self):
+        from sme_ptrf_apps.core.models import AnaliseLancamentoPrestacaoConta, AnaliseDocumentoPrestacaoConta
+
+        tem_analises_de_lancamentos_pendentes = self.analises_de_lancamentos.filter(
+            resultado=AnaliseLancamentoPrestacaoConta.RESULTADO_AJUSTE).filter(
+            status_realizacao=AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
+        ).exists()
+
+        tem_analises_de_documentos_pendentes = self.analises_de_documento.filter(
+            resultado=AnaliseDocumentoPrestacaoConta.RESULTADO_AJUSTE).filter(
+            status_realizacao=AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
+        ).exists()
+
+        return tem_analises_de_lancamentos_pendentes or tem_analises_de_documentos_pendentes
+
     def __str__(self):
         return f"{self.prestacao_conta.periodo} - Análise #{self.pk}"
 
