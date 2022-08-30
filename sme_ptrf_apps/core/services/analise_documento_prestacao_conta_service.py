@@ -235,7 +235,7 @@ class AnaliseDocumentoPrestacaoContaService:
                 "status": status.HTTP_400_BAD_REQUEST
             }
 
-        analise_documento.esclarecimento = esclarecimento
+        analise_documento.esclarecimentos = esclarecimento
         analise_documento.save()
 
         return {
