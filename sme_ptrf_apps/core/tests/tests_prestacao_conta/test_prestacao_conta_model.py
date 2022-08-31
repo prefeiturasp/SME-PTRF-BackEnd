@@ -2,8 +2,8 @@ import pytest
 from django.contrib import admin
 from model_bakery import baker
 
-from ...models import PrestacaoConta, Associacao, Periodo, AnalisePrestacaoConta
-from sme_ptrf_apps.dre.models import MotivoAprovacaoRessalva
+from ...models import PrestacaoConta, Associacao, Periodo
+
 
 pytestmark = pytest.mark.django_db
 
