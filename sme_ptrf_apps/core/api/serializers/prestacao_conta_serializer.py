@@ -240,4 +240,4 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
 
 
 def _str_devolucao_ao_tesouro(obj):
-    return f'{obj.total_devolucao_ao_tesouro:.2f}'.replace('.', ',') if obj.devolucoes_ao_tesouro_da_prestacao.count() > 0 else '0,00'
+    return f'{obj.total_devolucao_ao_tesouro:.2f}'.replace('.', ',') if obj.devolucoes_ao_tesouro_da_prestacao.count() > 0 else 'Não'

@@ -47,13 +47,10 @@ def tipo_devolucao_ao_tesouro():
 @freeze_time('2020-09-01')
 def test_api_salva_analise_prestacao_conta(jwt_authenticated_client_a, prestacao_conta_em_analise, conta_associacao,
                                            tipo_devolucao_ao_tesouro, despesa):
-    payload = {
-        'devolucao_tesouro': True,
-    }
 
     url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/salvar-analise/'
 
-    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
+    response = jwt_authenticated_client_a.patch(url, data={}, content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -77,7 +74,6 @@ def test_api_salva_analise_prestacao_conta_nao_pode_aceitar_status_diferente_de_
                                                                                              prestacao_conta_recebida,
                                                                                              conta_associacao):
     payload = {
-        'devolucao_tesouro': True,
         'analises_de_conta_da_prestacao': [
             {
                 'conta_associacao': f'{conta_associacao.uuid}',

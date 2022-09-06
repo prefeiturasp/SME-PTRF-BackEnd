@@ -35,7 +35,6 @@ def motivo_aprovacao_ressalva_x():
 def test_api_conclui_analise_prestacao_conta_aprovada_ressalvas(jwt_authenticated_client_a, prestacao_conta_em_analise,
                                                                 conta_associacao, motivo_aprovacao_ressalva_x):
     payload = {
-        'devolucao_tesouro': True,
         'analises_de_conta_da_prestacao': [
             {
                 'conta_associacao': f'{conta_associacao.uuid}',
@@ -66,7 +65,6 @@ def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_ressalva(jw
                                                                               prestacao_conta_em_analise,
                                                                               conta_associacao):
     payload = {
-        'devolucao_tesouro': True,
         'analises_de_conta_da_prestacao': [
             {
                 'conta_associacao': f'{conta_associacao.uuid}',
@@ -98,7 +96,6 @@ def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_recomendaco
                                                                                    prestacao_conta_em_analise,
                                                                                    conta_associacao):
     payload = {
-        'devolucao_tesouro': True,
         'analises_de_conta_da_prestacao': [
             {
                 'conta_associacao': f'{conta_associacao.uuid}',
