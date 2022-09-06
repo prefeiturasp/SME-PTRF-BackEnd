@@ -78,6 +78,8 @@ class Despesa(ModeloBase):
         default=STATUS_INCOMPLETO
     )
 
+    data_e_hora_de_inativacao = models.DateTimeField("Inativado em", blank=True, null=True)
+
     objects = models.Manager()  # Manager Padrão
     completas = DespesasCompletasManager()
 
