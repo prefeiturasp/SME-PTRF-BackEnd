@@ -63,7 +63,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id')
     list_display_links = ('nome', 'cnpj')
 
-    actions = ['define_status_nao_finalizado_valores_reprogramados', ]
+    actions = ['define_status_nao_finalizado_valores_reprogramados', 'migrar_valores_reprogramados']
 
     def define_status_nao_finalizado_valores_reprogramados(self, request, queryset):
         for associacao in queryset.all():
@@ -74,6 +74,48 @@ class AssociacaoAdmin(admin.ModelAdmin):
                 associacao.save()
 
         self.message_user(request, f"Status definido com sucesso!")
+
+    def migrar_valores_reprogramados(self, request, queryset):
+        for associacao in queryset.all():
+            if associacao.status_valores_reprogramados == Associacao.STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS:
+                # caso ja exista valores reprogramados para essa associação, nada deve ser feito
+                if associacao.valores_reprogramados_associacao.all():
+                    continue
+
+                if not associacao.periodo_inicial:
+                    continue
+
+                for conta_associacao in associacao.contas.all():
+                    for acao_associacao in associacao.acoes.exclude(acao__e_recursos_proprios=True):
+                        fechamento_implantacao = associacao.fechamentos_associacao.filter(
+                            conta_associacao=conta_associacao).filter(
+                            acao_associacao=acao_associacao).filter(status="IMPLANTACAO").first()
+
+                        if acao_associacao.acao.aceita_custeio:
+                            ValoresReprogramados.criar_valor_reprogramado_custeio(
+                                associacao,
+                                conta_associacao,
+                                acao_associacao,
+                                fechamento_implantacao
+                            )
+
+                        if acao_associacao.acao.aceita_capital:
+                            ValoresReprogramados.criar_valor_reprogramado_capital(
+                                associacao,
+                                conta_associacao,
+                                acao_associacao,
+                                fechamento_implantacao
+                            )
+
+                        if acao_associacao.acao.aceita_livre:
+                            ValoresReprogramados.criar_valor_reprogramado_livre(
+                                associacao,
+                                conta_associacao,
+                                acao_associacao,
+                                fechamento_implantacao
+                            )
+
+        self.message_user(request, f"Valores migrados com sucesso!")
 
 
 @admin.register(ContaAssociacao)
