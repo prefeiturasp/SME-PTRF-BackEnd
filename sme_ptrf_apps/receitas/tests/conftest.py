@@ -4,6 +4,8 @@ import pytest
 from model_bakery import baker
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+
+from sme_ptrf_apps.core.models import PrestacaoConta
 from sme_ptrf_apps.users.models import Grupo
 from datetime import date
 
@@ -21,12 +23,14 @@ def tipo_receita_estorno(tipo_receita):
 
 @pytest.fixture
 def tipo_receita_repasse(tipo_conta):
-    return baker.make('TipoReceita', nome='Repasse', e_repasse=True, aceita_capital=True, aceita_custeio=True, tipos_conta=[tipo_conta])
+    return baker.make('TipoReceita', nome='Repasse', e_repasse=True, aceita_capital=True, aceita_custeio=True,
+                      tipos_conta=[tipo_conta])
 
 
 @pytest.fixture
 def tipo_receita_devolucao(tipo_conta):
-    return baker.make('TipoReceita', nome='Devolução', e_devolucao=True, aceita_capital=True, aceita_custeio=True, tipos_conta=[tipo_conta])
+    return baker.make('TipoReceita', nome='Devolução', e_devolucao=True, aceita_capital=True, aceita_custeio=True,
+                      tipos_conta=[tipo_conta])
 
 
 @pytest.fixture
@@ -141,7 +145,8 @@ def payload_receita_repasse(associacao, conta_associacao, acao_associacao, tipo_
 
 
 @pytest.fixture
-def payload_receita_repasse_livre_aplicacao(associacao, conta_associacao, acao_associacao, tipo_receita_repasse, repasse_2020_1_livre_aplicacao_pendente):
+def payload_receita_repasse_livre_aplicacao(associacao, conta_associacao, acao_associacao, tipo_receita_repasse,
+                                            repasse_2020_1_livre_aplicacao_pendente):
     payload = {
         'associacao': str(associacao.uuid),
         'data': '2020-02-26',
@@ -156,7 +161,8 @@ def payload_receita_repasse_livre_aplicacao(associacao, conta_associacao, acao_a
 
 
 @pytest.fixture
-def payload_receita_estorno(associacao, conta_associacao, acao_associacao, tipo_receita_estorno, rateio_no_periodo_100_custeio):
+def payload_receita_estorno(associacao, conta_associacao, acao_associacao, tipo_receita_estorno,
+                            rateio_no_periodo_100_custeio):
     payload = {
         'associacao': str(associacao.uuid),
         'data': '2019-09-26',
@@ -168,7 +174,6 @@ def payload_receita_estorno(associacao, conta_associacao, acao_associacao, tipo_
         'rateio_estornado': str(rateio_no_periodo_100_custeio.uuid),
     }
     return payload
-
 
 
 @pytest.fixture
@@ -450,7 +455,8 @@ def jwt_authenticated_client_p(client, usuario_permissao):
         mock_post.return_value.ok = True
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = data
-        resp = api_client.post('/api/login', {'login': usuario_permissao.username, 'senha': usuario_permissao.password}, format='json')
+        resp = api_client.post('/api/login', {'login': usuario_permissao.username, 'senha': usuario_permissao.password},
+                               format='json')
         resp_data = resp.json()
         api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
     return api_client
@@ -515,7 +521,7 @@ def rateio_saida_recurso(associacao, despesa_saida_recurso, conta_associacao, ac
 
 @pytest.fixture
 def receita_saida_recurso(associacao, conta_associacao, acao_associacao, tipo_receita, prestacao_conta_iniciada,
-            detalhe_tipo_receita, periodo_2020_1, despesa_saida_recurso):
+                          detalhe_tipo_receita, periodo_2020_1, despesa_saida_recurso):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -549,4 +555,185 @@ def motivo_estorno_02():
     return baker.make(
         'MotivoEstorno',
         motivo="Motivo de estorno 02"
+    )
+
+
+# Inativar ou excluir Receita
+@pytest.fixture
+def tipo_receita_outros():
+    return baker.make(
+        'TipoReceita',
+        nome='Outros'
+    )
+
+
+@pytest.fixture
+def tipo_receita_e_estorno():
+    return baker.make(
+        'TipoReceita',
+        nome='Estorno',
+        e_estorno=True,
+    )
+
+
+@pytest.fixture
+def tipo_receita_e_repasse():
+    return baker.make(
+        'TipoReceita',
+        nome='Repasse',
+        e_repasse=True,
+    )
+
+
+@pytest.fixture
+def periodo_anterior_inativar_receita():
+    return baker.make(
+        'Periodo',
+        referencia='2019.1',
+        data_inicio_realizacao_despesas=date(2019, 1, 1),
+        data_fim_realizacao_despesas=date(2019, 8, 31),
+    )
+
+
+@pytest.fixture
+def periodo_inativar_receita(periodo_anterior_inativar_receita):
+    return baker.make(
+        'Periodo',
+        referencia='2019.2',
+        data_inicio_realizacao_despesas=date(2019, 9, 1),
+        data_fim_realizacao_despesas=date(2019, 11, 30),
+        data_prevista_repasse=date(2019, 10, 1),
+        data_inicio_prestacao_contas=date(2019, 12, 1),
+        data_fim_prestacao_contas=date(2019, 12, 5),
+        periodo_anterior=periodo_anterior_inativar_receita,
+    )
+
+
+@pytest.fixture
+def prestacao_conta_devolvida_inativar_receita(periodo_inativar_receita, associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_inativar_receita,
+        associacao=associacao,
+        status=PrestacaoConta.STATUS_DEVOLVIDA
+    )
+
+
+@pytest.fixture
+def receita_inativa(associacao, conta_associacao_cheque, acao_associacao_ptrf, tipo_receita_outros):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 10),
+        valor=100.00,
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao_ptrf,
+        tipo_receita=tipo_receita_outros,
+        conferido=True,
+        status='INATIVO',
+        data_e_hora_de_inativacao=datetime.date(2022, 9, 5),
+    )
+
+
+@pytest.fixture
+def receita_ativa(associacao, conta_associacao_cheque, acao_associacao_ptrf, tipo_receita_outros):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 10),
+        valor=100.00,
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao_ptrf,
+        tipo_receita=tipo_receita_outros,
+        conferido=True,
+        status='COMPLETO',
+        data_e_hora_de_inativacao=None,
+    )
+
+
+@pytest.fixture
+def receita_deve_exluir(associacao, conta_associacao_cheque, acao_associacao_ptrf, tipo_receita_outros):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 10),
+        valor=100.00,
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao_ptrf,
+        tipo_receita=tipo_receita_outros,
+        conferido=True,
+        status='COMPLETO',
+        data_e_hora_de_inativacao=None,
+    )
+
+
+@pytest.fixture
+def receita_deve_inativar(associacao, conta_associacao_cheque, acao_associacao_ptrf, tipo_receita_outros, periodo_inativar_receita):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2019, 9, 1),
+        valor=100.00,
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao_ptrf,
+        tipo_receita=tipo_receita_outros,
+        conferido=True,
+        status='COMPLETO',
+        data_e_hora_de_inativacao=None,
+        periodo_conciliacao=periodo_inativar_receita,
+    )
+
+
+@pytest.fixture
+def receita_nao_deve_exluir_estorno(associacao, conta_associacao_cheque, acao_associacao_ptrf, tipo_receita_e_estorno):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 10),
+        valor=100.00,
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao_ptrf,
+        tipo_receita=tipo_receita_e_estorno,
+        conferido=True,
+        status='COMPLETO',
+        data_e_hora_de_inativacao=None,
+    )
+
+
+@pytest.fixture
+def receita_deve_exluir_e_repasse(associacao, conta_associacao_cheque, acao_associacao_ptrf, tipo_receita_e_repasse):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 10),
+        valor=100.00,
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao_ptrf,
+        tipo_receita=tipo_receita_e_repasse,
+        conferido=True,
+        status='COMPLETO',
+        data_e_hora_de_inativacao=None,
+    )
+
+
+@pytest.fixture
+def receita_deve_inativar_e_repasse(
+    associacao,
+    conta_associacao_cheque,
+    acao_associacao_ptrf,
+    tipo_receita_e_repasse,
+    periodo_inativar_receita
+):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2019, 9, 1),
+        valor=100.00,
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao_ptrf,
+        tipo_receita=tipo_receita_e_repasse,
+        conferido=True,
+        status='COMPLETO',
+        data_e_hora_de_inativacao=None,
+        periodo_conciliacao=periodo_inativar_receita,
     )
