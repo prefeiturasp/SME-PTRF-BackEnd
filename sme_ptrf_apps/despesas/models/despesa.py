@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.db import models
@@ -133,6 +135,19 @@ class Despesa(ModeloBase):
 
         return tags
 
+    @property
+    def periodo_da_despesa(self):
+        from sme_ptrf_apps.core.models import Periodo
+        return Periodo.da_data(self.data_transacao)
+
+    @property
+    def inativar_em_vez_de_excluir(self):
+        from sme_ptrf_apps.core.models import PrestacaoConta
+        return PrestacaoConta.objects.filter(
+            associacao=self.associacao,
+            periodo=self.periodo_da_despesa
+        ).exists()
+
     def __str__(self):
         return f"{self.numero_documento} - {self.data_documento} - {self.valor_total:.2f}"
 
@@ -235,6 +250,19 @@ class Despesa(ModeloBase):
 
     def tem_pagamentos_em_multiplas_contas(self):
         return self.rateios.values('conta_associacao').order_by('conta_associacao').annotate(count=Count('conta_associacao')).count() > 1
+
+    def inativar_despesa(self):
+        self.status = STATUS_INATIVO
+        self.data_e_hora_de_inativacao = datetime.now()
+        self.save()
+
+        for rateio in self.rateios.all():
+            rateio.inativar_rateio()
+
+        for despesa_imposto in self.despesas_impostos.all():
+            despesa_imposto.inativar_despesa()
+
+        return self
 
     @classmethod
     def by_documento(cls, tipo_documento, numero_documento, cpf_cnpj_fornecedor, associacao__uuid):

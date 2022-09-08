@@ -135,43 +135,53 @@ class DespesasViewSet(mixins.CreateModelMixin,
         from ....core.models import DevolucaoAoTesouro
 
         despesa = self.get_object()
-        for despesa_imposto in despesa.despesas_impostos.all():
-            try:
-                self.perform_destroy(despesa_imposto)
-            except Exception as err:
-                erro = {
-                    'erro': 'despesa_do_imposto_nao_deletada',
-                    'mensagem': str(err)
-                }
-                return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
-        try:
-            self.perform_destroy(despesa)
-        except ProtectedError as exception:
-            erros = []
+        if not despesa.inativar_em_vez_de_excluir:
+            # Em caso de inativação, a inativação dos impostos é feita pelo próprio método inativar_despesa.
+            for despesa_imposto in despesa.despesas_impostos.all():
+                try:
+                    self.perform_destroy(despesa_imposto)
+                except Exception as err:
+                    erro = {
+                        'erro': 'despesa_do_imposto_nao_deletada',
+                        'mensagem': str(err)
+                    }
+                    return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
-            if exception.args:
-                for excecao in exception.args:
-                    if isinstance(excecao, QuerySet):
-                        for ex in excecao:
-                            if isinstance(ex, DevolucaoAoTesouro):
-                                erros.append(
-                                    f'{ex._meta.verbose_name}: {ex.data.strftime("%d/%m/%Y") if ex.data else "Sem data"} - {ex.tipo}')
-                            else:
-                                erros.append(f'{ex._meta.verbose_name}: {ex}')
-
-            content = {
-                'code': 'server_error',
-                'message': 'Internal server error.',
-                'error': {
-                    'type': str(type(exception)),
-                    'message': str(exception),
-                    'itens_erro': erros
-                }
+        if despesa.inativar_em_vez_de_excluir:
+            despesa.inativar_despesa()
+            msg = {
+                'sucesso': 'despesa_inativada_com_sucesso',
+                'mensagem': 'Despesa inativada com sucesso'
             }
-            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+            return Response(msg, status=status.HTTP_200_OK)
+        else:
+            try:
+                self.perform_destroy(despesa)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            except ProtectedError as exception:
+                erros = []
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+                if exception.args:
+                    for excecao in exception.args:
+                        if isinstance(excecao, QuerySet):
+                            for ex in excecao:
+                                if isinstance(ex, DevolucaoAoTesouro):
+                                    erros.append(
+                                        f'{ex._meta.verbose_name}: {ex.data.strftime("%d/%m/%Y") if ex.data else "Sem data"} - {ex.tipo}')
+                                else:
+                                    erros.append(f'{ex._meta.verbose_name}: {ex}')
+
+                content = {
+                    'code': 'server_error',
+                    'message': 'Internal server error.',
+                    'error': {
+                        'type': str(type(exception)),
+                        'message': str(exception),
+                        'itens_erro': erros
+                    }
+                }
+                return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])

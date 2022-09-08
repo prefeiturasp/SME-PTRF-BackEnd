@@ -8,7 +8,7 @@ from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models import Tag, Parametros
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO
+from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO, STATUS_INATIVO
 from ..tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
 
 from auditlog.models import AuditlogHistoryField
@@ -352,6 +352,11 @@ class RateioDespesa(ModeloBase):
         self.save()
         return self
 
+    def inativar_rateio(self):
+        self.status = STATUS_INATIVO
+        self.save()
+        return self
+
     @classmethod
     def conciliar(cls, uuid, periodo_conciliacao):
         rateio_despesa = cls.by_uuid(uuid)
@@ -395,7 +400,8 @@ class RateioDespesa(ModeloBase):
 
 @receiver(pre_save, sender=RateioDespesa)
 def rateio_pre_save(instance, **kwargs):
-    instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
+    if instance.status != STATUS_INATIVO:
+        instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
 
     if not instance.update_conferido:
         instance.conferido = False
