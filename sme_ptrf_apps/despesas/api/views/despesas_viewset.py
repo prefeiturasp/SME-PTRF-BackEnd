@@ -62,7 +62,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        qs = Despesa.objects.all()
+        qs = Despesa.objects.exclude(status='INATIVO').all()
 
         search = self.request.query_params.get('search')
         if search is not None and search != '':
