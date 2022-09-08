@@ -430,4 +430,5 @@ class DespesaDocumentoMestreSerializer(serializers.ModelSerializer):
             'conferido',
             'uuid',
             'receitas_saida_do_recurso',
+            'data_e_hora_de_inativacao',
         )
