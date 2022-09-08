@@ -4,6 +4,7 @@ from model_bakery import baker
 
 from ...models import PrestacaoConta, Associacao, Periodo
 
+
 pytestmark = pytest.mark.django_db
 
 
