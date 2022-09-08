@@ -34,6 +34,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
             'status': lancamento["mestre"].status,
             'conferido': lancamento["mestre"].conferido,
             'uuid': f'{lancamento["mestre"].uuid}',
+            'data_e_hora_de_inativacao': None,
 
         } if lancamento["tipo"] == 'Gasto' else {
             'associacao': f'{lancamento["mestre"].associacao.uuid}',
