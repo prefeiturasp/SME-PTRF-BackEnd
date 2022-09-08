@@ -8,7 +8,7 @@ from django.dispatch import receiver
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from .fornecedor import Fornecedor
 from .validators import cpf_cnpj_validation
-from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO
+from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO, STATUS_INATIVO
 from ...core.models import Associacao
 
 
@@ -196,6 +196,12 @@ class Despesa(ModeloBase):
         return completo
 
     def atualiza_status(self):
+        if self.data_e_hora_de_inativacao:
+            if self.status != STATUS_INATIVO:
+                self.status = STATUS_INATIVO
+                self.save()
+            return
+
         cadastro_completo = self.cadastro_completo()
         status_completo = self.status == STATUS_COMPLETO
         if cadastro_completo != status_completo:
@@ -247,7 +253,10 @@ class Despesa(ModeloBase):
 
 @receiver(pre_save, sender=Despesa)
 def proponente_pre_save(instance, **kwargs):
-    instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
+    if instance.data_e_hora_de_inativacao:
+        instance.status = STATUS_INATIVO
+    else:
+        instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
 
 
 @receiver(post_save, sender=Despesa)
