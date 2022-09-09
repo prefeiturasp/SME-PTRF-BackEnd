@@ -106,7 +106,6 @@ def _prestacao_conta_2020_1_unidade_a_dre1(periodo_2020_1, _unidade_a_dre_1, _as
         periodo=periodo_2020_1,
         associacao=_associacao_a_dre_1,
         data_recebimento=date(2020, 1, 1),
-        devolucao_tesouro=True,
         status='APROVADA'
     )
 
@@ -157,7 +156,6 @@ def test_api_list_prestacoes_conta_por_periodo_e_dre(jwt_authenticated_client_a,
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
-
     result_esperado = [
         {
             'periodo_uuid': f'{periodo_2020_1.uuid}',
@@ -171,7 +169,7 @@ def test_api_list_prestacoes_conta_por_periodo_e_dre(jwt_authenticated_client_a,
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
         },
     ]
 
@@ -206,7 +204,7 @@ def test_api_list_prestacoes_conta_por_nome_unidade(jwt_authenticated_client_a,
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
         },
         {
             'periodo_uuid': f'{periodo_2019_2.uuid}',
@@ -257,7 +255,7 @@ def test_api_list_prestacoes_conta_por_nome_associacao(jwt_authenticated_client_
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
         },
         {
             'periodo_uuid': f'{periodo_2019_2.uuid}',
@@ -390,7 +388,7 @@ def test_api_list_prestacoes_conta_por_tecnico(jwt_authenticated_client_a,
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
         },
     ]
 
@@ -481,7 +479,7 @@ def test_api_list_prestacoes_conta_por_status_aprovada(
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
         }
     ]
 

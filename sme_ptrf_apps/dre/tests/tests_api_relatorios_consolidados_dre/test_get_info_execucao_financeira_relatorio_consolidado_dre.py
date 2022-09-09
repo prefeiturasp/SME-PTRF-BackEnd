@@ -37,7 +37,6 @@ def prestacao_conta(periodo, associacao):
         associacao=associacao,
         data_recebimento=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
-        devolucao_tesouro=True,
         status='APROVADA',
     )
 
@@ -247,7 +246,6 @@ def prestacao_conta_consolidado_dre(periodo_consolidado_dre, associacao, consoli
         associacao=associacao,
         data_recebimento=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
-        devolucao_tesouro=True,
         status='APROVADA',
         consolidado_dre=consolidado_dre
     )
@@ -276,7 +274,6 @@ def prestacao_conta_consolidado_dre_2(periodo_consolidado_dre, associacao_2_cons
         associacao=associacao_2_consolidado_dre,
         data_recebimento=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
-        devolucao_tesouro=True,
         status='APROVADA',
         consolidado_dre=consolidado_dre
     )
