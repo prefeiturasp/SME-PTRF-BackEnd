@@ -79,8 +79,6 @@ class PrestacaoConta(ModeloBase):
 
     data_ultima_analise = models.DateField('data da última análise pela DRE', blank=True, null=True)
 
-    devolucao_tesouro = models.BooleanField('há devolução ao tesouro', blank=True, null=True, default=False)
-
     motivos_reprovacao = models.ManyToManyField('dre.MotivoReprovacao', blank=True)
 
     outros_motivos_reprovacao = models.TextField('Outros motivos para reprovação pela DRE', blank=True, default='')
