@@ -3,7 +3,7 @@ import json
 import pytest
 from rest_framework import status
 
-from ...models import PrestacaoConta
+from sme_ptrf_apps.core.models import PrestacaoConta
 
 from model_bakery import baker
 
@@ -58,7 +58,6 @@ def prestacao_conta_02(periodo, associacao, motivo_aprovacao_ressalva_x, motivo_
         associacao=associacao,
         data_recebimento=date(2020, 10, 2),
         data_ultima_analise=date(2020, 10, 2),
-        devolucao_tesouro=True,
         motivos_reprovacao=[motivo_reprovacao_x, ],
         outros_motivos_reprovacao="Outros motivos reprovacao",
         motivos_aprovacao_ressalva=[motivo_aprovacao_ressalva_x, ],
