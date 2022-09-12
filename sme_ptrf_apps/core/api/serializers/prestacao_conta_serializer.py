@@ -1,9 +1,11 @@
 from rest_framework import serializers
 
 from sme_ptrf_apps.core.models import PrestacaoConta, ObservacaoConciliacao
-from sme_ptrf_apps.core.api.serializers import (AssociacaoCompletoSerializer, DevolucaoPrestacaoContaRetrieveSerializer,
-                                                AnaliseContaPrestacaoContaRetrieveSerializer,
-                                                DevolucaoAoTesouroRetrieveSerializer)
+from sme_ptrf_apps.core.api.serializers import (
+    AssociacaoCompletoSerializer,
+    DevolucaoPrestacaoContaRetrieveSerializer,
+    DevolucaoAoTesouroRetrieveSerializer
+)
 from sme_ptrf_apps.core.services.processos_services import get_processo_sei_da_prestacao
 
 from sme_ptrf_apps.dre.api.serializers.motivo_aprovacao_ressalva_serializer import MotivoAprovacaoRessalvaSerializer
@@ -234,8 +236,9 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'informacoes_conciliacao_ue',
             'publicada',
             'referencia_consolidado_dre',
+            'justificativa_pendencia_realizacao',
         )
 
 
 def _str_devolucao_ao_tesouro(obj):
-    return f'{obj.total_devolucao_ao_tesouro:.2f}'.replace('.', ',') if obj.devolucao_tesouro else 'Não'
+    return f'{obj.total_devolucao_ao_tesouro:.2f}'.replace('.', ',') if obj.devolucoes_ao_tesouro_da_prestacao.count() > 0 else 'Não'

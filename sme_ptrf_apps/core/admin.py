@@ -206,7 +206,8 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
                     'total_despesas', 'saldo_reprogramado', 'status')
     list_filter = ('status', 'associacao', 'acao_associacao__acao', 'conta_associacao__tipo_conta')
     list_display_links = ('periodo',)
-    readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre', 'uuid', 'id')
+    readonly_fields = (
+    'saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre', 'uuid', 'id')
     search_fields = ('associacao__unidade__codigo_eol',)
 
 
@@ -311,7 +312,7 @@ class ArquivoAdmin(admin.ModelAdmin):
     actions = ['processa_carga', ]
     readonly_fields = ['ultima_execucao', 'status', 'log', 'uuid', 'id']
     list_filter = ['tipo_carga', 'status']
-    search_fields = ('identificador', )
+    search_fields = ('identificador',)
 
     def processa_carga(self, request, queryset):
         processa_cargas(queryset)
@@ -323,8 +324,8 @@ class ArquivoAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ['nome', 'status']
-    search_fields = ['nome',]
-    list_filter = ['status',]
+    search_fields = ['nome', ]
+    list_filter = ['status', ]
     readonly_fields = ('uuid', id)
 
 
@@ -378,7 +379,8 @@ class NotificacaoAdmin(admin.ModelAdmin):
         "unidade", "prestacao_conta",
         "lido",
     )
-    search_fields = ("titulo", "unidade__nome", "usuario__name", "unidade__codigo_eol", "descricao", "prestacao_conta__periodo__referencia")
+    search_fields = ("titulo", "unidade__nome", "usuario__name", "unidade__codigo_eol", "descricao",
+                     "prestacao_conta__periodo__referencia")
     autocomplete_fields = ['unidade', 'prestacao_conta']
 
 
@@ -564,7 +566,8 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
     def gera_pdf(self, request, queryset):
         from sme_ptrf_apps.core.models import AcaoAssociacao, ContaAssociacao
         from sme_ptrf_apps.core.services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
-        from sme_ptrf_apps.core.services.demonstrativo_financeiro_pdf_service import gerar_arquivo_demonstrativo_financeiro_pdf
+        from sme_ptrf_apps.core.services.demonstrativo_financeiro_pdf_service import \
+            gerar_arquivo_demonstrativo_financeiro_pdf
 
         demonstrativo_financeiro = queryset.first()
 
@@ -677,7 +680,9 @@ class RelacaoBensAdmin(admin.ModelAdmin):
 @admin.register(MembroAssociacao)
 class MembroAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'cargo_associacao', 'associacao')
-    search_fields = ('nome', 'codigo_identificacao', 'uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
+    search_fields = (
+    'nome', 'codigo_identificacao', 'uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome',
+    'associacao__nome')
     list_filter = ('associacao', 'cargo_associacao', 'representacao')
     readonly_fields = ('uuid', 'id')
     autocomplete_fields = ['associacao', ]
@@ -718,17 +723,23 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
 
 @admin.register(AnaliseLancamentoPrestacaoConta)
 class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
-    list_display = ['analise_prestacao_conta', 'tipo_lancamento', 'resultado']
-    list_filter = ('tipo_lancamento', 'analise_prestacao_conta__prestacao_conta__associacao__unidade', )
+    list_display = ['analise_prestacao_conta', 'tipo_lancamento', 'resultado', 'status_realizacao',
+                    'devolucao_tesouro_atualizada']
+    list_filter = (
+    'analise_prestacao_conta__prestacao_conta__associacao__unidade',
+    'analise_prestacao_conta__prestacao_conta__periodo',
+    'tipo_lancamento',
+    'devolucao_tesouro_atualizada',
+    )
     readonly_fields = ('uuid', 'id',)
 
 
 @admin.register(TipoAcertoLancamento)
 class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'categoria']
-    search_fields = ['nome']
-    list_filter = ['categoria', ]
-    readonly_fields = ('uuid', 'id',)
+    list_display = ['nome', 'categoria', 'ativo']
+    search_fields = ['nome', 'categoria']
+    list_filter = ['nome', 'categoria', 'ativo']
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 
 @admin.register(SolicitacaoAcertoLancamento)
@@ -748,15 +759,20 @@ class TipoDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
 
 @admin.register(TipoAcertoDocumento)
 class TipoAcertoDocumentoAdmin(admin.ModelAdmin):
-    list_display = ['nome']
+    list_display = ['nome', 'categoria', 'ativo']
     search_fields = ['nome']
+    list_filter = ['tipos_documento_prestacao', 'categoria', 'ativo']
     readonly_fields = ('uuid', 'id',)
 
 
 @admin.register(AnaliseDocumentoPrestacaoConta)
 class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
-    list_display = ['analise_prestacao_conta', 'tipo_documento_prestacao_conta', 'resultado']
-    list_filter = ['tipo_documento_prestacao_conta', 'analise_prestacao_conta__prestacao_conta__associacao__unidade',]
+    list_display = ['analise_prestacao_conta', 'tipo_documento_prestacao_conta', 'resultado', 'status_realizacao']
+    list_filter = [
+        'analise_prestacao_conta__prestacao_conta__associacao__unidade',
+        'analise_prestacao_conta__prestacao_conta__periodo',
+        'tipo_documento_prestacao_conta',
+    ]
     readonly_fields = ('uuid', 'id',)
 
 
@@ -781,4 +797,3 @@ class ValoresReprogramadosAdmin(admin.ModelAdmin):
                    'associacao__unidade__dre', 'conta_associacao__tipo_conta',
                    'acao_associacao__acao', 'aplicacao_recurso')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
-

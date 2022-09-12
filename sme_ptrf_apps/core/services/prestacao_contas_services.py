@@ -37,12 +37,32 @@ from ..api.serializers.associacao_serializer import AssociacaoCompletoSerializer
 logger = logging.getLogger(__name__)
 
 
+def pc_requer_geracao_documentos(prestacao):
+    if prestacao.status in (
+        PrestacaoConta.STATUS_NAO_RECEBIDA,
+        PrestacaoConta.STATUS_RECEBIDA,
+        PrestacaoConta.STATUS_EM_ANALISE,
+        PrestacaoConta.STATUS_APROVADA,
+        PrestacaoConta.STATUS_APROVADA_RESSALVA,
+        PrestacaoConta.STATUS_REPROVADA,
+        PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA,
+    ):
+        return False
+
+    if prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA:
+        ultima_analise = prestacao.analises_da_prestacao.last()
+        return ultima_analise is not None and ultima_analise.requer_alteracao_em_lancamentos
+    else:
+        return True
+
+
 @transaction.atomic
 def concluir_prestacao_de_contas(periodo, associacao):
     prestacao = PrestacaoConta.abrir(periodo=periodo, associacao=associacao)
     logger.info(f'Aberta a prestação de contas {prestacao}.')
 
     e_retorno_devolucao = prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA
+    requer_geracao_documentos = pc_requer_geracao_documentos(prestacao)
 
     if prestacao.status == PrestacaoConta.STATUS_EM_PROCESSAMENTO:
         return {

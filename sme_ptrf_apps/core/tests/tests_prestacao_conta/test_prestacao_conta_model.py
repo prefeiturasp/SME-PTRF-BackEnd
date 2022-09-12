@@ -2,8 +2,8 @@ import pytest
 from django.contrib import admin
 from model_bakery import baker
 
-from ...models import PrestacaoConta, Associacao, Periodo, AnalisePrestacaoConta
-from sme_ptrf_apps.dre.models import MotivoAprovacaoRessalva
+from ...models import PrestacaoConta, Associacao, Periodo
+
 
 pytestmark = pytest.mark.django_db
 
@@ -20,7 +20,6 @@ def test_instance_model(prestacao_conta):
     assert model.status
     assert model.data_recebimento
     assert model.data_ultima_analise
-    assert model.devolucao_tesouro
     assert model.motivos_reprovacao
     assert model.outros_motivos_reprovacao
     assert model.motivos_aprovacao_ressalva
@@ -29,6 +28,7 @@ def test_instance_model(prestacao_conta):
     assert model.analise_atual is None
     assert model.publicada is None
     assert model.consolidado_dre is None
+    assert model.justificativa_pendencia_realizacao
 
 
 def test_srt_model(prestacao_conta):

@@ -22,7 +22,9 @@ def test_painel_resumo_recursos_retorna_info_conta(
         'periodo_encerrado': False,
         'prestacao_de_contas_uuid': None,
         'status_prestacao': 'NAO_APRESENTADA',
-        'texto_status': 'Período em andamento. '
+        'texto_status': 'Período em andamento. ',
+        'requer_retificacao': False,
+        'tem_acertos_pendentes': False,
     }
 
     info_conta_esperada = {

@@ -34,6 +34,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
             'status': lancamento["mestre"].status,
             'conferido': lancamento["mestre"].conferido,
             'uuid': f'{lancamento["mestre"].uuid}',
+            'data_e_hora_de_inativacao': None,
 
         } if lancamento["tipo"] == 'Gasto' else {
             'associacao': f'{lancamento["mestre"].associacao.uuid}',
@@ -149,8 +150,19 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
                     'analise_prestacao_conta': f'{lancamento["analise_lancamento"].analise_prestacao_conta.uuid}',
                     'despesa': f'{lancamento["mestre"].uuid}',
                     'id': lancamento["analise_lancamento"].id,
+                    'justificativa': None,
+                    'status_realizacao': 'PENDENTE',
                     'receita': None,
                     'resultado': 'AJUSTE',
+                    'requer_atualizacao_devolucao_ao_tesouro': True,
+                    'devolucao_tesouro_atualizada': False,
+                    'requer_atualizacao_lancamento': False,
+                    'lancamento_atualizado': False,
+                    'requer_exclusao_lancamento': False,
+                    'lancamento_excluido': False,
+                    'requer_ajustes_externos': False,
+                    'requer_esclarecimentos': False,
+                    'esclarecimentos': None,
                     'solicitacoes_de_ajuste_da_analise': [
                         {
                             'analise_lancamento': f'{lancamento["analise_lancamento"].uuid}',
@@ -194,6 +206,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
                             },
                             'id': lancamento["solicitacao_ajuste"].id,
                             'tipo_acerto': {
+                                'ativo': True,
                                 'categoria': 'DEVOLUCAO',
                                 'id': lancamento["solicitacao_ajuste"].tipo_acerto.id,
                                 'nome': 'Devolução',
