@@ -355,6 +355,10 @@ class RateioDespesa(ModeloBase):
     def inativar_rateio(self):
         self.status = STATUS_INATIVO
         self.save()
+
+        if self.estorno.exists():
+            self.estorno.first().inativar_receita()
+
         return self
 
     @classmethod
