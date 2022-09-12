@@ -63,7 +63,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id')
     list_display_links = ('nome', 'cnpj')
 
-    actions = ['define_status_nao_finalizado_valores_reprogramados', ]
+    actions = ['define_status_nao_finalizado_valores_reprogramados', 'migrar_valores_reprogramados']
 
     def define_status_nao_finalizado_valores_reprogramados(self, request, queryset):
         for associacao in queryset.all():
@@ -74,6 +74,48 @@ class AssociacaoAdmin(admin.ModelAdmin):
                 associacao.save()
 
         self.message_user(request, f"Status definido com sucesso!")
+
+    def migrar_valores_reprogramados(self, request, queryset):
+        for associacao in queryset.all():
+            if associacao.status_valores_reprogramados == Associacao.STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS:
+                # caso ja exista valores reprogramados para essa associação, nada deve ser feito
+                if associacao.valores_reprogramados_associacao.all():
+                    continue
+
+                if not associacao.periodo_inicial:
+                    continue
+
+                for conta_associacao in associacao.contas.all():
+                    for acao_associacao in associacao.acoes.exclude(acao__e_recursos_proprios=True):
+                        fechamento_implantacao = associacao.fechamentos_associacao.filter(
+                            conta_associacao=conta_associacao).filter(
+                            acao_associacao=acao_associacao).filter(status="IMPLANTACAO").first()
+
+                        if acao_associacao.acao.aceita_custeio:
+                            ValoresReprogramados.criar_valor_reprogramado_custeio(
+                                associacao,
+                                conta_associacao,
+                                acao_associacao,
+                                fechamento_implantacao
+                            )
+
+                        if acao_associacao.acao.aceita_capital:
+                            ValoresReprogramados.criar_valor_reprogramado_capital(
+                                associacao,
+                                conta_associacao,
+                                acao_associacao,
+                                fechamento_implantacao
+                            )
+
+                        if acao_associacao.acao.aceita_livre:
+                            ValoresReprogramados.criar_valor_reprogramado_livre(
+                                associacao,
+                                conta_associacao,
+                                acao_associacao,
+                                fechamento_implantacao
+                            )
+
+        self.message_user(request, f"Valores migrados com sucesso!")
 
 
 @admin.register(ContaAssociacao)
@@ -212,7 +254,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
 
-    actions = ['vincular_consolidado_dre', ]
+    actions = ['vincular_consolidado_dre', 'remover_duplicacao_fechamentos']
 
     def vincular_consolidado_dre(self, request, queryset):
         from sme_ptrf_apps.dre.services.vincular_consolidado_service import VincularConsolidadoService
@@ -221,6 +263,22 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
             VincularConsolidadoService.vincular_artefato(prestacao_conta)
 
         self.message_user(request, f"PCs vinculadas com sucesso!")
+
+    def remover_duplicacao_fechamentos(self, request, queryset):
+        for prestacao_conta in queryset.all():
+            associacao = prestacao_conta.associacao
+
+            for conta in associacao.contas.all():
+                fechamento_por_conta = prestacao_conta.fechamentos_da_prestacao.filter(conta_associacao=conta)
+
+                for acao in associacao.acoes.all():
+                    fechamento_por_conta_e_acao = fechamento_por_conta.filter(acao_associacao=acao).order_by('id')
+
+                    if len(fechamento_por_conta_e_acao) > 1:
+                        fechamento_mais_recente = fechamento_por_conta_e_acao.last()
+                        fechamento_mais_recente.delete()
+
+        self.message_user(request, f"Fechamentos duplicados apagados com sucesso!")
 
 
 @admin.register(Ata)
