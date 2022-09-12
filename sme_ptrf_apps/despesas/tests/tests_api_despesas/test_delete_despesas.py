@@ -2,7 +2,7 @@ import pytest
 from rest_framework import status
 
 from ...models import Despesa, RateioDespesa
-
+from sme_ptrf_apps.receitas.models import Receita
 
 pytestmark = pytest.mark.django_db
 
@@ -97,3 +97,30 @@ def test_api_delete_despesas_com_imposto_com_pc(
 
     assert RateioDespesa.objects.filter(uuid=tapi_rateio_despesa_imposto.uuid).exists()
     assert RateioDespesa.by_uuid(tapi_rateio_despesa_imposto.uuid).status == 'INATIVO', "Rateio da despesa imposto deveria estar inativo."
+
+
+def test_api_delete_despesas_com_estorno_com_pc(
+    jwt_authenticated_client_d,
+    tapi_despesa,
+    tapi_periodo_2019_2,
+    tapi_rateio_despesa_capital,
+    tapi_rateio_despesa_estornada,
+    tapi_prestacao_conta_da_despesa,
+    tapi_receita_estorno,
+):
+    assert Despesa.objects.filter(uuid=tapi_despesa.uuid).exists()
+    assert RateioDespesa.objects.filter(uuid=tapi_rateio_despesa_capital.uuid).exists()
+
+    assert Receita.objects.get(id=tapi_receita_estorno.id).status == 'COMPLETO'
+
+    response = jwt_authenticated_client_d.delete(f'/api/despesas/{tapi_despesa.uuid}/', content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    assert Despesa.objects.filter(uuid=tapi_despesa.uuid).exists()
+    assert Despesa.by_uuid(tapi_despesa.uuid).status == 'INATIVO', "Despesa deveria estar inativa."
+
+    assert RateioDespesa.objects.filter(uuid=tapi_rateio_despesa_capital.uuid).exists()
+    assert RateioDespesa.by_uuid(tapi_rateio_despesa_capital.uuid).status == 'INATIVO', "Rateio deveria estar inativo."
+
+    assert Receita.objects.get(id=tapi_receita_estorno.id).status == 'INATIVO', "Estorno deveria estar inativo."
