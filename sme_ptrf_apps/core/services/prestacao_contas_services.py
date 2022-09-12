@@ -68,6 +68,7 @@ def concluir_prestacao_de_contas(periodo, associacao):
         return {
             "prestacao": prestacao,
             "e_retorno_devolucao": e_retorno_devolucao,
+            "requer_geracao_documentos": requer_geracao_documentos,
             "erro": "A pc já está em processamento, não é possivel alterar o status para em processamento."
         }
 
@@ -77,6 +78,7 @@ def concluir_prestacao_de_contas(periodo, associacao):
     return {
         "prestacao": prestacao,
         "e_retorno_devolucao": e_retorno_devolucao,
+        "requer_geracao_documentos": requer_geracao_documentos,
         "erro": None
     }
 
