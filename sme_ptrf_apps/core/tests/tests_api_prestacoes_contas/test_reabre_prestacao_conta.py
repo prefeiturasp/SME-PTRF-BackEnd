@@ -44,7 +44,6 @@ def prestacao_conta_01(periodo_01, associacao, motivo_aprovacao_ressalva_x, moti
         associacao=associacao,
         data_recebimento=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
-        devolucao_tesouro=True,
         motivos_reprovacao=[motivo_reprovacao_x, ],
         outros_motivos_reprovacao="Outros motivos reprovacao",
         motivos_aprovacao_ressalva=[motivo_aprovacao_ressalva_x, ],
