@@ -232,7 +232,8 @@ def get_implantacao_de_saldos_da_associacao(associacao):
             'acao_associacao': AcaoAssociacaoLookUpSerializer(implantacao['acao_associacao']).data,
             'conta_associacao': ContaAssociacaoLookUpSerializer(implantacao['conta_associacao']).data,
             'aplicacao': implantacao['aplicacao'],
-            'saldo': implantacao['saldo']
+            'saldo': implantacao['saldo'],
+            "status": associacao.status_valores_reprogramados
         }
         saldos.append(saldo)
 

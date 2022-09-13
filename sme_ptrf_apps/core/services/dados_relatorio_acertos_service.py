@@ -1,4 +1,4 @@
-from sme_ptrf_apps.core.services.prestacao_contas_services import (lancamentos_da_prestacao, ajustes_saldos_iniciais)
+from sme_ptrf_apps.core.services.prestacao_contas_services import (lancamentos_da_prestacao)
 from ..api.serializers.analise_documento_prestacao_conta_serializer import AnaliseDocumentoPrestacaoContaRetrieveSerializer
 from datetime import date
 from ...utils.numero_ordinal import formata_numero_ordinal
@@ -23,17 +23,6 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
         'data_devolucao_dre': analise_prestacao_conta.devolucao_prestacao_conta.data if analise_prestacao_conta.devolucao_prestacao_conta else "-",
         'prazo_devolucao_associacao': analise_prestacao_conta.devolucao_prestacao_conta.data_limite_ue if analise_prestacao_conta.devolucao_prestacao_conta else "-"
     }
-
-    dados_valores_reprogramados = []
-    for conta in analise_prestacao_conta.prestacao_conta.associacao.contas.all():
-        ajustes_saldos = ajustes_saldos_iniciais(analise_prestacao_conta.uuid, conta.uuid)
-        if ajustes_saldos:
-            dados = {
-                'nome_conta': conta.tipo_conta.nome,
-                'ajustes_saldos': ajustes_saldos
-            }
-
-            dados_valores_reprogramados.append(dados)
 
     dados_ajustes_contas = []
     logger.info(f'Análise de PC {analise_prestacao_conta.id}')
@@ -80,27 +69,22 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
         'info_cabecalho': info_cabecalho,
         'dados_associacao': dados_associacao,
         'versao_devolucao': "Rascunho" if previa else verifica_versao_devolucao(analise_prestacao_conta),
-        'dados_valores_reprogramados': dados_valores_reprogramados,
         'dados_ajustes_contas': dados_ajustes_contas,
         'dados_lancamentos': dados_lancamentos,
         'dados_documentos': dados_documentos,
         'dados_tecnico': dados_tecnico,
         'data_geracao_documento': data_geracao_documento,
-        'blocos': nome_blocos(dados_valores_reprogramados, dados_ajustes_contas, dados_lancamentos, dados_documentos, dados_tecnico, previa)
+        'blocos': nome_blocos(dados_ajustes_contas, dados_lancamentos, dados_documentos, dados_tecnico, previa)
     }
 
     return dados
 
 
-def nome_blocos(dados_valores_reprogramados, dados_ajustes_contas, dados_lancamentos, dados_documentos, dados_tecnico, previa):
+def nome_blocos(dados_ajustes_contas, dados_lancamentos, dados_documentos, dados_tecnico, previa):
     dados = {}
     numero_bloco = 1
 
     dados[f'identificacao_associacao'] = 'Bloco 1 - Identificação da Associação da Unidade Educacional'
-
-    if dados_valores_reprogramados:
-        numero_bloco = numero_bloco + 1
-        dados[f'acertos_saldos'] = f'Bloco {numero_bloco} - Acertos nos saldos inicias reprogramados'
 
     if dados_ajustes_contas:
         numero_bloco = numero_bloco + 1

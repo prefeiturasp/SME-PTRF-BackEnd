@@ -7,7 +7,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasDreComLeituraOuGravacao, PermissaoAPITodosComGravacao
 )
 
-from sme_ptrf_apps.dre.models import AtaParecerTecnico
+from sme_ptrf_apps.dre.models import AtaParecerTecnico, ConsolidadoDRE
 from sme_ptrf_apps.dre.models import ParametrosDre
 from sme_ptrf_apps.core.models import Unidade, Periodo
 import logging
@@ -17,11 +17,11 @@ from sme_ptrf_apps.dre.api.serializers.ata_parecer_tecnico_serializer import (
     AtaParecerTecnicoLookUpSerializer
 )
 from ...services import (
-    informacoes_execucao_financeira_unidades_ata_parecer_tecnico
+    informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
 )
 from django.core.exceptions import ValidationError
 
-from ...tasks import gerar_ata_parecer_tecnico_async
+from ...tasks import gerar_arquivo_ata_parecer_tecnico_async
 
 from django.http import HttpResponse
 
@@ -87,7 +87,7 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        gerar_ata_parecer_tecnico_async.delay(
+        gerar_arquivo_ata_parecer_tecnico_async.delay(
             ata_uuid=ata_uuid,
             dre_uuid=dre_uuid,
             periodo_uuid=periodo_uuid,
@@ -242,7 +242,20 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        info = informacoes_execucao_financeira_unidades_ata_parecer_tecnico(dre=dre, periodo=periodo)
+        ata_uuid = self.request.query_params.get('ata')
+        ata_de_parecer_tecnico = None
+        if ata_uuid:
+            try:
+                ata_de_parecer_tecnico = AtaParecerTecnico.objects.get(uuid=ata_uuid)
+            except AtaParecerTecnico.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto Ata de Parecer Técnico para o uuid {ata_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        info = informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre(dre=dre, periodo=periodo, ata_de_parecer_tecnico=ata_de_parecer_tecnico)
 
         return Response(info)
 
@@ -293,13 +306,17 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        ata = AtaParecerTecnico.objects.filter(dre=dre).filter(periodo=periodo).last()
-
-        if not ata:
+        try:
+            ata = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo).order_by('criado_em').last()
+            if not ata:
+                ata = AtaParecerTecnico.criar_ou_retornar_ata_sem_consolidado_dre(dre, periodo)
+        except (AtaParecerTecnico.DoesNotExist, ValidationError):
             erro = {
-                'mensagem': 'Ainda não existe uma ata de parecer tecnico para essa DRE.'
+                'erro': 'status-ata',
+                'mensagem': f"Não foi possível retornar ou criar uma ata."
             }
-            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(AtaParecerTecnicoLookUpSerializer(ata, many=False).data,
                         status=status.HTTP_200_OK)

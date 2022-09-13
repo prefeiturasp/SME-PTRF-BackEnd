@@ -36,7 +36,6 @@ from .prestacao_contas_services import (
     marca_documentos_como_corretos,
     marca_documentos_como_nao_conferidos,
     solicita_acertos_de_documentos,
-    ajustes_saldos_iniciais,
     previa_prestacao_conta,
     previa_informacoes_financeiras_para_atas
 )
@@ -54,3 +53,5 @@ from .associacoes_service import (
     retorna_despesas_com_pagamento_antecipado_por_periodo
 )
 from .analise_prestacao_conta_service import get_ajustes_extratos_bancarios
+from .resumo_rescursos_service import ResumoRecursosService
+from .painel_resumo_recursos_service import PainelResumoRecursosService

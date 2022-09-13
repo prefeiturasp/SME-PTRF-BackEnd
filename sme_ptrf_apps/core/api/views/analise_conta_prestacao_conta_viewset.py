@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 
 
-from ...models import AnaliseValorReprogramadoPrestacaoConta, AnalisePrestacaoConta, ContaAssociacao, AcaoAssociacao
+from ...models import AnalisePrestacaoConta, ContaAssociacao, AcaoAssociacao
 
 from ...models import AnaliseContaPrestacaoConta, PrestacaoConta
 from ..serializers.analise_conta_prestacao_conta_serializer import AnaliseContaPrestacaoContaRetrieveSerializer

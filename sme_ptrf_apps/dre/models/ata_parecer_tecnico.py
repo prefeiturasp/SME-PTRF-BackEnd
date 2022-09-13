@@ -64,6 +64,23 @@ class AtaParecerTecnico(ModeloBase):
 
     data_portaria = models.DateField('Data da portaria', blank=True, null=True)
 
+    consolidado_dre = models.ForeignKey('ConsolidadoDRE', on_delete=models.CASCADE,
+                                        related_name='atas_de_parecer_tecnico_do_consolidado_dre',
+                                        blank=True, null=True)
+
+    sequencia_de_publicacao = models.IntegerField('Sequência de publicação', blank=True, null=True)
+
+
+    @classmethod
+    def criar_ou_retornar_ata_sem_consolidado_dre(cls, dre, periodo, sequencia_de_publicacao):
+        ata, _ = cls.objects.get_or_create(
+            dre=dre,
+            periodo=periodo,
+            sequencia_de_publicacao=sequencia_de_publicacao,
+            defaults={'dre': dre, 'periodo': periodo, 'sequencia_de_publicacao': sequencia_de_publicacao},
+        )
+
+        return ata
 
     @classmethod
     def iniciar(cls, dre, periodo):
@@ -94,15 +111,20 @@ class AtaParecerTecnico(ModeloBase):
 
     def arquivo_pdf_iniciar(self):
         self.status_geracao_pdf = self.STATUS_EM_PROCESSAMENTO
-        self.save()
+        self.save(update_fields=['status_geracao_pdf'])
 
     def arquivo_pdf_concluir(self):
         self.status_geracao_pdf = self.STATUS_CONCLUIDO
-        self.save()
+        self.save(update_fields=['status_geracao_pdf'])
 
     def arquivo_pdf_nao_gerado(self):
         self.status_geracao_pdf = self.STATUS_NAO_GERADO
-        self.save()
+        self.save(update_fields=['status_geracao_pdf'])
+
+    def atrelar_consolidado_dre(self, consolidado_dre):
+        self.consolidado_dre = consolidado_dre
+        self.save(update_fields=['consolidado_dre'])
+        return self
 
 
 @receiver(pre_save, sender=AtaParecerTecnico)

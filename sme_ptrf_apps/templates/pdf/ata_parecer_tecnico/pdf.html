@@ -28,6 +28,7 @@
         <span class="titulo font-14"><strong>{{ dados.cabecalho.titulo }}</strong></span><br/>
         <span class="font-12 mb-0 texto-verde"><strong>{{ dados.cabecalho.sub_titulo }}</strong></span></br>
         <span class="font-12 mb-0"><strong>{{ dados.cabecalho.nome_ata }}</strong></span></br>
+        <span class="font-12 mb-0"><strong>{{ dados.cabecalho.titulo_sequencia_publicacao }}</strong></span>
       </p>
     </div>
   </div>
@@ -108,6 +109,12 @@
       d) Submeter ao Sr. Diretor Regional de Educação, a presente Ata, com o parecer conclusivo desta Comissão atendendo
       ao inciso IV, do art. 34 da Portaria SME nº 6.634/2021, manter sob custódia até a publicação do despacho no DOC.
     </p>
+
+    {% if dados.dados_texto_da_ata.comentarios %}
+      <p class="mt-3 titulo-assinaturas font-12 mb-0"><strong>Comentários</strong></p>
+      <p class="titulo-assinaturas font-12 mb-0">{{ dados.dados_texto_da_ata.comentarios }}</p>
+    {% endif %}
+
     <p class="mt-3 titulo-assinaturas font-12">
       Nada mais a ser tratado, os trabalhos foram encerrados, a Ata lida e achada conforme,
       vai assinada pelos membros da Comissão.
@@ -121,37 +128,8 @@
   </article>
 
   <article class="col-12 pl-0 mt-5">
-
     <p class="font-12 border-bottom pb-1 texto-verde"><strong>Presentes</strong></p>
-
-    {% if dados.presentes_na_ata.presentes %}
-      <table class="table table-bordered tabela-status-pc">
-        <thead>
-        <tr>
-          <th scope="col" style="width: 40%">Nome</th>
-          <th scope="col" style="width: 40%">Cargo</th>
-          <th scope="col" style="width: 20%">RF</th>
-        </tr>
-        </thead>
-
-        {% for presente in dados.presentes_na_ata.presentes %}
-
-          <tbody>
-          <tr>
-            <td class="py-2">{{ presente.nome }}</td>
-            <td class="py-2">{{ presente.cargo }}</td>
-            <td class="py-2">{{ presente.rf }}</td>
-          </tr>
-          </tbody>
-
-
-        {% endfor %}
-      </table>
-    {% else %}
-      <p>Não existem membros cadastrados</p>
-
-    {% endif %}
-
+    {% include "./partials/tabela-presentes-e-assinaturas.html" with dados=dados %}
   </article>
 
 

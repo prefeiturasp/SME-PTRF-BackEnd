@@ -1,6 +1,7 @@
 from django.contrib import admin
 from rangefilter.filter import DateRangeFilter
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
+from sme_ptrf_apps.core.services import associacao_pode_implantar_saldo
 from .models import (
     Acao,
     AcaoAssociacao,
@@ -41,7 +42,7 @@ from .models import (
     AnaliseDocumentoPrestacaoConta,
     SolicitacaoAcertoDocumento,
     PresenteAta,
-    AnaliseValorReprogramadoPrestacaoConta
+    ValoresReprogramados
 )
 
 admin.site.register(Acao)
@@ -61,6 +62,60 @@ class AssociacaoAdmin(admin.ModelAdmin):
     list_filter = ('unidade__dre', 'periodo_inicial')
     readonly_fields = ('uuid', 'id')
     list_display_links = ('nome', 'cnpj')
+
+    actions = ['define_status_nao_finalizado_valores_reprogramados', 'migrar_valores_reprogramados']
+
+    def define_status_nao_finalizado_valores_reprogramados(self, request, queryset):
+        for associacao in queryset.all():
+            implantacao = associacao_pode_implantar_saldo(associacao=associacao)
+
+            if implantacao["permite_implantacao"]:
+                associacao.status_valores_reprogramados = Associacao.STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO
+                associacao.save()
+
+        self.message_user(request, f"Status definido com sucesso!")
+
+    def migrar_valores_reprogramados(self, request, queryset):
+        for associacao in queryset.all():
+            if associacao.status_valores_reprogramados == Associacao.STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS:
+                # caso ja exista valores reprogramados para essa associação, nada deve ser feito
+                if associacao.valores_reprogramados_associacao.all():
+                    continue
+
+                if not associacao.periodo_inicial:
+                    continue
+
+                for conta_associacao in associacao.contas.all():
+                    for acao_associacao in associacao.acoes.exclude(acao__e_recursos_proprios=True):
+                        fechamento_implantacao = associacao.fechamentos_associacao.filter(
+                            conta_associacao=conta_associacao).filter(
+                            acao_associacao=acao_associacao).filter(status="IMPLANTACAO").first()
+
+                        if acao_associacao.acao.aceita_custeio:
+                            ValoresReprogramados.criar_valor_reprogramado_custeio(
+                                associacao,
+                                conta_associacao,
+                                acao_associacao,
+                                fechamento_implantacao
+                            )
+
+                        if acao_associacao.acao.aceita_capital:
+                            ValoresReprogramados.criar_valor_reprogramado_capital(
+                                associacao,
+                                conta_associacao,
+                                acao_associacao,
+                                fechamento_implantacao
+                            )
+
+                        if acao_associacao.acao.aceita_livre:
+                            ValoresReprogramados.criar_valor_reprogramado_livre(
+                                associacao,
+                                conta_associacao,
+                                acao_associacao,
+                                fechamento_implantacao
+                            )
+
+        self.message_user(request, f"Valores migrados com sucesso!")
 
 
 @admin.register(ContaAssociacao)
@@ -163,11 +218,67 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
 
     get_eol_unidade.short_description = 'EOL'
 
-    list_display = ('get_eol_unidade', 'periodo', 'status')
-    list_filter = ('status', 'associacao', 'periodo')
-    list_display_links = ('periodo',)
-    readonly_fields = ('uuid', 'id')
-    search_fields = ('associacao__unidade__codigo_eol',)
+    def get_nome_unidade(self, obj):
+        return obj.associacao.unidade.nome if obj and obj.associacao and obj.associacao.unidade else ''
+
+    get_nome_unidade.short_description = 'Unidade Educacional'
+
+    def get_relatorio_referencia(self, obj):
+        return obj.consolidado_dre.referencia if obj.consolidado_dre else ""
+
+    get_relatorio_referencia.short_description = 'Publicação'
+
+    def get_periodo_referencia(self, obj):
+        return obj.periodo.referencia if obj.periodo else ""
+
+    get_periodo_referencia.short_description = 'Período'
+
+    list_display = (
+        'get_eol_unidade',
+        'get_nome_unidade',
+        'get_periodo_referencia',
+        'status',
+        'publicada',
+        'get_relatorio_referencia'
+    )
+    list_filter = (
+        'status',
+        'associacao__unidade__dre',
+        'associacao',
+        'periodo',
+        'publicada',
+        'consolidado_dre__sequencia_de_publicacao',
+        'consolidado_dre'
+    )
+    list_display_links = ('get_nome_unidade',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
+
+    actions = ['vincular_consolidado_dre', 'remover_duplicacao_fechamentos']
+
+    def vincular_consolidado_dre(self, request, queryset):
+        from sme_ptrf_apps.dre.services.vincular_consolidado_service import VincularConsolidadoService
+
+        for prestacao_conta in queryset.all():
+            VincularConsolidadoService.vincular_artefato(prestacao_conta)
+
+        self.message_user(request, f"PCs vinculadas com sucesso!")
+
+    def remover_duplicacao_fechamentos(self, request, queryset):
+        for prestacao_conta in queryset.all():
+            associacao = prestacao_conta.associacao
+
+            for conta in associacao.contas.all():
+                fechamento_por_conta = prestacao_conta.fechamentos_da_prestacao.filter(conta_associacao=conta)
+
+                for acao in associacao.acoes.all():
+                    fechamento_por_conta_e_acao = fechamento_por_conta.filter(acao_associacao=acao).order_by('id')
+
+                    if len(fechamento_por_conta_e_acao) > 1:
+                        fechamento_mais_recente = fechamento_por_conta_e_acao.last()
+                        fechamento_mais_recente.delete()
+
+        self.message_user(request, f"Fechamentos duplicados apagados com sucesso!")
 
 
 @admin.register(Ata)
@@ -662,7 +773,12 @@ class PresenteAtaAdmin(admin.ModelAdmin):
     list_display = ['uuid', 'ata', 'identificacao', 'nome', 'cargo', 'membro']
 
 
-@admin.register(AnaliseValorReprogramadoPrestacaoConta)
-class AnaliseValorReprogramadoPrestacaoContaAdmin(admin.ModelAdmin):
-    list_display = ['analise_prestacao_conta', 'conta_associacao', 'acao_associacao', 'valor_saldo_reprogramado_correto']
-    readonly_fields = ('uuid', 'id',)
+@admin.register(ValoresReprogramados)
+class ValoresReprogramadosAdmin(admin.ModelAdmin):
+    list_display = ('associacao', 'conta_associacao', 'acao_associacao', 'aplicacao_recurso', 'valor_ue', 'valor_dre')
+    search_fields = ('uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
+    list_filter = ('associacao', 'associacao__status_valores_reprogramados', 'associacao__periodo_inicial',
+                   'associacao__unidade__dre', 'conta_associacao__tipo_conta',
+                   'acao_associacao__acao', 'aplicacao_recurso')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+

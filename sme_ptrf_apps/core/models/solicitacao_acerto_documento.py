@@ -1,9 +1,14 @@
 from django.db import models
 
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
 class SolicitacaoAcertoDocumento(ModeloBase):
+    history = AuditlogHistoryField()
+
     analise_documento = models.ForeignKey('AnaliseDocumentoPrestacaoConta', on_delete=models.CASCADE,
                                           related_name='solicitacoes_de_ajuste_da_analise')
 
@@ -18,3 +23,6 @@ class SolicitacaoAcertoDocumento(ModeloBase):
     class Meta:
         verbose_name = "Solicitação de acerto em documento"
         verbose_name_plural = "16.7) Solicitações de acertos em documentos"
+
+
+auditlog.register(SolicitacaoAcertoDocumento)

@@ -35,6 +35,7 @@ def test_api_retrieve_ata_parecer_tecnico(jwt_authenticated_client_dre, ata_pare
         'hora_reuniao': '00:00',
         'data_portaria': None,
         'numero_portaria': None,
+        'versao': 'PREVIA'
     }
 
     assert response.status_code == status.HTTP_200_OK

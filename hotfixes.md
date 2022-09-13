@@ -1,3 +1,10 @@
+### 1.33.1 - 12/09/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 49
+* (72992) - Corrige problema de duplicação de fechamentos
+* (73629) - Implementa ação para importar implantação de valores reprogramados
+
+### 1.32.7 - 16/08/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 47
+* (71609) -  Inclui novos filtros no Admin de Despesas
+
 ### 1.32.6 - 05/08/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 47
 * (71372) -  Corrige cálculo do campo outros créditos no concolidado DRE
 

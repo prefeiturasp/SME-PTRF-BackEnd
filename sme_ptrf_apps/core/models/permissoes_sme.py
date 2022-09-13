@@ -93,3 +93,31 @@ class FuncSmeFornecedores(models.Model):
             ('access_fornecedores', '[SME] Pode acessar parametrizações cadastro de fornecedores.'),
             ('change_fornecedores', '[SME] Pode atualizar parametrizações cadastro de fornecedores.'),
         )
+
+
+class FuncSmeSuporteUnidades(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[SME] Suporte às unidades"
+        verbose_name_plural = "[SME] Suporte às unidades"
+
+        permissions = (
+            ('access_suporte_unidades_sme', '[SME] Pode acessar o suporte às unidades (SME).'),
+        )
+
+
+class FuncSmeExtracaoDeDados(models.Model):
+
+    class Meta:
+        managed = False
+        default_permissions = ()
+
+        verbose_name = "[SME] Extração de dados"
+        verbose_name_plural = "[SME] Extração de dados"
+
+        permissions = (
+            ('access_extracao_de_dados_sme', '[SME] Pode acessar Extração de dados da SME.'),
+        )
