@@ -20,7 +20,6 @@ def test_instance_model(prestacao_conta):
     assert model.status
     assert model.data_recebimento
     assert model.data_ultima_analise
-    assert model.devolucao_tesouro
     assert model.motivos_reprovacao
     assert model.outros_motivos_reprovacao
     assert model.motivos_aprovacao_ressalva

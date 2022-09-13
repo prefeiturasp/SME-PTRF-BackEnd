@@ -137,10 +137,10 @@ class Receita(ModeloBase):
     def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None,
                                                categoria_receita=None):
         if periodo.data_fim_realizacao_despesas:
-            dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
+            dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
                 data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
         else:
-            dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
+            dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
                 data__gte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
@@ -165,10 +165,10 @@ class Receita(ModeloBase):
         categoria_receita=None
     ):
         if periodo_final.data_fim_realizacao_despesas:
-            dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
+            dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
                 data__range=(periodo_inicial.data_inicio_realizacao_despesas, periodo_final.data_fim_realizacao_despesas))
         else:
-            dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
+            dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
                 data__gte=periodo_inicial.data_inicio_realizacao_despesas)
 
         if conferido is not None:
@@ -185,10 +185,10 @@ class Receita(ModeloBase):
     @classmethod
     def receitas_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None, acao_associacao=None, filtrar_por_data_inicio=None, filtrar_por_data_fim=None):
         if periodo.data_fim_realizacao_despesas:
-            dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+            dataset = cls.completas.filter(conta_associacao=conta_associacao).filter(
                 data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas)).order_by('data')
         else:
-            dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+            dataset = cls.completas.filter(conta_associacao=conta_associacao).filter(
                 data__gte=periodo.data_inicio_realizacao_despesas).order_by('data')
 
         if conferido is not None:
@@ -222,13 +222,13 @@ class Receita(ModeloBase):
         acao_associacao=None
     ):
         if periodo_final.data_fim_realizacao_despesas:
-            dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+            dataset = cls.completas.filter(conta_associacao=conta_associacao).filter(
                 data__range=(
                     periodo_inicial.data_inicio_realizacao_despesas,
                     periodo_final.data_fim_realizacao_despesas
                 )).order_by('data')
         else:
-            dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+            dataset = cls.completas.filter(conta_associacao=conta_associacao).filter(
                 data__gte=periodo_inicial.data_inicio_realizacao_despesas).order_by('data')
 
         if conferido is not None:

@@ -26,7 +26,6 @@ def test_api_conclui_analise_prestacao_conta_exige_resultado_analise(jwt_authent
                                                                      prestacao_conta_em_analise,
                                                                      conta_associacao):
     payload = {
-        'devolucao_tesouro': True,
         'analises_de_conta_da_prestacao': [
             {
                 'conta_associacao': f'{conta_associacao.uuid}',
@@ -57,7 +56,6 @@ def test_api_conclui_analise_prestacao_conta_exige_resultado_analise(jwt_authent
 def test_api_conclui_analise_prestacao_conta_exige_analises_de_conta_da_prestacao(jwt_authenticated_client_a,
                                                                                   prestacao_conta_em_analise):
     payload = {
-        'devolucao_tesouro': True,
         'resultado_analise': PrestacaoConta.STATUS_APROVADA
     }
 
@@ -128,7 +126,6 @@ def test_api_conclui_analise_prestacao_conta_valida_resultado_aanalise(jwt_authe
                                                                        prestacao_conta_recebida,
                                                                        conta_associacao):
     payload = {
-        'devolucao_tesouro': True,
         'analises_de_conta_da_prestacao': [
             {
                 'conta_associacao': f'{conta_associacao.uuid}',

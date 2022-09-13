@@ -268,6 +268,46 @@ def tapi_rateio_despesa_capital(associacao, tapi_despesa, conta_associacao, tipo
 
 
 @pytest.fixture
+def tapi_rateio_despesa_estornada(associacao, tapi_despesa, conta_associacao, tipo_aplicacao_recurso, tipo_custeio, especificacao_material_servico, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=tapi_despesa,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=especificacao_material_servico,
+        valor_rateio=100.00,
+        quantidade_itens_capital=2,
+        valor_item_capital=50.00,
+        numero_processo_incorporacao_capital='Teste123456'
+
+    )
+
+@pytest.fixture
+def tapi_tipo_receita_estorno(tipo_conta):
+    return baker.make('TipoReceita', nome='Estorno', e_estorno=True, tipos_conta=[tipo_conta])
+
+
+@pytest.fixture
+def tapi_receita_estorno(tapi_tipo_receita_estorno, tapi_rateio_despesa_estornada):
+    rateio = tapi_rateio_despesa_estornada
+    return baker.make(
+        'Receita',
+        associacao=rateio.despesa.associacao,
+        data=rateio.despesa.data_transacao,
+        valor=rateio.valor_rateio,
+        conta_associacao=rateio.conta_associacao,
+        acao_associacao=rateio.acao_associacao,
+        tipo_receita=tapi_tipo_receita_estorno,
+        conferido=True,
+        categoria_receita=rateio.aplicacao_recurso,
+        rateio_estornado=rateio
+    )
+
+
+@pytest.fixture
 def tapi_prestacao_conta_da_despesa(tapi_periodo_2019_2, associacao):
     return baker.make(
         'PrestacaoConta',

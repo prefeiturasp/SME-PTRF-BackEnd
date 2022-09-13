@@ -64,6 +64,14 @@ def concluir_prestacao_de_contas(periodo, associacao):
     e_retorno_devolucao = prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA
     requer_geracao_documentos = pc_requer_geracao_documentos(prestacao)
 
+    if prestacao.status == PrestacaoConta.STATUS_EM_PROCESSAMENTO:
+        return {
+            "prestacao": prestacao,
+            "e_retorno_devolucao": e_retorno_devolucao,
+            "requer_geracao_documentos": requer_geracao_documentos,
+            "erro": "A pc já está em processamento, não é possivel alterar o status para em processamento."
+        }
+
     prestacao.em_processamento()
     logger.info(f'Prestação de contas em processamento {prestacao}.')
 
@@ -71,6 +79,7 @@ def concluir_prestacao_de_contas(periodo, associacao):
         "prestacao": prestacao,
         "e_retorno_devolucao": e_retorno_devolucao,
         "requer_geracao_documentos": requer_geracao_documentos,
+        "erro": None
     }
 
 

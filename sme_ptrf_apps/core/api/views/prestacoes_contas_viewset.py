@@ -206,20 +206,30 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             )
             prestacao_de_contas = dados["prestacao"]
 
-            concluir_prestacao_de_contas_async.delay(
-                periodo.uuid,
-                associacao.uuid,
-                usuario=request.user.username,
-                e_retorno_devolucao=dados["e_retorno_devolucao"],
-                requer_geracao_documentos=dados["requer_geracao_documentos"],
-                justificativa_acertos_pendentes=justificativa_acertos_pendentes,
-            )
+            erro_pc = dados["erro"]
+            if erro_pc:
+                raise Exception(erro_pc)
+            else:
+                concluir_prestacao_de_contas_async.delay(
+                    periodo.uuid,
+                    associacao.uuid,
+                    usuario=request.user.username,
+                    e_retorno_devolucao=dados["e_retorno_devolucao"],
+                    requer_geracao_documentos=dados["requer_geracao_documentos"],
+                    justificativa_acertos_pendentes=justificativa_acertos_pendentes,
+                )
         except(IntegrityError):
             erro = {
                 'erro': 'prestacao_ja_iniciada',
                 'mensagem': 'Você não pode iniciar uma prestação de contas que já foi iniciada.'
             }
             return Response(erro, status=status.HTTP_409_CONFLICT)
+        except Exception as e:
+            erro = {
+                'erro': 'prestacao_em_processamento',
+                'mensagem': f'{e}'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(PrestacaoContaLookUpSerializer(prestacao_de_contas, many=False).data,
                         status=status.HTTP_200_OK)
