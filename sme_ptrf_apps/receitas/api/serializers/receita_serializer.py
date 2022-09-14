@@ -194,7 +194,7 @@ class ReceitaConciliacaoSerializer(serializers.ModelSerializer):
     mensagem_inativa = serializers.SerializerMethodField('get_mensagem_receita_inativa')
 
     def get_mensagem_receita_inativa(self, receita):
-        return f"Este crédito foi desativado em {receita.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}" if receita.status == "INATIVO" else None
+        return f"Este crédito foi desativado em {receita.data_e_hora_de_inativacao.strftime('%d/%m/%Y às %H:%M:%S')}" if receita.status == "INATIVO" else None
 
     class Meta:
         model = Receita
