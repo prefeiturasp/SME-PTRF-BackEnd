@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load retorna_type %}
 
 {% for valor in dados.execucao_financeira.por_tipo_de_conta %}
   {% comment %}
@@ -149,14 +150,37 @@
         <td rowSpan="2" class="text-right"><strong>{{ valor.totais.saldo_reprogramado_proximo_periodo_total }}</strong></td>
       </tr>
       <tr> </tr>
-      {% if valor.justificativa %}
-        <tr>
-          <td colSpan="24" class="font-10 py-2"><strong>Justificativa da diferença entre o valor previsto pela SME e o transferido pela DRE no período</strong></td>
-        </tr>
-        <tr>
-          <td colSpan="24" class="font-10 py-3">{{ valor.justificativa }}</td>
-        </tr>
+
+      {#  retorna_type - Template filter que retorna o type de valor.justificativa, retornará lista quando for o Relatorio do demonstrativo de publicações parciais#}
+      {% if valor.justificativa|retorna_type == 'list' %}
+
+        {% if valor.justificativa|length > 0 %}
+          <tr>
+            <td colSpan="24" class="font-10 py-2"><strong>Justificativa da diferença entre o valor previsto pela SME e o transferido pela DRE no período</strong></td>
+          </tr>
+        {% endif %}
+
+        {% for justificativa in valor.justificativa %}
+          {% if justificativa %}
+            <tr>
+              <td colSpan="24" class="font-10 py-2">{{ justificativa.justificativa }}</td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+
+      {% else %}
+
+        {% if valor.justificativa %}
+          <tr>
+            <td colSpan="24" class="font-10 py-2"><strong>Justificativa da diferença entre o valor previsto pela SME e o transferido pela DRE no período</strong></td>
+          </tr>
+          <tr>
+            <td colSpan="24" class="font-10 py-2">{{ valor.justificativa }}</td>
+          </tr>
+        {% endif %}
+
       {% endif %}
+
     </tbody>
   </table>
 

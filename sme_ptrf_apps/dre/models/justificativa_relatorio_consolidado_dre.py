@@ -18,10 +18,13 @@ class JustificativaRelatorioConsolidadoDRE(ModeloBase):
 
     texto = models.TextField('Justificativa', max_length=600, blank=True, null=True)
 
+    consolidado_dre = models.ForeignKey('ConsolidadoDRE', on_delete=models.CASCADE,
+                                        related_name='justificativas_relatorios_consolidados_dre_do_consolidado_dre',
+                                        blank=True, null=True)
+
     class Meta:
         verbose_name = 'Justificativa de relatório consolidado DRE'
         verbose_name_plural = 'Justificativas de relatórios consolidados DREs'
-        unique_together = ['dre', 'tipo_conta', 'periodo']
 
     def __str__(self):
         return self.texto
