@@ -106,7 +106,6 @@ def _prestacao_conta_2020_1_unidade_a_dre1(periodo_2020_1, _unidade_a_dre_1, _as
         periodo=periodo_2020_1,
         associacao=_associacao_a_dre_1,
         data_recebimento=date(2020, 1, 1),
-        devolucao_tesouro=True,
         status='NAO_RECEBIDA'
     )
 
@@ -207,7 +206,6 @@ def _prestacao_conta_2020_1_unidade_a_dre1_em_analise(periodo_2020_1, _unidade_a
         periodo=periodo_2020_1,
         associacao=_associacao_a_dre_1,
         data_recebimento=date(2020, 1, 1),
-        devolucao_tesouro=True,
         status='EM_ANALISE'
     )
 

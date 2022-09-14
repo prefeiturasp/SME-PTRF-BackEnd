@@ -27,7 +27,6 @@ def prestacao_conta_em_analise(periodo, associacao):
 def test_api_conclui_analise_prestacao_conta_aprovada(jwt_authenticated_client_a, prestacao_conta_em_analise,
                                                       conta_associacao, motivo_reprovacao_x):
     payload = {
-        'devolucao_tesouro': True,
         'analises_de_conta_da_prestacao': [
             {
                 'conta_associacao': f'{conta_associacao.uuid}',

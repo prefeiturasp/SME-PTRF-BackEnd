@@ -79,8 +79,6 @@ class PrestacaoConta(ModeloBase):
 
     data_ultima_analise = models.DateField('data da última análise pela DRE', blank=True, null=True)
 
-    devolucao_tesouro = models.BooleanField('há devolução ao tesouro', blank=True, null=True, default=False)
-
     motivos_reprovacao = models.ManyToManyField('dre.MotivoReprovacao', blank=True)
 
     outros_motivos_reprovacao = models.TextField('Outros motivos para reprovação pela DRE', blank=True, default='')
@@ -251,8 +249,6 @@ class PrestacaoConta(ModeloBase):
     def salvar_analise(self, analises_de_conta_da_prestacao=None, resultado_analise=None,
                        motivos_aprovacao_ressalva=[], outros_motivos_aprovacao_ressalva='', motivos_reprovacao=[],
                        outros_motivos_reprovacao='', recomendacoes=''):
-        from ..models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
-        from ..models.conta_associacao import ContaAssociacao
 
         self.data_ultima_analise = date.today()
 
