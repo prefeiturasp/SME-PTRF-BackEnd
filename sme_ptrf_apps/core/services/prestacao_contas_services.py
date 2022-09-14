@@ -25,7 +25,7 @@ from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previa
 from ..services.processos_services import get_processo_sei_da_prestacao
 from ...despesas.models import RateioDespesa, Despesa
 from ...receitas.models import Receita
-from ..tasks import concluir_prestacao_de_contas_async, gerar_previa_demonstrativo_financeiro_async
+from ..tasks import gerar_previa_demonstrativo_financeiro_async
 
 from ..services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
 from .demonstrativo_financeiro_pdf_service import gerar_arquivo_demonstrativo_financeiro_pdf
@@ -626,6 +626,7 @@ def lancamentos_da_prestacao(
         filtrar_por_data_inicio,
         filtrar_por_data_fim,
         filtrar_por_nome_fornecedor=None,
+        inclui_inativas=False,
     ):
         rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
             conta_associacao=conta_associacao,
@@ -634,7 +635,10 @@ def lancamentos_da_prestacao(
         )
         despesas_com_rateios = rateios.values_list('despesa__id', flat=True).distinct()
 
-        dataset = Despesa.completas.filter(id__in=despesas_com_rateios)
+        if inclui_inativas:
+            dataset = Despesa.objects.exclude(status='INCOMPLETA')
+        else:
+            dataset = Despesa.completas.filter(id__in=despesas_com_rateios)
 
         if filtrar_por_data_inicio and filtrar_por_data_fim:
             dataset = dataset.filter(data_transacao__range=[filtrar_por_data_inicio, filtrar_por_data_fim])
@@ -679,6 +683,7 @@ def lancamentos_da_prestacao(
             periodo=prestacao_conta.periodo,
             filtrar_por_data_inicio=filtrar_por_data_inicio,
             filtrar_por_data_fim=filtrar_por_data_fim,
+            inclui_inativas=True,
         )
 
         receitas = receitas.order_by("data")
@@ -694,6 +699,7 @@ def lancamentos_da_prestacao(
             filtrar_por_data_inicio=filtrar_por_data_inicio,
             filtrar_por_data_fim=filtrar_por_data_fim,
             filtrar_por_nome_fornecedor=filtrar_por_nome_fornecedor,
+            inclui_inativas=True,
         )
 
         despesas = despesas.order_by("data_transacao")
@@ -1004,7 +1010,7 @@ def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes
 
 
 def documentos_da_prestacao(analise_prestacao_conta):
-    from ..models import TipoDocumentoPrestacaoConta, ContaAssociacao
+    from ..models import TipoDocumentoPrestacaoConta
 
     associacao = analise_prestacao_conta.prestacao_conta.associacao
 
