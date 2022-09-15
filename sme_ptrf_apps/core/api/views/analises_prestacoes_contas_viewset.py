@@ -152,7 +152,8 @@ class AnalisesPrestacoesContasViewSet(
             acao_associacao=acao_associacao,
             tipo_transacao=tipo_transacao,
             tipo_acerto=tipo_acerto,
-            com_ajustes=True
+            com_ajustes=True,
+            inclui_inativas=True,
         )
 
         return Response(lancamentos, status=status.HTTP_200_OK)
