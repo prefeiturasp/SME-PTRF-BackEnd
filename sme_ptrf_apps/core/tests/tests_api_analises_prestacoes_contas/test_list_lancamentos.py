@@ -262,10 +262,6 @@ def test_api_list_lancamentos_todos_da_conta(
                     'conta_associacao__tipo_conta__nome': 'Cartão',
                     'valor_rateio__sum': 300.0
                 },
-                {
-                    'conta_associacao__tipo_conta__nome': 'Cheque',
-                    'valor_rateio__sum': 100.0
-                }
             ],
             'analise_lancamento': analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises,
             'solicitacao_ajuste': solicitacao_acerto_lancamento_devolucao_teste_analises,
@@ -278,7 +274,6 @@ def test_api_list_lancamentos_todos_da_conta(
     url = f'/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_analises.uuid}/lancamentos-com-ajustes/?conta_associacao={conta_uuid}'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
-
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
@@ -363,10 +358,6 @@ def test_api_list_lancamentos_todos_da_conta_por_tipo_ajuste(
                     'conta_associacao__tipo_conta__nome': 'Cartão',
                     'valor_rateio__sum': 300.0
                 },
-                {
-                    'conta_associacao__tipo_conta__nome': 'Cheque',
-                    'valor_rateio__sum': 100.0
-                }
             ],
             'analise_lancamento': analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises,
             'solicitacao_ajuste': solicitacao_acerto_lancamento_devolucao_teste_analises,

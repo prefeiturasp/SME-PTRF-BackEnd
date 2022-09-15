@@ -608,6 +608,7 @@ def lancamentos_da_prestacao(
     filtrar_por_data_inicio=None,
     filtrar_por_data_fim=None,
     filtrar_por_nome_fornecedor=None,
+    inclui_inativas=False,
 ):
     from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaDocumentoMestreSerializer, \
         DespesaImpostoSerializer
@@ -711,7 +712,11 @@ def lancamentos_da_prestacao(
         for despesa in despesas:
 
             max_notificar_dias_nao_conferido = 0
-            for rateio in despesa.rateios.exclude(status=STATUS_INCOMPLETO).filter(conta_associacao=conta_associacao):
+            despesas_filter = despesa.rateios.filter(status=STATUS_COMPLETO, conta_associacao=conta_associacao)
+
+            if inclui_inativas:
+                despesas_filter = despesa.rateios.exclude(status=STATUS_INCOMPLETO).filter(conta_associacao=conta_associacao)
+            for rateio in despesas_filter:
                 if rateio.notificar_dias_nao_conferido > max_notificar_dias_nao_conferido:
                     max_notificar_dias_nao_conferido = rateio.notificar_dias_nao_conferido
 
@@ -735,19 +740,11 @@ def lancamentos_da_prestacao(
                 'numero_documento': despesa.numero_documento,
                 'descricao': despesa.nome_fornecedor,
                 'valor_transacao_total': despesa.valor_total,
-                'valor_transacao_na_conta':
-                    despesa.rateios.exclude(status=STATUS_INCOMPLETO).filter(conta_associacao=conta_associacao).aggregate(
-                        Sum('valor_rateio'))[
-                        'valor_rateio__sum'],
-                'valores_por_conta': despesa.rateios.exclude(status=STATUS_INCOMPLETO).values(
-                    'conta_associacao__tipo_conta__nome').annotate(
-                    Sum('valor_rateio')),
+                'valor_transacao_na_conta': despesas_filter.aggregate(Sum('valor_rateio'))['valor_rateio__sum'],
+                'valores_por_conta': despesas_filter.values('conta_associacao__tipo_conta__nome').annotate(Sum('valor_rateio')),
                 'conferido': despesa.conferido,
                 'documento_mestre': DespesaDocumentoMestreSerializer(despesa, many=False).data,
-                'rateios': RateioDespesaConciliacaoSerializer(
-                    despesa.rateios.exclude(status=STATUS_INCOMPLETO).filter(conta_associacao=conta_associacao).order_by(
-                        'id'),
-                    many=True).data,
+                'rateios': RateioDespesaConciliacaoSerializer(despesas_filter.order_by('id'), many=True).data,
                 'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
                 'analise_lancamento': {'resultado': analise_lancamento.resultado,
                                        'uuid': analise_lancamento.uuid} if analise_lancamento else None,
