@@ -19,6 +19,7 @@ def test_list_comentarios_analise_prestacao(jwt_authenticated_client_relatorio_c
 
     esperado = [
         {
+            'consolidado_dre': None,
             'uuid': f'{justificativa_relatorio_dre_consolidado.uuid}',
             'dre': f'{dre_uuid}',
             'tipo_conta': f'{tipo_conta_uuid}',

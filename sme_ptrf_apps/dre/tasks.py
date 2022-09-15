@@ -15,7 +15,7 @@ from sme_ptrf_apps.dre.models import (
     AnoAnaliseRegularidade,
     AnaliseRegularidadeAssociacao,
     ItemVerificacaoRegularidade,
-    VerificacaoRegularidadeAssociacao, ConsolidadoDRE, Lauda
+    VerificacaoRegularidadeAssociacao, ConsolidadoDRE, Lauda, JustificativaRelatorioConsolidadoDRE
 )
 
 from django.core.exceptions import ValidationError
@@ -156,6 +156,19 @@ def concluir_consolidado_dre_async(
         periodo=periodo,
         consolidado_dre=consolidado_dre,
     )
+
+    # Atrelando consolidado as justificativas
+    for tipo_conta in tipo_contas:
+        justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+            dre=dre,
+            tipo_conta=tipo_conta,
+            periodo=periodo,
+            consolidado_dre__isnull=True,
+        ).last()
+
+        if justificativa:
+            justificativa.consolidado_dre = consolidado_dre
+            justificativa.save()
 
     gerar_relatorio_consolidado_dre_async(
         dre_uuid=dre_uuid,
