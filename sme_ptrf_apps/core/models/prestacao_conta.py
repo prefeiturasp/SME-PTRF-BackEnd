@@ -316,13 +316,22 @@ class PrestacaoConta(ModeloBase):
             prestacao_atualizada = prestacao_atualizada.devolver(data_limite_ue=data_limite_ue)
 
         if resultado_analise == PrestacaoConta.STATUS_APROVADA:
-            notificar_prestacao_de_contas_aprovada(self)
+            try:
+                notificar_prestacao_de_contas_aprovada(self)
+            except Exception as erro:
+                logger.error(f'Houve um erro ao notificar aprovação da PC. {erro}')
 
         if resultado_analise == PrestacaoConta.STATUS_APROVADA_RESSALVA:
-            notificar_prestacao_de_contas_aprovada_com_ressalvas(self, motivos_aprovacao_ressalva, outros_motivos_aprovacao_ressalva)
+            try:
+                notificar_prestacao_de_contas_aprovada_com_ressalvas(self, motivos_aprovacao_ressalva, outros_motivos_aprovacao_ressalva)
+            except Exception as erro:
+                logger.error(f'Houve um erro ao notificar aprovação com ressalva da PC. {erro}')
 
         if resultado_analise == PrestacaoConta.STATUS_REPROVADA:
-            notificar_prestacao_de_contas_reprovada(self, motivos_reprovacao, outros_motivos_reprovacao)
+            try:
+                notificar_prestacao_de_contas_reprovada(self, motivos_reprovacao, outros_motivos_reprovacao)
+            except Exception as erro:
+                logger.error(f'Houve um erro ao notificar reprovação da PC. {erro}')
 
         return prestacao_atualizada
 
