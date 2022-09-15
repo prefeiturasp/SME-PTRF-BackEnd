@@ -14,7 +14,7 @@ from django.db.models.functions import Coalesce
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, previa=False, apenas_nao_publicadas=False, eh_consolidado_de_publicacoes_parciais=False, consolidado_dre=False):
+def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, previa=False, apenas_nao_publicadas=False, eh_consolidado_de_publicacoes_parciais=False, consolidado_dre=None):
     try:
         LOGGER.info("Gerando relatório consolidado...")
 
@@ -22,7 +22,7 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
         bloco_consolidado_das_publicacoes_parciais = cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo, eh_consolidado_de_publicacoes_parciais)
         data_geracao_documento = cria_data_geracao_documento(usuario, dre, parcial, previa)
         identificacao_dre = cria_identificacao_dre(dre)
-        execucao_financeira = cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dre)
+        execucao_financeira = cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dre, eh_consolidado_de_publicacoes_parciais)
         execucao_fisica = cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais)
         dados_fisicos_financeiros = cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais)
 
@@ -128,7 +128,7 @@ def cria_identificacao_dre(dre):
     return identificacao
 
 
-def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dre):
+def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dre, eh_consolidado_de_publicacoes_parciais):
     """BLOCO 2 - EXECUÇÃO FINANCEIRA"""
     from .relatorio_consolidado_service import informacoes_execucao_financeira
 
@@ -225,18 +225,63 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dr
             "outros_creditos": formata_valor(outros_creditos_total)
         }
 
-        # Justificativa
-        justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(dre=dre).filter(
-            tipo_conta=tipo_conta).filter(periodo=periodo).first()
+        # Justificativa #
+        justificativa = None
+        obj_justificativas_list = []
 
-        execucao_financeira = {
-            "tipo_conta": tipo_conta.nome if tipo_conta.nome else "",
-            "custeio": custeio,
-            "capital": capital,
-            "livre": rla,
-            "totais": totais,
-            "justificativa": justificativa.texto if justificativa else '',
-        }
+        if eh_consolidado_de_publicacoes_parciais:
+
+            justificativas = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                dre=dre,
+                tipo_conta=tipo_conta,
+                periodo=periodo,
+            )
+
+            for just in justificativas:
+                texto_justificativa = ''
+                if just:
+                    texto_justificativa = f"{just.texto}"
+                if just and just.consolidado_dre:
+                    texto_justificativa = f"{texto_justificativa} - {just.consolidado_dre.referencia}"
+
+                obj_justificativa = {
+                    "justificativa": texto_justificativa,
+                }
+                obj_justificativas_list.append(obj_justificativa)
+
+        elif consolidado_dre and consolidado_dre.versao == 'FINAL':
+            justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                dre=dre,
+                tipo_conta=tipo_conta,
+                periodo=periodo,
+                consolidado_dre=consolidado_dre
+            ).last()
+        else:
+            justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                dre=dre,
+                tipo_conta=tipo_conta,
+                periodo=periodo,
+                consolidado_dre__isnull=True,
+            ).last()
+
+        if not eh_consolidado_de_publicacoes_parciais:
+            execucao_financeira = {
+                "tipo_conta": tipo_conta.nome if tipo_conta.nome else "",
+                "custeio": custeio,
+                "capital": capital,
+                "livre": rla,
+                "totais": totais,
+                "justificativa": justificativa.texto if justificativa else '',
+            }
+        else:
+            execucao_financeira = {
+                "tipo_conta": tipo_conta.nome if tipo_conta.nome else "",
+                "custeio": custeio,
+                "capital": capital,
+                "livre": rla,
+                "totais": totais,
+                "justificativa": obj_justificativas_list,
+            }
 
         execucao_financeira_list['por_tipo_de_conta'].append(execucao_financeira)
 

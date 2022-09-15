@@ -111,17 +111,29 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
 
     for tipo_conta in tipos_de_conta:
         totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True, consolidado_dre=consolidado_dre)
-        justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
-            dre=dre,
-            tipo_conta=tipo_conta,
-            periodo=periodo
-        ).first()
+
+        if consolidado_dre and consolidado_dre.versao == 'FINAL':
+            # Justificativa
+            justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                dre=dre,
+                tipo_conta=tipo_conta,
+                periodo=periodo,
+                consolidado_dre=consolidado_dre
+            ).last()
+        else:
+            justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                dre=dre,
+                tipo_conta=tipo_conta,
+                periodo=periodo,
+                consolidado_dre__isnull=True,
+            ).last()
 
         objeto_tipo_de_conta.append({
             'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
             'valores': totais,
             'justificativa_texto': justificativa.texto if justificativa else '',
             'justificativa_uuid': justificativa.uuid if justificativa else None,
+            'consolidado_dre': consolidado_dre.uuid if justificativa and justificativa.consolidado_dre and justificativa.consolidado_dre.uuid else None,
             'tipo_conta_uuid': tipo_conta.uuid,
         })
 
@@ -1038,7 +1050,7 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
 
         if _status_prestacao_contas:
             resultado.append(dado)
-            resultado = sorted(resultado, key=lambda row: row['status_prestacao_contas'])
+            # resultado = sorted(resultado, key=lambda row: row['status_prestacao_contas'])
 
     return resultado
 
