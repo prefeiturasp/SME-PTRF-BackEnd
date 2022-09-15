@@ -46,29 +46,6 @@ def test_delete_receita_deve_inativar_tem_pc(
     assert result == esperado
 
 
-def test_delete_receita_nao_deve_excluir_e_estorno(
-    jwt_authenticated_client_p,
-    associacao,
-    receita_nao_deve_exluir_estorno,
-):
-
-    receita_uuid = f"{receita_nao_deve_exluir_estorno.uuid}"
-
-    response = jwt_authenticated_client_p.delete(
-        f'/api/receitas/{receita_uuid}/?associacao__uuid={associacao.uuid}',
-        content_type='application/json')
-
-    result = json.loads(response.content)
-
-    esperado = {
-        'erro': 'receita_do_tipo_estorno',
-        'mensagem': 'Não é possivel excluir uma receita do tipo estorno. Deve ser feito a partir da despesa.'
-    }
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert result == esperado
-
-
 def test_delete_receita_deve_excluir_e_repasse_sem_pc(
     jwt_authenticated_client_p,
     associacao,
@@ -107,3 +84,33 @@ def test_delete_receita_deve_inativar_e_repasse_com_pc(
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
+
+
+def test_delete_receita_estorno_com_pc_deve_inativar_e_desvincular_rateio(
+    jwt_authenticated_client_p,
+    associacao,
+    receita_deve_inativar_estorno,
+    periodo_inativar_receita,
+    prestacao_conta_devolvida_inativar_receita,
+):
+    from sme_ptrf_apps.receitas.models import Receita
+
+    receita_uuid = f"{receita_deve_inativar_estorno.uuid}"
+
+    assert Receita.by_uuid(receita_uuid).rateio_estornado is not None
+
+    response = jwt_authenticated_client_p.delete(
+        f'/api/receitas/{receita_uuid}/?associacao__uuid={associacao.uuid}',
+        content_type='application/json')
+
+    result = json.loads(response.content)
+
+    esperado = {
+        'sucesso': 'receita_inativada_com_sucesso',
+        'mensagem': 'Receita inativada com sucesso'
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
+
+    assert Receita.by_uuid(receita_uuid).rateio_estornado is None

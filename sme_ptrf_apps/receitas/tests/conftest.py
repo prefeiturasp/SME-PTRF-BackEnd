@@ -737,3 +737,29 @@ def receita_deve_inativar_e_repasse(
         data_e_hora_de_inativacao=None,
         periodo_conciliacao=periodo_inativar_receita,
     )
+
+
+@pytest.fixture
+def receita_deve_inativar_estorno(
+    associacao,
+    conta_associacao_cheque,
+    acao_associacao_ptrf,
+    tipo_receita_e_estorno,
+    rateio_saida_recurso,
+    periodo_inativar_receita
+):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2019, 9, 1),
+        valor=100.00,
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao_ptrf,
+        tipo_receita=tipo_receita_e_estorno,
+        conferido=True,
+        status='COMPLETO',
+        data_e_hora_de_inativacao=None,
+        rateio_estornado=rateio_saida_recurso,
+        periodo_conciliacao=periodo_inativar_receita,
+    )
+
