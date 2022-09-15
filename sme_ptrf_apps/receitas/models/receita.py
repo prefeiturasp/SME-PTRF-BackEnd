@@ -340,6 +340,10 @@ class Receita(ModeloBase):
     def inativar_receita(self):
         self.status = self.STATUS_INATIVO
         self.data_e_hora_de_inativacao = datetime.now()
+
+        if self.rateio_estornado:
+            self.rateio_estornado = None
+
         self.save()
         return self
 
