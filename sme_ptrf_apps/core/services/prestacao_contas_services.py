@@ -637,7 +637,7 @@ def lancamentos_da_prestacao(
         despesas_com_rateios = rateios.values_list('despesa__id', flat=True).distinct()
 
         if inclui_inativas:
-            dataset = Despesa.objects.exclude(status=STATUS_INCOMPLETO)
+            dataset = Despesa.objects.exclude(status=STATUS_INCOMPLETO).filter(id__in=despesas_com_rateios)
         else:
             dataset = Despesa.completas.filter(id__in=despesas_com_rateios)
 
