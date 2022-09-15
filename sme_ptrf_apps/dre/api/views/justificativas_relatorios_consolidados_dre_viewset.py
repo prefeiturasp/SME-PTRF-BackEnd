@@ -13,4 +13,4 @@ class JustificativasRelatoriosConsolidadosDreViewSet(viewsets.ModelViewSet):
     serializer_class = JustificativaRelatorioConsolidadoDreRetrieveSerializer
     queryset = JustificativaRelatorioConsolidadoDRE.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('dre__uuid', 'tipo_conta__uuid', 'periodo__uuid')
+    filter_fields = ('dre__uuid', 'tipo_conta__uuid', 'periodo__uuid', 'consolidado_dre__uuid')

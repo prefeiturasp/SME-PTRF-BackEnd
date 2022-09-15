@@ -310,6 +310,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
         'periodo_referencia': '2019.2',
         'por_tipo_de_conta': [
             {
+                'consolidado_dre': None,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',
@@ -354,6 +355,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
                 }
             },
             {
+                'consolidado_dre': None,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
@@ -437,6 +439,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
         'periodo_referencia': '2019.2',
         'por_tipo_de_conta': [
             {
+                'consolidado_dre': None,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',
@@ -482,6 +485,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
                     }
             },
             {
+                'consolidado_dre': None,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
@@ -563,6 +567,7 @@ def test_api_get_info_execucao_financeira_relatorio(
         'periodo_referencia': '2019.2',
         'por_tipo_de_conta': [
             {
+                'consolidado_dre': None,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
@@ -605,6 +610,7 @@ def test_api_get_info_execucao_financeira_relatorio(
                     'saldo_reprogramado_proximo_periodo_livre': 2000.0,
                     'saldo_reprogramado_proximo_periodo_total': 4250.0}},
             {
+                'consolidado_dre': None,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',
