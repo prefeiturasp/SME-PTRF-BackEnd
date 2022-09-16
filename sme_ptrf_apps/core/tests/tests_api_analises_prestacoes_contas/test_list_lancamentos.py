@@ -129,7 +129,6 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
         for rateio in rateios_esperados:
             if rateio['notificar_dias_nao_conferido'] > max_notificar_dias_nao_conferido:
                 max_notificar_dias_nao_conferido = rateio['notificar_dias_nao_conferido']
-
         result_esperado.append(
             {
                 'periodo': f'{periodo.uuid}',
@@ -222,12 +221,23 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                     'tipo_lancamento': 'GASTO',
                     'uuid': f'{lancamento["analise_lancamento"].uuid}'
                 } if lancamento["analise_lancamento"] else None,
-                'informacoes': [{'tag_hint': 'Parte da despesa foi paga com recursos '
-                                             'próprios ou por mais de uma conta.',
-                                 'tag_id': '3',
-                                 'tag_nome': 'Parcial'}],
+                'informacoes': [
+                                {
+                                    'tag_hint': 'Parte da despesa foi paga com recursos '
+                                                'próprios ou por mais de uma conta.',
+                                    'tag_id': '3',
+                                    'tag_nome': 'Parcial'},
+                               ],
             }
         )
+
+        if lancamento["mestre"].data_e_hora_de_inativacao:
+                result_esperado[0]['informacoes'].append({
+                    'tag_hint': 'Este gasto foi inativado em 10/05/2020 às '
+                                '05:10:10',
+                    'tag_id': '6',
+                    'tag_nome': 'Inativado'
+                })
 
     return result_esperado
 
@@ -276,6 +286,7 @@ def test_api_list_lancamentos_todos_da_conta(
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
 
+
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado, "Não retornou a lista de lançamentos esperados."
 
@@ -319,9 +330,9 @@ def test_api_list_lancamentos_todos_da_conta_inativa(
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
+
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado, "Não retornou a lista de lançamentos esperados."
-
 
 
 def test_api_list_lancamentos_todos_da_conta_por_tipo_ajuste(
