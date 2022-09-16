@@ -183,12 +183,17 @@ class Receita(ModeloBase):
         return dataset.all()
 
     @classmethod
-    def receitas_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None, acao_associacao=None, filtrar_por_data_inicio=None, filtrar_por_data_fim=None):
+    def receitas_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None, acao_associacao=None, filtrar_por_data_inicio=None, filtrar_por_data_fim=None, inclui_inativas=False):
+        if inclui_inativas:
+            dataset = cls.objects
+        else:
+            dataset = cls.completas
+
         if periodo.data_fim_realizacao_despesas:
-            dataset = cls.completas.filter(conta_associacao=conta_associacao).filter(
+            dataset = dataset.filter(conta_associacao=conta_associacao).filter(
                 data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas)).order_by('data')
         else:
-            dataset = cls.completas.filter(conta_associacao=conta_associacao).filter(
+            dataset = dataset.filter(conta_associacao=conta_associacao).filter(
                 data__gte=periodo.data_inicio_realizacao_despesas).order_by('data')
 
         if conferido is not None:
@@ -340,6 +345,10 @@ class Receita(ModeloBase):
     def inativar_receita(self):
         self.status = self.STATUS_INATIVO
         self.data_e_hora_de_inativacao = datetime.now()
+
+        if self.rateio_estornado:
+            self.rateio_estornado = None
+
         self.save()
         return self
 

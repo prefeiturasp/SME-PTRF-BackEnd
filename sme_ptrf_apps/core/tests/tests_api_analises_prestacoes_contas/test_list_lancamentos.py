@@ -6,10 +6,13 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def monta_result_esperado(lancamentos_esperados, periodo, conta):
+def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
     result_esperado = []
 
     for lancamento in lancamentos_esperados:
+
+        if inativa:
+            lancamento["mestre"].mensagem_inativa = f'Este gasto foi desativado em {lancamento["mestre"].data_e_hora_de_inativacao.strftime("%d/%m/%Y às %H:%M:%S")}'
 
         mestre_esperado = {
             'associacao': f'{lancamento["mestre"].associacao.uuid}',
@@ -27,6 +30,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
             'documento_transacao': f'{lancamento["mestre"].documento_transacao}',
             'data_documento': f'{lancamento["mestre"].data_documento}',
             'data_transacao': f'{lancamento["mestre"].data_transacao}',
+            'mensagem_inativa': lancamento["mestre"].mensagem_inativa if 'mensagem_inativa' in lancamento["mestre"].__dict__ else None,
             'cpf_cnpj_fornecedor': lancamento["mestre"].cpf_cnpj_fornecedor,
             'nome_fornecedor': lancamento["mestre"].nome_fornecedor,
             'valor_ptrf': lancamento["mestre"].valor_ptrf,
@@ -34,7 +38,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta):
             'status': lancamento["mestre"].status,
             'conferido': lancamento["mestre"].conferido,
             'uuid': f'{lancamento["mestre"].uuid}',
-            'data_e_hora_de_inativacao': None,
+            'data_e_hora_de_inativacao': lancamento["mestre"].data_e_hora_de_inativacao.isoformat("T") if lancamento["mestre"].data_e_hora_de_inativacao else None,
 
         } if lancamento["tipo"] == 'Gasto' else {
             'associacao': f'{lancamento["mestre"].associacao.uuid}',
@@ -242,7 +246,7 @@ def test_api_list_lancamentos_todos_da_conta(
     solicitacao_acerto_lancamento_devolucao_teste_analises
 ):
     conta_uuid = conta_associacao_cartao.uuid
-
+    despesa_2020_1.mesagem_inativa = None
     lancamentos_esperados = [
         {
             'mestre': despesa_2020_1,
@@ -258,10 +262,6 @@ def test_api_list_lancamentos_todos_da_conta(
                     'conta_associacao__tipo_conta__nome': 'Cartão',
                     'valor_rateio__sum': 300.0
                 },
-                {
-                    'conta_associacao__tipo_conta__nome': 'Cheque',
-                    'valor_rateio__sum': 100.0
-                }
             ],
             'analise_lancamento': analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises,
             'solicitacao_ajuste': solicitacao_acerto_lancamento_devolucao_teste_analises,
@@ -274,11 +274,54 @@ def test_api_list_lancamentos_todos_da_conta(
     url = f'/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_analises.uuid}/lancamentos-com-ajustes/?conta_associacao={conta_uuid}'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
-
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado, "Não retornou a lista de lançamentos esperados."
+
+
+def test_api_list_lancamentos_todos_da_conta_inativa(
+    jwt_authenticated_client_a,
+    despesa_2020_1_inativa,
+    rateio_despesa_2020_role_conferido_inativa,
+    rateio_despesa_2020_role_nao_conferido_inativa,
+    periodo_2020_1,
+    conta_associacao_cartao,
+    conta_associacao_cheque,
+    analise_prestacao_conta_2020_1_teste_inativa_analises,
+    analise_lancamento_despesa_prestacao_conta_2020_1_teste_inativa_analises,
+    solicitacao_acerto_lancamento_devolucao_teste_inativa_analises
+):
+    conta_uuid = conta_associacao_cartao.uuid
+    lancamentos_esperados = [
+        {
+            'mestre': despesa_2020_1_inativa,
+            'rateios': [
+                rateio_despesa_2020_role_conferido_inativa,
+                rateio_despesa_2020_role_nao_conferido_inativa,
+            ],
+            'tipo': 'Gasto',
+            'valor_transacao_na_conta': 300.0,
+            'valor_transacao_total': 100.0,
+            'valores_por_conta': [{
+                'conta_associacao__tipo_conta__nome': 'Cartão',
+                'valor_rateio__sum': 300.0
+            }],
+            'analise_lancamento': analise_lancamento_despesa_prestacao_conta_2020_1_teste_inativa_analises,
+            'solicitacao_ajuste': solicitacao_acerto_lancamento_devolucao_teste_inativa_analises,
+        },
+    ]
+
+    result_esperado = monta_result_esperado(lancamentos_esperados=lancamentos_esperados, periodo=periodo_2020_1,
+                                            conta=conta_associacao_cartao, inativa=True)
+
+    url = f'/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_inativa_analises.uuid}/lancamentos-com-ajustes/?conta_associacao={conta_uuid}'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+    result = json.loads(response.content)
+    assert response.status_code == status.HTTP_200_OK
+    assert result == result_esperado, "Não retornou a lista de lançamentos esperados."
+
 
 
 def test_api_list_lancamentos_todos_da_conta_por_tipo_ajuste(
@@ -300,7 +343,6 @@ def test_api_list_lancamentos_todos_da_conta_por_tipo_ajuste(
     tipo_acerto_lancamento_devolucao,
 ):
     conta_uuid = conta_associacao_cartao.uuid
-
     lancamentos_esperados = [
         {
             'mestre': despesa_2020_1,
@@ -316,10 +358,6 @@ def test_api_list_lancamentos_todos_da_conta_por_tipo_ajuste(
                     'conta_associacao__tipo_conta__nome': 'Cartão',
                     'valor_rateio__sum': 300.0
                 },
-                {
-                    'conta_associacao__tipo_conta__nome': 'Cheque',
-                    'valor_rateio__sum': 100.0
-                }
             ],
             'analise_lancamento': analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises,
             'solicitacao_ajuste': solicitacao_acerto_lancamento_devolucao_teste_analises,

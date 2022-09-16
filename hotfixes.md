@@ -1,3 +1,7 @@
+### 1.33.3 - 15/09/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 49
+* (71660) Altera conclusão de PC para tratar erros de e-mail de notificação sem abortar conclusão da PC
+* (72907) Melhorias diversas no relatório consolidado DRE
+
 ### 1.33.2 - 14/09/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 49
 * (72908) Melhorias na ata de parecer técnico
 * (72442) Remoção do campos devolução ao tesouro da PC

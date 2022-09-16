@@ -9,8 +9,7 @@ from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpS
 from sme_ptrf_apps.core.models import AcaoAssociacao, Associacao, ContaAssociacao, Periodo
 
 from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaListSerializer
-from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaEstornoLookupSerializer, \
-    RateioDespesaListaSerializer
+from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaEstornoLookupSerializer
 from sme_ptrf_apps.despesas.models import RateioDespesa
 
 from sme_ptrf_apps.receitas.models import Receita, Repasse
@@ -192,6 +191,10 @@ class ReceitaConciliacaoSerializer(serializers.ModelSerializer):
     tipo_receita = TipoReceitaLookUpSerializer()
     acao_associacao = AcaoAssociacaoLookUpSerializer()
     rateio_estornado = RateioDespesaEstornoLookupSerializer()
+    mensagem_inativa = serializers.SerializerMethodField('get_mensagem_receita_inativa')
+
+    def get_mensagem_receita_inativa(self, receita):
+        return f"Este crédito foi desativado em {receita.data_e_hora_de_inativacao.strftime('%d/%m/%Y às %H:%M:%S')}" if receita.status == "INATIVO" else None
 
     class Meta:
         model = Receita
@@ -209,6 +212,7 @@ class ReceitaConciliacaoSerializer(serializers.ModelSerializer):
             'rateio_estornado',
             'status',
             'data_e_hora_de_inativacao',
+            'mensagem_inativa'
         )
 
 

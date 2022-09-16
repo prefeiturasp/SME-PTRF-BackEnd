@@ -140,13 +140,6 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             }
             return Response(msg, status=status.HTTP_200_OK)
 
-        if instance.tipo_receita.e_estorno:
-            erro = {
-                'erro': 'receita_do_tipo_estorno',
-                'mensagem': 'Não é possivel excluir uma receita do tipo estorno. Deve ser feito a partir da despesa.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
         if instance.inativar_em_vez_de_excluir:
             instance.inativar_receita()
             msg = {
