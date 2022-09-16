@@ -281,7 +281,7 @@ class Despesa(ModeloBase):
 
     @classmethod
     def get_tags_informacoes_list(cls):
-        return [cls.TAG_ANTECIPADO, cls.TAG_ESTORNADO, cls.TAG_PARCIAL, cls.TAG_IMPOSTO, cls.TAG_IMPOSTO_PAGO]
+        return [cls.TAG_ANTECIPADO, cls.TAG_ESTORNADO, cls.TAG_PARCIAL, cls.TAG_IMPOSTO, cls.TAG_IMPOSTO_PAGO, cls.TAG_INATIVA]
 
     class Meta:
         verbose_name = "Documento comprobatório da despesa"

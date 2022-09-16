@@ -22,6 +22,8 @@ class ReceitasCompletasManager(models.Manager):
 class Receita(ModeloBase):
     history = AuditlogHistoryField()
 
+    TAG_INATIVA = {"id": "6", "nome": "Inativado", "descricao": "Lançamento inativado."}
+
     STATUS_COMPLETO = 'COMPLETO'
     STATUS_INATIVO = 'INATIVO'
 
@@ -120,6 +122,19 @@ class Receita(ModeloBase):
         return detalhe
 
     @property
+    def tags_de_informacao(self):
+        """
+        Arquitetura dinâmica para futuras tags que poderam ser atribuidas.
+        """
+        tags = []
+        if self.e_receita_inativa():
+            tags.append(tag_informacao(
+                self.TAG_INATIVA,
+                f"Este crédito foi inativado em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y às %H:%M:%S')}"
+            ))
+        return tags
+
+    @property
     def notificar_dias_nao_conferido(self):
         """
         Se não conferida, retorna o tempo decorrido desde o lançamento, caso esse tempo seja superior ao parametrizado.
@@ -132,6 +147,10 @@ class Receita(ModeloBase):
             limite = Parametros.get().tempo_notificar_nao_demonstrados
             result = decorrido if decorrido >= limite else 0
         return result
+
+    @classmethod
+    def get_tags_informacoes_list(cls):
+        return [cls.TAG_INATIVA]
 
     @classmethod
     def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None,
@@ -327,6 +346,9 @@ class Receita(ModeloBase):
 
         self.save()
 
+    def e_receita_inativa(self):
+        return self.status == self.STATUS_INATIVO
+
     @classmethod
     def conciliar(cls, uuid, periodo_conciliacao):
         receita = cls.by_uuid(uuid)
@@ -363,6 +385,14 @@ def receita_pre_save(instance, **kwargs):
     if instance.data:
         periodo = Periodo.da_data(instance.data)
         instance.periodo_conciliacao = periodo
+
+
+def tag_informacao(tipo_de_tag, hint):
+    return {
+        'tag_id': tipo_de_tag['id'],
+        'tag_nome': tipo_de_tag['nome'],
+        'tag_hint': hint,
+    }
 
 
 auditlog.register(Receita)
