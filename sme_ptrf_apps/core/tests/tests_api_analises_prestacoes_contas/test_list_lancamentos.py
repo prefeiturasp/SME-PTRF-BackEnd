@@ -284,6 +284,7 @@ def test_api_list_lancamentos_todos_da_conta_inativa(
     jwt_authenticated_client_a,
     despesa_2020_1_inativa,
     rateio_despesa_2020_role_conferido_inativa,
+    rateio_despesa_2020_role_nao_conferido_inativa,
     periodo_2020_1,
     conta_associacao_cartao,
     conta_associacao_cheque,
@@ -297,13 +298,14 @@ def test_api_list_lancamentos_todos_da_conta_inativa(
             'mestre': despesa_2020_1_inativa,
             'rateios': [
                 rateio_despesa_2020_role_conferido_inativa,
+                rateio_despesa_2020_role_nao_conferido_inativa,
             ],
             'tipo': 'Gasto',
-            'valor_transacao_na_conta': 200.0,
+            'valor_transacao_na_conta': 300.0,
             'valor_transacao_total': 100.0,
             'valores_por_conta': [{
                 'conta_associacao__tipo_conta__nome': 'Cartão',
-                'valor_rateio__sum': 200.0
+                'valor_rateio__sum': 300.0
             }],
             'analise_lancamento': analise_lancamento_despesa_prestacao_conta_2020_1_teste_inativa_analises,
             'solicitacao_ajuste': solicitacao_acerto_lancamento_devolucao_teste_inativa_analises,
@@ -316,9 +318,7 @@ def test_api_list_lancamentos_todos_da_conta_inativa(
     url = f'/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_inativa_analises.uuid}/lancamentos-com-ajustes/?conta_associacao={conta_uuid}'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
-
     result = json.loads(response.content)
-
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado, "Não retornou a lista de lançamentos esperados."
 
