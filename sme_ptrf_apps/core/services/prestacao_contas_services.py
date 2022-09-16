@@ -632,7 +632,8 @@ def lancamentos_da_prestacao(
         rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
             conta_associacao=conta_associacao,
             acao_associacao=acao_associacao,
-            periodo=periodo
+            periodo=periodo,
+            incluir_inativas=True,
         )
         despesas_com_rateios = rateios.values_list('despesa__id', flat=True).distinct()
 
@@ -669,7 +670,6 @@ def lancamentos_da_prestacao(
 
         if filtrar_por_nome_fornecedor:
             dataset = dataset.filter(nome_fornecedor__unaccent__icontains=filtrar_por_nome_fornecedor)
-
         return dataset.all()
 
     receitas = []
