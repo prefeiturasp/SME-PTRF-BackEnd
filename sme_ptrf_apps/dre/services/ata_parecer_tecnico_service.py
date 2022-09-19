@@ -49,7 +49,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
 
         if eh_parcial == "Parcial":
-            titulo_sequencia_publicacao = f'Parcial #{sequencia_de_publicacao}'
+            titulo_sequencia_publicacao = f'Publicação Parcial #{sequencia_de_publicacao}'
         else:
             titulo_sequencia_publicacao = "Ata final"
 
@@ -213,9 +213,9 @@ def get_presentes_na_ata(ata):
 
 
 def cria_data_geracao_documento(usuario, dre_nome):
-    data_geracao = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    data_geracao = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
     quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}"
-    texto = f"Ata PDF gerada pelo Sig_Escola em {data_geracao} {quem_gerou} para a DIRETORIA REGIONAL DE EDUCAÇÃO {formata_nome_dre(dre_nome)}"
+    texto = f"DRE {formata_nome_dre(dre_nome)} - Ata gerada {quem_gerou}, via SIG-Escola, em {data_geracao}"
 
     return texto
 

@@ -37,7 +37,6 @@ def prestacao_conta(periodo, associacao):
         associacao=associacao,
         data_recebimento=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
-        devolucao_tesouro=True,
         status='APROVADA',
     )
 
@@ -247,7 +246,6 @@ def prestacao_conta_consolidado_dre(periodo_consolidado_dre, associacao, consoli
         associacao=associacao,
         data_recebimento=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
-        devolucao_tesouro=True,
         status='APROVADA',
         consolidado_dre=consolidado_dre
     )
@@ -276,7 +274,6 @@ def prestacao_conta_consolidado_dre_2(periodo_consolidado_dre, associacao_2_cons
         associacao=associacao_2_consolidado_dre,
         data_recebimento=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
-        devolucao_tesouro=True,
         status='APROVADA',
         consolidado_dre=consolidado_dre
     )
@@ -313,6 +310,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
         'periodo_referencia': '2019.2',
         'por_tipo_de_conta': [
             {
+                'consolidado_dre': None,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',
@@ -357,6 +355,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
                 }
             },
             {
+                'consolidado_dre': None,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
@@ -440,6 +439,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
         'periodo_referencia': '2019.2',
         'por_tipo_de_conta': [
             {
+                'consolidado_dre': None,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',
@@ -485,6 +485,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
                     }
             },
             {
+                'consolidado_dre': None,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
@@ -566,6 +567,7 @@ def test_api_get_info_execucao_financeira_relatorio(
         'periodo_referencia': '2019.2',
         'por_tipo_de_conta': [
             {
+                'consolidado_dre': None,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
@@ -608,6 +610,7 @@ def test_api_get_info_execucao_financeira_relatorio(
                     'saldo_reprogramado_proximo_periodo_livre': 2000.0,
                     'saldo_reprogramado_proximo_periodo_total': 4250.0}},
             {
+                'consolidado_dre': None,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ...models import JustificativaRelatorioConsolidadoDRE
+from ...models import JustificativaRelatorioConsolidadoDRE, ConsolidadoDRE
 from sme_ptrf_apps.core.models import Periodo, TipoConta, Unidade
 
 class JustificativaRelatorioConsolidadoDreRetrieveSerializer(serializers.ModelSerializer):
@@ -22,6 +22,13 @@ class JustificativaRelatorioConsolidadoDreRetrieveSerializer(serializers.ModelSe
         queryset=Periodo.objects.all()
     )
 
+    consolidado_dre = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=ConsolidadoDRE.objects.all(),
+        allow_null=True
+    )
+
     class Meta:
         model = JustificativaRelatorioConsolidadoDRE
-        fields = ('uuid', 'dre', 'tipo_conta', 'periodo', 'texto')
+        fields = ('uuid', 'dre', 'tipo_conta', 'periodo', 'texto', 'consolidado_dre')
