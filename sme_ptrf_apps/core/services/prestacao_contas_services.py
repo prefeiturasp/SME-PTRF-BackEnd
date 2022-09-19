@@ -791,7 +791,8 @@ def lancamentos_da_prestacao(
             'rateios': [],
             'notificar_dias_nao_conferido': receita.notificar_dias_nao_conferido,
             'analise_lancamento': {'resultado': analise_lancamento.resultado,
-                                   'uuid': analise_lancamento.uuid} if analise_lancamento else None
+                                   'uuid': analise_lancamento.uuid} if analise_lancamento else None,
+            'informacoes': receita.tags_de_informacao,
         }
 
         if com_ajustes:
