@@ -1,3 +1,6 @@
+### 1.33.4 - 20/09/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 49
+* (74340) Corrige seletor de períodos na conclusão de PC
+* 
 ### 1.33.3 - 15/09/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 49
 * (71660) Altera conclusão de PC para tratar erros de e-mail de notificação sem abortar conclusão da PC
 * (72907) Melhorias diversas no relatório consolidado DRE
