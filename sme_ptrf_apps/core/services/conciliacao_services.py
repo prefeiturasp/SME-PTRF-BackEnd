@@ -289,7 +289,6 @@ def info_conciliacao_conta_associacao_no_periodo(periodo, conta_associacao):
 
 def receitas_conciliadas_por_conta_na_conciliacao(conta_associacao, periodo):
     dataset = periodo.receitas_conciliadas_no_periodo.filter(conta_associacao=conta_associacao)
-
     return dataset.all()
 
 
