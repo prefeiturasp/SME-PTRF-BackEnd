@@ -137,14 +137,24 @@ class Associacao(ModeloIdNome):
                 'cargo_educacao': ''
             }
 
-    def periodos_com_prestacao_de_contas(self):
+    def periodos_com_prestacao_de_contas(self, ignorar_devolvidas=False):
         periodos = set()
-        for prestacao in self.prestacoes_de_conta_da_associacao.all():
+
+        prestacoes_da_associacao = self.prestacoes_de_conta_da_associacao
+        if ignorar_devolvidas:
+            prestacoes_da_associacao = prestacoes_da_associacao.exclude(status='DEVOLVIDA')
+
+        for prestacao in prestacoes_da_associacao.all():
             periodos.add(prestacao.periodo)
+
         return periodos
 
-    def proximo_periodo_de_prestacao_de_contas(self):
-        ultima_prestacao_feita = self.prestacoes_de_conta_da_associacao.last()
+    def proximo_periodo_de_prestacao_de_contas(self, ignorar_devolvidas=False):
+        prestacoes_da_associacao = self.prestacoes_de_conta_da_associacao
+        if ignorar_devolvidas:
+            prestacoes_da_associacao = prestacoes_da_associacao.exclude(status='DEVOLVIDA')
+
+        ultima_prestacao_feita = prestacoes_da_associacao.last()
         ultimo_periodo_com_prestacao = ultima_prestacao_feita.periodo if ultima_prestacao_feita else None
         if ultimo_periodo_com_prestacao:
             return ultimo_periodo_com_prestacao.periodo_seguinte.first()
@@ -152,8 +162,8 @@ class Associacao(ModeloIdNome):
             return self.periodo_inicial.periodo_seguinte.first() if self.periodo_inicial else None
 
     def periodos_para_prestacoes_de_conta(self):
-        periodos = list(self.periodos_com_prestacao_de_contas())
-        proximo_periodo = self.proximo_periodo_de_prestacao_de_contas()
+        periodos = list(self.periodos_com_prestacao_de_contas(ignorar_devolvidas=True))
+        proximo_periodo = self.proximo_periodo_de_prestacao_de_contas(ignorar_devolvidas=True)
         if proximo_periodo:
             periodos.append(proximo_periodo)
 
