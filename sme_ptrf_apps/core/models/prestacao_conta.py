@@ -112,7 +112,7 @@ class PrestacaoConta(ModeloBase):
 
     @property
     def total_devolucao_ao_tesouro(self):
-        return self.devolucoes_ao_tesouro_da_prestacao.all().aggregate(Sum('valor'))['valor__sum'] or 0.00
+        return self.devolucoes_ao_tesouro_da_prestacao.all().aggregate(Sum('valor'))['valor__sum'] or 'Não'
 
     def __str__(self):
         return f"{self.periodo} - {self.status}"
