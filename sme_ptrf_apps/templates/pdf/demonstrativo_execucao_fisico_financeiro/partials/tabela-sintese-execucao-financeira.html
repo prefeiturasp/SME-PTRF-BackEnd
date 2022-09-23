@@ -15,7 +15,10 @@
   <table class="table table-bordered tabela-relatorio-dre nao-quebra-linha" >
     <thead>
     <tr>
-      <th colSpan="24" class="font-12"><strong>Execução financeira - Conta {{ valor.tipo_conta }}</strong></th>
+      {# Controlando o layout. Não devem ser exibidas as linhas de contas que tenham valores zerados em todas as colunas. #}
+      <th {% if dados.execucao_financeira.por_tipo_de_conta|length == 1 %} colSpan="24" {% else %} colSpan="20" {% endif %} class="font-12" >
+        <strong>Execução financeira - Conta {{ valor.tipo_conta }}</strong>
+      </th>
     </tr>
       <tr>
         <th colSpan="2" style="width: 15%" class="th-fundo-branco">01 - Saldo reprogramado do período anterior</th>
@@ -37,9 +40,13 @@
         <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
 
         <th colSpan="2" style="width: 15%" class="th-fundo-branco">07 - Saldo reprogramado para o próximo período</th>
-        <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
 
-        <th colSpan="3" class="th-fundo-branco">08 - Devolução ao Tesouro</th>
+        {# Controlando o layout. Não devem ser exibidas as linhas de contas que tenham valores zerados em todas as colunas. #}
+        {% if dados.execucao_financeira.por_tipo_de_conta|length == 1 %}
+          <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
+
+          <th colSpan="3" class="th-fundo-branco">08 - Devolução ao Tesouro</th>
+        {% endif %}
       </tr>
     </thead>
 
@@ -72,10 +79,15 @@
 
         <td rowSpan="2" style="width: 4%">C</td>
         <td rowSpan="2" class="text-right">{{ valor.custeio.saldo_reprogramado_proximo_periodo_custeio }}</td>
-        <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
 
-        <td rowSpan="8" colspan="2" class="text-center" style="width: 2%"><strong>T</strong></td>
-        <td rowSpan="8" colspan="2" class="text-right"><strong>{{ valor.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
+        {# Controlando o layout. Não devem ser exibidas as linhas de contas que tenham valores zerados em todas as colunas. #}
+        {% if dados.execucao_financeira.por_tipo_de_conta|length == 1 %}
+          <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
+
+          <td rowSpan="8" colspan="2" class="text-center" style="width: 2%"><strong>T</strong></td>
+          <td rowSpan="8" colspan="2" class="text-right"><strong>{{ valor.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
+        {% endif %}
+
       </tr>
       <tr></tr>
       <tr>
@@ -97,9 +109,12 @@
             class="text-right">{{ valor.livre.valor_total_livre }}</td>
 
         <td rowSpan="2"> L</td>
-        <td rowSpan="2"
-            class="text-right">{{ valor.livre.saldo_reprogramado_proximo_periodo_livre }}</td>
-        <td style="display: inline-table; border:none !important;"></td>
+        <td rowSpan="2" class="text-right">{{ valor.livre.saldo_reprogramado_proximo_periodo_livre }}</td>
+
+        {# Controlando o layout. Não devem ser exibidas as linhas de contas que tenham valores zerados em todas as colunas. #}
+        {% if dados.execucao_financeira.por_tipo_de_conta|length == 1 %}
+          <td style="display: inline-table; border:none !important;"></td>
+        {% endif %}
 
       </tr>
       <tr>

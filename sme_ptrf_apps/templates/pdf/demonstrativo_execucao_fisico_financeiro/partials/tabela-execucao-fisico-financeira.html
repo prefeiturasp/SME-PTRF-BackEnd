@@ -65,10 +65,11 @@
         <td rowSpan="2" style="width: 4%">C</td>
         <td rowSpan="2" class="text-right">{{ conta.custeio.saldo_custeio }}</td>
 
-        <td rowSpan="8"><strong>T</strong></td>
-        <td class="text-right" rowSpan="8"><strong>{{ conta.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
-
         {% if forloop.counter == 1 %}
+          <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>T</strong></td>
+          <td class="text-right" rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>{{ conta.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
+
+
           <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}">{{ info.situacao_pc }}</td>
         {% endif %}
       </tr>
