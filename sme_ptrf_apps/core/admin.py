@@ -733,9 +733,24 @@ class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
 
 @admin.register(SolicitacaoAcertoLancamento)
 class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
-    list_display = ['uuid', 'analise_lancamento', 'tipo_acerto']
-    search_fields = ['detalhamento']
-    list_filter = ['tipo_acerto', ]
+    def get_associacao(self, obj):
+        return obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.nome if obj and obj.analise_lancamento and obj.analise_lancamento.analise_prestacao_conta and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao else ''
+
+    get_associacao.short_description = 'Associação'
+
+    def get_referencia(self, obj):
+        return obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.periodo.referencia if obj and obj.analise_lancamento and obj.analise_lancamento.analise_prestacao_conta and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.periodo else ''
+
+    get_referencia.short_description = 'Período'
+
+    def get_despesa(self, obj):
+        return obj.analise_lancamento.despesa if obj and obj.analise_lancamento else ''
+
+    get_referencia.short_description = 'Despesa'
+
+    list_display = ['get_associacao', 'get_referencia', 'analise_lancamento', 'tipo_acerto', 'devolucao_ao_tesouro', 'get_despesa']
+    search_fields = ['detalhamento', 'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol' ]
+    list_filter = ['tipo_acerto', 'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo__referencia' ]
     readonly_fields = ('uuid', 'id',)
 
 
