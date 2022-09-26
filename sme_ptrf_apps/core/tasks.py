@@ -291,3 +291,24 @@ def gerar_previa_relatorio_acertos_async(analise_prestacao_uuid, usuario=""):
     )
 
     logger.info('Finalizando a geração prévia do relatório de acertos')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
+def gerar_previa_relatorio_apos_acertos_async(analise_prestacao_uuid, usuario=""):
+    from sme_ptrf_apps.core.services.analise_prestacao_conta_service import (criar_previa_relatorio_apos_acertos)
+
+    analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+
+    analise_prestacao.apaga_arquivo_pdf_relatorio_apos_acertos()
+
+    criar_previa_relatorio_apos_acertos(
+        analise_prestacao_conta=analise_prestacao,
+        usuario=usuario
+    )
+
+    logger.info('Finalizando a geração prévia do relatório após acertos')
