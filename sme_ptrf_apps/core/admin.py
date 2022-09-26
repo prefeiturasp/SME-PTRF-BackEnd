@@ -714,9 +714,11 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
     get_referencia_periodo.short_description = 'Período'
 
     list_display = ('get_associacao', 'get_referencia_periodo', 'criado_em', 'status',)
-    list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta', 'status')
+    list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta', 'status',
+                   'status_versao', 'versao', 'status_versao_apresentacao_apos_acertos',
+                   'versao_pdf_apresentacao_apos_acertos',)
     list_display_links = ('get_associacao',)
-    readonly_fields = ('uuid', 'id',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
 
