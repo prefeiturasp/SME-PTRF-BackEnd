@@ -34,7 +34,9 @@ def test_obtem_painel_resumo_recursos_por_associacao_periodo_conta(
         'periodo_encerrado': False,
         'prestacao_de_contas_uuid': None,
         'status_prestacao': 'NAO_APRESENTADA',
-        'texto_status': 'Período em andamento. '
+        'texto_status': 'Período em andamento. ',
+        'requer_retificacao': False,
+        'tem_acertos_pendentes': False,
     }
 
     assert isinstance(painel, PainelResumoRecursos)

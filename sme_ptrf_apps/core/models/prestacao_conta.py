@@ -99,6 +99,8 @@ class PrestacaoConta(ModeloBase):
                                         related_name='prestacoes_de_conta_do_consolidado_dre',
                                         blank=True, null=True)
 
+    justificativa_pendencia_realizacao = models.TextField('Justificativa de pendências de realização de ajustes.', blank=True, default='')
+
     @property
     def tecnico_responsavel(self):
         atribuicoes = Atribuicao.search(
@@ -110,7 +112,7 @@ class PrestacaoConta(ModeloBase):
 
     @property
     def total_devolucao_ao_tesouro(self):
-        return self.devolucoes_ao_tesouro_da_prestacao.all().aggregate(Sum('valor'))['valor__sum'] or 0.00
+        return self.devolucoes_ao_tesouro_da_prestacao.all().aggregate(Sum('valor'))['valor__sum'] or 'Não'
 
     def __str__(self):
         return f"{self.periodo} - {self.status}"
@@ -149,7 +151,7 @@ class PrestacaoConta(ModeloBase):
     def ultima_ata_retificacao(self):
         return self.atas_da_prestacao.filter(tipo_ata='RETIFICACAO', previa=False).last()
 
-    def concluir(self, e_retorno_devolucao=False):
+    def concluir(self, e_retorno_devolucao=False, justificativa_acertos_pendentes=''):
         from ..models import DevolucaoPrestacaoConta
         if e_retorno_devolucao:
             self.status = self.STATUS_DEVOLVIDA_RETORNADA
@@ -158,7 +160,7 @@ class PrestacaoConta(ModeloBase):
             ultima_devolucao.save()
         else:
             self.status = self.STATUS_NAO_RECEBIDA
-
+        self.justificativa_pendencia_realizacao = justificativa_acertos_pendentes
         self.save()
         return self
 
@@ -280,16 +282,24 @@ class PrestacaoConta(ModeloBase):
             data=date.today(),
             data_limite_ue=data_limite_ue
         )
+        devolucao_requer_alteracoes = False
+
         if self.analise_atual:
+            devolucao_requer_alteracoes = self.analise_atual.requer_alteracao_em_lancamentos
             self.analise_atual.devolucao_prestacao_conta = devolucao
             self.analise_atual.save()
 
         self.analise_atual = None
+        self.justificativa_pendencia_realizacao = ""
         self.save()
 
-        self.apaga_fechamentos()
-        self.apaga_relacao_bens()
-        self.apaga_demonstrativos_financeiros()
+        if devolucao_requer_alteracoes:
+            logging.info('Solicitações de ajustes requerem apagar fechamentos e documentos.')
+            self.apaga_fechamentos()
+            self.apaga_relacao_bens()
+            self.apaga_demonstrativos_financeiros()
+        else:
+            logging.info('Solicitações de ajustes NÃO requerem apagar fechamentos e documentos.')
 
         notificar_prestacao_de_contas_devolvida_para_acertos(self, data_limite_ue)
         return self

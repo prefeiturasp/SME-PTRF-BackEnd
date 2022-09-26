@@ -4,7 +4,7 @@ from sme_ptrf_apps.core.models import Associacao, FechamentoPeriodo
 from sme_ptrf_apps.despesas.models import RateioDespesa, Despesa
 from sme_ptrf_apps.receitas.models import Receita
 
-from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
+from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO, STATUS_INATIVO
 
 
 def receitas_conciliadas_por_conta_e_acao_na_conciliacao(conta_associacao, acao_associacao, periodo):
@@ -289,8 +289,7 @@ def info_conciliacao_conta_associacao_no_periodo(periodo, conta_associacao):
 
 def receitas_conciliadas_por_conta_na_conciliacao(conta_associacao, periodo):
     dataset = periodo.receitas_conciliadas_no_periodo.filter(conta_associacao=conta_associacao)
-
-    return dataset.all()
+    return dataset.exclude(status=STATUS_INATIVO).all()
 
 
 def receitas_nao_conciliadas_por_conta_no_periodo(conta_associacao, periodo):

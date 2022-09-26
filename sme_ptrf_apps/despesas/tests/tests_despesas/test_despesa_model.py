@@ -34,6 +34,7 @@ def test_instance_model(despesa):
     assert not model.despesas_impostos.exists()
     assert model.motivos_pagamento_antecipado is not None
     assert model.outros_motivos_pagamento_antecipado is not None
+    assert model.data_e_hora_de_inativacao is None
 
 
 def test_srt_model(despesa):

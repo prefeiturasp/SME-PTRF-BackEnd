@@ -25,16 +25,35 @@ from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previa
 from ..services.processos_services import get_processo_sei_da_prestacao
 from ...despesas.models import RateioDespesa, Despesa
 from ...receitas.models import Receita
-from ..tasks import concluir_prestacao_de_contas_async, gerar_previa_demonstrativo_financeiro_async
+from ..tasks import gerar_previa_demonstrativo_financeiro_async
 
 from ..services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
 from .demonstrativo_financeiro_pdf_service import gerar_arquivo_demonstrativo_financeiro_pdf
 
-from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
+from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO, STATUS_INCOMPLETO
 
 from ..api.serializers.associacao_serializer import AssociacaoCompletoSerializer
 
 logger = logging.getLogger(__name__)
+
+
+def pc_requer_geracao_documentos(prestacao):
+    if prestacao.status in (
+        PrestacaoConta.STATUS_NAO_RECEBIDA,
+        PrestacaoConta.STATUS_RECEBIDA,
+        PrestacaoConta.STATUS_EM_ANALISE,
+        PrestacaoConta.STATUS_APROVADA,
+        PrestacaoConta.STATUS_APROVADA_RESSALVA,
+        PrestacaoConta.STATUS_REPROVADA,
+        PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA,
+    ):
+        return False
+
+    if prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA:
+        ultima_analise = prestacao.analises_da_prestacao.last()
+        return ultima_analise is not None and ultima_analise.requer_alteracao_em_lancamentos
+    else:
+        return True
 
 
 @transaction.atomic
@@ -43,11 +62,13 @@ def concluir_prestacao_de_contas(periodo, associacao):
     logger.info(f'Aberta a prestação de contas {prestacao}.')
 
     e_retorno_devolucao = prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA
+    requer_geracao_documentos = pc_requer_geracao_documentos(prestacao)
 
     if prestacao.status == PrestacaoConta.STATUS_EM_PROCESSAMENTO:
         return {
             "prestacao": prestacao,
             "e_retorno_devolucao": e_retorno_devolucao,
+            "requer_geracao_documentos": requer_geracao_documentos,
             "erro": "A pc já está em processamento, não é possivel alterar o status para em processamento."
         }
 
@@ -57,6 +78,7 @@ def concluir_prestacao_de_contas(periodo, associacao):
     return {
         "prestacao": prestacao,
         "e_retorno_devolucao": e_retorno_devolucao,
+        "requer_geracao_documentos": requer_geracao_documentos,
         "erro": None
     }
 
@@ -332,7 +354,7 @@ def lista_prestacoes_de_conta_nao_recebidas(
             'unidade_tipo_unidade': associacao.unidade.tipo_unidade,
             'uuid': f'{prestacao_conta.uuid}' if prestacao_conta else '',
             'associacao_uuid': f'{associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': prestacao_conta.total_devolucao_ao_tesouro if prestacao_conta else 'Não',
         }
 
         prestacoes.append(info_prestacao)
@@ -381,7 +403,7 @@ def lista_prestacoes_de_conta_todos_os_status(
             'unidade_tipo_unidade': associacao.unidade.tipo_unidade,
             'uuid': f'{prestacao_conta.uuid}' if prestacao_conta else '',
             'associacao_uuid': f'{associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': prestacao_conta.total_devolucao_ao_tesouro if prestacao_conta else 'Não',
         }
 
         prestacoes.append(info_prestacao)
@@ -586,6 +608,7 @@ def lancamentos_da_prestacao(
     filtrar_por_data_inicio=None,
     filtrar_por_data_fim=None,
     filtrar_por_nome_fornecedor=None,
+    inclui_inativas=False,
 ):
     from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaDocumentoMestreSerializer, \
         DespesaImpostoSerializer
@@ -604,15 +627,20 @@ def lancamentos_da_prestacao(
         filtrar_por_data_inicio,
         filtrar_por_data_fim,
         filtrar_por_nome_fornecedor=None,
+        inclui_inativas=False,
     ):
         rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
             conta_associacao=conta_associacao,
             acao_associacao=acao_associacao,
-            periodo=periodo
+            periodo=periodo,
+            incluir_inativas=True,
         )
         despesas_com_rateios = rateios.values_list('despesa__id', flat=True).distinct()
 
-        dataset = Despesa.completas.filter(id__in=despesas_com_rateios)
+        if inclui_inativas:
+            dataset = Despesa.objects.exclude(status=STATUS_INCOMPLETO).filter(id__in=despesas_com_rateios)
+        else:
+            dataset = Despesa.completas.filter(id__in=despesas_com_rateios)
 
         if filtrar_por_data_inicio and filtrar_por_data_fim:
             dataset = dataset.filter(data_transacao__range=[filtrar_por_data_inicio, filtrar_por_data_fim])
@@ -642,7 +670,6 @@ def lancamentos_da_prestacao(
 
         if filtrar_por_nome_fornecedor:
             dataset = dataset.filter(nome_fornecedor__unaccent__icontains=filtrar_por_nome_fornecedor)
-
         return dataset.all()
 
     receitas = []
@@ -657,6 +684,7 @@ def lancamentos_da_prestacao(
             periodo=prestacao_conta.periodo,
             filtrar_por_data_inicio=filtrar_por_data_inicio,
             filtrar_por_data_fim=filtrar_por_data_fim,
+            inclui_inativas=True,
         )
 
         receitas = receitas.order_by("data")
@@ -672,6 +700,7 @@ def lancamentos_da_prestacao(
             filtrar_por_data_inicio=filtrar_por_data_inicio,
             filtrar_por_data_fim=filtrar_por_data_fim,
             filtrar_por_nome_fornecedor=filtrar_por_nome_fornecedor,
+            inclui_inativas=True,
         )
 
         despesas = despesas.order_by("data_transacao")
@@ -683,7 +712,11 @@ def lancamentos_da_prestacao(
         for despesa in despesas:
 
             max_notificar_dias_nao_conferido = 0
-            for rateio in despesa.rateios.filter(status=STATUS_COMPLETO, conta_associacao=conta_associacao):
+            despesas_filter = despesa.rateios.filter(status=STATUS_COMPLETO, conta_associacao=conta_associacao)
+
+            if inclui_inativas:
+                despesas_filter = despesa.rateios.exclude(status=STATUS_INCOMPLETO).filter(conta_associacao=conta_associacao)
+            for rateio in despesas_filter:
                 if rateio.notificar_dias_nao_conferido > max_notificar_dias_nao_conferido:
                     max_notificar_dias_nao_conferido = rateio.notificar_dias_nao_conferido
 
@@ -707,19 +740,11 @@ def lancamentos_da_prestacao(
                 'numero_documento': despesa.numero_documento,
                 'descricao': despesa.nome_fornecedor,
                 'valor_transacao_total': despesa.valor_total,
-                'valor_transacao_na_conta':
-                    despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).aggregate(
-                        Sum('valor_rateio'))[
-                        'valor_rateio__sum'],
-                'valores_por_conta': despesa.rateios.filter(status=STATUS_COMPLETO).values(
-                    'conta_associacao__tipo_conta__nome').annotate(
-                    Sum('valor_rateio')),
+                'valor_transacao_na_conta': despesas_filter.aggregate(Sum('valor_rateio'))['valor_rateio__sum'],
+                'valores_por_conta': despesas_filter.values('conta_associacao__tipo_conta__nome').annotate(Sum('valor_rateio')),
                 'conferido': despesa.conferido,
                 'documento_mestre': DespesaDocumentoMestreSerializer(despesa, many=False).data,
-                'rateios': RateioDespesaConciliacaoSerializer(
-                    despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by(
-                        'id'),
-                    many=True).data,
+                'rateios': RateioDespesaConciliacaoSerializer(despesas_filter.order_by('id'), many=True).data,
                 'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
                 'analise_lancamento': {'resultado': analise_lancamento.resultado,
                                        'uuid': analise_lancamento.uuid} if analise_lancamento else None,
@@ -766,7 +791,8 @@ def lancamentos_da_prestacao(
             'rateios': [],
             'notificar_dias_nao_conferido': receita.notificar_dias_nao_conferido,
             'analise_lancamento': {'resultado': analise_lancamento.resultado,
-                                   'uuid': analise_lancamento.uuid} if analise_lancamento else None
+                                   'uuid': analise_lancamento.uuid} if analise_lancamento else None,
+            'informacoes': receita.tags_de_informacao,
         }
 
         if com_ajustes:
@@ -982,7 +1008,7 @@ def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes
 
 
 def documentos_da_prestacao(analise_prestacao_conta):
-    from ..models import TipoDocumentoPrestacaoConta, ContaAssociacao
+    from ..models import TipoDocumentoPrestacaoConta
 
     associacao = analise_prestacao_conta.prestacao_conta.associacao
 

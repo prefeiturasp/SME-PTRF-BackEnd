@@ -14,6 +14,8 @@ def test_instance_model(analise_lancamento_receita_prestacao_conta_2020_1):
     assert model.receita is not None
     assert model.despesa is None
     assert model.resultado == AnaliseLancamentoPrestacaoConta.RESULTADO_CORRETO
+    assert model.justificativa is None
+    assert model.status_realizacao == AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
 
 
 def test_srt_model(analise_lancamento_receita_prestacao_conta_2020_1):

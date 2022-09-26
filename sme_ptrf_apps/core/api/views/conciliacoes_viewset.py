@@ -74,8 +74,8 @@ class ConciliacoesViewSet(GenericViewSet):
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
         result = info_resumo_conciliacao(periodo=periodo, conta_associacao=conta_associacao)
+
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'],

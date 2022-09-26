@@ -29,7 +29,9 @@ def concluir_prestacao_de_contas_async(
     associacao_uuid,
     usuario="",
     criar_arquivos=True,
-    e_retorno_devolucao=False
+    e_retorno_devolucao=False,
+    requer_geracao_documentos=True,
+    justificativa_acertos_pendentes='',
 ):
     from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_documentos, _criar_fechamentos,
                                                                        _apagar_previas_documentos)
@@ -41,16 +43,22 @@ def concluir_prestacao_de_contas_async(
     acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
     contas = associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
 
-    _criar_fechamentos(acoes, contas, periodo, prestacao)
-    logger.info('Fechamentos criados para a prestação de contas %s.', prestacao)
+    if requer_geracao_documentos:
+        _criar_fechamentos(acoes, contas, periodo, prestacao)
+        logger.info('Fechamentos criados para a prestação de contas %s.', prestacao)
 
-    _apagar_previas_documentos(contas=contas, periodo=periodo, prestacao=prestacao)
-    logger.info('Prévias apagadas.')
+        _apagar_previas_documentos(contas=contas, periodo=periodo, prestacao=prestacao)
+        logger.info('Prévias apagadas.')
 
-    _criar_documentos(acoes, contas, periodo, prestacao, usuario=usuario, criar_arquivos=criar_arquivos)
-    logger.info('Documentos gerados para a prestação de contas %s.', prestacao)
+        _criar_documentos(acoes, contas, periodo, prestacao, usuario=usuario, criar_arquivos=criar_arquivos)
+        logger.info('Documentos gerados para a prestação de contas %s.', prestacao)
+    else:
+        logger.info('PC não requer geração de documentos e cálculo de fechamentos.')
 
-    prestacao = prestacao.concluir(e_retorno_devolucao=e_retorno_devolucao)
+    prestacao = prestacao.concluir(
+        e_retorno_devolucao=e_retorno_devolucao,
+        justificativa_acertos_pendentes=justificativa_acertos_pendentes
+    )
     logger.info('Concluída a prestação de contas %s.', prestacao)
 
 
@@ -283,3 +291,24 @@ def gerar_previa_relatorio_acertos_async(analise_prestacao_uuid, usuario=""):
     )
 
     logger.info('Finalizando a geração prévia do relatório de acertos')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
+def gerar_previa_relatorio_apos_acertos_async(analise_prestacao_uuid, usuario=""):
+    from sme_ptrf_apps.core.services.analise_prestacao_conta_service import (criar_previa_relatorio_apos_acertos)
+
+    analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+
+    analise_prestacao.apaga_arquivo_pdf_relatorio_apos_acertos()
+
+    criar_previa_relatorio_apos_acertos(
+        analise_prestacao_conta=analise_prestacao,
+        usuario=usuario
+    )
+
+    logger.info('Finalizando a geração prévia do relatório após acertos')

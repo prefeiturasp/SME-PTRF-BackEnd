@@ -21,6 +21,8 @@ def test_api_get_solicitacoes_acerto_de_um_documento_nao_por_conta(
     resultado_esperado = {
         'uuid': f'{analise_documento_prestacao_conta_2020_1_ata_ajuste.uuid}',
         'id': analise_documento_prestacao_conta_2020_1_ata_ajuste.id,
+        'justificativa': None,
+        'status_realizacao': 'PENDENTE',
         'resultado': 'AJUSTE',
         'conta_associacao': None,
         'analise_prestacao_conta': f'{analise_prestacao.uuid}',
@@ -35,14 +37,25 @@ def test_api_get_solicitacoes_acerto_de_um_documento_nao_por_conta(
             {
                 'analise_documento': f'{analise_documento_prestacao_conta_2020_1_ata_ajuste.uuid}',
                 'detalhamento': '',
-                'tipo_acerto': {'id': tipo_acerto_documento_assinatura.id,
-                                'nome': 'Enviar com '
-                                        'assinatura',
-                                'uuid': f'{tipo_acerto_documento_assinatura.uuid}'},
+                'tipo_acerto': {
+                    'ativo': tipo_acerto_documento_assinatura.ativo,
+                    'categoria': tipo_acerto_documento_assinatura.categoria,
+                    'id': tipo_acerto_documento_assinatura.id,
+                    'nome': 'Enviar com assinatura',
+                    'uuid': f'{tipo_acerto_documento_assinatura.uuid}',
+                    'tipos_documento_prestacao': [tipo_documento_prestacao_conta_ata.id]
+                },
                 'id': solicitacao_acerto_documento_ata.id,
                 'uuid': f'{solicitacao_acerto_documento_ata.uuid}'
             },
         ],
+        'despesa_incluida': None,
+        'esclarecimentos': None,
+        'receita_incluida': None,
+        'requer_ajuste_externo': False,
+        'requer_esclarecimentos': True,
+        'requer_inclusao_credito': False,
+        'requer_inclusao_gasto': False,
     }
 
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/analises-de-documento/?analise_documento={analise_documento_prestacao_conta_2020_1_ata_ajuste.uuid}'
@@ -61,6 +74,7 @@ def test_api_get_solicitacoes_acerto_de_um_documento_por_conta(
     conta_associacao_cartao,
     analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste,
     solicitacao_acerto_documento_declaracao_cartao,
+    tipo_documento_prestacao_conta_ata
 ):
     analise_prestacao = analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste.analise_prestacao_conta
     prestacao_conta = analise_prestacao.prestacao_conta
@@ -68,6 +82,8 @@ def test_api_get_solicitacoes_acerto_de_um_documento_por_conta(
     resultado_esperado = {
         'uuid': f'{analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste.uuid}',
         'id': analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste.id,
+        'justificativa': None,
+        'status_realizacao': 'PENDENTE',
         'resultado': 'AJUSTE',
         'conta_associacao': {
             'nome': 'Cartão',
@@ -85,14 +101,25 @@ def test_api_get_solicitacoes_acerto_de_um_documento_por_conta(
             {
                 'analise_documento': f'{analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste.uuid}',
                 'detalhamento': '',
-                'tipo_acerto': {'id': tipo_acerto_documento_assinatura.id,
-                                'nome': 'Enviar com '
-                                        'assinatura',
-                                'uuid': f'{tipo_acerto_documento_assinatura.uuid}'},
+                'tipo_acerto': {
+                    'ativo': tipo_acerto_documento_assinatura.ativo,
+                    'categoria': tipo_acerto_documento_assinatura.categoria,
+                    'id': tipo_acerto_documento_assinatura.id,
+                    'nome': 'Enviar com assinatura',
+                    'uuid': f'{tipo_acerto_documento_assinatura.uuid}',
+                    'tipos_documento_prestacao': [tipo_documento_prestacao_conta_ata.id]
+                },
                 'id': solicitacao_acerto_documento_declaracao_cartao.id,
                 'uuid': f'{solicitacao_acerto_documento_declaracao_cartao.uuid}'
             },
         ],
+        'despesa_incluida': None,
+        'esclarecimentos': None,
+        'receita_incluida': None,
+        'requer_ajuste_externo': False,
+        'requer_esclarecimentos': True,
+        'requer_inclusao_credito': False,
+        'requer_inclusao_gasto': False,
     }
 
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/analises-de-documento/?analise_documento={analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste.uuid}'
