@@ -201,12 +201,20 @@ class AssociacoesViewSet(ModelViewSet):
             aceita_alteracoes = True
             prestacao_conta_status = {}
 
+        gerar_ou_editar_ata_apresentacao = False
+        gerar_ou_editar_ata_retificacao = False
+        if bool(prestacao_conta_status):
+            gerar_ou_editar_ata_apresentacao = False if prestacao_conta_status['status_prestacao'] not in ['NAO_APRESENTADA', 'NAO_RECEBIDA'] else True
+            gerar_ou_editar_ata_retificacao = False if prestacao_conta_status['status_prestacao'] not in ['DEVOLVIDA', 'DEVOLVIDA_RETORNADA'] else True
+
         result = {
             'associacao': f'{uuid}',
             'periodo_referencia': periodo_referencia,
             'aceita_alteracoes': aceita_alteracoes,
             'prestacao_contas_status': prestacao_conta_status,
             'prestacao_conta': prestacao_conta.uuid if prestacao_conta else '',
+            'gerar_ou_editar_ata_apresentacao': gerar_ou_editar_ata_apresentacao,
+            'gerar_ou_editar_ata_refiticacao': gerar_ou_editar_ata_retificacao,
         }
 
         return Response(result)
