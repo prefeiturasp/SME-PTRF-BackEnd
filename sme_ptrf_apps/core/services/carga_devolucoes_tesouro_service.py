@@ -104,7 +104,10 @@ class CargaDevolucoesTesouroService:
 
         # Define a Data e Valor da Devolução ao tesouro
         try:
-            data_devolucao = datetime.strptime(str(linha_conteudo[self.DATA_DEVOLUCAO]).strip(" "), '%d/%m/%Y')
+            if str(linha_conteudo[self.DATA_DEVOLUCAO]).strip(" "):
+                data_devolucao = datetime.strptime(str(linha_conteudo[self.DATA_DEVOLUCAO]).strip(" "), '%d/%m/%Y')
+            else:
+                data_devolucao = None
         except Exception:
             raise CargaDevolcuoesTesouroException(f'A data de devolução {linha_conteudo[self.DATA_DEVOLUCAO].strip()} é inválida. Devolução não criada.')
 
