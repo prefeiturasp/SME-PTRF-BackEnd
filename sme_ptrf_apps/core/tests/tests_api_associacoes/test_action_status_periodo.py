@@ -20,7 +20,7 @@ def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, per
     esperado = {
         'associacao': f'{associacao.uuid}',
         'gerar_ou_editar_ata_apresentacao': True,
-        'gerar_ou_editar_ata_refiticacao': False,
+        'gerar_ou_editar_ata_retificacao': False,
         'periodo_referencia': periodo_fim_em_aberto.referencia,
         'aceita_alteracoes': True,
         'prestacao_contas_status': {
@@ -50,7 +50,7 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
     esperado = {
         'associacao': f'{associacao.uuid}',
         'gerar_ou_editar_ata_apresentacao': True,
-        'gerar_ou_editar_ata_refiticacao': False,
+        'gerar_ou_editar_ata_retificacao': False,
         'periodo_referencia': periodo_fim_em_2020_06_30.referencia,
         'aceita_alteracoes': True,
         'prestacao_contas_status': {
@@ -94,7 +94,7 @@ def test_chamada_data_sem_periodo(jwt_authenticated_client_a, associacao, period
     esperado = {
         'associacao': f'{associacao.uuid}',
         'gerar_ou_editar_ata_apresentacao': False,
-        'gerar_ou_editar_ata_refiticacao': False,
+        'gerar_ou_editar_ata_retificacao': False,
         'periodo_referencia': '',
         'aceita_alteracoes': True,
         'prestacao_contas_status': {},
@@ -115,7 +115,7 @@ def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prest
     esperado = {
         'associacao': f'{associacao.uuid}',
         'gerar_ou_editar_ata_apresentacao': True,
-        'gerar_ou_editar_ata_refiticacao': False,
+        'gerar_ou_editar_ata_retificacao': False,
         'periodo_referencia': periodo.referencia,
         'aceita_alteracoes': False,
         'prestacao_contas_status': {
@@ -161,7 +161,7 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
     esperado = {
         'associacao': f'{associacao.uuid}',
         'gerar_ou_editar_ata_apresentacao': False,
-        'gerar_ou_editar_ata_refiticacao': True,
+        'gerar_ou_editar_ata_retificacao': False,
         'periodo_referencia': periodo.referencia,
         'aceita_alteracoes': False,
         'prestacao_contas_status': {
