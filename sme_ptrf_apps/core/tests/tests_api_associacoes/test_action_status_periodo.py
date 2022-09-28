@@ -7,7 +7,7 @@ from freezegun import freeze_time
 from model_bakery import baker
 from rest_framework import status
 
-from ...models import PrestacaoConta
+from ...models import PrestacaoConta, Periodo
 
 pytestmark = pytest.mark.django_db
 
@@ -17,9 +17,10 @@ def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, per
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-10',
                           content_type='application/json')
     result = json.loads(response.content)
-
     esperado = {
         'associacao': f'{associacao.uuid}',
+        'gerar_ou_editar_ata_apresentacao': False,
+        'gerar_ou_editar_ata_retificacao': False,
         'periodo_referencia': periodo_fim_em_aberto.referencia,
         'aceita_alteracoes': True,
         'prestacao_contas_status': {
@@ -46,9 +47,10 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-10',
                           content_type='application/json')
     result = json.loads(response.content)
-
     esperado = {
         'associacao': f'{associacao.uuid}',
+        'gerar_ou_editar_ata_apresentacao': False,
+        'gerar_ou_editar_ata_retificacao': False,
         'periodo_referencia': periodo_fim_em_2020_06_30.referencia,
         'aceita_alteracoes': True,
         'prestacao_contas_status': {
@@ -91,6 +93,8 @@ def test_chamada_data_sem_periodo(jwt_authenticated_client_a, associacao, period
 
     esperado = {
         'associacao': f'{associacao.uuid}',
+        'gerar_ou_editar_ata_apresentacao': False,
+        'gerar_ou_editar_ata_retificacao': False,
         'periodo_referencia': '',
         'aceita_alteracoes': True,
         'prestacao_contas_status': {},
@@ -108,9 +112,10 @@ def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prest
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo.data_inicio_realizacao_despesas}',
                           content_type='application/json')
     result = json.loads(response.content)
-
     esperado = {
         'associacao': f'{associacao.uuid}',
+        'gerar_ou_editar_ata_apresentacao': True,
+        'gerar_ou_editar_ata_retificacao': False,
         'periodo_referencia': periodo.referencia,
         'aceita_alteracoes': False,
         'prestacao_contas_status': {
@@ -155,6 +160,8 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
 
     esperado = {
         'associacao': f'{associacao.uuid}',
+        'gerar_ou_editar_ata_apresentacao': False,
+        'gerar_ou_editar_ata_retificacao': False,
         'periodo_referencia': periodo.referencia,
         'aceita_alteracoes': False,
         'prestacao_contas_status': {
