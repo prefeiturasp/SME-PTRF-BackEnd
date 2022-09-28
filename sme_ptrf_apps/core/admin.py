@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import admin
 from rangefilter.filter import DateRangeFilter
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
@@ -764,6 +766,26 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
         'devolucao_ao_tesouro',
     ]
     readonly_fields = ('uuid', 'id',)
+
+    actions = ['buscar_e_vincular_devolucao_ao_tesouro']
+
+    def buscar_e_vincular_devolucao_ao_tesouro(self, request, queryset):
+        for solicitacao in queryset.all():
+            if solicitacao.tipo_acerto.categoria != 'DEVOLUCAO' or solicitacao.devolucao_ao_tesouro:
+                continue
+
+            prestacao_conta = solicitacao.analise_lancamento.analise_prestacao_conta.prestacao_conta
+            despesa = solicitacao.analise_lancamento.despesa
+            devolucao = DevolucaoAoTesouro.objects.filter(prestacao_conta=prestacao_conta, despesa=despesa).first()
+
+            if devolucao:
+                solicitacao.devolucao_ao_tesouro = devolucao
+                solicitacao.detalhamento = solicitacao.detalhamento + "(**vinculada a dvt)"
+                solicitacao.save()
+                logging.info(
+                    f'Vinculado solicitação {solicitacao.id}-{solicitacao} à devolução {devolucao.id}-{devolucao}')
+
+        self.message_user(request, f"Processo realizado com sucesso!")
 
 
 @admin.register(TipoDocumentoPrestacaoConta)
