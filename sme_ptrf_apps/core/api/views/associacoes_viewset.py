@@ -204,7 +204,7 @@ class AssociacoesViewSet(ModelViewSet):
         gerar_ou_editar_ata_apresentacao = False
         gerar_ou_editar_ata_retificacao = False
         if prestacao_conta_status:
-            gerar_ou_editar_ata_apresentacao = prestacao_conta_status['status_prestacao'] in ['NAO_APRESENTADA', 'NAO_RECEBIDA']
+            gerar_ou_editar_ata_apresentacao = prestacao_conta_status['status_prestacao'] == 'NAO_RECEBIDA'
             gerar_ou_editar_ata_retificacao = prestacao_conta_status['status_prestacao'] == 'DEVOLVIDA_RETORNADA'
 
         result = {
