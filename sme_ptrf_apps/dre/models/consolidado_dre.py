@@ -40,6 +40,28 @@ class ConsolidadoDRE(ModeloBase):
         (VERSAO_PREVIA, VERSAO_NOMES[VERSAO_PREVIA]),
     )
 
+    STATUS_SME_NAO_PUBLICADO = 'NAO_PUBLICADO'
+    STATUS_SME_PUBLICADO = 'PUBLICADO'
+    STATUS_SME_EM_ANALISE = 'EM_ANALISE'
+    STATUS_SME_DEVOLVIDO = 'DEVOLVIDO'
+    STATUS_SME_ANALISADO = 'ANALISADO'
+
+    STATUS_SME_NOMES = {
+        STATUS_SME_NAO_PUBLICADO: 'Não publicado',
+        STATUS_SME_PUBLICADO: 'Publicado',
+        STATUS_SME_EM_ANALISE: 'Em análise',
+        STATUS_SME_DEVOLVIDO: 'Devolvido',
+        STATUS_SME_ANALISADO: 'Analisado'
+    }
+
+    STATUS_SME_CHOICES = (
+        (STATUS_SME_NAO_PUBLICADO, STATUS_SME_NOMES[STATUS_SME_NAO_PUBLICADO]),
+        (STATUS_SME_PUBLICADO, STATUS_SME_NOMES[STATUS_SME_PUBLICADO]),
+        (STATUS_SME_EM_ANALISE, STATUS_SME_NOMES[STATUS_SME_EM_ANALISE]),
+        (STATUS_SME_DEVOLVIDO, STATUS_SME_NOMES[STATUS_SME_DEVOLVIDO]),
+        (STATUS_SME_ANALISADO, STATUS_SME_NOMES[STATUS_SME_ANALISADO]),
+    )
+
     dre = models.ForeignKey('core.Unidade', on_delete=models.PROTECT, related_name='consolidados_dre_da_dre',
                             to_field="codigo_eol", blank=True, null=True, limit_choices_to={'tipo_unidade': 'DRE'})
 
@@ -63,6 +85,17 @@ class ConsolidadoDRE(ModeloBase):
         choices=VERSAO_CHOICES,
         default=VERSAO_FINAL
     )
+
+    status_sme = models.CharField(
+        'status SME',
+        max_length=30,
+        choices=STATUS_SME_CHOICES,
+        default=STATUS_SME_NAO_PUBLICADO
+    )
+
+    data_publicacao = models.DateField('Publicado em', blank=True, null=True)
+
+    pagina_publicacao = models.CharField('Página publicacao', max_length=50, blank=True, default='')
 
     class Meta:
         verbose_name = 'Consolidado DRE'
@@ -130,6 +163,20 @@ class ConsolidadoDRE(ModeloBase):
 
     def get_valor_status_choice(self):
         return self.get_status_display()
+
+    def marcar_status_sme_como_publicado(self, data_publicacao, pagina_publicacao):
+        self.status_sme = self.STATUS_SME_PUBLICADO
+        self.data_publicacao = data_publicacao
+        self.pagina_publicacao = pagina_publicacao
+        self.save()
+        return self
+
+    def marcar_status_sme_como_nao_publicado(self):
+        self.status_sme = self.STATUS_SME_NAO_PUBLICADO
+        self.data_publicacao = None
+        self.pagina_publicacao = ''
+        self.save()
+        return self
 
 
 auditlog.register(ConsolidadoDRE)
