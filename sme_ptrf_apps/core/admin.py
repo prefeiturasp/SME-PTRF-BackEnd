@@ -488,7 +488,7 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
         'visao_criacao')
 
     list_display_links = ('get_unidade',)
-    readonly_fields = ('uuid', 'id')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome', 'motivo')
 
@@ -765,7 +765,7 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
 
     get_despesa.short_description = 'Despesa'
 
-    list_display = ['get_unidade', 'analise_lancamento', 'tipo_acerto', 'devolucao_ao_tesouro', 'get_despesa']
+    list_display = ['get_unidade', 'analise_lancamento', 'tipo_acerto', 'devolucao_ao_tesouro', 'get_despesa', 'copiado']
     search_fields = [
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
@@ -775,8 +775,9 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo__referencia',
         'tipo_acerto',
         'devolucao_ao_tesouro',
+        'copiado'
     ]
-    readonly_fields = ('uuid', 'id',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 
 @admin.register(TipoDocumentoPrestacaoConta)
