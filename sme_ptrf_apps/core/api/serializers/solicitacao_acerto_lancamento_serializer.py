@@ -17,4 +17,4 @@ class SolicitacaoAcertoLancamentoRetrieveSerializer(serializers.ModelSerializer)
 
     class Meta:
         model = SolicitacaoAcertoLancamento
-        fields = ('analise_lancamento', 'tipo_acerto', 'detalhamento', 'devolucao_ao_tesouro', 'id', 'uuid')
+        fields = ('analise_lancamento', 'tipo_acerto', 'detalhamento', 'devolucao_ao_tesouro', 'id', 'uuid', 'copiado')

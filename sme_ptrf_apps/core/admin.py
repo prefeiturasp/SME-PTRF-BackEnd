@@ -479,7 +479,7 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
         'visao_criacao')
 
     list_display_links = ('get_associacao',)
-    readonly_fields = ('uuid', 'id')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome', 'motivo')
 
@@ -746,10 +746,10 @@ class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
 
 @admin.register(SolicitacaoAcertoLancamento)
 class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
-    list_display = ['uuid', 'analise_lancamento', 'tipo_acerto']
+    list_display = ['uuid', 'analise_lancamento', 'tipo_acerto', 'copiado']
     search_fields = ['detalhamento']
-    list_filter = ['tipo_acerto', ]
-    readonly_fields = ('uuid', 'id',)
+    list_filter = ['tipo_acerto', 'copiado']
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 
 @admin.register(TipoDocumentoPrestacaoConta)

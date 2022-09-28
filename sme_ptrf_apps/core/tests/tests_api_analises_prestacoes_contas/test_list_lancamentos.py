@@ -169,6 +169,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                     'solicitacoes_de_ajuste_da_analise': [
                         {
                             'analise_lancamento': f'{lancamento["analise_lancamento"].uuid}',
+                            'copiado': False,
                             'detalhamento': 'teste',
                             'devolucao_ao_tesouro': {
                                 'data': '2020-07-01',
