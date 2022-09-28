@@ -29,6 +29,10 @@ def criar_ata_e_atribuir_ao_consolidado_dre(dre=None, periodo=None, consolidado_
 def retornar_ja_publicadas(dre, periodo):
     consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao='FINAL')
 
+    # Pegando o valor máximo da sequencia de publicacao para habilitar ou não o botão de remover data de publicação
+    valor_maximo_sequencia_de_publicacao = consolidados_dre.aggregate(max_sequencia_de_publicacao=Coalesce(
+        Max('sequencia_de_publicacao'), Value(0)))['max_sequencia_de_publicacao']
+
     publicacoes_anteriores = []
     for consolidado_dre in consolidados_dre:
 
@@ -49,6 +53,10 @@ def retornar_ja_publicadas(dre, periodo):
             'dre_uuid': dre.uuid,
             'periodo_uuid': periodo.uuid,
             'eh_consolidado_de_publicacoes_parciais': False,
+            'status_sme': consolidado_dre.status_sme,
+            'data_publicacao': consolidado_dre.data_publicacao,
+            'pagina_publicacao': consolidado_dre.pagina_publicacao,
+            'permite_excluir_data_e_pagina_publicacao': valor_maximo_sequencia_de_publicacao == sequencia,
         }
 
         atas_de_parecer_tecnico = consolidado_dre.atas_de_parecer_tecnico_do_consolidado_dre.all()
@@ -149,6 +157,10 @@ def retornar_proxima_publicacao(dre, periodo, sequencia_de_publicacao, sequencia
         'periodo_uuid': periodo.uuid,
         'uuid': uuid_consolidado_dre_proxima_publicacao,
         'eh_consolidado_de_publicacoes_parciais': False,
+        'status_sme': None,
+        'data_publicacao': None,
+        'pagina_publicacao': None,
+        'permite_excluir_data_e_pagina_publicacao': False,
     }
 
     return proxima_publicacao
@@ -188,6 +200,10 @@ def retornar_consolidado_de_publicacoes_parciais(dre, periodo, sequencia_de_publ
         'periodo_uuid': periodo.uuid,
         'uuid': None,
         'eh_consolidado_de_publicacoes_parciais': True,
+        'status_sme': None,
+        'data_publicacao': None,
+        'pagina_publicacao': None,
+        'permite_excluir_data_e_pagina_publicacao': False,
     }
 
     return proxima_publicacao_consolidado_de_publicacoes_parciais

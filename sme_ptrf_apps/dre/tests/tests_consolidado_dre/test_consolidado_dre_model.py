@@ -19,6 +19,9 @@ def test_instance_model(consolidado_dre_teste_model_consolidado_dre, dre_teste_m
     assert model.periodo
     assert model.status
     assert model.versao
+    assert model.status_sme
+    assert model.data_publicacao is None
+    assert model.pagina_publicacao is ''
 
 
 def test_str_model(consolidado_dre_teste_model_consolidado_dre):
