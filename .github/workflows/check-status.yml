@@ -1,22 +1,32 @@
-name: Dev - CI/CD Pip Testfile
+name: Check Status
  
 on:
 
+  push:
+    branches:
+     - 'xxxbugxxx**'
+      #- 'bugfix**'
+      #- 'feature**'
+      #- 'fix**'
+      #- 'releases**'
+      #- 'hotfix**'
+      
+    paths-ignore:
+    - ".github/workflows/**"  
+  
   workflow_dispatch:
+  
+jobs:            
 
-jobs:
-
-  test:
+  pytest:
   
     runs-on: self-hosted
-    if: ${{ github.ref == 'refs/heads/master' }}
     steps:
     
       - uses: actions/checkout@v2
       
       - name: Delete Container..
         run: if [ ! -z $(docker ps -q --filter "name=ptrf-db") ]; then docker rm -f ptrf-db; fi
-
 
       - name: Preparing Container...
         #Criação do container de banco de dados e copia das variaveis que serão carregadas.
@@ -34,9 +44,12 @@ jobs:
             echo "Carregando as variaveis de ambiente..."
             source ptrf
             pip install --user pipenv -r requirements/local.txt
-            pytest
-            flake8
-            
+            python manage.py collectstatic --noinput
+            echo "##### COVERAGE ####"
+            coverage run -m pytest
+            coverage xml
+            ls -ltra
+                      
       - name: Delete Container..
         if: ${{ ( failure() ) || ( success() ) }}
         run: if [ ! -z $(docker ps -q --filter "name=ptrf-db") ]; then docker rm -f ptrf-db; fi

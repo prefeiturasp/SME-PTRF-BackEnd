@@ -45,6 +45,7 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
         'solicitacoes_de_ajuste_da_analise': [
             {
                 'analise_lancamento': f'{analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}',
+                'copiado': False,
                 'detalhamento': 'teste',
                 'devolucao_ao_tesouro': {
                     'data': '2020-07-01',

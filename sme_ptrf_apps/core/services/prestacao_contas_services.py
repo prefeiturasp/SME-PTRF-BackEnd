@@ -354,7 +354,7 @@ def lista_prestacoes_de_conta_nao_recebidas(
             'unidade_tipo_unidade': associacao.unidade.tipo_unidade,
             'uuid': f'{prestacao_conta.uuid}' if prestacao_conta else '',
             'associacao_uuid': f'{associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': prestacao_conta.total_devolucao_ao_tesouro if prestacao_conta else 'Não',
         }
 
         prestacoes.append(info_prestacao)
@@ -403,7 +403,7 @@ def lista_prestacoes_de_conta_todos_os_status(
             'unidade_tipo_unidade': associacao.unidade.tipo_unidade,
             'uuid': f'{prestacao_conta.uuid}' if prestacao_conta else '',
             'associacao_uuid': f'{associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': prestacao_conta.total_devolucao_ao_tesouro if prestacao_conta else 'Não',
         }
 
         prestacoes.append(info_prestacao)
@@ -845,6 +845,21 @@ def marca_lancamentos_como_corretos(analise_prestacao, lancamentos_corretos):
                 tipo_lancamento="CREDITO",
                 receita=receita
             )
+        else:
+            minha_analise_lancamento = analise_prestacao.analises_de_lancamentos.filter(
+                receita__uuid=credito_uuid).first()
+
+            minhas_solicitacoes = minha_analise_lancamento.solicitacoes_de_ajuste_da_analise.all()
+
+            for solicitacao_acerto in minhas_solicitacoes:
+
+                # Solicitações do tipo credito não possuem devolução ao tesouro
+
+                logging.info(f'Apagando solicitação de acerto {solicitacao_acerto.uuid}.')
+                solicitacao_acerto.delete()
+
+            minha_analise_lancamento.resultado = AnaliseLancamentoPrestacaoConta.RESULTADO_CORRETO
+            minha_analise_lancamento.save()
 
     def marca_gasto_correto(gasto_uuid):
         if not analise_prestacao.analises_de_lancamentos.filter(despesa__uuid=gasto_uuid).exists():
@@ -856,6 +871,34 @@ def marca_lancamentos_como_corretos(analise_prestacao, lancamentos_corretos):
                 tipo_lancamento="GASTO",
                 despesa=despesa
             )
+        else:
+            minha_analise_lancamento = analise_prestacao.analises_de_lancamentos.filter(
+                despesa__uuid=gasto_uuid).first()
+
+            minhas_solicitacoes = minha_analise_lancamento.solicitacoes_de_ajuste_da_analise.all()
+
+            for solicitacao_acerto in minhas_solicitacoes:
+
+                if solicitacao_acerto.copiado:
+                    devolucao_ao_tesouro = solicitacao_acerto.devolucao_ao_tesouro
+                    if devolucao_ao_tesouro:
+                        logging.info(f'A solicitação de acerto {solicitacao_acerto.uuid} '
+                                     f'foi copiada de uma analise anterior, a devolucao ao tesouro '
+                                     f'{devolucao_ao_tesouro} NÃO será apagada.')
+                else:
+                    devolucao_ao_tesouro = solicitacao_acerto.devolucao_ao_tesouro
+                    if devolucao_ao_tesouro:
+                        logging.info(f'A solicitação de acerto {solicitacao_acerto.uuid} '
+                                     f'NÃO foi copiada de uma analise anterior, a devolucao ao tesouro '
+                                     f'{devolucao_ao_tesouro} SERÁ apagada.')
+
+                        devolucao_ao_tesouro.delete()
+
+                logging.info(f'Apagando solicitação de acerto {solicitacao_acerto.uuid}.')
+                solicitacao_acerto.delete()
+
+            minha_analise_lancamento.resultado = AnaliseLancamentoPrestacaoConta.RESULTADO_CORRETO
+            minha_analise_lancamento.save()
 
     logging.info(f'Marcando lançamento como corretos na análise de PC {analise_prestacao.uuid}.')
     for lancamento in lancamentos_corretos:
@@ -883,17 +926,23 @@ def marca_lancamentos_como_nao_conferidos(analise_prestacao, lancamentos_nao_con
             marca_gasto_nao_conferido(gasto_uuid=lancamento["lancamento"])
 
 
-def __apaga_analise_lancamento(analise_prestacao, lancamento):
+def __altera_status_analise_lancamento(analise_prestacao, lancamento):
     if lancamento['tipo_lancamento'] == 'CREDITO':
-        AnaliseLancamentoPrestacaoConta.objects.filter(
+        analise = AnaliseLancamentoPrestacaoConta.objects.filter(
             analise_prestacao_conta=analise_prestacao,
             receita__uuid=lancamento['lancamento_uuid']
-        ).delete()
+        ).first()
+
+        analise.resultado = AnaliseLancamentoPrestacaoConta.RESULTADO_CORRETO
+        analise.save()
     else:
-        AnaliseLancamentoPrestacaoConta.objects.filter(
+        analise = AnaliseLancamentoPrestacaoConta.objects.filter(
             analise_prestacao_conta=analise_prestacao,
             despesa__uuid=lancamento['lancamento_uuid']
-        ).delete()
+        ).first()
+
+        analise.resultado = AnaliseLancamentoPrestacaoConta.RESULTADO_CORRETO
+        analise.save()
 
 
 def __get_analise_lancamento(analise_prestacao, lancamento):
@@ -932,44 +981,66 @@ def __cria_analise_lancamento_solicitacao_acerto(analise_prestacao, lancamento):
     return analise_lancamento
 
 
-def __cria_solicitacao_acerto(analise_lancamento, solicitacao_acerto):
-    tipo_acerto = TipoAcertoLancamento.objects.get(uuid=solicitacao_acerto['tipo_acerto'])
+def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atualizacao_em_lote):
+    logging.info(f'Verificando quais solicitações de ajustes existentes devem ser apagadas para a análise de lançamento {analise_lancamento.uuid}.')
 
-    devolucao_tesouro = None
-    if analise_lancamento.tipo_lancamento == 'GASTO' and solicitacao_acerto['devolucao_tesouro']:
-        logging.info(f'Criando devolução ao tesouro para a análise de lançamento {analise_lancamento.uuid}.')
-        devolucao_tesouro = DevolucaoAoTesouro.objects.create(
-            prestacao_conta=analise_lancamento.analise_prestacao_conta.prestacao_conta,
-            tipo=TipoDevolucaoAoTesouro.objects.get(uuid=solicitacao_acerto['devolucao_tesouro']['tipo']),
-            data=solicitacao_acerto['devolucao_tesouro']['data'],
-            despesa=analise_lancamento.despesa,
-            devolucao_total=solicitacao_acerto['devolucao_tesouro']['devolucao_total'],
-            valor=solicitacao_acerto['devolucao_tesouro']['valor'],
-            motivo=solicitacao_acerto['detalhamento']
-        )
+    keep_solicitacoes = []
+    for solicitacao_acerto in solicitacoes_acerto:
+        if solicitacao_acerto['uuid']:
+            solicitacao_encontrada = SolicitacaoAcertoLancamento.objects.get(uuid=solicitacao_acerto['uuid'])
+            if solicitacao_encontrada:
+                logging.info(f"Solicitação encontrada: {solicitacao_encontrada}")
+                keep_solicitacoes.append(solicitacao_encontrada.uuid)
+            else:
+                continue
+        else:
+            logging.info(f"Não encontrada chave uuid da solicitação: {solicitacao_acerto['uuid']}. Será criado.")
 
-    if not solicitacao_acerto['devolucao_tesouro'] or analise_lancamento.tipo_lancamento == 'GASTO':
-        # Apenas lançamentos do tipo gasto recebem ajustes de devolução ao tesouro
-        logging.info(f'Criando solicitação de acerto para a análise de lançamento {analise_lancamento.uuid}.')
-        SolicitacaoAcertoLancamento.objects.create(
-            analise_lancamento=analise_lancamento,
-            tipo_acerto=tipo_acerto,
-            devolucao_ao_tesouro=devolucao_tesouro,
-            detalhamento=solicitacao_acerto['detalhamento']
-        )
+            tipo_acerto = TipoAcertoLancamento.objects.get(uuid=solicitacao_acerto['tipo_acerto'])
+            devolucao_tesouro = None
 
+            if analise_lancamento.tipo_lancamento == 'GASTO' and solicitacao_acerto['devolucao_tesouro']:
+                logging.info(f'Criando devolução ao tesouro para a análise de lançamento {analise_lancamento.uuid}.')
+                devolucao_tesouro = DevolucaoAoTesouro.objects.create(
+                    prestacao_conta=analise_lancamento.analise_prestacao_conta.prestacao_conta,
+                    tipo=TipoDevolucaoAoTesouro.objects.get(uuid=solicitacao_acerto['devolucao_tesouro']['tipo']),
+                    data=solicitacao_acerto['devolucao_tesouro']['data'],
+                    despesa=analise_lancamento.despesa,
+                    devolucao_total=solicitacao_acerto['devolucao_tesouro']['devolucao_total'],
+                    valor=solicitacao_acerto['devolucao_tesouro']['valor'],
+                    motivo=solicitacao_acerto['detalhamento']
+                )
 
-def __apaga_solicitacoes_acerto_lancamento(analise_lancamento):
-    logging.info(f'Apagando solicitações de ajustes existentes para a análise de lançamento {analise_lancamento.uuid}.')
-    for solicitacao_acerto in analise_lancamento.solicitacoes_de_ajuste_da_analise.all():
-        devolucao_ao_tesouro = solicitacao_acerto.devolucao_ao_tesouro
+            if not solicitacao_acerto['devolucao_tesouro'] or analise_lancamento.tipo_lancamento == 'GASTO':
+                # Apenas lançamentos do tipo gasto recebem ajustes de devolução ao tesouro
+                logging.info(f'Criando solicitação de acerto para a análise de lançamento {analise_lancamento.uuid}.')
 
-        logging.info(f'Apagando solicitação de acerto {solicitacao_acerto.uuid}.')
-        solicitacao_acerto.delete()
+                solicitacao_criada = SolicitacaoAcertoLancamento.objects.create(
+                                        analise_lancamento=analise_lancamento,
+                                        tipo_acerto=tipo_acerto,
+                                        devolucao_ao_tesouro=devolucao_tesouro,
+                                        detalhamento=solicitacao_acerto['detalhamento'],
+                                    )
 
-        if devolucao_ao_tesouro:
-            logging.info(f'Apagando devolução ao tesouro {devolucao_ao_tesouro.uuid}.')
-            devolucao_ao_tesouro.delete()
+                logging.info(f"Solicitação criada: {solicitacao_criada}.")
+
+                keep_solicitacoes.append(solicitacao_criada.uuid)
+
+    if not atualizacao_em_lote:
+        for solicitacao_existente in analise_lancamento.solicitacoes_de_ajuste_da_analise.all():
+            if solicitacao_existente.uuid not in keep_solicitacoes:
+                logging.info(f"A solicitação: {solicitacao_existente} será apagada.")
+
+                devolucao_ao_tesouro = solicitacao_existente.devolucao_ao_tesouro
+                if devolucao_ao_tesouro:
+                    if solicitacao_existente.copiado:
+                        logging.info(f"A solicitação: {solicitacao_existente} foi copiada de uma analise anterior, "
+                                     f"a devolução NÃO será apagada")
+                    else:
+                        logging.info(f'Apagando devolução ao tesouro {devolucao_ao_tesouro.uuid}.')
+                        devolucao_ao_tesouro.delete()
+
+                solicitacao_existente.delete()
 
 
 def __atualiza_analise_lancamento_para_acerto(analise_lancamento):
@@ -997,14 +1068,14 @@ def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes
             else:
                 __atualiza_analise_lancamento_para_acerto(analise_lancamento=analise_lancamento)
 
-        if not atualizacao_em_lote:
-            __apaga_solicitacoes_acerto_lancamento(analise_lancamento=analise_lancamento)
-
-        for solicitacao in solicitacoes_acerto:
-            __cria_solicitacao_acerto(analise_lancamento=analise_lancamento, solicitacao_acerto=solicitacao)
+        __analisa_solicitacoes_acerto(
+            solicitacoes_acerto=solicitacoes_acerto,
+            analise_lancamento=analise_lancamento,
+            atualizacao_em_lote=atualizacao_em_lote
+        )
 
         if not atualizacao_em_lote and not solicitacoes_acerto:
-            __apaga_analise_lancamento(analise_prestacao=analise_prestacao, lancamento=lancamento)
+            __altera_status_analise_lancamento(analise_prestacao=analise_prestacao, lancamento=lancamento)
 
 
 def documentos_da_prestacao(analise_prestacao_conta):

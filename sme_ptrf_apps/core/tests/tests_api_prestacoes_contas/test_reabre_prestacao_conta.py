@@ -3,7 +3,7 @@ import json
 import pytest
 from rest_framework import status
 
-from ...models import PrestacaoConta
+from sme_ptrf_apps.core.models import PrestacaoConta
 
 from model_bakery import baker
 
