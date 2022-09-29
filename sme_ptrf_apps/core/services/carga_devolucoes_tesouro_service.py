@@ -142,7 +142,7 @@ class CargaDevolucoesTesouroService:
 
         if not solicitacoes:
             raise CargaDevolcuoesTesouroException(
-                f'Solicitação de acerto não encontrada pc: {self.dados_devolucao["prestacao_conta"].id} despesa: {self.dados_devolucao["despesa"]}. Devolução não criada.')
+                f'Solicitação de acerto não encontrada pc: {prestacao_conta.id} despesa: {despesa}. Devolução não criada.')
 
         self.linha_index = linha_index
 
