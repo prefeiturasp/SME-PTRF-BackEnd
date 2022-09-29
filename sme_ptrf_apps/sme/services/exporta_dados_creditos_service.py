@@ -43,6 +43,8 @@ CABECALHO_RECEITA = [
         ('Outros motivos para estorno (no caso de estorno)', 'outros_motivos_estorno'),
         ('Data e hora de criação do registro', 'criado_em'),
         ('Data e hora da última atualização do registro', 'alterado_em'),
+        ('Data e hora de inativação', 'data_e_hora_de_inativacao'),
+        ('Status do crédito', 'status'),
         ('UUID do crédito', 'uuid'),
     ],
 CABECALHO_MOTIVOS_ESTORNO = [

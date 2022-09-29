@@ -66,7 +66,8 @@ def test_get_ultima_analise_pc(jwt_authenticated_client_a, analise_prestacao_con
             },
             'status': 'DEVOLVIDA',
             'criado_em': analise_prestacao.criado_em.isoformat("T"),
-            'versao': analise_prestacao.versao
+            'versao': analise_prestacao.versao,
+            'versao_pdf_apresentacao_apos_acertos': analise_prestacao.versao_pdf_apresentacao_apos_acertos
         }
 
     assert response.status_code == status.HTTP_200_OK

@@ -7,7 +7,7 @@ from freezegun import freeze_time
 from model_bakery import baker
 from rest_framework import status
 
-from ...models import PrestacaoConta
+from ...models import PrestacaoConta, Periodo
 
 pytestmark = pytest.mark.django_db
 
@@ -17,9 +17,10 @@ def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, per
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-10',
                           content_type='application/json')
     result = json.loads(response.content)
-
     esperado = {
         'associacao': f'{associacao.uuid}',
+        'gerar_ou_editar_ata_apresentacao': False,
+        'gerar_ou_editar_ata_retificacao': False,
         'periodo_referencia': periodo_fim_em_aberto.referencia,
         'aceita_alteracoes': True,
         'prestacao_contas_status': {
@@ -30,6 +31,8 @@ def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, per
             'status_prestacao': 'NAO_APRESENTADA',
             'texto_status': 'Período em andamento. ',
             'prestacao_de_contas_uuid': None,
+            'requer_retificacao': False,
+            'tem_acertos_pendentes': False,
         },
         'prestacao_conta': '',
 
@@ -44,9 +47,10 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-10',
                           content_type='application/json')
     result = json.loads(response.content)
-
     esperado = {
         'associacao': f'{associacao.uuid}',
+        'gerar_ou_editar_ata_apresentacao': False,
+        'gerar_ou_editar_ata_retificacao': False,
         'periodo_referencia': periodo_fim_em_2020_06_30.referencia,
         'aceita_alteracoes': True,
         'prestacao_contas_status': {
@@ -57,6 +61,8 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
             'status_prestacao': 'NAO_APRESENTADA',
             'texto_status': 'Período finalizado. Documentos pendentes de geração.',
             'prestacao_de_contas_uuid': None,
+            'requer_retificacao': False,
+            'tem_acertos_pendentes': False,
         },
         'prestacao_conta': '',
 
@@ -87,6 +93,8 @@ def test_chamada_data_sem_periodo(jwt_authenticated_client_a, associacao, period
 
     esperado = {
         'associacao': f'{associacao.uuid}',
+        'gerar_ou_editar_ata_apresentacao': False,
+        'gerar_ou_editar_ata_retificacao': False,
         'periodo_referencia': '',
         'aceita_alteracoes': True,
         'prestacao_contas_status': {},
@@ -104,9 +112,10 @@ def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prest
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo.data_inicio_realizacao_despesas}',
                           content_type='application/json')
     result = json.loads(response.content)
-
     esperado = {
         'associacao': f'{associacao.uuid}',
+        'gerar_ou_editar_ata_apresentacao': True,
+        'gerar_ou_editar_ata_retificacao': False,
         'periodo_referencia': periodo.referencia,
         'aceita_alteracoes': False,
         'prestacao_contas_status': {
@@ -117,6 +126,8 @@ def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prest
             'status_prestacao': 'NAO_RECEBIDA',
             'texto_status': 'Período finalizado. Prestação de contas ainda não recebida pela DRE.',
             'prestacao_de_contas_uuid': f'{prestacao_conta_2020_1_conciliada.uuid}',
+            'requer_retificacao': False,
+            'tem_acertos_pendentes': False,
         },
         'prestacao_conta': f'{prestacao_conta_2020_1_conciliada.uuid}',
 
@@ -149,16 +160,20 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
 
     esperado = {
         'associacao': f'{associacao.uuid}',
+        'gerar_ou_editar_ata_apresentacao': False,
+        'gerar_ou_editar_ata_retificacao': False,
         'periodo_referencia': periodo.referencia,
-        'aceita_alteracoes': True,
+        'aceita_alteracoes': False,
         'prestacao_contas_status': {
             'documentos_gerados': False,
             'legenda_cor': 3,
-            'periodo_bloqueado': False,
+            'periodo_bloqueado': True,
             'periodo_encerrado': True,
             'status_prestacao': 'DEVOLVIDA',
             'texto_status': 'Período finalizado. Prestação de contas devolvida para ajustes.',
             'prestacao_de_contas_uuid': f'{_prestacao_conta_devolvida.uuid}',
+            'requer_retificacao': False,
+            'tem_acertos_pendentes': False,
         },
         'prestacao_conta': f'{_prestacao_conta_devolvida.uuid}',
 

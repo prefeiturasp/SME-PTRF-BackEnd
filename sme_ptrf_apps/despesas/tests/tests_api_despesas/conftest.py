@@ -1,5 +1,8 @@
 import pytest
 
+from datetime import date
+
+from model_bakery import baker
 
 @pytest.fixture
 def payload_despesa_valida(
@@ -217,3 +220,167 @@ def payload_despesa_status_completo_eh_despesa_sem_comprovacao_fiscal(
         ]
     }
     return payload
+
+
+@pytest.fixture
+def tapi_periodo_2019_2():
+    return baker.make(
+        'Periodo',
+        referencia='2019.2',
+        data_inicio_realizacao_despesas=date(2019, 9, 1),
+        data_fim_realizacao_despesas=date(2019, 11, 30),
+    )
+
+
+@pytest.fixture
+def tapi_despesa(associacao, tipo_documento, tipo_transacao, tapi_periodo_2019_2):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=date(2019, 9, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        data_transacao=date(2019, 9, 10),
+        valor_total=100.00,
+    )
+
+
+@pytest.fixture
+def tapi_rateio_despesa_capital(associacao, tapi_despesa, conta_associacao, tipo_aplicacao_recurso, tipo_custeio, especificacao_material_servico, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=tapi_despesa,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=especificacao_material_servico,
+        valor_rateio=100.00,
+        quantidade_itens_capital=2,
+        valor_item_capital=50.00,
+        numero_processo_incorporacao_capital='Teste123456'
+
+    )
+
+
+@pytest.fixture
+def tapi_rateio_despesa_estornada(associacao, tapi_despesa, conta_associacao, tipo_aplicacao_recurso, tipo_custeio, especificacao_material_servico, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=tapi_despesa,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=especificacao_material_servico,
+        valor_rateio=100.00,
+        quantidade_itens_capital=2,
+        valor_item_capital=50.00,
+        numero_processo_incorporacao_capital='Teste123456'
+
+    )
+
+@pytest.fixture
+def tapi_tipo_receita_estorno(tipo_conta):
+    return baker.make('TipoReceita', nome='Estorno', e_estorno=True, tipos_conta=[tipo_conta])
+
+
+@pytest.fixture
+def tapi_receita_estorno(tapi_tipo_receita_estorno, tapi_rateio_despesa_estornada):
+    rateio = tapi_rateio_despesa_estornada
+    return baker.make(
+        'Receita',
+        associacao=rateio.despesa.associacao,
+        data=rateio.despesa.data_transacao,
+        valor=rateio.valor_rateio,
+        conta_associacao=rateio.conta_associacao,
+        acao_associacao=rateio.acao_associacao,
+        tipo_receita=tapi_tipo_receita_estorno,
+        conferido=True,
+        categoria_receita=rateio.aplicacao_recurso,
+        rateio_estornado=rateio
+    )
+
+
+@pytest.fixture
+def tapi_prestacao_conta_da_despesa(tapi_periodo_2019_2, associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=tapi_periodo_2019_2,
+        associacao=associacao,
+    )
+
+
+@pytest.fixture
+def tapi_despesa_imposto(
+    associacao,
+    tipo_documento,
+    tipo_transacao,
+    tapi_periodo_2019_2
+):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        tipo_documento=tipo_documento,
+        tipo_transacao=tipo_transacao,
+        data_documento=date(2019, 9, 10),
+        data_transacao=date(2019, 9, 10),
+    )
+
+
+@pytest.fixture
+def tapi_rateio_despesa_imposto(associacao, tipo_custeio, especificacao_material_servico, acao_associacao,
+                                conta_associacao, tapi_despesa_imposto):
+    return baker.make(
+        'RateioDespesa',
+        despesa=tapi_despesa_imposto,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=especificacao_material_servico,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso="CUSTEIO",
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        valor_original=222,
+        valor_rateio=222
+    )
+
+
+@pytest.fixture
+def tapi_despesa_com_imposto(associacao, tipo_documento, tipo_transacao, tapi_periodo_2019_2, tapi_despesa_imposto):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=date(2019, 9, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        data_transacao=date(2019, 9, 10),
+        valor_total=100.00,
+        despesas_impostos=[tapi_despesa_imposto, ]
+    )
+
+
+@pytest.fixture
+def tapi_rateio_despesa_com_imposto(associacao, tapi_despesa_com_imposto, conta_associacao, tipo_aplicacao_recurso, tipo_custeio, especificacao_material_servico, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=tapi_despesa_com_imposto,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=especificacao_material_servico,
+        valor_rateio=100.00,
+        quantidade_itens_capital=2,
+        valor_item_capital=50.00,
+        numero_processo_incorporacao_capital='Teste123456'
+
+    )

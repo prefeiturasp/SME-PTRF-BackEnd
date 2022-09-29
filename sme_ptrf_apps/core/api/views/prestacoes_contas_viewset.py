@@ -197,8 +197,13 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        justificativa_acertos_pendentes = request.data.get('justificativa_acertos_pendentes', '')
+
         try:
-            dados = concluir_prestacao_de_contas(associacao=associacao, periodo=periodo)
+            dados = concluir_prestacao_de_contas(
+                associacao=associacao,
+                periodo=periodo,
+            )
             prestacao_de_contas = dados["prestacao"]
 
             erro_pc = dados["erro"]
@@ -209,7 +214,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                     periodo.uuid,
                     associacao.uuid,
                     usuario=request.user.username,
-                    e_retorno_devolucao=dados["e_retorno_devolucao"]
+                    e_retorno_devolucao=dados["e_retorno_devolucao"],
+                    requer_geracao_documentos=dados["requer_geracao_documentos"],
+                    justificativa_acertos_pendentes=justificativa_acertos_pendentes,
                 )
         except(IntegrityError):
             erro = {

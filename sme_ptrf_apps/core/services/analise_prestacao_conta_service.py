@@ -3,6 +3,8 @@ import uuid
 import copy
 from sme_ptrf_apps.core.services.dados_relatorio_acertos_service import (gerar_dados_relatorio_acertos)
 from sme_ptrf_apps.core.services.relatorio_acertos_pdf_service import (gerar_arquivo_relatorio_acertos_pdf)
+from sme_ptrf_apps.core.services.dados_relatorio_apos_acertos_service import DadosRelatorioAposAcertosService
+from sme_ptrf_apps.core.services.relatorio_apos_acertos_pdf_service import ArquivoRelatorioAposAcertosService
 
 from sme_ptrf_apps.core.models import AnalisePrestacaoConta, AnaliseContaPrestacaoConta
 
@@ -23,6 +25,7 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
         nova_solicitacao.pk = None
         nova_solicitacao.uuid = uuid.uuid4()
         nova_solicitacao.analise_lancamento = para
+        nova_solicitacao.copiado = True
         nova_solicitacao.save()
         return nova_solicitacao
 
@@ -91,6 +94,28 @@ def _gerar_arquivos_relatorio_acertos(analise_prestacao_conta, previa, usuario="
     )
 
     gerar_arquivo_relatorio_acertos_pdf(dados_relatorio_acertos, analise_prestacao_conta)
+
+
+def criar_previa_relatorio_apos_acertos(analise_prestacao_conta, usuario=""):
+    logger.info(f'Gerando prévias do relatorio após acertos.')
+
+    _gerar_arquivos_relatorio_apos_acertos(
+        analise_prestacao_conta=analise_prestacao_conta,
+        previa=True,
+        usuario=usuario
+    )
+
+
+def _gerar_arquivos_relatorio_apos_acertos(analise_prestacao_conta, previa, usuario=""):
+    analise_prestacao_conta.inicia_geracao_arquivo_pdf_relatorio_apos_acertos(previa)
+
+    dados_relatorio_apos_acertos = DadosRelatorioAposAcertosService.dados_relatorio_apos_acerto(
+        analise_prestacao_conta=analise_prestacao_conta,
+        previa=previa,
+        usuario=usuario
+    )
+
+    ArquivoRelatorioAposAcertosService.gerar_relatorio(analise_prestacao_conta, dados_relatorio_apos_acertos)
 
 
 def get_ajustes_extratos_bancarios(analise_prestacao, conta_associacao=None):

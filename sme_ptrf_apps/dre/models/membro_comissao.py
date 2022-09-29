@@ -41,6 +41,10 @@ class MembroComissao(ModeloBase):
                     return ""
         return ""
 
+    def adiciona_comissoes(self, comissoes):
+        self.comissoes.set(comissoes)
+        self.save()
+
     class Meta:
         verbose_name = "Membro de Comissão"
         verbose_name_plural = "Membros de Comissões"
