@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import admin
 from rangefilter.filter import DateRangeFilter
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
@@ -285,9 +287,9 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
 class AtaAdmin(admin.ModelAdmin):
 
     def get_eol_unidade(self, obj):
-        return obj.associacao.unidade.codigo_eol if obj and obj.associacao and obj.associacao.unidade else ''
+        return f'{obj.associacao.unidade.codigo_eol} - {obj.associacao.unidade.nome}' if obj and obj.associacao and obj.associacao.unidade else ''
 
-    get_eol_unidade.short_description = 'EOL'
+    get_eol_unidade.short_description = 'Unidade'
 
     def get_referencia_periodo(self, obj):
         return obj.periodo.referencia if obj and obj.periodo else ''
@@ -295,14 +297,23 @@ class AtaAdmin(admin.ModelAdmin):
     get_referencia_periodo.short_description = 'Período'
 
     list_display = (
-        'get_eol_unidade', 'get_referencia_periodo', 'data_reuniao', 'tipo_ata', 'tipo_reuniao',
-        'convocacao',
-        'parecer_conselho', 'previa')
+        'get_eol_unidade',
+        'get_referencia_periodo',
+        'tipo_ata',
+        'parecer_conselho',
+        'previa',
+        'arquivo_pdf',
+    )
+
     list_filter = (
-        'parecer_conselho', 'tipo_ata', 'tipo_reuniao', 'convocacao', 'associacao', 'previa')
+        'periodo',
+        'tipo_ata',
+        'previa',
+        'parecer_conselho',
+    )
     list_display_links = ('get_eol_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
-    search_fields = ('associacao__unidade__codigo_eol',)
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__unidade__nome')
 
 
 @admin.register(Arquivo)
@@ -459,10 +470,10 @@ class TipoDevolucaoTesouroAdmin(admin.ModelAdmin):
 @admin.register(DevolucaoAoTesouro)
 class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
 
-    def get_associacao(self, obj):
-        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''
+    def get_unidade(self, obj):
+        return f'{obj.prestacao_conta.associacao.unidade.codigo_eol} - {obj.prestacao_conta.associacao.unidade.nome}' if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade else ''
 
-    get_associacao.short_description = 'Associação'
+    get_unidade.short_description = 'Unidade'
 
     def get_referencia_periodo(self, obj):
         return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
@@ -470,13 +481,13 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
     get_referencia_periodo.short_description = 'Período'
 
     list_display = (
-        'get_associacao', 'get_referencia_periodo', 'data', 'tipo', 'devolucao_total', 'valor', 'visao_criacao')
+        'get_unidade', 'get_referencia_periodo', 'despesa', 'data', 'tipo', 'devolucao_total', 'valor', 'visao_criacao')
 
     list_filter = (
-        'prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta', 'tipo', 'devolucao_total',
-        'visao_criacao')
+        'prestacao_conta__periodo', 'prestacao_conta', 'tipo', 'devolucao_total',
+        'visao_criacao', 'data')
 
-    list_display_links = ('get_associacao',)
+    list_display_links = ('get_unidade',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome', 'motivo')
@@ -733,10 +744,48 @@ class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
 
 @admin.register(SolicitacaoAcertoLancamento)
 class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
-    list_display = ['uuid', 'analise_lancamento', 'tipo_acerto']
-    search_fields = ['detalhamento']
-    list_filter = ['tipo_acerto', ]
+    def get_unidade(self, obj):
+        return f'{obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_lancamento and obj.analise_lancamento.analise_prestacao_conta and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade else ''
+
+    get_unidade.short_description = 'Unidade'
+
+    def get_despesa(self, obj):
+        return obj.analise_lancamento.despesa if obj and obj.analise_lancamento else ''
+
+    get_despesa.short_description = 'Despesa'
+
+    list_display = ['get_unidade', 'analise_lancamento', 'tipo_acerto', 'devolucao_ao_tesouro', 'get_despesa']
+    search_fields = [
+        'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
+        'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
+        'detalhamento',
+    ]
+    list_filter = [
+        'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo__referencia',
+        'tipo_acerto',
+        'devolucao_ao_tesouro',
+    ]
     readonly_fields = ('uuid', 'id',)
+
+    actions = ['buscar_e_vincular_devolucao_ao_tesouro']
+
+    def buscar_e_vincular_devolucao_ao_tesouro(self, request, queryset):
+        for solicitacao in queryset.all():
+            if solicitacao.tipo_acerto.categoria != 'DEVOLUCAO' or solicitacao.devolucao_ao_tesouro:
+                continue
+
+            prestacao_conta = solicitacao.analise_lancamento.analise_prestacao_conta.prestacao_conta
+            despesa = solicitacao.analise_lancamento.despesa
+            devolucao = DevolucaoAoTesouro.objects.filter(prestacao_conta=prestacao_conta, despesa=despesa).first()
+
+            if devolucao:
+                solicitacao.devolucao_ao_tesouro = devolucao
+                solicitacao.detalhamento = solicitacao.detalhamento + "(**vinculada a dvt)"
+                solicitacao.save()
+                logging.info(
+                    f'Vinculado solicitação {solicitacao.id}-{solicitacao} à devolução {devolucao.id}-{devolucao}')
+
+        self.message_user(request, f"Processo realizado com sucesso!")
 
 
 @admin.register(TipoDocumentoPrestacaoConta)
