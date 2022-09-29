@@ -830,10 +830,10 @@ class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
 
 @admin.register(SolicitacaoAcertoDocumento)
 class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
-    list_display = ['uuid', 'analise_documento', 'tipo_acerto']
+    list_display = ['uuid', 'analise_documento', 'tipo_acerto', 'copiado',]
     search_fields = ['uuid']
-    list_filter = ['tipo_acerto', ]
-    readonly_fields = ('uuid', 'id',)
+    list_filter = ['tipo_acerto', 'copiado', ]
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
 
 
 @admin.register(PresenteAta)

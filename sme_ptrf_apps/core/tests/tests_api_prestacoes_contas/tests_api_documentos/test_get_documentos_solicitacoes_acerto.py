@@ -36,6 +36,7 @@ def test_api_get_solicitacoes_acerto_de_um_documento_nao_por_conta(
         'solicitacoes_de_ajuste_da_analise': [
             {
                 'analise_documento': f'{analise_documento_prestacao_conta_2020_1_ata_ajuste.uuid}',
+                'copiado': False,
                 'detalhamento': '',
                 'tipo_acerto': {
                     'ativo': tipo_acerto_documento_assinatura.ativo,
@@ -100,6 +101,7 @@ def test_api_get_solicitacoes_acerto_de_um_documento_por_conta(
         'solicitacoes_de_ajuste_da_analise': [
             {
                 'analise_documento': f'{analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste.uuid}',
+                'copiado': False,
                 'detalhamento': '',
                 'tipo_acerto': {
                     'ativo': tipo_acerto_documento_assinatura.ativo,
