@@ -48,6 +48,7 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
         nova_solicitacao.pk = None
         nova_solicitacao.uuid = uuid.uuid4()
         nova_solicitacao.analise_documento = para
+        nova_solicitacao.copiado = True
         nova_solicitacao.save()
         return nova_solicitacao
 

@@ -17,6 +17,8 @@ class SolicitacaoAcertoDocumento(ModeloBase):
 
     detalhamento = models.TextField('Motivo', max_length=600, blank=True, default="")
 
+    copiado = models.BooleanField('Solicitação copiada ?', default=False)
+
     def __str__(self):
         return f"{self.tipo_acerto} - {self.detalhamento}"
 
