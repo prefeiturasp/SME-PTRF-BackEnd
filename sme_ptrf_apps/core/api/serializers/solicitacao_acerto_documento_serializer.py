@@ -15,4 +15,4 @@ class SolicitacaoAcertoDocumentoRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoAcertoDocumento
-        fields = ('analise_documento', 'tipo_acerto', 'detalhamento', 'id', 'uuid')
+        fields = ('analise_documento', 'tipo_acerto', 'detalhamento', 'id', 'uuid', 'copiado')

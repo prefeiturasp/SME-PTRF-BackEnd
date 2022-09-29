@@ -44,6 +44,7 @@ def test_api_get_documentos_para_analise(
             'solicitacoes_de_ajuste_da_analise': [
                 {
                     'analise_documento': f'{analise_doc_ata.uuid}',
+                    'copiado': False,
                     'detalhamento': solicitacao_acerto_declaracao.detalhamento,
                     'tipo_acerto': {
                         'ativo': tipo_acerto_assinatura.ativo,
@@ -86,6 +87,7 @@ def test_api_get_documentos_para_analise(
             'solicitacoes_de_ajuste_da_analise': [
                 {
                     'analise_documento': f'{analise_doc_declaracao.uuid}',
+                    'copiado': False,
                     'detalhamento': '',
                     'tipo_acerto': {
                         'ativo': tipo_acerto_assinatura.ativo,

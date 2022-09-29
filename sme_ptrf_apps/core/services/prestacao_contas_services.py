@@ -990,6 +990,22 @@ def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atual
             solicitacao_encontrada = SolicitacaoAcertoLancamento.objects.get(uuid=solicitacao_acerto['uuid'])
             if solicitacao_encontrada:
                 logging.info(f"Solicitação encontrada: {solicitacao_encontrada}")
+
+                # Realizando update das solicitacoes encontradas
+                solicitacao_encontrada.detalhamento = solicitacao_acerto['detalhamento']
+                solicitacao_encontrada.save()
+
+                # Realizando update na devolucao da solicitação encontrada
+                if solicitacao_encontrada.devolucao_ao_tesouro:
+                    tipo_devolucao_ao_tesouro = TipoDevolucaoAoTesouro.objects.get(
+                        uuid=solicitacao_acerto['devolucao_tesouro']['tipo'])
+                    solicitacao_encontrada.devolucao_ao_tesouro.tipo = tipo_devolucao_ao_tesouro
+                    solicitacao_encontrada.devolucao_ao_tesouro.devolucao_total = solicitacao_acerto['devolucao_tesouro']['devolucao_total']
+                    solicitacao_encontrada.devolucao_ao_tesouro.valor = solicitacao_acerto['devolucao_tesouro']['valor']
+                    solicitacao_encontrada.devolucao_ao_tesouro.motivo = solicitacao_acerto['detalhamento']
+
+                    solicitacao_encontrada.devolucao_ao_tesouro.save()
+
                 keep_solicitacoes.append(solicitacao_encontrada.uuid)
             else:
                 continue
@@ -1130,6 +1146,20 @@ def marca_documentos_como_corretos(analise_prestacao, documentos_corretos):
                 conta_associacao=conta,
                 resultado=AnaliseDocumentoPrestacaoConta.RESULTADO_CORRETO
             )
+        else:
+            minha_analise_documento = analise_prestacao.analises_de_documento.filter(
+                tipo_documento_prestacao_conta__uuid=tipo_documento_uuid,
+                conta_associacao__uuid=conta_associacao_uuid
+            ).first()
+
+            minhas_solicitacoes = minha_analise_documento.solicitacoes_de_ajuste_da_analise.all()
+
+            for solicitacao_acerto in minhas_solicitacoes:
+                logging.info(f'Apagando solicitação de acerto {solicitacao_acerto.uuid}.')
+                solicitacao_acerto.delete()
+
+            minha_analise_documento.resultado = AnaliseDocumentoPrestacaoConta.RESULTADO_CORRETO
+            minha_analise_documento.save()
 
     logging.info(f'Marcando documentos como corretos na análise de PC {analise_prestacao.uuid}.')
     for documento in documentos_corretos:
@@ -1157,29 +1187,53 @@ def marca_documentos_como_nao_conferidos(analise_prestacao, documentos_nao_confe
 
 
 def solicita_acertos_de_documentos(analise_prestacao, documentos, solicitacoes_acerto):
-    def apaga_solicitacoes_acerto_documento(_analise_documento):
+    def analisa_solicitacoes_acerto_documento(_analise_documento, _solicitacoes_acerto):
         logging.info(
-            f'Apagando solicitações de ajustes existentes para a análise de documento {analise_documento.uuid}.')
-        for solicitacao_acerto in _analise_documento.solicitacoes_de_ajuste_da_analise.all():
-            logging.info(f'Apagando solicitação de acerto de dodcumento {solicitacao_acerto.uuid}.')
-            solicitacao_acerto.delete()
+            f'Verificando quais solicitações de ajustes existentes devem ser apagadas para a análise de documento {_analise_documento.uuid}.')
 
-    def cria_solicitacoes_acerto_documento(_analise_documento, _solicitacoes_acerto):
+        keep_solicitacoes = []
         for _solicitacao_acerto in _solicitacoes_acerto:
-            logging.info(f'Criando solicitação de acerto para a análise de documento {_analise_documento.uuid}.')
-            tipo_acerto = TipoAcertoDocumento.objects.get(uuid=_solicitacao_acerto['tipo_acerto'])
-            SolicitacaoAcertoDocumento.objects.create(
-                analise_documento=_analise_documento,
-                tipo_acerto=tipo_acerto,
-                detalhamento=_solicitacao_acerto['detalhamento']
-            )
+            if _solicitacao_acerto['uuid']:
+                solicitacao_encontrada = SolicitacaoAcertoDocumento.objects.get(uuid=_solicitacao_acerto['uuid'])
+                if solicitacao_encontrada:
+                    logging.info(f"Solicitação encontrada: {solicitacao_encontrada}")
 
-    def apaga_analise_documento(_analise_prestacao, _tipo_documento, _conta=None):
-        AnaliseDocumentoPrestacaoConta.objects.filter(
+                    # Realizando update das solicitacoes encontradas
+                    solicitacao_encontrada.detalhamento = _solicitacao_acerto['detalhamento']
+                    solicitacao_encontrada.save()
+
+                    keep_solicitacoes.append(solicitacao_encontrada.uuid)
+                else:
+                    continue
+            else:
+                logging.info(f"Não encontrada chave uuid da solicitação: {_solicitacao_acerto['uuid']}. Será criado.")
+                tipo_acerto = TipoAcertoDocumento.objects.get(uuid=_solicitacao_acerto['tipo_acerto'])
+
+                _solicitacao_criada = SolicitacaoAcertoDocumento.objects.create(
+                    analise_documento=_analise_documento,
+                    tipo_acerto=tipo_acerto,
+                    detalhamento=_solicitacao_acerto['detalhamento']
+                )
+
+                logging.info(f"Solicitação criada: {_solicitacao_criada}.")
+                keep_solicitacoes.append(_solicitacao_criada.uuid)
+
+        # apagando
+        for _solicitacao_existente in _analise_documento.solicitacoes_de_ajuste_da_analise.all():
+            if _solicitacao_existente.uuid not in keep_solicitacoes:
+                logging.info(f"A solicitação: {_solicitacao_existente} será apagada.")
+
+                _solicitacao_existente.delete()
+
+    def altera_status_analise_documento(_analise_prestacao, _tipo_documento, _conta=None):
+        _analise_encontrada = AnaliseDocumentoPrestacaoConta.objects.filter(
             analise_prestacao_conta=_analise_prestacao,
             tipo_documento_prestacao_conta=_tipo_documento,
             conta_associacao=_conta
-        ).delete()
+        ).first()
+
+        _analise_encontrada.resultado = AnaliseDocumentoPrestacaoConta.RESULTADO_CORRETO
+        _analise_encontrada.save()
 
     logging.info(f'Criando solicitações de acerto de documentos na análise de PC {analise_prestacao.uuid}.')
 
@@ -1206,15 +1260,17 @@ def solicita_acertos_de_documentos(analise_prestacao, documentos, solicitacoes_a
                 analise_documento.resultado = AnaliseDocumentoPrestacaoConta.RESULTADO_AJUSTE
                 analise_documento.save()
 
-        apaga_solicitacoes_acerto_documento(_analise_documento=analise_documento)
-
-        cria_solicitacoes_acerto_documento(
+        analisa_solicitacoes_acerto_documento(
             _analise_documento=analise_documento,
             _solicitacoes_acerto=solicitacoes_acerto
         )
 
         if not solicitacoes_acerto:
-            apaga_analise_documento(_analise_prestacao=analise_prestacao, _tipo_documento=tipo_documento, _conta=conta)
+            altera_status_analise_documento(
+                _analise_prestacao=analise_prestacao,
+                _tipo_documento=tipo_documento,
+                _conta=conta
+            )
 
 
 def previa_prestacao_conta(associacao, periodo):
