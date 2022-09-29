@@ -1,19 +1,20 @@
-name: Pre-Prod CI/CD
+name: Homolog - CI/CD
  
 on:
 
   push:
-    branches: [ pre-prod ]
+    branches: [ homolog ]
     paths-ignore:
     - ".github/workflows/**"  
   
   workflow_dispatch:
 
-jobs:
-         
+jobs:            
+
   build:
 
     runs-on: self-hosted
+    if: ${{ github.ref == 'refs/heads/homolog' }}
     steps:
       - uses: actions/checkout@v2     
       -  name: Login to registry
@@ -24,57 +25,10 @@ jobs:
           password: ${{ secrets.REGISTRY_PWD }}
     
       - name: Build the Docker image    
-        run: |
-             docker login ${{ secrets.REGISTRY_HOST }}
+        run: | 
              docker build . --tag ${{ secrets.REGISTRY_HOST }}/${GITHUB_REF##*/}/ptrf-backend
              docker push ${{ secrets.REGISTRY_HOST }}/${GITHUB_REF##*/}/ptrf-backend
              
-      - name: send failure message
-        if: ${{ failure() }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            💥 Failed in ${{ github.ref_name }}!
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}            
-            Repository: ${{ github.repository }}            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
-      - name: send message asking for aprove
-        if: ${{ success() }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: -752736369
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            😍 Por favor me aprove!!!!!
-            branch: ${{ github.ref_name }}
-            ${{ github.actor }} created commit:
-            Repository: ${{ github.repository }}            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            🚀🚀🚀
-            To aprove: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-             
-  deploy-pre-prod:
-  
-    runs-on: self-hosted
-    needs: [ build ]
-    if: ${{ github.ref == 'refs/heads/pre-prod' }}
-    environment:
-      name: production
-    steps:
-    
-      - name: Redeploy Pre Prod
-        uses: luizhpriotto/action_images@kubectl-v2.0
-        env: 
-          RANCHER_URL: ${{ secrets.RANCHER_URL }}
-          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
-          NAMESPACE: sme-sigescola-pre
-          WORKLOAD: sigescolapre-backend,sigescolapre-celery,sigescolapre-flower
-
       - name: send failure message
         if: ${{ failure() }}
         uses: appleboy/telegram-action@master
@@ -88,15 +42,31 @@ jobs:
             Repository: ${{ github.repository }}            
             See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
             Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
-      - name: send success message
-        if: ${{ success() }}
+             
+  deploy:
+  
+    runs-on: self-hosted
+    needs: [ build ]
+    if: ${{ github.ref == 'refs/heads/homolog' }}        
+    environment:
+      name: release
+    steps:
+      - name: Redeploy
+        uses: luizhpriotto/action_images@kubectl-v2.0
+        env: 
+          RANCHER_URL: ${{ secrets.RANCHER_URL }}
+          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
+          NAMESPACE: sme-ptrf
+          WORKLOAD: ptrf-backend,ptrf-celery,ptrf-flower
+          
+      - name: send failure message
+        if: ${{ failure() }}
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            🚀 Success in ${{ github.ref_name	}}!
+            💥 Failed in ${{ github.ref_name	}}!
             ${{ github.actor }} created commit:
             Commit message: ${{ github.event.commits[0].message }}            
             Repository: ${{ github.repository }}            

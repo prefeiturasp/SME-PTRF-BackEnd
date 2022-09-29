@@ -1,15 +1,93 @@
 name: CI/CD
- 
+#CI/CD com rotinas de testes 
 on:
 
   push:
-    branches: [ master, homolog, homolog-r2 ]
+    branches: [ master, pre-prod, develop, homolog-r2 ]
     paths-ignore:
     - ".github/workflows/**"  
   
   workflow_dispatch:
 
 jobs:
+
+  pytest:
+  
+    runs-on: self-hosted
+    steps:
+    
+      - uses: actions/checkout@v2
+      
+      - name: Delete Container..
+        run: if [ ! -z $(docker ps -q --filter "name=ptrf-db") ]; then docker rm -f ptrf-db; fi
+
+
+      - name: Preparing Container...
+        #Criação do container de banco de dados e copia das variaveis que serão carregadas.
+        run: |
+          docker run -d --rm --cap-add SYS_TIME --name ptrf-db -p 5432 --network python-network -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:11-alpine
+          echo "copiando fontes..."
+          cp /srv/env/ptrf .
+          
+      - name: Running Python Tests
+        uses: luizhpriotto/action_images@python36-v1.0
+        with:
+          command: |
+            echo "Conectando o container a rede python..."
+            docker network connect python-network $(hostname)
+            echo "Carregando as variaveis de ambiente..."
+            source ptrf
+            pip install --user pipenv -r requirements/local.txt
+            python manage.py collectstatic --noinput
+            echo "##### COVERAGE ####"
+            coverage run -m pytest
+            coverage xml
+            ls -ltra
+            
+      - name: Upload Reports
+        uses: actions/upload-artifact@v2
+        with:
+          name: reports
+          path: coverage.xml
+            
+      - name: Delete Container..
+        if: ${{ ( failure() ) || ( success() ) }}
+        run: if [ ! -z $(docker ps -q --filter "name=ptrf-db") ]; then docker rm -f ptrf-db; fi
+
+  sonar:
+  
+    runs-on: self-hosted
+    needs: [ pytest ]
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Download Reports
+        uses: actions/download-artifact@v2
+        with:
+          name: reports
+          
+      - name: Sonar
+        uses: luizhpriotto/action_images@sonarscannercli-v2.2
+        env:
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST: http://sonar.sme.prefeitura.sp.gov.br/
+          SONAR_EXTRA_ARG: >
+            -Dsonar.python.coverage.reportPaths=*.xml
+          
+      - name: send failure message
+        if: ${{ failure() }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            💥 Failed in ${{ github.ref_name	}}!
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}            
+            Repository: ${{ github.repository }}            
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
          
   build:
 
@@ -58,26 +136,16 @@ jobs:
             🚀🚀🚀
             To aprove: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
              
-  deploy-hom:
+  deploy-k8s-hom:
   
     runs-on: self-hosted
-    needs: [ build ]
-    if: ${{ github.ref != 'refs/heads/master' }}
+    needs: [ build,sonar ]
+    if: ${{ github.ref == 'refs/heads/homolog-r2' }}
     
     environment:
       name: release
-    steps:
-      - name: Redeploy Hom
-        if: ${{ github.ref == 'refs/heads/homolog' }}
-        uses: luizhpriotto/action_images@kubectl-v2.0
-        env: 
-          RANCHER_URL: ${{ secrets.RANCHER_URL }}
-          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
-          NAMESPACE: sme-ptrf
-          WORKLOAD: ptrf-backend,ptrf-celery,ptrf-flower
-          
+    steps:          
       - name: Redeploy Hom2
-        if: ${{ github.ref == 'refs/heads/homolog-r2' }}
         uses: luizhpriotto/action_images@kubectl-v2.0
         env: 
           RANCHER_URL: ${{ secrets.RANCHER_URL }}
@@ -99,24 +167,41 @@ jobs:
             See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
             Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             
-      - name: send success message
-        if: ${{ success() }}
+  deploy-k8s-dev:
+  
+    runs-on: self-hosted
+    needs: [ build,sonar ]
+    if: ${{ github.ref == 'refs/heads/develop' }}
+    
+    environment:
+      name: development
+    steps:          
+      - name: Redeploy Dev
+        uses: luizhpriotto/action_images@kubectl-v2.0
+        env: 
+          RANCHER_URL: ${{ secrets.RANCHER_URL }}
+          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
+          NAMESPACE: sme-ptrf
+          WORKLOAD: ptrf-backend,ptrf-celery,ptrf-flower
+          
+      - name: send failure message
+        if: ${{ failure() }}
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            🚀 Success in ${{ github.ref_name	}}!
+            💥 Failed in ${{ github.ref_name	}}!
             ${{ github.actor }} created commit:
             Commit message: ${{ github.event.commits[0].message }}            
             Repository: ${{ github.repository }}            
             See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
             Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             
-  deploy-prod:
+  deploy-k8s-prod:
   
     runs-on: self-hosted
-    needs: [ build ]
+    needs: [ build,sonar ]
     if: ${{ github.ref == 'refs/heads/master' }}
     environment:
       name: production
@@ -128,6 +213,14 @@ jobs:
           RANCHER_URL: ${{ secrets.RANCHER_URL }}
           RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
           NAMESPACE: sme-ptrf
+          WORKLOAD: ptrf-backend,ptrf-celery,ptrf-flower
+          
+      - name: Redeploy Pre Prod
+        uses: luizhpriotto/action_images@kubectl-v2.0
+        env: 
+          RANCHER_URL: ${{ secrets.RANCHER_URL }}
+          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
+          NAMESPACE: sme-sigescola-pre
           WORKLOAD: ptrf-backend,ptrf-celery,ptrf-flower
           
       - name: Redeploy Treinamento
@@ -159,17 +252,4 @@ jobs:
             Repository: ${{ github.repository }}            
             See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
             Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
-      - name: send success message
-        if: ${{ success() }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            🚀 Success in ${{ github.ref_name	}}!
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}            
-            Repository: ${{ github.repository }}            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+           
