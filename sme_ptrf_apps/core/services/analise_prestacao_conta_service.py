@@ -107,6 +107,16 @@ def criar_previa_relatorio_apos_acertos(analise_prestacao_conta, usuario=""):
     )
 
 
+def criar_relatorio_apos_acertos_final(analise_prestacao_conta, usuario=""):
+    logger.info(f'Gerando versão final do relatorio após acertos.')
+
+    _gerar_arquivos_relatorio_apos_acertos(
+        analise_prestacao_conta=analise_prestacao_conta,
+        previa=False,
+        usuario=usuario
+    )
+
+
 def _gerar_arquivos_relatorio_apos_acertos(analise_prestacao_conta, previa, usuario=""):
     analise_prestacao_conta.inicia_geracao_arquivo_pdf_relatorio_apos_acertos(previa)
 

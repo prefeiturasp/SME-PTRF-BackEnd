@@ -36,12 +36,18 @@ def concluir_prestacao_de_contas_async(
     from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_documentos, _criar_fechamentos,
                                                                        _apagar_previas_documentos)
 
+    from sme_ptrf_apps.core.services.analise_prestacao_conta_service import (criar_relatorio_apos_acertos_final)
+
     periodo = Periodo.by_uuid(periodo_uuid)
     associacao = Associacao.by_uuid(associacao_uuid)
     prestacao = PrestacaoConta.by_periodo(associacao=associacao, periodo=periodo)
 
     acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
     contas = associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
+
+    if e_retorno_devolucao:
+        ultima_analise_pc = prestacao.analises_da_prestacao.order_by('id').last()
+        criar_relatorio_apos_acertos_final(analise_prestacao_conta=ultima_analise_pc, usuario=usuario)
 
     if requer_geracao_documentos:
         _criar_fechamentos(acoes, contas, periodo, prestacao)
