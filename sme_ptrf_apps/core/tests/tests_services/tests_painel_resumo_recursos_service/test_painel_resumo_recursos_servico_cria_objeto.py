@@ -28,7 +28,8 @@ def test_obtem_painel_resumo_recursos_por_associacao_periodo_conta(
     )
 
     status_pc_esperado = {
-        'documentos_gerados': None,
+        'documentos_gerados': False,
+        'pc_requer_conclusao': True,
         'legenda_cor': 1,
         'periodo_bloqueado': False,
         'periodo_encerrado': False,
