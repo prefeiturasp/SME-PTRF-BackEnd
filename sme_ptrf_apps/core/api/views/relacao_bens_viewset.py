@@ -209,6 +209,14 @@ class RelacaoBensViewSet(GenericViewSet):
         relacao_bens = RelacaoBens.objects.filter(conta_associacao__uuid=conta_associacao_uuid,
                                                   prestacao_conta=prestacao_conta).first()
 
+        if not relacao_bens:
+            relacao_bens = RelacaoBens.objects.filter(
+                conta_associacao__uuid=conta_associacao_uuid,
+                versao=RelacaoBens.VERSAO_PREVIA,
+                periodo_previa__uuid=periodo_uuid,
+                prestacao_conta=None).first()
+
+
         msg = ""
         if not relacao_bens:
             rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
