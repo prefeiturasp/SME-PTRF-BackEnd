@@ -57,6 +57,9 @@ def retornar_ja_publicadas(dre, periodo):
             'data_publicacao': consolidado_dre.data_publicacao,
             'pagina_publicacao': consolidado_dre.pagina_publicacao,
             'permite_excluir_data_e_pagina_publicacao': valor_maximo_sequencia_de_publicacao == sequencia,
+            'habilita_botao_gerar': False,
+            'texto_tool_tip_botao_gerar': 'É necessário informar a data e a página da publicação anterior<br/>'
+                                          'no Diário Oficial da Cidade para gerar uma nova publicação.'
         }
 
         atas_de_parecer_tecnico = consolidado_dre.atas_de_parecer_tecnico_do_consolidado_dre.all()
@@ -144,6 +147,20 @@ def retornar_proxima_publicacao(dre, periodo, sequencia_de_publicacao, sequencia
     else:
         titulo_relatorio = 'Publicação Única'
 
+    # verificando se a publicacao anterior foi marcada como publicada no DO, para permitir gerar a próxima publicação
+    if sequencia_de_publicacao_atual == 1 or not sequencia_de_publicacao['parcial']:
+        consolidado_anterior_tem_data_e_pagina_publicacao = True
+    else:
+        sequencia_de_publicacao_anterior = sequencia_de_publicacao_atual - 1
+        consolidado_anterior_tem_data_e_pagina_publicacao = ConsolidadoDRE.objects.filter(
+            dre=dre,
+            periodo=periodo,
+            versao='FINAL',
+            status_sme='PUBLICADO',
+            data_publicacao__isnull=False,
+            sequencia_de_publicacao=sequencia_de_publicacao_anterior,
+        ).last()
+
     proxima_publicacao = {
         'titulo_relatorio': titulo_relatorio,
         'sequencia': sequencia_de_publicacao_atual,
@@ -161,12 +178,16 @@ def retornar_proxima_publicacao(dre, periodo, sequencia_de_publicacao, sequencia
         'data_publicacao': None,
         'pagina_publicacao': None,
         'permite_excluir_data_e_pagina_publicacao': False,
+        'habilita_botao_gerar': True if consolidado_anterior_tem_data_e_pagina_publicacao else False,
+        'texto_tool_tip_botao_gerar': 'É necessário informar a data e a página da publicação anterior<br/>'
+                                      'no Diário Oficial da Cidade para gerar uma nova publicação.'
+        if not consolidado_anterior_tem_data_e_pagina_publicacao else None,
     }
 
     return proxima_publicacao
 
 
-def retornar_consolidado_de_publicacoes_parciais(dre, periodo, sequencia_de_publicacao_atual):
+def retornar_consolidado_de_publicacoes_parciais(dre, periodo, sequencia_de_publicacao, sequencia_de_publicacao_atual):
     relatorios_fisico_financeiros_consolidado_de_publicacoes_parciais = RelatorioConsolidadoDRE.objects.filter(
         dre=dre,
         periodo=periodo,
@@ -204,6 +225,8 @@ def retornar_consolidado_de_publicacoes_parciais(dre, periodo, sequencia_de_publ
         'data_publicacao': None,
         'pagina_publicacao': None,
         'permite_excluir_data_e_pagina_publicacao': False,
+        'habilita_botao_gerar': True,
+        'texto_tool_tip_botao_gerar': None,
     }
 
     return proxima_publicacao_consolidado_de_publicacoes_parciais
@@ -239,6 +262,7 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
         proxima_publicacao = retornar_consolidado_de_publicacoes_parciais(
             dre,
             periodo,
+            sequencia_de_publicacao,
             sequencia_de_publicacao_atual
         )
     else:
