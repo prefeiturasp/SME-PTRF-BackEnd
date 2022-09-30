@@ -16,7 +16,8 @@ def test_painel_resumo_recursos_retorna_info_conta(
     prr_acao_associacao_ptrf,
 ):
     status_pc_esperado = {
-        'documentos_gerados': None,
+        'documentos_gerados': False,
+        'pc_requer_conclusao': True,
         'legenda_cor': 1,
         'periodo_bloqueado': False,
         'periodo_encerrado': False,
