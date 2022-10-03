@@ -1,3 +1,6 @@
+### 1.33.6 - 03/10/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 50
+* (74632) Relatório consolidado: Demonstrativo - Alterar exibição do valor de devolução ao tesouro
+
 ### 1.33.5 - 29/09/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 50
 * (74103) Carga de devoluções ao tesouro e ajustes no admin
 
