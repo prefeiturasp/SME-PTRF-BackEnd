@@ -140,150 +140,158 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dr
     for tipo_conta in tipos_contas:
         info = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas, consolidado_dre)
 
-        # LINHA CUSTEIO
-        valor_total_custeio = info['saldo_reprogramado_periodo_anterior_custeio'] + info['repasses_no_periodo_custeio'] + \
-            info['receitas_devolucao_no_periodo_custeio'] + info['demais_creditos_no_periodo_custeio']
+        soma_dos_totais = sum(info.values())
 
-        # outros_creditos = info['receitas_rendimento_no_periodo_livre'] + info['receitas_devolucao_no_periodo_custeio'] + \
-        #     info['demais_creditos_no_periodo_custeio']
+        """
+            Verificando se existe algum valor para incluir os dados no resultado
+            Não devem ser exibidas as linhas de contas que tenham valores zerados em todas as colunas.
+        """
 
-        outros_creditos_custeio = info['receitas_totais_no_periodo_custeio'] - info['repasses_no_periodo_custeio']
+        if soma_dos_totais:
+            # LINHA CUSTEIO
+            valor_total_custeio = info['saldo_reprogramado_periodo_anterior_custeio'] + info['repasses_no_periodo_custeio'] + \
+                info['receitas_devolucao_no_periodo_custeio'] + info['demais_creditos_no_periodo_custeio']
 
-        custeio = {
-            "saldo_reprogramado_periodo_anterior_custeio": formata_valor(info['saldo_reprogramado_periodo_anterior_custeio']),
-            "repasses_previstos_sme_custeio": formata_valor(info['repasses_previstos_sme_custeio']),
-            "repasses_no_periodo_custeio": formata_valor(info['repasses_no_periodo_custeio']),
-            "demais_creditos_no_periodo_custeio": formata_valor(info['demais_creditos_no_periodo_custeio']),
-            "valor_total_custeio": formata_valor(valor_total_custeio),
-            "despesas_no_periodo_custeio": formata_valor(info['despesas_no_periodo_custeio']),
-            "saldo_reprogramado_proximo_periodo_custeio": formata_valor(info['saldo_reprogramado_proximo_periodo_custeio']),
-            "outros_creditos": formata_valor(outros_creditos_custeio)
-        }
+            # outros_creditos = info['receitas_rendimento_no_periodo_livre'] + info['receitas_devolucao_no_periodo_custeio'] + \
+            #     info['demais_creditos_no_periodo_custeio']
 
-        # LINHA CAPITAL
+            outros_creditos_custeio = info['receitas_totais_no_periodo_custeio'] - info['repasses_no_periodo_custeio']
 
-        valor_total_capital = info['saldo_reprogramado_periodo_anterior_capital'] + info['repasses_no_periodo_capital'] + \
-            info['receitas_devolucao_no_periodo_capital'] + info['demais_creditos_no_periodo_capital']
+            custeio = {
+                "saldo_reprogramado_periodo_anterior_custeio": formata_valor(info['saldo_reprogramado_periodo_anterior_custeio']),
+                "repasses_previstos_sme_custeio": formata_valor(info['repasses_previstos_sme_custeio']),
+                "repasses_no_periodo_custeio": formata_valor(info['repasses_no_periodo_custeio']),
+                "demais_creditos_no_periodo_custeio": formata_valor(info['demais_creditos_no_periodo_custeio']),
+                "valor_total_custeio": formata_valor(valor_total_custeio),
+                "despesas_no_periodo_custeio": formata_valor(info['despesas_no_periodo_custeio']),
+                "saldo_reprogramado_proximo_periodo_custeio": formata_valor(info['saldo_reprogramado_proximo_periodo_custeio']),
+                "outros_creditos": formata_valor(outros_creditos_custeio)
+            }
 
-        # outros_creditos = info['receitas_rendimento_no_periodo_livre'] + info['receitas_devolucao_no_periodo_capital'] + \
-        #     info['demais_creditos_no_periodo_capital']
+            # LINHA CAPITAL
 
-        outros_creditos_capital = info['receitas_totais_no_periodo_capital'] - info['repasses_no_periodo_capital']
+            valor_total_capital = info['saldo_reprogramado_periodo_anterior_capital'] + info['repasses_no_periodo_capital'] + \
+                info['receitas_devolucao_no_periodo_capital'] + info['demais_creditos_no_periodo_capital']
 
-        capital = {
-            "saldo_reprogramado_periodo_anterior_capital": formata_valor(info['saldo_reprogramado_periodo_anterior_capital']),
-            "repasses_previstos_sme_capital": formata_valor(info['repasses_previstos_sme_capital']),
-            "repasses_no_periodo_capital": formata_valor(info['repasses_no_periodo_capital']),
-            "demais_creditos_no_periodo_capital": formata_valor(info['demais_creditos_no_periodo_capital']),
-            "valor_total_capital": formata_valor(valor_total_capital),
-            "despesas_no_periodo_capital": formata_valor(info['despesas_no_periodo_capital']),
-            "saldo_reprogramado_proximo_periodo_capital": formata_valor(info['saldo_reprogramado_proximo_periodo_capital']),
-            "outros_creditos": formata_valor(outros_creditos_capital)
-        }
+            # outros_creditos = info['receitas_rendimento_no_periodo_livre'] + info['receitas_devolucao_no_periodo_capital'] + \
+            #     info['demais_creditos_no_periodo_capital']
 
-        # LINHA RLA
-        valor_total_livre = info['saldo_reprogramado_periodo_anterior_livre'] + \
-            info['receitas_rendimento_no_periodo_livre'] + \
-            info['repasses_no_periodo_livre'] + info['receitas_devolucao_no_periodo_livre'] + \
-            info['demais_creditos_no_periodo_livre']
+            outros_creditos_capital = info['receitas_totais_no_periodo_capital'] - info['repasses_no_periodo_capital']
 
-        # outros_creditos = info['receitas_rendimento_no_periodo_livre'] + info['receitas_devolucao_no_periodo_livre'] + \
-        #     info['demais_creditos_no_periodo_livre']
+            capital = {
+                "saldo_reprogramado_periodo_anterior_capital": formata_valor(info['saldo_reprogramado_periodo_anterior_capital']),
+                "repasses_previstos_sme_capital": formata_valor(info['repasses_previstos_sme_capital']),
+                "repasses_no_periodo_capital": formata_valor(info['repasses_no_periodo_capital']),
+                "demais_creditos_no_periodo_capital": formata_valor(info['demais_creditos_no_periodo_capital']),
+                "valor_total_capital": formata_valor(valor_total_capital),
+                "despesas_no_periodo_capital": formata_valor(info['despesas_no_periodo_capital']),
+                "saldo_reprogramado_proximo_periodo_capital": formata_valor(info['saldo_reprogramado_proximo_periodo_capital']),
+                "outros_creditos": formata_valor(outros_creditos_capital)
+            }
 
-        outros_creditos_livre = info['receitas_totais_no_periodo_livre'] - info['repasses_no_periodo_livre']
+            # LINHA RLA
+            valor_total_livre = info['saldo_reprogramado_periodo_anterior_livre'] + \
+                info['receitas_rendimento_no_periodo_livre'] + \
+                info['repasses_no_periodo_livre'] + info['receitas_devolucao_no_periodo_livre'] + \
+                info['demais_creditos_no_periodo_livre']
 
-        rla = {
-            "saldo_reprogramado_periodo_anterior_livre": formata_valor(info['saldo_reprogramado_periodo_anterior_livre']),
-            "repasses_previstos_sme_livre": formata_valor(info['repasses_previstos_sme_livre']),
-            "repasses_no_periodo_livre": formata_valor(info['repasses_no_periodo_livre']),
-            "demais_creditos_no_periodo_livre": formata_valor(info['demais_creditos_no_periodo_livre']),
-            "valor_total_livre": formata_valor(valor_total_livre),
-            "saldo_reprogramado_proximo_periodo_livre": formata_valor(info['saldo_reprogramado_proximo_periodo_livre']),
-            "devolucoes_ao_tesouro_no_periodo_total": formata_valor(info['devolucoes_ao_tesouro_no_periodo_total']),
-            "outros_creditos": formata_valor(outros_creditos_livre)
-        }
+            # outros_creditos = info['receitas_rendimento_no_periodo_livre'] + info['receitas_devolucao_no_periodo_livre'] + \
+            #     info['demais_creditos_no_periodo_livre']
 
-        # LINHA TOTAIS
-        valor_total = info['saldo_reprogramado_periodo_anterior_total'] + info['receitas_rendimento_no_periodo_livre'] + \
-            info['repasses_no_periodo_total'] + info['receitas_devolucao_no_periodo_total'] + \
-            info['demais_creditos_no_periodo_total']
+            outros_creditos_livre = info['receitas_totais_no_periodo_livre'] - info['repasses_no_periodo_livre']
 
-        # outros_creditos = info['receitas_rendimento_no_periodo_livre'] + \
-        #     info['receitas_devolucao_no_periodo_total'] + info['demais_creditos_no_periodo_total']
+            rla = {
+                "saldo_reprogramado_periodo_anterior_livre": formata_valor(info['saldo_reprogramado_periodo_anterior_livre']),
+                "repasses_previstos_sme_livre": formata_valor(info['repasses_previstos_sme_livre']),
+                "repasses_no_periodo_livre": formata_valor(info['repasses_no_periodo_livre']),
+                "demais_creditos_no_periodo_livre": formata_valor(info['demais_creditos_no_periodo_livre']),
+                "valor_total_livre": formata_valor(valor_total_livre),
+                "saldo_reprogramado_proximo_periodo_livre": formata_valor(info['saldo_reprogramado_proximo_periodo_livre']),
+                "devolucoes_ao_tesouro_no_periodo_total": formata_valor(info['devolucoes_ao_tesouro_no_periodo_total']),
+                "outros_creditos": formata_valor(outros_creditos_livre)
+            }
 
-        outros_creditos_total = info['receitas_totais_no_periodo_total'] - info['repasses_no_periodo_total']
+            # LINHA TOTAIS
+            valor_total = info['saldo_reprogramado_periodo_anterior_total'] + info['receitas_rendimento_no_periodo_livre'] + \
+                info['repasses_no_periodo_total'] + info['receitas_devolucao_no_periodo_total'] + \
+                info['demais_creditos_no_periodo_total']
 
-        totais = {
-            "saldo_reprogramado_periodo_anterior_total": formata_valor(info['saldo_reprogramado_periodo_anterior_total']),
-            "repasses_previstos_sme_total": formata_valor(info['repasses_previstos_sme_total']),
-            "repasses_no_periodo_total": formata_valor(info['repasses_no_periodo_total']),
-            "demais_creditos_no_periodo_total": formata_valor(info['demais_creditos_no_periodo_total']),
-            "valor_total": formata_valor(valor_total),
-            "despesas_no_periodo_total": formata_valor(info['despesas_no_periodo_total']),
-            "saldo_reprogramado_proximo_periodo_total": formata_valor(info['saldo_reprogramado_proximo_periodo_total']),
-            "devolucoes_ao_tesouro_no_periodo_total": formata_valor(info['devolucoes_ao_tesouro_no_periodo_total']),
-            "outros_creditos": formata_valor(outros_creditos_total)
-        }
+            # outros_creditos = info['receitas_rendimento_no_periodo_livre'] + \
+            #     info['receitas_devolucao_no_periodo_total'] + info['demais_creditos_no_periodo_total']
 
-        # Justificativa #
-        justificativa = None
-        obj_justificativas_list = []
+            outros_creditos_total = info['receitas_totais_no_periodo_total'] - info['repasses_no_periodo_total']
 
-        if eh_consolidado_de_publicacoes_parciais:
+            totais = {
+                "saldo_reprogramado_periodo_anterior_total": formata_valor(info['saldo_reprogramado_periodo_anterior_total']),
+                "repasses_previstos_sme_total": formata_valor(info['repasses_previstos_sme_total']),
+                "repasses_no_periodo_total": formata_valor(info['repasses_no_periodo_total']),
+                "demais_creditos_no_periodo_total": formata_valor(info['demais_creditos_no_periodo_total']),
+                "valor_total": formata_valor(valor_total),
+                "despesas_no_periodo_total": formata_valor(info['despesas_no_periodo_total']),
+                "saldo_reprogramado_proximo_periodo_total": formata_valor(info['saldo_reprogramado_proximo_periodo_total']),
+                "devolucoes_ao_tesouro_no_periodo_total": formata_valor(info['devolucoes_ao_tesouro_no_periodo_total']),
+                "outros_creditos": formata_valor(outros_creditos_total)
+            }
 
-            justificativas = JustificativaRelatorioConsolidadoDRE.objects.filter(
-                dre=dre,
-                tipo_conta=tipo_conta,
-                periodo=periodo,
-            )
+            # Justificativa #
+            justificativa = None
+            obj_justificativas_list = []
 
-            for just in justificativas:
-                texto_justificativa = ''
-                if just:
-                    texto_justificativa = f"{just.texto}"
-                if just and just.consolidado_dre:
-                    texto_justificativa = f"{texto_justificativa} - {just.consolidado_dre.referencia}"
+            if eh_consolidado_de_publicacoes_parciais:
 
-                obj_justificativa = {
-                    "justificativa": texto_justificativa,
+                justificativas = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                    dre=dre,
+                    tipo_conta=tipo_conta,
+                    periodo=periodo,
+                )
+
+                for just in justificativas:
+                    texto_justificativa = ''
+                    if just:
+                        texto_justificativa = f"{just.texto}"
+                    if just and just.consolidado_dre:
+                        texto_justificativa = f"{texto_justificativa} - {just.consolidado_dre.referencia}"
+
+                    obj_justificativa = {
+                        "justificativa": texto_justificativa,
+                    }
+                    obj_justificativas_list.append(obj_justificativa)
+
+            elif consolidado_dre and consolidado_dre.versao == 'FINAL':
+                justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                    dre=dre,
+                    tipo_conta=tipo_conta,
+                    periodo=periodo,
+                    consolidado_dre=consolidado_dre
+                ).last()
+            else:
+                justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                    dre=dre,
+                    tipo_conta=tipo_conta,
+                    periodo=periodo,
+                    consolidado_dre__isnull=True,
+                ).last()
+
+            if not eh_consolidado_de_publicacoes_parciais:
+                execucao_financeira = {
+                    "tipo_conta": tipo_conta.nome if tipo_conta.nome else "",
+                    "custeio": custeio,
+                    "capital": capital,
+                    "livre": rla,
+                    "totais": totais,
+                    "justificativa": justificativa.texto if justificativa else '',
                 }
-                obj_justificativas_list.append(obj_justificativa)
+            else:
+                execucao_financeira = {
+                    "tipo_conta": tipo_conta.nome if tipo_conta.nome else "",
+                    "custeio": custeio,
+                    "capital": capital,
+                    "livre": rla,
+                    "totais": totais,
+                    "justificativa": obj_justificativas_list,
+                }
 
-        elif consolidado_dre and consolidado_dre.versao == 'FINAL':
-            justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
-                dre=dre,
-                tipo_conta=tipo_conta,
-                periodo=periodo,
-                consolidado_dre=consolidado_dre
-            ).last()
-        else:
-            justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
-                dre=dre,
-                tipo_conta=tipo_conta,
-                periodo=periodo,
-                consolidado_dre__isnull=True,
-            ).last()
-
-        if not eh_consolidado_de_publicacoes_parciais:
-            execucao_financeira = {
-                "tipo_conta": tipo_conta.nome if tipo_conta.nome else "",
-                "custeio": custeio,
-                "capital": capital,
-                "livre": rla,
-                "totais": totais,
-                "justificativa": justificativa.texto if justificativa else '',
-            }
-        else:
-            execucao_financeira = {
-                "tipo_conta": tipo_conta.nome if tipo_conta.nome else "",
-                "custeio": custeio,
-                "capital": capital,
-                "livre": rla,
-                "totais": totais,
-                "justificativa": obj_justificativas_list,
-            }
-
-        execucao_financeira_list['por_tipo_de_conta'].append(execucao_financeira)
+            execucao_financeira_list['por_tipo_de_conta'].append(execucao_financeira)
 
     execucao_financeira_list['total_todas_as_contas'].append(retorna_total_todas_as_contas_execucao_financeira(execucao_financeira_list['por_tipo_de_conta']))
 
