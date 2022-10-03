@@ -355,6 +355,7 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publica
                 prestacao_conta__periodo=periodo,
                 prestacao_conta__associacao__unidade__dre=dre,
                 prestacao_conta__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+                despesa__rateios__conta_associacao__tipo_conta=tipo_conta
             ).distinct("pk")
         elif not apenas_nao_publicadas:
             devolucoes = DevolucaoAoTesouro.objects.filter(

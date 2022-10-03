@@ -61,6 +61,8 @@ from ..serializers.processo_associacao_serializer import ProcessoAssociacaoRetri
 
 from ..serializers.ata_serializer import AtaLookUpSerializer
 
+from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_geracao_documentos
+
 logger = logging.getLogger(__name__)
 
 
@@ -208,6 +210,10 @@ class AssociacoesViewSet(ModelViewSet):
             gerar_ou_editar_ata_apresentacao = prestacao_conta_status['status_prestacao'] == 'NAO_RECEBIDA'
             gerar_ou_editar_ata_retificacao = prestacao_conta_status['status_prestacao'] == 'DEVOLVIDA_RETORNADA'
 
+        gerar_previas = True
+        if prestacao_conta:
+            gerar_previas = pc_requer_geracao_documentos(prestacao_conta)
+
         result = {
             'associacao': f'{uuid}',
             'periodo_referencia': periodo_referencia,
@@ -216,6 +222,7 @@ class AssociacoesViewSet(ModelViewSet):
             'prestacao_conta': prestacao_conta.uuid if prestacao_conta else '',
             'gerar_ou_editar_ata_apresentacao': gerar_ou_editar_ata_apresentacao,
             'gerar_ou_editar_ata_retificacao': gerar_ou_editar_ata_retificacao,
+            'gerar_previas': gerar_previas,
         }
 
         return Response(result)

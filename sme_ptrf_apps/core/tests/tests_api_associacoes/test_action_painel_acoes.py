@@ -69,7 +69,8 @@ def test_action_painel_acoes(
         ],
         'info_conta': None,
         'prestacao_contas_status': {
-            'documentos_gerados': None,
+            'documentos_gerados': False,
+            'pc_requer_conclusao': True,
             'legenda_cor': 3,
             'periodo_bloqueado': False,
             'periodo_encerrado': True,
@@ -148,7 +149,8 @@ def test_action_painel_acoes_por_periodo(
         ],
         'info_conta': None,
         'prestacao_contas_status': {
-            'documentos_gerados': None,
+            'documentos_gerados': False,
+            'pc_requer_conclusao': True,
             'legenda_cor': 3,
             'periodo_bloqueado': False,
             'periodo_encerrado': True,
@@ -252,7 +254,8 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
         ],
         'info_conta': None,
         'prestacao_contas_status': {
-            'documentos_gerados': None,
+            'documentos_gerados': False,
+            'pc_requer_conclusao': True,
             'legenda_cor': 3,
             'periodo_bloqueado': False,
             'periodo_encerrado': True,

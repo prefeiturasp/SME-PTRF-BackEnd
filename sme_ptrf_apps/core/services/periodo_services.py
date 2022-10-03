@@ -1,6 +1,5 @@
-from ..models import Associacao, Periodo, PrestacaoConta
 from datetime import timedelta
-
+from ..models import Associacao, Periodo, PrestacaoConta
 
 def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     """
@@ -34,6 +33,10 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
 
         return ultima_analise is not None and ultima_analise.tem_acertos_pendentes
 
+    def pc_requer_geracao_documentos(prestacao_conta):
+        # Necessário devido a conflitos no import direto
+        from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_geracao_documentos
+        return pc_requer_geracao_documentos(prestacao_conta)
 
     periodo = Periodo.by_uuid(periodo_uuid)
     associacao = Associacao.by_uuid(associacao_uuid)
@@ -88,10 +91,19 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
 
     periodo_bloqueado = True if prestacao else False
 
+    if prestacao and prestacao.status not in (PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_DEVOLVIDA):
+        documentos_gerados = True
+    elif prestacao and prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA:
+        documentos_gerados = not pc_requer_geracao_documentos(prestacao)
+    else:
+        documentos_gerados = False
+
+    pc_requer_conclusao = not prestacao or prestacao.status in (PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_DEVOLVIDA)
+
     status = {
         'periodo_encerrado': periodo.encerrado,
-        'documentos_gerados': prestacao and prestacao.status not in (
-            PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_DEVOLVIDA),
+        'documentos_gerados': documentos_gerados,
+        'pc_requer_conclusao': pc_requer_conclusao,
         'status_prestacao': prestacao.status if prestacao else PrestacaoConta.STATUS_NAO_APRESENTADA,
         'texto_status': mensagem_periodo + ' ' + mensagem_prestacao,
         'periodo_bloqueado': periodo_bloqueado,
