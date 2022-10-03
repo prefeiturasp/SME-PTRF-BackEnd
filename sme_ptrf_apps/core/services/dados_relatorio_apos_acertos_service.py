@@ -93,7 +93,7 @@ class DadosRelatorioAposAcertos:
 
     def __rodape(self):
         associacao = self.analise_prestacao_conta.prestacao_conta.associacao
-        data_geracao = datetime.now().strftime("%d/%m/%Y ás %H:%M")
+        data_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M")
         tipo_texto = "Prévia gerada" if self.previa else "Documento gerado"
         quem_gerou = "" if self.usuario == "" else f"pelo usuário {self.usuario}"
 
