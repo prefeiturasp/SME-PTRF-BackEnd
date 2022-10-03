@@ -18,7 +18,6 @@ def prestacao_conta(periodo, associacao):
         associacao=associacao,
         data_recebimento=date(2020, 10, 1),
         data_ultima_analise=date(2020, 10, 1),
-        devolucao_tesouro=True,
         status='APROVADA',
     )
 
@@ -121,34 +120,34 @@ def obs_devolucao_tesouro_relatorio_dre_consolidado(periodo, dre, tipo_conta, ti
         observacao='Teste devolução ao tesouro'
     )
 
-# def test_api_get_info_devolucoes_ao_tesouro_relatorio(
-#     jwt_authenticated_client_relatorio_consolidado,
-#     dre,
-#     periodo,
-#     tipo_conta,
-#     prestacao_conta,
-#     tipo_devolucao_ao_tesouro,
-#     devolucao_ao_tesouro_1,
-#     devolucao_ao_tesouro_2,
-#     obs_devolucao_tesouro_relatorio_dre_consolidado,
-#     rateio_despesa_devolucao
-# ):
-#     response = jwt_authenticated_client_relatorio_consolidado.get(
-#         f'/api/relatorios-consolidados-dre/info-devolucoes-ao-tesouro/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
-#         content_type='application/json')
-#     result = json.loads(response.content)
-#
-#     resultado_esperado = [
-#         {
-#             'tipo_nome': f'{tipo_devolucao_ao_tesouro.nome}',
-#             'tipo_uuid': f'{tipo_devolucao_ao_tesouro.uuid}',
-#             'ocorrencias': 2,
-#             'valor': 200.00,
-#             'observacao': 'Teste devolução ao tesouro',
-#         },
-#     ]
-#     assert response.status_code == status.HTTP_200_OK
-#     assert result == resultado_esperado
+def test_api_get_info_devolucoes_ao_tesouro_relatorio(
+    jwt_authenticated_client_relatorio_consolidado,
+    dre,
+    periodo,
+    tipo_conta,
+    prestacao_conta,
+    tipo_devolucao_ao_tesouro,
+    devolucao_ao_tesouro_1,
+    devolucao_ao_tesouro_2,
+    obs_devolucao_tesouro_relatorio_dre_consolidado,
+    rateio_despesa_devolucao
+):
+    response = jwt_authenticated_client_relatorio_consolidado.get(
+        f'/api/relatorios-consolidados-dre/info-devolucoes-ao-tesouro/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta.uuid}',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    resultado_esperado = [
+        {
+            'tipo_nome': f'{tipo_devolucao_ao_tesouro.nome}',
+            'tipo_uuid': f'{tipo_devolucao_ao_tesouro.uuid}',
+            'ocorrencias': 2,
+            'valor': 200.00,
+            'observacao': 'Teste devolução ao tesouro',
+        },
+    ]
+    assert response.status_code == status.HTTP_200_OK
+    assert result == resultado_esperado
 
 
 def test_api_get_info_devolucoes_ao_tesouro_relatorio_sem_passa_dre(jwt_authenticated_client_relatorio_consolidado, dre, periodo, tipo_conta):
