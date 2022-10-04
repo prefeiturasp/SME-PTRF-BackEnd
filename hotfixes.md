@@ -1,6 +1,12 @@
+### 1.33.6 - 03/10/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 50
+* (74632) Relatório consolidado: Demonstrativo - Alterar exibição do valor de devolução ao tesouro
+
+### 1.33.5 - 29/09/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 50
+* (74103) Carga de devoluções ao tesouro e ajustes no admin
+
 ### 1.33.4 - 20/09/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 49
 * (74340) Corrige seletor de períodos na conclusão de PC
-* 
+
 ### 1.33.3 - 15/09/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 49
 * (71660) Altera conclusão de PC para tratar erros de e-mail de notificação sem abortar conclusão da PC
 * (72907) Melhorias diversas no relatório consolidado DRE

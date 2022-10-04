@@ -485,7 +485,7 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
 
     list_filter = (
         'prestacao_conta__periodo', 'prestacao_conta', 'tipo', 'devolucao_total',
-        'visao_criacao')
+        'visao_criacao', 'data')
 
     list_display_links = ('get_unidade',)
     readonly_fields = ('uuid', 'id')
