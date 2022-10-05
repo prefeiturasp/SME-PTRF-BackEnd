@@ -964,9 +964,12 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
 
         return totais
 
-    def _totaliza_devolucoes_ao_tesouro(prestacao_conta, periodo, totais):
+    def _totaliza_devolucoes_ao_tesouro(prestacao_conta, periodo, totais, tipo_conta):
         # Devoluções ao tesouro de PCs de Associações da DRE, no período e concluídas
-        devolucoes = prestacao_conta.devolucoes_ao_tesouro_da_prestacao.all()
+        # Acrescentado o filtro por conta para não permitir a exibição da coluna com valores zerados no Demonstrativo Financeiro
+        devolucoes = prestacao_conta.devolucoes_ao_tesouro_da_prestacao.filter(
+            despesa__rateios__conta_associacao__tipo_conta=tipo_conta
+        )
         for devolucao in devolucoes:
             totais['devolucoes_ao_tesouro_no_periodo_total'] += devolucao.valor
 
@@ -1008,7 +1011,7 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
             if prestacao_conta:
                 totais = _totaliza_fechamentos(associacao, periodo, tipo_conta, totais)
                 totais = _atualiza_demais_creditos(totais)
-                totais = _totaliza_devolucoes_ao_tesouro(prestacao_conta, periodo, totais)
+                totais = _totaliza_devolucoes_ao_tesouro(prestacao_conta, periodo, totais, tipo_conta)
 
             totais = _totaliza_previsoes_repasses_sme(associacao, periodo, tipo_conta, totais)
 
