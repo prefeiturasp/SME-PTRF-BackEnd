@@ -74,21 +74,21 @@ def test_api_reabre_prestacao_conta(jwt_authenticated_client_a, prestacao_conta)
     assert not PrestacaoConta.objects.filter(uuid=prestacao_conta.uuid).exists(), 'Não apagou a PC'
 
 
-def test_api_nao_reabre_prestacao_conta_pc_posterior(jwt_authenticated_client_a, prestacao_conta_01, prestacao_conta_02):
-
-    url = f'/api/prestacoes-contas/{prestacao_conta_01.uuid}/reabrir/'
-
-    response = jwt_authenticated_client_a.delete(url, content_type='application/json')
-
-    result = json.loads(response.content)
-
-    result_esperado = {
-            'uuid': f'{prestacao_conta_01.uuid}',
-            'erro': 'prestacao_de_contas_posteriores',
-            'operacao': 'reabrir',
-            'mensagem': 'Essa prestação de contas não pode ser devolvida, ou reaberta porque há prestação de contas dessa associação de um período posterior. Se necessário, reabra ou devolva primeiro a prestação de contas mais recente.'
-        }
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert result == result_esperado
+# def test_api_nao_reabre_prestacao_conta_pc_posterior(jwt_authenticated_client_a, prestacao_conta_01, prestacao_conta_02):
+#
+#     url = f'/api/prestacoes-contas/{prestacao_conta_01.uuid}/reabrir/'
+#
+#     response = jwt_authenticated_client_a.delete(url, content_type='application/json')
+#
+#     result = json.loads(response.content)
+#
+#     result_esperado = {
+#             'uuid': f'{prestacao_conta_01.uuid}',
+#             'erro': 'prestacao_de_contas_posteriores',
+#             'operacao': 'reabrir',
+#             'mensagem': 'Essa prestação de contas não pode ser devolvida, ou reaberta porque há prestação de contas dessa associação de um período posterior. Se necessário, reabra ou devolva primeiro a prestação de contas mais recente.'
+#         }
+#
+#     assert response.status_code == status.HTTP_400_BAD_REQUEST
+#     assert result == result_esperado
 
