@@ -1,7 +1,3 @@
-from celery import current_app
-current_app.conf.CELERY_ALWAYS_EAGER = True
-current_app.conf.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
-
 import logging
 
 from django.db.models import Count, Sum, Q
