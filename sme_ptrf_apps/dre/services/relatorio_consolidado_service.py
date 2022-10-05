@@ -1,3 +1,7 @@
+from celery import current_app
+current_app.conf.CELERY_ALWAYS_EAGER = True
+current_app.conf.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+
 import logging
 
 from django.db.models import Count, Sum, Q
@@ -966,10 +970,8 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
 
     def _totaliza_devolucoes_ao_tesouro(prestacao_conta, periodo, totais, tipo_conta):
         # Devoluções ao tesouro de PCs de Associações da DRE, no período e concluídas
-        # Acrescentado o filtro por conta para não permitir a exibição da coluna com valores zerados no Demonstrativo Financeiro
-        devolucoes = prestacao_conta.devolucoes_ao_tesouro_da_prestacao.filter(
-            despesa__rateios__conta_associacao__tipo_conta=tipo_conta
-        )
+        devolucoes = prestacao_conta.devolucoes_ao_tesouro_da_prestacao.all()
+
         for devolucao in devolucoes:
             totais['devolucoes_ao_tesouro_no_periodo_total'] += devolucao.valor
 
@@ -1015,7 +1017,16 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
 
             totais = _totaliza_previsoes_repasses_sme(associacao, periodo, tipo_conta, totais)
 
-            soma_dos_totais = sum(totais.values())
+            """
+                Corrige exibição de conta sem valores quando uma associação
+                tiver 02 contas, porém valor cadastrado em apenas uma delas
+                e tiver devoluções ao tesouro cadastrada.
+            """
+            totais_sem_devolucao_ao_tesouro = totais.copy()
+            key_to_remove = 'devolucoes_ao_tesouro_no_periodo_total'
+            totais_sem_devolucao_ao_tesouro.pop(key_to_remove, None)  # No `KeyError` here
+
+            soma_dos_totais = sum(totais_sem_devolucao_ao_tesouro.values())
 
             """
                 Verificando se existe algum valor para incluir os dados no resultado
