@@ -44,11 +44,15 @@ def test_api_get_documentos_para_analise(
             'solicitacoes_de_ajuste_da_analise': [
                 {
                     'analise_documento': f'{analise_doc_ata.uuid}',
+                    'copiado': False,
                     'detalhamento': solicitacao_acerto_declaracao.detalhamento,
                     'tipo_acerto': {
+                        'ativo': tipo_acerto_assinatura.ativo,
+                        'categoria': tipo_acerto_assinatura.categoria,
                         'nome': 'Enviar com assinatura',
                         'uuid': f'{tipo_acerto_assinatura.uuid}',
                         'id': tipo_acerto_assinatura.id,
+                        'tipos_documento_prestacao': [tipo_doc_ata.id]
                     },
                     'uuid': f'{solicitacao_acerto_ata.uuid}',
                     'id': solicitacao_acerto_ata.id,
@@ -62,6 +66,15 @@ def test_api_get_documentos_para_analise(
             },
             'uuid': f'{analise_doc_ata.uuid}',
             'id': analise_doc_ata.id,
+            'justificativa': None,
+            'status_realizacao': 'PENDENTE',
+            'despesa_incluida': None,
+            'esclarecimentos': None,
+            'receita_incluida': None,
+            'requer_ajuste_externo': False,
+            'requer_esclarecimentos': True,
+            'requer_inclusao_credito': False,
+            'requer_inclusao_gasto': False,
         },
         {
             'analise_prestacao_conta': f'{analise_pc.uuid}',
@@ -74,11 +87,15 @@ def test_api_get_documentos_para_analise(
             'solicitacoes_de_ajuste_da_analise': [
                 {
                     'analise_documento': f'{analise_doc_declaracao.uuid}',
+                    'copiado': False,
                     'detalhamento': '',
                     'tipo_acerto': {
+                        'ativo': tipo_acerto_assinatura.ativo,
+                        'categoria': tipo_acerto_assinatura.categoria,
                         'nome': 'Enviar com assinatura',
                         'uuid': f'{tipo_acerto_assinatura.uuid}',
                         'id': tipo_acerto_assinatura.id,
+                        'tipos_documento_prestacao': [tipo_doc_ata.id]
                     },
                     'uuid': f'{solicitacao_acerto_declaracao.uuid}',
                     'id': solicitacao_acerto_declaracao.id,
@@ -92,6 +109,15 @@ def test_api_get_documentos_para_analise(
             },
             'uuid': f'{analise_doc_declaracao.uuid}',
             'id': analise_doc_declaracao.id,
+            'justificativa': None,
+            'status_realizacao': 'PENDENTE',
+            'despesa_incluida': None,
+            'esclarecimentos': None,
+            'receita_incluida': None,
+            'requer_ajuste_externo': False,
+            'requer_esclarecimentos': True,
+            'requer_inclusao_credito': False,
+            'requer_inclusao_gasto': False,
         }
     ]
 

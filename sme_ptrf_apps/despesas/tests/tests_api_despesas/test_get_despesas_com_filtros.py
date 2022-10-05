@@ -45,9 +45,27 @@ def despesa_fornecedor_b(associacao, tipo_documento, tipo_transacao):
         valor_recursos_proprios=10.00,
     )
 
+@pytest.fixture
+def despesa_inativa_fornecedor_b(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='654321',
+        data_documento=datetime.date(2020, 3, 11),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='517.870.110-03',
+        nome_fornecedor='Fornecedor B Graca valença',
+        tipo_transacao=tipo_transacao,
+        documento_transacao='',
+        data_transacao=datetime.date(2020, 3, 11),
+        valor_total=100.00,
+        valor_recursos_proprios=10.00,
+        data_e_hora_de_inativacao=datetime.datetime(2022, 9, 6, 10, 30, 0)
+    )
+
 
 def test_api_get_despesas_filtro_por_cnpj_cpf_fornecedor(jwt_authenticated_client_d, associacao, despesa_fornecedor_a,
-                                                         despesa_fornecedor_b):
+                                                         despesa_fornecedor_b, despesa_inativa_fornecedor_b):
     response = jwt_authenticated_client_d.get(
         f'/api/despesas/?associacao__uuid={associacao.uuid}&cpf_cnpj_fornecedor=11.478.276/0001-04',
         content_type='application/json')

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load staticfiles %}
+{% load static %}
+{% load formata_valores %}
+{% load formata_string %}
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+        integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+  <link href="{{ base_static_url }}/css/pdf-relatorio-apos-acertos.css" rel="stylesheet">
+  <title>Relatório após acertos PTRF</title>
+</head>
+
+<body>
+
+{# ************************* Cabecalho das páginas *************************  #}
+
+<header>
+  <div class="d-flex p-2 bd-highlight mt-1">
+    <div class="col-6 mt-1">
+      <p class="subtitulo font-12 mb-0">Prestação de Contas - Relatório de Apresentação após Acertos</p>
+    </div>
+    <div class="col-6">
+      <div class="row">
+        <div class="col-auto borda-box-cabecalho-right ml-5 ml-auto">
+          <p class="font-10 mb-0">Período de Realização:</p>
+          <p class="subtitulo font-10 mb-0 pb-0">{{ dados.info_cabecalho.periodo_referencia }} -  {{ dados.info_cabecalho.data_inicio_periodo|date:'d/m/Y' }} até {{ dados.info_cabecalho.data_fim_periodo|date:'d/m/Y' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+{# ************************* Fim Cabecalho das páginas *************************  #}
+
+{# ************************* Rodape ************************* #}
+<p id="data-geracao-rodape">
+  <i class="font-10">{{ dados.rodape }}</i>
+</p>
+{# ************************* Fim Rodape ************************* #}
+
+
+<section id="cabecalho" class="mt-2">
+  <div class="d-flex p-2 bd-highlight">
+    <div class="col-4">
+      <img src="{{ base_static_url }}/images/logo-color.svg" alt="logo">
+    </div>
+    <div class="col-8 pr-3 mr-0 mt-2 d-flex align-items-center justify-content-end">
+      <p class="titulo font-14">Programa de Transferências de Recursos Financeiros - PTRF</p>
+    </div>
+  </div>
+  <hr class="divisao"/>
+  <div class="d-flex p-2 bd-highlight mt-1">
+    <div class="col-6 mt-1">
+      <p class="subtitulo font-12 mb-0">Prestação de Contas - Relatório de Apresentação após Acertos</p>
+    </div>
+    <div class="col-6">
+      <div class="row">
+        <div class="col-auto borda-box-cabecalho-right ml-5 ml-auto">
+          <p class="font-10 mb-0">Período de Realização:</p>
+          <p class="subtitulo font-10 mb-0 pb-0">{{ dados.info_cabecalho.periodo_referencia }} -  {{ dados.info_cabecalho.data_inicio_periodo|date:'d/m/Y' }} até {{ dados.info_cabecalho.data_fim_periodo|date:'d/m/Y' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="conteudo mt-4">
+
+  <article class="mt-4">
+    <table class="table table-bordered tabela-resumo-por-acao">
+      <thead class="">
+        <tr class="">
+          <th colSpan="1">
+            <strong class="font-16 titulo-bloco ml-2">{{ dados.blocos.identificacao_associacao }}</strong>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="col-12">
+              <p class="pt-2 mt-2 font-12"><strong>Nome da Associação:</strong> {{ dados.dados_associacao.nome_associacao }}</p>
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <div class="col-12">
+              <div class="row">
+                <div class="col">
+                  <p class="pt-2 mt-2 mb-0 font-12"><strong>CNPJ:</strong></p>
+                  <p class="font-12">{{ dados.dados_associacao.cnpj_associacao }}</p>
+                </div>
+                <div class="col">
+                  <p class="pt-2 mt-2 mb-0 font-12"><strong>Código EOL:</strong></p>
+                  <p class="font-12">{{ dados.dados_associacao.codigo_eol_associacao }}</p>
+                </div>
+                <div class="col">
+                  <p class="pt-2 mt-2 mb-0 font-12"><strong>Diretoria Regional de Educação:</strong></p>
+                  <p class="font-12">{{ dados.dados_associacao.nome_dre }}</p>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+
+      <tr>
+        <td>
+          <div class="col-12">
+            <div class="row">
+
+              <div class="col-4">
+                <p class="pt-2 mt-2 mb-0 font-12"><strong>Data da devolução da DRE:</strong></p>
+                {% if dados.dados_associacao.data_devolucao_dre == '-' %}
+                  <p class="font-12">{{ dados.dados_associacao.data_devolucao_dre }}</p>
+                {% else %}
+                  <p class="font-12">{{ dados.dados_associacao.data_devolucao_dre|date:'d/m/Y' }}</p>
+                {% endif %}
+
+              </div>
+              <div class="col-8">
+                <p class="ml-5 pt-2 mt-2 mb-0 font-12"><strong>Prazo para devolução da Associação:</strong></p>
+                {% if dados.dados_associacao.prazo_devolucao_associacao == '-' %}
+                  <p class="ml-5 font-12">{{ dados.dados_associacao.prazo_devolucao_associacao }}</p>
+                {% else %}
+                  <p class="ml-5 font-12">{{ dados.dados_associacao.prazo_devolucao_associacao|date:'d/m/Y' }}</p>
+                {% endif %}
+              </div>
+
+            </div>
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+  </article>
+
+  {% if dados.dados_lancamentos %}
+    <article class="mt-4">
+      {% for conta in dados.dados_lancamentos %}
+        <table class="table table-bordered tabela-resumo-por-acao nao-quebra-linha">
+          <thead class="">
+
+            <tr class="">
+              <th colSpan="6">
+                <strong class="font-16 titulo-bloco ml-2">{{ dados.blocos.acertos_lancamentos }}</strong>
+              </th>
+            </tr>
+
+            <tr>
+              <th colSpan="6">
+                <strong class="font-12 titulo-bloco">Conta {{ conta.nome_conta }}</strong>
+              </th>
+            </tr>
+
+            <tr>
+              <th style="width: 2%" class="fundo-verde"></th>
+              <th class="font-10 fundo-verde"><strong>Data</strong></th>
+              <th class="font-10 fundo-verde"><strong>Tipo de lançamento</strong></th>
+              <th class="font-10 fundo-verde"><strong>Nº do documento</strong></th>
+              <th class="font-10 fundo-verde" style="width: 40%"><strong>Descrição</strong></th>
+              <th class="font-10 fundo-verde"><strong>Valor (R$)</strong></th>
+            </tr>
+          </thead>
+
+          {% for lancamento in conta.lancamentos %}
+            <tbody>
+            <tr>
+              <td class="fundo-cinza font-12">{{ forloop.counter }}</td>
+              <td class="fundo-cinza font-12">{{ lancamento.data|date:'d/m/Y' }}</td>
+              {% if lancamento.tipo_transacao == 'Gasto' %}
+                <td class="fundo-cinza font-12">Despesa</td>
+              {% else %}
+                <td class="fundo-cinza font-12">{{ lancamento.tipo_transacao }}</td>
+              {% endif %}
+
+              {% if lancamento.numero_documento == '' %}
+                <td class="fundo-cinza font-12">-</td>
+              {% else %}
+                <td class="fundo-cinza font-12">{{ lancamento.numero_documento }}</td>
+              {% endif %}
+
+              <td class="fundo-cinza font-12">{{ lancamento.descricao }}</td>
+              <td class="fundo-cinza font-12">{{ lancamento.valor_transacao_total|formata_valor }}</td>
+            </tr>
+
+            <tr>
+              <td rowspan="1" class="sem-borda pb-4"></td>
+              <td colspan="5" class="sem-borda pb-4">
+
+                {% for acerto in lancamento.analise_lancamento.solicitacoes_de_ajuste_da_analise %}
+                  {% if acerto.tipo_acerto.categoria == dados.categoria_devolucao %}
+                    <div class="row">
+                      <div class="col-12 mt-4">
+                        <span class="item font-12"><strong>Item {{ forloop.counter }}:</strong></span>
+                        <span class="ml-2 font-12">{{ acerto.tipo_acerto.nome }}</span>
+                      </div>
+                    </div>
+
+                    <div class="row mt-2">
+                      <div class="col-12">
+                        <span class="font-12"><strong>Tipo de devolução</strong></span>
+                        <br>
+                        <span class="font-12">{{ acerto.devolucao_ao_tesouro.tipo.nome }}</span>
+                      </div>
+                    </div>
+
+                    <div class="row mt-2">
+                      <div class="col-6">
+                        <span class="font-12"><strong>Valor total ou parcial da despesa</strong></span>
+                        <br>
+                        {% if acerto.devolucao_ao_tesouro.devolucao_total is True %}
+                          <span class="font-12">Total</span>
+                        {% else %}
+                          <span class="font-12">Parcial</span>
+                        {% endif %}
+                      </div>
+
+                      <div class="col-6">
+                        <span class="font-12"><strong>Valor (R$)</strong></span>
+                        <br>
+                        <span class="font-12">{{ acerto.devolucao_ao_tesouro.valor|formata_valor }}</span>
+                      </div>
+                    </div>
+
+                    <div class="row mt-2">
+                      <div class="col-12">
+                        <span class="font-12"><strong>Motivo</strong></span>
+                        <br>
+                        <span class="font-12">{{ acerto.devolucao_ao_tesouro.motivo }}</span>
+                      </div>
+                    </div>
+                  {% else %}
+                    <div class="row">
+                      <div class="col-12 mt-4">
+                        <span class="item font-12"><strong>Item {{ forloop.counter }}:</strong></span>
+                        <span class="ml-2 font-12">{{ acerto.tipo_acerto.nome }}</span>
+                      </div>
+                    </div>
+
+
+                    {% if acerto.detalhamento %}
+                      <div class="row mt-2">
+                        <div class="col-12">
+                          <span class="font-12"><strong>Detalhamento do acerto (opcional):</strong></span>
+                          <br>
+                          <span class="font-12">{{ acerto.detalhamento }}</span>
+                        </div>
+                      </div>
+                    {% endif %}
+
+                  {% endif %}
+                {% endfor %}
+
+                <div class="row">
+                  <div class="col-12 mt-4">
+                    <span class="item font-12"><strong>Retorno da Associação:</strong></span>
+                  </div>
+                </div>
+
+                {% if lancamento.analise_lancamento.status_realizacao == 'PENDENTE' %}
+                  <div class="row mt-2">
+                    <div class="col-3">
+                      <span class="font-12"><strong>Status</strong></span>
+                      <br/>
+                      <span class="mt-1 font-10 tag-nao-informado">
+                          Não Informado
+                      </span>
+                    </div>
+
+                    {% if lancamento.analise_lancamento.esclarecimentos %}
+                      <div class="col-9">
+                        <span class="font-12"><strong>Esclarecimento</strong></span>
+                        <br/>
+                        <span class="mt-2 font-12">{{ lancamento.analise_lancamento.esclarecimentos }}</span>
+                      </div>
+                    {% endif %}
+
+                  </div>
+                {% elif lancamento.analise_lancamento.status_realizacao == 'REALIZADO' %}
+                  <div class="row mt-2">
+                    <div class="col-3">
+                      <span class="font-12"><strong>Status</strong></span>
+                      <br/>
+                      <span class="mt-1 font-10 tag-realizado">
+                          {{ lancamento.analise_lancamento.status_realizacao|capitaliza_string }}
+                      </span>
+
+                    </div>
+
+                    {% if lancamento.analise_lancamento.esclarecimentos %}
+                      <div class="col-9">
+                        <span class="font-12"><strong>Esclarecimento</strong></span>
+                        <br/>
+                        <span class="mt-2 font-12">{{ lancamento.analise_lancamento.esclarecimentos }}</span>
+                      </div>
+                    {% endif %}
+                  </div>
+                {% elif lancamento.analise_lancamento.status_realizacao == 'JUSTIFICADO' %}
+                  <div class="row mt-2">
+                    <div class="col-3">
+                      <span class="font-12"><strong>Status</strong></span>
+                      <br/>
+                      <span class="mt-1 font-10 tag-justificativa">
+                          {{ lancamento.analise_lancamento.status_realizacao|capitaliza_string }}
+                      </span>
+                    </div>
+
+                    {% if lancamento.analise_lancamento.esclarecimentos %}
+                      <div class="col-5">
+                        <span class="font-12"><strong>Justificativa</strong></span>
+                        <br/>
+                        <span class="mt-2 font-12">{{ lancamento.analise_lancamento.justificativa }}</span>
+                      </div>
+
+                      <div class="col-4">
+                        <span class="font-12"><strong>Esclarecimento</strong></span>
+                        <br/>
+                        <span class="mt-2 font-12">{{ lancamento.analise_lancamento.esclarecimentos }}</span>
+                      </div>
+
+                    {% else %}
+                      <div class="col-9">
+                        <span class="font-12"><strong>Justificativa</strong></span>
+                        <br/>
+                        <span class="mt-2 font-12">{{ lancamento.analise_lancamento.justificativa }}</span>
+                      </div>
+                    {% endif %}
+
+
+                  </div>
+                {% endif %}
+
+              </td>
+            </tr>
+            </tbody>
+          {% endfor %}
+        </table>
+      {% endfor %}
+    </article>
+
+  {% endif %}
+
+  {% if dados.dados_documentos %}
+    <article class="mt-4">
+      <table class="table table-bordered tabela-resumo-por-acao nao-quebra-linha">
+        <thead>
+          <tr class="">
+            <th>
+              <strong class="font-16 titulo-bloco ml-2">{{ dados.blocos.acertos_documentos }}</strong>
+            </th>
+          </tr>
+        </thead>
+
+        {% for documento in dados.dados_documentos %}
+
+          <tbody>
+            <tr>
+              <td class="fundo-cinza font-12">
+                <div class="ml-3">
+                  <strong>Nome do documento:</strong> {{ documento.tipo_documento_prestacao_conta.nome }}
+                </div>
+              </td>
+            </tr>
+
+            {% for acertos in documento.solicitacoes_de_ajuste_da_analise %}
+              <tr>
+                <td class="">
+                  <div class="row">
+                    <div class="col-12 mt-2">
+                      <span class="ml-3 font-12"><strong>Item:</strong></span>
+                      <br/>
+                      <span class="ml-3 font-12">{{ acertos.tipo_acerto.nome }}</span>
+                    </div>
+                  </div>
+
+                  {% if acertos.detalhamento %}
+                    <div class="row mt-2">
+                      <div class="col-12">
+                        <span class="ml-3 font-12"><strong>Detalhamento do acerto:</strong></span>
+                        <br>
+                        <span class="ml-3 font-12">{{ acertos.detalhamento }}</span>
+                      </div>
+                    </div>
+                  {% endif %}
+
+                </td>
+              </tr>
+            {% endfor %}
+
+            <tr>
+              <td>
+                <div class="row">
+                  <div class="col-12 mt-2">
+                    <span class="ml-3 font-12"><strong>Retorno da Associação:</strong></span>
+                  </div>
+                </div>
+
+
+                {% if documento.status_realizacao == 'PENDENTE' %}
+                  <div class="row mt-2">
+                    <div class="col-3">
+                      <span class="ml-3 font-12"><strong>Status</strong></span>
+                      <br/>
+                      <span class="ml-3 mt-1 font-10 tag-nao-informado">
+                          Não Informado
+                      </span>
+                    </div>
+
+                    {% if documento.esclarecimentos %}
+                      <div class="col-9">
+                        <span class="font-12"><strong>Esclarecimento</strong></span>
+                        <br/>
+                        <span class="mt-2 font-12">{{ documento.esclarecimentos }}</span>
+                      </div>
+                    {% endif %}
+
+                  </div>
+                {% elif documento.status_realizacao == 'JUSTIFICADO' %}
+
+                  <div class="row mt-2">
+                    <div class="col-3">
+                      <span class="ml-3 font-12"><strong>Status</strong></span>
+                      <br/>
+                      <span class="ml-3 mt-1 font-10 tag-justificativa">
+                          {{ documento.status_realizacao|capitaliza_string }}
+                      </span>
+                    </div>
+
+                    {% if documento.esclarecimentos %}
+                      <div class="col-5">
+                        <span class="font-12"><strong>Justificativa</strong></span>
+                        <br/>
+                        <span class="mt-2 font-12">{{ documento.justificativa }}</span>
+                      </div>
+
+                      <div class="col-4">
+                        <span class="font-12"><strong>Esclarecimento</strong></span>
+                        <br/>
+                        <span class="mt-2 font-12">{{ documento.esclarecimentos }}</span>
+                      </div>
+
+                    {% else %}
+                      <div class="col-9">
+                        <span class="font-12"><strong>Justificativa</strong></span>
+                        <br/>
+                        <span class="mt-2 font-12">{{ documento.justificativa }}</span>
+                      </div>
+                    {% endif %}
+                  </div>
+
+                {% elif documento.status_realizacao == 'REALIZADO' %}
+                  <div class="row mt-2">
+                    <div class="col-3">
+                      <span class="ml-3 font-12"><strong>Status</strong></span>
+                      <br/>
+                      <span class="ml-3 mt-1 font-10 tag-realizado">
+                          {{ documento.status_realizacao|capitaliza_string }}
+                      </span>
+
+                    </div>
+
+                    {% if documento.esclarecimentos %}
+                      <div class="col-9">
+                        <span class="font-12"><strong>Esclarecimento</strong></span>
+                        <br/>
+                        <span class="mt-2 font-12">{{ documento.esclarecimentos }}</span>
+                      </div>
+                    {% endif %}
+                  </div>
+
+                {% endif %}
+              </td>
+            </tr>
+
+          </tbody>
+
+        {% endfor %}
+
+
+      </table>
+    </article>
+  {% endif %}
+
+
+</section>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
+        crossorigin="anonymous"></script>
+
+</body>
+</html>

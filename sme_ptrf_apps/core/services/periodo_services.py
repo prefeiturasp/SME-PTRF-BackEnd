@@ -1,9 +1,8 @@
-from ..models import Associacao, Periodo, PrestacaoConta
 from datetime import timedelta
-
+from ..models import Associacao, Periodo, PrestacaoConta
 
 def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
-    '''
+    """
     Status Período	Status Documentos PC	Status PC na DRE	Parte Período	        Parte Prestação de Contas	                    Exibe Cadeado	Cor
     Em andamento	Não gerados	            N/A	                Período em andamento.	 		                                                        1
     Em andamento	Gerados	                N/A	                Período em andamento.	Documentos gerados para prestação de contas.	            X	2
@@ -16,7 +15,29 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     Encerrado	    Gerados	                Devolvida Recebida  Período finalizado.	    Prestação de Contas recebida após acertos.		            X   4
     Encerrado	    Gerados	                Aprovada	        Período finalizado.	    Prestação de Contas aprovada pela DRE.	                    X	5
     Encerrado	    Gerados	                Reprovada	        Período finalizado.	    Prestação de Contas reprovada pela DRE.	                    X	3
-    '''
+    """
+
+    def pc_requer_ata_retificacao(prestacao_conta):
+        if not prestacao_conta or prestacao_conta.status not in (PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA):
+            return False
+
+        ultima_analise = prestacao_conta.analises_da_prestacao.last()
+
+        return ultima_analise is not None and (ultima_analise.requer_alteracao_em_lancamentos or ultima_analise.requer_informacao_devolucao_ao_tesouro)
+
+    def pc_tem_solicitacoes_de_acerto_pendentes(prestacao_conta):
+        if not prestacao_conta or prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
+            return False
+
+        ultima_analise = prestacao_conta.analises_da_prestacao.last()
+
+        return ultima_analise is not None and ultima_analise.tem_acertos_pendentes
+
+    def pc_requer_geracao_documentos(prestacao_conta):
+        # Necessário devido a conflitos no import direto
+        from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_geracao_documentos
+        return pc_requer_geracao_documentos(prestacao_conta)
+
     periodo = Periodo.by_uuid(periodo_uuid)
     associacao = Associacao.by_uuid(associacao_uuid)
     prestacao = PrestacaoConta.by_periodo(associacao=associacao, periodo=periodo)
@@ -68,17 +89,28 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
             mensagem_prestacao = ''
             cor = LEGENDA_COR[STATUS_PERIODO_EM_ANDAMENTO]
 
-    periodo_bloqueado = True if prestacao and prestacao.status != PrestacaoConta.STATUS_DEVOLVIDA else False
+    periodo_bloqueado = True if prestacao else False
+
+    if prestacao and prestacao.status not in (PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_DEVOLVIDA):
+        documentos_gerados = True
+    elif prestacao and prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA:
+        documentos_gerados = not pc_requer_geracao_documentos(prestacao)
+    else:
+        documentos_gerados = False
+
+    pc_requer_conclusao = not prestacao or prestacao.status in (PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_DEVOLVIDA)
 
     status = {
         'periodo_encerrado': periodo.encerrado,
-        'documentos_gerados': prestacao and prestacao.status not in (
-            PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_DEVOLVIDA),
+        'documentos_gerados': documentos_gerados,
+        'pc_requer_conclusao': pc_requer_conclusao,
         'status_prestacao': prestacao.status if prestacao else PrestacaoConta.STATUS_NAO_APRESENTADA,
         'texto_status': mensagem_periodo + ' ' + mensagem_prestacao,
         'periodo_bloqueado': periodo_bloqueado,
         'legenda_cor': cor,
-        'prestacao_de_contas_uuid': prestacao.uuid if prestacao and prestacao.uuid else None
+        'prestacao_de_contas_uuid': prestacao.uuid if prestacao and prestacao.uuid else None,
+        'requer_retificacao': pc_requer_ata_retificacao(prestacao),
+        'tem_acertos_pendentes': pc_tem_solicitacoes_de_acerto_pendentes(prestacao),
     }
 
     return status

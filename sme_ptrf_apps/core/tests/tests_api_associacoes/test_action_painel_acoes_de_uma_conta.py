@@ -101,13 +101,16 @@ def test_action_painel_acoes_de_uma_conta(
 
         },
         'prestacao_contas_status': {
-            'documentos_gerados': None,
+            'documentos_gerados': False,
+            'pc_requer_conclusao': True,
             'legenda_cor': 3,
             'periodo_bloqueado': False,
             'periodo_encerrado': True,
             'status_prestacao': 'NAO_APRESENTADA',
             'texto_status': 'Período finalizado. Documentos pendentes de geração.',
             'prestacao_de_contas_uuid': None,
+            'requer_retificacao': False,
+            'tem_acertos_pendentes': False,
         },
     }
 
@@ -210,13 +213,16 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
 
         },
         'prestacao_contas_status': {
-            'documentos_gerados': None,
+            'documentos_gerados': False,
+            'pc_requer_conclusao': True,
             'legenda_cor': 3,
             'periodo_bloqueado': False,
             'periodo_encerrado': True,
             'status_prestacao': 'NAO_APRESENTADA',
             'texto_status': 'Período finalizado. Documentos pendentes de geração.',
             'prestacao_de_contas_uuid': None,
+            'requer_retificacao': False,
+            'tem_acertos_pendentes': False,
         },
     }
 
