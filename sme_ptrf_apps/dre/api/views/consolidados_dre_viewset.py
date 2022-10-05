@@ -716,3 +716,92 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
         }
 
         return Response(trilha_de_status)
+
+    @action(detail=False, methods=['post'],
+            url_path='marcar-como-publicado-no-diario-oficial',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def marcar_como_publicado_no_diario_oficial(self, request):
+        dados = request.data
+
+        if (
+            not dados
+            or not dados.get('consolidado_dre')
+            or not dados.get('data_publicacao')
+            or not dados.get('pagina_publicacao')
+        ):
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do Consolidado DRE, a data e a página de publicação'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        consolidado_dre_uuid, data_publicacao, pagina_publicacao = dados['consolidado_dre'], dados['data_publicacao'], dados['pagina_publicacao']
+
+        try:
+            consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
+        except (ConsolidadoDRE.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ConsolidadoDRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            consolidado_dre = consolidado_dre.marcar_status_sme_como_publicado(
+                data_publicacao=data_publicacao,
+                pagina_publicacao=pagina_publicacao
+            )
+        except:
+            erro = {
+                'erro': 'Erro ao passar o relatório para status_sme_publicado',
+                'mensagem': f"Não foi possível passar o relarório para o status de publicado no Diário Oficial"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'],
+            url_path='marcar-como-nao-publicado-no-diario-oficial',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def marcar_como_nao_publicado_no_diario_oficial(self, request):
+        dados = request.data
+
+        if (
+            not dados
+            or not dados.get('consolidado_dre')
+        ):
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do Consolidado DRE'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        consolidado_dre_uuid = dados['consolidado_dre']
+
+        try:
+            consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
+        except (ConsolidadoDRE.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ConsolidadoDRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            consolidado_dre = consolidado_dre.marcar_status_sme_como_nao_publicado()
+        except:
+            erro = {
+                'erro': 'Erro ao passar o relatório para status_sme_nao_publicado',
+                'mensagem': f"Não foi possível passar o relarório para o status de Não Publicado no Diário Oficial"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
+
+
