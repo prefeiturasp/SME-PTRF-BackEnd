@@ -40,7 +40,7 @@ class SmeIntegracaoApiService:
 
         if response.status_code == status.HTTP_200_OK:
             results = response.json()
-            if len(results) == 1:
+            if len(results) > 0:
                 return results[0]
             else:
                 msg = 'Código não encontrado.'
