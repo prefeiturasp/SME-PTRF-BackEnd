@@ -728,7 +728,6 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
 
         logger.info(f'Usando saldos do período {periodo_do_saldo}')
         logger.info(f"Saldo capital:{info['saldo_atual_capital']} custeio:{info['saldo_atual_custeio']} livre:{info['saldo_atual_livre']}")
-
         info = sumariza_receitas_conta_entre_periodos(
             periodo_inicial=periodo_do_saldo.proximo_periodo,
             periodo_final=periodo,
