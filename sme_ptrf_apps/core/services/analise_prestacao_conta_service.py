@@ -35,7 +35,7 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
         nova_solicitacao.analise_lancamento = para
         nova_solicitacao.copiado = True
         nova_solicitacao.save()
-        if solicitacao_acerto_lancamento_origem.solicitacao_devolucao_ao_tesouro:
+        if hasattr(solicitacao_acerto_lancamento_origem, 'solicitacao_devolucao_ao_tesouro'):
             copia_solicitacao_devolucao_ao_tesouro(
                 da_solicitacao_origem=solicitacao_acerto_lancamento_origem,
                 para_solicitacao_destino=nova_solicitacao
