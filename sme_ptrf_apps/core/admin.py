@@ -911,5 +911,6 @@ class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
     search_fields = (
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
-        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome'
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome',
+        'motivo'
     )
