@@ -12,6 +12,14 @@ logger = logging.getLogger(__name__)
 
 
 def copia_ajustes_entre_analises(analise_origem, analise_destino):
+    def copia_solicitacao_devolucao_ao_tesouro(da_solicitacao_origem, para_solicitacao_destino):
+        nova_solicitacao_devolucao = copy.deepcopy(da_solicitacao_origem.solicitacao_devolucao_ao_tesouro)
+        nova_solicitacao_devolucao.pk = None
+        nova_solicitacao_devolucao.uuid = uuid.uuid4()
+        nova_solicitacao_devolucao.solicitacao_acerto_lancamento = para_solicitacao_destino
+        nova_solicitacao_devolucao.save()
+        return nova_solicitacao_devolucao
+
     def copia_analise_lancamento(analise_lancamento_origem):
         nova_analise = copy.deepcopy(analise_lancamento_origem)
         nova_analise.pk = None
@@ -27,13 +35,21 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
         nova_solicitacao.analise_lancamento = para
         nova_solicitacao.copiado = True
         nova_solicitacao.save()
+        if solicitacao_acerto_lancamento_origem.solicitacao_devolucao_ao_tesouro:
+            copia_solicitacao_devolucao_ao_tesouro(
+                da_solicitacao_origem=solicitacao_acerto_lancamento_origem,
+                para_solicitacao_destino=nova_solicitacao
+            )
         return nova_solicitacao
 
     def copia_analises_de_lancamento():
         for analise_lancamento in analise_origem.analises_de_lancamentos.all():
             nova_analise_lancamento = copia_analise_lancamento(analise_lancamento)
             for solicitacao_acerto_lancamento in analise_lancamento.solicitacoes_de_ajuste_da_analise.all():
-                copia_solicitacao_acerto_lancamento(solicitacao_acerto_lancamento, para=nova_analise_lancamento)
+                nova_solicitacao_acerto_lancamento = copia_solicitacao_acerto_lancamento(
+                    solicitacao_acerto_lancamento,
+                    para=nova_analise_lancamento
+                )
 
     def copia_analise_documento(analise_documento_origem):
         nova_analise = copy.deepcopy(analise_documento_origem)

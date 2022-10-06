@@ -44,7 +44,8 @@ from .models import (
     AnaliseDocumentoPrestacaoConta,
     SolicitacaoAcertoDocumento,
     PresenteAta,
-    ValoresReprogramados
+    ValoresReprogramados,
+    SolicitacaoDevolucaoAoTesouro
 )
 
 admin.site.register(Acao)
@@ -469,32 +470,6 @@ class TipoDevolucaoTesouroAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', id)
 
 
-@admin.register(DevolucaoAoTesouro)
-class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
-
-    def get_unidade(self, obj):
-        return f'{obj.prestacao_conta.associacao.unidade.codigo_eol} - {obj.prestacao_conta.associacao.unidade.nome}' if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade else ''
-
-    get_unidade.short_description = 'Unidade'
-
-    def get_referencia_periodo(self, obj):
-        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
-
-    get_referencia_periodo.short_description = 'Período'
-
-    list_display = (
-        'get_unidade', 'get_referencia_periodo', 'despesa', 'data', 'tipo', 'devolucao_total', 'valor', 'visao_criacao')
-
-    list_filter = (
-        'prestacao_conta__periodo', 'prestacao_conta', 'tipo', 'devolucao_total',
-        'visao_criacao', 'data')
-
-    list_display_links = ('get_unidade',)
-    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
-    search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
-                     'prestacao_conta__associacao__nome', 'motivo')
-
-
 @admin.register(ComentarioAnalisePrestacao)
 class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
 
@@ -849,3 +824,93 @@ class ValoresReprogramadosAdmin(admin.ModelAdmin):
                    'associacao__unidade__dre', 'conta_associacao__tipo_conta',
                    'acao_associacao__acao', 'aplicacao_recurso')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+
+@admin.register(DevolucaoAoTesouro)
+class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
+
+    def get_unidade(self, obj):
+        return f'{obj.prestacao_conta.associacao.unidade.codigo_eol} - {obj.prestacao_conta.associacao.unidade.nome}' if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade else ''
+
+    get_unidade.short_description = 'Unidade'
+
+    def get_referencia_periodo(self, obj):
+        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
+
+    get_referencia_periodo.short_description = 'Período'
+
+    list_display = (
+        'get_unidade', 'get_referencia_periodo', 'despesa', 'data', 'tipo', 'devolucao_total', 'valor', 'visao_criacao')
+
+    list_filter = (
+        'prestacao_conta__periodo', 'prestacao_conta', 'tipo', 'devolucao_total',
+        'visao_criacao', 'data')
+
+    list_display_links = ('get_unidade',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
+                     'prestacao_conta__associacao__nome', 'motivo')
+
+
+@admin.register(SolicitacaoDevolucaoAoTesouro)
+class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
+
+    def get_unidade(self, obj):
+        if (
+            obj and
+            obj.solicitacao_acerto_lancamento and
+            obj.solicitacao_acerto_lancamento.analise_lancamento and
+            obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta and
+            obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta and
+            obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao and
+            obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade
+        ):
+            unidade = obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade
+            return f'{unidade.codigo_eol} - {unidade.nome}'
+        else:
+            return ''
+    get_unidade.short_description = 'Unidade'
+
+    def get_referencia_periodo(self, obj):
+        if (
+            obj and
+            obj.solicitacao_acerto_lancamento and
+            obj.solicitacao_acerto_lancamento.analise_lancamento and
+            obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta and
+            obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta and
+            obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta.periodo
+        ):
+            periodo = obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta.periodo
+            return periodo.referencia
+        else:
+            return ''
+
+    get_referencia_periodo.short_description = 'Período'
+
+    def get_despesa(self, obj):
+        if (
+            obj and
+            obj.solicitacao_acerto_lancamento and
+            obj.solicitacao_acerto_lancamento.analise_lancamento and
+            obj.solicitacao_acerto_lancamento.analise_lancamento.despesa
+        ):
+            return obj.solicitacao_acerto_lancamento.analise_lancamento.despesa
+        else:
+            return ''
+
+    get_referencia_periodo.short_description = 'Período'
+
+    list_display = ('get_unidade', 'get_referencia_periodo', 'get_despesa', 'tipo', 'valor', 'devolucao_total')
+    list_filter = (
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo',
+        'tipo',
+        'devolucao_total',
+    )
+    list_display_links = ('get_unidade',)
+    readonly_fields = ('uuid', 'id')
+    search_fields = (
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome',
+        'motivo'
+    )
