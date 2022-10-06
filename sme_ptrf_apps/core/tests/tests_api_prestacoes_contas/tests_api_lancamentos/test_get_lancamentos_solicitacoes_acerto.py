@@ -25,7 +25,8 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
     tipo_acerto_lancamento_devolucao,
     tipo_devolucao_ao_tesouro_teste,
     analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
-    solicitacao_acerto_lancamento_devolucao
+    solicitacao_acerto_lancamento_devolucao,
+    solicitacao_devolucao_ao_tesouro
 ):
     resultado_esperado = {
         'analise_prestacao_conta': f'{analise_prestacao_conta_2020_1_em_analise.uuid}',
@@ -48,7 +49,7 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
                 'copiado': False,
                 'detalhamento': 'teste',
                 'devolucao_ao_tesouro': {
-                    'data': '2020-07-01',
+                    'data': None,
                     'despesa': {
                         'associacao': f'{despesa_2020_1.associacao.uuid}',
                         'cpf_cnpj_fornecedor': '11.478.276/0001-04',
@@ -71,7 +72,7 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
                              'nome': 'Devolução '
                                      'teste',
                              'uuid': f'{solicitacao_acerto_lancamento_devolucao.devolucao_ao_tesouro.tipo.uuid}'},
-                    'uuid': f'{solicitacao_acerto_lancamento_devolucao.devolucao_ao_tesouro.uuid}',
+                    'uuid': f'{solicitacao_devolucao_ao_tesouro.uuid}',
                     'valor': '100.00',
                     'visao_criacao': 'DRE'
                 },

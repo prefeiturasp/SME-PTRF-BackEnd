@@ -44,7 +44,8 @@ from .models import (
     AnaliseDocumentoPrestacaoConta,
     SolicitacaoAcertoDocumento,
     PresenteAta,
-    ValoresReprogramados
+    ValoresReprogramados,
+    SolicitacaoDevolucaoAoTesouro
 )
 
 admin.site.register(Acao)
@@ -849,3 +850,26 @@ class ValoresReprogramadosAdmin(admin.ModelAdmin):
                    'associacao__unidade__dre', 'conta_associacao__tipo_conta',
                    'acao_associacao__acao', 'aplicacao_recurso')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+
+@admin.register(SolicitacaoDevolucaoAoTesouro)
+class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
+
+    def get_associacao(self, obj):
+        return obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome
+
+    get_associacao.short_description = 'Associação'
+
+    # def get_referencia_periodo(self, obj):
+    #     return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
+    #
+    # get_referencia_periodo.short_description = 'Período'
+
+    list_display = (
+        'get_associacao', 'valor',)
+    # list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
+    list_display_links = ('get_associacao',)
+    readonly_fields = ('uuid', 'id')
+    # search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
+    #                  'prestacao_conta__associacao__nome')
+

@@ -1930,6 +1930,20 @@ def solicitacao_acerto_lancamento_devolucao(
 
 
 @pytest.fixture
+def solicitacao_devolucao_ao_tesouro(
+    solicitacao_acerto_lancamento_devolucao,
+    tipo_devolucao_ao_tesouro_teste,
+):
+    return baker.make(
+        'SolicitacaoDevolucaoAoTesouro',
+        solicitacao_acerto_lancamento=solicitacao_acerto_lancamento_devolucao,
+        tipo=tipo_devolucao_ao_tesouro_teste,
+        devolucao_total=False,
+        valor=100.00,
+        motivo='teste',
+    )
+
+@pytest.fixture
 def tipo_acerto_edicao_de_lancamento():
     return baker.make('TipoAcertoLancamento', nome='Edição de Lançamento', categoria='EDICAO_LANCAMENTO')
 
