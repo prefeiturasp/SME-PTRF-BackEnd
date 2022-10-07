@@ -103,7 +103,8 @@ def retornar_ja_publicadas(dre, periodo):
             _lauda = {
                 'uuid': lauda.uuid,
                 'status': lauda.status,
-                'tipo_conta': lauda.tipo_conta.nome if lauda.tipo_conta.nome else "",
+                'tipo_conta': lauda.tipo_conta.nome if lauda.tipo_conta and lauda.tipo_conta.nome else "",
+                'tipo_conta_uuid': lauda.tipo_conta.uuid if lauda.tipo_conta and lauda.tipo_conta.uuid else "",
                 'status_geracao_arquivo': lauda.__str__(),
             }
 

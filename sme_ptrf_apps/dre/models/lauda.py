@@ -69,18 +69,16 @@ class Lauda(ModeloBase):
         return status_str
 
     @classmethod
-    def criar_ou_retornar_lauda(cls, consolidado_dre, dre, periodo, tipo_conta, usuario):
+    def criar_ou_retornar_lauda(cls, consolidado_dre, dre, periodo, usuario):
         lauda, _ = cls.objects.get_or_create(
             consolidado_dre=consolidado_dre,
             dre=dre,
             periodo=periodo,
-            tipo_conta=tipo_conta,
             usuario=usuario,
             defaults={
                 'consolidado_dre': consolidado_dre,
                 'dre': dre,
                 'periodo': periodo,
-                'tipo_conta': tipo_conta,
                 'usuario': usuario,
             },
         )
