@@ -232,18 +232,31 @@ class PrestacaoConta(ModeloBase):
             tipo_devolucao = TipoDevolucaoAoTesouro.by_uuid(devolucao['tipo'])
             despesa = Despesa.by_uuid(devolucao['despesa'])
             devolucao_uuid = devolucao['uuid']
-            devolucao_atual = DevolucaoAoTesouro.by_uuid(uuid=devolucao_uuid)
 
-            devolucao_atual.prestacao_conta = self
-            devolucao_atual.tipo = tipo_devolucao
-            devolucao_atual.despesa = despesa
-            devolucao_atual.data = devolucao['data']
-            devolucao_atual.devolucao_total = devolucao['devolucao_total']
-            devolucao_atual.motivo = devolucao['motivo']
-            devolucao_atual.valor = devolucao['valor']
-            devolucao_atual.visao_criacao = devolucao['visao_criacao']
+            if devolucao_uuid:
+                registro_devolucao = DevolucaoAoTesouro.objects.get(uuid=devolucao_uuid)
 
-            devolucao_atual.save()
+                registro_devolucao.prestacao_conta = self
+                registro_devolucao.tipo = tipo_devolucao
+                registro_devolucao.despesa = despesa
+                registro_devolucao.data = devolucao['data']
+                registro_devolucao.devolucao_total = devolucao['devolucao_total']
+                registro_devolucao.motivo = devolucao['motivo']
+                registro_devolucao.valor = devolucao['valor']
+                registro_devolucao.visao_criacao = devolucao['visao_criacao']
+
+                registro_devolucao.save()
+            else:
+                DevolucaoAoTesouro.objects.create(
+                    prestacao_conta=self,
+                    tipo=tipo_devolucao,
+                    despesa=despesa,
+                    data=devolucao['data'],
+                    devolucao_total=devolucao['devolucao_total'],
+                    motivo=devolucao['motivo'],
+                    valor=devolucao['valor'],
+                    visao_criacao=devolucao['visao_criacao'],
+                )
 
         return self
 

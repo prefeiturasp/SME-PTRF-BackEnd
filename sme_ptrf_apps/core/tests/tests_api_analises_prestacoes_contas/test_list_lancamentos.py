@@ -172,7 +172,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                             'copiado': False,
                             'detalhamento': 'teste',
                             'devolucao_ao_tesouro': {
-                                'data': None,
+                                'data': lancamento["data_devolucao"] if "data_devolucao" in lancamento else None,
                                 'despesa': {
                                     'associacao': f'{lancamento["mestre"].associacao.uuid}',
                                     'cpf_cnpj_fornecedor': '11.478.276/0001-04',
@@ -206,7 +206,8 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                                 },
                                 'uuid': f'{lancamento["solicitacao_devolucao"].uuid}',
                                 'valor': '100.00',
-                                'visao_criacao': 'DRE'
+                                'visao_criacao': 'DRE',
+                                'uuid_registro_devolucao': None
                             },
                             'id': lancamento["solicitacao_ajuste"].id,
                             'tipo_acerto': {

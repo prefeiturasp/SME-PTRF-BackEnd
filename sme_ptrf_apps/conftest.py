@@ -1917,14 +1917,13 @@ def tipo_acerto_lancamento_devolucao():
 def solicitacao_acerto_lancamento_devolucao(
     analise_lancamento_receita_prestacao_conta_2020_1,
     tipo_acerto_lancamento_devolucao,
-    devolucao_ao_tesouro_parcial,
 
 ):
     return baker.make(
         'SolicitacaoAcertoLancamento',
         analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
         tipo_acerto=tipo_acerto_lancamento_devolucao,
-        devolucao_ao_tesouro=devolucao_ao_tesouro_parcial,
+        devolucao_ao_tesouro=None,
         detalhamento="teste"
     )
 
