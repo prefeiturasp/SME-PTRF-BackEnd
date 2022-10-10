@@ -964,9 +964,10 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
 
         return totais
 
-    def _totaliza_devolucoes_ao_tesouro(prestacao_conta, periodo, totais):
+    def _totaliza_devolucoes_ao_tesouro(prestacao_conta, periodo, totais, tipo_conta):
         # Devoluções ao tesouro de PCs de Associações da DRE, no período e concluídas
         devolucoes = prestacao_conta.devolucoes_ao_tesouro_da_prestacao.all()
+
         for devolucao in devolucoes:
             totais['devolucoes_ao_tesouro_no_periodo_total'] += devolucao.valor
 
@@ -1008,11 +1009,20 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
             if prestacao_conta:
                 totais = _totaliza_fechamentos(associacao, periodo, tipo_conta, totais)
                 totais = _atualiza_demais_creditos(totais)
-                totais = _totaliza_devolucoes_ao_tesouro(prestacao_conta, periodo, totais)
+                totais = _totaliza_devolucoes_ao_tesouro(prestacao_conta, periodo, totais, tipo_conta)
 
             totais = _totaliza_previsoes_repasses_sme(associacao, periodo, tipo_conta, totais)
 
-            soma_dos_totais = sum(totais.values())
+            """
+                Corrige exibição de conta sem valores quando uma associação
+                tiver 02 contas, porém valor cadastrado em apenas uma delas
+                e tiver devoluções ao tesouro cadastrada.
+            """
+            totais_sem_devolucao_ao_tesouro = totais.copy()
+            key_to_remove = 'devolucoes_ao_tesouro_no_periodo_total'
+            totais_sem_devolucao_ao_tesouro.pop(key_to_remove, None)  # No `KeyError` here
+
+            soma_dos_totais = sum(totais_sem_devolucao_ao_tesouro.values())
 
             """
                 Verificando se existe algum valor para incluir os dados no resultado
