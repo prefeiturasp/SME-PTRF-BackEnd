@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ...models import SolicitacaoDevolucaoAoTesouro
+from ...models import SolicitacaoDevolucaoAoTesouro, DevolucaoAoTesouro
 from ...api.serializers.tipo_devolucao_ao_tesouro_serializer import TipoDevolucaoAoTesouroSerializer
 from ....despesas.api.serializers.despesa_serializer import DespesaListSerializer
 
@@ -24,8 +24,20 @@ class SolicitacaoDevolucaoAoTesouroRetrieveSerializer(serializers.ModelSerialize
             return None
 
     def get_data(self, obj):
-        # Existe apenas por compatibilidade. Sempre retornará uma data nula.
-        return None
+        registro_devolucao = None
+        if (
+            obj.solicitacao_acerto_lancamento and
+            obj.solicitacao_acerto_lancamento.analise_lancamento and
+            obj.solicitacao_acerto_lancamento.analise_lancamento.despesa and
+            obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta and
+            obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta
+        ):
+            registro_devolucao = DevolucaoAoTesouro.objects.filter(
+                prestacao_conta=obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta,
+                despesa=obj.solicitacao_acerto_lancamento.analise_lancamento.despesa,
+            ).first()
+
+        return registro_devolucao.data if registro_devolucao else None
 
     def get_despesa(self, obj):
         if (
