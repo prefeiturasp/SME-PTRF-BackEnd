@@ -9,7 +9,7 @@ from .models import (
     JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE,
     ParametroFiqueDeOlhoRelDre, MotivoAprovacaoRessalva, MotivoReprovacao, Comissao, MembroComissao,
     AnoAnaliseRegularidade, AnaliseRegularidadeAssociacao, ParametrosDre, AtaParecerTecnico,
-    PresenteAtaDre, ConsolidadoDRE, Lauda
+    PresenteAtaDre, ConsolidadoDRE, Lauda, DocumentoAdicional
 )
 
 admin.site.register(ParametroFiqueDeOlhoRelDre)
@@ -315,3 +315,9 @@ class AtaParecerTecnicoAdmin(admin.ModelAdmin):
 class PresentesAtaDreAdmin(admin.ModelAdmin):
     list_display = ('rf', 'nome', 'cargo', 'ata')
     readonly_fields = ('uuid', 'id')
+
+
+@admin.register(DocumentoAdicional)
+class DocumentoAdicionalAdmin(admin.ModelAdmin):
+    list_display = ('nome',)
+    readonly_fields = ('uuid', 'criado_em', 'alterado_em', )
