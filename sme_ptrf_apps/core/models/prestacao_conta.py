@@ -260,6 +260,15 @@ class PrestacaoConta(ModeloBase):
 
         return self
 
+    def apagar_devolucoes_ao_tesouro(self, devolucoes_ao_tesouro_a_apagar):
+        from ..models.devolucao_ao_tesouro import DevolucaoAoTesouro
+
+        for devolucao in devolucoes_ao_tesouro_a_apagar:
+            if devolucao['uuid']:
+                DevolucaoAoTesouro.objects.get(uuid=devolucao['uuid']).delete()
+
+        return self
+
     @transaction.atomic
     def salvar_analise(self, analises_de_conta_da_prestacao=None, resultado_analise=None,
                        motivos_aprovacao_ressalva=[], outros_motivos_aprovacao_ressalva='', motivos_reprovacao=[],
