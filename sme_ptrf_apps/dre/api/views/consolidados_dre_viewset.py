@@ -806,7 +806,6 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
 
-
     @action(detail=False, methods=['get'],
             url_path='detalhamento',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
@@ -912,7 +911,6 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
                 'mensagem': 'Houve algum erro ao tentar reabrir o consolidado dre.'
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
     @action(detail=False, methods=['get'], url_path='acompanhamento-de-relatorios-consolidados-sme',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
