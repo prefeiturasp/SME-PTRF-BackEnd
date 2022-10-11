@@ -21,3 +21,4 @@ from .parametros_dre import ParametrosDre
 from .presentes_ata_dre import PresenteAtaDre
 from .consolidado_dre import ConsolidadoDRE
 from .lauda import Lauda
+from .documento_adicional import DocumentoAdicional

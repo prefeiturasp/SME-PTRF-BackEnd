@@ -1,7 +1,14 @@
+import logging
+
 from django.db import models
 from ...core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
+from django.db import transaction
+from ..models import RelatorioConsolidadoDRE
+
+
+logger = logging.getLogger(__name__)
 
 
 class ConsolidadoDRE(ModeloBase):
@@ -177,6 +184,98 @@ class ConsolidadoDRE(ModeloBase):
         self.pagina_publicacao = ''
         self.save()
         return self
+
+    def pode_reabrir(self):
+        if self.status_sme == self.STATUS_SME_NAO_PUBLICADO:
+            return True
+
+        return False
+
+    def permite_edicao(self):
+        if self.status_sme == self.STATUS_SME_EM_ANALISE:
+            return True
+
+        return False
+
+    def documentos_detalhamento(self):
+        from ..models import DocumentoAdicional
+
+        lista_documentos = []
+
+        relatorios_consolidados_dre = self.relatorios_consolidados_dre_do_consolidado_dre.all()
+
+        # for utilizado para casos que sejam relatórios por conta
+        for relatorio_dre in relatorios_consolidados_dre:
+            nome = ""
+            if relatorio_dre.tipo_conta:
+                nome = f"Demonstrativo da Execução Físico-Financeira - Conta {relatorio_dre.tipo_conta}"
+            else:
+                nome = "Demonstrativo da Execução Físico-Financeira"
+
+            dado_relatorio = {
+                "uuid": f"{relatorio_dre.uuid}",
+                "nome": nome,
+                "exibe_acoes": True
+            }
+
+            lista_documentos.append(dado_relatorio)
+
+        ata_parecer_tecnico = self.atas_de_parecer_tecnico_do_consolidado_dre.first()
+        if ata_parecer_tecnico:
+            dado_ata = {
+                "uuid": f"{ata_parecer_tecnico.uuid}",
+                "nome": "Parecer Técnico Conclusivo",
+                "exibe_acoes": True
+            }
+
+            lista_documentos.append(dado_ata)
+
+        documentos_adicionais = DocumentoAdicional.objects.all()
+        for documento in documentos_adicionais:
+            dado_documento = {
+                "uuid": f"{documento.uuid}",
+                "nome": documento.nome,
+                "exibe_acoes": False
+            }
+
+            lista_documentos.append(dado_documento)
+
+        return lista_documentos
+
+    def remove_publicacao_pcs(self):
+        prestacoes = self.prestacoes_de_conta_do_consolidado_dre.all()
+
+        for prestacao in prestacoes:
+            logger.info(f"Passando a prestação de contas para não publicada: {prestacao.uuid}")
+            prestacao.publicada = False
+            prestacao.save()
+
+    def apaga_relatorio_dre_versao_consolidada(self):
+        versao_consolidada = RelatorioConsolidadoDRE.VERSAO_CONSOLIDADA
+        relatorio = RelatorioConsolidadoDRE.objects.filter(
+            dre=self.dre,
+            periodo=self.periodo,
+            versao=versao_consolidada
+        ).first()
+
+        if relatorio:
+            logger.info(f"O relatorio da dre {relatorio} será apagado")
+            relatorio.delete()
+
+    @transaction.atomic
+    def reabrir_consolidado(self):
+        logger.info(f'Apagando o consolidado dre de uuid {self.uuid}.')
+
+        try:
+            self.remove_publicacao_pcs()
+            self.apaga_relatorio_dre_versao_consolidada()
+            self.delete()
+            logger.info(f'Consolidado dre de uuid {self.uuid} foi apagado.')
+            return True
+        except Exception as e:
+            logger.error(f'Houve algum erro ao tentar apagar o consolidado dre de uuid {self.uuid}.')
+            logger.error(f'{e}')
+            return False
 
 
 auditlog.register(ConsolidadoDRE)

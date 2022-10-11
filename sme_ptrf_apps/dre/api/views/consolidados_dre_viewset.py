@@ -13,11 +13,12 @@ from sme_ptrf_apps.core.models import Unidade, Periodo, Associacao
 from ..serializers.ata_parecer_tecnico_serializer import AtaParecerTecnicoLookUpSerializer
 from ...models import ConsolidadoDRE, RelatorioConsolidadoDRE, AnoAnaliseRegularidade, AtaParecerTecnico, Lauda
 
-from ..serializers.consolidado_dre_serializer import ConsolidadoDreSerializer
+from ..serializers.consolidado_dre_serializer import ConsolidadoDreSerializer, ConsolidadoDreDetalhamentoSerializer
 
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiDre,
-    PermissaoAPIApenasDreComLeituraOuGravacao
+    PermissaoAPIApenasDreComLeituraOuGravacao,
+    PermissaoAPIApenasDreComGravacao,
 )
 
 from ...services import concluir_consolidado_dre, \
@@ -804,4 +805,109 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['get'],
+            url_path='detalhamento',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def detalhamento_relatorio_consolidado(self, request):
+        uuid = request.query_params.get('uuid')
+
+        if not uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do Consolidado DRE'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            consolidado_dre = ConsolidadoDRE.by_uuid(uuid)
+        except (ConsolidadoDRE.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ConsolidadoDRE para o uuid {uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(ConsolidadoDreDetalhamentoSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'],
+            url_path='detalhamento-conferencia-documentos',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def detalhamento_relatorio_consolidado_conferencia_documentos(self, request):
+        uuid = request.query_params.get('uuid')
+
+        if not uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do Consolidado DRE'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            consolidado_dre = ConsolidadoDRE.by_uuid(uuid)
+            lista_documentos = consolidado_dre.documentos_detalhamento()
+
+            result = {
+                "lista_documentos": lista_documentos
+            }
+
+            return Response(result, status=status.HTTP_200_OK)
+        except (ConsolidadoDRE.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ConsolidadoDRE para o uuid {uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['delete'],
+            url_path='reabrir-consolidado',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def reabrir(self, request):
+        uuid = request.query_params.get('uuid')
+
+        if not uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do Consolidado DRE'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            consolidado_dre = ConsolidadoDRE.by_uuid(uuid)
+        except (ConsolidadoDRE.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ConsolidadoDRE para o uuid {uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if not consolidado_dre.pode_reabrir():
+            mensagem = f"Consolidado dre só pode ser reaberto " \
+                       f"no status sme: {ConsolidadoDRE.STATUS_SME_NAO_PUBLICADO}." \
+                       f" Status sme atual: {consolidado_dre.status_sme}."
+            response = {
+                'uuid': f'{uuid}',
+                'mensagem': mensagem
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        reaberto = consolidado_dre.reabrir_consolidado()
+
+        if reaberto:
+            response = {
+                'uuid': f'{uuid}',
+                'mensagem': 'Consolidado dre reaberto com sucesso. Todos os seus registros foram apagados.'
+            }
+            return Response(response, status=status.HTTP_204_NO_CONTENT)
+        else:
+            response = {
+                'uuid': f'{uuid}',
+                'mensagem': 'Houve algum erro ao tentar reabrir o consolidado dre.'
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
