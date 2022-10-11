@@ -821,7 +821,6 @@ def solicitacao_devolucao_ao_tesouro_teste_analises(
 def solicitacao_acerto_lancamento_devolucao_teste_inativa_analises(
     analise_lancamento_despesa_prestacao_conta_2020_1_teste_inativa_analises,
     tipo_acerto_lancamento_devolucao,
-    devolucao_ao_tesouro_parcial_ajuste_inativa
 ):
     return baker.make(
         'SolicitacaoAcertoLancamento',

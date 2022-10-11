@@ -49,7 +49,7 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
                 'copiado': False,
                 'detalhamento': 'teste',
                 'devolucao_ao_tesouro': {
-                    'data': None,
+                    'data': '2020-07-01',
                     'despesa': {
                         'associacao': f'{despesa_2020_1.associacao.uuid}',
                         'cpf_cnpj_fornecedor': '11.478.276/0001-04',
@@ -63,7 +63,7 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
                         'tipo_transacao': {'id': despesa_2020_1.tipo_transacao.id, 'nome': 'Boleto', 'tem_documento': False},
                         'uuid': f'{despesa_2020_1.uuid}',
                         'valor_ptrf': 90.0,
-                        'valor_total': '100.00'
+                        'valor_total': '100.00',
                     },
                     'devolucao_total': False,
                     'motivo': 'teste',
@@ -74,7 +74,8 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
                              'uuid': f'{solicitacao_acerto_lancamento_devolucao.devolucao_ao_tesouro.tipo.uuid}'},
                     'uuid': f'{solicitacao_devolucao_ao_tesouro.uuid}',
                     'valor': '100.00',
-                    'visao_criacao': 'DRE'
+                    'visao_criacao': 'DRE',
+                    'uuid_registro_devolucao': f'{solicitacao_acerto_lancamento_devolucao.devolucao_ao_tesouro.uuid}',
                 },
                 'id': solicitacao_acerto_lancamento_devolucao.id,
                 'tipo_acerto': {'ativo': True,
