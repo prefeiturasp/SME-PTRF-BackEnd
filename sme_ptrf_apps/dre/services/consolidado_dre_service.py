@@ -1,5 +1,5 @@
 import logging
-from django.db.models import Q, Max, Value
+from django.db.models import Q, Max, Value, Sum, Count
 from django.db.models.functions import Coalesce
 
 from ..api.serializers.ata_parecer_tecnico_serializer import AtaParecerTecnicoLookUpSerializer
@@ -632,3 +632,91 @@ def concluir_consolidado_de_publicacoes_parciais(dre, periodo, usuario):
         periodo_uuid=periodo_uuid,
         usuario=usuario,
     )
+
+
+class AcompanhamentoDeRelatoriosConsolidados:
+
+    def __init__(self, periodo):
+        self.__periodo = periodo
+        self.__versao_relatorio = "FINAL"
+
+    @property
+    def periodo(self):
+        return self.__periodo
+
+    @property
+    def versao_relatorio(self):
+        return self.__versao_relatorio
+
+    @staticmethod
+    def retorna_titulo_por_status(chave):
+
+        titulos_por_status = {
+            'DRES_SEM_RELATORIOS_GERADOS': "DREs sem relatório gerado",
+            ConsolidadoDRE.STATUS_SME_NAO_PUBLICADO: "Relatórios não publicados",
+            ConsolidadoDRE.STATUS_SME_PUBLICADO: "Relatórios publicados",
+            ConsolidadoDRE.STATUS_SME_EM_ANALISE: "Relatórios em análise",
+            ConsolidadoDRE.STATUS_SME_DEVOLVIDO: "Relatórios devolvidos para acertos",
+            ConsolidadoDRE.STATUS_SME_ANALISADO: "Relatórios analisados",
+        }
+
+        return titulos_por_status[chave]
+
+    def retorna_total_dres_sem_relatorio_gerado(self):
+        dres = Unidade.dres.all()
+
+        total_de_dres_sem_relatorio = 0
+
+        for dre in dres:
+            consolidado = ConsolidadoDRE.objects.filter(
+                dre=dre,
+                periodo=self.periodo,
+                versao=self.versao_relatorio
+            )
+
+            if not consolidado:
+                total_de_dres_sem_relatorio += 1
+
+        return total_de_dres_sem_relatorio
+
+
+class Dashboard (AcompanhamentoDeRelatoriosConsolidados):
+    def __init__(self, periodo):
+        super().__init__(periodo)
+
+    def retorna_dashboard(self):
+
+        status_sme_choice = ConsolidadoDRE.STATUS_SME_NOMES
+
+        dashboard_list = [{
+            "titulo": self.retorna_titulo_por_status('DRES_SEM_RELATORIOS_GERADOS'),
+            "quantidade_de_relatorios": self.retorna_total_dres_sem_relatorio_gerado(),
+            "status": 'NAO_GERADO'
+        }]
+
+        qtde_relatorios_com_status = 0
+
+        for chave, valor in status_sme_choice.items():
+
+            qtde_relatorios = ConsolidadoDRE.objects.filter(
+                periodo=self.periodo,
+                status_sme=chave,
+                versao=self.versao_relatorio
+            ).count()
+
+            qtde_relatorios_com_status += qtde_relatorios
+
+            obj = {
+                "titulo": self.retorna_titulo_por_status(chave),
+                "quantidade_de_relatorios": qtde_relatorios,
+                "status": chave
+            }
+
+            dashboard_list.append(obj)
+
+        dashboard = {
+            'cards': dashboard_list,
+            'total_de_relatorios': qtde_relatorios_com_status,
+        }
+
+        return dashboard

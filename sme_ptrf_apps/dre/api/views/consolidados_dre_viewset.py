@@ -19,6 +19,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoApiDre,
     PermissaoAPIApenasDreComLeituraOuGravacao,
     PermissaoAPIApenasDreComGravacao,
+    PermissaoAPITodosComLeituraOuGravacao
 )
 
 from ...services import concluir_consolidado_dre, \
@@ -805,6 +806,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
 
+
     @action(detail=False, methods=['get'],
             url_path='detalhamento',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
@@ -911,3 +913,35 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+    @action(detail=False, methods=['get'], url_path='acompanhamento-de-relatorios-consolidados-sme',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def acompanhamento_de_relatorios_consolidados_sme(self, request):
+
+        from ...services.consolidado_dre_service import Dashboard
+
+        # Determina o período
+        periodo_uuid = request.query_params.get('periodo')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'operacao': 'acompanhamento-de-relatorios-consolidados-sme',
+                'mensagem': 'Faltou informar o uuid do período. ?periodo=uuid_do_periodo'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except (Periodo.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        acompanhamento_dashboard = Dashboard(periodo).retorna_dashboard()
+
+        return Response(acompanhamento_dashboard, status=status.HTTP_200_OK)
