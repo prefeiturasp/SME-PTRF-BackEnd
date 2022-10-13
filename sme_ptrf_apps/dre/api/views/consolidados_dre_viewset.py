@@ -835,3 +835,93 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
         acompanhamento_dashboard = Dashboard(periodo).retorna_dashboard()
 
         return Response(acompanhamento_dashboard, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='listagem-de-relatorios-consolidados-sme-por-status',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def listagem_de_relatorios_consolidados_sme_por_status(self, request):
+
+        from ...services.consolidado_dre_service import ListagemPorStatusComFiltros
+
+        # Determina o período
+        periodo_uuid = request.query_params.get('periodo')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'operacao': 'listagem-de-relatorios-consolidados-sme-por-status',
+                'mensagem': 'Faltou informar o uuid do período. ?periodo=uuid_do_periodo'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except (Periodo.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Pega filtros por DRE, Tipo de Relatorio e Status SME
+        dre_uuid = request.query_params.get('dre')
+        tipo_relatorio = request.query_params.get('tipo_relatorio')
+        status_sme = request.query_params.get('status_sme')
+        status_sme_list = status_sme.split(',') if status_sme else []
+
+        dre = None
+        if dre_uuid:
+            try:
+                dre = Unidade.dres.get(uuid=dre_uuid)
+            except (Unidade.DoesNotExist, ValidationError):
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if tipo_relatorio and tipo_relatorio not in ['PARCIAL', 'UNICO']:
+            erro = {
+                'erro': 'tipo_relatorio_invalido',
+                'operacao': 'listagem-de-relatorios-consolidados-sme-por-status',
+                'mensagem': 'As opções são PARCIAL ou UNICO'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        for status_str in status_sme_list:
+            if status_str == 'NAO_GERADO':
+                continue
+
+            if status_str not in ConsolidadoDRE.STATUS_SME_NOMES.keys():
+                erro = {
+                    'erro': 'status-invalido',
+                    'operacao': 'listagem-de-relatorios-consolidados-sme-por-status',
+                    'mensagem': 'Passe um status sme válido ou NAO_GERADO.'
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            listagem = ListagemPorStatusComFiltros(
+                periodo=periodo,
+                dre=dre,
+                tipo_relatorio=tipo_relatorio,
+                status_sme=status_sme_list
+            ).retorna_listagem()
+
+            return Response(listagem, status=status.HTTP_200_OK)
+
+        except:
+            erro = {
+                'erro': 'ListagemPorStatusComFiltros().retorna_listagem()',
+                'operacao': 'listagem-de-relatorios-consolidados-sme-por-status',
+                'mensagem': 'Erro ao retornar a Listagem de Relatórios Consolidados por Status e Filtros'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+
+
