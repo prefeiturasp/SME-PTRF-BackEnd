@@ -360,7 +360,7 @@ class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
     list_filter = ('associacao', 'conta_associacao__tipo_conta')
     list_display_links = ('periodo',)
     readonly_fields = ('uuid', 'id')
-    search_fields = ('texto',)
+    search_fields = ('texto', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome')
     autocomplete_fields = ['associacao', 'conta_associacao', 'periodo']
 
 
