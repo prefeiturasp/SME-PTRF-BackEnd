@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from ..models import Associacao, Periodo, PrestacaoConta
 
@@ -85,6 +86,9 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         if prestacao and prestacao.status == PrestacaoConta.STATUS_NAO_RECEBIDA:
             mensagem_prestacao = 'Documentos gerados para prestação de contas.'
             cor = LEGENDA_COR[PrestacaoConta.STATUS_NAO_RECEBIDA]
+        elif prestacao:
+            mensagem_prestacao = STATUS_PRESTACAO[prestacao.status]
+            cor = LEGENDA_COR[prestacao.status]
         else:
             mensagem_prestacao = ''
             cor = LEGENDA_COR[STATUS_PERIODO_EM_ANDAMENTO]
