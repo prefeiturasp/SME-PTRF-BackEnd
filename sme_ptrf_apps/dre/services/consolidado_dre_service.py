@@ -1,5 +1,6 @@
 import logging
-from django.db.models import Q, Max, Value, Sum, Count
+
+from django.db.models import Q, Max, Value
 from django.db.models.functions import Coalesce
 
 from ..api.serializers.ata_parecer_tecnico_serializer import AtaParecerTecnicoLookUpSerializer
@@ -9,6 +10,8 @@ from ..tasks import concluir_consolidado_dre_async, \
     concluir_consolidado_de_publicacoes_parciais_async
 
 from ...core.models import Unidade, PrestacaoConta, Periodo, Associacao
+
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -257,7 +260,8 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
         eh_parcial=True
     ).count()
 
-    consolidado_de_publicacoes_parciais = (quantidade_pcs_publicadas == quantidade_ues_cnpj) and quantidade_consolidados_dre_publicados > 0
+    consolidado_de_publicacoes_parciais = (
+                                                  quantidade_pcs_publicadas == quantidade_ues_cnpj) and quantidade_consolidados_dre_publicados > 0
 
     if consolidado_de_publicacoes_parciais:
         proxima_publicacao = retornar_consolidado_de_publicacoes_parciais(
@@ -679,8 +683,127 @@ class AcompanhamentoDeRelatoriosConsolidados:
 
         return total_de_dres_sem_relatorio
 
+    def formata_data(self, data):
+        data_formatada = None
+        if data:
+            d = datetime.strptime(str(data), '%Y-%m-%d')
+            data_formatada = d.strftime("%d/%m/%Y")
 
-class Dashboard (AcompanhamentoDeRelatoriosConsolidados):
+        return f'{data_formatada}'
+
+
+class ListagemPorStatusComFiltros(AcompanhamentoDeRelatoriosConsolidados):
+    def __init__(self, periodo, dre=None, tipo_relatorio=None, status_sme=None):
+        super().__init__(periodo)
+        self.__dre = dre
+        self.__tipo_relatorio = tipo_relatorio
+        self.__tipo_relatorio = tipo_relatorio
+        self.__status_sme = status_sme
+
+    @property
+    def dre(self):
+        return self.__dre
+
+    @property
+    def tipo_relatorio(self):
+        return self.__tipo_relatorio
+
+    @property
+    def status_sme(self):
+        return self.__status_sme
+
+    @staticmethod
+    def retorna_titulo_por_status(chave):
+
+        titulos_por_status = {
+            'DRES_SEM_RELATORIOS_GERADOS': "Não gerado",
+            ConsolidadoDRE.STATUS_SME_NAO_PUBLICADO: "Não publicada no D.O.",
+            ConsolidadoDRE.STATUS_SME_PUBLICADO: "Publicada no D.O.",
+            ConsolidadoDRE.STATUS_SME_EM_ANALISE: "Em análise",
+            ConsolidadoDRE.STATUS_SME_DEVOLVIDO: "Devolvida para acertos",
+            ConsolidadoDRE.STATUS_SME_ANALISADO: "Relatórios analisados",
+        }
+
+        return titulos_por_status[chave]
+
+    def lista_relatorios_filtros(self):
+        dres = Unidade.dres.all().order_by('nome')
+
+        if self.dre is not None:
+            dres = dres.filter(uuid=self.dre.uuid)
+
+        listagem = []
+
+        for dre in dres:
+            consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=self.periodo, versao=self.versao_relatorio)
+
+            tipo_de_relatorio = '-'
+            total_unidades_no_relatorio = '-'
+
+            if self.status_sme and not consolidados_dre and "NAO_GERADO" not in self.status_sme:
+                continue
+
+            if consolidados_dre:
+
+                for consolidado in consolidados_dre:
+
+                    if self.status_sme and consolidado.status_sme not in self.status_sme:
+                        continue
+
+                    if self.tipo_relatorio:
+                        eh_parcial = self.tipo_relatorio == 'PARCIAL'
+                        if not consolidado.eh_parcial == eh_parcial:
+                            continue
+
+                    if consolidado.eh_parcial:
+                        tipo_de_relatorio = f"Parcial #{consolidado.sequencia_de_publicacao}"
+                    else:
+                        tipo_de_relatorio = f"Único"
+
+                    total_unidades_no_relatorio = PrestacaoConta.objects.filter(consolidado_dre=consolidado).count()
+
+                    obj = {
+                        "nome_da_dre": dre.nome,
+                        "tipo_relatorio": tipo_de_relatorio,
+                        "total_unidades_no_relatorio": total_unidades_no_relatorio,
+                        "data_recebimento": self.formata_data(consolidado.data_de_inicio_da_analise) if consolidado.data_de_inicio_da_analise else None,
+                        "status_sme": consolidado.status_sme,
+                        "status_sme_label": self.retorna_titulo_por_status(consolidado.status_sme),
+                        "pode_visualizar": True,
+                        "uuid_consolidado_dre": f"{consolidado.uuid}",
+                        "uuid_dre": f"{dre.uuid}",
+                    }
+
+                    listagem.append(obj)
+            else:
+
+                if (not self.tipo_relatorio and self.status_sme and 'NAO_GERADO' in self.status_sme) or (not self.tipo_relatorio and not self.status_sme):
+                    obj = {
+                        "nome_da_dre": dre.nome,
+                        "tipo_relatorio": tipo_de_relatorio,
+                        "total_unidades_no_relatorio": total_unidades_no_relatorio,
+                        "data_recebimento": None,
+                        "status_sme": 'NAO_GERADO',
+                        "status_sme_label": self.retorna_titulo_por_status('DRES_SEM_RELATORIOS_GERADOS'),
+                        "pode_visualizar": False,
+                        "uuid_consolidado_dre": None,
+                        "uuid_dre": f"{dre.uuid}",
+                    }
+
+                    listagem.append(obj)
+
+        return listagem
+
+    def retorna_listagem(self):
+
+        listagem = self.lista_relatorios_filtros()
+
+        listagem.sort(key=lambda x: x.get('nome', 'tipo_relatorio'))
+
+        return listagem
+
+
+class Dashboard(AcompanhamentoDeRelatoriosConsolidados):
     def __init__(self, periodo):
         super().__init__(periodo)
 
@@ -697,7 +820,6 @@ class Dashboard (AcompanhamentoDeRelatoriosConsolidados):
         qtde_relatorios_com_status = 0
 
         for chave, valor in status_sme_choice.items():
-
             qtde_relatorios = ConsolidadoDRE.objects.filter(
                 periodo=self.periodo,
                 status_sme=chave,

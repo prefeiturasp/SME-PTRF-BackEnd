@@ -104,6 +104,8 @@ class ConsolidadoDRE(ModeloBase):
 
     pagina_publicacao = models.CharField('Página publicacao', max_length=50, blank=True, default='')
 
+    data_de_inicio_da_analise = models.DateField('Data de início da análise (data de recebimento)', blank=True, null=True)
+
     class Meta:
         verbose_name = 'Consolidado DRE'
         verbose_name_plural = 'Consolidados DREs'
