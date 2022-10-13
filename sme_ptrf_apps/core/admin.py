@@ -351,16 +351,27 @@ class ProcessoAssociacaoAdmin(admin.ModelAdmin):
 
 @admin.register(ObservacaoConciliacao)
 class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
+    def get_unidade(self, obj):
+        return f'{obj.associacao.unidade.codigo_eol} - {obj.associacao.unidade.nome}' if obj and obj.associacao and obj.associacao.unidade else ''
+
+    get_unidade.short_description = 'Unidade'
+
     def get_nome_conta(self, obj):
         return obj.conta_associacao.tipo_conta.nome if obj and obj.conta_associacao else ''
 
     get_nome_conta.short_description = 'Conta'
 
-    list_display = ('associacao', 'periodo', 'get_nome_conta', 'data_extrato', 'saldo_extrato', 'texto')
-    list_filter = ('associacao', 'conta_associacao__tipo_conta')
+    list_display = ('get_unidade', 'periodo', 'get_nome_conta', 'data_extrato', 'saldo_extrato', 'texto')
+    list_filter = (
+        'associacao',
+        'conta_associacao__tipo_conta',
+        'associacao__unidade__dre',
+        'associacao__unidade__tipo_unidade',
+        'periodo',
+    )
     list_display_links = ('periodo',)
     readonly_fields = ('uuid', 'id')
-    search_fields = ('texto',)
+    search_fields = ('texto', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome')
     autocomplete_fields = ['associacao', 'conta_associacao', 'periodo']
 
 
