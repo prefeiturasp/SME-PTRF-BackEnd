@@ -357,7 +357,12 @@ class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
     get_nome_conta.short_description = 'Conta'
 
     list_display = ('associacao', 'periodo', 'get_nome_conta', 'data_extrato', 'saldo_extrato', 'texto')
-    list_filter = ('associacao', 'conta_associacao__tipo_conta', 'associacao__unidade__dre')
+    list_filter = (
+        'associacao',
+        'conta_associacao__tipo_conta',
+        'associacao__unidade__dre',
+        'periodo',
+    )
     list_display_links = ('periodo',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('texto', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome')
