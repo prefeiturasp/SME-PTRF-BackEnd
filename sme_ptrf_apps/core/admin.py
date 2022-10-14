@@ -857,12 +857,35 @@ class TipoAcertoDocumentoAdmin(admin.ModelAdmin):
 
 @admin.register(AnaliseDocumentoPrestacaoConta)
 class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
-    list_display = ['analise_prestacao_conta', 'tipo_documento_prestacao_conta', 'resultado', 'status_realizacao']
+    def get_unidade(self, obj):
+        return f'{obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_prestacao_conta.prestacao_conta.associacao.unidade else ''
+
+    get_unidade.short_description = 'Unidade'
+
+    def get_periodo(self, obj):
+        return f'{obj.analise_prestacao_conta.prestacao_conta.periodo.referencia}' if obj and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.periodo else ''
+
+    get_periodo.short_description = 'Período'
+
+    def get_analise_pc(self, obj):
+        return f'#{obj.analise_prestacao_conta.pk}' if obj and obj.analise_prestacao_conta else ''
+
+    get_analise_pc.short_description = 'Análise PC'
+    list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_documento_prestacao_conta', 'resultado', 'status_realizacao']
     list_filter = [
         'analise_prestacao_conta__prestacao_conta__associacao__unidade',
+        'analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
+        'analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'analise_prestacao_conta__prestacao_conta__periodo',
         'tipo_documento_prestacao_conta',
     ]
+
+    search_fields = (
+        'analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
+        'analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
+        'analise_prestacao_conta__prestacao_conta__associacao__nome',
+    )
+
     readonly_fields = ('uuid', 'id',)
 
 
