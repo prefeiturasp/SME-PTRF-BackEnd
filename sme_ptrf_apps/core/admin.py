@@ -893,7 +893,7 @@ class ValoresReprogramadosAdmin(admin.ModelAdmin):
 class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
 
     def get_dre(self, obj):
-        return obj.prestacao_conta.associacao.unidade.dre.nome if obj and obj.visao_criacao == "DRE" else "-"
+        return obj.prestacao_conta.associacao.unidade.dre.nome
 
     get_dre.short_description = 'DRE'
 
