@@ -323,7 +323,7 @@ class ArquivoAdmin(admin.ModelAdmin):
     list_display = ['identificador', 'conteudo', 'tipo_carga', 'status', 'ultima_execucao']
     actions = ['processa_carga', ]
     readonly_fields = ['ultima_execucao', 'status', 'log', 'uuid', 'id']
-    list_filter = ['tipo_carga', 'status']
+    list_filter = ['tipo_carga', 'status', ('ultima_execucao', DateRangeFilter), ]
     search_fields = ('identificador',)
 
     def processa_carga(self, request, queryset):
