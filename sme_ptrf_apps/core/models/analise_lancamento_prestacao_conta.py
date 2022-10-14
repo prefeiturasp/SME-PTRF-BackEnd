@@ -119,6 +119,11 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         self.save()
         return self
 
+    def passar_devolucao_tesouro_para_nao_atualizada(self):
+        self.devolucao_tesouro_atualizada = False
+        self.save()
+        return self
+
     @property
     def requer_atualizacao_lancamento(self):
         from . import TipoAcertoLancamento
