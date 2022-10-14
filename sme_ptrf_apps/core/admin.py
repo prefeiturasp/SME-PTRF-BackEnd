@@ -530,8 +530,55 @@ class CensoAdmin(admin.ModelAdmin):
 @admin.register(Parametros)
 class ParametrosAdmin(admin.ModelAdmin):
     exclude = ('fique_de_olho', 'fique_de_olho_relatorio_dre')
-    list_display = ['permite_saldo_conta_negativo', 'tempo_notificar_nao_demonstrados', ]
-    list_display_links = ['permite_saldo_conta_negativo', 'tempo_notificar_nao_demonstrados', ]
+
+    def get_tempo_notificar_nao_demonstrados(self, obj):
+        return obj.tempo_notificar_nao_demonstrados
+
+    get_tempo_notificar_nao_demonstrados.short_description = 'N. Transações não demonstradas (dias)'
+
+    def get_dias_antes_inicio_periodo_pc_para_notificacao(self, obj):
+        return obj.dias_antes_inicio_periodo_pc_para_notificacao
+
+    get_dias_antes_inicio_periodo_pc_para_notificacao.short_description = 'N. Inicio do período (dias)'
+
+    def get_dias_antes_fim_periodo_pc_para_notificacao(self, obj):
+        return obj.dias_antes_fim_periodo_pc_para_notificacao
+
+    get_dias_antes_fim_periodo_pc_para_notificacao.short_description = 'N. Fim do período (dias)'
+
+    def get_dias_antes_fim_prazo_ajustes_pc_para_notificacao(self, obj):
+        return obj.dias_antes_fim_prazo_ajustes_pc_para_notificacao
+
+    get_dias_antes_fim_prazo_ajustes_pc_para_notificacao.short_description = 'N. Fim do prazo de entrega (dias)'
+
+    list_display = [
+        'permite_saldo_conta_negativo',
+        'get_tempo_notificar_nao_demonstrados',
+        'get_dias_antes_inicio_periodo_pc_para_notificacao',
+        'get_dias_antes_fim_periodo_pc_para_notificacao',
+        'get_dias_antes_fim_prazo_ajustes_pc_para_notificacao',
+    ]
+    list_display_links = ['permite_saldo_conta_negativo', 'get_tempo_notificar_nao_demonstrados', ]
+
+    fieldsets = (
+        ('Associação', {
+           'fields':
+                (
+                    'permite_saldo_conta_negativo',
+                    'tempo_notificar_nao_demonstrados',
+                    'dias_antes_inicio_periodo_pc_para_notificacao',
+                    'dias_antes_fim_periodo_pc_para_notificacao',
+                    'dias_antes_fim_prazo_ajustes_pc_para_notificacao',
+                    'texto_pagina_valores_reprogramados_ue'
+                )
+        }),
+        ('DRE', {
+            'fields': ('texto_pagina_suporte_dre', 'texto_pagina_valores_reprogramados_dre', )
+        }),
+        ('SME', {
+            'fields': ('enviar_email_notificacao', 'texto_pagina_suporte_sme', )
+        })
+    )
 
 
 @admin.register(DemonstrativoFinanceiro)
