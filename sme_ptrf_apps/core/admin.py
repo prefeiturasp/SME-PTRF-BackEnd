@@ -1005,11 +1005,34 @@ class PresenteAtaAdmin(admin.ModelAdmin):
 
 @admin.register(ValoresReprogramados)
 class ValoresReprogramadosAdmin(admin.ModelAdmin):
-    list_display = ('associacao', 'conta_associacao', 'acao_associacao', 'aplicacao_recurso', 'valor_ue', 'valor_dre')
+    def get_unidade(self, obj):
+        return f'{obj.associacao.unidade.codigo_eol} - {obj.associacao.unidade.nome}' if obj and obj.associacao and obj.associacao.unidade else ''
+
+    get_unidade.short_description = 'Unidade'
+
+    def get_tipo_conta(self, obj):
+        return f'{obj.conta_associacao.tipo_conta.nome}' if obj and obj.conta_associacao and obj.conta_associacao.tipo_conta else ''
+
+    get_tipo_conta.short_description = 'Conta'
+
+    def get_acao(self, obj):
+        return f'{obj.acao_associacao.acao.nome}' if obj and obj.acao_associacao and obj.acao_associacao.acao else ''
+
+    get_acao.short_description = 'Ação'
+
+    list_display = ('get_unidade', 'get_tipo_conta', 'get_acao', 'aplicacao_recurso', 'valor_ue', 'valor_dre')
     search_fields = ('uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
-    list_filter = ('associacao', 'associacao__status_valores_reprogramados', 'associacao__periodo_inicial',
-                   'associacao__unidade__dre', 'conta_associacao__tipo_conta',
-                   'acao_associacao__acao', 'aplicacao_recurso')
+    list_filter = (
+        'associacao',
+        'associacao__unidade',
+        'associacao__unidade__tipo_unidade',
+        'associacao__unidade__dre',
+        'associacao__status_valores_reprogramados',
+        'associacao__periodo_inicial',
+        'conta_associacao__tipo_conta',
+        'acao_associacao__acao',
+        'aplicacao_recurso'
+    )
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 
