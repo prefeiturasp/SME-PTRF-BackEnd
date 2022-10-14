@@ -725,9 +725,15 @@ class RelacaoBensAdmin(admin.ModelAdmin):
 class MembroAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'cargo_associacao', 'associacao')
     search_fields = (
-    'nome', 'codigo_identificacao', 'uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome',
-    'associacao__nome')
-    list_filter = ('associacao', 'cargo_associacao', 'representacao')
+        'nome', 'codigo_identificacao', 'uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome',
+        'associacao__nome', 'cpf', )
+    list_filter = (
+        'associacao',
+        'cargo_associacao',
+        'representacao',
+        'associacao__unidade__tipo_unidade',
+        'associacao__unidade__dre',
+    )
     readonly_fields = ('uuid', 'id')
     autocomplete_fields = ['associacao', ]
 
