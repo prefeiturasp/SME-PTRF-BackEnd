@@ -61,8 +61,8 @@ class AssociacaoAdmin(admin.ModelAdmin):
     get_nome_escola.short_description = 'Escola'
 
     list_display = ('nome', 'cnpj', 'get_nome_escola')
-    search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome')
-    list_filter = ('unidade__dre', 'periodo_inicial')
+    search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome', 'unidade__codigo_eol', )
+    list_filter = ('unidade__dre', 'periodo_inicial', 'unidade__tipo_unidade', )
     readonly_fields = ('uuid', 'id')
     list_display_links = ('nome', 'cnpj')
 
