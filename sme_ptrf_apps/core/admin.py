@@ -792,7 +792,17 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
 
     get_despesa.short_description = 'Despesa'
 
-    list_display = ['get_unidade', 'analise_lancamento', 'tipo_acerto', 'devolucao_ao_tesouro', 'get_despesa', 'copiado']
+    def get_periodo(self, obj):
+        return f'{obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.periodo.referencia}' if obj and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.periodo else ''
+
+    get_periodo.short_description = 'Período'
+
+    def get_analise_pc(self, obj):
+        return f'#{obj.analise_lancamento.analise_prestacao_conta.pk}' if obj and obj.analise_lancamento.analise_prestacao_conta else ''
+
+    get_analise_pc.short_description = 'Análise PC'
+
+    list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_acerto', 'devolucao_ao_tesouro', 'get_despesa', 'copiado']
     search_fields = [
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
@@ -800,6 +810,9 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
     ]
     list_filter = [
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo__referencia',
+        'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade',
+        'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
+        'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'tipo_acerto',
         'devolucao_ao_tesouro',
         'copiado'
