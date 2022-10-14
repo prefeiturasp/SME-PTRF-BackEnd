@@ -705,16 +705,31 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
 
     get_associacao.short_description = 'Associação'
 
+    def get_unidade(self, obj):
+        return f'{obj.prestacao_conta.associacao.unidade.codigo_eol} - {obj.prestacao_conta.associacao.unidade.nome}' if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade else ''
+
+    get_unidade.short_description = 'Unidade'
+
     def get_referencia_periodo(self, obj):
         return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
 
     get_referencia_periodo.short_description = 'Período'
 
-    list_display = ('get_associacao', 'get_referencia_periodo', 'criado_em', 'status',)
-    list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta', 'status',
-                   'status_versao', 'versao', 'status_versao_apresentacao_apos_acertos',
-                   'versao_pdf_apresentacao_apos_acertos',)
-    list_display_links = ('get_associacao',)
+    list_display = ('get_unidade', 'get_referencia_periodo', 'criado_em', 'status',)
+    list_filter = (
+        'prestacao_conta__periodo',
+        'prestacao_conta__associacao',
+        'prestacao_conta__associacao__unidade',
+        'prestacao_conta__associacao__unidade__tipo_unidade',
+        'prestacao_conta__associacao__unidade__dre',
+        'prestacao_conta',
+        'status',
+        'status_versao',
+        'versao',
+        'status_versao_apresentacao_apos_acertos',
+        'versao_pdf_apresentacao_apos_acertos',
+    )
+    list_display_links = ('get_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
