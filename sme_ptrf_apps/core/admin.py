@@ -975,7 +975,32 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
 
 @admin.register(PresenteAta)
 class PresenteAtaAdmin(admin.ModelAdmin):
-    list_display = ['uuid', 'ata', 'identificacao', 'nome', 'cargo', 'membro']
+    def get_unidade(self, obj):
+        return f'{obj.ata.associacao.unidade.codigo_eol} - {obj.ata.associacao.unidade.nome}' if obj and obj.ata and obj.ata.associacao and obj.ata.associacao.unidade else ''
+
+    get_unidade.short_description = 'Unidade'
+
+    def get_periodo(self, obj):
+        return f'{obj.ata.periodo.referencia}' if obj and obj.ata and obj.ata.periodo else ''
+
+    get_periodo.short_description = 'Período'
+
+    list_display = ['get_unidade', 'get_periodo', 'ata', 'identificacao', 'nome', 'cargo', 'membro']
+
+    search_fields = [
+        'nome',
+        'identificacao',
+        'ata__associacao__unidade__codigo_eol',
+        'ata__associacao__unidade__nome',
+    ]
+    list_filter = [
+        'ata__periodo__referencia',
+        'ata__associacao__unidade',
+        'ata__associacao__unidade__tipo_unidade',
+        'ata__associacao__unidade__dre',
+        'cargo',
+        'membro'
+    ]
 
 
 @admin.register(ValoresReprogramados)
