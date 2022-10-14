@@ -892,6 +892,11 @@ class ValoresReprogramadosAdmin(admin.ModelAdmin):
 @admin.register(DevolucaoAoTesouro)
 class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
 
+    def get_dre(self, obj):
+        return obj.prestacao_conta.associacao.unidade.dre.nome if obj and obj.visao_criacao == "DRE" else "-"
+
+    get_dre.short_description = 'DRE'
+
     def get_unidade(self, obj):
         return f'{obj.prestacao_conta.associacao.unidade.codigo_eol} - {obj.prestacao_conta.associacao.unidade.nome}' if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade else ''
 
@@ -903,11 +908,11 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
     get_referencia_periodo.short_description = 'Período'
 
     list_display = (
-        'get_unidade', 'get_referencia_periodo', 'despesa', 'data', 'tipo', 'devolucao_total', 'valor', 'visao_criacao')
+        'get_dre', 'get_unidade', 'get_referencia_periodo', 'despesa', 'data', 'tipo', 'devolucao_total', 'valor', 'visao_criacao')
 
     list_filter = (
         'prestacao_conta__periodo', 'prestacao_conta', 'tipo', 'devolucao_total',
-        'visao_criacao', 'data')
+        'visao_criacao', 'data', 'prestacao_conta__associacao__unidade__dre')
 
     list_display_links = ('get_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
