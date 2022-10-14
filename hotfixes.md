@@ -1,3 +1,6 @@
+### 1.33.9 - 14/10/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 51
+* (76006) Análise DRE: Ícone de detalhamento deve ser exibido também para os demais status
+
 ### 1.33.8 - 10/10/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 51
 * (76004) Demonstrativo de Execução Físico-Financeira exibindo linha de total mesmo quando há apenas uma conta
 
