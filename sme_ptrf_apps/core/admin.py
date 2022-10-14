@@ -891,9 +891,38 @@ class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
 
 @admin.register(SolicitacaoAcertoDocumento)
 class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
-    list_display = ['uuid', 'analise_documento', 'tipo_acerto', 'copiado',]
-    search_fields = ['uuid']
-    list_filter = ['tipo_acerto', 'copiado', ]
+    def get_unidade(self, obj):
+        return f'{obj.analise_documento.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_documento.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_documento and obj.analise_documento.analise_prestacao_conta and obj.analise_documento.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_documento.analise_prestacao_conta.prestacao_conta.associacao.unidade else ''
+
+    get_unidade.short_description = 'Unidade'
+
+    def get_despesa(self, obj):
+        return obj.analise_documento.despesa if obj and obj.analise_documento else ''
+
+    get_despesa.short_description = 'Despesa'
+
+    def get_periodo(self, obj):
+        return f'{obj.analise_documento.analise_prestacao_conta.prestacao_conta.periodo.referencia}' if obj and obj.analise_documento.analise_prestacao_conta.prestacao_conta and obj.analise_documento.analise_prestacao_conta.prestacao_conta.periodo else ''
+
+    get_periodo.short_description = 'Período'
+
+    def get_analise_pc(self, obj):
+        return f'#{obj.analise_documento.analise_prestacao_conta.pk}' if obj and obj.analise_documento.analise_prestacao_conta else ''
+
+    get_analise_pc.short_description = 'Análise PC'
+    list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_acerto', 'copiado',]
+    search_fields = [
+        'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
+        'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
+    ]
+    list_filter = [
+        'analise_documento__analise_prestacao_conta__prestacao_conta__periodo__referencia',
+        'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade',
+        'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
+        'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
+        'tipo_acerto',
+        'copiado'
+    ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
 
 
