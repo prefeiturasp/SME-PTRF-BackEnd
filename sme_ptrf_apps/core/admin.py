@@ -1119,11 +1119,13 @@ class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
         else:
             return ''
 
-    get_referencia_periodo.short_description = 'Período'
+    get_despesa.short_description = 'Despesa'
 
     list_display = ('get_unidade', 'get_referencia_periodo', 'get_despesa', 'tipo', 'valor', 'devolucao_total')
     list_filter = (
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo',
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'tipo',
         'devolucao_total',
     )
