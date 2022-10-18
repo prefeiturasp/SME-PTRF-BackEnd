@@ -9,7 +9,7 @@ from .models import (
     JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE,
     ParametroFiqueDeOlhoRelDre, MotivoAprovacaoRessalva, MotivoReprovacao, Comissao, MembroComissao,
     AnoAnaliseRegularidade, AnaliseRegularidadeAssociacao, ParametrosDre, AtaParecerTecnico,
-    PresenteAtaDre, ConsolidadoDRE, Lauda, DocumentoAdicional
+    PresenteAtaDre, ConsolidadoDRE, Lauda
 )
 
 admin.site.register(ParametroFiqueDeOlhoRelDre)
@@ -67,8 +67,8 @@ class ConsolidadoDREAdmin(admin.ModelAdmin):
 
     get_nome_dre.short_description = 'DRE'
 
-    list_display = ('get_nome_dre', 'periodo', 'status', 'versao', 'eh_parcial', 'sequencia_de_publicacao', 'status_sme', 'data_publicacao', 'pagina_publicacao')
-    list_filter = ('status', 'dre', 'periodo', 'versao', 'status_sme')
+    list_display = ('get_nome_dre', 'periodo', 'status', 'versao', 'eh_parcial', 'sequencia_de_publicacao')
+    list_filter = ('status', 'dre', 'periodo', 'versao')
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome',)
@@ -315,9 +315,3 @@ class AtaParecerTecnicoAdmin(admin.ModelAdmin):
 class PresentesAtaDreAdmin(admin.ModelAdmin):
     list_display = ('rf', 'nome', 'cargo', 'ata')
     readonly_fields = ('uuid', 'id')
-
-
-@admin.register(DocumentoAdicional)
-class DocumentoAdicionalAdmin(admin.ModelAdmin):
-    list_display = ('nome',)
-    readonly_fields = ('uuid', 'criado_em', 'alterado_em', )

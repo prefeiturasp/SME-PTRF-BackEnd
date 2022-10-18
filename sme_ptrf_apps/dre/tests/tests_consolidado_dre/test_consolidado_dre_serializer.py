@@ -14,6 +14,3 @@ def test_serializer(consolidado_dre_teste_model_consolidado_dre):
     assert serializer.data['periodo']
     assert serializer.data['status']
     assert serializer.data['versao']
-    assert serializer.data['status_sme']
-    assert serializer.data['data_publicacao'] is None
-    assert serializer.data['pagina_publicacao'] is ''
