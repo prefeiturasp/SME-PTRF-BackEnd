@@ -172,7 +172,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                             'copiado': False,
                             'detalhamento': 'teste',
                             'devolucao_ao_tesouro': {
-                                'data': '2020-07-01',
+                                'data': lancamento["data_devolucao"] if "data_devolucao" in lancamento else None,
                                 'despesa': {
                                     'associacao': f'{lancamento["mestre"].associacao.uuid}',
                                     'cpf_cnpj_fornecedor': '11.478.276/0001-04',
@@ -199,14 +199,15 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                                 'motivo': 'teste',
                                 'prestacao_conta': f'{lancamento["analise_lancamento"].analise_prestacao_conta.prestacao_conta.uuid}',
                                 'tipo': {
-                                    'id': lancamento["solicitacao_ajuste"].devolucao_ao_tesouro.tipo.id,
+                                    'id': lancamento["solicitacao_devolucao"].tipo.id,
                                     'nome': 'Devolução '
                                             'teste',
-                                    'uuid': f'{lancamento["solicitacao_ajuste"].devolucao_ao_tesouro.tipo.uuid}'
+                                    'uuid': f'{lancamento["solicitacao_devolucao"].tipo.uuid}'
                                 },
-                                'uuid': f'{lancamento["solicitacao_ajuste"].devolucao_ao_tesouro.uuid}',
+                                'uuid': f'{lancamento["solicitacao_devolucao"].uuid}',
                                 'valor': '100.00',
-                                'visao_criacao': 'DRE'
+                                'visao_criacao': 'DRE',
+                                'uuid_registro_devolucao': None
                             },
                             'id': lancamento["solicitacao_ajuste"].id,
                             'tipo_acerto': {
@@ -254,7 +255,8 @@ def test_api_list_lancamentos_todos_da_conta(
     conta_associacao_cartao,
     analise_prestacao_conta_2020_1_teste_analises,
     analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises,
-    solicitacao_acerto_lancamento_devolucao_teste_analises
+    solicitacao_acerto_lancamento_devolucao_teste_analises,
+    solicitacao_devolucao_ao_tesouro_teste_analises
 ):
     conta_uuid = conta_associacao_cartao.uuid
     despesa_2020_1.mesagem_inativa = None
@@ -276,6 +278,7 @@ def test_api_list_lancamentos_todos_da_conta(
             ],
             'analise_lancamento': analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises,
             'solicitacao_ajuste': solicitacao_acerto_lancamento_devolucao_teste_analises,
+            'solicitacao_devolucao': solicitacao_devolucao_ao_tesouro_teste_analises,
         },
     ]
 
@@ -302,7 +305,8 @@ def test_api_list_lancamentos_todos_da_conta_inativa(
     conta_associacao_cheque,
     analise_prestacao_conta_2020_1_teste_inativa_analises,
     analise_lancamento_despesa_prestacao_conta_2020_1_teste_inativa_analises,
-    solicitacao_acerto_lancamento_devolucao_teste_inativa_analises
+    solicitacao_acerto_lancamento_devolucao_teste_inativa_analises,
+    solicitacao_devolucao_ao_tesouro_teste_inativa_analises
 ):
     conta_uuid = conta_associacao_cartao.uuid
     lancamentos_esperados = [
@@ -321,6 +325,7 @@ def test_api_list_lancamentos_todos_da_conta_inativa(
             }],
             'analise_lancamento': analise_lancamento_despesa_prestacao_conta_2020_1_teste_inativa_analises,
             'solicitacao_ajuste': solicitacao_acerto_lancamento_devolucao_teste_inativa_analises,
+            'solicitacao_devolucao': solicitacao_devolucao_ao_tesouro_teste_inativa_analises,
         },
     ]
 
@@ -353,6 +358,7 @@ def test_api_list_lancamentos_todos_da_conta_por_tipo_ajuste(
     solicitacao_acerto_lancamento_devolucao_teste_analises,
     solicitacao_acerto_lancamento_basico_tipo_teste_analises,
     tipo_acerto_lancamento_devolucao,
+    solicitacao_devolucao_ao_tesouro_teste_analises
 ):
     conta_uuid = conta_associacao_cartao.uuid
     lancamentos_esperados = [
@@ -373,6 +379,7 @@ def test_api_list_lancamentos_todos_da_conta_por_tipo_ajuste(
             ],
             'analise_lancamento': analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises,
             'solicitacao_ajuste': solicitacao_acerto_lancamento_devolucao_teste_analises,
+            'solicitacao_devolucao': solicitacao_devolucao_ao_tesouro_teste_analises,
         },
     ]
 
