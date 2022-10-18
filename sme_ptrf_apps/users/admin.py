@@ -11,6 +11,15 @@ from sme_ptrf_apps.core.models import Unidade
 User = get_user_model()
 
 
+def custom_titled_filter(title):
+    class Wrapper(admin.FieldListFilter):
+        def __new__(cls, *args, **kwargs):
+            instance = admin.FieldListFilter.create(*args, **kwargs)
+            instance.title = title
+            return instance
+    return Wrapper
+
+
 class UnidadeChangeListForm(forms.ModelForm):
     # here we only need to define the field we want to be editable
     unidades = forms.ModelMultipleChoiceField(
@@ -33,8 +42,17 @@ class UserAdmin(auth_admin.UserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
     fieldsets = (("User", {"fields": ("name", "e_servidor")}),) + auth_admin.UserAdmin.fieldsets
-    list_display = ["uuid", "username", "name", "e_servidor", "is_superuser",]
-    search_fields = ["name"]
+    list_display = ["uuid", "username", "name", "e_servidor", "is_superuser", ]
+    list_filter = (
+        "is_staff",
+        "is_superuser",
+        "is_active",
+        "groups",
+        "unidades__tipo_unidade",
+        "unidades__dre",
+        ("unidades", custom_titled_filter("unidade")),
+    )
+    search_fields = ["name", "username", ]
     inlines = [UnidadeInline, VisaoInline]
 
 

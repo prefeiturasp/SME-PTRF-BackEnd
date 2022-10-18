@@ -400,6 +400,29 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['delete'], url_path='apagar-devolucoes-ao-tesouro',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
+    def apagar_devolucoes_ao_tesouro(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        devolucoes_ao_tesouro_a_apagar = request.data.get('devolucoes_ao_tesouro_a_apagar', [])
+
+        if prestacao_conta.status not in [PrestacaoConta.STATUS_EM_ANALISE, PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA]:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'apagar-devolucoes-ao-tesouro',
+                'mensagem': 'Você não pode apagar devoluções ao tesouro de uma prestação de contas com status diferente de EM_ANALISE ou DEVOLVIDA.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_salva = prestacao_conta.apagar_devolucoes_ao_tesouro(
+            devolucoes_ao_tesouro_a_apagar=devolucoes_ao_tesouro_a_apagar)
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
+                        status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['patch'], url_path='concluir-analise',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def concluir_analise(self, request, uuid):

@@ -794,30 +794,56 @@ def devolucao_ao_tesouro_parcial_ajuste_inativa(prestacao_conta_2020_1_teste_ina
 def solicitacao_acerto_lancamento_devolucao_teste_analises(
     analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises,
     tipo_acerto_lancamento_devolucao,
-    devolucao_ao_tesouro_parcial_ajuste
 ):
     return baker.make(
         'SolicitacaoAcertoLancamento',
         analise_lancamento=analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises,
         tipo_acerto=tipo_acerto_lancamento_devolucao,
-        devolucao_ao_tesouro=devolucao_ao_tesouro_parcial_ajuste,
+        devolucao_ao_tesouro=None,
         detalhamento="teste"
     )
 
+@pytest.fixture
+def solicitacao_devolucao_ao_tesouro_teste_analises(
+    solicitacao_acerto_lancamento_devolucao_teste_analises,
+    tipo_devolucao_ao_tesouro_teste,
+):
+    return baker.make(
+        'SolicitacaoDevolucaoAoTesouro',
+        solicitacao_acerto_lancamento=solicitacao_acerto_lancamento_devolucao_teste_analises,
+        tipo=tipo_devolucao_ao_tesouro_teste,
+        devolucao_total=False,
+        valor=100.00,
+        motivo='teste',
+    )
 
 @pytest.fixture
 def solicitacao_acerto_lancamento_devolucao_teste_inativa_analises(
     analise_lancamento_despesa_prestacao_conta_2020_1_teste_inativa_analises,
     tipo_acerto_lancamento_devolucao,
-    devolucao_ao_tesouro_parcial_ajuste_inativa
 ):
     return baker.make(
         'SolicitacaoAcertoLancamento',
         analise_lancamento=analise_lancamento_despesa_prestacao_conta_2020_1_teste_inativa_analises,
         tipo_acerto=tipo_acerto_lancamento_devolucao,
-        devolucao_ao_tesouro=devolucao_ao_tesouro_parcial_ajuste_inativa,
+        devolucao_ao_tesouro=None,
         detalhamento="teste"
     )
+
+@pytest.fixture
+def solicitacao_devolucao_ao_tesouro_teste_inativa_analises(
+    solicitacao_acerto_lancamento_devolucao_teste_inativa_analises,
+    tipo_devolucao_ao_tesouro_teste,
+):
+    return baker.make(
+        'SolicitacaoDevolucaoAoTesouro',
+        solicitacao_acerto_lancamento=solicitacao_acerto_lancamento_devolucao_teste_inativa_analises,
+        tipo=tipo_devolucao_ao_tesouro_teste,
+        devolucao_total=False,
+        valor=100.00,
+        motivo='teste',
+    )
+
 
 
 @pytest.fixture
