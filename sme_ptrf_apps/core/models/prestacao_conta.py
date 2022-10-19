@@ -188,6 +188,31 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
+    def get_contas_com_movimento(self):
+        from sme_ptrf_apps.core.models import ContaAssociacao
+        from sme_ptrf_apps.receitas.models import Receita
+        from sme_ptrf_apps.despesas.models import RateioDespesa
+        contas = ContaAssociacao.objects.filter(associacao=self.associacao)
+
+        contas_com_movimento = []
+        for conta in contas:
+            tem_receitas_no_periodo = Receita.receitas_da_conta_associacao_no_periodo(
+                conta_associacao=conta,
+                periodo=self.periodo,
+                inclui_inativas=True,
+            ).exists()
+
+            tem_gastos_no_periodo = RateioDespesa.rateios_da_conta_associacao_no_periodo(
+                conta_associacao=conta,
+                periodo=self.periodo,
+                incluir_inativas=True,
+            ).exists()
+
+            if tem_receitas_no_periodo or tem_gastos_no_periodo:
+                contas_com_movimento.append(conta)
+
+        return contas_com_movimento
+
     @transaction.atomic
     def analisar(self):
         from . import AnalisePrestacaoConta
