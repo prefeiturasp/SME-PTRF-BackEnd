@@ -155,7 +155,6 @@ class AnalisesPrestacoesContasViewSet(
             com_ajustes=True,
             inclui_inativas=True,
         )
-
         return Response(lancamentos, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], url_path='documentos-com-ajuste',
