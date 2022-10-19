@@ -9,7 +9,7 @@ from .models import (
     JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE,
     ParametroFiqueDeOlhoRelDre, MotivoAprovacaoRessalva, MotivoReprovacao, Comissao, MembroComissao,
     AnoAnaliseRegularidade, AnaliseRegularidadeAssociacao, ParametrosDre, AtaParecerTecnico,
-    PresenteAtaDre, ConsolidadoDRE, Lauda, DocumentoAdicional
+    PresenteAtaDre, ConsolidadoDRE, Lauda, DocumentoAdicional, ComentarioAnaliseConsolidadoDRE
 )
 
 admin.site.register(ParametroFiqueDeOlhoRelDre)
@@ -321,3 +321,21 @@ class PresentesAtaDreAdmin(admin.ModelAdmin):
 class DocumentoAdicionalAdmin(admin.ModelAdmin):
     list_display = ('nome',)
     readonly_fields = ('uuid', 'criado_em', 'alterado_em', )
+
+
+@admin.register(ComentarioAnaliseConsolidadoDRE)
+class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
+
+    def get_dre(self, obj):
+        return obj.consolidado_dre.dre if obj and obj.consolidado_dre and obj.consolidado_dre.dre else ''
+
+    get_dre.short_description = 'DRE'
+
+    def get_periodo(self, obj):
+        return obj.consolidado_dre.periodo if obj and obj.consolidado_dre and obj.consolidado_dre.periodo else ''
+
+    get_periodo.short_description = 'Período'
+
+    list_display = ('get_dre', 'get_periodo', 'consolidado_dre', 'ordem', 'comentario', 'notificado_em')
+    list_filter = ('consolidado_dre__dre', 'consolidado_dre__periodo', 'consolidado_dre',)
+    readonly_fields = ('uuid', 'id')

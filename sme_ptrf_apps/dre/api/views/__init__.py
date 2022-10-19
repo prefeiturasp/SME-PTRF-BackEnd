@@ -14,3 +14,4 @@ from .consolidados_dre_viewset import ConsolidadosDreViewSet
 from .parametros_dre_viewset import ParametrosDreViewSet
 from .valores_reprogramados_viewset import ValoresReprogramadosViewSet
 from .laudas_viewset import LaudaViewSet
+from .comentarios_analises_consolidado_dre_viewset import ComentariosAnalisesConsolidadosDREViewSet
