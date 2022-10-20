@@ -211,11 +211,13 @@
                         <br>
                         <span class="font-12">{{ acerto.devolucao_ao_tesouro.tipo.nome }}</span>
                       </div>
+                      {% if acerto.devolucao_ao_tesouro.data %}
                       <div class="col-6">
                         <span class="font-12"><strong>Realização da devolução em</strong></span>
                         <br>
                         <span class="font-12">{{ acerto.devolucao_ao_tesouro.data|date:'d/m/Y' }}</span>
                       </div>
+                      {% endif %}
                     </div>
 
                     <div class="row mt-2">
@@ -355,7 +357,7 @@
   {% endif %}
 
   {% if dados.dados_documentos %}
-    <article class="mt-4 ml-2">
+    <article class="mt-4">
       <table class="table table-bordered tabela-resumo-por-acao nao-quebra-linha">
         <thead>
           <tr class="">
@@ -378,15 +380,14 @@
 
             {% for acertos in documento.solicitacoes_de_ajuste_da_analise %}
               <tr>
-                <td class="">
+                <td class="sem-borda pb-2">
                   <div class="row">
                     <div class="col-6 mt-2">
-                      <span class="ml-3 font-12"><strong>Item:</strong></span>
-                      <br/>
+                      <span class="ml-3 item font-12"><strong>Item {{ forloop.counter }}:</strong></span>
                       <span class="ml-3 font-12">{{ acertos.tipo_acerto.nome }}</span>
                     </div>
                   {% if acertos.detalhamento %}
-                      <div class="col-6 mt-2">
+                      <div class="col-12 mt-2">
                         <span class="ml-3 font-12"><strong>Detalhamento do acerto:</strong></span>
                         <br>
                         <span class="ml-3 font-12">{{ acertos.detalhamento }}</span>
@@ -399,7 +400,7 @@
             {% endfor %}
 
             <tr>
-              <td>
+              <td class="sem-borda pb-2">
                 <div class="row">
                   <div class="col-12 mt-4 ml-3">
                     <span class="item font-12"><strong>Retorno da Associação:</strong></span>
