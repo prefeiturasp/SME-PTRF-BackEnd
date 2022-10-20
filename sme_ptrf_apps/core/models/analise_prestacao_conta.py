@@ -167,6 +167,11 @@ class AnalisePrestacaoConta(ModeloBase):
 
         return tem_analises_de_lancamentos_pendentes or tem_analises_de_documentos_pendentes
 
+    def tem_acertos_extratos_bancarios(self, conta_associacao):
+        acerto_extrato_bancario = self.analises_de_extratos.filter(conta_associacao=conta_associacao).exists()
+
+        return acerto_extrato_bancario
+
     def __str__(self):
         return f"{self.prestacao_conta.periodo} - Análise #{self.pk}"
 

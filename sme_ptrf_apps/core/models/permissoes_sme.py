@@ -121,17 +121,3 @@ class FuncSmeExtracaoDeDados(models.Model):
         permissions = (
             ('access_extracao_de_dados_sme', '[SME] Pode acessar Extração de dados da SME.'),
         )
-
-
-class FuncSmeAnaliseRelatoriosConsolidados(models.Model):
-
-    class Meta:
-        managed = False  # No database table creation.
-        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
-
-        verbose_name = "[SME] Análise de Relatório Consolidado"
-        verbose_name_plural = "[SME] Análises de Relatórios Consolidados"
-
-        permissions = (
-            ('access_analise_relatorios_consolidados_sme', '[SME] Pode acessar a Análise de Relatórios Consolidados.'),
-        )
