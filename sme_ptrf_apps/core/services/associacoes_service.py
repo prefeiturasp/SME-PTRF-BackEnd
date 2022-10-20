@@ -87,6 +87,12 @@ def tem_repasses_pendentes_periodos_ate_agora(associacao, periodo):
 def retorna_se_pode_habilitar_botao_ver_acertos_em_analise_da_dre(periodo, associacao_uuid):
     associacao = Associacao.by_uuid(associacao_uuid)
 
+    tem_solicitacoes_de_ajustes_extratos_bancarios = PrestacaoConta.objects.filter(
+        periodo=periodo,
+        associacao=associacao,
+        analises_da_prestacao__analises_de_extratos__isnull=False
+    ).count()
+
     tem_solicitacoes_de_ajustes_lancamentos = PrestacaoConta.objects.filter(
         periodo=periodo,
         associacao=associacao,
@@ -99,7 +105,8 @@ def retorna_se_pode_habilitar_botao_ver_acertos_em_analise_da_dre(periodo, assoc
         analises_da_prestacao__analises_de_documento__solicitacoes_de_ajuste_da_analise__isnull=False
     ).count()
 
-    total_ajustes = tem_solicitacoes_de_ajustes_lancamentos + tem_solicitacoes_de_ajustes_documentos
+    total_ajustes = tem_solicitacoes_de_ajustes_lancamentos + tem_solicitacoes_de_ajustes_documentos + \
+        tem_solicitacoes_de_ajustes_extratos_bancarios
 
     return total_ajustes > 0
 

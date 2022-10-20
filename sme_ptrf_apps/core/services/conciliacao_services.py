@@ -1,6 +1,6 @@
 from django.db.models import Sum, Q, Count, Max
 
-from sme_ptrf_apps.core.models import Associacao, FechamentoPeriodo
+from sme_ptrf_apps.core.models import Associacao, FechamentoPeriodo, PrestacaoConta
 from sme_ptrf_apps.despesas.models import RateioDespesa, Despesa
 from sme_ptrf_apps.receitas.models import Receita
 
@@ -620,3 +620,23 @@ def salva_conciliacao_bancaria(justificativa_ou_extrato_bancario, texto_observac
             comprovante_extrato=comprovante_extrato,
             data_atualizacao_comprovante_extrato=data_atualizacao_comprovante_extrato,
         )
+
+
+def permite_editar_campos_extrato(associacao, periodo, conta_associacao):
+    prestacao_conta = PrestacaoConta.objects.filter(
+        associacao=associacao,
+        periodo=periodo
+    ).first()
+
+    if not prestacao_conta:
+        return True
+
+    if prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
+        return False
+
+    ultima_analise = prestacao_conta.analises_da_prestacao.last()
+
+    tem_acertos_de_extrato = ultima_analise.tem_acertos_extratos_bancarios(conta_associacao) if \
+        ultima_analise is not None else False
+
+    return tem_acertos_de_extrato
