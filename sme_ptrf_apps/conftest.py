@@ -1805,6 +1805,17 @@ def devolucao_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada):
 
 
 @pytest.fixture
+def devolucao_prestacao_conta_2019_2(prestacao_conta_devolvida):
+    return baker.make(
+        'DevolucaoPrestacaoConta',
+        prestacao_conta=prestacao_conta_devolvida,
+        data=date(2020, 7, 1),
+        data_limite_ue=date(2020, 8, 1),
+        data_retorno_ue=None
+    )
+
+
+@pytest.fixture
 def analise_conta_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, conta_associacao_cheque):
     return baker.make(
         'AnaliseContaPrestacaoConta',
@@ -1812,6 +1823,18 @@ def analise_conta_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, cont
         conta_associacao=conta_associacao_cheque,
         data_extrato=date(2020, 7, 1),
         saldo_extrato=100.00,
+    )
+
+
+@pytest.fixture
+def analise_conta_prestacao_conta_2019_2(prestacao_conta_devolvida, conta_associacao_cheque, analise_prestacao_conta_2019_2):
+    return baker.make(
+        'AnaliseContaPrestacaoConta',
+        prestacao_conta=prestacao_conta_devolvida,
+        conta_associacao=conta_associacao_cheque,
+        data_extrato=date(2020, 7, 1),
+        saldo_extrato=100.00,
+        analise_prestacao_conta=analise_prestacao_conta_2019_2
     )
 
 
@@ -1834,6 +1857,15 @@ def analise_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, devolucao_
         'AnalisePrestacaoConta',
         prestacao_conta=prestacao_conta_2020_1_conciliada,
         devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1
+    )
+
+
+@pytest.fixture
+def analise_prestacao_conta_2019_2(prestacao_conta_devolvida, devolucao_prestacao_conta_2019_2):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_devolvida,
+        devolucao_prestacao_conta=devolucao_prestacao_conta_2019_2
     )
 
 
