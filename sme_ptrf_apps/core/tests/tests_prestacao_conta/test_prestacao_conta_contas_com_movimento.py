@@ -94,6 +94,32 @@ def tpcccm_rateio_despesa(
     )
 
 
+@pytest.fixture
+def tpcccm_fechamento_periodo_com_saldo(
+    periodo,
+    associacao,
+    conta_associacao_cheque,
+    acao_associacao,
+    tpcccm_prestacao_conta
+):
+    return baker.make(
+        'FechamentoPeriodo',
+        periodo=periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cheque,
+        acao_associacao=acao_associacao,
+        fechamento_anterior=None,
+        total_receitas_capital=20000,
+        total_repasses_capital=20000,
+        total_despesas_capital=0,
+        total_receitas_custeio=20000,
+        total_repasses_custeio=20000,
+        total_despesas_custeio=0,
+        status='FECHADO',
+        prestacao_conta=tpcccm_prestacao_conta,
+    )
+
+
 def test_contas_com_movimento_de_gastos(
     tpcccm_prestacao_conta: PrestacaoConta,
     tpcccm_rateio_despesa,
@@ -104,3 +130,25 @@ def test_contas_com_movimento_de_gastos(
 
     assert len(contas_com_movimento) == 1
     assert contas_com_movimento[0] == conta_associacao_cartao
+
+
+def test_contas_com_movimento_sem_movimento(
+    tpcccm_prestacao_conta: PrestacaoConta,
+    conta_associacao_cheque,
+    conta_associacao_cartao,
+):
+    contas_com_movimento = tpcccm_prestacao_conta.get_contas_com_movimento()
+
+    assert len(contas_com_movimento) == 0
+
+
+def test_contas_com_movimento_sem_movimento_mas_com_saldo(
+    tpcccm_prestacao_conta: PrestacaoConta,
+    conta_associacao_cheque,
+    conta_associacao_cartao,
+    tpcccm_fechamento_periodo_com_saldo,
+):
+    contas_com_movimento = tpcccm_prestacao_conta.get_contas_com_movimento(add_sem_movimento_com_saldo=True)
+
+    assert len(contas_com_movimento) == 1
+    assert contas_com_movimento[0] == conta_associacao_cheque
