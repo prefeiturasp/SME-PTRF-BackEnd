@@ -1137,6 +1137,8 @@ def documentos_da_prestacao(analise_prestacao_conta):
             contas_com_movimento = analise_prestacao_conta.prestacao_conta.get_contas_com_movimento(
                 add_sem_movimento_com_saldo=True)
             for conta in contas_com_movimento:
+                if documento.e_relacao_bens and not analise_prestacao_conta.prestacao_conta.relacoes_de_bens_da_prestacao.filter(conta_associacao=conta).exists():
+                    continue
                 documentos.append(result_documento(documento, conta))
         else:
             documentos.append(result_documento(documento))
