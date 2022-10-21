@@ -130,7 +130,7 @@ class Receita(ModeloBase):
         if self.e_receita_inativa():
             tags.append(tag_informacao(
                 self.TAG_INATIVA,
-                f"Este crédito foi inativado em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y às %H:%M:%S')}"
+                f"Este crédito foi inativado em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}"
             ))
         return tags
 
