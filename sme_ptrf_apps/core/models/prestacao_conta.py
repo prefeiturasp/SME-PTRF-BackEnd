@@ -3,6 +3,7 @@ import logging
 from datetime import date
 
 from django.db import models
+from django.db.models import Q
 from django.db import transaction
 from django.db.models.aggregates import Sum
 
@@ -187,6 +188,38 @@ class PrestacaoConta(ModeloBase):
         self.status = self.STATUS_DEVOLVIDA_RETORNADA
         self.save()
         return self
+
+    def get_contas_com_movimento(self, add_sem_movimento_com_saldo=False):
+        from sme_ptrf_apps.core.models import ContaAssociacao
+        from sme_ptrf_apps.receitas.models import Receita
+        from sme_ptrf_apps.despesas.models import RateioDespesa
+        contas = ContaAssociacao.objects.filter(associacao=self.associacao).order_by('id')
+
+        contas_com_movimento = []
+        for conta in contas:
+            tem_receitas_no_periodo = Receita.receitas_da_conta_associacao_no_periodo(
+                conta_associacao=conta,
+                periodo=self.periodo,
+                inclui_inativas=True,
+            ).exists()
+
+            tem_gastos_no_periodo = RateioDespesa.rateios_da_conta_associacao_no_periodo(
+                conta_associacao=conta,
+                periodo=self.periodo,
+                incluir_inativas=True,
+            ).exists()
+
+            if not tem_receitas_no_periodo and not tem_gastos_no_periodo and add_sem_movimento_com_saldo:
+                tem_saldo_no_periodo = self.fechamentos_da_prestacao.filter(conta_associacao=conta).filter(
+                    Q(saldo_reprogramado_custeio__gt=0) | Q(saldo_reprogramado_capital__gt=0) | Q(
+                        saldo_reprogramado_livre__gt=0)).exists()
+            else:
+                tem_saldo_no_periodo = False
+
+            if tem_receitas_no_periodo or tem_gastos_no_periodo or tem_saldo_no_periodo:
+                contas_com_movimento.append(conta)
+
+        return contas_com_movimento
 
     @transaction.atomic
     def analisar(self):
