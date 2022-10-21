@@ -414,7 +414,7 @@ class DespesaDocumentoMestreSerializer(serializers.ModelSerializer):
         return despesa.receitas_saida_do_recurso.first().uuid if despesa.receitas_saida_do_recurso.exists() else None
 
     def get_mensagem_despesa_inativa(self, despesa):
-        return  f"Este gasto foi desativado em {despesa.data_e_hora_de_inativacao.strftime('%d/%m/%Y às %H:%M:%S')}" if despesa.status == "INATIVO" else None
+        return  f"Este gasto foi desativado em {despesa.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}" if despesa.status == "INATIVO" else None
 
     class Meta:
         model = Despesa
