@@ -206,11 +206,18 @@
                     </div>
 
                     <div class="row mt-2">
-                      <div class="col-12">
+                      <div class="col-6">
                         <span class="font-12"><strong>Tipo de devolução</strong></span>
                         <br>
                         <span class="font-12">{{ acerto.devolucao_ao_tesouro.tipo.nome }}</span>
                       </div>
+                      {% if acerto.devolucao_ao_tesouro.data %}
+                      <div class="col-6">
+                        <span class="font-12"><strong>Realização da devolução em</strong></span>
+                        <br>
+                        <span class="font-12">{{ acerto.devolucao_ao_tesouro.data|date:'d/m/Y' }}</span>
+                      </div>
+                      {% endif %}
                     </div>
 
                     <div class="row mt-2">
@@ -250,7 +257,7 @@
                     {% if acerto.detalhamento %}
                       <div class="row mt-2">
                         <div class="col-12">
-                          <span class="font-12"><strong>Detalhamento do acerto (opcional):</strong></span>
+                          <span class="font-12"><strong>Detalhamento do acerto:</strong></span>
                           <br>
                           <span class="font-12">{{ acerto.detalhamento }}</span>
                         </div>
@@ -373,40 +380,36 @@
 
             {% for acertos in documento.solicitacoes_de_ajuste_da_analise %}
               <tr>
-                <td class="">
+                <td class="sem-borda pb-2">
                   <div class="row">
-                    <div class="col-12 mt-2">
-                      <span class="ml-3 font-12"><strong>Item:</strong></span>
-                      <br/>
+                    <div class="col-6 mt-2">
+                      <span class="ml-3 item font-12"><strong>Item {{ forloop.counter }}:</strong></span>
                       <span class="ml-3 font-12">{{ acertos.tipo_acerto.nome }}</span>
                     </div>
-                  </div>
-
                   {% if acertos.detalhamento %}
-                    <div class="row mt-2">
-                      <div class="col-12">
+                      <div class="col-12 mt-2">
                         <span class="ml-3 font-12"><strong>Detalhamento do acerto:</strong></span>
                         <br>
                         <span class="ml-3 font-12">{{ acertos.detalhamento }}</span>
                       </div>
-                    </div>
                   {% endif %}
 
+                  </div>
                 </td>
               </tr>
             {% endfor %}
 
             <tr>
-              <td>
+              <td class="sem-borda pb-2">
                 <div class="row">
-                  <div class="col-12 mt-2">
-                    <span class="ml-3 font-12"><strong>Retorno da Associação:</strong></span>
+                  <div class="col-12 mt-4 ml-3">
+                    <span class="item font-12"><strong>Retorno da Associação:</strong></span>
                   </div>
                 </div>
 
 
                 {% if documento.status_realizacao == 'PENDENTE' %}
-                  <div class="row mt-2">
+                  <div class="row mt-2 mb-5">
                     <div class="col-3">
                       <span class="ml-3 font-12"><strong>Status</strong></span>
                       <br/>
@@ -416,7 +419,7 @@
                     </div>
 
                     {% if documento.esclarecimentos %}
-                      <div class="col-9">
+                      <div class="col-9 mb-2">
                         <span class="font-12"><strong>Esclarecimento</strong></span>
                         <br/>
                         <span class="mt-2 font-12">{{ documento.esclarecimentos }}</span>
@@ -426,7 +429,7 @@
                   </div>
                 {% elif documento.status_realizacao == 'JUSTIFICADO' %}
 
-                  <div class="row mt-2">
+                  <div class="row mt-2 mb-5">
                     <div class="col-3">
                       <span class="ml-3 font-12"><strong>Status</strong></span>
                       <br/>
@@ -436,20 +439,20 @@
                     </div>
 
                     {% if documento.esclarecimentos %}
-                      <div class="col-5">
+                      <div class="col-5 mb-2">
                         <span class="font-12"><strong>Justificativa</strong></span>
                         <br/>
                         <span class="mt-2 font-12">{{ documento.justificativa }}</span>
                       </div>
 
-                      <div class="col-4">
+                      <div class="col-4 mb-2">
                         <span class="font-12"><strong>Esclarecimento</strong></span>
                         <br/>
                         <span class="mt-2 font-12">{{ documento.esclarecimentos }}</span>
                       </div>
 
                     {% else %}
-                      <div class="col-9">
+                      <div class="col-9 mb-2">
                         <span class="font-12"><strong>Justificativa</strong></span>
                         <br/>
                         <span class="mt-2 font-12">{{ documento.justificativa }}</span>
@@ -458,7 +461,7 @@
                   </div>
 
                 {% elif documento.status_realizacao == 'REALIZADO' %}
-                  <div class="row mt-2">
+                  <div class="row mt-2 mb-5">
                     <div class="col-3">
                       <span class="ml-3 font-12"><strong>Status</strong></span>
                       <br/>
@@ -469,7 +472,7 @@
                     </div>
 
                     {% if documento.esclarecimentos %}
-                      <div class="col-9">
+                      <div class="col-9 mb-2">
                         <span class="font-12"><strong>Esclarecimento</strong></span>
                         <br/>
                         <span class="mt-2 font-12">{{ documento.esclarecimentos }}</span>
