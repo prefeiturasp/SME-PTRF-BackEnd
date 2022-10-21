@@ -33,6 +33,9 @@ from ...services import concluir_consolidado_dre, \
 
 import mimetypes
 
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
 logger = logging.getLogger(__name__)
 
 
@@ -911,6 +914,58 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
                 'mensagem': 'Houve algum erro ao tentar reabrir o consolidado dre.'
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'],
+            url_path='analisar',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def analisar(self, request):
+        dados = request.data
+
+        if (
+            not dados
+            or not dados.get('consolidado_dre')
+            or not dados.get('usuario')
+        ):
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do Consolidado DRE e o Usuário (username)'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        consolidado_dre_uuid = dados['consolidado_dre']
+        usuario_username = dados['usuario']
+
+        try:
+            consolidado_dre = ConsolidadoDRE.objects.get(uuid=consolidado_dre_uuid)
+        except (ConsolidadoDRE.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto Consolidado DRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            usuario = User.objects.filter(username=usuario_username).first()
+        except (User.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto User para o uuid {usuario_username} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            consolidado_dre.marcar_status_sme_como_em_analise(usuario)
+            return Response("Consolidado DRE foi passado para o status Em Análise com Sucesso!", status=status.HTTP_200_OK)
+        except:
+            erro = {
+                'erro': 'Erro ao analisar o Consolidado Dre',
+                'mensagem': f"Não foi possível passar o status do Consolidado DRE para EM_ANALISE"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'], url_path='acompanhamento-de-relatorios-consolidados-sme',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])

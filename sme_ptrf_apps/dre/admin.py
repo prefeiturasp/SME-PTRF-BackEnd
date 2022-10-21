@@ -67,8 +67,19 @@ class ConsolidadoDREAdmin(admin.ModelAdmin):
 
     get_nome_dre.short_description = 'DRE'
 
-    list_display = ('get_nome_dre', 'periodo', 'status', 'versao', 'eh_parcial', 'sequencia_de_publicacao', 'status_sme', 'data_publicacao', 'pagina_publicacao')
-    list_filter = ('status', 'dre', 'periodo', 'versao', 'status_sme')
+    list_display = (
+        'get_nome_dre',
+        'periodo',
+        'status',
+        'versao',
+        'eh_parcial',
+        'sequencia_de_publicacao',
+        'status_sme',
+        'data_publicacao',
+        'pagina_publicacao',
+        'responsavel_pela_analise',
+    )
+    list_filter = ('status', 'dre', 'periodo', 'versao', 'status_sme', 'responsavel_pela_analise')
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome',)

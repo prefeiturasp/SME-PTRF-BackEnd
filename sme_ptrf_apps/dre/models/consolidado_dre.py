@@ -6,6 +6,8 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.db import transaction
 from ..models import RelatorioConsolidadoDRE
+from django.contrib.auth import get_user_model
+from datetime import date
 
 
 logger = logging.getLogger(__name__)
@@ -106,6 +108,15 @@ class ConsolidadoDRE(ModeloBase):
 
     data_de_inicio_da_analise = models.DateField('Data de início da análise (data de recebimento)', blank=True, null=True)
 
+    responsavel_pela_analise = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        verbose_name='Responsável',
+        related_name='consolidado_dre_usuario_responsavel'
+    )
+
     class Meta:
         verbose_name = 'Consolidado DRE'
         verbose_name_plural = 'Consolidados DREs'
@@ -184,6 +195,13 @@ class ConsolidadoDRE(ModeloBase):
         self.status_sme = self.STATUS_SME_NAO_PUBLICADO
         self.data_publicacao = None
         self.pagina_publicacao = ''
+        self.save()
+        return self
+
+    def marcar_status_sme_como_em_analise(self, usuario):
+        self.status_sme = self.STATUS_SME_EM_ANALISE
+        self.data_de_inicio_da_analise = date.today()
+        self.responsavel_pela_analise = usuario
         self.save()
         return self
 
