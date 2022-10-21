@@ -15,6 +15,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPITodosComLeituraOuGravacao,
     PermissaoAPITodosComGravacao,
     PermissaoAPIApenasDreComGravacao,
+    PermissaoAPIApenasDreComLeituraOuGravacao,
 )
 from ....despesas.models import TipoDocumento, TipoTransacao
 
@@ -1691,3 +1692,13 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         ata = Ata.iniciar_previa(associacao=associacao, periodo=periodo)
 
         return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='contas-com-movimento',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def contas_com_movimento(self, request, uuid):
+        from ..serializers.conta_associacao_serializer import ContaAssociacaoDadosSerializer
+
+        prestacao_conta: PrestacaoConta = self.get_object()
+        contas = prestacao_conta.get_contas_com_movimento()
+
+        return Response(ContaAssociacaoDadosSerializer(contas, many=True).data)

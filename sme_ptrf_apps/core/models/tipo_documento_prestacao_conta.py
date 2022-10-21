@@ -9,7 +9,8 @@ from auditlog.registry import auditlog
 class TipoDocumentoPrestacaoConta(ModeloIdNome):
     history = AuditlogHistoryField()
 
-    documento_por_conta = models.BooleanField('Documento por tipo de conta?', default=False)
+    documento_por_conta = models.BooleanField('É um documento por tipo de conta?', default=False)
+    e_relacao_bens = models.BooleanField('O documento é uma Relação de Bens?', default=False)
 
     @classmethod
     def lista_documentos(cls):
