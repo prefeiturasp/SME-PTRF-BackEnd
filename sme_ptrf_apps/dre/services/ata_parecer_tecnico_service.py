@@ -41,6 +41,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
     lista_contas_reprovadas = []  # PCs reprovadas precisam ser separadas por conta
     lista_motivos_aprovadas_ressalva = []
     lista_motivos_reprovacao = []
+    import ipdb; ipdb.set_trace();
 
     titulo_sequencia_publicacao = None
     if parcial:
