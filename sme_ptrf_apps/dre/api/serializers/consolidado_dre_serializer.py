@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from sme_ptrf_apps.core.api.serializers.unidade_serializer import DreSerializer
 from sme_ptrf_apps.core.api.serializers import PeriodoLookUpSerializer
+from sme_ptrf_apps.users.api.serializers import UserLookupSerializer
 from ..serializers.relatorio_consolidado_dre_serializer import RelatorioConsolidadoDreSerializer
 from ..serializers.ata_parecer_tecnico_serializer import AtaParecerTecnicoLookUpSerializer
 from ...models import ConsolidadoDRE
@@ -37,6 +38,7 @@ class ConsolidadoDreDetalhamentoSerializer(serializers.ModelSerializer):
     exibe_reabrir_relatorio = serializers.SerializerMethodField('get_exibe_reabrir_relatorio')
     exibe_analisar = serializers.SerializerMethodField('get_exibe_analisar')
     permite_edicao = serializers.SerializerMethodField('get_permite_edicao')
+    responsavel_pela_analise = UserLookupSerializer(many=False, allow_null=True, required=False)
 
     dre = DreSerializer()
     periodo = PeriodoLookUpSerializer()
@@ -78,4 +80,6 @@ class ConsolidadoDreDetalhamentoSerializer(serializers.ModelSerializer):
             'exibe_reabrir_relatorio',
             'exibe_analisar',
             'permite_edicao',
+            'responsavel_pela_analise',
+            'data_de_inicio_da_analise',
         )

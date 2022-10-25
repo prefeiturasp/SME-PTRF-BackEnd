@@ -106,7 +106,7 @@ class UserRetrieveSerializer(serializers.ModelSerializer):
 class UserLookupSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username"]
+        fields = ["id", "username", "name"]
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
