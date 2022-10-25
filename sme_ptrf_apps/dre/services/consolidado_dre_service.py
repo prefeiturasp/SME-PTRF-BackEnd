@@ -284,12 +284,12 @@ def retornar_trilha_de_status(dre_uuid=None, periodo_uuid=None, add_aprovado_res
             },
         'CONCLUIDO':
             {
-                'titulo': 'Concluídas e<br/> aguardando publicação',
+                'titulo': 'Concluídas <br/>Documentos não gerados',
                 'estilo_css': 1
             },
         'PUBLICADO':
             {
-                'titulo': 'Concluídas e<br/>Documentos gerados',
+                'titulo': 'Concluídas <br/>Documentos gerados',
                 'estilo_css': 0
             },
         'APROVADA':
