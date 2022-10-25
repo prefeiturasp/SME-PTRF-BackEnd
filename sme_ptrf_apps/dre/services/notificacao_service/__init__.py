@@ -1,0 +1,1 @@
+from sme_ptrf_apps.dre.services.notificacao_service import class_notificacao_service

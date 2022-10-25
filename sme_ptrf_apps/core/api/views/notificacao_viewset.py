@@ -8,8 +8,9 @@ from rest_framework.response import Response
 
 from sme_ptrf_apps.core.api.serializers import NotificacaoSerializer
 
-from sme_ptrf_apps.core.models import Notificacao
+from sme_ptrf_apps.core.models import Notificacao, Unidade, Periodo
 from sme_ptrf_apps.core.services.notificacao_services import formata_data, notificar_comentario_pc
+from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +76,8 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
             datas = sorted(set([p.criado_em.date() for p in page]), reverse=True)
             for data in datas:
                 d = {"data": formata_data(data), "infos": NotificacaoSerializer([n for n in page if (
-                    n.criado_em.year == data.year and n.criado_em.month == data.month and n.criado_em.day == data.day)], many=True).data}
+                    n.criado_em.year == data.year and n.criado_em.month == data.month and n.criado_em.day == data.day)],
+                                                                                many=True).data}
                 lista.append(d)
 
             result = self.get_paginated_response(lista).data
@@ -83,9 +85,11 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
             datas = sorted(self.get_queryset().dates("criado_em", "day"), reverse=True)
 
             for data in datas:
-                d = {"data": formata_data(data), "infos": NotificacaoSerializer(self.get_queryset().filter(criado_em__year=data.year,
-                                                                                                           criado_em__month=data.month,
-                                                                                                           criado_em__day=data.day), many=True).data}
+                d = {"data": formata_data(data),
+                     "infos": NotificacaoSerializer(self.get_queryset().filter(criado_em__year=data.year,
+                                                                               criado_em__month=data.month,
+                                                                               criado_em__day=data.day),
+                                                    many=True).data}
                 lista.append(d)
             result = lista
 
@@ -158,6 +162,66 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
 
         try:
             notificar_comentario_pc(dado)
+        except Exception as err:
+            logger.info("Erro no processo de notificação: %s", str(err))
+            resultado = {
+                'erro': 'Problema no processo de notificar usuário',
+                'mensagem': "Erro no processo de notificacao"
+            }
+            return Response(resultado, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"mensagem": "Processo de notificação enviado com sucesso."})
+
+    @action(detail=False, url_path="notificar-comentarios-de-analise-consolidado-dre", methods=['post'])
+    def notificar_comentarios_de_analise_consolidado_dre(self, request):
+
+        from sme_ptrf_apps.dre.services.notificacao_service.class_notificacao_comentario_de_analise_consolidado_dre import \
+            NotificacaoComentarioDeAnaliseConsolidadoDre
+
+        dado = self.request.data
+
+        if not dado.get('dre') or not dado.get('periodo') or not dado.get('comentarios'):
+            resultado = {
+                'erro': 'Dados incompletos',
+                'mensagem': 'uuid da dre, do período e lista uuids de comentários são obrigatórios.'
+            }
+
+            status_code = status.HTTP_400_BAD_REQUEST
+            logger.info('Erro: %r', resultado)
+            return Response(resultado, status=status_code)
+
+        comentarios = dado.get('comentarios')
+
+        try:
+            dre = Unidade.by_uuid(dado['dre'])
+        except (Unidade.DoesNotExist, ValidationError):
+            resultado = {
+                'erro': 'objeto_nao_encontrado',
+                'mensagem': f"O objeto DRE para o uuid {dado.get('dre')} não foi encontrado na base"
+            }
+            status_code = status.HTTP_400_BAD_REQUEST
+            logger.info('Erro: %r', resultado)
+            return Response(resultado, status=status_code)
+
+        try:
+            periodo = Periodo.by_uuid(dado['periodo'])
+        except (Periodo.DoesNotExist, ValidationError):
+            resultado = {
+                'erro': 'objeto_nao_encontrado',
+                'mensagem': f"O objeto Periodo para o uuid {dado.get('periodo')} não foi encontrado na base"
+            }
+            status_code = status.HTTP_400_BAD_REQUEST
+            logger.info('Erro: %r', resultado)
+            return Response(resultado, status=status_code)
+
+        try:
+            NotificacaoComentarioDeAnaliseConsolidadoDre(
+                dre=dre,
+                periodo=periodo,
+                comentarios=comentarios,
+                enviar_email=True
+            ).notificar()
+
         except Exception as err:
             logger.info("Erro no processo de notificação: %s", str(err))
             resultado = {
