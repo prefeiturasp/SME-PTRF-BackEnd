@@ -207,11 +207,10 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
 
     list_display = ('get_eol_unidade', 'periodo', 'get_nome_acao', 'get_nome_conta', 'saldo_anterior', 'total_receitas',
                     'total_despesas', 'saldo_reprogramado', 'status')
-    list_filter = ('status', 'associacao', 'acao_associacao__acao', 'conta_associacao__tipo_conta')
+    list_filter = ('status', 'associacao', 'acao_associacao__acao', 'periodo', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre', 'conta_associacao__tipo_conta')
     list_display_links = ('periodo',)
-    readonly_fields = (
-    'saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre', 'uuid', 'id')
-    search_fields = ('associacao__unidade__codigo_eol',)
+    readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre', 'uuid', 'id')
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome',)
 
 
 @admin.register(PrestacaoConta)
