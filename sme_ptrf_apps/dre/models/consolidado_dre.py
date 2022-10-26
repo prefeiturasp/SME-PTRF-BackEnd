@@ -193,6 +193,8 @@ class ConsolidadoDRE(ModeloBase):
         self.status_sme = self.STATUS_SME_PUBLICADO
         self.data_publicacao = data_publicacao
         self.pagina_publicacao = pagina_publicacao
+        self.data_de_inicio_da_analise = None
+        self.responsavel_pela_analise = None
         self.save()
         return self
 
@@ -314,8 +316,6 @@ class ConsolidadoDRE(ModeloBase):
             analise_atual = AnaliseConsolidadoDre.objects.create(consolidado_dre=self)
             self.marcar_status_sme_como_em_analise(usuario)
             self.analise_atual = analise_atual
-            self.data_de_inicio_da_analise = None
-            self.responsavel_pela_analise = None
             self.save()
             return True
         except Exception as e:
