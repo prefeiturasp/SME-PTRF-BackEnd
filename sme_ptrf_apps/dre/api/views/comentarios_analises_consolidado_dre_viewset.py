@@ -44,7 +44,7 @@ class ComentariosAnalisesConsolidadosDREViewSet(viewsets.ModelViewSet):
         comentarios_nao_notificados = ComentarioAnaliseConsolidadoDRE.objects.filter(
             notificado=False,
             consolidado_dre=consolidado_dre
-        )
+        ).order_by('ordem')
 
         comentarios_notificados = ComentarioAnaliseConsolidadoDRE.objects.filter(
             notificado=True,
