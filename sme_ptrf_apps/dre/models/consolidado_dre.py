@@ -117,6 +117,10 @@ class ConsolidadoDRE(ModeloBase):
         related_name='consolidado_dre_usuario_responsavel'
     )
 
+    analise_atual = models.ForeignKey('AnaliseConsolidadoDre', on_delete=models.SET_NULL,
+                                      related_name='consolidado_dre_da_analise_atual',
+                                      blank=True, null=True)
+
     class Meta:
         verbose_name = 'Consolidado DRE'
         verbose_name_plural = 'Consolidados DREs'
@@ -185,6 +189,7 @@ class ConsolidadoDRE(ModeloBase):
         return self.get_status_display()
 
     def marcar_status_sme_como_publicado(self, data_publicacao, pagina_publicacao):
+        self.desfazer_analise_atual()
         self.status_sme = self.STATUS_SME_PUBLICADO
         self.data_publicacao = data_publicacao
         self.pagina_publicacao = pagina_publicacao
@@ -192,6 +197,7 @@ class ConsolidadoDRE(ModeloBase):
         return self
 
     def marcar_status_sme_como_nao_publicado(self):
+        self.desfazer_analise_atual()
         self.status_sme = self.STATUS_SME_NAO_PUBLICADO
         self.data_publicacao = None
         self.pagina_publicacao = ''
@@ -282,6 +288,10 @@ class ConsolidadoDRE(ModeloBase):
             logger.info(f"O relatorio da dre {relatorio} será apagado")
             relatorio.delete()
 
+    def desfazer_analise_atual(self):
+        self.analise_atual = None
+        self.save()
+
     @transaction.atomic
     def reabrir_consolidado(self):
         logger.info(f'Apagando o consolidado dre de uuid {self.uuid}.')
@@ -294,6 +304,34 @@ class ConsolidadoDRE(ModeloBase):
             return True
         except Exception as e:
             logger.error(f'Houve algum erro ao tentar apagar o consolidado dre de uuid {self.uuid}.')
+            logger.error(f'{e}')
+            return False
+
+    @transaction.atomic
+    def analisar_consolidado(self, usuario):
+        from ..models.analise_consolidado_dre import AnaliseConsolidadoDre
+        try:
+            analise_atual = AnaliseConsolidadoDre.objects.create(consolidado_dre=self)
+            self.marcar_status_sme_como_em_analise(usuario)
+            self.analise_atual = analise_atual
+            self.data_de_inicio_da_analise = None
+            self.responsavel_pela_analise = None
+            self.save()
+            return True
+        except Exception as e:
+            logger.error(f'Houve algum erro ao tentar analisar o consolidado dre de uuid {self.uuid}.')
+            logger.error(f'{e}')
+            return False
+
+    @transaction.atomic
+    def concluir_analise_consolidado(self):
+        try:
+            self.desfazer_analise_atual()
+            self.status_sme = self.STATUS_SME_ANALISADO
+            self.save()
+            return self
+        except Exception as e:
+            logger.error(f'Houve algum erro ao tentar concluir a análise do consolidado dre de uuid {self.uuid}.')
             logger.error(f'{e}')
             return False
 

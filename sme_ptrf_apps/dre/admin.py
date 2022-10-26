@@ -9,7 +9,7 @@ from .models import (
     JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE,
     ParametroFiqueDeOlhoRelDre, MotivoAprovacaoRessalva, MotivoReprovacao, Comissao, MembroComissao,
     AnoAnaliseRegularidade, AnaliseRegularidadeAssociacao, ParametrosDre, AtaParecerTecnico,
-    PresenteAtaDre, ConsolidadoDRE, Lauda, DocumentoAdicional, ComentarioAnaliseConsolidadoDRE
+    PresenteAtaDre, ConsolidadoDRE, Lauda, DocumentoAdicional, ComentarioAnaliseConsolidadoDRE, AnaliseConsolidadoDre
 )
 
 admin.site.register(ParametroFiqueDeOlhoRelDre)
@@ -348,5 +348,29 @@ class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
     get_periodo.short_description = 'Período'
 
     list_display = ('get_dre', 'get_periodo', 'consolidado_dre', 'ordem', 'comentario', 'notificado_em')
+    list_filter = ('consolidado_dre__dre', 'consolidado_dre__periodo', 'consolidado_dre',)
+    readonly_fields = ('uuid', 'id')
+
+
+@admin.register(AnaliseConsolidadoDre)
+class AnaliseConsolidadoDreAdmin(admin.ModelAdmin):
+
+    def get_dre(self, obj):
+        return obj.consolidado_dre.dre if obj and obj.consolidado_dre and obj.consolidado_dre.dre else ''
+
+    get_dre.short_description = 'DRE'
+
+    def get_periodo(self, obj):
+        return obj.consolidado_dre.periodo if obj and obj.consolidado_dre and obj.consolidado_dre.periodo else ''
+
+    def get_id(self, obj):
+        return f"Análise #{obj.pk}"
+
+    get_id.short_description = 'Análise'
+
+
+    get_periodo.short_description = 'Período'
+
+    list_display = ('get_dre', 'get_periodo', 'consolidado_dre','get_id')
     list_filter = ('consolidado_dre__dre', 'consolidado_dre__periodo', 'consolidado_dre',)
     readonly_fields = ('uuid', 'id')
