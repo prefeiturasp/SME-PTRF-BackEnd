@@ -1,3 +1,9 @@
+### 1.33.8 - 10/10/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 51
+* (76004) Demonstrativo de Execução Físico-Financeira exibindo linha de total mesmo quando há apenas uma conta
+
+### 1.33.7 - 05/10/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 51
+* (74981) Cadastro de membros: Código EOL de estudante não encontrado 
+
 ### 1.33.6 - 03/10/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 50
 * (74632) Relatório consolidado: Demonstrativo - Alterar exibição do valor de devolução ao tesouro
 
