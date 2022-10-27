@@ -48,6 +48,70 @@ def payload_passar_para_status_sme_publicado_sem_pagina_publicacao(consolidado_d
     return payload
 
 
+@pytest.fixture
+def payload_passar_para_status_sme_em_analise(consolidado_dre_teste_api_consolidado_dre):
+    payload = {
+        'consolidado_dre': f'{consolidado_dre_teste_api_consolidado_dre.uuid}',
+        "usuario": "7210418"
+    }
+    return payload
+
+@pytest.fixture
+def payload_passar_para_status_sme_analisado(consolidado_dre_teste_api_consolidado_dre):
+    payload = {
+        'consolidado_dre': f'{consolidado_dre_teste_api_consolidado_dre.uuid}'
+    }
+    return payload
+
+
+def test_passar_relatorio_para_status_sme_analisado(
+    jwt_authenticated_client_dre,
+    usuario_dre_teste_api,
+    payload_passar_para_status_sme_em_analise,
+    consolidado_dre_teste_api_consolidado_dre,
+):
+
+    uuid_consolidado = f"{consolidado_dre_teste_api_consolidado_dre.uuid}"
+
+    response = jwt_authenticated_client_dre.post(
+        '/api/consolidados-dre/marcar-como-analisado/',
+        data=json.dumps(payload_passar_para_status_sme_em_analise),
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    consolidado_dre_em_analise = ConsolidadoDRE.objects.filter(uuid=uuid_consolidado).first()
+
+    assert consolidado_dre_em_analise.status_sme == 'ANALISADO'
+
+
+def test_passar_relatorio_para_status_sme_em_analise(
+    jwt_authenticated_client_dre,
+    usuario_dre_teste_api,
+    payload_passar_para_status_sme_em_analise,
+    consolidado_dre_teste_api_consolidado_dre,
+):
+
+    uuid_consolidado = f"{consolidado_dre_teste_api_consolidado_dre.uuid}"
+
+    response = jwt_authenticated_client_dre.post(
+        '/api/consolidados-dre/analisar/',
+        data=json.dumps(payload_passar_para_status_sme_em_analise),
+        content_type='application/json'
+    )
+
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+
+    assert result == 'Consolidado DRE foi passado para o status Em Análise com Sucesso!'
+
+    consolidado_dre_em_analise = ConsolidadoDRE.objects.filter(uuid=uuid_consolidado).first()
+
+    assert consolidado_dre_em_analise.status_sme == 'EM_ANALISE'
+
+
 def test_passar_relatorio_para_status_sme_publicado(
     jwt_authenticated_client_dre,
     payload_passar_para_status_sme_publicado,

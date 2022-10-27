@@ -6,6 +6,8 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.db import transaction
 from ..models import RelatorioConsolidadoDRE
+from django.contrib.auth import get_user_model
+from datetime import date
 
 
 logger = logging.getLogger(__name__)
@@ -106,6 +108,19 @@ class ConsolidadoDRE(ModeloBase):
 
     data_de_inicio_da_analise = models.DateField('Data de início da análise (data de recebimento)', blank=True, null=True)
 
+    responsavel_pela_analise = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        verbose_name='Responsável',
+        related_name='consolidado_dre_usuario_responsavel'
+    )
+
+    analise_atual = models.ForeignKey('AnaliseConsolidadoDre', on_delete=models.SET_NULL,
+                                      related_name='consolidado_dre_da_analise_atual',
+                                      blank=True, null=True)
+
     class Meta:
         verbose_name = 'Consolidado DRE'
         verbose_name_plural = 'Consolidados DREs'
@@ -174,16 +189,27 @@ class ConsolidadoDRE(ModeloBase):
         return self.get_status_display()
 
     def marcar_status_sme_como_publicado(self, data_publicacao, pagina_publicacao):
+        self.desfazer_analise_atual()
         self.status_sme = self.STATUS_SME_PUBLICADO
         self.data_publicacao = data_publicacao
         self.pagina_publicacao = pagina_publicacao
+        self.data_de_inicio_da_analise = None
+        self.responsavel_pela_analise = None
         self.save()
         return self
 
     def marcar_status_sme_como_nao_publicado(self):
+        self.desfazer_analise_atual()
         self.status_sme = self.STATUS_SME_NAO_PUBLICADO
         self.data_publicacao = None
         self.pagina_publicacao = ''
+        self.save()
+        return self
+
+    def marcar_status_sme_como_em_analise(self, usuario):
+        self.status_sme = self.STATUS_SME_EM_ANALISE
+        self.data_de_inicio_da_analise = date.today()
+        self.responsavel_pela_analise = usuario
         self.save()
         return self
 
@@ -264,6 +290,10 @@ class ConsolidadoDRE(ModeloBase):
             logger.info(f"O relatorio da dre {relatorio} será apagado")
             relatorio.delete()
 
+    def desfazer_analise_atual(self):
+        self.analise_atual = None
+        self.save()
+
     @transaction.atomic
     def reabrir_consolidado(self):
         logger.info(f'Apagando o consolidado dre de uuid {self.uuid}.')
@@ -278,7 +308,7 @@ class ConsolidadoDRE(ModeloBase):
             logger.error(f'Houve algum erro ao tentar apagar o consolidado dre de uuid {self.uuid}.')
             logger.error(f'{e}')
             return False
-
+o
     def devolver_consolidado(self):
         self.status_sme = self.STATUS_SME_DEVOLVIDO
         self.save()
@@ -291,6 +321,32 @@ class ConsolidadoDRE(ModeloBase):
         from sme_ptrf_apps.dre.services.dre_service import DreService
         dre_service = DreService(dre=self.dre)
         dre_service.notificar_devolucao_consolidado(consolidado_dre=self)
+
+    @transaction.atomic
+    def analisar_consolidado(self, usuario):
+        from ..models.analise_consolidado_dre import AnaliseConsolidadoDre
+        try:
+            analise_atual = AnaliseConsolidadoDre.objects.create(consolidado_dre=self)
+            self.marcar_status_sme_como_em_analise(usuario)
+            self.analise_atual = analise_atual
+            self.save()
+            return True
+        except Exception as e:
+            logger.error(f'Houve algum erro ao tentar analisar o consolidado dre de uuid {self.uuid}.')
+            logger.error(f'{e}')
+            return False
+
+    @transaction.atomic
+    def concluir_analise_consolidado(self):
+        try:
+            self.desfazer_analise_atual()
+            self.status_sme = self.STATUS_SME_ANALISADO
+            self.save()
+            return self
+        except Exception as e:
+            logger.error(f'Houve algum erro ao tentar concluir a análise do consolidado dre de uuid {self.uuid}.')
+            logger.error(f'{e}')
+            return False
 
 
 auditlog.register(ConsolidadoDRE)

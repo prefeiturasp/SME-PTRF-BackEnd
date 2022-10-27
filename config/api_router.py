@@ -59,7 +59,8 @@ from sme_ptrf_apps.dre.api.views import (
     ConsolidadosDreViewSet,
     ParametrosDreViewSet,
     ValoresReprogramadosViewSet,
-    LaudaViewSet
+    LaudaViewSet,
+    ComentariosAnalisesConsolidadosDREViewSet
 )
 from sme_ptrf_apps.sme.api.views import (
     SaldosBancariosSMEViewSet,
@@ -143,6 +144,7 @@ router.register("parametros-sme", ParametrosSmeViewSet)
 router.register("valores-reprogramados", ValoresReprogramadosViewSet)
 router.register("exportacoes-dados", ExportacoesDadosViewSet)
 router.register("laudas", LaudaViewSet)
+router.register("comentarios-de-analises-consolidados-dre", ComentariosAnalisesConsolidadosDREViewSet)
 
 
 app_name = "api"

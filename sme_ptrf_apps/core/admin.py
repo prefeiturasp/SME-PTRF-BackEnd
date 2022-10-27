@@ -240,6 +240,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     list_display = (
         'get_eol_unidade',
         'get_nome_unidade',
+        'associacao',
         'get_periodo_referencia',
         'status',
         'publicada',
@@ -252,7 +253,8 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
         'periodo',
         'publicada',
         'consolidado_dre__sequencia_de_publicacao',
-        'consolidado_dre'
+        'consolidado_dre',
+        'associacao__unidade__tipo_unidade'
     )
     list_display_links = ('get_nome_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
@@ -344,8 +346,8 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(ProcessoAssociacao)
 class ProcessoAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('associacao', 'numero_processo', 'ano')
-    search_fields = ('uuid', 'numero_processo')
-    list_filter = ('ano', 'associacao',)
+    search_fields = ('uuid', 'numero_processo', 'associacao__nome')
+    list_filter = ('ano', 'associacao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre')
     readonly_fields = ('uuid', 'id')
 
 

@@ -22,3 +22,5 @@ from .presentes_ata_dre import PresenteAtaDre
 from .consolidado_dre import ConsolidadoDRE
 from .lauda import Lauda
 from .documento_adicional import DocumentoAdicional
+from .comentario_analise_consolidado_dre import ComentarioAnaliseConsolidadoDRE
+from .analise_consolidado_dre import AnaliseConsolidadoDre
