@@ -842,6 +842,11 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
 
     get_unidade.short_description = 'Unidade'
 
+    def tipo_lancamento(self, obj):
+        return obj.analise_lancamento.tipo_lancamento if obj and obj.analise_lancamento else ''
+
+    tipo_lancamento.short_description = 'Tipo Lançamento'
+
     def get_despesa(self, obj):
         return obj.analise_lancamento.despesa if obj and obj.analise_lancamento else ''
 
@@ -857,7 +862,7 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
 
     get_analise_pc.short_description = 'Análise PC'
 
-    list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_acerto', 'devolucao_ao_tesouro', 'get_despesa', 'copiado']
+    list_display = ['uuid', 'analise_lancamento', 'get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_acerto', 'tipo_lancamento', 'devolucao_ao_tesouro', 'get_despesa', 'copiado']
     search_fields = [
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
@@ -868,6 +873,8 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
+        'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo',
+        'analise_lancamento__tipo_lancamento',
         'tipo_acerto',
         'devolucao_ao_tesouro',
         'copiado'
