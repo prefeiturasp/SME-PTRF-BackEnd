@@ -240,6 +240,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     list_display = (
         'get_eol_unidade',
         'get_nome_unidade',
+        'associacao',
         'get_periodo_referencia',
         'status',
         'publicada',
@@ -252,7 +253,8 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
         'periodo',
         'publicada',
         'consolidado_dre__sequencia_de_publicacao',
-        'consolidado_dre'
+        'consolidado_dre',
+        'associacao__unidade__tipo_unidade'
     )
     list_display_links = ('get_nome_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
