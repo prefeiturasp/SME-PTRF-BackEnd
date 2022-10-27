@@ -308,7 +308,7 @@ class ConsolidadoDRE(ModeloBase):
             logger.error(f'Houve algum erro ao tentar apagar o consolidado dre de uuid {self.uuid}.')
             logger.error(f'{e}')
             return False
-o
+
     def devolver_consolidado(self):
         self.status_sme = self.STATUS_SME_DEVOLVIDO
         self.save()
