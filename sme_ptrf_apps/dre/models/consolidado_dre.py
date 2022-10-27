@@ -279,5 +279,18 @@ class ConsolidadoDRE(ModeloBase):
             logger.error(f'{e}')
             return False
 
+    def devolver_consolidado(self):
+        self.status_sme = self.STATUS_SME_DEVOLVIDO
+        self.save()
+
+        self.notificar_devolucao()
+
+        return self
+
+    def notificar_devolucao(self):
+        from sme_ptrf_apps.dre.services.dre_service import DreService
+        dre_service = DreService(dre=self.dre)
+        dre_service.notificar_devolucao_consolidado(consolidado_dre=self)
+
 
 auditlog.register(ConsolidadoDRE)

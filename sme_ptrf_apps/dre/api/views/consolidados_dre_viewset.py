@@ -1031,5 +1031,23 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-
-
+    @action(detail=True, methods=['patch'],
+            url_path='devolver-consolidado',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def devolver(self, request, uuid):
+        consolidado: ConsolidadoDRE = self.get_object()
+        try:
+            consolidado.devolver_consolidado()
+            response = {
+                'uuid': f'{uuid}',
+                'mensagem': 'Consolidado dre devolvido com sucesso.'
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            erro = {
+                'erro': 'Erro de devolução',
+                'mensagem': f"Houve um erro ao tentar devolver o relatório consolidado {uuid}.",
+                'exception': str(e)
+            }
+            logger.info('Erro ao devolver consolidado: %r', str(e))
+            return Response(erro, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
