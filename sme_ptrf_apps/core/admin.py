@@ -837,6 +837,7 @@ class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
 
 @admin.register(SolicitacaoAcertoLancamento)
 class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
+    raw_id_fields = ['analise_lancamento', 'tipo_acerto', 'devolucao_ao_tesouro']
 
     def get_unidade(self, obj):
         return f'{obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.tipo_unidade} - {obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_lancamento and obj.analise_lancamento.analise_prestacao_conta and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade else ''
