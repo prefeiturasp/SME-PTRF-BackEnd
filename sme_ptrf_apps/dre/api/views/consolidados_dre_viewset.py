@@ -722,93 +722,6 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         return Response(trilha_de_status)
 
-    @action(detail=False, methods=['post'],
-            url_path='marcar-como-publicado-no-diario-oficial',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
-    def marcar_como_publicado_no_diario_oficial(self, request):
-        dados = request.data
-
-        if (
-            not dados
-            or not dados.get('consolidado_dre')
-            or not dados.get('data_publicacao')
-            or not dados.get('pagina_publicacao')
-        ):
-            erro = {
-                'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid do Consolidado DRE, a data e a página de publicação'
-            }
-            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        consolidado_dre_uuid, data_publicacao, pagina_publicacao = dados['consolidado_dre'], dados['data_publicacao'], dados['pagina_publicacao']
-
-        try:
-            consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
-        except (ConsolidadoDRE.DoesNotExist, ValidationError):
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto ConsolidadoDRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            consolidado_dre = consolidado_dre.marcar_status_sme_como_publicado(
-                data_publicacao=data_publicacao,
-                pagina_publicacao=pagina_publicacao
-            )
-        except:
-            erro = {
-                'erro': 'Erro ao passar o relatório para status_sme_publicado',
-                'mensagem': f"Não foi possível passar o relarório para o status de publicado no Diário Oficial"
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=['post'],
-            url_path='marcar-como-nao-publicado-no-diario-oficial',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
-    def marcar_como_nao_publicado_no_diario_oficial(self, request):
-        dados = request.data
-
-        if (
-            not dados
-            or not dados.get('consolidado_dre')
-        ):
-            erro = {
-                'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid do Consolidado DRE'
-            }
-            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        consolidado_dre_uuid = dados['consolidado_dre']
-
-        try:
-            consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
-        except (ConsolidadoDRE.DoesNotExist, ValidationError):
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto ConsolidadoDRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            consolidado_dre = consolidado_dre.marcar_status_sme_como_nao_publicado()
-        except:
-            erro = {
-                'erro': 'Erro ao passar o relatório para status_sme_nao_publicado',
-                'mensagem': f"Não foi possível passar o relarório para o status de Não Publicado no Diário Oficial"
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
-
     @action(detail=False, methods=['get'],
             url_path='detalhamento',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
@@ -862,107 +775,6 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             erro = {
                 'erro': 'Objeto não encontrado.',
                 'mensagem': f"O objeto ConsolidadoDRE para o uuid {uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(detail=False, methods=['delete'],
-            url_path='reabrir-consolidado',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
-    def reabrir(self, request):
-        uuid = request.query_params.get('uuid')
-
-        if not uuid:
-            erro = {
-                'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid do Consolidado DRE'
-            }
-            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            consolidado_dre = ConsolidadoDRE.by_uuid(uuid)
-        except (ConsolidadoDRE.DoesNotExist, ValidationError):
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto ConsolidadoDRE para o uuid {uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        if not consolidado_dre.pode_reabrir():
-            mensagem = f"Consolidado dre só pode ser reaberto " \
-                       f"no status sme: {ConsolidadoDRE.STATUS_SME_NAO_PUBLICADO}." \
-                       f" Status sme atual: {consolidado_dre.status_sme}."
-            response = {
-                'uuid': f'{uuid}',
-                'mensagem': mensagem
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
-        reaberto = consolidado_dre.reabrir_consolidado()
-
-        if reaberto:
-            response = {
-                'uuid': f'{uuid}',
-                'mensagem': 'Consolidado dre reaberto com sucesso. Todos os seus registros foram apagados.'
-            }
-            return Response(response, status=status.HTTP_204_NO_CONTENT)
-        else:
-            response = {
-                'uuid': f'{uuid}',
-                'mensagem': 'Houve algum erro ao tentar reabrir o consolidado dre.'
-            }
-            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    @action(detail=False, methods=['post'],
-            url_path='analisar',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
-    def analisar(self, request):
-        dados = request.data
-
-        if (
-            not dados
-            or not dados.get('consolidado_dre')
-            or not dados.get('usuario')
-        ):
-            erro = {
-                'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid do Consolidado DRE e o Usuário (username)'
-            }
-            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        consolidado_dre_uuid = dados['consolidado_dre']
-        usuario_username = dados['usuario']
-
-        try:
-            consolidado_dre = ConsolidadoDRE.objects.get(uuid=consolidado_dre_uuid)
-        except (ConsolidadoDRE.DoesNotExist, ValidationError):
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto Consolidado DRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            usuario = User.objects.filter(username=usuario_username).first()
-        except (User.DoesNotExist, ValidationError):
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto User para o uuid {usuario_username} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            consolidado_dre.marcar_status_sme_como_em_analise(usuario)
-            return Response("Consolidado DRE foi passado para o status Em Análise com Sucesso!", status=status.HTTP_200_OK)
-        except:
-            erro = {
-                'erro': 'Erro ao analisar o Consolidado Dre',
-                'mensagem': f"Não foi possível passar o status do Consolidado DRE para EM_ANALISE"
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1086,5 +898,259 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['patch'],
+            url_path='devolver-consolidado',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def devolver(self, request, uuid):
+        from sme_ptrf_apps.dre.api.validation_serializers.consolidado_dre_devolver_serializer import ConsolidadoDreDevolverSerializer
+        consolidado: ConsolidadoDRE = self.get_object()
 
+        query = ConsolidadoDreDevolverSerializer(data=self.request.data)
 
+        query.is_valid(raise_exception=True)
+        try:
+            consolidado.devolver_consolidado(data_limite=request.data.get('data_limite'))
+            response = {
+                'uuid': f'{uuid}',
+                'mensagem': 'Consolidado dre devolvido com sucesso.'
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            erro = {
+                'erro': 'Erro de devolução',
+                'mensagem': f"Houve um erro ao tentar devolver o relatório consolidado {uuid}.",
+                'exception': str(e)
+            }
+            logger.info('Erro ao devolver consolidado: %r', str(e))
+            return Response(erro, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'],
+            url_path='marcar-como-publicado-no-diario-oficial',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def marcar_como_publicado_no_diario_oficial(self, request):
+        dados = request.data
+
+        if (
+            not dados
+            or not dados.get('consolidado_dre')
+            or not dados.get('data_publicacao')
+            or not dados.get('pagina_publicacao')
+        ):
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do Consolidado DRE, a data e a página de publicação'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        consolidado_dre_uuid, data_publicacao, pagina_publicacao = dados['consolidado_dre'], dados['data_publicacao'], \
+                                                                   dados['pagina_publicacao']
+
+        try:
+            consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
+        except (ConsolidadoDRE.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ConsolidadoDRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            consolidado_dre = consolidado_dre.marcar_status_sme_como_publicado(
+                data_publicacao=data_publicacao,
+                pagina_publicacao=pagina_publicacao
+            )
+        except:
+            erro = {
+                'erro': 'Erro ao passar o relatório para status_sme_publicado',
+                'mensagem': f"Não foi possível passar o relarório para o status de publicado no Diário Oficial"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'],
+            url_path='marcar-como-nao-publicado-no-diario-oficial',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def marcar_como_nao_publicado_no_diario_oficial(self, request):
+        dados = request.data
+
+        if (
+            not dados
+            or not dados.get('consolidado_dre')
+        ):
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do Consolidado DRE'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        consolidado_dre_uuid = dados['consolidado_dre']
+
+        try:
+            consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
+        except (ConsolidadoDRE.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ConsolidadoDRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            consolidado_dre = consolidado_dre.marcar_status_sme_como_nao_publicado()
+        except:
+            erro = {
+                'erro': 'Erro ao passar o relatório para status_sme_nao_publicado',
+                'mensagem': f"Não foi possível passar o relarório para o status de Não Publicado no Diário Oficial"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['delete'],
+            url_path='reabrir-consolidado',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def reabrir(self, request):
+        uuid = request.query_params.get('uuid')
+
+        if not uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do Consolidado DRE'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            consolidado_dre = ConsolidadoDRE.by_uuid(uuid)
+        except (ConsolidadoDRE.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ConsolidadoDRE para o uuid {uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if not consolidado_dre.pode_reabrir():
+            mensagem = f"Consolidado dre só pode ser reaberto " \
+                       f"no status sme: {ConsolidadoDRE.STATUS_SME_NAO_PUBLICADO}." \
+                       f" Status sme atual: {consolidado_dre.status_sme}."
+            response = {
+                'uuid': f'{uuid}',
+                'mensagem': mensagem
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        reaberto = consolidado_dre.reabrir_consolidado()
+
+        if reaberto:
+            response = {
+                'uuid': f'{uuid}',
+                'mensagem': 'Consolidado dre reaberto com sucesso. Todos os seus registros foram apagados.'
+            }
+            return Response(response, status=status.HTTP_204_NO_CONTENT)
+        else:
+            response = {
+                'uuid': f'{uuid}',
+                'mensagem': 'Houve algum erro ao tentar reabrir o consolidado dre.'
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'],
+            url_path='analisar',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def analisar(self, request):
+
+        dados = request.data
+
+        if (
+            not dados
+            or not dados.get('consolidado_dre')
+            or not dados.get('usuario')
+        ):
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do Consolidado DRE e o Usuário (username)'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        consolidado_dre_uuid = dados['consolidado_dre']
+        usuario_username = dados['usuario']
+
+        try:
+            consolidado_dre = ConsolidadoDRE.objects.get(uuid=consolidado_dre_uuid)
+        except (ConsolidadoDRE.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto Consolidado DRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            usuario = User.objects.filter(username=usuario_username).first()
+        except (User.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto User para o uuid {usuario_username} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            consolidado_dre.analisar_consolidado(usuario)
+            return Response("Consolidado DRE foi passado para o status Em Análise com Sucesso!", status=status.HTTP_200_OK)
+        except:
+            erro = {
+                'erro': 'Erro ao analisar o Consolidado Dre',
+                'mensagem': f"Não foi possível passar o status do Consolidado DRE para EM_ANALISE"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'],
+            url_path='marcar-como-analisado',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def marcar_como_analisado(self, request):
+        dados = request.data
+
+        if (
+            not dados
+            or not dados.get('consolidado_dre')
+        ):
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do Consolidado DRE'
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        consolidado_dre_uuid = dados['consolidado_dre']
+
+        try:
+            consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
+        except (ConsolidadoDRE.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ConsolidadoDRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            consolidado_dre = consolidado_dre.concluir_analise_consolidado()
+        except:
+            erro = {
+                'erro': 'Erro ao passar o relatório para status_sme_analisado',
+                'mensagem': f"Não foi possível passar o relarório para o status de Analisado"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
