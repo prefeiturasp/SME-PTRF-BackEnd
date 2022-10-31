@@ -19,10 +19,10 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     """
 
     def pc_requer_ata_retificacao(prestacao_conta):
-        if not prestacao_conta or prestacao_conta.status not in (PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA):
+        if not prestacao_conta:
             return False
 
-        ultima_analise = prestacao_conta.analises_da_prestacao.last()
+        ultima_analise = prestacao_conta.analises_da_prestacao.filter(status='DEVOLVIDA').last()
 
         return ultima_analise is not None and (ultima_analise.requer_alteracao_em_lancamentos or ultima_analise.requer_informacao_devolucao_ao_tesouro)
 
