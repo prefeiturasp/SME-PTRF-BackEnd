@@ -11,7 +11,8 @@ from django.db.utils import IntegrityError
 
 from sme_ptrf_apps.core.models import Unidade, Periodo, Associacao
 from ..serializers.ata_parecer_tecnico_serializer import AtaParecerTecnicoLookUpSerializer
-from ...models import ConsolidadoDRE, RelatorioConsolidadoDRE, AnoAnaliseRegularidade, AtaParecerTecnico, Lauda
+from ...models import ConsolidadoDRE, RelatorioConsolidadoDRE, AnoAnaliseRegularidade, AtaParecerTecnico, Lauda, \
+    AnaliseConsolidadoDre
 
 from ..serializers.consolidado_dre_serializer import ConsolidadoDreSerializer, ConsolidadoDreDetalhamentoSerializer
 
@@ -753,6 +754,19 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def detalhamento_relatorio_consolidado_conferencia_documentos(self, request):
         uuid = request.query_params.get('uuid')
+        uuid_analise_atual = request.query_params.get('analise_atual')
+
+        analise_atual = None
+
+        if uuid_analise_atual:
+            try:
+                analise_atual = AnaliseConsolidadoDre.by_uuid(uuid_analise_atual)
+            except (AnaliseConsolidadoDre.DoesNotExist, ValidationError):
+                erro = {
+                    'erro': 'analise_nao_encontrada',
+                    'mensagem': f"O objeto AnaliseConsolidadoDre para o uuid {uuid_analise_atual} não foi encontrado na base"
+                }
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         if not uuid:
             erro = {
@@ -764,7 +778,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         try:
             consolidado_dre = ConsolidadoDRE.by_uuid(uuid)
-            lista_documentos = consolidado_dre.documentos_detalhamento()
+            lista_documentos = consolidado_dre.documentos_detalhamento(analise_atual)
 
             result = {
                 "lista_documentos": lista_documentos
@@ -1097,15 +1111,17 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
         if (
             not dados
             or not dados.get('consolidado_dre')
+            or not dados.get('usuario')
         ):
             erro = {
                 'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid do Consolidado DRE'
+                'mensagem': 'É necessário enviar o uuid do Consolidado DRE e o Username de um usuário válido'
             }
             logger.info('Erro ao gerar Consolidado DRE: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         consolidado_dre_uuid = dados['consolidado_dre']
+        usuario_username = dados['usuario']
 
         try:
             consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
@@ -1118,7 +1134,17 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            consolidado_dre = consolidado_dre.concluir_analise_consolidado()
+            usuario = User.objects.filter(username=usuario_username).first()
+        except (User.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto User para o uuid {usuario_username} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            consolidado_dre = consolidado_dre.concluir_analise_consolidado(usuario)
         except:
             erro = {
                 'erro': 'Erro ao passar o relatório para status_sme_analisado',
