@@ -309,9 +309,12 @@ class ConsolidadoDRE(ModeloBase):
             logger.error(f'{e}')
             return False
 
-    def devolver_consolidado(self):
+    def devolver_consolidado(self, data_limite):
         self.status_sme = self.STATUS_SME_DEVOLVIDO
         self.save()
+
+        # TODO Gravar data_limite na análise atual quando o modelo estiver implementado
+        logging.info(f'Consolidado devolvido com a data_limite {data_limite}.')
 
         self.notificar_devolucao()
 
