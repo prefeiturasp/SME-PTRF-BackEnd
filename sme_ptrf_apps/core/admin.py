@@ -207,11 +207,10 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
 
     list_display = ('get_eol_unidade', 'periodo', 'get_nome_acao', 'get_nome_conta', 'saldo_anterior', 'total_receitas',
                     'total_despesas', 'saldo_reprogramado', 'status')
-    list_filter = ('status', 'associacao', 'acao_associacao__acao', 'conta_associacao__tipo_conta')
+    list_filter = ('status', 'associacao', 'acao_associacao__acao', 'periodo', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre', 'conta_associacao__tipo_conta')
     list_display_links = ('periodo',)
-    readonly_fields = (
-    'saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre', 'uuid', 'id')
-    search_fields = ('associacao__unidade__codigo_eol',)
+    readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre', 'uuid', 'id')
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome',)
 
 
 @admin.register(PrestacaoConta)
@@ -240,6 +239,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     list_display = (
         'get_eol_unidade',
         'get_nome_unidade',
+        'associacao',
         'get_periodo_referencia',
         'status',
         'publicada',
@@ -252,7 +252,8 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
         'periodo',
         'publicada',
         'consolidado_dre__sequencia_de_publicacao',
-        'consolidado_dre'
+        'consolidado_dre',
+        'associacao__unidade__tipo_unidade'
     )
     list_display_links = ('get_nome_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
@@ -344,8 +345,8 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(ProcessoAssociacao)
 class ProcessoAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('associacao', 'numero_processo', 'ano')
-    search_fields = ('uuid', 'numero_processo')
-    list_filter = ('ano', 'associacao',)
+    search_fields = ('uuid', 'numero_processo', 'associacao__nome')
+    list_filter = ('ano', 'associacao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre')
     readonly_fields = ('uuid', 'id')
 
 
@@ -835,10 +836,17 @@ class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
 
 @admin.register(SolicitacaoAcertoLancamento)
 class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
+    raw_id_fields = ['analise_lancamento', 'tipo_acerto', 'devolucao_ao_tesouro']
+
     def get_unidade(self, obj):
-        return f'{obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_lancamento and obj.analise_lancamento.analise_prestacao_conta and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade else ''
+        return f'{obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.tipo_unidade} - {obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_lancamento and obj.analise_lancamento.analise_prestacao_conta and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade else ''
 
     get_unidade.short_description = 'Unidade'
+
+    def tipo_lancamento(self, obj):
+        return obj.analise_lancamento.tipo_lancamento if obj and obj.analise_lancamento else ''
+
+    tipo_lancamento.short_description = 'Tipo Lançamento'
 
     def get_despesa(self, obj):
         return obj.analise_lancamento.despesa if obj and obj.analise_lancamento else ''
@@ -855,7 +863,7 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
 
     get_analise_pc.short_description = 'Análise PC'
 
-    list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_acerto', 'devolucao_ao_tesouro', 'get_despesa', 'copiado']
+    list_display = ['analise_lancamento', 'get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_acerto', 'tipo_lancamento', 'devolucao_ao_tesouro', 'get_despesa', 'copiado']
     search_fields = [
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
@@ -866,6 +874,8 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
+        'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo',
+        'analise_lancamento__tipo_lancamento',
         'tipo_acerto',
         'devolucao_ao_tesouro',
         'copiado'

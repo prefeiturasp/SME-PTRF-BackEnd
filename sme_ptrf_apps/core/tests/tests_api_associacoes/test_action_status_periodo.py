@@ -19,7 +19,7 @@ def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, per
     result = json.loads(response.content)
     esperado = {
         'associacao': f'{associacao.uuid}',
-        'gerar_ou_editar_ata_apresentacao': False,
+        'gerar_ou_editar_ata_apresentacao': True,
         'gerar_ou_editar_ata_retificacao': False,
         'gerar_previas': True,
         'periodo_referencia': periodo_fim_em_aberto.referencia,
@@ -51,7 +51,7 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
     result = json.loads(response.content)
     esperado = {
         'associacao': f'{associacao.uuid}',
-        'gerar_ou_editar_ata_apresentacao': False,
+        'gerar_ou_editar_ata_apresentacao': True,
         'gerar_ou_editar_ata_retificacao': False,
         'gerar_previas': True,
         'periodo_referencia': periodo_fim_em_2020_06_30.referencia,
@@ -168,7 +168,7 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
     esperado = {
         'associacao': f'{associacao.uuid}',
         'gerar_ou_editar_ata_apresentacao': False,
-        'gerar_ou_editar_ata_retificacao': False,
+        'gerar_ou_editar_ata_retificacao': True,
         'gerar_previas': False,
         'periodo_referencia': periodo.referencia,
         'aceita_alteracoes': False,

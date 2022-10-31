@@ -12,26 +12,25 @@ def test_retorna_trilha_de_status_sem_nenhuma_pc(
     periodo_uuid = periodo_teste_service_consolidado_dre.uuid
 
     result = retornar_trilha_de_status(dre_uuid, periodo_uuid)
-
     resultado_esperado = [
         {
             'estilo_css': 2,
             'quantidade_nao_recebida': 0,
             'quantidade_prestacoes': 0,
             'status': 'NAO_RECEBIDA',
-            'titulo': 'Não recebido'
+            'titulo': 'Não recebidas'
         },
         {
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'RECEBIDA',
-            'titulo': 'Recebida e<br/>aguardando análise'
+            'titulo': 'Recebidas e<br/>aguardando análise'
         },
         {
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'DEVOLVIDA',
-            'titulo': 'Devolvido<br/>para acertos'
+            'titulo': 'Devolvidas <br/>para acertos'
         },
         {
             'estilo_css': 0,
@@ -43,28 +42,27 @@ def test_retorna_trilha_de_status_sem_nenhuma_pc(
             'estilo_css': 1,
             'quantidade_prestacoes': 0,
             'status': 'CONCLUIDO',
-            'titulo': 'Concluído e<br/>aguardando publicação'
+            'titulo': 'Concluídas <br/>Documentos não gerados'
         },
         {
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'PUBLICADO',
-            'titulo': 'Publicado'
+            'titulo': 'Concluídas <br/>Documentos gerados'
         },
         {
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'APROVADA',
-            'titulo': 'Aprovado'
+            'titulo': 'Aprovadas'
         },
         {
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'REPROVADA',
-            'titulo': 'Reprovado'
+            'titulo': 'Reprovadas'
         }
     ]
-
     assert result == resultado_esperado
 
 
@@ -84,19 +82,19 @@ def test_retorna_trilha_de_status_uma_pc_aprovada_e_uma_concluida(
             'quantidade_nao_recebida': 0,
             'quantidade_prestacoes': 0,
             'status': 'NAO_RECEBIDA',
-            'titulo': 'Não recebido'
+            'titulo': 'Não recebidas'
         },
         {
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'RECEBIDA',
-            'titulo': 'Recebida e<br/>aguardando análise'
+            'titulo': 'Recebidas e<br/>aguardando análise'
         },
         {
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'DEVOLVIDA',
-            'titulo': 'Devolvido<br/>para acertos'
+            'titulo': 'Devolvidas <br/>para acertos'
         },
         {
             'estilo_css': 0,
@@ -108,25 +106,25 @@ def test_retorna_trilha_de_status_uma_pc_aprovada_e_uma_concluida(
             'estilo_css': 1,
             'quantidade_prestacoes': 1,
             'status': 'CONCLUIDO',
-            'titulo': 'Concluído e<br/>aguardando publicação'
+            'titulo': 'Concluídas <br/>Documentos não gerados'
         },
         {
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'PUBLICADO',
-            'titulo': 'Publicado'
+            'titulo': 'Concluídas <br/>Documentos gerados'
         },
         {
             'estilo_css': 0,
             'quantidade_prestacoes': 1,
             'status': 'APROVADA',
-            'titulo': 'Aprovado'
+            'titulo': 'Aprovadas'
         },
         {
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'REPROVADA',
-            'titulo': 'Reprovado'
+            'titulo': 'Reprovadas'
         }
     ]
 
@@ -151,19 +149,19 @@ def test_retorna_trilha_de_status_uma_pc_reprovada_uma_concluida_e_uma_publicada
             'quantidade_nao_recebida': 0,
             'quantidade_prestacoes': 0,
             'status': 'NAO_RECEBIDA',
-            'titulo': 'Não recebido'
+            'titulo': 'Não recebidas'
         },
         {
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'RECEBIDA',
-            'titulo': 'Recebida e<br/>aguardando análise'
+            'titulo': 'Recebidas e<br/>aguardando análise'
         },
         {
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'DEVOLVIDA',
-            'titulo': 'Devolvido<br/>para acertos'
+            'titulo': 'Devolvidas <br/>para acertos'
         },
         {
             'estilo_css': 0,
@@ -175,26 +173,25 @@ def test_retorna_trilha_de_status_uma_pc_reprovada_uma_concluida_e_uma_publicada
             'estilo_css': 1,
             'quantidade_prestacoes': 1,
             'status': 'CONCLUIDO',
-            'titulo': 'Concluído e<br/>aguardando publicação'
+            'titulo': 'Concluídas <br/>Documentos não gerados'
         },
         {
             'estilo_css': 0,
             'quantidade_prestacoes': 1,
             'status': 'PUBLICADO',
-            'titulo': 'Publicado'
+            'titulo': 'Concluídas <br/>Documentos gerados'
         },
         {
             'estilo_css': 0,
             'quantidade_prestacoes': 1,
             'status': 'APROVADA',
-            'titulo': 'Aprovado'
+            'titulo': 'Aprovadas'
         },
         {
             'estilo_css': 0,
             'quantidade_prestacoes': 1,
             'status': 'REPROVADA',
-            'titulo': 'Reprovado'
+            'titulo': 'Reprovadas'
         }
     ]
-
     assert result == resultado_esperado
