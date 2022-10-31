@@ -902,9 +902,14 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             url_path='devolver-consolidado',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def devolver(self, request, uuid):
+        from sme_ptrf_apps.dre.api.validation_serializers.consolidado_dre_devolver_serializer import ConsolidadoDreDevolverSerializer
         consolidado: ConsolidadoDRE = self.get_object()
+
+        query = ConsolidadoDreDevolverSerializer(data=self.request.data)
+
+        query.is_valid(raise_exception=True)
         try:
-            consolidado.devolver_consolidado()
+            consolidado.devolver_consolidado(data_limite=request.data.get('data_limite'))
             response = {
                 'uuid': f'{uuid}',
                 'mensagem': 'Consolidado dre devolvido com sucesso.'
