@@ -1,6 +1,7 @@
 import logging
 
 from django.db import models
+
 from ...core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -225,8 +226,9 @@ class ConsolidadoDRE(ModeloBase):
 
         return False
 
-    def documentos_detalhamento(self):
+    def documentos_detalhamento(self, analise_atual):
         from ..models import DocumentoAdicional
+        from ..models import AnaliseDocumentoConsolidadoDre
 
         lista_documentos = []
 
@@ -240,30 +242,70 @@ class ConsolidadoDRE(ModeloBase):
             else:
                 nome = "Demonstrativo da Execução Físico-Financeira"
 
+            analise_documento_consolidado_dre = None
+            if analise_atual:
+                analise_documento_consolidado_dre = AnaliseDocumentoConsolidadoDre.objects.filter(
+                    analise_consolidado_dre=analise_atual,
+                    relatorio_consolidao_dre=relatorio_dre
+                ).first()
+
             dado_relatorio = {
                 "uuid": f"{relatorio_dre.uuid}",
                 "nome": nome,
-                "exibe_acoes": True
+                "exibe_acoes": True,
+                "analise_documento_consolidado_dre": {
+                    'detalhamento': analise_documento_consolidado_dre.detalhamento if analise_documento_consolidado_dre else None,
+                    'resultado': analise_documento_consolidado_dre.resultado if analise_documento_consolidado_dre else None,
+                    'uuid': analise_documento_consolidado_dre.uuid if analise_documento_consolidado_dre else None,
+                },
+                'tipo_documento': 'RELATORIO_CONSOLIDADO'
             }
 
             lista_documentos.append(dado_relatorio)
 
         ata_parecer_tecnico = self.atas_de_parecer_tecnico_do_consolidado_dre.first()
         if ata_parecer_tecnico:
+
+            analise_documento_consolidado_dre = None
+            if analise_atual:
+                analise_documento_consolidado_dre = AnaliseDocumentoConsolidadoDre.objects.filter(
+                    analise_consolidado_dre=analise_atual,
+                    ata_parecer_tecnico=ata_parecer_tecnico
+                ).first()
+
             dado_ata = {
                 "uuid": f"{ata_parecer_tecnico.uuid}",
                 "nome": "Parecer Técnico Conclusivo",
-                "exibe_acoes": True
+                "exibe_acoes": True,
+                "analise_documento_consolidado_dre": {
+                    'detalhamento': analise_documento_consolidado_dre.detalhamento if analise_documento_consolidado_dre else None,
+                    'resultado': analise_documento_consolidado_dre.resultado if analise_documento_consolidado_dre else None,
+                    'uuid': analise_documento_consolidado_dre.uuid if analise_documento_consolidado_dre else None,
+                },
+                'tipo_documento': 'ATA_PARECER_TECNICO'
             }
 
             lista_documentos.append(dado_ata)
 
         documentos_adicionais = DocumentoAdicional.objects.all()
         for documento in documentos_adicionais:
+            analise_documento_consolidado_dre = None
+            if analise_atual:
+                analise_documento_consolidado_dre = AnaliseDocumentoConsolidadoDre.objects.filter(
+                    analise_consolidado_dre=analise_atual,
+                    documento_adicional=documento
+                ).first()
+
             dado_documento = {
                 "uuid": f"{documento.uuid}",
                 "nome": documento.nome,
-                "exibe_acoes": False
+                "exibe_acoes": False,
+                "analise_documento_consolidado_dre": {
+                    'detalhamento': analise_documento_consolidado_dre.detalhamento if analise_documento_consolidado_dre else None,
+                    'resultado': analise_documento_consolidado_dre.resultado if analise_documento_consolidado_dre else None,
+                    'uuid': analise_documento_consolidado_dre.uuid if analise_documento_consolidado_dre else None,
+                },
+                'tipo_documento': 'DOCUMENTO_ADICIONAL'
             }
 
             lista_documentos.append(dado_documento)
@@ -340,10 +382,11 @@ class ConsolidadoDRE(ModeloBase):
             return False
 
     @transaction.atomic
-    def concluir_analise_consolidado(self):
+    def concluir_analise_consolidado(self, usuario):
         try:
             self.desfazer_analise_atual()
             self.status_sme = self.STATUS_SME_ANALISADO
+            self.responsavel_pela_analise = usuario
             self.save()
             return self
         except Exception as e:
