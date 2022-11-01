@@ -91,9 +91,9 @@ class ConsolidadoDreDetalhamentoSerializer(serializers.ModelSerializer):
                 "habilita_botao_retroceder": False,
             }
         elif obj.status_sme == obj.STATUS_SME_EM_ANALISE:
-            # TODO implementar verificações se existem solicitações de acertos em documentos
-
-            pode_concluir = self.get_pode_concluir_relatorio_consolidado(obj)
+            # TODO alterar quando terminar o Front da conferência em documentos
+            # pode_concluir = self.get_pode_concluir_relatorio_consolidado(obj)
+            pode_concluir = True
 
             obj_botoes = {
                 "texto_botao_avancar": 'Concluir',
@@ -103,7 +103,7 @@ class ConsolidadoDreDetalhamentoSerializer(serializers.ModelSerializer):
             }
         elif obj.status_sme == obj.STATUS_SME_DEVOLVIDO:
             obj_botoes = {
-                "texto_botao_avancar": 'Analisar',
+                "texto_botao_avancar": 'Voltar',
                 "habilita_botao_avancar": True,
                 "texto_botao_retroceder": None,
                 "habilita_botao_retroceder": False,
