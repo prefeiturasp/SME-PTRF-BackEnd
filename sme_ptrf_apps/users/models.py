@@ -152,8 +152,8 @@ class User(AbstractUser):
         verbose_name = 'Usuário'
         verbose_name_plural = 'Usuários'
 
-    def __str__(self):
-        return f"Nome: {self.name}, RF: {self.username}"
+    # def __str__(self):
+    #     return f"Nome: {self.name}, RF: {self.username}"
 
 # signals para gravação de log de campos many to many modelo User
 def m2m_changed_visoes(sender, **kwargs):
