@@ -136,7 +136,7 @@ class ExportacoesDadosCreditosService:
     def envia_arquivo_central_download(self, tmp) -> None:
         logger.info("Gerando arquivo download...")
         obj_arquivo_download = gerar_arquivo_download(
-            self.user,
+            self.user.username,
             self.nome_arquivo
         )
 
