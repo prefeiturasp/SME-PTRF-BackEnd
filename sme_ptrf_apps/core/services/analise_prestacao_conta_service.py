@@ -21,9 +21,13 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
         return nova_solicitacao_devolucao
 
     def copia_analise_lancamento(analise_lancamento_origem):
+        from sme_ptrf_apps.core.models import AnaliseLancamentoPrestacaoConta
+
         nova_analise = copy.deepcopy(analise_lancamento_origem)
         nova_analise.pk = None
         nova_analise.uuid = uuid.uuid4()
+        nova_analise.status_realizacao = AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
+        nova_analise.justificativa = None
         nova_analise.analise_prestacao_conta = analise_destino
         nova_analise.save()
         return nova_analise
@@ -52,9 +56,13 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
                 )
 
     def copia_analise_documento(analise_documento_origem):
+        from sme_ptrf_apps.core.models import AnaliseDocumentoPrestacaoConta
+
         nova_analise = copy.deepcopy(analise_documento_origem)
         nova_analise.pk = None
         nova_analise.uuid = uuid.uuid4()
+        nova_analise.status_realizacao = AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
+        nova_analise.justificativa = None
         nova_analise.analise_prestacao_conta = analise_destino
         nova_analise.save()
         return nova_analise
