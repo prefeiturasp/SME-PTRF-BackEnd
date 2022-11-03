@@ -5,7 +5,7 @@ from sme_ptrf_apps.users.api.serializers import UserLookupSerializer
 from .analise_consolidado_dre_serializer import AnaliseConsolidadoDreSerializer
 from ..serializers.relatorio_consolidado_dre_serializer import RelatorioConsolidadoDreSerializer
 from ..serializers.ata_parecer_tecnico_serializer import AtaParecerTecnicoLookUpSerializer
-from ...models import ConsolidadoDRE
+from ...models import ConsolidadoDRE, AnaliseConsolidadoDre, AnaliseDocumentoConsolidadoDre
 
 
 class ConsolidadoDreSerializer(serializers.ModelSerializer):
@@ -47,6 +47,28 @@ class ConsolidadoDreDetalhamentoSerializer(serializers.ModelSerializer):
     dre = DreSerializer()
     periodo = PeriodoLookUpSerializer()
 
+    def get_pode_concluir_relatorio_consolidado(self, obj):
+        if not obj.analise_atual:
+            return False
+        else:
+            try:
+                analise_atual = AnaliseConsolidadoDre.by_uuid(obj.analise_atual.uuid)
+                analises_documentos = obj.documentos_detalhamento(analise_atual)
+
+                # Verificando se existe algum documento sem analise de documento (CORRETO ou AJUSTE)
+                quantidade_de_itens_sem_analise = len(
+                    [
+                        d['analise_documento_consolidado_dre']['resultado'] for d in analises_documentos if
+                        d['analise_documento_consolidado_dre']['resultado'] not in ['CORRETO', 'AJUSTE']
+                    ]
+                )
+                if quantidade_de_itens_sem_analise > 0:
+                    return False
+                else:
+                    return True
+            except:
+                return False
+
     def get_botoes_avancar_e_retroceder(self, obj):
         obj_botoes = {
             "texto_botao_avancar": None,
@@ -69,16 +91,19 @@ class ConsolidadoDreDetalhamentoSerializer(serializers.ModelSerializer):
                 "habilita_botao_retroceder": False,
             }
         elif obj.status_sme == obj.STATUS_SME_EM_ANALISE:
-            # TODO implementar verificações se existem solicitações de acertos em documentos
+            # TODO alterar quando terminar o Front da conferência em documentos
+            # pode_concluir = self.get_pode_concluir_relatorio_consolidado(obj)
+            pode_concluir = True
+
             obj_botoes = {
                 "texto_botao_avancar": 'Concluir',
-                "habilita_botao_avancar": True,
+                "habilita_botao_avancar": pode_concluir,
                 "texto_botao_retroceder": "Voltar para Publicado no D.O.",
                 "habilita_botao_retroceder": True,
             }
         elif obj.status_sme == obj.STATUS_SME_DEVOLVIDO:
             obj_botoes = {
-                "texto_botao_avancar": 'Analisar',
+                "texto_botao_avancar": 'Voltar',
                 "habilita_botao_avancar": True,
                 "texto_botao_retroceder": None,
                 "habilita_botao_retroceder": False,
