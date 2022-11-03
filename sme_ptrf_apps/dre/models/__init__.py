@@ -24,3 +24,4 @@ from .lauda import Lauda
 from .documento_adicional import DocumentoAdicional
 from .comentario_analise_consolidado_dre import ComentarioAnaliseConsolidadoDRE
 from .analise_consolidado_dre import AnaliseConsolidadoDre
+from .analise_documento_consolidado_dre import AnaliseDocumentoConsolidadoDre
