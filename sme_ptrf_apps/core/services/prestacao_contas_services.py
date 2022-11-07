@@ -737,6 +737,7 @@ def lancamentos_da_prestacao(
                 'periodo': f'{prestacao_conta.periodo.uuid}',
                 'conta': f'{conta_associacao.uuid}',
                 'data': despesa.data_documento if despesa.data_documento else '',
+                'data_classificacao': despesa.data_transacao if despesa.data_transacao else despesa.data_documento if despesa.data_documento else '',
                 'tipo_transacao': 'Gasto',
                 'numero_documento': despesa.numero_documento,
                 'descricao': despesa.nome_fornecedor,
@@ -781,6 +782,7 @@ def lancamentos_da_prestacao(
             'periodo': f'{prestacao_conta.periodo.uuid}',
             'conta': f'{conta_associacao.uuid}',
             'data': receita.data,
+            'data_classificacao': receita.data,
             'tipo_transacao': 'Crédito',
             'numero_documento': '',
             'descricao': receita.tipo_receita.nome if receita.tipo_receita else '',
@@ -808,7 +810,7 @@ def lancamentos_da_prestacao(
 
         if lancamentos:
             for idx, lancamento in enumerate(lancamentos):
-                if novo_lancamento['data'] <= lancamento['data']:
+                if novo_lancamento['data_classificacao'] <= lancamento['data_classificacao']:
                     lancamentos.insert(idx, novo_lancamento)
                     lancamento_adicionado = True
                     break
