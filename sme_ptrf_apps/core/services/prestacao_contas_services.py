@@ -674,7 +674,7 @@ def lancamentos_da_prestacao(
             filtrar_por_nome_fornecedor=filtrar_por_nome_fornecedor,
         )
 
-        despesas = despesas.order_by("data_transacao")
+        despesas = despesas.order_by("data_documento")
 
     lancamentos = []
 
