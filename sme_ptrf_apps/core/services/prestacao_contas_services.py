@@ -995,7 +995,7 @@ def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atual
                 solicitacao_encontrada.save()
 
                 # Realizando update na solicitação de devolucao ao tesouro da solicitação encontrada
-                if solicitacao_encontrada.solicitacao_devolucao_ao_tesouro:
+                if hasattr(solicitacao_encontrada, 'solicitacao_devolucao_ao_tesouro') and solicitacao_encontrada.solicitacao_devolucao_ao_tesouro:
                     tipo_devolucao_ao_tesouro = TipoDevolucaoAoTesouro.objects.get(
                         uuid=solicitacao_acerto['devolucao_tesouro']['tipo'])
                     solicitacao_encontrada.solicitacao_devolucao_ao_tesouro.tipo = tipo_devolucao_ao_tesouro
