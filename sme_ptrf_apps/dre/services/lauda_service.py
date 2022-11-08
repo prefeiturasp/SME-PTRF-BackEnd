@@ -62,8 +62,10 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
         else:
             titulo_sequencia_publicacao = "Lauda final"
 
-        titulo = f"((TITULO))DIRETORIA REGIONAL DE EDUCAÇÃO - {formata_nome_dre(dre)} " \
-                 f"PROGRAMA DE TRANSFERÊNCIA DE RECURSOS FINANCEIROS PTRF - {titulo_sequencia_publicacao} \n\n"
+        titulo = f"((TITULO))DIRETORIA REGIONAL DE EDUCAÇÃO - {formata_nome_dre(dre)} \n"
+
+        titulo_continuacao = f"((TITULO))PROGRAMA DE TRANSFERÊNCIA DE RECURSOS FINANCEIROS PTRF" \
+                             f" - {titulo_sequencia_publicacao} \n\n"
 
         texto = f"((TEXTO)) No exercício da atribuição a mim conferida pela Portaria SME nº 5.318/2020, torno " \
                 f"público o Parecer Técnico Conclusivo da Comissão de Prestação de Contas do PTRF da DRE " \
@@ -72,6 +74,7 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
                 f"- {formata_periodo_repasse(ata)}:\n\n"
 
         linhas.append(titulo)
+        linhas.append(titulo_continuacao)
         linhas.append(texto)
 
         if len(status_separados["aprovadas"]) > 0:
