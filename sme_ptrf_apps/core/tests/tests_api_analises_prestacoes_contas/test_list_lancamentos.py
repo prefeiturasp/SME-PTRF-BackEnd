@@ -134,7 +134,6 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                 'periodo': f'{periodo.uuid}',
                 'conta': f'{conta.uuid}',
                 'data': f'{lancamento["mestre"].data_transacao if lancamento["tipo"] == "Gasto" else lancamento["mestre"].data}',
-                'data_classificacao': f'{lancamento["mestre"].data_transacao if lancamento["tipo"] == "Gasto" else lancamento["mestre"].data}',
                 'tipo_transacao': lancamento["tipo"],
                 'numero_documento': lancamento["mestre"].numero_documento if lancamento["tipo"] == "Gasto" else "",
                 'descricao': lancamento["mestre"].nome_fornecedor if lancamento["tipo"] == "Gasto" else lancamento[
