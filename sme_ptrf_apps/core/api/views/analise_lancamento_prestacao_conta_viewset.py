@@ -4,6 +4,7 @@ from rest_framework.viewsets import GenericViewSet
 from ...models import AnaliseLancamentoPrestacaoConta
 from ..serializers import AnaliseLancamentoPrestacaoContaUpdateSerializer, AnaliseLancamentoPrestacaoContaRetrieveSerializer
 from sme_ptrf_apps.core.services import AnaliseLancamentoPrestacaoContaService
+from sme_ptrf_apps.core.services import SolicitacaoAcertoLancamentoService
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -47,11 +48,26 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
     @action(detail=False, methods=['post'], url_path='marcar-como-realizado',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def marcar_como_realizado(self, request):
-        uuids_analises_lancamentos = request.data.get('uuids_analises_lancamentos', None)
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            AcoesStatusSolicitacaoAcertoLancamentoValidateSerializer
 
-        response = AnaliseLancamentoPrestacaoContaService.marcar_como_realizado(
-            uuids_analises_lancamentos=uuids_analises_lancamentos
+        query = AcoesStatusSolicitacaoAcertoLancamentoValidateSerializer(data=self.request.data)
+
+        query.is_valid(raise_exception=True)
+
+        # remover esse bloco após testar endpoint
+        # uuids_analises_lancamentos = request.data.get('uuids_analises_lancamentos', None)
+
+        # response = AnaliseLancamentoPrestacaoContaService.marcar_como_realizado(
+        #     uuids_analises_lancamentos=uuids_analises_lancamentos
+        # )
+
+        uuids_solicitacoes_acertos_lancamentos = self.request.data.get('uuids_solicitacoes_acertos_lancamentos', None)
+
+        response = SolicitacaoAcertoLancamentoService.marcar_como_realizado(
+            uuids_solicitacoes_acertos_lancamentos=uuids_solicitacoes_acertos_lancamentos
         )
+
         status_response = response.pop("status")
 
         return Response(response, status=status_response)

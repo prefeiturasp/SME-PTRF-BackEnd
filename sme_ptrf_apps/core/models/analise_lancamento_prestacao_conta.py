@@ -84,6 +84,7 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         default=STATUS_REALIZACAO_PENDENTE
     )
 
+    # esse campo sera removido
     justificativa = models.TextField('Justificativa', max_length=300, blank=True, null=True, default=None)
 
     devolucao_tesouro_atualizada = models.BooleanField("Devolução ao Tesouro Atualizada?", default=False)
@@ -92,6 +93,7 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
 
     lancamento_excluido = models.BooleanField("Lançamento Excluído?", default=False)
 
+    # esse campo sera removido
     esclarecimentos = models.TextField('Esclarecimentos', max_length=300, blank=True, null=True, default=None)
 
     def __str__(self):
@@ -170,6 +172,91 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         self.esclarecimentos = esclarecimentos
         self.save()
         return self
+
+    def solicitacoes_de_acertos_agrupado_por_categoria(self):
+        from sme_ptrf_apps.core.api.serializers.solicitacao_devolucao_ao_tesouro_serializer import \
+            SolicitacaoDevolucaoAoTesouroRetrieveSerializer
+        from sme_ptrf_apps.core.api.serializers.tipo_acerto_lancamento_serializer import TipoAcertoLancamentoSerializer
+        from . import TipoAcertoLancamento
+
+        categoria_devolucao_tesouro = []
+        categoria_edicao_lancamento = []
+        categoria_exclusao_lancamento = []
+        categoria_ajuste_externo = []
+        categoria_solicitacao_esclarecimento = []
+
+        for solicitacao in self.solicitacoes_de_ajuste_da_analise.all():
+            categoria = solicitacao.tipo_acerto.categoria
+            devolucao_ao_tesouro = None
+
+            if categoria == TipoAcertoLancamento.CATEGORIA_DEVOLUCAO:
+                devolucao_ao_tesouro = SolicitacaoDevolucaoAoTesouroRetrieveSerializer(
+                    solicitacao.solicitacao_devolucao_ao_tesouro, many=False).data
+
+            dado_solicitacao = {
+                "tipo_acerto": TipoAcertoLancamentoSerializer(solicitacao.tipo_acerto, many=False).data,
+                "detalhamento": solicitacao.detalhamento,
+                "devolucao_ao_tesouro": devolucao_ao_tesouro,
+                "id": solicitacao.id,
+                "uuid": f"{solicitacao.uuid}",
+                "copiado": solicitacao.copiado,
+                "status_realizacao": solicitacao.status_realizacao,
+                "justificativa": solicitacao.justificativa,
+                "esclarecimentos": solicitacao.esclarecimentos
+            }
+
+            if categoria == TipoAcertoLancamento.CATEGORIA_DEVOLUCAO:
+                categoria_devolucao_tesouro.append(dado_solicitacao)
+            elif categoria == TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO:
+                categoria_edicao_lancamento.append(dado_solicitacao)
+            elif categoria == TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO:
+                categoria_exclusao_lancamento.append(dado_solicitacao)
+            elif categoria == TipoAcertoLancamento.CATEGORIA_AJUSTES_EXTERNOS:
+                categoria_ajuste_externo.append(dado_solicitacao)
+            elif categoria == TipoAcertoLancamento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO:
+                categoria_solicitacao_esclarecimento.append(dado_solicitacao)
+
+        result = {
+            "analise_lancamento": f"{self.uuid}",
+            "solicitacoes_acerto_por_categoria": [
+                {
+                    f"{TipoAcertoLancamento.CATEGORIA_DEVOLUCAO}": {
+                        "requer_atualizacao_devolucao_ao_tesouro": True,
+                        "devolucao_tesouro_atualizada": self.devolucao_tesouro_atualizada,
+                        "acertos": categoria_devolucao_tesouro
+                    }
+                },
+                {
+                    f"{TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO}": {
+                        "requer_atualizacao_lancamento": True,
+                        "lancamento_atualizado": self.lancamento_atualizado,
+                        "acertos": categoria_edicao_lancamento
+                    }
+                },
+                {
+                    f"{TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO}": {
+                        "requer_exclusao_lancamento": True,
+                        "lancamento_excluido": self.lancamento_excluido,
+                        "acertos": categoria_exclusao_lancamento
+                    }
+                },
+                {
+                    f"{TipoAcertoLancamento.CATEGORIA_AJUSTES_EXTERNOS}": {
+                        "requer_ajustes_externos": True,
+                        "acertos": categoria_ajuste_externo
+                    }
+                },
+                {
+                    f"{TipoAcertoLancamento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO}": {
+                        "requer_esclarecimentos": True,
+                        "acertos": categoria_solicitacao_esclarecimento
+                    }
+                }
+
+            ]
+        }
+
+        return result
 
     class Meta:
         verbose_name = "Análise de lançamento"

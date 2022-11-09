@@ -1038,6 +1038,7 @@ def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atual
                                         tipo_acerto=tipo_acerto,
                                         devolucao_ao_tesouro=None,  # devolucao_tesouro,
                                         detalhamento=solicitacao_acerto['detalhamento'],
+                                        status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE
                                     )
 
                 logging.info(f"Solicitação criada: {solicitacao_criada}.")

@@ -26,7 +26,13 @@ class AnaliseLancamentoPrestacaoContaRetrieveSerializer(serializers.ModelSeriali
         queryset=Receita.objects.all()
     )
 
-    solicitacoes_de_ajuste_da_analise = SolicitacaoAcertoLancamentoRetrieveSerializer(many=True)
+    # remover esse bloco após testes
+    # solicitacoes_de_ajuste_da_analise = SolicitacaoAcertoLancamentoRetrieveSerializer(many=True)
+
+    solicitacoes_de_ajuste_da_analise = serializers.SerializerMethodField('get_solicitacoes_ajuste')
+
+    def get_solicitacoes_ajuste(self, obj):
+        return obj.solicitacoes_de_acertos_agrupado_por_categoria()
 
     class Meta:
         model = AnaliseLancamentoPrestacaoConta
