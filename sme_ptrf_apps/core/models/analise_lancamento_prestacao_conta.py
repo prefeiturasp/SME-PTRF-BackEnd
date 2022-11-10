@@ -202,7 +202,8 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
                 "copiado": solicitacao.copiado,
                 "status_realizacao": solicitacao.status_realizacao,
                 "justificativa": solicitacao.justificativa,
-                "esclarecimentos": solicitacao.esclarecimentos
+                "esclarecimentos": solicitacao.esclarecimentos,
+                "ordem": None
             }
 
             if categoria == TipoAcertoLancamento.CATEGORIA_DEVOLUCAO:
@@ -218,45 +219,171 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
 
         result = {
             "analise_lancamento": f"{self.uuid}",
-            "solicitacoes_acerto_por_categoria": [
-                {
-                    f"{TipoAcertoLancamento.CATEGORIA_DEVOLUCAO}": {
-                        "requer_atualizacao_devolucao_ao_tesouro": True,
-                        "devolucao_tesouro_atualizada": self.devolucao_tesouro_atualizada,
-                        "acertos": categoria_devolucao_tesouro
-                    }
-                },
-                {
-                    f"{TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO}": {
-                        "requer_atualizacao_lancamento": True,
-                        "lancamento_atualizado": self.lancamento_atualizado,
-                        "acertos": categoria_edicao_lancamento
-                    }
-                },
-                {
-                    f"{TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO}": {
-                        "requer_exclusao_lancamento": True,
-                        "lancamento_excluido": self.lancamento_excluido,
-                        "acertos": categoria_exclusao_lancamento
-                    }
-                },
-                {
-                    f"{TipoAcertoLancamento.CATEGORIA_AJUSTES_EXTERNOS}": {
-                        "requer_ajustes_externos": True,
-                        "acertos": categoria_ajuste_externo
-                    }
-                },
-                {
-                    f"{TipoAcertoLancamento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO}": {
-                        "requer_esclarecimentos": True,
-                        "acertos": categoria_solicitacao_esclarecimento
-                    }
-                }
+            "solicitacoes_acerto_por_categoria": self.monta_estrutura_solicitacoes_acerto_por_categoria(
+                categoria_devolucao_tesouro,
+                categoria_edicao_lancamento,
+                categoria_exclusao_lancamento,
+                categoria_ajuste_externo,
+                categoria_solicitacao_esclarecimento
+            )
 
-            ]
+            #remover bloco
+            # "solicitacoes_acerto_por_categoria": [
+            #     {
+            #
+            #         "requer_atualizacao_devolucao_ao_tesouro": self.requer_atualizacao_devolucao_ao_tesouro,
+            #         "devolucao_tesouro_atualizada": self.devolucao_tesouro_atualizada,
+            #         "acertos": categoria_devolucao_tesouro,
+            #         "categoria": TipoAcertoLancamento.CATEGORIA_DEVOLUCAO,
+            #         "despesa": f"{self.despesa.uuid}" if self.despesa else None,
+            #         "receita": f"{self.receita.uuid}" if self.receita else None,
+            #         "analise_lancamento": f"{self.uuid}",
+            #         "mensagem_inativa": None
+            #
+            #     },
+            #     {
+            #
+            #         "requer_atualizacao_lancamento": self.requer_atualizacao_lancamento,
+            #         "lancamento_atualizado": self.lancamento_atualizado,
+            #         "acertos": categoria_edicao_lancamento,
+            #         "categoria": TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
+            #         "despesa": f"{self.despesa.uuid}" if self.despesa else None,
+            #         "receita": f"{self.receita.uuid}" if self.receita else None,
+            #         "analise_lancamento": f"{self.uuid}",
+            #         "mensagem_inativa": None
+            #
+            #     },
+            #     {
+            #
+            #         "requer_exclusao_lancamento": self.requer_exclusao_lancamento,
+            #         "lancamento_excluido": self.lancamento_excluido,
+            #         "acertos": categoria_exclusao_lancamento,
+            #         "categoria": TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO,
+            #         "despesa": f"{self.despesa.uuid}" if self.despesa else None,
+            #         "receita": f"{self.receita.uuid}" if self.receita else None,
+            #         "analise_lancamento": f"{self.uuid}",
+            #         "mensagem_inativa": self.mensagem_lancamento_inativo(self.despesa, self.receita)
+            #
+            #     },
+            #     {
+            #
+            #         "requer_ajustes_externos": self.requer_ajustes_externos,
+            #         "acertos": categoria_ajuste_externo,
+            #         "categoria": TipoAcertoLancamento.CATEGORIA_AJUSTES_EXTERNOS,
+            #         "despesa": f"{self.despesa.uuid}" if self.despesa else None,
+            #         "receita": f"{self.receita.uuid}" if self.receita else None,
+            #         "analise_lancamento": f"{self.uuid}",
+            #         "mensagem_inativa": None
+            #     },
+            #     {
+            #
+            #         "requer_esclarecimentos": self.requer_esclarecimentos,
+            #         "acertos": categoria_solicitacao_esclarecimento,
+            #         "categoria": TipoAcertoLancamento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO,
+            #         "despesa": f"{self.despesa.uuid}" if self.despesa else None,
+            #         "receita": f"{self.receita.uuid}" if self.receita else None,
+            #         "analise_lancamento": f"{self.uuid}",
+            #         "mensagem_inativa": None
+            #     }
+            #
+            # ]
         }
 
+        result_com_ordem_calculada = self.calcula_ordem(result)
+
+        return result_com_ordem_calculada
+
+    @staticmethod
+    def calcula_ordem(result):
+        ordem = 1
+        for categoria in result['solicitacoes_acerto_por_categoria']:
+            for solicitacao in categoria["acertos"]:
+                solicitacao["ordem"] = ordem
+                ordem = ordem + 1
+
         return result
+
+    @staticmethod
+    def mensagem_lancamento_inativo(despesa, receita):
+        if despesa:
+            return despesa.mensagem_inativacao
+
+        if receita:
+            return receita.mensagem_inativacao
+
+        return None
+
+    def monta_estrutura_solicitacoes_acerto_por_categoria(
+        self,
+        categoria_devolucao_tesouro,
+        categoria_edicao_lancamento,
+        categoria_exclusao_lancamento,
+        categoria_ajuste_externo,
+        categoria_solicitacao_esclarecimento
+    ):
+        from . import TipoAcertoLancamento
+
+        solicitacoes_acerto_por_categoria = []
+
+        if categoria_devolucao_tesouro:
+            solicitacoes_acerto_por_categoria.append({
+                "requer_atualizacao_devolucao_ao_tesouro": self.requer_atualizacao_devolucao_ao_tesouro,
+                "devolucao_tesouro_atualizada": self.devolucao_tesouro_atualizada,
+                "acertos": categoria_devolucao_tesouro,
+                "categoria": TipoAcertoLancamento.CATEGORIA_DEVOLUCAO,
+                "despesa": f"{self.despesa.uuid}" if self.despesa else None,
+                "receita": f"{self.receita.uuid}" if self.receita else None,
+                "analise_lancamento": f"{self.uuid}",
+                "mensagem_inativa": None
+            })
+
+        if categoria_edicao_lancamento:
+            solicitacoes_acerto_por_categoria.append({
+                "requer_atualizacao_lancamento": self.requer_atualizacao_lancamento,
+                "lancamento_atualizado": self.lancamento_atualizado,
+                "acertos": categoria_edicao_lancamento,
+                "categoria": TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
+                "despesa": f"{self.despesa.uuid}" if self.despesa else None,
+                "receita": f"{self.receita.uuid}" if self.receita else None,
+                "analise_lancamento": f"{self.uuid}",
+                "mensagem_inativa": None
+            })
+
+        if categoria_exclusao_lancamento:
+            solicitacoes_acerto_por_categoria.append({
+                "requer_exclusao_lancamento": self.requer_exclusao_lancamento,
+                "lancamento_excluido": self.lancamento_excluido,
+                "acertos": categoria_exclusao_lancamento,
+                "categoria": TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO,
+                "despesa": f"{self.despesa.uuid}" if self.despesa else None,
+                "receita": f"{self.receita.uuid}" if self.receita else None,
+                "analise_lancamento": f"{self.uuid}",
+                "mensagem_inativa": self.mensagem_lancamento_inativo(self.despesa, self.receita)
+            })
+
+        if categoria_ajuste_externo:
+            solicitacoes_acerto_por_categoria.append({
+                "requer_ajustes_externos": self.requer_ajustes_externos,
+                "acertos": categoria_ajuste_externo,
+                "categoria": TipoAcertoLancamento.CATEGORIA_AJUSTES_EXTERNOS,
+                "despesa": f"{self.despesa.uuid}" if self.despesa else None,
+                "receita": f"{self.receita.uuid}" if self.receita else None,
+                "analise_lancamento": f"{self.uuid}",
+                "mensagem_inativa": None
+            })
+
+        if categoria_solicitacao_esclarecimento:
+            solicitacoes_acerto_por_categoria.append({
+                "requer_esclarecimentos": self.requer_esclarecimentos,
+                "acertos": categoria_solicitacao_esclarecimento,
+                "categoria": TipoAcertoLancamento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO,
+                "despesa": f"{self.despesa.uuid}" if self.despesa else None,
+                "receita": f"{self.receita.uuid}" if self.receita else None,
+                "analise_lancamento": f"{self.uuid}",
+                "mensagem_inativa": None
+            })
+
+        return solicitacoes_acerto_por_categoria
 
     class Meta:
         verbose_name = "Análise de lançamento"

@@ -59,9 +59,74 @@ class MarcarComoRealizado:
                 )
 
 
+class JustificarNaoRealizacao:
+
+    def __init__(self, uuids_solicitacoes_acertos_lancamentos, justificativa):
+        self.uuids_solicitacoes_acertos_lancamentos = uuids_solicitacoes_acertos_lancamentos
+        self.justificativa = justificativa
+        self.__set_response()
+
+    def __set_response(self):
+
+        self.response = {
+            "mensagem": "Status alterados com sucesso!",
+            "status": status.HTTP_200_OK,
+        }
+
+        for uuid_solicitacao in self.uuids_solicitacoes_acertos_lancamentos:
+            solicitacao_acerto = SolicitacaoAcertoLancamento.by_uuid(uuid_solicitacao)
+
+            solicitacao_acerto.altera_status_realizacao(
+                novo_status=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_JUSTIFICADO,
+                justificativa=self.justificativa
+            )
+
+
+class LimparStatus:
+
+    def __init__(self, uuids_solicitacoes_acertos_lancamentos):
+        self.uuids_solicitacoes_acertos_lancamentos = uuids_solicitacoes_acertos_lancamentos
+        self.__set_response()
+
+    def __set_response(self):
+
+        self.response = {
+            "mensagem": "Status alterados com sucesso!",
+            "status": status.HTTP_200_OK,
+        }
+
+        for uuid_solicitacao in self.uuids_solicitacoes_acertos_lancamentos:
+            solicitacao_acerto = SolicitacaoAcertoLancamento.by_uuid(uuid_solicitacao)
+
+            solicitacao_acerto.altera_status_realizacao(
+                novo_status=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE,
+            )
+
+
 class SolicitacaoAcertoLancamentoService:
     @classmethod
     def marcar_como_realizado(cls, uuids_solicitacoes_acertos_lancamentos):
         return MarcarComoRealizado(
             uuids_solicitacoes_acertos_lancamentos=uuids_solicitacoes_acertos_lancamentos
         ).response
+
+    @classmethod
+    def justificar_nao_realizacao(cls, uuids_solicitacoes_acertos_lancamentos, justificativa):
+        return JustificarNaoRealizacao(
+            uuids_solicitacoes_acertos_lancamentos=uuids_solicitacoes_acertos_lancamentos,
+            justificativa=justificativa
+        ).response
+
+    @classmethod
+    def limpar_status(cls, uuids_solicitacoes_acertos_lancamentos):
+        return LimparStatus(uuids_solicitacoes_acertos_lancamentos=uuids_solicitacoes_acertos_lancamentos).response
+
+    @classmethod
+    def marcar_como_esclarecido(cls, uuid_solicitacao_acerto, esclarecimento):
+        solicitacao_acerto = SolicitacaoAcertoLancamento.by_uuid(uuid_solicitacao_acerto)
+        solicitacao_acerto.incluir_esclarecimentos(esclarecimento)
+
+        return {
+            "mensagem": "Esclarecimento atualizado com sucesso.",
+            "status": status.HTTP_200_OK
+        }

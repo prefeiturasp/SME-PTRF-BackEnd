@@ -154,6 +154,11 @@ class Despesa(ModeloBase):
             periodo=self.periodo_da_despesa
         ).exists()
 
+    @property
+    def mensagem_inativacao(self):
+        return f"Este gasto foi desativado em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}" \
+            if self.status == "INATIVO" else None
+
     def __str__(self):
         return f"{self.numero_documento} - {self.data_documento} - {self.valor_total:.2f}"
 

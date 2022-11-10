@@ -60,6 +60,11 @@ class SolicitacaoAcertoLancamento(ModeloBase):
         self.status_realizacao = novo_status
         self.save()
 
+    def incluir_esclarecimentos(self, esclarecimentos):
+        self.esclarecimentos = esclarecimentos
+        self.save()
+        return self
+
     class Meta:
         verbose_name = "Solicitação de acerto em lançamento"
         verbose_name_plural = "16.3) Solicitações de acertos em lançamentos"
