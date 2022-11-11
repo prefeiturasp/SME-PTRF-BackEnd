@@ -41,17 +41,30 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
     STATUS_REALIZACAO_PENDENTE = 'PENDENTE'
     STATUS_REALIZACAO_REALIZADO = 'REALIZADO'
     STATUS_REALIZACAO_JUSTIFICADO = 'JUSTIFICADO'
+    STATUS_REALIZACAO_REALIZADO_JUSTIFICADO = 'REALIZADO_JUSTIFICADO'
+    STATUS_REALIZACAO_REALIZADO_PARCIALMENTE = 'REALIZADO_PARCIALMENTE'
+    STATUS_REALIZACAO_JUSTIFICADO_PARCIALMENTE = 'JUSTIFICADO_PARCIALMENTE'
+    STATUS_REALIZACAO_REALIZADO_JUSTIFICADO_PARCIALMENTE = 'REALIZADO_JUSTIFICADO_PARCIALMENTE'
 
     STATUS_REALIZACAO_NOMES = {
         STATUS_REALIZACAO_PENDENTE: 'Pendente',
         STATUS_REALIZACAO_REALIZADO: 'Realizado',
-        STATUS_REALIZACAO_JUSTIFICADO: 'Justificado'
+        STATUS_REALIZACAO_JUSTIFICADO: 'Justificado',
+        STATUS_REALIZACAO_REALIZADO_JUSTIFICADO: 'Realizado e justificado',
+        STATUS_REALIZACAO_REALIZADO_PARCIALMENTE: 'Realizado parcialmente',
+        STATUS_REALIZACAO_JUSTIFICADO_PARCIALMENTE: 'Justificado parcialmente',
+        STATUS_REALIZACAO_REALIZADO_JUSTIFICADO_PARCIALMENTE: 'Realizado e justificado parcialmente'
     }
 
     STATUS_REALIZACAO_CHOICES = (
         (STATUS_REALIZACAO_PENDENTE, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_PENDENTE]),
         (STATUS_REALIZACAO_REALIZADO, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_REALIZADO]),
-        (STATUS_REALIZACAO_JUSTIFICADO, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_JUSTIFICADO])
+        (STATUS_REALIZACAO_JUSTIFICADO, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_JUSTIFICADO]),
+        (STATUS_REALIZACAO_REALIZADO_JUSTIFICADO, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_REALIZADO_JUSTIFICADO]),
+        (STATUS_REALIZACAO_REALIZADO_PARCIALMENTE, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_REALIZADO_PARCIALMENTE]),
+        (STATUS_REALIZACAO_JUSTIFICADO_PARCIALMENTE, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_JUSTIFICADO_PARCIALMENTE]),
+        (STATUS_REALIZACAO_REALIZADO_JUSTIFICADO_PARCIALMENTE, STATUS_REALIZACAO_NOMES[
+            STATUS_REALIZACAO_REALIZADO_JUSTIFICADO_PARCIALMENTE]),
     )
 
     analise_prestacao_conta = models.ForeignKey('AnalisePrestacaoConta', on_delete=models.CASCADE,
@@ -79,13 +92,10 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
 
     status_realizacao = models.CharField(
         'Status de realização',
-        max_length=15,
+        max_length=40,
         choices=STATUS_REALIZACAO_CHOICES,
         default=STATUS_REALIZACAO_PENDENTE
     )
-
-    # esse campo sera removido
-    justificativa = models.TextField('Justificativa', max_length=300, blank=True, null=True, default=None)
 
     devolucao_tesouro_atualizada = models.BooleanField("Devolução ao Tesouro Atualizada?", default=False)
 
@@ -93,16 +103,8 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
 
     lancamento_excluido = models.BooleanField("Lançamento Excluído?", default=False)
 
-    # esse campo sera removido
-    esclarecimentos = models.TextField('Esclarecimentos', max_length=300, blank=True, null=True, default=None)
-
     def __str__(self):
         return f"{self.analise_prestacao_conta} - Resultado:{self.resultado}"
-
-    def altera_status_realizacao(self, novo_status, justificativa=None):
-        self.justificativa = justificativa
-        self.status_realizacao = novo_status
-        self.save()
 
     @classmethod
     def status_realizacao_choices_to_json(cls):
@@ -168,11 +170,6 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         ).exists()
         return requer
 
-    def incluir_esclarecimentos(self, esclarecimentos):
-        self.esclarecimentos = esclarecimentos
-        self.save()
-        return self
-
     def solicitacoes_de_acertos_agrupado_por_categoria(self):
         from sme_ptrf_apps.core.api.serializers.solicitacao_devolucao_ao_tesouro_serializer import \
             SolicitacaoDevolucaoAoTesouroRetrieveSerializer
@@ -226,67 +223,6 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
                 categoria_ajuste_externo,
                 categoria_solicitacao_esclarecimento
             )
-
-            #remover bloco
-            # "solicitacoes_acerto_por_categoria": [
-            #     {
-            #
-            #         "requer_atualizacao_devolucao_ao_tesouro": self.requer_atualizacao_devolucao_ao_tesouro,
-            #         "devolucao_tesouro_atualizada": self.devolucao_tesouro_atualizada,
-            #         "acertos": categoria_devolucao_tesouro,
-            #         "categoria": TipoAcertoLancamento.CATEGORIA_DEVOLUCAO,
-            #         "despesa": f"{self.despesa.uuid}" if self.despesa else None,
-            #         "receita": f"{self.receita.uuid}" if self.receita else None,
-            #         "analise_lancamento": f"{self.uuid}",
-            #         "mensagem_inativa": None
-            #
-            #     },
-            #     {
-            #
-            #         "requer_atualizacao_lancamento": self.requer_atualizacao_lancamento,
-            #         "lancamento_atualizado": self.lancamento_atualizado,
-            #         "acertos": categoria_edicao_lancamento,
-            #         "categoria": TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
-            #         "despesa": f"{self.despesa.uuid}" if self.despesa else None,
-            #         "receita": f"{self.receita.uuid}" if self.receita else None,
-            #         "analise_lancamento": f"{self.uuid}",
-            #         "mensagem_inativa": None
-            #
-            #     },
-            #     {
-            #
-            #         "requer_exclusao_lancamento": self.requer_exclusao_lancamento,
-            #         "lancamento_excluido": self.lancamento_excluido,
-            #         "acertos": categoria_exclusao_lancamento,
-            #         "categoria": TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO,
-            #         "despesa": f"{self.despesa.uuid}" if self.despesa else None,
-            #         "receita": f"{self.receita.uuid}" if self.receita else None,
-            #         "analise_lancamento": f"{self.uuid}",
-            #         "mensagem_inativa": self.mensagem_lancamento_inativo(self.despesa, self.receita)
-            #
-            #     },
-            #     {
-            #
-            #         "requer_ajustes_externos": self.requer_ajustes_externos,
-            #         "acertos": categoria_ajuste_externo,
-            #         "categoria": TipoAcertoLancamento.CATEGORIA_AJUSTES_EXTERNOS,
-            #         "despesa": f"{self.despesa.uuid}" if self.despesa else None,
-            #         "receita": f"{self.receita.uuid}" if self.receita else None,
-            #         "analise_lancamento": f"{self.uuid}",
-            #         "mensagem_inativa": None
-            #     },
-            #     {
-            #
-            #         "requer_esclarecimentos": self.requer_esclarecimentos,
-            #         "acertos": categoria_solicitacao_esclarecimento,
-            #         "categoria": TipoAcertoLancamento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO,
-            #         "despesa": f"{self.despesa.uuid}" if self.despesa else None,
-            #         "receita": f"{self.receita.uuid}" if self.receita else None,
-            #         "analise_lancamento": f"{self.uuid}",
-            #         "mensagem_inativa": None
-            #     }
-            #
-            # ]
         }
 
         result_com_ordem_calculada = self.calcula_ordem(result)
@@ -384,6 +320,38 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
             })
 
         return solicitacoes_acerto_por_categoria
+
+    def calcula_status_realizacao_analise_lancamento(self):
+        from . import SolicitacaoAcertoLancamento
+
+        novo_status = None
+
+        solicitacoes_realizadas = self.solicitacoes_de_ajuste_da_analise.filter(
+            status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_REALIZADO).exists()
+
+        solicitacoes_justificadas = self.solicitacoes_de_ajuste_da_analise.filter(
+            status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_JUSTIFICADO).exists()
+
+        solicitacoes_nao_realizadas = self.solicitacoes_de_ajuste_da_analise.filter(
+            status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE).exists()
+
+        if solicitacoes_realizadas and not solicitacoes_justificadas and not solicitacoes_nao_realizadas:
+            novo_status = AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO
+        elif solicitacoes_justificadas and not solicitacoes_realizadas and not solicitacoes_nao_realizadas:
+            novo_status = AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_JUSTIFICADO
+        elif solicitacoes_nao_realizadas and not solicitacoes_realizadas and not solicitacoes_justificadas:
+            novo_status = AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
+        elif solicitacoes_realizadas and solicitacoes_justificadas and not solicitacoes_nao_realizadas:
+            novo_status = AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_JUSTIFICADO
+        elif solicitacoes_realizadas and solicitacoes_nao_realizadas and not solicitacoes_justificadas:
+            novo_status = AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_PARCIALMENTE
+        elif solicitacoes_justificadas and solicitacoes_nao_realizadas and not solicitacoes_realizadas:
+            novo_status = AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_JUSTIFICADO_PARCIALMENTE
+        elif solicitacoes_justificadas and solicitacoes_realizadas and solicitacoes_nao_realizadas:
+            novo_status = AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_JUSTIFICADO_PARCIALMENTE
+
+        self.status_realizacao = novo_status
+        self.save()
 
     class Meta:
         verbose_name = "Análise de lançamento"

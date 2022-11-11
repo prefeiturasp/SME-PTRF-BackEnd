@@ -1,7 +1,7 @@
 from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
-from ...models import AnaliseLancamentoPrestacaoConta
+from ...models import AnaliseLancamentoPrestacaoConta, SolicitacaoAcertoLancamento
 from ..serializers import AnaliseLancamentoPrestacaoContaUpdateSerializer, AnaliseLancamentoPrestacaoContaRetrieveSerializer
 from sme_ptrf_apps.core.services import AnaliseLancamentoPrestacaoContaService
 from sme_ptrf_apps.core.services import SolicitacaoAcertoLancamentoService
@@ -83,6 +83,7 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
     def tabelas(self, request):
         result = {
             "status_realizacao": AnaliseLancamentoPrestacaoConta.status_realizacao_choices_to_json(),
+            "status_realizacao_solicitacao": SolicitacaoAcertoLancamento.status_realizacao_choices_to_json()
         }
 
         return Response(result, status=status.HTTP_200_OK)

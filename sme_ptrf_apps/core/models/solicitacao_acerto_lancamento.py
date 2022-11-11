@@ -4,6 +4,9 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from ...utils.choices_to_json import choices_to_json
 
 
 class SolicitacaoAcertoLancamento(ModeloBase):
@@ -65,9 +68,19 @@ class SolicitacaoAcertoLancamento(ModeloBase):
         self.save()
         return self
 
+    @classmethod
+    def status_realizacao_choices_to_json(cls):
+        return choices_to_json(cls.STATUS_REALIZACAO_CHOICES)
+
     class Meta:
         verbose_name = "Solicitação de acerto em lançamento"
         verbose_name_plural = "16.3) Solicitações de acertos em lançamentos"
 
 
 auditlog.register(SolicitacaoAcertoLancamento)
+
+
+@receiver(post_save, sender=SolicitacaoAcertoLancamento)
+def solicitacao_acerto_lancamento_post_save(instance, created, **kwargs):
+    if instance and instance.analise_lancamento:
+        instance.analise_lancamento.calcula_status_realizacao_analise_lancamento()
