@@ -33,7 +33,6 @@ class ConsolidadoDreComDocumentosSerializer(serializers.ModelSerializer):
             'laudas_do_consolidado_dre',
         )
 
-
 class ConsolidadoDreDetalhamentoSerializer(serializers.ModelSerializer):
     tipo_relatorio = serializers.SerializerMethodField('get_tipo_relatorio')
     exibe_reabrir_relatorio = serializers.SerializerMethodField('get_exibe_reabrir_relatorio')
