@@ -23,6 +23,7 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
         nova_solicitacao.pk = None
         nova_solicitacao.uuid = uuid.uuid4()
         nova_solicitacao.analise_lancamento = para
+        nova_solicitacao.devolucao_ao_tesouro = None  # A cópia não deve referenciar a DT
         nova_solicitacao.save()
         return nova_solicitacao
 
