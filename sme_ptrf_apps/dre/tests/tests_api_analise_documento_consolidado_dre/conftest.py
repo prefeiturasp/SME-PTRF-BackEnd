@@ -58,11 +58,11 @@ def jwt_authenticated_client_sme_teste_analise_documento_consolidado_dre(client,
         mock_post.return_value.json.return_value = data
         resp = api_client.post('/api/login',
                                {'login': usuario_permissao_sme.username, 'senha': usuario_permissao_sme.password},
-                               format='json')
+
+              format='json')
         resp_data = resp.json()
         api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
     return api_client
-
 
 @pytest.fixture
 def permissoes_ver_relatorio_consolidado_dre():
