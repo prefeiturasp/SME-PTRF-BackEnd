@@ -43,68 +43,53 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
         'requer_ajustes_externos': False,
         'requer_esclarecimentos': False,
         'solicitacoes_de_ajuste_da_analise_total': 1,
-        'solicitacoes_de_ajuste_da_analise': {
-            'analise_lancamento': f'{analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}',
-            'solicitacoes_acerto_por_categoria': [
-                {
-                    'acertos': [
-                        {
-                            'tipo_acerto': {
-                                'ativo': True,
+        'solicitacoes_de_ajuste_da_analise': [
+            {
+                'analise_lancamento': f'{analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}',
+                'copiado': False,
+                'detalhamento': 'teste',
+                'devolucao_ao_tesouro': {
+                    'data': '2020-07-01',
+                    'despesa': {
+                        'associacao': f'{despesa_2020_1.associacao.uuid}',
+                        'cpf_cnpj_fornecedor': '11.478.276/0001-04',
+                        'data_documento': '2020-03-10',
+                        'data_transacao': '2020-03-10',
+                        'documento_transacao': '',
+                        'nome_fornecedor': 'Fornecedor '
+                                           'SA',
+                        'numero_documento': '123456',
+                        'tipo_documento': {'id': despesa_2020_1.tipo_documento.id, 'nome': 'NFe'},
+                        'tipo_transacao': {'id': despesa_2020_1.tipo_transacao.id, 'nome': 'Boleto',
+                                           'tem_documento': False},
+                        'uuid': f'{despesa_2020_1.uuid}',
+                        'valor_ptrf': 90.0,
+                        'valor_total': '100.00',
+                    },
+                    'devolucao_total': False,
+                    'motivo': 'teste',
+                    'prestacao_conta': f'{prestacao_conta_2020_1_em_analise.uuid}',
+                    'tipo': {'id': solicitacao_acerto_lancamento_devolucao.devolucao_ao_tesouro.tipo.id,
+                             'nome': 'Devolução '
+                                     'teste',
+                             'uuid': f'{solicitacao_acerto_lancamento_devolucao.devolucao_ao_tesouro.tipo.uuid}'},
+                    'uuid': f'{solicitacao_devolucao_ao_tesouro.uuid}',
+                    'valor': '100.00',
+                    'visao_criacao': 'DRE',
+                    'uuid_registro_devolucao': f'{solicitacao_acerto_lancamento_devolucao.devolucao_ao_tesouro.uuid}',
+                },
+                'id': solicitacao_acerto_lancamento_devolucao.id,
+                'tipo_acerto': {'ativo': True,
                                 'categoria': 'DEVOLUCAO',
                                 'id': tipo_acerto_lancamento_devolucao.id,
                                 'nome': 'Devolução',
-                                'uuid': f'{tipo_acerto_lancamento_devolucao.uuid}',
-                            },
-                            'copiado': False,
-                            'detalhamento': 'teste',
-                            'devolucao_ao_tesouro': {
-                                'data': '2020-07-01',
-                                'despesa': {
-                                    'associacao': f'{despesa_2020_1.associacao.uuid}',
-                                    'cpf_cnpj_fornecedor': '11.478.276/0001-04',
-                                    'data_documento': '2020-03-10',
-                                    'data_transacao': '2020-03-10',
-                                    'documento_transacao': '',
-                                    'nome_fornecedor': 'Fornecedor '
-                                                       'SA',
-                                    'numero_documento': '123456',
-                                    'tipo_documento': {'id': despesa_2020_1.tipo_documento.id, 'nome': 'NFe'},
-                                    'tipo_transacao': {'id': despesa_2020_1.tipo_transacao.id, 'nome': 'Boleto', 'tem_documento': False},
-                                    'uuid': f'{despesa_2020_1.uuid}',
-                                    'valor_ptrf': 90.0,
-                                    'valor_total': '100.00',
-                                },
-                                'devolucao_total': False,
-                                'motivo': 'teste',
-                                'prestacao_conta': f'{prestacao_conta_2020_1_em_analise.uuid}',
-                                'tipo': {'id': solicitacao_acerto_lancamento_devolucao.devolucao_ao_tesouro.tipo.id,
-                                         'nome': 'Devolução '
-                                                 'teste',
-                                         'uuid': f'{solicitacao_acerto_lancamento_devolucao.devolucao_ao_tesouro.tipo.uuid}'},
-                                'uuid': f'{solicitacao_devolucao_ao_tesouro.uuid}',
-                                'valor': '100.00',
-                                'visao_criacao': 'DRE',
-                                'uuid_registro_devolucao': f'{solicitacao_acerto_lancamento_devolucao.devolucao_ao_tesouro.uuid}',
-                            },
-                            'esclarecimentos': None,
-                            'justificativa': None,
-                            'ordem': 1,
-                            'status_realizacao': 'PENDENTE',
-                            'id': solicitacao_acerto_lancamento_devolucao.id,
-                            'uuid': f'{solicitacao_acerto_lancamento_devolucao.uuid}'
-                        }
-                    ],
-                    'categoria': 'DEVOLUCAO',
-                    'despesa': f'{despesa_2020_1.uuid}',
-                    'devolucao_tesouro_atualizada': False,
-                    'requer_atualizacao_devolucao_ao_tesouro': True,
-                    'receita': None,
-                    'analise_lancamento': f'{analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}',
-                    'mensagem_inativa': None
-                }
-            ],
-        },
+                                'uuid': f'{tipo_acerto_lancamento_devolucao.uuid}'},
+                'uuid': f'{solicitacao_acerto_lancamento_devolucao.uuid}',
+                'esclarecimentos': None,
+                'justificativa': None,
+                'status_realizacao': 'PENDENTE',
+            }
+        ],
         'id': analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.id,
         'status_realizacao': 'PENDENTE',
         'uuid': f'{analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}'
