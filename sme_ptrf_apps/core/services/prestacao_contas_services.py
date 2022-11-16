@@ -25,7 +25,7 @@ from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previa
 from ..services.processos_services import get_processo_sei_da_prestacao
 from ...despesas.models import RateioDespesa, Despesa
 from ...receitas.models import Receita
-from ..tasks import concluir_prestacao_de_contas_async, gerar_previa_demonstrativo_financeiro_async
+from ..tasks import gerar_previa_demonstrativo_financeiro_async
 
 from ..services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
 from .demonstrativo_financeiro_pdf_service import gerar_arquivo_demonstrativo_financeiro_pdf
@@ -674,7 +674,7 @@ def lancamentos_da_prestacao(
             filtrar_por_nome_fornecedor=filtrar_por_nome_fornecedor,
         )
 
-        despesas = despesas.order_by("data_transacao")
+        despesas = despesas.order_by("data_documento")
 
     lancamentos = []
 
