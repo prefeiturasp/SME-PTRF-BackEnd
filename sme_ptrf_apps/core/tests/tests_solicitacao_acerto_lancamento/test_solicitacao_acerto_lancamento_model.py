@@ -17,6 +17,9 @@ def test_instance_model(solicitacao_acerto_lancamento_devolucao):
     assert isinstance(model.analise_lancamento, AnaliseLancamentoPrestacaoConta)
     assert isinstance(model.tipo_acerto, TipoAcertoLancamento)
     assert model.detalhamento
+    assert model.status_realizacao
+    assert model.justificativa is None
+    assert model.esclarecimentos is None
 
 
 def test_srt_model(solicitacao_acerto_lancamento_devolucao):

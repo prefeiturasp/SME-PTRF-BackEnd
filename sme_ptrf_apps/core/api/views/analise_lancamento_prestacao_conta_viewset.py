@@ -1,8 +1,8 @@
 from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
-from ...models import AnaliseLancamentoPrestacaoConta, SolicitacaoAcertoLancamento
-from ..serializers import AnaliseLancamentoPrestacaoContaUpdateSerializer, AnaliseLancamentoPrestacaoContaRetrieveSerializer
+from ...models import AnaliseLancamentoPrestacaoConta, SolicitacaoAcertoLancamento, AnalisePrestacaoConta
+from ..serializers import AnaliseLancamentoPrestacaoContaRetrieveSerializer
 from sme_ptrf_apps.core.services import AnaliseLancamentoPrestacaoContaService
 from sme_ptrf_apps.core.services import SolicitacaoAcertoLancamentoService
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
@@ -17,7 +17,7 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = AnaliseLancamentoPrestacaoConta.objects.all()
-    serializer_class = AnaliseLancamentoPrestacaoContaUpdateSerializer
+    serializer_class = AnaliseLancamentoPrestacaoContaRetrieveSerializer
 
     @action(detail=False, methods=['post'], url_path='limpar-status',
             permission_classes=[IsAuthenticated & PermissaoApiUe])

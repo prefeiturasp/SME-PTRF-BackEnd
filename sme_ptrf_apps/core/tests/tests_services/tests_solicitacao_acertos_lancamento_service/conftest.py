@@ -15,6 +15,8 @@ def analise_lancamento_justificado_service_01(analise_prestacao_conta_2020_1):
     )
 
 
+
+
 @pytest.fixture
 def analise_lancamento_realizado_service_01(analise_prestacao_conta_2020_1):
     return baker.make(

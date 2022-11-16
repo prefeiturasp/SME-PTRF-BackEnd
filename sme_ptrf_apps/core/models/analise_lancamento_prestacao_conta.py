@@ -170,6 +170,11 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         ).exists()
         return requer
 
+    def solicitacoes_de_acertos_total(self):
+        total_solicitacoes = len(self.solicitacoes_de_ajuste_da_analise.all())
+
+        return total_solicitacoes
+
     def solicitacoes_de_acertos_agrupado_por_categoria(self):
         from sme_ptrf_apps.core.api.serializers.solicitacao_devolucao_ao_tesouro_serializer import \
             SolicitacaoDevolucaoAoTesouroRetrieveSerializer

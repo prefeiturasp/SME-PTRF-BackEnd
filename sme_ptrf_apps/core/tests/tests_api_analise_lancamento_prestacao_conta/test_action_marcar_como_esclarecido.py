@@ -6,17 +6,17 @@ pytestmark = pytest.mark.django_db
 
 
 def test_marcar_como_esclarecido(
-    analise_lancamento_despesa_prestacao_conta_2020_1,
+    solicitacao_acerto_lancamento_devolucao,
     jwt_authenticated_client_a
 ):
-    uuid_analise = f"{analise_lancamento_despesa_prestacao_conta_2020_1.uuid}"
 
     payload = {
-        'esclarecimento': "Este é o esclarecimento"
+        'esclarecimento': "Este é o esclarecimento",
+        'uuid_solicitacao_acerto': f"{solicitacao_acerto_lancamento_devolucao.uuid}"
     }
 
     response = jwt_authenticated_client_a.post(
-        f'/api/analises-lancamento-prestacao-conta/{uuid_analise}/marcar-como-esclarecido/',
+        f'/api/analises-lancamento-prestacao-conta/marcar-como-esclarecido/',
         data=json.dumps(payload),
         content_type='application/json'
     )

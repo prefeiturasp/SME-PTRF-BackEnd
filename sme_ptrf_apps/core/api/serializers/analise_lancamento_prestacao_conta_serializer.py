@@ -30,6 +30,11 @@ class AnaliseLancamentoPrestacaoContaRetrieveSerializer(serializers.ModelSeriali
     def get_solicitacoes_ajuste(self, obj):
         return obj.solicitacoes_de_acertos_agrupado_por_categoria()
 
+    solicitacoes_de_ajuste_da_analise_total = serializers.SerializerMethodField('get_solicitacoes_ajuste_total')
+
+    def get_solicitacoes_ajuste_total(self, obj):
+        return obj.solicitacoes_de_acertos_total()
+
     class Meta:
         model = AnaliseLancamentoPrestacaoConta
         fields = (
@@ -40,6 +45,7 @@ class AnaliseLancamentoPrestacaoContaRetrieveSerializer(serializers.ModelSeriali
             'resultado',
             'id',
             'uuid',
+            'solicitacoes_de_ajuste_da_analise_total',
             'solicitacoes_de_ajuste_da_analise',
             'status_realizacao',
             'devolucao_tesouro_atualizada',
@@ -52,10 +58,3 @@ class AnaliseLancamentoPrestacaoContaRetrieveSerializer(serializers.ModelSeriali
             'requer_esclarecimentos',
         )
 
-
-class AnaliseLancamentoPrestacaoContaUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AnaliseLancamentoPrestacaoConta
-        fields = (
-            'justificativa',
-        )
