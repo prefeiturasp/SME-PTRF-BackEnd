@@ -1888,7 +1888,6 @@ def analise_lancamento_receita_prestacao_conta_2020_1_com_justificativa(analise_
         tipo_lancamento='CREDITO',
         receita=receita_no_periodo_2020_1,
         resultado='CORRETO',
-        justificativa="teste"
     )
 
 
@@ -2056,8 +2055,7 @@ def analise_lancamento_receita_requer_ajustes_externos(
         analise_prestacao_conta=analise_prestacao_conta_2020_1,
         tipo_lancamento='CREDITO',
         receita=receita_no_periodo_2020_1,
-        resultado='AJUSTE',
-        justificativa="teste"
+        resultado='AJUSTE'
     )
 
 
@@ -2254,4 +2252,97 @@ def solicitacao_acerto_documento_ata_ajuste_externo(
     )
 
 
+@pytest.fixture
+def solicitacao_acerto_lancamento_status_realizado(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_lancamento_devolucao,
 
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_lancamento_devolucao,
+        devolucao_ao_tesouro=None,
+        detalhamento="teste",
+        status_realizacao="REALIZADO"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_status_realizado_02(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_lancamento_devolucao,
+
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_lancamento_devolucao,
+        devolucao_ao_tesouro=None,
+        detalhamento="teste",
+        status_realizacao="REALIZADO"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_status_justificado(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_lancamento_devolucao,
+
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_lancamento_devolucao,
+        devolucao_ao_tesouro=None,
+        detalhamento="teste",
+        status_realizacao="JUSTIFICADO"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_status_justificado_02(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_lancamento_devolucao,
+
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_lancamento_devolucao,
+        devolucao_ao_tesouro=None,
+        detalhamento="teste",
+        status_realizacao="JUSTIFICADO"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_status_nao_realizado(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_lancamento_devolucao,
+
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_lancamento_devolucao,
+        devolucao_ao_tesouro=None,
+        detalhamento="teste",
+        status_realizacao="PENDENTE"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_status_nao_realizado_02(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_lancamento_devolucao,
+
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_lancamento_devolucao,
+        devolucao_ao_tesouro=None,
+        detalhamento="teste",
+        status_realizacao="PENDENTE"
+    )

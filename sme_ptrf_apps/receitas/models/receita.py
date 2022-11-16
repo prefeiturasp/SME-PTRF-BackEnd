@@ -148,6 +148,11 @@ class Receita(ModeloBase):
             result = decorrido if decorrido >= limite else 0
         return result
 
+    @property
+    def mensagem_inativacao(self):
+        return f"Este crédito foi desativado em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}" \
+            if self.status == "INATIVO" else None
+
     @classmethod
     def get_tags_informacoes_list(cls):
         return [cls.TAG_INATIVA]

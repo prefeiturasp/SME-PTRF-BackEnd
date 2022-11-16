@@ -1,9 +1,10 @@
 from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
-from ...models import AnaliseLancamentoPrestacaoConta
-from ..serializers import AnaliseLancamentoPrestacaoContaUpdateSerializer, AnaliseLancamentoPrestacaoContaRetrieveSerializer
+from ...models import AnaliseLancamentoPrestacaoConta, SolicitacaoAcertoLancamento, AnalisePrestacaoConta
+from ..serializers import AnaliseLancamentoPrestacaoContaRetrieveSerializer
 from sme_ptrf_apps.core.services import AnaliseLancamentoPrestacaoContaService
+from sme_ptrf_apps.core.services import SolicitacaoAcertoLancamentoService
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -16,16 +17,23 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = AnaliseLancamentoPrestacaoConta.objects.all()
-    serializer_class = AnaliseLancamentoPrestacaoContaUpdateSerializer
+    serializer_class = AnaliseLancamentoPrestacaoContaRetrieveSerializer
 
     @action(detail=False, methods=['post'], url_path='limpar-status',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def limpar_status(self, request):
-        uuids_analises_lancamentos = request.data.get('uuids_analises_lancamentos', None)
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            AcoesStatusSolicitacaoAcertoLancamentoValidateSerializer
 
-        response = AnaliseLancamentoPrestacaoContaService.limpar_status(
-            uuids_analises_lancamentos=uuids_analises_lancamentos
+        query = AcoesStatusSolicitacaoAcertoLancamentoValidateSerializer(data=self.request.data)
+        query.is_valid(raise_exception=True)
+
+        uuids_solicitacoes_acertos_lancamentos = self.request.data.get('uuids_solicitacoes_acertos_lancamentos', None)
+
+        response = SolicitacaoAcertoLancamentoService.limpar_status(
+            uuids_solicitacoes_acertos_lancamentos=uuids_solicitacoes_acertos_lancamentos,
         )
+
         status_response = response.pop("status")
 
         return Response(response, status=status_response)
@@ -33,13 +41,20 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
     @action(detail=False, methods=['post'], url_path='justificar-nao-realizacao',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def justificar_nao_realizacao(self, request):
-        uuids_analises_lancamentos = request.data.get('uuids_analises_lancamentos', None)
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            AcoesStatusSolicitacaoAcertoLancamentoValidateSerializer
+
+        query = AcoesStatusSolicitacaoAcertoLancamentoValidateSerializer(data=self.request.data)
+        query.is_valid(raise_exception=True)
+
+        uuids_solicitacoes_acertos_lancamentos = self.request.data.get('uuids_solicitacoes_acertos_lancamentos', None)
         justificativa = request.data.get('justificativa', None)
 
-        response = AnaliseLancamentoPrestacaoContaService.justificar_nao_realizacao(
-            uuids_analises_lancamentos=uuids_analises_lancamentos,
+        response = SolicitacaoAcertoLancamentoService.justificar_nao_realizacao(
+            uuids_solicitacoes_acertos_lancamentos=uuids_solicitacoes_acertos_lancamentos,
             justificativa=justificativa
         )
+
         status_response = response.pop("status")
 
         return Response(response, status=status_response)
@@ -47,11 +62,18 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
     @action(detail=False, methods=['post'], url_path='marcar-como-realizado',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def marcar_como_realizado(self, request):
-        uuids_analises_lancamentos = request.data.get('uuids_analises_lancamentos', None)
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            AcoesStatusSolicitacaoAcertoLancamentoValidateSerializer
 
-        response = AnaliseLancamentoPrestacaoContaService.marcar_como_realizado(
-            uuids_analises_lancamentos=uuids_analises_lancamentos
+        query = AcoesStatusSolicitacaoAcertoLancamentoValidateSerializer(data=self.request.data)
+
+        query.is_valid(raise_exception=True)
+
+        uuids_solicitacoes_acertos_lancamentos = self.request.data.get('uuids_solicitacoes_acertos_lancamentos', None)
+        response = SolicitacaoAcertoLancamentoService.marcar_como_realizado(
+            uuids_solicitacoes_acertos_lancamentos=uuids_solicitacoes_acertos_lancamentos
         )
+
         status_response = response.pop("status")
 
         return Response(response, status=status_response)
@@ -61,6 +83,7 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
     def tabelas(self, request):
         result = {
             "status_realizacao": AnaliseLancamentoPrestacaoConta.status_realizacao_choices_to_json(),
+            "status_realizacao_solicitacao": SolicitacaoAcertoLancamento.status_realizacao_choices_to_json()
         }
 
         return Response(result, status=status.HTTP_200_OK)
@@ -205,22 +228,21 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post'], url_path='marcar-como-esclarecido',
+    @action(detail=False, methods=['post'], url_path='marcar-como-esclarecido',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def marcar_como_esclarecido(self, request, uuid):
-        esclarecimento = request.data.get('esclarecimento', None)
+    def marcar_como_esclarecido(self, request):
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            GravarEsclarecimentoAcertoLancamentoValidateSerializer
 
-        uuid_analise_lancamento = uuid
+        query = GravarEsclarecimentoAcertoLancamentoValidateSerializer(data=self.request.data)
 
-        if not uuid_analise_lancamento:
-            erro = {
-                'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid da Análise de Lançamento da PC'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        query.is_valid(raise_exception=True)
 
-        response = AnaliseLancamentoPrestacaoContaService.marcar_como_esclarecido(
-            uuid_analise_lancamento=uuid_analise_lancamento,
+        uuid_solicitacao_acerto = self.request.data.get('uuid_solicitacao_acerto', None)
+        esclarecimento = self.request.data.get('esclarecimento', None)
+
+        response = SolicitacaoAcertoLancamentoService.marcar_como_esclarecido(
+            uuid_solicitacao_acerto=uuid_solicitacao_acerto,
             esclarecimento=esclarecimento,
         )
 

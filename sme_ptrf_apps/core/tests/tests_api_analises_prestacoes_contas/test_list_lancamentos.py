@@ -153,7 +153,6 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                     'analise_prestacao_conta': f'{lancamento["analise_lancamento"].analise_prestacao_conta.uuid}',
                     'despesa': f'{lancamento["mestre"].uuid}',
                     'id': lancamento["analise_lancamento"].id,
-                    'justificativa': None,
                     'status_realizacao': 'PENDENTE',
                     'receita': None,
                     'resultado': 'AJUSTE',
@@ -165,61 +164,79 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                     'lancamento_excluido': False,
                     'requer_ajustes_externos': False,
                     'requer_esclarecimentos': False,
-                    'esclarecimentos': None,
-                    'solicitacoes_de_ajuste_da_analise': [
-                        {
-                            'analise_lancamento': f'{lancamento["analise_lancamento"].uuid}',
-                            'copiado': False,
-                            'detalhamento': 'teste',
-                            'devolucao_ao_tesouro': {
-                                'data': lancamento["data_devolucao"] if "data_devolucao" in lancamento else None,
-                                'despesa': {
-                                    'associacao': f'{lancamento["mestre"].associacao.uuid}',
-                                    'cpf_cnpj_fornecedor': '11.478.276/0001-04',
-                                    'data_documento': '2020-03-10',
-                                    'data_transacao': '2020-03-10',
-                                    'documento_transacao': '',
-                                    'nome_fornecedor': 'Fornecedor '
-                                                       'SA',
-                                    'numero_documento': '123456',
-                                    'tipo_documento': {
-                                        'id': lancamento["mestre"].tipo_documento.id,
-                                        'nome': 'NFe'
-                                    },
-                                    'tipo_transacao': {
-                                        'id': lancamento["mestre"].tipo_transacao.id,
-                                        'nome': 'Boleto',
-                                        'tem_documento': False
-                                    },
-                                    'uuid': f'{lancamento["mestre"].uuid}',
-                                    'valor_ptrf': 90.0,
-                                    'valor_total': '100.00'
-                                },
-                                'devolucao_total': False,
-                                'motivo': 'teste',
-                                'prestacao_conta': f'{lancamento["analise_lancamento"].analise_prestacao_conta.prestacao_conta.uuid}',
-                                'tipo': {
-                                    'id': lancamento["solicitacao_devolucao"].tipo.id,
-                                    'nome': 'Devolução '
-                                            'teste',
-                                    'uuid': f'{lancamento["solicitacao_devolucao"].tipo.uuid}'
-                                },
-                                'uuid': f'{lancamento["solicitacao_devolucao"].uuid}',
-                                'valor': '100.00',
-                                'visao_criacao': 'DRE',
-                                'uuid_registro_devolucao': None
-                            },
-                            'id': lancamento["solicitacao_ajuste"].id,
-                            'tipo_acerto': {
-                                'ativo': True,
+                    'solicitacoes_de_ajuste_da_analise_total': 1,
+                    'solicitacoes_de_ajuste_da_analise': {
+                        'analise_lancamento': f'{lancamento["analise_lancamento"].uuid}',
+                        'solicitacoes_acerto_por_categoria': [
+                            {
+                                'acertos': [
+                                    {
+                                        'tipo_acerto': {
+                                            'ativo': True,
+                                            'categoria': 'DEVOLUCAO',
+                                            'id': lancamento["solicitacao_ajuste"].tipo_acerto.id,
+                                            'nome': 'Devolução',
+                                            'uuid': f'{lancamento["solicitacao_ajuste"].tipo_acerto.uuid}'
+                                        },
+                                        'copiado': False,
+                                        'detalhamento': 'teste',
+                                        'devolucao_ao_tesouro': {
+                                            'data': lancamento[
+                                                "data_devolucao"] if "data_devolucao" in lancamento else None,
+                                            'despesa': {
+                                                'associacao': f'{lancamento["mestre"].associacao.uuid}',
+                                                'cpf_cnpj_fornecedor': '11.478.276/0001-04',
+                                                'data_documento': '2020-03-10',
+                                                'data_transacao': '2020-03-10',
+                                                'documento_transacao': '',
+                                                'nome_fornecedor': 'Fornecedor '
+                                                                   'SA',
+                                                'numero_documento': '123456',
+                                                'tipo_documento': {
+                                                    'id': lancamento["mestre"].tipo_documento.id,
+                                                    'nome': 'NFe'
+                                                },
+                                                'tipo_transacao': {
+                                                    'id': lancamento["mestre"].tipo_transacao.id,
+                                                    'nome': 'Boleto',
+                                                    'tem_documento': False
+                                                },
+                                                'uuid': f'{lancamento["mestre"].uuid}',
+                                                'valor_ptrf': 90.0,
+                                                'valor_total': '100.00'
+                                            },
+                                            'devolucao_total': False,
+                                            'motivo': 'teste',
+                                            'prestacao_conta': f'{lancamento["analise_lancamento"].analise_prestacao_conta.prestacao_conta.uuid}',
+                                            'tipo': {
+                                                'id': lancamento["solicitacao_devolucao"].tipo.id,
+                                                'nome': 'Devolução '
+                                                        'teste',
+                                                'uuid': f'{lancamento["solicitacao_devolucao"].tipo.uuid}'
+                                            },
+                                            'uuid': f'{lancamento["solicitacao_devolucao"].uuid}',
+                                            'valor': '100.00',
+                                            'visao_criacao': 'DRE',
+                                            'uuid_registro_devolucao': None
+                                        },
+                                        'esclarecimentos': None,
+                                        'justificativa': None,
+                                        'ordem': 1,
+                                        'status_realizacao': 'PENDENTE',
+                                        'id': lancamento["solicitacao_ajuste"].id,
+                                        'uuid': f'{lancamento["solicitacao_ajuste"].uuid}',
+                                    }
+                                ],
                                 'categoria': 'DEVOLUCAO',
-                                'id': lancamento["solicitacao_ajuste"].tipo_acerto.id,
-                                'nome': 'Devolução',
-                                'uuid': f'{lancamento["solicitacao_ajuste"].tipo_acerto.uuid}'
-                            },
-                            'uuid': f'{lancamento["solicitacao_ajuste"].uuid}'
-                        }
-                    ],
+                                'despesa': f'{lancamento["mestre"].uuid}',
+                                'devolucao_tesouro_atualizada': False,
+                                'requer_atualizacao_devolucao_ao_tesouro': True,
+                                'receita': None,
+                                'analise_lancamento': f'{lancamento["analise_lancamento"].uuid}',
+                                'mensagem_inativa': None,
+                            }
+                        ],
+                    },
                     'tipo_lancamento': 'GASTO',
                     'uuid': f'{lancamento["analise_lancamento"].uuid}'
                 } if lancamento["analise_lancamento"] else None,
