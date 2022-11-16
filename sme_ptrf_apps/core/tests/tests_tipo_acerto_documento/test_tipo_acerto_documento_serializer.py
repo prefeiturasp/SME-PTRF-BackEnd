@@ -27,3 +27,6 @@ def test_serializer(tipo_acerto_documento_assinatura):
     assert serializer.data['id']
     assert serializer.data['nome']
     assert serializer.data['uuid']
+    assert serializer.data['ativo']
+    assert serializer.data['categoria']
+    assert serializer.data['tipos_documento_prestacao']

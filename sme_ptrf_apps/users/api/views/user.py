@@ -28,6 +28,8 @@ from sme_ptrf_apps.users.services.unidades_e_permissoes_service import unidades_
 from sme_ptrf_apps.users.services.validacao_username_service import validar_username
 from sme_ptrf_apps.core.models import Unidade
 
+from django.core.exceptions import ValidationError
+
 User = get_user_model()
 
 
@@ -386,3 +388,44 @@ class UserViewSet(ModelViewSet):
         encerrar_acesso_de_suporte(unidade_do_suporte=unidade, usuario_do_suporte=usuario)
 
         return Response({"mensagem": "Acesso de suporte encerrado."}, status=status.HTTP_200_OK)
+
+    @action(detail=False, url_path="usuarios-servidores-por-visao", methods=['get'])
+    def usuarios_servidores_por_visao(self, request):
+        from ...services.get_usuarios_servidores_por_visao import get_usuarios_servidores_por_visao
+
+        visao = request.query_params.get('visao')
+
+        if not visao:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário o parametro ?visao='
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if visao not in ['SME', 'DRE', 'UE']:
+            erro = {
+                'erro': 'parametro_incorreto',
+                'mensagem': f"A visão {visao} não é uma visão válida. Esperado UE, DRE ou SME."
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            visao_objeto = Visao.objects.filter(nome=visao).first()
+        except (Visao.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"A visão {visao} não foi encontrada na Base"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            usuarios = get_usuarios_servidores_por_visao(visao_objeto)
+            return Response(usuarios, status=status.HTTP_200_OK)
+        except:
+            erro = {
+                'erro': 'Erro ao retornar usuarios_servidores_por_visao',
+                'mensagem': f"Não foi possível retornar os usuários"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)

@@ -16,13 +16,16 @@ def test_painel_resumo_recursos_retorna_info_conta(
     prr_acao_associacao_ptrf,
 ):
     status_pc_esperado = {
-        'documentos_gerados': None,
+        'documentos_gerados': False,
+        'pc_requer_conclusao': True,
         'legenda_cor': 1,
         'periodo_bloqueado': False,
         'periodo_encerrado': False,
         'prestacao_de_contas_uuid': None,
         'status_prestacao': 'NAO_APRESENTADA',
-        'texto_status': 'Período em andamento. '
+        'texto_status': 'Período em andamento. ',
+        'requer_retificacao': False,
+        'tem_acertos_pendentes': False,
     }
 
     info_conta_esperada = {

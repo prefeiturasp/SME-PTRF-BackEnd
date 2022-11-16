@@ -2,8 +2,9 @@ from django.db import models
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
-
+from ...utils.choices_to_json import choices_to_json
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.core.models import TipoAcertoDocumento
 
 
 class AnaliseDocumentoPrestacaoConta(ModeloBase):
@@ -23,6 +24,23 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
         (RESULTADO_AJUSTE, RESULTADO_NOMES[RESULTADO_AJUSTE]),
     )
 
+    # Status realizacao choices
+    STATUS_REALIZACAO_PENDENTE = 'PENDENTE'
+    STATUS_REALIZACAO_REALIZADO = 'REALIZADO'
+    STATUS_REALIZACAO_JUSTIFICADO = 'JUSTIFICADO'
+
+    STATUS_REALIZACAO_NOMES = {
+        STATUS_REALIZACAO_PENDENTE: 'Pendente',
+        STATUS_REALIZACAO_REALIZADO: 'Realizado',
+        STATUS_REALIZACAO_JUSTIFICADO: 'Justificado'
+    }
+
+    STATUS_REALIZACAO_CHOICES = (
+        (STATUS_REALIZACAO_PENDENTE, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_PENDENTE]),
+        (STATUS_REALIZACAO_REALIZADO, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_REALIZADO]),
+        (STATUS_REALIZACAO_JUSTIFICADO, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_JUSTIFICADO])
+    )
+
     analise_prestacao_conta = models.ForeignKey('AnalisePrestacaoConta', on_delete=models.CASCADE,
                                                 related_name='analises_de_documento')
 
@@ -39,8 +57,62 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
         default=RESULTADO_CORRETO
     )
 
+    status_realizacao = models.CharField(
+        'Status de realização',
+        max_length=15,
+        choices=STATUS_REALIZACAO_CHOICES,
+        default=STATUS_REALIZACAO_PENDENTE
+    )
+
+    justificativa = models.TextField('Justificativa', max_length=300, blank=True, null=True, default=None)
+
+    despesa_incluida = models.ForeignKey('despesas.Despesa', on_delete=models.SET_NULL,
+                                         related_name='analise_de_documento_que_incluiu_a_despesa', blank=True, null=True)
+
+    receita_incluida = models.ForeignKey('receitas.Receita', on_delete=models.SET_NULL,
+                                         related_name='analise_de_documento_que_incluiu_a_receita', blank=True, null=True)
+
+    esclarecimentos = models.TextField('Esclarecimentos', max_length=300, blank=True, null=True, default=None)
+
+    @property
+    def requer_esclarecimentos(self):
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoDocumento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO
+        ).exists()
+        return requer
+
+    @property
+    def requer_inclusao_credito(self):
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoDocumento.CATEGORIA_INCLUSAO_CREDITO
+        ).exists()
+        return requer
+
+    @property
+    def requer_inclusao_gasto(self):
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoDocumento.CATEGORIA_INCLUSAO_GASTO
+        ).exists()
+        return requer
+
+    @property
+    def requer_ajuste_externo(self):
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS
+        ).exists()
+        return requer
+
     def __str__(self):
         return f"Análise de documento {self.uuid} - Resultado:{self.resultado}"
+
+    def altera_status_realizacao(self, novo_status, justificativa=None):
+        self.justificativa = justificativa
+        self.status_realizacao = novo_status
+        self.save()
+
+    @classmethod
+    def status_realizacao_choices_to_json(cls):
+        return choices_to_json(cls.STATUS_REALIZACAO_CHOICES)
 
     class Meta:
         verbose_name = "Análise de documentos de PC"

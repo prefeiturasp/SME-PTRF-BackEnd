@@ -33,7 +33,9 @@ from sme_ptrf_apps.core.api.views import (
     AnalisesPrestacoesContasViewSet,
     PresentesAtaViewSet,
     AnaliseContaPrestacaoContaViewSet,
-    ParametrosUeViewSet
+    ParametrosUeViewSet,
+    AnaliseLancamentoPrestacaoContaViewSet,
+    AnaliseDocumentoPrestacaoContaViewSet
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
@@ -57,7 +59,9 @@ from sme_ptrf_apps.dre.api.views import (
     ConsolidadosDreViewSet,
     ParametrosDreViewSet,
     ValoresReprogramadosViewSet,
-    LaudaViewSet
+    LaudaViewSet,
+    ComentariosAnalisesConsolidadosDREViewSet,
+    AnalisesDocumentosConsolidadoDreViewSet
 )
 from sme_ptrf_apps.sme.api.views import (
     SaldosBancariosSMEViewSet,
@@ -126,6 +130,8 @@ router.register("tipos-acerto-documento", TiposAcertoDocumentoViewSet)
 router.register("analises-prestacoes-contas", AnalisesPrestacoesContasViewSet)
 router.register("presentes-ata", PresentesAtaViewSet)
 router.register("analises-conta-prestacao-conta", AnaliseContaPrestacaoContaViewSet)
+router.register("analises-lancamento-prestacao-conta", AnaliseLancamentoPrestacaoContaViewSet)
+router.register("analises-documento-prestacao-conta", AnaliseDocumentoPrestacaoContaViewSet)
 router.register("comissoes", ComissoesViewSet)
 router.register("membros-comissoes", MembrosComissoesViewSet)
 router.register("anos-analise-regularidade", AnosAnaliseRegularidadeViewSet)
@@ -139,6 +145,8 @@ router.register("parametros-sme", ParametrosSmeViewSet)
 router.register("valores-reprogramados", ValoresReprogramadosViewSet)
 router.register("exportacoes-dados", ExportacoesDadosViewSet)
 router.register("laudas", LaudaViewSet)
+router.register("comentarios-de-analises-consolidados-dre", ComentariosAnalisesConsolidadosDREViewSet)
+router.register("analises-documentos-consolidados-dre", AnalisesDocumentosConsolidadoDreViewSet)
 
 
 app_name = "api"

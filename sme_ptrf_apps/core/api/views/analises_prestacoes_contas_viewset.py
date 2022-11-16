@@ -20,7 +20,7 @@ from ...services import (
 )
 
 from django.http import HttpResponse
-from sme_ptrf_apps.core.tasks import gerar_previa_relatorio_acertos_async
+from sme_ptrf_apps.core.tasks import gerar_previa_relatorio_acertos_async, gerar_previa_relatorio_apos_acertos_async
 
 logger = logging.getLogger(__name__)
 
@@ -152,9 +152,9 @@ class AnalisesPrestacoesContasViewSet(
             acao_associacao=acao_associacao,
             tipo_transacao=tipo_transacao,
             tipo_acerto=tipo_acerto,
-            com_ajustes=True
+            com_ajustes=True,
+            inclui_inativas=True,
         )
-
         return Response(lancamentos, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], url_path='documentos-com-ajuste',
@@ -266,6 +266,122 @@ class AnalisesPrestacoesContasViewSet(
             filename = 'relatorio_acertos.pdf'
             response = HttpResponse(
                 open(analise_prestacao.arquivo_pdf.path, 'rb'),
+                content_type='application/pdf'
+            )
+            response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        except Exception as err:
+            erro = {
+                'erro': 'arquivo_nao_gerado',
+                'mensagem': str(err)
+            }
+            logger.info("Erro: %s", str(err))
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        return response
+
+    @action(detail=False, methods=['get'], url_path='previa-relatorio-apos-acertos',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def previa_relatorio_apos_acertos(self, request):
+        # Define a análise da prestação de contas
+        analise_prestacao_uuid = self.request.query_params.get('analise_prestacao_uuid')
+
+        if analise_prestacao_uuid:
+            try:
+                analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+            except AnalisePrestacaoConta.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                erro = {
+                    'erro': 'Ocorreu um erro!',
+                    'mensagem': f"{e}"
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da analise.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        gerar_previa_relatorio_apos_acertos_async.delay(
+            analise_prestacao_uuid=analise_prestacao_uuid,
+            usuario=request.user.username
+        )
+
+        return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='status-info_relatorio_apos_acertos',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def status_info_relatorio_apos_acertos(self, request):
+        analise_prestacao_uuid = request.query_params.get('analise_prestacao_uuid')
+
+        if analise_prestacao_uuid:
+            try:
+                analise_prestacao = AnalisePrestacaoConta.by_uuid(analise_prestacao_uuid)
+            except AnalisePrestacaoConta.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto AnalisePrestacaoConta para o uuid {analise_prestacao_uuid} não foi encontrado."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                erro = {
+                    'erro': 'Ocorreu um erro!',
+                    'mensagem': f"{e}"
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da analise.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(analise_prestacao.get_status_relatorio_apos_acertos())
+
+    @action(detail=False, methods=['get'], url_path='download-documento-pdf_apos_acertos',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def download_documento_pdf_apos_acertos(self, request):
+        logger.info("Download do documento pdf após acertos.")
+
+        analise_prestacao_uuid = request.query_params.get('analise_prestacao_uuid')
+
+        if analise_prestacao_uuid:
+            try:
+                analise_prestacao = AnalisePrestacaoConta.by_uuid(analise_prestacao_uuid)
+            except AnalisePrestacaoConta.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto AnalisePrestacaoConta para o uuid {analise_prestacao_uuid} não foi encontrado."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                erro = {
+                    'erro': 'Ocorreu um erro!',
+                    'mensagem': f"{e}"
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da analise.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            filename = 'relatorio_apos_acertos.pdf'
+            response = HttpResponse(
+                open(analise_prestacao.arquivo_pdf_apresentacao_apos_acertos.path, 'rb'),
                 content_type='application/pdf'
             )
             response['Content-Disposition'] = 'attachment; filename=%s' % filename

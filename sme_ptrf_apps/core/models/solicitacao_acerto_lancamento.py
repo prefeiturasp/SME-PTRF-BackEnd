@@ -15,11 +15,14 @@ class SolicitacaoAcertoLancamento(ModeloBase):
     tipo_acerto = models.ForeignKey('TipoAcertoLancamento', on_delete=models.PROTECT,
                                     related_name='+')
 
+    # TODO Remover esse campo após conclusão da mudança em solicitações de dev.tesouro
     devolucao_ao_tesouro = models.ForeignKey('DevolucaoAoTesouro', on_delete=models.SET_NULL,
                                              related_name='solicitacao_de_ajuste_da_devolucao',
                                              null=True, blank=True)
 
     detalhamento = models.TextField('Motivo', max_length=600, blank=True, default="")
+
+    copiado = models.BooleanField('Solicitação copiada ?', default=False)
 
     def __str__(self):
         return f"{self.tipo_acerto} - {self.detalhamento}"

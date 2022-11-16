@@ -15,6 +15,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPITodosComLeituraOuGravacao,
     PermissaoAPITodosComGravacao,
     PermissaoAPIApenasDreComGravacao,
+    PermissaoAPIApenasDreComLeituraOuGravacao,
 )
 from ....despesas.models import TipoDocumento, TipoTransacao
 
@@ -197,8 +198,13 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        justificativa_acertos_pendentes = request.data.get('justificativa_acertos_pendentes', '')
+
         try:
-            dados = concluir_prestacao_de_contas(associacao=associacao, periodo=periodo)
+            dados = concluir_prestacao_de_contas(
+                associacao=associacao,
+                periodo=periodo,
+            )
             prestacao_de_contas = dados["prestacao"]
 
             erro_pc = dados["erro"]
@@ -209,7 +215,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                     periodo.uuid,
                     associacao.uuid,
                     usuario=request.user.username,
-                    e_retorno_devolucao=dados["e_retorno_devolucao"]
+                    e_retorno_devolucao=dados["e_retorno_devolucao"],
+                    requer_geracao_documentos=dados["requer_geracao_documentos"],
+                    justificativa_acertos_pendentes=justificativa_acertos_pendentes,
                 )
         except(IntegrityError):
             erro = {
@@ -389,6 +397,29 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         prestacao_salva = prestacao_conta.salvar_devolucoes_ao_tesouro(
             devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
+
+        return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
+                        status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['delete'], url_path='apagar-devolucoes-ao-tesouro',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
+    def apagar_devolucoes_ao_tesouro(self, request, uuid):
+        prestacao_conta = self.get_object()
+
+        devolucoes_ao_tesouro_a_apagar = request.data.get('devolucoes_ao_tesouro_a_apagar', [])
+
+        if prestacao_conta.status not in [PrestacaoConta.STATUS_EM_ANALISE, PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA]:
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'status_nao_permite_operacao',
+                'status': prestacao_conta.status,
+                'operacao': 'apagar-devolucoes-ao-tesouro',
+                'mensagem': 'Você não pode apagar devoluções ao tesouro de uma prestação de contas com status diferente de EM_ANALISE ou DEVOLVIDA.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        prestacao_salva = prestacao_conta.apagar_devolucoes_ao_tesouro(
+            devolucoes_ao_tesouro_a_apagar=devolucoes_ao_tesouro_a_apagar)
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
@@ -1661,3 +1692,13 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         ata = Ata.iniciar_previa(associacao=associacao, periodo=periodo)
 
         return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='contas-com-movimento',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def contas_com_movimento(self, request, uuid):
+        from ..serializers.conta_associacao_serializer import ContaAssociacaoDadosSerializer
+
+        prestacao_conta: PrestacaoConta = self.get_object()
+        contas = prestacao_conta.get_contas_com_movimento()
+
+        return Response(ContaAssociacaoDadosSerializer(contas, many=True).data)

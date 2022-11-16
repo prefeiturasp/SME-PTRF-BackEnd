@@ -124,3 +124,23 @@ def test_resumo_de_recursos_deve_somar_as_receitas_do_periodo_por_categoria_sepa
     assert resumo.receitas.repasses_geral == Decimal(630.00), "Deve ser o total das receitas que são repasses."
 
 
+def test_resumo_de_recursos_deve_somar_apenas_as_receitas_ativas(
+    rr_periodo_2020_1,
+    rr_acao_associacao_ptrf,
+    rr_conta_associacao_cheque,
+    rr_receita_110_2020_1_ptrf_cheque_custeio,
+    rr_receita_220_2020_1_ptrf_cheque_capital,
+    rr_receita_300_2020_1_ptrf_cheque_livre,
+    rr_receita_400_2020_1_ptrf_cartao_custeio,    # Essa não deve ser somada por ser de outra conta.
+    rr_receita_500_2020_1_role_cheque_custeio,    # Essa não deve ser somada por ser de outra ação.
+    rr_receita_650_2020_2_ptrf_cheque_custeio,    # Essa não deve ser somada por ser de outro período.
+    rr_receita_110_2020_1_ptrf_cheque_custeio_inativa, # Essa não deve ser somada por ser inativa.
+):
+    resumo = ResumoRecursosService.resumo_recursos(
+        rr_periodo_2020_1,
+        rr_acao_associacao_ptrf,
+        rr_conta_associacao_cheque,
+    )
+
+    assert resumo.receitas.total_geral == 630.00, "Deve somar apenas as receitas do período, ação e conta definidos."
+

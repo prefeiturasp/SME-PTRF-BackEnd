@@ -3,6 +3,9 @@ from django.contrib import admin
 
 from ...models import AnalisePrestacaoConta, TipoDocumentoPrestacaoConta, AnaliseDocumentoPrestacaoConta, ContaAssociacao
 
+from sme_ptrf_apps.receitas.models import Receita
+from sme_ptrf_apps.despesas.models import Despesa
+
 pytestmark = pytest.mark.django_db
 
 
@@ -13,6 +16,11 @@ def test_instance_model(analise_documento_prestacao_conta_2020_1_ata_correta):
     assert isinstance(model.tipo_documento_prestacao_conta, TipoDocumentoPrestacaoConta)
     assert isinstance(model.conta_associacao, ContaAssociacao)
     assert model.resultado == AnaliseDocumentoPrestacaoConta.RESULTADO_CORRETO
+    assert model.justificativa is None
+    assert model.status_realizacao == AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
+    assert isinstance(model.receita_incluida, Receita)
+    assert isinstance(model.despesa_incluida, Despesa)
+    assert model.esclarecimentos == 'teste'
 
 
 def test_srt_model(analise_documento_prestacao_conta_2020_1_ata_correta):
@@ -34,3 +42,30 @@ def test_audit_log(analise_documento_prestacao_conta_2020_1_ata_correta):
     assert analise_documento_prestacao_conta_2020_1_ata_correta.history.count() == 2  # Um log de inclusão e outro de edição
     assert analise_documento_prestacao_conta_2020_1_ata_correta.history.latest().action == 1  # 1-Edição
 
+
+def test_model_property_requer_esclarecimentos(
+    analise_documento_prestacao_conta_2020_1_ata_ajuste,
+    solicitacao_acerto_documento_ata_esclarecimentos,
+):
+    assert analise_documento_prestacao_conta_2020_1_ata_ajuste.requer_esclarecimentos
+
+
+def test_model_property_requer_inclusao_credito(
+    analise_documento_prestacao_conta_2020_1_ata_ajuste,
+    solicitacao_acerto_documento_ata_inclusao_credito,
+):
+    assert analise_documento_prestacao_conta_2020_1_ata_ajuste.requer_inclusao_credito
+
+
+def test_model_property_requer_inclusao_gasto(
+    analise_documento_prestacao_conta_2020_1_ata_ajuste,
+    solicitacao_acerto_documento_ata_inclusao_despesa,
+):
+    assert analise_documento_prestacao_conta_2020_1_ata_ajuste.requer_inclusao_gasto
+
+
+def test_model_property_requer_ajuste_externo(
+    analise_documento_prestacao_conta_2020_1_ata_ajuste,
+    solicitacao_acerto_documento_ata_ajuste_externo,
+):
+    assert analise_documento_prestacao_conta_2020_1_ata_ajuste.requer_ajuste_externo

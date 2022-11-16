@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.db import models
@@ -8,7 +10,7 @@ from django.dispatch import receiver
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from .fornecedor import Fornecedor
 from .validators import cpf_cnpj_validation
-from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO
+from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO, STATUS_INATIVO
 from ...core.models import Associacao
 
 
@@ -24,6 +26,7 @@ class Despesa(ModeloBase):
     TAG_PARCIAL = {"id": "3", "nome": "Parcial", "descricao": "Parte da despesa paga com recursos próprios ou de mais de uma conta."}
     TAG_IMPOSTO = {"id": "4", "nome": "Imposto", "descricao": "Despesa com recolhimento de imposto."}
     TAG_IMPOSTO_PAGO = {"id": "5", "nome": "Imposto Pago", "descricao": "Imposto recolhido relativo a uma despesa de serviço."}
+    TAG_INATIVA = {"id": "6", "nome": "Inativado", "descricao": "Lançamento inativado."}
 
     history = AuditlogHistoryField()
 
@@ -78,6 +81,8 @@ class Despesa(ModeloBase):
         default=STATUS_INCOMPLETO
     )
 
+    data_e_hora_de_inativacao = models.DateTimeField("Inativado em", blank=True, null=True)
+
     objects = models.Manager()  # Manager Padrão
     completas = DespesasCompletasManager()
 
@@ -129,7 +134,25 @@ class Despesa(ModeloBase):
                 'Parte da despesa foi paga com recursos próprios ou por mais de uma conta.'
             ))
 
+        if self.e_despesa_inativa():
+            tags.append(tag_informacao(
+                self.TAG_INATIVA,
+                f"Este gasto foi inativado em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}"
+            ))
         return tags
+
+    @property
+    def periodo_da_despesa(self):
+        from sme_ptrf_apps.core.models import Periodo
+        return Periodo.da_data(self.data_transacao)
+
+    @property
+    def inativar_em_vez_de_excluir(self):
+        from sme_ptrf_apps.core.models import PrestacaoConta
+        return PrestacaoConta.objects.filter(
+            associacao=self.associacao,
+            periodo=self.periodo_da_despesa
+        ).exists()
 
     def __str__(self):
         return f"{self.numero_documento} - {self.data_documento} - {self.valor_total:.2f}"
@@ -194,6 +217,12 @@ class Despesa(ModeloBase):
         return completo
 
     def atualiza_status(self):
+        if self.data_e_hora_de_inativacao:
+            if self.status != STATUS_INATIVO:
+                self.status = STATUS_INATIVO
+                self.save()
+            return
+
         cadastro_completo = self.cadastro_completo()
         status_completo = self.status == STATUS_COMPLETO
         if cadastro_completo != status_completo:
@@ -228,6 +257,22 @@ class Despesa(ModeloBase):
     def tem_pagamentos_em_multiplas_contas(self):
         return self.rateios.values('conta_associacao').order_by('conta_associacao').annotate(count=Count('conta_associacao')).count() > 1
 
+    def e_despesa_inativa(self):
+        return self.status == STATUS_INATIVO
+
+    def inativar_despesa(self):
+        self.status = STATUS_INATIVO
+        self.data_e_hora_de_inativacao = datetime.now()
+        self.save()
+
+        for rateio in self.rateios.all():
+            rateio.inativar_rateio()
+
+        for despesa_imposto in self.despesas_impostos.all():
+            despesa_imposto.inativar_despesa()
+
+        return self
+
     @classmethod
     def by_documento(cls, tipo_documento, numero_documento, cpf_cnpj_fornecedor, associacao__uuid):
         return cls.objects.filter(associacao__uuid=associacao__uuid).filter(
@@ -236,7 +281,7 @@ class Despesa(ModeloBase):
 
     @classmethod
     def get_tags_informacoes_list(cls):
-        return [cls.TAG_ANTECIPADO, cls.TAG_ESTORNADO, cls.TAG_PARCIAL, cls.TAG_IMPOSTO, cls.TAG_IMPOSTO_PAGO]
+        return [cls.TAG_ANTECIPADO, cls.TAG_ESTORNADO, cls.TAG_PARCIAL, cls.TAG_IMPOSTO, cls.TAG_IMPOSTO_PAGO, cls.TAG_INATIVA]
 
     class Meta:
         verbose_name = "Documento comprobatório da despesa"
@@ -245,7 +290,10 @@ class Despesa(ModeloBase):
 
 @receiver(pre_save, sender=Despesa)
 def proponente_pre_save(instance, **kwargs):
-    instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
+    if instance.data_e_hora_de_inativacao:
+        instance.status = STATUS_INATIVO
+    else:
+        instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
 
 
 @receiver(post_save, sender=Despesa)

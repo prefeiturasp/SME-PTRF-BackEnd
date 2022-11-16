@@ -393,6 +393,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(
         },
         'publicada': None,
         'referencia_consolidado_dre': '',
+        'justificativa_pendencia_realizacao': 'Teste de justificativa.',
     }
 
     assert response.status_code == status.HTTP_200_OK

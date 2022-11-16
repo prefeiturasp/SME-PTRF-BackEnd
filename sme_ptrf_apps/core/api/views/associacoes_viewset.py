@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django_filters import rest_framework as filters
 from openpyxl.writer.excel import save_virtual_workbook
-from rest_framework import mixins, status
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
@@ -34,8 +34,6 @@ from ...services import (
     atualiza_dados_unidade,
     gerar_planilha,
     implanta_saldos_da_associacao,
-    implantacoes_de_saldo_da_associacao,
-    info_painel_acoes_por_periodo_e_conta,
     status_prestacao_conta_associacao,
     consulta_unidade,
     get_status_presidente,
@@ -43,7 +41,6 @@ from ...services import (
     get_implantacao_de_saldos_da_associacao,
     retorna_repasses_pendentes_periodos_ate_agora
 )
-from ..serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from ..serializers.associacao_serializer import (
     AssociacaoCompletoSerializer,
     AssociacaoCreateSerializer,
@@ -54,12 +51,13 @@ from ..serializers.associacao_serializer import (
 from ..serializers.conta_associacao_serializer import (
     ContaAssociacaoCreateSerializer,
     ContaAssociacaoDadosSerializer,
-    ContaAssociacaoLookUpSerializer,
 )
 from ..serializers.periodo_serializer import PeriodoLookUpSerializer
 from ..serializers.processo_associacao_serializer import ProcessoAssociacaoRetrieveSerializer
 
 from ..serializers.ata_serializer import AtaLookUpSerializer
+
+from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_geracao_documentos
 
 logger = logging.getLogger(__name__)
 
@@ -201,12 +199,29 @@ class AssociacoesViewSet(ModelViewSet):
             aceita_alteracoes = True
             prestacao_conta_status = {}
 
+        gerar_ou_editar_ata_apresentacao = False
+        gerar_ou_editar_ata_retificacao = False
+
+        if prestacao_conta_status:
+            if prestacao_conta_status['status_prestacao'] == 'NAO_RECEBIDA' or prestacao_conta_status['status_prestacao'] == 'NAO_APRESENTADA':
+                gerar_ou_editar_ata_apresentacao = True
+
+            if prestacao_conta_status['status_prestacao'] == 'DEVOLVIDA_RETORNADA' or prestacao_conta_status['status_prestacao'] == 'DEVOLVIDA':
+                gerar_ou_editar_ata_retificacao = True
+
+        gerar_previas = True
+        if prestacao_conta:
+            gerar_previas = pc_requer_geracao_documentos(prestacao_conta)
+
         result = {
             'associacao': f'{uuid}',
             'periodo_referencia': periodo_referencia,
             'aceita_alteracoes': aceita_alteracoes,
             'prestacao_contas_status': prestacao_conta_status,
             'prestacao_conta': prestacao_conta.uuid if prestacao_conta else '',
+            'gerar_ou_editar_ata_apresentacao': gerar_ou_editar_ata_apresentacao,
+            'gerar_ou_editar_ata_retificacao': gerar_ou_editar_ata_retificacao,
+            'gerar_previas': gerar_previas,
         }
 
         return Response(result)

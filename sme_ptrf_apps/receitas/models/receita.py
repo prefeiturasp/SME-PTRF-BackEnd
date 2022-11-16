@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
 from auditlog.models import AuditlogHistoryField
@@ -14,8 +14,28 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from ..tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
 
 
+class ReceitasCompletasManager(models.Manager):
+    def get_queryset(self):
+        return super(ReceitasCompletasManager, self).get_queryset().filter(status=Receita.STATUS_COMPLETO)
+
+
 class Receita(ModeloBase):
     history = AuditlogHistoryField()
+
+    TAG_INATIVA = {"id": "6", "nome": "Inativado", "descricao": "Lançamento inativado."}
+
+    STATUS_COMPLETO = 'COMPLETO'
+    STATUS_INATIVO = 'INATIVO'
+
+    STATUS_NOMES = {
+        STATUS_COMPLETO: 'Completo',
+        STATUS_INATIVO: 'Inativo',
+    }
+
+    STATUS_CHOICES = (
+        (STATUS_COMPLETO, STATUS_NOMES[STATUS_COMPLETO]),
+        (STATUS_INATIVO, STATUS_NOMES[STATUS_INATIVO]),
+    )
 
     associacao = models.ForeignKey(Associacao, on_delete=models.PROTECT, related_name='receitas',
                                    blank=True, null=True)
@@ -70,8 +90,28 @@ class Receita(ModeloBase):
     outros_motivos_estorno = models.TextField('Outros motivos para estorno', blank=True,
                                                            default='')
 
+    status = models.CharField(
+        'status',
+        max_length=15,
+        choices=STATUS_CHOICES,
+        default=STATUS_COMPLETO
+    )
+
+    data_e_hora_de_inativacao = models.DateTimeField("Data e hora de inativação", blank=True, null=True)
+
+    objects = models.Manager()  # Manager Padrão
+    completas = ReceitasCompletasManager()
+
     def __str__(self):
         return f'RECEITA<{self.detalhamento} - {self.data} - {self.valor}>'
+
+    @property
+    def inativar_em_vez_de_excluir(self):
+        from sme_ptrf_apps.core.models import PrestacaoConta
+        return PrestacaoConta.objects.filter(
+            associacao=self.associacao,
+            periodo=self.periodo_conciliacao
+        ).exists()
 
     @property
     def detalhamento(self):
@@ -80,6 +120,19 @@ class Receita(ModeloBase):
         else:
             detalhe = self.detalhe_outros
         return detalhe
+
+    @property
+    def tags_de_informacao(self):
+        """
+        Arquitetura dinâmica para futuras tags que poderam ser atribuidas.
+        """
+        tags = []
+        if self.e_receita_inativa():
+            tags.append(tag_informacao(
+                self.TAG_INATIVA,
+                f"Este crédito foi inativado em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}"
+            ))
+        return tags
 
     @property
     def notificar_dias_nao_conferido(self):
@@ -96,13 +149,17 @@ class Receita(ModeloBase):
         return result
 
     @classmethod
+    def get_tags_informacoes_list(cls):
+        return [cls.TAG_INATIVA]
+
+    @classmethod
     def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None,
                                                categoria_receita=None):
         if periodo.data_fim_realizacao_despesas:
-            dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
+            dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
                 data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
         else:
-            dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
+            dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
                 data__gte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
@@ -127,10 +184,10 @@ class Receita(ModeloBase):
         categoria_receita=None
     ):
         if periodo_final.data_fim_realizacao_despesas:
-            dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
+            dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
                 data__range=(periodo_inicial.data_inicio_realizacao_despesas, periodo_final.data_fim_realizacao_despesas))
         else:
-            dataset = cls.objects.filter(acao_associacao=acao_associacao).filter(
+            dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
                 data__gte=periodo_inicial.data_inicio_realizacao_despesas)
 
         if conferido is not None:
@@ -145,12 +202,17 @@ class Receita(ModeloBase):
         return dataset.all()
 
     @classmethod
-    def receitas_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None, acao_associacao=None, filtrar_por_data_inicio=None, filtrar_por_data_fim=None):
+    def receitas_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None, acao_associacao=None, filtrar_por_data_inicio=None, filtrar_por_data_fim=None, inclui_inativas=False):
+        if inclui_inativas:
+            dataset = cls.objects
+        else:
+            dataset = cls.completas
+
         if periodo.data_fim_realizacao_despesas:
-            dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+            dataset = dataset.filter(conta_associacao=conta_associacao).filter(
                 data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas)).order_by('data')
         else:
-            dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+            dataset = dataset.filter(conta_associacao=conta_associacao).filter(
                 data__gte=periodo.data_inicio_realizacao_despesas).order_by('data')
 
         if conferido is not None:
@@ -184,13 +246,13 @@ class Receita(ModeloBase):
         acao_associacao=None
     ):
         if periodo_final.data_fim_realizacao_despesas:
-            dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+            dataset = cls.completas.filter(conta_associacao=conta_associacao).filter(
                 data__range=(
                     periodo_inicial.data_inicio_realizacao_despesas,
                     periodo_final.data_fim_realizacao_despesas
                 )).order_by('data')
         else:
-            dataset = cls.objects.filter(conta_associacao=conta_associacao).filter(
+            dataset = cls.completas.filter(conta_associacao=conta_associacao).filter(
                 data__gte=periodo_inicial.data_inicio_realizacao_despesas).order_by('data')
 
         if conferido is not None:
@@ -284,6 +346,9 @@ class Receita(ModeloBase):
 
         self.save()
 
+    def e_receita_inativa(self):
+        return self.status == self.STATUS_INATIVO
+
     @classmethod
     def conciliar(cls, uuid, periodo_conciliacao):
         receita = cls.by_uuid(uuid)
@@ -299,6 +364,16 @@ class Receita(ModeloBase):
         receita = cls.by_uuid(uuid)
         return receita.salvar_saida_recurso(despesa)
 
+    def inativar_receita(self):
+        self.status = self.STATUS_INATIVO
+        self.data_e_hora_de_inativacao = datetime.now()
+
+        if self.rateio_estornado:
+            self.rateio_estornado = None
+
+        self.save()
+        return self
+
 
 @receiver(pre_save, sender=Receita)
 def receita_pre_save(instance, **kwargs):
@@ -310,6 +385,14 @@ def receita_pre_save(instance, **kwargs):
     if instance.data:
         periodo = Periodo.da_data(instance.data)
         instance.periodo_conciliacao = periodo
+
+
+def tag_informacao(tipo_de_tag, hint):
+    return {
+        'tag_id': tipo_de_tag['id'],
+        'tag_nome': tipo_de_tag['nome'],
+        'tag_hint': hint,
+    }
 
 
 auditlog.register(Receita)
