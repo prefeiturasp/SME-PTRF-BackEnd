@@ -47,7 +47,7 @@ from .arquivos_download_serializer import ArquivoDownloadSerializer
 from .solicitacao_acerto_lancamento_serializer import SolicitacaoAcertoLancamentoRetrieveSerializer
 from .analise_lancamento_prestacao_conta_serializer import (
     AnaliseLancamentoPrestacaoContaRetrieveSerializer,
-    AnaliseLancamentoPrestacaoContaUpdateSerializer
+    AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer
 )
 from .solicitacao_acerto_documento_serializer import SolicitacaoAcertoDocumentoRetrieveSerializer
 from .analise_documento_prestacao_conta_serializer import (

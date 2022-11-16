@@ -55,7 +55,7 @@ from ..serializers import (
     PrestacaoContaListSerializer,
     PrestacaoContaLookUpSerializer,
     PrestacaoContaRetrieveSerializer,
-    AnaliseLancamentoPrestacaoContaRetrieveSerializer,
+    AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer,
     AnaliseDocumentoPrestacaoContaRetrieveSerializer,
     AnalisePrestacaoContaRetrieveSerializer
 )
@@ -1244,7 +1244,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(AnaliseLancamentoPrestacaoContaRetrieveSerializer(analise_lancamento).data, status=status.HTTP_200_OK)
+        return Response(AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer(analise_lancamento).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
