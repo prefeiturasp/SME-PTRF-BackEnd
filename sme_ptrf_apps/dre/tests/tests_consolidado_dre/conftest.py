@@ -38,11 +38,11 @@ def periodo_teste_model_consolidado_dre(periodo_anterior_teste_model_consolidado
 
 
 @pytest.fixture
-def consolidado_dre_teste_model_consolidado_dre(periodo_teste_model_consolidado_dre, dre_teste_model_consolidado_dre):
+def consolidado_dre_teste_model_consolidado_dre(periodo_teste_model_consolidado_dre, dre_teste_model_consolidado_dre, analise_atual_consolidado_dre_2022):
     return baker.make(
         'ConsolidadoDRE',
         dre=dre_teste_model_consolidado_dre,
-        analise_atual='Goku',
+        analise_atual=analise_atual_consolidado_dre_2022,
         periodo=periodo_teste_model_consolidado_dre,
         status=ConsolidadoDRE.STATUS_NAO_GERADOS
     )
