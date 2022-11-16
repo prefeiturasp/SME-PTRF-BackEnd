@@ -704,7 +704,7 @@ def lancamentos_da_prestacao(
             inclui_inativas=True,
         )
 
-        despesas = despesas.order_by("data_transacao")
+        despesas = despesas.order_by("data_documento")
 
     lancamentos = []
 
