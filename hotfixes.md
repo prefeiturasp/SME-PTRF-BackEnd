@@ -1,3 +1,8 @@
+### 1.33.9 - 16/11/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 53
+* (77339) Ata de retificação: Botão para a inclusão de devolução ao tesouro solicitada pela DRE não é exibido
+* (78548) Acompanhamento PC: Conferência de lançamentos: despesas com pagamento antecipado são exibidas fora de ordem
+* (78926) Acompanhamento PC: na cópia dos acertos não apagar as devoluções ao tesouro criadas anteriormente
+
 ### 1.33.8 - 10/10/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 51
 * (76004) Demonstrativo de Execução Físico-Financeira exibindo linha de total mesmo quando há apenas uma conta
 
