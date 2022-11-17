@@ -41,8 +41,8 @@ logger = logging.getLogger(__name__)
 
 
 class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
-                             mixins.ListModelMixin,
-                             GenericViewSet):
+                            mixins.ListModelMixin,
+                            GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiDre]
     lookup_field = 'uuid'
     queryset = ConsolidadoDRE.objects.all()

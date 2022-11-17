@@ -231,6 +231,3 @@ class DownloadDocumento:
 
     def retorna_download_documento(self):
         return self.download_documento()
-
-
-

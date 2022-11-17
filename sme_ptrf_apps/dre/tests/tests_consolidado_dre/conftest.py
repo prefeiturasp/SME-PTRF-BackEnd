@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 import pytest
 from model_bakery import baker
 from ...models import ConsolidadoDRE
@@ -13,7 +13,7 @@ def dre_teste_model_consolidado_dre():
         codigo_eol='108500',
         tipo_unidade='DRE',
         nome='Dre Teste Model Consolidado Dre',
-        sigla='A'
+        sigla='A',
     )
 
 @pytest.fixture
@@ -38,20 +38,35 @@ def periodo_teste_model_consolidado_dre(periodo_anterior_teste_model_consolidado
 
 
 @pytest.fixture
-def consolidado_dre_teste_model_consolidado_dre(periodo_teste_model_consolidado_dre, dre_teste_model_consolidado_dre):
+def consolidado_dre_teste_model_consolidado_dre(periodo_teste_model_consolidado_dre, dre_teste_model_consolidado_dre, analise_atual_consolidado_dre_2022):
     return baker.make(
         'ConsolidadoDRE',
         dre=dre_teste_model_consolidado_dre,
+        analise_atual=analise_atual_consolidado_dre_2022,
         periodo=periodo_teste_model_consolidado_dre,
         status=ConsolidadoDRE.STATUS_NAO_GERADOS
     )
 
 
 @pytest.fixture
-def consolidado_dre_em_analise(periodo_teste_model_consolidado_dre, dre_teste_model_consolidado_dre):
+def analise_atual_consolidado_dre_2022():
+    return baker.make(
+        'AnaliseConsolidadoDre',
+        data_devolucao=date.today(),
+        data_limite=date.today(),
+        data_retorno_analise=date.today(),
+        relatorio_acertos_versao=('FINAL', 'final'),
+        relatorio_acertos_status='CONCLUIDO',
+        relatorio_acertos_gerado_em=date.today()
+    )
+
+
+@pytest.fixture
+def consolidado_dre_em_analise(periodo_teste_model_consolidado_dre, dre_teste_model_consolidado_dre, analise_atual_consolidado_dre_2022):
     return baker.make(
         'ConsolidadoDRE',
         dre=dre_teste_model_consolidado_dre,
+        analise_atual=analise_atual_consolidado_dre_2022,
         periodo=periodo_teste_model_consolidado_dre,
         status=ConsolidadoDRE.STATUS_GERADOS_TOTAIS,
         status_sme=ConsolidadoDRE.STATUS_SME_EM_ANALISE,
@@ -69,4 +84,3 @@ def parametros_dre_comissoes(comissao_contas):
         'ParametrosDre',
         comissao_exame_contas=comissao_contas
     )
-
