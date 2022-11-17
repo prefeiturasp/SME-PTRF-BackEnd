@@ -23,6 +23,36 @@ def test_endpoint_tabelas(jwt_authenticated_client_a):
             {
                 "id": "JUSTIFICADO",
                 "nome": "Justificado"
+            },
+            {
+                "id": "REALIZADO_JUSTIFICADO",
+                "nome": "Realizado e justificado"
+            },
+            {
+                "id": "REALIZADO_PARCIALMENTE",
+                "nome": "Realizado parcialmente"
+            },
+            {
+                "id": "JUSTIFICADO_PARCIALMENTE",
+                "nome": "Justificado parcialmente"
+            },
+            {
+                "id": "REALIZADO_JUSTIFICADO_PARCIALMENTE",
+                "nome": "Realizado e justificado parcialmente"
+            }
+        ],
+        "status_realizacao_solicitacao": [
+            {
+                "id": "PENDENTE",
+                "nome": "Pendente"
+            },
+            {
+                "id": "REALIZADO",
+                "nome": "Realizado"
+            },
+            {
+                "id": "JUSTIFICADO",
+                "nome": "Justificado"
             }
         ]
     }
@@ -31,10 +61,10 @@ def test_endpoint_tabelas(jwt_authenticated_client_a):
     assert resultado_esperado["status_realizacao"] == result["status_realizacao"]
 
 
-def test_endpoint_limpar_status(jwt_authenticated_client_a, analise_lancamento_realizado_01):
+def test_endpoint_limpar_status(jwt_authenticated_client_a, solicitacao_acerto_lancamento_realizado_01):
     payload = {
-        "uuids_analises_lancamentos": [
-            f"{analise_lancamento_realizado_01.uuid}"
+        "uuids_solicitacoes_acertos_lancamentos": [
+            f"{solicitacao_acerto_lancamento_realizado_01.uuid}"
         ]
     }
 
@@ -46,9 +76,9 @@ def test_endpoint_limpar_status(jwt_authenticated_client_a, analise_lancamento_r
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_endpoint_limpar_status_sem_uuid_analises(jwt_authenticated_client_a, analise_lancamento_realizado_01):
+def test_endpoint_limpar_status_sem_uuid_solicitacao(jwt_authenticated_client_a, solicitacao_acerto_lancamento_realizado_01):
     payload = {
-        "uuids_analises_lancamentos": [
+        "uuids_solicitacoes_acertos_lancamentos": [
 
         ]
     }
@@ -61,7 +91,7 @@ def test_endpoint_limpar_status_sem_uuid_analises(jwt_authenticated_client_a, an
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_endpoint_limpar_status_sem_chave_uuid_analises(jwt_authenticated_client_a, analise_lancamento_realizado_01):
+def test_endpoint_limpar_status_sem_chave_uuid_solicitacao(jwt_authenticated_client_a, solicitacao_acerto_lancamento_realizado_01):
     payload = {
 
     }
@@ -74,25 +104,10 @@ def test_endpoint_limpar_status_sem_chave_uuid_analises(jwt_authenticated_client
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_endpoint_limpar_status_pendente(jwt_authenticated_client_a, analise_lancamento_pendente_01):
+def test_endpoint_marcar_realizado(jwt_authenticated_client_a, solicitacao_acerto_lancamento_pendente_01):
     payload = {
-        "uuids_analises_lancamentos": [
-            f"{analise_lancamento_pendente_01.uuid}"
-        ]
-    }
-
-    response = jwt_authenticated_client_a.post(
-        f'/api/analises-lancamento-prestacao-conta/limpar-status/', data=json.dumps(payload),
-        content_type='application/json'
-    )
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-def test_endpoint_marcar_realizado(jwt_authenticated_client_a, analise_lancamento_pendente_01):
-    payload = {
-        "uuids_analises_lancamentos": [
-            f"{analise_lancamento_pendente_01.uuid}"
+        "uuids_solicitacoes_acertos_lancamentos": [
+            f"{solicitacao_acerto_lancamento_pendente_01.uuid}"
         ]
     }
 
@@ -104,9 +119,9 @@ def test_endpoint_marcar_realizado(jwt_authenticated_client_a, analise_lancament
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_endpoint_marcar_realizado_sem_uuid_analises(jwt_authenticated_client_a, analise_lancamento_pendente_01):
+def test_endpoint_marcar_realizado_sem_uuid_solicitacao(jwt_authenticated_client_a, solicitacao_acerto_lancamento_pendente_01):
     payload = {
-        "uuids_analises_lancamentos": [
+        "uuids_solicitacoes_acertos_lancamentos": [
 
         ]
     }
@@ -119,7 +134,7 @@ def test_endpoint_marcar_realizado_sem_uuid_analises(jwt_authenticated_client_a,
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_endpoint_marcar_realizado_sem_chave_uuid_analises(jwt_authenticated_client_a, analise_lancamento_pendente_01):
+def test_endpoint_marcar_realizado_sem_chave_uuid_solicitacao(jwt_authenticated_client_a, solicitacao_acerto_lancamento_pendente_01):
     payload = {
 
     }
@@ -132,26 +147,11 @@ def test_endpoint_marcar_realizado_sem_chave_uuid_analises(jwt_authenticated_cli
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_endpoint_marcar_realizado_status_realizado(jwt_authenticated_client_a, analise_lancamento_realizado_01):
-    payload = {
-        "uuids_analises_lancamentos": [
-            f"{analise_lancamento_realizado_01.uuid}"
-        ]
-    }
-
-    response = jwt_authenticated_client_a.post(
-        f'/api/analises-lancamento-prestacao-conta/marcar-como-realizado/', data=json.dumps(payload),
-        content_type='application/json'
-    )
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-def test_endpoint_justificar_nao_realizacao(jwt_authenticated_client_a, analise_lancamento_realizado_01):
+def test_endpoint_justificar_nao_realizacao(jwt_authenticated_client_a, solicitacao_acerto_lancamento_realizado_01):
     payload = {
         "justificativa": "teste",
-        "uuids_analises_lancamentos": [
-            f"{analise_lancamento_realizado_01.uuid}"
+        "uuids_solicitacoes_acertos_lancamentos": [
+            f"{solicitacao_acerto_lancamento_realizado_01.uuid}"
         ]
     }
 
@@ -163,12 +163,12 @@ def test_endpoint_justificar_nao_realizacao(jwt_authenticated_client_a, analise_
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_endpoint_justificar_nao_realizado_sem_uuid_analises(
+def test_endpoint_justificar_nao_realizado_sem_uuid_solicitacao(
     jwt_authenticated_client_a,
-    analise_lancamento_realizado_01
+    solicitacao_acerto_lancamento_realizado_01
 ):
     payload = {
-        "uuids_analises_lancamentos": [
+        "uuids_solicitacoes_acertos_lancamentos": [
 
         ]
     }
@@ -181,9 +181,9 @@ def test_endpoint_justificar_nao_realizado_sem_uuid_analises(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_endpoint_justificar_nao_realizado_sem_chave_uuid_analises(
+def test_endpoint_justificar_nao_realizado_sem_chave_uuid_solicitacao(
     jwt_authenticated_client_a,
-    analise_lancamento_realizado_01
+    solicitacao_acerto_lancamento_realizado_01
 ):
     payload = {
 
@@ -197,31 +197,14 @@ def test_endpoint_justificar_nao_realizado_sem_chave_uuid_analises(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_endpoint_justificar_nao_realizado_sem_chave_justificativa(
+def test_endpoint_justificar_nao_realizado_sem_justificativa(
     jwt_authenticated_client_a,
-    analise_lancamento_realizado_01
+    solicitacao_acerto_lancamento_realizado_01
 ):
     payload = {
-        "uuids_analises_lancamentos": [
-            f"{analise_lancamento_realizado_01.uuid}"
-        ]
-    }
-
-    response = jwt_authenticated_client_a.post(
-        f'/api/analises-lancamento-prestacao-conta/justificar-nao-realizacao/', data=json.dumps(payload),
-        content_type='application/json'
-    )
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-def test_endpoint_justificar_nao_realizado_status_justificar(
-    jwt_authenticated_client_a,
-    analise_lancamento_justificado_01
-):
-    payload = {
-        "uuids_analises_lancamentos": [
-            f"{analise_lancamento_justificado_01.uuid}"
+        "justificativa": "",
+        "uuids_solicitacoes_acertos_lancamentos": [
+            f"{solicitacao_acerto_lancamento_realizado_01.uuid}"
         ]
     }
 

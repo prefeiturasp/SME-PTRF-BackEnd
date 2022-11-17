@@ -42,7 +42,7 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
         'lancamento_excluido': False,
         'requer_ajustes_externos': False,
         'requer_esclarecimentos': False,
-        'esclarecimentos': None,
+        'solicitacoes_de_ajuste_da_analise_total': 1,
         'solicitacoes_de_ajuste_da_analise': [
             {
                 'analise_lancamento': f'{analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}',
@@ -60,7 +60,8 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
                                            'SA',
                         'numero_documento': '123456',
                         'tipo_documento': {'id': despesa_2020_1.tipo_documento.id, 'nome': 'NFe'},
-                        'tipo_transacao': {'id': despesa_2020_1.tipo_transacao.id, 'nome': 'Boleto', 'tem_documento': False},
+                        'tipo_transacao': {'id': despesa_2020_1.tipo_transacao.id, 'nome': 'Boleto',
+                                           'tem_documento': False},
                         'uuid': f'{despesa_2020_1.uuid}',
                         'valor_ptrf': 90.0,
                         'valor_total': '100.00',
@@ -83,11 +84,13 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
                                 'id': tipo_acerto_lancamento_devolucao.id,
                                 'nome': 'Devolução',
                                 'uuid': f'{tipo_acerto_lancamento_devolucao.uuid}'},
-                'uuid': f'{solicitacao_acerto_lancamento_devolucao.uuid}'
+                'uuid': f'{solicitacao_acerto_lancamento_devolucao.uuid}',
+                'esclarecimentos': None,
+                'justificativa': None,
+                'status_realizacao': 'PENDENTE',
             }
         ],
         'id': analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.id,
-        'justificativa': None,
         'status_realizacao': 'PENDENTE',
         'uuid': f'{analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}'
     }
