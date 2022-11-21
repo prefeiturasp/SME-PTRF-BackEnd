@@ -1,3 +1,6 @@
+### 1.33.10 - 18/11/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 53
+* (79038) Consolidado PCs: Demonstrativo da execução financeira: valores dos campos 12 à 17 errados
+
 ### 1.33.9 - 16/11/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 53
 * (77339) Ata de retificação: Botão para a inclusão de devolução ao tesouro solicitada pela DRE não é exibido
 * (78548) Acompanhamento PC: Conferência de lançamentos: despesas com pagamento antecipado são exibidas fora de ordem

@@ -589,6 +589,24 @@ def gerar_previa_consolidado_dre(dre, periodo, parcial, usuario):
 def concluir_consolidado_dre(dre, periodo, parcial, usuario):
     eh_parcial = parcial['parcial']
     sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
+
+    if eh_parcial:
+        logger.info('Apagando qualquer prévia existente de um consolidado único para a DRE no período...')
+        ConsolidadoDRE.objects.filter(
+            dre=dre,
+            periodo=periodo,
+            sequencia_de_publicacao=0,
+            versao=ConsolidadoDRE.VERSAO_PREVIA,
+        ).delete()
+    else:
+        logger.info('Apagando qualquer prévia existente de um consolidado parcial para a DRE no período...')
+        ConsolidadoDRE.objects.filter(
+            dre=dre,
+            periodo=periodo,
+            sequencia_de_publicacao__gt=0,
+            versao=ConsolidadoDRE.VERSAO_PREVIA,
+        ).delete()
+
     consolidado_dre = ConsolidadoDRE.criar_ou_retornar_consolidado_dre(dre=dre, periodo=periodo,
                                                                        sequencia_de_publicacao=sequencia_de_publicacao)
     logger.info(f'Criado Consolidado DRE  {consolidado_dre}.')
