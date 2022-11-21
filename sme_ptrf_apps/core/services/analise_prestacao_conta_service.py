@@ -6,7 +6,7 @@ from sme_ptrf_apps.core.services.relatorio_acertos_pdf_service import (gerar_arq
 from sme_ptrf_apps.core.services.dados_relatorio_apos_acertos_service import DadosRelatorioAposAcertosService
 from sme_ptrf_apps.core.services.relatorio_apos_acertos_pdf_service import ArquivoRelatorioAposAcertosService
 
-from sme_ptrf_apps.core.models import AnalisePrestacaoConta, AnaliseContaPrestacaoConta
+from sme_ptrf_apps.core.models import AnalisePrestacaoConta, AnaliseContaPrestacaoConta, SolicitacaoAcertoLancamento
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,6 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
         nova_analise.pk = None
         nova_analise.uuid = uuid.uuid4()
         nova_analise.status_realizacao = AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
-        nova_analise.justificativa = None
         nova_analise.analise_prestacao_conta = analise_destino
         nova_analise.save()
         return nova_analise
@@ -39,6 +38,8 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
         nova_solicitacao.analise_lancamento = para
         nova_solicitacao.devolucao_ao_tesouro = None  # A cópia não deve referenciar a DT
         nova_solicitacao.copiado = True
+        nova_solicitacao.status_realizacao = SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE
+        nova_solicitacao.justificativa = None
         nova_solicitacao.save()
         if hasattr(solicitacao_acerto_lancamento_origem, 'solicitacao_devolucao_ao_tesouro'):
             copia_solicitacao_devolucao_ao_tesouro(

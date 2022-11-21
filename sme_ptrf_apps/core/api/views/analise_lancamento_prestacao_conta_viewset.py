@@ -81,9 +81,19 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
     @action(detail=False, methods=['get'], url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def tabelas(self, request):
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            TabelasValidateSerializer
+
+        query = TabelasValidateSerializer(data=self.request.query_params)
+        query.is_valid(raise_exception=True)
+
+        uuid_analise_prestacao = self.request.query_params.get('uuid_analise_prestacao')
+        visao = self.request.query_params.get('visao')
+
         result = {
             "status_realizacao": AnaliseLancamentoPrestacaoConta.status_realizacao_choices_to_json(),
-            "status_realizacao_solicitacao": SolicitacaoAcertoLancamento.status_realizacao_choices_to_json()
+            "status_realizacao_solicitacao": SolicitacaoAcertoLancamento.status_realizacao_choices_to_json(),
+            "editavel": AnalisePrestacaoConta.editavel(uuid_analise_prestacao, visao)
         }
 
         return Response(result, status=status.HTTP_200_OK)
