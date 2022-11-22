@@ -221,7 +221,7 @@ jobs:
           RANCHER_URL: ${{ secrets.RANCHER_URL }}
           RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
           NAMESPACE: sme-sigescola-pre
-          WORKLOAD: ptrf-backend,ptrf-celery,ptrf-flower
+          WORKLOAD: sigescolapre-backend,sigescolapre-celery,sigescolapre-flower
           
       - name: Redeploy Treinamento
         uses: luizhpriotto/action_images@kubectl-v2.0
