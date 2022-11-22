@@ -1861,6 +1861,16 @@ def analise_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, devolucao_
 
 
 @pytest.fixture
+def analise_prestacao_conta_2020_1_2(prestacao_conta_2020_1_conciliada, devolucao_prestacao_conta_2020_1):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1
+    )
+
+
+
+@pytest.fixture
 def analise_prestacao_conta_2019_2(prestacao_conta_devolvida, devolucao_prestacao_conta_2019_2):
     return baker.make(
         'AnalisePrestacaoConta',

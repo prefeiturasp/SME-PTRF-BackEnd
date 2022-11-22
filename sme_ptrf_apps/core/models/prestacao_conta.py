@@ -152,6 +152,11 @@ class PrestacaoConta(ModeloBase):
     def ultima_ata_retificacao(self):
         return self.atas_da_prestacao.filter(tipo_ata='RETIFICACAO', previa=False).last()
 
+    def ultima_analise(self):
+        from ..models import AnalisePrestacaoConta
+        ultima_analise = AnalisePrestacaoConta.objects.filter(prestacao_conta=self).last()
+        return ultima_analise
+
     def concluir(self, e_retorno_devolucao=False, justificativa_acertos_pendentes=''):
         from ..models import DevolucaoPrestacaoConta
         if e_retorno_devolucao:

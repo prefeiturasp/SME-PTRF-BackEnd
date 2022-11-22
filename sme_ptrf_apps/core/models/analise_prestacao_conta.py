@@ -265,6 +265,19 @@ class AnalisePrestacaoConta(ModeloBase):
         self.arquivo_pdf_apresentacao_apos_acertos_criado_em = datetime.today()
         self.save()
 
+    @classmethod
+    def editavel(cls, uuid_analise, visao):
+        analise = AnalisePrestacaoConta.by_uuid(uuid_analise)
+        ultima_analise_pc = analise.prestacao_conta.ultima_analise()
+
+        if visao == "DRE":
+            return False
+
+        if ultima_analise_pc == analise:
+            return True
+        else:
+            return False
+
     class Meta:
         verbose_name = "Análise de prestação de contas"
         verbose_name_plural = "16.0) Análises de prestações de contas"
