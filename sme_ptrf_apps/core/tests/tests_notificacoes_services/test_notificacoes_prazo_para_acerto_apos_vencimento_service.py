@@ -11,7 +11,6 @@ pytestmark = pytest.mark.django_db
 @freeze_time("2022-11-22")
 def test_deve_notificar_tecnico_dre(usuario_tecnico_notificavel, associacao_a, consolidado_dre_devolucao_apos_acertos):
     assert not Notificacao.objects.exists()
-    import ipdb; ipdb.set_trace();
     notificar_prazo_para_acerto_apos_vencimento(enviar_email=True)
     notificacao = Notificacao.objects.first()
     assert Notificacao.objects.count() == 1
