@@ -4,9 +4,67 @@ import json
 pytestmark = pytest.mark.django_db
 
 
-def test_endpoint_tabelas(jwt_authenticated_client_a):
+def test_endpoint_tabelas(jwt_authenticated_client_a, analise_prestacao_conta_2020_1):
     response = jwt_authenticated_client_a.get(
-        f'/api/analises-lancamento-prestacao-conta/tabelas/', content_type='application/json')
+        f'/api/analises-lancamento-prestacao-conta/tabelas/'
+        f'?uuid_analise_prestacao={analise_prestacao_conta_2020_1.uuid}&visao=DRE', content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_endpoint_tabelas_editavel_false_visao_dre(jwt_authenticated_client_a, analise_prestacao_conta_2020_1):
+    response = jwt_authenticated_client_a.get(
+        f'/api/analises-lancamento-prestacao-conta/tabelas/'
+        f'?uuid_analise_prestacao={analise_prestacao_conta_2020_1.uuid}&visao=DRE', content_type='application/json')
+
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        "editavel": False
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert resultado_esperado["editavel"] == result["editavel"]
+
+
+def test_endpoint_tabelas_editavel_false_visao_ue(
+    jwt_authenticated_client_a,
+    analise_prestacao_conta_2020_1,
+    analise_prestacao_conta_2020_1_2
+):
+    response = jwt_authenticated_client_a.get(
+        f'/api/analises-lancamento-prestacao-conta/tabelas/'
+        f'?uuid_analise_prestacao={analise_prestacao_conta_2020_1.uuid}&visao=UE', content_type='application/json')
+
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        "editavel": False
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert resultado_esperado["editavel"] == result["editavel"]
+
+
+def test_endpoint_tabelas_editavel_true_visao_ue(jwt_authenticated_client_a, analise_prestacao_conta_2020_1):
+    response = jwt_authenticated_client_a.get(
+        f'/api/analises-lancamento-prestacao-conta/tabelas/'
+        f'?uuid_analise_prestacao={analise_prestacao_conta_2020_1.uuid}&visao=UE', content_type='application/json')
+
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        "editavel": True
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert resultado_esperado["editavel"] == result["editavel"]
+
+
+def test_endpoint_tabelas_status_realizacao(jwt_authenticated_client_a, analise_prestacao_conta_2020_1):
+    response = jwt_authenticated_client_a.get(
+        f'/api/analises-lancamento-prestacao-conta/tabelas/'
+        f'?uuid_analise_prestacao={analise_prestacao_conta_2020_1.uuid}&visao=DRE', content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -33,14 +91,24 @@ def test_endpoint_tabelas(jwt_authenticated_client_a):
                 "nome": "Realizado parcialmente"
             },
             {
-                "id": "JUSTIFICADO_PARCIALMENTE",
-                "nome": "Justificado parcialmente"
-            },
-            {
                 "id": "REALIZADO_JUSTIFICADO_PARCIALMENTE",
                 "nome": "Realizado e justificado parcialmente"
             }
         ],
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert resultado_esperado["status_realizacao"] == result["status_realizacao"]
+
+
+def test_endpoint_tabelas_status_realizacao_solicitacao(jwt_authenticated_client_a, analise_prestacao_conta_2020_1):
+    response = jwt_authenticated_client_a.get(
+        f'/api/analises-lancamento-prestacao-conta/tabelas/'
+        f'?uuid_analise_prestacao={analise_prestacao_conta_2020_1.uuid}&visao=DRE', content_type='application/json')
+
+    result = json.loads(response.content)
+
+    resultado_esperado = {
         "status_realizacao_solicitacao": [
             {
                 "id": "PENDENTE",
@@ -58,7 +126,7 @@ def test_endpoint_tabelas(jwt_authenticated_client_a):
     }
 
     assert response.status_code == status.HTTP_200_OK
-    assert resultado_esperado["status_realizacao"] == result["status_realizacao"]
+    assert resultado_esperado["status_realizacao_solicitacao"] == result["status_realizacao_solicitacao"]
 
 
 def test_endpoint_limpar_status(jwt_authenticated_client_a, solicitacao_acerto_lancamento_realizado_01):
