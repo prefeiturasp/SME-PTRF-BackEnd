@@ -6,6 +6,7 @@ from ..serializers import AnaliseDocumentoPrestacaoContaUpdateSerializer
 from sme_ptrf_apps.core.services.analise_documento_prestacao_conta_service import (
     AnaliseDocumentoPrestacaoContaService,
 )
+from sme_ptrf_apps.core.services import SolicitacaoAcertoDocumentoService
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -49,10 +50,15 @@ class AnaliseDocumentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
     @action(detail=False, methods=['post'], url_path='marcar-como-realizado',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def marcar_como_realizado(self, request):
-        uuids_analises_documentos = request.data.get('uuids_analises_documentos', None)
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            AcoesStatusSolicitacaoAcertoDocumentoValidateSerializer
 
-        response = AnaliseDocumentoPrestacaoContaService.marcar_como_realizado(
-            uuids_analises_documentos=uuids_analises_documentos
+        query = AcoesStatusSolicitacaoAcertoDocumentoValidateSerializer(data=self.request.data)
+        query.is_valid(raise_exception=True)
+
+        uuids_solicitacoes_acertos_documentos = self.request.data.get('uuids_solicitacoes_acertos_documentos', None)
+        response = SolicitacaoAcertoDocumentoService.marcar_como_realizado(
+            uuids_solicitacoes_acertos_documentos=uuids_solicitacoes_acertos_documentos
         )
         status_response = response.pop("status")
 
@@ -67,13 +73,20 @@ class AnaliseDocumentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
 
         return Response(result, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'], url_path='marcar-como-credito-incluido',
+    @action(detail=False, methods=['post'], url_path='marcar-como-credito-incluido',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def marcar_como_credito_incluido(self, request, uuid):
-        uuid_credito_incluido = request.data.get('uuid_credito_incluido', None)
+    def marcar_como_credito_incluido(self, request):
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            GravarCreditoIncluidoDocumentoValidateSerializer
 
-        response = AnaliseDocumentoPrestacaoContaService.marcar_como_credito_incluido(
-            uuid_analise_documento=uuid,
+        query = GravarCreditoIncluidoDocumentoValidateSerializer(data=self.request.data)
+        query.is_valid(raise_exception=True)
+
+        uuid_solicitacao_acerto = self.request.data.get('uuid_solicitacao_acerto', None)
+        uuid_credito_incluido = self.request.data.get('uuid_credito_incluido', None)
+
+        response = SolicitacaoAcertoDocumentoService.marcar_como_credito_incluido(
+            uuid_solicitacao_acerto=uuid_solicitacao_acerto,
             uuid_credito_incluido=uuid_credito_incluido
         )
 
@@ -81,13 +94,20 @@ class AnaliseDocumentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
 
         return Response(response, status=status_response)
 
-    @action(detail=True, methods=['post'], url_path='marcar-como-gasto-incluido',
+    @action(detail=False, methods=['post'], url_path='marcar-como-gasto-incluido',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def marcar_como_gasto_incluido(self, request, uuid):
-        uuid_gasto_incluido = request.data.get('uuid_gasto_incluido', None)
+    def marcar_como_gasto_incluido(self, request):
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            GravarGastoIncluidoDocumentoValidateSerializer
 
-        response = AnaliseDocumentoPrestacaoContaService.marcar_como_gasto_incluido(
-            uuid_analise_documento=uuid,
+        query = GravarGastoIncluidoDocumentoValidateSerializer(data=self.request.data)
+        query.is_valid(raise_exception=True)
+
+        uuid_solicitacao_acerto = self.request.data.get('uuid_solicitacao_acerto', None)
+        uuid_gasto_incluido = self.request.data.get('uuid_gasto_incluido', None)
+
+        response = SolicitacaoAcertoDocumentoService.marcar_como_gasto_incluido(
+            uuid_solicitacao_acerto=uuid_solicitacao_acerto,
             uuid_gasto_incluido=uuid_gasto_incluido
         )
 
@@ -95,13 +115,20 @@ class AnaliseDocumentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
 
         return Response(response, status=status_response)
 
-    @action(detail=True, methods=['post'], url_path='marcar-como-esclarecido',
+    @action(detail=False, methods=['post'], url_path='marcar-como-esclarecido',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def marcar_como_esclarecido(self, request, uuid):
-        esclarecimento = request.data.get('esclarecimento', None)
+    def marcar_como_esclarecido(self, request):
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            GravarEsclarecimentoAcertoDocumentoValidateSerializer
 
-        response = AnaliseDocumentoPrestacaoContaService.marcar_como_esclarecido(
-            uuid_analise_documento=uuid,
+        query = GravarEsclarecimentoAcertoDocumentoValidateSerializer(data=self.request.data)
+        query.is_valid(raise_exception=True)
+
+        uuid_solicitacao_acerto = self.request.data.get('uuid_solicitacao_acerto', None)
+        esclarecimento = self.request.data.get('esclarecimento', None)
+
+        response = SolicitacaoAcertoDocumentoService.marcar_como_esclarecido(
+            uuid_solicitacao_acerto=uuid_solicitacao_acerto,
             esclarecimento=esclarecimento,
         )
 
