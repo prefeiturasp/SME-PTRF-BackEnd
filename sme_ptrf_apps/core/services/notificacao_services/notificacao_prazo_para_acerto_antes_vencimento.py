@@ -2,6 +2,7 @@ import logging
 from datetime import date
 from sme_ptrf_apps.core.models import Notificacao
 from sme_ptrf_apps.dre.models import ConsolidadoDRE
+from .formata_data_dd_mm_yyyy import formata_data_dd_mm_yyyy
 from django.contrib.auth import get_user_model
 
 
@@ -26,7 +27,7 @@ def notificar_prazo_para_acerto_antes_vencimento(enviar_email=True):
                     categoria=Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_CONSOLIDADO,
                     remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
                     titulo=f"Devolução para acertos no relatório consolidado de {consolidado.periodo.referencia}",
-                    descricao=f"A SME solicitou acertos relativos à Publicação {consolidado.referencia} {consolidado.periodo.referencia}. O seu prazo para envio dos acertos é {consolidado.analise_atual.data_limite}",
+                    descricao=f"A SME solicitou acertos relativos à Publicação {consolidado.referencia} {consolidado.periodo.referencia}. O seu prazo para envio dos acertos é {formata_data_dd_mm_yyyy(consolidado.analise_atual.data_limite)}",
                     usuario=user,
                     renotificar=False,
                     enviar_email=enviar_email,
