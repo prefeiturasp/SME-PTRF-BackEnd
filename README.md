@@ -5,9 +5,28 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.33.0
+Versão: 1.34.0
 
 ## Release Notes
+
+### 1.34.0 - 26/09/2022 - Entregas da Release 6 - (Sprints 48 a 50)
+* UE / DRE  > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Edição do lançamento" em Créditos
+* UE / DRE  > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Exclusão do lançamento", em Gastos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Exclusão do lançamento", em Créditos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Devolução ao tesouro" em lançamentos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Ajustes externos", em Lançamentos e Documentos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Solicitação de esclarecimento" em lançamentos e documentos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Inclusão de gasto" em documentos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Edição do lançamento" em Créditos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Exclusão do lançamento", em Gastos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Exclusão do lançamento", em Créditos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria   "Inclusão de crédito" em documentos
+* UE > Prestação de Contas: Justificativa de falta de ajustes em PC devolvida
+* UE > Acompanhamento de PC: Devolução de PC: Apagar fechamentos e docs apenas se necessário
+* UE > Acompanhamento de PC: Ver justificativa de falta de ajustes em PC retornada após acertos
+* UE / DRE > INATIVAÇÃO - Agora os créditos e despesas tem a opção de inativação e todos as operações realizadas levam em consideração essa inativação.
+* DRE > Relatório Consolidado: Alterações na exibição do valor de Devolução ao Tesouro no Demonstrativo
+* GLO > 🐞 Correção de bugs.
 
 ### 1.33.0 - 24/08/2022 - Entregas da Release 5 - (Sprints 43 a 47)
 * UE  > Na emissão da ata, agora a aplicação informa quais campos estão incompletos.

@@ -9,6 +9,7 @@ from .conciliacao_services import (
     conciliar_transacao,
     desconciliar_transacao,
     salva_conciliacao_bancaria,
+    permite_editar_campos_extrato
 )
 from .exporta_associacao import gerar_planilha
 from .implantacao_saldos_services import implanta_saldos_da_associacao, implantacoes_de_saldo_da_associacao
@@ -55,3 +56,8 @@ from .associacoes_service import (
 from .analise_prestacao_conta_service import get_ajustes_extratos_bancarios
 from .resumo_rescursos_service import ResumoRecursosService
 from .painel_resumo_recursos_service import PainelResumoRecursosService
+from .tipos_acerto_lancamento_service import TipoAcertoLancamentoService
+from .tipos_acerto_documento_service import TipoAcertoDocumentoService
+from .analise_lancamento_prestacao_conta_service import AnaliseLancamentoPrestacaoContaService
+from .analise_documento_prestacao_conta_service import AnaliseDocumentoPrestacaoContaService
+from .solicitacao_acerto_lancamento_service import SolicitacaoAcertoLancamentoService

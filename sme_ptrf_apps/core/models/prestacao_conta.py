@@ -3,6 +3,7 @@ import logging
 from datetime import date
 
 from django.db import models
+from django.db.models import Q
 from django.db import transaction
 from django.db.models.aggregates import Sum
 
@@ -99,6 +100,8 @@ class PrestacaoConta(ModeloBase):
                                         related_name='prestacoes_de_conta_do_consolidado_dre',
                                         blank=True, null=True)
 
+    justificativa_pendencia_realizacao = models.TextField('Justificativa de pendências de realização de ajustes.', blank=True, default='')
+
     @property
     def tecnico_responsavel(self):
         atribuicoes = Atribuicao.search(
@@ -110,7 +113,7 @@ class PrestacaoConta(ModeloBase):
 
     @property
     def total_devolucao_ao_tesouro(self):
-        return self.devolucoes_ao_tesouro_da_prestacao.all().aggregate(Sum('valor'))['valor__sum'] or 0.00
+        return self.devolucoes_ao_tesouro_da_prestacao.all().aggregate(Sum('valor'))['valor__sum'] or 0
 
     def __str__(self):
         return f"{self.periodo} - {self.status}"
@@ -149,7 +152,12 @@ class PrestacaoConta(ModeloBase):
     def ultima_ata_retificacao(self):
         return self.atas_da_prestacao.filter(tipo_ata='RETIFICACAO', previa=False).last()
 
-    def concluir(self, e_retorno_devolucao=False):
+    def ultima_analise(self):
+        from ..models import AnalisePrestacaoConta
+        ultima_analise = AnalisePrestacaoConta.objects.filter(prestacao_conta=self).last()
+        return ultima_analise
+
+    def concluir(self, e_retorno_devolucao=False, justificativa_acertos_pendentes=''):
         from ..models import DevolucaoPrestacaoConta
         if e_retorno_devolucao:
             self.status = self.STATUS_DEVOLVIDA_RETORNADA
@@ -158,7 +166,7 @@ class PrestacaoConta(ModeloBase):
             ultima_devolucao.save()
         else:
             self.status = self.STATUS_NAO_RECEBIDA
-
+        self.justificativa_pendencia_realizacao = justificativa_acertos_pendentes
         self.save()
         return self
 
@@ -185,6 +193,38 @@ class PrestacaoConta(ModeloBase):
         self.status = self.STATUS_DEVOLVIDA_RETORNADA
         self.save()
         return self
+
+    def get_contas_com_movimento(self, add_sem_movimento_com_saldo=False):
+        from sme_ptrf_apps.core.models import ContaAssociacao
+        from sme_ptrf_apps.receitas.models import Receita
+        from sme_ptrf_apps.despesas.models import RateioDespesa
+        contas = ContaAssociacao.objects.filter(associacao=self.associacao).order_by('id')
+
+        contas_com_movimento = []
+        for conta in contas:
+            tem_receitas_no_periodo = Receita.receitas_da_conta_associacao_no_periodo(
+                conta_associacao=conta,
+                periodo=self.periodo,
+                inclui_inativas=True,
+            ).exists()
+
+            tem_gastos_no_periodo = RateioDespesa.rateios_da_conta_associacao_no_periodo(
+                conta_associacao=conta,
+                periodo=self.periodo,
+                incluir_inativas=True,
+            ).exists()
+
+            if not tem_receitas_no_periodo and not tem_gastos_no_periodo and add_sem_movimento_com_saldo:
+                tem_saldo_no_periodo = self.fechamentos_da_prestacao.filter(conta_associacao=conta).filter(
+                    Q(saldo_reprogramado_custeio__gt=0) | Q(saldo_reprogramado_capital__gt=0) | Q(
+                        saldo_reprogramado_livre__gt=0)).exists()
+            else:
+                tem_saldo_no_periodo = False
+
+            if tem_receitas_no_periodo or tem_gastos_no_periodo or tem_saldo_no_periodo:
+                contas_com_movimento.append(conta)
+
+        return contas_com_movimento
 
     @transaction.atomic
     def analisar(self):
@@ -230,18 +270,40 @@ class PrestacaoConta(ModeloBase):
             tipo_devolucao = TipoDevolucaoAoTesouro.by_uuid(devolucao['tipo'])
             despesa = Despesa.by_uuid(devolucao['despesa'])
             devolucao_uuid = devolucao['uuid']
-            devolucao_atual = DevolucaoAoTesouro.by_uuid(uuid=devolucao_uuid)
 
-            devolucao_atual.prestacao_conta = self
-            devolucao_atual.tipo = tipo_devolucao
-            devolucao_atual.despesa = despesa
-            devolucao_atual.data = devolucao['data']
-            devolucao_atual.devolucao_total = devolucao['devolucao_total']
-            devolucao_atual.motivo = devolucao['motivo']
-            devolucao_atual.valor = devolucao['valor']
-            devolucao_atual.visao_criacao = devolucao['visao_criacao']
+            if devolucao_uuid:
+                registro_devolucao = DevolucaoAoTesouro.objects.get(uuid=devolucao_uuid)
 
-            devolucao_atual.save()
+                registro_devolucao.prestacao_conta = self
+                registro_devolucao.tipo = tipo_devolucao
+                registro_devolucao.despesa = despesa
+                registro_devolucao.data = devolucao['data']
+                registro_devolucao.devolucao_total = devolucao['devolucao_total']
+                registro_devolucao.motivo = devolucao['motivo']
+                registro_devolucao.valor = devolucao['valor']
+                registro_devolucao.visao_criacao = devolucao['visao_criacao']
+
+                registro_devolucao.save()
+            else:
+                DevolucaoAoTesouro.objects.create(
+                    prestacao_conta=self,
+                    tipo=tipo_devolucao,
+                    despesa=despesa,
+                    data=devolucao['data'],
+                    devolucao_total=devolucao['devolucao_total'],
+                    motivo=devolucao['motivo'],
+                    valor=devolucao['valor'],
+                    visao_criacao=devolucao['visao_criacao'],
+                )
+
+        return self
+
+    def apagar_devolucoes_ao_tesouro(self, devolucoes_ao_tesouro_a_apagar):
+        from ..models.devolucao_ao_tesouro import DevolucaoAoTesouro
+
+        for devolucao in devolucoes_ao_tesouro_a_apagar:
+            if devolucao['uuid']:
+                DevolucaoAoTesouro.objects.get(uuid=devolucao['uuid']).delete()
 
         return self
 
@@ -280,16 +342,24 @@ class PrestacaoConta(ModeloBase):
             data=date.today(),
             data_limite_ue=data_limite_ue
         )
+        devolucao_requer_alteracoes = False
+
         if self.analise_atual:
+            devolucao_requer_alteracoes = self.analise_atual.requer_alteracao_em_lancamentos
             self.analise_atual.devolucao_prestacao_conta = devolucao
             self.analise_atual.save()
 
         self.analise_atual = None
+        self.justificativa_pendencia_realizacao = ""
         self.save()
 
-        self.apaga_fechamentos()
-        self.apaga_relacao_bens()
-        self.apaga_demonstrativos_financeiros()
+        if devolucao_requer_alteracoes:
+            logging.info('Solicitações de ajustes requerem apagar fechamentos e documentos.')
+            self.apaga_fechamentos()
+            self.apaga_relacao_bens()
+            self.apaga_demonstrativos_financeiros()
+        else:
+            logging.info('Solicitações de ajustes NÃO requerem apagar fechamentos e documentos.')
 
         notificar_prestacao_de_contas_devolvida_para_acertos(self, data_limite_ue)
         return self

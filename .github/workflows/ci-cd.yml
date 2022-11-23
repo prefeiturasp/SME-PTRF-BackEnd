@@ -152,21 +152,7 @@ jobs:
           RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
           NAMESPACE: sme-ptrf-hom2
           WORKLOAD: ptrf-backend,ptrf-celery,ptrf-flower
-          
-      - name: send failure message
-        if: ${{ failure() }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            💥 Failed in ${{ github.ref_name	}}!
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}            
-            Repository: ${{ github.repository }}            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
+                   
   deploy-k8s-dev:
   
     runs-on: self-hosted
@@ -183,21 +169,7 @@ jobs:
           RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
           NAMESPACE: sme-ptrf
           WORKLOAD: ptrf-backend,ptrf-celery,ptrf-flower
-          
-      - name: send failure message
-        if: ${{ failure() }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            💥 Failed in ${{ github.ref_name	}}!
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}            
-            Repository: ${{ github.repository }}            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
+                     
   deploy-k8s-prod:
   
     runs-on: self-hosted
@@ -252,4 +224,19 @@ jobs:
             Repository: ${{ github.repository }}            
             See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
             Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-           
+
+  deploy-k8s-pre-prod:
+  
+    runs-on: self-hosted
+    needs: [ build,sonar ]
+    if: ${{ github.ref == 'refs/heads/pre-prod' }}
+    environment:
+      name: production
+    steps:
+
+      - name: Redeploy Pre Prod
+        uses: luizhpriotto/action_images@kubectl-v2.0
+        env: 
+          RANCHER_URL: ${{ secrets.RANCHER_URL }}
+          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
+          NAMESPACE: sme-sigescola-pre
