@@ -2,18 +2,17 @@ import logging
 from datetime import date
 from sme_ptrf_apps.core.models import Periodo, Notificacao, Associacao, PrestacaoConta
 from sme_ptrf_apps.dre.models import ConsolidadoDRE
-from .class_notificacao_service import NotificacaoService
 from django.contrib.auth import get_user_model
 
 
 logger = logging.getLogger(__name__)
 
-class NotificacaoConsolidadoPrazoAcertoVencimento(NotificacaoService):
+class NotificacaoConsolidadoPrazoAcertoVencimento():
 
     def __init__(self, enviar_email=True):
-        super().__init__(enviar_email)
+        self.enviar_email = enviar_email
 
-    def notificar_prazo_para_acerto_apos_vencimento(enviar_email=True):
+    def notificar_prazo_para_acerto_apos_vencimento(self):
         logger.info(f'Notificar prazo para acerto apos vencimento service')
 
         data_de_hoje = date.today()
@@ -35,7 +34,7 @@ class NotificacaoConsolidadoPrazoAcertoVencimento(NotificacaoService):
                         descricao=f"O prazo para acerto da Publicação {consolidado.referencia} {consolidado.periodo.referencia} expirou. Favor verificar os acertos solicitados e regularizar a situação.",
                         usuario=user,
                         renotificar=False,
-                        enviar_email=enviar_email,
+                        enviar_email=self.enviar_email,
                     )
 
         logger.info(f'Notificação para vencimento do prazo realizado com sucesso.')

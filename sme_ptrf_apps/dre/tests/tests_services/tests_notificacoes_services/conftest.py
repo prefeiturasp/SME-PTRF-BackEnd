@@ -1,7 +1,8 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
+from freezegun import freeze_time
 import pytest
 from model_bakery import baker
-from sme_ptrf_apps.dre.models import ConsolidadoDRE
+from sme_ptrf_apps.dre.models import ConsolidadoDRE, TecnicoDre
 from django.contrib.auth.models import Permission
 from sme_ptrf_apps.users.models import Grupo
 
@@ -195,6 +196,22 @@ def nao_membro_comissao_de_exame_teste_service(comissao_nao_exame_contas_teste_s
     )
     return membro
 
+
+@pytest.fixture
+def periodo_2021_4_pc_2021_06_18_a_2021_06_30():
+    return baker.make(
+        'Periodo',
+        referencia='2021.4',
+        data_inicio_realizacao_despesas=date(2021, 4, 1),
+        data_fim_realizacao_despesas=date(2021, 6, 30),
+        data_prevista_repasse=date(2021, 4, 1),
+        data_inicio_prestacao_contas=date(2021, 6, 18),
+        data_fim_prestacao_contas=date(2021, 6, 30),
+        periodo_anterior=None,
+        notificacao_inicio_periodo_pc_realizada=False
+    )
+
+
 @pytest.fixture
 def membro_comissao_outra_dre_nao_deve_notificar_teste_service(
     comissao_exame_contas_teste_service,
@@ -213,10 +230,36 @@ def membro_comissao_outra_dre_nao_deve_notificar_teste_service(
 
 
 @pytest.fixture
+def unidade_a(dre):
+    return baker.make(
+        'Unidade',
+        nome='Escola A',
+        tipo_unidade='EMEI',
+        codigo_eol='270001',
+        dre=dre,
+        sigla='EA'
+    )
+
+
+@pytest.fixture
+def associacao_a(unidade_a):
+    return baker.make(
+        'Associacao',
+        nome='Associacao 271170',
+        cnpj='62.738.735/0001-74',
+        unidade=unidade_a,
+    )
+
+
+@pytest.fixture
+def visao_dre():
+    return baker.make('Visao', nome='DRE')
+
+
+@pytest.fixture
 def usuario_notificavel(
     unidade_a,
-    grupo_notificavel,
-    visao_ue):
+    visao_dre):
     from django.contrib.auth import get_user_model
 
     senha = 'Sgp0418'
@@ -226,8 +269,7 @@ def usuario_notificavel(
     User = get_user_model()
     user = User.objects.create_user(username=login, password=senha, email=email)
     user.unidades.add(unidade_a)
-    user.groups.add(grupo_notificavel)
-    user.visoes.add(visao_ue)
+    user.visoes.add(visao_dre)
     user.save()
     return user
 
@@ -278,14 +320,14 @@ def periodo_teste_service_consolidado_dre(periodo_anterior_teste_service_consoli
         periodo_anterior=periodo_anterior_teste_service_consolidado_dre,
     )
 
-
 @pytest.fixture
+@freeze_time("2022-10-21")
 def analise_consolidado_dre_01_prazo_acerto_vencido():
     return baker.make(
         'AnaliseConsolidadoDre',
-        data_devolucao=datetime.today() - timedelta(days = 1 ),
-        data_limite=datetime.today() - timedelta(days = 1 ),
-        data_retorno_analise=datetime.today() - timedelta(days = 1 ),
+        data_devolucao=datetime.now() - timedelta(days = 1 ),
+        data_limite=datetime.now() - timedelta(days = 1 ),
+        data_retorno_analise=datetime.now() - timedelta(days = 1 ),
     )
 
 
@@ -293,9 +335,9 @@ def analise_consolidado_dre_01_prazo_acerto_vencido():
 def analise_consolidado_dre_01_dentro_prazo():
     return baker.make(
         'AnaliseConsolidadoDre',
-        data_devolucao=datetime.today(),
-        data_limite=datetime.today(),
-        data_retorno_analise=datetime.today(),
+        data_devolucao=datetime.now(),
+        data_limite=datetime.now(),
+        data_retorno_analise=datetime.now(),
     )
 
 
