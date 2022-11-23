@@ -3,6 +3,7 @@ from .base import env
 
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -151,5 +152,8 @@ LOGGING = {
 # SENTRY
 sentry_sdk.init(
     dsn=env('SENTRY_URL'),
-    integrations=[DjangoIntegration()]
+    integrations=[
+        DjangoIntegration(),
+        CeleryIntegration(),
+    ]
 )
