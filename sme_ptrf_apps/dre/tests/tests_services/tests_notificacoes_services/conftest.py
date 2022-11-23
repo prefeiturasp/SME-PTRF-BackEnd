@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 import pytest
 from model_bakery import baker
 from sme_ptrf_apps.dre.models import ConsolidadoDRE
@@ -210,3 +210,116 @@ def membro_comissao_outra_dre_nao_deve_notificar_teste_service(
         comissoes=[comissao_exame_contas_teste_service]
     )
     return membro
+
+
+@pytest.fixture
+def usuario_notificavel(
+    unidade_a,
+    grupo_notificavel,
+    visao_ue):
+    from django.contrib.auth import get_user_model
+
+    senha = 'Sgp0418'
+    login = '2711001'
+    email = 'notificavel@amcom.com.br'
+
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(unidade_a)
+    user.groups.add(grupo_notificavel)
+    user.visoes.add(visao_ue)
+    user.save()
+    return user
+
+
+@pytest.fixture
+def usuario_tecnico_notificavel():
+    from django.contrib.auth import get_user_model
+    senha = 'Sgp0418'
+    login = '5047951'
+    email = 'notificavel@amcom.com.br'
+
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.save()
+    return user
+
+@pytest.fixture
+def tecnico_notificavel(unidade_a, visao_dre, dre, usuario_tecnico_notificavel):
+    email = 'notificavel@amcom.com.br'
+    tecnico = TecnicoDre.objects.create(
+        nome='MARIA DO CARMO MACHADO LEAL DE GODOY',
+        dre=dre,
+        rf='5047951',
+        email=email,
+        telefone='1938342667'
+    )
+    tecnico.save()
+    return tecnico
+
+
+@pytest.fixture
+def periodo_anterior_teste_service_consolidado_dre():
+    return baker.make(
+        'Periodo',
+        referencia='2021.2',
+        data_inicio_realizacao_despesas=date(2021, 6, 16),
+        data_fim_realizacao_despesas=date(2021, 12, 31),
+    )
+
+
+@pytest.fixture
+def periodo_teste_service_consolidado_dre(periodo_anterior_teste_service_consolidado_dre):
+    return baker.make(
+        'Periodo',
+        referencia='2022.1',
+        data_inicio_realizacao_despesas=date(2022, 1, 1),
+        data_fim_realizacao_despesas=date(2022, 12, 31),
+        periodo_anterior=periodo_anterior_teste_service_consolidado_dre,
+    )
+
+
+@pytest.fixture
+def analise_consolidado_dre_01_prazo_acerto_vencido():
+    return baker.make(
+        'AnaliseConsolidadoDre',
+        data_devolucao=datetime.today() - timedelta(days = 1 ),
+        data_limite=datetime.today() - timedelta(days = 1 ),
+        data_retorno_analise=datetime.today() - timedelta(days = 1 ),
+    )
+
+
+@pytest.fixture
+def analise_consolidado_dre_01_dentro_prazo():
+    return baker.make(
+        'AnaliseConsolidadoDre',
+        data_devolucao=datetime.today(),
+        data_limite=datetime.today(),
+        data_retorno_analise=datetime.today(),
+    )
+
+
+@pytest.fixture
+def consolidado_dre_devolucao_apos_acertos(periodo_teste_service_consolidado_dre, dre, analise_consolidado_dre_01_prazo_acerto_vencido, tecnico_notificavel):
+    return baker.make(
+        'ConsolidadoDRE',
+        dre=dre,
+        periodo=periodo_teste_service_consolidado_dre,
+        status_sme=ConsolidadoDRE.STATUS_SME_DEVOLVIDO,
+        analise_atual=analise_consolidado_dre_01_prazo_acerto_vencido,
+        eh_parcial=False,
+        sequencia_de_publicacao=0
+    )
+
+
+@pytest.fixture
+def consolidado_dre_devolucao_apos_acertos_dentro_do_prazo(periodo_teste_service_consolidado_dre, dre, analise_consolidado_dre_01_dentro_prazo, tecnico_notificavel):
+    return baker.make(
+        'ConsolidadoDRE',
+        dre=dre,
+        periodo=periodo_teste_service_consolidado_dre,
+        status_sme=ConsolidadoDRE.STATUS_SME_DEVOLVIDO,
+        analise_atual=analise_consolidado_dre_01_dentro_prazo,
+        eh_parcial=False,
+        sequencia_de_publicacao=0
+    )
