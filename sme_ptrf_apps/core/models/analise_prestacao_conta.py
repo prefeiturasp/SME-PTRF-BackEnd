@@ -1,3 +1,5 @@
+import logging
+
 from django.db import models
 
 from auditlog.models import AuditlogHistoryField
@@ -5,6 +7,8 @@ from auditlog.registry import auditlog
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 
 class AnalisePrestacaoConta(ModeloBase):
@@ -246,6 +250,15 @@ class AnalisePrestacaoConta(ModeloBase):
         self.status_versao = self.STATUS_CONCLUIDO
         self.arquivo_pdf_criado_em = datetime.today()
         self.save()
+
+    def cancela_geracao_arquivo_pdf(self):
+        logging.info(f'Cancelando geração de arquivo pdf da análise {self.pk}')
+        self.arquivo_pdf = None
+        self.versao = self.VERSAO_NAO_GERADO
+        self.status_versao = self.STATUS_NAO_GERADO
+        self.arquivo_pdf_criado_em = None
+        self.save()
+        logging.info(f'Geração de arquivo pdf da análise {self.pk} cancelada')
 
     def apaga_arquivo_pdf_relatorio_apos_acertos(self):
         self.arquivo_pdf_apresentacao_apos_acertos = None

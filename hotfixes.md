@@ -1,3 +1,8 @@
+### 1.33.11 - 23/11/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 54
+* (79496) Inclui tratamento de erro em prévia de relatório de acertos
+* (79583) Configura integração Celery e Sentry
+* (79315) Corrige layout do consolidado DRE
+
 ### 1.33.10 - 18/11/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 53
 * (79038) Consolidado PCs: Demonstrativo da execução financeira: valores dos campos 12 à 17 errados
 
