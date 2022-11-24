@@ -18,14 +18,19 @@ jobs:
     
       - uses: actions/checkout@v2
       
+      - name: Set env
+        run: echo "GITHUB_RUN_ID_SHORT=$(echo $GITHUB_RUN_ID | cut -c 1-6)" >> $GITHUB_ENV
+      
+      - name: Test
+        run: echo $GITHUB_RUN_ID_SHORT
+
       - name: Delete Container..
-        run: if [ ! -z $(docker ps -q --filter "name=ptrf-db") ]; then docker rm -f ptrf-db; fi
-
-
+        run: if [ ! -z $(docker ps -q --filter "name=ptrf-db$GITHUB_RUN_ID_SHORT") ]; then docker rm -f ptrf-db$GITHUB_RUN_ID_SHORT; fi
+        
       - name: Preparing Container...
         #Criação do container de banco de dados e copia das variaveis que serão carregadas.
         run: |
-          docker run -d --rm --cap-add SYS_TIME --name ptrf-db -p 5432 --network python-network -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:11-alpine
+          docker run -d --rm --cap-add SYS_TIME --name ptrf-db$GITHUB_RUN_ID_SHORT -p 5432 --network python-network -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:11-alpine
           echo "copiando fontes..."
           cp /srv/env/ptrf .
           
@@ -37,6 +42,7 @@ jobs:
             docker network connect python-network $(hostname)
             echo "Carregando as variaveis de ambiente..."
             source ptrf
+            export POSTGRES_HOST=ptrf-db$GITHUB_RUN_ID_SHORT
             pip install --user pipenv -r requirements/local.txt
             python manage.py collectstatic --noinput
             echo "##### COVERAGE ####"
@@ -52,7 +58,7 @@ jobs:
             
       - name: Delete Container..
         if: ${{ ( failure() ) || ( success() ) }}
-        run: if [ ! -z $(docker ps -q --filter "name=ptrf-db") ]; then docker rm -f ptrf-db; fi
+        run: if [ ! -z $(docker ps -q --filter "name=ptrf-db$GITHUB_RUN_ID_SHORT") ]; then docker rm -f ptrf-db$GITHUB_RUN_ID_SHORT; fi
 
   sonar:
   
