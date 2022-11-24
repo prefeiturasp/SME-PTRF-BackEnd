@@ -365,3 +365,17 @@ def consolidado_dre_devolucao_apos_acertos_dentro_do_prazo(periodo_teste_service
         eh_parcial=False,
         sequencia_de_publicacao=0
     )
+
+
+@pytest.fixture
+def consolidado_dre_devolucao_apos_acertos_em_analise(periodo_teste_service_consolidado_dre, dre, analise_consolidado_dre_01_dentro_prazo, tecnico_notificavel):
+    return baker.make(
+        'ConsolidadoDRE',
+        dre=dre,
+        periodo=periodo_teste_service_consolidado_dre,
+        status_sme=ConsolidadoDRE.STATUS_SME_EM_ANALISE,
+        analise_atual=analise_consolidado_dre_01_dentro_prazo,
+        eh_parcial=False,
+        sequencia_de_publicacao=0
+    )
+
