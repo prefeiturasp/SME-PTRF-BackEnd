@@ -1,9 +1,8 @@
 import pytest
 
-from datetime import date, datetime, timedelta
+from datetime import date
 
 from django.contrib.auth.models import Permission
-from ....dre.models import TecnicoDre, ConsolidadoDRE
 
 from model_bakery import baker
 
@@ -35,11 +34,6 @@ def associacao_a(unidade_a):
 @pytest.fixture
 def visao_ue():
     return baker.make('Visao', nome='UE')
-
-
-@pytest.fixture
-def visao_dre():
-    return baker.make('Visao', nome='DRE')
 
 
 @pytest.fixture

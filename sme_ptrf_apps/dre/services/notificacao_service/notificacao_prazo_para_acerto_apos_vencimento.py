@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 
 logger = logging.getLogger(__name__)
 
+
 class NotificacaoConsolidadoPrazoAcertoVencimento():
 
     def __init__(self, enviar_email=True):
@@ -21,9 +22,9 @@ class NotificacaoConsolidadoPrazoAcertoVencimento():
             analise_atual__data_limite__lt=data_de_hoje
         )
 
+        User = get_user_model()
         for consolidado in consolidados_devolvida_para_acerto_prazo:
             for tecnico in consolidado.dre.tecnicos_da_dre.all():
-                User = get_user_model()
                 user = User.objects.filter(username=tecnico.rf).first()
                 if user:
                     Notificacao.notificar(
