@@ -3,7 +3,7 @@ import pytest
 from freezegun import freeze_time
 
 from .....core.models import Notificacao
-from .....dre.services.notificacao_service. import NotificacaoConsolidadoPrazoAcertoVencimento
+from .....dre.services.notificacao_service.notificacao_prazo_para_acerto_consolidado_devolucao import NotificacaoConsolidadoPrazoAcertoVencimento
 
 
 pytestmark = pytest.mark.django_db
