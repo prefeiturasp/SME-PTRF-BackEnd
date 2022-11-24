@@ -2,11 +2,9 @@ from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 from ...models import AnaliseDocumentoPrestacaoConta
-from ..serializers import AnaliseDocumentoPrestacaoContaUpdateSerializer
-from sme_ptrf_apps.core.services.analise_documento_prestacao_conta_service import (
-    AnaliseDocumentoPrestacaoContaService,
-)
+from ..serializers import AnaliseDocumentoPrestacaoContaRetrieveSerializer
 from sme_ptrf_apps.core.services import SolicitacaoAcertoDocumentoService
+from sme_ptrf_apps.core.models import SolicitacaoAcertoDocumento, AnalisePrestacaoConta
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -19,16 +17,22 @@ class AnaliseDocumentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = AnaliseDocumentoPrestacaoConta.objects.all()
-    serializer_class = AnaliseDocumentoPrestacaoContaUpdateSerializer
+    serializer_class = AnaliseDocumentoPrestacaoContaRetrieveSerializer
 
     @action(detail=False, methods=['post'], url_path='limpar-status',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def limpar_status(self, request):
-        uuids_analises_documentos = request.data.get('uuids_analises_documentos', None)
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            AcoesStatusSolicitacaoAcertoDocumentoValidateSerializer
 
-        response = AnaliseDocumentoPrestacaoContaService.limpar_status(
-            uuids_analises_documentos=uuids_analises_documentos
+        query = AcoesStatusSolicitacaoAcertoDocumentoValidateSerializer(data=self.request.data)
+        query.is_valid(raise_exception=True)
+
+        uuids_solicitacoes_acertos_documentos = self.request.data.get('uuids_solicitacoes_acertos_documentos', None)
+        response = SolicitacaoAcertoDocumentoService.limpar_status(
+            uuids_solicitacoes_acertos_documentos=uuids_solicitacoes_acertos_documentos,
         )
+
         status_response = response.pop("status")
 
         return Response(response, status=status_response)
@@ -36,13 +40,20 @@ class AnaliseDocumentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
     @action(detail=False, methods=['post'], url_path='justificar-nao-realizacao',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def justificar_nao_realizacao(self, request):
-        uuids_analises_documentos = request.data.get('uuids_analises_documentos', None)
-        justificativa = request.data.get('justificativa', None)
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            AcoesStatusSolicitacaoAcertoDocumentoValidateSerializer
 
-        response = AnaliseDocumentoPrestacaoContaService.justificar_nao_realizacao(
-            uuids_analises_documentos=uuids_analises_documentos,
+        query = AcoesStatusSolicitacaoAcertoDocumentoValidateSerializer(data=self.request.data)
+        query.is_valid(raise_exception=True)
+
+        uuids_solicitacoes_acertos_documentos = self.request.data.get('uuids_solicitacoes_acertos_documentos', None)
+        justificativa = self.request.data.get('justificativa', None)
+
+        response = SolicitacaoAcertoDocumentoService.justificar_nao_realizacao(
+            uuids_solicitacoes_acertos_documentos=uuids_solicitacoes_acertos_documentos,
             justificativa=justificativa
         )
+
         status_response = response.pop("status")
 
         return Response(response, status=status_response)
@@ -67,8 +78,19 @@ class AnaliseDocumentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
     @action(detail=False, methods=['get'], url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def tabelas(self, request):
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            TabelasValidateSerializer
+
+        query = TabelasValidateSerializer(data=self.request.query_params)
+        query.is_valid(raise_exception=True)
+
+        uuid_analise_prestacao = self.request.query_params.get('uuid_analise_prestacao')
+        visao = self.request.query_params.get('visao')
+
         result = {
             "status_realizacao": AnaliseDocumentoPrestacaoConta.status_realizacao_choices_to_json(),
+            "status_realizacao_solicitacao": SolicitacaoAcertoDocumento.status_realizacao_choices_to_json(),
+            "editavel": AnalisePrestacaoConta.editavel(uuid_analise_prestacao, visao)
         }
 
         return Response(result, status=status.HTTP_200_OK)

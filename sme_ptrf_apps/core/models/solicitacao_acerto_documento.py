@@ -2,8 +2,10 @@ from django.db import models
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
-
+from ...utils.choices_to_json import choices_to_json
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class SolicitacaoAcertoDocumento(ModeloBase):
@@ -68,6 +70,9 @@ class SolicitacaoAcertoDocumento(ModeloBase):
         self.save()
         return self
 
+    @classmethod
+    def status_realizacao_choices_to_json(cls):
+        return choices_to_json(cls.STATUS_REALIZACAO_CHOICES)
 
     class Meta:
         verbose_name = "Solicitação de acerto em documento"
@@ -75,3 +80,9 @@ class SolicitacaoAcertoDocumento(ModeloBase):
 
 
 auditlog.register(SolicitacaoAcertoDocumento)
+
+
+@receiver(post_save, sender=SolicitacaoAcertoDocumento)
+def solicitacao_acerto_documento_post_save(instance, created, **kwargs):
+    if instance and instance.analise_documento:
+        instance.analise_documento.calcula_status_realizacao_analise_documento()
