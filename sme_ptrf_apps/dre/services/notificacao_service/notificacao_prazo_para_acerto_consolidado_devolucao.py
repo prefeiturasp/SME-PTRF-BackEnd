@@ -43,9 +43,10 @@ class NotificacaoConsolidadoPrazoAcertoVencimento():
 
     def notificar_prazo_para_acerto_antes_vencimento(self):
         logger.info(f'Notificar prazo para acerto antes vencimento service')
-
+        data_de_hoje = date.today()
         consolidados_devolvida_para_acerto_prazo = ConsolidadoDRE.objects.filter(
             status_sme='DEVOLVIDO',
+            analise_atual__data_limite__gte=data_de_hoje
         )
 
         User = get_user_model()
