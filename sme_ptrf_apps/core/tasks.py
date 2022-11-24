@@ -203,9 +203,9 @@ def gerar_notificacao_pendencia_envio_prestacao_de_contas_async():
 def gerar_notificacao_prazo_para_acerto_consolidado_dre_apos_vencimento_async():
     logger.info(f'Iniciando a geração de notificação prazo acerto apos vencimento async')
 
-    from sme_ptrf_apps.core.services.notificacao_services import notificar_prazo_para_acerto_apos_vencimento
+    from sme_ptrf_apps.dre.services.notificacao_service.notificacao_prazo_para_acerto_apos_vencimento import NotificacaoConsolidadoPrazoAcertoVencimento
 
-    notificar_prazo_para_acerto_apos_vencimento()
+    NotificacaoConsolidadoPrazoAcertoVencimento().notificar_prazo_para_acerto_apos_vencimento()
 
     logger.info(f'Finalizando a geração de notificação prazo acerto apos vencimento async')
 
