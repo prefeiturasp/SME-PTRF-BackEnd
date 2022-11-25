@@ -19,10 +19,4 @@ def test_retrieve_analise_documento(
         content_type='applicaton/json'
     )
 
-    result = json.loads(response.content)
-    resultado_esperado = {
-        'justificativa': analise.justificativa
-    }
-
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado

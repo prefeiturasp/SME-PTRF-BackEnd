@@ -180,7 +180,7 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         categoria_ajuste_externo = []
         categoria_solicitacao_esclarecimento = []
 
-        for solicitacao in self.solicitacoes_de_ajuste_da_analise.all():
+        for solicitacao in self.solicitacoes_de_ajuste_da_analise.all().order_by('id'):
             categoria = solicitacao.tipo_acerto.categoria
             devolucao_ao_tesouro = None
 

@@ -89,10 +89,6 @@ def test_endpoint_tabelas_status_realizacao(jwt_authenticated_client_a, analise_
             {
                 "id": "REALIZADO_PARCIALMENTE",
                 "nome": "Realizado parcialmente"
-            },
-            {
-                "id": "REALIZADO_JUSTIFICADO_PARCIALMENTE",
-                "nome": "Realizado e justificado parcialmente"
             }
         ],
     }
