@@ -22,7 +22,7 @@ from ..models import (
 )
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
-from ..services.processos_services import get_processo_sei_da_prestacao
+from ..services.processos_services import get_processo_sei_da_prestacao, get_processo_sei_da_associacao_no_periodo
 from ...despesas.models import RateioDespesa, Despesa
 from ...receitas.models import Receita
 from ..tasks import gerar_previa_demonstrativo_financeiro_async
@@ -320,19 +320,24 @@ def lista_prestacoes_de_conta_nao_recebidas(
                 if prestacao_conta and prestacao_conta.status not in filtro_status:
                     continue
 
+        if prestacao_conta:
+            processo_sei = get_processo_sei_da_prestacao(prestacao_contas=prestacao_conta)
+        else:
+            processo_sei = get_processo_sei_da_associacao_no_periodo(associacao=associacao, periodo=periodo)
+
         info_prestacao = {
             'periodo_uuid': f'{periodo.uuid}',
             'data_recebimento': None,
-            'data_ultima_analise': None,
-            'processo_sei': get_processo_sei_da_prestacao(prestacao_contas=prestacao_conta) if prestacao_conta else '',
+            'data_ultima_analise': prestacao_conta.data_ultima_analise if prestacao_conta else None,
+            'processo_sei': processo_sei,
             'status': prestacao_conta.status if prestacao_conta else PrestacaoConta.STATUS_NAO_APRESENTADA,
-            'tecnico_responsavel': '',
+            'tecnico_responsavel': prestacao_conta.tecnico_responsavel.nome if prestacao_conta and prestacao_conta.tecnico_responsavel else '',
             'unidade_eol': associacao.unidade.codigo_eol,
             'unidade_nome': associacao.unidade.nome,
             'unidade_tipo_unidade': associacao.unidade.tipo_unidade,
             'uuid': f'{prestacao_conta.uuid}' if prestacao_conta else '',
             'associacao_uuid': f'{associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': prestacao_conta.total_devolucao_ao_tesouro_str if prestacao_conta else 'Não'
         }
 
         prestacoes.append(info_prestacao)
@@ -359,7 +364,7 @@ def lista_prestacoes_de_conta_todos_os_status(
 
     prestacoes = []
     for associacao in associacoes_da_dre:
-        prestacao_conta = PrestacaoConta.objects.filter(associacao=associacao, periodo=periodo).first()
+        prestacao_conta: PrestacaoConta = PrestacaoConta.objects.filter(associacao=associacao, periodo=periodo).first()
 
         if filtro_por_status and not prestacao_conta and PrestacaoConta.STATUS_NAO_APRESENTADA not in filtro_por_status:
             # Pula PCs não apresentadas se existir um filtro por status e não contiver o status não apresentada
@@ -371,17 +376,17 @@ def lista_prestacoes_de_conta_todos_os_status(
 
         info_prestacao = {
             'periodo_uuid': f'{periodo.uuid}',
-            'data_recebimento': None,
-            'data_ultima_analise': None,
+            'data_recebimento': prestacao_conta.data_recebimento if prestacao_conta else None,
+            'data_ultima_analise': prestacao_conta.data_ultima_analise if prestacao_conta else None,
             'processo_sei': get_processo_sei_da_prestacao(prestacao_contas=prestacao_conta) if prestacao_conta else '',
             'status': prestacao_conta.status if prestacao_conta else PrestacaoConta.STATUS_NAO_APRESENTADA,
-            'tecnico_responsavel': '',
+            'tecnico_responsavel': prestacao_conta.tecnico_responsavel.nome if prestacao_conta and prestacao_conta.tecnico_responsavel else '',
             'unidade_eol': associacao.unidade.codigo_eol,
             'unidade_nome': associacao.unidade.nome,
             'unidade_tipo_unidade': associacao.unidade.tipo_unidade,
             'uuid': f'{prestacao_conta.uuid}' if prestacao_conta else '',
             'associacao_uuid': f'{associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': prestacao_conta.total_devolucao_ao_tesouro_str if prestacao_conta else 'Não'
         }
 
         prestacoes.append(info_prestacao)

@@ -176,7 +176,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_periodo_e_dre_sem_filtro_po
             'unidade_tipo_unidade': 'CEU',
             'uuid': '',
             'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
 
         },
         {
@@ -191,7 +191,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_periodo_e_dre_sem_filtro_po
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
         }
     ]
 
@@ -243,7 +243,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_periodo_e_dre_nao_inclui_ou
             'unidade_tipo_unidade': 'CEU',
             'uuid': '',
             'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
 
         }
     ]
@@ -281,7 +281,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_nome_unidade(jwt_authentica
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
         },
     ]
 
@@ -307,7 +307,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_nome_unidade(jwt_authentica
             'unidade_tipo_unidade': 'CEU',
             'uuid': '',
             'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
         }
 
     ]
@@ -347,7 +347,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_nome_associacao(jwt_authent
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
         },
     ]
 
@@ -373,7 +373,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_nome_associacao(jwt_authent
             'unidade_tipo_unidade': 'CEU',
             'uuid': '',
             'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
         }
 
     ]
@@ -411,7 +411,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_tipo_unidade(jwt_authentica
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
         },
     ]
 
@@ -437,7 +437,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_tipo_unidade(jwt_authentica
             'unidade_tipo_unidade': 'CEU',
             'uuid': '',
             'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
         }
 
     ]
@@ -479,7 +479,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_status_nao_recebida(jwt_aut
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
         },
     ]
 
@@ -520,7 +520,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_status_nao_apresentada(jwt_
             'unidade_tipo_unidade': 'CEU',
             'uuid': '',
             'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
         }
 
     ]
@@ -588,7 +588,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_mais_de_um_status(
             'unidade_tipo_unidade': 'CEU',
             'uuid': '',
             'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
 
         },
         {
@@ -603,7 +603,7 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_mais_de_um_status(
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': '0,00'
+            'devolucao_ao_tesouro': 'Não'
         }
     ]
 
