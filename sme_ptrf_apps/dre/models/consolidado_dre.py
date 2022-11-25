@@ -370,6 +370,8 @@ class ConsolidadoDRE(ModeloBase):
     def analisar_consolidado(self, usuario):
         from ..models.analise_consolidado_dre import AnaliseConsolidadoDre
         try:
+            import ipdb; ipdb.set_trace();
+            analise_anterior = AnaliseConsolidadoDre.objects.filter(consolidado_dre=self)
             analise_atual = AnaliseConsolidadoDre.objects.create(consolidado_dre=self)
             self.marcar_status_sme_como_em_analise(usuario)
             self.analise_atual = analise_atual

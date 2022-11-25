@@ -112,6 +112,32 @@ def test_passar_relatorio_para_status_sme_em_analise(
     assert consolidado_dre_em_analise.status_sme == 'EM_ANALISE'
 
 
+def test_passar_relatorio_para_status_sme_em_analise_apos_devolvida_para_acertos(
+    jwt_authenticated_client_dre,
+    usuario_dre_teste_api,
+    payload_passar_para_status_sme_em_analise,
+    consolidado_dre_teste_api_consolidado_dre_com_analise_atual,
+):
+
+    uuid_consolidado = f"{consolidado_dre_teste_api_consolidado_dre_com_analise_atual.uuid}"
+
+    response = jwt_authenticated_client_dre.post(
+        '/api/consolidados-dre/analisar/',
+        data=json.dumps(payload_passar_para_status_sme_em_analise),
+        content_type='application/json'
+    )
+
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+
+    assert result == 'Consolidado DRE foi passado para o status Em Análise com Sucesso!'
+
+    consolidado_dre_em_analise = ConsolidadoDRE.objects.filter(uuid=uuid_consolidado).first()
+
+    assert consolidado_dre_em_analise.status_sme == 'EM_ANALISE'
+
+
 def test_passar_relatorio_para_status_sme_publicado(
     jwt_authenticated_client_dre,
     payload_passar_para_status_sme_publicado,
