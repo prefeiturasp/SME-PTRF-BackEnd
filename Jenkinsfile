@@ -17,11 +17,50 @@ pipeline {
   
     stages {
 
+        stage('Preparando ambiente') {
+        agent {
+        label 'master'
+        }  
+        steps {
+          script {
+            CONTAINER_ID = sh (
+            script: 'docker ps -q --filter "name=ptrf-db"',
+            returnStdout: true
+            ).trim()
+             if (CONTAINER_ID) {
+               sh "echo nome é: ${CONTAINER_ID}"
+               sh "docker rm -f ${CONTAINER_ID}"
+               sh 'docker run -d --rm --cap-add SYS_TIME --name ptrf-db --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:9-alpine'
+            } else {
+        
+                sh 'docker run -d --rm --cap-add SYS_TIME --name ptrf-db --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:9-alpine'
+            }
+          }
+
+        }
+      }
+
         stage('CheckOut') {            
             steps { checkout scm }            
         }
 
-        
+        stage('Testes') {
+          steps {
+            sh 'pip install --user pipenv -r requirements/local.txt'
+            sh 'python manage.py collectstatic --noinput'
+            //sh 'pipenv install --dev'
+            sh 'pipenv install pytest'
+            sh 'pipenv install pytest-cov'
+            sh 'pipenv run pytest'
+            sh 'pipenv run flake8'
+          }
+          post {
+            success{
+            //  Publicando arquivo de cobertura
+                publishCoverage adapters: [coberturaAdapter('coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
+            }
+          }
+        }
 
         stage('AnaliseCodigo') {
 	      when { branch 'homolog' }
