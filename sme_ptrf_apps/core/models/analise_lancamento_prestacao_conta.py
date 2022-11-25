@@ -43,7 +43,6 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
     STATUS_REALIZACAO_JUSTIFICADO = 'JUSTIFICADO'
     STATUS_REALIZACAO_REALIZADO_JUSTIFICADO = 'REALIZADO_JUSTIFICADO'
     STATUS_REALIZACAO_REALIZADO_PARCIALMENTE = 'REALIZADO_PARCIALMENTE'
-    STATUS_REALIZACAO_JUSTIFICADO_PARCIALMENTE = 'JUSTIFICADO_PARCIALMENTE'
     STATUS_REALIZACAO_REALIZADO_JUSTIFICADO_PARCIALMENTE = 'REALIZADO_JUSTIFICADO_PARCIALMENTE'
 
     STATUS_REALIZACAO_NOMES = {
@@ -52,7 +51,6 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         STATUS_REALIZACAO_JUSTIFICADO: 'Justificado',
         STATUS_REALIZACAO_REALIZADO_JUSTIFICADO: 'Realizado e justificado',
         STATUS_REALIZACAO_REALIZADO_PARCIALMENTE: 'Realizado parcialmente',
-        STATUS_REALIZACAO_JUSTIFICADO_PARCIALMENTE: 'Justificado parcialmente',
         STATUS_REALIZACAO_REALIZADO_JUSTIFICADO_PARCIALMENTE: 'Realizado e justificado parcialmente'
     }
 
@@ -62,7 +60,6 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         (STATUS_REALIZACAO_JUSTIFICADO, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_JUSTIFICADO]),
         (STATUS_REALIZACAO_REALIZADO_JUSTIFICADO, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_REALIZADO_JUSTIFICADO]),
         (STATUS_REALIZACAO_REALIZADO_PARCIALMENTE, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_REALIZADO_PARCIALMENTE]),
-        (STATUS_REALIZACAO_JUSTIFICADO_PARCIALMENTE, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_JUSTIFICADO_PARCIALMENTE]),
         (STATUS_REALIZACAO_REALIZADO_JUSTIFICADO_PARCIALMENTE, STATUS_REALIZACAO_NOMES[
             STATUS_REALIZACAO_REALIZADO_JUSTIFICADO_PARCIALMENTE]),
     )
@@ -351,7 +348,7 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         elif solicitacoes_realizadas and solicitacoes_nao_realizadas and not solicitacoes_justificadas:
             novo_status = AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_PARCIALMENTE
         elif solicitacoes_justificadas and solicitacoes_nao_realizadas and not solicitacoes_realizadas:
-            novo_status = AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_JUSTIFICADO_PARCIALMENTE
+            novo_status = AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_PARCIALMENTE
         elif solicitacoes_justificadas and solicitacoes_realizadas and solicitacoes_nao_realizadas:
             novo_status = AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_JUSTIFICADO_PARCIALMENTE
 
