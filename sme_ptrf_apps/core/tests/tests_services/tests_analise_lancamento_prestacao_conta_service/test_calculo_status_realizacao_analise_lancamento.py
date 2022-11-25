@@ -55,7 +55,7 @@ def test_status_realizado_parcialmente(
     assert analise.status_realizacao == AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_PARCIALMENTE
 
 
-def test_status_justificado_parcialmente(
+def test_status_realizado_parcialmente_nao_realizado_e_justificado(
     solicitacao_acerto_lancamento_status_justificado,
     solicitacao_acerto_lancamento_status_nao_realizado,
 ):
@@ -63,7 +63,7 @@ def test_status_justificado_parcialmente(
     analise.calcula_status_realizacao_analise_lancamento()
 
     assert analise.status_realizacao == \
-           AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_JUSTIFICADO_PARCIALMENTE
+           AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_PARCIALMENTE
 
 
 def test_status_realizado_justificado_parcialmente(
