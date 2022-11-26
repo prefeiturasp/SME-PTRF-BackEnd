@@ -369,13 +369,21 @@ class ConsolidadoDRE(ModeloBase):
     @transaction.atomic
     def analisar_consolidado(self, usuario):
         from ..models.analise_consolidado_dre import AnaliseConsolidadoDre
+        from ..services import AnaliseConsolidadoDreService
         try:
-            import ipdb; ipdb.set_trace();
-            analise_anterior = AnaliseConsolidadoDre.objects.filter(consolidado_dre=self)
+            analise_anterior = AnaliseConsolidadoDre.objects.filter(consolidado_dre=self).order_by('-id').first()
             analise_atual = AnaliseConsolidadoDre.objects.create(consolidado_dre=self)
             self.marcar_status_sme_como_em_analise(usuario)
             self.analise_atual = analise_atual
+            self.analise_anterior = analise_anterior
             self.save()
+
+            if self.analise_anterior:
+                AnaliseConsolidadoDreService(
+                    analise_origem=self.analise_anterior,
+                    analise_destino=self.analise_atual,
+                ).copia_ajustes_consolidado_entre_analises()
+
             return True
         except Exception as e:
             logger.error(f'Houve algum erro ao tentar analisar o consolidado dre de uuid {self.uuid}.')

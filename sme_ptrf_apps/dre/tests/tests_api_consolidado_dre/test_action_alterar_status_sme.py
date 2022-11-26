@@ -56,6 +56,16 @@ def payload_passar_para_status_sme_em_analise(consolidado_dre_teste_api_consolid
     }
     return payload
 
+
+@pytest.fixture
+def payload_passar_para_status_sme_em_analise_com_copia(consolidado_dre_teste_api_consolidado_dre_com_analise_atual):
+    payload = {
+        'consolidado_dre': f'{consolidado_dre_teste_api_consolidado_dre_com_analise_atual.uuid}',
+        "usuario": "7210418"
+    }
+    return payload
+
+
 @pytest.fixture
 def payload_passar_para_status_sme_analisado(consolidado_dre_teste_api_consolidado_dre):
     payload = {
@@ -115,15 +125,15 @@ def test_passar_relatorio_para_status_sme_em_analise(
 def test_passar_relatorio_para_status_sme_em_analise_apos_devolvida_para_acertos(
     jwt_authenticated_client_dre,
     usuario_dre_teste_api,
-    payload_passar_para_status_sme_em_analise,
+    payload_passar_para_status_sme_em_analise_com_copia,
     consolidado_dre_teste_api_consolidado_dre_com_analise_atual,
+    comentario_analise_consolidado_dre_01,
+    comentario_analise_consolidado_dre_02
 ):
-
     uuid_consolidado = f"{consolidado_dre_teste_api_consolidado_dre_com_analise_atual.uuid}"
-
     response = jwt_authenticated_client_dre.post(
         '/api/consolidados-dre/analisar/',
-        data=json.dumps(payload_passar_para_status_sme_em_analise),
+        data=json.dumps(payload_passar_para_status_sme_em_analise_com_copia),
         content_type='application/json'
     )
 
