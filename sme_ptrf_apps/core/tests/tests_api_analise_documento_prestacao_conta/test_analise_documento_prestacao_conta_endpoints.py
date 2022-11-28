@@ -4,9 +4,67 @@ import json
 pytestmark = pytest.mark.django_db
 
 
-def test_endpoint_tabelas(jwt_authenticated_client_a):
+def test_endpoint_tabelas(jwt_authenticated_client_a, analise_prestacao_conta_2020_1):
     response = jwt_authenticated_client_a.get(
-        f'/api/analises-documento-prestacao-conta/tabelas/', content_type='application/json')
+        f'/api/analises-documento-prestacao-conta/tabelas/'
+        f'?uuid_analise_prestacao={analise_prestacao_conta_2020_1.uuid}&visao=DRE', content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_endpoint_tabelas_editavel_false_visao_dre(jwt_authenticated_client_a, analise_prestacao_conta_2020_1):
+    response = jwt_authenticated_client_a.get(
+        f'/api/analises-documento-prestacao-conta/tabelas/'
+        f'?uuid_analise_prestacao={analise_prestacao_conta_2020_1.uuid}&visao=DRE', content_type='application/json')
+
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        "editavel": False
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert resultado_esperado["editavel"] == result["editavel"]
+
+
+def test_endpoint_tabelas_editavel_false_visao_ue(
+    jwt_authenticated_client_a,
+    analise_prestacao_conta_2020_1,
+    analise_prestacao_conta_2020_1_2
+):
+    response = jwt_authenticated_client_a.get(
+        f'/api/analises-documento-prestacao-conta/tabelas/'
+        f'?uuid_analise_prestacao={analise_prestacao_conta_2020_1.uuid}&visao=UE', content_type='application/json')
+
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        "editavel": False
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert resultado_esperado["editavel"] == result["editavel"]
+
+
+def test_endpoint_tabelas_editavel_true_visao_ue(jwt_authenticated_client_a, analise_prestacao_conta_2020_1):
+    response = jwt_authenticated_client_a.get(
+        f'/api/analises-documento-prestacao-conta/tabelas/'
+        f'?uuid_analise_prestacao={analise_prestacao_conta_2020_1.uuid}&visao=UE', content_type='application/json')
+
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        "editavel": True
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert resultado_esperado["editavel"] == result["editavel"]
+
+
+def test_endpoint_tabelas_status_realizacao(jwt_authenticated_client_a, analise_prestacao_conta_2020_1):
+    response = jwt_authenticated_client_a.get(
+        f'/api/analises-documento-prestacao-conta/tabelas/'
+        f'?uuid_analise_prestacao={analise_prestacao_conta_2020_1.uuid}&visao=DRE', content_type='application/json')
 
     result = json.loads(response.content)
 
@@ -23,18 +81,54 @@ def test_endpoint_tabelas(jwt_authenticated_client_a):
             {
                 "id": "JUSTIFICADO",
                 "nome": "Justificado"
-            }
-        ]
+            },
+            {
+                "id": "REALIZADO_JUSTIFICADO",
+                "nome": "Realizado e justificado"
+            },
+            {
+                "id": "REALIZADO_PARCIALMENTE",
+                "nome": "Realizado parcialmente"
+            },
+        ],
     }
 
     assert response.status_code == status.HTTP_200_OK
     assert resultado_esperado["status_realizacao"] == result["status_realizacao"]
 
 
-def test_endpoint_limpar_status(jwt_authenticated_client_a, analise_documento_realizado_01):
+def test_endpoint_tabelas_status_realizacao_solicitacao(jwt_authenticated_client_a, analise_prestacao_conta_2020_1):
+    response = jwt_authenticated_client_a.get(
+        f'/api/analises-documento-prestacao-conta/tabelas/'
+        f'?uuid_analise_prestacao={analise_prestacao_conta_2020_1.uuid}&visao=DRE', content_type='application/json')
+
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        "status_realizacao_solicitacao": [
+            {
+                "id": "PENDENTE",
+                "nome": "Pendente"
+            },
+            {
+                "id": "REALIZADO",
+                "nome": "Realizado"
+            },
+            {
+                "id": "JUSTIFICADO",
+                "nome": "Justificado"
+            }
+        ]
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert resultado_esperado["status_realizacao_solicitacao"] == result["status_realizacao_solicitacao"]
+
+
+def test_endpoint_limpar_status(jwt_authenticated_client_a, solicitacao_acerto_documento_realizado_01):
     payload = {
-        "uuids_analises_documentos": [
-            f"{analise_documento_realizado_01.uuid}"
+        "uuids_solicitacoes_acertos_documentos": [
+            f"{solicitacao_acerto_documento_realizado_01.uuid}"
         ]
     }
 
@@ -46,9 +140,12 @@ def test_endpoint_limpar_status(jwt_authenticated_client_a, analise_documento_re
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_endpoint_limpar_status_sem_uuid_analises(jwt_authenticated_client_a, analise_documento_realizado_01):
+def test_endpoint_limpar_status_sem_uuid_solicitacao(
+    jwt_authenticated_client_a,
+    solicitacao_acerto_documento_realizado_01
+):
     payload = {
-        "uuids_analises_documentos": [
+        "uuids_solicitacoes_acertos_documentos": [
 
         ]
     }
@@ -61,7 +158,10 @@ def test_endpoint_limpar_status_sem_uuid_analises(jwt_authenticated_client_a, an
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_endpoint_limpar_status_sem_chave_uuid_analises(jwt_authenticated_client_a, analise_documento_realizado_01):
+def test_endpoint_limpar_status_sem_chave_uuid_solicitacao(
+    jwt_authenticated_client_a,
+    solicitacao_acerto_documento_realizado_01
+):
     payload = {
 
     }
@@ -74,25 +174,10 @@ def test_endpoint_limpar_status_sem_chave_uuid_analises(jwt_authenticated_client
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_endpoint_limpar_status_pendente(jwt_authenticated_client_a, analise_documento_pendente_01):
+def test_endpoint_marcar_realizado(jwt_authenticated_client_a, solicitacao_acerto_documento_pendente_01):
     payload = {
-        "uuids_analises_documentos": [
-            f"{analise_documento_pendente_01.uuid}"
-        ]
-    }
-
-    response = jwt_authenticated_client_a.post(
-        f'/api/analises-documento-prestacao-conta/limpar-status/', data=json.dumps(payload),
-        content_type='application/json'
-    )
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-def test_endpoint_marcar_realizado(jwt_authenticated_client_a, analise_documento_pendente_01):
-    payload = {
-        "uuids_analises_documentos": [
-            f"{analise_documento_pendente_01.uuid}"
+        "uuids_solicitacoes_acertos_documentos": [
+            f"{solicitacao_acerto_documento_pendente_01.uuid}"
         ]
     }
 
@@ -104,9 +189,12 @@ def test_endpoint_marcar_realizado(jwt_authenticated_client_a, analise_documento
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_endpoint_marcar_realizado_sem_uuid_analises(jwt_authenticated_client_a, analise_documento_pendente_01):
+def test_endpoint_marcar_realizado_sem_uuid_solicitacao(
+    jwt_authenticated_client_a,
+    solicitacao_acerto_documento_pendente_01
+):
     payload = {
-        "uuids_analises_documentos": [
+        "uuids_solicitacoes_acertos_documentos": [
 
         ]
     }
@@ -119,7 +207,10 @@ def test_endpoint_marcar_realizado_sem_uuid_analises(jwt_authenticated_client_a,
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_endpoint_marcar_realizado_sem_chave_uuid_analises(jwt_authenticated_client_a, analise_documento_pendente_01):
+def test_endpoint_marcar_realizado_sem_chave_uuid_solicitacao(
+    jwt_authenticated_client_a,
+    solicitacao_acerto_documento_pendente_01
+):
     payload = {
 
     }
@@ -132,26 +223,11 @@ def test_endpoint_marcar_realizado_sem_chave_uuid_analises(jwt_authenticated_cli
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_endpoint_marcar_realizado_status_realizado(jwt_authenticated_client_a, analise_documento_realizado_01):
-    payload = {
-        "uuids_analises_documentos": [
-            f"{analise_documento_realizado_01.uuid}"
-        ]
-    }
-
-    response = jwt_authenticated_client_a.post(
-        f'/api/analises-documento-prestacao-conta/marcar-como-realizado/', data=json.dumps(payload),
-        content_type='application/json'
-    )
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-def test_endpoint_justificar_nao_realizacao(jwt_authenticated_client_a, analise_documento_realizado_01):
+def test_endpoint_justificar_nao_realizacao(jwt_authenticated_client_a, solicitacao_acerto_documento_realizado_01):
     payload = {
         "justificativa": "teste",
-        "uuids_analises_documentos": [
-            f"{analise_documento_realizado_01.uuid}"
+        "uuids_solicitacoes_acertos_documentos": [
+            f"{solicitacao_acerto_documento_realizado_01.uuid}"
         ]
     }
 
@@ -163,12 +239,12 @@ def test_endpoint_justificar_nao_realizacao(jwt_authenticated_client_a, analise_
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_endpoint_justificar_nao_realizado_sem_uuid_analises(
+def test_endpoint_justificar_nao_realizado_sem_uuid_solicitacao(
     jwt_authenticated_client_a,
-    analise_documento_realizado_01
+    solicitacao_acerto_documento_realizado_01
 ):
     payload = {
-        "uuids_analises_documentos": [
+        "uuids_solicitacoes_acertos_documentos": [
 
         ]
     }
@@ -181,9 +257,9 @@ def test_endpoint_justificar_nao_realizado_sem_uuid_analises(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_endpoint_justificar_nao_realizado_sem_chave_uuid_analises(
+def test_endpoint_justificar_nao_realizado_sem_chave_uuid_solicitacao(
     jwt_authenticated_client_a,
-    analise_documento_realizado_01
+    solicitacao_acerto_documento_realizado_01
 ):
     payload = {
 
@@ -197,13 +273,14 @@ def test_endpoint_justificar_nao_realizado_sem_chave_uuid_analises(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_endpoint_justificar_nao_realizado_sem_chave_justificativa(
+def test_endpoint_justificar_nao_realizado_sem_justificativa(
     jwt_authenticated_client_a,
-    analise_documento_realizado_01
+    solicitacao_acerto_documento_realizado_01
 ):
     payload = {
-        "uuids_analises_documentos": [
-            f"{analise_documento_realizado_01.uuid}"
+        "justificativa": "",
+        "uuids_solicitacoes_acertos_documentos": [
+            f"{solicitacao_acerto_documento_realizado_01.uuid}"
         ]
     }
 
@@ -214,70 +291,3 @@ def test_endpoint_justificar_nao_realizado_sem_chave_justificativa(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-
-def test_endpoint_justificar_nao_realizado_status_justificar(
-    jwt_authenticated_client_a,
-    analise_documento_justificado_01
-):
-    payload = {
-        "uuids_analises_documentos": [
-            f"{analise_documento_justificado_01.uuid}"
-        ]
-    }
-
-    response = jwt_authenticated_client_a.post(
-        f'/api/analises-documento-prestacao-conta/justificar-nao-realizacao/', data=json.dumps(payload),
-        content_type='application/json'
-    )
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-def test_endpoint_marcar_como_credito_incluido(
-    jwt_authenticated_client_a,
-    analise_documento_pendente_01,
-    receita_100_no_periodo
-):
-    payload = {
-        "uuid_credito_incluido": f"{receita_100_no_periodo.uuid}"
-    }
-
-    response = jwt_authenticated_client_a.post(
-        f'/api/analises-documento-prestacao-conta/{analise_documento_pendente_01.uuid}/marcar-como-credito-incluido/', data=json.dumps(payload),
-        content_type='application/json'
-    )
-
-    assert response.status_code == status.HTTP_200_OK
-
-
-def test_endpoint_marcar_como_gasto_incluido(
-    jwt_authenticated_client_a,
-    analise_documento_pendente_01,
-    despesa_no_periodo
-):
-    payload = {
-        "uuid_gasto_incluido": f"{despesa_no_periodo.uuid}"
-    }
-
-    response = jwt_authenticated_client_a.post(
-        f'/api/analises-documento-prestacao-conta/{analise_documento_pendente_01.uuid}/marcar-como-gasto-incluido/', data=json.dumps(payload),
-        content_type='application/json'
-    )
-
-    assert response.status_code == status.HTTP_200_OK
-
-
-def test_endpoint_marcar_como_esclarecido(
-    jwt_authenticated_client_a,
-    analise_documento_pendente_01,
-):
-    payload = {
-        "esclarecimento": "Teste de esclarecimento."
-    }
-
-    response = jwt_authenticated_client_a.post(
-        f'/api/analises-documento-prestacao-conta/{analise_documento_pendente_01.uuid}/marcar-como-esclarecido/', data=json.dumps(payload),
-        content_type='application/json'
-    )
-
-    assert response.status_code == status.HTTP_200_OK

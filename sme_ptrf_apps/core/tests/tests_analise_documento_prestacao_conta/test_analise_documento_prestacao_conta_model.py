@@ -16,11 +16,7 @@ def test_instance_model(analise_documento_prestacao_conta_2020_1_ata_correta):
     assert isinstance(model.tipo_documento_prestacao_conta, TipoDocumentoPrestacaoConta)
     assert isinstance(model.conta_associacao, ContaAssociacao)
     assert model.resultado == AnaliseDocumentoPrestacaoConta.RESULTADO_CORRETO
-    assert model.justificativa is None
     assert model.status_realizacao == AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
-    assert isinstance(model.receita_incluida, Receita)
-    assert isinstance(model.despesa_incluida, Despesa)
-    assert model.esclarecimentos == 'teste'
 
 
 def test_srt_model(analise_documento_prestacao_conta_2020_1_ata_correta):
