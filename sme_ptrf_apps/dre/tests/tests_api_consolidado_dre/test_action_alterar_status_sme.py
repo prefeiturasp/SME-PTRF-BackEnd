@@ -3,7 +3,7 @@ import json
 import pytest
 from rest_framework import status
 
-from sme_ptrf_apps.dre.models import ConsolidadoDRE
+from sme_ptrf_apps.dre.models import ConsolidadoDRE, AnaliseConsolidadoDre
 
 pytestmark = pytest.mark.django_db
 
@@ -58,7 +58,7 @@ def payload_passar_para_status_sme_em_analise(consolidado_dre_teste_api_consolid
 
 
 @pytest.fixture
-def payload_passar_para_status_sme_em_analise_com_copia(consolidado_dre_teste_api_consolidado_dre_com_analise_atual):
+def payload_passar_para_status_sme_em_analise_ja_existente(consolidado_dre_teste_api_consolidado_dre_com_analise_atual):
     payload = {
         'consolidado_dre': f'{consolidado_dre_teste_api_consolidado_dre_com_analise_atual.uuid}',
         "usuario": "7210418"
@@ -124,16 +124,18 @@ def test_passar_relatorio_para_status_sme_em_analise(
 
 def test_passar_relatorio_para_status_sme_em_analise_apos_devolvida_para_acertos(
     jwt_authenticated_client_dre,
-    usuario_dre_teste_api,
-    payload_passar_para_status_sme_em_analise_com_copia,
+    payload_passar_para_status_sme_em_analise_ja_existente,
     consolidado_dre_teste_api_consolidado_dre_com_analise_atual,
     comentario_analise_consolidado_dre_01,
-    comentario_analise_consolidado_dre_02
+    comentario_analise_consolidado_dre_02,
+    analise_consolidado_dre_test_api_ja_existente,
+    analise_documento_consolidado_dre_01,
+    analise_documento_consolidado_dre_02
 ):
     uuid_consolidado = f"{consolidado_dre_teste_api_consolidado_dre_com_analise_atual.uuid}"
     response = jwt_authenticated_client_dre.post(
         '/api/consolidados-dre/analisar/',
-        data=json.dumps(payload_passar_para_status_sme_em_analise_com_copia),
+        data=json.dumps(payload_passar_para_status_sme_em_analise_ja_existente),
         content_type='application/json'
     )
 
@@ -145,7 +147,12 @@ def test_passar_relatorio_para_status_sme_em_analise_apos_devolvida_para_acertos
 
     consolidado_dre_em_analise = ConsolidadoDRE.objects.filter(uuid=uuid_consolidado).first()
 
+    analise_atual_copiada = AnaliseConsolidadoDre.objects.filter(
+        consolidado_dre_da_analise_atual=consolidado_dre_teste_api_consolidado_dre_com_analise_atual
+    ).order_by('-id').last()
+
     assert consolidado_dre_em_analise.status_sme == 'EM_ANALISE'
+    assert consolidado_dre_em_analise.analise_atual == analise_atual_copiada
 
 
 def test_passar_relatorio_para_status_sme_publicado(

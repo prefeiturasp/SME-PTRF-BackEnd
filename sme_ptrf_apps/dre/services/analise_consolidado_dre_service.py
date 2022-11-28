@@ -34,22 +34,3 @@ class AnaliseConsolidadoDreService:
             self.nova_analise.uuid = uuid.uuid4()
             self.nova_analise.analise_consolidado_dre = self.analise_destino
             self.nova_analise.save()
-
-    def copia_comentarios_consolidado_entre_analises(self): # TESTE LINIKER
-        for analise_comentario in self.analise_origem.consolidado_dre.comentarios_de_analise_do_consolidado_dre.all():
-            self.nova_analise = copy.deepcopy(analise_comentario)
-            self.nova_analise.pk = None
-            self.nova_analise.uuid = uuid.uuid4()
-            self.nova_analise.analise_consolidado_dre = self.analise_destino
-            self.nova_analise.save()
-
-    def copia_info_consolidado_entre_analises(self): # TESTE LINIKER
-        x = 1
-
-    def copia_ajustes_consolidado_entre_analises(self): #TESTE LINIKER
-        import ipdb; ipdb.set_trace();
-        self.copia_documentos_consolidado_entre_analises()
-        self.copia_comentarios_consolidado_entre_analises()
-        self.copia_info_consolidado_entre_analises()
-
-        return self.nova_analise

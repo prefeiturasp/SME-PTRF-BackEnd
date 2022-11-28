@@ -371,20 +371,20 @@ class ConsolidadoDRE(ModeloBase):
         from ..models.analise_consolidado_dre import AnaliseConsolidadoDre
         from ..services import AnaliseConsolidadoDreService
         try:
-            analise_anterior = AnaliseConsolidadoDre.objects.filter(consolidado_dre=self).order_by('-id').first()
+            analise_anterior = AnaliseConsolidadoDre.objects.filter(consolidado_dre_da_analise_atual=self).order_by('-id').first()
             analise_atual = AnaliseConsolidadoDre.objects.create(consolidado_dre=self)
             self.marcar_status_sme_como_em_analise(usuario)
             self.analise_atual = analise_atual
+            self.analise_atual.copiado = True
+            self.analise_atual.save()
             self.analise_anterior = analise_anterior
             self.save()
-
             if self.analise_anterior:
                 AnaliseConsolidadoDreService(
                     analise_origem=self.analise_anterior,
                     analise_destino=self.analise_atual,
-                ).copia_ajustes_consolidado_entre_analises()
-
-            return True
+                ).copia_documentos_consolidado_entre_analises()
+            return self
         except Exception as e:
             logger.error(f'Houve algum erro ao tentar analisar o consolidado dre de uuid {self.uuid}.')
             logger.error(f'{e}')

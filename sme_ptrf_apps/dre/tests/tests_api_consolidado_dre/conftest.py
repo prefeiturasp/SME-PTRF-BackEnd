@@ -141,25 +141,7 @@ def relatorio_consolidado_dre_01():
 
 
 @pytest.fixture
-def consolidado_dre_teste_api_consolidado_dre_com_analise_atual(periodo_teste_api_consolidado_dre, dre_teste_api_consolidado_dre):
-    return baker.make(
-        'ConsolidadoDRE',
-        dre=dre_teste_api_consolidado_dre,
-        periodo=periodo_teste_api_consolidado_dre,
-        status=ConsolidadoDRE.STATUS_NAO_GERADOS,
-    )
-
-
-@pytest.fixture
-def analise_consolidado_dre_01():
-    return baker.make(
-        'AnaliseConsolidadoDre',
-        consolidado_dre=consolidado_dre_teste_api_consolidado_dre_com_analise_atual,
-    )
-
-
-@pytest.fixture
-def analise_consolidado_dre_test_api_com_copia(consolidado_dre_teste_api_consolidado_dre_com_analise_atual):
+def analise_consolidado_dre_test_api_ja_existente():
     return baker.make(
         'AnaliseConsolidadoDre',
         data_devolucao=date.today(),
@@ -168,20 +150,46 @@ def analise_consolidado_dre_test_api_com_copia(consolidado_dre_teste_api_consoli
         relatorio_acertos_versao=('FINAL', 'final'),
         relatorio_acertos_status='CONCLUIDO',
         relatorio_acertos_gerado_em=date.today(),
-        consolidado_dre=consolidado_dre_teste_api_consolidado_dre_com_analise_atual
+    )
+
+
+@pytest.fixture
+def consolidado_dre_teste_api_consolidado_dre_com_analise_atual(periodo_teste_api_consolidado_dre, dre_teste_api_consolidado_dre, analise_consolidado_dre_test_api_ja_existente):
+    return baker.make(
+        'ConsolidadoDRE',
+        dre=dre_teste_api_consolidado_dre,
+        periodo=periodo_teste_api_consolidado_dre,
+        status=ConsolidadoDRE.STATUS_NAO_GERADOS,
+        analise_atual=analise_consolidado_dre_test_api_ja_existente
     )
 
 
 @pytest.fixture
 def analise_documento_consolidado_dre_01(
-    analise_consolidado_dre_test_api_com_copia,
+    analise_consolidado_dre_test_api_ja_existente,
     documento_adicional_consolidado_dre_01,
     relatorio_consolidado_dre_01,
     ata_parecer_tecnico_consolidado_dre_01,
 ):
     return baker.make(
         'AnaliseDocumentoConsolidadoDre',
-        analise_consolidado_dre=analise_consolidado_dre_test_api_com_copia,
+        analise_consolidado_dre=analise_consolidado_dre_test_api_ja_existente,
+        documento_adicional=documento_adicional_consolidado_dre_01,
+        relatorio_consolidao_dre=relatorio_consolidado_dre_01,
+        ata_parecer_tecnico=ata_parecer_tecnico_consolidado_dre_01,
+    )
+
+
+@pytest.fixture
+def analise_documento_consolidado_dre_02(
+    analise_consolidado_dre_test_api_ja_existente,
+    documento_adicional_consolidado_dre_01,
+    relatorio_consolidado_dre_01,
+    ata_parecer_tecnico_consolidado_dre_01,
+):
+    return baker.make(
+        'AnaliseDocumentoConsolidadoDre',
+        analise_consolidado_dre=analise_consolidado_dre_test_api_ja_existente,
         documento_adicional=documento_adicional_consolidado_dre_01,
         relatorio_consolidao_dre=relatorio_consolidado_dre_01,
         ata_parecer_tecnico=ata_parecer_tecnico_consolidado_dre_01,
