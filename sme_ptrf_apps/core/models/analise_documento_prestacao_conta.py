@@ -28,17 +28,23 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
     STATUS_REALIZACAO_PENDENTE = 'PENDENTE'
     STATUS_REALIZACAO_REALIZADO = 'REALIZADO'
     STATUS_REALIZACAO_JUSTIFICADO = 'JUSTIFICADO'
+    STATUS_REALIZACAO_REALIZADO_JUSTIFICADO = 'REALIZADO_JUSTIFICADO'
+    STATUS_REALIZACAO_REALIZADO_PARCIALMENTE = 'REALIZADO_PARCIALMENTE'
 
     STATUS_REALIZACAO_NOMES = {
         STATUS_REALIZACAO_PENDENTE: 'Pendente',
         STATUS_REALIZACAO_REALIZADO: 'Realizado',
-        STATUS_REALIZACAO_JUSTIFICADO: 'Justificado'
+        STATUS_REALIZACAO_JUSTIFICADO: 'Justificado',
+        STATUS_REALIZACAO_REALIZADO_JUSTIFICADO: 'Realizado e justificado',
+        STATUS_REALIZACAO_REALIZADO_PARCIALMENTE: 'Realizado parcialmente',
     }
 
     STATUS_REALIZACAO_CHOICES = (
         (STATUS_REALIZACAO_PENDENTE, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_PENDENTE]),
         (STATUS_REALIZACAO_REALIZADO, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_REALIZADO]),
-        (STATUS_REALIZACAO_JUSTIFICADO, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_JUSTIFICADO])
+        (STATUS_REALIZACAO_JUSTIFICADO, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_JUSTIFICADO]),
+        (STATUS_REALIZACAO_REALIZADO_JUSTIFICADO, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_REALIZADO_JUSTIFICADO]),
+        (STATUS_REALIZACAO_REALIZADO_PARCIALMENTE, STATUS_REALIZACAO_NOMES[STATUS_REALIZACAO_REALIZADO_PARCIALMENTE]),
     )
 
     analise_prestacao_conta = models.ForeignKey('AnalisePrestacaoConta', on_delete=models.CASCADE,
@@ -59,20 +65,10 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
 
     status_realizacao = models.CharField(
         'Status de realização',
-        max_length=15,
+        max_length=40,
         choices=STATUS_REALIZACAO_CHOICES,
         default=STATUS_REALIZACAO_PENDENTE
     )
-
-    justificativa = models.TextField('Justificativa', max_length=300, blank=True, null=True, default=None)
-
-    despesa_incluida = models.ForeignKey('despesas.Despesa', on_delete=models.SET_NULL,
-                                         related_name='analise_de_documento_que_incluiu_a_despesa', blank=True, null=True)
-
-    receita_incluida = models.ForeignKey('receitas.Receita', on_delete=models.SET_NULL,
-                                         related_name='analise_de_documento_que_incluiu_a_receita', blank=True, null=True)
-
-    esclarecimentos = models.TextField('Esclarecimentos', max_length=300, blank=True, null=True, default=None)
 
     @property
     def requer_esclarecimentos(self):
@@ -110,9 +106,150 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
         self.status_realizacao = novo_status
         self.save()
 
+    def solicitacoes_de_acertos_total(self):
+        total_solicitacoes = len(self.solicitacoes_de_ajuste_da_analise.all())
+
+        return total_solicitacoes
+
+    def solicitacoes_de_acertos_agrupado_por_categoria(self):
+        from sme_ptrf_apps.core.api.serializers.tipo_acerto_documento_serializer import TipoAcertoDocumentoSerializer
+
+        categoria_inclusao_credito = []
+        categoria_inclusao_gasto = []
+        categoria_ajuste_externo = []
+        categoria_solicitacao_esclarecimento = []
+
+        for solicitacao in self.solicitacoes_de_ajuste_da_analise.all().order_by('id'):
+            categoria = solicitacao.tipo_acerto.categoria
+
+            dado_solicitacao = {
+                "tipo_acerto": TipoAcertoDocumentoSerializer(solicitacao.tipo_acerto, many=False).data,
+                "detalhamento": solicitacao.detalhamento,
+                "id": solicitacao.id,
+                "uuid": f"{solicitacao.uuid}",
+                "copiado": solicitacao.copiado,
+                "status_realizacao": solicitacao.status_realizacao,
+                "justificativa": solicitacao.justificativa,
+                "esclarecimentos": solicitacao.esclarecimentos,
+                "ordem": None,
+                "despesa_incluida": solicitacao.despesa_incluida.uuid if solicitacao.despesa_incluida else None,
+                "receita_incluida": solicitacao.receita_incluida.uuid if solicitacao.receita_incluida else None
+            }
+
+            if categoria == TipoAcertoDocumento.CATEGORIA_INCLUSAO_CREDITO:
+                categoria_inclusao_credito.append(dado_solicitacao)
+            elif categoria == TipoAcertoDocumento.CATEGORIA_INCLUSAO_GASTO:
+                categoria_inclusao_gasto.append(dado_solicitacao)
+            elif categoria == TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS:
+                categoria_ajuste_externo.append(dado_solicitacao)
+            elif categoria == TipoAcertoDocumento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO:
+                categoria_solicitacao_esclarecimento.append(dado_solicitacao)
+
+        result = {
+            "analise_documento": f"{self.uuid}",
+            "solicitacoes_acerto_por_categoria": self.monta_estrutura_solicitacoes_acerto_por_categoria(
+                categoria_inclusao_credito,
+                categoria_inclusao_gasto,
+                categoria_ajuste_externo,
+                categoria_solicitacao_esclarecimento
+            )
+        }
+
+        result_com_ordem_calculada = self.calcula_ordem(result)
+
+        return result_com_ordem_calculada
+
+    @staticmethod
+    def calcula_ordem(result):
+        ordem = 1
+        for categoria in result['solicitacoes_acerto_por_categoria']:
+            for solicitacao in categoria["acertos"]:
+                solicitacao["ordem"] = ordem
+                ordem = ordem + 1
+
+        return result
+
+    def monta_estrutura_solicitacoes_acerto_por_categoria(
+        self,
+        categoria_inclusao_credito,
+        categoria_inclusao_gasto,
+        categoria_ajuste_externo,
+        categoria_solicitacao_esclarecimento
+    ):
+
+        solicitacoes_acerto_por_categoria = []
+
+        if categoria_inclusao_credito:
+            for acerto in categoria_inclusao_credito:
+                solicitacoes_acerto_por_categoria.append({
+                    "acertos": [acerto],  # necessario ir em lista para não quebrar o map do front
+                    "categoria": TipoAcertoDocumento.CATEGORIA_INCLUSAO_CREDITO,
+                    "analise_documento": f"{self.uuid}",
+                    "requer_inclusao_credito": self.requer_inclusao_credito
+                })
+
+        if categoria_inclusao_gasto:
+            for acerto in categoria_inclusao_gasto:
+                solicitacoes_acerto_por_categoria.append({
+                    "acertos": [acerto],  # necessario ir em lista para não quebrar o map do front
+                    "categoria": TipoAcertoDocumento.CATEGORIA_INCLUSAO_GASTO,
+                    "analise_documento": f"{self.uuid}",
+                    "requer_inclusao_gasto": self.requer_inclusao_gasto,
+                })
+
+        if categoria_ajuste_externo:
+            solicitacoes_acerto_por_categoria.append({
+                "acertos": categoria_ajuste_externo,
+                "categoria": TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS,
+                "analise_documento": f"{self.uuid}",
+                "requer_ajustes_externos": self.requer_ajuste_externo,
+            })
+
+        if categoria_solicitacao_esclarecimento:
+            solicitacoes_acerto_por_categoria.append({
+                "acertos": categoria_solicitacao_esclarecimento,
+                "categoria": TipoAcertoDocumento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO,
+                "analise_documento": f"{self.uuid}",
+                "requer_esclarecimentos": self.requer_esclarecimentos,
+            })
+
+        return solicitacoes_acerto_por_categoria
+
     @classmethod
     def status_realizacao_choices_to_json(cls):
         return choices_to_json(cls.STATUS_REALIZACAO_CHOICES)
+
+    def calcula_status_realizacao_analise_documento(self):
+        from . import SolicitacaoAcertoDocumento
+
+        novo_status = None
+
+        solicitacoes_realizadas = self.solicitacoes_de_ajuste_da_analise.filter(
+            status_realizacao=SolicitacaoAcertoDocumento.STATUS_REALIZACAO_REALIZADO).exists()
+
+        solicitacoes_justificadas = self.solicitacoes_de_ajuste_da_analise.filter(
+            status_realizacao=SolicitacaoAcertoDocumento.STATUS_REALIZACAO_JUSTIFICADO).exists()
+
+        solicitacoes_nao_realizadas = self.solicitacoes_de_ajuste_da_analise.filter(
+            status_realizacao=SolicitacaoAcertoDocumento.STATUS_REALIZACAO_PENDENTE).exists()
+
+        if solicitacoes_realizadas and not solicitacoes_justificadas and not solicitacoes_nao_realizadas:
+            novo_status = AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO
+        elif solicitacoes_justificadas and not solicitacoes_realizadas and not solicitacoes_nao_realizadas:
+            novo_status = AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_JUSTIFICADO
+        elif solicitacoes_nao_realizadas and not solicitacoes_realizadas and not solicitacoes_justificadas:
+            novo_status = AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
+        elif solicitacoes_realizadas and solicitacoes_justificadas and not solicitacoes_nao_realizadas:
+            novo_status = AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_JUSTIFICADO
+        elif solicitacoes_realizadas and solicitacoes_nao_realizadas and not solicitacoes_justificadas:
+            novo_status = AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_PARCIALMENTE
+        elif solicitacoes_justificadas and solicitacoes_nao_realizadas and not solicitacoes_realizadas:
+            novo_status = AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_PARCIALMENTE
+        elif solicitacoes_justificadas and solicitacoes_realizadas and solicitacoes_nao_realizadas:
+            novo_status = AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_PARCIALMENTE
+
+        self.status_realizacao = novo_status
+        self.save()
 
     class Meta:
         verbose_name = "Análise de documentos de PC"

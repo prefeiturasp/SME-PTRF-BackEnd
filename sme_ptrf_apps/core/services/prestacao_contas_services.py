@@ -1229,7 +1229,8 @@ def solicita_acertos_de_documentos(analise_prestacao, documentos, solicitacoes_a
                 _solicitacao_criada = SolicitacaoAcertoDocumento.objects.create(
                     analise_documento=_analise_documento,
                     tipo_acerto=tipo_acerto,
-                    detalhamento=_solicitacao_acerto['detalhamento']
+                    detalhamento=_solicitacao_acerto['detalhamento'],
+                    status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE
                 )
 
                 logging.info(f"Solicitação criada: {_solicitacao_criada}.")
