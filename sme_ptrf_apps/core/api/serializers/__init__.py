@@ -52,7 +52,7 @@ from .analise_lancamento_prestacao_conta_serializer import (
 from .solicitacao_acerto_documento_serializer import SolicitacaoAcertoDocumentoRetrieveSerializer
 from .analise_documento_prestacao_conta_serializer import (
     AnaliseDocumentoPrestacaoContaRetrieveSerializer,
-    AnaliseDocumentoPrestacaoContaUpdateSerializer
+    AnaliseDocumentoPrestacaoContaSolicitacoesAgrupadasRetrieveSerializer
 )
 from .tipo_documento_prestacao_conta_serializer import TipoDocumentoPrestacaoContaSerializer
 from .presentes_ata_serializer import PresentesAtaSerializer, PresentesAtaCreateSerializer
