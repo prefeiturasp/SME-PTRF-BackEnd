@@ -1,3 +1,7 @@
+### 1.33.11 - 29/11/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 54
+* (79686 Consolidado PCs: Demonstrativo da execução financeira: má distribuição das linhas, na coluna das despesas, quando não há o recurso de livre aplicação
+* (79837) Acompanhamento de PC: as informações das PCs nos painéis de síntese variam a depender dos filtros aplicados
+
 ### 1.33.11 - 23/11/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 54
 * (79496) Inclui tratamento de erro em prévia de relatório de acertos
 * (79583) Configura integração Celery e Sentry
