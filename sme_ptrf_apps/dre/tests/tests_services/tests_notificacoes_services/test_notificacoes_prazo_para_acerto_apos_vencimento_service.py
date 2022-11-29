@@ -18,7 +18,7 @@ def test_deve_notificar_tecnico_dre(usuario_tecnico_notificavel, associacao_a, c
     notificacao = Notificacao.objects.first()
     assert Notificacao.objects.count() == 1
     assert notificacao.tipo == Notificacao.TIPO_NOTIFICACAO_ALERTA
-    assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_CONSOLIDADO_APOS_PRAZO_VENCIMENTO
+    assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_CONSOLIDADO
     assert notificacao.remetente == Notificacao.REMETENTE_NOTIFICACAO_SISTEMA
     assert notificacao.titulo == f'Devolução para acertos no relatório consolidado de {consolidado_dre_devolucao_apos_acertos.periodo.referencia}'
     assert notificacao.descricao == f"O prazo para acerto da Publicação {consolidado_dre_devolucao_apos_acertos.referencia} {consolidado_dre_devolucao_apos_acertos.periodo.referencia} expirou. Favor verificar os acertos solicitados e regularizar a situação."
