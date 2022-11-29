@@ -111,10 +111,10 @@
         <td rowSpan="2"> L</td>
         <td rowSpan="2" class="text-right">{{ valor.livre.saldo_reprogramado_proximo_periodo_livre }}</td>
 
-        {# Controlando o layout. Não devem ser exibidas as linhas de contas que tenham valores zerados em todas as colunas. #}
-        {% if dados.execucao_financeira.por_tipo_de_conta|length == 1 %}
+{#       A condição abaixo foi comentada para resolver o bug 79686. #}
+{#        {% if dados.execucao_financeira.por_tipo_de_conta|length == 1 %}#}
           <td style="display: inline-table; border:none !important;"></td>
-        {% endif %}
+{#        {% endif %}#}
 
       </tr>
       <tr>
@@ -303,6 +303,7 @@
           <td rowSpan="2"> L</td>
           <td rowSpan="2"
               class="text-right">{{ valor.livre.saldo_reprogramado_proximo_periodo_livre }}</td>
+
           <td style="display: inline-table; border:none !important;"></td>
 
         </tr>
