@@ -30,7 +30,7 @@ class NotificacaoConsolidadoPrazoAcertoVencimento():
                 if user:
                     Notificacao.notificar(
                         tipo=Notificacao.TIPO_NOTIFICACAO_ALERTA,
-                        categoria=Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_CONSOLIDADO_APOS_PRAZO_VENCIMENTO,
+                        categoria=Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_CONSOLIDADO,
                         remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
                         titulo=f"Devolução para acertos no relatório consolidado de {consolidado.periodo.referencia}",
                         descricao=f"O prazo para acerto da Publicação {consolidado.referencia} {consolidado.periodo.referencia} expirou. Favor verificar os acertos solicitados e regularizar a situação.",
