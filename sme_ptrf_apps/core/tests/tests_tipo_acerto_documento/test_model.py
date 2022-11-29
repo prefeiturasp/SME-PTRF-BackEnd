@@ -30,6 +30,8 @@ def test_instance_model(tipo_acerto_documento):
     assert model.uuid
     assert model.id
     assert model.tipos_documento_prestacao
+    assert model.categoria
+    assert model.ativo
 
 
 def test_srt_model(tipo_acerto_documento):

@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.core.exceptions import ValidationError
 from sme_ptrf_apps.core.choices import MembroEnum
 from sme_ptrf_apps.receitas.models.repasse import Repasse, StatusRepasse
+from ..models import PrestacaoConta, Associacao, SolicitacaoAcertoDocumento
 from ...despesas.models import Despesa
 from datetime import datetime
 
@@ -83,6 +84,33 @@ def tem_repasses_pendentes_periodos_ate_agora(associacao, periodo):
     return repasses_pendentes.exists()
 
 
+def retorna_se_pode_habilitar_botao_ver_acertos_em_analise_da_dre(periodo, associacao_uuid):
+    associacao = Associacao.by_uuid(associacao_uuid)
+
+    tem_solicitacoes_de_ajustes_extratos_bancarios = PrestacaoConta.objects.filter(
+        periodo=periodo,
+        associacao=associacao,
+        analises_da_prestacao__analises_de_extratos__isnull=False
+    ).count()
+
+    tem_solicitacoes_de_ajustes_lancamentos = PrestacaoConta.objects.filter(
+        periodo=periodo,
+        associacao=associacao,
+        analises_da_prestacao__analises_de_lancamentos__solicitacoes_de_ajuste_da_analise__isnull=False
+    ).count()
+
+    tem_solicitacoes_de_ajustes_documentos = PrestacaoConta.objects.filter(
+        periodo=periodo,
+        associacao=associacao,
+        analises_da_prestacao__analises_de_documento__solicitacoes_de_ajuste_da_analise__isnull=False
+    ).count()
+
+    total_ajustes = tem_solicitacoes_de_ajustes_lancamentos + tem_solicitacoes_de_ajustes_documentos + \
+        tem_solicitacoes_de_ajustes_extratos_bancarios
+
+    return total_ajustes > 0
+
+
 def retorna_status_prestacoes(periodos=None, status_pc=None, uuid=None):
     lista_de_periodos = []
     if periodos:
@@ -97,6 +125,7 @@ def retorna_status_prestacoes(periodos=None, status_pc=None, uuid=None):
                 'texto_status': prestacao_conta_status['texto_status'],
                 'legenda_cor': prestacao_conta_status['legenda_cor'],
                 'prestacao_de_contas_uuid': prestacao_conta_status['prestacao_de_contas_uuid'],
+                'pode_habilitar_botao_ver_acertos_em_analise_da_dre': retorna_se_pode_habilitar_botao_ver_acertos_em_analise_da_dre(periodo=periodo, associacao_uuid=uuid),
             }
 
             lista_de_periodos.append(obj_periodo)
