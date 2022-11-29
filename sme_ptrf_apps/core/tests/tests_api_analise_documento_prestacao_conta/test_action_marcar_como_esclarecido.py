@@ -6,17 +6,17 @@ pytestmark = pytest.mark.django_db
 
 
 def test_marcar_como_esclarecido(
-    solicitacao_acerto_lancamento_devolucao,
+    solicitacao_acerto_documento_pendente_01,
     jwt_authenticated_client_a
 ):
 
     payload = {
         'esclarecimento': "Este é o esclarecimento",
-        'uuid_solicitacao_acerto': f"{solicitacao_acerto_lancamento_devolucao.uuid}"
+        'uuid_solicitacao_acerto': f"{solicitacao_acerto_documento_pendente_01.uuid}"
     }
 
     response = jwt_authenticated_client_a.post(
-        f'/api/analises-lancamento-prestacao-conta/marcar-como-esclarecido/',
+        f'/api/analises-documento-prestacao-conta/marcar-como-esclarecido/',
         data=json.dumps(payload),
         content_type='application/json'
     )
@@ -25,17 +25,17 @@ def test_marcar_como_esclarecido(
 
 
 def test_marcar_como_esclarecido_sem_chave_esclarecimento(
-    solicitacao_acerto_lancamento_devolucao,
+    solicitacao_acerto_documento_pendente_01,
     jwt_authenticated_client_a
 ):
 
     payload = {
 
-        'uuid_solicitacao_acerto': f"{solicitacao_acerto_lancamento_devolucao.uuid}"
+        'uuid_solicitacao_acerto': f"{solicitacao_acerto_documento_pendente_01.uuid}"
     }
 
     response = jwt_authenticated_client_a.post(
-        f'/api/analises-lancamento-prestacao-conta/marcar-como-esclarecido/',
+        f'/api/analises-documento-prestacao-conta/marcar-como-esclarecido/',
         data=json.dumps(payload),
         content_type='application/json'
     )
@@ -44,17 +44,17 @@ def test_marcar_como_esclarecido_sem_chave_esclarecimento(
 
 
 def test_marcar_como_esclarecido_sem_esclarecimento(
-    solicitacao_acerto_lancamento_devolucao,
+    solicitacao_acerto_documento_pendente_01,
     jwt_authenticated_client_a
 ):
 
     payload = {
         'esclarecimento': "",
-        'uuid_solicitacao_acerto': f"{solicitacao_acerto_lancamento_devolucao.uuid}"
+        'uuid_solicitacao_acerto': f"{solicitacao_acerto_documento_pendente_01.uuid}"
     }
 
     response = jwt_authenticated_client_a.post(
-        f'/api/analises-lancamento-prestacao-conta/marcar-como-esclarecido/',
+        f'/api/analises-documento-prestacao-conta/marcar-como-esclarecido/',
         data=json.dumps(payload),
         content_type='application/json'
     )
@@ -63,7 +63,7 @@ def test_marcar_como_esclarecido_sem_esclarecimento(
 
 
 def test_marcar_como_esclarecido_sem_chave_uuid_solicitacao_acerto(
-    solicitacao_acerto_lancamento_devolucao,
+    solicitacao_acerto_documento_pendente_01,
     jwt_authenticated_client_a
 ):
     payload = {
@@ -71,7 +71,7 @@ def test_marcar_como_esclarecido_sem_chave_uuid_solicitacao_acerto(
     }
 
     response = jwt_authenticated_client_a.post(
-        f'/api/analises-lancamento-prestacao-conta/marcar-como-esclarecido/',
+        f'/api/analises-documento-prestacao-conta/marcar-como-esclarecido/',
         data=json.dumps(payload),
         content_type='application/json'
     )
@@ -80,7 +80,7 @@ def test_marcar_como_esclarecido_sem_chave_uuid_solicitacao_acerto(
 
 
 def test_marcar_como_esclarecido_sem_uuid_solicitacao_acerto(
-    solicitacao_acerto_lancamento_devolucao,
+    solicitacao_acerto_documento_pendente_01,
     jwt_authenticated_client_a
 ):
     payload = {
@@ -89,7 +89,7 @@ def test_marcar_como_esclarecido_sem_uuid_solicitacao_acerto(
     }
 
     response = jwt_authenticated_client_a.post(
-        f'/api/analises-lancamento-prestacao-conta/marcar-como-esclarecido/',
+        f'/api/analises-documento-prestacao-conta/marcar-como-esclarecido/',
         data=json.dumps(payload),
         content_type='application/json'
     )

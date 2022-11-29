@@ -7,7 +7,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from ..serializers.analise_prestacao_conta_serializer import AnalisePrestacaoContaRetrieveSerializer
-from ..serializers.analise_documento_prestacao_conta_serializer import AnaliseDocumentoPrestacaoContaRetrieveSerializer
+from ..serializers.analise_documento_prestacao_conta_serializer \
+    import AnaliseDocumentoPrestacaoContaSolicitacoesAgrupadasRetrieveSerializer
 from ...models import AnalisePrestacaoConta, ContaAssociacao, AcaoAssociacao, TipoAcertoLancamento
 
 from sme_ptrf_apps.users.permissoes import (
@@ -162,7 +163,8 @@ class AnalisesPrestacoesContasViewSet(
     def documentos_com_ajustes(self, request, uuid):
         analise_prestacao = AnalisePrestacaoConta.by_uuid(uuid)
         documentos = analise_prestacao.analises_de_documento.filter(resultado='AJUSTE').all().order_by('tipo_documento_prestacao_conta__nome')
-        return Response(AnaliseDocumentoPrestacaoContaRetrieveSerializer(documentos, many=True).data, status=status.HTTP_200_OK)
+        return Response(AnaliseDocumentoPrestacaoContaSolicitacoesAgrupadasRetrieveSerializer(
+            documentos, many=True).data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def previa(self, request):

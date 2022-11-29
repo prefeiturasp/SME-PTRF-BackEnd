@@ -115,6 +115,10 @@ class PrestacaoConta(ModeloBase):
     def total_devolucao_ao_tesouro(self):
         return self.devolucoes_ao_tesouro_da_prestacao.all().aggregate(Sum('valor'))['valor__sum'] or 0
 
+    @property
+    def total_devolucao_ao_tesouro_str(self):
+        return f'{self.total_devolucao_ao_tesouro:.2f}'.replace('.', ',') if self.devolucoes_ao_tesouro_da_prestacao.count() > 0 else 'Não'
+
     def __str__(self):
         return f"{self.periodo} - {self.status}"
 

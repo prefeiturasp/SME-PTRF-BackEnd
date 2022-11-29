@@ -75,4 +75,4 @@ def test_status_realizado_justificado_parcialmente(
     analise.calcula_status_realizacao_analise_lancamento()
 
     assert analise.status_realizacao == \
-           AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_JUSTIFICADO_PARCIALMENTE
+           AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_PARCIALMENTE

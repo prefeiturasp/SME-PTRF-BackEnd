@@ -6,7 +6,7 @@ from sme_ptrf_apps.core.services.relatorio_acertos_pdf_service import (gerar_arq
 from sme_ptrf_apps.core.services.dados_relatorio_apos_acertos_service import DadosRelatorioAposAcertosService
 from sme_ptrf_apps.core.services.relatorio_apos_acertos_pdf_service import ArquivoRelatorioAposAcertosService
 
-from sme_ptrf_apps.core.models import AnalisePrestacaoConta, AnaliseContaPrestacaoConta, SolicitacaoAcertoLancamento
+from sme_ptrf_apps.core.models import AnalisePrestacaoConta, SolicitacaoAcertoLancamento, SolicitacaoAcertoDocumento
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,6 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
         nova_analise.pk = None
         nova_analise.uuid = uuid.uuid4()
         nova_analise.status_realizacao = AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
-        nova_analise.justificativa = None
         nova_analise.analise_prestacao_conta = analise_destino
         nova_analise.save()
         return nova_analise
@@ -75,6 +74,8 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
         nova_solicitacao.uuid = uuid.uuid4()
         nova_solicitacao.analise_documento = para
         nova_solicitacao.copiado = True
+        nova_solicitacao.status_realizacao = SolicitacaoAcertoDocumento.STATUS_REALIZACAO_PENDENTE
+        nova_solicitacao.justificativa = None
         nova_solicitacao.save()
         return nova_solicitacao
 
