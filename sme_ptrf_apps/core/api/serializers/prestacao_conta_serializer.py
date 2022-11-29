@@ -52,7 +52,7 @@ class PrestacaoContaListSerializer(serializers.ModelSerializer):
         return obj.tecnico_responsavel.nome if obj.tecnico_responsavel else ''
 
     def get_devolucao_ao_tesouro(self, obj):
-        return _str_devolucao_ao_tesouro(obj)
+        return obj.total_devolucao_ao_tesouro_str
 
     def get_unidade_tipo_unidade(self, obj):
         return obj.associacao.unidade.tipo_unidade if obj.associacao and obj.associacao.unidade else ''
@@ -111,7 +111,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
         return get_processo_sei_da_prestacao(prestacao_contas=obj)
 
     def get_devolucao_ao_tesouro(self, obj):
-        return _str_devolucao_ao_tesouro(obj)
+        return obj.total_devolucao_ao_tesouro_str
 
     def get_arquivos_referencia(self, prestacao_contas):
         result = []
@@ -238,7 +238,3 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'referencia_consolidado_dre',
             'justificativa_pendencia_realizacao',
         )
-
-
-def _str_devolucao_ao_tesouro(obj):
-    return f'{obj.total_devolucao_ao_tesouro:.2f}'.replace('.', ',') if obj.devolucoes_ao_tesouro_da_prestacao.count() > 0 else 'Não'

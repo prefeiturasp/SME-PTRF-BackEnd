@@ -195,7 +195,7 @@ def test_api_list_prestacoes_conta_todos_os_status_por_periodo_e_dre(
         },
         {
             'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
+            'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'NAO_RECEBIDA',
@@ -205,7 +205,7 @@ def test_api_list_prestacoes_conta_todos_os_status_por_periodo_e_dre(
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.associacao.uuid}',
-            'devolucao_ao_tesouro': _prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.total_devolucao_ao_tesouro if _prestacao_conta_2020_1_unidade_a_dre1_todos_os_status else 'Não',
+            'devolucao_ao_tesouro': 'Não'
         }
     ]
 
@@ -249,7 +249,7 @@ def test_api_list_prestacoes_conta_todos_os_status_por_periodo_e_dre_inclui_outr
         },
         {
             'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
+            'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'EM_ANALISE',
@@ -259,7 +259,7 @@ def test_api_list_prestacoes_conta_todos_os_status_por_periodo_e_dre_inclui_outr
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1_em_analise.uuid}',
             'associacao_uuid': f'{_associacao_a_dre_1_todos_os_status.uuid}',
-            'devolucao_ao_tesouro': _prestacao_conta_2020_1_unidade_a_dre1_em_analise.total_devolucao_ao_tesouro if _prestacao_conta_2020_1_unidade_a_dre1_em_analise else 'Não',
+            'devolucao_ao_tesouro': 'Não'
         },
     ]
 
@@ -288,7 +288,7 @@ def test_api_list_prestacoes_conta_todos_os_status_por_nome_unidade(
     result_esperado = [
         {
             'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
+            'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'NAO_RECEBIDA',
@@ -298,7 +298,7 @@ def test_api_list_prestacoes_conta_todos_os_status_por_nome_unidade(
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.associacao.uuid}',
-            'devolucao_ao_tesouro': _prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.total_devolucao_ao_tesouro if _prestacao_conta_2020_1_unidade_a_dre1_todos_os_status else 'Não',
+            'devolucao_ao_tesouro': 'Não'
         },
     ]
 
@@ -354,7 +354,7 @@ def test_api_list_prestacoes_conta_todos_os_status_por_nome_associacao(
     result_esperado = [
         {
             'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
+            'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'NAO_RECEBIDA',
@@ -364,7 +364,7 @@ def test_api_list_prestacoes_conta_todos_os_status_por_nome_associacao(
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.associacao.uuid}',
-            'devolucao_ao_tesouro': _prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.total_devolucao_ao_tesouro if _prestacao_conta_2020_1_unidade_a_dre1_todos_os_status else 'Não'
+            'devolucao_ao_tesouro': 'Não'
         },
     ]
 
@@ -420,7 +420,7 @@ def test_api_list_prestacoes_conta_todos_os_status_por_tipo_unidade(
     result_esperado = [
         {
             'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
+            'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'NAO_RECEBIDA',
@@ -430,7 +430,7 @@ def test_api_list_prestacoes_conta_todos_os_status_por_tipo_unidade(
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.associacao.uuid}',
-            'devolucao_ao_tesouro': _prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.total_devolucao_ao_tesouro if _prestacao_conta_2020_1_unidade_a_dre1_todos_os_status else 'Não'
+            'devolucao_ao_tesouro': 'Não'
         },
     ]
 
@@ -525,7 +525,7 @@ def test_api_list_prestacoes_conta_todos_os_status_nao_recebida(
     result_esperado = [
         {
             'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
+            'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'NAO_RECEBIDA',
@@ -535,7 +535,7 @@ def test_api_list_prestacoes_conta_todos_os_status_nao_recebida(
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.associacao.uuid}',
-            'devolucao_ao_tesouro': _prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.total_devolucao_ao_tesouro if _prestacao_conta_2020_1_unidade_a_dre1_todos_os_status else 'Não',
+            'devolucao_ao_tesouro': 'Não'
         },
     ]
 
@@ -578,7 +578,7 @@ def test_api_list_prestacoes_conta_todos_os_status_nao_recebida_nao_apresentada(
         },
         {
             'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
+            'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'NAO_RECEBIDA',
@@ -588,7 +588,7 @@ def test_api_list_prestacoes_conta_todos_os_status_nao_recebida_nao_apresentada(
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.associacao.uuid}',
-            'devolucao_ao_tesouro': _prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.total_devolucao_ao_tesouro if _prestacao_conta_2020_1_unidade_a_dre1_todos_os_status else 'Não'
+            'devolucao_ao_tesouro': 'Não'
         },
     ]
 
@@ -630,7 +630,7 @@ def test_api_list_prestacoes_conta_todos_os_status_sem_filtro_por_status(
         },
         {
             'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
+            'data_recebimento': '2020-01-01',
             'data_ultima_analise': None,
             'processo_sei': '',
             'status': 'NAO_RECEBIDA',
@@ -640,7 +640,7 @@ def test_api_list_prestacoes_conta_todos_os_status_sem_filtro_por_status(
             'unidade_tipo_unidade': 'EMEI',
             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.uuid}',
             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.associacao.uuid}',
-            'devolucao_ao_tesouro': _prestacao_conta_2020_1_unidade_a_dre1_todos_os_status.total_devolucao_ao_tesouro if _prestacao_conta_2020_1_unidade_a_dre1_todos_os_status else 'Não',
+            'devolucao_ao_tesouro': 'Não'
         },
     ]
 
