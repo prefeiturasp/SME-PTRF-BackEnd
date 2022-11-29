@@ -51,7 +51,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         if eh_parcial == "Parcial":
             titulo_sequencia_publicacao = f'Publicação Parcial #{sequencia_de_publicacao}'
         else:
-            titulo_sequencia_publicacao = "Ata final"
+            titulo_sequencia_publicacao = "Publicação Única"
 
     cabecalho = {
         "titulo": "Programa de Transferência de Recursos Financeiros -  PTRF",

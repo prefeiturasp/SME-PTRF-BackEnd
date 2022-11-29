@@ -23,6 +23,9 @@ def test_instance(receita):
     assert model.detalhe_tipo_receita
     assert model.detalhe_outros is not None
     assert model.notificar_dias_nao_conferido is not None
+    assert model.notificar_dias_nao_conferido is not None
+    assert model.status
+    assert model.data_e_hora_de_inativacao is None
 
 
 def test_instance_receita_devolucao(receita_devolucao):

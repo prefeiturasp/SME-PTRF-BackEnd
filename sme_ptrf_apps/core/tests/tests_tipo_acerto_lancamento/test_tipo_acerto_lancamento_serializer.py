@@ -8,7 +8,7 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def tipo_acerto_lancamento():
-    return baker.make('TipoAcertoLancamento', nome='Teste', categoria='BASICO')
+    return baker.make('TipoAcertoLancamento', nome='Teste', categoria='DEVOLUCAO')
 
 
 def test_serializer(tipo_acerto_lancamento):
@@ -20,3 +20,4 @@ def test_serializer(tipo_acerto_lancamento):
     assert serializer.data['nome']
     assert serializer.data['categoria']
     assert serializer.data['uuid']
+    assert serializer.data['ativo']

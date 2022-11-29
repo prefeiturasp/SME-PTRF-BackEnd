@@ -6,7 +6,7 @@ from datetime import date
 
 from rest_framework import status
 
-from ....models import SolicitacaoAcertoLancamento
+from ....models import SolicitacaoAcertoLancamento, SolicitacaoDevolucaoAoTesouro
 
 pytestmark = pytest.mark.django_db
 
@@ -43,11 +43,15 @@ def test_api_post_solicitacoes_acerto_em_lote(
         ],
         'solicitacoes_acerto': [
             {
+                'uuid': None,
+                'copiado': False,
                 'tipo_acerto': f'{tipo_acerto_lancamento_basico.uuid}',
                 'detalhamento': 'Teste de acerto',
                 'devolucao_tesouro': None,
             },
             {
+                'uuid': None,
+                'copiado': False,
                 'tipo_acerto': f'{tipo_acerto_lancamento_devolucao.uuid}',
                 'detalhamento': 'Teste devolução ao tesouro',
                 'devolucao_tesouro': {
@@ -73,7 +77,8 @@ def test_api_post_solicitacoes_acerto_em_lote(
     assert result == {'message': 'Solicitações de acerto gravadas para os lançamentos.'}
 
     assert analise_prestacao_conta_2020_1_em_analise.analises_de_lancamentos.count() == 2
-    assert prestacao_conta_2020_1_em_analise.devolucoes_ao_tesouro_da_prestacao.count() == 1
+    assert prestacao_conta_2020_1_em_analise.devolucoes_ao_tesouro_da_prestacao.count() == 0
+    assert SolicitacaoDevolucaoAoTesouro.objects.count() == 1
     assert SolicitacaoAcertoLancamento.objects.count() == 3
 
 
@@ -105,11 +110,15 @@ def test_api_post_solicitacoes_acerto_individual(
         ],
         'solicitacoes_acerto': [
             {
+                'uuid': None,
+                'copiado': False,
                 'tipo_acerto': f'{tipo_acerto_lancamento_basico.uuid}',
                 'detalhamento': 'Teste de acerto',
                 'devolucao_tesouro': None,
             },
             {
+                'uuid': None,
+                'copiado': False,
                 'tipo_acerto': f'{tipo_acerto_lancamento_devolucao.uuid}',
                 'detalhamento': 'Teste devolução ao tesouro',
                 'devolucao_tesouro': {
@@ -135,7 +144,8 @@ def test_api_post_solicitacoes_acerto_individual(
     assert result == {'message': 'Solicitações de acerto gravadas para os lançamentos.'}
 
     assert analise_prestacao_conta_2020_1_em_analise.analises_de_lancamentos.count() == 1
-    assert prestacao_conta_2020_1_em_analise.devolucoes_ao_tesouro_da_prestacao.count() == 1
+    assert prestacao_conta_2020_1_em_analise.devolucoes_ao_tesouro_da_prestacao.count() == 0
+    assert SolicitacaoDevolucaoAoTesouro.objects.count() == 1
     assert SolicitacaoAcertoLancamento.objects.count() == 2
 
 
@@ -156,7 +166,8 @@ def test_api_post_solicitacoes_sem_acertos_individual(
     tipo_acerto_lancamento_devolucao,
     tipo_devolucao_ao_tesouro_teste,
     analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
-    solicitacao_acerto_lancamento_devolucao
+    solicitacao_acerto_lancamento_devolucao,
+    solicitacao_devolucao_ao_tesouro
 ):
     payload = {
         'analise_prestacao': f'{analise_prestacao_conta_2020_1_em_analise.uuid}',
@@ -172,6 +183,7 @@ def test_api_post_solicitacoes_sem_acertos_individual(
     assert analise_prestacao_conta_2020_1_em_analise.analises_de_lancamentos.count() == 1
     assert prestacao_conta_2020_1_em_analise.devolucoes_ao_tesouro_da_prestacao.exists()
     assert SolicitacaoAcertoLancamento.objects.count() == 1
+    assert SolicitacaoDevolucaoAoTesouro.objects.count() == 1
 
     url = f'/api/prestacoes-contas/{prestacao_conta_2020_1_em_analise.uuid}/solicitacoes-de-acerto/'
     response = jwt_authenticated_client_a.post(url, data=json.dumps(payload), content_type='application/json')
@@ -181,9 +193,10 @@ def test_api_post_solicitacoes_sem_acertos_individual(
     assert response.status_code == status.HTTP_200_OK
     assert result == {'message': 'Solicitações de acerto gravadas para os lançamentos.'}
 
-    assert analise_prestacao_conta_2020_1_em_analise.analises_de_lancamentos.count() == 0
-    assert prestacao_conta_2020_1_em_analise.devolucoes_ao_tesouro_da_prestacao.count() == 0
+    assert analise_prestacao_conta_2020_1_em_analise.analises_de_lancamentos.count() == 1
+    assert prestacao_conta_2020_1_em_analise.devolucoes_ao_tesouro_da_prestacao.count() == 1
     assert SolicitacaoAcertoLancamento.objects.count() == 0
+    assert SolicitacaoDevolucaoAoTesouro.objects.count() == 0
 
 
 def test_api_post_solicitacoes_sem_acertos_em_lote(
@@ -203,6 +216,7 @@ def test_api_post_solicitacoes_sem_acertos_em_lote(
     tipo_acerto_lancamento_devolucao,
     tipo_devolucao_ao_tesouro_teste,
     analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
+    analise_lancamento_receita_prestacao_conta_2020_1_em_analise,
     solicitacao_acerto_lancamento_devolucao
 ):
     payload = {
@@ -220,7 +234,7 @@ def test_api_post_solicitacoes_sem_acertos_em_lote(
         'solicitacoes_acerto': []
     }
 
-    assert analise_prestacao_conta_2020_1_em_analise.analises_de_lancamentos.count() == 1
+    assert analise_prestacao_conta_2020_1_em_analise.analises_de_lancamentos.count() == 2
     assert prestacao_conta_2020_1_em_analise.devolucoes_ao_tesouro_da_prestacao.count() == 1
     assert SolicitacaoAcertoLancamento.objects.count() == 1
 
@@ -232,6 +246,6 @@ def test_api_post_solicitacoes_sem_acertos_em_lote(
     assert response.status_code == status.HTTP_200_OK
     assert result == {'message': 'Solicitações de acerto gravadas para os lançamentos.'}
 
-    assert analise_prestacao_conta_2020_1_em_analise.analises_de_lancamentos.count() == 1
+    assert analise_prestacao_conta_2020_1_em_analise.analises_de_lancamentos.count() == 2
     assert prestacao_conta_2020_1_em_analise.devolucoes_ao_tesouro_da_prestacao.count() == 1
     assert SolicitacaoAcertoLancamento.objects.count() == 1

@@ -1055,7 +1055,6 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
                 elif status_prestacao_conta == "APROVADA_RESSALVA":
                     dado["motivos_aprovada_ressalva"] = get_motivos_aprovacao_ressalva(prestacao_conta)
                     dado["recomendacoes"] = prestacao_conta.recomendacoes
-
         # Verificando se pelo menos um objeto do tipo dado foi criado, se sim existe o index status_prestacao_contas no dict dado
         _status_prestacao_contas = any('status_prestacao_contas' in d for d in dado)
 

@@ -155,12 +155,12 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
 
         associacao = Associacao.by_uuid(associacao__uuid)
 
-        queryset = RateioDespesa.objects.filter(associacao=associacao).all().order_by('-despesa__data_documento')
+        queryset = RateioDespesa.objects.filter(associacao=associacao).exclude(despesa__status='INATIVO').all().order_by('-despesa__data_documento')
         filtered_queryset = self.get_queryset()
         for field in self.filter_fields:
             filter_value = request.query_params.get(field)
             if filter_value:
-                filtered_queryset = filtered_queryset.filter(**{field: filter_value})
+                filtered_queryset = filtered_queryset.exclude(despesa__status='INATIVO').filter(**{field: filter_value})
 
         total_despesas_com_filtro = filtered_queryset.aggregate(Sum('valor_rateio'))['valor_rateio__sum']
         total_despesas_sem_filtro = queryset.aggregate(Sum('valor_rateio'))['valor_rateio__sum']
