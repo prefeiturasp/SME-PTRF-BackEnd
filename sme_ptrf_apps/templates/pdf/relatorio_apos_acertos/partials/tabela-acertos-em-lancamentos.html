@@ -1,0 +1,150 @@
+{% load staticfiles %}
+{% load formata_valores %}
+{% load formata_string %}
+
+{% if dados.dados_lancamentos %}
+
+      {% for conta in dados.dados_lancamentos %}
+        <table class="table table-bordered tabela-resumo-por-acao">
+          <thead class="">
+
+            <tr class="">
+              <th colSpan="6">
+                <strong class="font-16 titulo-bloco ml-2">{{ dados.blocos.acertos_lancamentos }}</strong>
+              </th>
+            </tr>
+
+            <tr>
+              <th colSpan="6">
+                <strong class="font-12 titulo-bloco">Conta {{ conta.nome_conta }}</strong>
+              </th>
+            </tr>
+
+            <tr>
+              <th style="width: 2%" class="fundo-verde"></th>
+              <th class="font-10 fundo-verde"><strong>Data</strong></th>
+              <th class="font-10 fundo-verde"><strong>Tipo de lançamento</strong></th>
+              <th class="font-10 fundo-verde"><strong>Nº do documento</strong></th>
+              <th class="font-10 fundo-verde" style="width: 40%"><strong>Descrição</strong></th>
+              <th class="font-10 fundo-verde"><strong>Valor (R$)</strong></th>
+            </tr>
+          </thead>
+
+          {% for lancamento in conta.lancamentos %}
+            <tbody>
+            <tr>
+              <td class="fundo-cinza font-12">{{ forloop.counter }}</td>
+              <td class="fundo-cinza font-12">{{ lancamento.data|date:'d/m/Y' }}</td>
+              {% if lancamento.tipo_transacao == 'Gasto' %}
+                <td class="fundo-cinza font-12">Despesa</td>
+              {% else %}
+                <td class="fundo-cinza font-12">{{ lancamento.tipo_transacao }}</td>
+              {% endif %}
+
+              {% if lancamento.numero_documento == '' %}
+                <td class="fundo-cinza font-12">-</td>
+              {% else %}
+                <td class="fundo-cinza font-12">{{ lancamento.numero_documento }}</td>
+              {% endif %}
+
+              <td class="fundo-cinza font-12">{{ lancamento.descricao }}</td>
+              <td class="fundo-cinza font-12">{{ lancamento.valor_transacao_total|formata_valor }}</td>
+            </tr>
+
+              {% for categoria in lancamento.analise_lancamento.solicitacoes_de_ajuste_da_analise.solicitacoes_acerto_por_categoria %}
+
+                {% for acerto in categoria.acertos %}
+
+                  <tr class="border-bottom">
+                    <td rowspan="1" class="sem-borda pb-4"></td>
+                    <td colspan="5" class="sem-borda border-bottom pb-4">
+
+                      <div class="row mt-2">
+
+                          <div class='col-2'>
+                              <span class="item font-12"><strong>Item {{ acerto.ordem }}</strong></span>
+                          </div>
+                          <div class='col-8'>
+                            <p class="font-12 mb-0"><strong>Tipo de acerto</strong></p>
+                            <p class="font-12">{{ acerto.tipo_acerto.nome }}</p>
+
+                            {% if acerto.tipo_acerto.categoria == dados.categoria_devolucao %}
+
+                              <p class="font-12 mb-0"><strong>Tipo de devolução</strong></p>
+                              <p class="font-12">{{ acerto.devolucao_ao_tesouro.tipo.nome }}</p>
+
+                              {% if acerto.devolucao_ao_tesouro.data %}
+                                <p class="font-12 mb-0"><strong>Realização da devolução em</strong></p>
+                                <p class="font-12">{{ acerto.devolucao_ao_tesouro.data|date:'d/m/Y' }}</p>
+                              {% endif %}
+
+                              <p class="font-12 mb-0"><strong>Valor total ou parcial da despesa</strong></p>
+                              {% if acerto.devolucao_ao_tesouro.devolucao_total is True %}
+                                <p class="font-12">Total</p>
+                              {% else %}
+                                <p class="font-12">Parcial</p>
+                              {% endif %}
+
+                              <p class="font-12 mb-0"><strong>Valor (R$)</strong></p>
+                              <p class="font-12">{{ acerto.devolucao_ao_tesouro.valor|formata_valor }}</p>
+
+                              {% if acerto.devolucao_ao_tesouro.motivo %}
+                                <p class="font-12 mb-0"><strong>Motivo</strong></p>
+                                <p class="font-12">{{ acerto.devolucao_ao_tesouro.motivo }}</p>
+                              {% endif %}
+
+                            {% endif %}
+
+                            {% comment %} Necessário pois o campo motivo e o detalhamento trazem os mesmos dados no caso de devolução ao tesouro {% endcomment %}
+                            {% if not acerto.tipo_acerto.categoria == dados.categoria_devolucao %}
+
+                              {% if acerto.detalhamento %}
+                                <p class="font-12">{{ acerto.detalhamento }}</p>
+                              {% endif %}
+
+                            {% endif %}
+
+                            {% if acerto.justificativa %}
+                              <p class="font-12 mb-0"><strong>Justificativa</strong></p>
+                              <p class="font-12">{{ acerto.justificativa }}</p>
+                            {% endif %}
+
+                            {% if acerto.esclarecimentos %}
+                              <p class="font-12 mb-0"><strong>Esclarecimentos</strong></p>
+                              <p class="font-12">{{ acerto.esclarecimentos }}</p>
+                            {% endif %}
+
+                          </div>
+
+                          <div class='col-3'>
+                            <p class="font-12 mb-0"><strong>Status</strong></p>
+                            {% if acerto.status_realizacao == 'PENDENTE' %}
+                              <p class="mt-1 font-10 tag-nao-informado">Não Informado</p>
+
+                            {% elif acerto.status_realizacao == 'REALIZADO' %}
+                              <p class="mt-1 font-10 tag-realizado"> {{ acerto.status_realizacao|capitaliza_string }}</p>
+
+                            {% elif acerto.status_realizacao == 'JUSTIFICADO' %}
+                              <p class="mt-1 font-10 tag-justificativa"> {{ acerto.status_realizacao|capitaliza_string }}</p>
+                            {% endif %}
+
+                          </div>
+
+                      </div>
+
+                    </td>
+
+                  </tr>
+
+                {% endfor %} {% comment %}End for Acertos{% endcomment %}
+
+              {% endfor %} {% comment %}End for Categoria{% endcomment %}
+
+
+            </tbody>
+          {% endfor %}
+        </table>
+      {% endfor %}
+
+
+  {% endif %}
