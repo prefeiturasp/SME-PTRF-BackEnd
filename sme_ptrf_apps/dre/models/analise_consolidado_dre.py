@@ -66,6 +66,7 @@ class AnaliseConsolidadoDre(ModeloBase):
         default=STATUS_NAO_GERADO
     )
     relatorio_acertos_gerado_em = models.DateTimeField("Arquivo pdf de solicitação de acertos gerado em", null=True)
+    copiado = models.BooleanField('é uma copiá?', default=False)
 
     def devolucao(self, data_limite=None, data_devolucao=date.today()):
         self.data_limite = data_limite

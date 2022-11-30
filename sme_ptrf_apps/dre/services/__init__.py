@@ -50,3 +50,5 @@ from .valores_reprogramados_dre_service import (
     monta_estrutura_associacao,
     barra_status
 )
+
+from .analise_consolidado_dre_service import AnaliseConsolidadoDreService
