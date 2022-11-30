@@ -141,7 +141,17 @@ def relatorio_consolidado_dre_01():
 
 
 @pytest.fixture
-def analise_consolidado_dre_test_api_ja_existente():
+def consolidado_dre_teste_api_consolidado_dre(periodo_teste_api_consolidado_dre, dre_teste_api_consolidado_dre, analise_consolidado_dre_test_api_ja_existente):
+    return baker.make(
+        'ConsolidadoDRE',
+        dre=dre_teste_api_consolidado_dre,
+        periodo=periodo_teste_api_consolidado_dre,
+        status=ConsolidadoDRE.STATUS_NAO_GERADOS,
+    )
+
+
+@pytest.fixture
+def analise_consolidado_dre_test_api_ja_existente(consolidado_dre_teste_api_consolidado_dre):
     return baker.make(
         'AnaliseConsolidadoDre',
         data_devolucao=date.today(),
@@ -150,18 +160,15 @@ def analise_consolidado_dre_test_api_ja_existente():
         relatorio_acertos_versao=('FINAL', 'final'),
         relatorio_acertos_status='CONCLUIDO',
         relatorio_acertos_gerado_em=date.today(),
+        consolidado_dre=consolidado_dre_teste_api_consolidado_dre
     )
 
 
 @pytest.fixture
-def consolidado_dre_teste_api_consolidado_dre_com_analise_atual(periodo_teste_api_consolidado_dre, dre_teste_api_consolidado_dre, analise_consolidado_dre_test_api_ja_existente):
-    return baker.make(
-        'ConsolidadoDRE',
-        dre=dre_teste_api_consolidado_dre,
-        periodo=periodo_teste_api_consolidado_dre,
-        status=ConsolidadoDRE.STATUS_NAO_GERADOS,
-        analise_atual=analise_consolidado_dre_test_api_ja_existente
-    )
+def consolidado_dre_teste_api_consolidado_dre_com_analise_atual(analise_consolidado_dre_test_api_ja_existente, consolidado_dre_teste_api_consolidado_dre):
+    consolidado_dre_teste_api_consolidado_dre.analise_atual = analise_consolidado_dre_test_api_ja_existente
+    consolidado_dre_teste_api_consolidado_dre.save()
+    return consolidado_dre_teste_api_consolidado_dre
 
 
 @pytest.fixture

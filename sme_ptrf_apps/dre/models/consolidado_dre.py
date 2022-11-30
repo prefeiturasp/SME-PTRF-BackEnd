@@ -119,8 +119,8 @@ class ConsolidadoDRE(ModeloBase):
     )
 
     analise_atual = models.ForeignKey('AnaliseConsolidadoDre', on_delete=models.SET_NULL,
-                                      related_name='consolidado_dre_da_analise_atual',
-                                      blank=True, null=True)
+                                    related_name='consolidado_dre_da_analise_atual',
+                                    blank=True, null=True)
 
     class Meta:
         verbose_name = 'Consolidado DRE'
@@ -371,7 +371,7 @@ class ConsolidadoDRE(ModeloBase):
         from ..models.analise_consolidado_dre import AnaliseConsolidadoDre
         from ..services import AnaliseConsolidadoDreService
         try:
-            analise_anterior = AnaliseConsolidadoDre.objects.filter(consolidado_dre_da_analise_atual=self).order_by('-id').first()
+            analise_anterior = self.analise_atual
             analise_atual = AnaliseConsolidadoDre.objects.create(consolidado_dre=self)
             self.marcar_status_sme_como_em_analise(usuario)
             self.analise_atual = analise_atual
