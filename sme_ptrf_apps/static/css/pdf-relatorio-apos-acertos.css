@@ -1,0 +1,301 @@
+@charset "UTF-8";
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  src: url(../fonts/Roboto-Regular.ttf);
+}
+
+@page {
+  size: A4;
+  margin: 3cm -2mm 2cm -2mm;
+  padding: 0;
+
+
+  @bottom-right {
+    color: #000;
+    content: counter(page) "/" counter(pages);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: 1cm 0;
+    font-weight: bold;
+  }
+
+
+  @bottom-center {
+    content: none;
+  }
+
+  @bottom-left {
+    color: #000;
+    content: element(data-geracao);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: 0;
+    font-style: normal;
+    font-family: Roboto;
+  }
+
+  @top-center {
+    content: element(heading);
+  }
+}
+
+@page :first {
+  size: A4;
+  margin: -2mm;
+  margin-bottom: 2cm;
+  padding: 0;
+
+
+  @bottom-right {
+    color: #000;
+    content: counter(page) "/" counter(pages);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: 1cm 0;
+    font-weight: bold;
+  }
+
+
+  @bottom-center {
+    content: none;
+  }
+
+  @bottom-left {
+    color: #000;
+    content: element(data-geracao);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: 0;
+    font-style: normal;
+    font-family: Roboto;
+  }
+
+  @top-center {
+    content: none;
+  }
+
+}
+
+@media print {
+  body, page {
+    margin: 0;
+  }
+}
+
+html {
+  font-family: Roboto, sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 10pt;
+}
+
+body {
+  font-family: Roboto;
+  font-style: normal;
+}
+
+html body section#cabecalho, header {
+  background: #EEEEEE;
+  margin: 0 0 0 -2cm;
+  padding: 0 2.5cm 0.5cm 2.5cm;
+  width: 100%;
+}
+
+html body section#cabecalho .titulo, html body section#cabecalho .subtitulo, html body header .subtitulo {
+  font-weight: bold;
+  color: #0c0c0c;
+  font-family: Roboto, serif;
+}
+
+html body section#cabecalho .subtitulo, html body header .subtitulo {
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+header {
+  position: running(heading);
+  width: 215mm;
+  margin: 1cm 0.5cm 5.5cm 1cm;
+  padding: 5cm 0 0 0;
+}
+
+
+
+.font-18 {
+  font-size: 18px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-16 {
+  font-size: 16px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-14 {
+  font-size: 14px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-12 {
+  font-size: 12px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-10 {
+  font-size: 10px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-9 {
+  font-size: 9px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.borda-box-cabecalho-left {
+  border-top: solid 1px #A4A4A4;
+  border-bottom: solid 1px #A4A4A4;
+  border-left: solid 1px #A4A4A4;
+}
+
+.borda-box-cabecalho-right {
+  border-top: solid 1px #A4A4A4;
+  border-bottom: solid 1px #A4A4A4;
+  border-left: solid 1px #A4A4A4;
+  border-right: solid 1px #A4A4A4;
+}
+
+.conteudo {
+  margin: 0 1cm;
+  width: 74%;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+html body .conteudo .tabela-resumo-por-acao {
+  font-size: 7pt !important;
+  max-width: 100% !important;
+}
+
+html body .conteudo .tabela-quebra-palavra{
+  table-layout: fixed;
+}
+
+/*Resolve o Problema de quebrar a linha em 02 páginas!!*/
+html body .conteudo .nao-quebra-linha tbody tr {
+  break-after: avoid !important;
+}
+
+html body .conteudo .tabela-resumo-por-acao thead th, html body .conteudo .tabela-resumo-por-acao thead th.align-top, html body .conteudo .tabela-resumo-por-acao thead th.sem-borda, html body .conteudo .tabela-resumo-por-acao tbody td.total {
+  background-color: #FFF !important;
+  font-weight: normal !important;
+  vertical-align: middle;
+}
+
+html body .conteudo .tabela-resumo-por-acao thead th.fundo-verde {
+  background-color: #2B7D83 !important;
+  color: #FFFFFF !important;
+}
+
+html body .conteudo .tabela-resumo-por-acao thead th.fundo-th-cinza {
+  background-color: #F5F6F8 !important;
+  color: #000000 !important;
+}
+
+html body .conteudo .tabela-resumo-por-acao thead td.fundo-td-cinza-mais-escuro {
+  background-color: #EEEEEE !important;
+  color: #000000 !important;
+}
+
+
+html body .conteudo .tabela-resumo-por-acao thead th.align-top {
+  vertical-align: top;
+}
+
+html body .conteudo .tabela-resumo-por-acao thead th.sem-borda {
+  border: none !important;
+}
+
+html body .conteudo .tabela-resumo-por-acao tbody td.sem-borda {
+  border: none !important;
+}
+
+html body .conteudo .tabela-resumo-por-acao tbody td.fundo-cinza {
+  background-color: #EEEEEE !important;
+}
+
+html body .conteudo .tabela-resumo-por-acao tbody td.fundo-cinza-mais-claro {
+  background-color: #F5F6F8 !important;
+}
+
+html body .conteudo .tabela-resumo-por-acao tbody td {
+  vertical-align: middle;
+  padding: 2px 5px;
+  word-wrap: break-word !important;
+  word-break: break-all !important;
+}
+
+.item {
+  color: #2B7D83;
+}
+
+#data-geracao-rodape {
+  position: running(data-geracao);
+  font-style: normal;
+  font-family: Roboto;
+}
+
+.titulo-bloco {
+  color: #2B7D83 !important;
+}
+
+.tag-realizado {
+    display: flex;
+    flex: 1;
+    max-width: 130px;
+    justify-content: center;
+    padding-left: 2px;
+    padding-right: 2px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    color: #fff;
+    background-color: #297805;
+    font-weight: 700;
+}
+
+.tag-justificativa {
+    display: flex;
+    flex: 1;
+    max-width: 130px;
+    justify-content: center;
+    padding-left: 2px;
+    padding-right: 2px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    color: #fff;
+    background-color: #086397;
+    font-weight: 700;
+}
+
+.tag-nao-informado {
+    display: flex;
+    flex: 1;
+    max-width: 130px;
+    justify-content: center;
+    padding-left: 2px;
+    padding-right: 2px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    color: #fff;
+    background-color: #B40C02;
+    font-weight: 700;
+}
+
+

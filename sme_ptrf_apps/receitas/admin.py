@@ -24,7 +24,7 @@ def customTitledFilter(title):
 @admin.register(Receita)
 class ReceitaAdmin(admin.ModelAdmin):
 
-    list_display = ('data', 'valor', 'categoria_receita', 'detalhamento', 'associacao', 'repasse',)
+    list_display = ('data', 'valor', 'categoria_receita', 'detalhamento', 'associacao', 'repasse','status')
     ordering = ('-data',)
     search_fields = ('detalhe_tipo_receita__nome', 'detalhe_outros')
     list_filter = (
@@ -38,6 +38,7 @@ class ReceitaAdmin(admin.ModelAdmin):
         'detalhe_tipo_receita',
         'categoria_receita',
         'repasse',
+        'status',
     )
     readonly_fields = ('uuid', 'id',)
     actions = ['conciliar_receita', 'desconciliar_receita', ]

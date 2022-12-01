@@ -1,10 +1,10 @@
 from django.db.models import Sum, Q, Count, Max
 
-from sme_ptrf_apps.core.models import Associacao, FechamentoPeriodo
+from sme_ptrf_apps.core.models import Associacao, FechamentoPeriodo, PrestacaoConta
 from sme_ptrf_apps.despesas.models import RateioDespesa, Despesa
 from sme_ptrf_apps.receitas.models import Receita
 
-from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
+from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO, STATUS_INATIVO
 
 
 def receitas_conciliadas_por_conta_e_acao_na_conciliacao(conta_associacao, acao_associacao, periodo):
@@ -289,8 +289,7 @@ def info_conciliacao_conta_associacao_no_periodo(periodo, conta_associacao):
 
 def receitas_conciliadas_por_conta_na_conciliacao(conta_associacao, periodo):
     dataset = periodo.receitas_conciliadas_no_periodo.filter(conta_associacao=conta_associacao)
-
-    return dataset.all()
+    return dataset.exclude(status=STATUS_INATIVO).all()
 
 
 def receitas_nao_conciliadas_por_conta_no_periodo(conta_associacao, periodo):
@@ -621,3 +620,23 @@ def salva_conciliacao_bancaria(justificativa_ou_extrato_bancario, texto_observac
             comprovante_extrato=comprovante_extrato,
             data_atualizacao_comprovante_extrato=data_atualizacao_comprovante_extrato,
         )
+
+
+def permite_editar_campos_extrato(associacao, periodo, conta_associacao):
+    prestacao_conta = PrestacaoConta.objects.filter(
+        associacao=associacao,
+        periodo=periodo
+    ).first()
+
+    if not prestacao_conta:
+        return True
+
+    if prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
+        return False
+
+    ultima_analise = prestacao_conta.analises_da_prestacao.last()
+
+    tem_acertos_de_extrato = ultima_analise.tem_acertos_extratos_bancarios(conta_associacao) if \
+        ultima_analise is not None else False
+
+    return tem_acertos_de_extrato

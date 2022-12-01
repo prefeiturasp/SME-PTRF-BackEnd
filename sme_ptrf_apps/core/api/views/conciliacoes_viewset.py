@@ -16,7 +16,7 @@ from sme_ptrf_apps.users.permissoes import (
 
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
-from ...models import AcaoAssociacao, ContaAssociacao, ObservacaoConciliacao, Periodo
+from ...models import AcaoAssociacao, ContaAssociacao, ObservacaoConciliacao, Periodo, Associacao
 from ...services import (
     despesas_conciliadas_por_conta_e_acao_na_conciliacao,
     despesas_nao_conciliadas_por_conta_e_acao_no_periodo,
@@ -26,7 +26,8 @@ from ...services import (
     transacoes_para_conciliacao,
     conciliar_transacao,
     desconciliar_transacao,
-    salva_conciliacao_bancaria
+    salva_conciliacao_bancaria,
+    permite_editar_campos_extrato
 )
 from ....despesas.models import Despesa
 from ....receitas.models import Receita
@@ -74,8 +75,8 @@ class ConciliacoesViewSet(GenericViewSet):
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
         result = info_resumo_conciliacao(periodo=periodo, conta_associacao=conta_associacao)
+
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'],
@@ -677,3 +678,80 @@ class ConciliacoesViewSet(GenericViewSet):
                 'mensagem': 'Extrato bancário não encontrado'
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['get'], url_path='tem_ajuste_bancario',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
+    def tem_ajuste_bancario(self, request):
+
+        # Define a Associacao
+        associacao_uuid = self.request.query_params.get('associacao')
+
+        if not associacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            associacao = Associacao.objects.get(uuid=associacao_uuid)
+        except Associacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto associacao para o uuid {associacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define o período de conciliação
+        periodo_uuid = self.request.query_params.get('periodo')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do período de conciliação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define a conta de conciliação
+        conta_associacao_uuid = self.request.query_params.get('conta_associacao')
+
+        if not conta_associacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da conta da associação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            conta_associacao = ContaAssociacao.objects.get(uuid=conta_associacao_uuid)
+        except ContaAssociacao.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto conta-associação para o uuid {conta_associacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        permite_editar = permite_editar_campos_extrato(
+            associacao,
+            periodo,
+            conta_associacao
+        )
+
+        result = {
+            'permite_editar_campos_extrato': permite_editar,
+        }
+
+        return Response(result, status=status.HTTP_200_OK)
+
