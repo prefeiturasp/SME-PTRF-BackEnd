@@ -256,31 +256,15 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
 
-    actions = ['vincular_consolidado_dre', 'remover_duplicacao_fechamentos']
+    actions = ['marcar_como_nao_publicada']
 
-    def vincular_consolidado_dre(self, request, queryset):
-        from sme_ptrf_apps.dre.services.vincular_consolidado_service import VincularConsolidadoService
-
+    def marcar_como_nao_publicada(self, request, queryset):
         for prestacao_conta in queryset.all():
-            VincularConsolidadoService.vincular_artefato(prestacao_conta)
+            if prestacao_conta.publicada and not prestacao_conta.consolidado_dre:
+                prestacao_conta.publicada = False
+                prestacao_conta.save()
 
-        self.message_user(request, f"PCs vinculadas com sucesso!")
-
-    def remover_duplicacao_fechamentos(self, request, queryset):
-        for prestacao_conta in queryset.all():
-            associacao = prestacao_conta.associacao
-
-            for conta in associacao.contas.all():
-                fechamento_por_conta = prestacao_conta.fechamentos_da_prestacao.filter(conta_associacao=conta)
-
-                for acao in associacao.acoes.all():
-                    fechamento_por_conta_e_acao = fechamento_por_conta.filter(acao_associacao=acao).order_by('id')
-
-                    if len(fechamento_por_conta_e_acao) > 1:
-                        fechamento_mais_recente = fechamento_por_conta_e_acao.last()
-                        fechamento_mais_recente.delete()
-
-        self.message_user(request, f"Fechamentos duplicados apagados com sucesso!")
+        self.message_user(request, f"PCs marcadas como não publicadas com sucesso!")
 
 
 @admin.register(Ata)
