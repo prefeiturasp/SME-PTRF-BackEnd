@@ -25,8 +25,8 @@ CODIGO_EOL = 0
 CONTA = 1
 ACAO = 2
 PERIODO = 3
-VALOR_CAPITAL = 4
-VALOR_CUSTEIO = 5
+VALOR_CUSTEIO = 4
+VALOR_CAPITAL = 5
 VALOR_LIVRE = 6
 
 __DELIMITADORES = {',': DELIMITADOR_VIRGULA, ';': DELIMITADOR_PONTO_VIRGULA}
@@ -93,7 +93,7 @@ def processa_previsoes_repasse(reader, arquivo):
                 logs = f"{logs}\n{msg_erro}"
                 erros += 1
                 continue
-            
+
             conta_associacao = get_conta_associacao(associacao, str(row[CONTA]).strip())
             if not conta_associacao:
                 msg_erro = f'Conta associação com nome: {row[CONTA]} não encontrado. Linha {lin}'
@@ -101,7 +101,7 @@ def processa_previsoes_repasse(reader, arquivo):
                 logs = f"{logs}\n{msg_erro}"
                 erros += 1
                 continue
-            
+
             acao_associacao = get_acao_associacao(associacao, str(row[ACAO]).strip())
             if not acao_associacao:
                 msg_erro = f'Ação associação com nome: {row[ACAO]} não encontrado. Linha {lin}'
@@ -109,7 +109,7 @@ def processa_previsoes_repasse(reader, arquivo):
                 logs = f"{logs}\n{msg_erro}"
                 erros += 1
                 continue
-                
+
             periodo = get_periodo(str(row[PERIODO]).strip())
             if not periodo:
                 msg_erro = f"Período ({str(row[PERIODO])}) não encontrado. Linha: {lin}"
@@ -156,7 +156,7 @@ def processa_previsoes_repasse(reader, arquivo):
 
     logs = f"{logs}\nImportados {importados} previsões de repasse. Erro na importação de {erros} previsões."
     logger.info(f'Importados {importados} previsões de repasse. Erro na importação de {erros} previsões.')
-    
+
     arquivo.log = logs
     arquivo.save()
     logs = ""
@@ -185,7 +185,7 @@ def carrega_previsoes_repasses(arquivo):
     except Exception as err:
         logger.info("Erro ao processar previsões de repasses sme: %s", str(err))
         arquivo.log = "Erro ao processar previsões de repasses sme."
-        
+
         if imports > 0 and erros > 0:
             arquivo.status = PROCESSADO_COM_ERRO
         elif imports == 0:
