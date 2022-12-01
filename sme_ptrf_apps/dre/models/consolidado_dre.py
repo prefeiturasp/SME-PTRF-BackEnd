@@ -371,8 +371,14 @@ class ConsolidadoDRE(ModeloBase):
         from ..models.analise_consolidado_dre import AnaliseConsolidadoDre
         from ..services import AnaliseConsolidadoDreService
         try:
+            if not self.analise_atual and len(self.analises_do_consolidado_dre.all()) > 0:
+                self.analise_atual = self.analises_do_consolidado_dre.last()
+                self.marcar_status_sme_como_em_analise(usuario)
+                return self
+
             analise_anterior = self.analise_atual
             analise_atual = AnaliseConsolidadoDre.objects.create(consolidado_dre=self)
+
             self.marcar_status_sme_como_em_analise(usuario)
             self.analise_atual = analise_atual
             if analise_anterior:
