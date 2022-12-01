@@ -45,7 +45,10 @@ def test_api_get_solicitacoes_acerto_de_um_documento_nao_por_conta(
                     'uuid': f'{tipo_acerto_documento_assinatura.uuid}',
                     'tipos_documento_prestacao': [tipo_documento_prestacao_conta_ata.id]
                 },
+                'esclarecimentos': None,
                 'id': solicitacao_acerto_documento_ata.id,
+                'justificativa': None,
+                'status_realizacao': 'PENDENTE',
                 'uuid': f'{solicitacao_acerto_documento_ata.uuid}'
             },
         ],
@@ -107,7 +110,11 @@ def test_api_get_solicitacoes_acerto_de_um_documento_por_conta(
                     'uuid': f'{tipo_acerto_documento_assinatura.uuid}',
                     'tipos_documento_prestacao': [tipo_documento_prestacao_conta_ata.id]
                 },
+                'esclarecimentos': None,
                 'id': solicitacao_acerto_documento_declaracao_cartao.id,
+                'justificativa': None,
+                'status_realizacao': 'PENDENTE',
+
                 'uuid': f'{solicitacao_acerto_documento_declaracao_cartao.uuid}'
             },
         ],

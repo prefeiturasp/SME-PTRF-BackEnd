@@ -119,8 +119,8 @@ class ConsolidadoDRE(ModeloBase):
     )
 
     analise_atual = models.ForeignKey('AnaliseConsolidadoDre', on_delete=models.SET_NULL,
-                                      related_name='consolidado_dre_da_analise_atual',
-                                      blank=True, null=True)
+                                    related_name='consolidado_dre_da_analise_atual',
+                                    blank=True, null=True)
 
     class Meta:
         verbose_name = 'Consolidado DRE'
@@ -369,12 +369,25 @@ class ConsolidadoDRE(ModeloBase):
     @transaction.atomic
     def analisar_consolidado(self, usuario):
         from ..models.analise_consolidado_dre import AnaliseConsolidadoDre
+        from ..services import AnaliseConsolidadoDreService
         try:
+            analise_anterior = self.analise_atual
             analise_atual = AnaliseConsolidadoDre.objects.create(consolidado_dre=self)
             self.marcar_status_sme_como_em_analise(usuario)
             self.analise_atual = analise_atual
+            if analise_anterior:
+                self.analise_atual.copiado = True
+                self.analise_anterior = analise_anterior
+                self.analise_atual.save()
+                AnaliseConsolidadoDreService(
+                    analise_origem=self.analise_anterior,
+                    analise_destino=self.analise_atual,
+                ).copia_documentos_consolidado_entre_analises()
+
+            self.analise_atual.save()
             self.save()
-            return True
+
+            return self
         except Exception as e:
             logger.error(f'Houve algum erro ao tentar analisar o consolidado dre de uuid {self.uuid}.')
             logger.error(f'{e}')
