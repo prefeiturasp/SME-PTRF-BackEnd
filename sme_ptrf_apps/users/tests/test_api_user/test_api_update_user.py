@@ -19,7 +19,6 @@ def test_atualizar_usuario_servidor_com_visao(
         unidade_diferente,
         dre
 ):
-
     assert not usuario_2.visoes.filter(nome='UE').first(), "Não deveria estar vinculado à UE antes do teste."
     assert not usuario_2.unidades.filter(codigo_eol='271170').first(), "Não deveria estar vinculado à unidade 271170 antes do teste."
 
