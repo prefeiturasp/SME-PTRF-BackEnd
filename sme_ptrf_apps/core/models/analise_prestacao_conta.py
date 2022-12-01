@@ -7,6 +7,7 @@ from auditlog.registry import auditlog
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from datetime import datetime
+from django.db.models import Q
 
 logger = logging.getLogger(__name__)
 
@@ -161,12 +162,14 @@ class AnalisePrestacaoConta(ModeloBase):
 
         tem_analises_de_lancamentos_pendentes = self.analises_de_lancamentos.filter(
             resultado=AnaliseLancamentoPrestacaoConta.RESULTADO_AJUSTE).filter(
-            status_realizacao=AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
+            Q(status_realizacao=AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE) |
+            Q(status_realizacao=AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_PARCIALMENTE)
         ).exists()
 
         tem_analises_de_documentos_pendentes = self.analises_de_documento.filter(
             resultado=AnaliseDocumentoPrestacaoConta.RESULTADO_AJUSTE).filter(
-            status_realizacao=AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE
+            Q(status_realizacao=AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE) |
+            Q(status_realizacao=AnaliseDocumentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_PARCIALMENTE)
         ).exists()
 
         return tem_analises_de_lancamentos_pendentes or tem_analises_de_documentos_pendentes
