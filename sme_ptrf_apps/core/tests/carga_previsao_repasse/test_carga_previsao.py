@@ -114,4 +114,4 @@ def test_carga_processado_com_sucesso(arquivo_carga_virgula_processado_com_duas_
     assert arquivo_carga_virgula_processado_com_duas_acoes.log == msg
     assert arquivo_carga_virgula_processado_com_duas_acoes.status == SUCESSO
     assert len(PrevisaoRepasseSme.objects.all()) == 1
-    assert PrevisaoRepasseSme.objects.first().valor_capital == Decimal("100000.98")
+    assert PrevisaoRepasseSme.objects.first().valor_capital == Decimal("101000.98")

@@ -209,6 +209,11 @@ html body .conteudo .tabela-resumo-por-acao thead th.fundo-th-cinza {
   color: #000000 !important;
 }
 
+html body .conteudo .tabela-resumo-por-acao thead td.fundo-td-cinza-mais-escuro {
+  background-color: #EEEEEE !important;
+  color: #000000 !important;
+}
+
 
 html body .conteudo .tabela-resumo-por-acao thead th.align-top {
   vertical-align: top;
@@ -224,6 +229,10 @@ html body .conteudo .tabela-resumo-por-acao tbody td.sem-borda {
 
 html body .conteudo .tabela-resumo-por-acao tbody td.fundo-cinza {
   background-color: #EEEEEE !important;
+}
+
+html body .conteudo .tabela-resumo-por-acao tbody td.fundo-cinza-mais-claro {
+  background-color: #F5F6F8 !important;
 }
 
 html body .conteudo .tabela-resumo-por-acao tbody td {

@@ -120,12 +120,120 @@ def periodo_teste_api_consolidado_dre(periodo_anterior_teste_api_consolidado_dre
 
 
 @pytest.fixture
+def ata_parecer_tecnico_consolidado_dre_01():
+    return baker.make(
+        'AtaParecerTecnico',
+    )
+
+
+@pytest.fixture
+def documento_adicional_consolidado_dre_01():
+    return baker.make(
+        'DocumentoAdicional',
+    )
+
+
+@pytest.fixture
+def relatorio_consolidado_dre_01():
+    return baker.make(
+        'RelatorioConsolidadoDRE',
+    )
+
+
+@pytest.fixture
+def consolidado_dre_teste_api_consolidado_dre(periodo_teste_api_consolidado_dre, dre_teste_api_consolidado_dre, analise_consolidado_dre_test_api_ja_existente):
+    return baker.make(
+        'ConsolidadoDRE',
+        dre=dre_teste_api_consolidado_dre,
+        periodo=periodo_teste_api_consolidado_dre,
+        status=ConsolidadoDRE.STATUS_NAO_GERADOS,
+    )
+
+
+@pytest.fixture
+def analise_consolidado_dre_test_api_ja_existente(consolidado_dre_teste_api_consolidado_dre):
+    return baker.make(
+        'AnaliseConsolidadoDre',
+        data_devolucao=date.today(),
+        data_limite=date.today(),
+        data_retorno_analise=date.today(),
+        relatorio_acertos_versao=('FINAL', 'final'),
+        relatorio_acertos_status='CONCLUIDO',
+        relatorio_acertos_gerado_em=date.today(),
+        consolidado_dre=consolidado_dre_teste_api_consolidado_dre
+    )
+
+
+@pytest.fixture
+def consolidado_dre_teste_api_consolidado_dre_com_analise_atual(analise_consolidado_dre_test_api_ja_existente, consolidado_dre_teste_api_consolidado_dre):
+    consolidado_dre_teste_api_consolidado_dre.analise_atual = analise_consolidado_dre_test_api_ja_existente
+    consolidado_dre_teste_api_consolidado_dre.save()
+    return consolidado_dre_teste_api_consolidado_dre
+
+
+@pytest.fixture
+def analise_documento_consolidado_dre_01(
+    analise_consolidado_dre_test_api_ja_existente,
+    documento_adicional_consolidado_dre_01,
+    relatorio_consolidado_dre_01,
+    ata_parecer_tecnico_consolidado_dre_01,
+):
+    return baker.make(
+        'AnaliseDocumentoConsolidadoDre',
+        analise_consolidado_dre=analise_consolidado_dre_test_api_ja_existente,
+        documento_adicional=documento_adicional_consolidado_dre_01,
+        relatorio_consolidao_dre=relatorio_consolidado_dre_01,
+        ata_parecer_tecnico=ata_parecer_tecnico_consolidado_dre_01,
+    )
+
+
+@pytest.fixture
+def analise_documento_consolidado_dre_02(
+    analise_consolidado_dre_test_api_ja_existente,
+    documento_adicional_consolidado_dre_01,
+    relatorio_consolidado_dre_01,
+    ata_parecer_tecnico_consolidado_dre_01,
+):
+    return baker.make(
+        'AnaliseDocumentoConsolidadoDre',
+        analise_consolidado_dre=analise_consolidado_dre_test_api_ja_existente,
+        documento_adicional=documento_adicional_consolidado_dre_01,
+        relatorio_consolidao_dre=relatorio_consolidado_dre_01,
+        ata_parecer_tecnico=ata_parecer_tecnico_consolidado_dre_01,
+    )
+
+
+@pytest.fixture
 def consolidado_dre_teste_api_consolidado_dre(periodo_teste_api_consolidado_dre, dre_teste_api_consolidado_dre):
     return baker.make(
         'ConsolidadoDRE',
         dre=dre_teste_api_consolidado_dre,
         periodo=periodo_teste_api_consolidado_dre,
         status=ConsolidadoDRE.STATUS_NAO_GERADOS
+    )
+
+
+@pytest.fixture
+def comentario_analise_consolidado_dre_01(consolidado_dre_teste_api_consolidado_dre_com_analise_atual):
+    return baker.make(
+        'ComentarioAnaliseConsolidadoDRE',
+        consolidado_dre=consolidado_dre_teste_api_consolidado_dre_com_analise_atual,
+        ordem=1,
+        comentario='Este é um comentário de analise de consolidadodo DRE',
+        notificado=False,
+        notificado_em=None,
+    )
+
+
+@pytest.fixture
+def comentario_analise_consolidado_dre_02(consolidado_dre_teste_api_consolidado_dre_com_analise_atual):
+    return baker.make(
+        'ComentarioAnaliseConsolidadoDRE',
+        consolidado_dre=consolidado_dre_teste_api_consolidado_dre_com_analise_atual,
+        ordem=2,
+        comentario='Este é outro comentário de analise de consolidadodo DRE',
+        notificado=False,
+        notificado_em=None,
     )
 
 
