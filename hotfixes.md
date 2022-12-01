@@ -1,5 +1,8 @@
-### 1.33.11 - 29/11/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 54
-* (79686 Consolidado PCs: Demonstrativo da execução financeira: má distribuição das linhas, na coluna das despesas, quando não há o recurso de livre aplicação
+### 1.33.13 - 01/12/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 54
+* (80251) Carga de previsões de repasse invertendo as colunas capital e custeio
+
+### 1.33.12 - 29/11/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 54
+* (79686) Consolidado PCs: Demonstrativo da execução financeira: má distribuição das linhas, na coluna das despesas, quando não há o recurso de livre aplicação
 * (79837) Acompanhamento de PC: as informações das PCs nos painéis de síntese variam a depender dos filtros aplicados
 
 ### 1.33.11 - 23/11/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 54
