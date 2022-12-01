@@ -9,8 +9,7 @@ from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpS
 from sme_ptrf_apps.core.models import AcaoAssociacao, Associacao, ContaAssociacao, Periodo
 
 from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaListSerializer
-from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaEstornoLookupSerializer, \
-    RateioDespesaListaSerializer
+from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaEstornoLookupSerializer
 from sme_ptrf_apps.despesas.models import RateioDespesa
 
 from sme_ptrf_apps.receitas.models import Receita, Repasse
@@ -147,6 +146,17 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
     rateio_estornado = RateioDespesaEstornoLookupSerializer()
     motivos_estorno = MotivoEstornoSerializer(many=True, required=False, allow_null=True)
 
+    data_e_hora_de_inativacao = serializers.SerializerMethodField(
+        method_name="get_data_e_hora_de_inativacao",
+        required=False,
+        allow_null=True
+    )
+
+    def get_data_e_hora_de_inativacao(self, receita):
+        if receita.data_e_hora_de_inativacao:
+            return f"Este crédito foi inativado em: " \
+                   f"{receita.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}"
+
     class Meta:
         model = Receita
         fields = (
@@ -167,6 +177,8 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
             'rateio_estornado',
             'motivos_estorno',
             'outros_motivos_estorno',
+            'status',
+            'data_e_hora_de_inativacao',
         )
 
 
@@ -179,6 +191,10 @@ class ReceitaConciliacaoSerializer(serializers.ModelSerializer):
     tipo_receita = TipoReceitaLookUpSerializer()
     acao_associacao = AcaoAssociacaoLookUpSerializer()
     rateio_estornado = RateioDespesaEstornoLookupSerializer()
+    mensagem_inativa = serializers.SerializerMethodField('get_mensagem_receita_inativa')
+
+    def get_mensagem_receita_inativa(self, receita):
+        return receita.mensagem_inativacao
 
     class Meta:
         model = Receita
@@ -194,6 +210,9 @@ class ReceitaConciliacaoSerializer(serializers.ModelSerializer):
             'conferido',
             'uuid',
             'rateio_estornado',
+            'status',
+            'data_e_hora_de_inativacao',
+            'mensagem_inativa'
         )
 
 
