@@ -29,7 +29,7 @@ from ....dre.services import (
     get_lista_associacoes_e_status_regularidade_no_ano,
     atualiza_itens_verificacao,
 )
-from ...models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade, Ata
+from ...models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade, Ata, AnalisePrestacaoConta
 from ...services import (
     atualiza_dados_unidade,
     gerar_planilha,
@@ -57,7 +57,7 @@ from ..serializers.processo_associacao_serializer import ProcessoAssociacaoRetri
 
 from ..serializers.ata_serializer import AtaLookUpSerializer
 
-from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_geracao_documentos
+from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_geracao_documentos, lancamentos_da_prestacao
 
 logger = logging.getLogger(__name__)
 
@@ -282,6 +282,55 @@ class AssociacoesViewSet(ModelViewSet):
         associacao = self.get_object()
         contas = ContaAssociacao.objects.filter(associacao=associacao).all()
         contas_data = ContaAssociacaoDadosSerializer(contas, many=True).data
+        return Response(contas_data)
+
+    @action(detail=False, url_path='contas-com-acertos-em-lancamentos', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def contas_com_acertos_em_lancamentos(self, request):
+
+        associacao_uuid = request.query_params.get('associacao_uuid')
+        analise_prestacao_uuid = request.query_params.get('analise_prestacao_uuid')
+
+        if not associacao_uuid or not analise_prestacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o UUID da Associacao e o UUID da Análise da PC.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            associacao = Associacao.by_uuid(associacao_uuid)
+        except(ValidationError, Exception):
+            erro = {'erro': 'UUID da Associação inválido.'}
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+        except (ValidationError, Exception):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        contas = ContaAssociacao.objects.filter(associacao=associacao).all()
+
+        obj_contas = []
+        for conta in contas:
+            lancamentos = lancamentos_da_prestacao(
+                analise_prestacao_conta=analise_prestacao,
+                conta_associacao=conta,
+                acao_associacao=None,
+                tipo_transacao=None,
+                tipo_acerto=None,
+                com_ajustes=True,
+                inclui_inativas=True,
+            )
+            if lancamentos:
+                obj_contas.append(conta)
+
+        contas_data = ContaAssociacaoDadosSerializer(obj_contas, many=True).data
         return Response(contas_data)
 
     @action(detail=True, url_path='contas-update', methods=['post'],
