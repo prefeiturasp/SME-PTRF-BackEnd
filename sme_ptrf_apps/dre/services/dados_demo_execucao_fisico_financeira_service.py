@@ -220,9 +220,12 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dr
             }
 
             # LINHA TOTAIS
-            valor_total = info['saldo_reprogramado_periodo_anterior_total'] + info['receitas_rendimento_no_periodo_livre'] + \
-                info['repasses_no_periodo_total'] + info['receitas_devolucao_no_periodo_total'] + \
-                info['demais_creditos_no_periodo_total']
+
+            # Bug 80480
+            # valor_total = info['saldo_reprogramado_periodo_anterior_total'] + info['receitas_rendimento_no_periodo_livre'] + \
+            #     info['repasses_no_periodo_total'] + info['receitas_devolucao_no_periodo_total'] + \
+            #     info['demais_creditos_no_periodo_total']
+            valor_total = info['saldo_reprogramado_periodo_anterior_total'] + info['receitas_totais_no_periodo_total']
 
             # outros_creditos = info['receitas_rendimento_no_periodo_livre'] + \
             #     info['receitas_devolucao_no_periodo_total'] + info['demais_creditos_no_periodo_total']
