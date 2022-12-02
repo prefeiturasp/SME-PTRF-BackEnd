@@ -1,3 +1,6 @@
+### 1.33.14 - 02/12/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 54
+* (80480) Relatório consolidado: Demonstrativo: o campo 05 (Valor total disponível) não está calculando corretamente
+
 ### 1.33.13 - 01/12/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 54
 * (80251) Carga de previsões de repasse invertendo as colunas capital e custeio
 
