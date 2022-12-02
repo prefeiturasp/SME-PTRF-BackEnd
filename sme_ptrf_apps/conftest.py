@@ -8,7 +8,12 @@ from rest_framework.test import APIClient
 from sme_ptrf_apps.users.models import User
 from sme_ptrf_apps.users.tests.factories import UserFactory
 from .core.choices import MembroEnum, RepresentacaoCargo, StatusTag
-from .core.models import AcaoAssociacao, ContaAssociacao, STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO
+from .core.models import (
+    AcaoAssociacao,
+    ContaAssociacao,
+    STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO,
+    TipoAcertoDocumento
+)
 from .core.models.prestacao_conta import PrestacaoConta
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 import datetime
@@ -638,6 +643,7 @@ def prestacao_conta(periodo, associacao, motivo_aprovacao_ressalva_x, motivo_rep
         recomendacoes="recomendacao",
         publicada=None,
         consolidado_dre=None,
+        justificativa_pendencia_realizacao="Teste de justificativa.",
     )
 
 
@@ -1799,6 +1805,17 @@ def devolucao_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada):
 
 
 @pytest.fixture
+def devolucao_prestacao_conta_2019_2(prestacao_conta_devolvida):
+    return baker.make(
+        'DevolucaoPrestacaoConta',
+        prestacao_conta=prestacao_conta_devolvida,
+        data=date(2020, 7, 1),
+        data_limite_ue=date(2020, 8, 1),
+        data_retorno_ue=None
+    )
+
+
+@pytest.fixture
 def analise_conta_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, conta_associacao_cheque):
     return baker.make(
         'AnaliseContaPrestacaoConta',
@@ -1806,6 +1823,18 @@ def analise_conta_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, cont
         conta_associacao=conta_associacao_cheque,
         data_extrato=date(2020, 7, 1),
         saldo_extrato=100.00,
+    )
+
+
+@pytest.fixture
+def analise_conta_prestacao_conta_2019_2(prestacao_conta_devolvida, conta_associacao_cheque, analise_prestacao_conta_2019_2):
+    return baker.make(
+        'AnaliseContaPrestacaoConta',
+        prestacao_conta=prestacao_conta_devolvida,
+        conta_associacao=conta_associacao_cheque,
+        data_extrato=date(2020, 7, 1),
+        saldo_extrato=100.00,
+        analise_prestacao_conta=analise_prestacao_conta_2019_2
     )
 
 
@@ -1832,6 +1861,25 @@ def analise_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, devolucao_
 
 
 @pytest.fixture
+def analise_prestacao_conta_2020_1_2(prestacao_conta_2020_1_conciliada, devolucao_prestacao_conta_2020_1):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1
+    )
+
+
+
+@pytest.fixture
+def analise_prestacao_conta_2019_2(prestacao_conta_devolvida, devolucao_prestacao_conta_2019_2):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_devolvida,
+        devolucao_prestacao_conta=devolucao_prestacao_conta_2019_2
+    )
+
+
+@pytest.fixture
 def analise_lancamento_receita_prestacao_conta_2020_1(analise_prestacao_conta_2020_1, receita_no_periodo_2020_1):
     return baker.make(
         'AnaliseLancamentoPrestacaoConta',
@@ -1839,6 +1887,17 @@ def analise_lancamento_receita_prestacao_conta_2020_1(analise_prestacao_conta_20
         tipo_lancamento='CREDITO',
         receita=receita_no_periodo_2020_1,
         resultado='CORRETO'
+    )
+
+
+@pytest.fixture
+def analise_lancamento_receita_prestacao_conta_2020_1_com_justificativa(analise_prestacao_conta_2020_1, receita_no_periodo_2020_1):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
+        tipo_lancamento='CREDITO',
+        receita=receita_no_periodo_2020_1,
+        resultado='CORRETO',
     )
 
 
@@ -1899,15 +1958,114 @@ def tipo_acerto_lancamento_devolucao():
 def solicitacao_acerto_lancamento_devolucao(
     analise_lancamento_receita_prestacao_conta_2020_1,
     tipo_acerto_lancamento_devolucao,
-    devolucao_ao_tesouro_parcial,
 
 ):
     return baker.make(
         'SolicitacaoAcertoLancamento',
         analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
         tipo_acerto=tipo_acerto_lancamento_devolucao,
-        devolucao_ao_tesouro=devolucao_ao_tesouro_parcial,
+        devolucao_ao_tesouro=None,
         detalhamento="teste"
+    )
+
+
+@pytest.fixture
+def solicitacao_devolucao_ao_tesouro(
+    solicitacao_acerto_lancamento_devolucao,
+    tipo_devolucao_ao_tesouro_teste,
+):
+    return baker.make(
+        'SolicitacaoDevolucaoAoTesouro',
+        solicitacao_acerto_lancamento=solicitacao_acerto_lancamento_devolucao,
+        tipo=tipo_devolucao_ao_tesouro_teste,
+        devolucao_total=False,
+        valor=100.00,
+        motivo='teste',
+    )
+
+@pytest.fixture
+def tipo_acerto_edicao_de_lancamento():
+    return baker.make('TipoAcertoLancamento', nome='Edição de Lançamento', categoria='EDICAO_LANCAMENTO')
+
+
+@pytest.fixture
+def solicitacao_acerto_edicao_lancamento(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_edicao_de_lancamento,
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_edicao_de_lancamento,
+        detalhamento="teste"
+    )
+
+
+@pytest.fixture
+def tipo_acerto_exclusao_de_lancamento():
+    return baker.make('TipoAcertoLancamento', nome='Exclusão de Lançamento', categoria='EXCLUSAO_LANCAMENTO')
+
+
+@pytest.fixture
+def solicitacao_acerto_exclusao_lancamento(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_exclusao_de_lancamento,
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_exclusao_de_lancamento,
+        detalhamento="teste"
+    )
+
+
+@pytest.fixture
+def tipo_acerto_requer_ajuste_externo():
+    return baker.make('TipoAcertoLancamento', nome='Requer Ajuste Externo', categoria='AJUSTES_EXTERNOS')
+
+
+@pytest.fixture
+def solicitacao_acerto_requer_ajuste_externo(
+    analise_lancamento_receita_requer_ajustes_externos,
+    tipo_acerto_requer_ajuste_externo,
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_requer_ajustes_externos,
+        tipo_acerto=tipo_acerto_requer_ajuste_externo,
+        detalhamento="teste"
+    )
+
+
+@pytest.fixture
+def tipo_acerto_esclarecimento():
+    return baker.make('TipoAcertoLancamento', nome='Requer Esclarecimento', categoria='SOLICITACAO_ESCLARECIMENTO')
+
+
+@pytest.fixture
+def solicitacao_acerto_esclarecimento(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_esclarecimento,
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_esclarecimento,
+        detalhamento="teste"
+    )
+
+
+@pytest.fixture
+def analise_lancamento_receita_requer_ajustes_externos(
+    analise_prestacao_conta_2020_1,
+    receita_no_periodo_2020_1
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
+        tipo_lancamento='CREDITO',
+        receita=receita_no_periodo_2020_1,
+        resultado='AJUSTE'
     )
 
 
@@ -1920,6 +2078,23 @@ def tipo_documento_prestacao_conta_ata():
 def analise_documento_prestacao_conta_2020_1_ata_correta(
     analise_prestacao_conta_2020_1,
     tipo_documento_prestacao_conta_ata,
+    conta_associacao_cartao,
+    receita_100_no_periodo,
+    despesa_no_periodo,
+):
+    return baker.make(
+        'AnaliseDocumentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
+        tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_ata,
+        conta_associacao=conta_associacao_cartao,
+        resultado='CORRETO',
+    )
+
+
+@pytest.fixture
+def analise_documento_prestacao_conta_com_justificativa_2020_1_ata_correta(
+    analise_prestacao_conta_2020_1,
+    tipo_documento_prestacao_conta_ata,
     conta_associacao_cartao
 ):
     return baker.make(
@@ -1927,7 +2102,7 @@ def analise_documento_prestacao_conta_2020_1_ata_correta(
         analise_prestacao_conta=analise_prestacao_conta_2020_1,
         tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_ata,
         conta_associacao=conta_associacao_cartao,
-        resultado='CORRETO'
+        resultado='CORRETO',
     )
 
 
@@ -1949,6 +2124,54 @@ def analise_documento_prestacao_conta_2020_1_ata_ajuste(
 @pytest.fixture
 def tipo_acerto_documento_assinatura(tipo_documento_prestacao_conta_ata):
     tipo_acerto = baker.make('TipoAcertoDocumento', nome='Enviar com assinatura')
+    tipo_acerto.tipos_documento_prestacao.add(tipo_documento_prestacao_conta_ata)
+    tipo_acerto.save()
+    return tipo_acerto
+
+
+@pytest.fixture
+def tipo_acerto_documento_requer_esclarecimento(tipo_documento_prestacao_conta_ata):
+    tipo_acerto = baker.make(
+        'TipoAcertoDocumento',
+        nome='Esclarecimento',
+        categoria=TipoAcertoDocumento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO
+    )
+    tipo_acerto.tipos_documento_prestacao.add(tipo_documento_prestacao_conta_ata)
+    tipo_acerto.save()
+    return tipo_acerto
+
+
+@pytest.fixture
+def tipo_acerto_documento_requer_inclusao_credito(tipo_documento_prestacao_conta_ata):
+    tipo_acerto = baker.make(
+        'TipoAcertoDocumento',
+        nome='Esclarecimento',
+        categoria=TipoAcertoDocumento.CATEGORIA_INCLUSAO_CREDITO
+    )
+    tipo_acerto.tipos_documento_prestacao.add(tipo_documento_prestacao_conta_ata)
+    tipo_acerto.save()
+    return tipo_acerto
+
+
+@pytest.fixture
+def tipo_acerto_documento_requer_inclusao_despesa(tipo_documento_prestacao_conta_ata):
+    tipo_acerto = baker.make(
+        'TipoAcertoDocumento',
+        nome='Esclarecimento',
+        categoria=TipoAcertoDocumento.CATEGORIA_INCLUSAO_GASTO
+    )
+    tipo_acerto.tipos_documento_prestacao.add(tipo_documento_prestacao_conta_ata)
+    tipo_acerto.save()
+    return tipo_acerto
+
+
+@pytest.fixture
+def tipo_acerto_documento_requer_ajuste_externo(tipo_documento_prestacao_conta_ata):
+    tipo_acerto = baker.make(
+        'TipoAcertoDocumento',
+        nome='Esclarecimento',
+        categoria=TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS
+    )
     tipo_acerto.tipos_documento_prestacao.add(tipo_documento_prestacao_conta_ata)
     tipo_acerto.save()
     return tipo_acerto
@@ -1982,3 +2205,234 @@ def repasse(associacao, conta_associacao, acao_associacao, periodo):
         status='PENDENTE'
     )
 
+
+@pytest.fixture
+def solicitacao_acerto_documento_ata_esclarecimentos(
+    analise_documento_prestacao_conta_2020_1_ata_ajuste,
+    tipo_acerto_documento_requer_esclarecimento,
+):
+    return baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento_prestacao_conta_2020_1_ata_ajuste,
+        tipo_acerto=tipo_acerto_documento_requer_esclarecimento,
+        detalhamento="Detalhamento motivo acerto no documento",
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_documento_ata_inclusao_credito(
+    analise_documento_prestacao_conta_2020_1_ata_ajuste,
+    tipo_acerto_documento_requer_inclusao_credito
+):
+    return baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento_prestacao_conta_2020_1_ata_ajuste,
+        tipo_acerto=tipo_acerto_documento_requer_inclusao_credito,
+        detalhamento="Detalhamento motivo acerto no documento",
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_documento_ata_inclusao_despesa(
+    analise_documento_prestacao_conta_2020_1_ata_ajuste,
+    tipo_acerto_documento_requer_inclusao_despesa
+):
+    return baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento_prestacao_conta_2020_1_ata_ajuste,
+        tipo_acerto=tipo_acerto_documento_requer_inclusao_despesa,
+        detalhamento="Detalhamento motivo acerto no documento",
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_documento_ata_ajuste_externo(
+    analise_documento_prestacao_conta_2020_1_ata_ajuste,
+    tipo_acerto_documento_requer_ajuste_externo
+):
+    return baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento_prestacao_conta_2020_1_ata_ajuste,
+        tipo_acerto=tipo_acerto_documento_requer_ajuste_externo,
+        detalhamento="Detalhamento motivo acerto no documento",
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_status_realizado(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_lancamento_devolucao,
+
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_lancamento_devolucao,
+        devolucao_ao_tesouro=None,
+        detalhamento="teste",
+        status_realizacao="REALIZADO"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_status_realizado_02(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_lancamento_devolucao,
+
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_lancamento_devolucao,
+        devolucao_ao_tesouro=None,
+        detalhamento="teste",
+        status_realizacao="REALIZADO"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_status_justificado(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_lancamento_devolucao,
+
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_lancamento_devolucao,
+        devolucao_ao_tesouro=None,
+        detalhamento="teste",
+        status_realizacao="JUSTIFICADO"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_status_justificado_02(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_lancamento_devolucao,
+
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_lancamento_devolucao,
+        devolucao_ao_tesouro=None,
+        detalhamento="teste",
+        status_realizacao="JUSTIFICADO"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_status_nao_realizado(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_lancamento_devolucao,
+
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_lancamento_devolucao,
+        devolucao_ao_tesouro=None,
+        detalhamento="teste",
+        status_realizacao="PENDENTE"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_status_nao_realizado_02(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_lancamento_devolucao,
+
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_lancamento_devolucao,
+        devolucao_ao_tesouro=None,
+        detalhamento="teste",
+        status_realizacao="PENDENTE"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_documento_status_realizado(
+    analise_documento_prestacao_conta_2020_1_ata_ajuste,
+    tipo_acerto_documento_requer_inclusao_despesa
+):
+    return baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento_prestacao_conta_2020_1_ata_ajuste,
+        tipo_acerto=tipo_acerto_documento_requer_inclusao_despesa,
+        detalhamento="Detalhamento motivo acerto no documento",
+        status_realizacao="REALIZADO"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_documento_status_realizado_02(
+    analise_documento_prestacao_conta_2020_1_ata_ajuste,
+    tipo_acerto_documento_requer_inclusao_despesa
+):
+    return baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento_prestacao_conta_2020_1_ata_ajuste,
+        tipo_acerto=tipo_acerto_documento_requer_inclusao_despesa,
+        detalhamento="Detalhamento motivo acerto no documento",
+        status_realizacao="REALIZADO"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_documento_status_justificado(
+    analise_documento_prestacao_conta_2020_1_ata_ajuste,
+    tipo_acerto_documento_requer_inclusao_despesa
+):
+    return baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento_prestacao_conta_2020_1_ata_ajuste,
+        tipo_acerto=tipo_acerto_documento_requer_inclusao_despesa,
+        detalhamento="Detalhamento motivo acerto no documento",
+        status_realizacao="JUSTIFICADO"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_documento_status_justificado_02(
+    analise_documento_prestacao_conta_2020_1_ata_ajuste,
+    tipo_acerto_documento_requer_inclusao_despesa
+):
+    return baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento_prestacao_conta_2020_1_ata_ajuste,
+        tipo_acerto=tipo_acerto_documento_requer_inclusao_despesa,
+        detalhamento="Detalhamento motivo acerto no documento",
+        status_realizacao="JUSTIFICADO"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_documento_status_nao_realizado(
+    analise_documento_prestacao_conta_2020_1_ata_ajuste,
+    tipo_acerto_documento_requer_inclusao_despesa
+):
+    return baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento_prestacao_conta_2020_1_ata_ajuste,
+        tipo_acerto=tipo_acerto_documento_requer_inclusao_despesa,
+        detalhamento="Detalhamento motivo acerto no documento",
+        status_realizacao="PENDENTE"
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_documento_status_nao_realizado_02(
+    analise_documento_prestacao_conta_2020_1_ata_ajuste,
+    tipo_acerto_documento_requer_inclusao_despesa
+):
+    return baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento_prestacao_conta_2020_1_ata_ajuste,
+        tipo_acerto=tipo_acerto_documento_requer_inclusao_despesa,
+        detalhamento="Detalhamento motivo acerto no documento",
+        status_realizacao="PENDENTE"
+    )

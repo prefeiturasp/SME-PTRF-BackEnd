@@ -11,7 +11,7 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def tipo_acerto_lancamento():
-    return baker.make('TipoAcertoLancamento', nome='Teste', categoria='BASICO')
+    return baker.make('TipoAcertoLancamento', nome='Teste', categoria='DEVOLUCAO')
 
 
 def test_view_set(tipo_acerto_lancamento, usuario_permissao_associacao):
