@@ -83,3 +83,24 @@ def test_resumo_de_recursos_deve_usar_somatorio_de_despesas_dos_fechamentos_do_p
     assert resumo.despesas.total_custeio == Decimal(400.00), "Deve somar apenas as despesas do tipo custeio dos fechamentos de todas as contas."
     assert resumo.despesas.total_capital == Decimal(400.00), "Deve somar apenas as despesas do tipo capital em todas as contas."
     assert resumo.despesas.total_geral == Decimal(800.00), "O somatório dos totais por categoria deve ser igual ao total geral."
+
+
+def test_resumo_de_recursos_deve_somar_apenas_as_despesas_ativas(
+    rr_periodo_2020_1,
+    rr_acao_associacao_ptrf,
+    rr_conta_associacao_cheque,
+    rr_rateio_100_2020_1_ptrf_cheque_custeio,
+    rr_rateio_200_2020_1_ptrf_cheque_capital,
+    rr_rateio_300_2020_1_ptrf_cartao_custeio,    # Essa não deve ser somado por ser de outra conta.
+    rr_rateio_400_2020_1_role_cheque_custeio,    # Essa não deve ser somado por ser de outra ação.
+    rr_rateio_550_2020_2_ptrf_cheque_custeio,    # Essa não deve ser somado por ser de outro período.
+    rr_rateio_100_2020_1_ptrf_cheque_custeio_inativo,    # Essa não deve ser somado por ser inativo.
+):
+    resumo = ResumoRecursosService.resumo_recursos(
+        rr_periodo_2020_1,
+        rr_acao_associacao_ptrf,
+        rr_conta_associacao_cheque,
+    )
+
+    assert resumo.despesas.total_geral == 300.00, "Deve somar apenas os rateios do período, ação e conta definidos."
+

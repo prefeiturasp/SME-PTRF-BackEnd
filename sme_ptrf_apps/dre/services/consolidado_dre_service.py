@@ -92,7 +92,8 @@ def retornar_ja_publicadas(dre, periodo):
             _lauda = {
                 'uuid': lauda.uuid,
                 'status': lauda.status,
-                'tipo_conta': lauda.tipo_conta.nome if lauda.tipo_conta.nome else "",
+                'tipo_conta': lauda.tipo_conta.nome if lauda.tipo_conta and lauda.tipo_conta.nome else "",
+                'tipo_conta_uuid': lauda.tipo_conta.uuid if lauda.tipo_conta and lauda.tipo_conta.uuid else "",
                 'status_geracao_arquivo': lauda.__str__(),
             }
 
@@ -263,17 +264,17 @@ def retornar_trilha_de_status(dre_uuid=None, periodo_uuid=None, add_aprovado_res
     titulo_e_estilo_css = {
         'NAO_RECEBIDA':
             {
-                'titulo': 'Não recebido',
+                'titulo': 'Não recebidas',
                 'estilo_css': 2
             },
         'RECEBIDA':
             {
-                'titulo': 'Recebida e<br/>aguardando análise',
+                'titulo': 'Recebidas e<br/>aguardando análise',
                 'estilo_css': 0
             },
         'DEVOLVIDA':
             {
-                'titulo': 'Devolvido<br/>para acertos',
+                'titulo': 'Devolvidas <br/>para acertos',
                 'estilo_css': 0
             },
         'EM_ANALISE':
@@ -283,22 +284,22 @@ def retornar_trilha_de_status(dre_uuid=None, periodo_uuid=None, add_aprovado_res
             },
         'CONCLUIDO':
             {
-                'titulo': 'Concluído e<br/>aguardando publicação',
+                'titulo': 'Concluídas <br/>Documentos não gerados',
                 'estilo_css': 1
             },
         'PUBLICADO':
             {
-                'titulo': 'Publicado',
+                'titulo': 'Concluídas <br/>Documentos gerados',
                 'estilo_css': 0
             },
         'APROVADA':
             {
-                'titulo': 'Aprovado',
+                'titulo': 'Aprovadas',
                 'estilo_css': 0
             },
         'REPROVADA':
             {
-                'titulo': 'Reprovado',
+                'titulo': 'Reprovadas',
                 'estilo_css': 0
             },
 

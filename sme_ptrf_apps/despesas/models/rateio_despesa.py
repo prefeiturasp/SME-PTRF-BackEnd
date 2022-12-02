@@ -8,7 +8,7 @@ from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models import Tag, Parametros
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO
+from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO, STATUS_INATIVO
 from ..tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CHOICES, APLICACAO_CUSTEIO
 
 from auditlog.models import AuditlogHistoryField
@@ -189,13 +189,14 @@ class RateioDespesa(ModeloBase):
 
     @classmethod
     def rateios_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None,
-                                               exclude_despesa=None, aplicacao_recurso=None, acao_associacao=None):
+                                               exclude_despesa=None, aplicacao_recurso=None, acao_associacao=None, incluir_inativas=False):
+        todos_rateios = cls.objects.exclude(status=STATUS_INCOMPLETO) if incluir_inativas else cls.completos
         if periodo.data_fim_realizacao_despesas:
-            dataset = cls.completos.filter(conta_associacao=conta_associacao).filter(
+            dataset = todos_rateios.filter(conta_associacao=conta_associacao).filter(
                 despesa__data_transacao__range=(
                     periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
         else:
-            dataset = cls.completos.filter(conta_associacao=conta_associacao).filter(
+            dataset = todos_rateios.filter(conta_associacao=conta_associacao).filter(
                 despesa__data_transacao__gte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
@@ -352,6 +353,15 @@ class RateioDespesa(ModeloBase):
         self.save()
         return self
 
+    def inativar_rateio(self):
+        self.status = STATUS_INATIVO
+        self.save()
+
+        if self.estorno.exists():
+            self.estorno.first().inativar_receita()
+
+        return self
+
     @classmethod
     def conciliar(cls, uuid, periodo_conciliacao):
         rateio_despesa = cls.by_uuid(uuid)
@@ -395,7 +405,8 @@ class RateioDespesa(ModeloBase):
 
 @receiver(pre_save, sender=RateioDespesa)
 def rateio_pre_save(instance, **kwargs):
-    instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
+    if instance.status != STATUS_INATIVO:
+        instance.status = STATUS_COMPLETO if instance.cadastro_completo() else STATUS_INCOMPLETO
 
     if not instance.update_conferido:
         instance.conferido = False
