@@ -59,6 +59,7 @@ class AnaliseDocumentoConsolidadoDre(ModeloBase):
         choices=RESULTADO_CHOICES,
         default=RESULTADO_CORRETO
     )
+    documento_devolvido = models.BooleanField('Já foi devolvido?', default=False)
 
     def __str__(self):
         return f"{self.analise_consolidado_dre.consolidado_dre.dre} - {self.analise_consolidado_dre.consolidado_dre.periodo} - Análise documento #{self.pk}"

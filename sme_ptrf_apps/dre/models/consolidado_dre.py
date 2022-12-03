@@ -248,7 +248,6 @@ class ConsolidadoDRE(ModeloBase):
                     analise_consolidado_dre=analise_atual,
                     relatorio_consolidao_dre=relatorio_dre
                 ).first()
-
             dado_relatorio = {
                 "uuid": f"{relatorio_dre.uuid}",
                 "nome": nome,
@@ -257,6 +256,7 @@ class ConsolidadoDRE(ModeloBase):
                     'detalhamento': analise_documento_consolidado_dre.detalhamento if analise_documento_consolidado_dre else None,
                     'resultado': analise_documento_consolidado_dre.resultado if analise_documento_consolidado_dre else None,
                     'uuid': analise_documento_consolidado_dre.uuid if analise_documento_consolidado_dre else None,
+                    'documento_ja_foi_devolvido': analise_documento_consolidado_dre.documento_devolvido if analise_documento_consolidado_dre else None,
                 },
                 'tipo_documento': 'RELATORIO_CONSOLIDADO'
             }
@@ -281,6 +281,7 @@ class ConsolidadoDRE(ModeloBase):
                     'detalhamento': analise_documento_consolidado_dre.detalhamento if analise_documento_consolidado_dre else None,
                     'resultado': analise_documento_consolidado_dre.resultado if analise_documento_consolidado_dre else None,
                     'uuid': analise_documento_consolidado_dre.uuid if analise_documento_consolidado_dre else None,
+                    'documento_ja_foi_devolvido': analise_documento_consolidado_dre.documento_devolvido if analise_documento_consolidado_dre else None,
                 },
                 'tipo_documento': 'ATA_PARECER_TECNICO'
             }
@@ -304,6 +305,7 @@ class ConsolidadoDRE(ModeloBase):
                     'detalhamento': analise_documento_consolidado_dre.detalhamento if analise_documento_consolidado_dre else None,
                     'resultado': analise_documento_consolidado_dre.resultado if analise_documento_consolidado_dre else None,
                     'uuid': analise_documento_consolidado_dre.uuid if analise_documento_consolidado_dre else None,
+                    'documento_ja_foi_devolvido': analise_documento_consolidado_dre.documento_devolvido if analise_documento_consolidado_dre else None,
                 },
                 'tipo_documento': 'DOCUMENTO_ADICIONAL'
             }
@@ -353,6 +355,9 @@ class ConsolidadoDRE(ModeloBase):
 
     def devolver_consolidado(self, data_limite):
         self.status_sme = self.STATUS_SME_DEVOLVIDO
+        for analise_documento in self.analise_atual.analises_de_documentos_da_analise_do_consolidado.all():
+            analise_documento.documento_devolvido = True
+            analise_documento.save()
         self.analise_atual.devolucao(data_limite)
         self.save()
 
