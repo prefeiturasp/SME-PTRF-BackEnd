@@ -353,7 +353,7 @@ class PrestacaoConta(ModeloBase):
             self.analise_atual.devolucao_prestacao_conta = devolucao
             self.analise_atual.save()
 
-        self.analise_atual = None
+        self.analise_atual = None #LINIKER OBSERVAR AQUI
         self.justificativa_pendencia_realizacao = ""
         self.save()
 

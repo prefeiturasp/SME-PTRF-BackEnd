@@ -6,6 +6,8 @@ from ..serializers.analise_documento_consolidado_dre_serializer import AnalisesD
 from ..serializers.comentario_analise_consolidado_dre_serializer import ComentarioAnaliseConsolidadoDRESerializer
 from ..serializers.relatorio_consolidado_dre_serializer import RelatorioConsolidadoDreSerializer
 from ..serializers.documento_adicional_serializer import DocumentoAdicionalSerializer
+
+
 class AnaliseConsolidadoDreSerializer(serializers.ModelSerializer):
     consolidado_dre = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -16,7 +18,7 @@ class AnaliseConsolidadoDreSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnaliseConsolidadoDre
         order_by = 'id'
-        fields = ('uuid', 'consolidado_dre', 'copiado')
+        fields = ('uuid', 'consolidado_dre')
 
 
 class AnaliseConsolidadoDreRetriveSerializer(serializers.ModelSerializer):
