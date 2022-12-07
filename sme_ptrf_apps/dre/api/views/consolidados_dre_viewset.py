@@ -936,6 +936,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
                 'exception': str(e)
             }
             logger.info('Erro ao devolver consolidado: %r', str(e))
+
             return Response(erro, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['post'],
