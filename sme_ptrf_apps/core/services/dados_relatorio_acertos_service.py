@@ -42,7 +42,8 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
         lancamentos = lancamentos_da_prestacao(
             analise_prestacao_conta=analise_prestacao_conta,
             conta_associacao=conta,
-            com_ajustes=True
+            com_ajustes=True,
+            agrupa_solicitacoes=False
         )
 
         if lancamentos:
