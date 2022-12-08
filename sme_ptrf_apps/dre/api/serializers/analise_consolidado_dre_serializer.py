@@ -18,7 +18,7 @@ class AnaliseConsolidadoDreSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnaliseConsolidadoDre
         order_by = 'id'
-        fields = ('uuid', 'consolidado_dre')
+        fields = ('uuid', 'consolidado_dre', 'data_devolucao', 'data_limite', 'data_retorno_analise')
 
 
 class AnaliseConsolidadoDreRetriveSerializer(serializers.ModelSerializer):
