@@ -119,8 +119,15 @@ class ConsolidadoDRE(ModeloBase):
     )
 
     analise_atual = models.ForeignKey('AnaliseConsolidadoDre', on_delete=models.SET_NULL,
-                                    related_name='consolidado_dre_da_analise_atual',
-                                    blank=True, null=True)
+                                      related_name='consolidado_dre_da_analise_atual',
+                                      blank=True, null=True)
+
+    consolidado_retificado = models.ForeignKey(
+        'ConsolidadoDRE', on_delete=models.PROTECT,
+        related_name='retificacao',
+        blank=True, null=True,
+        default=None,
+    )
 
     @property
     def foi_publicado(self):
@@ -129,6 +136,10 @@ class ConsolidadoDRE(ModeloBase):
     @property
     def permite_retificacao(self):
         return self.foi_publicado
+
+    @property
+    def eh_retificacao(self):
+        return self.consolidado_retificado is not None
 
     class Meta:
         verbose_name = 'Consolidado DRE'
