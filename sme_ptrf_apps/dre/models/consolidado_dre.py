@@ -122,6 +122,14 @@ class ConsolidadoDRE(ModeloBase):
                                     related_name='consolidado_dre_da_analise_atual',
                                     blank=True, null=True)
 
+    @property
+    def foi_publicado(self):
+        return self.status_sme == self.STATUS_SME_PUBLICADO
+
+    @property
+    def permite_retificacao(self):
+        return self.foi_publicado
+
     class Meta:
         verbose_name = 'Consolidado DRE'
         verbose_name_plural = 'Consolidados DREs'

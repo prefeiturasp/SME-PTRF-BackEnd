@@ -62,7 +62,8 @@ def retornar_ja_publicadas(dre, periodo):
             'permite_excluir_data_e_pagina_publicacao': valor_maximo_sequencia_de_publicacao == sequencia,
             'habilita_botao_gerar': False,
             'texto_tool_tip_botao_gerar': 'É necessário informar a data e a página da publicação anterior<br/>'
-                                          'no Diário Oficial da Cidade para gerar uma nova publicação.'
+                                          'no Diário Oficial da Cidade para gerar uma nova publicação.',
+            'permite_retificacao': consolidado_dre.permite_retificacao,
         }
 
         atas_de_parecer_tecnico = consolidado_dre.atas_de_parecer_tecnico_do_consolidado_dre.all()
