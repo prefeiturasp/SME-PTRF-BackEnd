@@ -126,7 +126,7 @@ class ConsolidadoDRE(ModeloBase):
 
     consolidado_retificado = models.ForeignKey(
         'ConsolidadoDRE', on_delete=models.PROTECT,
-        related_name='retificacao',
+        related_name='retificacoes',
         blank=True, null=True,
         default=None,
     )
@@ -167,7 +167,7 @@ class ConsolidadoDRE(ModeloBase):
         return "Única" if self.sequencia_de_publicacao == 0 else f'Parcial #{self.sequencia_de_publicacao}'
 
     @classmethod
-    def criar_ou_retornar_consolidado_dre(cls, dre, periodo, sequencia_de_publicacao):
+    def criar_ou_retornar_consolidado_dre(cls, dre, periodo, sequencia_de_publicacao, sequencia_de_retificacao=0):
 
         # Verificando se existe alguma instancia criada antes da modificação do incremental
         consolidado_dre = cls.objects.filter(dre=dre, periodo=periodo, sequencia_de_publicacao__isnull=True).last()
@@ -182,7 +182,7 @@ class ConsolidadoDRE(ModeloBase):
                 dre=dre,
                 periodo=periodo,
                 sequencia_de_publicacao=sequencia_de_publicacao,
-                defaults={'dre': dre, 'periodo': periodo, 'sequencia_de_publicacao': sequencia_de_publicacao, },
+                sequencia_de_retificacao=sequencia_de_retificacao,
             )
 
         return consolidado_dre
@@ -440,6 +440,9 @@ class ConsolidadoDRE(ModeloBase):
 
     def pcs_retificaveis(self):
         return self.prestacoes_de_conta_do_consolidado_dre.all()
+
+    def get_proxima_sequencia_retificacao(self):
+        return self.retificacoes.count() + 1
 
 
 auditlog.register(ConsolidadoDRE)

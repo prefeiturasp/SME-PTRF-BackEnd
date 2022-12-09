@@ -657,6 +657,26 @@ def concluir_consolidado_de_publicacoes_parciais(dre, periodo, usuario):
     )
 
 
+def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar):
+    logger.info(f'Iniciando a retificação do Consolidado DRE {consolidado_dre}')
+    retificacao = ConsolidadoDRE.objects.create(
+        dre=consolidado_dre.dre,
+        periodo=consolidado_dre.periodo,
+        sequencia_de_publicacao=consolidado_dre.sequencia_de_publicacao,
+        sequencia_de_retificacao=consolidado_dre.get_proxima_sequencia_retificacao(),
+        consolidado_retificado=consolidado_dre,
+    )
+    logger.info(f'Consolidado DRE de retificação criado {retificacao}')
+
+    for pc in prestacoes_de_conta_a_retificar:
+        pc.consolidado_dre = retificacao
+        pc.publicada = False
+        pc.save(update_fields=['consolidado_dre', 'publicada'])
+        logger.info(f'Prestação de conta {pc} passada para retificação no consolidado de retificação{retificacao}')
+
+    logger.info(f'Finalizada a retificação do Consolidado DRE {consolidado_dre}')
+
+
 class AcompanhamentoDeRelatoriosConsolidados:
 
     def __init__(self, periodo):
