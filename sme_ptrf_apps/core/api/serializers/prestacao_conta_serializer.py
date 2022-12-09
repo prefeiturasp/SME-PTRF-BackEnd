@@ -238,3 +238,23 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'referencia_consolidado_dre',
             'justificativa_pendencia_realizacao',
         )
+
+
+class PrestacaoContaListRetificaveisSerializer(serializers.ModelSerializer):
+    unidade_eol = serializers.SerializerMethodField('get_unidade_eol')
+    unidade_nome = serializers.SerializerMethodField('get_unidade_nome')
+    unidade_tipo_unidade = serializers.SerializerMethodField('get_unidade_tipo_unidade')
+
+    def get_unidade_eol(self, obj):
+        return obj.associacao.unidade.codigo_eol if obj.associacao and obj.associacao.unidade else ''
+
+    def get_unidade_nome(self, obj):
+        return obj.associacao.unidade.nome if obj.associacao and obj.associacao.unidade else ''
+
+    def get_unidade_tipo_unidade(self, obj):
+        return obj.associacao.unidade.tipo_unidade if obj.associacao and obj.associacao.unidade else ''
+
+    class Meta:
+        model = PrestacaoConta
+        fields = ('uuid', 'unidade_eol', 'unidade_nome', 'unidade_tipo_unidade')
+

@@ -1180,3 +1180,12 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='pcs-retificaveis',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def pcs_retificaveis(self, request, uuid):
+        consolidado: ConsolidadoDRE = self.get_object()
+        from sme_ptrf_apps.core.api.serializers.prestacao_conta_serializer import PrestacaoContaListRetificaveisSerializer
+        pcs = consolidado.pcs_retificaveis()
+        return Response(PrestacaoContaListRetificaveisSerializer(pcs, many=True).data, status=status.HTTP_200_OK)
+

@@ -425,5 +425,8 @@ class ConsolidadoDRE(ModeloBase):
             logger.error(f'{e}')
             return False
 
+    def pcs_retificaveis(self):
+        return self.prestacoes_de_conta_do_consolidado_dre.all()
+
 
 auditlog.register(ConsolidadoDRE)
