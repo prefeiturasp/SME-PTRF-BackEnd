@@ -117,7 +117,17 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         return self
 
     def passar_devolucao_tesouro_para_nao_atualizada(self):
+        from ..models import SolicitacaoAcertoLancamento
+        from ..models import TipoAcertoLancamento
+
         self.devolucao_tesouro_atualizada = False
+        devolucoes = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_DEVOLUCAO)
+
+        for devolucao in devolucoes:
+            if devolucao.status_realizacao == SolicitacaoAcertoLancamento.STATUS_REALIZACAO_REALIZADO:
+                devolucao.altera_status_realizacao(novo_status=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE)
+
         self.save()
         return self
 
