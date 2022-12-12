@@ -657,7 +657,14 @@ def concluir_consolidado_de_publicacoes_parciais(dre, periodo, usuario):
     )
 
 
-def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar):
+def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, motivo_retificacao):
+    if not prestacoes_de_conta_a_retificar:
+        raise Exception('Nenhuma prestação de conta selecionada para retificação.')
+
+    if not motivo_retificacao:
+        logger.error('Motivo da retificação não informado.')
+        raise Exception('É necessário informar o motivo da retificação.')
+
     logger.info(f'Iniciando a retificação do Consolidado DRE {consolidado_dre}')
     retificacao = ConsolidadoDRE.objects.create(
         dre=consolidado_dre.dre,
@@ -665,6 +672,7 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar):
         sequencia_de_publicacao=consolidado_dre.sequencia_de_publicacao,
         sequencia_de_retificacao=consolidado_dre.get_proxima_sequencia_retificacao(),
         consolidado_retificado=consolidado_dre,
+        motivo_retificacao=motivo_retificacao,
     )
     logger.info(f'Consolidado DRE de retificação criado {retificacao}')
 

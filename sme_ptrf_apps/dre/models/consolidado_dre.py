@@ -131,6 +131,8 @@ class ConsolidadoDRE(ModeloBase):
         default=None,
     )
 
+    motivo_retificacao = models.TextField('Motivo de retificação', blank=True, null=True)
+
     @property
     def foi_publicado(self):
         return self.status_sme == self.STATUS_SME_PUBLICADO
