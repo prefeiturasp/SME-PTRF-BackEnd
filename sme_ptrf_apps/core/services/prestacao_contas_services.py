@@ -615,13 +615,14 @@ def lancamentos_da_prestacao(
     filtrar_por_data_fim=None,
     filtrar_por_nome_fornecedor=None,
     inclui_inativas=False,
+    agrupa_solicitacoes=True
 ):
     from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaDocumentoMestreSerializer, \
         DespesaImpostoSerializer
     from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaConciliacaoSerializer
     from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
     from sme_ptrf_apps.core.api.serializers.analise_lancamento_prestacao_conta_serializer import \
-        AnaliseLancamentoPrestacaoContaRetrieveSerializer
+        AnaliseLancamentoPrestacaoContaRetrieveSerializer, AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer
 
     def documentos_de_despesa_por_conta_e_acao_no_periodo(
         conta_associacao,
@@ -763,8 +764,14 @@ def lancamentos_da_prestacao(
             }
 
             if com_ajustes:
-                lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaRetrieveSerializer(analise_lancamento,
-                                                                                                     many=False).data
+                if agrupa_solicitacoes:
+                    lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaRetrieveSerializer(
+                        analise_lancamento,
+                        many=False).data
+                else:
+                    lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer(
+                        analise_lancamento,
+                        many=False).data
             else:
                 lancamento['analise_lancamento'] = {'resultado': analise_lancamento.resultado,
                                                     'uuid': analise_lancamento.uuid} if analise_lancamento else None
@@ -802,9 +809,15 @@ def lancamentos_da_prestacao(
         }
 
         if com_ajustes:
-            novo_lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaRetrieveSerializer(
-                analise_lancamento,
-                many=False).data
+            if agrupa_solicitacoes:
+                novo_lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaRetrieveSerializer(
+                    analise_lancamento,
+                    many=False).data
+            else:
+                novo_lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer(
+                    analise_lancamento,
+                    many=False).data
+
         else:
             novo_lancamento['analise_lancamento'] = {'resultado': analise_lancamento.resultado,
                                                      'uuid': analise_lancamento.uuid} if analise_lancamento else None
