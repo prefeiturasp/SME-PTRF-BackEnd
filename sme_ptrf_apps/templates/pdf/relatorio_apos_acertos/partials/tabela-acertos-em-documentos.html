@@ -4,7 +4,6 @@
 
 {% if dados.dados_documentos %}
 
-  {% for documento in dados.dados_documentos %}
     <table class="table table-bordered tabela-resumo-por-acao">
       <thead>
         <tr class="">
@@ -19,14 +18,14 @@
           <strong>Nome do documento:</strong>
         </th>
       </tr>
+      </thead>
 
+  {% for documento in dados.dados_documentos %}
+    <tbody>
       <tr>
         <td class="fundo-td-cinza-mais-escuro font-12 py-1">{{ forloop.counter }}</td>
         <td colspan="5" class="fundo-td-cinza-mais-escuro font-12 py-1">{{ documento.tipo_documento_prestacao_conta.nome }}</td>
       </tr>
-      </thead>
-
-    <tbody>
       {% for acerto in documento.solicitacoes_de_ajuste_da_analise %}
         <tr class="border-bottom">
           <td rowspan="1" class="sem-borda pb-4"></td>
@@ -73,13 +72,13 @@
             </div>
           </td>
         </tr>
+        </tbody>
 
       {% endfor %}
 
-    </tbody>
+  {% endfor %}
 
    </table>
 
-  {% endfor %}
 
 {% endif %}
