@@ -9,6 +9,7 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from datetime import datetime
 from django.db.models import Q
 
+logger = logging.getLogger(__name__)
 
 logger = logging.getLogger(__name__)
 
