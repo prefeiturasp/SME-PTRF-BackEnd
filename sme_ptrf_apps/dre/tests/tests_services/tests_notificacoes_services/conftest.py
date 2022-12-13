@@ -328,7 +328,6 @@ def analise_consolidado_dre_01_prazo_acerto_vencido():
         data_devolucao=datetime.now() - timedelta(days = 1 ),
         data_limite=datetime.now() - timedelta(days = 1 ),
         data_retorno_analise=datetime.now() - timedelta(days = 1 ),
-        copiado=False
     )
 
 
