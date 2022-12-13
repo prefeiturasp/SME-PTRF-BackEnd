@@ -1,4 +1,5 @@
 import logging
+
 from django.db.models import Q, Max, Value
 from django.db.models.functions import Coalesce
 
@@ -9,6 +10,8 @@ from ..tasks import concluir_consolidado_dre_async, \
     concluir_consolidado_de_publicacoes_parciais_async
 
 from ...core.models import Unidade, PrestacaoConta, Periodo, Associacao
+
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +31,10 @@ def criar_ata_e_atribuir_ao_consolidado_dre(dre=None, periodo=None, consolidado_
 
 def retornar_ja_publicadas(dre, periodo):
     consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao='FINAL')
+
+    # Pegando o valor máximo da sequencia de publicacao para habilitar ou não o botão de remover data de publicação
+    valor_maximo_sequencia_de_publicacao = consolidados_dre.aggregate(max_sequencia_de_publicacao=Coalesce(
+        Max('sequencia_de_publicacao'), Value(0)))['max_sequencia_de_publicacao']
 
     publicacoes_anteriores = []
     for consolidado_dre in consolidados_dre:
@@ -49,6 +56,13 @@ def retornar_ja_publicadas(dre, periodo):
             'dre_uuid': dre.uuid,
             'periodo_uuid': periodo.uuid,
             'eh_consolidado_de_publicacoes_parciais': False,
+            'status_sme': consolidado_dre.status_sme,
+            'data_publicacao': consolidado_dre.data_publicacao,
+            'pagina_publicacao': consolidado_dre.pagina_publicacao,
+            'permite_excluir_data_e_pagina_publicacao': valor_maximo_sequencia_de_publicacao == sequencia,
+            'habilita_botao_gerar': False,
+            'texto_tool_tip_botao_gerar': 'É necessário informar a data e a página da publicação anterior<br/>'
+                                          'no Diário Oficial da Cidade para gerar uma nova publicação.'
         }
 
         atas_de_parecer_tecnico = consolidado_dre.atas_de_parecer_tecnico_do_consolidado_dre.all()
@@ -137,6 +151,20 @@ def retornar_proxima_publicacao(dre, periodo, sequencia_de_publicacao, sequencia
     else:
         titulo_relatorio = 'Publicação Única'
 
+    # verificando se a publicacao anterior foi marcada como publicada no DO, para permitir gerar a próxima publicação
+    if sequencia_de_publicacao_atual == 1 or not sequencia_de_publicacao['parcial']:
+        consolidado_anterior_tem_data_e_pagina_publicacao = True
+    else:
+        sequencia_de_publicacao_anterior = sequencia_de_publicacao_atual - 1
+        consolidado_anterior_tem_data_e_pagina_publicacao = ConsolidadoDRE.objects.filter(
+            dre=dre,
+            periodo=periodo,
+            versao='FINAL',
+            status_sme='PUBLICADO',
+            data_publicacao__isnull=False,
+            sequencia_de_publicacao=sequencia_de_publicacao_anterior,
+        ).last()
+
     proxima_publicacao = {
         'titulo_relatorio': titulo_relatorio,
         'sequencia': sequencia_de_publicacao_atual,
@@ -150,12 +178,20 @@ def retornar_proxima_publicacao(dre, periodo, sequencia_de_publicacao, sequencia
         'periodo_uuid': periodo.uuid,
         'uuid': uuid_consolidado_dre_proxima_publicacao,
         'eh_consolidado_de_publicacoes_parciais': False,
+        'status_sme': None,
+        'data_publicacao': None,
+        'pagina_publicacao': None,
+        'permite_excluir_data_e_pagina_publicacao': False,
+        'habilita_botao_gerar': True if consolidado_anterior_tem_data_e_pagina_publicacao else False,
+        'texto_tool_tip_botao_gerar': 'É necessário informar a data e a página da publicação anterior<br/>'
+                                      'no Diário Oficial da Cidade para gerar uma nova publicação.'
+        if not consolidado_anterior_tem_data_e_pagina_publicacao else None,
     }
 
     return proxima_publicacao
 
 
-def retornar_consolidado_de_publicacoes_parciais(dre, periodo, sequencia_de_publicacao_atual):
+def retornar_consolidado_de_publicacoes_parciais(dre, periodo, sequencia_de_publicacao, sequencia_de_publicacao_atual):
     relatorios_fisico_financeiros_consolidado_de_publicacoes_parciais = RelatorioConsolidadoDRE.objects.filter(
         dre=dre,
         periodo=periodo,
@@ -189,6 +225,12 @@ def retornar_consolidado_de_publicacoes_parciais(dre, periodo, sequencia_de_publ
         'periodo_uuid': periodo.uuid,
         'uuid': None,
         'eh_consolidado_de_publicacoes_parciais': True,
+        'status_sme': None,
+        'data_publicacao': None,
+        'pagina_publicacao': None,
+        'permite_excluir_data_e_pagina_publicacao': False,
+        'habilita_botao_gerar': True,
+        'texto_tool_tip_botao_gerar': None,
     }
 
     return proxima_publicacao_consolidado_de_publicacoes_parciais
@@ -218,12 +260,14 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
         eh_parcial=True
     ).count()
 
-    consolidado_de_publicacoes_parciais = (quantidade_pcs_publicadas == quantidade_ues_cnpj) and quantidade_consolidados_dre_publicados > 0
+    consolidado_de_publicacoes_parciais = (
+                                                  quantidade_pcs_publicadas == quantidade_ues_cnpj) and quantidade_consolidados_dre_publicados > 0
 
     if consolidado_de_publicacoes_parciais:
         proxima_publicacao = retornar_consolidado_de_publicacoes_parciais(
             dre,
             periodo,
+            sequencia_de_publicacao,
             sequencia_de_publicacao_atual
         )
     else:
@@ -610,3 +654,209 @@ def concluir_consolidado_de_publicacoes_parciais(dre, periodo, usuario):
         periodo_uuid=periodo_uuid,
         usuario=usuario,
     )
+
+
+class AcompanhamentoDeRelatoriosConsolidados:
+
+    def __init__(self, periodo):
+        self.__periodo = periodo
+        self.__versao_relatorio = "FINAL"
+
+    @property
+    def periodo(self):
+        return self.__periodo
+
+    @property
+    def versao_relatorio(self):
+        return self.__versao_relatorio
+
+    @staticmethod
+    def retorna_titulo_por_status(chave):
+
+        titulos_por_status = {
+            'DRES_SEM_RELATORIOS_GERADOS': "DREs sem relatório gerado",
+            ConsolidadoDRE.STATUS_SME_NAO_PUBLICADO: "Relatórios não publicados",
+            ConsolidadoDRE.STATUS_SME_PUBLICADO: "Relatórios publicados",
+            ConsolidadoDRE.STATUS_SME_EM_ANALISE: "Relatórios em análise",
+            ConsolidadoDRE.STATUS_SME_DEVOLVIDO: "Relatórios devolvidos para acertos",
+            ConsolidadoDRE.STATUS_SME_ANALISADO: "Relatórios analisados",
+        }
+
+        return titulos_por_status[chave]
+
+    def retorna_total_dres_sem_relatorio_gerado(self):
+        dres = Unidade.dres.all()
+
+        total_de_dres_sem_relatorio = 0
+
+        for dre in dres:
+            consolidado = ConsolidadoDRE.objects.filter(
+                dre=dre,
+                periodo=self.periodo,
+                versao=self.versao_relatorio
+            )
+
+            if not consolidado:
+                total_de_dres_sem_relatorio += 1
+
+        return total_de_dres_sem_relatorio
+
+    def formata_data(self, data):
+        data_formatada = None
+        if data:
+            d = datetime.strptime(str(data), '%Y-%m-%d')
+            data_formatada = d.strftime("%d/%m/%Y")
+
+        return f'{data_formatada}'
+
+
+class ListagemPorStatusComFiltros(AcompanhamentoDeRelatoriosConsolidados):
+    def __init__(self, periodo, dre=None, tipo_relatorio=None, status_sme=None):
+        super().__init__(periodo)
+        self.__dre = dre
+        self.__tipo_relatorio = tipo_relatorio
+        self.__tipo_relatorio = tipo_relatorio
+        self.__status_sme = status_sme
+
+    @property
+    def dre(self):
+        return self.__dre
+
+    @property
+    def tipo_relatorio(self):
+        return self.__tipo_relatorio
+
+    @property
+    def status_sme(self):
+        return self.__status_sme
+
+    @staticmethod
+    def retorna_titulo_por_status(chave):
+
+        titulos_por_status = {
+            'DRES_SEM_RELATORIOS_GERADOS': "Não gerado",
+            ConsolidadoDRE.STATUS_SME_NAO_PUBLICADO: "Não publicada no D.O.",
+            ConsolidadoDRE.STATUS_SME_PUBLICADO: "Publicada no D.O.",
+            ConsolidadoDRE.STATUS_SME_EM_ANALISE: "Em análise",
+            ConsolidadoDRE.STATUS_SME_DEVOLVIDO: "Devolvida para acertos",
+            ConsolidadoDRE.STATUS_SME_ANALISADO: "Relatórios analisados",
+        }
+
+        return titulos_por_status[chave]
+
+    def lista_relatorios_filtros(self):
+        dres = Unidade.dres.all().order_by('nome')
+
+        if self.dre is not None:
+            dres = dres.filter(uuid=self.dre.uuid)
+
+        listagem = []
+
+        for dre in dres:
+            consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=self.periodo, versao=self.versao_relatorio)
+
+            tipo_de_relatorio = '-'
+            total_unidades_no_relatorio = '-'
+
+            if self.status_sme and not consolidados_dre and "NAO_GERADO" not in self.status_sme:
+                continue
+
+            if consolidados_dre:
+
+                for consolidado in consolidados_dre:
+
+                    if self.status_sme and consolidado.status_sme not in self.status_sme:
+                        continue
+
+                    if self.tipo_relatorio:
+                        eh_parcial = self.tipo_relatorio == 'PARCIAL'
+                        if not consolidado.eh_parcial == eh_parcial:
+                            continue
+
+                    if consolidado.eh_parcial:
+                        tipo_de_relatorio = f"Parcial #{consolidado.sequencia_de_publicacao}"
+                    else:
+                        tipo_de_relatorio = f"Único"
+
+                    total_unidades_no_relatorio = PrestacaoConta.objects.filter(consolidado_dre=consolidado).count()
+
+                    obj = {
+                        "nome_da_dre": dre.nome,
+                        "tipo_relatorio": tipo_de_relatorio,
+                        "total_unidades_no_relatorio": total_unidades_no_relatorio,
+                        "data_recebimento": self.formata_data(consolidado.data_de_inicio_da_analise) if consolidado.data_de_inicio_da_analise else None,
+                        "status_sme": consolidado.status_sme,
+                        "status_sme_label": self.retorna_titulo_por_status(consolidado.status_sme),
+                        "pode_visualizar": True,
+                        "uuid_consolidado_dre": f"{consolidado.uuid}",
+                        "uuid_dre": f"{dre.uuid}",
+                    }
+
+                    listagem.append(obj)
+            else:
+
+                if (not self.tipo_relatorio and self.status_sme and 'NAO_GERADO' in self.status_sme) or (not self.tipo_relatorio and not self.status_sme):
+                    obj = {
+                        "nome_da_dre": dre.nome,
+                        "tipo_relatorio": tipo_de_relatorio,
+                        "total_unidades_no_relatorio": total_unidades_no_relatorio,
+                        "data_recebimento": None,
+                        "status_sme": 'NAO_GERADO',
+                        "status_sme_label": self.retorna_titulo_por_status('DRES_SEM_RELATORIOS_GERADOS'),
+                        "pode_visualizar": False,
+                        "uuid_consolidado_dre": None,
+                        "uuid_dre": f"{dre.uuid}",
+                    }
+
+                    listagem.append(obj)
+
+        return listagem
+
+    def retorna_listagem(self):
+
+        listagem = self.lista_relatorios_filtros()
+
+        listagem.sort(key=lambda x: x.get('nome', 'tipo_relatorio'))
+
+        return listagem
+
+
+class Dashboard(AcompanhamentoDeRelatoriosConsolidados):
+    def __init__(self, periodo):
+        super().__init__(periodo)
+
+    def retorna_dashboard(self):
+
+        status_sme_choice = ConsolidadoDRE.STATUS_SME_NOMES
+
+        dashboard_list = [{
+            "titulo": self.retorna_titulo_por_status('DRES_SEM_RELATORIOS_GERADOS'),
+            "quantidade_de_relatorios": self.retorna_total_dres_sem_relatorio_gerado(),
+            "status": 'NAO_GERADO'
+        }]
+
+        qtde_relatorios_com_status = 0
+
+        for chave, valor in status_sme_choice.items():
+            qtde_relatorios = ConsolidadoDRE.objects.filter(
+                periodo=self.periodo,
+                status_sme=chave,
+                versao=self.versao_relatorio
+            ).count()
+
+            qtde_relatorios_com_status += qtde_relatorios
+
+            obj = {
+                "titulo": self.retorna_titulo_por_status(chave),
+                "quantidade_de_relatorios": qtde_relatorios,
+                "status": chave
+            }
+
+            dashboard_list.append(obj)
+
+        dashboard = {
+            'cards': dashboard_list,
+            'total_de_relatorios': qtde_relatorios_com_status,
+        }
+
+        return dashboard
