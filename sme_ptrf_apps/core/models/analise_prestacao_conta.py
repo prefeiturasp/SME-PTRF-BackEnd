@@ -11,8 +11,6 @@ from django.db.models import Q
 
 logger = logging.getLogger(__name__)
 
-logger = logging.getLogger(__name__)
-
 
 class AnalisePrestacaoConta(ModeloBase):
     history = AuditlogHistoryField()
