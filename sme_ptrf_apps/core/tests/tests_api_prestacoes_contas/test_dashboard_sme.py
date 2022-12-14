@@ -244,7 +244,8 @@ def test_dashboard_sme(
         ],
         'status': {
             'cor_idx': 1,
-            'status_txt': 'Período em andamento para DREs e aberto para validações.'
+            'status_txt': 'Período em andamento para DREs e aberto para validações.',
+            'status': 'EM_ANDAMENTO'
         },
         'resumo_por_dre': [
             {
@@ -325,7 +326,8 @@ def test_dashboard_sme_periodo_sem_pendencias_nas_dres(jwt_authenticated_client_
         ],
         'status': {
             'cor_idx': 2,
-            'status_txt': 'Período concluído.'
+            'status_txt': 'Período concluído.',
+            'status': 'CONCLUIDO'
         },
         'resumo_por_dre': [
             {
