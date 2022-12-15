@@ -20,6 +20,7 @@ class DadosRelatorioAposAcertos:
 
         self.info_cabecalho = self.__info_cabecalho()
         self.dados_associacao = self.__dados_associacao()
+        self.dados_extratos_bancarios = self.__dados_extratos_bancarios()
         self.dados_lancamentos = self.__dados_lancamentos()
         self.dados_documentos = self.__dados_documentos()
         self.blocos = self.__blocos()
@@ -47,6 +48,19 @@ class DadosRelatorioAposAcertos:
         }
 
         return dados_associacao
+
+    def __dados_extratos_bancarios(self):
+        dados_extratos = []
+        for analise_conta in self.analise_prestacao_conta.analises_de_extratos.all():
+            if analise_conta.data_extrato or analise_conta.saldo_extrato is not None:
+                dados = {
+                    'nome_conta': analise_conta.conta_associacao.tipo_conta.nome,
+                    'data_extrato': analise_conta.data_extrato,
+                    'saldo_extrato': analise_conta.saldo_extrato,
+                }
+                dados_extratos.append(dados)
+
+        return dados_extratos
 
     def __dados_lancamentos(self):
         dados_lancamentos = []
@@ -80,6 +94,10 @@ class DadosRelatorioAposAcertos:
         numero_bloco = 1
 
         dados[f'identificacao_associacao'] = f'Bloco {numero_bloco} - Identificação da Associação da Unidade Educacional'
+
+        if self.dados_extratos_bancarios:
+            numero_bloco = numero_bloco + 1
+            dados[f'acertos_extratos_bancarios'] = f'Bloco {numero_bloco} - Acertos nas informações de extrato bancário'
 
         if self.dados_lancamentos:
             numero_bloco = numero_bloco + 1
@@ -128,12 +146,13 @@ class DadosRelatorioAposAcertos:
         else:
             return "-"
 
-    # Metodo principakl
+    # Metodo principal
     def __set_dados_relatorio(self):
         self.dados_relatorio = {
             'categoria_devolucao': self.categoria_devolucao,
             'info_cabecalho': self.info_cabecalho,
             'dados_associacao': self.dados_associacao,
+            'dados_extratos_bancarios': self.dados_extratos_bancarios,
             'dados_lancamentos': self.dados_lancamentos,
             'dados_documentos': self.dados_documentos,
             'blocos': self.blocos,
