@@ -115,8 +115,7 @@ def test_service_marcar_realizado_categoria_edicao_lancamento_ajuste_nao_realiza
     solicitacao_acerto_lancamento_pendente_categoria_edicao_lancamento_service_01
 ):
     resultado_esperado = {
-        "mensagem": "Não foi possível alterar o status de algumas solicitações pois "
-                    "os ajustes não foram realizados.",
+        "mensagem": "Não foi possível alterar o status da solicitação, pois os ajustes solicitados não foram realizados.",
         "status": status.HTTP_200_OK,
         "todas_as_solicitacoes_marcadas_como_realizado": False,
     }
@@ -166,8 +165,7 @@ def test_service_marcar_realizado_categoria_devolucao_ajuste_nao_realizado(
     solicitacao_acerto_lancamento_pendente_categoria_devolucao_service_01
 ):
     resultado_esperado = {
-        "mensagem": "Não foi possível alterar o status de algumas solicitações pois "
-                    "os ajustes não foram realizados.",
+        "mensagem": "Não foi possível alterar o status da solicitação, pois os ajustes solicitados não foram realizados.",
         "status": status.HTTP_200_OK,
         "todas_as_solicitacoes_marcadas_como_realizado": False,
     }
@@ -217,8 +215,7 @@ def test_service_marcar_realizado_categoria_exclusao_lancamento_ajuste_nao_reali
     solicitacao_acerto_lancamento_pendente_categoria_exclusao_lancamento_service_01
 ):
     resultado_esperado = {
-        "mensagem": "Não foi possível alterar o status de algumas solicitações pois "
-                    "os ajustes não foram realizados.",
+        "mensagem": "Não foi possível alterar o status da solicitação, pois os ajustes solicitados não foram realizados.",
         "status": status.HTTP_200_OK,
         "todas_as_solicitacoes_marcadas_como_realizado": False,
     }
@@ -268,8 +265,7 @@ def test_service_marcar_realizado_categoria_solicitacao_esclarecimento_ajuste_na
     solicitacao_acerto_lancamento_pendente_categoria_solicitacao_esclarecimento_service_01
 ):
     resultado_esperado = {
-        "mensagem": "Não foi possível alterar o status de algumas solicitações pois "
-                    "os ajustes não foram realizados.",
+        "mensagem": "Não foi possível alterar o status da solicitação, pois os ajustes solicitados não foram realizados.",
         "status": status.HTTP_200_OK,
         "todas_as_solicitacoes_marcadas_como_realizado": False,
     }
