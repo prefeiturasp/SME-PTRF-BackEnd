@@ -144,6 +144,9 @@
 
   </article>
 
+  {% comment %} Tabela Acertos em Extratos Bancarios {% endcomment %}
+  {% include "./partials/tabela-acertos-em-extratos-bancarios.html" with dados=dados %}
+
   {% comment %} Tabela Acertos em Lançamentos {% endcomment %}
   {% include "./partials/tabela-acertos-em-lancamentos.html" with dados=dados %}
 
