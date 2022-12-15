@@ -69,8 +69,7 @@ class AnaliseConsolidadoDre(ModeloBase):
 
     def devolucao(self, data_limite=None, data_devolucao=date.today()):
         self.data_limite = data_limite
-        self.data_retorno_analise = data_devolucao
-        self.data_devolucao = self.data_retorno_analise
+        self.data_devolucao = data_devolucao
         self.save()
 
         return self
