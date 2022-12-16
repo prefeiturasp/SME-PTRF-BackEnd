@@ -386,7 +386,6 @@ class ConsolidadoDRE(ModeloBase):
 
             self.marcar_status_sme_como_em_analise(usuario)
             self.analise_atual = analise_atual
-
             if analise_anterior:
                 analise_anterior.data_retorno_analise = date.today()
                 self.analise_atual.copiado = True
