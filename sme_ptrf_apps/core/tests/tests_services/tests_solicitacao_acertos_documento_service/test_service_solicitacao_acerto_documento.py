@@ -117,8 +117,7 @@ def test_service_marcar_realizado_categoria_inclusao_credito_ajuste_nao_realizad
     solicitacao_acerto_documento_pendente_service_02
 ):
     resultado_esperado = {
-        "mensagem": "Não foi possível alterar o status de algumas solicitações pois "
-                    "os ajustes não foram realizados.",
+        "mensagem": "Não foi possível alterar o status da solicitação, pois os ajustes solicitados não foram realizados.",
         "status": status.HTTP_200_OK,
         "todas_as_solicitacoes_marcadas_como_realizado": False,
     }
@@ -168,8 +167,7 @@ def test_service_marcar_realizado_categoria_inclusao_gasto_ajuste_nao_realizado(
     solicitacao_acerto_documento_pendente_service_04
 ):
     resultado_esperado = {
-        "mensagem": "Não foi possível alterar o status de algumas solicitações pois "
-                    "os ajustes não foram realizados.",
+        "mensagem": "Não foi possível alterar o status da solicitação, pois os ajustes solicitados não foram realizados.",
         "status": status.HTTP_200_OK,
         "todas_as_solicitacoes_marcadas_como_realizado": False,
     }
@@ -219,8 +217,7 @@ def test_service_marcar_realizado_categoria_solicitacao_esclarecimento_ajuste_na
     solicitacao_acerto_documento_pendente_service_06
 ):
     resultado_esperado = {
-        "mensagem": "Não foi possível alterar o status de algumas solicitações pois "
-                    "os ajustes não foram realizados.",
+        "mensagem": "Não foi possível alterar o status da solicitação, pois os ajustes solicitados não foram realizados.",
         "status": status.HTTP_200_OK,
         "todas_as_solicitacoes_marcadas_como_realizado": False,
     }

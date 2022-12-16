@@ -12,9 +12,7 @@ class MarcarComoRealizado:
 
     def __set_response(self):
         pode_atualizar_status = True
-        texto_solicitacoes_nao_atendidas = "Não foi possível alterar o status de algumas solicitações " \
-                                           "pois os ajustes não foram realizados."
-
+        texto_solicitacoes_nao_atendidas = "Não foi possível alterar o status da solicitação, pois os ajustes solicitados não foram realizados."
         self.response = {
             "mensagem": "Status alterados com sucesso!",
             "status": status.HTTP_200_OK,
