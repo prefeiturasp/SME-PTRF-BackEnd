@@ -388,9 +388,10 @@ class ConsolidadoDRE(ModeloBase):
             self.analise_atual = analise_atual
             self.analise_atual.data_retorno_analise = date.today()
             if analise_anterior:
+                analise_anterior.data_retorno_analise = date.today()
                 self.analise_atual.copiado = True
                 self.analise_anterior = analise_anterior
-                self.analise_atual.data_retorno_analise = date.today()
+                self.analise_anterior.save()
                 self.analise_atual.save()
                 AnaliseConsolidadoDreService(
                     analise_origem=self.analise_anterior,
