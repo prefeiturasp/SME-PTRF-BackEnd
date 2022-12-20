@@ -22,7 +22,7 @@ class ReceitasCompletasManager(models.Manager):
 class Receita(ModeloBase):
     history = AuditlogHistoryField()
 
-    TAG_INATIVA = {"id": "6", "nome": "Inativado", "descricao": "Lançamento inativado."}
+    TAG_INATIVA = {"id": "6", "nome": "Excluído", "descricao": "Lançamento excluído."}
 
     STATUS_COMPLETO = 'COMPLETO'
     STATUS_INATIVO = 'INATIVO'
