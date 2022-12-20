@@ -137,7 +137,7 @@ class Despesa(ModeloBase):
         if self.e_despesa_inativa():
             tags.append(tag_informacao(
                 self.TAG_INATIVA,
-                f"Este gasto foi inativado em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}"
+                f"Este gasto foi excluído em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}"
             ))
         return tags
 
@@ -156,7 +156,7 @@ class Despesa(ModeloBase):
 
     @property
     def mensagem_inativacao(self):
-        return f"Este gasto foi desativado em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}" \
+        return f"Este gasto foi excluído em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}" \
             if self.status == "INATIVO" else None
 
     def __str__(self):

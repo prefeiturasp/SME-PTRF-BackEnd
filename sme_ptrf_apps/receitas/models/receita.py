@@ -150,7 +150,7 @@ class Receita(ModeloBase):
 
     @property
     def mensagem_inativacao(self):
-        return f"Este crédito foi desativado em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}" \
+        return f"Este crédito foi excluído em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}" \
             if self.status == "INATIVO" else None
 
     @classmethod
@@ -159,7 +159,7 @@ class Receita(ModeloBase):
 
     @classmethod
     def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None,
-                                               categoria_receita=None):
+                                            categoria_receita=None):
         if periodo.data_fim_realizacao_despesas:
             dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
                 data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
