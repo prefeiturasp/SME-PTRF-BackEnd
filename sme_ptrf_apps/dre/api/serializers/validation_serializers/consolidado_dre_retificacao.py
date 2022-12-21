@@ -1,0 +1,24 @@
+from rest_framework import serializers
+
+from sme_ptrf_apps.core.models import PrestacaoConta
+
+
+class ConsolidadoDreRetificacaoSerializer(serializers.Serializer): # noqa
+    pcs_a_retificar = serializers.ListField(child=serializers.UUIDField(), required=True)
+    motivo_retificacao = serializers.CharField(required=True)
+
+    def validate_pcs_a_retificar(self, value):
+        if not value:
+            raise serializers.ValidationError(f"É necessário informar ao menos uma PC para retificar.")
+
+        for pc_uuid in value:
+            if not PrestacaoConta.by_uuid(pc_uuid):
+                raise serializers.ValidationError(f"Não foi encontrada uma PC para o uuid {pc_uuid}.")
+
+        return value
+
+    def validate_motivo_retificacao(self, value):
+        if not value:
+            raise serializers.ValidationError(f"É necessário informar o motivo da retificação.")
+        return value
+

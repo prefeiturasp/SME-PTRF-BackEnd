@@ -2436,3 +2436,64 @@ def solicitacao_acerto_documento_status_nao_realizado_02(
         detalhamento="Detalhamento motivo acerto no documento",
         status_realizacao="PENDENTE"
     )
+
+
+@pytest.fixture
+def permissoes_dadosdiretoria_dre():
+    from django.contrib.auth.models import Permission
+
+    permissoes = [
+        Permission.objects.filter(codename='dre_leitura').first(),
+        Permission.objects.filter(codename='dre_gravacao').first()
+    ]
+
+    return permissoes
+
+
+@pytest.fixture
+def grupo_dados_diretoria_dre(permissoes_dadosdiretoria_dre):
+    from sme_ptrf_apps.users.models import Grupo
+
+    g = Grupo.objects.create(name="dados_diretoria_dre")
+    g.permissions.add(*permissoes_dadosdiretoria_dre)
+    return g
+
+
+@pytest.fixture
+def usuario_permissao_atribuicao(
+        unidade,
+        grupo_dados_diretoria_dre):
+
+    from django.contrib.auth import get_user_model
+    senha = 'Sgp0418'
+    login = '7210418'
+    email = 'sme@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(unidade)
+    user.groups.add(grupo_dados_diretoria_dre)
+    user.save()
+    return user
+
+
+@pytest.fixture
+def jwt_authenticated_client_dre(client, usuario_permissao_atribuicao):
+    from unittest.mock import patch
+
+    from rest_framework.test import APIClient
+    api_client = APIClient()
+    with patch('sme_ptrf_apps.users.api.views.login.AutenticacaoService.autentica') as mock_post:
+        data = {
+            "nome": "LUCIA HELENA",
+            "cpf": "62085077072",
+            "email": "luh@gmail.com",
+            "login": "7210418"
+        }
+        mock_post.return_value.ok = True
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = data
+        resp = api_client.post('/api/login', {'login': usuario_permissao_atribuicao.username,
+                                              'senha': usuario_permissao_atribuicao.password}, format='json')
+        resp_data = resp.json()
+        api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
+    return api_client
