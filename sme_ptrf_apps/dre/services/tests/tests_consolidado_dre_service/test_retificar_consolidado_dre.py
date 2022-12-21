@@ -1,6 +1,7 @@
 
 import pytest
 
+from sme_ptrf_apps.core.models import PrestacaoConta
 from sme_ptrf_apps.dre.services.consolidado_dre_service import retornar_ja_publicadas, retificar_consolidado_dre
 
 pytestmark = pytest.mark.django_db
@@ -42,3 +43,4 @@ def test_retificar_consolidado_dre(
     prestacao_conta_pc1.refresh_from_db()
     assert prestacao_conta_pc1.consolidado_dre == retificacao
     assert prestacao_conta_pc1.publicada is False
+    assert prestacao_conta_pc1.status == PrestacaoConta.STATUS_RECEBIDA
