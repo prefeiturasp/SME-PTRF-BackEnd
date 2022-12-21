@@ -680,7 +680,8 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, 
         pc = PrestacaoConta.by_uuid(pc_uuid)
         pc.consolidado_dre = retificacao
         pc.publicada = False
-        pc.save(update_fields=['consolidado_dre', 'publicada'])
+        pc.status = PrestacaoConta.STATUS_RECEBIDA
+        pc.save(update_fields=['consolidado_dre', 'publicada', 'status'])
         logger.info(f'Prestação de conta {pc} passada para retificação no consolidado de retificação{retificacao}')
 
     logger.info(f'Finalizada a retificação do Consolidado DRE {consolidado_dre}')
