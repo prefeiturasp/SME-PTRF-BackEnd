@@ -11,7 +11,7 @@ def teste_retificar_consolidado_sem_motivo_deve_levantar_excecao(
     prestacao_conta_pc1
 ):
     with pytest.raises(Exception) as excinfo:
-        retificar_consolidado_dre(consolidado_dre_publicado_no_diario_oficial, [prestacao_conta_pc1], "")
+        retificar_consolidado_dre(consolidado_dre_publicado_no_diario_oficial, [prestacao_conta_pc1.uuid], "")
     assert 'É necessário informar o motivo da retificação' in str(excinfo.value)
 
 
@@ -29,7 +29,7 @@ def test_retificar_consolidado_dre(
     consolidado_dre_publicado_no_diario_oficial,
     prestacao_conta_pc1
 ):
-    retificar_consolidado_dre(consolidado_dre_publicado_no_diario_oficial, [prestacao_conta_pc1], "Teste")
+    retificar_consolidado_dre(consolidado_dre_publicado_no_diario_oficial, [prestacao_conta_pc1.uuid], "Teste")
 
     consolidado_dre_publicado_no_diario_oficial.refresh_from_db()
     assert consolidado_dre_publicado_no_diario_oficial.retificacoes.count() == 1

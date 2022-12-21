@@ -676,7 +676,8 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, 
     )
     logger.info(f'Consolidado DRE de retificação criado {retificacao}')
 
-    for pc in prestacoes_de_conta_a_retificar:
+    for pc_uuid in prestacoes_de_conta_a_retificar:
+        pc = PrestacaoConta.by_uuid(pc_uuid)
         pc.consolidado_dre = retificacao
         pc.publicada = False
         pc.save(update_fields=['consolidado_dre', 'publicada'])
