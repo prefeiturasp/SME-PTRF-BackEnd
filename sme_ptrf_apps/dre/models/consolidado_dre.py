@@ -148,7 +148,7 @@ class ConsolidadoDRE(ModeloBase):
     class Meta:
         verbose_name = 'Consolidado DRE'
         verbose_name_plural = 'Consolidados DREs'
-        unique_together = ['periodo', 'dre', 'sequencia_de_publicacao']
+        unique_together = ['periodo', 'dre', 'sequencia_de_publicacao', 'sequencia_de_retificacao']
         ordering = ['-sequencia_de_publicacao']
 
     def __str__(self):
