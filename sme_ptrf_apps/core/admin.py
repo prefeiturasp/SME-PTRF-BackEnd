@@ -211,6 +211,89 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
     list_display_links = ('periodo',)
     readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre', 'uuid', 'id')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome',)
+    autocomplete_fields = (
+        'prestacao_conta',
+        'periodo',
+        'associacao',
+        'conta_associacao',
+        'acao_associacao',
+        'fechamento_anterior'
+    )
+    fieldsets = (
+        (
+            None, {
+                'fields': (
+                    'prestacao_conta',
+                    'periodo',
+                    'associacao',
+                    'conta_associacao',
+                    'acao_associacao',
+                    'fechamento_anterior',
+                    'status',
+                    'uuid',
+                    'id'
+                )
+            },
+        ),
+        (
+            'Capital', {
+                'fields': (
+                    'total_receitas_capital',
+                    'total_receitas_devolucao_capital',
+                    'total_repasses_capital',
+                    'total_despesas_capital',
+                    'saldo_reprogramado_capital',
+                )
+            },
+        ),
+        (
+            'Custeio', {
+                'fields': (
+                    'total_receitas_custeio',
+                    'total_receitas_devolucao_custeio',
+                    'total_repasses_custeio',
+                    'total_despesas_custeio',
+                    'saldo_reprogramado_custeio',
+                )
+            },
+        ),
+        (
+            'Livre Aplicação', {
+                'fields': (
+                    'total_receitas_livre',
+                    'total_receitas_devolucao_livre',
+                    'total_repasses_livre',
+                    'saldo_reprogramado_livre',
+                )
+            },
+        ),
+        (
+            'Especificações de Despesa', {
+                'fields': (
+                    'especificacoes_despesas_capital',
+                    'especificacoes_despesas_custeio',
+                )
+            },
+        ),
+        (
+            'Receitas não conciliadas', {
+                'fields': (
+                    'total_receitas_nao_conciliadas_capital',
+                    'total_receitas_nao_conciliadas_custeio',
+                    'total_receitas_nao_conciliadas_livre'
+                )
+            },
+        ),
+        (
+            'Despesas não conciliadas', {
+                'fields': (
+                    'total_despesas_nao_conciliadas_capital',
+                    'total_despesas_nao_conciliadas_custeio',
+                )
+            },
+        ),
+    )
+
 
 
 @admin.register(PrestacaoConta)
