@@ -237,6 +237,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'publicada',
             'referencia_consolidado_dre',
             'justificativa_pendencia_realizacao',
+            'em_retificacao'
         )
 
 
