@@ -119,14 +119,22 @@ class PrestacaoConta(ModeloBase):
     def total_devolucao_ao_tesouro_str(self):
         return f'{self.total_devolucao_ao_tesouro:.2f}'.replace('.', ',') if self.devolucoes_ao_tesouro_da_prestacao.count() > 0 else 'Não'
 
+    @property
+    def em_retificacao(self):
+        if self.consolidado_dre:
+            return self.consolidado_dre.eh_retificacao
+
+        return False
+
     def __str__(self):
         return f"{self.periodo} - {self.status}"
 
-    def remove_publicada_e_consolidado_dre(self):
-        self.publicada = False
-        self.consolidado_dre = None
-        self.save()
-        return self
+    # Analisar se com a implementacao da retificacao, sera necessário manter o metodo abaixo
+    # def remove_publicada_e_consolidado_dre(self):
+    #     self.publicada = False
+    #     self.consolidado_dre = None
+    #     self.save()
+    #     return self
 
     def atrelar_consolidado_dre(self, consolidado_dre):
         self.consolidado_dre = consolidado_dre
@@ -410,7 +418,10 @@ class PrestacaoConta(ModeloBase):
         return prestacao_atualizada
 
     def desfazer_conclusao_analise(self):
-        self.remove_publicada_e_consolidado_dre()
+        # TO DO
+        # Analisar se com a implementacao da retificacao, sera necessário manter o metodo abaixo
+        # self.remove_publicada_e_consolidado_dre()
+
         self.motivos_aprovacao_ressalva.set([])
         self.outros_motivos_aprovacao_ressalva = ''
         self.motivos_reprovacao.set([])

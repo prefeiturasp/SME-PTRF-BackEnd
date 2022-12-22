@@ -14,7 +14,17 @@ class ConsolidadoDreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ConsolidadoDRE
-        fields = ('uuid', 'dre', 'periodo', 'status', 'versao', 'status_sme', 'data_publicacao', 'pagina_publicacao')
+        fields = (
+            'uuid',
+            'dre',
+            'periodo',
+            'status',
+            'versao',
+            'status_sme',
+            'data_publicacao',
+            'pagina_publicacao',
+            'motivo_retificacao'
+        )
 
 
 class ConsolidadoDreComDocumentosSerializer(serializers.ModelSerializer):

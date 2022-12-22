@@ -62,7 +62,8 @@ def retornar_ja_publicadas(dre, periodo):
             'permite_excluir_data_e_pagina_publicacao': valor_maximo_sequencia_de_publicacao == sequencia,
             'habilita_botao_gerar': False,
             'texto_tool_tip_botao_gerar': 'É necessário informar a data e a página da publicação anterior<br/>'
-                                          'no Diário Oficial da Cidade para gerar uma nova publicação.'
+                                          'no Diário Oficial da Cidade para gerar uma nova publicação.',
+            'permite_retificacao': consolidado_dre.permite_retificacao,
         }
 
         atas_de_parecer_tecnico = consolidado_dre.atas_de_parecer_tecnico_do_consolidado_dre.all()
@@ -654,6 +655,36 @@ def concluir_consolidado_de_publicacoes_parciais(dre, periodo, usuario):
         periodo_uuid=periodo_uuid,
         usuario=usuario,
     )
+
+
+def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, motivo_retificacao):
+    if not prestacoes_de_conta_a_retificar:
+        raise Exception('Nenhuma prestação de conta selecionada para retificação.')
+
+    if not motivo_retificacao:
+        logger.error('Motivo da retificação não informado.')
+        raise Exception('É necessário informar o motivo da retificação.')
+
+    logger.info(f'Iniciando a retificação do Consolidado DRE {consolidado_dre}')
+    retificacao = ConsolidadoDRE.objects.create(
+        dre=consolidado_dre.dre,
+        periodo=consolidado_dre.periodo,
+        sequencia_de_publicacao=consolidado_dre.sequencia_de_publicacao,
+        sequencia_de_retificacao=consolidado_dre.get_proxima_sequencia_retificacao(),
+        consolidado_retificado=consolidado_dre,
+        motivo_retificacao=motivo_retificacao,
+    )
+    logger.info(f'Consolidado DRE de retificação criado {retificacao}')
+
+    for pc_uuid in prestacoes_de_conta_a_retificar:
+        pc = PrestacaoConta.by_uuid(pc_uuid)
+        pc.consolidado_dre = retificacao
+        pc.publicada = False
+        pc.status = PrestacaoConta.STATUS_RECEBIDA
+        pc.save(update_fields=['consolidado_dre', 'publicada', 'status'])
+        logger.info(f'Prestação de conta {pc} passada para retificação no consolidado de retificação{retificacao}')
+
+    logger.info(f'Finalizada a retificação do Consolidado DRE {consolidado_dre}')
 
 
 class AcompanhamentoDeRelatoriosConsolidados:
