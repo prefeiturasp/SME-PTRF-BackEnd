@@ -876,7 +876,6 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_lancamento', 'resultado', 'status_realizacao',
                     'devolucao_tesouro_atualizada']
     list_filter = (
-    'analise_prestacao_conta__prestacao_conta__associacao__unidade',
     'analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
     'analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
     'analise_prestacao_conta__prestacao_conta__periodo',
@@ -891,6 +890,8 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ('uuid', 'id',)
+
+    autocomplete_fields = ['analise_prestacao_conta', 'despesa', 'receita']
 
 
 @admin.register(TipoAcertoLancamento)
@@ -1003,7 +1004,6 @@ class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
     get_analise_pc.short_description = 'Análise PC'
     list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_documento_prestacao_conta', 'resultado', 'status_realizacao']
     list_filter = [
-        'analise_prestacao_conta__prestacao_conta__associacao__unidade',
         'analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'analise_prestacao_conta__prestacao_conta__periodo',
@@ -1017,6 +1017,8 @@ class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ('uuid', 'id',)
+
+    autocomplete_fields = ['analise_prestacao_conta', 'conta_associacao']
 
 
 @admin.register(SolicitacaoAcertoDocumento)
@@ -1047,13 +1049,14 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
     ]
     list_filter = [
         'analise_documento__analise_prestacao_conta__prestacao_conta__periodo__referencia',
-        'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade',
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'tipo_acerto',
         'copiado'
     ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
+
+    autocomplete_fields = ['analise_documento', 'despesa_incluida', 'receita_incluida']
 
 
 @admin.register(PresenteAta)
@@ -1214,3 +1217,4 @@ class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome',
         'motivo'
     )
+    autocomplete_fields = ('solicitacao_acerto_lancamento',)
