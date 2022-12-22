@@ -876,7 +876,6 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_lancamento', 'resultado', 'status_realizacao',
                     'devolucao_tesouro_atualizada']
     list_filter = (
-    'analise_prestacao_conta__prestacao_conta__associacao__unidade',
     'analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
     'analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
     'analise_prestacao_conta__prestacao_conta__periodo',
@@ -891,6 +890,8 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ('uuid', 'id',)
+
+    autocomplete_fields = ['analise_prestacao_conta', 'despesa', 'receita']
 
 
 @admin.register(TipoAcertoLancamento)
