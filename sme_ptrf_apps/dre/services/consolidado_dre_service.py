@@ -41,14 +41,23 @@ def retornar_ja_publicadas(dre, periodo):
 
         tipo_publicacao = "Parcial" if consolidado_dre.eh_parcial else "Única"
         sequencia = consolidado_dre.sequencia_de_publicacao
+        qtde_unidades = consolidado_dre.prestacoes_de_conta_do_consolidado_dre.all().count()
+
+        texto_qtde_unidades = ""
+
+        if qtde_unidades == 1:
+            texto_qtde_unidades = " - 1 PC"
+        elif qtde_unidades > 1:
+            texto_qtde_unidades = f' - {qtde_unidades} PCs'
 
         if tipo_publicacao == 'Parcial':
-            nome_publicacao = f'Publicação {tipo_publicacao} #{sequencia}'
+            nome_publicacao = f'Publicação {tipo_publicacao} #{sequencia}{texto_qtde_unidades}'
         else:
-            nome_publicacao = 'Publicação Única'
+            nome_publicacao = f'Publicação Única{texto_qtde_unidades}'
 
         consolidado = {
             'titulo_relatorio': nome_publicacao,
+            'qtde_pcs': qtde_unidades,
             'sequencia': sequencia,
             'ja_publicado': True,
             'dre_nome': dre.nome,
@@ -147,10 +156,24 @@ def retornar_proxima_publicacao(dre, periodo, sequencia_de_publicacao, sequencia
 
             relatorios_fisico_financeiros_proxima_publicacao_list.append(_relatorio)
 
+    qtde_unidades = PrestacaoConta.objects.filter(
+        periodo=periodo,
+        status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+        associacao__unidade__dre=dre,
+        publicada=False
+    ).count()
+
+    texto_qtde_unidades = ""
+
+    if qtde_unidades == 1:
+        texto_qtde_unidades = " - 1 PC"
+    elif qtde_unidades > 1:
+        texto_qtde_unidades = f' - {qtde_unidades} PCs'
+
     if sequencia_de_publicacao['parcial']:
-        titulo_relatorio = f'Publicação Parcial #{sequencia_de_publicacao_atual}'
+        titulo_relatorio = f'Publicação Parcial #{sequencia_de_publicacao_atual}{texto_qtde_unidades}'
     else:
-        titulo_relatorio = 'Publicação Única'
+        titulo_relatorio = f'Publicação Única{texto_qtde_unidades}'
 
     # verificando se a publicacao anterior foi marcada como publicada no DO, para permitir gerar a próxima publicação
     if sequencia_de_publicacao_atual == 1 or not sequencia_de_publicacao['parcial']:
@@ -168,6 +191,7 @@ def retornar_proxima_publicacao(dre, periodo, sequencia_de_publicacao, sequencia
 
     proxima_publicacao = {
         'titulo_relatorio': titulo_relatorio,
+        'qtde_pcs': qtde_unidades,
         'sequencia': sequencia_de_publicacao_atual,
         'ja_publicado': False,
         'dre_nome': dre.nome,
@@ -192,7 +216,7 @@ def retornar_proxima_publicacao(dre, periodo, sequencia_de_publicacao, sequencia
     return proxima_publicacao
 
 
-def retornar_consolidado_de_publicacoes_parciais(dre, periodo, sequencia_de_publicacao, sequencia_de_publicacao_atual):
+def retornar_consolidado_de_publicacoes_parciais(dre, periodo, sequencia_de_publicacao, sequencia_de_publicacao_atual, quantidade_pcs_publicadas):
     relatorios_fisico_financeiros_consolidado_de_publicacoes_parciais = RelatorioConsolidadoDRE.objects.filter(
         dre=dre,
         periodo=periodo,
@@ -216,6 +240,7 @@ def retornar_consolidado_de_publicacoes_parciais(dre, periodo, sequencia_de_publ
 
     proxima_publicacao_consolidado_de_publicacoes_parciais = {
         'titulo_relatorio': "Relatório Consolidado",
+        'qtde_pcs': quantidade_pcs_publicadas,
         'sequencia': sequencia_de_publicacao_atual,
         'ja_publicado': False,
         'dre_nome': dre.nome,
@@ -249,7 +274,7 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
     publicacoes_anteriores = retornar_ja_publicadas(dre, periodo)
 
     quantidade_ues_cnpj = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').count()
-    # quantidade_ues_cnpj = 2
+
     quantidade_pcs_publicadas = PrestacaoConta.objects.filter(periodo__uuid=periodo_uuid,
                                                               associacao__unidade__dre__uuid=dre_uuid,
                                                               publicada=True).count()
@@ -269,7 +294,8 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
             dre,
             periodo,
             sequencia_de_publicacao,
-            sequencia_de_publicacao_atual
+            sequencia_de_publicacao_atual,
+            quantidade_pcs_publicadas
         )
     else:
         proxima_publicacao = retornar_proxima_publicacao(
