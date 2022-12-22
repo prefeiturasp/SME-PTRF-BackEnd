@@ -122,10 +122,33 @@ class ConsolidadoDRE(ModeloBase):
                                     related_name='consolidado_dre_da_analise_atual',
                                     blank=True, null=True)
 
+    sequencia_de_retificacao = models.IntegerField('Sequência de retificação', blank=True, null=True, default=0)
+
+    consolidado_retificado = models.ForeignKey(
+        'ConsolidadoDRE', on_delete=models.PROTECT,
+        related_name='retificacoes',
+        blank=True, null=True,
+        default=None,
+    )
+
+    motivo_retificacao = models.TextField('Motivo de retificação', blank=True, null=True)
+
+    @property
+    def foi_publicado(self):
+        return self.status_sme == self.STATUS_SME_PUBLICADO
+
+    @property
+    def permite_retificacao(self):
+        return self.foi_publicado
+
+    @property
+    def eh_retificacao(self):
+        return self.consolidado_retificado is not None
+
     class Meta:
         verbose_name = 'Consolidado DRE'
         verbose_name_plural = 'Consolidados DREs'
-        unique_together = ['periodo', 'dre', 'sequencia_de_publicacao']
+        unique_together = ['periodo', 'dre', 'sequencia_de_publicacao', 'sequencia_de_retificacao']
         ordering = ['-sequencia_de_publicacao']
 
     def __str__(self):
@@ -146,7 +169,7 @@ class ConsolidadoDRE(ModeloBase):
         return "Única" if self.sequencia_de_publicacao == 0 else f'Parcial #{self.sequencia_de_publicacao}'
 
     @classmethod
-    def criar_ou_retornar_consolidado_dre(cls, dre, periodo, sequencia_de_publicacao):
+    def criar_ou_retornar_consolidado_dre(cls, dre, periodo, sequencia_de_publicacao, sequencia_de_retificacao=0):
 
         # Verificando se existe alguma instancia criada antes da modificação do incremental
         consolidado_dre = cls.objects.filter(dre=dre, periodo=periodo, sequencia_de_publicacao__isnull=True).last()
@@ -161,7 +184,7 @@ class ConsolidadoDRE(ModeloBase):
                 dre=dre,
                 periodo=periodo,
                 sequencia_de_publicacao=sequencia_de_publicacao,
-                defaults={'dre': dre, 'periodo': periodo, 'sequencia_de_publicacao': sequencia_de_publicacao, },
+                sequencia_de_retificacao=sequencia_de_retificacao,
             )
 
         return consolidado_dre
@@ -418,6 +441,12 @@ class ConsolidadoDRE(ModeloBase):
             logger.error(f'Houve algum erro ao tentar concluir a análise do consolidado dre de uuid {self.uuid}.')
             logger.error(f'{e}')
             return False
+
+    def pcs_retificaveis(self):
+        return self.prestacoes_de_conta_do_consolidado_dre.all()
+
+    def get_proxima_sequencia_retificacao(self):
+        return self.retificacoes.count() + 1
 
 
 auditlog.register(ConsolidadoDRE)

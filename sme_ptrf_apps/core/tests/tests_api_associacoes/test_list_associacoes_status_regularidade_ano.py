@@ -90,7 +90,6 @@ def test_api_list_status_associacoes_dre_1(
     jwt_authenticated_client_a,
     dre_1,
     associacao_valenca_ceu_vassouras_dre_1,
-    associacao_pinheiros_emef_mendes_dre_1,
     associacao_barra_emef_pirai_dre_2,
     ano_analise_regularidade_2021,
     analise_regularidade_associacao_vassouras
@@ -114,22 +113,6 @@ def test_api_list_status_associacoes_dre_1(
                 'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             },
             'status_regularidade': 'REGULAR',
-            'motivo': '',
-        },
-        {
-            'associacao': {
-                'uuid': f'{associacao_pinheiros_emef_mendes_dre_1.uuid}',
-                'nome': associacao_pinheiros_emef_mendes_dre_1.nome,
-                'status_valores_reprogramados': associacao_pinheiros_emef_mendes_dre_1.status_valores_reprogramados,
-                'unidade': {
-                    'uuid': f'{associacao_pinheiros_emef_mendes_dre_1.unidade.uuid}',
-                    'codigo_eol': associacao_pinheiros_emef_mendes_dre_1.unidade.codigo_eol,
-                    'nome_com_tipo': associacao_pinheiros_emef_mendes_dre_1.unidade.nome_com_tipo,
-                    'nome_dre': associacao_pinheiros_emef_mendes_dre_1.unidade.nome_dre
-                },
-                'cnpj': associacao_pinheiros_emef_mendes_dre_1.cnpj,
-            },
-            'status_regularidade': 'PENDENTE',
             'motivo': '',
         },
     ]

@@ -1181,3 +1181,36 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='pcs-retificaveis',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def pcs_retificaveis(self, request, uuid):
+        consolidado: ConsolidadoDRE = self.get_object()
+        from sme_ptrf_apps.core.api.serializers.prestacao_conta_serializer import PrestacaoContaListRetificaveisSerializer
+        pcs = consolidado.pcs_retificaveis()
+        return Response(PrestacaoContaListRetificaveisSerializer(pcs, many=True).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='retificar', permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def retificar(self, request, uuid):
+        from sme_ptrf_apps.dre.api.serializers.validation_serializers.consolidado_dre_retificacao import ConsolidadoDreRetificacaoSerializer
+        from sme_ptrf_apps.dre.services.consolidado_dre_service import retificar_consolidado_dre
+        consolidado: ConsolidadoDRE = self.get_object()
+
+        query = ConsolidadoDreRetificacaoSerializer(data=request.data)
+        query.is_valid(raise_exception=True)
+
+        try:
+            retificar_consolidado_dre(
+                consolidado_dre=consolidado,
+                prestacoes_de_conta_a_retificar=query.validated_data['pcs_a_retificar'],
+                motivo_retificacao=query.validated_data['motivo_retificacao'],
+            )
+        except Exception as e:
+            erro = {
+                'erro': 'Erro ao retificar o consolidado',
+                'mensagem': f"Não foi possível retificar o consolidado: {e}"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(ConsolidadoDreSerializer(consolidado, many=False).data, status=status.HTTP_200_OK)
