@@ -1004,7 +1004,6 @@ class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
     get_analise_pc.short_description = 'Análise PC'
     list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_documento_prestacao_conta', 'resultado', 'status_realizacao']
     list_filter = [
-        'analise_prestacao_conta__prestacao_conta__associacao__unidade',
         'analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'analise_prestacao_conta__prestacao_conta__periodo',
@@ -1018,6 +1017,8 @@ class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ('uuid', 'id',)
+
+    autocomplete_fields = ['analise_prestacao_conta', 'conta_associacao']
 
 
 @admin.register(SolicitacaoAcertoDocumento)
