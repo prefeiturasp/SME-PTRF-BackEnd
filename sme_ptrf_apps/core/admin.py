@@ -564,13 +564,12 @@ class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
 
     list_display = (
         'get_associacao', 'get_referencia_periodo', 'ordem', 'comentario', 'notificado_em')
-    list_filter = (
-        'prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
+    list_filter = ('prestacao_conta__periodo', )
     list_display_links = ('get_associacao',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome', 'ordem', 'comentario')
-
+    autocomplete_fields = ['prestacao_conta', ]
 
 @admin.register(PrevisaoRepasseSme)
 class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
@@ -1151,6 +1150,8 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome', 'motivo')
+
+    autocomplete_fields = ['prestacao_conta', 'despesa']
 
 
 @admin.register(SolicitacaoDevolucaoAoTesouro)
