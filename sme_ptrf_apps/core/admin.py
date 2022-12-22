@@ -1217,3 +1217,4 @@ class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome',
         'motivo'
     )
+    autocomplete_fields = ('solicitacao_acerto_lancamento',)
