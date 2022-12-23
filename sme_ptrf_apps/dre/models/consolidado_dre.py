@@ -145,6 +145,13 @@ class ConsolidadoDRE(ModeloBase):
     def eh_retificacao(self):
         return self.consolidado_retificado is not None
 
+    @property
+    def eh_publicacao_unica(self):
+        if self.eh_parcial:
+            return False
+
+        return True
+
     class Meta:
         verbose_name = 'Consolidado DRE'
         verbose_name_plural = 'Consolidados DREs'
@@ -166,7 +173,10 @@ class ConsolidadoDRE(ModeloBase):
 
     @property
     def referencia(self):
-        return "Única" if self.sequencia_de_publicacao == 0 else f'Parcial #{self.sequencia_de_publicacao}'
+        if self.eh_retificacao:
+            return f"Retificação da publicação de {self.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y')}"
+        else:
+            return "Única" if self.sequencia_de_publicacao == 0 else f'Parcial #{self.sequencia_de_publicacao}'
 
     @classmethod
     def criar_ou_retornar_consolidado_dre(cls, dre, periodo, sequencia_de_publicacao, sequencia_de_retificacao=0):

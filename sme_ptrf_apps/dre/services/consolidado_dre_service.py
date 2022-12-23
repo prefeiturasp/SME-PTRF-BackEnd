@@ -826,11 +826,23 @@ class ListagemPorStatusComFiltros(AcompanhamentoDeRelatoriosConsolidados):
                         continue
 
                     if self.tipo_relatorio:
-                        eh_parcial = self.tipo_relatorio == 'PARCIAL'
-                        if not consolidado.eh_parcial == eh_parcial:
-                            continue
+                        filtro_parcial = self.tipo_relatorio == 'PARCIAL'
+                        filtro_unica = self.tipo_relatorio == 'UNICO'
+                        filtro_retificacao = self.tipo_relatorio == 'RETIFICACAO'
 
-                    if consolidado.eh_parcial:
+                        if filtro_parcial:
+                            if consolidado.eh_retificacao or consolidado.eh_publicacao_unica:
+                                continue
+                        elif filtro_unica:
+                            if not consolidado.eh_publicacao_unica:
+                                continue
+                        elif filtro_retificacao:
+                            if not consolidado.eh_retificacao:
+                                continue
+
+                    if consolidado.eh_retificacao:
+                        tipo_de_relatorio = "Retificação"
+                    elif consolidado.eh_parcial:
                         tipo_de_relatorio = f"Parcial #{consolidado.sequencia_de_publicacao}"
                     else:
                         tipo_de_relatorio = f"Único"
