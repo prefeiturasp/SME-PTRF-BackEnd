@@ -871,7 +871,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        if tipo_relatorio and tipo_relatorio not in ['PARCIAL', 'UNICO']:
+        if tipo_relatorio and tipo_relatorio not in ['PARCIAL', 'UNICO', 'RETIFICACAO']:
             erro = {
                 'erro': 'tipo_relatorio_invalido',
                 'operacao': 'listagem-de-relatorios-consolidados-sme-por-status',
