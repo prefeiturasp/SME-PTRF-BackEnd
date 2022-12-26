@@ -857,6 +857,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        devolucao_tesouro = self.request.query_params.get('devolucao_tesouro')
+
         # Pega filtros por nome e tipo de unidade
         nome = self.request.query_params.get('nome')
         tipo_unidade = self.request.query_params.get('tipo_unidade')
@@ -880,6 +882,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             filtro_nome=nome,
             filtro_tipo_unidade=tipo_unidade,
             filtro_por_status=status_pc_list,
+            filtro_por_devolucao_tesouro=devolucao_tesouro
         )
         return Response(result)
 
