@@ -1,0 +1,28 @@
+{% load staticfiles %}
+{% load formata_string %}
+
+{% if dados.dados_documentos %}
+  <table class="table table-bordered tabela-resumo-por-acao mt-5">
+    <thead>
+      <tr class="">
+        <th colspan="2">
+          <strong class="font-16 titulo-bloco-sme">{{ dados.blocos.acertos_documentos }}</strong>
+        </th>
+      </tr>
+    </thead>
+
+    {% for documento in dados.dados_documentos %}
+      <tbody>
+        <tr>
+          <td class="fundo-cinza-sme font-12 py-1" style="width: 2%">{{ forloop.counter }}</td>
+          <td class="fundo-cinza-sme font-12 py-1">{{ documento.nome }}</td>
+        </tr>
+
+        <tr>
+          <td class="sem-borda pb-4 pt-4"></td>
+          <td class="sem-borda pb-4 pt-4 font-12">{{ documento.analise_documento_consolidado_dre.detalhamento }}</td>
+        </tr>
+      </tbody>
+    {% endfor %}
+  </table>
+{% endif %}
