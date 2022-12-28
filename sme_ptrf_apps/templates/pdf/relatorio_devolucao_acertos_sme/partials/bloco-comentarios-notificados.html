@@ -1,0 +1,20 @@
+{% load staticfiles %}
+{% load formata_string %}
+
+{% if dados.dados_comentarios %}
+  <table class="table table-bordered tabela-resumo-por-acao mt-5">
+    <thead>
+      <tr class="">
+        <th>
+          <strong class="font-16 titulo-bloco-sme">{{ dados.blocos.comentarios }}</strong>
+        </th>
+      </tr>
+    </thead>
+
+    {% for comentario in dados.dados_comentarios %}
+      <tr>
+        <td class="p-2 font-12">{{ comentario.comentario }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+{% endif %}

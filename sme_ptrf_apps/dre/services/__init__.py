@@ -51,4 +51,6 @@ from .valores_reprogramados_dre_service import (
     barra_status
 )
 
-from .analise_consolidado_dre_service import AnaliseConsolidadoDreService
+from .analise_consolidado_dre_service import AnaliseConsolidadoDreService, RelatorioDevolucaoAcertos
+from .dados_relatorio_devolucao_acertos_sme_service import DadosRelatorioDevolucaoAcertosSmeService
+from .relatorio_devolucao_acertos_sme_service import ArquivoRelatorioDevolucaoAcertosSmeService

@@ -1,0 +1,38 @@
+{% load staticfiles %}
+{% load formata_string %}
+
+{% if dados.dados_dre %}
+  <article class="mt-5">
+    <table class="table table-bordered tabela-resumo-por-acao">
+      <thead class="">
+        <tr>
+          <th colspan="4">
+            <strong class="font-16 titulo-bloco-sme">{{ dados.blocos.identificacao_dre }}</strong>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="3" class="font-12 itens-bloco-sme p-2"><strong class="pr-2">Nome:</strong>{{ dados.dados_dre.nome_dre }}</td>
+          <td colspan="1" class="font-12 itens-bloco-sme p-2"><strong class="pr-2">CNPJ:</strong>{{ dados.dados_dre.cnpj }}</td>
+        </tr>
+
+        <tr>
+          {% if dados.dados_dre.data_devolucao_sme == '-' %}
+            <td colspan="2" class="font-12 itens-bloco-sme p-2"><strong class="pr-2">Data da devolução da SME:</strong>{{ dados.dados_dre.data_devolucao_sme }}</td>
+          {% else %}
+            <td colspan="2" class="font-12 itens-bloco-sme p-2"><strong class="pr-2">Data da devolução da SME:</strong>{{ dados.dados_dre.data_devolucao_sme|date:'d/m/Y' }}</td>
+          {% endif %}
+
+          {% if dados.dados_dre.prazo_devolucao_dre == '-' %}
+            <td colspan="2" class="font-12 itens-bloco-sme p-2"><strong class="pr-2">Prazo para devolução da DRE:</strong>{{ dados.dados_dre.prazo_devolucao_dre }}</td>
+          {% else %}
+            <td colspan="2" class="font-12 itens-bloco-sme p-2"><strong class="pr-2">Prazo para devolução da DRE:</strong>{{ dados.dados_dre.prazo_devolucao_dre|date:'d/m/Y' }}</td>
+          {% endif %}
+
+        </tr>
+      </tbody>
+    </table>
+  </article>
+
+{% endif %}

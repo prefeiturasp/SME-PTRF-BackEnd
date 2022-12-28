@@ -34,3 +34,33 @@ class AnaliseConsolidadoDreService:
             self.nova_analise.uuid = uuid.uuid4()
             self.nova_analise.analise_consolidado_dre = self.analise_destino
             self.nova_analise.save()
+
+
+class RelatorioDevolucaoAcertos:
+    def __init__(self, analise_consolidado, username, previa):
+        self.analise_consolidado = analise_consolidado
+        self.username = username
+        self.previa = previa
+
+
+    def gerar_arquivo_relatorio_devolucao_acertos(self):
+        from sme_ptrf_apps.dre.services import DadosRelatorioDevolucaoAcertosSmeService
+        from sme_ptrf_apps.dre.services import ArquivoRelatorioDevolucaoAcertosSmeService
+
+        if self.previa:
+            logger.info(f'Gerando prévia do relatorio de devolução acertos sme')
+        else:
+            logger.info(f'Gerando versão final do relatorio de devolução acertos sme')
+
+        self.analise_consolidado.inicia_geracao_arquivo_pdf_relatorio_devolucao_acertos(self.previa)
+
+        dados_relatorio_devolucao_acertos = DadosRelatorioDevolucaoAcertosSmeService.dados_relatorio_devolucao_acerto(
+            analise_consolidado=self.analise_consolidado,
+            previa=self.previa,
+            username=self.username
+        )
+
+        ArquivoRelatorioDevolucaoAcertosSmeService.gerar_relatorio(
+            analise_consolidado=self.analise_consolidado,
+            dados_relatorio_devolucao_acertos=dados_relatorio_devolucao_acertos
+        )
