@@ -373,6 +373,7 @@ def lista_prestacoes_de_conta_todos_os_status(
     periodo,
     filtro_nome=None,
     filtro_tipo_unidade=None,
+    filtro_por_devolucao_tesouro=None,
     filtro_por_status=[]
 ):
     associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by(
@@ -396,6 +397,14 @@ def lista_prestacoes_de_conta_todos_os_status(
         if filtro_por_status and prestacao_conta and prestacao_conta.status not in filtro_por_status:
             # Pula PCs apresentadas se existir um filtro por status e não contiver o status da PC
             continue
+
+        if filtro_por_devolucao_tesouro and filtro_por_devolucao_tesouro == '1':
+            if not prestacao_conta or not prestacao_conta.devolucoes_ao_tesouro_da_prestacao.exists():
+                continue
+
+        if filtro_por_devolucao_tesouro and filtro_por_devolucao_tesouro == '0':
+            if prestacao_conta and prestacao_conta.devolucoes_ao_tesouro_da_prestacao.exists():
+                continue
 
         info_prestacao = {
             'periodo_uuid': f'{periodo.uuid}',
