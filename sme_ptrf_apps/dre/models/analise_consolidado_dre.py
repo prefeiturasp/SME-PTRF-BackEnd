@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from django.db import models
 from ...core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
@@ -76,6 +76,45 @@ class AnaliseConsolidadoDre(ModeloBase):
 
     def __str__(self):
         return f"{self.consolidado_dre.dre} - {self.consolidado_dre.periodo} - Análise #{self.pk}"
+
+
+    def inicia_geracao_arquivo_pdf_relatorio_devolucao_acertos(self, previa):
+        self.relatorio_acertos_versao = self.VERSAO_RASCUNHO if previa else self.VERSAO_FINAL
+        self.relatorio_acertos_status = self.STATUS_EM_PROCESSAMENTO
+        self.save()
+
+    def finaliza_geracao_arquivo_pdf_relatorio_devolucao_acertos(self, pdf):
+        self.relatorio_acertos_pdf = pdf
+        self.relatorio_acertos_status = self.STATUS_CONCLUIDO
+        self.relatorio_acertos_gerado_em = datetime.today()
+        self.save()
+
+
+    def get_status_relatorio_devolucao_acertos(self):
+        if not self.relatorio_acertos_pdf:
+            if self.relatorio_acertos_status == self.STATUS_NAO_GERADO:
+                if self.VERSAO_NOMES[self.relatorio_acertos_versao] == '-':
+                    return "Nenhuma prévia gerada."
+            elif self.relatorio_acertos_status == self.STATUS_EM_PROCESSAMENTO:
+                return f"Relatório sendo gerado..."
+            elif self.relatorio_acertos_status == self.STATUS_CONCLUIDO:
+                if self.VERSAO_NOMES[self.relatorio_acertos_versao] == 'rascunho':
+                    return "Nenhuma prévia gerada."
+                else:
+                    return "Nenhum documento gerado."
+        elif self.relatorio_acertos_pdf:
+            if self.relatorio_acertos_status == self.STATUS_CONCLUIDO:
+                if self.VERSAO_NOMES[self.relatorio_acertos_versao] == 'rascunho':
+                    return f"Prévia gerada em {self.relatorio_acertos_gerado_em.strftime('%d/%m/%Y às %H:%M')}"
+                else:
+                    return f"Documento gerado em {self.relatorio_acertos_gerado_em.strftime('%d/%m/%Y às %H:%M')}"
+            elif self.relatorio_acertos_status == self.STATUS_EM_PROCESSAMENTO:
+                return f"Relatório sendo gerado..."
+            elif self.relatorio_acertos_status == self.STATUS_NAO_GERADO:
+                if self.VERSAO_NOMES[self.relatorio_acertos_versao] == 'rascunho':
+                    return "Nenhuma prévia gerada."
+                else:
+                    return "Nenhum documento gerado."
 
     class Meta:
         verbose_name = "Análise consolidado DRE"
