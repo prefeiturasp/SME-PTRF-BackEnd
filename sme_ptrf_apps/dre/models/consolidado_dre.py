@@ -119,8 +119,8 @@ class ConsolidadoDRE(ModeloBase):
     )
 
     analise_atual = models.ForeignKey('AnaliseConsolidadoDre', on_delete=models.SET_NULL,
-                                    related_name='consolidado_dre_da_analise_atual',
-                                    blank=True, null=True)
+                                      related_name='consolidado_dre_da_analise_atual',
+                                      blank=True, null=True)
 
     sequencia_de_retificacao = models.IntegerField('Sequência de retificação', blank=True, null=True, default=0)
 
