@@ -89,7 +89,7 @@ class DadosRelatorioDevolucaoAcertosSme:
 
     def __info_rodape(self):
         data_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M")
-        tipo_texto = "Prévia gerada" if self.previa else "Documento gerado"
+        tipo_texto = "Prévia gerada" if self.previa else "Documento final gerado"
         quem_gerou = "" if self.username == "" else f"pelo usuário {self.username}"
 
         texto = f"SME, {tipo_texto} {quem_gerou}, via SIG_ESCOLA, em {data_geracao}."
@@ -107,7 +107,8 @@ class DadosRelatorioDevolucaoAcertosSme:
     @staticmethod
     def __get_prazo_devolucao_dre(analise_consolidado):
         if analise_consolidado.data_limite:
-            return analise_consolidado.data_limite
+            date_limite = datetime.strptime(analise_consolidado.data_limite, '%Y-%m-%d').date()
+            return date_limite
         else:
             return "-"
 

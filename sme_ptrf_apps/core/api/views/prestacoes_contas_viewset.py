@@ -343,6 +343,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def desfazer_analise(self, request, uuid):
         prestacao_conta = self.get_object()
 
+        if prestacao_conta.em_retificacao:
+            return Response({'erro': 'Impossível desfazer análise de uma PC em retificação.'}, status=status.HTTP_403_FORBIDDEN)
+
         if prestacao_conta.status != PrestacaoConta.STATUS_EM_ANALISE:
             response = {
                 'uuid': f'{prestacao_conta.uuid}',
