@@ -684,7 +684,8 @@ def lancamentos_da_prestacao(
 
     prestacao_conta = analise_prestacao_conta.prestacao_conta
 
-    if not tipo_transacao or tipo_transacao == "CREDITOS":
+    tem_filtro_apenas_despesas = numero_de_documento or tipo_de_documento or tipo_de_pagamento or filtrar_por_nome_fornecedor
+    if (not tipo_transacao or tipo_transacao == "CREDITOS") and not tem_filtro_apenas_despesas:
         receitas = Receita.receitas_da_conta_associacao_no_periodo(
             conta_associacao=conta_associacao,
             acao_associacao=acao_associacao,
