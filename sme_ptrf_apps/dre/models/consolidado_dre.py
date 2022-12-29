@@ -152,6 +152,36 @@ class ConsolidadoDRE(ModeloBase):
 
         return True
 
+    sequencia_de_retificacao = models.IntegerField('Sequência de retificação', blank=True, null=True, default=0)
+
+    consolidado_retificado = models.ForeignKey(
+        'ConsolidadoDRE', on_delete=models.PROTECT,
+        related_name='retificacoes',
+        blank=True, null=True,
+        default=None,
+    )
+
+    motivo_retificacao = models.TextField('Motivo de retificação', blank=True, null=True)
+
+    @property
+    def foi_publicado(self):
+        return self.status_sme == self.STATUS_SME_PUBLICADO
+
+    @property
+    def permite_retificacao(self):
+        return self.foi_publicado
+
+    @property
+    def eh_retificacao(self):
+        return self.consolidado_retificado is not None
+
+    @property
+    def eh_publicacao_unica(self):
+        if self.eh_parcial:
+            return False
+
+        return True
+
     class Meta:
         verbose_name = 'Consolidado DRE'
         verbose_name_plural = 'Consolidados DREs'
