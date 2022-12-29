@@ -386,13 +386,24 @@ class ConsolidadoDRE(ModeloBase):
             logger.error(f'{e}')
             return False
 
-    def devolver_consolidado(self, data_limite):
+    def devolver_consolidado(self, data_limite, username=None):
+        from sme_ptrf_apps.dre.services import RelatorioDevolucaoAcertos
+
         self.status_sme = self.STATUS_SME_DEVOLVIDO
         for analise_documento in self.analise_atual.analises_de_documentos_da_analise_do_consolidado.all():
             analise_documento.copiado = True
             analise_documento.save()
         self.analise_atual.devolucao(data_limite)
         self.save()
+
+        if username:
+            relatorio = RelatorioDevolucaoAcertos(
+                analise_consolidado=self.analise_atual,
+                username=username,
+                previa=False
+            )
+
+            relatorio.gerar_arquivo_relatorio_devolucao_acertos()
 
         logging.info(f'Consolidado devolvido com a data_limite {data_limite}.')
 

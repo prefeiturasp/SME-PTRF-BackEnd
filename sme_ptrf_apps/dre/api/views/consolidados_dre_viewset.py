@@ -923,7 +923,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         query.is_valid(raise_exception=True)
         try:
-            consolidado.devolver_consolidado(data_limite=request.data.get('data_limite'))
+            consolidado.devolver_consolidado(data_limite=request.data.get('data_limite'), username=request.user.username)
             response = {
                 'uuid': f'{uuid}',
                 'mensagem': 'Consolidado dre devolvido com sucesso.'
