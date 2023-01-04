@@ -171,6 +171,7 @@ class PrestacaoConta(ModeloBase):
 
     def concluir(self, e_retorno_devolucao=False, justificativa_acertos_pendentes=''):
         from ..models import DevolucaoPrestacaoConta
+        from ..services.notificacao_services import marcar_como_lidas_notificacoes_de_devolucao_da_pc
         if e_retorno_devolucao:
             self.status = self.STATUS_DEVOLVIDA_RETORNADA
             ultima_devolucao = DevolucaoPrestacaoConta.objects.filter(prestacao_conta=self).order_by('id').last()
@@ -180,6 +181,8 @@ class PrestacaoConta(ModeloBase):
             self.status = self.STATUS_NAO_RECEBIDA
         self.justificativa_pendencia_realizacao = justificativa_acertos_pendentes
         self.save()
+        if e_retorno_devolucao:
+            marcar_como_lidas_notificacoes_de_devolucao_da_pc(prestacao_de_contas=self)
         return self
 
     def receber(self, data_recebimento):
