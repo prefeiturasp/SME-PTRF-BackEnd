@@ -51,6 +51,9 @@ class MarcarComoRealizado:
                     self.response["todas_as_solicitacoes_marcadas_como_realizado"] = False
                     self.response["mensagem"] = texto_solicitacoes_nao_atendidas
 
+            elif categoria == TipoAcertoLancamento.CATEGORIA_AJUSTES_EXTERNOS:
+                pode_atualizar_status = True
+
             if pode_atualizar_status:
                 solicitacao_acerto.altera_status_realizacao(
                     novo_status=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_REALIZADO,
