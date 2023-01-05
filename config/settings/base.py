@@ -66,6 +66,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # APPS
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
+    "elasticapm.contrib.django",
     "corsheaders",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -415,4 +416,12 @@ CKEDITOR_CONFIGS = {
             'elementspath'
         ]),
     }
+}
+
+ELASTIC_APM = {
+    'SERVICE_NAME': env('ELASTIC_APM_SERVICE_NAME'),
+    'SECRET_TOKEN': env('ELASTIC_APM_SECRET_TOKEN'),
+    'DEBUG': env('ELASTIC_APM_DEBUG'),
+    'SERVER_URL': env('ELASTIC_APM_SERVER_URL'),
+    'ENVIRONMENT': env('ELASTIC_APM_ENVIRONMENT'),
 }

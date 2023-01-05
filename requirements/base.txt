@@ -55,3 +55,6 @@ django-weasyprint==1.0.2
 
 # Para somar valores nos templates (incluindo floats)
 django-mathfilters==1.0.0
+
+# Integração com Kibana
+elastic-apm==6.13.2
