@@ -30,7 +30,7 @@ def criar_ata_e_atribuir_ao_consolidado_dre(dre=None, periodo=None, consolidado_
 
 
 def retornar_ja_publicadas(dre, periodo):
-    consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao='FINAL')
+    consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao='FINAL').order_by('sequencia_de_retificacao')
     # Pegando o valor máximo da sequencia de publicacao para habilitar ou não o botão de remover data de publicação
     valor_maximo_sequencia_de_publicacao = consolidados_dre.aggregate(max_sequencia_de_publicacao=Coalesce(
         Max('sequencia_de_publicacao'), Value(0)))['max_sequencia_de_publicacao']
@@ -140,7 +140,10 @@ def retornar_ja_publicadas(dre, periodo):
 
         consolidado['laudas'] = laudas_list
 
-        publicacoes_anteriores.append(consolidado)
+        if consolidado['eh_retificacao']:
+            publicacoes_anteriores.insert(0, consolidado)
+        else:
+            publicacoes_anteriores.append(consolidado)
 
     return publicacoes_anteriores
 
@@ -285,7 +288,6 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
                                                                                                       periodo_uuid)
 
     sequencia_de_publicacao_atual = sequencia_de_publicacao['sequencia_de_publicacao_atual']
-
     publicacoes_anteriores = retornar_ja_publicadas(dre, periodo)
 
     quantidade_ues_cnpj = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').count()
@@ -714,10 +716,10 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, 
             periodo=consolidado_dre.periodo,
             motivo_retificacao=motivo_retificacao,
     )
-        retificacao.consolidado_retificado = retificacao.consolidado_retificado
-        retificacao.sequencia_de_publicacao = retificacao.sequencia_de_publicacao
-        retificacao.sequencia_de_retificacao = retificacao.get_proxima_sequencia_retificacao()
-        retificacao.save(update_fields=['consolidado_retificado'])
+        retificacao.consolidado_retificado = consolidado_dre.consolidado_retificado
+        retificacao.sequencia_de_publicacao = consolidado_dre.sequencia_de_publicacao
+        retificacao.sequencia_de_retificacao = consolidado_dre.sequencia_de_retificacao + 1
+        retificacao.save()
     else:
         retificacao = ConsolidadoDRE.objects.create(
             dre=consolidado_dre.dre,

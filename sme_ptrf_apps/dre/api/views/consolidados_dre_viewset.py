@@ -304,7 +304,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
         try:
             sequencia_de_publicacao_atual = parcial['sequencia_de_publicacao_atual']
             ata_parecer_tecnico = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo,
-                                                                   sequencia_de_publicacao=sequencia_de_publicacao_atual).last()
+                                                                    sequencia_de_publicacao=sequencia_de_publicacao_atual).last()
             if not ata_parecer_tecnico:
                 raise ValidationError(f"O objeto Ata para a DRE {dre} e Período {periodo} não foi encontrado na base.")
         except (AtaParecerTecnico.DoesNotExist, ValidationError):
