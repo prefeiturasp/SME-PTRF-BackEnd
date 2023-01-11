@@ -49,6 +49,15 @@ def concluir_prestacao_de_contas_async(
         ultima_analise_pc = prestacao.analises_da_prestacao.order_by('id').last()
         criar_relatorio_apos_acertos_final(analise_prestacao_conta=ultima_analise_pc, usuario=usuario)
 
+    if e_retorno_devolucao and requer_geracao_documentos:
+        logging.info(f'Solicitações de ajustes requerem apagar fechamentos e documentos da pc {prestacao.uuid}.')
+        prestacao.apaga_fechamentos()
+        prestacao.apaga_relacao_bens()
+        prestacao.apaga_demonstrativos_financeiros()
+        logging.info(f'Fechamentos e documentos da pc {prestacao.uuid} apagados.')
+    else:
+        logging.info(f'Solicitações de ajustes NÃO requerem apagar fechamentos e documentos da pc {prestacao.uuid}.')
+
     if requer_geracao_documentos:
         _criar_fechamentos(acoes, contas, periodo, prestacao)
         logger.info('Fechamentos criados para a prestação de contas %s.', prestacao)
