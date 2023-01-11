@@ -23,7 +23,8 @@ class ConsolidadoDreSerializer(serializers.ModelSerializer):
             'status_sme',
             'data_publicacao',
             'pagina_publicacao',
-            'motivo_retificacao'
+            'motivo_retificacao',
+            'consolidado_retificado'
         )
 
 

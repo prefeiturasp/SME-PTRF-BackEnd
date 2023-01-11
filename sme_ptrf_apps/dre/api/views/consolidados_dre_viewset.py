@@ -150,7 +150,6 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
     @action(detail=False, methods=['get'], url_path='publicados-e-proxima-publicacao',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def consolidados_dre_ja_criados_e_proxima_criacao(self, request):
-
         dre_uuid = request.query_params.get('dre')
         periodo_uuid = request.query_params.get('periodo')
 
@@ -183,8 +182,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         consolidados_ja_criados_e_proxima = retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=dre,
-                                                                                                   periodo=periodo)
-
+                                                                                                 periodo=periodo)
         return Response(consolidados_ja_criados_e_proxima, status=status.HTTP_200_OK)
 
     @action(
@@ -306,7 +304,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
         try:
             sequencia_de_publicacao_atual = parcial['sequencia_de_publicacao_atual']
             ata_parecer_tecnico = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo,
-                                                                   sequencia_de_publicacao=sequencia_de_publicacao_atual).last()
+                                                                    sequencia_de_publicacao=sequencia_de_publicacao_atual).last()
             if not ata_parecer_tecnico:
                 raise ValidationError(f"O objeto Ata para a DRE {dre} e Período {periodo} não foi encontrado na base.")
         except (AtaParecerTecnico.DoesNotExist, ValidationError):

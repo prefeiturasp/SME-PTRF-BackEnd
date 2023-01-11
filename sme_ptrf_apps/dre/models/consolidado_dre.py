@@ -132,6 +132,7 @@ class ConsolidadoDRE(ModeloBase):
     )
 
     motivo_retificacao = models.TextField('Motivo de retificação', blank=True, null=True)
+    gerou_uma_retificacao = models.BooleanField("Já gerou uma retificação?", default=False)
 
     @property
     def foi_publicado(self):
@@ -174,7 +175,7 @@ class ConsolidadoDRE(ModeloBase):
     @property
     def referencia(self):
         if self.eh_retificacao:
-            return f"Retificação da publicação de {self.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y')}"
+            return f"Retificação da publicação de {self.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y') if self.consolidado_retificado.data_publicacao else ''}"
         else:
             return "Única" if self.sequencia_de_publicacao == 0 else f'Parcial #{self.sequencia_de_publicacao}'
 
