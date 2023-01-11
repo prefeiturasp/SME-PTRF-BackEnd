@@ -30,28 +30,35 @@ def criar_ata_e_atribuir_ao_consolidado_dre(dre=None, periodo=None, consolidado_
 
 
 def retornar_ja_publicadas(dre, periodo):
-    consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao='FINAL')
-
+    consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao='FINAL').order_by('sequencia_de_publicacao', 'sequencia_de_retificacao')
     # Pegando o valor máximo da sequencia de publicacao para habilitar ou não o botão de remover data de publicação
     valor_maximo_sequencia_de_publicacao = consolidados_dre.aggregate(max_sequencia_de_publicacao=Coalesce(
         Max('sequencia_de_publicacao'), Value(0)))['max_sequencia_de_publicacao']
 
     publicacoes_anteriores = []
+
     for consolidado_dre in consolidados_dre:
 
-        tipo_publicacao = "Parcial" if consolidado_dre.eh_parcial else "Única"
+        tipo_publicacao = "Única"
+
+        if consolidado_dre.eh_parcial:
+            tipo_publicacao = "Parcial"
+
         sequencia = consolidado_dre.sequencia_de_publicacao
+
         qtde_unidades = consolidado_dre.prestacoes_de_conta_do_consolidado_dre.all().count()
 
         texto_qtde_unidades = ""
-
         if qtde_unidades == 1:
             texto_qtde_unidades = " - 1 PC"
         elif qtde_unidades > 1:
             texto_qtde_unidades = f' - {qtde_unidades} PCs'
 
+        tipo_publicacao = f"Retificação da Publicação de {consolidado_dre.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y') if consolidado_dre.consolidado_retificado and consolidado_dre.consolidado_retificado.data_publicacao else ''}"  if consolidado_dre.eh_retificacao else tipo_publicacao
         if tipo_publicacao == 'Parcial':
             nome_publicacao = f'Publicação {tipo_publicacao} #{sequencia}{texto_qtde_unidades}'
+        elif tipo_publicacao.startswith('Retificação'):
+            nome_publicacao = f'{tipo_publicacao} {texto_qtde_unidades}'
         else:
             nome_publicacao = f'Publicação Única{texto_qtde_unidades}'
 
@@ -71,8 +78,11 @@ def retornar_ja_publicadas(dre, periodo):
             'permite_excluir_data_e_pagina_publicacao': valor_maximo_sequencia_de_publicacao == sequencia,
             'habilita_botao_gerar': False,
             'texto_tool_tip_botao_gerar': 'É necessário informar a data e a página da publicação anterior<br/>'
-                                          'no Diário Oficial da Cidade para gerar uma nova publicação.',
+                                        'no Diário Oficial da Cidade para gerar uma nova publicação.',
             'permite_retificacao': consolidado_dre.permite_retificacao,
+            'referencia': consolidado_dre.referencia,
+            'eh_retificacao': consolidado_dre.eh_retificacao,
+            'gerou_uma_retificacao': consolidado_dre.gerou_uma_retificacao
         }
 
         atas_de_parecer_tecnico = consolidado_dre.atas_de_parecer_tecnico_do_consolidado_dre.all()
@@ -124,9 +134,9 @@ def retornar_ja_publicadas(dre, periodo):
             laudas_list.append(_lauda)
 
         consolidado['laudas'] = laudas_list
-
         publicacoes_anteriores.append(consolidado)
 
+    publicacoes_anteriores = publicacoes_anteriores[::-1]
     return publicacoes_anteriores
 
 
@@ -270,7 +280,6 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
                                                                                                       periodo_uuid)
 
     sequencia_de_publicacao_atual = sequencia_de_publicacao['sequencia_de_publicacao_atual']
-
     publicacoes_anteriores = retornar_ja_publicadas(dre, periodo)
 
     quantidade_ues_cnpj = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').count()
@@ -692,14 +701,29 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, 
         raise Exception('É necessário informar o motivo da retificação.')
 
     logger.info(f'Iniciando a retificação do Consolidado DRE {consolidado_dre}')
-    retificacao = ConsolidadoDRE.objects.create(
-        dre=consolidado_dre.dre,
-        periodo=consolidado_dre.periodo,
-        sequencia_de_publicacao=consolidado_dre.sequencia_de_publicacao,
-        sequencia_de_retificacao=consolidado_dre.get_proxima_sequencia_retificacao(),
-        consolidado_retificado=consolidado_dre,
-        motivo_retificacao=motivo_retificacao,
+
+    if consolidado_dre.eh_retificacao and consolidado_dre.consolidado_retificado:
+        retificacao = ConsolidadoDRE.objects.create(
+            dre=consolidado_dre.dre,
+            periodo=consolidado_dre.periodo,
+            motivo_retificacao=motivo_retificacao,
     )
+        retificacao.consolidado_retificado = consolidado_dre.consolidado_retificado
+        retificacao.sequencia_de_publicacao = consolidado_dre.sequencia_de_publicacao
+        retificacao.sequencia_de_retificacao = consolidado_dre.sequencia_de_retificacao + 1
+    else:
+        retificacao = ConsolidadoDRE.objects.create(
+            dre=consolidado_dre.dre,
+            periodo=consolidado_dre.periodo,
+            sequencia_de_publicacao=consolidado_dre.sequencia_de_publicacao,
+            sequencia_de_retificacao=consolidado_dre.get_proxima_sequencia_retificacao(),
+            consolidado_retificado=consolidado_dre,
+            motivo_retificacao=motivo_retificacao,
+        )
+    consolidado_dre.gerou_uma_retificacao=True
+    consolidado_dre.save()
+    retificacao.save()
+
     logger.info(f'Consolidado DRE de retificação criado {retificacao}')
 
     for pc_uuid in prestacoes_de_conta_a_retificar:
