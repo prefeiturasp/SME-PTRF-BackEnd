@@ -36,12 +36,45 @@ def test_service_limpar_status(
 
 
 def test_service_justificar_nao_realizado(
-    solicitacao_acerto_documento_pendente_service_01,
+    solicitacao_acerto_documento_pendente_service_04,
     solicitacao_acerto_documento_pendente_service_02
 ):
     resultado_esperado = {
         "mensagem": "Status alterados com sucesso!",
-        "status": status.HTTP_200_OK
+        "status": status.HTTP_200_OK,
+        "todas_as_solicitacoes_marcadas_como_justificado": True
+    }
+
+    uuids_solicitacoes = [
+        f"{solicitacao_acerto_documento_pendente_service_04.uuid}",
+        f"{solicitacao_acerto_documento_pendente_service_02.uuid}"
+    ]
+
+    justificativa = "justificativa teste"
+
+    result = SolicitacaoAcertoDocumentoService.justificar_nao_realizacao(
+        uuids_solicitacoes_acertos_documentos=uuids_solicitacoes,
+        justificativa=justificativa
+    )
+
+    solicitacao_1 = SolicitacaoAcertoDocumento.by_uuid(solicitacao_acerto_documento_pendente_service_04.uuid)
+    solicitacao_2 = SolicitacaoAcertoDocumento.by_uuid(solicitacao_acerto_documento_pendente_service_02.uuid)
+
+    assert solicitacao_1.status_realizacao == SolicitacaoAcertoDocumento.STATUS_REALIZACAO_JUSTIFICADO
+    assert solicitacao_1.justificativa == justificativa
+    assert solicitacao_2.status_realizacao == SolicitacaoAcertoDocumento.STATUS_REALIZACAO_JUSTIFICADO
+    assert solicitacao_2.justificativa == justificativa
+    assert resultado_esperado == result
+
+
+def test_service_justificar_nao_realizado_lote_ajuste_realizado_e_nao_realizado(
+    solicitacao_acerto_documento_pendente_service_01,
+    solicitacao_acerto_documento_pendente_service_02
+):
+    resultado_esperado = {
+        "mensagem": "Não foi possível alterar o status da solicitação, pois os ajustes já foram realizados.",
+        "status": status.HTTP_200_OK,
+        "todas_as_solicitacoes_marcadas_como_justificado": False
     }
 
     uuids_solicitacoes = [
@@ -59,8 +92,8 @@ def test_service_justificar_nao_realizado(
     solicitacao_1 = SolicitacaoAcertoDocumento.by_uuid(solicitacao_acerto_documento_pendente_service_01.uuid)
     solicitacao_2 = SolicitacaoAcertoDocumento.by_uuid(solicitacao_acerto_documento_pendente_service_02.uuid)
 
-    assert solicitacao_1.status_realizacao == SolicitacaoAcertoDocumento.STATUS_REALIZACAO_JUSTIFICADO
-    assert solicitacao_1.justificativa == justificativa
+    assert solicitacao_1.status_realizacao == SolicitacaoAcertoDocumento.STATUS_REALIZACAO_PENDENTE
+    assert solicitacao_1.justificativa is None
     assert solicitacao_2.status_realizacao == SolicitacaoAcertoDocumento.STATUS_REALIZACAO_JUSTIFICADO
     assert solicitacao_2.justificativa == justificativa
     assert resultado_esperado == result
