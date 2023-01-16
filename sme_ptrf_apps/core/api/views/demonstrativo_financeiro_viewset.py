@@ -304,14 +304,12 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
                                                         periodo__uuid=periodo_uuid
                                                         ).first()
 
-        # demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(conta_associacao__uuid=conta_associacao_uuid, prestacao_conta=prestacao_conta).first()
         demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(
             conta_associacao__uuid=conta_associacao_uuid,
             versao=DemonstrativoFinanceiro.VERSAO_PREVIA,
             periodo_previa__uuid=periodo_uuid,
             prestacao_conta=None).first()
 
-        # ESTA AQUI
         if not demonstrativo_financeiro:
             demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(
                 conta_associacao__uuid=conta_associacao_uuid, prestacao_conta=prestacao_conta).first()
