@@ -116,11 +116,12 @@ class JustificarNaoRealizacao:
                     self.response["mensagem"] = texto_solicitacoes_nao_atendidas
 
             elif categoria == TipoAcertoDocumento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO:
-                if solicitacao_acerto.esclarecimentos != "":
-                    pode_atualizar_status = False
+                if solicitacao_acerto.esclarecimentos is not None:
+                    if solicitacao_acerto.esclarecimentos != "":
+                        pode_atualizar_status = False
 
-                    self.response["todas_as_solicitacoes_marcadas_como_justificado"] = False
-                    self.response["mensagem"] = texto_solicitacoes_nao_atendidas
+                        self.response["todas_as_solicitacoes_marcadas_como_justificado"] = False
+                        self.response["mensagem"] = texto_solicitacoes_nao_atendidas
 
             elif categoria == TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS:
                 pode_atualizar_status = True
