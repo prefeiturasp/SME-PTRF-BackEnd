@@ -240,25 +240,7 @@
               <td colspan="5" class="sem-borda pb-4">
 
                 {% for acerto in lancamento.analise_lancamento.solicitacoes_de_ajuste_da_analise %}
-                  {% if acerto.tipo_acerto.categoria == 'BASICO' %}
-                    <div class="row">
-                      <div class="col-12 mt-4">
-                        <span class="item font-12"><strong>Item {{ forloop.counter }}:</strong></span>
-                        <span class="ml-2 font-12">{{ acerto.tipo_acerto.nome }}</span>
-                      </div>
-                    </div>
-
-                    {% if acerto.detalhamento %}
-                      <div class="row mt-2">
-                        <div class="col-12">
-                          <span class="font-12"><strong>Detalhamento do acerto (opcional):</strong></span>
-                          <br>
-                          <span class="font-12">{{ acerto.detalhamento }}</span>
-                        </div>
-                      </div>
-                    {% endif %}
-
-                  {% else %}
+                  {% if acerto.tipo_acerto.categoria == 'DEVOLUCAO' %}
                     <div class="row">
                       <div class="col-12 mt-4">
                         <span class="item font-12"><strong>Item {{ forloop.counter }}:</strong></span>
@@ -288,7 +270,7 @@
                       <div class="col-6">
                         <span class="font-12"><strong>Valor (R$)</strong></span>
                         <br>
-                        <span class="font-12">{{ acerto.devolucao_ao_tesouro.valor }}</span>
+                        <span class="font-12">{{ acerto.devolucao_ao_tesouro.valor|formata_valor }}</span>
                       </div>
                     </div>
 
@@ -299,7 +281,27 @@
                         <span class="font-12">{{ acerto.devolucao_ao_tesouro.motivo }}</span>
                       </div>
                     </div>
+
+                  {% else %}
+                    <div class="row">
+                      <div class="col-12 mt-4">
+                        <span class="item font-12"><strong>Item {{ forloop.counter }}:</strong></span>
+                        <span class="ml-2 font-12">{{ acerto.tipo_acerto.nome }}</span>
+                      </div>
+                    </div>
+
+                    {% if acerto.detalhamento %}
+                      <div class="row mt-2">
+                        <div class="col-12">
+                          <span class="font-12"><strong>Detalhamento do acerto:</strong></span>
+                          <br>
+                          <span class="font-12">{{ acerto.detalhamento }}</span>
+                        </div>
+                      </div>
+                    {% endif %}
+
                   {% endif %}
+
                 {% endfor %}
               </td>
             </tr>
@@ -346,7 +348,7 @@
                     {% if acertos.detalhamento %}
                       <div class="row mt-2">
                         <div class="col-12">
-                          <span class="font-12"><strong>Detalhamento do acerto (opcional)</strong></span>
+                          <span class="font-12"><strong>Detalhamento do acerto:</strong></span>
                           <br>
                           <span class="font-12">{{ acertos.detalhamento }}</span>
                         </div>

@@ -34,7 +34,8 @@ def test_api_retrieve_analise_prestacao_contas_existente(
         'prestacao_conta': f'{analise_prestacao.prestacao_conta.uuid}',
         'status': 'EM_ANALISE',
         'uuid': f'{analise_prestacao.uuid}',
-        'versao': analise_prestacao.versao
+        'versao': analise_prestacao.versao,
+        'versao_pdf_apresentacao_apos_acertos': analise_prestacao.versao_pdf_apresentacao_apos_acertos
     }
 
     url = f'/api/analises-prestacoes-contas/{analise_prestacao.uuid}/'

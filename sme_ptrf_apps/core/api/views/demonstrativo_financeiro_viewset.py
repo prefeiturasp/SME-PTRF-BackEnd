@@ -302,10 +302,17 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
         conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
         prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao,
                                                         periodo__uuid=periodo_uuid
-                                                        ).exclude(status=PrestacaoConta.STATUS_DEVOLVIDA).first()
+                                                        ).first()
 
-        demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(conta_associacao__uuid=conta_associacao_uuid,
-                                                                          prestacao_conta=prestacao_conta).first()
+        demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(
+            conta_associacao__uuid=conta_associacao_uuid,
+            versao=DemonstrativoFinanceiro.VERSAO_PREVIA,
+            periodo_previa__uuid=periodo_uuid,
+            prestacao_conta=None).first()
+
+        if not demonstrativo_financeiro:
+            demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(
+                conta_associacao__uuid=conta_associacao_uuid, prestacao_conta=prestacao_conta).first()
 
         if not demonstrativo_financeiro:
             msg = 'Documento pendente de geração'

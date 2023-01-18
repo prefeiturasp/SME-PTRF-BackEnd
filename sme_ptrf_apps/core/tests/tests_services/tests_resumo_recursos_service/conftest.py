@@ -1,6 +1,6 @@
 import pytest
 
-from datetime import date
+from datetime import date, datetime
 
 from model_bakery import baker
 
@@ -229,6 +229,22 @@ def rr_receita_650_2020_2_ptrf_cheque_custeio(rr_associacao, rr_conta_associacao
         categoria_receita='CUSTEIO'
     )
 
+@pytest.fixture
+def rr_receita_110_2020_1_ptrf_cheque_custeio_inativa(rr_associacao, rr_conta_associacao_cheque, rr_acao_associacao_ptrf, tipo_receita, rr_periodo_2020_1):
+    return baker.make(
+        'Receita',
+        associacao=rr_associacao,
+        data=date(2020, 1, 1),
+        valor=110.00,
+        conta_associacao=rr_conta_associacao_cheque,
+        acao_associacao=rr_acao_associacao_ptrf,
+        tipo_receita=tipo_receita,
+        categoria_receita='CUSTEIO',
+        data_e_hora_de_inativacao=datetime(2020, 1, 2, 10, 20, 30),
+        status='INATIVO',
+    )
+
+
 
 @pytest.fixture
 def rr_despesa_2020_1(rr_associacao, tipo_documento, tipo_transacao, rr_periodo_2020_1):
@@ -372,6 +388,48 @@ def rr_rateio_550_2020_2_ptrf_cheque_custeio(
         especificacao_material_servico=especificacao_material_eletrico,
         valor_rateio=550.00
     )
+
+@pytest.fixture
+def rr_despesa_2020_1_inativa(rr_associacao, tipo_documento, tipo_transacao, rr_periodo_2020_1):
+    return baker.make(
+        'Despesa',
+        associacao=rr_associacao,
+        numero_documento='123456',
+        data_documento=date(2020, 1, 1),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        data_transacao=date(2020, 1, 1),
+        valor_total=1000.00,
+        data_e_hora_de_inativacao=datetime(2020, 2, 2, 10, 20, 30),
+        status='INATIVO',
+    )
+
+
+@pytest.fixture
+def rr_rateio_100_2020_1_ptrf_cheque_custeio_inativo(
+    rr_associacao,
+    rr_despesa_2020_1_inativa,
+    rr_conta_associacao_cheque,
+    rr_acao_associacao_ptrf,
+    tipo_custeio_material,
+    especificacao_material_eletrico,
+):
+    return baker.make(
+        'RateioDespesa',
+        despesa=rr_despesa_2020_1_inativa,
+        associacao=rr_associacao,
+        conta_associacao=rr_conta_associacao_cheque,
+        acao_associacao=rr_acao_associacao_ptrf,
+        aplicacao_recurso='CUSTEIO',
+        tipo_custeio=tipo_custeio_material,
+        especificacao_material_servico=especificacao_material_eletrico,
+        valor_rateio=100.00,
+        status='INATIVO',
+    )
+
+
 
 
 # Fechamentos  =========================================

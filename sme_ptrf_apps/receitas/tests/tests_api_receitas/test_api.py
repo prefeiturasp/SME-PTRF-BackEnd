@@ -264,6 +264,7 @@ def test_get_receitas(
         {
             'uuid': str(receita.uuid),
             'data': '2020-03-26',
+            'data_e_hora_de_inativacao': None,
             'valor': '100.00',
             'repasse': None,
             'saida_do_recurso':
@@ -288,6 +289,7 @@ def test_get_receitas(
                     'valor_ptrf': 100.0,
                     'valor_total': '100.00'
                 },
+            'status': 'COMPLETO',
             'tipo_receita': {
                 'id': tipo_receita.id,
                 'nome': tipo_receita.nome,
@@ -387,26 +389,6 @@ def test_update_receita_com_conta_invalida(
     assert response.json() == ['O tipo de receita Estorno não permite salvar créditos com contas do tipo Cartão']
 
 
-def test_deleta_receita(
-    jwt_authenticated_client_p,
-    tipo_receita,
-    acao,
-    acao_associacao,
-    associacao,
-    tipo_conta,
-    conta_associacao,
-    receita,
-    payload_receita):
-    assert Receita.objects.filter(uuid=receita.uuid).exists()
-
-    response = jwt_authenticated_client_p.delete(
-        f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', content_type='application/json')
-
-    assert response.status_code == status.HTTP_204_NO_CONTENT
-
-    assert not Receita.objects.filter(uuid=receita.uuid).exists()
-
-
 def test_deleta_receita_repasse(
     jwt_authenticated_client_p,
     tipo_receita_repasse,
@@ -452,6 +434,7 @@ def test_retrive_receitas(
     esperado = {
         'uuid': str(receita.uuid),
         'data': '2020-03-26',
+        'data_e_hora_de_inativacao': None,
         'valor': '100.00',
         'tipo_receita': {
             'id': tipo_receita.id,
@@ -487,6 +470,7 @@ def test_retrive_receitas(
                 'valor_ptrf': 100.0,
                 'valor_total': '100.00'
             },
+        'status': 'COMPLETO',
         "acao_associacao": {
             "uuid": str(acao_associacao.uuid),
             "id": acao_associacao.id,

@@ -1,0 +1,84 @@
+{% load staticfiles %}
+{% load formata_valores %}
+{% load formata_string %}
+
+{% if dados.dados_documentos %}
+
+    <table class="table table-bordered tabela-resumo-por-acao">
+      <thead>
+        <tr class="">
+          <th colspan="6">
+            <strong class="font-16 titulo-bloco ml-2">{{ dados.blocos.acertos_documentos }}</strong>
+          </th>
+        </tr>
+
+      <tr>
+        <th class="fundo-th-cinza py-1" style="width: 2%"> </th>
+        <th colspan="5" class="fundo-th-cinza font-12 py-1">
+          <strong>Nome do documento:</strong>
+        </th>
+      </tr>
+      </thead>
+
+  {% for documento in dados.dados_documentos %}
+    <tbody>
+      <tr>
+        <td class="fundo-td-cinza-mais-escuro font-12 py-1">{{ forloop.counter }}</td>
+        <td colspan="5" class="fundo-td-cinza-mais-escuro font-12 py-1">{{ documento.tipo_documento_prestacao_conta.nome }}</td>
+      </tr>
+      {% for acerto in documento.solicitacoes_de_ajuste_da_analise %}
+        <tr class="border-bottom">
+          <td rowspan="1" class="sem-borda pb-4"></td>
+          <td colspan="5" class="sem-borda border-bottom pb-4">
+            <div class="row mt-2">
+              <div class='col-2'>
+                  <span class="item font-12"><strong>Item {{ forloop.counter }}</strong></span>
+              </div>
+
+              <div class='col-8'>
+                <p class="font-12 mb-0"><strong>Tipo de acerto</strong></p>
+                <p class="font-12">{{ acerto.tipo_acerto.nome }}</p>
+
+                {% if acerto.detalhamento %}
+                  <p class="font-12">{{ acerto.detalhamento }}</p>
+                {% endif %}
+
+                {% if acerto.justificativa %}
+                  <p class="font-12 mb-0"><strong>Justificativa</strong></p>
+                  <p class="font-12">{{ acerto.justificativa }}</p>
+                {% endif %}
+
+                {% if acerto.esclarecimentos %}
+                  <p class="font-12 mb-0"><strong>Esclarecimentos</strong></p>
+                  <p class="font-12">{{ acerto.esclarecimentos }}</p>
+                {% endif %}
+
+              </div>
+
+            <div class='col-3'>
+              <p class="font-12 mb-0"><strong>Status</strong></p>
+              {% if acerto.status_realizacao == 'PENDENTE' %}
+                <p class="mt-1 font-10 tag-nao-informado">Não Informado</p>
+
+              {% elif acerto.status_realizacao == 'REALIZADO' %}
+                <p class="mt-1 font-10 tag-realizado"> {{ acerto.status_realizacao|capitaliza_string }}</p>
+
+              {% elif acerto.status_realizacao == 'JUSTIFICADO' %}
+                <p class="mt-1 font-10 tag-justificativa"> {{ acerto.status_realizacao|capitaliza_string }}</p>
+              {% endif %}
+
+            </div>
+
+            </div>
+          </td>
+        </tr>
+        </tbody>
+
+      {% endfor %}
+
+  {% endfor %}
+
+   </table>
+
+
+{% endif %}

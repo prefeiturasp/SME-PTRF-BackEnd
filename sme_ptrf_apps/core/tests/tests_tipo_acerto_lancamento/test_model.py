@@ -22,6 +22,7 @@ def test_instance_model(tipo_acerto_lancamento):
     assert model.uuid
     assert model.id
     assert model.categoria
+    assert model.ativo
 
 
 def test_srt_model(tipo_acerto_lancamento):
