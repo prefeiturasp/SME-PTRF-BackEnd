@@ -66,7 +66,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # APPS
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
-    "elasticapm.contrib.django",
+    # "elasticapm.contrib.django",
     "corsheaders",
     "django.contrib.auth",
     "django.contrib.contenttypes",
