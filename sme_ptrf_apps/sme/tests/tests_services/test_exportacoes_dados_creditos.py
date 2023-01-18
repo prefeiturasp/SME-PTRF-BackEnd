@@ -75,7 +75,7 @@ def test_envia_arquivo_central_download(usuario_para_teste):
         file.write("testando central de download")
     ExportacoesDadosCreditosService(
         nome_arquivo='usuario_para_test.txt',
-        user=usuario_para_teste
+        user=usuario_para_teste.username
     ).envia_arquivo_central_download(file)
 
     assert ArquivoDownload.objects.count() == 1

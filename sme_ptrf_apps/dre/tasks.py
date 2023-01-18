@@ -189,16 +189,14 @@ def concluir_consolidado_dre_async(
         parcial=parcial,
     )
 
-    for tipo_conta in tipo_contas:
-        gerar_lauda_txt_consolidado_dre_async(
-            consolidado_dre=consolidado_dre,
-            dre=dre,
-            periodo=periodo,
-            tipo_conta=tipo_conta,
-            parcial=parcial,
-            usuario=usuario,
-            apenas_nao_publicadas=apenas_nao_publicadas,
-        )
+    gerar_lauda_txt_consolidado_dre_async(
+        consolidado_dre=consolidado_dre,
+        dre=dre,
+        periodo=periodo,
+        parcial=parcial,
+        usuario=usuario,
+        apenas_nao_publicadas=apenas_nao_publicadas,
+    )
 
     passar_pcs_do_relatorio_para_publicadas_async(
         dre=dre,
@@ -466,9 +464,9 @@ def gerar_lauda_csv_async(dre_uuid, tipo_conta_uuid, periodo_uuid, parcial, user
     time_limet=600,
     soft_time_limit=300
 )
-def gerar_lauda_txt_consolidado_dre_async(consolidado_dre, dre, tipo_conta, periodo, parcial, usuario, apenas_nao_publicadas):
+def gerar_lauda_txt_consolidado_dre_async(consolidado_dre, dre, periodo, parcial, usuario, apenas_nao_publicadas):
     logger.info(
-        f'Iniciando a geração do arquivo txt da lauda async. DRE:{dre} Período:{periodo} Tipo Conta:{tipo_conta} Consolidado DRE {consolidado_dre}.')
+        f'Iniciando a geração do arquivo txt da lauda async. DRE:{dre} Período:{periodo} Consolidado DRE {consolidado_dre}.')
     from sme_ptrf_apps.dre.services import gerar_arquivo_lauda_txt_consolidado_dre
 
     usuario = get_user_model().objects.get(username=usuario)
@@ -477,7 +475,6 @@ def gerar_lauda_txt_consolidado_dre_async(consolidado_dre, dre, tipo_conta, peri
         consolidado_dre=consolidado_dre,
         dre=dre,
         periodo=periodo,
-        tipo_conta=tipo_conta,
         usuario=usuario,
     )
 
@@ -504,8 +501,7 @@ def gerar_lauda_txt_consolidado_dre_async(consolidado_dre, dre, tipo_conta, peri
             nome_dre = nome_dre.strip()
 
         nome_dre = nome_dre.lower()
-        nome_conta = tipo_conta.nome.lower()
-        gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, tipo_conta, ata, nome_dre, nome_conta, parcial, apenas_nao_publicadas)
+        gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, parcial, apenas_nao_publicadas)
     except Exception as err:
         erro = {
             'erro': 'problema_geracao_txt',
@@ -515,7 +511,7 @@ def gerar_lauda_txt_consolidado_dre_async(consolidado_dre, dre, tipo_conta, peri
         raise Exception(erro)
 
     logger.info(
-        f'Finalizado geração arquivo txt da lauda async. DRE:{dre} Período:{periodo} Tipo Conta:{tipo_conta}.')
+        f'Finalizado geração arquivo txt da lauda async. DRE:{dre} Período:{periodo}.')
 
 
 @shared_task(

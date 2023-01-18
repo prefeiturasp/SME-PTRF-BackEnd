@@ -437,6 +437,17 @@ def analise_prestacao_conta_anterior(prestacao_conta_com_analise_anterior, devol
 
 
 @pytest.fixture
+def analise_prestacao_conta_outra_pc(prestacao_conta, devolucao_prestacao_conta_anterior):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta,
+        devolucao_prestacao_conta=devolucao_prestacao_conta_anterior
+    )
+
+
+
+
+@pytest.fixture
 def analise_lancamento_despesa_em_analise_anterior(
     analise_prestacao_conta_anterior,
     despesa_2020_1

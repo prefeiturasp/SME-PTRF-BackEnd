@@ -22,7 +22,7 @@ from sme_ptrf_apps.users.permissoes import (
 from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoReceitaEDetalhesSerializer
 from ...services import atualiza_repasse_para_pendente, get_total_receita_sem_filtro, get_total_receita_com_filtro
 from ...tipos_aplicacao_recurso_receitas import aplicacoes_recurso_to_json
-from ....core.models import Associacao, Periodo
+from ....core.models import Associacao, Periodo, PrestacaoConta
 from ....despesas.models import Despesa
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,8 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             return ReceitaCreateSerializer
 
     def get_queryset(self):
-        associacao_uuid = self.request.query_params.get('associacao_uuid') or self.request.query_params.get('associacao__uuid')
+        associacao_uuid = self.request.query_params.get('associacao_uuid') or self.request.query_params.get(
+            'associacao__uuid')
         if associacao_uuid is None:
             erro = {
                 'erro': 'parametros_requerido',
@@ -57,7 +58,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        qs = Receita.objects.filter(associacao__uuid=associacao_uuid).all().order_by('-data')
+        qs = Receita.completas.filter(associacao__uuid=associacao_uuid).all().order_by('-data')
 
         data_inicio = self.request.query_params.get('data_inicio')
         data_fim = self.request.query_params.get('data_fim')
@@ -84,7 +85,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         associacao = Associacao.by_uuid(associacao_uuid)
-        queryset = Receita.objects.filter(associacao=associacao).all()
+        queryset = Receita.completas.filter(associacao=associacao).all()
 
         result = {
             "associacao_uuid": f'{associacao_uuid}',
@@ -124,10 +125,31 @@ class ReceitaViewSet(mixins.CreateModelMixin,
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.tipo_receita.e_repasse:
+
+        if instance.tipo_receita.e_repasse and not instance.inativar_em_vez_de_excluir:
             atualiza_repasse_para_pendente(instance)
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        if instance.tipo_receita.e_repasse and instance.inativar_em_vez_de_excluir:
+            instance.inativar_receita()
+            atualiza_repasse_para_pendente(instance)
+            msg = {
+                'sucesso': 'receita_inativada_com_sucesso',
+                'mensagem': 'Receita inativada com sucesso'
+            }
+            return Response(msg, status=status.HTTP_200_OK)
+
+        if instance.inativar_em_vez_de_excluir:
+            instance.inativar_receita()
+            msg = {
+                'sucesso': 'receita_inativada_com_sucesso',
+                'mensagem': 'Receita inativada com sucesso'
+            }
+            return Response(msg, status=status.HTTP_200_OK)
+        else:
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['patch'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
@@ -150,7 +172,6 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
 
         receita_conciliada = Receita.conciliar(uuid=uuid, periodo_conciliacao=periodo)
         return Response(ReceitaListaSerializer(receita_conciliada, many=False).data,
@@ -202,3 +223,10 @@ class ReceitaViewSet(mixins.CreateModelMixin,
                         status=status.HTTP_200_OK)
 
 
+    @action(detail=False, url_path='tags-informacoes',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def tags_informacoes_list(self, request):
+
+        result = Receita.get_tags_informacoes_list()
+
+        return Response(result)

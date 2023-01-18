@@ -34,6 +34,8 @@ def test_api_post_solicitacoes_acerto_documento(
         ],
         'solicitacoes_acerto': [
             {
+                'uuid': None,
+                'copiado': False,
                 'tipo_acerto': f'{tipo_acerto_documento_assinatura.uuid}',
                 'detalhamento': '',
             },

@@ -1,6 +1,8 @@
 import pytest
 
-from ...api.serializers import AnaliseLancamentoPrestacaoContaRetrieveSerializer
+from ...api.serializers import (
+    AnaliseLancamentoPrestacaoContaRetrieveSerializer
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -15,4 +17,7 @@ def test_retrieve_serializer(analise_lancamento_receita_prestacao_conta_2020_1):
     assert serializer.data['despesa'] is None
     assert serializer.data['receita']
     assert serializer.data['resultado']
-    assert serializer.data['solicitacoes_de_ajuste_da_analise'] == []
+    assert serializer.data['solicitacoes_de_ajuste_da_analise']
+    assert serializer.data['status_realizacao']
+    assert not serializer.data['devolucao_tesouro_atualizada']
+

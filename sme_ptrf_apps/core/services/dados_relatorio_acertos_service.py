@@ -42,7 +42,8 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
         lancamentos = lancamentos_da_prestacao(
             analise_prestacao_conta=analise_prestacao_conta,
             conta_associacao=conta,
-            com_ajustes=True
+            com_ajustes=True,
+            agrupa_solicitacoes=False
         )
 
         if lancamentos:
@@ -107,7 +108,7 @@ def nome_blocos(dados_ajustes_contas, dados_lancamentos, dados_documentos, dados
 
 def cria_data_geracao_documento(usuario, previa):
     data_geracao = date.today().strftime("%d/%m/%Y")
-    tipo_texto = "rascunho" if previa else "final"
+    tipo_texto = "prévio" if previa else "final"
     quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}. "
     texto = f"Documento {tipo_texto} gerado pelo SIG-Escola em {data_geracao} {quem_gerou}"
 

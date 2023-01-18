@@ -66,6 +66,7 @@ class FuncDreAcompanhamentoDePcs(models.Model):
 
         permissions = (
             ('access_acompanhamento_pcs_dre', '[DRE] Pode acessar Acompanhamento de PCs.'),
+            ('change_acompanhamento_pcs_dre', '[DRE] Pode atualizar Acompanhamento de PCs.'),
         )
 
 
