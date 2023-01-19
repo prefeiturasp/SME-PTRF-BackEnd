@@ -1,3 +1,6 @@
+### 1.33.15 - 12/01/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 54
+* (80682) Integração da API com o APM/Kibana
+
 ### 1.33.14 - 02/12/2022 - Hotfix - Soluções de bugs urgentes durante a sprint 54
 * (80480) Relatório consolidado: Demonstrativo: o campo 05 (Valor total disponível) não está calculando corretamente
 

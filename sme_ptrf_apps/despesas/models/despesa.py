@@ -26,7 +26,7 @@ class Despesa(ModeloBase):
     TAG_PARCIAL = {"id": "3", "nome": "Parcial", "descricao": "Parte da despesa paga com recursos próprios ou de mais de uma conta."}
     TAG_IMPOSTO = {"id": "4", "nome": "Imposto", "descricao": "Despesa com recolhimento de imposto."}
     TAG_IMPOSTO_PAGO = {"id": "5", "nome": "Imposto Pago", "descricao": "Imposto recolhido relativo a uma despesa de serviço."}
-    TAG_INATIVA = {"id": "6", "nome": "Inativado", "descricao": "Lançamento inativado."}
+    TAG_INATIVA = {"id": "6", "nome": "Excluído", "descricao": "Lançamento excluído."}
 
     history = AuditlogHistoryField()
 
@@ -137,7 +137,7 @@ class Despesa(ModeloBase):
         if self.e_despesa_inativa():
             tags.append(tag_informacao(
                 self.TAG_INATIVA,
-                f"Este gasto foi inativado em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}"
+                f"Este gasto foi excluído em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}"
             ))
         return tags
 
@@ -156,7 +156,7 @@ class Despesa(ModeloBase):
 
     @property
     def mensagem_inativacao(self):
-        return f"Este gasto foi desativado em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}" \
+        return f"Este gasto foi excluído em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}" \
             if self.status == "INATIVO" else None
 
     def __str__(self):

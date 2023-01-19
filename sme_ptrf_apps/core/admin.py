@@ -211,6 +211,89 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
     list_display_links = ('periodo',)
     readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre', 'uuid', 'id')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome',)
+    autocomplete_fields = (
+        'prestacao_conta',
+        'periodo',
+        'associacao',
+        'conta_associacao',
+        'acao_associacao',
+        'fechamento_anterior'
+    )
+    fieldsets = (
+        (
+            None, {
+                'fields': (
+                    'prestacao_conta',
+                    'periodo',
+                    'associacao',
+                    'conta_associacao',
+                    'acao_associacao',
+                    'fechamento_anterior',
+                    'status',
+                    'uuid',
+                    'id'
+                )
+            },
+        ),
+        (
+            'Capital', {
+                'fields': (
+                    'total_receitas_capital',
+                    'total_receitas_devolucao_capital',
+                    'total_repasses_capital',
+                    'total_despesas_capital',
+                    'saldo_reprogramado_capital',
+                )
+            },
+        ),
+        (
+            'Custeio', {
+                'fields': (
+                    'total_receitas_custeio',
+                    'total_receitas_devolucao_custeio',
+                    'total_repasses_custeio',
+                    'total_despesas_custeio',
+                    'saldo_reprogramado_custeio',
+                )
+            },
+        ),
+        (
+            'Livre Aplicação', {
+                'fields': (
+                    'total_receitas_livre',
+                    'total_receitas_devolucao_livre',
+                    'total_repasses_livre',
+                    'saldo_reprogramado_livre',
+                )
+            },
+        ),
+        (
+            'Especificações de Despesa', {
+                'fields': (
+                    'especificacoes_despesas_capital',
+                    'especificacoes_despesas_custeio',
+                )
+            },
+        ),
+        (
+            'Receitas não conciliadas', {
+                'fields': (
+                    'total_receitas_nao_conciliadas_capital',
+                    'total_receitas_nao_conciliadas_custeio',
+                    'total_receitas_nao_conciliadas_livre'
+                )
+            },
+        ),
+        (
+            'Despesas não conciliadas', {
+                'fields': (
+                    'total_despesas_nao_conciliadas_capital',
+                    'total_despesas_nao_conciliadas_custeio',
+                )
+            },
+        ),
+    )
+
 
 
 @admin.register(PrestacaoConta)
@@ -481,13 +564,12 @@ class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
 
     list_display = (
         'get_associacao', 'get_referencia_periodo', 'ordem', 'comentario', 'notificado_em')
-    list_filter = (
-        'prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
+    list_filter = ('prestacao_conta__periodo', )
     list_display_links = ('get_associacao',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome', 'ordem', 'comentario')
-
+    autocomplete_fields = ['prestacao_conta', ]
 
 @admin.register(PrevisaoRepasseSme)
 class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
@@ -793,7 +875,6 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_lancamento', 'resultado', 'status_realizacao',
                     'devolucao_tesouro_atualizada']
     list_filter = (
-    'analise_prestacao_conta__prestacao_conta__associacao__unidade',
     'analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
     'analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
     'analise_prestacao_conta__prestacao_conta__periodo',
@@ -808,6 +889,8 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ('uuid', 'id',)
+
+    autocomplete_fields = ['analise_prestacao_conta', 'despesa', 'receita']
 
 
 @admin.register(TipoAcertoLancamento)
@@ -920,7 +1003,6 @@ class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
     get_analise_pc.short_description = 'Análise PC'
     list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_documento_prestacao_conta', 'resultado', 'status_realizacao']
     list_filter = [
-        'analise_prestacao_conta__prestacao_conta__associacao__unidade',
         'analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'analise_prestacao_conta__prestacao_conta__periodo',
@@ -934,6 +1016,8 @@ class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ('uuid', 'id',)
+
+    autocomplete_fields = ['analise_prestacao_conta', 'conta_associacao']
 
 
 @admin.register(SolicitacaoAcertoDocumento)
@@ -964,13 +1048,14 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
     ]
     list_filter = [
         'analise_documento__analise_prestacao_conta__prestacao_conta__periodo__referencia',
-        'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade',
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'tipo_acerto',
         'copiado'
     ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
+
+    autocomplete_fields = ['analise_documento', 'despesa_incluida', 'receita_incluida']
 
 
 @admin.register(PresenteAta)
@@ -1066,6 +1151,8 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome', 'motivo')
 
+    autocomplete_fields = ['prestacao_conta', 'despesa']
+
 
 @admin.register(SolicitacaoDevolucaoAoTesouro)
 class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
@@ -1131,3 +1218,4 @@ class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome',
         'motivo'
     )
+    autocomplete_fields = ('solicitacao_acerto_lancamento',)
