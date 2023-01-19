@@ -22,7 +22,7 @@ class ReceitasCompletasManager(models.Manager):
 class Receita(ModeloBase):
     history = AuditlogHistoryField()
 
-    TAG_INATIVA = {"id": "6", "nome": "Inativado", "descricao": "Lançamento inativado."}
+    TAG_INATIVA = {"id": "6", "nome": "Excluído", "descricao": "Lançamento excluído."}
 
     STATUS_COMPLETO = 'COMPLETO'
     STATUS_INATIVO = 'INATIVO'
@@ -130,7 +130,7 @@ class Receita(ModeloBase):
         if self.e_receita_inativa():
             tags.append(tag_informacao(
                 self.TAG_INATIVA,
-                f"Este crédito foi inativado em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}"
+                f"Este crédito foi excluído em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}"
             ))
         return tags
 
@@ -150,7 +150,7 @@ class Receita(ModeloBase):
 
     @property
     def mensagem_inativacao(self):
-        return f"Este crédito foi desativado em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}" \
+        return f"Este crédito foi excluído em {self.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}" \
             if self.status == "INATIVO" else None
 
     @classmethod

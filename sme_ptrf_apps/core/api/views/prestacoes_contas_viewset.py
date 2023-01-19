@@ -921,141 +921,24 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     @action(detail=True, methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def lancamentos(self, request, uuid):
+        from sme_ptrf_apps.core.api.serializers.validation_serializers.prestacoes_contas_lancamentos_validate_serializer import PrestacoesContasLancamentosValidateSerializer
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
 
-        # Define a análise da prestação de contas
-        analise_prestacao_uuid = self.request.query_params.get('analise_prestacao')
-
-        if not analise_prestacao_uuid:
-            erro = {
-                'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid da analise de prestacao de contas.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
-        except AnalisePrestacaoConta.DoesNotExist:
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        if analise_prestacao.prestacao_conta != prestacao_conta:
-            erro = {
-                'erro': 'Análise de prestação inválida.',
-                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        # Define a conta de conciliação
-        conta_associacao_uuid = self.request.query_params.get('conta_associacao')
-
-        if not conta_associacao_uuid:
-            erro = {
-                'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid da conta da associação.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            conta_associacao = ContaAssociacao.objects.get(uuid=conta_associacao_uuid)
-        except ContaAssociacao.DoesNotExist:
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto conta-associação para o uuid {conta_associacao_uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        # Define a ação para o filtro de transações
-        acao_associacao = None
-        acao_associacao_uuid = request.query_params.get('acao_associacao')
-        if acao_associacao_uuid:
-            try:
-                acao_associacao = AcaoAssociacao.objects.get(uuid=acao_associacao_uuid)
-            except AcaoAssociacao.DoesNotExist:
-                erro = {
-                    'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto ação-associação para o uuid {acao_associacao_uuid} não foi encontrado."
-                }
-                logger.info('Erro: %r', erro)
-                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        # Define o tipo de transação para o filtro das transações
-        tipo_transacao = request.query_params.get('tipo')
-        if tipo_transacao and tipo_transacao not in ('CREDITOS', 'GASTOS'):
-            erro = {
-                'erro': 'parametro_inválido',
-                'mensagem': 'O parâmetro tipo pode receber como valor "CREDITOS" ou "GASTOS". O parâmetro é opcional.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        # Define se deve ordenar por imposto
-        ordenar_por_imposto = request.query_params.get('ordenar_por_imposto')
-
-        if ordenar_por_imposto and ordenar_por_imposto not in ['true', 'false']:
-            erro = {
-                'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar true ou false no parametro ordenar por imposto'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        # Define o número do documento para filtro
-        numero_de_documento = request.query_params.get('filtrar_por_numero_de_documento')
-
-        # Define data de início para filtro
-        filtrar_por_data_inicio = request.query_params.get('filtrar_por_data_inicio')
-
-        # Define data de início para filtro
-        filtrar_por_data_fim = request.query_params.get('filtrar_por_data_fim')
-
-        # Define o tipo de documento para o filtro
-        filtrar_por_tipo_de_documento = request.query_params.get('filtrar_por_tipo_de_documento')
-        tipo_de_documento=None
-        if filtrar_por_tipo_de_documento:
-            try:
-                tipo_de_documento = TipoDocumento.objects.get(id=filtrar_por_tipo_de_documento)
-            except TipoDocumento.DoesNotExist:
-                erro = {
-                    'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto tipo de documento para o id {filtrar_por_tipo_de_documento} não foi encontrado."
-                }
-                logger.info('Erro: %r', erro)
-                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        # Define o tipo de pagamento para o filtro
-        filtrar_por_tipo_de_pagamento = request.query_params.get('filtrar_por_tipo_de_pagamento')
-        tipo_de_pagamento=None
-        if filtrar_por_tipo_de_pagamento:
-            try:
-                tipo_de_pagamento = TipoTransacao.objects.get(id=filtrar_por_tipo_de_pagamento)
-            except TipoTransacao.DoesNotExist:
-                erro = {
-                    'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto tipo de transação para o uuid {filtrar_por_tipo_de_pagamento} não foi encontrado."
-                }
-                logger.info('Erro: %r', erro)
-                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        # Define o filtro por nome do fornecedor
-        filtrar_por_nome_fornecedor = request.query_params.get('filtrar_por_nome_fornecedor')
+        query = PrestacoesContasLancamentosValidateSerializer(data=self.request.query_params, context={'prestacao_conta': prestacao_conta})
+        query.is_valid(raise_exception=True)
 
         lancamentos = lancamentos_da_prestacao(
-            analise_prestacao_conta=analise_prestacao,
-            conta_associacao=conta_associacao,
-            acao_associacao=acao_associacao,
-            tipo_transacao=tipo_transacao,
-            ordenar_por_imposto=ordenar_por_imposto,
-            numero_de_documento=numero_de_documento,
-            tipo_de_documento=tipo_de_documento,
-            tipo_de_pagamento=tipo_de_pagamento,
-            filtrar_por_data_inicio=filtrar_por_data_inicio,
-            filtrar_por_data_fim=filtrar_por_data_fim,
-            filtrar_por_nome_fornecedor=filtrar_por_nome_fornecedor,
+            analise_prestacao_conta=AnalisePrestacaoConta.by_uuid(self.request.query_params.get('analise_prestacao')),
+            conta_associacao=ContaAssociacao.by_uuid(self.request.query_params.get('conta_associacao')),
+            acao_associacao=AcaoAssociacao.by_uuid(request.query_params.get('acao_associacao')) if request.query_params.get('acao_associacao') else None,
+            tipo_transacao=request.query_params.get('tipo'),
+            ordenar_por_imposto=request.query_params.get('ordenar_por_imposto'),
+            numero_de_documento=request.query_params.get('filtrar_por_numero_de_documento'),
+            tipo_de_documento=TipoDocumento.by_id(request.query_params.get('filtrar_por_tipo_de_documento')) if request.query_params.get('filtrar_por_tipo_de_documento') else None,
+            tipo_de_pagamento=TipoTransacao.by_id(request.query_params.get('filtrar_por_tipo_de_pagamento')) if request.query_params.get('filtrar_por_tipo_de_pagamento') else None,
+            filtrar_por_data_inicio=request.query_params.get('filtrar_por_data_inicio'),
+            filtrar_por_data_fim=request.query_params.get('filtrar_por_data_fim'),
+            filtrar_por_nome_fornecedor=request.query_params.get('filtrar_por_nome_fornecedor'),
         )
 
         return Response(lancamentos, status=status.HTTP_200_OK)

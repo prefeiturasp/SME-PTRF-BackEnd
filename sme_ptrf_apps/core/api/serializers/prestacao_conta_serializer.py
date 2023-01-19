@@ -258,4 +258,3 @@ class PrestacaoContaListRetificaveisSerializer(serializers.ModelSerializer):
     class Meta:
         model = PrestacaoConta
         fields = ('uuid', 'unidade_eol', 'unidade_nome', 'unidade_tipo_unidade')
-
