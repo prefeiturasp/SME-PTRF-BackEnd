@@ -12,7 +12,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
     for lancamento in lancamentos_esperados:
 
         if inativa:
-            lancamento["mestre"].mensagem_inativa = f'Este gasto foi desativado em {lancamento["mestre"].data_e_hora_de_inativacao.strftime("%d/%m/%Y %H:%M:%S")}'
+            lancamento["mestre"].mensagem_inativa = f'Este gasto foi excluído em {lancamento["mestre"].data_e_hora_de_inativacao.strftime("%d/%m/%Y %H:%M:%S")}'
 
         mestre_esperado = {
             'associacao': f'{lancamento["mestre"].associacao.uuid}',
@@ -252,10 +252,10 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
 
         if lancamento["mestre"].data_e_hora_de_inativacao:
                 result_esperado[0]['informacoes'].append({
-                    'tag_hint': 'Este gasto foi inativado em 10/05/2020 '
+                    'tag_hint': 'Este gasto foi excluído em 10/05/2020 '
                                 '05:10:10',
                     'tag_id': '6',
-                    'tag_nome': 'Inativado'
+                    'tag_nome': 'Excluído'
                 })
 
     return result_esperado

@@ -45,8 +45,8 @@ def retornar_ja_publicadas(dre, periodo):
             tipo_publicacao = "Parcial"
 
         sequencia = consolidado_dre.sequencia_de_publicacao
-        qtde_unidades = consolidado_dre.prestacoes_de_conta_do_consolidado_dre.all().count()
 
+        qtde_unidades = consolidado_dre.prestacoes_de_conta_do_consolidado_dre.all().count()
 
         texto_qtde_unidades = ""
         if qtde_unidades == 1:

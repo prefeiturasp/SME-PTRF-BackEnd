@@ -206,16 +206,16 @@ class RelacaoBensViewSet(GenericViewSet):
             associacao=conta_associacao.associacao,
             periodo__uuid=periodo_uuid
         ).first()
-        relacao_bens = RelacaoBens.objects.filter(conta_associacao__uuid=conta_associacao_uuid,
-                                                  prestacao_conta=prestacao_conta).first()
+
+        relacao_bens = RelacaoBens.objects.filter(
+            conta_associacao__uuid=conta_associacao_uuid,
+            versao=RelacaoBens.VERSAO_PREVIA,
+            periodo_previa__uuid=periodo_uuid,
+            prestacao_conta=None).first()
 
         if not relacao_bens:
-            relacao_bens = RelacaoBens.objects.filter(
-                conta_associacao__uuid=conta_associacao_uuid,
-                versao=RelacaoBens.VERSAO_PREVIA,
-                periodo_previa__uuid=periodo_uuid,
-                prestacao_conta=None).first()
-
+            relacao_bens = RelacaoBens.objects.filter(conta_associacao__uuid=conta_associacao_uuid,
+                                                      prestacao_conta=prestacao_conta).first()
 
         msg = ""
         if not relacao_bens:
