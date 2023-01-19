@@ -286,7 +286,8 @@ def monta_result_esperado(
             'uuid': f"{despesa_despesa_imposto.uuid}",
             'valor_original': '0.00',
             'valor_recursos_proprios': '0.00',
-            'valor_total': '0.00'
+            'valor_total': '0.00',
+            'data_e_hora_de_inativacao': None,
         },],
         'documento_transacao': '',
         'eh_despesa_reconhecida_pela_associacao': True,
@@ -369,6 +370,7 @@ def monta_result_esperado(
         'valor_original': '0.00',
         'valor_recursos_proprios': '0.00',
         'valor_total': '100.00',
+        'data_e_hora_de_inativacao': None,
     }
 
     return resultado_esperado

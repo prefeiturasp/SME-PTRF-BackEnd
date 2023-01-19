@@ -1,11 +1,11 @@
 import datetime
 import pytest
-from datetime import date
+from datetime import date, datetime
 
 from model_bakery import baker
 
 from ...models import Despesa
-from ...status_cadastro_completo import STATUS_COMPLETO, STATUS_INCOMPLETO
+from ...status_cadastro_completo import STATUS_COMPLETO, STATUS_INCOMPLETO, STATUS_INATIVO
 
 pytestmark = pytest.mark.django_db
 
@@ -105,13 +105,13 @@ def despesa_incompleta_numero_digitado(associacao, tipo_documento_numero_documen
         'Despesa',
         associacao=associacao,
         numero_documento='',
-        data_documento=datetime.date(2020, 3, 10),
+        data_documento=date(2020, 3, 10),
         tipo_documento=tipo_documento_numero_documento_digitado,
         cpf_cnpj_fornecedor='11.478.276/0001-04',
         nome_fornecedor='Fornecedor SA',
         tipo_transacao=tipo_transacao,
         documento_transacao='',
-        data_transacao=datetime.date(2020, 3, 10),
+        data_transacao=date(2020, 3, 10),
         valor_total=100.00,
         valor_recursos_proprios=10.00,
     )
@@ -158,7 +158,7 @@ def receita_saida_recurso(associacao, conta_associacao, acao_associacao, tipo_re
     return baker.make(
         'Receita',
         associacao=associacao,
-        data=datetime.date(2020, 3, 26),
+        data=date(2020, 3, 26),
         valor=100.00,
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
@@ -231,3 +231,12 @@ def test_rateio_despesa_vinculada_credito_externo(
     assert rateio_despesa_capital_completo_credito_externo.status == STATUS_COMPLETO
     despesa = Despesa.objects.get(uuid=rateio_despesa_capital_completo_credito_externo.despesa.uuid)
     assert despesa.status == STATUS_COMPLETO
+
+
+def test_rateio_despesa_inativos(rateio_despesa_capital_completo):
+    assert rateio_despesa_capital_completo.status == STATUS_COMPLETO
+    despesa = Despesa.objects.get(uuid=rateio_despesa_capital_completo.despesa.uuid)
+    despesa.data_e_hora_de_inativacao = datetime(2022, 9, 6, 10, 30, 0)
+    despesa.save()
+    assert despesa.status == STATUS_INATIVO
+

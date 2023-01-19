@@ -23,3 +23,10 @@ def test_revisar_prestacao_conta_url(jwt_authenticated_client_a, prestacao_conta
     response = jwt_authenticated_client_a.post(
         f'/api/prestacoes-contas/{prestacao_conta.uuid}/reabrir/')
     assert response.status_code != status.HTTP_404_NOT_FOUND
+
+
+def test_contas_com_movimento_url(jwt_authenticated_client_a, prestacao_conta):
+
+    response = jwt_authenticated_client_a.post(
+        f'/api/prestacoes-contas/{prestacao_conta.uuid}/contas-com-movimento/')
+    assert response.status_code != status.HTTP_404_NOT_FOUND

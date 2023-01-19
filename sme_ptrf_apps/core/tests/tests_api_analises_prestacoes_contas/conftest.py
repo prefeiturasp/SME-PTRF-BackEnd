@@ -244,6 +244,24 @@ def despesa_2020_1(associacao, tipo_documento, tipo_transacao):
         valor_recursos_proprios=10.00,
     )
 
+@pytest.fixture
+def despesa_2020_1_inativa(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=100.00,
+        valor_recursos_proprios=10.00,
+        status="INATIVO",
+        data_e_hora_de_inativacao=datetime.datetime(2020, 5, 10, 5, 10, 10),
+    )
+
 
 @pytest.fixture
 def tag_teste():
@@ -273,6 +291,31 @@ def rateio_despesa_2020_role_conferido(associacao, despesa_2020_1, conta_associa
         conferido=True,
         periodo_conciliacao=periodo_2020_1,
         tag=tag_teste,
+
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_role_conferido_inativa(associacao, despesa_2020_1_inativa, conta_associacao_cartao, acao,
+                                       tipo_aplicacao_recurso_custeio,
+                                       tipo_custeio_servico,
+                                       especificacao_instalacao_eletrica, acao_associacao_role_cultural,
+                                       periodo_2020_1):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1_inativa,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=200.00,
+        update_conferido=True,
+        conferido=True,
+        status="INATIVO",
+        periodo_conciliacao=periodo_2020_1,
+        tag=None,
 
     )
 
@@ -315,6 +358,26 @@ def rateio_despesa_2020_role_nao_conferido(associacao, despesa_2020_1, conta_ass
         valor_rateio=100.00,
         conferido=False,
 
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_role_nao_conferido_inativa(associacao, despesa_2020_1_inativa, conta_associacao_cartao, acao,
+                                           tipo_aplicacao_recurso_custeio,
+                                           tipo_custeio_servico,
+                                           especificacao_instalacao_eletrica, acao_associacao_role_cultural):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1_inativa,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        status="INATIVO",
+        valor_rateio=100.00,
+        conferido=False,
     )
 
 
@@ -564,10 +627,30 @@ def prestacao_conta_2020_1_teste_analises(periodo_2020_1, associacao):
 
 
 @pytest.fixture
+def prestacao_conta_2020_1_teste_inativa_analises(periodo_2020_1, associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        data_recebimento=datetime.date(2020, 4, 4),
+        status="EM_ANALISE"
+    )
+
+
+@pytest.fixture
 def devolucao_prestacao_conta_2020_1_teste_analises(prestacao_conta_2020_1_teste_analises):
     return baker.make(
         'DevolucaoPrestacaoConta',
         prestacao_conta=prestacao_conta_2020_1_teste_analises,
+        data=datetime.date(2020, 10, 5),
+        data_limite_ue=datetime.date(2020, 8, 1),
+    )
+
+@pytest.fixture
+def devolucao_prestacao_conta_2020_1_teste_inativa_analises(prestacao_conta_2020_1_teste_inativa_analises):
+    return baker.make(
+        'DevolucaoPrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_teste_inativa_analises,
         data=datetime.date(2020, 10, 5),
         data_limite_ue=datetime.date(2020, 8, 1),
     )
@@ -582,6 +665,17 @@ def analise_prestacao_conta_2020_1_teste_analises(
         'AnalisePrestacaoConta',
         prestacao_conta=prestacao_conta_2020_1_teste_analises,
         devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1_teste_analises
+    )
+
+@pytest.fixture
+def analise_prestacao_conta_2020_1_teste_inativa_analises(
+    prestacao_conta_2020_1_teste_inativa_analises,
+    devolucao_prestacao_conta_2020_1_teste_inativa_analises
+):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_teste_inativa_analises,
+        devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1_teste_inativa_analises
     )
 
 @pytest.fixture
@@ -640,6 +734,20 @@ def analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises(
 
 
 @pytest.fixture
+def analise_lancamento_despesa_prestacao_conta_2020_1_teste_inativa_analises(
+    analise_prestacao_conta_2020_1_teste_inativa_analises,
+    despesa_2020_1_inativa
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_teste_inativa_analises,
+        tipo_lancamento='GASTO',
+        despesa=despesa_2020_1_inativa,
+        resultado='AJUSTE'
+    )
+
+
+@pytest.fixture
 def tipo_acerto_lancamento_devolucao():
     return baker.make('TipoAcertoLancamento', nome='Devolução', categoria='DEVOLUCAO')
 
@@ -668,20 +776,74 @@ def devolucao_ao_tesouro_parcial_ajuste(prestacao_conta_2020_1_teste_analises, t
         visao_criacao='DRE'
     )
 
+@pytest.fixture
+def devolucao_ao_tesouro_parcial_ajuste_inativa(prestacao_conta_2020_1_teste_inativa_analises, tipo_devolucao_ao_tesouro_teste, despesa_2020_1_inativa):
+    return baker.make(
+        'DevolucaoAoTesouro',
+        prestacao_conta=prestacao_conta_2020_1_teste_inativa_analises,
+        tipo=tipo_devolucao_ao_tesouro_teste,
+        data=datetime.date(2020, 7, 1),
+        despesa=despesa_2020_1_inativa,
+        devolucao_total=False,
+        valor=100.00,
+        motivo='teste',
+        visao_criacao='DRE'
+    )
 
 @pytest.fixture
 def solicitacao_acerto_lancamento_devolucao_teste_analises(
     analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises,
     tipo_acerto_lancamento_devolucao,
-    devolucao_ao_tesouro_parcial_ajuste
 ):
     return baker.make(
         'SolicitacaoAcertoLancamento',
         analise_lancamento=analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises,
         tipo_acerto=tipo_acerto_lancamento_devolucao,
-        devolucao_ao_tesouro=devolucao_ao_tesouro_parcial_ajuste,
+        devolucao_ao_tesouro=None,
         detalhamento="teste"
     )
+
+@pytest.fixture
+def solicitacao_devolucao_ao_tesouro_teste_analises(
+    solicitacao_acerto_lancamento_devolucao_teste_analises,
+    tipo_devolucao_ao_tesouro_teste,
+):
+    return baker.make(
+        'SolicitacaoDevolucaoAoTesouro',
+        solicitacao_acerto_lancamento=solicitacao_acerto_lancamento_devolucao_teste_analises,
+        tipo=tipo_devolucao_ao_tesouro_teste,
+        devolucao_total=False,
+        valor=100.00,
+        motivo='teste',
+    )
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_devolucao_teste_inativa_analises(
+    analise_lancamento_despesa_prestacao_conta_2020_1_teste_inativa_analises,
+    tipo_acerto_lancamento_devolucao,
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_despesa_prestacao_conta_2020_1_teste_inativa_analises,
+        tipo_acerto=tipo_acerto_lancamento_devolucao,
+        devolucao_ao_tesouro=None,
+        detalhamento="teste"
+    )
+
+@pytest.fixture
+def solicitacao_devolucao_ao_tesouro_teste_inativa_analises(
+    solicitacao_acerto_lancamento_devolucao_teste_inativa_analises,
+    tipo_devolucao_ao_tesouro_teste,
+):
+    return baker.make(
+        'SolicitacaoDevolucaoAoTesouro',
+        solicitacao_acerto_lancamento=solicitacao_acerto_lancamento_devolucao_teste_inativa_analises,
+        tipo=tipo_devolucao_ao_tesouro_teste,
+        devolucao_total=False,
+        valor=100.00,
+        motivo='teste',
+    )
+
 
 
 @pytest.fixture

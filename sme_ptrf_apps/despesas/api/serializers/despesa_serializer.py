@@ -408,9 +408,13 @@ class DespesaDocumentoMestreSerializer(serializers.ModelSerializer):
     tipo_transacao = TipoTransacaoSerializer()
 
     receitas_saida_do_recurso = serializers.SerializerMethodField('get_recurso_externo')
+    mensagem_inativa = serializers.SerializerMethodField('get_mensagem_despesa_inativa')
 
     def get_recurso_externo(self, despesa):
         return despesa.receitas_saida_do_recurso.first().uuid if despesa.receitas_saida_do_recurso.exists() else None
+
+    def get_mensagem_despesa_inativa(self, despesa):
+        return despesa.mensagem_inativacao
 
     class Meta:
         model = Despesa
@@ -430,4 +434,6 @@ class DespesaDocumentoMestreSerializer(serializers.ModelSerializer):
             'conferido',
             'uuid',
             'receitas_saida_do_recurso',
+            'data_e_hora_de_inativacao',
+            'mensagem_inativa',
         )
