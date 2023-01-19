@@ -154,7 +154,7 @@ class ReceitaListaSerializer(serializers.ModelSerializer):
 
     def get_data_e_hora_de_inativacao(self, receita):
         if receita.data_e_hora_de_inativacao:
-            return f"Este crédito foi inativado em: " \
+            return f"Este crédito foi excluído em: " \
                    f"{receita.data_e_hora_de_inativacao.strftime('%d/%m/%Y %H:%M:%S')}"
 
     class Meta:

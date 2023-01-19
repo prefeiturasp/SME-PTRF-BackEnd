@@ -11,9 +11,7 @@ class MarcarComoRealizado:
         self.__set_response()
 
     def __set_response(self):
-        pode_atualizar_status = True
-        texto_solicitacoes_nao_atendidas = "Não foi possível alterar o status de algumas solicitações " \
-                                           "pois os ajustes não foram realizados."
+        texto_solicitacoes_nao_atendidas = "Não foi possível alterar o status da solicitação, pois os ajustes solicitados não foram realizados."
 
         self.response = {
             "mensagem": "Status alterados com sucesso!",
@@ -22,6 +20,7 @@ class MarcarComoRealizado:
         }
 
         for uuid_solicitacao in self.uuids_solicitacoes_acertos_documentos:
+            pode_atualizar_status = True
 
             solicitacao_acerto = SolicitacaoAcertoDocumento.by_uuid(uuid_solicitacao)
             categoria = solicitacao_acerto.tipo_acerto.categoria
@@ -45,6 +44,13 @@ class MarcarComoRealizado:
 
                     self.response["todas_as_solicitacoes_marcadas_como_realizado"] = False
                     self.response["mensagem"] = texto_solicitacoes_nao_atendidas
+
+                    if solicitacao_acerto.status_realizacao == SolicitacaoAcertoDocumento.STATUS_REALIZACAO_JUSTIFICADO:
+                        solicitacao_acerto.altera_status_realizacao(
+                            novo_status=SolicitacaoAcertoDocumento.STATUS_REALIZACAO_PENDENTE,
+                        )
+            elif categoria == TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS:
+                pode_atualizar_status = True
 
             if pode_atualizar_status:
                 solicitacao_acerto.altera_status_realizacao(
@@ -81,19 +87,50 @@ class JustificarNaoRealizacao:
         self.__set_response()
 
     def __set_response(self):
+        texto_solicitacoes_nao_atendidas = "Não foi possível alterar o status da solicitação, pois os ajustes já foram realizados."
 
         self.response = {
             "mensagem": "Status alterados com sucesso!",
             "status": status.HTTP_200_OK,
+            "todas_as_solicitacoes_marcadas_como_justificado": True,
         }
 
         for uuid_solicitacao in self.uuids_solicitacoes_acertos_documentos:
-            solicitacao_acerto = SolicitacaoAcertoDocumento.by_uuid(uuid_solicitacao)
+            pode_atualizar_status = True
 
-            solicitacao_acerto.altera_status_realizacao(
-                novo_status=SolicitacaoAcertoDocumento.STATUS_REALIZACAO_JUSTIFICADO,
-                justificativa=self.justificativa
-            )
+            solicitacao_acerto = SolicitacaoAcertoDocumento.by_uuid(uuid_solicitacao)
+            categoria = solicitacao_acerto.tipo_acerto.categoria
+
+            if categoria == TipoAcertoDocumento.CATEGORIA_INCLUSAO_CREDITO:
+                if solicitacao_acerto.receita_incluida:
+                    pode_atualizar_status = False
+
+                    self.response["todas_as_solicitacoes_marcadas_como_justificado"] = False
+                    self.response["mensagem"] = texto_solicitacoes_nao_atendidas
+
+            elif categoria == TipoAcertoDocumento.CATEGORIA_INCLUSAO_GASTO:
+                if solicitacao_acerto.despesa_incluida:
+                    pode_atualizar_status = False
+
+                    self.response["todas_as_solicitacoes_marcadas_como_justificado"] = False
+                    self.response["mensagem"] = texto_solicitacoes_nao_atendidas
+
+            elif categoria == TipoAcertoDocumento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO:
+                if solicitacao_acerto.esclarecimentos is not None:
+                    if solicitacao_acerto.esclarecimentos != "":
+                        pode_atualizar_status = False
+
+                        self.response["todas_as_solicitacoes_marcadas_como_justificado"] = False
+                        self.response["mensagem"] = texto_solicitacoes_nao_atendidas
+
+            elif categoria == TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS:
+                pode_atualizar_status = True
+
+            if pode_atualizar_status:
+                solicitacao_acerto.altera_status_realizacao(
+                    novo_status=SolicitacaoAcertoDocumento.STATUS_REALIZACAO_JUSTIFICADO,
+                    justificativa=self.justificativa
+                )
 
 
 class SolicitacaoAcertoDocumentoService:

@@ -69,7 +69,7 @@ def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
 
         logger.info(f"Saldo calculado: {saldo_conta}  Conta:{conta_associacao}")
 
-        if saldo_conta < gasto_conta_associacao:
+        if round(saldo_conta, 2) < round(gasto_conta_associacao, 2):
             saldo_insuficiente = {
                 'conta': conta_associacao.tipo_conta.nome,
                 'saldo_disponivel': saldo_conta,
@@ -90,7 +90,7 @@ def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
         for aplicacao, saldo_atual_key in (('CUSTEIO', 'saldo_atual_custeio'), ('CAPITAL', 'saldo_atual_capital')):
             if not gastos_acao_associacao[aplicacao]: continue
 
-            if saldos_acao[saldo_atual_key] + saldos_acao['saldo_atual_livre'] < gastos_acao_associacao[aplicacao]:
+            if round(saldos_acao[saldo_atual_key] + saldos_acao['saldo_atual_livre'], 2) < round(gastos_acao_associacao[aplicacao], 2):
                 saldo_insuficiente = {
                     'acao': acao_associacao.acao.nome,
                     'aplicacao': aplicacao,
