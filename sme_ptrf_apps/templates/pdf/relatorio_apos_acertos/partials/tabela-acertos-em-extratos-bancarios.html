@@ -1,0 +1,49 @@
+{% load staticfiles %}
+{% load formata_valores %}
+{% load formata_string %}
+
+{% if dados.dados_extratos_bancarios %}
+    <article class="mt-4">
+        {% for ajuste_conta in dados.dados_extratos_bancarios %}
+            <table class="table table-bordered tabela-resumo-por-acao ">
+              <thead class="">
+                <tr class="">
+                  <th colSpan="1">
+                    <strong class="font-16 titulo-bloco ml-2">{{ dados.blocos.acertos_extratos_bancarios }}</strong>
+                  </th>
+                </tr>
+
+                <tr>
+                  <th colSpan="1">
+                    <strong class="font-12 titulo-bloco">Conta {{ ajuste_conta.nome_conta }}</strong>
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                    <td>
+                      <div class="row mt-2 mb-2">
+                        {% if ajuste_conta.data_extrato %}
+                          <div class="col-4">
+                              <strong class="font-12 ml-4"><span class="text-saldo-reprogramado">Ajuste da data do extrato</span></strong>
+                              <br>
+                              <span class="font-12 ml-4">{{ ajuste_conta.data_extrato|date:'d/m/Y' }}</span>
+                          </div>
+                        {% endif %}
+
+                        {% if ajuste_conta.saldo_extrato is not None %}
+                          <div class="col-4">
+                              <strong class="font-12 ml-4"><span class="text-saldo-reprogramado">Ajuste no saldo do extrato</span></strong>
+                              <br>
+                              <span class="font-12 ml-4">R$ {{ ajuste_conta.saldo_extrato|formata_valor }}</span>
+                          </div>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+              </tbody>
+            </table>
+        {% endfor %}
+    </article>
+{% endif %}

@@ -5,9 +5,40 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 1.33.0
+Versão: 6.0.0
 
 ## Release Notes
+
+### 6.0.0 - 19/01/2023 - Entregas da Release 6 - (Sprints 48 a 58)
+* UE > Análise da DRE: Acertos: Detalhes de realização para acertos conforme a categoria
+* UE > Novo Relatório de apresentação de PC após acertos
+* UE > Prestações de Contas: Geração de Documentos: Documentos prévias/finas de devolução são gerados apenas nos casos que solicitações requerem mudanças
+* UE > Prestações de Contas: Atas de apresentação e retificação agora são bloqueadas para alteração após recebimento pela DRE
+* UE > O status do período agora inclui informação do status da PC mesmo quando o período ainda está em andamento
+* UE > Conciliação Bancária: Nova opção Voltar que retorne para a tela anterior
+* UE / DRE > Análise DRE: Relatório de acertos alterações de layout
+* UE / DRE  > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Edição do lançamento" em Créditos
+* UE / DRE  > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Exclusão do lançamento", em Gastos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Exclusão do lançamento", em Créditos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Devolução ao tesouro" em lançamentos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Ajustes externos", em Lançamentos e Documentos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Solicitação de esclarecimento" em lançamentos e documentos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Inclusão de gasto" em documentos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Edição do lançamento" em Créditos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Exclusão do lançamento", em Gastos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria "Exclusão do lançamento", em Créditos
+* UE / DRE > Reabertura Seletiva do Período. Detalhes de realização para acertos de categoria   "Inclusão de crédito" em documentos
+* UE / DRE > INATIVAÇÃO - Agora os créditos e despesas tem a opção de inativação e todos as operações realizadas levam em consideração essa inativação.
+* DRE > Acompanhamento de PC: Devolução de PC: Agora apaga fechamentos e docs apenas se necessário
+* DRE > Acompanhamento de PC: Solicitação de acertos agora agrupa os tipos de acerto na seção e apresenta informações se a solicitação acarretará ou não mudanças em lançamentos financeiros
+* DRE > Acompanhamento de PC: Solicitações de devolução ao tesouro agora exigem todos os campos
+* DRE > Acompanhamento de PC: Conferência de Documentos: Nova opção de marcar como corretos para documentos com solicitações de ajuste
+* DRE > Acompanhamento de PC: Ver resumo: Alterações de nomenclatura das opções
+* DRE > Relatório Consolidado: Agora é gerada Lauda Única com todas as contas
+* DRE > Relatório Consolidado: Alterações na exibição do valor de Devolução ao Tesouro no Demonstrativo 
+* SME > Parametrizações: Tipos de acertos em lançamentos: Novo card e Cadastro
+* SME > Parametrizações: Tipos de acertos em Documentos: Novo Card e Cadastro
+* GLO > 🐞 Correção de bugs.
 
 ### 1.33.0 - 24/08/2022 - Entregas da Release 5 - (Sprints 43 a 47)
 * UE  > Na emissão da ata, agora a aplicação informa quais campos estão incompletos.

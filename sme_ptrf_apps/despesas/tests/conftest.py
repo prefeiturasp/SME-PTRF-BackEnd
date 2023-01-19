@@ -465,3 +465,19 @@ def motivo_pagamento_adiantado_02():
         'MotivoPagamentoAntecipado',
         motivo="Motivo de pagamento adiantado 02"
     )
+
+@pytest.fixture
+def despesa_inativa(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2019, 9, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        data_transacao=datetime.date(2019, 9, 10),
+        valor_total=100.00,
+        data_e_hora_de_inativacao=datetime.datetime(2022, 9, 6, 10, 0, 0)
+    )

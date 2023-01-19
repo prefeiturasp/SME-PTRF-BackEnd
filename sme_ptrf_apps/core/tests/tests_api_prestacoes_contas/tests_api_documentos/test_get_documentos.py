@@ -36,29 +36,6 @@ def test_api_get_documentos_para_analise(
                 'conta_associacao': None,
             }
         },
-        {
-            'tipo_documento_prestacao_conta': {
-                'uuid': f'{tipo_documento_prestacao_conta_declaracao.uuid}',
-                'nome': f'{tipo_documento_prestacao_conta_declaracao.nome} Cartão',
-                'documento_por_conta': True,
-                'conta_associacao': f'{conta_associacao_cartao.uuid}',
-            },
-            'analise_documento': {
-                'uuid': f'{analise_documento_prestacao_conta_2020_1_declaracao_cartao_correta.uuid}',
-                'resultado': analise_documento_prestacao_conta_2020_1_declaracao_cartao_correta.resultado,
-                'tipo_conta': 'Cartão',
-                'conta_associacao': f'{conta_associacao_cartao.uuid}',
-            }
-        },
-        {
-            'tipo_documento_prestacao_conta': {
-                'uuid': f'{tipo_documento_prestacao_conta_declaracao.uuid}',
-                'nome': f'{tipo_documento_prestacao_conta_declaracao.nome} Cheque',
-                'documento_por_conta': True,
-                'conta_associacao': f'{conta_associacao_cheque.uuid}',
-            },
-            'analise_documento': None
-        },
     ]
 
     url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/documentos/?analise_prestacao={analise_pc.uuid}'

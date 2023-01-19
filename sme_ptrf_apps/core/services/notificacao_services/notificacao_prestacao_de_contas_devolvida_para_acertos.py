@@ -32,3 +32,14 @@ def notificar_prestacao_de_contas_devolvida_para_acertos(prestacao_de_contas, da
             )
 
     logger.info(f'Finalizando a geração de notificação prestação de contas devolvida para acertos')
+
+
+def marcar_como_lidas_notificacoes_de_devolucao_da_pc(prestacao_de_contas):
+    logger.info(f'Iniciando a marcação de notificações de devolução da PC como lidas {prestacao_de_contas}.')
+
+    Notificacao.objects.filter(
+        categoria=Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_PC,
+        prestacao_conta=prestacao_de_contas
+    ).update(lido=True)
+
+    logger.info(f'Finalizando a marcação de notificações de devolução da PC como lidas')

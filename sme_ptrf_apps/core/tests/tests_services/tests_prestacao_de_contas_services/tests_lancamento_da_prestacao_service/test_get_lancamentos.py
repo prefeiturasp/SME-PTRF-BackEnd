@@ -75,7 +75,6 @@ def test_get_lancamentos_da_analise_da_prestacao_filtro_por_fornecedor(
     lancamentos = lancamentos_da_prestacao(
         analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise,
         conta_associacao=conta_associacao_cartao,
-        tipo_transacao='GASTOS',
         filtrar_por_nome_fornecedor='jose'
     )
 
@@ -107,7 +106,6 @@ def test_get_lancamentos_da_analise_da_prestacao_filtro_por_forma_pagamento(
     lancamentos = lancamentos_da_prestacao(
         analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise,
         conta_associacao=conta_associacao_cartao,
-        tipo_transacao='GASTOS',
         tipo_de_pagamento=tipo_transacao_pix,
     )
 
