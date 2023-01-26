@@ -151,6 +151,18 @@ def consolidado_dre_teste_api_consolidado_dre(periodo_teste_api_consolidado_dre,
 
 
 @pytest.fixture
+def retificacao_dre_teste_api_consolidado_dre(periodo_teste_api_consolidado_dre, dre_teste_api_consolidado_dre, analise_consolidado_dre_test_api_ja_existente, consolidado_dre_teste_api_consolidado_dre):
+    return baker.make(
+        'ConsolidadoDRE',
+        dre=dre_teste_api_consolidado_dre,
+        periodo=periodo_teste_api_consolidado_dre,
+        status=ConsolidadoDRE.STATUS_NAO_GERADOS,
+        consolidado_retificado=consolidado_dre_teste_api_consolidado_dre,
+        motivo_retificacao="motivo retificacao"
+    )
+
+
+@pytest.fixture
 def analise_consolidado_dre_test_api_ja_existente(consolidado_dre_teste_api_consolidado_dre):
     return baker.make(
         'AnaliseConsolidadoDre',

@@ -10,52 +10,52 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_retificar_consolidado_dre(
+def test_update_retificacao_consolidado_dre(
     jwt_authenticated_client_dre,
     dre_teste_api_consolidado_dre,
     periodo_teste_api_consolidado_dre,
-    consolidado_dre_teste_api_consolidado_dre,
+    retificacao_dre_teste_api_consolidado_dre,
     prestacao_conta_x,
 ):
-    consolidado_dre_uuid = consolidado_dre_teste_api_consolidado_dre.uuid
+    retificacao_uuid = retificacao_dre_teste_api_consolidado_dre.uuid
 
     payload = {
         'lista_pcs': [prestacao_conta_x.uuid],
-        'motivo': 'Motivo de retificação'
+        'motivo': 'Motivo de retificação novo',
     }
 
-    with patch('sme_ptrf_apps.dre.services.consolidado_dre_service.retificar_consolidado_dre') as mock_retificar_consolidado_dre:
+    with patch('sme_ptrf_apps.dre.services.consolidado_dre_service.update_retificacao') as mock_update_retificacao_consolidado_dre:
         response = jwt_authenticated_client_dre.post(
-            f'/api/consolidados-dre/{consolidado_dre_uuid}/retificar/',
+            f'/api/consolidados-dre/{retificacao_uuid}/update_retificacao/',
             data=json.dumps(payload, cls=DjangoJSONEncoder),
             content_type='application/json'
         )
 
-        mock_retificar_consolidado_dre.assert_called_once_with(
-            consolidado_dre=consolidado_dre_teste_api_consolidado_dre,
-            prestacoes_de_conta_a_retificar=[prestacao_conta_x.uuid],
-            motivo_retificacao='Motivo de retificação'
+        mock_update_retificacao_consolidado_dre.assert_called_once_with(
+            retificacao=retificacao_dre_teste_api_consolidado_dre,
+            prestacoes_de_conta_a_retificar=payload['lista_pcs'],
+            motivo=payload['motivo'],
         )
 
         assert response.status_code == status.HTTP_200_OK
 
 
-def test_retificar_consolidado_dre_sem_informar_pcs_deve_retornar_400(
+def test_update_retificacao_consolidado_dre_sem_informar_pcs_deve_retornar_400(
     jwt_authenticated_client_dre,
     dre_teste_api_consolidado_dre,
     periodo_teste_api_consolidado_dre,
-    consolidado_dre_teste_api_consolidado_dre,
+    retificacao_dre_teste_api_consolidado_dre,
     prestacao_conta_x,
 ):
-    consolidado_dre_uuid = consolidado_dre_teste_api_consolidado_dre.uuid
+    retificacao_uuid = retificacao_dre_teste_api_consolidado_dre.uuid
 
     payload = {
         'lista_pcs': [],
-        'motivo': 'Motivo de retificação'
+        'motivo': 'Motivo de retificação',
     }
 
     response = jwt_authenticated_client_dre.post(
-        f'/api/consolidados-dre/{consolidado_dre_uuid}/retificar/',
+        f'/api/consolidados-dre/{retificacao_uuid}/update_retificacao/',
         data=json.dumps(payload),
         content_type='application/json'
     )
@@ -64,22 +64,22 @@ def test_retificar_consolidado_dre_sem_informar_pcs_deve_retornar_400(
     assert response.json() == {'lista_pcs': ['É necessário informar ao menos uma PC para retificar.']}
 
 
-def test_retificar_consolidado_dre_sem_informar_motivo_deve_retornar_400(
+def test_update_retificacao_consolidado_dre_sem_informar_motivo_deve_retornar_400(
     jwt_authenticated_client_dre,
     dre_teste_api_consolidado_dre,
     periodo_teste_api_consolidado_dre,
-    consolidado_dre_teste_api_consolidado_dre,
+    retificacao_dre_teste_api_consolidado_dre,
     prestacao_conta_x,
 ):
-    consolidado_dre_uuid = consolidado_dre_teste_api_consolidado_dre.uuid
+    retificacao_uuid = retificacao_dre_teste_api_consolidado_dre.uuid
 
     payload = {
         'lista_pcs': [f'{prestacao_conta_x.uuid}'],
-        'motivo': ''
+        'motivo': '',
     }
 
     response = jwt_authenticated_client_dre.post(
-        f'/api/consolidados-dre/{consolidado_dre_uuid}/retificar/',
+        f'/api/consolidados-dre/{retificacao_uuid}/update_retificacao/',
         data=json.dumps(payload),
         content_type='application/json'
     )

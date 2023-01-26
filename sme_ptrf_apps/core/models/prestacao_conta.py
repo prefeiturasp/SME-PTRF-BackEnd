@@ -102,6 +102,14 @@ class PrestacaoConta(ModeloBase):
 
     justificativa_pendencia_realizacao = models.TextField('Justificativa de pendências de realização de ajustes.', blank=True, default='')
 
+    status_anterior_a_retificacao = models.CharField(
+        'Status anterior a retificacao',
+        max_length=20,
+        blank=True,
+        null=True,
+        default=None
+    )
+
     @property
     def tecnico_responsavel(self):
         atribuicoes = Atribuicao.search(
@@ -125,6 +133,26 @@ class PrestacaoConta(ModeloBase):
             return self.consolidado_dre.eh_retificacao
 
         return False
+
+    @property
+    def pode_desfazer_retificacao(self):
+        if self.em_retificacao:
+            if self.status == PrestacaoConta.STATUS_RECEBIDA:
+                return True
+            else:
+                return False
+        else:
+            return None
+
+    @property
+    def tooltip_nao_pode_desfazer_retificacao(self):
+        if not self.em_retificacao:
+            return None
+
+        if self.pode_desfazer_retificacao:
+            return None
+        else:
+            return "Essa PC não pode ser removida pois seu status foi alterado"
 
     def __str__(self):
         return f"{self.periodo} - {self.status}"
