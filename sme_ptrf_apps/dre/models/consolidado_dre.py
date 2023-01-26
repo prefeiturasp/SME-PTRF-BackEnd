@@ -465,7 +465,19 @@ class ConsolidadoDRE(ModeloBase):
             return False
 
     def pcs_retificaveis(self):
-        return self.prestacoes_de_conta_do_consolidado_dre.all()
+        if self.eh_retificacao:
+            return self.consolidado_retificado.prestacoes_de_conta_do_consolidado_dre.all()
+        else:
+            return self.prestacoes_de_conta_do_consolidado_dre.all()
+
+    def pcs_em_retificacao(self):
+        lista_pcs = self.prestacoes_de_conta_do_consolidado_dre.all().order_by(
+            "associacao__unidade__tipo_unidade", "associacao__unidade__nome"
+        )
+
+        lista_ordenada = sorted(lista_pcs, key=lambda pc: pc.pode_desfazer_retificacao)
+
+        return lista_ordenada
 
     def get_proxima_sequencia_retificacao(self):
         return self.retificacoes.count() + 1
