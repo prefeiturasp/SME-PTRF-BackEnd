@@ -730,11 +730,94 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, 
         pc = PrestacaoConta.by_uuid(pc_uuid)
         pc.consolidado_dre = retificacao
         pc.publicada = False
+        pc.status_anterior_a_retificacao = pc.status
         pc.status = PrestacaoConta.STATUS_RECEBIDA
-        pc.save(update_fields=['consolidado_dre', 'publicada', 'status'])
-        logger.info(f'Prestação de conta {pc} passada para retificação no consolidado de retificação{retificacao}')
+        pc.save(update_fields=['consolidado_dre', 'publicada', 'status', 'status_anterior_a_retificacao'])
+        logger.info(f'Prestação de conta {pc} - {pc.associacao} passada para retificação no consolidado de retificação{retificacao}')
 
     logger.info(f'Finalizada a retificação do Consolidado DRE {consolidado_dre}')
+
+
+def desfazer_retificacao_dre(retificacao, prestacoes_de_conta_a_desfazer_retificacao, motivo, deve_apagar_retificacao):
+    if not prestacoes_de_conta_a_desfazer_retificacao:
+        raise Exception('Nenhuma prestação de conta selecionada para desfazer retificação.')
+
+    if not motivo:
+        logger.error('Motivo da retificação não informado.')
+        raise Exception('É necessário informar o motivo da retificação.')
+
+    if deve_apagar_retificacao is None:
+        logger.error('Deve apagar retificacao não informado.')
+        raise Exception('É necessário informar se deve apagar a retificação.')
+
+    if deve_apagar_retificacao is not True and deve_apagar_retificacao is not False:
+        logger.error('Deve apagar retificacao deve ser True ou False')
+        raise Exception('Deve apagar retificacao deve ser True ou False')
+
+    logger.info(f'Iniciando processo de desfazer retificação das Pcs {prestacoes_de_conta_a_desfazer_retificacao}')
+
+    if retificacao.eh_retificacao and retificacao.consolidado_retificado:
+        retificacao.motivo_retificacao = motivo
+        retificacao.save()
+
+        logger.info(f'Motivo retificação atualizado')
+
+        for pc_uuid in prestacoes_de_conta_a_desfazer_retificacao:
+            pc = PrestacaoConta.by_uuid(pc_uuid)
+
+            logger.info(f'A Prestação de conta {pc} - {pc.associacao} será removida da retificação {retificacao}')
+
+            pc.consolidado_dre = retificacao.consolidado_retificado
+            pc.publicada = True
+            pc.status = pc.status_anterior_a_retificacao
+            pc.status_anterior_a_retificacao = ""
+            pc.save(update_fields=['consolidado_dre', 'publicada', 'status', 'status_anterior_a_retificacao'])
+
+            logger.info(f'A Prestação de conta {pc} - {pc.associacao} foi removida da retificação {retificacao}')
+            logger.info(f'A Prestação de conta {pc} - {pc.associacao} foi inserida no consolidado retificado {retificacao.consolidado_retificado}')
+
+        logger.info(f'Finalizada a ação de desfazer a retificação das Pcs {prestacoes_de_conta_a_desfazer_retificacao}')
+
+        if deve_apagar_retificacao:
+            logger.info(f'Todas as Prestações de Contas foram retiradas da retificação, portando a retificação {retificacao} será apagada')
+
+            retificacao.consolidado_retificado.gerou_uma_retificacao = False
+            retificacao.consolidado_retificado.save()
+
+            retificacao.delete()
+
+    else:
+        logger.info(f'Não foi possível identificar o Consolidado DRE {retificacao} como uma retificação')
+
+
+def update_retificacao(retificacao, prestacoes_de_conta_a_retificar, motivo):
+    if not prestacoes_de_conta_a_retificar:
+        raise Exception('Nenhuma prestação de conta selecionada para retificação.')
+
+    if not motivo:
+        logger.error('Motivo da retificação não informado.')
+        raise Exception('É necessário informar o motivo da retificação.')
+
+    logger.info(f'Iniciando atualização da Retificação {retificacao}')
+
+    if retificacao.eh_retificacao and retificacao.consolidado_retificado:
+        retificacao.motivo_retificacao = motivo
+        retificacao.save()
+
+        logger.info(f'Motivo retificação atualizado')
+
+        for pc_uuid in prestacoes_de_conta_a_retificar:
+            pc = PrestacaoConta.by_uuid(pc_uuid)
+            pc.consolidado_dre = retificacao
+            pc.publicada = False
+            pc.status_anterior_a_retificacao = pc.status
+            pc.status = PrestacaoConta.STATUS_RECEBIDA
+            pc.save(update_fields=['consolidado_dre', 'publicada', 'status', 'status_anterior_a_retificacao'])
+            logger.info(f'Prestação de conta {pc} - {pc.associacao} passada para retificação no consolidado de retificação {retificacao}')
+
+        logger.info(f'Finalizado o update da retificação {retificacao}')
+    else:
+        logger.info(f'Não foi possível identificar o Consolidado DRE {retificacao} como uma retificação')
 
 
 class AcompanhamentoDeRelatoriosConsolidados:

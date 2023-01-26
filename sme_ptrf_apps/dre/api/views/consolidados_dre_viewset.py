@@ -1188,6 +1188,15 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
         pcs = consolidado.pcs_retificaveis()
         return Response(PrestacaoContaListRetificaveisSerializer(pcs, many=True).data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['get'], url_path='pcs_em_retificacao',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def pcs_em_retificacao(self, request, uuid):
+        consolidado: ConsolidadoDRE = self.get_object()
+        from sme_ptrf_apps.core.api.serializers.prestacao_conta_serializer import \
+            PrestacaoContaListRetificaveisSerializer
+        pcs = consolidado.pcs_em_retificacao()
+        return Response(PrestacaoContaListRetificaveisSerializer(pcs, many=True).data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['post'], url_path='retificar', permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def retificar(self, request, uuid):
         from sme_ptrf_apps.dre.api.serializers.validation_serializers.consolidado_dre_retificacao import ConsolidadoDreRetificacaoSerializer
@@ -1200,8 +1209,8 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
         try:
             retificar_consolidado_dre(
                 consolidado_dre=consolidado,
-                prestacoes_de_conta_a_retificar=query.validated_data['pcs_a_retificar'],
-                motivo_retificacao=query.validated_data['motivo_retificacao'],
+                prestacoes_de_conta_a_retificar=query.validated_data['lista_pcs'],
+                motivo_retificacao=query.validated_data['motivo'],
             )
         except Exception as e:
             erro = {
@@ -1212,3 +1221,58 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(ConsolidadoDreSerializer(consolidado, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='desfazer_retificacao',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def desfazer_retificacao(self, request, uuid):
+        from sme_ptrf_apps.dre.api.serializers.validation_serializers.consolidado_dre_desfazer_retificacao import \
+            ConsolidadoDreDesfazerRetificacaoSerializer
+        from sme_ptrf_apps.dre.services.consolidado_dre_service import desfazer_retificacao_dre
+        retificacao: ConsolidadoDRE = self.get_object()
+
+        query = ConsolidadoDreDesfazerRetificacaoSerializer(data=request.data)
+        query.is_valid(raise_exception=True)
+
+        try:
+            desfazer_retificacao_dre(
+                retificacao=retificacao,
+                prestacoes_de_conta_a_desfazer_retificacao=query.validated_data['lista_pcs'],
+                motivo=query.validated_data['motivo'],
+                deve_apagar_retificacao=query.validated_data['deve_apagar_retificacao']
+            )
+        except Exception as e:
+            erro = {
+                'erro': 'Erro ao desfazer retificacao',
+                'mensagem': f"Não foi possível desfazer a retificacao: {e}"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(ConsolidadoDreSerializer(retificacao, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='update_retificacao',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def update_retificacao(self, request, uuid):
+        from sme_ptrf_apps.dre.api.serializers.validation_serializers.consolidado_dre_retificacao import \
+            ConsolidadoDreRetificacaoSerializer
+        from sme_ptrf_apps.dre.services.consolidado_dre_service import update_retificacao
+        retificacao: ConsolidadoDRE = self.get_object()
+
+        query = ConsolidadoDreRetificacaoSerializer(data=request.data)
+        query.is_valid(raise_exception=True)
+
+        try:
+            update_retificacao(
+                retificacao=retificacao,
+                prestacoes_de_conta_a_retificar=query.validated_data['lista_pcs'],
+                motivo=query.validated_data['motivo'],
+            )
+        except Exception as e:
+            erro = {
+                'erro': 'Erro ao retificar o consolidado',
+                'mensagem': f"Não foi possível retificar o consolidado: {e}"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(ConsolidadoDreSerializer(retificacao, many=False).data, status=status.HTTP_200_OK)
