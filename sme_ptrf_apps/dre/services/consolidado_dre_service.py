@@ -62,11 +62,22 @@ def retornar_ja_publicadas(dre, periodo):
         else:
             nome_publicacao = f'Publicação Única{texto_qtde_unidades}'
 
+
+        # Rever regra de ja publicado para retificacoes
+        if consolidado_dre.eh_retificacao:
+            if consolidado_dre.laudas_do_consolidado_dre.all():
+                ja_publicado = True
+            else:
+                ja_publicado = False
+
+        else:
+            ja_publicado = True
+
         consolidado = {
             'titulo_relatorio': nome_publicacao,
             'qtde_pcs': qtde_unidades,
             'sequencia': sequencia,
-            'ja_publicado': True,
+            'ja_publicado': ja_publicado,
             'dre_nome': dre.nome,
             'uuid': consolidado_dre.uuid,
             'dre_uuid': dre.uuid,
