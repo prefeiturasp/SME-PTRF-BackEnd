@@ -14,6 +14,11 @@ class Parametros(SingletonModel, ModeloBase):
     fique_de_olho = RichTextField(null=True)
     fique_de_olho_relatorio_dre = RichTextField(null=True, verbose_name='Fique de olho (Relatório DRE)')
 
+    tempo_aguardar_conclusao_pc = models.PositiveSmallIntegerField(
+        'Quanto tempo deve-se aguardar a conclusão da PC (segundos)?',
+        default=120
+    )
+
     tempo_notificar_nao_demonstrados = models.PositiveSmallIntegerField(
         'Tempo para notificação de transações não demonstradas (dias)',
         default=0

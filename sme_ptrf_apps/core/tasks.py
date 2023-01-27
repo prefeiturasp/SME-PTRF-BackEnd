@@ -11,8 +11,10 @@ from sme_ptrf_apps.core.models import (
     PeriodoPrevia,
     PrestacaoConta,
     Ata,
-    AnalisePrestacaoConta
+    AnalisePrestacaoConta, Notificacao
 )
+
+from django.contrib.auth import get_user_model
 
 
 logger = logging.getLogger(__name__)
@@ -70,11 +72,31 @@ def concluir_prestacao_de_contas_async(
     else:
         logger.info('PC não requer geração de documentos e cálculo de fechamentos.')
 
-    prestacao = prestacao.concluir(
-        e_retorno_devolucao=e_retorno_devolucao,
-        justificativa_acertos_pendentes=justificativa_acertos_pendentes
-    )
-    logger.info('Concluída a prestação de contas %s.', prestacao)
+    try:
+        prestacao = prestacao.concluir(
+            e_retorno_devolucao=e_retorno_devolucao,
+            justificativa_acertos_pendentes=justificativa_acertos_pendentes
+        )
+
+        # Apagando as notificações criadas pela classe MonitoraPc
+        usuario_notificacao = get_user_model().objects.get(username=usuario)
+        unidade = associacao.unidade
+
+        notificacoes = Notificacao.objects.filter(
+            usuario=usuario_notificacao,
+            categoria="ERRO_AO_CONCLUIR_PC",
+            prestacao_conta=None,
+            periodo=periodo,
+            unidade=unidade
+        ).all().order_by("-criado_em")
+
+        for notificacao in notificacoes:
+            notificacao.delete()
+
+        logger.info('Concluída a prestação de contas %s.', prestacao)
+    except:
+        logger.info('Erro ao concluir a prestação de contas %s.', prestacao)
+
 
 
 @shared_task(

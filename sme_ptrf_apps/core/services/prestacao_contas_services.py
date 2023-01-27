@@ -3,6 +3,8 @@ import logging
 from django.db import transaction
 from django.db.models import Q, Sum, Count, Max
 
+from .notificacao_services.notificacao_erro_ao_concluir_pc import notificar_erro_ao_concluir_pc
+
 from ..models import (
     PrestacaoConta,
     FechamentoPeriodo,
@@ -19,7 +21,7 @@ from ..models import (
     AnaliseDocumentoPrestacaoConta,
     ContaAssociacao,
     TipoAcertoDocumento,
-    SolicitacaoAcertoDocumento, SolicitacaoDevolucaoAoTesouro,
+    SolicitacaoAcertoDocumento, SolicitacaoDevolucaoAoTesouro, Parametros,
 )
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
@@ -58,7 +60,7 @@ def pc_requer_geracao_documentos(prestacao):
 
 
 @transaction.atomic
-def concluir_prestacao_de_contas(periodo, associacao):
+def concluir_prestacao_de_contas(periodo, associacao, usuario=None, monitoraPc=False):
     prestacao = PrestacaoConta.abrir(periodo=periodo, associacao=associacao)
     logger.info(f'Aberta a prestação de contas {prestacao}.')
 
@@ -74,6 +76,9 @@ def concluir_prestacao_de_contas(periodo, associacao):
         }
 
     prestacao.em_processamento()
+    if monitoraPc:
+        MonitoraPC(prestacao_de_contas=prestacao, usuario=usuario, associacao=associacao)
+
     logger.info(f'Prestação de contas em processamento {prestacao}.')
 
     return {
@@ -1439,3 +1444,119 @@ def previa_informacoes_financeiras_para_atas(associacao, periodo):
     }
 
     return info
+
+
+class MonitoraPC:
+
+    def __init__(self, prestacao_de_contas, usuario, associacao, status=PrestacaoConta.STATUS_EM_PROCESSAMENTO):
+
+        self.__prestacao_de_contas = prestacao_de_contas
+        self.__uuid_pc = prestacao_de_contas.uuid
+        self.__usuario = usuario
+        self.__associacao = associacao
+        self.__status = status
+        self.dispara_mensagem_inicio_monitoramento()
+        self.__tempo_aguardar_conclusao_pc = Parametros.get().tempo_aguardar_conclusao_pc
+        self.t = None
+
+        # O segundo parâmetro de set_interval, define quanto tempo (em segundos) aguardamos
+        # para verificar se a PC ainda está EM_PROCESSAMENTO que vem de core/Parametro
+        self.set_interval(self.verifica_status_pc, self.tempo_aguardar_conclusao_pc)
+
+    @property
+    def prestacao_de_contas(self):
+        return self.__prestacao_de_contas
+
+    @property
+    def uuid_prestacao_de_contas(self):
+        return self.__uuid_pc
+
+    @property
+    def usuario(self):
+        return self.__usuario
+
+    @property
+    def status(self):
+        return self.__status
+
+    @property
+    def associacao(self):
+        return self.__associacao
+
+    @property
+    def tempo_aguardar_conclusao_pc(self):
+        tempo = self.__tempo_aguardar_conclusao_pc if self.__tempo_aguardar_conclusao_pc > 0 else 60
+        return tempo
+
+    def dispara_mensagem_inicio_monitoramento(self):
+        logger.info(f"Monitoramento de PC: Iniciando o processo de monitoramento da PC: {self.prestacao_de_contas}")
+
+    def verifica_status_pc(self):
+        pc = PrestacaoConta.objects.filter(uuid=self.uuid_prestacao_de_contas).first()
+
+        if pc:
+            periodo = pc.periodo
+
+            if periodo:
+
+                if pc.status == self.status:
+
+                    self.revoke_tasks_by_name(
+                        task_name='sme_ptrf_apps.core.tasks.concluir_prestacao_de_contas_async'
+                    )
+
+                    reaberta = reabrir_prestacao_de_contas(self.uuid_prestacao_de_contas)
+                    if reaberta:
+                        logger.info(f"Monitoramento de PC: Prestação de contas reaberta com sucesso. Todos os seus "
+                                    f"registros foram apagados.")
+
+                        notificar_erro_ao_concluir_pc(
+                            prestacao_de_contas=None,
+                            usuario=self.usuario,
+                            associacao=self.associacao,
+                            periodo=periodo,
+                        )
+                    else:
+                        logger.info(f"Monitoramento de PC: Houve algum erro ao tentar reabrir a prestação de contas.")
+        if self.t:
+            self.t.cancel()
+
+    def set_interval(self, func, sec):
+        pc = PrestacaoConta.objects.filter(uuid=self.uuid_prestacao_de_contas).first()
+        if pc:
+            periodo = pc.periodo
+
+            if periodo:
+
+                import threading
+
+                def func_wrapper():
+                    self.set_interval(func, sec)
+                    func()
+
+                self.t = threading.Timer(sec, func_wrapper)
+                self.t.start()
+
+    def revoke_tasks_by_name(self, task_name, worker_prefix=''):
+        import celery.task.control as c
+        """
+        Revoke all tasks by the name of the celery task
+        :param task_name: Name of the celery task
+        :param worker_prefix: Prefix for the worker
+        :return: None
+        Examples:
+            revoke_tasks_by_name(
+                task_name='users.tasks.indexing.reindex_all_users'
+            )
+            revoke_tasks_by_name(
+                worker_prefix='celery@users-indexer-',
+                task_name='users.tasks.indexing.reindex_all_users'
+            )
+        """
+
+        for worker_name, tasks in c.inspect().active().items():
+            if worker_name.startswith(worker_prefix):
+                for task in tasks:
+                    if task['type'] == task_name:
+                        print('Revoking task {}'.format(task))
+                        c.revoke(task['id'], terminate=True)
