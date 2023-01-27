@@ -16,7 +16,7 @@ class Parametros(SingletonModel, ModeloBase):
 
     tempo_aguardar_conclusao_pc = models.PositiveSmallIntegerField(
         'Quanto tempo deve-se aguardar a conclusão da PC (segundos)?',
-        default=120
+        default=1
     )
 
     tempo_notificar_nao_demonstrados = models.PositiveSmallIntegerField(

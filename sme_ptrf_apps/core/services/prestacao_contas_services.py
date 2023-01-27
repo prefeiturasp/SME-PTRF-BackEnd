@@ -1457,11 +1457,12 @@ class MonitoraPC:
         self.__status = status
         self.dispara_mensagem_inicio_monitoramento()
         self.__tempo_aguardar_conclusao_pc = Parametros.get().tempo_aguardar_conclusao_pc
-        self.t = None
 
         # O segundo parâmetro de set_interval, define quanto tempo (em segundos) aguardamos
         # para verificar se a PC ainda está EM_PROCESSAMENTO que vem de core/Parametro
         self.set_interval(self.verifica_status_pc, self.tempo_aguardar_conclusao_pc)
+
+        self.t = None
 
     @property
     def prestacao_de_contas(self):
