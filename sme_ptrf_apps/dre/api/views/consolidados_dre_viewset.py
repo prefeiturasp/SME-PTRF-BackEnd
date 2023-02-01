@@ -115,8 +115,10 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
         sequencia_de_publicacao = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid,
                                                                                                           periodo_uuid)
 
+        eh_retificacao = True if consolidado_dre and consolidado_dre.eh_retificacao else False
+
         ata = criar_ata_e_atribuir_ao_consolidado_dre(dre=dre, periodo=periodo, consolidado_dre=consolidado_dre,
-                                                      sequencia_de_publicacao=sequencia_de_publicacao)
+                                                      sequencia_de_publicacao=sequencia_de_publicacao, eh_retificacao=eh_retificacao)
 
         return Response(AtaParecerTecnicoLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
 
