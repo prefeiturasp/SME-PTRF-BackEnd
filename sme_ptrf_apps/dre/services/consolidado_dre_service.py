@@ -16,15 +16,26 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
-def criar_ata_e_atribuir_ao_consolidado_dre(dre=None, periodo=None, consolidado_dre=None, sequencia_de_publicacao=None):
-    sequencia_de_publicacao_atual = sequencia_de_publicacao['sequencia_de_publicacao_atual']
-    ata = AtaParecerTecnico.criar_ou_retornar_ata_sem_consolidado_dre(dre=dre, periodo=periodo,
-                                                                      sequencia_de_publicacao=sequencia_de_publicacao_atual)
+def criar_ata_e_atribuir_ao_consolidado_dre(dre=None, periodo=None, consolidado_dre=None, sequencia_de_publicacao=None, eh_retificacao=False):
+    if eh_retificacao:
+        ata = AtaParecerTecnico.criar_ou_retornar_ata_sem_consolidado_dre(dre=dre, periodo=periodo,
+                                                                          sequencia_de_publicacao=None, sequencia_de_retificacao=None)
+    else:
+        sequencia_de_publicacao_atual = sequencia_de_publicacao['sequencia_de_publicacao_atual']
+        ata = AtaParecerTecnico.criar_ou_retornar_ata_sem_consolidado_dre(dre=dre, periodo=periodo,
+                                                                          sequencia_de_publicacao=sequencia_de_publicacao_atual,
+                                                                          sequencia_de_retificacao=None)
 
     if consolidado_dre:
         ata.consolidado_dre = consolidado_dre
-        ata.sequencia_de_publicacao = consolidado_dre.sequencia_de_publicacao
-        ata.save(update_fields=['consolidado_dre', 'sequencia_de_publicacao'])
+
+        if consolidado_dre.eh_retificacao:
+            ata.sequencia_de_retificacao = consolidado_dre.sequencia_de_retificacao
+            ata.sequencia_de_publicacao = consolidado_dre.sequencia_de_publicacao
+            ata.save(update_fields=['consolidado_dre', 'sequencia_de_retificacao', 'sequencia_de_publicacao'])
+        else:
+            ata.sequencia_de_publicacao = consolidado_dre.sequencia_de_publicacao
+            ata.save(update_fields=['consolidado_dre', 'sequencia_de_publicacao'])
 
     return ata
 
@@ -664,8 +675,12 @@ def concluir_consolidado_dre(dre, periodo, parcial, usuario):
     consolidado_dre.atribuir_versao(previa=False)
     consolidado_dre.atribuir_se_eh_parcial(parcial=eh_parcial)
 
-    ata_parecer_tecnico = AtaParecerTecnico.criar_ou_retornar_ata_sem_consolidado_dre(dre, periodo,
-                                                                                      sequencia_de_publicacao)
+    if consolidado_dre.eh_retificacao:
+        ata_parecer_tecnico = AtaParecerTecnico.criar_ou_retornar_ata_sem_consolidado_dre(
+            dre, periodo, consolidado_dre.sequencia_de_publicacao, consolidado_dre.sequencia_de_retificacao)
+    else:
+        ata_parecer_tecnico = AtaParecerTecnico.criar_ou_retornar_ata_sem_consolidado_dre(
+            dre, periodo, sequencia_de_publicacao, sequencia_de_retificacao=None)
 
     dre_uuid = dre.uuid
     periodo_uuid = periodo.uuid

@@ -53,6 +53,12 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         else:
             titulo_sequencia_publicacao = "Publicação Única"
 
+
+    motivo_retificacao = None
+    if ata_de_parecer_tecnico and ata_de_parecer_tecnico.consolidado_dre:
+        if ata_de_parecer_tecnico.consolidado_dre.eh_retificacao:
+            motivo_retificacao = ata_de_parecer_tecnico.consolidado_dre.motivo_retificacao
+
     cabecalho = {
         "titulo": "Programa de Transferência de Recursos Financeiros -  PTRF",
         "sub_titulo": f"Diretoria Regional de Educação - {formata_nome_dre(dre.nome)}",
@@ -71,6 +77,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas),
         "periodo_data_fim": formata_data(periodo.data_fim_realizacao_despesas),
         "comentarios": ata_de_parecer_tecnico.comentarios,
+        "motivo_retificacao": motivo_retificacao
     }
     presentes_na_ata = {
         "presentes": get_presentes_na_ata(ata_de_parecer_tecnico)
