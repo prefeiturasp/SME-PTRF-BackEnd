@@ -845,6 +845,20 @@ def update_retificacao(retificacao, prestacoes_de_conta_a_retificar, motivo):
     else:
         logger.info(f'Não foi possível identificar o Consolidado DRE {retificacao} como uma retificação')
 
+def update_motivo_retificacao(retificacao, motivo):
+    if not motivo:
+        logger.error('Motivo da retificação não informado.')
+        raise Exception('É necessário informar o motivo da retificação.')
+
+    logger.info(f'Atualizando motivo da retificação {retificacao}')
+
+    if retificacao.eh_retificacao and retificacao.consolidado_retificado:
+        retificacao.motivo_retificacao = motivo
+        retificacao.save()
+
+        logger.info(f'Motivo retificação atualizado')
+    else:
+        logger.info(f'Não foi possível identificar o Consolidado DRE {retificacao} como uma retificação')
 
 class AcompanhamentoDeRelatoriosConsolidados:
 

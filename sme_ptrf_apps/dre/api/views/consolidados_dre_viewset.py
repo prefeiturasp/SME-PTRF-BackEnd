@@ -1278,3 +1278,31 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(ConsolidadoDreSerializer(retificacao, many=False).data, status=status.HTTP_200_OK)
+
+
+    @action(detail=True, methods=['patch'], url_path='update_motivo_retificacao',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def update_motivo_retificacao(self, request, uuid):
+        from sme_ptrf_apps.dre.api.serializers.validation_serializers.consolidado_dre_editar_motivo_retificacao import \
+            ConsolidadoDreEditarMotivoRetificacao
+        from sme_ptrf_apps.dre.services.consolidado_dre_service import update_motivo_retificacao
+        retificacao: ConsolidadoDRE = self.get_object()
+
+        query = ConsolidadoDreEditarMotivoRetificacao(data=request.data)
+        query.is_valid(raise_exception=True)
+
+        try:
+            update_motivo_retificacao(
+                retificacao=retificacao,
+                motivo=query.validated_data['motivo'],
+            )
+
+        except Exception as e:
+            erro = {
+                'erro': 'Erro ao alterar o motivo de retificação do consolidado',
+                'mensagem': f"Não foi possível alterar o motivo de retificação do consolidado: {e}"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(ConsolidadoDreSerializer(retificacao, many=False).data, status=status.HTTP_200_OK)
