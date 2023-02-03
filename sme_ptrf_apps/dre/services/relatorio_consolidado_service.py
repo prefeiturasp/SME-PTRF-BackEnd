@@ -72,30 +72,45 @@ def status_de_geracao_do_relatorio(dre, periodo, tipo_conta):
 def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consolidado_dre=None):
     from .consolidado_dre_service import verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao
 
+    eh_retificacao = True if consolidado_dre and consolidado_dre.eh_retificacao else False
+
     dre_uuid = dre.uuid
     periodo_uuid = periodo.uuid
-    parcial = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid, periodo_uuid)
-    eh_parcial = parcial['parcial']
-    sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
 
-    if consolidado_dre:
+    if eh_retificacao:
+        eh_parcial = consolidado_dre.eh_parcial
         qtde_unidades = PrestacaoConta.objects.filter(consolidado_dre=consolidado_dre).count()
-        sequencia_de_publicacao_do_consolidado = consolidado_dre.sequencia_de_publicacao
-        if sequencia_de_publicacao_do_consolidado > 0:
-            titulo_parcial = f"Publicação Parcial #{sequencia_de_publicacao_do_consolidado} - {qtde_unidades} unidade(s)" if eh_parcial else f"Publicação Única {qtde_unidades} unidade(s)"
+
+        if consolidado_dre.consolidado_retificado and consolidado_dre.consolidado_retificado.data_publicacao:
+            titulo_parcial = f"Retificação da Publicação de {consolidado_dre.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y')} - {qtde_unidades} unidade(s)"
         else:
-            titulo_parcial = "Publicação Única"
+            titulo_parcial = ""
     else:
-        qtde_unidades = PrestacaoConta.objects.filter(
-            periodo=periodo,
-            status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
-            associacao__unidade__dre=dre,
-            publicada=False
-        ).count()
-        if sequencia_de_publicacao > 0:
-            titulo_parcial = f"Publicação Parcial #{sequencia_de_publicacao} - {qtde_unidades} unidade(s)" if eh_parcial else f"Publicação Única {qtde_unidades} unidade(s)"
+        parcial = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid, periodo_uuid)
+        eh_parcial = parcial['parcial']
+        sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
+
+        if consolidado_dre:
+            qtde_unidades = PrestacaoConta.objects.filter(consolidado_dre=consolidado_dre).count()
+            sequencia_de_publicacao_do_consolidado = consolidado_dre.sequencia_de_publicacao
+
+            if sequencia_de_publicacao_do_consolidado > 0:
+                titulo_parcial = f"Publicação Parcial #{sequencia_de_publicacao_do_consolidado} - {qtde_unidades} unidade(s)" if eh_parcial else f"Publicação Única {qtde_unidades} unidade(s)"
+            else:
+                titulo_parcial = "Publicação Única"
         else:
-            titulo_parcial = "Publicação Única"
+            qtde_unidades = PrestacaoConta.objects.filter(
+                periodo=periodo,
+                status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+                associacao__unidade__dre=dre,
+                publicada=False
+            ).count()
+
+            if sequencia_de_publicacao > 0:
+                titulo_parcial = f"Publicação Parcial #{sequencia_de_publicacao} - {qtde_unidades} unidade(s)" if eh_parcial else f"Publicação Única {qtde_unidades} unidade(s)"
+            else:
+                titulo_parcial = "Publicação Única"
+
 
     dados = {
         "periodo_referencia": periodo.referencia if periodo.referencia else "",
@@ -112,7 +127,7 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
     for tipo_conta in tipos_de_conta:
         totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True, consolidado_dre=consolidado_dre)
 
-        if consolidado_dre and consolidado_dre.versao == 'FINAL':
+        if consolidado_dre and consolidado_dre.versao == 'FINAL' and not consolidado_dre.eh_retificacao:
             # Justificativa
             justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
                 dre=dre,
