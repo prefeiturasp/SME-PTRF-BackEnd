@@ -1,6 +1,6 @@
 import logging
 
-from django.db.models import Q, Max, Value
+from django.db.models import Q, Max, Value, Count
 from django.db.models.functions import Coalesce
 
 from ..api.serializers.ata_parecer_tecnico_serializer import AtaParecerTecnicoLookUpSerializer
@@ -48,6 +48,13 @@ def retornar_ja_publicadas(dre, periodo):
 
         qtde_unidades = consolidado_dre.prestacoes_de_conta_do_consolidado_dre.all().count()
 
+        retificacoes = consolidado_dre.retificacoes.all()
+
+        if retificacoes:
+            qtde_unidades_retificacoes = retificacoes.aggregate(total_pcs_retificacoes=Coalesce(
+                Count('prestacoes_de_conta_do_consolidado_dre'), Value(0)))['total_pcs_retificacoes']
+            qtde_unidades += qtde_unidades_retificacoes
+
         texto_qtde_unidades = ""
         if qtde_unidades == 1:
             texto_qtde_unidades = " - 1 PC"
@@ -61,7 +68,6 @@ def retornar_ja_publicadas(dre, periodo):
             nome_publicacao = f'{tipo_publicacao} {texto_qtde_unidades}'
         else:
             nome_publicacao = f'Publicação Única{texto_qtde_unidades}'
-
 
         # Rever regra de ja publicado para retificacoes
         if consolidado_dre.eh_retificacao:
@@ -177,62 +183,69 @@ def retornar_proxima_publicacao(dre, periodo, sequencia_de_publicacao, sequencia
 
             relatorios_fisico_financeiros_proxima_publicacao_list.append(_relatorio)
 
+    # Incluindo filtro consolidado_dre__consolidado_retificado__isnull=True, para verificar se trata de uma Retificação
+    # e não gerar novo bloco
     qtde_unidades = PrestacaoConta.objects.filter(
         periodo=periodo,
         status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
         associacao__unidade__dre=dre,
+        consolidado_dre__consolidado_retificado__isnull=True,  # Para verificar se trata de uma Retificação
         publicada=False
     ).count()
 
     texto_qtde_unidades = ""
+    proxima_publicacao = None
 
-    if qtde_unidades == 1:
-        texto_qtde_unidades = " - 1 PC"
-    elif qtde_unidades > 1:
-        texto_qtde_unidades = f' - {qtde_unidades} PCs'
+    # Incluindo verificação se não é uma retificacao para nao gerar o bloco
+    if qtde_unidades > 0:
 
-    if sequencia_de_publicacao['parcial']:
-        titulo_relatorio = f'Publicação Parcial #{sequencia_de_publicacao_atual}{texto_qtde_unidades}'
-    else:
-        titulo_relatorio = f'Publicação Única{texto_qtde_unidades}'
+        if qtde_unidades == 1:
+            texto_qtde_unidades = " - 1 PC"
+        elif qtde_unidades > 1:
+            texto_qtde_unidades = f' - {qtde_unidades} PCs'
 
-    # verificando se a publicacao anterior foi marcada como publicada no DO, para permitir gerar a próxima publicação
-    if sequencia_de_publicacao_atual == 1 or not sequencia_de_publicacao['parcial']:
-        consolidado_anterior_tem_data_e_pagina_publicacao = True
-    else:
-        sequencia_de_publicacao_anterior = sequencia_de_publicacao_atual - 1
-        consolidado_anterior_tem_data_e_pagina_publicacao = ConsolidadoDRE.objects.filter(
-            dre=dre,
-            periodo=periodo,
-            versao='FINAL',
-            status_sme='PUBLICADO',
-            data_publicacao__isnull=False,
-            sequencia_de_publicacao=sequencia_de_publicacao_anterior,
-        ).last()
+        if sequencia_de_publicacao['parcial']:
+            titulo_relatorio = f'Publicação Parcial #{sequencia_de_publicacao_atual}{texto_qtde_unidades}'
+        else:
+            titulo_relatorio = f'Publicação Única{texto_qtde_unidades}'
 
-    proxima_publicacao = {
-        'titulo_relatorio': titulo_relatorio,
-        'qtde_pcs': qtde_unidades,
-        'sequencia': sequencia_de_publicacao_atual,
-        'ja_publicado': False,
-        'dre_nome': dre.nome,
-        'relatorios_fisico_financeiros': relatorios_fisico_financeiros_proxima_publicacao_list,
-        'ata_de_parecer_tecnico': AtaParecerTecnicoLookUpSerializer(ata_de_parecer_tecnico,
-                                                                    many=False).data if ata_de_parecer_tecnico else {},
-        'laudas': [],
-        'dre_uuid': dre.uuid,
-        'periodo_uuid': periodo.uuid,
-        'uuid': uuid_consolidado_dre_proxima_publicacao,
-        'eh_consolidado_de_publicacoes_parciais': False,
-        'status_sme': None,
-        'data_publicacao': None,
-        'pagina_publicacao': None,
-        'permite_excluir_data_e_pagina_publicacao': False,
-        'habilita_botao_gerar': True if consolidado_anterior_tem_data_e_pagina_publicacao else False,
-        'texto_tool_tip_botao_gerar': 'É necessário informar a data e a página da publicação anterior<br/>'
-                                      'no Diário Oficial da Cidade para gerar uma nova publicação.'
-        if not consolidado_anterior_tem_data_e_pagina_publicacao else None,
-    }
+        # verificando se a publicacao anterior foi marcada como publicada no DO, para permitir gerar a próxima publicação
+        if sequencia_de_publicacao_atual == 1 or not sequencia_de_publicacao['parcial']:
+            consolidado_anterior_tem_data_e_pagina_publicacao = True
+        else:
+            sequencia_de_publicacao_anterior = sequencia_de_publicacao_atual - 1
+            consolidado_anterior_tem_data_e_pagina_publicacao = ConsolidadoDRE.objects.filter(
+                dre=dre,
+                periodo=periodo,
+                versao='FINAL',
+                status_sme='PUBLICADO',
+                data_publicacao__isnull=False,
+                sequencia_de_publicacao=sequencia_de_publicacao_anterior,
+            ).last()
+
+        proxima_publicacao = {
+            'titulo_relatorio': titulo_relatorio,
+            'qtde_pcs': qtde_unidades,
+            'sequencia': sequencia_de_publicacao_atual,
+            'ja_publicado': False,
+            'dre_nome': dre.nome,
+            'relatorios_fisico_financeiros': relatorios_fisico_financeiros_proxima_publicacao_list,
+            'ata_de_parecer_tecnico': AtaParecerTecnicoLookUpSerializer(ata_de_parecer_tecnico,
+                                                                        many=False).data if ata_de_parecer_tecnico else {},
+            'laudas': [],
+            'dre_uuid': dre.uuid,
+            'periodo_uuid': periodo.uuid,
+            'uuid': uuid_consolidado_dre_proxima_publicacao,
+            'eh_consolidado_de_publicacoes_parciais': False,
+            'status_sme': None,
+            'data_publicacao': None,
+            'pagina_publicacao': None,
+            'permite_excluir_data_e_pagina_publicacao': False,
+            'habilita_botao_gerar': True if consolidado_anterior_tem_data_e_pagina_publicacao else False,
+            'texto_tool_tip_botao_gerar': 'É necessário informar a data e a página da publicação anterior<br/>'
+                                          'no Diário Oficial da Cidade para gerar uma nova publicação.'
+            if not consolidado_anterior_tem_data_e_pagina_publicacao else None,
+        }
 
     return proxima_publicacao
 
@@ -306,8 +319,7 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
         eh_parcial=True
     ).count()
 
-    consolidado_de_publicacoes_parciais = (
-                                                  quantidade_pcs_publicadas == quantidade_ues_cnpj) and quantidade_consolidados_dre_publicados > 0
+    consolidado_de_publicacoes_parciais = (quantidade_pcs_publicadas == quantidade_ues_cnpj) and quantidade_consolidados_dre_publicados > 0
 
     if consolidado_de_publicacoes_parciais:
         proxima_publicacao = retornar_consolidado_de_publicacoes_parciais(
@@ -408,18 +420,22 @@ def retornar_trilha_de_status(dre_uuid=None, periodo_uuid=None, add_aprovado_res
         if status == 'NAO_RECEBIDA':
             continue
 
-        quantidade_status = qs.filter(status=status).count()
+        # Removendo da conta as pcs em retificação
+        quantidade_status = qs.filter(status=status, consolidado_dre__consolidado_retificado__isnull=True).count()
 
         if status == 'APROVADA' and not add_aprovado_ressalva:
-            quantidade_status += qs.filter(status='APROVADA_RESSALVA').count()
+            quantidade_status += qs.filter(status='APROVADA_RESSALVA',
+                                           consolidado_dre__consolidado_retificado__isnull=True).count()
 
         if status == 'DEVOLVIDA':
-            quantidade_status += qs.filter(status__in=['DEVOLVIDA_RETORNADA', 'DEVOLVIDA_RECEBIDA']).count()
+            quantidade_status += qs.filter(status__in=['DEVOLVIDA_RETORNADA', 'DEVOLVIDA_RECEBIDA'],
+                                           consolidado_dre__consolidado_retificado__isnull=True).count()
 
         quantidade_pcs_apresentadas += quantidade_status
 
         if status == 'DEVOLVIDA' and add_info_devolvidas_retornadas:
-            quantidade_retornadas = qs.filter(status='DEVOLVIDA_RETORNADA').count()
+            quantidade_retornadas = qs.filter(status='DEVOLVIDA_RETORNADA',
+                                              consolidado_dre__consolidado_retificado__isnull=True).count()
             card = {
                 "titulo": itens['titulo'],
                 "estilo_css": itens['estilo_css'],
@@ -438,7 +454,12 @@ def retornar_trilha_de_status(dre_uuid=None, periodo_uuid=None, add_aprovado_res
             cards.append(card)
 
         if status == 'PUBLICADO':
-            quantidade_pcs_publicadas = qs.filter(publicada=True).count()
+            quantidade_pcs_publicadas = qs.filter(
+                (
+                    Q(publicada=True) |
+                    (Q(consolidado_dre__consolidado_retificado__isnull=False))
+                )).count()
+
             card_publicadas = {
                 "titulo": itens['titulo'],
                 "estilo_css": itens['estilo_css'],
@@ -449,8 +470,11 @@ def retornar_trilha_de_status(dre_uuid=None, periodo_uuid=None, add_aprovado_res
 
         if status == 'CONCLUIDO':
             quantidade_pcs_concluidas = qs.filter(
-                (Q(status='APROVADA') | Q(status='APROVADA_RESSALVA') | Q(status='REPROVADA')) &
-                Q(publicada=False)
+                (
+                    Q(status='APROVADA') |
+                    Q(status='APROVADA_RESSALVA') |
+                    Q(status='REPROVADA')
+                ) & Q(publicada=False) & Q(consolidado_dre__consolidado_retificado__isnull=True)
             ).count()
             card_concluidas = {
                 "titulo": itens['titulo'],
@@ -461,12 +485,14 @@ def retornar_trilha_de_status(dre_uuid=None, periodo_uuid=None, add_aprovado_res
             cards.append(card_concluidas)
 
     quantidade_unidades_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
-    quantidade_pcs_nao_apresentadas = quantidade_unidades_dre - quantidade_pcs_apresentadas
+    quantidade_pcs_retificacoes = qs.filter(Q(consolidado_dre__consolidado_retificado__isnull=False)).count()
+    quantidade_pcs_nao_apresentadas = quantidade_unidades_dre - quantidade_pcs_apresentadas - quantidade_pcs_retificacoes
     card_nao_recebidas = {
         "titulo": titulo_e_estilo_css['NAO_RECEBIDA']['titulo'],
         "estilo_css": titulo_e_estilo_css['NAO_RECEBIDA']['estilo_css'],
         "quantidade_prestacoes": quantidade_pcs_nao_apresentadas,
-        "quantidade_nao_recebida": qs.filter(status='NAO_RECEBIDA').count(),
+        "quantidade_nao_recebida": qs.filter(status='NAO_RECEBIDA',
+                                             consolidado_dre__consolidado_retificado__isnull=True).count(),
         "status": 'NAO_RECEBIDA'
     }
 
@@ -562,7 +588,6 @@ def verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_
     results = retornar_trilha_de_status(dre_uuid, periodo_uuid)
 
     total_associacoes_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
-    # total_associacoes_dre = 2
     total_concluido = [d['quantidade_prestacoes'] for d in results if d['status'] == "CONCLUIDO"][0]
 
     eh_parcial = total_concluido < total_associacoes_dre
