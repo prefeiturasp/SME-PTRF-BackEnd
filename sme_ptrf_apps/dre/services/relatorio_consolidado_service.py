@@ -9,7 +9,7 @@ from sme_ptrf_apps.core.models import (
     DevolucaoAoTesouro, TipoConta,
 )
 from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE, \
-    JustificativaRelatorioConsolidadoDRE
+    JustificativaRelatorioConsolidadoDRE, ConsolidadoDRE
 from sme_ptrf_apps.receitas.models import Receita
 
 from ..services.dados_demo_execucao_fisico_financeira_service import gerar_dados_demo_execucao_fisico_financeira
@@ -127,7 +127,26 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
     for tipo_conta in tipos_de_conta:
         totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True, consolidado_dre=consolidado_dre)
 
-        if consolidado_dre and consolidado_dre.versao == 'FINAL' and not consolidado_dre.eh_retificacao:
+        if consolidado_dre and consolidado_dre.eh_retificacao:
+            if consolidado_dre.status == ConsolidadoDRE.STATUS_GERADOS_TOTAIS or consolidado_dre.status == ConsolidadoDRE.STATUS_GERADOS_PARCIAIS:
+                # foi gerado
+
+                justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                    dre=dre,
+                    tipo_conta=tipo_conta,
+                    periodo=periodo,
+                    consolidado_dre=consolidado_dre
+                ).last()
+
+            else:
+                justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                    dre=dre,
+                    tipo_conta=tipo_conta,
+                    periodo=periodo,
+                    consolidado_dre__isnull=True,
+                ).last()
+
+        elif consolidado_dre and consolidado_dre.versao == 'FINAL':
             # Justificativa
             justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
                 dre=dre,
