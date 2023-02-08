@@ -539,6 +539,7 @@ def informacoes_execucao_financeira_unidades(
     filtro_nome=None,
     filtro_tipo_unidade=None,
     filtro_status=None,
+    consolidado_dre=None
 ):
     from sme_ptrf_apps.core.models import Associacao
 
@@ -673,7 +674,16 @@ def informacoes_execucao_financeira_unidades(
     def _totaliza_fechamentos(associacao, periodo, tipo_conta, totais):
         # Fechamentos no período da conta de PCs de Associações da DRE, concluídas
 
-        if not apenas_nao_publicadas:
+        if consolidado_dre:
+            # Quando é uma retificação, as informações são resgatadas filtrando pelo consolidado
+
+            fechamentos = associacao.fechamentos_associacao.filter(
+                periodo=periodo,
+                conta_associacao__tipo_conta=tipo_conta,
+                prestacao_conta__consolidado_dre=consolidado_dre
+            )
+
+        elif not apenas_nao_publicadas:
             fechamentos = associacao.fechamentos_associacao.filter(
                 periodo=periodo,
                 conta_associacao__tipo_conta=tipo_conta,
@@ -731,7 +741,16 @@ def informacoes_execucao_financeira_unidades(
     resultado = []
     resultado_nao_apresentada = []
 
-    if not apenas_nao_publicadas:
+    if consolidado_dre:
+        # Quando é uma retificação, as informações são resgatadas filtrando pelo consolidado
+
+        associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).filter(
+            contas__tipo_conta__nome=tipo_conta).exclude(cnpj__exact='').order_by('unidade__tipo_unidade',
+                                                                                  'unidade__nome')
+        associacoes_da_dre = associacoes_da_dre.filter(
+            prestacoes_de_conta_da_associacao__consolidado_dre=consolidado_dre)
+
+    elif not apenas_nao_publicadas:
         associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).filter(
             contas__tipo_conta__nome=tipo_conta).exclude(cnpj__exact='').order_by('unidade__tipo_unidade',
                                                                                   'unidade__nome')
