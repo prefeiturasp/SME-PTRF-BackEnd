@@ -140,7 +140,17 @@ class ConsolidadoDRE(ModeloBase):
 
     @property
     def permite_retificacao(self):
-        return self.foi_publicado
+        if self.gerou_uma_retificacao:
+            retificacoes_publicadas = self.retificacoes.filter(status_sme=self.STATUS_SME_PUBLICADO)
+            todas_retificacoes_publicadas = len(self.retificacoes.all()) == len(retificacoes_publicadas)
+
+            if self.foi_publicado and todas_retificacoes_publicadas:
+                return True
+            else:
+                return False
+        else:
+            return self.foi_publicado
+
 
     @property
     def eh_retificacao(self):
@@ -152,6 +162,19 @@ class ConsolidadoDRE(ModeloBase):
             return False
 
         return True
+
+
+    @property
+    def habilita_geracao(self):
+        if self.eh_retificacao:
+            if self.versao == self.VERSAO_FINAL and self.status == self.STATUS_NAO_GERADOS:
+                return True
+            elif self.versao == self.VERSAO_PREVIA and (self.status == self.STATUS_GERADOS_PARCIAIS or self.status == self.STATUS_GERADOS_TOTAIS):
+                return True
+            else:
+                return False
+        else:
+            return False
 
     class Meta:
         verbose_name = 'Consolidado DRE'
