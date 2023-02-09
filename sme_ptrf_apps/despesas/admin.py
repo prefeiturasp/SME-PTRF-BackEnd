@@ -65,10 +65,18 @@ class RateioDespesaAdmin(admin.ModelAdmin):
     def acao(self, obj):
         return obj.acao_associacao.acao.nome if obj.acao_associacao else ''
 
+    autocomplete_fields = ['associacao', 'despesa', 'conta_associacao', 'acao_associacao']
+
 
 class RateioDespesaInLine(admin.TabularInline):
     model = RateioDespesa
     extra = 1  # Quantidade de linhas que serão exibidas.
+
+    search_fields = (
+        'despesa__numero_documento', 'despesa__nome_fornecedor', 'especificacao_material_servico__descricao',
+        'associacao__unidade__codigo_eol', 'associacao__unidade__nome',)
+
+    autocomplete_fields = ['associacao', 'despesa', 'conta_associacao', 'acao_associacao']
 
 
 @admin.register(Despesa)
@@ -104,6 +112,8 @@ class DespesaAdmin(admin.ModelAdmin):
 
     def associacao(self, obj):
         return obj.associacao.nome if obj.associacao else ''
+
+    autocomplete_fields = ['associacao', 'despesas_impostos']
 
 
 @admin.register(EspecificacaoMaterialServico)
