@@ -209,6 +209,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         dre_uuid, periodo_uuid = dados['dre_uuid'], dados['periodo_uuid']
+        uuid_retificacao = dados.get('uuid_retificacao')
 
         try:
             dre = Unidade.dres.get(uuid=dre_uuid)
@@ -249,6 +250,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
                 periodo=periodo,
                 parcial=parcial,
                 usuario=request.user.username,
+                uuid_retificacao=uuid_retificacao
             )
             logger.info(f"Consolidado DRE finalizado. Status: {consolidado_dre.get_valor_status_choice()}")
 
