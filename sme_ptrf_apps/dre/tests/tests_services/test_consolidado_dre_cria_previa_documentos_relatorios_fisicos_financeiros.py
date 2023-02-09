@@ -24,6 +24,7 @@ def test_gerar_previa_consolidado_dre(
         periodo_teste_service_consolidado_dre,
         retorna_parcial_false,
         retorna_username,
+        uuid_retificacao=None
     )
 
     assert consolidado_dre.uuid == consolidado_dre_teste_service_consolidado_dre.uuid
@@ -60,6 +61,7 @@ def test_criar_previa_documentos_relatorio_fisico_financeiro_todas_as_contas(
         periodo=periodo_teste_service_consolidado_dre,
         parcial=parcial,
         usuario=usuario,
+        uuid_retificacao=None
     )
 
     assert consolidado_dre_teste_service_consolidado_dre \

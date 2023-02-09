@@ -11,6 +11,10 @@ from ...models import ConsolidadoDRE, AnaliseConsolidadoDre, AnaliseDocumentoCon
 class ConsolidadoDreSerializer(serializers.ModelSerializer):
     dre = DreSerializer()
     periodo = PeriodoLookUpSerializer()
+    eh_retificacao = serializers.SerializerMethodField('get_eh_retificacao')
+
+    def get_eh_retificacao(self, obj):
+        return obj.eh_retificacao
 
     class Meta:
         model = ConsolidadoDRE
@@ -24,7 +28,8 @@ class ConsolidadoDreSerializer(serializers.ModelSerializer):
             'data_publicacao',
             'pagina_publicacao',
             'motivo_retificacao',
-            'consolidado_retificado'
+            'consolidado_retificado',
+            'eh_retificacao'
         )
 
 

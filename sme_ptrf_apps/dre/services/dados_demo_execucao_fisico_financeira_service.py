@@ -18,13 +18,13 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
     try:
         LOGGER.info("Gerando relatório consolidado...")
 
-        cabecalho = cria_cabecalho(periodo, parcial, previa)
+        cabecalho = cria_cabecalho(periodo, parcial, previa, consolidado_dre)
         bloco_consolidado_das_publicacoes_parciais = cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo, eh_consolidado_de_publicacoes_parciais)
         data_geracao_documento = cria_data_geracao_documento(usuario, dre, parcial, previa)
         identificacao_dre = cria_identificacao_dre(dre)
-        execucao_financeira = cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dre, eh_consolidado_de_publicacoes_parciais)
-        execucao_fisica = cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais)
-        dados_fisicos_financeiros = cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais)
+        execucao_financeira = cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dre, eh_consolidado_de_publicacoes_parciais, previa)
+        execucao_fisica = cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, eh_consolidado_de_publicacoes_parciais)
+        dados_fisicos_financeiros = cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais, consolidado_dre)
 
         assinatura_dre = cria_assinaturas_dre(dre)
 
@@ -88,16 +88,21 @@ def cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo, eh_consolidado
     return consolidado_das_publicacoes_parciais_list
 
 
-def cria_cabecalho(periodo, parcial, previa):
+def cria_cabecalho(periodo, parcial, previa, consolidado_dre):
     LOGGER.info("Iniciando cabecalho...")
 
     eh_parcial = parcial['parcial']
     sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
+    eh_retificacao = True if consolidado_dre and consolidado_dre.eh_retificacao else False
 
-    if previa and eh_parcial:
+    if previa and eh_retificacao:
+        titulo_sequencia_publicacao = f'{consolidado_dre.referencia} (Prévia)'
+    elif previa and eh_parcial:
         titulo_sequencia_publicacao = f'Publicação Parcial #{sequencia_de_publicacao} (Prévia)'
     elif previa and not eh_parcial:
         titulo_sequencia_publicacao = f'Publicação Única (Prévia)'
+    elif not previa and eh_retificacao:
+        titulo_sequencia_publicacao = f'{consolidado_dre.referencia}'
     elif not previa and eh_parcial:
         titulo_sequencia_publicacao = f'Publicação Parcial #{sequencia_de_publicacao}'
     elif not previa and not eh_parcial and sequencia_de_publicacao == 0:
@@ -128,7 +133,7 @@ def cria_identificacao_dre(dre):
     return identificacao
 
 
-def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dre, eh_consolidado_de_publicacoes_parciais):
+def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dre, eh_consolidado_de_publicacoes_parciais, previa):
     """BLOCO 2 - EXECUÇÃO FINANCEIRA"""
     from .relatorio_consolidado_service import informacoes_execucao_financeira
 
@@ -248,12 +253,29 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dr
             justificativa = None
             obj_justificativas_list = []
 
-            if eh_consolidado_de_publicacoes_parciais:
-
+            if consolidado_dre.eh_retificacao:
+                if previa:
+                    justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                        dre=dre,
+                        tipo_conta=tipo_conta,
+                        periodo=periodo,
+                        consolidado_dre__isnull=True,
+                        eh_retificacao=True
+                    ).last()
+                else:
+                    justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                        dre=dre,
+                        tipo_conta=tipo_conta,
+                        periodo=periodo,
+                        consolidado_dre=consolidado_dre,
+                        eh_retificacao=True
+                    ).last()
+            elif eh_consolidado_de_publicacoes_parciais:
                 justificativas = JustificativaRelatorioConsolidadoDRE.objects.filter(
                     dre=dre,
                     tipo_conta=tipo_conta,
                     periodo=periodo,
+                    eh_retificacao=False
                 )
 
                 for just in justificativas:
@@ -273,7 +295,8 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dr
                     dre=dre,
                     tipo_conta=tipo_conta,
                     periodo=periodo,
-                    consolidado_dre=consolidado_dre
+                    consolidado_dre=consolidado_dre,
+                    eh_retificacao=False
                 ).last()
             else:
                 justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
@@ -281,6 +304,7 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dr
                     tipo_conta=tipo_conta,
                     periodo=periodo,
                     consolidado_dre__isnull=True,
+                    eh_retificacao=False
                 ).last()
 
             if not eh_consolidado_de_publicacoes_parciais:
@@ -414,7 +438,7 @@ def retorna_total_todas_as_contas_execucao_financeira(execucao_financeira_list):
     return totais_todas_as_contas
 
 
-def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais=False):
+def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, eh_consolidado_de_publicacoes_parciais=False):
     """BLOCO 3 - EXECUÇÃO FÍSICA"""
 
     publicada = not apenas_nao_publicadas
@@ -426,8 +450,28 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_
 
     cards = PrestacaoConta.dashboard(periodo.uuid, dre.uuid, add_aprovado_ressalva=True, add_info_devolvidas_retornadas=True, apenas_nao_publicadas=apenas_nao_publicadas)
 
+    if consolidado_dre and consolidado_dre.eh_retificacao:
+        prestacoes_do_consolidado = consolidado_dre.prestacoes_de_conta_do_consolidado_dre.all()
+        prestacoes_do_consolidado_original = consolidado_dre.consolidado_retificado.prestacoes_de_conta_do_consolidado_dre.all()
+
+        # quantidade_publicacoes_anteriores = len(prestacoes_do_consolidado_original) + len(prestacoes_do_consolidado)
+
+        quantidade_publicacoes_anteriores = ConsolidadoDRE.objects.filter(
+            dre=dre,
+            periodo=periodo
+        ).exclude(
+            id__gt=consolidado_dre.id
+        ).aggregate(qtde_publicacoes_anteriores=Coalesce(Count('prestacoes_de_conta_do_consolidado_dre'), Value(0)))[
+            'qtde_publicacoes_anteriores']
+
+        quantidade_aprovada = prestacoes_do_consolidado.filter(status="APROVADA", publicada=publicada).count()
+        quantidade_aprovada_ressalva = prestacoes_do_consolidado.filter(status="APROVADA_RESSALVA",
+                                                                        publicada=publicada).count()
+        quantidade_nao_aprovada = prestacoes_do_consolidado.filter(status="REPROVADA", publicada=publicada).count()
+        # Fim Dados do Consolidado DRE Retificacao
+
     # Se não for o Consolidado de Publicações Parciais
-    if not eh_consolidado_de_publicacoes_parciais:
+    elif not eh_consolidado_de_publicacoes_parciais:
         # Dados do Consolidado DRE
         sequencia_de_publicacao_atual = ConsolidadoDRE.objects.filter(
             dre=dre,
@@ -465,8 +509,17 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_
     quantidade_devolvida = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'DEVOLVIDA'][0]
     quantidade_nao_recebida = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'NAO_RECEBIDA'][0]
 
+    if consolidado_dre and consolidado_dre.eh_retificacao:
+        quantidade_nao_apresentada = \
+            quantidade_ues_cnpj \
+            - quantidade_aprovada \
+            - quantidade_aprovada_ressalva \
+            - quantidade_nao_aprovada \
+            - quantidade_em_analise \
+            - quantidade_publicacoes_anteriores
+
     # (-) todos os outros status com exceção dos quantidade_recebida e quantidade_devolvida (Porque não aparecem nesse bloco)
-    if not eh_consolidado_de_publicacoes_parciais:
+    elif not eh_consolidado_de_publicacoes_parciais:
         quantidade_nao_apresentada = \
             quantidade_ues_cnpj \
             - quantidade_aprovada \
@@ -545,7 +598,7 @@ def cria_associacoes_nao_regularizadas(dre, periodo):
     return regularizacao
 
 
-def cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais):
+def cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais, consolidado_dre):
     """Dados Físicos financeiros do bloco 4."""
     from .relatorio_consolidado_service import get_status_label, informacoes_execucao_financeira_unidades_do_consolidado_dre
 
@@ -577,7 +630,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_conso
     total_devolucoes_ao_tesouro = 0
     total_valor_total_disponivel_livre = 0
 
-    informacao_unidades = informacoes_execucao_financeira_unidades_do_consolidado_dre(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais)
+    informacao_unidades = informacoes_execucao_financeira_unidades_do_consolidado_dre(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais, consolidado_dre)
 
     lista = []
 

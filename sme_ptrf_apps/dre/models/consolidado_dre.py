@@ -167,9 +167,7 @@ class ConsolidadoDRE(ModeloBase):
     @property
     def habilita_geracao(self):
         if self.eh_retificacao:
-            if self.versao == self.VERSAO_FINAL and self.status == self.STATUS_NAO_GERADOS:
-                return True
-            elif self.versao == self.VERSAO_PREVIA and (self.status == self.STATUS_GERADOS_PARCIAIS or self.status == self.STATUS_GERADOS_TOTAIS):
+            if self.versao == self.VERSAO_FINAL and not self.laudas_do_consolidado_dre.all():
                 return True
             else:
                 return False
