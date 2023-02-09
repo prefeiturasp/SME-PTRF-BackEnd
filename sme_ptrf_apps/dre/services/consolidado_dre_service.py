@@ -1036,13 +1036,20 @@ class ListagemPorStatusComFiltros(AcompanhamentoDeRelatoriosConsolidados):
                                 continue
 
                     if consolidado.eh_retificacao:
-                        tipo_de_relatorio = "Retificação"
+                        tipo_de_relatorio = f"Retificação"
                     elif consolidado.eh_parcial:
                         tipo_de_relatorio = f"Parcial #{consolidado.sequencia_de_publicacao}"
                     else:
                         tipo_de_relatorio = f"Único"
 
                     total_unidades_no_relatorio = PrestacaoConta.objects.filter(consolidado_dre=consolidado).count()
+
+                    retificacoes = consolidado.retificacoes.all()
+
+                    if retificacoes:
+                        qtde_unidades_retificacoes = retificacoes.aggregate(total_pcs_retificacoes=Coalesce(
+                            Count('prestacoes_de_conta_do_consolidado_dre'), Value(0)))['total_pcs_retificacoes']
+                        total_unidades_no_relatorio += qtde_unidades_retificacoes
 
                     obj = {
                         "nome_da_dre": dre.nome,
