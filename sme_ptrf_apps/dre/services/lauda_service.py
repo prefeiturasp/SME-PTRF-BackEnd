@@ -46,10 +46,15 @@ def gerar_csv(dre, periodo, tipo_conta, obj_arquivo_download, parcial=False):
 
 
 def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre,  parcial, apenas_nao_publicadas=False):
-    logger.info("Arquivo Lauda txt em processamento.")
+    eh_retificacao = True if lauda and lauda.consolidado_dre and lauda.consolidado_dre.eh_retificacao else False
+
+    if eh_retificacao:
+        logger.info("Arquivo Lauda txt de uma retificação em processamento.")
+    else:
+        logger.info("Arquivo Lauda txt em processamento.")
 
     with NamedTemporaryFile(mode="r+", newline='', encoding='utf-8', prefix='lauda', suffix='.docx.txt') as tmp:
-        dados = gerar_dados_lauda(dre, periodo, apenas_nao_publicadas)
+        dados = gerar_dados_lauda(dre, periodo, apenas_nao_publicadas, lauda)
         status_separados = separa_status(dados)
         linhas = []
 
@@ -57,15 +62,26 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
 
         sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
 
-        if eh_parcial == "Parcial":
-            titulo_sequencia_publicacao = f'Parcial #{sequencia_de_publicacao}'
+        if eh_retificacao:
+            titulo_sequencia_publicacao = f'Parcial #{lauda.consolidado_dre.consolidado_retificado.sequencia_de_publicacao} \n'
+        elif eh_parcial == "Parcial":
+            titulo_sequencia_publicacao = f'Parcial #{sequencia_de_publicacao} \n\n'
         else:
-            titulo_sequencia_publicacao = "Lauda final"
+            titulo_sequencia_publicacao = "Lauda final \n\n"
 
         titulo = f"((TITULO))DIRETORIA REGIONAL DE EDUCAÇÃO - {formata_nome_dre(dre)} \n"
 
         titulo_continuacao = f"((TITULO))PROGRAMA DE TRANSFERÊNCIA DE RECURSOS FINANCEIROS PTRF" \
-                             f" - {titulo_sequencia_publicacao} \n\n"
+                             f" - {titulo_sequencia_publicacao}"
+
+        titulo_retificacao = None
+        titulo_retificacao_continuacao = None
+
+        if eh_retificacao:
+            titulo_retificacao = f"((TITULO))RETIFICAÇÃO DA PUBLICAÇÃO DO DOC {formata_data_publicacao(lauda.consolidado_dre)} " \
+                                 f"- PÁGINA {lauda.consolidado_dre.consolidado_retificado.pagina_publicacao} \n"
+
+            titulo_retificacao_continuacao = f"((TITULO))LEIA - SE COMO SEGUE E NÃO COMO CONSTOU: \n\n"
 
         texto = f"((TEXTO)) No exercício da atribuição a mim conferida pela Portaria SME nº 5.318/2020, torno " \
                 f"público o Parecer Técnico Conclusivo da Comissão de Prestação de Contas do PTRF da DRE " \
@@ -75,6 +91,11 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
 
         linhas.append(titulo)
         linhas.append(titulo_continuacao)
+
+        if titulo_retificacao and titulo_retificacao_continuacao:
+            linhas.append(titulo_retificacao)
+            linhas.append(titulo_retificacao_continuacao)
+
         linhas.append(texto)
 
         if len(status_separados["aprovadas"]) > 0:
@@ -247,7 +268,9 @@ def gerar_txt(dre, periodo, tipo_conta, obj_arquivo_download, ata, parcial=False
             obj_arquivo_download.save()
 
 
-def gerar_dados_lauda(dre, periodo, apenas_nao_publicadas):
+def gerar_dados_lauda(dre, periodo, apenas_nao_publicadas, lauda):
+    eh_retificacao = True if lauda and lauda.consolidado_dre and lauda.consolidado_dre.eh_retificacao else False
+
     lista = []
 
     tipo_contas = TipoConta.objects.all().order_by('nome')
@@ -256,7 +279,8 @@ def gerar_dados_lauda(dre, periodo, apenas_nao_publicadas):
             dre,
             periodo,
             tipo_conta,
-            apenas_nao_publicadas
+            apenas_nao_publicadas,
+            consolidado_dre=lauda.consolidado_dre if eh_retificacao else None
         )
 
         for linha, info in enumerate(informacao_unidades):
@@ -471,3 +495,12 @@ def calcula_ordem(lista):
             lista_final.append(informacoes_lista_inicial)
 
     return lista_final
+
+
+def formata_data_publicacao(consolidado_dre):
+    consolidado_original = consolidado_dre.consolidado_retificado
+
+    if consolidado_original and consolidado_original.data_publicacao:
+        return consolidado_original.data_publicacao.strftime("%d/%m/%Y")
+
+    return ""

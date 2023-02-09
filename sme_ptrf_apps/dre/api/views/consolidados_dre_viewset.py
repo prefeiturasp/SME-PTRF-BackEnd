@@ -280,6 +280,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         dre_uuid, periodo_uuid = dados['dre_uuid'], dados['periodo_uuid']
+        uuid_retificacao = dados.get('uuid_retificacao')
 
         try:
             dre = Unidade.dres.get(uuid=dre_uuid)
@@ -304,15 +305,28 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
         parcial = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid, periodo_uuid)
 
         try:
-            sequencia_de_publicacao_atual = parcial['sequencia_de_publicacao_atual']
-            ata_parecer_tecnico = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo,
+            if uuid_retificacao:
+                retificacao = ConsolidadoDRE.by_uuid(uuid_retificacao)
+                ata_parecer_tecnico = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo,
+                                                                       consolidado_dre=retificacao).first()
+            else:
+                sequencia_de_publicacao_atual = parcial['sequencia_de_publicacao_atual']
+                ata_parecer_tecnico = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo,
                                                                     sequencia_de_publicacao=sequencia_de_publicacao_atual).last()
+
             if not ata_parecer_tecnico:
                 raise ValidationError(f"O objeto Ata para a DRE {dre} e Período {periodo} não foi encontrado na base.")
         except (AtaParecerTecnico.DoesNotExist, ValidationError):
             erro = {
                 'erro': 'Erro método Consolidado Dre ViewSet publicar',
                 'mensagem': f"O objeto Ata para a DRE {dre} e Período {periodo} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        except (ConsolidadoDRE.DoesNotExist, ValidationError):
+            erro = {
+                'erro': 'Erro método Consolidado Dre ViewSet publicar',
+                'mensagem': f"O objeto ConsolidadoDre para o uuid {uuid_retificacao} não foi encontrado na base."
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -344,6 +358,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
                 periodo=periodo,
                 parcial=parcial,
                 usuario=request.user.username,
+                uuid_retificacao=uuid_retificacao
             )
             logger.info(f"Consolidado DRE finalizado. Status: {consolidado_dre.get_valor_status_choice()}")
 
