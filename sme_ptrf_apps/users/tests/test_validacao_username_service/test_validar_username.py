@@ -1,5 +1,7 @@
 import pytest
 
+pytestmark = pytest.mark.django_db
+
 from ...services.validacao_username_service import validar_username
 
 def test_validar_username_servidor():

@@ -632,6 +632,7 @@ class ParametrosAdmin(admin.ModelAdmin):
            'fields':
                 (
                     'permite_saldo_conta_negativo',
+                    'tempo_aguardar_conclusao_pc',
                     'tempo_notificar_nao_demonstrados',
                     'dias_antes_inicio_periodo_pc_para_notificacao',
                     'dias_antes_fim_periodo_pc_para_notificacao',
