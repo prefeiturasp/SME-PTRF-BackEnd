@@ -1143,8 +1143,13 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
         'get_dre', 'get_unidade', 'get_referencia_periodo', 'despesa', 'data', 'tipo', 'devolucao_total', 'valor', 'visao_criacao')
 
     list_filter = (
-        'prestacao_conta__periodo', 'prestacao_conta', 'tipo', 'devolucao_total',
-        'visao_criacao', 'data', 'prestacao_conta__associacao__unidade__dre')
+        'prestacao_conta__periodo',
+        'tipo',
+        'devolucao_total',
+        'visao_criacao',
+        'data',
+        'prestacao_conta__associacao__unidade__dre'
+    )
 
     list_display_links = ('get_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')

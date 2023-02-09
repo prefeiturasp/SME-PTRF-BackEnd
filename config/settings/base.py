@@ -424,4 +424,6 @@ ELASTIC_APM = {
     'DEBUG': env('ELASTIC_APM_DEBUG', default=False),
     'SERVER_URL': env('ELASTIC_APM_SERVER_URL', default='http://localhost:8200'),
     'ENVIRONMENT': env('ELASTIC_APM_ENVIRONMENT', default='local'),
+    'ENABLED': env('ELASTIC_APM_ENABLED', default=False),
+    'DISABLE_SEND': env('ELASTIC_APM_DISABLE_SEND', default=True),
 }
