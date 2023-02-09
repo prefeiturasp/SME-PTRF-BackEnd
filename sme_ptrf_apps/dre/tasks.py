@@ -72,13 +72,19 @@ def atrelar_pc_ao_consolidado_dre_async(dre, periodo, consolidado_dre):
     time_limit=333333,
     soft_time_limit=333333
 )
-def passar_pcs_do_relatorio_para_publicadas_async(dre, periodo):
+def passar_pcs_do_relatorio_para_publicadas_async(dre, periodo, consolidado_dre):
     dre_uuid = dre.uuid
     periodo_uuid = periodo.uuid
 
     prestacoes = PrestacaoConta.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid)
     prestacoes = prestacoes.filter(Q(status='APROVADA') | Q(status='APROVADA_RESSALVA') | Q(status='REPROVADA'))
-    prestacoes = prestacoes.filter(publicada=False)
+
+    if consolidado_dre.eh_retificacao:
+        # Retificacoes precisam filrar as PCs pelo consolidado vinculado
+
+        prestacoes = prestacoes.filter(publicada=False, consolidado_dre=consolidado_dre)
+    else:
+        prestacoes = prestacoes.filter(publicada=False)
 
     for prestacao in prestacoes:
         logger.info(f'Passando Prestação de Contas para Publicada: Prestação {prestacao}')
@@ -148,14 +154,21 @@ def concluir_consolidado_dre_async(
     periodo = Periodo.objects.get(uuid=periodo_uuid)
     ata = AtaParecerTecnico.objects.get(uuid=ata_uuid)
 
-    consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo,
+    if consolidado_dre_uuid:
+        consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
+    else:
+        consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo,
                                                  sequencia_de_publicacao=sequencia_de_publicacao)
 
-    atrelar_pc_ao_consolidado_dre_async(
-        dre=dre,
-        periodo=periodo,
-        consolidado_dre=consolidado_dre,
-    )
+
+    if not consolidado_dre.eh_retificacao:
+        # Uma retificacao ja possui suas PCs vinculadas
+
+        atrelar_pc_ao_consolidado_dre_async(
+            dre=dre,
+            periodo=periodo,
+            consolidado_dre=consolidado_dre,
+        )
 
     # Atrelando consolidado as justificativas
     for tipo_conta in tipo_contas:
@@ -201,6 +214,7 @@ def concluir_consolidado_dre_async(
     passar_pcs_do_relatorio_para_publicadas_async(
         dre=dre,
         periodo=periodo,
+        consolidado_dre=consolidado_dre
     )
 
     eh_parcial = parcial['parcial']
@@ -299,7 +313,11 @@ def gerar_relatorio_consolidado_dre_async(
     consolidado_dre = None
     if not eh_consolidado_de_publicacoes_parciais:
         try:
-            consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo, sequencia_de_publicacao=sequencia_de_publicacao)
+            if consolidado_dre_uuid:
+                consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
+            else:
+                consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo, sequencia_de_publicacao=sequencia_de_publicacao)
+
         except ConsolidadoDRE.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',

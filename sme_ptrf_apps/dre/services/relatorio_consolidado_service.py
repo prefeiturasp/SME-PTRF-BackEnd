@@ -9,7 +9,7 @@ from sme_ptrf_apps.core.models import (
     DevolucaoAoTesouro, TipoConta,
 )
 from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE, \
-    JustificativaRelatorioConsolidadoDRE
+    JustificativaRelatorioConsolidadoDRE, ConsolidadoDRE
 from sme_ptrf_apps.receitas.models import Receita
 
 from ..services.dados_demo_execucao_fisico_financeira_service import gerar_dados_demo_execucao_fisico_financeira
@@ -127,7 +127,26 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
     for tipo_conta in tipos_de_conta:
         totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True, consolidado_dre=consolidado_dre)
 
-        if consolidado_dre and consolidado_dre.versao == 'FINAL' and not consolidado_dre.eh_retificacao:
+        if consolidado_dre and consolidado_dre.eh_retificacao:
+            if consolidado_dre.status == ConsolidadoDRE.STATUS_GERADOS_TOTAIS or consolidado_dre.status == ConsolidadoDRE.STATUS_GERADOS_PARCIAIS:
+                # foi gerado
+
+                justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                    dre=dre,
+                    tipo_conta=tipo_conta,
+                    periodo=periodo,
+                    consolidado_dre=consolidado_dre
+                ).last()
+
+            else:
+                justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                    dre=dre,
+                    tipo_conta=tipo_conta,
+                    periodo=periodo,
+                    consolidado_dre__isnull=True,
+                ).last()
+
+        elif consolidado_dre and consolidado_dre.versao == 'FINAL':
             # Justificativa
             justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
                 dre=dre,
@@ -520,6 +539,7 @@ def informacoes_execucao_financeira_unidades(
     filtro_nome=None,
     filtro_tipo_unidade=None,
     filtro_status=None,
+    consolidado_dre=None
 ):
     from sme_ptrf_apps.core.models import Associacao
 
@@ -654,7 +674,16 @@ def informacoes_execucao_financeira_unidades(
     def _totaliza_fechamentos(associacao, periodo, tipo_conta, totais):
         # Fechamentos no período da conta de PCs de Associações da DRE, concluídas
 
-        if not apenas_nao_publicadas:
+        if consolidado_dre:
+            # Quando é uma retificação, as informações são resgatadas filtrando pelo consolidado
+
+            fechamentos = associacao.fechamentos_associacao.filter(
+                periodo=periodo,
+                conta_associacao__tipo_conta=tipo_conta,
+                prestacao_conta__consolidado_dre=consolidado_dre
+            )
+
+        elif not apenas_nao_publicadas:
             fechamentos = associacao.fechamentos_associacao.filter(
                 periodo=periodo,
                 conta_associacao__tipo_conta=tipo_conta,
@@ -712,7 +741,16 @@ def informacoes_execucao_financeira_unidades(
     resultado = []
     resultado_nao_apresentada = []
 
-    if not apenas_nao_publicadas:
+    if consolidado_dre:
+        # Quando é uma retificação, as informações são resgatadas filtrando pelo consolidado
+
+        associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).filter(
+            contas__tipo_conta__nome=tipo_conta).exclude(cnpj__exact='').order_by('unidade__tipo_unidade',
+                                                                                  'unidade__nome')
+        associacoes_da_dre = associacoes_da_dre.filter(
+            prestacoes_de_conta_da_associacao__consolidado_dre=consolidado_dre)
+
+    elif not apenas_nao_publicadas:
         associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).filter(
             contas__tipo_conta__nome=tipo_conta).exclude(cnpj__exact='').order_by('unidade__tipo_unidade',
                                                                                   'unidade__nome')

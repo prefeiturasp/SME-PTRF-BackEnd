@@ -90,6 +90,20 @@ def retornar_ja_publicadas(dre, periodo):
         else:
             ja_publicado = True
 
+
+        if consolidado_dre.eh_retificacao:
+            total_pcs_retificacao = consolidado_dre.prestacoes_de_conta_do_consolidado_dre.all()
+
+            total_pcs_concluidas = consolidado_dre.prestacoes_de_conta_do_consolidado_dre.filter(
+                Q(status=PrestacaoConta.STATUS_APROVADA) |
+                Q(status=PrestacaoConta.STATUS_APROVADA_RESSALVA) |
+                Q(status=PrestacaoConta.STATUS_REPROVADA)
+            )
+
+            todas_pcs_da_retificacao_concluidas = True if len(total_pcs_concluidas) == len(total_pcs_retificacao) else False
+        else:
+            todas_pcs_da_retificacao_concluidas = False
+
         consolidado = {
             'titulo_relatorio': nome_publicacao,
             'qtde_pcs': qtde_unidades,
@@ -104,13 +118,14 @@ def retornar_ja_publicadas(dre, periodo):
             'data_publicacao': consolidado_dre.data_publicacao,
             'pagina_publicacao': consolidado_dre.pagina_publicacao,
             'permite_excluir_data_e_pagina_publicacao': valor_maximo_sequencia_de_publicacao == sequencia,
-            'habilita_botao_gerar': False,
+            'habilita_botao_gerar': consolidado_dre.habilita_geracao,
             'texto_tool_tip_botao_gerar': 'É necessário informar a data e a página da publicação anterior<br/>'
                                         'no Diário Oficial da Cidade para gerar uma nova publicação.',
             'permite_retificacao': consolidado_dre.permite_retificacao,
             'referencia': consolidado_dre.referencia,
             'eh_retificacao': consolidado_dre.eh_retificacao,
-            'gerou_uma_retificacao': consolidado_dre.gerou_uma_retificacao
+            'gerou_uma_retificacao': consolidado_dre.gerou_uma_retificacao,
+            'todas_pcs_da_retificacao_concluidas': todas_pcs_da_retificacao_concluidas
         }
 
         atas_de_parecer_tecnico = consolidado_dre.atas_de_parecer_tecnico_do_consolidado_dre.all()
@@ -669,7 +684,7 @@ def gerar_previa_consolidado_dre(dre, periodo, parcial, usuario):
     return consolidado_dre
 
 
-def concluir_consolidado_dre(dre, periodo, parcial, usuario):
+def concluir_consolidado_dre(dre, periodo, parcial, usuario, uuid_retificacao):
     eh_parcial = parcial['parcial']
     sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
 
@@ -690,9 +705,17 @@ def concluir_consolidado_dre(dre, periodo, parcial, usuario):
             versao=ConsolidadoDRE.VERSAO_PREVIA,
         ).delete()
 
-    consolidado_dre = ConsolidadoDRE.criar_ou_retornar_consolidado_dre(dre=dre, periodo=periodo,
+
+    if uuid_retificacao:
+        consolidado_dre = ConsolidadoDRE.by_uuid(uuid_retificacao)
+
+        logger.info(f'Retornando Consolidado DRE (Retificação)  {consolidado_dre}.')
+    else:
+        consolidado_dre = ConsolidadoDRE.criar_ou_retornar_consolidado_dre(dre=dre, periodo=periodo,
                                                                        sequencia_de_publicacao=sequencia_de_publicacao)
-    logger.info(f'Criado Consolidado DRE  {consolidado_dre}.')
+
+        logger.info(f'Criado/retornando Consolidado DRE  {consolidado_dre}.')
+
 
     consolidado_dre.passar_para_status_em_processamento()
     logger.info(f'Consolidado DRE em processamento - {consolidado_dre}.')
