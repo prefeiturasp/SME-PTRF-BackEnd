@@ -200,10 +200,14 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         justificativa_acertos_pendentes = request.data.get('justificativa_acertos_pendentes', '')
 
+        usuario = request.user
+
         try:
             dados = concluir_prestacao_de_contas(
                 associacao=associacao,
                 periodo=periodo,
+                usuario=usuario,
+                monitoraPc=True,
             )
             prestacao_de_contas = dados["prestacao"]
 
