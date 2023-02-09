@@ -1,3 +1,8 @@
+### 6.0.1 - 09/02/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 59
+* (85510) Altera carga de devoluções ao tesouro para criar solicitações de devolução ao tesouro
+* (85660) Implementa monitoramenmto de processomentos de PCs
+* (85204) Melhora admin de Despesas para melhor análise dos dados
+
 ### 1.33.15 - 12/01/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 54
 * (80682) Integração da API com o APM/Kibana
 

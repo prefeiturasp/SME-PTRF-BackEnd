@@ -62,9 +62,11 @@ def test_lista_notificacoes(jwt_authenticated_client_a, notificacao):
                     'infos': [
                         {
                             'uuid': str(notificacao.uuid),
+                            'unidade': None,
                             'titulo': notificacao.titulo,
                             'descricao': notificacao.descricao,
                             'lido': notificacao.lido,
+                            'periodo': None,
                             'hora': notificacao.hora.strftime("%H:%M"),
                             'tipo': Notificacao.TIPO_NOTIFICACAO_NOMES[notificacao.tipo],
                             'remetente': Notificacao.REMETENTE_NOTIFICACAO_NOMES[notificacao.remetente],
@@ -94,9 +96,11 @@ def test_filtro_lido(jwt_authenticated_client_a, notificacao, notificacao2):
                     'infos': [
                         {
                             'uuid': str(notificacao2.uuid),
+                            'unidade': None,
                             'titulo': notificacao2.titulo,
                             'descricao': notificacao2.descricao,
                             'lido': notificacao2.lido,
+                            'periodo': None,
                             'hora': notificacao2.hora.strftime("%H:%M"),
                             'tipo': Notificacao.TIPO_NOTIFICACAO_NOMES[notificacao2.tipo],
                             'remetente': Notificacao.REMETENTE_NOTIFICACAO_NOMES[notificacao2.remetente],
@@ -127,9 +131,11 @@ def test_filtro_tipo(jwt_authenticated_client_a, notificacao, notificacao2):
                     'infos': [
                         {
                             'uuid': str(notificacao2.uuid),
+                            'unidade': None,
                             'titulo': notificacao2.titulo,
                             'descricao': notificacao2.descricao,
                             'lido': notificacao2.lido,
+                            'periodo': None,
                             'hora': notificacao2.hora.strftime("%H:%M"),
                             'tipo': Notificacao.TIPO_NOTIFICACAO_NOMES[notificacao2.tipo],
                             'remetente': Notificacao.REMETENTE_NOTIFICACAO_NOMES[notificacao2.remetente],

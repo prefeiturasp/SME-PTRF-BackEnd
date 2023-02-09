@@ -47,6 +47,7 @@ class Notificacao(ModeloBase):
     CATEGORIA_NOTIFICACAO_APROVACAO_PC = 'APROVACAO_PC'
     CATEGORIA_NOTIFICACAO_APROVACAO_RESSALVAS_PC = 'APROVACAO_RESSALVAS_PC'
     CATEGORIA_NOTIFICACAO_REPROVACAO_PC = 'REPROVACAO_PC'
+    CATEGORIA_NOTIFICACAO_ERRO_AO_CONCLUIR_PC = 'ERRO_AO_CONCLUIR_PC'
 
     CATEGORIA_NOTIFICACAO_NOMES = {
         CATEGORIA_NOTIFICACAO_COMENTARIO_PC: 'Comentário na prestação de contas',
@@ -56,6 +57,7 @@ class Notificacao(ModeloBase):
         CATEGORIA_NOTIFICACAO_APROVACAO_PC: 'Aprovação de PC',
         CATEGORIA_NOTIFICACAO_APROVACAO_RESSALVAS_PC: 'Aprovação de PC com ressalvas',
         CATEGORIA_NOTIFICACAO_REPROVACAO_PC: 'Reprovação de PC',
+        CATEGORIA_NOTIFICACAO_ERRO_AO_CONCLUIR_PC: 'Erro ao concluir PC',
     }
 
     CATEGORIA_NOTIFICACAO_CHOICES = (
@@ -66,6 +68,7 @@ class Notificacao(ModeloBase):
         (CATEGORIA_NOTIFICACAO_APROVACAO_PC, CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_APROVACAO_PC]),
         (CATEGORIA_NOTIFICACAO_APROVACAO_RESSALVAS_PC, CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_APROVACAO_RESSALVAS_PC]),
         (CATEGORIA_NOTIFICACAO_REPROVACAO_PC, CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_REPROVACAO_PC]),
+        (CATEGORIA_NOTIFICACAO_ERRO_AO_CONCLUIR_PC, CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_ERRO_AO_CONCLUIR_PC]),
     )
 
     # Remetentes de Notificação
@@ -122,6 +125,9 @@ class Notificacao(ModeloBase):
     prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE,
                                         related_name='notificacoes_da_prestacao', blank=True, null=True)
 
+    periodo = models.ForeignKey('Periodo', on_delete=models.CASCADE, verbose_name='período',
+                                        related_name='notificacoes_do_periodo', null=True, blank=True)
+
     class Meta:
         verbose_name = "Notificação"
         verbose_name_plural = "05.0) Notificações"
@@ -175,6 +181,7 @@ class Notificacao(ModeloBase):
         enviar_email=False,
         unidade=None,
         prestacao_conta=None,
+        periodo=None,
     ):
 
         from sme_ptrf_apps.core.services.notificacao_services.enviar_email_notificacao import enviar_email_nova_notificacao
@@ -208,6 +215,7 @@ class Notificacao(ModeloBase):
             descricao=descricao,
             unidade=unidade,
             prestacao_conta=prestacao_conta,
+            periodo=periodo,
             criado_em__range=(datetime.combine(date.today(), time.min), datetime.combine(date.today(), time.max))
         )
 
@@ -223,6 +231,7 @@ class Notificacao(ModeloBase):
                 remetente=remetente,
                 titulo=titulo,
                 usuario=usuario,
+                periodo=periodo,
             )
 
         if renotificar or not notificacao_existente:
@@ -234,6 +243,7 @@ class Notificacao(ModeloBase):
                 descricao=descricao,
                 usuario=usuario,
                 unidade=unidade,
+                periodo=periodo,
                 prestacao_conta=prestacao_conta,
             )
             logger.info(f'===> Notificação criada: {nc.uuid}, usuário:{nc.usuario}, titulo:{nc.titulo}, descricao:{nc.descricao}, unidade:{nc.unidade if nc.unidade else ""}')
