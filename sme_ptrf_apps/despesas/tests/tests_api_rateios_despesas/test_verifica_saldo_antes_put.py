@@ -76,7 +76,7 @@ def test_api_verifica_saldo_antes_put_sem_saldo(
             {
                 'acao': acao_associacao.acao.nome,
                 'aplicacao': 'CUSTEIO',
-                'saldo_disponivel': 20000.00,
+                'saldo_disponivel': 20100.00,
                 'total_rateios': 90000.00
             }
         ],
