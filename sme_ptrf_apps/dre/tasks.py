@@ -59,7 +59,8 @@ def atrelar_pc_ao_consolidado_dre_async(dre, periodo, consolidado_dre):
 
     prestacoes = PrestacaoConta.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid)
     prestacoes = prestacoes.filter(Q(status='APROVADA') | Q(status='APROVADA_RESSALVA') | Q(status='REPROVADA'))
-    prestacoes = prestacoes.filter(publicada=False)
+    prestacoes = prestacoes.filter(publicada=False, consolidado_dre__isnull=True)
+
 
     for prestacao in prestacoes:
         logger.info(f'Atrelando Prestação ao Consolidado DRE: Prestação {prestacao}. Consolidado Dre {consolidado_dre}')
@@ -109,14 +110,20 @@ def gerar_previa_consolidado_dre_async(
     dre = Unidade.dres.get(uuid=dre_uuid)
     periodo = Periodo.objects.get(uuid=periodo_uuid)
 
-    consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo,
-                                                 sequencia_de_publicacao=sequencia_de_publicacao)
+    if consolidado_dre_uuid:
+        consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
+    else:
+        consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo,
+                                                     sequencia_de_publicacao=sequencia_de_publicacao)
 
-    atrelar_pc_ao_consolidado_dre_async(
-        dre=dre,
-        periodo=periodo,
-        consolidado_dre=consolidado_dre,
-    )
+    if not consolidado_dre.eh_retificacao:
+        # Uma retificacao ja possui suas PCs vinculadas
+
+        atrelar_pc_ao_consolidado_dre_async(
+            dre=dre,
+            periodo=periodo,
+            consolidado_dre=consolidado_dre,
+        )
 
     gerar_previa_relatorio_consolidado_dre_async(
         dre_uuid=dre_uuid,
@@ -380,8 +387,11 @@ def gerar_previa_relatorio_consolidado_dre_async(
         raise Exception(erro)
 
     try:
-        consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo,
-                                                     sequencia_de_publicacao=sequencia_de_publicacao)
+        if consolidado_dre_uuid:
+            consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
+        else:
+            consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo,
+                                                         sequencia_de_publicacao=sequencia_de_publicacao)
     except ConsolidadoDRE.DoesNotExist:
         erro = {
             'erro': 'Objeto não encontrado.',

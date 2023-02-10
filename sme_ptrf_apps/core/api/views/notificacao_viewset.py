@@ -95,6 +95,11 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
 
         return Response(result)
 
+    @action(detail=False, methods=['get'], url_path='erro-concluir-pc')
+    def erro_concluir_pc(self, request):
+        resultado = Notificacao.objects.filter(usuario=self.request.user, categoria="ERRO_AO_CONCLUIR_PC").all().order_by("-criado_em")
+        return Response(NotificacaoSerializer(resultado, many=True).data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['get'], url_path='quantidade-nao-lidos')
     def quantidade_de_nao_lidos(self, request):
         quantidade_nao = Notificacao.objects.filter(usuario=self.request.user).filter(lido=False).count()

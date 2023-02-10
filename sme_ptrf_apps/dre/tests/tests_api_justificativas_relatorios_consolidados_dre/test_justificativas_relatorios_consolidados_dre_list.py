@@ -22,6 +22,7 @@ def test_list_comentarios_analise_prestacao(jwt_authenticated_client_relatorio_c
             'consolidado_dre': None,
             'uuid': f'{justificativa_relatorio_dre_consolidado.uuid}',
             'dre': f'{dre_uuid}',
+            'eh_retificacao': False,
             'tipo_conta': f'{tipo_conta_uuid}',
             'periodo': f'{periodo_uuid}',
             'texto': 'Teste',
