@@ -11,6 +11,7 @@ from sme_ptrf_apps.core.models import (
     PrestacaoConta,
     SolicitacaoAcertoLancamento,
     DevolucaoAoTesouro,
+    SolicitacaoDevolucaoAoTesouro
 )
 
 from ..models.arquivo import (
@@ -144,6 +145,12 @@ class CargaDevolucoesTesouroService:
             raise CargaDevolcuoesTesouroException(
                 f'Solicitação de acerto não encontrada pc: {prestacao_conta.id} despesa: {despesa}. Devolução não criada.')
 
+        # Verifica se já existem solicitações de devolução ao tesouro criadas para as solicitações de acerto
+        for solicitacao in solicitacoes:
+            if hasattr(solicitacao, 'solicitacao_devolucao_ao_tesouro'):
+                raise CargaDevolcuoesTesouroException(
+                    f'Já existe uma solicitação de devolução ao tesouro para a solicitação de acerto {solicitacao.id}. Solicitação de devolução não criada.')
+
         self.linha_index = linha_index
 
         self.dados_devolucao = {
@@ -158,20 +165,32 @@ class CargaDevolucoesTesouroService:
         return self.dados_devolucao
 
     def cria_devolucao_ao_tesouro_e_atualiza_solicitacao(self):
-        devolucao_ao_tesouro = DevolucaoAoTesouro.objects.create(
-            prestacao_conta=self.dados_devolucao['prestacao_conta'],
-            tipo=self.dados_devolucao['tipo_devolucao'],
-            data=self.dados_devolucao['data_devolucao'],
-            despesa=self.dados_devolucao['despesa'],
-            valor=self.dados_devolucao['valor_devolucao'],
-            motivo="*recuperado",
-            visao_criacao="DRE",
-            devolucao_total=self.dados_devolucao['valor_devolucao'] == self.dados_devolucao['despesa'].valor_total
-        )
+
+        devolucao_ao_tesouro = None
+        if self.dados_devolucao['data_devolucao']:
+            # Cria a devolução ao tesouro apenas se a data de devolução for informada
+            devolucao_ao_tesouro = DevolucaoAoTesouro.objects.create(
+                prestacao_conta=self.dados_devolucao['prestacao_conta'],
+                tipo=self.dados_devolucao['tipo_devolucao'],
+                data=self.dados_devolucao['data_devolucao'],
+                despesa=self.dados_devolucao['despesa'],
+                valor=self.dados_devolucao['valor_devolucao'],
+                motivo="*recuperado",
+                visao_criacao="DRE",
+                devolucao_total=self.dados_devolucao['valor_devolucao'] == self.dados_devolucao['despesa'].valor_total
+            )
 
         for solicitacao in self.dados_devolucao['solicitacoes_acerto_lancamento']:
             solicitacao.devolucao_ao_tesouro = devolucao_ao_tesouro
             solicitacao.save()
+
+            SolicitacaoDevolucaoAoTesouro.objects.create(
+                solicitacao_acerto_lancamento=solicitacao,
+                tipo=self.dados_devolucao['tipo_devolucao'],
+                devolucao_total=self.dados_devolucao['valor_devolucao'] == self.dados_devolucao['despesa'].valor_total,
+                valor=self.dados_devolucao['valor_devolucao'],
+                motivo="*recuperado",
+            )
 
     def atualiza_status_arquivo(self, arquivo):
         if self.importados > 0 and self.erros > 0:

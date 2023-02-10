@@ -7,12 +7,12 @@ from django.db.models import Q
 from django.db import transaction
 from django.db.models.aggregates import Sum
 
+from sme_ptrf_apps.core.models import Ata
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.dre.models import Atribuicao
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
-
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +86,8 @@ class PrestacaoConta(ModeloBase):
 
     motivos_aprovacao_ressalva = models.ManyToManyField('dre.MotivoAprovacaoRessalva', blank=True)
 
-    outros_motivos_aprovacao_ressalva = models.TextField('Outros motivos para aprovação com ressalvas pela DRE', blank=True, default='')
+    outros_motivos_aprovacao_ressalva = models.TextField('Outros motivos para aprovação com ressalvas pela DRE',
+                                                         blank=True, default='')
 
     analise_atual = models.ForeignKey('AnalisePrestacaoConta', on_delete=models.SET_NULL,
                                       related_name='+',
@@ -100,7 +101,8 @@ class PrestacaoConta(ModeloBase):
                                         related_name='prestacoes_de_conta_do_consolidado_dre',
                                         blank=True, null=True)
 
-    justificativa_pendencia_realizacao = models.TextField('Justificativa de pendências de realização de ajustes.', blank=True, default='')
+    justificativa_pendencia_realizacao = models.TextField('Justificativa de pendências de realização de ajustes.',
+                                                          blank=True, default='')
 
     status_anterior_a_retificacao = models.CharField(
         'Status anterior a retificacao',
@@ -125,7 +127,8 @@ class PrestacaoConta(ModeloBase):
 
     @property
     def total_devolucao_ao_tesouro_str(self):
-        return f'{self.total_devolucao_ao_tesouro:.2f}'.replace('.', ',') if self.devolucoes_ao_tesouro_da_prestacao.count() > 0 else 'Não'
+        return f'{self.total_devolucao_ao_tesouro:.2f}'.replace('.',
+                                                                ',') if self.devolucoes_ao_tesouro_da_prestacao.count() > 0 else 'Não'
 
     @property
     def em_retificacao(self):
@@ -413,7 +416,8 @@ class PrestacaoConta(ModeloBase):
 
     @transaction.atomic
     def concluir_analise(self, resultado_analise, analises_de_conta_da_prestacao, motivos_aprovacao_ressalva,
-                         outros_motivos_aprovacao_ressalva, data_limite_ue, motivos_reprovacao, outros_motivos_reprovacao, recomendacoes):
+                         outros_motivos_aprovacao_ressalva, data_limite_ue, motivos_reprovacao,
+                         outros_motivos_reprovacao, recomendacoes):
 
         from ..services.notificacao_services import notificar_prestacao_de_contas_aprovada
 
@@ -440,7 +444,8 @@ class PrestacaoConta(ModeloBase):
 
         if resultado_analise == PrestacaoConta.STATUS_APROVADA_RESSALVA:
             try:
-                notificar_prestacao_de_contas_aprovada_com_ressalvas(self, motivos_aprovacao_ressalva, outros_motivos_aprovacao_ressalva)
+                notificar_prestacao_de_contas_aprovada_com_ressalvas(self, motivos_aprovacao_ressalva,
+                                                                     outros_motivos_aprovacao_ressalva)
             except Exception as erro:
                 logger.error(f'Houve um erro ao notificar aprovação com ressalva da PC. {erro}')
 
@@ -478,6 +483,16 @@ class PrestacaoConta(ModeloBase):
         logger.info(f'Apagando a prestação de contas de uuid {uuid}.')
         try:
             prestacao_de_conta = cls.by_uuid(uuid=uuid)
+
+            ata_da_pc = prestacao_de_conta.atas_da_prestacao.first()
+
+            if ata_da_pc:
+                ata_da_pc.prestacao_conta = None
+                ata_da_pc.previa = True
+                ata_da_pc.arquivo_pdf = None
+                ata_da_pc.status_geracao_pdf = Ata.STATUS_NAO_GERADO
+                ata_da_pc.save()
+
             prestacao_de_conta.apaga_fechamentos()
             prestacao_de_conta.apaga_relacao_bens()
             prestacao_de_conta.apaga_demonstrativos_financeiros()
@@ -505,7 +520,8 @@ class PrestacaoConta(ModeloBase):
         return cls.objects.filter(associacao=associacao, periodo=periodo).first()
 
     @classmethod
-    def dashboard(cls, periodo_uuid, dre_uuid, add_aprovado_ressalva=False, add_info_devolvidas_retornadas=False, apenas_nao_publicadas=False):
+    def dashboard(cls, periodo_uuid, dre_uuid, add_aprovado_ressalva=False, add_info_devolvidas_retornadas=False,
+                  apenas_nao_publicadas=False):
         """
         :param add_aprovado_ressalva: True para retornar a quantidade de aprovados com ressalva separadamente ou
         False para retornar a quantidade de aprovadas com ressalva somada a quantidade de aprovadas
@@ -531,7 +547,8 @@ class PrestacaoConta(ModeloBase):
         if not apenas_nao_publicadas:
             qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid)
         else:
-            qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid, publicada=False)
+            qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid,
+                                    publicada=False)
 
         quantidade_pcs_apresentadas = 0
         for status, titulo in titulos_por_status.items():
@@ -544,7 +561,8 @@ class PrestacaoConta(ModeloBase):
                 quantidade_status += qs.filter(status=cls.STATUS_APROVADA_RESSALVA).count()
 
             if status == cls.STATUS_DEVOLVIDA:
-                quantidade_status += qs.filter(status__in=[cls.STATUS_DEVOLVIDA_RETORNADA, cls.STATUS_DEVOLVIDA_RECEBIDA]).count()
+                quantidade_status += qs.filter(
+                    status__in=[cls.STATUS_DEVOLVIDA_RETORNADA, cls.STATUS_DEVOLVIDA_RECEBIDA]).count()
 
             quantidade_pcs_apresentadas += quantidade_status
 
@@ -634,7 +652,8 @@ class PrestacaoConta(ModeloBase):
             qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre.uuid)
 
             quantidade_pcs_apresentadas = 0
-            qtd_por_status['TOTAL_UNIDADES'] = Associacao.objects.filter(unidade__dre__uuid=dre.uuid).exclude(cnpj__exact='').count()
+            qtd_por_status['TOTAL_UNIDADES'] = Associacao.objects.filter(unidade__dre__uuid=dre.uuid).exclude(
+                cnpj__exact='').count()
 
             for status in qtd_por_status.keys():
                 if status == 'TOTAL_UNIDADES' or status == cls.STATUS_NAO_APRESENTADA:
@@ -679,7 +698,7 @@ class PrestacaoConta(ModeloBase):
         result = [{
             'id': choice[0],
             'nome': choice[1]
-            } for choice in cls.STATUS_CHOICES if choice[0] not in cls._status_nao_selecionaveis()]
+        } for choice in cls.STATUS_CHOICES if choice[0] not in cls._status_nao_selecionaveis()]
 
         return result
 

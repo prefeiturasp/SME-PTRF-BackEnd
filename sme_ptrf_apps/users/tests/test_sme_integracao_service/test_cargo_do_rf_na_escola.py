@@ -1,3 +1,7 @@
+import pytest
+
+pytestmark = pytest.mark.django_db
+
 from unittest.mock import patch
 
 from ...services.sme_integracao_service import SmeIntegracaoService
