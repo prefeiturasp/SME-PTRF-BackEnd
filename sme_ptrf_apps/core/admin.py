@@ -632,6 +632,7 @@ class ParametrosAdmin(admin.ModelAdmin):
            'fields':
                 (
                     'permite_saldo_conta_negativo',
+                    'tempo_aguardar_conclusao_pc',
                     'tempo_notificar_nao_demonstrados',
                     'dias_antes_inicio_periodo_pc_para_notificacao',
                     'dias_antes_fim_periodo_pc_para_notificacao',
@@ -1143,8 +1144,13 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
         'get_dre', 'get_unidade', 'get_referencia_periodo', 'despesa', 'data', 'tipo', 'devolucao_total', 'valor', 'visao_criacao')
 
     list_filter = (
-        'prestacao_conta__periodo', 'prestacao_conta', 'tipo', 'devolucao_total',
-        'visao_criacao', 'data', 'prestacao_conta__associacao__unidade__dre')
+        'prestacao_conta__periodo',
+        'tipo',
+        'devolucao_total',
+        'visao_criacao',
+        'data',
+        'prestacao_conta__associacao__unidade__dre'
+    )
 
     list_display_links = ('get_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
