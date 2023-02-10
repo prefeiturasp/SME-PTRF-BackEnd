@@ -311,6 +311,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
         'por_tipo_de_conta': [
             {
                 'consolidado_dre': None,
+                'eh_retificacao': False,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',
@@ -356,6 +357,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
             },
             {
                 'consolidado_dre': None,
+                'eh_retificacao': False,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
@@ -440,6 +442,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
         'por_tipo_de_conta': [
             {
                 'consolidado_dre': None,
+                'eh_retificacao': False,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',
@@ -486,6 +489,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
             },
             {
                 'consolidado_dre': None,
+                'eh_retificacao': False,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
@@ -568,6 +572,7 @@ def test_api_get_info_execucao_financeira_relatorio(
         'por_tipo_de_conta': [
             {
                 'consolidado_dre': None,
+                'eh_retificacao': False,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
@@ -611,6 +616,7 @@ def test_api_get_info_execucao_financeira_relatorio(
                     'saldo_reprogramado_proximo_periodo_total': 4250.0}},
             {
                 'consolidado_dre': None,
+                'eh_retificacao': False,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',

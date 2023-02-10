@@ -643,24 +643,39 @@ def verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_
     return obj_parcial
 
 
-def gerar_previa_consolidado_dre(dre, periodo, parcial, usuario):
+def gerar_previa_consolidado_dre(dre, periodo, parcial, usuario, uuid_retificacao):
     eh_parcial = parcial['parcial']
     sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
-    consolidado_dre = ConsolidadoDRE.criar_ou_retornar_consolidado_dre(dre=dre, periodo=periodo,
-                                                                       sequencia_de_publicacao=sequencia_de_publicacao)
+
+    if uuid_retificacao:
+        consolidado_dre = ConsolidadoDRE.by_uuid(uuid_retificacao)
+        logger.info(f'Retornando Consolidado DRE (Retificação)  {consolidado_dre}.')
+
+        ata_parecer_tecnico = AtaParecerTecnico.objects.filter(
+            dre=dre,
+            periodo=periodo,
+            consolidado_dre=consolidado_dre
+        ).last()
+
+    else:
+        consolidado_dre = ConsolidadoDRE.criar_ou_retornar_consolidado_dre(dre=dre, periodo=periodo,
+                                                                           sequencia_de_publicacao=sequencia_de_publicacao)
+
+        consolidado_dre.atribuir_versao(previa=True)
+
+        ata_parecer_tecnico = AtaParecerTecnico.objects.filter(
+            dre=dre,
+            periodo=periodo,
+            sequencia_de_publicacao=sequencia_de_publicacao
+        ).last()
+
+
     logger.info(f'Criado Pŕevia do Consolidado DRE  {consolidado_dre}.')
 
     consolidado_dre.passar_para_status_em_processamento()
     logger.info(f'Consolidado DRE em processamento - {consolidado_dre}.')
 
-    consolidado_dre.atribuir_versao(previa=True)
     consolidado_dre.atribuir_se_eh_parcial(parcial=eh_parcial)
-
-    ata_parecer_tecnico = AtaParecerTecnico.objects.filter(
-        dre=dre,
-        periodo=periodo,
-        sequencia_de_publicacao=sequencia_de_publicacao
-    ).last()
 
     if ata_parecer_tecnico:
         ata_parecer_tecnico.consolidado_dre = consolidado_dre
@@ -1036,13 +1051,20 @@ class ListagemPorStatusComFiltros(AcompanhamentoDeRelatoriosConsolidados):
                                 continue
 
                     if consolidado.eh_retificacao:
-                        tipo_de_relatorio = "Retificação"
+                        tipo_de_relatorio = f"Retificação"
                     elif consolidado.eh_parcial:
                         tipo_de_relatorio = f"Parcial #{consolidado.sequencia_de_publicacao}"
                     else:
                         tipo_de_relatorio = f"Único"
 
                     total_unidades_no_relatorio = PrestacaoConta.objects.filter(consolidado_dre=consolidado).count()
+
+                    retificacoes = consolidado.retificacoes.all()
+
+                    if retificacoes:
+                        qtde_unidades_retificacoes = retificacoes.aggregate(total_pcs_retificacoes=Coalesce(
+                            Count('prestacoes_de_conta_do_consolidado_dre'), Value(0)))['total_pcs_retificacoes']
+                        total_unidades_no_relatorio += qtde_unidades_retificacoes
 
                     obj = {
                         "nome_da_dre": dre.nome,

@@ -128,14 +128,15 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
         totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True, consolidado_dre=consolidado_dre)
 
         if consolidado_dre and consolidado_dre.eh_retificacao:
-            if consolidado_dre.status == ConsolidadoDRE.STATUS_GERADOS_TOTAIS or consolidado_dre.status == ConsolidadoDRE.STATUS_GERADOS_PARCIAIS:
+            if consolidado_dre.laudas_do_consolidado_dre.all():
                 # foi gerado
 
                 justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
                     dre=dre,
                     tipo_conta=tipo_conta,
                     periodo=periodo,
-                    consolidado_dre=consolidado_dre
+                    consolidado_dre=consolidado_dre,
+                    eh_retificacao=True
                 ).last()
 
             else:
@@ -144,6 +145,7 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
                     tipo_conta=tipo_conta,
                     periodo=periodo,
                     consolidado_dre__isnull=True,
+                    eh_retificacao=True
                 ).last()
 
         elif consolidado_dre and consolidado_dre.versao == 'FINAL':
@@ -152,7 +154,8 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
                 dre=dre,
                 tipo_conta=tipo_conta,
                 periodo=periodo,
-                consolidado_dre=consolidado_dre
+                consolidado_dre=consolidado_dre,
+                eh_retificacao=False
             ).last()
         else:
             justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
@@ -160,6 +163,7 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
                 tipo_conta=tipo_conta,
                 periodo=periodo,
                 consolidado_dre__isnull=True,
+                eh_retificacao=False
             ).last()
 
         objeto_tipo_de_conta.append({
@@ -169,6 +173,7 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
             'justificativa_uuid': justificativa.uuid if justificativa else None,
             'consolidado_dre': consolidado_dre.uuid if justificativa and justificativa.consolidado_dre and justificativa.consolidado_dre.uuid else None,
             'tipo_conta_uuid': tipo_conta.uuid,
+            'eh_retificacao': consolidado_dre.eh_retificacao if consolidado_dre else False
         })
 
     dados['por_tipo_de_conta'] = objeto_tipo_de_conta
@@ -836,6 +841,7 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
     periodo,
     apenas_nao_publicadas=False,
     eh_consolidado_de_publicacoes_parciais=False,
+    consolidado_dre=None
 ):
     from sme_ptrf_apps.core.models import Associacao
 
@@ -970,7 +976,16 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
     def _totaliza_fechamentos(associacao, periodo, tipo_conta, totais):
         # Fechamentos no período da conta de PCs de Associações da DRE, concluídas
 
-        if not apenas_nao_publicadas:
+        if consolidado_dre:
+            # Quando é uma retificação, as informações são resgatadas filtrando pelo consolidado
+
+            fechamentos = associacao.fechamentos_associacao.filter(
+                periodo=periodo,
+                conta_associacao__tipo_conta=tipo_conta,
+                prestacao_conta__consolidado_dre=consolidado_dre
+            )
+
+        elif not apenas_nao_publicadas:
             fechamentos = associacao.fechamentos_associacao.filter(
                 periodo=periodo,
                 conta_associacao__tipo_conta=tipo_conta,
@@ -1030,7 +1045,18 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
 
     associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by('unidade__tipo_unidade', 'unidade__nome')
 
-    if not apenas_nao_publicadas:
+    if consolidado_dre:
+        # Quando é uma retificação, as informações são resgatadas filtrando pelo consolidado
+
+        associacoes_da_dre = associacoes_da_dre.filter(
+            prestacoes_de_conta_da_associacao__periodo=periodo,
+            prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
+        )
+
+        associacoes_da_dre = associacoes_da_dre.filter(
+            prestacoes_de_conta_da_associacao__consolidado_dre=consolidado_dre)
+
+    elif not apenas_nao_publicadas:
         associacoes_da_dre = associacoes_da_dre.filter(
             prestacoes_de_conta_da_associacao__periodo=periodo,
             prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']

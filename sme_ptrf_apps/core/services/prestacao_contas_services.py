@@ -3,6 +3,8 @@ import logging
 from django.db import transaction
 from django.db.models import Q, Sum, Count, Max
 
+from .notificacao_services.notificacao_erro_ao_concluir_pc import notificar_erro_ao_concluir_pc
+
 from ..models import (
     PrestacaoConta,
     FechamentoPeriodo,
@@ -19,7 +21,7 @@ from ..models import (
     AnaliseDocumentoPrestacaoConta,
     ContaAssociacao,
     TipoAcertoDocumento,
-    SolicitacaoAcertoDocumento, SolicitacaoDevolucaoAoTesouro,
+    SolicitacaoAcertoDocumento, SolicitacaoDevolucaoAoTesouro, Parametros,
 )
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
@@ -58,7 +60,7 @@ def pc_requer_geracao_documentos(prestacao):
 
 
 @transaction.atomic
-def concluir_prestacao_de_contas(periodo, associacao):
+def concluir_prestacao_de_contas(periodo, associacao, usuario=None, monitoraPc=False):
     prestacao = PrestacaoConta.abrir(periodo=periodo, associacao=associacao)
     logger.info(f'Aberta a prestação de contas {prestacao}.')
 
@@ -74,6 +76,9 @@ def concluir_prestacao_de_contas(periodo, associacao):
         }
 
     prestacao.em_processamento()
+    if monitoraPc:
+        MonitoraPC(prestacao_de_contas=prestacao, usuario=usuario, associacao=associacao)
+
     logger.info(f'Prestação de contas em processamento {prestacao}.')
 
     return {
@@ -631,7 +636,8 @@ def lancamentos_da_prestacao(
     from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaConciliacaoSerializer
     from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaConciliacaoSerializer
     from sme_ptrf_apps.core.api.serializers.analise_lancamento_prestacao_conta_serializer import \
-        AnaliseLancamentoPrestacaoContaRetrieveSerializer, AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer
+        AnaliseLancamentoPrestacaoContaRetrieveSerializer, \
+        AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer
 
     def documentos_de_despesa_por_conta_e_acao_no_periodo(
         conta_associacao,
@@ -732,7 +738,8 @@ def lancamentos_da_prestacao(
             despesas_filter = despesa.rateios.filter(status=STATUS_COMPLETO, conta_associacao=conta_associacao)
 
             if inclui_inativas:
-                despesas_filter = despesa.rateios.exclude(status=STATUS_INCOMPLETO).filter(conta_associacao=conta_associacao)
+                despesas_filter = despesa.rateios.exclude(status=STATUS_INCOMPLETO).filter(
+                    conta_associacao=conta_associacao)
             for rateio in despesas_filter:
                 if rateio.notificar_dias_nao_conferido > max_notificar_dias_nao_conferido:
                     max_notificar_dias_nao_conferido = rateio.notificar_dias_nao_conferido
@@ -758,7 +765,8 @@ def lancamentos_da_prestacao(
                 'descricao': despesa.nome_fornecedor,
                 'valor_transacao_total': despesa.valor_total,
                 'valor_transacao_na_conta': despesas_filter.aggregate(Sum('valor_rateio'))['valor_rateio__sum'],
-                'valores_por_conta': despesas_filter.values('conta_associacao__tipo_conta__nome').annotate(Sum('valor_rateio')),
+                'valores_por_conta': despesas_filter.values('conta_associacao__tipo_conta__nome').annotate(
+                    Sum('valor_rateio')),
                 'conferido': despesa.conferido,
                 'documento_mestre': DespesaDocumentoMestreSerializer(despesa, many=False).data,
                 'rateios': RateioDespesaConciliacaoSerializer(despesas_filter.order_by('id'), many=True).data,
@@ -779,7 +787,8 @@ def lancamentos_da_prestacao(
                         analise_lancamento,
                         many=False).data
                 else:
-                    lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer(
+                    lancamento[
+                        'analise_lancamento'] = AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer(
                         analise_lancamento,
                         many=False).data
             else:
@@ -824,7 +833,8 @@ def lancamentos_da_prestacao(
                     analise_lancamento,
                     many=False).data
             else:
-                novo_lancamento['analise_lancamento'] = AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer(
+                novo_lancamento[
+                    'analise_lancamento'] = AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer(
                     analise_lancamento,
                     many=False).data
 
@@ -904,7 +914,6 @@ def marca_lancamentos_como_corretos(analise_prestacao, lancamentos_corretos):
             minhas_solicitacoes = minha_analise_lancamento.solicitacoes_de_ajuste_da_analise.all()
 
             for solicitacao_acerto in minhas_solicitacoes:
-
                 # TODO Remover o bloco comentado após conclusão da mudança em solicitações de dev.tesouro
                 # if solicitacao_acerto.copiado:
                 #     devolucao_ao_tesouro = solicitacao_acerto.devolucao_ao_tesouro
@@ -1009,7 +1018,8 @@ def __cria_analise_lancamento_solicitacao_acerto(analise_prestacao, lancamento):
 
 
 def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atualizacao_em_lote):
-    logging.info(f'Verificando quais solicitações de ajustes existentes devem ser apagadas para a análise de lançamento {analise_lancamento.uuid}.')
+    logging.info(
+        f'Verificando quais solicitações de ajustes existentes devem ser apagadas para a análise de lançamento {analise_lancamento.uuid}.')
 
     keep_solicitacoes = []
     for solicitacao_acerto in solicitacoes_acerto:
@@ -1023,12 +1033,15 @@ def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atual
                 solicitacao_encontrada.save()
 
                 # Realizando update na solicitação de devolucao ao tesouro da solicitação encontrada
-                if hasattr(solicitacao_encontrada, 'solicitacao_devolucao_ao_tesouro') and solicitacao_encontrada.solicitacao_devolucao_ao_tesouro:
+                if hasattr(solicitacao_encontrada,
+                           'solicitacao_devolucao_ao_tesouro') and solicitacao_encontrada.solicitacao_devolucao_ao_tesouro:
                     tipo_devolucao_ao_tesouro = TipoDevolucaoAoTesouro.objects.get(
                         uuid=solicitacao_acerto['devolucao_tesouro']['tipo'])
                     solicitacao_encontrada.solicitacao_devolucao_ao_tesouro.tipo = tipo_devolucao_ao_tesouro
-                    solicitacao_encontrada.solicitacao_devolucao_ao_tesouro.devolucao_total = solicitacao_acerto['devolucao_tesouro']['devolucao_total']
-                    solicitacao_encontrada.solicitacao_devolucao_ao_tesouro.valor = solicitacao_acerto['devolucao_tesouro']['valor']
+                    solicitacao_encontrada.solicitacao_devolucao_ao_tesouro.devolucao_total = \
+                    solicitacao_acerto['devolucao_tesouro']['devolucao_total']
+                    solicitacao_encontrada.solicitacao_devolucao_ao_tesouro.valor = \
+                    solicitacao_acerto['devolucao_tesouro']['valor']
                     solicitacao_encontrada.solicitacao_devolucao_ao_tesouro.motivo = solicitacao_acerto['detalhamento']
 
                     solicitacao_encontrada.solicitacao_devolucao_ao_tesouro.save()
@@ -1060,19 +1073,20 @@ def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atual
                 logging.info(f'Criando solicitação de acerto para a análise de lançamento {analise_lancamento.uuid}.')
 
                 solicitacao_criada = SolicitacaoAcertoLancamento.objects.create(
-                                        analise_lancamento=analise_lancamento,
-                                        tipo_acerto=tipo_acerto,
-                                        devolucao_ao_tesouro=None,  # devolucao_tesouro,
-                                        detalhamento=solicitacao_acerto['detalhamento'],
-                                        status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE
-                                    )
+                    analise_lancamento=analise_lancamento,
+                    tipo_acerto=tipo_acerto,
+                    devolucao_ao_tesouro=None,  # devolucao_tesouro,
+                    detalhamento=solicitacao_acerto['detalhamento'],
+                    status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE
+                )
 
                 logging.info(f"Solicitação criada: {solicitacao_criada}.")
 
                 keep_solicitacoes.append(solicitacao_criada.uuid)
 
             if analise_lancamento.tipo_lancamento == 'GASTO' and solicitacao_acerto['devolucao_tesouro']:
-                logging.info(f'Criando solicitação de devolução ao tesouro para a análise de lançamento {analise_lancamento.uuid}.')
+                logging.info(
+                    f'Criando solicitação de devolução ao tesouro para a análise de lançamento {analise_lancamento.uuid}.')
                 solicitacao_devolucao_ao_tesouro = SolicitacaoDevolucaoAoTesouro.objects.create(
                     solicitacao_acerto_lancamento=solicitacao_criada,
                     tipo=TipoDevolucaoAoTesouro.objects.get(uuid=solicitacao_acerto['devolucao_tesouro']['tipo']),
@@ -1166,7 +1180,8 @@ def documentos_da_prestacao(analise_prestacao_conta):
             contas_com_movimento = analise_prestacao_conta.prestacao_conta.get_contas_com_movimento(
                 add_sem_movimento_com_saldo=True)
             for conta in contas_com_movimento:
-                if documento.e_relacao_bens and not analise_prestacao_conta.prestacao_conta.relacoes_de_bens_da_prestacao.filter(conta_associacao=conta).exists():
+                if documento.e_relacao_bens and not analise_prestacao_conta.prestacao_conta.relacoes_de_bens_da_prestacao.filter(
+                    conta_associacao=conta).exists():
                     continue
                 documentos.append(result_documento(documento, conta))
         else:
@@ -1448,3 +1463,147 @@ def previa_informacoes_financeiras_para_atas(associacao, periodo):
     }
 
     return info
+
+
+class MonitoraPC:
+
+    def __init__(self, prestacao_de_contas, usuario, associacao, status=PrestacaoConta.STATUS_EM_PROCESSAMENTO):
+
+        self.__prestacao_de_contas = prestacao_de_contas
+        self.__uuid_pc = prestacao_de_contas.uuid
+        self.__usuario = usuario
+        self.__associacao = associacao
+        self.__status = status
+        self.dispara_mensagem_inicio_monitoramento()
+        self.__tempo_aguardar_conclusao_pc = Parametros.get().tempo_aguardar_conclusao_pc
+
+        # O segundo parâmetro de set_interval, define quanto tempo (em segundos) aguardamos
+        # para verificar se a PC ainda está EM_PROCESSAMENTO que vem de core/Parametro
+        self.set_interval(self.verifica_status_pc, self.tempo_aguardar_conclusao_pc)
+
+        self.t = None
+
+    @property
+    def prestacao_de_contas(self):
+        return self.__prestacao_de_contas
+
+    @property
+    def uuid_prestacao_de_contas(self):
+        return self.__uuid_pc
+
+    @property
+    def usuario(self):
+        return self.__usuario
+
+    @property
+    def status(self):
+        return self.__status
+
+    @property
+    def associacao(self):
+        return self.__associacao
+
+    @property
+    def tempo_aguardar_conclusao_pc(self):
+        tempo = self.__tempo_aguardar_conclusao_pc if self.__tempo_aguardar_conclusao_pc > 0 else 60
+        return tempo
+
+    def dispara_mensagem_inicio_monitoramento(self):
+        logger.info(f"Monitoramento de PC: Iniciando o processo de monitoramento da PC: {self.prestacao_de_contas}")
+
+    def verifica_status_pc(self):
+        pc = PrestacaoConta.objects.filter(uuid=self.uuid_prestacao_de_contas).first()
+
+        if pc:
+            periodo = pc.periodo
+
+            if periodo:
+
+                if pc.status == self.status:
+
+                    try:
+
+                        self.revoke_tasks_by_name(
+                            task_name='sme_ptrf_apps.core.tasks.concluir_prestacao_de_contas_async'
+                        )
+
+                        ultima_analise = pc.analises_da_prestacao.last()
+
+                        if ultima_analise:
+                            pc.status = PrestacaoConta.STATUS_DEVOLVIDA
+                            pc.save()
+                            logger.info(
+                                f"Monitoramento de PC: Prestação de contas passada para status DEVOLVIDA com sucesso.")
+
+                            notificar_erro_ao_concluir_pc(
+                                prestacao_de_contas=None,
+                                usuario=self.usuario,
+                                associacao=self.associacao,
+                                periodo=periodo,
+                            )
+                        else:
+                            reaberta = reabrir_prestacao_de_contas(self.uuid_prestacao_de_contas)
+
+                            if reaberta:
+                                logger.info(
+                                    f"Monitoramento de PC: Prestação de contas reaberta com sucesso. Todos os seus "
+                                    f"registros foram apagados.")
+
+                                notificar_erro_ao_concluir_pc(
+                                    prestacao_de_contas=None,
+                                    usuario=self.usuario,
+                                    associacao=self.associacao,
+                                    periodo=periodo,
+                                )
+                            else:
+                                logger.info(
+                                    f"Monitoramento de PC: Houve algum erro ao tentar reabrir a prestação de contas.")
+
+                    except Exception as e:
+                        logger.info(f"Monitoramento de PC: Houve algum erro ao no processo de monitoramento de PC. {e}")
+
+        if self.t:
+            self.t.cancel()
+
+    def set_interval(self, func, sec):
+        pc = PrestacaoConta.objects.filter(uuid=self.uuid_prestacao_de_contas).first()
+
+        if pc:
+            periodo = pc.periodo
+
+            if periodo:
+                import threading
+
+                def func_wrapper():
+                    self.set_interval(func, sec)
+                    func()
+
+                self.t = threading.Timer(sec, func_wrapper)
+                self.t.start()
+
+    def revoke_tasks_by_name(self, task_name, worker_prefix=''):
+        import celery.task.control as c
+        """
+        Revoke all tasks by the name of the celery task
+        :param task_name: Name of the celery task
+        :param worker_prefix: Prefix for the worker
+        :return: None
+        Examples:
+            revoke_tasks_by_name(
+                task_name='users.tasks.indexing.reindex_all_users'
+            )
+            revoke_tasks_by_name(
+                worker_prefix='celery@users-indexer-',
+                task_name='users.tasks.indexing.reindex_all_users'
+            )
+        """
+
+        items = c.inspect().active().items() if c and c.inspect() and c.inspect().active() and c.inspect().active().items() else None
+
+        if items:
+            for worker_name, tasks in items:
+                if worker_name.startswith(worker_prefix):
+                    for task in tasks:
+                        if task['type'] == task_name:
+                            print('Revoking task {}'.format(task))
+                            c.revoke(task['id'], terminate=True)

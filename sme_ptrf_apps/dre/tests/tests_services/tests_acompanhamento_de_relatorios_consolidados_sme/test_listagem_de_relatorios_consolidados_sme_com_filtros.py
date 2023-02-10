@@ -62,6 +62,19 @@ def associacao_teste_listagem_04(periodo_anterior_teste_listagem_com_filtros_01)
 
 
 @pytest.fixture
+def associacao_teste_listagem_05(periodo_anterior_teste_listagem_com_filtros_01):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste Retificações',
+        cnpj='13.473.276/0001-39',
+        periodo_inicial=periodo_anterior_teste_listagem_com_filtros_01,
+        ccm='0.000.00-0',
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456'
+    )
+
+
+@pytest.fixture
 def periodo_anterior_teste_listagem_com_filtros_01():
     return baker.make(
         'Periodo',
@@ -151,6 +164,23 @@ def prestacao_conta_teste_listagem_com_filtros_04(
 
 
 @pytest.fixture
+def prestacao_conta_teste_listagem_com_retificacao_01(
+    periodo_teste_listagem_com_filtros_01,
+    associacao_teste_listagem_05,
+    consolidado_teste_listagem_com_filtros_retificacao_01,
+    periodo_anterior_teste_listagem_com_filtros_01
+):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_anterior_teste_listagem_com_filtros_01,
+        associacao=associacao_teste_listagem_05,
+        data_recebimento=date(2022, 1, 2),
+        status=PrestacaoConta.STATUS_APROVADA,
+        consolidado_dre=consolidado_teste_listagem_com_filtros_retificacao_01
+    )
+
+
+@pytest.fixture
 def dre_teste_listagem_com_filtros_01():
     return baker.make(
         'Unidade',
@@ -234,6 +264,83 @@ def consolidado_teste_listagem_com_filtros_04(
         eh_parcial=False,
         sequencia_de_publicacao=0
     )
+
+
+@pytest.fixture
+def consolidado_teste_listagem_com_filtros_retificado(
+    periodo_teste_listagem_com_filtros_01,
+    dre_teste_listagem_com_filtros_01
+):
+    return baker.make(
+        'ConsolidadoDRE',
+        dre=dre_teste_listagem_com_filtros_01,
+        periodo=periodo_teste_listagem_com_filtros_01,
+        status=ConsolidadoDRE.STATUS_NAO_GERADOS,
+        status_sme=ConsolidadoDRE.STATUS_SME_NAO_PUBLICADO,
+        eh_parcial=True,
+        sequencia_de_publicacao=5,
+    )
+
+
+@pytest.fixture
+def consolidado_teste_listagem_com_filtros_retificacao_01(
+    periodo_teste_listagem_com_filtros_01,
+    dre_teste_listagem_com_filtros_01,
+    consolidado_teste_listagem_com_filtros_retificado,
+):
+    return baker.make(
+        'ConsolidadoDRE',
+        dre=dre_teste_listagem_com_filtros_01,
+        periodo=periodo_teste_listagem_com_filtros_01,
+        status=ConsolidadoDRE.STATUS_NAO_GERADOS,
+        status_sme=ConsolidadoDRE.STATUS_SME_NAO_PUBLICADO,
+        eh_parcial=True,
+        sequencia_de_publicacao=5,
+        sequencia_de_retificacao=5,
+        consolidado_retificado=consolidado_teste_listagem_com_filtros_retificado,
+    )
+
+
+def test_teste_listagem_com_filtros_sem_filtros_retificacao(
+    periodo_teste_listagem_com_filtros_01,
+    dre_teste_listagem_com_filtros_01,
+    consolidado_teste_listagem_com_filtros_retificado,
+    consolidado_teste_listagem_com_filtros_retificacao_01,
+    prestacao_conta_teste_listagem_com_retificacao_01,
+):
+    listagem = ListagemPorStatusComFiltros(
+        periodo=periodo_teste_listagem_com_filtros_01,
+        dre=None,
+        tipo_relatorio=None,
+        status_sme=None
+    ).retorna_listagem()
+
+    resultado_esperado = [
+        {
+            'nome_da_dre': 'Dre Teste Listagem Com Filtros 01',
+            'tipo_relatorio': 'Retificação',
+            'total_unidades_no_relatorio': 1,
+            'data_recebimento': None,
+            'pode_visualizar': True,
+            'status_sme': 'NAO_PUBLICADO',
+            'status_sme_label': 'Não publicada no D.O.',
+            "uuid_consolidado_dre": f"{consolidado_teste_listagem_com_filtros_retificacao_01.uuid}",
+            "uuid_dre": f"{dre_teste_listagem_com_filtros_01.uuid}"
+        },
+        {
+            "nome_da_dre": dre_teste_listagem_com_filtros_01.nome,
+            "tipo_relatorio": "Parcial #5",
+            "total_unidades_no_relatorio": 1,
+            "data_recebimento": None,
+            "status_sme": "NAO_PUBLICADO",
+            "status_sme_label": "Não publicada no D.O.",
+            "pode_visualizar": True,
+            "uuid_consolidado_dre": f"{consolidado_teste_listagem_com_filtros_retificado.uuid}",
+            "uuid_dre": f"{dre_teste_listagem_com_filtros_01.uuid}"
+        },
+    ]
+
+    assert listagem == resultado_esperado
 
 
 def test_teste_listagem_com_filtros__filtro_nao_gerado_e_tipo_relatorio_parcial(
