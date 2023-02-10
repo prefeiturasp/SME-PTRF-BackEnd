@@ -452,9 +452,6 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
 
     if consolidado_dre and consolidado_dre.eh_retificacao:
         prestacoes_do_consolidado = consolidado_dre.prestacoes_de_conta_do_consolidado_dre.all()
-        prestacoes_do_consolidado_original = consolidado_dre.consolidado_retificado.prestacoes_de_conta_do_consolidado_dre.all()
-
-        # quantidade_publicacoes_anteriores = len(prestacoes_do_consolidado_original) + len(prestacoes_do_consolidado)
 
         quantidade_publicacoes_anteriores = ConsolidadoDRE.objects.filter(
             dre=dre,
