@@ -53,11 +53,15 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         else:
             titulo_sequencia_publicacao = "Publicação Única"
 
-
     motivo_retificacao = None
+    eh_retificacao = False
     if ata_de_parecer_tecnico and ata_de_parecer_tecnico.consolidado_dre:
         if ata_de_parecer_tecnico.consolidado_dre.eh_retificacao:
+            eh_retificacao = True
             motivo_retificacao = ata_de_parecer_tecnico.consolidado_dre.motivo_retificacao
+            publicacao_parcial_que_gerou_a_retificacao = ata_de_parecer_tecnico.consolidado_dre.consolidado_retificado
+            data_publicacao = publicacao_parcial_que_gerou_a_retificacao.data_publicacao if publicacao_parcial_que_gerou_a_retificacao and publicacao_parcial_que_gerou_a_retificacao.data_publicacao else ''
+            titulo_sequencia_publicacao = f"Retificação da publicação de {data_publicacao.strftime('%d/%m/%Y')}"
 
     cabecalho = {
         "titulo": "Programa de Transferência de Recursos Financeiros -  PTRF",
@@ -130,6 +134,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
 
     dado = {
         "cabecalho": cabecalho,
+        "eh_retificacao": eh_retificacao,
         "dados_texto_da_ata": dados_texto_da_ata,
         "presentes_na_ata": presentes_na_ata,
         "aprovadas": {

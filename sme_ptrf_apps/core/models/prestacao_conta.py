@@ -112,14 +112,6 @@ class PrestacaoConta(ModeloBase):
         default=None
     )
 
-    status_anterior_a_retificacao = models.CharField(
-        'Status anterior a retificacao',
-        max_length=20,
-        blank=True,
-        null=True,
-        default=None
-    )
-
     @property
     def tecnico_responsavel(self):
         atribuicoes = Atribuicao.search(
