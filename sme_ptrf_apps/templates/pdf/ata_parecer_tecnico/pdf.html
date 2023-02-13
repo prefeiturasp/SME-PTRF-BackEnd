@@ -50,17 +50,7 @@
       <p class="font-16 border-bottom pb-3"><strong>ATA DE PARECER TÉCNICO
         CONCLUSIVO {{ dados.dados_texto_da_ata.numero_ata }}/{{ dados.dados_texto_da_ata.data_reuniao|date:"Y" }}</strong>
       </p>
-      <p class="font-12">{{ dados.dados_texto_da_ata.data_reuniao_por_extenso }},
-        à(s) {{ dados.dados_texto_da_ata.hora_reuniao }},
-        reuniu-se a Comissão de Prestação de Contas do PTRF da Diretoria Regional de
-        Educação {{ dados.cabecalho.nome_dre }}, instituída pela Portaria DRE - {{ dados.cabecalho.nome_dre }}
-        nº {{ dados.cabecalho.numero_portaria }}/{{ dados.cabecalho.data_portaria|date:"Y" }}
-        de {{ dados.cabecalho.data_portaria|date:"d/m/Y" }}, para
-        análise das prestações de contas dos recursos transferidos pelo Programa de Transferência de Recursos
-        Financeiros - PTRF, período de {{ dados.dados_texto_da_ata.periodo_data_inicio }}
-        até {{ dados.dados_texto_da_ata.periodo_data_fim }}, conforme inciso III e IV do art. 34 da Portaria SME nº
-        6.634/2021 e deliberou:</p>
-
+      {% include "./partials/dados-sobre-a-reuniao.html" with dados=dados %}
     </article>
 
 
