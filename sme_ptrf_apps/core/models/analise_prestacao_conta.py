@@ -308,6 +308,15 @@ class AnalisePrestacaoConta(ModeloBase):
         self.arquivo_pdf_apresentacao_apos_acertos_criado_em = datetime.today()
         self.save()
 
+    def cancela_geracao_arquivo_pdf_relatorio_apos_acertos(self):
+        logging.info(f'Cancelando geração de arquivo pdf do relatorio após acertos {self.pk}')
+        self.arquivo_pdf_apresentacao_apos_acertos = None
+        self.arquivo_pdf_apresentacao_apos_acertos_criado_em = None
+        self.versao_pdf_apresentacao_apos_acertos = self.VERSAO_NAO_GERADO
+        self.status_versao_apresentacao_apos_acertos = self.STATUS_NAO_GERADO
+        self.save()
+        logging.info(f'Geração de arquivo pdf do relatorio após acertos {self.pk} cancelada')
+
     @classmethod
     def editavel(cls, uuid_analise, visao):
         analise = AnalisePrestacaoConta.by_uuid(uuid_analise)
