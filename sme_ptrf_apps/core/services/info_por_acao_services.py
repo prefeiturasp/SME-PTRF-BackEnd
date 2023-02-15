@@ -5,7 +5,7 @@ from django.db.models import Sum
 
 from ..models import FechamentoPeriodo, Associacao, AcaoAssociacao, ContaAssociacao, Periodo, Parametros
 from ..services.periodo_services import status_prestacao_conta_associacao
-from ...despesas.models import RateioDespesa
+from ...despesas.models import RateioDespesa, Despesa
 from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
 from ...receitas.models import Receita, Repasse
 
@@ -268,6 +268,17 @@ def info_acao_associacao_no_periodo(
             info['receitas_nao_conciliadas_livre'] += fechamento_periodo.total_receitas_nao_conciliadas_livre
             info['saldo_bancario_livre'] += fechamento_periodo.saldo_reprogramado_livre
 
+            if exclude_despesa:
+                despesa = Despesa.objects.get(uuid=exclude_despesa)
+                rateios = despesa.rateios.filter(acao_associacao=fechamento_periodo.acao_associacao).filter(conta_associacao=fechamento_periodo.conta_associacao)
+                for rateio in rateios.all():
+                    if rateio.aplicacao_recurso == APLICACAO_CAPITAL:
+                        info['despesas_no_periodo_capital'] -= rateio.valor_rateio
+                        info['saldo_atual_capital'] += rateio.valor_rateio
+                    elif rateio.aplicacao_recurso == APLICACAO_CUSTEIO:
+                        info['despesas_no_periodo_custeio'] -= rateio.valor_rateio
+                        info['saldo_atual_custeio'] += rateio.valor_rateio
+
         return info
 
     def sumariza_receitas_acao_entre_periodos(periodo_inicial, periodo_final, acao_associacao, info, conta=None):
@@ -375,8 +386,6 @@ def info_acao_associacao_no_periodo(
             periodo_do_saldo = periodo.periodo_anterior
         else:
             periodo_do_saldo = periodo
-
-        # periodo_do_saldo = fechamentos_periodo_anterior.first().periodo if fechamentos_periodo_anterior else periodo
 
         if (not apenas_transacoes_do_periodo) and periodo_do_saldo and periodo_do_saldo.proximo_periodo:
             periodo_inicial_transacoes = periodo_do_saldo.proximo_periodo
@@ -590,6 +599,8 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None, apena
 
 
 def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=None):
+    from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
+
     def resultado_vazio():
         return {
             'saldo_anterior_custeio': 0,
@@ -629,6 +640,16 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
             info['receitas_no_periodo_livre'] += fechamento_periodo.total_receitas_livre
             info['repasses_no_periodo_livre'] += fechamento_periodo.total_repasses_livre
             info['saldo_atual_livre'] += fechamento_periodo.saldo_reprogramado_livre
+
+        if exclude_despesa:
+            despesa = Despesa.objects.get(uuid=exclude_despesa)
+            for rateio in despesa.rateios.all():
+                if rateio.aplicacao_recurso == APLICACAO_CAPITAL:
+                    info['despesas_no_periodo_capital'] -= rateio.valor_rateio
+                    info['saldo_atual_capital'] += rateio.valor_rateio
+                elif rateio.aplicacao_recurso == APLICACAO_CUSTEIO:
+                    info['despesas_no_periodo_custeio'] -= rateio.valor_rateio
+                    info['saldo_atual_custeio'] += rateio.valor_rateio
 
         return info
 
@@ -718,8 +739,6 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
             periodo_do_saldo = periodo.periodo_anterior
         else:
             periodo_do_saldo = periodo
-
-        # periodo_do_saldo = fechamentos_periodo_anterior.first().periodo if fechamentos_periodo_anterior else periodo
 
         if not periodo_do_saldo.proximo_periodo:
             logger.info("Periodo indefinido ou sem periodo inicial. Retornando vazio")

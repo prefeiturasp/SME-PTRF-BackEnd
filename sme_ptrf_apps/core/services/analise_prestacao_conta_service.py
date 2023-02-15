@@ -157,13 +157,17 @@ def criar_relatorio_apos_acertos_final(analise_prestacao_conta, usuario=""):
 def _gerar_arquivos_relatorio_apos_acertos(analise_prestacao_conta, previa, usuario=""):
     analise_prestacao_conta.inicia_geracao_arquivo_pdf_relatorio_apos_acertos(previa)
 
-    dados_relatorio_apos_acertos = DadosRelatorioAposAcertosService.dados_relatorio_apos_acerto(
-        analise_prestacao_conta=analise_prestacao_conta,
-        previa=previa,
-        usuario=usuario
-    )
-
-    ArquivoRelatorioAposAcertosService.gerar_relatorio(analise_prestacao_conta, dados_relatorio_apos_acertos)
+    try:
+        dados_relatorio_apos_acertos = DadosRelatorioAposAcertosService.dados_relatorio_apos_acerto(
+            analise_prestacao_conta=analise_prestacao_conta,
+            previa=previa,
+            usuario=usuario
+        )
+        ArquivoRelatorioAposAcertosService.gerar_relatorio(analise_prestacao_conta, dados_relatorio_apos_acertos)
+    except Exception as e:
+        analise_prestacao_conta.cancela_geracao_arquivo_pdf_relatorio_apos_acertos()
+        logger.error(f'Erro ao gerar arquivo pdf do relatorio após acertos: {e}')
+        raise e
 
 
 def get_ajustes_extratos_bancarios(analise_prestacao, conta_associacao=None):
