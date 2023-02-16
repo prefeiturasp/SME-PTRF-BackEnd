@@ -131,3 +131,25 @@ def test_desfazer_retificacao_deve_apagar_retificacao(
     assert prestacao_conta_pc2.consolidado_dre == consolidado_original
     assert prestacao_conta_pc2.publicada is True
     assert prestacao_conta_pc2.status == PrestacaoConta.STATUS_APROVADA
+
+
+def test_pode_desfazer_retificacao(
+    jwt_authenticated_client_dre,
+    retificacao_dre,
+    prestacao_conta_pc2,
+    prestacao_conta_pc3
+):
+    assert prestacao_conta_pc2.pode_desfazer_retificacao is True
+    assert prestacao_conta_pc3.pode_desfazer_retificacao is False
+
+
+def test_tooltip_pode_desfazer_retificacao(
+    jwt_authenticated_client_dre,
+    retificacao_dre,
+    prestacao_conta_pc2,
+    prestacao_conta_pc3
+):
+    assert prestacao_conta_pc2.tooltip_nao_pode_desfazer_retificacao is None
+    assert prestacao_conta_pc3.tooltip_nao_pode_desfazer_retificacao == "Essa PC não pode ser removida pois seu status foi alterado"
+
+
