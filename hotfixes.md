@@ -1,3 +1,8 @@
+### 6.0.2 - 14/02/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 59
+* (85017) Corrige verificação de saldo na edição de despesas a partir de uma solicitação de acerto
+* (86076) Corrige a geração de prévia de relatório após acerto que ficava em processamento se ocorresse alguma falha
+* (86319) Corrige a lista de presença da ata que não estava exibindo os membros do conselho fiscal
+
 ### 6.0.1 - 09/02/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 59
 * (85510) Altera carga de devoluções ao tesouro para criar solicitações de devolução ao tesouro
 * (85660) Implementa monitoramenmto de processomentos de PCs
