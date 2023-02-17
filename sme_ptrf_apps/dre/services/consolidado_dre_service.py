@@ -121,7 +121,9 @@ def retornar_ja_publicadas(dre, periodo):
             'habilita_botao_gerar': consolidado_dre.habilita_geracao,
             'texto_tool_tip_botao_gerar': 'É necessário informar a data e a página da publicação anterior<br/>'
                                         'no Diário Oficial da Cidade para gerar uma nova publicação.',
-            'permite_retificacao': consolidado_dre.permite_retificacao,
+            'exibe_botao_retificar': consolidado_dre.exibe_botao_retificar,
+            'habilita_retificar': consolidado_dre.permite_retificacao["permite"],
+            'tooltip_habilita_retificar': consolidado_dre.permite_retificacao["tooltip"],
             'referencia': consolidado_dre.referencia,
             'eh_retificacao': consolidado_dre.eh_retificacao,
             'gerou_uma_retificacao': consolidado_dre.gerou_uma_retificacao,
