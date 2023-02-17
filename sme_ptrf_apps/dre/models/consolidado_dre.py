@@ -140,10 +140,7 @@ class ConsolidadoDRE(ModeloBase):
 
     @property
     def exibe_botao_retificar(self):
-        if self.gerou_uma_retificacao:
-            return True
-        else:
-            return self.foi_publicado
+        return True if self.gerou_uma_retificacao else self.foi_publicado
 
     @property
     def permite_retificacao(self):
