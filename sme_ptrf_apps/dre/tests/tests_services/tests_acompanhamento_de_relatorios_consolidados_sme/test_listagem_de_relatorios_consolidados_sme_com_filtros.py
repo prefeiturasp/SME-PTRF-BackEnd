@@ -315,6 +315,8 @@ def test_teste_listagem_com_filtros_sem_filtros_retificacao(
         status_sme=None
     ).retorna_listagem()
 
+    listagem_ordenada = sorted(listagem, key=lambda item: item['tipo_relatorio'], reverse=True)
+
     resultado_esperado = [
         {
             'nome_da_dre': 'Dre Teste Listagem Com Filtros 01',
@@ -340,7 +342,7 @@ def test_teste_listagem_com_filtros_sem_filtros_retificacao(
         },
     ]
 
-    assert listagem == resultado_esperado
+    assert listagem_ordenada == resultado_esperado
 
 
 def test_teste_listagem_com_filtros__filtro_nao_gerado_e_tipo_relatorio_parcial(
