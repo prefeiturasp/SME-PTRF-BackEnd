@@ -34,9 +34,11 @@ def test_retorna_ja_publicados_nao_publicados_no_diario_oficial_com_retificacao(
     retificacao_dre
 ):
     result = retornar_ja_publicadas(consolidado_dre_publicado_no_diario_oficial.dre, consolidado_dre_publicado_no_diario_oficial.periodo)
+    lista_ordenada = sorted(result, key=lambda item: item['eh_retificacao'])
 
-    assert len(result) == 2
-    assert result[0]['status_sme'] == 'NAO_PUBLICADO'
-    assert result[1]['status_sme'] == 'PUBLICADO'
-    assert result[0]['exibe_botao_retificar'] is False
-    assert result[1]['exibe_botao_retificar'] is True
+    assert len(lista_ordenada) == 2
+    assert lista_ordenada[0]['status_sme'] == 'PUBLICADO'
+    assert lista_ordenada[1]['status_sme'] == 'NAO_PUBLICADO'
+    assert lista_ordenada[0]['exibe_botao_retificar'] is True
+    assert lista_ordenada[1]['exibe_botao_retificar'] is False
+
