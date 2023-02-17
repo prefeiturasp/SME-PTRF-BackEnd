@@ -373,64 +373,6 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['post'],
-            url_path='gerar-consolidado-de-publicacoes-parciais',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
-    def gerar_consolidado_de_publicacoes_parciais(self, request):
-        dados = request.data
-
-        if (
-            not dados
-            or not dados.get('dre_uuid')
-            or not dados.get('periodo_uuid')
-        ):
-            erro = {
-                'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar os uuids da dre e período'
-            }
-            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        dre_uuid, periodo_uuid = dados['dre_uuid'], dados['periodo_uuid']
-
-        try:
-            dre = Unidade.dres.get(uuid=dre_uuid)
-        except (Unidade.DoesNotExist, ValidationError):
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            periodo = Periodo.objects.get(uuid=periodo_uuid)
-        except (Periodo.DoesNotExist, ValidationError):
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            concluir_consolidado_de_publicacoes_parciais(
-                dre,
-                periodo,
-                usuario=request.user.username,
-            )
-
-            return Response({"data": "Consolidado de publicações parciais gerados com sucesso"},
-                            status=status.HTTP_200_OK)
-        except:
-            erro = {
-                'erro': 'erro_ao_gerar_consolidado_de_publicacoes_parciais',
-                'mensagem': f"Erro ao gerar Consolidado de publicações parciais"
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-
     @action(detail=False, methods=['get'],
             url_path='retorna-status-relatorio-consolidado-de-publicacoes-parciais',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
