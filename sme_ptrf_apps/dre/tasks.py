@@ -148,7 +148,7 @@ def gerar_previa_consolidado_dre_async(
 def verifica_se_relatorio_consolidado_deve_ser_gerado_async(dre, periodo, usuario):
     qtde_unidades_na_dre = Unidade.objects.filter(
         dre_id=dre,
-    ).count()
+    ).exclude(associacoes__cnpj__exact='').count()
 
     qtde_pcs_publicadas_no_periodo_pela_dre = PrestacaoConta.objects.filter(
         periodo=periodo,
