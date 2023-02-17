@@ -1199,6 +1199,15 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         return Response(ConsolidadoDreSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['get'], url_path='pcs-do-consolidado',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def pcs_do_consolidado(self, request, uuid):
+        consolidado: ConsolidadoDRE = self.get_object()
+        from sme_ptrf_apps.core.api.serializers.prestacao_conta_serializer import \
+            PrestacaoContaDoConsolidadoListSerializer
+        pcs = consolidado.pcs_do_consolidado()
+        return Response(PrestacaoContaDoConsolidadoListSerializer(pcs, many=True).data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['get'], url_path='pcs-retificaveis',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def pcs_retificaveis(self, request, uuid):
@@ -1207,7 +1216,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
         pcs = consolidado.pcs_retificaveis()
         return Response(PrestacaoContaListRetificaveisSerializer(pcs, many=True).data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'], url_path='pcs_em_retificacao',
+    @action(detail=True, methods=['get'], url_path='pcs-em-retificacao',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def pcs_em_retificacao(self, request, uuid):
         consolidado: ConsolidadoDRE = self.get_object()
