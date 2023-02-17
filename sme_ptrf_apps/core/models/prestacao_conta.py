@@ -157,6 +157,13 @@ class PrestacaoConta(ModeloBase):
         else:
             return "Essa PC não pode ser removida pois seu status foi alterado"
 
+    @property
+    def get_tooltip_nao_pode_retificar(self):
+        if self.em_retificacao:
+            return "Esta PC foi retificada em outra publicação."
+        else:
+            return None
+
     def __str__(self):
         return f"{self.periodo} - {self.status}"
 

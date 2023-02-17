@@ -139,17 +139,32 @@ class ConsolidadoDRE(ModeloBase):
         return self.status_sme == self.STATUS_SME_PUBLICADO
 
     @property
-    def permite_retificacao(self):
-        if self.gerou_uma_retificacao:
-            retificacoes_publicadas = self.retificacoes.filter(status_sme=self.STATUS_SME_PUBLICADO)
-            todas_retificacoes_publicadas = len(self.retificacoes.all()) == len(retificacoes_publicadas)
+    def exibe_botao_retificar(self):
+        return True if self.gerou_uma_retificacao else self.foi_publicado
 
-            if self.foi_publicado and todas_retificacoes_publicadas:
-                return True
-            else:
-                return False
-        else:
-            return self.foi_publicado
+    @property
+    def permite_retificacao(self):
+        result = {
+            "permite": True,
+            "tooltip": ''
+        }
+
+        if self.gerou_uma_retificacao:
+            possui_retificacoes_nao_geradas = False
+
+            for retificacao in self.retificacoes.all():
+                if not retificacao.retificacao_gerada:
+                    possui_retificacoes_nao_geradas = True
+
+            if possui_retificacoes_nao_geradas:
+                result["permite"] = False
+                result["tooltip"] = "As PCs habilitadas para retificação estão disponíveis na edição" \
+                                    " da retificação desta publicação."
+            elif not self.prestacoes_de_conta_do_consolidado_dre.all():
+                result["permite"] = False
+                result["tooltip"] = "Esta publicação não possui PCs disponíveis para retificação"
+
+        return result
 
 
     @property
@@ -167,12 +182,20 @@ class ConsolidadoDRE(ModeloBase):
     @property
     def habilita_geracao(self):
         if self.eh_retificacao:
-            if self.versao == self.VERSAO_FINAL and not self.laudas_do_consolidado_dre.all():
+            if self.versao == self.VERSAO_FINAL and not self.retificacao_gerada:
                 return True
             else:
                 return False
         else:
             return False
+
+    @property
+    def retificacao_gerada(self):
+        if self.eh_retificacao and self.laudas_do_consolidado_dre.all():
+            return True
+
+        return False
+
 
     class Meta:
         verbose_name = 'Consolidado DRE'
@@ -484,6 +507,25 @@ class ConsolidadoDRE(ModeloBase):
             logger.error(f'Houve algum erro ao tentar concluir a análise do consolidado dre de uuid {self.uuid}.')
             logger.error(f'{e}')
             return False
+
+    def pcs_do_consolidado(self):
+        lista_pcs = []
+
+        # Pcs do proprio consolidado
+        for pc in self.prestacoes_de_conta_do_consolidado_dre.all():
+            lista_pcs.append(pc)
+
+        # O consolidado original pode ter mais de uma retificacao
+        for retificacao in self.retificacoes.all():
+
+            # Pcs que ja entraram em retificacao
+            for pc in retificacao.prestacoes_de_conta_do_consolidado_dre.all():
+                lista_pcs.append(pc)
+
+        # Ordenando a lista de PCs por tipo unidade e nome
+        lista_ordenada = sorted(lista_pcs, key=lambda prestacao: (prestacao.associacao.unidade.tipo_unidade, prestacao.associacao.unidade.nome))
+
+        return lista_ordenada
 
     def pcs_retificaveis(self):
         if self.eh_retificacao:
