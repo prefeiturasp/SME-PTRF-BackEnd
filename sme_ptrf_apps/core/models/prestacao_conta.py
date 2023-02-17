@@ -155,7 +155,7 @@ class PrestacaoConta(ModeloBase):
         if self.pode_desfazer_retificacao:
             return None
         else:
-            return "Essa PC não pode ser removida pois seu status foi alterado"
+            return "Essa PC não pode ser removida da retificação pois sua análise já foi iniciada."
 
     @property
     def get_tooltip_nao_pode_retificar(self):
