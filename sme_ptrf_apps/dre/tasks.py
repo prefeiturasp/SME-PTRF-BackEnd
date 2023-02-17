@@ -145,6 +145,28 @@ def gerar_previa_consolidado_dre_async(
     time_limit=333333,
     soft_time_limit=333333
 )
+def verifica_se_relatorio_consolidado_deve_ser_gerado_async(dre, periodo, usuario):
+    qtde_unidades_na_dre = Unidade.objects.filter(
+        dre_id=dre,
+    ).count()
+
+    qtde_pcs_publicadas_no_periodo_pela_dre = PrestacaoConta.objects.filter(
+        periodo=periodo,
+        status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+        associacao__unidade__dre=dre,
+        publicada=True
+    ).count()
+
+    if(int(qtde_unidades_na_dre) == int(qtde_pcs_publicadas_no_periodo_pela_dre)):
+        concluir_consolidado_de_publicacoes_parciais_async(dre.uuid, periodo.uuid, usuario)
+        
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limit=333333,
+    soft_time_limit=333333
+)
 def concluir_consolidado_dre_async(
     dre_uuid=None,
     periodo_uuid=None,
@@ -227,6 +249,12 @@ def concluir_consolidado_dre_async(
     eh_parcial = parcial['parcial']
     consolidado_dre.passar_para_status_gerado(eh_parcial)
 
+    if(eh_parcial):
+        verifica_se_relatorio_consolidado_deve_ser_gerado_async(
+            dre=dre,
+            periodo=periodo,
+            usuario=usuario
+        )
 
 @shared_task(
     retry_backoff=2,
