@@ -84,3 +84,36 @@ def parametros_dre_comissoes(comissao_contas):
         'ParametrosDre',
         comissao_exame_contas=comissao_contas
     )
+
+
+@pytest.fixture
+def unidade_do_consolidado(dre_teste_model_consolidado_dre):
+    return baker.make(
+        'Unidade',
+        nome='Escola Teste',
+        tipo_unidade='CEU',
+        codigo_eol='123456',
+        dre=dre_teste_model_consolidado_dre,
+    )
+
+
+@pytest.fixture
+def associacao_do_consolidado(unidade_do_consolidado):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste',
+        cnpj='52.302.275/0001-83',
+        unidade=unidade_do_consolidado,
+    )
+
+
+@pytest.fixture
+def prestacao_conta_do_consolidado(
+    periodo_teste_model_consolidado_dre,
+    associacao_do_consolidado
+):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_teste_model_consolidado_dre,
+        associacao=associacao_do_consolidado,
+    )
