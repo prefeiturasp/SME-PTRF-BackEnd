@@ -150,6 +150,6 @@ def test_tooltip_pode_desfazer_retificacao(
     prestacao_conta_pc3
 ):
     assert prestacao_conta_pc2.tooltip_nao_pode_desfazer_retificacao is None
-    assert prestacao_conta_pc3.tooltip_nao_pode_desfazer_retificacao == "Essa PC não pode ser removida pois seu status foi alterado"
+    assert prestacao_conta_pc3.tooltip_nao_pode_desfazer_retificacao == "Essa PC não pode ser removida da retificação pois sua análise já foi iniciada."
 
 
