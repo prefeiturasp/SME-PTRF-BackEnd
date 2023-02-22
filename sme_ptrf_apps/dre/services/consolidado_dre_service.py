@@ -822,6 +822,9 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, 
         pc.status_anterior_a_retificacao = pc.status
         pc.status = PrestacaoConta.STATUS_RECEBIDA
         pc.save(update_fields=['consolidado_dre', 'publicada', 'status', 'status_anterior_a_retificacao'])
+
+        retificacao.pcs_do_consolidado.add(pc)
+
         logger.info(f'Prestação de conta {pc} - {pc.associacao} passada para retificação no consolidado de retificação{retificacao}')
 
     logger.info(f'Finalizada a retificação do Consolidado DRE {consolidado_dre}')
@@ -861,6 +864,8 @@ def desfazer_retificacao_dre(retificacao, prestacoes_de_conta_a_desfazer_retific
             pc.status = pc.status_anterior_a_retificacao
             pc.status_anterior_a_retificacao = ""
             pc.save(update_fields=['consolidado_dre', 'publicada', 'status', 'status_anterior_a_retificacao'])
+
+            retificacao.pcs_do_consolidado.remove(pc)
 
             logger.info(f'A Prestação de conta {pc} - {pc.associacao} foi removida da retificação {retificacao}')
             logger.info(f'A Prestação de conta {pc} - {pc.associacao} foi inserida no consolidado retificado {retificacao.consolidado_retificado}')
@@ -902,11 +907,15 @@ def update_retificacao(retificacao, prestacoes_de_conta_a_retificar, motivo):
             pc.status_anterior_a_retificacao = pc.status
             pc.status = PrestacaoConta.STATUS_RECEBIDA
             pc.save(update_fields=['consolidado_dre', 'publicada', 'status', 'status_anterior_a_retificacao'])
+
+            retificacao.pcs_do_consolidado.add(pc)
+
             logger.info(f'Prestação de conta {pc} - {pc.associacao} passada para retificação no consolidado de retificação {retificacao}')
 
         logger.info(f'Finalizado o update da retificação {retificacao}')
     else:
         logger.info(f'Não foi possível identificar o Consolidado DRE {retificacao} como uma retificação')
+
 
 def update_motivo_retificacao(retificacao, motivo):
     if not motivo:
@@ -922,6 +931,7 @@ def update_motivo_retificacao(retificacao, motivo):
         logger.info(f'Motivo retificação atualizado')
     else:
         logger.info(f'Não foi possível identificar o Consolidado DRE {retificacao} como uma retificação')
+
 
 class AcompanhamentoDeRelatoriosConsolidados:
 
