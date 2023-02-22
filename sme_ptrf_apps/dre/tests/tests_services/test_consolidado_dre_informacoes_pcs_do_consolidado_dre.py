@@ -13,7 +13,7 @@ def test_retorna_informacoes_pcs_do_consolidado_dre_por_conta_cheque_pc_aprovada
     tipo_conta_cartao_teste_service,
     conta_associacao_teste_service_02,
     ata_parecer_tecnico_teste_service,
-    consolidado_dre_teste_service_consolidado_dre
+    consolidado_dre_teste_service_consolidado_dre_com_pc
 ):
     dado = informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre(
         dre_teste_service_consolidado_dre,
@@ -47,7 +47,7 @@ def test_retorna_informacoes_pcs_do_consolidado_dre_por_conta_cheque_pc_reprovad
     tipo_conta_cheque_teste_service,
     conta_associacao_teste_service,
     ata_parecer_tecnico_teste_service,
-    consolidado_dre_teste_service_consolidado_dre
+    consolidado_dre_teste_service_consolidado_dre_com_pc_publicada
 ):
     dado = informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre(
         dre_teste_service_consolidado_dre,

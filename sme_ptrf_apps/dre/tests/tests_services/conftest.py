@@ -156,6 +156,26 @@ def consolidado_dre_teste_service_consolidado_dre(periodo_teste_service_consolid
 
 
 @pytest.fixture
+def consolidado_dre_teste_service_consolidado_dre_com_pc(
+    consolidado_dre_teste_service_consolidado_dre,
+    prestacao_conta_aprovada_teste_service_pc_aprovada_info_pc
+):
+    consolidado_dre_teste_service_consolidado_dre.pcs_do_consolidado.add(prestacao_conta_aprovada_teste_service_pc_aprovada_info_pc)
+    consolidado_dre_teste_service_consolidado_dre.save()
+    return consolidado_dre_teste_service_consolidado_dre
+
+
+@pytest.fixture
+def consolidado_dre_teste_service_consolidado_dre_com_pc_publicada(
+    consolidado_dre_teste_service_consolidado_dre,
+    prestacao_conta_reprovada_teste_service_publicada
+):
+    consolidado_dre_teste_service_consolidado_dre.pcs_do_consolidado.add(prestacao_conta_reprovada_teste_service_publicada)
+    consolidado_dre_teste_service_consolidado_dre.save()
+    return consolidado_dre_teste_service_consolidado_dre
+
+
+@pytest.fixture
 def consolidado_dre_teste_service_consolidado_dre_versao_final(periodo_teste_service_consolidado_dre,
                                                                dre_teste_service_consolidado_dre):
     return baker.make(
