@@ -75,6 +75,7 @@ class ConsolidadoDREAdmin(admin.ModelAdmin):
         'versao',
         'eh_parcial',
         'sequencia_de_publicacao',
+        'sequencia_de_retificacao',
         'status_sme',
         'data_publicacao',
         'pagina_publicacao',
@@ -82,7 +83,7 @@ class ConsolidadoDREAdmin(admin.ModelAdmin):
     )
     list_filter = ('status', 'dre', 'periodo', 'versao', 'status_sme', 'responsavel_pela_analise')
     list_display_links = ('get_nome_dre',)
-    readonly_fields = ('uuid', 'id')
+    readonly_fields = ('uuid', 'id', 'pcs_do_consolidado')
     search_fields = ('dre__nome',)
 
 

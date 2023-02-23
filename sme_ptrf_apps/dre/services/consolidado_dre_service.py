@@ -327,6 +327,8 @@ def retornar_consolidado_de_publicacoes_parciais(dre, periodo, sequencia_de_publ
 def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=None):
     dre_uuid = dre.uuid
     periodo_uuid = periodo.uuid
+    publicacao_unica_com_retificacao_publicada = False
+    publicacao_parcial_com_retificacao = False
 
     sequencia_de_publicacao = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid,
                                                                                                       periodo_uuid)
@@ -347,9 +349,19 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
         eh_parcial=True
     ).count()
 
+    todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez = verifica_se_todas_as_pcs_foram_publicadas_pelo_menos_uma_vez(publicacoes_anteriores=publicacoes_anteriores, quantidade_ues_cnpj=quantidade_ues_cnpj)
+
+    numero_de_pcs_retificadas_publicadas = conta_numero_pcs_retificadas_publicadas(publicacoes_anteriores=publicacoes_anteriores)
+    
+    if(todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez and numero_de_pcs_retificadas_publicadas > 0):
+        publicacao_unica_com_retificacao_publicada = True
+
+    if(todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez and quantidade_consolidados_dre_publicados > 0):
+        publicacao_parcial_com_retificacao = True
+
     consolidado_de_publicacoes_parciais = (quantidade_pcs_publicadas == quantidade_ues_cnpj) and quantidade_consolidados_dre_publicados > 0
 
-    if consolidado_de_publicacoes_parciais:
+    if consolidado_de_publicacoes_parciais or publicacao_unica_com_retificacao_publicada or publicacao_parcial_com_retificacao:
         proxima_publicacao = retornar_consolidado_de_publicacoes_parciais(
             dre,
             periodo,
@@ -608,6 +620,27 @@ def status_consolidado_dre(dre, periodo):
 
     return status_list
 
+def conta_numero_pcs_retificadas_publicadas(publicacoes_anteriores):
+    pcs_retificadas_publicadas = 0
+
+    for elem in publicacoes_anteriores:        
+        if(elem['eh_retificacao'] and elem['ja_publicado']):
+            pcs_retificadas_publicadas += elem['qtde_pcs']
+
+    return pcs_retificadas_publicadas
+
+def verifica_se_todas_as_pcs_foram_publicadas_pelo_menos_uma_vez(publicacoes_anteriores, quantidade_ues_cnpj):
+    todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez = False
+    pcs_nao_retificadas_ja_publicadas = 0
+
+    for elem in publicacoes_anteriores:
+        if ((not elem['eh_retificacao']) and (elem['ja_publicado'])):
+            pcs_nao_retificadas_ja_publicadas += elem['qtde_pcs']
+    
+    if (pcs_nao_retificadas_ja_publicadas == quantidade_ues_cnpj):
+        todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez = True
+
+    return todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez
 
 def verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid, periodo_uuid):
     dre = Unidade.dres.get(uuid=dre_uuid)
@@ -824,6 +857,9 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, 
         pc.status_anterior_a_retificacao = pc.status
         pc.status = PrestacaoConta.STATUS_RECEBIDA
         pc.save(update_fields=['consolidado_dre', 'publicada', 'status', 'status_anterior_a_retificacao'])
+
+        retificacao.pcs_do_consolidado.add(pc)
+
         logger.info(f'Prestação de conta {pc} - {pc.associacao} passada para retificação no consolidado de retificação{retificacao}')
 
     logger.info(f'Finalizada a retificação do Consolidado DRE {consolidado_dre}')
@@ -863,6 +899,8 @@ def desfazer_retificacao_dre(retificacao, prestacoes_de_conta_a_desfazer_retific
             pc.status = pc.status_anterior_a_retificacao
             pc.status_anterior_a_retificacao = ""
             pc.save(update_fields=['consolidado_dre', 'publicada', 'status', 'status_anterior_a_retificacao'])
+
+            retificacao.pcs_do_consolidado.remove(pc)
 
             logger.info(f'A Prestação de conta {pc} - {pc.associacao} foi removida da retificação {retificacao}')
             logger.info(f'A Prestação de conta {pc} - {pc.associacao} foi inserida no consolidado retificado {retificacao.consolidado_retificado}')
@@ -904,11 +942,15 @@ def update_retificacao(retificacao, prestacoes_de_conta_a_retificar, motivo):
             pc.status_anterior_a_retificacao = pc.status
             pc.status = PrestacaoConta.STATUS_RECEBIDA
             pc.save(update_fields=['consolidado_dre', 'publicada', 'status', 'status_anterior_a_retificacao'])
+
+            retificacao.pcs_do_consolidado.add(pc)
+
             logger.info(f'Prestação de conta {pc} - {pc.associacao} passada para retificação no consolidado de retificação {retificacao}')
 
         logger.info(f'Finalizado o update da retificação {retificacao}')
     else:
         logger.info(f'Não foi possível identificar o Consolidado DRE {retificacao} como uma retificação')
+
 
 def update_motivo_retificacao(retificacao, motivo):
     if not motivo:
@@ -924,6 +966,7 @@ def update_motivo_retificacao(retificacao, motivo):
         logger.info(f'Motivo retificação atualizado')
     else:
         logger.info(f'Não foi possível identificar o Consolidado DRE {retificacao} como uma retificação')
+
 
 class AcompanhamentoDeRelatoriosConsolidados:
 
