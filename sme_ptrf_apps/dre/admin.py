@@ -85,7 +85,6 @@ class ConsolidadoDREAdmin(admin.ModelAdmin):
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id', 'pcs_do_consolidado')
     search_fields = ('dre__nome',)
-    filter_vertical = ('pcs_do_consolidado',)
 
 
 @admin.register(GrupoVerificacaoRegularidade)
