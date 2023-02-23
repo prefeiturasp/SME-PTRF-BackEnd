@@ -61,10 +61,9 @@ def atrelar_pc_ao_consolidado_dre_async(dre, periodo, consolidado_dre):
     prestacoes = prestacoes.filter(Q(status='APROVADA') | Q(status='APROVADA_RESSALVA') | Q(status='REPROVADA'))
     prestacoes = prestacoes.filter(publicada=False, consolidado_dre__isnull=True)
 
-
     for prestacao in prestacoes:
         logger.info(f'Atrelando Prestação ao Consolidado DRE: Prestação {prestacao}. Consolidado Dre {consolidado_dre}')
-        prestacao.atrelar_consolidado_dre(consolidado_dre)
+        consolidado_dre.vincular_pc_ao_consolidado(prestacao)
 
 
 @shared_task(
