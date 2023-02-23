@@ -134,6 +134,18 @@ class ConsolidadoDRE(ModeloBase):
     motivo_retificacao = models.TextField('Motivo de retificação', blank=True, null=True)
     gerou_uma_retificacao = models.BooleanField("Já gerou uma retificação?", default=False)
 
+    pcs_do_consolidado = models.ManyToManyField(
+        'core.PrestacaoConta',
+        related_name='consolidados_dre_da_prestacao_de_contas',
+        blank=True,
+    )
+
+    def vincular_pc_ao_consolidado(self, pc):
+        logger.info(f'Vinculando PC {pc} ao consolidado #{self.id}')
+        pc.atrelar_consolidado_dre(self)
+        pc.save()
+        self.pcs_do_consolidado.add(pc)
+
     @property
     def foi_publicado(self):
         return self.status_sme == self.STATUS_SME_PUBLICADO
@@ -165,7 +177,6 @@ class ConsolidadoDRE(ModeloBase):
                 result["tooltip"] = "Esta publicação não possui PCs disponíveis para retificação"
 
         return result
-
 
     @property
     def eh_retificacao(self):
@@ -508,7 +519,7 @@ class ConsolidadoDRE(ModeloBase):
             logger.error(f'{e}')
             return False
 
-    def pcs_do_consolidado(self):
+    def pcs_vinculadas_ao_consolidado(self):
         lista_pcs = []
 
         # Pcs do proprio consolidado

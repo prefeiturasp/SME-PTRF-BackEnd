@@ -314,7 +314,7 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publica
 
         if consolidado_dre:
             fechamentos = FechamentoPeriodo.objects.filter(
-                prestacao_conta__consolidado_dre=consolidado_dre,
+                prestacao_conta__consolidados_dre_da_prestacao_de_contas=consolidado_dre,
                 periodo=periodo,
                 conta_associacao__tipo_conta=tipo_conta,
                 associacao__unidade__dre=dre,
@@ -350,12 +350,14 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publica
 
         if consolidado_dre:
             previsoes = PrevisaoRepasseSme.objects.filter(
-                associacao__prestacoes_de_conta_da_associacao__consolidado_dre=consolidado_dre,
-                associacao__prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA',
-                                                                           'REPROVADA'],
-                periodo=periodo,
-                conta_associacao__tipo_conta=tipo_conta,
-                associacao__unidade__dre=dre,
+                Q(associacao__prestacoes_de_conta_da_associacao__consolidados_dre_da_prestacao_de_contas=consolidado_dre) &
+                (
+                    Q(associacao__prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']) |
+                    Q(associacao__prestacoes_de_conta_da_associacao__status_anterior_a_retificacao__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'])
+                ) &
+                Q(periodo=periodo) &
+                Q(conta_associacao__tipo_conta=tipo_conta) &
+                Q(associacao__unidade__dre=dre)
             ).distinct()
         elif not apenas_nao_publicadas:
             previsoes = PrevisaoRepasseSme.objects.filter(
