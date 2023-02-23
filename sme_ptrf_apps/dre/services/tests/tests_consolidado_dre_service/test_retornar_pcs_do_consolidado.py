@@ -12,7 +12,7 @@ def test_retorna_pcs_do_consolidado_com_retificacao(
     prestacao_conta_pc2,
     prestacao_conta_pc3
 ):
-    result = consolidado_dre_publicado_no_diario_oficial.pcs_do_consolidado()
+    result = consolidado_dre_publicado_no_diario_oficial.pcs_vinculadas_ao_consolidado()
 
     # Pcs vinculadas ao consolidado original
     assert len(consolidado_dre_publicado_no_diario_oficial.prestacoes_de_conta_do_consolidado_dre.all()) == 1
@@ -30,7 +30,7 @@ def test_retorna_pcs_do_consolidado_sem_retificacao(
     retificacao_dre,
     prestacao_conta_pc1,
 ):
-    result = consolidado_dre_publicado_no_diario_oficial.pcs_do_consolidado()
+    result = consolidado_dre_publicado_no_diario_oficial.pcs_vinculadas_ao_consolidado()
 
     # Pcs vinculadas ao consolidado original
     assert len(consolidado_dre_publicado_no_diario_oficial.prestacoes_de_conta_do_consolidado_dre.all()) == 1

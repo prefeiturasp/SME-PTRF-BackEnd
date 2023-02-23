@@ -519,7 +519,7 @@ class ConsolidadoDRE(ModeloBase):
             logger.error(f'{e}')
             return False
 
-    def pcs_do_consolidado(self):
+    def pcs_vinculadas_ao_consolidado(self):
         lista_pcs = []
 
         # Pcs do proprio consolidado

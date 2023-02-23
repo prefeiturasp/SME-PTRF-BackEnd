@@ -1147,7 +1147,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
         consolidado: ConsolidadoDRE = self.get_object()
         from sme_ptrf_apps.core.api.serializers.prestacao_conta_serializer import \
             PrestacaoContaDoConsolidadoListSerializer
-        pcs = consolidado.pcs_do_consolidado()
+        pcs = consolidado.pcs_vinculadas_ao_consolidado()
         return Response(PrestacaoContaDoConsolidadoListSerializer(pcs, many=True).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], url_path='pcs-retificaveis',
