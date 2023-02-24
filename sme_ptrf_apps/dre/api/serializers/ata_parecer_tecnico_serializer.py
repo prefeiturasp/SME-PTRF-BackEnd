@@ -91,7 +91,7 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
 
 class AtaParecerTecnicoCreateSerializer(serializers.ModelSerializer):
     presentes_na_ata = PresentesAtaDreCreateSerializer(many=True, required=False)
-    motivo_retificacao = serializers.CharField(source="consolidado_dre__motivo_retificacao", required=False, allow_blank=False)
+    motivo_retificacao = serializers.CharField(source="consolidado_dre__motivo_retificacao", required=False, allow_blank=True)
 
     dre = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -138,6 +138,9 @@ class AtaParecerTecnicoCreateSerializer(serializers.ModelSerializer):
         if validated_data.get("consolidado_dre__motivo_retificacao"):
             motivo_retificacao = validated_data.pop('consolidado_dre__motivo_retificacao')
             instance.consolidado_dre.motivo_retificacao = motivo_retificacao
+            instance.consolidado_dre.save()
+        else:
+            instance.consolidado_dre.motivo_retificacao = None
             instance.consolidado_dre.save()
 
         update_instance_from_dict(instance, validated_data)
