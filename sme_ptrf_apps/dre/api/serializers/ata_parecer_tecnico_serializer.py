@@ -91,7 +91,7 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
 
 class AtaParecerTecnicoCreateSerializer(serializers.ModelSerializer):
     presentes_na_ata = PresentesAtaDreCreateSerializer(many=True, required=False)
-    motivo_retificacao = serializers.CharField(source="consolidado_dre__motivo_retificacao", required=False, allow_blank=False)
+    motivo_retificacao = serializers.CharField(source="consolidado_dre__motivo_retificacao", required=False, allow_blank=True)
 
     dre = serializers.SlugRelatedField(
         slug_field='uuid',
