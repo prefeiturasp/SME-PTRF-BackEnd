@@ -34,7 +34,7 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
             Bloco 1 - Identificação
                 cabecalho
                 identificacao_dre
-                Consolidação das Publicações Parciais (cria_bloco_consolidado_das_publicacoes_parciais)
+                Consolidação das Publicações(cria_bloco_consolidado_das_publicacoes_parciais)
 
             Bloco 2 - SÍNTESE DA EXECUÇÃO FINANCEIRA (R$)
                 execucao_financeira
@@ -69,21 +69,35 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
 
 
 def cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo, eh_consolidado_de_publicacoes_parciais):
-    consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao="FINAL").order_by("sequencia_de_publicacao")
+    consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao="FINAL").order_by("sequencia_de_publicacao", "alterado_em")
     consolidado_das_publicacoes_parciais_list = []
 
-    if eh_consolidado_de_publicacoes_parciais:
-        for consolidado in consolidados_dre:
-            numero_sequencia = consolidado.sequencia_de_publicacao if consolidado.sequencia_de_publicacao else ""
+    for consolidado in consolidados_dre:
+        numero_sequencia = consolidado.sequencia_de_publicacao if consolidado.sequencia_de_publicacao else ""
+
+        titulo_parcial = ""
+        if(consolidado.eh_parcial and consolidado.consolidado_retificado_id):
+            consolidado_origem_retificacao = ConsolidadoDRE.objects.filter(pk=consolidado.consolidado_retificado_id)
+
+            if(consolidado_origem_retificacao.count() > 0 and consolidado_origem_retificacao[0].data_publicacao):
+                data_publicacao_consolidado_origem_retificacao = consolidado_origem_retificacao[0].data_publicacao.strftime("%d/%m/%Y")
+                titulo_parcial = f"Retificação da publicação de {data_publicacao_consolidado_origem_retificacao}"
+            
+        elif(not consolidado.eh_parcial):
+            titulo_parcial = f"Unica #{numero_sequencia}"
+
+        else:
             titulo_parcial = f"Parcial #{numero_sequencia}"
-            data_publicacao = consolidado.alterado_em.strftime("%d/%m/%Y") if consolidado.alterado_em else ""
-            numero_unidades = consolidado.prestacoes_de_conta_do_consolidado_dre.all().count() if consolidado.prestacoes_de_conta_do_consolidado_dre else ""
-            result = {
-                'titulo_parcial': titulo_parcial,
-                'data_publicacao': data_publicacao,
-                'numero_unidades': numero_unidades,
-            }
-            consolidado_das_publicacoes_parciais_list.append(result)
+        
+        data_publicacao = consolidado.alterado_em.strftime("%d/%m/%Y") if consolidado.alterado_em else ""
+        numero_unidades = len(consolidado.pcs_vinculadas_ao_consolidado())
+        result = {
+            'titulo_parcial': titulo_parcial,
+            'data_publicacao': data_publicacao,
+            'numero_unidades': numero_unidades,
+        }
+
+        consolidado_das_publicacoes_parciais_list.append(result)
 
     return consolidado_das_publicacoes_parciais_list
 
