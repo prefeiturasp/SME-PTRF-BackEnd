@@ -84,7 +84,7 @@ def cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo, eh_consolidado
                 titulo_parcial = f"Retificação da publicação de {data_publicacao_consolidado_origem_retificacao}"
             
         elif(not consolidado.eh_parcial):
-            titulo_parcial = f"Unica #{numero_sequencia}"
+            titulo_parcial = f"Única"
 
         else:
             titulo_parcial = f"Parcial #{numero_sequencia}"
@@ -657,7 +657,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_conso
                 "tipo": infos["unidade"]["tipo_unidade"],
             },
             "situacao_pc": get_status_label(infos['status_prestacao_contas']),
-            "referencia_consolidado": f"Publicação Parcial #{infos['referencia_consolidado']}" if infos['referencia_consolidado'] else None,
+            "referencia_consolidado": f"{infos['referencia_consolidado']}" if infos['referencia_consolidado'] else None,
         }
 
         for info in infos['por_tipo_de_conta']:

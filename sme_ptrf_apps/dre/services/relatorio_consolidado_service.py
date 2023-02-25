@@ -1076,7 +1076,19 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
 
         status_prestacao_conta = prestacao_conta.status if prestacao_conta else 'NAO_APRESENTADA'
 
-        referencia_consolidado = prestacao_conta.consolidado_dre.sequencia_de_publicacao if eh_consolidado_de_publicacoes_parciais and prestacao_conta.consolidado_dre and prestacao_conta.consolidado_dre.sequencia_de_publicacao else None
+        referencia_consolidado = ""
+        if(prestacao_conta.consolidado_dre.eh_parcial and prestacao_conta.consolidado_dre.consolidado_retificado_id):
+            consolidado_origem_retificacao = ConsolidadoDRE.objects.filter(pk=prestacao_conta.consolidado_dre.consolidado_retificado_id)
+
+            if(consolidado_origem_retificacao.count() > 0 and consolidado_origem_retificacao[0].data_publicacao):
+                data_publicacao_consolidado_origem_retificacao = consolidado_origem_retificacao[0].data_publicacao.strftime("%d/%m/%Y")
+                referencia_consolidado = f"Retificação da publicação de {data_publicacao_consolidado_origem_retificacao}"
+            
+        elif(not prestacao_conta.consolidado_dre.eh_parcial):
+            referencia_consolidado = f"Única"
+
+        else:
+            referencia_consolidado = f"Parcial #{prestacao_conta.consolidado_dre.sequencia_de_publicacao}"
 
         dado = []
         objeto_tipo_de_conta = []
