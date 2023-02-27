@@ -393,6 +393,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(
         },
         'publicada': None,
         'referencia_consolidado_dre': '',
+        'referencia_consolidado_dre_original': None,
         'justificativa_pendencia_realizacao': 'Teste de justificativa.',
         'em_retificacao': prestacao_conta.em_retificacao
     }
