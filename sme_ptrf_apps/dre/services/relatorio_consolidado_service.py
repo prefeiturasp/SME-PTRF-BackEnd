@@ -1083,7 +1083,7 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
             if(consolidado_origem_retificacao.count() > 0 and consolidado_origem_retificacao[0].data_publicacao):
                 data_publicacao_consolidado_origem_retificacao = consolidado_origem_retificacao[0].data_publicacao.strftime("%d/%m/%Y")
                 referencia_consolidado = f"Retificação da publicação de {data_publicacao_consolidado_origem_retificacao}"
-            
+
         elif(not prestacao_conta.consolidado_dre.eh_parcial):
             referencia_consolidado = f"Única"
 

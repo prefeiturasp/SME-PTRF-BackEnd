@@ -8,18 +8,19 @@ from sme_ptrf_apps.dre.services.consolidado_dre_service import update_retificaca
 pytestmark = pytest.mark.django_db
 
 
-def test_update_retificacao_sem_motivo_deve_levantar_excecao(
+def test_update_retificacao_sem_motivo_deve_levantar_excecao__motivo_nao_eh_mais_obrigatorio(
     retificacao_dre,
     prestacao_conta_pc1
 ):
 
-    with pytest.raises(Exception) as excinfo:
+    try:
         update_retificacao(
-            retificacao=retificacao_dre,
-            prestacoes_de_conta_a_retificar=[prestacao_conta_pc1.uuid],
-            motivo="",
-        )
-    assert 'É necessário informar o motivo da retificação' in str(excinfo.value)
+                retificacao=retificacao_dre,
+                prestacoes_de_conta_a_retificar=[prestacao_conta_pc1.uuid],
+                motivo="",
+            )
+    except Exception as exc:
+        assert False, f"'É necessário informar o motivo da retificação {exc}"
 
 
 def test_update_retificacao_sem_pcs_deve_levantar_excecao(

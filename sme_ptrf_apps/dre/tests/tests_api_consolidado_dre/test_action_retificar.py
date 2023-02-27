@@ -64,7 +64,7 @@ def test_retificar_consolidado_dre_sem_informar_pcs_deve_retornar_400(
     assert response.json() == {'lista_pcs': ['É necessário informar ao menos uma PC para retificar.']}
 
 
-def test_retificar_consolidado_dre_sem_informar_motivo_deve_retornar_400(
+def test_retificar_consolidado_dre_sem_informar_motivo_deve_retornar_400__motivo_nao_eh_mais_obrigatorio(
     jwt_authenticated_client_dre,
     dre_teste_api_consolidado_dre,
     periodo_teste_api_consolidado_dre,
@@ -84,5 +84,5 @@ def test_retificar_consolidado_dre_sem_informar_motivo_deve_retornar_400(
         content_type='application/json'
     )
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'motivo': ['This field may not be blank.']}
+    assert response.status_code == status.HTTP_200_OK
+

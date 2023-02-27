@@ -5,7 +5,7 @@ from sme_ptrf_apps.core.models import PrestacaoConta
 
 class ConsolidadoDreDesfazerRetificacaoSerializer(serializers.Serializer): # noqa
     lista_pcs = serializers.ListField(child=serializers.UUIDField(), required=True)
-    motivo = serializers.CharField(required=True)
+    motivo = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     deve_apagar_retificacao = serializers.BooleanField(required=True)
 
     def validate_lista_pcs(self, value):
@@ -18,9 +18,5 @@ class ConsolidadoDreDesfazerRetificacaoSerializer(serializers.Serializer): # noq
 
         return value
 
-    def validate_motivo(self, value):
-        if not value:
-            raise serializers.ValidationError(f"É necessário informar o motivo da retificação.")
-        return value
 
 
