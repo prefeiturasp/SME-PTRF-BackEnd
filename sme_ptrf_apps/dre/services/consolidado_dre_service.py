@@ -352,7 +352,7 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
     todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez = verifica_se_todas_as_pcs_foram_publicadas_pelo_menos_uma_vez(publicacoes_anteriores=publicacoes_anteriores, quantidade_ues_cnpj=quantidade_ues_cnpj)
 
     numero_de_pcs_retificadas_publicadas = conta_numero_pcs_retificadas_publicadas(publicacoes_anteriores=publicacoes_anteriores)
-    
+
     if(todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez and numero_de_pcs_retificadas_publicadas > 0):
         publicacao_unica_com_retificacao_publicada = True
 
@@ -623,7 +623,7 @@ def status_consolidado_dre(dre, periodo):
 def conta_numero_pcs_retificadas_publicadas(publicacoes_anteriores):
     pcs_retificadas_publicadas = 0
 
-    for elem in publicacoes_anteriores:        
+    for elem in publicacoes_anteriores:
         if(elem['eh_retificacao'] and elem['ja_publicado']):
             pcs_retificadas_publicadas += elem['qtde_pcs']
 
@@ -636,7 +636,7 @@ def verifica_se_todas_as_pcs_foram_publicadas_pelo_menos_uma_vez(publicacoes_ant
     for elem in publicacoes_anteriores:
         if ((not elem['eh_retificacao']) and (elem['ja_publicado'])):
             pcs_nao_retificadas_ja_publicadas += elem['qtde_pcs']
-    
+
     if (pcs_nao_retificadas_ja_publicadas == quantidade_ues_cnpj):
         todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez = True
 
@@ -820,10 +820,6 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, 
     if not prestacoes_de_conta_a_retificar:
         raise Exception('Nenhuma prestação de conta selecionada para retificação.')
 
-    if not motivo_retificacao:
-        logger.error('Motivo da retificação não informado.')
-        raise Exception('É necessário informar o motivo da retificação.')
-
     logger.info(f'Iniciando a retificação do Consolidado DRE {consolidado_dre}')
 
     if consolidado_dre.eh_retificacao and consolidado_dre.consolidado_retificado:
@@ -868,10 +864,6 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, 
 def desfazer_retificacao_dre(retificacao, prestacoes_de_conta_a_desfazer_retificacao, motivo, deve_apagar_retificacao):
     if not prestacoes_de_conta_a_desfazer_retificacao:
         raise Exception('Nenhuma prestação de conta selecionada para desfazer retificação.')
-
-    if not motivo:
-        logger.error('Motivo da retificação não informado.')
-        raise Exception('É necessário informar o motivo da retificação.')
 
     if deve_apagar_retificacao is None:
         logger.error('Deve apagar retificacao não informado.')
@@ -923,10 +915,6 @@ def update_retificacao(retificacao, prestacoes_de_conta_a_retificar, motivo):
     if not prestacoes_de_conta_a_retificar:
         raise Exception('Nenhuma prestação de conta selecionada para retificação.')
 
-    if not motivo:
-        logger.error('Motivo da retificação não informado.')
-        raise Exception('É necessário informar o motivo da retificação.')
-
     logger.info(f'Iniciando atualização da Retificação {retificacao}')
 
     if retificacao.eh_retificacao and retificacao.consolidado_retificado:
@@ -953,9 +941,6 @@ def update_retificacao(retificacao, prestacoes_de_conta_a_retificar, motivo):
 
 
 def update_motivo_retificacao(retificacao, motivo):
-    if not motivo:
-        logger.error('Motivo da retificação não informado.')
-        raise Exception('É necessário informar o motivo da retificação.')
 
     logger.info(f'Atualizando motivo da retificação {retificacao}')
 

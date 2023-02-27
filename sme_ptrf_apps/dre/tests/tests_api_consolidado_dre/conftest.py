@@ -237,6 +237,18 @@ def prestacao_conta_x(periodo_teste_api_consolidado_dre, associacao_teste_api_co
 
 
 @pytest.fixture
+def prestacao_conta_x_com_status_anterior(periodo_teste_api_consolidado_dre, associacao_teste_api_consolidado_dre_01, consolidado_dre_teste_api_consolidado_dre):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_teste_api_consolidado_dre,
+        associacao=associacao_teste_api_consolidado_dre_01,
+        consolidado_dre=consolidado_dre_teste_api_consolidado_dre,
+        publicada=True,
+        status_anterior_a_retificacao="APROVADA",
+    )
+
+
+@pytest.fixture
 def comentario_analise_consolidado_dre_01(consolidado_dre_teste_api_consolidado_dre_com_analise_atual):
     return baker.make(
         'ComentarioAnaliseConsolidadoDRE',

@@ -8,24 +8,25 @@ from sme_ptrf_apps.dre.services.consolidado_dre_service import desfazer_retifica
 pytestmark = pytest.mark.django_db
 
 
-def test_desfazer_retificacao_sem_motivo_deve_levantar_excecao(
+def test_desfazer_retificacao_sem_motivo_deve_levantar_excecao__motivo_nao_eh_mais_obrigatorio(
     retificacao_dre,
-    prestacao_conta_pc1
+    prestacao_conta_pc1_com_status_anterior
 ):
 
-    with pytest.raises(Exception) as excinfo:
+    try:
         desfazer_retificacao_dre(
             retificacao=retificacao_dre,
-            prestacoes_de_conta_a_desfazer_retificacao=[prestacao_conta_pc1.uuid],
+            prestacoes_de_conta_a_desfazer_retificacao=[prestacao_conta_pc1_com_status_anterior.uuid],
             motivo="",
             deve_apagar_retificacao=False
         )
-    assert 'É necessário informar o motivo da retificação' in str(excinfo.value)
+    except Exception as exc:
+        assert False, f"'É necessário informar o motivo da retificação {exc}"
 
 
 def test_desfazer_retificacao_sem_pcs_deve_levantar_excecao(
     retificacao_dre,
-    prestacao_conta_pc1
+    prestacao_conta_pc1_com_status_anterior
 ):
     with pytest.raises(Exception) as excinfo:
         desfazer_retificacao_dre(
@@ -39,12 +40,12 @@ def test_desfazer_retificacao_sem_pcs_deve_levantar_excecao(
 
 def test_desfazer_retificacao_sem_flag_deve_apagar_retificacao_deve_levantar_excecao(
     retificacao_dre,
-    prestacao_conta_pc1
+    prestacao_conta_pc1_com_status_anterior
 ):
     with pytest.raises(Exception) as excinfo:
         desfazer_retificacao_dre(
             retificacao=retificacao_dre,
-            prestacoes_de_conta_a_desfazer_retificacao=[prestacao_conta_pc1.uuid],
+            prestacoes_de_conta_a_desfazer_retificacao=[prestacao_conta_pc1_com_status_anterior.uuid],
             motivo="Teste",
             deve_apagar_retificacao=None
         )
@@ -53,12 +54,12 @@ def test_desfazer_retificacao_sem_flag_deve_apagar_retificacao_deve_levantar_exc
 
 def test_desfazer_retificacao_com_flag_deve_apagar_retificacao_nao_sendo_boolean_deve_levantar_excecao(
     retificacao_dre,
-    prestacao_conta_pc1
+    prestacao_conta_pc1_com_status_anterior
 ):
     with pytest.raises(Exception) as excinfo:
         desfazer_retificacao_dre(
             retificacao=retificacao_dre,
-            prestacoes_de_conta_a_desfazer_retificacao=[prestacao_conta_pc1.uuid],
+            prestacoes_de_conta_a_desfazer_retificacao=[prestacao_conta_pc1_com_status_anterior.uuid],
             motivo="Teste",
             deve_apagar_retificacao="teste"
         )
