@@ -520,23 +520,86 @@ class ConsolidadoDRE(ModeloBase):
             return False
 
     def pcs_vinculadas_ao_consolidado(self):
+        pcs = self.pcs_do_consolidado.all().order_by('associacao__unidade__tipo_unidade', 'associacao__unidade__nome')
         lista_pcs = []
 
-        # Pcs do proprio consolidado
-        for pc in self.prestacoes_de_conta_do_consolidado_dre.all():
-            lista_pcs.append(pc)
+        # É necessário que essas validações sejam feitas aqui, pois cada tipo de consolidado tem um comportamento especifico
 
-        # O consolidado original pode ter mais de uma retificacao
-        for retificacao in self.retificacoes.all():
+        if self.consolidado_retificado is None and not self.gerou_uma_retificacao:
+            # Consolidado original que não possui retificacoes
 
-            # Pcs que ja entraram em retificacao
-            for pc in retificacao.prestacoes_de_conta_do_consolidado_dre.all():
-                lista_pcs.append(pc)
+            for pc in pcs:
+                pc_em_retificacao = False
+                tooltip_nao_pode_retificar = None
 
-        # Ordenando a lista de PCs por tipo unidade e nome
-        lista_ordenada = sorted(lista_pcs, key=lambda prestacao: (prestacao.associacao.unidade.tipo_unidade, prestacao.associacao.unidade.nome))
+                dado = {
+                    "uuid": f"{pc.uuid}",
+                    "unidade_eol": pc.associacao.unidade.codigo_eol,
+                    "unidade_nome": pc.associacao.unidade.nome,
+                    "unidade_tipo_unidade": pc.associacao.unidade.tipo_unidade,
+                    "pc_em_retificacao": pc_em_retificacao,
+                    "tooltip_nao_pode_retificar": tooltip_nao_pode_retificar
+                }
 
-        return lista_ordenada
+                lista_pcs.append(dado)
+
+        elif self.consolidado_retificado is None and self.gerou_uma_retificacao:
+            # Consolidado original que possui retificações
+
+            for pc in pcs:
+                pc_em_retificacao = False if pc in self.prestacoes_de_conta_do_consolidado_dre.all() else True
+                tooltip_nao_pode_retificar = None if pc in self.prestacoes_de_conta_do_consolidado_dre.all() \
+                    else "Esta PC foi retificada em outra publicação."
+
+                dado = {
+                    "uuid": f"{pc.uuid}",
+                    "unidade_eol": pc.associacao.unidade.codigo_eol,
+                    "unidade_nome": pc.associacao.unidade.nome,
+                    "unidade_tipo_unidade": pc.associacao.unidade.tipo_unidade,
+                    "pc_em_retificacao": pc_em_retificacao,
+                    "tooltip_nao_pode_retificar": tooltip_nao_pode_retificar
+                }
+
+                lista_pcs.append(dado)
+
+        elif self.consolidado_retificado and not self.gerou_uma_retificacao:
+            # Retificação original que não possui retificações
+
+            pc_em_retificacao = False
+            tooltip_nao_pode_retificar = None
+
+            for pc in pcs:
+                dado = {
+                    "uuid": f"{pc.uuid}",
+                    "unidade_eol": pc.associacao.unidade.codigo_eol,
+                    "unidade_nome": pc.associacao.unidade.nome,
+                    "unidade_tipo_unidade": pc.associacao.unidade.tipo_unidade,
+                    "pc_em_retificacao": pc_em_retificacao,
+                    "tooltip_nao_pode_retificar": tooltip_nao_pode_retificar
+                }
+
+                lista_pcs.append(dado)
+
+        elif self.consolidado_retificado and self.gerou_uma_retificacao:
+            # Retificação original que possui retificacoes
+
+            for pc in pcs:
+                pc_em_retificacao = False if pc in self.prestacoes_de_conta_do_consolidado_dre.all() else True
+                tooltip_nao_pode_retificar = None if pc in self.prestacoes_de_conta_do_consolidado_dre.all() \
+                    else "Esta PC foi retificada em outra publicação."
+
+                dado = {
+                    "uuid": f"{pc.uuid}",
+                    "unidade_eol": pc.associacao.unidade.codigo_eol,
+                    "unidade_nome": pc.associacao.unidade.nome,
+                    "unidade_tipo_unidade": pc.associacao.unidade.tipo_unidade,
+                    "pc_em_retificacao": pc_em_retificacao,
+                    "tooltip_nao_pode_retificar": tooltip_nao_pode_retificar
+                }
+
+                lista_pcs.append(dado)
+
+        return lista_pcs
 
     def pcs_retificaveis(self):
         if self.eh_retificacao:

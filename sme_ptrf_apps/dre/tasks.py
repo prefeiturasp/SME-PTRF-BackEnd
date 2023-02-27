@@ -61,7 +61,6 @@ def atrelar_pc_ao_consolidado_dre_async(dre, periodo, consolidado_dre):
     prestacoes = prestacoes.filter(Q(status='APROVADA') | Q(status='APROVADA_RESSALVA') | Q(status='REPROVADA'))
     prestacoes = prestacoes.filter(publicada=False, consolidado_dre__isnull=True)
 
-
     for prestacao in prestacoes:
         logger.info(f'Atrelando Prestação ao Consolidado DRE: Prestação {prestacao}. Consolidado Dre {consolidado_dre}')
         consolidado_dre.vincular_pc_ao_consolidado(prestacao)
@@ -159,7 +158,7 @@ def verifica_se_relatorio_consolidado_deve_ser_gerado_async(dre, periodo, usuari
 
     if(int(qtde_unidades_na_dre) == int(qtde_pcs_publicadas_no_periodo_pela_dre)):
         concluir_consolidado_de_publicacoes_parciais_async(dre.uuid, periodo.uuid, usuario)
-        
+
 
 @shared_task(
     retry_backoff=2,
