@@ -159,6 +159,7 @@ def verifica_se_relatorio_consolidado_deve_ser_gerado_async(dre, periodo, usuari
     if(int(qtde_unidades_na_dre) == int(qtde_pcs_publicadas_no_periodo_pela_dre)):
         concluir_consolidado_de_publicacoes_parciais_async(dre.uuid, periodo.uuid, usuario)
 
+
 @shared_task(
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
