@@ -10,6 +10,7 @@ from sme_ptrf_apps.core.services.processos_services import get_processo_sei_da_p
 
 from sme_ptrf_apps.dre.api.serializers.motivo_aprovacao_ressalva_serializer import MotivoAprovacaoRessalvaSerializer
 from sme_ptrf_apps.dre.api.serializers.motivo_reprovacao_serializer import MotivoReprovacaoSerializer
+from ....dre.models import ConsolidadoDRE
 
 
 class PrestacaoContaLookUpSerializer(serializers.ModelSerializer):
@@ -103,6 +104,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     pode_reabrir = serializers.SerializerMethodField('get_pode_reabrir')
     informacoes_conciliacao_ue = serializers.SerializerMethodField('get_conciliacao_bancaria_ue')
     referencia_consolidado_dre = serializers.SerializerMethodField('get_referencia_consolidado_dre')
+    referencia_consolidado_dre_original = serializers.SerializerMethodField('get_referencia_consolidado_dre_original')
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
@@ -209,6 +211,18 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     def get_referencia_consolidado_dre(self, obj):
         return obj.consolidado_dre.referencia if obj.consolidado_dre else ""
 
+    def get_referencia_consolidado_dre_original(self, obj):
+        if(obj.consolidado_dre and obj.consolidado_dre.id):
+            consolidado_vinculado_id = obj.consolidado_dre.id
+
+            while consolidado_vinculado_id:
+                consolidado_anterior = ConsolidadoDRE.objects.get(id=consolidado_vinculado_id)
+                if consolidado_anterior and consolidado_anterior.consolidado_retificado_id:
+                    consolidado_vinculado_id = consolidado_anterior.consolidado_retificado_id
+                else:
+                    consolidado_original = ConsolidadoDRE.objects.get(id=consolidado_anterior.id)
+                    return consolidado_original.referencia if consolidado_original and consolidado_original.referencia else ""
+
     class Meta:
         model = PrestacaoConta
         fields = (
@@ -236,6 +250,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'informacoes_conciliacao_ue',
             'publicada',
             'referencia_consolidado_dre',
+            'referencia_consolidado_dre_original',
             'justificativa_pendencia_realizacao',
             'em_retificacao'
         )
