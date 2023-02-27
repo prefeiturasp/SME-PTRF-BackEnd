@@ -89,7 +89,7 @@ def cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo, eh_consolidado
         else:
             titulo_parcial = f"Parcial #{numero_sequencia}"
         
-        data_publicacao = consolidado.alterado_em.strftime("%d/%m/%Y") if consolidado.alterado_em else ""
+        data_publicacao = consolidado.data_publicacao.strftime("%d/%m/%Y") if consolidado.data_publicacao else ""
         numero_unidades = len(consolidado.pcs_vinculadas_ao_consolidado())
         result = {
             'titulo_parcial': titulo_parcial,
