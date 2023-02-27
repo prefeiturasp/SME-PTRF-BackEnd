@@ -19,6 +19,29 @@ def consolidado_dre_publicado_no_diario_oficial(dre, periodo):
         gerou_uma_retificacao=True
     )
 
+@pytest.fixture
+def consolidado_dre_publicado_no_diario_oficial_com_pcs_vinculadas(
+    consolidado_dre_publicado_no_diario_oficial,
+    prestacao_conta_pc1,
+    prestacao_conta_pc2,
+    prestacao_conta_pc3
+):
+    consolidado_dre_publicado_no_diario_oficial.pcs_do_consolidado.add(prestacao_conta_pc1)
+    consolidado_dre_publicado_no_diario_oficial.pcs_do_consolidado.add(prestacao_conta_pc2)
+    consolidado_dre_publicado_no_diario_oficial.pcs_do_consolidado.add(prestacao_conta_pc3)
+    consolidado_dre_publicado_no_diario_oficial.save()
+    return consolidado_dre_publicado_no_diario_oficial
+
+
+@pytest.fixture
+def consolidado_dre_publicado_no_diario_oficial_com_uma_pc_vinculada(
+    consolidado_dre_publicado_no_diario_oficial,
+    prestacao_conta_pc1,
+):
+    consolidado_dre_publicado_no_diario_oficial.pcs_do_consolidado.add(prestacao_conta_pc1)
+    consolidado_dre_publicado_no_diario_oficial.save()
+    return consolidado_dre_publicado_no_diario_oficial
+
 
 @pytest.fixture
 def consolidado_dre_nao_publicado_no_diario_oficial(dre, periodo):

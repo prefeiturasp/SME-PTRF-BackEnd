@@ -275,37 +275,3 @@ class PrestacaoContaListRetificaveisSerializer(serializers.ModelSerializer):
             'tooltip_nao_pode_desfazer_retificacao',
         )
 
-
-class PrestacaoContaDoConsolidadoListSerializer(serializers.ModelSerializer):
-    unidade_eol = serializers.SerializerMethodField('get_unidade_eol')
-    unidade_nome = serializers.SerializerMethodField('get_unidade_nome')
-    unidade_tipo_unidade = serializers.SerializerMethodField('get_unidade_tipo_unidade')
-    pc_em_retificacao = serializers.SerializerMethodField('get_pc_em_retificacao')
-    tooltip_nao_pode_retificar = serializers.SerializerMethodField('get_tooltip_nao_pode_retificar')
-
-
-    def get_unidade_eol(self, obj):
-        return obj.associacao.unidade.codigo_eol if obj.associacao and obj.associacao.unidade else ''
-
-    def get_unidade_nome(self, obj):
-        return obj.associacao.unidade.nome if obj.associacao and obj.associacao.unidade else ''
-
-    def get_unidade_tipo_unidade(self, obj):
-        return obj.associacao.unidade.tipo_unidade if obj.associacao and obj.associacao.unidade else ''
-
-    def get_pc_em_retificacao(self, obj):
-        return obj.em_retificacao
-
-    def get_tooltip_nao_pode_retificar(self, obj):
-        return obj.get_tooltip_nao_pode_retificar
-
-    class Meta:
-        model = PrestacaoConta
-        fields = (
-            'uuid',
-            'unidade_eol',
-            'unidade_nome',
-            'unidade_tipo_unidade',
-            'pc_em_retificacao',
-            'tooltip_nao_pode_retificar',
-        )

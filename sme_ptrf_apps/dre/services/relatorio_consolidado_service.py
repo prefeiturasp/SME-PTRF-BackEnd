@@ -79,7 +79,7 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
 
     if eh_retificacao:
         eh_parcial = consolidado_dre.eh_parcial
-        qtde_unidades = PrestacaoConta.objects.filter(consolidado_dre=consolidado_dre).count()
+        qtde_unidades = consolidado_dre.pcs_do_consolidado.all().count()
 
         if consolidado_dre.consolidado_retificado and consolidado_dre.consolidado_retificado.data_publicacao:
             titulo_parcial = f"Retificação da Publicação de {consolidado_dre.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y')} - {qtde_unidades} unidade(s)"
@@ -91,7 +91,7 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
         sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
 
         if consolidado_dre:
-            qtde_unidades = PrestacaoConta.objects.filter(consolidado_dre=consolidado_dre).count()
+            qtde_unidades = consolidado_dre.pcs_do_consolidado.all().count()
             sequencia_de_publicacao_do_consolidado = consolidado_dre.sequencia_de_publicacao
 
             if sequencia_de_publicacao_do_consolidado > 0:
