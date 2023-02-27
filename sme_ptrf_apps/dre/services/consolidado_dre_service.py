@@ -59,6 +59,13 @@ def retornar_ja_publicadas(dre, periodo):
 
         qtde_unidades = consolidado_dre.pcs_do_consolidado.all().count()
 
+        retificacoes = consolidado_dre.retificacoes.all()
+
+        if retificacoes:
+            qtde_unidades_retificacoes = retificacoes.aggregate(total_pcs_retificacoes=Coalesce(
+                Count('prestacoes_de_conta_do_consolidado_dre'), Value(0)))['total_pcs_retificacoes']
+            qtde_unidades += qtde_unidades_retificacoes
+
         texto_qtde_unidades = ""
         if qtde_unidades == 1:
             texto_qtde_unidades = " - 1 PC"
@@ -345,7 +352,6 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
     todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez = verifica_se_todas_as_pcs_foram_publicadas_pelo_menos_uma_vez(publicacoes_anteriores=publicacoes_anteriores, quantidade_ues_cnpj=quantidade_ues_cnpj)
 
     numero_de_pcs_retificadas_publicadas = conta_numero_pcs_retificadas_publicadas(publicacoes_anteriores=publicacoes_anteriores)
-
     if(todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez and numero_de_pcs_retificadas_publicadas > 0):
         publicacao_unica_com_retificacao_publicada = True
 
@@ -629,7 +635,6 @@ def verifica_se_todas_as_pcs_foram_publicadas_pelo_menos_uma_vez(publicacoes_ant
     for elem in publicacoes_anteriores:
         if ((not elem['eh_retificacao']) and (elem['ja_publicado'])):
             pcs_nao_retificadas_ja_publicadas += elem['qtde_pcs']
-
     if (pcs_nao_retificadas_ja_publicadas == quantidade_ues_cnpj):
         todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez = True
 
