@@ -139,6 +139,9 @@ class AtaParecerTecnicoCreateSerializer(serializers.ModelSerializer):
             motivo_retificacao = validated_data.pop('consolidado_dre__motivo_retificacao')
             instance.consolidado_dre.motivo_retificacao = motivo_retificacao
             instance.consolidado_dre.save()
+        elif instance.consolidado_dre:
+            instance.consolidado_dre.motivo_retificacao = None
+            instance.consolidado_dre.save()
 
         update_instance_from_dict(instance, validated_data)
         instance.presentes_na_ata.set(presentes_lista)
