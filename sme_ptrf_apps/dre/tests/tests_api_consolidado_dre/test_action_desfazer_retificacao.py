@@ -99,17 +99,17 @@ def test_desfazer_retificacao_consolidado_dre_sem_informar_pcs_deve_retornar_400
     assert response.json() == {'lista_pcs': ['É necessário informar ao menos uma PC para retificar.']}
 
 
-def test_desfazer_retificacao_consolidado_dre_sem_informar_motivo_deve_retornar_400(
+def test_desfazer_retificacao_consolidado_dre_sem_informar_motivo_deve_retornar_400__motivo_nao_eh_mais_obrigatorio(
     jwt_authenticated_client_dre,
     dre_teste_api_consolidado_dre,
     periodo_teste_api_consolidado_dre,
     retificacao_dre_teste_api_consolidado_dre,
-    prestacao_conta_x,
+    prestacao_conta_x_com_status_anterior,
 ):
     retificacao_uuid = retificacao_dre_teste_api_consolidado_dre.uuid
 
     payload = {
-        'lista_pcs': [f'{prestacao_conta_x.uuid}'],
+        'lista_pcs': [f'{prestacao_conta_x_com_status_anterior.uuid}'],
         'motivo': '',
         'deve_apagar_retificacao': False
     }
@@ -120,8 +120,7 @@ def test_desfazer_retificacao_consolidado_dre_sem_informar_motivo_deve_retornar_
         content_type='application/json'
     )
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'motivo': ['This field may not be blank.']}
+    assert response.status_code == status.HTTP_200_OK
 
 
 def test_desfazer_retificacao_consolidado_dre_sem_informar_deve_apagar_retificacao_deve_retornar_400(

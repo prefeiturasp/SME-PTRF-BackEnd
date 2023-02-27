@@ -813,10 +813,6 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, 
     if not prestacoes_de_conta_a_retificar:
         raise Exception('Nenhuma prestação de conta selecionada para retificação.')
 
-    if not motivo_retificacao:
-        logger.error('Motivo da retificação não informado.')
-        raise Exception('É necessário informar o motivo da retificação.')
-
     logger.info(f'Iniciando a retificação do Consolidado DRE {consolidado_dre}')
 
     if consolidado_dre.eh_retificacao and consolidado_dre.consolidado_retificado:
@@ -861,10 +857,6 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, 
 def desfazer_retificacao_dre(retificacao, prestacoes_de_conta_a_desfazer_retificacao, motivo, deve_apagar_retificacao):
     if not prestacoes_de_conta_a_desfazer_retificacao:
         raise Exception('Nenhuma prestação de conta selecionada para desfazer retificação.')
-
-    if not motivo:
-        logger.error('Motivo da retificação não informado.')
-        raise Exception('É necessário informar o motivo da retificação.')
 
     if deve_apagar_retificacao is None:
         logger.error('Deve apagar retificacao não informado.')
@@ -916,10 +908,6 @@ def update_retificacao(retificacao, prestacoes_de_conta_a_retificar, motivo):
     if not prestacoes_de_conta_a_retificar:
         raise Exception('Nenhuma prestação de conta selecionada para retificação.')
 
-    if not motivo:
-        logger.error('Motivo da retificação não informado.')
-        raise Exception('É necessário informar o motivo da retificação.')
-
     logger.info(f'Iniciando atualização da Retificação {retificacao}')
 
     if retificacao.eh_retificacao and retificacao.consolidado_retificado:
@@ -946,9 +934,6 @@ def update_retificacao(retificacao, prestacoes_de_conta_a_retificar, motivo):
 
 
 def update_motivo_retificacao(retificacao, motivo):
-    if not motivo:
-        logger.error('Motivo da retificação não informado.')
-        raise Exception('É necessário informar o motivo da retificação.')
 
     logger.info(f'Atualizando motivo da retificação {retificacao}')
 

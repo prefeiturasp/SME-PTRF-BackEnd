@@ -7,13 +7,14 @@ from sme_ptrf_apps.dre.services.consolidado_dre_service import retornar_ja_publi
 pytestmark = pytest.mark.django_db
 
 
-def teste_retificar_consolidado_sem_motivo_deve_levantar_excecao(
+def teste_retificar_consolidado_sem_motivo_deve_levantar_excecao__motivo_nao_eh_mais_obrigatorio(
     consolidado_dre_publicado_no_diario_oficial,
     prestacao_conta_pc1
 ):
-    with pytest.raises(Exception) as excinfo:
+    try:
         retificar_consolidado_dre(consolidado_dre_publicado_no_diario_oficial, [prestacao_conta_pc1.uuid], "")
-    assert 'É necessário informar o motivo da retificação' in str(excinfo.value)
+    except Exception as exc:
+        assert False, f"'É necessário informar o motivo da retificação {exc}"
 
 
 def teste_retificar_consolidado_sem_pcs_deve_levantar_excecao(
