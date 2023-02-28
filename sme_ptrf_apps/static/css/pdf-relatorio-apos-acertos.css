@@ -298,4 +298,16 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
     font-weight: 700;
 }
 
-
+/* checkbox */
+.checkbox-pdf {
+    margin-left: 40%;
+    text-align: center;
+    display: flex;
+    flex: 1;
+    max-width: 14px;
+    justify-content: center;
+    margin-bottom: 10px;
+    color: #ffffff;
+    background-color: #d8d8d8;
+    font-weight: 700;
+}
