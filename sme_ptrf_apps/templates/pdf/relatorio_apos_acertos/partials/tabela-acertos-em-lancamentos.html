@@ -9,24 +9,25 @@
           <thead class="">
 
             <tr class="">
-              <th colSpan="6">
-                <strong class="font-16 titulo-bloco ml-2">{{ dados.blocos.acertos_lancamentos }}</strong>
+              <th colSpan="12">
+                <strong class="font-16 titulo-bloco">{{ dados.blocos.acertos_lancamentos }}</strong>
               </th>
             </tr>
 
             <tr>
-              <th colSpan="6">
+              <th colSpan="12">
                 <strong class="font-12 titulo-bloco">Conta {{ conta.nome_conta }}</strong>
               </th>
             </tr>
 
             <tr>
-              <th style="width: 2%" class="fundo-verde"></th>
-              <th class="font-10 fundo-verde"><strong>Data</strong></th>
-              <th class="font-10 fundo-verde"><strong>Tipo de lançamento</strong></th>
-              <th class="font-10 fundo-verde"><strong>Nº do documento</strong></th>
-              <th class="font-10 fundo-verde" style="width: 40%"><strong>Descrição</strong></th>
-              <th class="font-10 fundo-verde"><strong>Valor (R$)</strong></th>
+              <th class="font-10 fundo-verde" style="width: 2%"></th>
+              <th class="font-10 fundo-verde" style="width: 10%"><strong>Data</strong></th>
+              <th class="font-10 fundo-verde" style="width: 15%"><strong>Tipo de lançamento</strong></th>
+              <th class="font-10 fundo-verde" style="width: 15%"><strong>Nº do documento</strong></th>
+              <th class="font-10 fundo-verde" style="width: 30%"><strong>Descrição</strong></th>
+              <th class="font-10 fundo-verde" style="width: 13%"><strong>Valor (R$)</strong></th>
+              <th class="font-10 fundo-verde" style="width: 15%"><strong>Demonstrado</strong></th>
             </tr>
           </thead>
 
@@ -49,6 +50,12 @@
 
               <td class="fundo-cinza font-12">{{ lancamento.descricao }}</td>
               <td class="fundo-cinza font-12">{{ lancamento.valor_transacao_total|formata_valor }}</td>
+
+              {% if lancamento.conferido %}
+                <td class="fundo-cinza font-12 pt-2"><span class="mt-1 font-10 checkbox-pdf">&#x2714;</span></td>
+              {% else %}
+                <td class="fundo-cinza font-12 pt-2"><span class="mt-1 font-10 checkbox-pdf">&nbsp;</span></td>
+              {% endif %}
             </tr>
 
               {% for categoria in lancamento.analise_lancamento.solicitacoes_de_ajuste_da_analise.solicitacoes_acerto_por_categoria %}
@@ -60,12 +67,10 @@
                     <td colspan="5" class="sem-borda border-bottom pb-4">
 
                       <div class="row mt-2">
-                        <div class="col-10">
-                          <div class="row">
-
                           <div class='col-2'>
                               <span class="item font-12"><strong>Item {{ acerto.ordem }}</strong></span>
                           </div>
+
                           <div class='col-8'>
                             <p class="font-12 mb-0"><strong>Tipo de acerto</strong></p>
                             <p class="font-12">{{ acerto.tipo_acerto.nome }}</p>
@@ -131,17 +136,6 @@
                             {% endif %}
 
                           </div>
-
-                        </div>
-                        </div>
-                        <div class="col-2">
-                            <p><strong class="font-12 mb-0">Demonstrado</strong></p>
-                            {% if lancamento.conferido %}            
-                              <p class="mt-1 font-10 checkbox-pdf">&#x2714;</p>
-                            {% else %}
-                              <p class="mt-1 font-10 checkbox-pdf">&nbsp;</p>
-                            {% endif %}
-                        </div>
                       </div>
                     </td>
 
