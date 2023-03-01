@@ -345,6 +345,7 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
     todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez = verifica_se_todas_as_pcs_foram_publicadas_pelo_menos_uma_vez(publicacoes_anteriores=publicacoes_anteriores, quantidade_ues_cnpj=quantidade_ues_cnpj)
 
     numero_de_pcs_retificadas_publicadas = conta_numero_pcs_retificadas_publicadas(publicacoes_anteriores=publicacoes_anteriores)
+
     if(todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez and numero_de_pcs_retificadas_publicadas > 0):
         publicacao_unica_com_retificacao_publicada = True
 
@@ -819,10 +820,11 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, 
             dre=consolidado_dre.dre,
             periodo=consolidado_dre.periodo,
             motivo_retificacao=motivo_retificacao,
-    )
+        )
+
         retificacao.consolidado_retificado = consolidado_dre
         retificacao.sequencia_de_publicacao = consolidado_dre.sequencia_de_publicacao
-        retificacao.sequencia_de_retificacao = consolidado_dre.sequencia_de_retificacao + 1
+        retificacao.sequencia_de_retificacao = consolidado_dre.get_proxima_sequencia_retificacao()
     else:
         retificacao = ConsolidadoDRE.objects.create(
             dre=consolidado_dre.dre,
