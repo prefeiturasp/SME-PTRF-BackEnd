@@ -820,10 +820,11 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, 
             dre=consolidado_dre.dre,
             periodo=consolidado_dre.periodo,
             motivo_retificacao=motivo_retificacao,
-    )
+        )
+
         retificacao.consolidado_retificado = consolidado_dre
         retificacao.sequencia_de_publicacao = consolidado_dre.sequencia_de_publicacao
-        retificacao.sequencia_de_retificacao = consolidado_dre.sequencia_de_retificacao + 1
+        retificacao.sequencia_de_retificacao = consolidado_dre.get_proxima_sequencia_retificacao()
     else:
         retificacao = ConsolidadoDRE.objects.create(
             dre=consolidado_dre.dre,

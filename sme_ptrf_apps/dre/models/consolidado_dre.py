@@ -617,7 +617,10 @@ class ConsolidadoDRE(ModeloBase):
         return lista_ordenada
 
     def get_proxima_sequencia_retificacao(self):
-        return self.retificacoes.count() + 1
+        ultima_sequencia = ConsolidadoDRE.objects.filter(dre=self.dre).filter(periodo=self.periodo).order_by(
+            'sequencia_de_retificacao').last()
+
+        return ultima_sequencia.sequencia_de_retificacao + 1
 
 
 auditlog.register(ConsolidadoDRE)
