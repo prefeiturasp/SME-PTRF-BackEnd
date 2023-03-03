@@ -117,6 +117,7 @@ def retornar_ja_publicadas(dre, periodo):
             'exibe_botao_retificar': consolidado_dre.exibe_botao_retificar,
             'habilita_retificar': consolidado_dre.permite_retificacao["permite"],
             'tooltip_habilita_retificar': consolidado_dre.permite_retificacao["tooltip"],
+            'motivo_retificacao': consolidado_dre.motivo_retificacao,
             'referencia': consolidado_dre.referencia,
             'eh_retificacao': consolidado_dre.eh_retificacao,
             'gerou_uma_retificacao': consolidado_dre.gerou_uma_retificacao,
