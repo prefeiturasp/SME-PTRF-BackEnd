@@ -135,6 +135,10 @@ class TransferenciaEol(ModeloBase):
             return False, f'Não existe conta_associacao do tipo {self.tipo_conta_transferido} para a associação original {associacao_original}.'
 
         # Nao devem existir despesas da associação original que tenham com rateios no tipo_conta_transferido e em outro tipo de conta
+        for despesa in associacao_original.despesas.all():
+            if despesa.tem_pagamentos_em_multiplas_contas():
+                return False, f'A associação original {associacao_original} possui despesas com rateios no tipo de conta {self.tipo_conta_transferido} e em outro tipo de conta.'
+
         return False, "Não implementado."
 
     def transferir(self):

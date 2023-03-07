@@ -149,3 +149,85 @@ def transf_eol_fechamento_periodo(
         conta_associacao=transf_eol_conta_associacao_cheque,
         acao_associacao=transf_eol_acao_associacao_ptrf,
     )
+
+
+@pytest.fixture
+def transf_eol_despesa(
+    transf_eol_associacao_eol_transferido,
+    tipo_documento,
+    tipo_transacao
+):
+    return baker.make(
+        'Despesa',
+        associacao=transf_eol_associacao_eol_transferido,
+        numero_documento='123456',
+        data_documento=datetime.date(2022, 7, 1),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        data_transacao=datetime.date(2022, 7, 1),
+        valor_total=100.00,
+    )
+
+
+@pytest.fixture
+def transf_eol_tipo_aplicacao_recurso_custeio():
+    from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO
+    return APLICACAO_CUSTEIO
+
+
+@pytest.fixture
+def transf_eol_especificacao_material_servico(transf_eol_tipo_aplicacao_recurso_custeio, tipo_custeio):
+    return baker.make(
+        'EspecificacaoMaterialServico',
+        descricao='Material elétrico',
+        aplicacao_recurso=transf_eol_tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio,
+    )
+
+
+@pytest.fixture
+def transf_eol_rateio_despesa_conta_cheque(
+    transf_eol_associacao_eol_transferido,
+    transf_eol_despesa,
+    transf_eol_conta_associacao_cheque,
+    transf_eol_acao_associacao_ptrf,
+    transf_eol_tipo_aplicacao_recurso_custeio,
+    transf_eol_especificacao_material_servico,
+    tipo_custeio,
+):
+    return baker.make(
+        'RateioDespesa',
+        despesa=transf_eol_despesa,
+        associacao=transf_eol_associacao_eol_transferido,
+        conta_associacao=transf_eol_conta_associacao_cheque,
+        acao_associacao=transf_eol_acao_associacao_ptrf,
+        aplicacao_recurso=transf_eol_tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=transf_eol_especificacao_material_servico,
+        valor_rateio=200.00,
+    )
+
+
+@pytest.fixture
+def transf_eol_rateio_despesa_conta_cartao(
+    transf_eol_associacao_eol_transferido,
+    transf_eol_despesa,
+    transf_eol_conta_associacao_cartao,
+    transf_eol_acao_associacao_ptrf,
+    transf_eol_tipo_aplicacao_recurso_custeio,
+    transf_eol_especificacao_material_servico,
+    tipo_custeio,
+):
+    return baker.make(
+        'RateioDespesa',
+        despesa=transf_eol_despesa,
+        associacao=transf_eol_associacao_eol_transferido,
+        conta_associacao=transf_eol_conta_associacao_cartao,
+        acao_associacao=transf_eol_acao_associacao_ptrf,
+        aplicacao_recurso=transf_eol_tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=transf_eol_especificacao_material_servico,
+        valor_rateio=100.00,
+    )

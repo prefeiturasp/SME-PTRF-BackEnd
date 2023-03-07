@@ -66,3 +66,21 @@ def test_transferencia_eol_deve_existir_conta_associacao_tipo_conta_transferido(
     possivel, motivo = transferencia_eol.transferencia_possivel()
     assert not possivel
     assert motivo == f'Não existe conta_associacao do tipo {transferencia_eol.tipo_conta_transferido} para a associação original {transf_eol_associacao_eol_transferido}.'
+
+
+def test_transferencia_eol_nao_devem_existir_despesas_associacao_original_com_rateios_tipo_conta_transferido_e_outro_tipo_conta(
+    transferencia_eol,
+    transf_eol_unidade_eol_transferido,
+    transf_eol_periodo_2022_2,
+    transf_eol_associacao_eol_transferido,
+    transf_eol_conta_associacao_cheque,
+    transf_eol_conta_associacao_cartao,
+    transf_eol_despesa,
+    transf_eol_rateio_despesa_conta_cheque,
+    transf_eol_rateio_despesa_conta_cartao,
+):
+    # Nao devem existir despesas da associação original que tenham com rateios no tipo_conta_transferido e em outro tipo de conta
+    possivel, motivo = transferencia_eol.transferencia_possivel()
+    assert not possivel
+    assert motivo == f'A associação original {transf_eol_associacao_eol_transferido} possui despesas com rateios no tipo de conta {transferencia_eol.tipo_conta_transferido} e em outro tipo de conta.'
+
