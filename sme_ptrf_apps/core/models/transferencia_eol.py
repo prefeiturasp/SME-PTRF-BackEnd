@@ -3,6 +3,9 @@ import logging
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.core.models import (
+    Unidade,
+)
 
 from ..choices.tipos_unidade import TIPOS_CHOICE
 
@@ -102,6 +105,9 @@ class TransferenciaEol(ModeloBase):
 
     def transferencia_possivel(self):
         # O código EOL transferido deve existir
+        if not Unidade.objects.filter(codigo_eol=self.eol_transferido).exists():
+            return False, f'Código EOL transferido {self.eol_transferido} não existe.'
+
         # O código EOL de histórico não deve existir
         # Deve existir um período para a data de início das atividades
         # Deve existir uma associação para o código EOL transferido
