@@ -42,3 +42,25 @@ def transferencia_eol(tipo_conta, transf_eol_tipo_conta_cartao):
         status_processamento='PENDENTE',
         log_execucao='Teste',
     )
+
+
+@pytest.fixture
+def transf_eol_unidade_eol_transferido(dre):
+    return baker.make(
+        'Unidade',
+        nome='Unidade EOL Transferido',
+        tipo_unidade='CEI',
+        codigo_eol='400232',
+        dre=dre,
+    )
+
+
+@pytest.fixture
+def transf_eol_unidade_eol_historico_ja_existente(dre):
+    return baker.make(
+        'Unidade',
+        nome='Unidade Histórico',
+        tipo_unidade='CEMEI',
+        codigo_eol='900232',
+        dre=dre,
+    )

@@ -109,6 +109,9 @@ class TransferenciaEol(ModeloBase):
             return False, f'Código EOL transferido {self.eol_transferido} não existe.'
 
         # O código EOL de histórico não deve existir
+        if Unidade.objects.filter(codigo_eol=self.eol_historico).exists():
+            return False, f'Código EOL de histórico {self.eol_historico} já existe.'
+
         # Deve existir um período para a data de início das atividades
         # Deve existir uma associação para o código EOL transferido
         # Não devem existir fechamentos para a associação do eol de tranferência no período da data de início das atividades da nova associação
