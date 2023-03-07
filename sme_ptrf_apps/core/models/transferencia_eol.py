@@ -6,6 +6,7 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.core.models import (
     Unidade,
     Periodo,
+    Associacao,
 )
 
 from ..choices.tipos_unidade import TIPOS_CHOICE
@@ -119,6 +120,9 @@ class TransferenciaEol(ModeloBase):
             return False, f'Não existe período para a data de início das atividades {self.data_inicio_atividades}.'
 
         # Deve existir uma associação para o código EOL transferido
+        if not Associacao.objects.filter(unidade__codigo_eol=self.eol_transferido).exists():
+            return False, f'Não existe associação para o código EOL transferido {self.eol_transferido}.'
+
         # Não devem existir fechamentos para a associação do eol de tranferência no período da data de início das atividades da nova associação
         # Deve existir uma conta_associacao do tipo tipo_conta_transferido para a associação do código eol transferido
         # Nao devem existir despesas da associação original que tenham com rateios no tipo_conta_transferido e em outro tipo de conta
