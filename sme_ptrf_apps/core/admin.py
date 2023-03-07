@@ -45,7 +45,8 @@ from .models import (
     SolicitacaoAcertoDocumento,
     PresenteAta,
     ValoresReprogramados,
-    SolicitacaoDevolucaoAoTesouro
+    SolicitacaoDevolucaoAoTesouro,
+    TransferenciaEol
 )
 
 admin.site.register(Acao)
@@ -1225,3 +1226,16 @@ class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
         'motivo'
     )
     autocomplete_fields = ('solicitacao_acerto_lancamento',)
+
+
+@admin.register(TransferenciaEol)
+class TransferenciaEolAdmin(admin.ModelAdmin):
+    def transfere_codigo_eol(self, request, queryset):
+        for transferencia in queryset.all():
+            transferencia.transferir()
+
+        self.message_user(request, f"Transferência concluida.")
+
+    list_display = ('eol_transferido', 'eol_historico', 'tipo_nova_unidade', 'tipo_conta_transferido', 'data_inicio_atividades', 'status_processamento')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em', 'log_execucao')
+    actions = [transfere_codigo_eol]
