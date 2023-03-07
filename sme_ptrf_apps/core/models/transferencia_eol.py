@@ -124,6 +124,10 @@ class TransferenciaEol(ModeloBase):
             return False, f'Não existe associação para o código EOL transferido {self.eol_transferido}.'
 
         # Não devem existir fechamentos para a associação do eol de tranferência no período da data de início das atividades da nova associação
+        associacao_original = Associacao.objects.get(unidade__codigo_eol=self.eol_transferido)
+        if associacao_original.fechamentos_associacao.filter(periodo=periodo_da_data_inicio_atividades).exists():
+            return False, f'Já existem fechamentos para a associação original {associacao_original} no período {periodo_da_data_inicio_atividades}.'
+
         # Deve existir uma conta_associacao do tipo tipo_conta_transferido para a associação do código eol transferido
         # Nao devem existir despesas da associação original que tenham com rateios no tipo_conta_transferido e em outro tipo de conta
         return False, "Não implementado."
