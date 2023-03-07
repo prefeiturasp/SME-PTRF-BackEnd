@@ -1,4 +1,5 @@
 import logging
+import uuid as uuid
 
 from django.db import models
 
@@ -141,9 +142,20 @@ class TransferenciaEol(ModeloBase):
 
         return False, "Não implementado."
 
+    # clonar a unidade de código transferido para uma nova usando o código histórico
+    def clonar_unidade(self):
+        self.adicionar_log_info(f'Clonando unidade de código EOL {self.eol_transferido} para {self.eol_historico}.')
+        unidade_transferida = Unidade.objects.get(codigo_eol=self.eol_transferido)
+        unidade_transferida.codigo_eol = self.eol_historico
+        unidade_transferida.uuid = uuid.uuid4()
+        unidade_transferida.save()
+        self.adicionar_log_info(f'Unidade de código EOL {self.eol_transferido} clonada para {self.eol_historico}.')
+        return unidade_transferida
+
     def transferir(self):
         self.adicionar_log_info(f'Iniciando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico.')
 
+        # verificar se a transferência é possível
         pode_transferir, motivo = self.transferencia_possivel()
         if not pode_transferir:
             self.adicionar_log_info(f'Abortando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico. Motivo: {motivo}')
@@ -152,7 +164,9 @@ class TransferenciaEol(ModeloBase):
             self.salvar_logs()
             return
 
-        # clonar a unidade de código transferido para usando o código histórico
+        # clonar a unidade de código transferido para uma nova usando o código histórico
+        unidade_historico = self.clonar_unidade()
+
         # atualizar a unidade de código transferido para o tipo_nova_unidade
         # clonar associacao da unidade de código transferido para uma nova associação
         # copiar as ações_associacao da associação original para a nova associação (guardando o "de-para" para atualizar os gastos e créditos.)
