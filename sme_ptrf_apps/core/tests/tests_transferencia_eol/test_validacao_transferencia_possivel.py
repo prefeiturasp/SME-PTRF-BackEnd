@@ -54,3 +54,15 @@ def test_transferencia_eol_codigo_eol_historico_nao_deve_existir_fechamentos_ass
     possivel, motivo = transferencia_eol.transferencia_possivel()
     assert not possivel
     assert motivo == f'Já existem fechamentos para a associação original {transf_eol_associacao_eol_transferido} no período {transf_eol_periodo_2022_2}.'
+
+
+def test_transferencia_eol_deve_existir_conta_associacao_tipo_conta_transferido(
+    transferencia_eol,
+    transf_eol_unidade_eol_transferido,
+    transf_eol_periodo_2022_2,
+    transf_eol_associacao_eol_transferido,
+):
+    # Deve existir uma conta_associacao do tipo tipo_conta_transferido para a associação do código eol transferido
+    possivel, motivo = transferencia_eol.transferencia_possivel()
+    assert not possivel
+    assert motivo == f'Não existe conta_associacao do tipo {transferencia_eol.tipo_conta_transferido} para a associação original {transf_eol_associacao_eol_transferido}.'

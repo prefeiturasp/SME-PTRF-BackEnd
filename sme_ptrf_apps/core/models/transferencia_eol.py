@@ -7,6 +7,7 @@ from sme_ptrf_apps.core.models import (
     Unidade,
     Periodo,
     Associacao,
+    ContaAssociacao,
 )
 
 from ..choices.tipos_unidade import TIPOS_CHOICE
@@ -129,6 +130,10 @@ class TransferenciaEol(ModeloBase):
             return False, f'Já existem fechamentos para a associação original {associacao_original} no período {periodo_da_data_inicio_atividades}.'
 
         # Deve existir uma conta_associacao do tipo tipo_conta_transferido para a associação do código eol transferido
+        if not ContaAssociacao.objects.filter(associacao=associacao_original,
+                                              tipo_conta=self.tipo_conta_transferido).exists():
+            return False, f'Não existe conta_associacao do tipo {self.tipo_conta_transferido} para a associação original {associacao_original}.'
+
         # Nao devem existir despesas da associação original que tenham com rateios no tipo_conta_transferido e em outro tipo de conta
         return False, "Não implementado."
 
