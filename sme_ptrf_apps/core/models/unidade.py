@@ -5,6 +5,7 @@ from .validators import cnpj_validation
 from ..models_abstracts import TemNome, ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
+from ..choices.tipos_unidade import TIPOS_CHOICE
 
 
 class DresManager(models.Manager):
@@ -14,28 +15,6 @@ class DresManager(models.Manager):
 
 class Unidade(ModeloBase, TemNome):
     history = AuditlogHistoryField()
-
-    # Tipo de Unidade Choices
-    TIPOS_CHOICE = (
-        ('ADM', 'ADM'),
-        ('DRE', 'DRE'),
-        ('IFSP', 'IFSP'),
-        ('CMCT', 'CMCT'),
-        ('CECI', 'CECI'),
-        ('CEI', 'CEI'),
-        ('CEMEI', 'CEMEI'),
-        ('CIEJA', 'CIEJA'),
-        ('EMEBS', 'EMEBS'),
-        ('EMEF', 'EMEF'),
-        ('EMEFM', 'EMEFM'),
-        ('EMEI', 'EMEI'),
-        ('CEU', 'CEU'),
-        ('CEU CEI', 'CEU CEI'),
-        ('CEU EMEF', 'CEU EMEF'),
-        ('CEU EMEI', 'CEU EMEI'),
-        ('CEU CEMEI', 'CEU CEMEI'),
-        ('CEI DIRET', 'CEI DIRET'),
-    )
 
     tipo_unidade = models.CharField(max_length=10, choices=TIPOS_CHOICE, default='ADM')
     codigo_eol = models.CharField(max_length=6, validators=[MinLengthValidator(6)], primary_key=True, unique=True)
