@@ -1,0 +1,118 @@
+{% load staticfiles %}
+{% load formata_valores %}
+{% load formata_string %}
+
+{% if dados.dados_lancamentos %}
+  <article class="mt-4">
+    {% for conta in dados.dados_lancamentos %}
+      <table class="table table-bordered tabela-resumo-por-acao nao-quebra-linha">
+        <thead class="">
+
+          <tr class="">
+            <th colSpan="12">
+              <strong class="font-16 titulo-bloco ml-2">{{ dados.blocos.acertos_lancamentos }}</strong>
+            </th>
+          </tr>
+
+          <tr>
+            <th colSpan="12">
+              <strong class="font-12 titulo-bloco">Conta {{ conta.nome_conta }}</strong>
+            </th>
+          </tr>
+
+          <tr>
+            <th class="font-10 fundo-verde" style="width: 2%"></th>
+            <th class="font-10 fundo-verde" style="width: 10%"><strong>Data</strong></th>
+            <th class="font-10 fundo-verde" style="width: 15%"><strong>Tipo de lançamento</strong></th>
+            <th class="font-10 fundo-verde" style="width: 15%"><strong>Nº do documento</strong></th>
+            <th class="font-10 fundo-verde" style="width: 30%"><strong>Descrição</strong></th>
+            <th class="font-10 fundo-verde" style="width: 13%"><strong>Valor (R$)</strong></th>
+            <th class="font-10 fundo-verde" style="width: 15%"><strong>Demonstrado</strong></th>
+          </tr>
+        </thead>
+
+        {% for lancamento in conta.lancamentos %}
+          <tbody>
+          <tr>
+            <td class="fundo-cinza font-12">{{ forloop.counter }}</td>
+            <td class="fundo-cinza font-12">{{ lancamento.data|date:'d/m/Y' }}</td>
+            {% if lancamento.tipo_transacao == 'Gasto' %}
+              <td class="fundo-cinza font-12">Despesa</td>
+            {% else %}
+              <td class="fundo-cinza font-12">{{ lancamento.tipo_transacao }}</td>
+            {% endif %}
+
+            {% if lancamento.numero_documento == '' %}
+              <td class="fundo-cinza font-12">-</td>
+            {% else %}
+              <td class="fundo-cinza font-12">{{ lancamento.numero_documento }}</td>
+            {% endif %}
+
+            <td class="fundo-cinza font-12">{{ lancamento.descricao }}</td>
+            <td class="fundo-cinza font-12">{{ lancamento.valor_transacao_total|formata_valor }}</td>
+
+            {% if lancamento.conferido %}
+              <td class="fundo-cinza font-12 pt-2"><span class="mt-1 font-10 checkbox-pdf">&#x2714;</span></td>
+            {% else %}
+              <td class="fundo-cinza font-12 pt-2"><span class="mt-1 font-10 checkbox-pdf">&nbsp;</span></td>
+            {% endif %}
+          </tr>
+
+          {% for acerto in lancamento.analise_lancamento.solicitacoes_de_ajuste_da_analise %}
+            <tr class="border-bottom">
+              <td rowspan="1" class="sem-borda pb-4"></td>
+              <td colspan="5" class="sem-borda border-bottom pb-4">
+
+                <div class="row mt-2">
+                  <div class="col-2">
+                    <span class="item font-12"><strong>Item {{ forloop.counter }}</strong></span>
+                  </div>
+
+                  <div class="col-8">
+                    <p class="font-12 mb-0"><strong>Tipo de acerto</strong></p>
+                    <p class="font-12">{{ acerto.tipo_acerto.nome }}</p>
+
+                    {% if acerto.tipo_acerto.categoria == 'DEVOLUCAO' %}
+
+                      <p class="font-12 mb-0"><strong>Tipo de devolução</strong></p>
+                      <p class="font-12">{{ acerto.devolucao_ao_tesouro.tipo.nome }}</p>
+
+                      <p class="font-12 mb-0"><strong>Valor total ou parcial da despesa</strong></p>
+                      {% if acerto.devolucao_ao_tesouro.devolucao_total is True %}
+                        <p class="font-12">Total</p>
+                      {% else %}
+                        <p class="font-12">Parcial</p>
+                      {% endif %}
+
+                      <p class="font-12 mb-0"><strong>Valor (R$)</strong></p>
+                      <p class="font-12">{{ acerto.devolucao_ao_tesouro.valor|formata_valor }}</p>
+
+                      {% if acerto.devolucao_ao_tesouro.motivo %}
+                        <p class="font-12 mb-0"><strong>Motivo</strong></p>
+                        <p class="font-12">{{ acerto.devolucao_ao_tesouro.motivo }}</p>
+                      {% endif %}
+
+                    {% else %}
+
+                      {% if acerto.detalhamento %}
+                        <div class="row mt-2">
+                          <div class="col-12">
+                            <span class="font-12"><strong>Detalhamento do acerto</strong></span>
+                            <br>
+                            <span class="font-12">{{ acerto.detalhamento }}</span>
+                          </div>
+                        </div>
+                      {% endif %}
+
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %} {% comment %}End for acerto{% endcomment %}
+          </tbody>
+        {% endfor %} {% comment %}End for lancamento{% endcomment %}
+      </table>
+    {% endfor %} {% comment %}End for conta{% endcomment %}
+  </article>
+{% endif %}
