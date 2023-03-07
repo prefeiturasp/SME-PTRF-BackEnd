@@ -21,3 +21,12 @@ def test_transferencia_eol_codigo_eol_historico_nao_deve_existir(
     assert not possivel
     assert motivo == f'Código EOL de histórico {transferencia_eol.eol_historico} já existe.'
 
+
+def test_transferencia_eol_codigo_eol_historico_deve_existir_periodo_para_data_inicio_atividade(
+    transferencia_eol,
+    transf_eol_unidade_eol_transferido,
+):
+    # Deve existir um período para a data de início das atividades
+    possivel, motivo = transferencia_eol.transferencia_possivel()
+    assert not possivel
+    assert motivo == f'Não existe período para a data de início das atividades {transferencia_eol.data_inicio_atividades}.'

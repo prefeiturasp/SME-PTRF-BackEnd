@@ -5,6 +5,7 @@ from django.db import models
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.core.models import (
     Unidade,
+    Periodo,
 )
 
 from ..choices.tipos_unidade import TIPOS_CHOICE
@@ -113,6 +114,10 @@ class TransferenciaEol(ModeloBase):
             return False, f'Código EOL de histórico {self.eol_historico} já existe.'
 
         # Deve existir um período para a data de início das atividades
+        periodo_da_data_inicio_atividades = Periodo.da_data(self.data_inicio_atividades)
+        if periodo_da_data_inicio_atividades is None:
+            return False, f'Não existe período para a data de início das atividades {self.data_inicio_atividades}.'
+
         # Deve existir uma associação para o código EOL transferido
         # Não devem existir fechamentos para a associação do eol de tranferência no período da data de início das atividades da nova associação
         # Deve existir uma conta_associacao do tipo tipo_conta_transferido para a associação do código eol transferido
