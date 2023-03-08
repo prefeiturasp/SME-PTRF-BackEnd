@@ -152,6 +152,14 @@ class TransferenciaEol(ModeloBase):
         self.adicionar_log_info(f'Unidade de código EOL {self.eol_transferido} clonada para {self.eol_historico}.')
         return unidade_transferida
 
+    def atualizar_unidade_transferida(self):
+        self.adicionar_log_info(f'Atualizando unidade de código EOL {self.eol_transferido} para o tipo_nova_unidade.')
+        unidade_transferida = Unidade.objects.get(codigo_eol=self.eol_transferido)
+        unidade_transferida.tipo_unidade = self.tipo_nova_unidade
+        unidade_transferida.save()
+        self.adicionar_log_info(f'Unidade de código EOL {self.eol_transferido} atualizada para o tipo_nova_unidade.')
+        return unidade_transferida
+
     def transferir(self):
         self.adicionar_log_info(f'Iniciando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico.')
 
@@ -168,6 +176,8 @@ class TransferenciaEol(ModeloBase):
         unidade_historico = self.clonar_unidade()
 
         # atualizar a unidade de código transferido para o tipo_nova_unidade
+        self.atualizar_unidade_transferida()
+
         # clonar associacao da unidade de código transferido para uma nova associação
         # copiar as ações_associacao da associação original para a nova associação (guardando o "de-para" para atualizar os gastos e créditos.)
         # copiar a conta_associacao de tipo_conta_transferido da associação original para a nova associação
