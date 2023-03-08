@@ -15,6 +15,7 @@ def test_model_transferencia_eol(transferencia_eol):
     assert model.tipo_conta_transferido
     assert model.status_processamento
     assert model.log_execucao
+    assert model.cnpj_nova_associacao
 
 
 def test_transferencia_eol_admin():

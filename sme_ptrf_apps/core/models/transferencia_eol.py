@@ -13,6 +13,8 @@ from sme_ptrf_apps.core.models import (
 
 from ..choices.tipos_unidade import TIPOS_CHOICE
 
+from .validators import cnpj_validation
+
 logger = logging.getLogger(__name__)
 
 # status processamento
@@ -58,6 +60,15 @@ class TransferenciaEol(ModeloBase):
         choices=TIPOS_CHOICE,
         default='CEMEI',
         help_text='Tipo da nova unidade que receberá o código transferido.',
+    )
+
+    cnpj_nova_associacao = models.CharField(
+        "CNPJ",
+        max_length=20,
+        validators=[cnpj_validation],
+        blank=True,
+        default="",
+        help_text="CNPJ da nova associação.",
     )
 
     data_inicio_atividades = models.DateField(

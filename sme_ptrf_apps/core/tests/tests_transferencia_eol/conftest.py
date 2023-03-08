@@ -48,6 +48,7 @@ def transferencia_eol(tipo_conta, transf_eol_tipo_conta_cartao):
         eol_transferido='400232',
         eol_historico='900232',
         tipo_nova_unidade='CEMEI',
+        cnpj_nova_associacao='52.302.275/0001-83',
         data_inicio_atividades=datetime.date(2022, 7, 1),
         tipo_conta_transferido=transf_eol_tipo_conta_cartao,
         status_processamento='PENDENTE',
