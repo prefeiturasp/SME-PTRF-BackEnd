@@ -1283,7 +1283,7 @@ def dashboard_sme(periodo):
         )
 
         status_periodo = {
-            'status_txt': 'Período em andamento para DREs e aberto para validações.',
+            'status_txt': 'Período de análise das prestações de contas pelas DREs em andamento.',
             'cor_idx': 1,
             'status': 'EM_ANDAMENTO'
         }
@@ -1295,7 +1295,7 @@ def dashboard_sme(periodo):
         )
 
         status_periodo = {
-            'status_txt': 'Período concluído.',
+            'status_txt': 'Período de análise das prestações de contas pelas DREs concluído.',
             'cor_idx': 2,
             'status': 'CONCLUIDO'
         }
