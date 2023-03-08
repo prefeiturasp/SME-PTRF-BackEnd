@@ -220,7 +220,7 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
             return Response(resultado, status=status_code)
 
         try:
-            NotificacaoComentarioDeAnaliseConsolidadoDre(
+            notificacao_enviada = NotificacaoComentarioDeAnaliseConsolidadoDre(
                 dre=dre,
                 periodo=periodo,
                 comentarios=comentarios,
@@ -234,5 +234,5 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
                 'mensagem': "Erro no processo de notificacao"
             }
             return Response(resultado, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response({"mensagem": "Processo de notificação enviado com sucesso."})
+        
+        return Response({"mensagem": "Processo de notificação finalizado.", "enviada": notificacao_enviada}, status=status.HTTP_200_OK)

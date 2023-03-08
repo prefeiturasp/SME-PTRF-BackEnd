@@ -49,8 +49,10 @@ class NotificacaoComentarioDeAnaliseConsolidadoDre(NotificacaoService):
                         comentario.set_comentario_notificado()
 
                     logger.info("Notificações criadas com sucesso.")
+                    return True
             else:
-                logger.info("Não existem usuários a serem notificados")
-
+                logger.info("Não existem usuários a serem notificados.")
+                return False
         else:
-            logger.info("Não existe comissão de exame de contas criada")
+            logger.info("Não existe comissão de exame de contas criada.")
+            return False
