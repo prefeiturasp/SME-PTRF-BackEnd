@@ -171,10 +171,20 @@ class TransferenciaEol(ModeloBase):
         self.adicionar_log_info(f'Unidade de código EOL {self.eol_transferido} atualizada para o tipo_nova_unidade.')
         return unidade_transferida
 
+    def clonar_associacao(self):
+        self.adicionar_log_info(f'Clonando associação da unidade de código EOL {self.eol_transferido}.')
+        associacao_transferida = Associacao.objects.get(unidade__codigo_eol=self.eol_transferido)
+        associacao_transferida.pk = None
+        associacao_transferida.uuid = uuid.uuid4()
+        associacao_transferida.cnpj = self.cnpj_nova_associacao
+        associacao_transferida.save()
+        self.adicionar_log_info(f'Associação da unidade de código EOL {self.eol_transferido} clonada.')
+        return associacao_transferida
+
     def transferir(self):
         self.adicionar_log_info(f'Iniciando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico.')
 
-        # verificar se a transferência é possível
+        # verifica se a transferência é possível
         pode_transferir, motivo = self.transferencia_possivel()
         if not pode_transferir:
             self.adicionar_log_info(f'Abortando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico. Motivo: {motivo}')
@@ -183,13 +193,15 @@ class TransferenciaEol(ModeloBase):
             self.salvar_logs()
             return
 
-        # clonar a unidade de código transferido para uma nova usando o código histórico
+        # clona a unidade de código transferido para uma nova usando o código histórico
         unidade_historico = self.clonar_unidade()
 
-        # atualizar a unidade de código transferido para o tipo_nova_unidade
+        # atualiza a unidade de código transferido para o tipo_nova_unidade
         self.atualizar_unidade_transferida()
 
-        # clonar associacao da unidade de código transferido para uma nova associação
+        # clona associacao da unidade de código transferido para uma nova associação
+        associacao_nova = self.clonar_associacao()
+
         # copiar as ações_associacao da associação original para a nova associação (guardando o "de-para" para atualizar os gastos e créditos.)
         # copiar a conta_associacao de tipo_conta_transferido da associação original para a nova associação
         # desativar a conta_associacao de tipo_conta_transferido da associação original
