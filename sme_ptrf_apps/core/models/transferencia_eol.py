@@ -181,6 +181,19 @@ class TransferenciaEol(ModeloBase):
         self.adicionar_log_info(f'Associação da unidade de código EOL {self.eol_transferido} clonada.')
         return associacao_transferida
 
+    def copiar_acoes_associacao(self, associacao_transferida, associacao_nova):
+        self.adicionar_log_info(f'Copiando ações_associacao da associação original para a nova associação.')
+        acoes_associacao_transferidas = associacao_transferida.acoes.all()
+        for acao_associacao_transferida in acoes_associacao_transferidas:
+            acao_associacao_transferida.pk = None
+            acao_associacao_transferida.uuid = uuid.uuid4()
+            acao_associacao_transferida.associacao = associacao_nova
+            acao_associacao_transferida.save()
+        self.adicionar_log_info(f'Ações_associacao da associação original copiadas para a nova associação.')
+
+    def get_associacao_transferida(self):
+        return Associacao.objects.get(unidade__codigo_eol=self.eol_transferido)
+
     def transferir(self):
         self.adicionar_log_info(f'Iniciando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico.')
 
@@ -197,12 +210,16 @@ class TransferenciaEol(ModeloBase):
         unidade_historico = self.clonar_unidade()
 
         # atualiza a unidade de código transferido para o tipo_nova_unidade
-        self.atualizar_unidade_transferida()
+        unidade_transferida = self.atualizar_unidade_transferida()
 
         # clona associacao da unidade de código transferido para uma nova associação
         associacao_nova = self.clonar_associacao()
 
+        associacao_transferida = self.get_associacao_transferida()
+
         # copiar as ações_associacao da associação original para a nova associação (guardando o "de-para" para atualizar os gastos e créditos.)
+        self.copiar_acoes_associacao(associacao_transferida, associacao_nova)
+
         # copiar a conta_associacao de tipo_conta_transferido da associação original para a nova associação
         # desativar a conta_associacao de tipo_conta_transferido da associação original
         # desvincular a associação da unidade de código transferido e vincula-la a unidade de código histórico

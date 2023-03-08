@@ -232,3 +232,25 @@ def transf_eol_rateio_despesa_conta_cartao(
         especificacao_material_servico=transf_eol_especificacao_material_servico,
         valor_rateio=100.00,
     )
+
+
+@pytest.fixture
+def transf_eol_unidade_eol_historico(dre):
+    return baker.make(
+        'Unidade',
+        nome='Unidade EOL Transferido',
+        tipo_unidade='CEMEI',
+        codigo_eol='900232',
+        dre=dre,
+    )
+
+
+@pytest.fixture
+def transf_eol_associacao_nova(transf_eol_unidade_eol_historico, transferencia_eol):
+    return baker.make(
+        'Associacao',
+        nome='Escola Eol Transferido',
+        cnpj=transferencia_eol.cnpj_nova_associacao,
+        unidade=transf_eol_unidade_eol_historico,
+    )
+
