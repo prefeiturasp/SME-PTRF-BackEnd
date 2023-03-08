@@ -171,11 +171,11 @@ class TransferenciaEol(ModeloBase):
         self.adicionar_log_info(f'Unidade de código EOL {self.eol_transferido} atualizada para o tipo_nova_unidade.')
         return unidade_transferida
 
-    def clonar_associacao(self, unidade_historico):
-        associacao_historico = Associacao.objects.get(unidade__codigo_eol=self.eol_transferido)
+    def clonar_associacao(self, associacao_original_uuid, unidade_historico):
+        associacao_historico = Associacao.by_uuid(associacao_original_uuid)
 
         self.adicionar_log_info(f'Clonando associação da unidade de código EOL {self.eol_transferido}.')
-        associacao_nova = Associacao.objects.get(unidade__codigo_eol=self.eol_transferido)
+        associacao_nova = Associacao.by_uuid(associacao_original_uuid)
         associacao_nova.pk = None
         associacao_nova.uuid = uuid.uuid4()
         associacao_nova.cnpj = self.cnpj_nova_associacao
@@ -188,29 +188,39 @@ class TransferenciaEol(ModeloBase):
         self.adicionar_log_info(f'Associação clonada e a original transferida para a unidade de histórico.')
         return associacao_nova
 
-    def copiar_acoes_associacao(self, associacao_transferida, associacao_nova):
+    def copiar_acoes_associacao(self, associacao_original, associacao_nova):
         self.adicionar_log_info(f'Copiando ações_associacao da associação original para a nova associação.')
-        acoes_associacao_transferidas = associacao_transferida.acoes.all()
-        for acao_associacao_transferida in acoes_associacao_transferidas:
-            acao_associacao_transferida.pk = None
-            acao_associacao_transferida.uuid = uuid.uuid4()
-            acao_associacao_transferida.associacao = associacao_nova
-            acao_associacao_transferida.save()
+        acoes_associacao_original = associacao_original.acoes.all()
+        for acao_associacao in acoes_associacao_original:
+            acao_associacao.pk = None
+            acao_associacao.uuid = uuid.uuid4()
+            acao_associacao.associacao = associacao_nova
+            acao_associacao.save()
         self.adicionar_log_info(f'Ações_associacao da associação original copiadas para a nova associação.')
 
-    def get_associacao_transferida(self):
-        return Associacao.objects.get(unidade__codigo_eol=self.eol_transferido)
+    def get_associacao_original(self):
+        return Associacao.by_uuid(self.associacao_original_uuid)
+
+    def inicializar_transferencia(self):
+        self.adicionar_log_info(f'Iniciando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico.')
+        self.status_processamento = PROCESSANDO
+        self.save()
+        self.associacao_original_uuid = Associacao.objects.get(unidade__codigo_eol=self.eol_transferido).uuid
+
+    def abortar_transferencia(self, motivo):
+        self.adicionar_log_info(
+            f'Abortando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico. Motivo: {motivo}')
+        self.status_processamento = ABORTADO
+        self.save()
+        self.salvar_logs()
 
     def transferir(self):
-        self.adicionar_log_info(f'Iniciando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico.')
+        self.inicializar_transferencia()
 
-        # verifica se a transferência é possível
+        # verifica se a transferência é possível e se não for aborta operação.
         pode_transferir, motivo = self.transferencia_possivel()
         if not pode_transferir:
-            self.adicionar_log_info(f'Abortando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico. Motivo: {motivo}')
-            self.status_processamento = ABORTADO
-            self.save()
-            self.salvar_logs()
+            self.abortar_transferencia(motivo)
             return
 
         # clona a unidade de código transferido para uma nova usando o código histórico
@@ -220,12 +230,10 @@ class TransferenciaEol(ModeloBase):
         unidade_transferida = self.atualizar_unidade_transferida()
 
         # clona associacao da unidade de código transferido para uma nova associação
-        associacao_nova = self.clonar_associacao(unidade_historico)
-
-        associacao_transferida = self.get_associacao_transferida()
+        associacao_nova = self.clonar_associacao(self.associacao_original_uuid, unidade_historico)
 
         # copiar as ações_associacao da associação original para a nova associação (guardando o "de-para" para atualizar os gastos e créditos.)
-        self.copiar_acoes_associacao(associacao_transferida, associacao_nova)
+        self.copiar_acoes_associacao(self.get_associacao_original(), associacao_nova)
 
         # copiar a conta_associacao de tipo_conta_transferido da associação original para a nova associação
         # desativar a conta_associacao de tipo_conta_transferido da associação original
@@ -237,3 +245,4 @@ class TransferenciaEol(ModeloBase):
         # desativar créditos vinculados à conta_associacao de tipo_conta_transferido da associação original
         # gravar log de execução
         # atualizar status do processamento
+

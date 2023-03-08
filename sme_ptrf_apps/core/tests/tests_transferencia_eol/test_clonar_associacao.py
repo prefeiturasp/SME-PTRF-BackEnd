@@ -14,7 +14,7 @@ def test_clonar_associacao(
     assert transf_eol_associacao_eol_transferido.unidade == transf_eol_unidade_eol_transferido
 
     # Deve clonar associacao da unidade de código transferido para uma nova associação
-    associacao_clonada = transferencia_eol.clonar_associacao(transf_eol_unidade_eol_historico)
+    associacao_clonada = transferencia_eol.clonar_associacao(transf_eol_associacao_eol_transferido.uuid, transf_eol_unidade_eol_historico)
     assert associacao_clonada.unidade == transf_eol_unidade_eol_transferido, "Deve apontar para a unidade original."
     assert associacao_clonada.uuid is not None
     assert associacao_clonada.uuid != transf_eol_associacao_eol_transferido.uuid
