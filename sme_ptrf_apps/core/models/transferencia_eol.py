@@ -151,7 +151,7 @@ class TransferenciaEol(ModeloBase):
             if despesa.tem_pagamentos_em_multiplas_contas():
                 return False, f'A associação original {associacao_original} possui despesas com rateios no tipo de conta {self.tipo_conta_transferido} e em outro tipo de conta.'
 
-        return False, "Não implementado."
+        return True, ""
 
     # clonar a unidade de código transferido para uma nova usando o código histórico
     def clonar_unidade(self):
@@ -171,15 +171,22 @@ class TransferenciaEol(ModeloBase):
         self.adicionar_log_info(f'Unidade de código EOL {self.eol_transferido} atualizada para o tipo_nova_unidade.')
         return unidade_transferida
 
-    def clonar_associacao(self):
+    def clonar_associacao(self, unidade_historico):
+        associacao_historico = Associacao.objects.get(unidade__codigo_eol=self.eol_transferido)
+
         self.adicionar_log_info(f'Clonando associação da unidade de código EOL {self.eol_transferido}.')
-        associacao_transferida = Associacao.objects.get(unidade__codigo_eol=self.eol_transferido)
-        associacao_transferida.pk = None
-        associacao_transferida.uuid = uuid.uuid4()
-        associacao_transferida.cnpj = self.cnpj_nova_associacao
-        associacao_transferida.save()
-        self.adicionar_log_info(f'Associação da unidade de código EOL {self.eol_transferido} clonada.')
-        return associacao_transferida
+        associacao_nova = Associacao.objects.get(unidade__codigo_eol=self.eol_transferido)
+        associacao_nova.pk = None
+        associacao_nova.uuid = uuid.uuid4()
+        associacao_nova.cnpj = self.cnpj_nova_associacao
+        associacao_nova.save()
+
+        self.adicionar_log_info(f'Transferindo associação de histórico para a unidade de código EOL {self.eol_historico}.')
+        associacao_historico.unidade = unidade_historico
+        associacao_historico.save()
+
+        self.adicionar_log_info(f'Associação clonada e a original transferida para a unidade de histórico.')
+        return associacao_nova
 
     def copiar_acoes_associacao(self, associacao_transferida, associacao_nova):
         self.adicionar_log_info(f'Copiando ações_associacao da associação original para a nova associação.')
@@ -213,7 +220,7 @@ class TransferenciaEol(ModeloBase):
         unidade_transferida = self.atualizar_unidade_transferida()
 
         # clona associacao da unidade de código transferido para uma nova associação
-        associacao_nova = self.clonar_associacao()
+        associacao_nova = self.clonar_associacao(unidade_historico)
 
         associacao_transferida = self.get_associacao_transferida()
 
