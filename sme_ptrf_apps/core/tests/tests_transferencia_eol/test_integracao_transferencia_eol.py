@@ -54,8 +54,9 @@ def test_integracao_transferencia_eol(
     assert despesas_nova.first().rateios.count() == 2, "Deve ter copiado os rateios corretos"
     assert despesas_original.count() == 2, "A associação original deve manter as despesas originais"
 
+    # Todos os gastos e rateios vinculados à conta_associacao de tipo_conta_transferido da associação original devem ser inativados
+    assert despesas_original.filter(status='INATIVO').count() == despesas_original.filter(rateios__conta_associacao__tipo_conta=transferencia_eol.tipo_conta_transferido).distinct().count(), "Deve ter inativado todas as despesas originais"
 
-    # desativar gastos e rateios vinculados à conta_associacao de tipo_conta_transferido da associação original
     # copiar créditos vinculados à conta_associacao de tipo_conta_transferido da associação original para a nova associação
     # desativar créditos vinculados à conta_associacao de tipo_conta_transferido da associação original
     # gravar log de execução
