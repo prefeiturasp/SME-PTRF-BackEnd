@@ -4,7 +4,9 @@ from .solicitacao_acerto_lancamento_validate_serializer import (
 )
 
 from .analise_lancamento_validate_serializer import (
-    TabelasValidateSerializer
+    TabelasValidateSerializer,
+    GravarConciliacaoAnaliseLancamentoValidateSerializer,
+    GravarDesconciliacaoAnaliseLancamentoValidateSerializer
 )
 
 from .solicitacao_acerto_documento_validate_serializer import (
