@@ -24,6 +24,11 @@ class MarcarComoRealizado:
             analise_lancamento = solicitacao_acerto.analise_lancamento
             categoria = solicitacao_acerto.tipo_acerto.categoria
 
+            categorias_de_conciliacao = [
+                TipoAcertoLancamento.CATEGORIA_CONCILIACAO_LANCAMENTO,
+                TipoAcertoLancamento.CATEGORIA_DESCONCILIACAO_LANCAMENTO
+            ]
+
             if categoria == TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO:
                 if not analise_lancamento.lancamento_atualizado:
                     pode_atualizar_status = False
@@ -57,6 +62,13 @@ class MarcarComoRealizado:
                             novo_status=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE,
                         )
 
+            elif categoria in categorias_de_conciliacao:
+                if not analise_lancamento.conciliacao_atualizada:
+                    pode_atualizar_status = False
+
+                    self.response["todas_as_solicitacoes_marcadas_como_realizado"] = False
+                    self.response["mensagem"] = texto_solicitacoes_nao_atendidas
+
             elif categoria == TipoAcertoLancamento.CATEGORIA_AJUSTES_EXTERNOS:
                 pode_atualizar_status = True
 
@@ -89,6 +101,11 @@ class JustificarNaoRealizacao:
             analise_lancamento = solicitacao_acerto.analise_lancamento
             categoria = solicitacao_acerto.tipo_acerto.categoria
 
+            categorias_de_conciliacao = [
+                TipoAcertoLancamento.CATEGORIA_CONCILIACAO_LANCAMENTO,
+                TipoAcertoLancamento.CATEGORIA_DESCONCILIACAO_LANCAMENTO
+            ]
+
             if categoria == TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO:
                 if analise_lancamento.lancamento_atualizado:
                     pode_atualizar_status = False
@@ -117,6 +134,13 @@ class JustificarNaoRealizacao:
 
                         self.response["todas_as_solicitacoes_marcadas_como_justificado"] = False
                         self.response["mensagem"] = texto_solicitacoes_nao_atendidas
+
+            elif categoria in categorias_de_conciliacao:
+                if analise_lancamento.conciliacao_atualizada:
+                    pode_atualizar_status = False
+
+                    self.response["todas_as_solicitacoes_marcadas_como_justificado"] = False
+                    self.response["mensagem"] = texto_solicitacoes_nao_atendidas
 
             elif categoria == TipoAcertoLancamento.CATEGORIA_AJUSTES_EXTERNOS:
                 pode_atualizar_status = True

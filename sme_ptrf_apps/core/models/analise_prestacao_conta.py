@@ -137,6 +137,8 @@ class AnalisePrestacaoConta(ModeloBase):
         categorias_que_requerem_alteracoes = [
             TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
             TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO,
+            TipoAcertoLancamento.CATEGORIA_CONCILIACAO_LANCAMENTO,
+            TipoAcertoLancamento.CATEGORIA_DESCONCILIACAO_LANCAMENTO,
             TipoAcertoDocumento.CATEGORIA_INCLUSAO_GASTO,
             TipoAcertoDocumento.CATEGORIA_INCLUSAO_CREDITO
         ]
