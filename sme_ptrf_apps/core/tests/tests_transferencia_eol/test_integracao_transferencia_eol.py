@@ -38,3 +38,6 @@ def test_integracao_transferencia_eol(
     contas_associacao_original = transf_eol_associacao_eol_transferido.contas.filter(tipo_conta=transferencia_eol.tipo_conta_transferido).all()
     contas_associacao_nova = nova_associacao.contas.filter(tipo_conta=transferencia_eol.tipo_conta_transferido).all()
     assert contas_associacao_nova.count() == contas_associacao_original.count(), "Deve ter a mesma quantidade de contas_associacao do tipo_conta_transferido"
+
+    # Todas as contas_associacao de tipo_conta_transferido da associação original deve ter sido inativada
+    assert contas_associacao_original.filter(status='INATIVA').count() == contas_associacao_original.count(), "Deve ter inativado todas as contas_associacao do tipo_conta_transferido"

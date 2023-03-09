@@ -212,6 +212,15 @@ class TransferenciaEol(ModeloBase):
 
         self.adicionar_log_info(f'Contas_associacao do tipo {self.tipo_conta_transferido} da associação original copiadas para a nova associação.')
 
+    def inativar_contas_associacao_do_tipo_transferido(self, associacao_original):
+        self.adicionar_log_info(f'Inativando contas_associacao do tipo {self.tipo_conta_transferido} da associação original.')
+        contas_associacao_original = associacao_original.contas.filter(tipo_conta=self.tipo_conta_transferido).all()
+        for conta_associacao in contas_associacao_original:
+            conta_associacao.inativar()
+            self.adicionar_log_info(f'Conta_associacao {conta_associacao} inativada.')
+
+        self.adicionar_log_info(f'Contas_associacao do tipo {self.tipo_conta_transferido} da associação original inativadas.')
+
     def get_associacao_original(self):
         return Associacao.by_uuid(self.associacao_original_uuid)
 
@@ -253,6 +262,8 @@ class TransferenciaEol(ModeloBase):
         self.copiar_contas_associacao_do_tipo_transferido(self.get_associacao_original(), associacao_nova)
 
         # desativar a conta_associacao de tipo_conta_transferido da associação original
+        self.inativar_contas_associacao_do_tipo_transferido(self.get_associacao_original())
+
         # desvincular a associação da unidade de código transferido e vincula-la a unidade de código histórico
         # vincular a nova associação a unidade de código transferido
         # copiar gastos e rateios vinculados à conta_associacao de tipo_conta_transferido da associação original para a nova associação
