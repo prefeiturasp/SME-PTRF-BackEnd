@@ -65,7 +65,7 @@ class Unidade(ModeloBase, TemNome):
     @classmethod
     def tipos_unidade_to_json(cls):
         result = []
-        for choice in cls.TIPOS_CHOICE:
+        for choice in TIPOS_CHOICE:
             tipo_unidade = {
                 'id': choice[0],
                 'nome': choice[1]
