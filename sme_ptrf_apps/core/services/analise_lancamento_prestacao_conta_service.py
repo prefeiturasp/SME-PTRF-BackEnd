@@ -17,3 +17,10 @@ class AnaliseLancamentoPrestacaoContaService:
     def marcar_lancamento_como_excluido(cls, analise_lancamento):
         return analise_lancamento.passar_lancamento_para_excluido()
 
+    @classmethod
+    def marcar_lancamento_como_conciliado(cls, analise_lancamento, periodo):
+        return analise_lancamento.passar_lancamento_para_conciliado(periodo)
+
+    @classmethod
+    def marcar_lancamento_como_desconciliado(cls, analise_lancamento):
+        return analise_lancamento.passar_lancamento_para_desconciliado()
