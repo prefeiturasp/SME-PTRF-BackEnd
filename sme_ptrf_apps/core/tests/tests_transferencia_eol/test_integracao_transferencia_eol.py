@@ -18,7 +18,10 @@ def test_integracao_transferencia_eol(
     transf_eol_rateio_despesa_conta_cartao,
     transf_eol_rateio_despesa_conta_cartao_rateio_2,
     transf_eol_despesa_2_conta_cheque,         # Não deve ser copiada, por ter rateios da conta cheque
-    transf_eol_rateio_despesa_2_conta_cheque   # Não deve ser copiada, por ser da conta cheque
+    transf_eol_rateio_despesa_2_conta_cheque,  # Não deve ser copiada, por ser da conta cheque
+    transf_eol_receita_conta_cartao,
+    transf_eol_receita_conta_cheque,           # Não deve ser copiada, por ser da conta cheque
+
 ):
     assert transf_eol_associacao_eol_transferido.acoes.count() == 2
 
@@ -57,7 +60,12 @@ def test_integracao_transferencia_eol(
     # Todos os gastos e rateios vinculados à conta_associacao de tipo_conta_transferido da associação original devem ser inativados
     assert despesas_original.filter(status='INATIVO').count() == despesas_original.filter(rateios__conta_associacao__tipo_conta=transferencia_eol.tipo_conta_transferido).distinct().count(), "Deve ter inativado todas as despesas originais"
 
-    # copiar créditos vinculados à conta_associacao de tipo_conta_transferido da associação original para a nova associação
+    # Todas as receitas vinculadas à conta_associacao de tipo_conta_transferido da associação original devem ser copiadas para a nova associação
+    receitas_original = transf_eol_associacao_eol_transferido.receitas.all()
+    receitas_nova = nova_associacao.receitas.all()
+    assert receitas_nova.count() == 1, "Deve ter copiado apenas as receitas que possuem rateios em contas_associacao de tipo_conta transferido"
+    assert receitas_original.count() == 2, "A associação original deve manter as receitas originais"
+
     # desativar créditos vinculados à conta_associacao de tipo_conta_transferido da associação original
     # gravar log de execução
     # atualizar status do processamento

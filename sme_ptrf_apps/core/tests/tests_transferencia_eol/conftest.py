@@ -319,3 +319,57 @@ def transf_eol_rateio_despesa_2_conta_cheque(
         especificacao_material_servico=transf_eol_especificacao_material_servico,
         valor_rateio=100.00,
     )
+
+
+@pytest.fixture
+def transf_eol_tipo_receita(transf_eol_tipo_conta_cheque, transf_eol_tipo_conta_cartao):
+    return baker.make('TipoReceita', nome='Repasse', e_repasse=True, aceita_capital=True, aceita_custeio=True,
+                      tipos_conta=[transf_eol_tipo_conta_cheque, transf_eol_tipo_conta_cartao])
+
+
+@pytest.fixture
+def transf_eol_receita_conta_cheque(
+    transf_eol_associacao_eol_transferido,
+    transf_eol_conta_associacao_cheque,
+    transf_eol_acao_associacao_ptrf,
+    transf_eol_tipo_receita,
+    transf_eol_periodo_2022_2,
+):
+    return baker.make(
+        'Receita',
+        associacao=transf_eol_associacao_eol_transferido,
+        data=datetime.date(2022, 7, 1),
+        valor=100.00,
+        conta_associacao=transf_eol_conta_associacao_cheque,
+        acao_associacao=transf_eol_acao_associacao_ptrf,
+        tipo_receita=transf_eol_tipo_receita,
+        update_conferido=True,
+        conferido=True,
+        categoria_receita='CUSTEIO',
+        periodo_conciliacao=transf_eol_periodo_2022_2,
+        detalhe_outros='receita conta cheque',
+    )
+
+
+@pytest.fixture
+def transf_eol_receita_conta_cartao(
+    transf_eol_associacao_eol_transferido,
+    transf_eol_conta_associacao_cartao,
+    transf_eol_acao_associacao_ptrf,
+    transf_eol_tipo_receita,
+    transf_eol_periodo_2022_2,
+):
+    return baker.make(
+        'Receita',
+        associacao=transf_eol_associacao_eol_transferido,
+        data=datetime.date(2022, 7, 1),
+        valor=100.00,
+        conta_associacao=transf_eol_conta_associacao_cartao,
+        acao_associacao=transf_eol_acao_associacao_ptrf,
+        tipo_receita=transf_eol_tipo_receita,
+        update_conferido=True,
+        conferido=True,
+        categoria_receita='CUSTEIO',
+        periodo_conciliacao=transf_eol_periodo_2022_2,
+        detalhe_outros='receita conta cartão',
+    )
