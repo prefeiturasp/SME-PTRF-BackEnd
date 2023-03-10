@@ -298,6 +298,12 @@ class TransferenciaEol(ModeloBase):
         self.save()
         self.salvar_logs()
 
+    def finalizar_transferencia(self):
+        self.adicionar_log_info(f'Finalizada com sucesso a transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico.')
+        self.status_processamento = SUCESSO
+        self.save()
+        self.salvar_logs()
+
     def transferir(self):
         self.inicializar_transferencia()
 
@@ -327,3 +333,4 @@ class TransferenciaEol(ModeloBase):
 
         self.inativar_receitas_associacao_do_tipo_transferido(self.get_associacao_original())
 
+        self.finalizar_transferencia()

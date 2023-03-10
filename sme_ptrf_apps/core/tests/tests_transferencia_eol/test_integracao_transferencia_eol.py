@@ -69,5 +69,5 @@ def test_integracao_transferencia_eol(
     # Todas as receitas vinculadas à conta_associacao de tipo_conta_transferido da associação original devem ser inativadas
     assert receitas_original.filter(status='INATIVO').count() == receitas_original.filter(conta_associacao__tipo_conta=transferencia_eol.tipo_conta_transferido).distinct().count(), "Deve ter inativado todas as receitas originais"
 
-    # gravar log de execução
-    # atualizar status do processamento
+    # Transferencia deve finalizar com sucesso
+    assert transferencia_eol.status_processamento == 'SUCESSO'
