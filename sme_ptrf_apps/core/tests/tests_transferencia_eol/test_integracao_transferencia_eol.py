@@ -71,3 +71,4 @@ def test_integracao_transferencia_eol(
 
     # Transferencia deve finalizar com sucesso
     assert transferencia_eol.status_processamento == 'SUCESSO'
+

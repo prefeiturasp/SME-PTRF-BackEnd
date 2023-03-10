@@ -138,6 +138,10 @@ class TransferenciaEol(ModeloBase):
         logging.info(texto_log)
         self.adicionar_log(texto_log)
 
+    def adicionar_log_erro(self, texto_log):
+        logging.error(texto_log)
+        self.adicionar_log(texto_log)
+
     def transferencia_possivel(self):
         """
         Verifica se é possível realizar a transferência de um código EOL para uma nova unidade/associação.
@@ -332,12 +336,23 @@ class TransferenciaEol(ModeloBase):
         self.save()
         self.associacao_original_uuid = Associacao.objects.get(unidade__codigo_eol=self.eol_transferido).uuid
 
-    def abortar_transferencia(self, motivo):
+    def abortar_transferencia(self, motivo, excecao=False):
         self.adicionar_log_info(
             f'Abortando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico. Motivo: {motivo}')
-        self.status_processamento = ABORTADO
+        self.status_processamento = ERRO if excecao else ABORTADO
         self.save()
         self.salvar_logs()
+
+    def executar_transferencia(self):
+        associacao_nova = self.criar_associacao_nova()
+        self.copiar_acoes_associacao(self.associacao_original, associacao_nova)
+        self.copiar_contas_associacao_do_tipo_transferido(self.associacao_original, associacao_nova)
+        self.inativar_contas_associacao_do_tipo_transferido(self.associacao_original)
+        self.copiar_despesas_associacao_do_tipo_transferido(self.associacao_original, associacao_nova)
+        self.inativar_despesas_associacao_do_tipo_transferido(self.associacao_original)
+        self.copiar_receitas_associacao_do_tipo_transferido(self.associacao_original, associacao_nova)
+        self.inativar_receitas_associacao_do_tipo_transferido(self.associacao_original)
+        self.finalizar_transferencia()
 
     def finalizar_transferencia(self):
         self.adicionar_log_info(f'Finalizada com sucesso a transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico.')
@@ -346,28 +361,18 @@ class TransferenciaEol(ModeloBase):
         self.salvar_logs()
 
     def transferir(self):
-        self.inicializar_transferencia()
+        try:
+            self.inicializar_transferencia()
 
-        # verifica se a transferência é possível e se não for aborta operação.
-        pode_transferir, motivo = self.transferencia_possivel()
-        if not pode_transferir:
-            self.abortar_transferencia(motivo)
-            return
+            pode_transferir, motivo = self.transferencia_possivel()
+            if not pode_transferir:
+                self.abortar_transferencia(motivo)
+                return
 
-        associacao_nova = self.criar_associacao_nova()
+            self.executar_transferencia()
 
-        self.copiar_acoes_associacao(self.associacao_original, associacao_nova)
+        except Exception as e:
+            self.adicionar_log_erro(f'Erro ao executar transferência: {str(e)}')
+            self.abortar_transferencia(str(e), excecao=True)
+            raise e
 
-        self.copiar_contas_associacao_do_tipo_transferido(self.associacao_original, associacao_nova)
-
-        self.inativar_contas_associacao_do_tipo_transferido(self.associacao_original)
-
-        self.copiar_despesas_associacao_do_tipo_transferido(self.associacao_original, associacao_nova)
-
-        self.inativar_despesas_associacao_do_tipo_transferido(self.associacao_original)
-
-        self.copiar_receitas_associacao_do_tipo_transferido(self.associacao_original, associacao_nova)
-
-        self.inativar_receitas_associacao_do_tipo_transferido(self.associacao_original)
-
-        self.finalizar_transferencia()
