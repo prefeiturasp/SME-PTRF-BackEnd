@@ -61,4 +61,5 @@ from .tipos_acerto_documento_service import TipoAcertoDocumentoService
 from .analise_lancamento_prestacao_conta_service import AnaliseLancamentoPrestacaoContaService
 from .solicitacao_acerto_lancamento_service import SolicitacaoAcertoLancamentoService
 from .solicitacao_acerto_documento_service import SolicitacaoAcertoDocumentoService
+from .falha_geracao_pc_service import FalhaGeracaoPcService
 
