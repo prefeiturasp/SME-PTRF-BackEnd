@@ -3,6 +3,7 @@ import logging
 from django.core.files import File
 from tempfile import NamedTemporaryFile
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
+from sme_ptrf_apps.utils.string_to_float import string_to_float
 from .relatorio_consolidado_service import (
     informacoes_execucao_financeira_unidades
 )
@@ -98,6 +99,7 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
 
         linhas.append(texto)
 
+        lauda_vazia = True
         if len(status_separados["aprovadas"]) > 0:
             # Atenção para não mudar a formatação da string
             ng_aprovadas = "((NG)) Prestações de contas aprovadas((CL))\n" \
@@ -115,7 +117,10 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
                         f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
                         f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
                         f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
-                linhas.append(linha)
+
+                if not verificar_se_todos_os_valores_da_conta_estao_zerados(status):
+                    lauda_vazia = False
+                    linhas.append(linha)
 
             linhas.append("\n")
 
@@ -136,7 +141,10 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
                         f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
                         f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
                         f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
-                linhas.append(linha)
+                
+                if not verificar_se_todos_os_valores_da_conta_estao_zerados(status):
+                    lauda_vazia = False
+                    linhas.append(linha)
 
             linhas.append("\n")
 
@@ -157,17 +165,24 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
                         f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
                         f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
                         f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
-                linhas.append(linha)
+                
+                if not verificar_se_todos_os_valores_da_conta_estao_zerados(status):
+                    lauda_vazia = False
+                    linhas.append(linha)
 
         tmp.file.writelines(linhas)
 
         tmp.seek(0)
 
         try:
-            nome_lauda = f"Lauda_{nome_dre}.docx.txt"
-            lauda.arquivo_lauda_txt.save(name=f'{nome_lauda}', content=File(tmp))
-            eh_parcial = parcial['parcial']
-            lauda.passar_para_status_gerado(eh_parcial)
+            if not lauda_vazia:
+                nome_lauda = f"Lauda_{nome_dre}.docx.txt"
+                lauda.arquivo_lauda_txt.save(name=f'{nome_lauda}', content=File(tmp))
+                eh_parcial = parcial['parcial']
+                lauda.passar_para_status_gerado(eh_parcial)
+            else:
+                logger.info("Os registros das contas bancárias das PCs estão zerados, logo o arquivo txt lauda não foi gerado.")
+                lauda.delete()
         except Exception as err:
             logger.error("Erro ao gerar arquivo txt lauda: %s", str(err))
             raise Exception(err)
@@ -504,3 +519,11 @@ def formata_data_publicacao(consolidado_dre):
         return consolidado_original.data_publicacao.strftime("%d/%m/%Y")
 
     return ""
+
+def verificar_se_todos_os_valores_da_conta_estao_zerados(status):
+    if(string_to_float(status["receita"]["custeio"]) or string_to_float(status["receita"]["livre_aplicacao"]) or string_to_float(status["receita"]["capital"]) or
+        string_to_float(status["despesa"]["custeio"]) or string_to_float(status["despesa"]["capital"]) or string_to_float(status["saldo"]["custeio"]) or
+        string_to_float(status["saldo"]["livre_aplicacao"]) or string_to_float(status["saldo"]["capital"])):
+        return False
+    
+    return True
