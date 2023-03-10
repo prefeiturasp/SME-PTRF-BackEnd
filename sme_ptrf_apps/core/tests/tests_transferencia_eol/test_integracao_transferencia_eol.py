@@ -66,6 +66,8 @@ def test_integracao_transferencia_eol(
     assert receitas_nova.count() == 1, "Deve ter copiado apenas as receitas que possuem rateios em contas_associacao de tipo_conta transferido"
     assert receitas_original.count() == 2, "A associação original deve manter as receitas originais"
 
-    # desativar créditos vinculados à conta_associacao de tipo_conta_transferido da associação original
+    # Todas as receitas vinculadas à conta_associacao de tipo_conta_transferido da associação original devem ser inativadas
+    assert receitas_original.filter(status='INATIVO').count() == receitas_original.filter(conta_associacao__tipo_conta=transferencia_eol.tipo_conta_transferido).distinct().count(), "Deve ter inativado todas as receitas originais"
+
     # gravar log de execução
     # atualizar status do processamento

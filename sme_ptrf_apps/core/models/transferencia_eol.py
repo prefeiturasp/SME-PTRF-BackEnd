@@ -271,6 +271,17 @@ class TransferenciaEol(ModeloBase):
             receita.save()
             self.adicionar_log_info(f'Receita  {receita} copiada para a nova associação.')
 
+    def inativar_receitas_associacao_do_tipo_transferido(self, associacao_original):
+        self.adicionar_log_info(f'Inativando receitas da conta {self.tipo_conta_transferido} da associação original.')
+
+        receitas_associacao_original = associacao_original.receitas.filter(conta_associacao__tipo_conta=self.tipo_conta_transferido).all()
+
+        for receita in receitas_associacao_original:
+            receita.inativar_receita()
+            self.adicionar_log_info(f'Receita {receita} inativada.')
+
+        self.adicionar_log_info(f'Receitas da conta {self.tipo_conta_transferido} da associação original inativadas.')
+
     def get_associacao_original(self):
         return Associacao.by_uuid(self.associacao_original_uuid)
 
@@ -324,6 +335,7 @@ class TransferenciaEol(ModeloBase):
         self.copiar_receitas_associacao_do_tipo_transferido(self.get_associacao_original(), associacao_nova)
 
         # desativar créditos vinculados à conta_associacao de tipo_conta_transferido da associação original
+        self.inativar_receitas_associacao_do_tipo_transferido(self.get_associacao_original())
         # gravar log de execução
         # atualizar status do processamento
 
