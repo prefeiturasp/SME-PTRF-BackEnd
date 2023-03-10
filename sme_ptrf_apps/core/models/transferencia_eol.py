@@ -307,35 +307,23 @@ class TransferenciaEol(ModeloBase):
             self.abortar_transferencia(motivo)
             return
 
-        # clona a unidade de código transferido para uma nova usando o código histórico
         unidade_historico = self.clonar_unidade()
 
-        # atualiza a unidade de código transferido para o tipo_nova_unidade
-        unidade_transferida = self.atualizar_unidade_transferida()
+        self.atualizar_unidade_transferida()
 
-        # clona associacao da unidade de código transferido para uma nova associação
         associacao_nova = self.clonar_associacao(self.associacao_original_uuid, unidade_historico)
 
-        # copiar as ações_associacao da associação original para a nova associação (guardando o "de-para" para atualizar os gastos e créditos.)
         self.copiar_acoes_associacao(self.get_associacao_original(), associacao_nova)
 
-        # copiar a conta_associacao de tipo_conta_transferido da associação original para a nova associação
         self.copiar_contas_associacao_do_tipo_transferido(self.get_associacao_original(), associacao_nova)
 
-        # desativar a conta_associacao de tipo_conta_transferido da associação original
         self.inativar_contas_associacao_do_tipo_transferido(self.get_associacao_original())
 
-        # copiar despesas e rateios vinculados à conta_associacao de tipo_conta_transferido da associação original para a nova associação
         self.copiar_despesas_associacao_do_tipo_transferido(self.get_associacao_original(), associacao_nova)
 
-        # desativar gastos e rateios vinculados à conta_associacao de tipo_conta_transferido da associação original
         self.inativar_despesas_associacao_do_tipo_transferido(self.get_associacao_original())
 
-        # copiar créditos vinculados à conta_associacao de tipo_conta_transferido da associação original para a nova associação
         self.copiar_receitas_associacao_do_tipo_transferido(self.get_associacao_original(), associacao_nova)
 
-        # desativar créditos vinculados à conta_associacao de tipo_conta_transferido da associação original
         self.inativar_receitas_associacao_do_tipo_transferido(self.get_associacao_original())
-        # gravar log de execução
-        # atualizar status do processamento
 
