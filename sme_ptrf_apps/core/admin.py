@@ -45,7 +45,8 @@ from .models import (
     SolicitacaoAcertoDocumento,
     PresenteAta,
     ValoresReprogramados,
-    SolicitacaoDevolucaoAoTesouro
+    SolicitacaoDevolucaoAoTesouro,
+    FalhaGeracaoPc,
 )
 
 admin.site.register(Acao)
@@ -633,6 +634,8 @@ class ParametrosAdmin(admin.ModelAdmin):
                 (
                     'permite_saldo_conta_negativo',
                     'tempo_aguardar_conclusao_pc',
+                    'quantidade_tentativas_concluir_pc',
+                    'periodo_de_tempo_tentativas_concluir_pc',
                     'tempo_notificar_nao_demonstrados',
                     'dias_antes_inicio_periodo_pc_para_notificacao',
                     'dias_antes_fim_periodo_pc_para_notificacao',
@@ -1225,3 +1228,13 @@ class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
         'motivo'
     )
     autocomplete_fields = ('solicitacao_acerto_lancamento',)
+
+
+@admin.register(FalhaGeracaoPc)
+class FalhaGeracaoPcAdmin(admin.ModelAdmin):
+    list_display = ['ultimo_usuario', 'associacao', 'periodo', 'data_hora_ultima_ocorrencia',
+                    'qtd_ocorrencias_sucessivas', 'resolvido']
+    list_filter = ['ultimo_usuario', 'associacao', 'periodo', 'data_hora_ultima_ocorrencia',
+                   'qtd_ocorrencias_sucessivas', 'resolvido']
+    readonly_fields = ('uuid', 'id')
+    search_fields = ('ultimo_usuario__username', 'associacao__nome')
