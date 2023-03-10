@@ -42,6 +42,26 @@ STATUS_PROCESSAMENTO_CHOICES = (
 
 
 class TransferenciaEol(ModeloBase):
+    """
+    Transferência de código EOL de uma unidade para outra.
+
+    Esse modelo é usado para apoiar a transferência do código EOL de uma unidade para uma nova.
+
+    O cenário de uso é o seguinte:
+    - Uma unidade/associação será inativada e o código EOL será transferido para outra unidade/associação.
+    - É necessário manter o histórico de receitas e despesas da unidade/associação que será inativada.
+    - Existem receitas e despesas lançados que já se referem a nova unidade/associação
+    - A movimentação referente à nova associação são os que ocorreram após a data de início de suas atividades.
+    - Também são identificados pelo tipo da conta_associação que difere da conta_associação da associação que será inativada.
+    - Para referenciar o histórico será criada uma unidade com o código EOL de histórico.
+    - A Associação original passará a referenciar a unidade histórico.
+    - A Associação nova irá referenciar a unidade original com o código EOL transferido.
+    - A conta_associacao do tipo_conta_transferido da Associação original será copiado para a nova e inativado na original.
+    - As receitas e despesas da Associação original serão copiados para a nova e inativados na original.
+
+    A transferência é realizada pelo método 'transferir'.
+
+    """
 
     eol_transferido = models.CharField(
         'EOL a ser transferido',
@@ -119,6 +139,22 @@ class TransferenciaEol(ModeloBase):
         self.adicionar_log(texto_log)
 
     def transferencia_possivel(self):
+        """
+        Verifica se é possível realizar a transferência de um código EOL para uma nova unidade/associação.
+
+        Retorna uma tupla com um valor booleano indicando se a transferência é possível ou não, e uma mensagem de erro
+        caso a transferência não seja possível.
+
+        Requisitos para a transferência:
+        - A unidade com o EOL que está sendo transferido deve existir;
+        - Deve existir uma associação para o código EOL que está sendo transferido;
+        - O código EOL que será usado para o histórico NÃO deve existir;
+        - Deve existir um período para a data de início das atividades da nova unidade;
+        - Não deve existir fechamentos na associação original para o período de início das atividades da nova unidade;
+        - A conta_associação que será transferida para a nova associação deve existir;
+        - Não devem existir despesas na associação original com rateios em múltiplas contas.
+        """
+
         # O código EOL transferido deve existir
         if not Unidade.objects.filter(codigo_eol=self.eol_transferido).exists():
             return False, f'Código EOL transferido {self.eol_transferido} não existe.'
@@ -153,7 +189,6 @@ class TransferenciaEol(ModeloBase):
 
         return True, ""
 
-    # clonar a unidade de código transferido para uma nova usando o código histórico
     def clonar_unidade(self):
         self.adicionar_log_info(f'Clonando unidade de código EOL {self.eol_transferido} para {self.eol_historico}.')
         unidade_transferida = Unidade.objects.get(codigo_eol=self.eol_transferido)
@@ -221,7 +256,6 @@ class TransferenciaEol(ModeloBase):
 
         self.adicionar_log_info(f'Contas_associacao do tipo {self.tipo_conta_transferido} da associação original inativadas.')
 
-    # copiar despesas e rateios vinculados à conta_associacao de tipo_conta_transferido da associação original para a nova associação
     def copiar_despesas_associacao_do_tipo_transferido(self, associacao_original, associacao_nova):
         self.adicionar_log_info(f'Copiando despesas_associacao do tipo {self.tipo_conta_transferido} da associação original para a nova associação.')
 
@@ -282,8 +316,15 @@ class TransferenciaEol(ModeloBase):
 
         self.adicionar_log_info(f'Receitas da conta {self.tipo_conta_transferido} da associação original inativadas.')
 
-    def get_associacao_original(self):
+    @property
+    def associacao_original(self):
         return Associacao.by_uuid(self.associacao_original_uuid)
+
+    def criar_associacao_nova(self):
+        unidade_historico = self.clonar_unidade()
+        self.atualizar_unidade_transferida()
+        associacao_nova = self.clonar_associacao(self.associacao_original_uuid, unidade_historico)
+        return associacao_nova
 
     def inicializar_transferencia(self):
         self.adicionar_log_info(f'Iniciando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico.')
@@ -313,24 +354,20 @@ class TransferenciaEol(ModeloBase):
             self.abortar_transferencia(motivo)
             return
 
-        unidade_historico = self.clonar_unidade()
+        associacao_nova = self.criar_associacao_nova()
 
-        self.atualizar_unidade_transferida()
+        self.copiar_acoes_associacao(self.associacao_original, associacao_nova)
 
-        associacao_nova = self.clonar_associacao(self.associacao_original_uuid, unidade_historico)
+        self.copiar_contas_associacao_do_tipo_transferido(self.associacao_original, associacao_nova)
 
-        self.copiar_acoes_associacao(self.get_associacao_original(), associacao_nova)
+        self.inativar_contas_associacao_do_tipo_transferido(self.associacao_original)
 
-        self.copiar_contas_associacao_do_tipo_transferido(self.get_associacao_original(), associacao_nova)
+        self.copiar_despesas_associacao_do_tipo_transferido(self.associacao_original, associacao_nova)
 
-        self.inativar_contas_associacao_do_tipo_transferido(self.get_associacao_original())
+        self.inativar_despesas_associacao_do_tipo_transferido(self.associacao_original)
 
-        self.copiar_despesas_associacao_do_tipo_transferido(self.get_associacao_original(), associacao_nova)
+        self.copiar_receitas_associacao_do_tipo_transferido(self.associacao_original, associacao_nova)
 
-        self.inativar_despesas_associacao_do_tipo_transferido(self.get_associacao_original())
-
-        self.copiar_receitas_associacao_do_tipo_transferido(self.get_associacao_original(), associacao_nova)
-
-        self.inativar_receitas_associacao_do_tipo_transferido(self.get_associacao_original())
+        self.inativar_receitas_associacao_do_tipo_transferido(self.associacao_original)
 
         self.finalizar_transferencia()
