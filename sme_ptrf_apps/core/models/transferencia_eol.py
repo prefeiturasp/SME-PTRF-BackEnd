@@ -1,6 +1,8 @@
 import logging
 import uuid as uuid
 
+from datetime import datetime
+
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
@@ -127,7 +129,7 @@ class TransferenciaEol(ModeloBase):
     def adicionar_log(self, log):
         if not hasattr(self, 'lista_logs'):
             self.lista_logs = []
-        self.lista_logs.append(log)
+        self.lista_logs.append(f'{datetime.now().strftime("%H:%M:%S")} - {log}')
 
     def salvar_logs(self):
         if hasattr(self, 'lista_logs'):
@@ -362,7 +364,7 @@ class TransferenciaEol(ModeloBase):
         return associacao_nova
 
     def inicializar_transferencia(self):
-        self.adicionar_log_info(f'Iniciando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico.')
+        self.adicionar_log_info(f'Iniciando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico. Data: {datetime.today()}')
         self.status_processamento = PROCESSANDO
         self.save()
         self.associacao_original_uuid = Associacao.objects.get(unidade__codigo_eol=self.eol_transferido).uuid
