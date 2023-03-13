@@ -230,6 +230,11 @@ class TransferenciaEol(ModeloBase):
     def copiar_acoes_associacao(self, associacao_original, associacao_nova):
         self.adicionar_log_info(f'Copiando ações_associacao da associação original para a nova associação.')
         acoes_associacao_original = associacao_original.acoes.all()
+
+        if not acoes_associacao_original.exists():
+            self.adicionar_log_info(f'Associação original não possui ações_associacao.')
+            return
+
         for acao_associacao in acoes_associacao_original:
             acao_associacao.pk = None
             acao_associacao.uuid = uuid.uuid4()
@@ -242,6 +247,11 @@ class TransferenciaEol(ModeloBase):
     def copiar_contas_associacao_do_tipo_transferido(self, associacao_original, associacao_nova):
         self.adicionar_log_info(f'Copiando contas_associacao do tipo {self.tipo_conta_transferido} da associação original para a nova associação.')
         contas_associacao_original = associacao_original.contas.filter(tipo_conta=self.tipo_conta_transferido).all()
+
+        if not contas_associacao_original.exists():
+            self.adicionar_log_info(f'Associação original não possui contas_associacao do tipo {self.tipo_conta_transferido}.')
+            return
+
         for conta_associacao in contas_associacao_original:
             conta_associacao.pk = None
             conta_associacao.uuid = uuid.uuid4()
@@ -254,6 +264,11 @@ class TransferenciaEol(ModeloBase):
     def inativar_contas_associacao_do_tipo_transferido(self, associacao_original):
         self.adicionar_log_info(f'Inativando contas_associacao do tipo {self.tipo_conta_transferido} da associação original.')
         contas_associacao_original = associacao_original.contas.filter(tipo_conta=self.tipo_conta_transferido).all()
+
+        if not contas_associacao_original.exists():
+            self.adicionar_log_info(f'Associação original não possui contas_associacao do tipo {self.tipo_conta_transferido} a serem inativadas.')
+            return
+
         for conta_associacao in contas_associacao_original:
             conta_associacao.inativar()
             self.adicionar_log_info(f'Conta_associacao {conta_associacao} inativada.')
@@ -264,6 +279,10 @@ class TransferenciaEol(ModeloBase):
         self.adicionar_log_info(f'Copiando despesas_associacao do tipo {self.tipo_conta_transferido} da associação original para a nova associação.')
 
         despesas_associacao_original = associacao_original.despesas.filter(rateios__conta_associacao__tipo_conta=self.tipo_conta_transferido).distinct()
+
+        if not despesas_associacao_original.exists():
+            self.adicionar_log_info(f'Associação original não possui despesas_associacao em conta {self.tipo_conta_transferido}.')
+            return
 
         for despesa_associacao in despesas_associacao_original:
 
@@ -290,6 +309,10 @@ class TransferenciaEol(ModeloBase):
 
         despesas_associacao_original = associacao_original.despesas.filter(rateios__conta_associacao__tipo_conta=self.tipo_conta_transferido).distinct()
 
+        if not despesas_associacao_original.exists():
+            self.adicionar_log_info(f'Associação original não possui despesas_associacao em conta {self.tipo_conta_transferido} a serem inativadas.')
+            return
+
         for despesa_associacao in despesas_associacao_original:
             despesa_associacao.inativar_despesa()
             self.adicionar_log_info(f'Despesa {despesa_associacao} inativada.')
@@ -300,6 +323,10 @@ class TransferenciaEol(ModeloBase):
         self.adicionar_log_info(f'Copiando receitas da conta {self.tipo_conta_transferido} da associação original para a nova associação.')
 
         receitas_associacao_original = associacao_original.receitas.filter(conta_associacao__tipo_conta=self.tipo_conta_transferido).all()
+
+        if not receitas_associacao_original.exists():
+            self.adicionar_log_info(f'Associação original não possui receitas em conta {self.tipo_conta_transferido}.')
+            return
 
         for receita in receitas_associacao_original:
             receita.pk = None
@@ -313,6 +340,10 @@ class TransferenciaEol(ModeloBase):
         self.adicionar_log_info(f'Inativando receitas da conta {self.tipo_conta_transferido} da associação original.')
 
         receitas_associacao_original = associacao_original.receitas.filter(conta_associacao__tipo_conta=self.tipo_conta_transferido).all()
+
+        if not receitas_associacao_original.exists():
+            self.adicionar_log_info(f'Associação original não possui receitas em conta {self.tipo_conta_transferido} a serem inativadas.')
+            return
 
         for receita in receitas_associacao_original:
             receita.inativar_receita()
