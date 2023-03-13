@@ -26,11 +26,10 @@ class ReceitaAdmin(admin.ModelAdmin):
 
     list_display = ('data', 'valor', 'categoria_receita', 'detalhamento', 'associacao', 'repasse','status')
     ordering = ('-data',)
-    search_fields = ('detalhe_tipo_receita__nome', 'detalhe_outros')
+    search_fields = ('detalhe_tipo_receita__nome', 'detalhe_outros', 'associacao__nome', 'associacao__unidade__nome', 'associacao__unidade__codigo_eol')
     list_filter = (
         ('conferido', customTitledFilter('Conferido')),
         ('data', DateRangeFilter),
-        ('associacao__nome', customTitledFilter('Associação')),
         ('associacao__unidade__dre', customTitledFilter('DRE')),
         ('acao_associacao__acao__nome', customTitledFilter('Ação')),
         ('conta_associacao__tipo_conta__nome', customTitledFilter('Tipo Conta')),
