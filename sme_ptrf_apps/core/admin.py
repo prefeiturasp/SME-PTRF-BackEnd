@@ -1214,7 +1214,7 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
     get_referencia_periodo.short_description = 'Período'
 
     list_display = (
-        'id', 'get_dre', 'get_unidade', 'get_referencia_periodo', 'despesa', 'data', 'tipo', 'devolucao_total', 'valor', 'visao_criacao')
+        'get_dre', 'get_unidade', 'get_referencia_periodo', 'despesa', 'data', 'tipo', 'devolucao_total', 'valor', 'visao_criacao')
 
     list_filter = (
         'prestacao_conta__periodo',
