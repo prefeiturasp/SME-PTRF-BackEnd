@@ -1,10 +1,11 @@
 import logging
+import datetime
 
 from django.db.models import Count, Sum, Q, FilteredRelation
+from django.contrib.auth import get_user_model
 
 from sme_ptrf_apps.core.models import Associacao, Unidade, Periodo, TipoConta
-import datetime
-from django.contrib.auth import get_user_model
+from sme_ptrf_apps.core.choices.tipos_unidade import TIPOS_CHOICE
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ def saldo_por_tipo_de_unidade(queryset, periodo, conta):
     total_unidades_por_tipo = Associacao.objects.exclude(cnpj__exact='').values('unidade__tipo_unidade').annotate(
         qtde=Count('uuid'))
 
-    choices = Unidade.TIPOS_CHOICE
+    choices = TIPOS_CHOICE
 
     result = dict()
 
@@ -82,7 +83,7 @@ def saldo_por_ue_dre(queryset, periodo, conta):
     choices = []
     result = dict()
     dres = Unidade.dres.exclude(sigla='')
-    tupla_choices = Unidade.TIPOS_CHOICE
+    tupla_choices = TIPOS_CHOICE
 
     for choice in tupla_choices:
         if choice[0].upper() != 'DRE' and choice[0].upper() != 'ADM':
