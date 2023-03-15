@@ -39,12 +39,12 @@ class ExportacoesDadosMateriaisEServicosService:
 
     def exporta_materiais_e_servicos(self):
         self.cabecalho = CABECALHO_MATERIAIS_E_SERVICOS[0]
-        self.filtra_range_data('data')
+        self.filtra_range_data('criado_em')
         self.exporta_materiais_e_servicos_csv()
 
     def exporta_tipos_de_custeio(self):
         self.cabecalho = CABECALHO_TIPOS_DE_CUSTEIOS[0]
-        self.filtra_range_data('data')
+        self.filtra_range_data('criado_em')
         self.exporta_materiais_e_servicos_csv()
 
     def exporta_materiais_e_servicos_csv(self) -> BinaryIO:
