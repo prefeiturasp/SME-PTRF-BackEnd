@@ -1,7 +1,8 @@
 from sme_ptrf_apps.core.choices.tipos_carga import (CARGA_PERIODO_INICIAL, CARGA_REPASSE_REALIZADO,
                                                     CARGA_REPASSE_PREVISTO,
                                                     CARGA_ASSOCIACOES, CARGA_USUARIOS, CARGA_CENSO,
-                                                    CARGA_REPASSE_PREVISTO_SME, CARGA_DEVOLUCAO_TESOURO
+                                                    CARGA_REPASSE_PREVISTO_SME, CARGA_DEVOLUCAO_TESOURO,
+                                                    CARGA_MATERIAIS_SERVICOS
                                                     )
 from sme_ptrf_apps.core.services.periodo_inicial import carrega_periodo_inicial
 from sme_ptrf_apps.core.services.carga_censo import carrega_censo
@@ -11,7 +12,7 @@ from sme_ptrf_apps.core.services.carga_devolucoes_tesouro_service import CargaDe
 from sme_ptrf_apps.receitas.services.carga_repasses_previstos import carrega_repasses_previstos
 from sme_ptrf_apps.receitas.services.carga_repasses_realizados import carrega_repasses_realizados
 from sme_ptrf_apps.users.services.carga_usuario_service import CargaUsuariosService
-
+from sme_ptrf_apps.despesas.services.carga_materiais_servicos_service import CargaMateriaisServicosService
 
 def processa_cargas(queryset):
     for arquivo in queryset.all():
@@ -37,3 +38,5 @@ def processa_carga(arquivo):
         carrega_previsoes_repasses(arquivo)
     elif arquivo.tipo_carga == CARGA_DEVOLUCAO_TESOURO:
         CargaDevolucoesTesouroService().carrega_devolucoes_tesouro(arquivo)
+    elif arquivo.tipo_carga == CARGA_MATERIAIS_SERVICOS:
+        CargaMateriaisServicosService().carrega_materiais_servicos(arquivo)
