@@ -342,7 +342,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
 
-    actions = ['marcar_como_nao_publicada', 'cria_e_vincula_solicitacao_devolucao_ao_tesouro']
+    actions = ['marcar_como_nao_publicada']
 
     def marcar_como_nao_publicada(self, request, queryset):
         for prestacao_conta in queryset.all():
@@ -352,79 +352,6 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
 
         self.message_user(request, f"PCs marcadas como não publicadas com sucesso!")
 
-    def cria_e_vincula_solicitacao_devolucao_ao_tesouro(self, request, queryset):
-
-        status_de_conclusao = [
-            PrestacaoConta.STATUS_APROVADA,
-            PrestacaoConta.STATUS_APROVADA_RESSALVA,
-            PrestacaoConta.STATUS_REPROVADA
-        ]
-
-        for pc in queryset.all():
-            if pc.status in status_de_conclusao:
-                logging.info(f"A Prestação de contas: {pc}, está concluida, portanto não é necessário realizar o procedimento")
-                continue
-
-            for analise in pc.analises_da_prestacao.order_by('id').all():
-
-                analises_lancamentos = analise.analises_de_lancamentos.filter(
-                    resultado=AnaliseLancamentoPrestacaoConta.RESULTADO_AJUSTE).filter(
-                    tipo_lancamento=AnaliseLancamentoPrestacaoConta.TIPO_LANCAMENTO_GASTO).all()
-
-                for analise_lancamento in analises_lancamentos:
-                    solicitacao_de_acerto_do_tipo_devolucao = analise_lancamento.solicitacoes_de_ajuste_da_analise.filter(
-                        tipo_acerto__categoria="DEVOLUCAO").first()
-
-                    if solicitacao_de_acerto_do_tipo_devolucao:
-                        logging.info(f"Solicitação do tipo devolução ao tesouro: {solicitacao_de_acerto_do_tipo_devolucao}")
-
-                        if solicitacao_de_acerto_do_tipo_devolucao.devolucao_ao_tesouro:
-                            logging.info(f"Solicitação já possui uma devolução ao tesouro, portanto sera ignorada!")
-                            continue
-
-                        solicitacao_devolucao_ao_tesouro = SolicitacaoDevolucaoAoTesouro.objects.filter(
-                            solicitacao_acerto_lancamento=solicitacao_de_acerto_do_tipo_devolucao)
-
-                        if solicitacao_devolucao_ao_tesouro:
-                            logging.info(f"Solicitação de acerto ja possui uma solicitação de devolução ao tesouro, portanto sera ignorada!")
-                            continue
-                        else:
-                            logging.info(f"A Solicitação de acerto não possui uma solicitação de devolução ao tesouro, portanto sera criada!")
-
-                            despesa = solicitacao_de_acerto_do_tipo_devolucao.analise_lancamento.despesa
-                            devolucao_ao_tesouro = DevolucaoAoTesouro.objects.filter(despesa=despesa).first()
-
-                            if devolucao_ao_tesouro:
-                                logging.info(f"Devolução ao tesouro encontrada {devolucao_ao_tesouro}")
-
-                                solicitacao_criada = SolicitacaoDevolucaoAoTesouro.objects.create(
-                                    solicitacao_acerto_lancamento=solicitacao_de_acerto_do_tipo_devolucao,
-                                    tipo=devolucao_ao_tesouro.tipo,
-                                    devolucao_total=devolucao_ao_tesouro.devolucao_total,
-                                    valor=devolucao_ao_tesouro.valor,
-                                    motivo=devolucao_ao_tesouro.motivo
-                                )
-
-                                if solicitacao_criada:
-                                    logging.info(f"Solicitação de devolução ao tesouro criada com sucesso! {solicitacao_criada}")
-
-                                    # Preenchendo informacões da solicitação de acerto
-                                    solicitacao_de_acerto_do_tipo_devolucao.detalhamento = devolucao_ao_tesouro.motivo
-                                    solicitacao_de_acerto_do_tipo_devolucao.devolucao_ao_tesouro = devolucao_ao_tesouro
-                                    solicitacao_de_acerto_do_tipo_devolucao.save()
-
-                                    if devolucao_ao_tesouro.data:
-                                        # Se a devolução ao tesouro possui uma data, significa que a devolução ja foi atualizada em outra analise
-
-                                        analise_lancamento.devolucao_tesouro_atualizada = True
-                                        analise_lancamento.save()
-                                else:
-                                    logging.info(f"Não foi possivel criar a solicitação de devolução ao tesouro!")
-
-                            else:
-                                logging.info(f"Não foi possivel encontrar uma devolução ao tesouro da despesa: {despesa}, portando não será possivel criar a soliticação de devolução ao tesouro")
-
-        self.message_user(request, f"Solicitações de devolução criadas com sucesso!")
 
 @admin.register(Ata)
 class AtaAdmin(admin.ModelAdmin):

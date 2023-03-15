@@ -216,3 +216,36 @@ d.valor_total
 
 order by
 u.nome
+
+-- Lista solicitações de acerto do tipo devolução que não possuem vinculo com uma solicitação de devolução ao tesouro
+
+SELECT DISTINCT
+a.unidade_id as "codigo_eol",
+p.referencia,
+u.nome,
+pc.status
+
+FROM
+core_solicitacaoacertolancamento as sal,
+core_analiselancamentoprestacaoconta as al,
+core_analiseprestacaoconta as apc,
+core_prestacaoconta as pc,
+core_periodo as p,
+core_associacao as a,
+core_unidade as u,
+core_tipoacertolancamento as tal
+
+
+WHERE
+sal.analise_lancamento_id = al.id
+and al.analise_prestacao_conta_id = apc.id
+and apc.prestacao_conta_id = pc.id
+and pc.periodo_id = p.id
+and pc.associacao_id = a.id
+and a.unidade_id = u.codigo_eol
+and tal.id = sal.tipo_acerto_id
+and tal.categoria = 'DEVOLUCAO'
+and not exists (select sdt.id from core_solicitacaodevolucaoaotesouro as sdt where sdt.solicitacao_acerto_lancamento_id = sal.id)
+
+ORDER BY
+u.nome
