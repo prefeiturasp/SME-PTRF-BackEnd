@@ -24,13 +24,15 @@ class CargaMateriaisServicosService:
     DESCRICAO = 1
     APLICACAO = 2
     ID_TIPO_CUSTEIO = 3
-    ATIVA = 4
+    NOME_TIPO_CUSTEIO = 4
+    ATIVA = 5
 
     CABECALHOS = {
         ID: "ID",
         DESCRICAO: "Descrição",
         APLICACAO: "Aplicação",
         ID_TIPO_CUSTEIO: "ID do tipo de Custeio",
+        NOME_TIPO_CUSTEIO: "Nome do tipo de Custeio",
         ATIVA: "Ativa"
     }
 
@@ -71,6 +73,8 @@ class CargaMateriaisServicosService:
         except TipoCusteio.DoesNotExist:
             raise CargaMateriaisServicosException(f'O id do tipo de custeio {linha_conteudo[self.ID_TIPO_CUSTEIO].strip()} é inválido. Registro de material/serviço não criado.')
         
+        if linha_conteudo[self.APLICACAO].strip() != 'CUSTEIO' and linha_conteudo[self.APLICACAO].strip() != 'CAPITAL':
+            raise CargaMateriaisServicosException(f'O valor {linha_conteudo[self.APLICACAO].strip()} da coluna aplicação deveria ser no padrão string de CAPITAL ou CUSTEIO. Registro de material/serviço não criado.')
         
         if linha_conteudo[self.APLICACAO].strip() == 'CUSTEIO' and not linha_conteudo[self.ID_TIPO_CUSTEIO].strip():
             raise CargaMateriaisServicosException(f'Aplicação de custeio está sem o campo ID preenchido. Registro de material/serviço não criado.')
