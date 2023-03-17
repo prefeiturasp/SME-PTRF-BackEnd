@@ -16,18 +16,17 @@ def test_service_tabelas_categorias():
             "nome": "Inclusão de gasto"
         },
         {
+            "id": "EDICAO_INFORMACAO",
+            "nome": "Edição de informação"
+        },
+        {
             "id": "AJUSTES_EXTERNOS",
             "nome": "Ajustes externos"
         },
         {
             "id": "SOLICITACAO_ESCLARECIMENTO",
             "nome": "Solicitação de esclarecimento"
-        },
-        {
-            "id": "EDICAO_INFORMACAO",
-            "nome": "Edição de informação"
         }
-
     ]
 
     assert resultado_esperado == TipoAcertoDocumentoService.categorias(TipoAcertoDocumento.CATEGORIA_CHOICES)
