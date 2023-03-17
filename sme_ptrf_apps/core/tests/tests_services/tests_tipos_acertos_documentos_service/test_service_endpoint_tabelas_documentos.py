@@ -22,7 +22,12 @@ def test_service_tabelas_categorias():
         {
             "id": "SOLICITACAO_ESCLARECIMENTO",
             "nome": "Solicitação de esclarecimento"
+        },
+        {
+            "id": "EDICAO_INFORMACAO",
+            "nome": "Edição de informação"
         }
+
     ]
 
     assert resultado_esperado == TipoAcertoDocumentoService.categorias(TipoAcertoDocumento.CATEGORIA_CHOICES)
