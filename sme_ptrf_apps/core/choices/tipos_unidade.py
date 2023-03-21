@@ -1,0 +1,21 @@
+# Tipo de Unidade Choices
+TIPOS_CHOICE = (
+    ('ADM', 'ADM'),
+    ('DRE', 'DRE'),
+    ('IFSP', 'IFSP'),
+    ('CMCT', 'CMCT'),
+    ('CECI', 'CECI'),
+    ('CEI', 'CEI'),
+    ('CEMEI', 'CEMEI'),
+    ('CIEJA', 'CIEJA'),
+    ('EMEBS', 'EMEBS'),
+    ('EMEF', 'EMEF'),
+    ('EMEFM', 'EMEFM'),
+    ('EMEI', 'EMEI'),
+    ('CEU', 'CEU'),
+    ('CEU CEI', 'CEU CEI'),
+    ('CEU EMEF', 'CEU EMEF'),
+    ('CEU EMEI', 'CEU EMEI'),
+    ('CEU CEMEI', 'CEU CEMEI'),
+    ('CEI DIRET', 'CEI DIRET'),
+)

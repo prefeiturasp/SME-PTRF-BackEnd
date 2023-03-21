@@ -14,7 +14,9 @@ from ..models.arquivo import (
     ERRO,
     PROCESSADO_COM_ERRO)
 
-from sme_ptrf_apps.users.services.sme_integracao_service import SmeIntegracaoService, SmeIntegracaoException
+from sme_ptrf_apps.users.services.sme_integracao_service import SmeIntegracaoService
+
+from sme_ptrf_apps.core.choices.tipos_unidade import TIPOS_CHOICE
 
 logger = logging.getLogger(__name__)
 
@@ -177,7 +179,7 @@ class CargaAssociacoesService:
         except Exception as err:
             logger.info("Erro ao Atualizar dados pessoais da unidade %s", err)
 
-        if (dados_ue['tipo_unidade'], dados_ue['tipo_unidade']) not in Unidade.TIPOS_CHOICE:
+        if (dados_ue['tipo_unidade'], dados_ue['tipo_unidade']) not in TIPOS_CHOICE:
             msg_erro = f'Tipo de unidade inválido ({dados_ue["tipo_unidade"]}) na linha {self.__linha_index}. Trocado para EMEF.'
             self.loga_erro_carga_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
             dados_ue['tipo_unidade'] = 'EMEF'

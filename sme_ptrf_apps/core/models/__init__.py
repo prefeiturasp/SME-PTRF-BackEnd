@@ -67,4 +67,4 @@ from .solicitacao_acerto_documento import SolicitacaoAcertoDocumento
 from .presentes_ata import PresenteAta
 from .valores_reprogramados import ValoresReprogramados
 from .solicitacao_devolucao_ao_tesouro import SolicitacaoDevolucaoAoTesouro
-
+from .transferencia_eol import TransferenciaEol
