@@ -1163,6 +1163,7 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
 
 @admin.register(SolicitacaoDevolucaoAoTesouro)
 class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
+    raw_id_fields = ['solicitacao_acerto_lancamento']
 
     def get_unidade(self, obj):
         if (
@@ -1218,15 +1219,13 @@ class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
         'devolucao_total',
     )
     list_display_links = ('get_unidade',)
-    readonly_fields = ('uuid', 'id')
+    readonly_fields = ('uuid', 'id', 'criado_em')
     search_fields = (
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome',
         'motivo'
     )
-    autocomplete_fields = ('solicitacao_acerto_lancamento',)
-
 
 @admin.register(TransferenciaEol)
 class TransferenciaEolAdmin(admin.ModelAdmin):
