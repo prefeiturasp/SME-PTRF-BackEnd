@@ -397,8 +397,12 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
                 usuario=request.user.username,
             )
 
-            return Response({"data": "Consolidado de publicações parciais gerados com sucesso"},
-                            status=status.HTTP_200_OK)
+            data = {
+                "data": "Consolidado de publicações parciais gerados com sucesso",
+                "status": RelatorioConsolidadoDRE.STATUS_EM_PROCESSAMENTO
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
         except:
             erro = {
                 'erro': 'erro_ao_gerar_consolidado_de_publicacoes_parciais',

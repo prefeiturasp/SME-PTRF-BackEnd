@@ -349,3 +349,60 @@ def gerar_previa_relatorio_apos_acertos_async(analise_prestacao_uuid, usuario=""
     )
 
     logger.info('Finalizando a geração prévia do relatório após acertos')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
+def cria_e_vincula_solicitacao_devolucao_ao_tesouro_async():
+    from ..core.models import SolicitacaoAcertoLancamento, TipoAcertoLancamento, DevolucaoAoTesouro, SolicitacaoDevolucaoAoTesouro
+
+    solicitacoes = SolicitacaoAcertoLancamento.objects.filter(tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_DEVOLUCAO).filter(
+        solicitacao_devolucao_ao_tesouro=None).all().order_by(
+        'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
+        'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo')
+
+
+    for solicitacao in solicitacoes:
+        logger.info(f"Solicitacao: {solicitacao.id}")
+        logger.info(f"Nome: {solicitacao.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}")
+        logger.info(f"EOL: {solicitacao.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol}")
+        logger.info(f"Periodo: {solicitacao.analise_lancamento.analise_prestacao_conta.prestacao_conta.periodo}")
+        logger.info("-------------------------------------------------")
+
+        if solicitacao.devolucao_ao_tesouro:
+            logger.info(f"Solicitação já possui uma devolução ao tesouro: {solicitacao.devolucao_ao_tesouro}")
+            logger.info(f"Devolução ao tesouro id: {solicitacao.devolucao_ao_tesouro.id}")
+            logging.info(f"Portanto sera ignorada!")
+            continue
+
+        despesa = solicitacao.analise_lancamento.despesa
+        devolucao_ao_tesouro = DevolucaoAoTesouro.objects.filter(despesa=despesa).first()
+
+        if devolucao_ao_tesouro:
+            logger.info(f"Devolução ao tesouro encontrada {devolucao_ao_tesouro} - id: {devolucao_ao_tesouro.id}")
+
+            solicitacao_criada = SolicitacaoDevolucaoAoTesouro.objects.create(
+                solicitacao_acerto_lancamento=solicitacao,
+                tipo=devolucao_ao_tesouro.tipo,
+                devolucao_total=devolucao_ao_tesouro.devolucao_total,
+                valor=devolucao_ao_tesouro.valor,
+                motivo=devolucao_ao_tesouro.motivo
+            )
+
+            if solicitacao_criada:
+                logger.info(f"Solicitação de devolução ao tesouro criada com sucesso! {solicitacao_criada} - id: {solicitacao_criada.id}")
+
+                # Preenchendo informacões da solicitação de acerto
+                solicitacao.detalhamento = devolucao_ao_tesouro.motivo
+                solicitacao.devolucao_ao_tesouro = devolucao_ao_tesouro
+                solicitacao.save()
+
+                if devolucao_ao_tesouro.data:
+                    # Se a devolução ao tesouro possui uma data, significa que a devolução ja foi atualizada em outra analise
+
+                    solicitacao.analise_lancamento.devolucao_tesouro_atualizada = True
+                    solicitacao.analise_lancamento.save()
