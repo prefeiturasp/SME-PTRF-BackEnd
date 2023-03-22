@@ -580,6 +580,7 @@ def status_consolidado_dre(dre, periodo):
                 'com_pcs_em_analise' if pcs_em_analise else 'sem_pcs_em_analise']
 
             status = {
+                'id_consolidado': consolidado_dre.id,
                 'pcs_em_analise': pcs_em_analise,
                 'status_geracao': status_consolidado_dre,
                 'status_txt': status_txt_geracao,
@@ -604,6 +605,7 @@ def status_consolidado_dre(dre, periodo):
         status_txt_geracao = f'{status_txt_analise} {status_txt_consolidado_dre}'
 
         status = {
+            'id_consolidado': None,
             'pcs_em_analise': pcs_em_analise,
             'status_txt': status_txt_geracao,
             'status_geracao': status_consolidado_dre,
@@ -611,6 +613,12 @@ def status_consolidado_dre(dre, periodo):
         }
 
         status_list.append(status)
+
+    # Verificando se pelo menos um objeto do tipo status foi criado, se sim existe o id_consolidado no dict status_list
+    _id_consolidado = any('id_consolidado' in d for d in status_list)
+
+    if _id_consolidado:
+        status_list = sorted(status_list, key=lambda row: row['id_consolidado'], reverse=True)
 
     return status_list
 

@@ -68,4 +68,4 @@ from .presentes_ata import PresenteAta
 from .valores_reprogramados import ValoresReprogramados
 from .solicitacao_devolucao_ao_tesouro import SolicitacaoDevolucaoAoTesouro
 from .falha_geracao_pc import FalhaGeracaoPc
-
+from .transferencia_eol import TransferenciaEol
