@@ -1,3 +1,9 @@
+### 6.0.3 - 21/03/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 61
+* (84747) Corrige alinhamento de margem das atas de apresentação
+* (85715) Corrige no relatório consolidado o problema de loading que não é exibido corretamente na solicitação de geração do demonstrativo
+* (87258) Implementa a ação de transferência de código eol para uma nova unidade
+* (88450) Corrige na análise DRE o problema de Acertos nos lançamentos que não carregam e ficam "em processamento"  
+
 ### 6.0.2 - 14/02/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 59
 * (85017) Corrige verificação de saldo na edição de despesas a partir de uma solicitação de acerto
 * (86076) Corrige a geração de prévia de relatório após acerto que ficava em processamento se ocorresse alguma falha
