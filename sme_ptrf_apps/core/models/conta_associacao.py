@@ -37,12 +37,15 @@ class ContaAssociacao(ModeloBase):
     numero_conta = models.CharField('Nº conta', max_length=30, blank=True, default='')
     numero_cartao = models.CharField('Nº do cartão', max_length=80, blank=True, default='')
 
-
     def __str__(self):
         associacao = self.associacao.nome if self.associacao else 'ACM indefinida'
         tipo_conta = self.tipo_conta.nome if self.tipo_conta else 'Tipo de conta indefinido'
         status = ContaAssociacao.STATUS_NOMES[self.status]
         return f"{associacao} - Conta {tipo_conta} - {status}"
+
+    def inativar(self):
+        self.status = self.STATUS_INATIVA
+        self.save()
 
     @classmethod
     def get_valores(cls, user=None, associacao_uuid=None):

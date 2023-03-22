@@ -17,6 +17,7 @@ def test_get_status_consolidado_dre_nao_gerado(
         'status_geracao': 'NAO_GERADOS',
         'status_txt': 'Análise de prestações de contas das associações completa. Documentos não gerados.',
         'cor_idx': 2,
+        'id_consolidado': consolidado_dre_teste_service_consolidado_dre.id,
         'status_arquivo': 'Documentos não gerados'
     }]
 
@@ -32,6 +33,7 @@ def test_get_status_consolidado_dre_gerados_totais(
 
     resultado_esperado = [{
         'cor_idx': 3,
+        'id_consolidado': consolidado_dre_teste_service_consolidado_dre_status_gerados_totais.id,
         'pcs_em_analise': False,
         'status_arquivo': result[0]['status_arquivo'],
         'status_geracao': 'GERADOS_TOTAIS',

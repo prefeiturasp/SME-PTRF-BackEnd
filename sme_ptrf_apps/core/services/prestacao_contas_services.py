@@ -3,6 +3,8 @@ import logging
 from django.db import transaction
 from django.db.models import Q, Sum, Count, Max
 
+from .notificacao_services.notificacao_erro_ao_concluir_pc import notificar_erro_ao_concluir_pc
+
 from ..models import (
     PrestacaoConta,
     FechamentoPeriodo,
