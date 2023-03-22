@@ -46,6 +46,7 @@ from .models import (
     PresenteAta,
     ValoresReprogramados,
     SolicitacaoDevolucaoAoTesouro,
+    TransferenciaEol,
     FalhaGeracaoPc,
 )
 
@@ -1165,6 +1166,7 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
 
 @admin.register(SolicitacaoDevolucaoAoTesouro)
 class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
+    raw_id_fields = ['solicitacao_acerto_lancamento']
 
     def get_unidade(self, obj):
         if (
@@ -1220,14 +1222,13 @@ class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
         'devolucao_total',
     )
     list_display_links = ('get_unidade',)
-    readonly_fields = ('uuid', 'id')
+    readonly_fields = ('uuid', 'id', 'criado_em')
     search_fields = (
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome',
         'motivo'
     )
-    autocomplete_fields = ('solicitacao_acerto_lancamento',)
 
 
 @admin.register(FalhaGeracaoPc)
@@ -1238,3 +1239,15 @@ class FalhaGeracaoPcAdmin(admin.ModelAdmin):
                    'qtd_ocorrencias_sucessivas', 'resolvido']
     readonly_fields = ('uuid', 'id')
     search_fields = ('ultimo_usuario__username', 'associacao__nome')
+
+@admin.register(TransferenciaEol)
+class TransferenciaEolAdmin(admin.ModelAdmin):
+    def transfere_codigo_eol(self, request, queryset):
+        for transferencia in queryset.all():
+            transferencia.transferir()
+
+        self.message_user(request, f"Transferência concluida.")
+
+    list_display = ('eol_transferido', 'eol_historico', 'tipo_nova_unidade', 'tipo_conta_transferido', 'data_inicio_atividades', 'status_processamento')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em', 'log_execucao')
+    actions = [transfere_codigo_eol]

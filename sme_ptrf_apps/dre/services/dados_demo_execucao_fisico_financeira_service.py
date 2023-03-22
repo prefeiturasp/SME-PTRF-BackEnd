@@ -19,7 +19,7 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
         LOGGER.info("Gerando relatório consolidado...")
 
         cabecalho = cria_cabecalho(periodo, parcial, previa, consolidado_dre)
-        bloco_consolidado_das_publicacoes_parciais = cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo, eh_consolidado_de_publicacoes_parciais)
+        bloco_consolidado_das_publicacoes_parciais = cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo) if eh_consolidado_de_publicacoes_parciais else None
         data_geracao_documento = cria_data_geracao_documento(usuario, dre, parcial, previa)
         identificacao_dre = cria_identificacao_dre(dre)
         execucao_financeira = cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dre, eh_consolidado_de_publicacoes_parciais, previa)
@@ -68,7 +68,7 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
     return dados_demonstrativo
 
 
-def cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo, eh_consolidado_de_publicacoes_parciais):
+def cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo):
     consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao="FINAL").order_by("sequencia_de_publicacao", "alterado_em")
     consolidado_das_publicacoes_parciais_list = []
 
@@ -82,13 +82,13 @@ def cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo, eh_consolidado
             if(consolidado_origem_retificacao.count() > 0 and consolidado_origem_retificacao[0].data_publicacao):
                 data_publicacao_consolidado_origem_retificacao = consolidado_origem_retificacao[0].data_publicacao.strftime("%d/%m/%Y")
                 titulo_parcial = f"Retificação da publicação de {data_publicacao_consolidado_origem_retificacao}"
-            
+
         elif(not consolidado.eh_parcial):
             titulo_parcial = f"Única"
 
         else:
             titulo_parcial = f"Parcial #{numero_sequencia}"
-        
+
         data_publicacao = consolidado.data_publicacao.strftime("%d/%m/%Y") if consolidado.data_publicacao else ""
         numero_unidades = len(consolidado.pcs_vinculadas_ao_consolidado())
         result = {
@@ -267,7 +267,7 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dr
             justificativa = None
             obj_justificativas_list = []
 
-            if consolidado_dre.eh_retificacao:
+            if consolidado_dre and consolidado_dre.eh_retificacao:
                 if previa:
                     justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
                         dre=dre,
@@ -826,7 +826,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_conso
             'associacao': dados['associacao'],
             'por_tipo_de_conta': lista_de_informacoes_por_conta,
             "situacao_pc": dados['situacao_pc'],
-            "referencia_consolidado": dados['referencia_consolidado'],
+            "referencia_consolidado": dados['referencia_consolidado'] if eh_consolidado_de_publicacoes_parciais else None,
         })
 
     informacoes = {
