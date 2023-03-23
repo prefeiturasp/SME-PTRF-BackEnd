@@ -431,7 +431,7 @@ class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
 
     get_nome_conta.short_description = 'Conta'
 
-    list_display = ('get_unidade', 'periodo', 'get_nome_conta', 'data_extrato', 'saldo_extrato', 'texto')
+    list_display = ('get_unidade', 'periodo', 'get_nome_conta', 'data_extrato', 'saldo_extrato', 'texto', 'justificativa_original')
     list_filter = (
         'associacao',
         'conta_associacao__tipo_conta',

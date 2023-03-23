@@ -234,6 +234,15 @@ class ConsolidadoDRE(ModeloBase):
         else:
             return "Única" if self.sequencia_de_publicacao == 0 else f'Parcial #{self.sequencia_de_publicacao}'
 
+
+    @property
+    def get_data_publicacao_do_consolidado_original(self):
+        if self.eh_retificacao:
+            return self.consolidado_retificado.data_publicacao
+
+        return None
+
+
     @classmethod
     def criar_ou_retornar_consolidado_dre(cls, dre, periodo, sequencia_de_publicacao, sequencia_de_retificacao=0):
 

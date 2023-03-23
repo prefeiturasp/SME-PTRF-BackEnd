@@ -11,7 +11,7 @@ from sme_ptrf_apps.core.models import (
     PeriodoPrevia,
     PrestacaoConta,
     Ata,
-    AnalisePrestacaoConta, Notificacao
+    AnalisePrestacaoConta, Notificacao, ObservacaoConciliacao
 )
 
 from django.contrib.auth import get_user_model
@@ -48,6 +48,17 @@ def concluir_prestacao_de_contas_async(
 
     acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
     contas = associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
+
+    # Aqui grava observacao da conciliacao bancaria. Grava o campo observacao.justificativa_original com observacao.texto
+    for conta_associacao in contas:
+        observacao = ObservacaoConciliacao.objects.filter(
+            periodo=periodo,
+            conta_associacao=conta_associacao,
+            associacao=associacao,
+        ).first()
+        if observacao:
+            observacao.justificativa_original = observacao.texto
+            observacao.save()
 
     if e_retorno_devolucao:
         ultima_analise_pc = prestacao.analises_da_prestacao.order_by('id').last()

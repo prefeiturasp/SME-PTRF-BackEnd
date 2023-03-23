@@ -140,7 +140,8 @@ class AnalisePrestacaoConta(ModeloBase):
             TipoAcertoLancamento.CATEGORIA_CONCILIACAO_LANCAMENTO,
             TipoAcertoLancamento.CATEGORIA_DESCONCILIACAO_LANCAMENTO,
             TipoAcertoDocumento.CATEGORIA_INCLUSAO_GASTO,
-            TipoAcertoDocumento.CATEGORIA_INCLUSAO_CREDITO
+            TipoAcertoDocumento.CATEGORIA_INCLUSAO_CREDITO,
+            TipoAcertoDocumento.CATEGORIA_EDICAO_INFORMACAO
         ]
 
         analises_de_lancamentos_requerem_alteracoes = False
