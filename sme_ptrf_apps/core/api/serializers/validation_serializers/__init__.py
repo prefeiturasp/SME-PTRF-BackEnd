@@ -13,5 +13,7 @@ from .solicitacao_acerto_documento_validate_serializer import (
     AcoesStatusSolicitacaoAcertoDocumentoValidateSerializer,
     GravarEsclarecimentoAcertoDocumentoValidateSerializer,
     GravarCreditoIncluidoDocumentoValidateSerializer,
-    GravarGastoIncluidoDocumentoValidateSerializer
+    GravarGastoIncluidoDocumentoValidateSerializer,
+    EditarInformacaoConciliacaoValidateSerializer,
+    DesfazerEditacaoInformacaoConciliacaoValidateSerializer
 )

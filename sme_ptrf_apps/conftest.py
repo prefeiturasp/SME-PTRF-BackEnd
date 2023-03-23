@@ -2501,3 +2501,53 @@ def solicitacao_acerto_documento_status_nao_realizado_02(
         detalhamento="Detalhamento motivo acerto no documento",
         status_realizacao="PENDENTE"
     )
+
+
+# Edição de Informação
+
+@pytest.fixture
+def tipo_documento_prestacao_conta_demonstrativo_financeiro():
+    return baker.make(
+        'TipoDocumentoPrestacaoConta',
+        nome='Tipo Documento Demonstrativo Financeiro'
+    )
+
+@pytest.fixture
+def tipo_acerto_documento_edicao_informacao(tipo_documento_prestacao_conta_demonstrativo_financeiro):
+    tipo_acerto = baker.make(
+        'TipoAcertoDocumento',
+        nome='Edição de Informação',
+        categoria=TipoAcertoDocumento.CATEGORIA_EDICAO_INFORMACAO
+    )
+    tipo_acerto.tipos_documento_prestacao.add(tipo_documento_prestacao_conta_demonstrativo_financeiro)
+    tipo_acerto.save()
+    return tipo_acerto
+
+
+@pytest.fixture
+def solicitacao_acerto_documento_edicao_informacao(
+    analise_documento_prestacao_conta_demonstativo_financeiro_edicao_informacao,
+    tipo_acerto_documento_edicao_informacao,
+):
+    return baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento_prestacao_conta_demonstativo_financeiro_edicao_informacao,
+        tipo_acerto=tipo_acerto_documento_edicao_informacao,
+        detalhamento="Detalhamento motivo acerto no documento",
+    )
+
+
+@pytest.fixture
+def analise_documento_prestacao_conta_demonstativo_financeiro_edicao_informacao(
+    analise_prestacao_conta_2020_1,
+    tipo_documento_prestacao_conta_demonstrativo_financeiro,
+    conta_associacao_cartao
+):
+    return baker.make(
+        'AnaliseDocumentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
+        tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_demonstrativo_financeiro,
+        conta_associacao=conta_associacao_cartao,
+        resultado='AJUSTE'
+    )
+
