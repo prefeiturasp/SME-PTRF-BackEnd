@@ -164,6 +164,124 @@ class PrestacaoConta(ModeloBase):
         else:
             return None
 
+    @property
+    def pc_concluida(self):
+        status_de_conlusao = [
+            self.STATUS_APROVADA_RESSALVA,
+            self.STATUS_APROVADA,
+            self.STATUS_REPROVADA
+        ]
+
+        return self.status in status_de_conlusao
+
+    @property
+    def tipos_de_consolidados_disponiveis(self):
+        tipos_disponiveis = {
+            "pre_original": "PRE_ORIGINAL",
+            "original": "ORIGINAL",
+            "retificacao": "RETIFICACAO",
+            "retificacao_da_retificacao": "RETIFICACAO_DA_RETIFICACAO"
+        }
+
+        return tipos_disponiveis
+
+    @property
+    def get_tipo_consolidado_vinculado(self):
+        tipo_consolidado = None
+
+        tipos_disponiveis = self.tipos_de_consolidados_disponiveis
+
+        if self.consolidado_dre:
+            if self.consolidado_dre.consolidado_retificado:
+                # tenho um original, portanto sou uma retificacao
+                tipo_consolidado = tipos_disponiveis["retificacao"]
+
+                if self.consolidado_dre.consolidado_retificado.consolidado_retificado:
+                    # o meu original tem um original, portanto sou uma retificacao de retificacao
+                    tipo_consolidado = tipos_disponiveis["retificacao_da_retificacao"]
+            else:
+                # não tenho um original, portanto sou o original
+                tipo_consolidado = tipos_disponiveis["original"]
+        else:
+            # Não tenho um consolidado ainda, portanto serei um original
+            tipo_consolidado = tipos_disponiveis["pre_original"]
+
+        return tipo_consolidado
+
+    @property
+    def get_mensagem_consolidado_tipo_original(self):
+        tipo_relatorio = "Única" if self.consolidado_dre.sequencia_de_publicacao == 0 \
+            else f'Parcial #{self.consolidado_dre.sequencia_de_publicacao}'
+
+        mensagem = f"Essa PC consta da Publicação {tipo_relatorio}"
+
+        return mensagem
+
+    @property
+    def get_mensagem_consolidado_tipo_retificacao(self):
+        mensagem = ""
+
+        if self.status == self.STATUS_RECEBIDA or self.status == self.STATUS_EM_ANALISE:
+            tipo_relatorio = "Única" if self.consolidado_dre.consolidado_retificado.sequencia_de_publicacao == 0 \
+                else f'Parcial #{self.consolidado_dre.consolidado_retificado.sequencia_de_publicacao}'
+
+            mensagem = f"Essa PC consta da Publicação {tipo_relatorio}"
+
+        elif self.pc_concluida:
+            data_publicacao = self.consolidado_dre.get_data_publicacao_do_consolidado_original
+            data_publicacao_formatada = data_publicacao.strftime('%d/%m/%Y') if data_publicacao else ""
+
+            if self.publicada:
+                mensagem = f"Essa PC consta da Retificação da publicação de {data_publicacao_formatada}"
+            else:
+                mensagem = f"Essa PC constará da Retificação da publicação de {data_publicacao_formatada}"
+
+        return mensagem
+
+    @property
+    def get_mensagem_consolidado_tipo_retificacao_da_retificacao(self):
+        mensagem = ""
+
+        if self.status == self.STATUS_RECEBIDA or self.status == self.STATUS_EM_ANALISE:
+            data_publicacao = self.consolidado_dre.consolidado_retificado.get_data_publicacao_do_consolidado_original
+            data_publicacao_formatada = data_publicacao.strftime('%d/%m/%Y') if data_publicacao else ""
+
+            mensagem = f"Essa PC consta da publicação retificadora de {data_publicacao_formatada}"
+
+        elif self.pc_concluida:
+            if self.publicada:
+                data_publicacao = self.consolidado_dre.get_data_publicacao_do_consolidado_original
+                data_publicacao_formatada = data_publicacao.strftime('%d/%m/%Y') if data_publicacao else ""
+
+                mensagem = f"Essa PC consta da publicação retificadora de {data_publicacao_formatada}"
+            else:
+                data_publicacao = self.consolidado_dre.consolidado_retificado.get_data_publicacao_do_consolidado_original
+                data_publicacao_formatada = data_publicacao.strftime('%d/%m/%Y') if data_publicacao else ""
+
+                mensagem = f"Essa PC constará da retificação da publicação retificadora de {data_publicacao_formatada}"
+
+        return mensagem
+
+    @property
+    def get_referencia_do_consolidado(self):
+        mensagem = ""
+        tipo_consolidado = self.get_tipo_consolidado_vinculado
+        tipos_disponiveis = self.tipos_de_consolidados_disponiveis
+
+        if tipo_consolidado == tipos_disponiveis["pre_original"]:
+            mensagem = ""
+
+        elif tipo_consolidado == tipo_consolidado == tipos_disponiveis["original"]:
+            mensagem = self.get_mensagem_consolidado_tipo_original
+
+        elif tipo_consolidado == tipos_disponiveis["retificacao"]:
+            mensagem = self.get_mensagem_consolidado_tipo_retificacao
+
+        elif tipo_consolidado == tipos_disponiveis["retificacao_da_retificacao"]:
+            mensagem = self.get_mensagem_consolidado_tipo_retificacao_da_retificacao
+
+        return mensagem
+
     def __str__(self):
         return f"{self.periodo} - {self.status}"
 

@@ -209,7 +209,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
         return result
 
     def get_referencia_consolidado_dre(self, obj):
-        return obj.consolidado_dre.referencia if obj.consolidado_dre else ""
+        return obj.get_referencia_do_consolidado
 
     def get_referencia_consolidado_dre_original(self, obj):
         if(obj.consolidado_dre and obj.consolidado_dre.id):
