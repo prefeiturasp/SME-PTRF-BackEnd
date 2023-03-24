@@ -132,52 +132,7 @@ class AnalisePrestacaoConta(ModeloBase):
 
     @property
     def requer_alteracao_em_lancamentos(self):
-        from sme_ptrf_apps.core.models import TipoAcertoDocumento, TipoAcertoLancamento
-        from sme_ptrf_apps.core.models import SolicitacaoAcertoLancamento, SolicitacaoAcertoDocumento
-        categorias_que_requerem_alteracoes = [
-            TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
-            TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO,
-            TipoAcertoLancamento.CATEGORIA_CONCILIACAO_LANCAMENTO,
-            TipoAcertoLancamento.CATEGORIA_DESCONCILIACAO_LANCAMENTO,
-            TipoAcertoDocumento.CATEGORIA_INCLUSAO_GASTO,
-            TipoAcertoDocumento.CATEGORIA_INCLUSAO_CREDITO,
-            TipoAcertoDocumento.CATEGORIA_EDICAO_INFORMACAO
-        ]
-
-        analises_de_lancamentos_requerem_alteracoes = False
-        analises_de_lancamento_que_requerem_alteracoes = self.analises_de_lancamentos.filter(
-            solicitacoes_de_ajuste_da_analise__tipo_acerto__categoria__in=categorias_que_requerem_alteracoes
-        )
-        if analises_de_lancamento_que_requerem_alteracoes.exists():
-            for analise_de_lancamento in analises_de_lancamento_que_requerem_alteracoes:
-                solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas = analise_de_lancamento.solicitacoes_de_ajuste_da_analise.filter(
-                    tipo_acerto__categoria__in=categorias_que_requerem_alteracoes,
-                    status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_REALIZADO
-                )
-                if solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas.exists():
-                    analises_de_lancamentos_requerem_alteracoes = True
-                    break
-
-        analises_de_documentos_requerem_alteracoes = False
-        analises_de_documento_que_requerem_alteracoes = self.analises_de_documento.filter(
-            solicitacoes_de_ajuste_da_analise__tipo_acerto__categoria__in=categorias_que_requerem_alteracoes
-        )
-        if analises_de_documento_que_requerem_alteracoes.exists():
-            for analise_de_documento in analises_de_documento_que_requerem_alteracoes:
-                solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas = analise_de_documento.solicitacoes_de_ajuste_da_analise.filter(
-                    tipo_acerto__categoria__in=categorias_que_requerem_alteracoes,
-                    status_realizacao=SolicitacaoAcertoDocumento.STATUS_REALIZACAO_REALIZADO
-                )
-                if solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas.exists():
-                    analises_de_documentos_requerem_alteracoes = True
-                    break
-
-        logger.info(f'Prestação de conta: {self.prestacao_conta.id}')
-        logger.info(f'Análise de Prestação de conta: {self.id}')
-        logger.info(f'analises_de_lancamentos_requerem_alteracoes: {analises_de_lancamentos_requerem_alteracoes}')
-        logger.info(f'analises_de_documentos_requerem_alteracoes: {analises_de_documentos_requerem_alteracoes}')
-        logger.info(f'É necessário recalcular fechamentos e documentos? {analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes}')
-        return analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes
+        return self.verifica_se_requer_alteracao_em_lancamentos()
 
     @property
     def requer_informacao_devolucao_ao_tesouro(self):
@@ -320,6 +275,59 @@ class AnalisePrestacaoConta(ModeloBase):
         self.status_versao_apresentacao_apos_acertos = self.STATUS_NAO_GERADO
         self.save()
         logging.info(f'Geração de arquivo pdf do relatorio após acertos {self.pk} cancelada')
+
+    def verifica_se_requer_alteracao_em_lancamentos(self, considera_realizacao=True):
+        from sme_ptrf_apps.core.models import TipoAcertoDocumento, TipoAcertoLancamento
+        from sme_ptrf_apps.core.models import SolicitacaoAcertoLancamento, SolicitacaoAcertoDocumento
+        categorias_que_requerem_alteracoes = [
+            TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
+            TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO,
+            TipoAcertoLancamento.CATEGORIA_CONCILIACAO_LANCAMENTO,
+            TipoAcertoLancamento.CATEGORIA_DESCONCILIACAO_LANCAMENTO,
+            TipoAcertoDocumento.CATEGORIA_INCLUSAO_GASTO,
+            TipoAcertoDocumento.CATEGORIA_INCLUSAO_CREDITO,
+            TipoAcertoDocumento.CATEGORIA_EDICAO_INFORMACAO
+        ]
+
+        analises_de_lancamentos_requerem_alteracoes = False
+        analises_de_lancamento_que_requerem_alteracoes = self.analises_de_lancamentos.filter(
+            solicitacoes_de_ajuste_da_analise__tipo_acerto__categoria__in=categorias_que_requerem_alteracoes
+        )
+        if analises_de_lancamento_que_requerem_alteracoes.exists():
+            for analise_de_lancamento in analises_de_lancamento_que_requerem_alteracoes:
+                solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas = analise_de_lancamento.solicitacoes_de_ajuste_da_analise.filter(
+                    tipo_acerto__categoria__in=categorias_que_requerem_alteracoes
+                )
+
+                if(considera_realizacao):
+                    solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas = solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas.filter(
+                    status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_REALIZADO)
+
+                if solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas.exists():
+                    analises_de_lancamentos_requerem_alteracoes = True
+                    break
+
+        analises_de_documentos_requerem_alteracoes = False
+        analises_de_documento_que_requerem_alteracoes = self.analises_de_documento.filter(
+            solicitacoes_de_ajuste_da_analise__tipo_acerto__categoria__in=categorias_que_requerem_alteracoes
+        )
+        if analises_de_documento_que_requerem_alteracoes.exists():
+            for analise_de_documento in analises_de_documento_que_requerem_alteracoes:
+                solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas = analise_de_documento.solicitacoes_de_ajuste_da_analise.filter(tipo_acerto__categoria__in=categorias_que_requerem_alteracoes)
+
+                if(considera_realizacao):
+                    solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas = solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas.filter(status_realizacao=SolicitacaoAcertoDocumento.STATUS_REALIZACAO_REALIZADO)
+
+                if solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas.exists():
+                    analises_de_documentos_requerem_alteracoes = True
+                    break
+
+        logger.info(f'Prestação de conta: {self.prestacao_conta.id}')
+        logger.info(f'Análise de Prestação de conta: {self.id}')
+        logger.info(f'analises_de_lancamentos_requerem_alteracoes: {analises_de_lancamentos_requerem_alteracoes}')
+        logger.info(f'analises_de_documentos_requerem_alteracoes: {analises_de_documentos_requerem_alteracoes}')
+        logger.info(f'É necessário recalcular fechamentos e documentos? {analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes}')
+        return analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes
 
     @classmethod
     def editavel(cls, uuid_analise, visao):

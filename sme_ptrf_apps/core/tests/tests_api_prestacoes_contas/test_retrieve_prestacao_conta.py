@@ -298,7 +298,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(
                 'uuid': f'{_devolucao_prestacao_conta.uuid}'
             }
         ],
-        'pode_reabrir': True,
+        'pode_devolver': True,
         'processo_sei': '123456',
         'data_ultima_analise': f'{prestacao_conta.data_ultima_analise}',
         'devolucao_ao_tesouro': '100,00',
