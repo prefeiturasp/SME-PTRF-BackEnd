@@ -299,7 +299,7 @@ class AnalisePrestacaoConta(ModeloBase):
                     tipo_acerto__categoria__in=categorias_que_requerem_alteracoes
                 )
 
-                if(considera_realizacao):
+                if considera_realizacao:
                     solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas = solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas.filter(
                     status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_REALIZADO)
 
@@ -315,7 +315,7 @@ class AnalisePrestacaoConta(ModeloBase):
             for analise_de_documento in analises_de_documento_que_requerem_alteracoes:
                 solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas = analise_de_documento.solicitacoes_de_ajuste_da_analise.filter(tipo_acerto__categoria__in=categorias_que_requerem_alteracoes)
 
-                if(considera_realizacao):
+                if considera_realizacao:
                     solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas = solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas.filter(status_realizacao=SolicitacaoAcertoDocumento.STATUS_REALIZACAO_REALIZADO)
 
                 if solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas.exists():

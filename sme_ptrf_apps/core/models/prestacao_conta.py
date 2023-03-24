@@ -597,7 +597,7 @@ class PrestacaoConta(ModeloBase):
         return self
 
     def pode_devolver(self):
-        if(self.analise_atual):
+        if self.analise_atual:
             requer_alteracao_em_lancamento = self.analise_atual.verifica_se_requer_alteracao_em_lancamentos(False)
 
             if not requer_alteracao_em_lancamento:
