@@ -66,7 +66,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # APPS
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
-    # "elasticapm.contrib.django",
+    "elasticapm.contrib.django",
     "corsheaders",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -151,6 +151,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
+    "elasticapm.contrib.django.middleware.TracingMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -267,18 +268,47 @@ LOGGING = {
     "formatters": {
         "verbose": {
             "format": "%(levelname)s %(asctime)s %(module)s "
-            "%(process)d %(thread)d %(message)s"
+                      "%(process)d %(thread)d %(message)s"
         }
     },
     "handlers": {
         "console": {
-            "level": "DEBUG",
+            "level": env("DJANGO_LOG_LEVEL", default="INFO"),
             "class": "logging.StreamHandler",
             "formatter": "verbose",
-        }
+        },
+        'elasticapm': {
+            'level': env('ELASTIC_APM_LOG_LEVEL', default='INFO'),
+            'class': 'elasticapm.contrib.django.handlers.LoggingHandler',
+        },
     },
-    "root": {"level": "INFO", "handlers": ["console"]},
+    "root": {"level": env("DJANGO_LOG_LEVEL", default="INFO"), "handlers": ["console", "elasticapm"]},
+    "loggers": {
+        "django.db.backends": {
+            "level": "ERROR",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+        # Errors logged by the SDK itself
+        "sentry_sdk": {"level": "ERROR", "handlers": ["console"], "propagate": False},
+        "django.security.DisallowedHost": {
+            "level": "ERROR",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+        'django': {
+            'handlers': ['elasticapm'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'elasticapm.errors': {
+            'level': 'ERROR',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+    },
 }
+
 
 # Celery
 # ------------------------------------------------------------------------------
