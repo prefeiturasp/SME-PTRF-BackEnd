@@ -101,7 +101,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     motivos_reprovacao = MotivoReprovacaoSerializer(many=True)
     arquivos_referencia = serializers.SerializerMethodField('get_arquivos_referencia')
     analise_atual = AnalisePrestacaoContaSerializer(many=False)
-    pode_reabrir = serializers.SerializerMethodField('get_pode_reabrir')
+    pode_devolver = serializers.SerializerMethodField('get_pode_devolver')
     informacoes_conciliacao_ue = serializers.SerializerMethodField('get_conciliacao_bancaria_ue')
     referencia_consolidado_dre = serializers.SerializerMethodField('get_referencia_consolidado_dre')
     referencia_consolidado_dre_original = serializers.SerializerMethodField('get_referencia_consolidado_dre_original')
@@ -166,8 +166,8 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
 
         return result
 
-    def get_pode_reabrir(self, obj):
-        return obj.pode_reabrir()
+    def get_pode_devolver(self, obj):
+        return obj.pode_devolver()
 
     def get_ajustes_por_analise(self, prestacao_contas):
         result = []
@@ -246,7 +246,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'arquivos_referencia',
             'analise_atual',
             'recomendacoes',
-            'pode_reabrir',
+            'pode_devolver',
             'informacoes_conciliacao_ue',
             'publicada',
             'referencia_consolidado_dre',
