@@ -14,8 +14,6 @@ from ..models import (
     AnaliseLancamentoPrestacaoConta,
     SolicitacaoAcertoLancamento,
     TipoAcertoLancamento,
-    # TODO Remover o bloco comentado após conclusão da mudança em solicitações de dev.tesouro
-    # DevolucaoAoTesouro,
     TipoDevolucaoAoTesouro,
     TipoDocumentoPrestacaoConta,
     AnaliseDocumentoPrestacaoConta,
@@ -365,7 +363,8 @@ def lista_prestacoes_de_conta_nao_recebidas(
             'unidade_tipo_unidade': associacao.unidade.tipo_unidade,
             'uuid': f'{prestacao_conta.uuid}' if prestacao_conta else '',
             'associacao_uuid': f'{associacao.uuid}',
-            'devolucao_ao_tesouro': prestacao_conta.total_devolucao_ao_tesouro_str if prestacao_conta else 'Não'
+            'devolucao_ao_tesouro': prestacao_conta.total_devolucao_ao_tesouro_str if prestacao_conta else 'Não',
+            'associacao': AssociacaoCompletoSerializer(associacao, many=False).data,
         }
 
         prestacoes.append(info_prestacao)
@@ -423,7 +422,8 @@ def lista_prestacoes_de_conta_todos_os_status(
             'unidade_tipo_unidade': associacao.unidade.tipo_unidade,
             'uuid': f'{prestacao_conta.uuid}' if prestacao_conta else '',
             'associacao_uuid': f'{associacao.uuid}',
-            'devolucao_ao_tesouro': prestacao_conta.total_devolucao_ao_tesouro_str if prestacao_conta else 'Não'
+            'devolucao_ao_tesouro': prestacao_conta.total_devolucao_ao_tesouro_str if prestacao_conta else 'Não',
+            'associacao': AssociacaoCompletoSerializer(associacao, many=False).data,
         }
 
         prestacoes.append(info_prestacao)
