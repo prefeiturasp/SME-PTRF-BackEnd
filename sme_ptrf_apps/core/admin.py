@@ -1125,6 +1125,7 @@ class ValoresReprogramadosAdmin(admin.ModelAdmin):
 
 @admin.register(DevolucaoAoTesouro)
 class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
+    raw_id_fields = ['despesa']
 
     def get_dre(self, obj):
         return obj.prestacao_conta.associacao.unidade.dre.nome
@@ -1158,7 +1159,7 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome', 'motivo')
 
-    autocomplete_fields = ['prestacao_conta', 'despesa']
+    autocomplete_fields = ['prestacao_conta']
 
 
 @admin.register(SolicitacaoDevolucaoAoTesouro)
