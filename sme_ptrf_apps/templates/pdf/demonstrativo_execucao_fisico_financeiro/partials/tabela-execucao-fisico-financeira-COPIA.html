@@ -67,8 +67,8 @@
             <td rowSpan="2" class="text-right">{{ conta.custeio.saldo_custeio }}</td>
 
             {% if forloop.counter == 1 %}
-              <td rowspan="{{ info.por_tipo_de_conta|retorna_quantidade_rowspan_retira_sem_valores }}"><strong>T</strong></td>
-              <td class="text-right" rowspan="{{ info.por_tipo_de_conta|retorna_quantidade_rowspan_retira_sem_valores }}"><strong>{{ conta.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
+              <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>T</strong></td>
+              <td class="text-right" rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>{{ conta.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
 
 
               <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}">{{ info.situacao_pc }}</td>

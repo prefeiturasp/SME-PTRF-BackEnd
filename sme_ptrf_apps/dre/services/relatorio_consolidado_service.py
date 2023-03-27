@@ -1083,7 +1083,7 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
             if(consolidado_origem_retificacao.count() > 0 and consolidado_origem_retificacao[0].data_publicacao):
                 data_publicacao_consolidado_origem_retificacao = consolidado_origem_retificacao[0].data_publicacao.strftime("%d/%m/%Y")
                 referencia_consolidado = f"Retificação da publicação de {data_publicacao_consolidado_origem_retificacao}"
-            
+
         elif(not prestacao_conta.consolidado_dre.eh_parcial):
             referencia_consolidado = f"Única"
 
@@ -1122,32 +1122,39 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
                 Não devem ser exibidas as linhas de contas que tenham valores zerados em todas as colunas.
                 Não devem ser exibidas associações que tenham valores zerados em todas as colunas de todas as contas.
             """
-            if soma_dos_totais:
-                dado = {
-                    'unidade': {
-                        'uuid': f'{associacao.unidade.uuid}',
-                        'codigo_eol': associacao.unidade.codigo_eol,
-                        'tipo_unidade': associacao.unidade.tipo_unidade,
-                        'nome': associacao.unidade.nome,
-                        'sigla': associacao.unidade.sigla,
-                    },
-                    'status_prestacao_contas': status_prestacao_conta,
-                    'uuid_pc': prestacao_conta.uuid,
-                    'referencia_consolidado': referencia_consolidado,
-                }
+            dado = {
+                'unidade': {
+                    'uuid': f'{associacao.unidade.uuid}',
+                    'codigo_eol': associacao.unidade.codigo_eol,
+                    'tipo_unidade': associacao.unidade.tipo_unidade,
+                    'nome': associacao.unidade.nome,
+                    'sigla': associacao.unidade.sigla,
+                },
+                'status_prestacao_contas': status_prestacao_conta,
+                'uuid_pc': prestacao_conta.uuid,
+                'referencia_consolidado': referencia_consolidado,
+            }
 
+            if soma_dos_totais: # Verifica se existe valores, senão será exibida mensagem Não houve movimentação financeira por conta
                 objeto_tipo_de_conta.append({
                     'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
                     'valores': totais,
                 })
+            else:
+                objeto_tipo_de_conta.append({
+                    'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
+                    'valores': None,
+                })
 
-                dado['por_tipo_de_conta'] = objeto_tipo_de_conta
 
-                if status_prestacao_conta == "REPROVADA":
-                    dado["motivos_reprovacao"] = get_teste_motivos_reprovacao(prestacao_conta)
-                elif status_prestacao_conta == "APROVADA_RESSALVA":
-                    dado["motivos_aprovada_ressalva"] = get_motivos_aprovacao_ressalva(prestacao_conta)
-                    dado["recomendacoes"] = prestacao_conta.recomendacoes
+            dado['por_tipo_de_conta'] = objeto_tipo_de_conta
+
+            if status_prestacao_conta == "REPROVADA":
+                dado["motivos_reprovacao"] = get_teste_motivos_reprovacao(prestacao_conta)
+            elif status_prestacao_conta == "APROVADA_RESSALVA":
+                dado["motivos_aprovada_ressalva"] = get_motivos_aprovacao_ressalva(prestacao_conta)
+                dado["recomendacoes"] = prestacao_conta.recomendacoes
+
         # Verificando se pelo menos um objeto do tipo dado foi criado, se sim existe o index status_prestacao_contas no dict dado
         _status_prestacao_contas = any('status_prestacao_contas' in d for d in dado)
 
