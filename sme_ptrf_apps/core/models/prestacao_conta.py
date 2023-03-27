@@ -596,7 +596,13 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
-    def pode_reabrir(self):
+    def pode_devolver(self):
+        if self.analise_atual:
+            requer_alteracao_em_lancamento = self.analise_atual.verifica_se_requer_alteracao_em_lancamentos(False)
+
+            if not requer_alteracao_em_lancamento:
+                return True
+            
         pode_rebrir_pc = not self.associacao.fechamentos_associacao.filter(
             periodo__referencia__gt=self.periodo.referencia
         ).exists()

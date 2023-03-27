@@ -551,7 +551,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
-            if not prestacao_conta.pode_reabrir():
+            if not prestacao_conta.pode_devolver():
                 response = {
                     'uuid': f'{uuid}',
                     'erro': 'prestacao_de_contas_posteriores',
