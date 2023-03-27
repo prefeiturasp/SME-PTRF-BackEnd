@@ -662,164 +662,184 @@ def cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_conso
 
         for info in infos['por_tipo_de_conta']:
 
-            outros_creditos_total = 0
-            valor_total_disponivel_total = 0
-            for index in range(3):
-                if index == 0:
-                    saldo_reprogramado_anterior_custeio = info.get("valores").get('saldo_reprogramado_periodo_anterior_custeio')
-                    repasse_custeio = info.get("valores").get('repasses_no_periodo_custeio')
-                    devolucao_custeio = info.get("valores").get('receitas_devolucao_no_periodo_custeio')
-                    demais_creditos_custeio = info.get("valores").get('demais_creditos_no_periodo_custeio')
-                    despesas_custeio = info.get("valores").get('despesas_no_periodo_custeio')
-                    saldo_custeio = info.get("valores").get('saldo_reprogramado_proximo_periodo_custeio')
-                    total_receitas_custeio = info.get("valores").get('receitas_totais_no_periodo_custeio')
+            if info['valores']: # Verifica se existe valores, senão será exibida mensagem Não houve movimentação financeira por conta
 
-                    outros_creditos_custeio = total_receitas_custeio - repasse_custeio
+                outros_creditos_total = 0
+                valor_total_disponivel_total = 0
+                for index in range(3):
+                    if index == 0:
+                        saldo_reprogramado_anterior_custeio = info.get("valores").get('saldo_reprogramado_periodo_anterior_custeio')
+                        repasse_custeio = info.get("valores").get('repasses_no_periodo_custeio')
+                        devolucao_custeio = info.get("valores").get('receitas_devolucao_no_periodo_custeio')
+                        demais_creditos_custeio = info.get("valores").get('demais_creditos_no_periodo_custeio')
+                        despesas_custeio = info.get("valores").get('despesas_no_periodo_custeio')
+                        saldo_custeio = info.get("valores").get('saldo_reprogramado_proximo_periodo_custeio')
+                        total_receitas_custeio = info.get("valores").get('receitas_totais_no_periodo_custeio')
 
-                    outros_creditos_total += outros_creditos_custeio
+                        outros_creditos_custeio = total_receitas_custeio - repasse_custeio
 
-                    valor_total_disponivel_custeio = info.get("valores").get('saldo_reprogramado_periodo_anterior_custeio')\
-                                                     + info.get("valores").get('repasses_no_periodo_custeio') \
-                                                     + outros_creditos_custeio
+                        outros_creditos_total += outros_creditos_custeio
 
-                    valor_total_disponivel_total += valor_total_disponivel_custeio
+                        valor_total_disponivel_custeio = info.get("valores").get('saldo_reprogramado_periodo_anterior_custeio')\
+                                                         + info.get("valores").get('repasses_no_periodo_custeio') \
+                                                         + outros_creditos_custeio
 
-                    custeio = {
-                        "saldo_reprogramado_anterior_custeio": formata_valor(saldo_reprogramado_anterior_custeio),
-                        "repasse_custeio": formata_valor(repasse_custeio),
-                        "devolucao_custeio": formata_valor(devolucao_custeio),
-                        "demais_creditos_custeio": formata_valor(demais_creditos_custeio),
-                        "despesas_custeio": formata_valor(despesas_custeio),
-                        "saldo_custeio": formata_valor(saldo_custeio),
-                        "outros_creditos": formata_valor(outros_creditos_custeio),
-                        "valor_total_disponivel_custeio": formata_valor(valor_total_disponivel_custeio),
-                    }
+                        valor_total_disponivel_total += valor_total_disponivel_custeio
 
-                    dados["custeio"] = custeio
+                        custeio = {
+                            "saldo_reprogramado_anterior_custeio": formata_valor(saldo_reprogramado_anterior_custeio),
+                            "repasse_custeio": formata_valor(repasse_custeio),
+                            "devolucao_custeio": formata_valor(devolucao_custeio),
+                            "demais_creditos_custeio": formata_valor(demais_creditos_custeio),
+                            "despesas_custeio": formata_valor(despesas_custeio),
+                            "saldo_custeio": formata_valor(saldo_custeio),
+                            "outros_creditos": formata_valor(outros_creditos_custeio),
+                            "valor_total_disponivel_custeio": formata_valor(valor_total_disponivel_custeio),
+                        }
 
-                    total_saldo_reprogramado_anterior_custeio += saldo_reprogramado_anterior_custeio
-                    total_repasse_custeio += repasse_custeio
-                    total_devolucao_custeio += devolucao_custeio
-                    total_demais_creditos_custeio += demais_creditos_custeio
-                    total_despesas_custeio += despesas_custeio
-                    total_saldo_custeio += saldo_custeio
-                    total_outros_creditos_custeio += outros_creditos_custeio
-                    total_valor_total_disponivel_custeio += valor_total_disponivel_custeio
+                        dados["custeio"] = custeio
 
-                elif index == 1:
-                    saldo_reprogramado_anterior_capital = info.get("valores").get(
-                        'saldo_reprogramado_periodo_anterior_capital')
-                    repasse_capital = info.get("valores").get('repasses_no_periodo_capital')
-                    devolucao_capital = info.get("valores").get('receitas_devolucao_no_periodo_capital')
-                    demais_creditos_capital = info.get("valores").get('demais_creditos_no_periodo_capital')
-                    despesas_capital = info.get("valores").get('despesas_no_periodo_capital')
-                    saldo_capital = info.get("valores").get('saldo_reprogramado_proximo_periodo_capital')
-                    total_receitas_capital = info.get("valores").get('receitas_totais_no_periodo_capital')
+                        total_saldo_reprogramado_anterior_custeio += saldo_reprogramado_anterior_custeio
+                        total_repasse_custeio += repasse_custeio
+                        total_devolucao_custeio += devolucao_custeio
+                        total_demais_creditos_custeio += demais_creditos_custeio
+                        total_despesas_custeio += despesas_custeio
+                        total_saldo_custeio += saldo_custeio
+                        total_outros_creditos_custeio += outros_creditos_custeio
+                        total_valor_total_disponivel_custeio += valor_total_disponivel_custeio
 
-                    outros_creditos_capital = total_receitas_capital - repasse_capital
-                    outros_creditos_total += outros_creditos_capital
+                    elif index == 1:
+                        saldo_reprogramado_anterior_capital = info.get("valores").get(
+                            'saldo_reprogramado_periodo_anterior_capital')
+                        repasse_capital = info.get("valores").get('repasses_no_periodo_capital')
+                        devolucao_capital = info.get("valores").get('receitas_devolucao_no_periodo_capital')
+                        demais_creditos_capital = info.get("valores").get('demais_creditos_no_periodo_capital')
+                        despesas_capital = info.get("valores").get('despesas_no_periodo_capital')
+                        saldo_capital = info.get("valores").get('saldo_reprogramado_proximo_periodo_capital')
+                        total_receitas_capital = info.get("valores").get('receitas_totais_no_periodo_capital')
 
-                    valor_total_disponivel_capital = info.get("valores").get('saldo_reprogramado_periodo_anterior_capital')\
-                                                     + info.get("valores").get('repasses_no_periodo_capital') \
-                                                     + outros_creditos_capital
+                        outros_creditos_capital = total_receitas_capital - repasse_capital
+                        outros_creditos_total += outros_creditos_capital
 
-                    valor_total_disponivel_total += valor_total_disponivel_capital
+                        valor_total_disponivel_capital = info.get("valores").get('saldo_reprogramado_periodo_anterior_capital')\
+                                                         + info.get("valores").get('repasses_no_periodo_capital') \
+                                                         + outros_creditos_capital
 
-                    capital = {
-                        "saldo_reprogramado_anterior_capital": formata_valor(saldo_reprogramado_anterior_capital),
-                        "repasse_capital": formata_valor(repasse_capital),
-                        "devolucao_capital": formata_valor(devolucao_capital),
-                        "demais_creditos_capital": formata_valor(demais_creditos_capital),
-                        "despesas_capital": formata_valor(despesas_capital),
-                        "saldo_capital": formata_valor(saldo_capital),
-                        "outros_creditos": formata_valor(outros_creditos_capital),
-                        "valor_total_disponivel_capital": formata_valor(valor_total_disponivel_capital)
-                    }
+                        valor_total_disponivel_total += valor_total_disponivel_capital
 
-                    dados["capital"] = capital
+                        capital = {
+                            "saldo_reprogramado_anterior_capital": formata_valor(saldo_reprogramado_anterior_capital),
+                            "repasse_capital": formata_valor(repasse_capital),
+                            "devolucao_capital": formata_valor(devolucao_capital),
+                            "demais_creditos_capital": formata_valor(demais_creditos_capital),
+                            "despesas_capital": formata_valor(despesas_capital),
+                            "saldo_capital": formata_valor(saldo_capital),
+                            "outros_creditos": formata_valor(outros_creditos_capital),
+                            "valor_total_disponivel_capital": formata_valor(valor_total_disponivel_capital)
+                        }
 
-                    total_saldo_reprogramado_anterior_capital += saldo_reprogramado_anterior_capital
-                    total_repasse_capital += repasse_capital
-                    total_devolucao_capital += devolucao_capital
-                    total_demais_creditos_capital += demais_creditos_capital
-                    total_despesas_capital += despesas_capital
-                    total_saldo_capital += saldo_capital
-                    total_outros_creditos_capital += outros_creditos_capital
-                    total_valor_total_disponivel_capital += valor_total_disponivel_capital
-                else:
-                    saldo_reprogramado_anterior_livre = info.get("valores").get('saldo_reprogramado_periodo_anterior_livre')
-                    repasse_livre = info.get("valores").get('repasses_no_periodo_livre')
-                    receita_rendimento_livre = info.get("valores").get('receitas_rendimento_no_periodo_livre')
-                    devolucao_livre = info.get("valores").get('receitas_devolucao_no_periodo_livre')
-                    demais_creditos_livre = info.get("valores").get('demais_creditos_no_periodo_livre')
-                    saldo_livre = info.get("valores").get('saldo_reprogramado_proximo_periodo_livre')
-                    total_receitas_livre = info.get("valores").get('receitas_totais_no_periodo_livre')
+                        dados["capital"] = capital
 
-                    outros_creditos_livre = total_receitas_livre - repasse_livre
-                    outros_creditos_total += outros_creditos_livre
+                        total_saldo_reprogramado_anterior_capital += saldo_reprogramado_anterior_capital
+                        total_repasse_capital += repasse_capital
+                        total_devolucao_capital += devolucao_capital
+                        total_demais_creditos_capital += demais_creditos_capital
+                        total_despesas_capital += despesas_capital
+                        total_saldo_capital += saldo_capital
+                        total_outros_creditos_capital += outros_creditos_capital
+                        total_valor_total_disponivel_capital += valor_total_disponivel_capital
+                    else:
+                        saldo_reprogramado_anterior_livre = info.get("valores").get('saldo_reprogramado_periodo_anterior_livre')
+                        repasse_livre = info.get("valores").get('repasses_no_periodo_livre')
+                        receita_rendimento_livre = info.get("valores").get('receitas_rendimento_no_periodo_livre')
+                        devolucao_livre = info.get("valores").get('receitas_devolucao_no_periodo_livre')
+                        demais_creditos_livre = info.get("valores").get('demais_creditos_no_periodo_livre')
+                        saldo_livre = info.get("valores").get('saldo_reprogramado_proximo_periodo_livre')
+                        total_receitas_livre = info.get("valores").get('receitas_totais_no_periodo_livre')
 
-                    valor_total_disponivel_livre = info.get("valores").get('saldo_reprogramado_periodo_anterior_livre')\
-                                                     + info.get("valores").get('repasses_no_periodo_livre') \
-                                                     + outros_creditos_livre
+                        outros_creditos_livre = total_receitas_livre - repasse_livre
+                        outros_creditos_total += outros_creditos_livre
 
-                    valor_total_disponivel_total += valor_total_disponivel_livre
+                        valor_total_disponivel_livre = info.get("valores").get('saldo_reprogramado_periodo_anterior_livre')\
+                                                         + info.get("valores").get('repasses_no_periodo_livre') \
+                                                         + outros_creditos_livre
 
-                    # Recupera o valor total de devoluções ao tesouro da associacao
-                    devolucoes_ao_tesouro = info.get('valores').get('devolucoes_ao_tesouro_no_periodo_total')
+                        valor_total_disponivel_total += valor_total_disponivel_livre
 
-                    livre = {
-                        "saldo_reprogramado_anterior_livre": formata_valor(saldo_reprogramado_anterior_livre),
-                        "repasse_livre": formata_valor(repasse_livre),
-                        "receita_rendimento_livre": formata_valor(receita_rendimento_livre),
-                        "devolucao_livre": formata_valor(devolucao_livre),
-                        "demais_creditos_livre": formata_valor(demais_creditos_livre),
-                        "saldo_livre": formata_valor(saldo_livre),
-                        "devolucoes_ao_tesouro": formata_valor(devolucoes_ao_tesouro),
-                        "outros_creditos": formata_valor(outros_creditos_livre),
-                        "valor_total_disponivel_livre": formata_valor(valor_total_disponivel_livre)
-                    }
+                        # Recupera o valor total de devoluções ao tesouro da associacao
+                        devolucoes_ao_tesouro = info.get('valores').get('devolucoes_ao_tesouro_no_periodo_total')
 
-                    dados["livre"] = livre
+                        livre = {
+                            "saldo_reprogramado_anterior_livre": formata_valor(saldo_reprogramado_anterior_livre),
+                            "repasse_livre": formata_valor(repasse_livre),
+                            "receita_rendimento_livre": formata_valor(receita_rendimento_livre),
+                            "devolucao_livre": formata_valor(devolucao_livre),
+                            "demais_creditos_livre": formata_valor(demais_creditos_livre),
+                            "saldo_livre": formata_valor(saldo_livre),
+                            "devolucoes_ao_tesouro": formata_valor(devolucoes_ao_tesouro),
+                            "outros_creditos": formata_valor(outros_creditos_livre),
+                            "valor_total_disponivel_livre": formata_valor(valor_total_disponivel_livre)
+                        }
 
-                    total_saldo_reprogramado_anterior_livre += saldo_reprogramado_anterior_livre
-                    total_repasse_livre += repasse_livre
-                    total_receita_rendimento_livre += receita_rendimento_livre
-                    total_devolucao_livre += devolucao_livre
-                    total_demais_creditos_livre += demais_creditos_livre
-                    total_saldo_livre += saldo_livre
-                    total_devolucoes_ao_tesouro += devolucoes_ao_tesouro
-                    total_outros_creditos_livre += outros_creditos_livre
-                    total_valor_total_disponivel_livre += valor_total_disponivel_livre
+                        dados["livre"] = livre
 
-            saldo_reprogramado_periodo_anterior_total = info.get("valores").get('saldo_reprogramado_periodo_anterior_total')
-            repasses_no_periodo_total = info.get("valores").get('repasses_no_periodo_total')
-            outros_creditos_total = outros_creditos_total
-            valor_total_disponivel_total = valor_total_disponivel_total
-            despesas_no_periodo_total = info.get('valores').get('despesas_no_periodo_total')
-            saldo_reprogramado_proximo_periodo_total = info.get('valores').get('saldo_reprogramado_proximo_periodo_total')
-            devolucoes_ao_tesouro_no_periodo_total = info.get('valores').get('devolucoes_ao_tesouro_no_periodo_total')
+                        total_saldo_reprogramado_anterior_livre += saldo_reprogramado_anterior_livre
+                        total_repasse_livre += repasse_livre
+                        total_receita_rendimento_livre += receita_rendimento_livre
+                        total_devolucao_livre += devolucao_livre
+                        total_demais_creditos_livre += demais_creditos_livre
+                        total_saldo_livre += saldo_livre
+                        total_devolucoes_ao_tesouro += devolucoes_ao_tesouro
+                        total_outros_creditos_livre += outros_creditos_livre
+                        total_valor_total_disponivel_livre += valor_total_disponivel_livre
 
-            totais = {
-                'saldo_reprogramado_periodo_anterior_total': formata_valor(saldo_reprogramado_periodo_anterior_total),
-                'repasses_no_periodo_total': formata_valor(repasses_no_periodo_total),
-                'outros_creditos_total': formata_valor(outros_creditos_total),
-                'valor_total_disponivel_total': formata_valor(valor_total_disponivel_total),
-                'despesas_no_periodo_total': formata_valor(despesas_no_periodo_total),
-                'saldo_reprogramado_proximo_periodo_total': formata_valor(saldo_reprogramado_proximo_periodo_total),
-                'devolucoes_ao_tesouro_no_periodo_total': formata_valor(devolucoes_ao_tesouro_no_periodo_total),
-            }
+                saldo_reprogramado_periodo_anterior_total = info.get("valores").get('saldo_reprogramado_periodo_anterior_total')
+                repasses_no_periodo_total = info.get("valores").get('repasses_no_periodo_total')
+                outros_creditos_total = outros_creditos_total
+                valor_total_disponivel_total = valor_total_disponivel_total
+                despesas_no_periodo_total = info.get('valores').get('despesas_no_periodo_total')
+                saldo_reprogramado_proximo_periodo_total = info.get('valores').get('saldo_reprogramado_proximo_periodo_total')
+                devolucoes_ao_tesouro_no_periodo_total = info.get('valores').get('devolucoes_ao_tesouro_no_periodo_total')
 
-            dados['totais'] = totais
-
-            lista_de_informacoes_por_conta.append(
-                {
-                    'tipo_conta': info.get('tipo_conta'),
-                    'custeio': dados["custeio"],
-                    'capital': dados["capital"],
-                    'livre': dados["livre"],
-                    'totais': dados["totais"],
+                totais = {
+                    'saldo_reprogramado_periodo_anterior_total': formata_valor(saldo_reprogramado_periodo_anterior_total),
+                    'repasses_no_periodo_total': formata_valor(repasses_no_periodo_total),
+                    'outros_creditos_total': formata_valor(outros_creditos_total),
+                    'valor_total_disponivel_total': formata_valor(valor_total_disponivel_total),
+                    'despesas_no_periodo_total': formata_valor(despesas_no_periodo_total),
+                    'saldo_reprogramado_proximo_periodo_total': formata_valor(saldo_reprogramado_proximo_periodo_total),
+                    'devolucoes_ao_tesouro_no_periodo_total': formata_valor(devolucoes_ao_tesouro_no_periodo_total),
                 }
-            )
+
+                dados['totais'] = totais
+
+                lista_de_informacoes_por_conta.append(
+                    {
+                        'tipo_conta': info.get('tipo_conta'),
+                        'exibe_valores': True,
+                        'mensagem_movimentacao_financeira': '',
+                        'custeio': dados["custeio"],
+                        'capital': dados["capital"],
+                        'livre': dados["livre"],
+                        'totais': dados["totais"],
+                    }
+                )
+            else:
+                lista_de_informacoes_por_conta.append(
+                    {
+                        'tipo_conta': info.get('tipo_conta'),
+                        'exibe_valores': False,
+                        'mensagem_movimentacao_financeira': 'Não houve movimentação financeira.',
+                        'custeio': None,
+                        'capital': None,
+                        'livre': None,
+                        'totais': None,
+                    }
+                )
+            # Ordena a lista para primeiro vir todas as contas com valores para não quebrar o layout do template e exibir a devolução ao tesouro
+            lista_de_informacoes_por_conta = sorted(lista_de_informacoes_por_conta, key=lambda d: d['exibe_valores'], reverse=True)
+
+        # TERMINA AQUI
 
         lista.append({
             'ordem': dados['ordem'],

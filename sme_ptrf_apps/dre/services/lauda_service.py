@@ -141,7 +141,7 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
                         f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
                         f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
                         f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
-                
+
                 if not verificar_se_todos_os_valores_da_conta_estao_zerados(status):
                     lauda_vazia = False
                     linhas.append(linha)
@@ -165,7 +165,7 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
                         f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
                         f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
                         f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
-                
+
                 if not verificar_se_todos_os_valores_da_conta_estao_zerados(status):
                     lauda_vazia = False
                     linhas.append(linha)
@@ -178,11 +178,16 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
             if not lauda_vazia:
                 nome_lauda = f"Lauda_{nome_dre}.docx.txt"
                 lauda.arquivo_lauda_txt.save(name=f'{nome_lauda}', content=File(tmp))
+                lauda.sem_movimentacao = False
+                lauda.save()
                 eh_parcial = parcial['parcial']
                 lauda.passar_para_status_gerado(eh_parcial)
             else:
                 logger.info("Os registros das contas bancárias das PCs estão zerados, logo o arquivo txt lauda não foi gerado.")
-                lauda.delete()
+                lauda.sem_movimentacao = True
+                lauda.save()
+                eh_parcial = parcial['parcial']
+                lauda.passar_para_status_gerado(eh_parcial)
         except Exception as err:
             logger.error("Erro ao gerar arquivo txt lauda: %s", str(err))
             raise Exception(err)
@@ -525,5 +530,5 @@ def verificar_se_todos_os_valores_da_conta_estao_zerados(status):
         string_to_float(status["despesa"]["custeio"]) or string_to_float(status["despesa"]["capital"]) or string_to_float(status["saldo"]["custeio"]) or
         string_to_float(status["saldo"]["livre_aplicacao"]) or string_to_float(status["saldo"]["capital"])):
         return False
-    
+
     return True

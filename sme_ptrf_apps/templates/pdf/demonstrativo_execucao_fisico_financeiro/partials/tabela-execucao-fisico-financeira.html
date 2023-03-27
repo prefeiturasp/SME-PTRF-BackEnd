@@ -27,7 +27,6 @@
 
     <tbody>
 
-
     {% for conta in info.por_tipo_de_conta %}
       <tr>
 
@@ -45,104 +44,118 @@
           </td>
         {% endif %}
 
-        <td rowspan="8">{{ conta.tipo_conta }}</td>
+        {% if conta.exibe_valores %} {% comment %} Caso exista valores eles são exibidos, senão exibe uma mensagem que vem do back - Não houve movimentação financeira. {% endcomment %}
 
-        <td rowSpan="2" style="width: 4%;">C</td>
-        <td rowSpan="2" class="text-right">{{ conta.custeio.saldo_reprogramado_anterior_custeio }}</td>
+            <td rowspan="8">{{ conta.tipo_conta }}</td>
 
-        <td rowSpan="2" style="width: 4%">C</td>
-        <td rowSpan="2" class="text-right">{{ conta.custeio.repasse_custeio }}</td>
+            <td rowSpan="2" style="width: 4%;">C</td>
+            <td rowSpan="2" class="text-right">{{ conta.custeio.saldo_reprogramado_anterior_custeio }}</td>
 
-        <td rowSpan="2" style="width: 4%">C</td>
-        <td rowSpan="2" class="text-right">{{ conta.custeio.outros_creditos }}</td>
+            <td rowSpan="2" style="width: 4%">C</td>
+            <td rowSpan="2" class="text-right">{{ conta.custeio.repasse_custeio }}</td>
 
-        <td rowSpan="2" style="width: 4%">C</td>
-        <td rowSpan="2" class="text-right">{{ conta.custeio.valor_total_disponivel_custeio }}</td>
+            <td rowSpan="2" style="width: 4%">C</td>
+            <td rowSpan="2" class="text-right">{{ conta.custeio.outros_creditos }}</td>
 
-        <td rowSpan="3" style="width: 4%">C</td>
-        <td rowSpan="3" class="text-right">{{ conta.custeio.despesas_custeio }}</td>
+            <td rowSpan="2" style="width: 4%">C</td>
+            <td rowSpan="2" class="text-right">{{ conta.custeio.valor_total_disponivel_custeio }}</td>
 
-        <td rowSpan="2" style="width: 4%">C</td>
-        <td rowSpan="2" class="text-right">{{ conta.custeio.saldo_custeio }}</td>
+            <td rowSpan="3" style="width: 4%">C</td>
+            <td rowSpan="3" class="text-right">{{ conta.custeio.despesas_custeio }}</td>
 
-        {% if forloop.counter == 1 %}
-          <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>T</strong></td>
-          <td class="text-right" rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>{{ conta.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
+            <td rowSpan="2" style="width: 4%">C</td>
+            <td rowSpan="2" class="text-right">{{ conta.custeio.saldo_custeio }}</td>
+
+            {% if forloop.counter == 1 %}
+              <td rowspan="{{ info.por_tipo_de_conta|retorna_quantidade_rowspan_retira_sem_valores }}"><strong>T</strong></td>
+              <td class="text-right" rowspan="{{ info.por_tipo_de_conta|retorna_quantidade_rowspan_retira_sem_valores }}"><strong>{{ conta.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
 
 
-          <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}">{{ info.situacao_pc }}</td>
-        {% endif %}
-      </tr>
+              <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}">{{ info.situacao_pc }}</td>
+            {% endif %}
+          </tr>
 
-      <tr></tr>
+          <tr></tr>
 
-      <tr>
-        <td rowSpan="2">L</td>
-        <td rowSpan="2" class="text-right">{{ conta.livre.saldo_reprogramado_anterior_livre }}</td>
+          <tr>
+            <td rowSpan="2">L</td>
+            <td rowSpan="2" class="text-right">{{ conta.livre.saldo_reprogramado_anterior_livre }}</td>
 
-        <td rowSpan="2">L</td>
-        <td rowSpan="2" class="text-right">{{ conta.livre.repasse_livre }}</td>
+            <td rowSpan="2">L</td>
+            <td rowSpan="2" class="text-right">{{ conta.livre.repasse_livre }}</td>
 
-        <td rowSpan="2">L</td>
-        <td rowSpan="2" class="text-right">{{ conta.livre.outros_creditos }}</td>
+            <td rowSpan="2">L</td>
+            <td rowSpan="2" class="text-right">{{ conta.livre.outros_creditos }}</td>
 
-        <td rowSpan="2">L</td>
-        <td rowSpan="2" class="text-right">{{ conta.livre.valor_total_disponivel_livre }}</td>
+            <td rowSpan="2">L</td>
+            <td rowSpan="2" class="text-right">{{ conta.livre.valor_total_disponivel_livre }}</td>
 
-        <td rowSpan="2">L</td>
-        <td rowSpan="2" class="text-right">{{ conta.livre.saldo_livre }}</td>
+            <td rowSpan="2">L</td>
+            <td rowSpan="2" class="text-right">{{ conta.livre.saldo_livre }}</td>
 
-        <td style="display: inline-table; border:none !important;"></td>
-      </tr>
+            <td style="display: inline-table; border:none !important;"></td>
+          </tr>
 
-      <tr>
-        <td rowSpan="3" style="width: 4%">K</td>
-        <td rowSpan="3" class="text-right">{{ conta.capital.despesas_capital }}</td>
-      </tr>
+          <tr>
+            <td rowSpan="3" style="width: 4%">K</td>
+            <td rowSpan="3" class="text-right">{{ conta.capital.despesas_capital }}</td>
+          </tr>
 
-      <tr>
-        <td rowSpan="2">K</td>
-        <td rowSpan="2" class="text-right">{{ conta.capital.saldo_reprogramado_anterior_capital }}</td>
+          <tr>
+            <td rowSpan="2">K</td>
+            <td rowSpan="2" class="text-right">{{ conta.capital.saldo_reprogramado_anterior_capital }}</td>
 
-        <td rowSpan="2">K</td>
-        <td rowSpan="2" class="text-right">{{ conta.capital.repasse_capital }}</td>
+            <td rowSpan="2">K</td>
+            <td rowSpan="2" class="text-right">{{ conta.capital.repasse_capital }}</td>
 
-        <td rowSpan="2">K</td>
-        <td rowSpan="2" class="text-right">{{ conta.capital.outros_creditos }}</td>
+            <td rowSpan="2">K</td>
+            <td rowSpan="2" class="text-right">{{ conta.capital.outros_creditos }}</td>
 
-        <td rowSpan="2">K</td>
-        <td rowSpan="2" class="text-right">{{ conta.capital.valor_total_disponivel_capital }}</td>
+            <td rowSpan="2">K</td>
+            <td rowSpan="2" class="text-right">{{ conta.capital.valor_total_disponivel_capital }}</td>
 
-        <td rowSpan="2">K</td>
-        <td rowSpan="2" class="text-right">{{ conta.capital.saldo_capital }}</td>
-      </tr>
+            <td rowSpan="2">K</td>
+            <td rowSpan="2" class="text-right">{{ conta.capital.saldo_capital }}</td>
+          </tr>
 
-      <tr></tr>
-      <tr></tr>
-      <tr>
-        <td style="border-top: none !important;"><strong>T</strong></td>
-        <td class="text-right" style="border-top: none !important;">
-          <strong>{{ conta.totais.saldo_reprogramado_periodo_anterior_total }}</strong></td>
+          <tr></tr>
+          <tr></tr>
+          <tr>
+            <td style="border-top: none !important;"><strong>T</strong></td>
+            <td class="text-right" style="border-top: none !important;">
+              <strong>{{ conta.totais.saldo_reprogramado_periodo_anterior_total }}</strong></td>
 
-        <td style="border-top: none !important;"><strong>T</strong></td>
-        <td class="text-right" style="border-top: none !important;">
-          <strong>{{ conta.totais.repasses_no_periodo_total }}</strong></td>
+            <td style="border-top: none !important;"><strong>T</strong></td>
+            <td class="text-right" style="border-top: none !important;">
+              <strong>{{ conta.totais.repasses_no_periodo_total }}</strong></td>
 
-        <td style="border-top: none !important;"><strong>T</strong></td>
-        <td class="text-right" style="border-top: none !important;">
-          <strong>{{ conta.totais.outros_creditos_total }}</strong></td>
+            <td style="border-top: none !important;"><strong>T</strong></td>
+            <td class="text-right" style="border-top: none !important;">
+              <strong>{{ conta.totais.outros_creditos_total }}</strong></td>
 
-        <td style="border-top: none !important;"><strong>T</strong></td>
-        <td class="text-right" style="border-top: none !important;">
-          <strong>{{ conta.totais.valor_total_disponivel_total }}</strong></td>
+            <td style="border-top: none !important;"><strong>T</strong></td>
+            <td class="text-right" style="border-top: none !important;">
+              <strong>{{ conta.totais.valor_total_disponivel_total }}</strong></td>
 
-        <td style="border-top: none !important;"><strong>T</strong></td>
-        <td class="text-right" style="border-top: none !important;">
-          <strong>{{ conta.totais.despesas_no_periodo_total }}</strong></td>
+            <td style="border-top: none !important;"><strong>T</strong></td>
+            <td class="text-right" style="border-top: none !important;">
+              <strong>{{ conta.totais.despesas_no_periodo_total }}</strong></td>
 
-        <td style="border-top: none !important;"><strong>T</strong></td>
-        <td class="text-right" style="border-top: none !important;"><strong>{{ conta.totais.saldo_reprogramado_proximo_periodo_total }}</strong></td>
-      </tr>
+            <td style="border-top: none !important;"><strong>T</strong></td>
+            <td class="text-right" style="border-top: none !important;"><strong>{{ conta.totais.saldo_reprogramado_proximo_periodo_total }}</strong></td>
+          </tr>
+
+      {% else %} {% comment %} if conta.exibe_valores {% endcomment %}
+          <tr>
+            <td class="py-2">{{ conta.tipo_conta }}</td>
+            <td class="py-2" colspan="14">{{ conta.mensagem_movimentacao_financeira }}</td>
+            {% if forloop.counter == 1 %}
+              <td class="py-2" rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}">{{ info.situacao_pc }}</td>
+            {% endif %}
+          </tr>
+
+      {% endif %}  {% comment %} if conta.exibe_valores {% endcomment %}
+
     {% endfor %}
 
     </tbody>
