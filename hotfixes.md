@@ -1,3 +1,6 @@
+### 6.0.4 - 27/03/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 62
+* (88217) Melhorias no admin de devoluções ao tesouro para permitir informar despesa pelo id
+
 ### 6.0.3 - 21/03/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 61
 * (84747) Corrige alinhamento de margem das atas de apresentação
 * (85715) Corrige no relatório consolidado o problema de loading que não é exibido corretamente na solicitação de geração do demonstrativo
