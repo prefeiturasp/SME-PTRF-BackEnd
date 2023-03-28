@@ -218,14 +218,19 @@ class SolicitacaoAcertoDocumentoService:
             analise_documento.informacao_conciliacao_atualizada = True
             analise_documento.save()
 
-            observacao = ObservacaoConciliacao.objects.filter(
+            observacao, _ = ObservacaoConciliacao.objects.get_or_create(
                 periodo=periodo,
                 conta_associacao=conta_associacao,
                 associacao=associacao,
-            ).first()
-            if observacao:
-                observacao.texto = justificativa_conciliacao
-                observacao.save()
+                defaults={
+                    'periodo': periodo,
+                    'conta_associacao': conta_associacao,
+                    'associacao': associacao,
+                }
+            )
+
+            observacao.texto = justificativa_conciliacao
+            observacao.save()
 
             return {
                 "mensagem": "Edição de informação da conciliação atualizada com sucesso.",
