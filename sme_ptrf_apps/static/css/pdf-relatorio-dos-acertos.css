@@ -256,3 +256,17 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
 .titulo-bloco {
   color: #2B7D83 !important;
 }
+
+/* checkbox */
+.checkbox-pdf {
+    margin-left: 40%;
+    text-align: center;
+    display: flex;
+    flex: 1;
+    max-width: 14px;
+    justify-content: center;
+    margin-bottom: 10px;
+    color: #ffffff;
+    background-color: #d8d8d8;
+    font-weight: 700;
+}
