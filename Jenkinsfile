@@ -116,21 +116,26 @@ pipeline {
                       input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: "${aprovadores}"
                     }
                   }
-
+                }
                   withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
                             
-			              sh('cp $config '+"$home"+'/.kube/config')
-                    sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf'
-                    sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf'
-                    sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf'
-                    sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf-hom2'
-                    sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf-hom2'
-                    sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf-hom2'
+                    if ( env.branchname == 'homolog-r2' ) {
+                        sh('cp $config '+"$home"+'/.kube/config')
+                        sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf-hom2'
+                        sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf-hom2'
+                        sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf-hom2'
+                    }
+                    else {
+                        sh('cp $config '+"$home"+'/.kube/config')
+                        sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf'
+                        sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf'
+                        sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf'
+                    }
 				          }
                 }
               }
             }           
-        }
+        
 
         stage('Deploy Ambientes'){
             when { anyOf {  branch 'master'; branch 'main' } }
