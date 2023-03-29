@@ -1228,7 +1228,6 @@ class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
         'motivo'
     )
 
-
 @admin.register(TransferenciaEol)
 class TransferenciaEolAdmin(admin.ModelAdmin):
     def transfere_codigo_eol(self, request, queryset):

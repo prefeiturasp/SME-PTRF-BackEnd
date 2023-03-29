@@ -217,7 +217,6 @@ d.valor_total
 order by
 u.nome
 
-
 -- Lista solicitações de acerto do tipo devolução que não possuem vinculo com uma solicitação de devolução ao tesouro
 
 SELECT DISTINCT
@@ -250,4 +249,3 @@ and not exists (select sdt.id from core_solicitacaodevolucaoaotesouro as sdt whe
 
 ORDER BY
 u.nome
-
