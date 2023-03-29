@@ -338,6 +338,15 @@ class TransferenciaEol(ModeloBase):
             receita.save()
             self.adicionar_log_info(f'Receita  {receita} copiada para a nova associação.')
 
+            # Se a receita tiver um repasse, transfere o repasse para a associação nova
+            if receita.repasse:
+                repasse = receita.repasse
+                repasse.associacao = associacao_nova
+                repasse.conta_associacao = associacao_nova.contas.filter(tipo_conta=self.tipo_conta_transferido).first()
+                repasse.acao_associacao = associacao_nova.acoes.filter(acao=repasse.acao_associacao.acao).first()
+                repasse.save()
+                self.adicionar_log_info(f'Repasse {repasse} transferido para a nova associação.')
+
     def inativar_receitas_associacao_do_tipo_transferido(self, associacao_original):
         self.adicionar_log_info(f'Inativando receitas da conta {self.tipo_conta_transferido} da associação original.')
 
