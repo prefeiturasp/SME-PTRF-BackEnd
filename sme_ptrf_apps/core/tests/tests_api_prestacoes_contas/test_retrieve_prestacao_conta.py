@@ -269,6 +269,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(
                 'logradouro': 'dos Testes',
                 'nome': 'Escola Teste',
                 'numero': '200',
+                'observacao': '',
                 'qtd_alunos': 0,
                 'sigla': 'ET',
                 'telefone': '58212627',
