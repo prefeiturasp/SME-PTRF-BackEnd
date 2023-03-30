@@ -163,6 +163,7 @@ class UnidadeAdmin(admin.ModelAdmin):
                 'nome',
                 'tipo_unidade',
                 'codigo_eol',
+                'observacao',
                 'dre',
                 'sigla',
                 'cep',
