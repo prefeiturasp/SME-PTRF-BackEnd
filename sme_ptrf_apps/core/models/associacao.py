@@ -163,10 +163,11 @@ class Associacao(ModeloIdNome):
             return self.periodo_inicial.periodo_seguinte.first() if self.periodo_inicial else None
 
     def periodos_para_prestacoes_de_conta(self):
-        periodos = list(self.periodos_com_prestacao_de_contas(ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=True))
+        periodos = set(self.periodos_com_prestacao_de_contas(ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=True))
+        
         proximo_periodo = self.proximo_periodo_de_prestacao_de_contas(ignorar_devolvidas=True)
         if proximo_periodo:
-            periodos.append(proximo_periodo)
+            periodos.add(proximo_periodo)
 
         periodos_ordenados = sorted(periodos, key=Periodo.get_referencia, reverse=True)
         return periodos_ordenados
