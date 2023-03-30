@@ -30,7 +30,7 @@ def test_action_analise_documento_consolidado_dre_gravar_como_correto_nao_confer
     result = json.loads(response.content)
 
     esperado = {
-        "mensagem": "Documentos alterados com sucesso!"
+        "mensagem": "Status de documento conferido foi aplicado com sucesso."
     }
 
     assert response.status_code == status.HTTP_200_OK

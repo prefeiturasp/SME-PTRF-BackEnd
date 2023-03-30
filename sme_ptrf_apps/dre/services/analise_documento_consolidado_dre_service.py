@@ -19,7 +19,7 @@ class AnaliseDocumentoConsolidadoDreService:
         self.__analise_atual_consolidado = analise_atual_consolidado
         self.__tipos_documentos_validos = ['RELATORIO_CONSOLIDADO', 'ATA_PARECER_TECNICO', 'DOCUMENTO_ADICIONAL']
         self.response = {
-            "mensagem": "Documentos alterados com sucesso!",
+            "mensagem": "Status de documento conferido foi aplicado com sucesso.",
             "status": status.HTTP_200_OK
         }
 
