@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='unidade',
             name='observacao',
-            field=models.CharField(blank=True, default='', help_text='Texto de auxílio.', max_length=255, null=True, verbose_name='Observação'),
+            field=models.CharField(blank=True, default='', help_text='Preencha este campo, se necessário, com informações relacionadas a unidade educacional.', max_length=255, null=True, verbose_name='Observação'),
         ),
     ]
