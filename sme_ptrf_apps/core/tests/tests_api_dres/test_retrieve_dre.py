@@ -35,6 +35,7 @@ def test_api_retrieve_dre(jwt_authenticated_client_a, _dre):
         "tipo_logradouro": f'{_dre.tipo_logradouro}',
         "logradouro": f'{_dre.logradouro}',
         "numero": f'{_dre.numero}',
+        "observacao": f'{_dre.observacao}',
         "complemento": f'{_dre.complemento}',
         "bairro": f'{_dre.bairro}',
         "cep": f'{_dre.cep}',
