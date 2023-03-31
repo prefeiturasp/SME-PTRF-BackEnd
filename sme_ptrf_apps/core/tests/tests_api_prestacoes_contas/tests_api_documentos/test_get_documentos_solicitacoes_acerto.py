@@ -37,6 +37,7 @@ def test_api_get_solicitacoes_acerto_de_um_documento_nao_por_conta(
                 'analise_documento': f'{analise_documento_prestacao_conta_2020_1_ata_ajuste.uuid}',
                 'copiado': False,
                 'detalhamento': '',
+                'texto_do_acerto_do_tipo_edicao_de_informacao': '',
                 'tipo_acerto': {
                     'ativo': tipo_acerto_documento_assinatura.ativo,
                     'categoria': tipo_acerto_documento_assinatura.categoria,
@@ -103,6 +104,7 @@ def test_api_get_solicitacoes_acerto_de_um_documento_por_conta(
                 'analise_documento': f'{analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste.uuid}',
                 'copiado': False,
                 'detalhamento': '',
+                'texto_do_acerto_do_tipo_edicao_de_informacao': '',
                 'tipo_acerto': {
                     'ativo': tipo_acerto_documento_assinatura.ativo,
                     'categoria': tipo_acerto_documento_assinatura.categoria,
