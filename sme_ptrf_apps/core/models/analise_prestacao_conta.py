@@ -322,11 +322,11 @@ class AnalisePrestacaoConta(ModeloBase):
                     analises_de_documentos_requerem_alteracoes = True
                     break
 
-        logger.info(f'Prestação de conta: {self.prestacao_conta.id}')
-        logger.info(f'Análise de Prestação de conta: {self.id}')
+        """ logger.info(f'Prestação de conta: {self.prestacao_conta.id}')
+        logger.info(f'Análise de Prestação de conta: {self.id}')K
         logger.info(f'analises_de_lancamentos_requerem_alteracoes: {analises_de_lancamentos_requerem_alteracoes}')
         logger.info(f'analises_de_documentos_requerem_alteracoes: {analises_de_documentos_requerem_alteracoes}')
-        logger.info(f'É necessário recalcular fechamentos e documentos? {analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes}')
+        logger.info(f'É necessário recalcular fechamentos e documentos? {analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes}') """
         return analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes
 
     @classmethod

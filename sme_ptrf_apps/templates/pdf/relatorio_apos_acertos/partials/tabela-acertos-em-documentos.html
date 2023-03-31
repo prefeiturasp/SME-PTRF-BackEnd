@@ -53,6 +53,10 @@
                   <p class="font-12">{{ acerto.esclarecimentos }}</p>
                 {% endif %}
 
+                {% if acerto.texto_do_acerto_do_tipo_edicao_de_informacao %}
+                  <p class="font-12 mb-0"><strong>Justificativa e informações adicionais</strong></p>
+                  <p class="font-12">{{ acerto.texto_do_acerto_do_tipo_edicao_de_informacao }}</p>
+                {% endif %}
               </div>
 
             <div class='col-3'>
