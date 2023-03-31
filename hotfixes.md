@@ -1,3 +1,6 @@
+### 6.0.5 - 31/03/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 62
+* (90233) Corrige exibição de informações de conciliação no acompanhamento de PCs.
+
 ### 6.0.4 - 27/03/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 62
 * (88217) Melhorias no admin de devoluções ao tesouro para permitir informar despesa pelo id
 
