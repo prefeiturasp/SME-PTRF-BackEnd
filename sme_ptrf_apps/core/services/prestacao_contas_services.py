@@ -750,7 +750,7 @@ def lancamentos_da_prestacao(
             lancamento = {
                 'periodo': f'{prestacao_conta.periodo.uuid}',
                 'conta': f'{conta_associacao.uuid}',
-                'data': despesa.data_documento if despesa.data_documento else '',
+                'data': despesa.data_documento if despesa.data_documento else despesa.data_transacao if despesa.data_transacao else '',
                 'tipo_transacao': 'Gasto',
                 'numero_documento': despesa.numero_documento,
                 'descricao': despesa.nome_fornecedor,
