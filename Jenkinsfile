@@ -22,6 +22,7 @@ pipeline {
         }
 
         stage('Preparando BD') {
+	  when { branch '_master_' } 
           agent { label 'master' }  
           steps {
             sh '''
@@ -38,6 +39,7 @@ pipeline {
         }
 
         stage('Testes') {
+	  when { branch '_master_' } 
           parallel {    
         
             stage('Testes Lint') {
