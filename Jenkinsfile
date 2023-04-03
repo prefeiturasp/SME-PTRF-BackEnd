@@ -88,7 +88,7 @@ pipeline {
 
         
         stage('Build') {
-          when { anyOf { branch 'master'; branch 'main'; branch "story/*"; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; } } 
+          when { anyOf { branch 'master'; branch 'main'; branch "story/*"; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; } } 
           steps {
             script {
               imagename1 = "registry.sme.prefeitura.sp.gov.br/${env.branchname}/ptrf-backend"
@@ -106,7 +106,7 @@ pipeline {
         }
 	    
         stage('Deploy'){
-            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; } }        
+            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; } }        
             steps {
               script{
                 if ( env.branchname == 'main' ||  env.branchname == 'master' || env.branchname == 'homolog' || env.branchname == 'release' ) {
@@ -124,6 +124,12 @@ pipeline {
                         sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf-hom2'
                         sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf-hom2'
                         sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf-hom2'
+                    }
+                    else if( env.branchname == 'pre-release' ){
+                        sh('cp $config '+"$home"+'/.kube/config')
+                        sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
+                        sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
+                        sh 'kubectl rollout restart deployment/sigescolapre-flower -n sme-sigescola-pre'
                     }
                     else {
                         sh('cp $config '+"$home"+'/.kube/config')
@@ -175,4 +181,5 @@ def getKubeconf(branchName) {
     else if ("release".equals(branchName)) { return "config_hom"; }
     else if ("development".equals(branchName)) { return "config_dev"; }
     else if ("develop".equals(branchName)) { return "config_dev"; }	
+    else if ("pre-release".equals(branchName)) { return "config_prd"; }
 }
