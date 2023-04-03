@@ -1238,9 +1238,9 @@ class FalhaGeracaoPcAdmin(admin.ModelAdmin):
     list_display = ['ultimo_usuario', 'associacao', 'periodo', 'data_hora_ultima_ocorrencia',
                     'qtd_ocorrencias_sucessivas', 'resolvido']
     list_filter = ['ultimo_usuario', 'associacao', 'periodo', 'data_hora_ultima_ocorrencia',
-                   'qtd_ocorrencias_sucessivas', 'resolvido']
+                   'qtd_ocorrencias_sucessivas', 'resolvido', 'associacao__unidade__dre']
     readonly_fields = ('uuid', 'id')
-    search_fields = ('ultimo_usuario__username', 'associacao__nome')
+    search_fields = ('ultimo_usuario__username', 'associacao__nome', 'associacao__unidade__nome')
 
 @admin.register(TransferenciaEol)
 class TransferenciaEolAdmin(admin.ModelAdmin):
