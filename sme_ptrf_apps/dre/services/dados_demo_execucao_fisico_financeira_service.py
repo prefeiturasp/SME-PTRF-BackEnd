@@ -837,7 +837,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_conso
                     }
                 )
             # Ordena a lista para primeiro vir todas as contas com valores para não quebrar o layout do template e exibir a devolução ao tesouro
-            lista_de_informacoes_por_conta = sorted(lista_de_informacoes_por_conta, key=lambda d: d['exibe_valores'], reverse=True)
+            # lista_de_informacoes_por_conta = sorted(lista_de_informacoes_por_conta, key=lambda d: d['exibe_valores'], reverse=True)
 
         # TERMINA AQUI
 
