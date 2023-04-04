@@ -67,8 +67,8 @@
             <td rowSpan="2" class="text-right">{{ conta.custeio.saldo_custeio }}</td>
 
             {% if forloop.counter == 1 %}
-              <td rowspan="{{ info.por_tipo_de_conta|retorna_quantidade_rowspan_retira_sem_valores }}"><strong>T</strong></td>
-              <td class="text-right" rowspan="{{ info.por_tipo_de_conta|retorna_quantidade_rowspan_retira_sem_valores }}"><strong>{{ conta.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
+              <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>T</strong></td>
+              <td class="text-right" rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>{{ conta.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
 
 
               <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}">{{ info.situacao_pc }}</td>
@@ -148,8 +148,16 @@
       {% else %} {% comment %} if conta.exibe_valores {% endcomment %}
           <tr>
             <td class="py-2">{{ conta.tipo_conta }}</td>
-            <td class="py-2" colspan="14">{{ conta.mensagem_movimentacao_financeira }}</td>
+            <td class="py-2" colspan="12">{{ conta.mensagem_movimentacao_financeira }}</td>
             {% if forloop.counter == 1 %}
+              <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>T</strong></td>
+
+              {% if conta.totais.devolucoes_ao_tesouro_no_periodo_total %}
+                <td class="text-right" rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>{{ conta.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
+              {% else %}
+                <td class="text-right" rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>0,00</strong></td>
+              {% endif %}
+
               <td class="py-2" rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}">{{ info.situacao_pc }}</td>
             {% endif %}
           </tr>
