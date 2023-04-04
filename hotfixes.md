@@ -1,3 +1,6 @@
+### 6.0.6 - 04/04/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 62
+* (90066) Corrige data de documento vazia na conferência de lançamentos
+
 ### 6.0.5 - 31/03/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 62
 * (90233) Corrige exibição de informações de conciliação no acompanhamento de PCs.
 
