@@ -62,6 +62,18 @@ class TipoAcertoLancamentoAgrupadoPorCategoria:
                          "não reabre o lançamento para alteração.",
                 "cor": 2
             }
+        elif TipoAcertoLancamento.CATEGORIA_CONCILIACAO_LANCAMENTO == categoria_id:
+            return {
+                "texto": "Esse tipo de acerto requer que o usuário concilie o lançamento e "
+                         "provoca a regeração dos fechamentos e arquivos.",
+                "cor": 1
+            }
+        elif TipoAcertoLancamento.CATEGORIA_DESCONCILIACAO_LANCAMENTO == categoria_id:
+            return {
+                "texto": "Esse tipo de acerto requer que o usuário desconcilie o lançamento e "
+                         "provoca a regeração dos fechamentos e arquivos.",
+                "cor": 1
+            }
 
 
 class TipoAcertoLancamentoCategorias:

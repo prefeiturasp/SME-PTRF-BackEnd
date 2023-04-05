@@ -53,6 +53,16 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         else:
             titulo_sequencia_publicacao = "Publicação Única"
 
+    motivo_retificacao = None
+    eh_retificacao = False
+    if ata_de_parecer_tecnico and ata_de_parecer_tecnico.consolidado_dre:
+        if ata_de_parecer_tecnico.consolidado_dre.eh_retificacao:
+            eh_retificacao = True
+            motivo_retificacao = ata_de_parecer_tecnico.consolidado_dre.motivo_retificacao
+            publicacao_parcial_que_gerou_a_retificacao = ata_de_parecer_tecnico.consolidado_dre.consolidado_retificado
+            data_publicacao = publicacao_parcial_que_gerou_a_retificacao.data_publicacao if publicacao_parcial_que_gerou_a_retificacao and publicacao_parcial_que_gerou_a_retificacao.data_publicacao else ''
+            titulo_sequencia_publicacao = f"Retificação da publicação de {data_publicacao.strftime('%d/%m/%Y')}"
+
     cabecalho = {
         "titulo": "Programa de Transferência de Recursos Financeiros -  PTRF",
         "sub_titulo": f"Diretoria Regional de Educação - {formata_nome_dre(dre.nome)}",
@@ -71,6 +81,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas),
         "periodo_data_fim": formata_data(periodo.data_fim_realizacao_despesas),
         "comentarios": ata_de_parecer_tecnico.comentarios,
+        "motivo_retificacao": motivo_retificacao
     }
     presentes_na_ata = {
         "presentes": get_presentes_na_ata(ata_de_parecer_tecnico)
@@ -123,6 +134,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
 
     dado = {
         "cabecalho": cabecalho,
+        "eh_retificacao": eh_retificacao,
         "dados_texto_da_ata": dados_texto_da_ata,
         "presentes_na_ata": presentes_na_ata,
         "aprovadas": {
@@ -151,7 +163,7 @@ def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre(
         consolidado_dre = ata_de_parecer_tecnico.consolidado_dre
 
     if consolidado_dre:
-        prestacoes = consolidado_dre.prestacoes_de_conta_do_consolidado_dre.all()
+        prestacoes = consolidado_dre.pcs_do_consolidado.all()
     else:
         prestacoes = PrestacaoConta.objects.filter(
             periodo=periodo,
@@ -167,7 +179,7 @@ def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre(
     resultado = []
     for prestacao in prestacoes:
 
-        status_prestacao_conta = prestacao.status
+        status_prestacao_conta = prestacao.status if not prestacao.em_retificacao else prestacao.status_anterior_a_retificacao
 
         dado = {
             'unidade': {

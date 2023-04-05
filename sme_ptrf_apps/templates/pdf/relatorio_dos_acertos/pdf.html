@@ -16,16 +16,16 @@
 {# ************************* Cabecalho das páginas *************************  #}
 
 <header>
-  <div class="d-flex p-2 bd-highlight mt-2">
+  <div class="d-flex p-2 bd-highlight mt-1">
     <div class="col-6 mt-2">
-      <p class="subtitulo font-14 mb-0">Prestação de Contas - Relatório de Devolução</p>
+      <p class="subtitulo font-12 mb-0">Prestação de Contas - Relatório de Devolução</p>
       <p class="font-14">Devolução para acertos a Associação</p>
     </div>
     <div class="col-6">
       <div class="row">
         <div class="col-auto borda-box-cabecalho-right ml-5 ml-auto">
-          <p class="font-14 mb-0">Período de Realização:</p>
-          <p class="subtitulo font-14">{{ dados.info_cabecalho.periodo_referencia }} -  {{ dados.info_cabecalho.data_inicio_periodo|date:'d/m/Y' }} até {{ dados.info_cabecalho.data_fim_periodo|date:'d/m/Y' }}</p>
+          <p class="font-10 mb-0">Período de Realização:</p>
+          <p class="subtitulo font-10 mb-0 pb-0">{{ dados.info_cabecalho.periodo_referencia }} -  {{ dados.info_cabecalho.data_inicio_periodo|date:'d/m/Y' }} até {{ dados.info_cabecalho.data_fim_periodo|date:'d/m/Y' }}</p>
         </div>
       </div>
     </div>
@@ -36,11 +36,11 @@
 
 {# ************************* Rodape ************************* #}
 <p id="data-geracao-rodape">
-  <i>{{ dados.data_geracao_documento }}</i>
+  <i class="font-10">{{ dados.data_geracao_documento }}</i>
 </p>
 {# ************************* Fim Rodape ************************* #}
 
-<section id="cabecalho" class="mt-3">
+<section id="cabecalho" class="mt-2">
   <div class="d-flex p-2 bd-highlight">
     <div class="col-4">
       <img src="{{ base_static_url }}/images/logo-color.svg" alt="logo">
@@ -52,14 +52,14 @@
   <hr class="divisao"/>
   <div class="d-flex p-2 bd-highlight mt-2">
     <div class="col-6 mt-2">
-      <p class="subtitulo font-14 mb-0">Prestação de Contas - Relatório de Devolução</p>
-      <p class="font-14">Devolução para acertos a Associação</p>
+      <p class="subtitulo font-12 mb-0">Prestação de Contas - Relatório de Devolução</p>
+      <p class="font-12">Devolução para acertos a Associação</p>
     </div>
     <div class="col-6">
       <div class="row">
         <div class="col-auto borda-box-cabecalho-right ml-5 ml-auto">
-          <p class="font-14 mb-0">Período de Realização:</p>
-          <p class="subtitulo font-14">{{ dados.info_cabecalho.periodo_referencia }} -  {{ dados.info_cabecalho.data_inicio_periodo|date:'d/m/Y' }} até {{ dados.info_cabecalho.data_fim_periodo|date:'d/m/Y' }}</p>
+          <p class="font-12 mb-0">Período de Realização:</p>
+          <p class="subtitulo font-12">{{ dados.info_cabecalho.periodo_referencia }} -  {{ dados.info_cabecalho.data_inicio_periodo|date:'d/m/Y' }} até {{ dados.info_cabecalho.data_fim_periodo|date:'d/m/Y' }}</p>
         </div>
       </div>
     </div>
@@ -67,76 +67,9 @@
 </section>
 
 <section class="conteudo mt-4">
-  <article class="mt-4">
-    <table class="table table-bordered tabela-resumo-por-acao">
-      <thead class="">
-        <tr class="">
-          <th colSpan="1">
-            <strong class="font-16 titulo-bloco ml-2">{{ dados.blocos.identificacao_associacao }}</strong>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>
-            <div class="col-12">
-              <p class="pt-2 mt-2 font-12"><strong>Nome da Associação:</strong> {{ dados.dados_associacao.nome_associacao }}</p>
-            </div>
-          </td>
-        </tr>
 
-        <tr>
-          <td>
-            <div class="col-12">
-              <div class="row">
-                <div class="col">
-                  <p class="pt-2 mt-2 mb-0 font-12"><strong>CNPJ:</strong></p>
-                  <p class="font-12">{{ dados.dados_associacao.cnpj_associacao }}</p>
-                </div>
-                <div class="col">
-                  <p class="pt-2 mt-2 mb-0 font-12"><strong>Código EOL:</strong></p>
-                  <p class="font-12">{{ dados.dados_associacao.codigo_eol_associacao }}</p>
-                </div>
-                <div class="col">
-                  <p class="pt-2 mt-2 mb-0 font-12"><strong>Diretoria Regional de Educação:</strong></p>
-                  <p class="font-12">{{ dados.dados_associacao.nome_dre }}</p>
-                </div>
-              </div>
-            </div>
-          </td>
-        </tr>
-
-      <tr>
-        <td>
-          <div class="col-12">
-            <div class="row">
-
-              <div class="col-4">
-                <p class="pt-2 mt-2 mb-0 font-12"><strong>Data da devolução da DRE:</strong></p>
-                {% if dados.dados_associacao.data_devolucao_dre == '-' %}
-                  <p class="font-12">{{ dados.dados_associacao.data_devolucao_dre }}</p>
-                {% else %}
-                  <p class="font-12">{{ dados.dados_associacao.data_devolucao_dre|date:'d/m/Y' }}</p>
-                {% endif %}
-
-              </div>
-              <div class="col-8">
-                <p class="ml-5 pt-2 mt-2 mb-0 font-12"><strong>Prazo para devolução da Associação:</strong></p>
-                {% if dados.dados_associacao.prazo_devolucao_associacao == '-' %}
-                  <p class="ml-5 font-12">{{ dados.dados_associacao.prazo_devolucao_associacao }}</p>
-                {% else %}
-                  <p class="ml-5 font-12">{{ dados.dados_associacao.prazo_devolucao_associacao|date:'d/m/Y' }}</p>
-                {% endif %}
-              </div>
-
-            </div>
-          </div>
-        </td>
-      </tr>
-      </tbody>
-    </table>
-
-  </article>
+  {% comment %} Bloco de identificação {% endcomment %}
+  {% include "./bloco-de-identificacao.html" with dados=dados %}
 
   {% if dados.dados_ajustes_contas %}
     <article class="mt-4">
@@ -185,186 +118,11 @@
     </article>
   {% endif %}
 
-  {% if dados.dados_lancamentos %}
-    <article class="mt-4">
-      {% for conta in dados.dados_lancamentos %}
-        <table class="table table-bordered tabela-resumo-por-acao nao-quebra-linha">
-          <thead class="">
+  {% comment %} Tabela Acertos em Lançamentos {% endcomment %}
+  {% include "./tabela-acertos-em-lancamentos.html" with dados=dados %}
 
-            <tr class="">
-              <th colSpan="6">
-                <strong class="font-16 titulo-bloco ml-2">{{ dados.blocos.acertos_lancamentos }}</strong>
-              </th>
-            </tr>
-
-            <tr>
-              <th colSpan="6">
-                <strong class="font-12 titulo-bloco">Conta {{ conta.nome_conta }}</strong>
-              </th>
-            </tr>
-
-            <tr>
-              <th style="width: 2%" class="fundo-verde"></th>
-              <th class="font-10 fundo-verde"><strong>Data</strong></th>
-              <th class="font-10 fundo-verde"><strong>Tipo de lançamento</strong></th>
-              <th class="font-10 fundo-verde"><strong>Nº do documento</strong></th>
-              <th class="font-10 fundo-verde" style="width: 40%"><strong>Descrição</strong></th>
-              <th class="font-10 fundo-verde"><strong>Valor (R$)</strong></th>
-            </tr>
-          </thead>
-
-          {% for lancamento in conta.lancamentos %}
-            <tbody>
-            <tr>
-              <td class="fundo-cinza font-12">{{ forloop.counter }}</td>
-              <td class="fundo-cinza font-12">{{ lancamento.data|date:'d/m/Y' }}</td>
-              {% if lancamento.tipo_transacao == 'Gasto' %}
-                <td class="fundo-cinza font-12">Despesa</td>
-              {% else %}
-                <td class="fundo-cinza font-12">{{ lancamento.tipo_transacao }}</td>
-              {% endif %}
-
-              {% if lancamento.numero_documento == '' %}
-                <td class="fundo-cinza font-12">-</td>
-              {% else %}
-                <td class="fundo-cinza font-12">{{ lancamento.numero_documento }}</td>
-              {% endif %}
-
-              <td class="fundo-cinza font-12">{{ lancamento.descricao }}</td>
-              <td class="fundo-cinza font-12">{{ lancamento.valor_transacao_total|formata_valor }}</td>
-            </tr>
-
-            <tr>
-              <td rowspan="1" class="sem-borda pb-4"></td>
-              <td colspan="5" class="sem-borda pb-4">
-
-                {% for acerto in lancamento.analise_lancamento.solicitacoes_de_ajuste_da_analise %}
-                  {% if acerto.tipo_acerto.categoria == 'DEVOLUCAO' %}
-                    <div class="row">
-                      <div class="col-12 mt-4">
-                        <span class="item font-12"><strong>Item {{ forloop.counter }}:</strong></span>
-                        <span class="ml-2 font-12">{{ acerto.tipo_acerto.nome }}</span>
-                      </div>
-                    </div>
-
-                    <div class="row mt-2">
-                      <div class="col-12">
-                        <span class="font-12"><strong>Tipo de devolução</strong></span>
-                        <br>
-                        <span class="font-12">{{ acerto.devolucao_ao_tesouro.tipo.nome }}</span>
-                      </div>
-                    </div>
-
-                    <div class="row mt-2">
-                      <div class="col-6">
-                        <span class="font-12"><strong>Valor total ou parcial da despesa</strong></span>
-                        <br>
-                        {% if acerto.devolucao_ao_tesouro.devolucao_total is True %}
-                          <span class="font-12">Total</span>
-                        {% else %}
-                          <span class="font-12">Parcial</span>
-                        {% endif %}
-                      </div>
-
-                      <div class="col-6">
-                        <span class="font-12"><strong>Valor (R$)</strong></span>
-                        <br>
-                        <span class="font-12">{{ acerto.devolucao_ao_tesouro.valor|formata_valor }}</span>
-                      </div>
-                    </div>
-
-                    <div class="row mt-2">
-                      <div class="col-12">
-                        <span class="font-12"><strong>Motivo</strong></span>
-                        <br>
-                        <span class="font-12">{{ acerto.devolucao_ao_tesouro.motivo }}</span>
-                      </div>
-                    </div>
-
-                  {% else %}
-                    <div class="row">
-                      <div class="col-12 mt-4">
-                        <span class="item font-12"><strong>Item {{ forloop.counter }}:</strong></span>
-                        <span class="ml-2 font-12">{{ acerto.tipo_acerto.nome }}</span>
-                      </div>
-                    </div>
-
-                    {% if acerto.detalhamento %}
-                      <div class="row mt-2">
-                        <div class="col-12">
-                          <span class="font-12"><strong>Detalhamento do acerto:</strong></span>
-                          <br>
-                          <span class="font-12">{{ acerto.detalhamento }}</span>
-                        </div>
-                      </div>
-                    {% endif %}
-
-                  {% endif %}
-
-                {% endfor %}
-              </td>
-            </tr>
-            </tbody>
-          {% endfor %}
-        </table>
-      {% endfor %}
-
-    </article>
-  {% endif %}
-
-  {% if dados.dados_documentos %}
-    <article class="mt-4">
-      <table class="table table-bordered tabela-resumo-por-acao nao-quebra-linha">
-        <thead class="">
-
-          <tr class="">
-            <th colSpan="2">
-              <strong class="font-16 titulo-bloco ml-2">{{ dados.blocos.acertos_documentos }}</strong>
-            </th>
-          </tr>
-
-          <tr>
-            <th style="width: 2%" class="fundo-th-cinza font-10"></th>
-            <th class="fundo-th-cinza font-10"><strong>Nome do documento</strong></th>
-          </tr>
-        </thead>
-
-          {% for documento in dados.dados_documentos %}
-          <tbody>
-            <tr>
-              <td class="fundo-cinza font-12">{{ forloop.counter }}</td>
-              <td class="fundo-cinza font-12">{{ documento.tipo_documento_prestacao_conta.nome }}</td>
-            </tr>
-          <tr>
-            <td rowspan="1" class="sem-borda pb-4"></td>
-            <td colspan="1" class="sem-borda pb-4">
-              {% for acertos in documento.solicitacoes_de_ajuste_da_analise %}
-                <div class="row">
-                  <div class="col-12 mt-4">
-                    <span class="item font-12"><strong>Item {{ forloop.counter }}:</strong></span>
-                    <span class="ml-2 font-12">{{ acertos.tipo_acerto.nome }}</span>
-
-                    {% if acertos.detalhamento %}
-                      <div class="row mt-2">
-                        <div class="col-12">
-                          <span class="font-12"><strong>Detalhamento do acerto:</strong></span>
-                          <br>
-                          <span class="font-12">{{ acertos.detalhamento }}</span>
-                        </div>
-                      </div>
-                    {% endif %}
-
-                  </div>
-                </div>
-              {% endfor %}
-            </td>
-          </tr>
-          </tbody>
-          {% endfor %}
-
-      </table>
-    </article>
-  {% endif %}
+  {% comment %} Tabela Acertos em Documentos {% endcomment %}
+  {% include "./tabela-acertos-em-documentos.html" with dados=dados %}
 
   {% if dados.versao_devolucao != "Rascunho" %}
     <article class="mt-4">

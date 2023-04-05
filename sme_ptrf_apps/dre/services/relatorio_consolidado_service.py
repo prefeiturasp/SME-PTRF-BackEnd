@@ -9,7 +9,7 @@ from sme_ptrf_apps.core.models import (
     DevolucaoAoTesouro, TipoConta,
 )
 from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE, \
-    JustificativaRelatorioConsolidadoDRE
+    JustificativaRelatorioConsolidadoDRE, ConsolidadoDRE
 from sme_ptrf_apps.receitas.models import Receita
 
 from ..services.dados_demo_execucao_fisico_financeira_service import gerar_dados_demo_execucao_fisico_financeira
@@ -72,30 +72,45 @@ def status_de_geracao_do_relatorio(dre, periodo, tipo_conta):
 def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consolidado_dre=None):
     from .consolidado_dre_service import verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao
 
+    eh_retificacao = True if consolidado_dre and consolidado_dre.eh_retificacao else False
+
     dre_uuid = dre.uuid
     periodo_uuid = periodo.uuid
-    parcial = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid, periodo_uuid)
-    eh_parcial = parcial['parcial']
-    sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
 
-    if consolidado_dre:
-        qtde_unidades = PrestacaoConta.objects.filter(consolidado_dre=consolidado_dre).count()
-        sequencia_de_publicacao_do_consolidado = consolidado_dre.sequencia_de_publicacao
-        if sequencia_de_publicacao_do_consolidado > 0:
-            titulo_parcial = f"Publicação Parcial #{sequencia_de_publicacao_do_consolidado} - {qtde_unidades} unidade(s)" if eh_parcial else f"Publicação Única {qtde_unidades} unidade(s)"
+    if eh_retificacao:
+        eh_parcial = consolidado_dre.eh_parcial
+        qtde_unidades = consolidado_dre.pcs_do_consolidado.all().count()
+
+        if consolidado_dre.consolidado_retificado and consolidado_dre.consolidado_retificado.data_publicacao:
+            titulo_parcial = f"Retificação da Publicação de {consolidado_dre.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y')} - {qtde_unidades} unidade(s)"
         else:
-            titulo_parcial = "Publicação Única"
+            titulo_parcial = ""
     else:
-        qtde_unidades = PrestacaoConta.objects.filter(
-            periodo=periodo,
-            status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
-            associacao__unidade__dre=dre,
-            publicada=False
-        ).count()
-        if sequencia_de_publicacao > 0:
-            titulo_parcial = f"Publicação Parcial #{sequencia_de_publicacao} - {qtde_unidades} unidade(s)" if eh_parcial else f"Publicação Única {qtde_unidades} unidade(s)"
+        parcial = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid, periodo_uuid)
+        eh_parcial = parcial['parcial']
+        sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
+
+        if consolidado_dre:
+            qtde_unidades = consolidado_dre.pcs_do_consolidado.all().count()
+            sequencia_de_publicacao_do_consolidado = consolidado_dre.sequencia_de_publicacao
+
+            if sequencia_de_publicacao_do_consolidado > 0:
+                titulo_parcial = f"Publicação Parcial #{sequencia_de_publicacao_do_consolidado} - {qtde_unidades} unidade(s)" if eh_parcial else f"Publicação Única {qtde_unidades} unidade(s)"
+            else:
+                titulo_parcial = "Publicação Única"
         else:
-            titulo_parcial = "Publicação Única"
+            qtde_unidades = PrestacaoConta.objects.filter(
+                periodo=periodo,
+                status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+                associacao__unidade__dre=dre,
+                publicada=False
+            ).count()
+
+            if sequencia_de_publicacao > 0:
+                titulo_parcial = f"Publicação Parcial #{sequencia_de_publicacao} - {qtde_unidades} unidade(s)" if eh_parcial else f"Publicação Única {qtde_unidades} unidade(s)"
+            else:
+                titulo_parcial = "Publicação Única"
+
 
     dados = {
         "periodo_referencia": periodo.referencia if periodo.referencia else "",
@@ -112,13 +127,35 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
     for tipo_conta in tipos_de_conta:
         totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True, consolidado_dre=consolidado_dre)
 
-        if consolidado_dre and consolidado_dre.versao == 'FINAL':
+        if consolidado_dre and consolidado_dre.eh_retificacao:
+            if consolidado_dre.laudas_do_consolidado_dre.all():
+                # foi gerado
+
+                justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                    dre=dre,
+                    tipo_conta=tipo_conta,
+                    periodo=periodo,
+                    consolidado_dre=consolidado_dre,
+                    eh_retificacao=True
+                ).last()
+
+            else:
+                justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                    dre=dre,
+                    tipo_conta=tipo_conta,
+                    periodo=periodo,
+                    consolidado_dre__isnull=True,
+                    eh_retificacao=True
+                ).last()
+
+        elif consolidado_dre and consolidado_dre.versao == 'FINAL':
             # Justificativa
             justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
                 dre=dre,
                 tipo_conta=tipo_conta,
                 periodo=periodo,
-                consolidado_dre=consolidado_dre
+                consolidado_dre=consolidado_dre,
+                eh_retificacao=False
             ).last()
         else:
             justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
@@ -126,6 +163,7 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
                 tipo_conta=tipo_conta,
                 periodo=periodo,
                 consolidado_dre__isnull=True,
+                eh_retificacao=False
             ).last()
 
         objeto_tipo_de_conta.append({
@@ -135,6 +173,7 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
             'justificativa_uuid': justificativa.uuid if justificativa else None,
             'consolidado_dre': consolidado_dre.uuid if justificativa and justificativa.consolidado_dre and justificativa.consolidado_dre.uuid else None,
             'tipo_conta_uuid': tipo_conta.uuid,
+            'eh_retificacao': consolidado_dre.eh_retificacao if consolidado_dre else False
         })
 
     dados['por_tipo_de_conta'] = objeto_tipo_de_conta
@@ -275,7 +314,7 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publica
 
         if consolidado_dre:
             fechamentos = FechamentoPeriodo.objects.filter(
-                prestacao_conta__consolidado_dre=consolidado_dre,
+                prestacao_conta__consolidados_dre_da_prestacao_de_contas=consolidado_dre,
                 periodo=periodo,
                 conta_associacao__tipo_conta=tipo_conta,
                 associacao__unidade__dre=dre,
@@ -311,12 +350,14 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publica
 
         if consolidado_dre:
             previsoes = PrevisaoRepasseSme.objects.filter(
-                associacao__prestacoes_de_conta_da_associacao__consolidado_dre=consolidado_dre,
-                associacao__prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA',
-                                                                           'REPROVADA'],
-                periodo=periodo,
-                conta_associacao__tipo_conta=tipo_conta,
-                associacao__unidade__dre=dre,
+                Q(associacao__prestacoes_de_conta_da_associacao__consolidados_dre_da_prestacao_de_contas=consolidado_dre) &
+                (
+                    Q(associacao__prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']) |
+                    Q(associacao__prestacoes_de_conta_da_associacao__status_anterior_a_retificacao__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'])
+                ) &
+                Q(periodo=periodo) &
+                Q(conta_associacao__tipo_conta=tipo_conta) &
+                Q(associacao__unidade__dre=dre)
             ).distinct()
         elif not apenas_nao_publicadas:
             previsoes = PrevisaoRepasseSme.objects.filter(
@@ -505,6 +546,7 @@ def informacoes_execucao_financeira_unidades(
     filtro_nome=None,
     filtro_tipo_unidade=None,
     filtro_status=None,
+    consolidado_dre=None
 ):
     from sme_ptrf_apps.core.models import Associacao
 
@@ -639,7 +681,16 @@ def informacoes_execucao_financeira_unidades(
     def _totaliza_fechamentos(associacao, periodo, tipo_conta, totais):
         # Fechamentos no período da conta de PCs de Associações da DRE, concluídas
 
-        if not apenas_nao_publicadas:
+        if consolidado_dre:
+            # Quando é uma retificação, as informações são resgatadas filtrando pelo consolidado
+
+            fechamentos = associacao.fechamentos_associacao.filter(
+                periodo=periodo,
+                conta_associacao__tipo_conta=tipo_conta,
+                prestacao_conta__consolidado_dre=consolidado_dre
+            )
+
+        elif not apenas_nao_publicadas:
             fechamentos = associacao.fechamentos_associacao.filter(
                 periodo=periodo,
                 conta_associacao__tipo_conta=tipo_conta,
@@ -697,7 +748,16 @@ def informacoes_execucao_financeira_unidades(
     resultado = []
     resultado_nao_apresentada = []
 
-    if not apenas_nao_publicadas:
+    if consolidado_dre:
+        # Quando é uma retificação, as informações são resgatadas filtrando pelo consolidado
+
+        associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).filter(
+            contas__tipo_conta__nome=tipo_conta).exclude(cnpj__exact='').order_by('unidade__tipo_unidade',
+                                                                                  'unidade__nome')
+        associacoes_da_dre = associacoes_da_dre.filter(
+            prestacoes_de_conta_da_associacao__consolidado_dre=consolidado_dre)
+
+    elif not apenas_nao_publicadas:
         associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).filter(
             contas__tipo_conta__nome=tipo_conta).exclude(cnpj__exact='').order_by('unidade__tipo_unidade',
                                                                                   'unidade__nome')
@@ -783,6 +843,7 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
     periodo,
     apenas_nao_publicadas=False,
     eh_consolidado_de_publicacoes_parciais=False,
+    consolidado_dre=None
 ):
     from sme_ptrf_apps.core.models import Associacao
 
@@ -917,7 +978,16 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
     def _totaliza_fechamentos(associacao, periodo, tipo_conta, totais):
         # Fechamentos no período da conta de PCs de Associações da DRE, concluídas
 
-        if not apenas_nao_publicadas:
+        if consolidado_dre:
+            # Quando é uma retificação, as informações são resgatadas filtrando pelo consolidado
+
+            fechamentos = associacao.fechamentos_associacao.filter(
+                periodo=periodo,
+                conta_associacao__tipo_conta=tipo_conta,
+                prestacao_conta__consolidado_dre=consolidado_dre
+            )
+
+        elif not apenas_nao_publicadas:
             fechamentos = associacao.fechamentos_associacao.filter(
                 periodo=periodo,
                 conta_associacao__tipo_conta=tipo_conta,
@@ -977,7 +1047,18 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
 
     associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by('unidade__tipo_unidade', 'unidade__nome')
 
-    if not apenas_nao_publicadas:
+    if consolidado_dre:
+        # Quando é uma retificação, as informações são resgatadas filtrando pelo consolidado
+
+        associacoes_da_dre = associacoes_da_dre.filter(
+            prestacoes_de_conta_da_associacao__periodo=periodo,
+            prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
+        )
+
+        associacoes_da_dre = associacoes_da_dre.filter(
+            prestacoes_de_conta_da_associacao__consolidado_dre=consolidado_dre)
+
+    elif not apenas_nao_publicadas:
         associacoes_da_dre = associacoes_da_dre.filter(
             prestacoes_de_conta_da_associacao__periodo=periodo,
             prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
@@ -995,7 +1076,19 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
 
         status_prestacao_conta = prestacao_conta.status if prestacao_conta else 'NAO_APRESENTADA'
 
-        referencia_consolidado = prestacao_conta.consolidado_dre.sequencia_de_publicacao if eh_consolidado_de_publicacoes_parciais and prestacao_conta.consolidado_dre and prestacao_conta.consolidado_dre.sequencia_de_publicacao else None
+        referencia_consolidado = ""
+        if(prestacao_conta.consolidado_dre.eh_parcial and prestacao_conta.consolidado_dre.consolidado_retificado_id):
+            consolidado_origem_retificacao = ConsolidadoDRE.objects.filter(pk=prestacao_conta.consolidado_dre.consolidado_retificado_id)
+
+            if(consolidado_origem_retificacao.count() > 0 and consolidado_origem_retificacao[0].data_publicacao):
+                data_publicacao_consolidado_origem_retificacao = consolidado_origem_retificacao[0].data_publicacao.strftime("%d/%m/%Y")
+                referencia_consolidado = f"Retificação da publicação de {data_publicacao_consolidado_origem_retificacao}"
+
+        elif(not prestacao_conta.consolidado_dre.eh_parcial):
+            referencia_consolidado = f"Única"
+
+        else:
+            referencia_consolidado = f"Parcial #{prestacao_conta.consolidado_dre.sequencia_de_publicacao}"
 
         dado = []
         objeto_tipo_de_conta = []
@@ -1029,32 +1122,39 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
                 Não devem ser exibidas as linhas de contas que tenham valores zerados em todas as colunas.
                 Não devem ser exibidas associações que tenham valores zerados em todas as colunas de todas as contas.
             """
-            if soma_dos_totais:
-                dado = {
-                    'unidade': {
-                        'uuid': f'{associacao.unidade.uuid}',
-                        'codigo_eol': associacao.unidade.codigo_eol,
-                        'tipo_unidade': associacao.unidade.tipo_unidade,
-                        'nome': associacao.unidade.nome,
-                        'sigla': associacao.unidade.sigla,
-                    },
-                    'status_prestacao_contas': status_prestacao_conta,
-                    'uuid_pc': prestacao_conta.uuid,
-                    'referencia_consolidado': referencia_consolidado,
-                }
+            dado = {
+                'unidade': {
+                    'uuid': f'{associacao.unidade.uuid}',
+                    'codigo_eol': associacao.unidade.codigo_eol,
+                    'tipo_unidade': associacao.unidade.tipo_unidade,
+                    'nome': associacao.unidade.nome,
+                    'sigla': associacao.unidade.sigla,
+                },
+                'status_prestacao_contas': status_prestacao_conta,
+                'uuid_pc': prestacao_conta.uuid,
+                'referencia_consolidado': referencia_consolidado,
+            }
 
+            if soma_dos_totais: # Verifica se existe valores, senão será exibida mensagem Não houve movimentação financeira por conta
                 objeto_tipo_de_conta.append({
                     'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
                     'valores': totais,
                 })
+            else:
+                objeto_tipo_de_conta.append({
+                    'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
+                    'valores': None,
+                })
 
-                dado['por_tipo_de_conta'] = objeto_tipo_de_conta
 
-                if status_prestacao_conta == "REPROVADA":
-                    dado["motivos_reprovacao"] = get_teste_motivos_reprovacao(prestacao_conta)
-                elif status_prestacao_conta == "APROVADA_RESSALVA":
-                    dado["motivos_aprovada_ressalva"] = get_motivos_aprovacao_ressalva(prestacao_conta)
-                    dado["recomendacoes"] = prestacao_conta.recomendacoes
+            dado['por_tipo_de_conta'] = objeto_tipo_de_conta
+
+            if status_prestacao_conta == "REPROVADA":
+                dado["motivos_reprovacao"] = get_teste_motivos_reprovacao(prestacao_conta)
+            elif status_prestacao_conta == "APROVADA_RESSALVA":
+                dado["motivos_aprovada_ressalva"] = get_motivos_aprovacao_ressalva(prestacao_conta)
+                dado["recomendacoes"] = prestacao_conta.recomendacoes
+
         # Verificando se pelo menos um objeto do tipo dado foi criado, se sim existe o index status_prestacao_contas no dict dado
         _status_prestacao_contas = any('status_prestacao_contas' in d for d in dado)
 
@@ -1190,8 +1290,9 @@ def dashboard_sme(periodo):
         )
 
         status_periodo = {
-            'status_txt': 'Período em andamento para DREs e aberto para validações.',
+            'status_txt': 'Período de análise das prestações de contas pelas DREs em andamento.',
             'cor_idx': 1,
+            'status': 'EM_ANDAMENTO'
         }
     else:
         add_card_dashboard(
@@ -1201,8 +1302,9 @@ def dashboard_sme(periodo):
         )
 
         status_periodo = {
-            'status_txt': 'Período concluído.',
+            'status_txt': 'Período de análise das prestações de contas pelas DREs concluído.',
             'cor_idx': 2,
+            'status': 'CONCLUIDO'
         }
 
     add_card_dashboard(

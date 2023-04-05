@@ -4,7 +4,7 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from ...utils.choices_to_json import choices_to_json
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-from sme_ptrf_apps.core.models import TipoAcertoDocumento
+from sme_ptrf_apps.core.models import TipoAcertoDocumento, ObservacaoConciliacao
 
 
 class AnaliseDocumentoPrestacaoConta(ModeloBase):
@@ -56,6 +56,8 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
     conta_associacao = models.ForeignKey('ContaAssociacao', on_delete=models.PROTECT,
                                          related_name='analises_de_documento_da_conta', blank=True, null=True)
 
+    informacao_conciliacao_atualizada = models.BooleanField("Informação de Conciliação Atualizada?", default=False)
+
     resultado = models.CharField(
         'status',
         max_length=20,
@@ -69,6 +71,13 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
         choices=STATUS_REALIZACAO_CHOICES,
         default=STATUS_REALIZACAO_PENDENTE
     )
+
+    @property
+    def requer_edicao_informacao_conciliacao(self):
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoDocumento.CATEGORIA_EDICAO_INFORMACAO
+        ).exists()
+        return requer
 
     @property
     def requer_esclarecimentos(self):
@@ -118,9 +127,20 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
         categoria_inclusao_gasto = []
         categoria_ajuste_externo = []
         categoria_solicitacao_esclarecimento = []
+        categoria_edicao_informacao_conciliacao = []
 
         for solicitacao in self.solicitacoes_de_ajuste_da_analise.all().order_by('id'):
             categoria = solicitacao.tipo_acerto.categoria
+
+            conta_associacao = solicitacao.analise_documento.conta_associacao
+            periodo = solicitacao.analise_documento.analise_prestacao_conta.prestacao_conta.periodo
+            associacao = solicitacao.analise_documento.analise_prestacao_conta.prestacao_conta.associacao
+
+            observacao = ObservacaoConciliacao.objects.filter(
+                periodo=periodo,
+                conta_associacao=conta_associacao,
+                associacao=associacao,
+            ).first()
 
             dado_solicitacao = {
                 "tipo_acerto": TipoAcertoDocumentoSerializer(solicitacao.tipo_acerto, many=False).data,
@@ -131,9 +151,11 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
                 "status_realizacao": solicitacao.status_realizacao,
                 "justificativa": solicitacao.justificativa,
                 "esclarecimentos": solicitacao.esclarecimentos,
+                "justificativa_conciliacao": observacao.texto if observacao else None,
+                "justificativa_conciliacao_original": observacao.justificativa_original if observacao else None,
                 "ordem": None,
                 "despesa_incluida": solicitacao.despesa_incluida.uuid if solicitacao.despesa_incluida else None,
-                "receita_incluida": solicitacao.receita_incluida.uuid if solicitacao.receita_incluida else None
+                "receita_incluida": solicitacao.receita_incluida.uuid if solicitacao.receita_incluida else None,
             }
 
             if categoria == TipoAcertoDocumento.CATEGORIA_INCLUSAO_CREDITO:
@@ -144,6 +166,8 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
                 categoria_ajuste_externo.append(dado_solicitacao)
             elif categoria == TipoAcertoDocumento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO:
                 categoria_solicitacao_esclarecimento.append(dado_solicitacao)
+            elif categoria == TipoAcertoDocumento.CATEGORIA_EDICAO_INFORMACAO:
+                categoria_edicao_informacao_conciliacao.append(dado_solicitacao)
 
         result = {
             "analise_documento": f"{self.uuid}",
@@ -151,7 +175,8 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
                 categoria_inclusao_credito,
                 categoria_inclusao_gasto,
                 categoria_ajuste_externo,
-                categoria_solicitacao_esclarecimento
+                categoria_solicitacao_esclarecimento,
+                categoria_edicao_informacao_conciliacao,
             )
         }
 
@@ -174,10 +199,21 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
         categoria_inclusao_credito,
         categoria_inclusao_gasto,
         categoria_ajuste_externo,
-        categoria_solicitacao_esclarecimento
+        categoria_solicitacao_esclarecimento,
+        categoria_edicao_informacao_conciliacao,
     ):
 
         solicitacoes_acerto_por_categoria = []
+
+        if categoria_edicao_informacao_conciliacao:
+            for acerto in categoria_edicao_informacao_conciliacao:
+                solicitacoes_acerto_por_categoria.append({
+                    "acertos": [acerto],  # necessario ir em lista para não quebrar o map do front
+                    "informacao_conciliacao_atualizada": self.informacao_conciliacao_atualizada,
+                    "categoria": TipoAcertoDocumento.CATEGORIA_EDICAO_INFORMACAO,
+                    "analise_documento": f"{self.uuid}",
+                    "requer_edicao_informacao_conciliacao": self.requer_edicao_informacao_conciliacao,
+                })
 
         if categoria_inclusao_credito:
             for acerto in categoria_inclusao_credito:

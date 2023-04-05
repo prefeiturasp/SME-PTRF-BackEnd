@@ -22,6 +22,8 @@ class JustificativaRelatorioConsolidadoDRE(ModeloBase):
                                         related_name='justificativas_relatorios_consolidados_dre_do_consolidado_dre',
                                         blank=True, null=True)
 
+    eh_retificacao = models.BooleanField('É uma justificativa de retificação ?', blank=True, null=True, default=False)
+
     class Meta:
         verbose_name = 'Justificativa de relatório consolidado DRE'
         verbose_name_plural = 'Justificativas de relatórios consolidados DREs'

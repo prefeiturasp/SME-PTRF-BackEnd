@@ -4,6 +4,7 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from ...utils.choices_to_json import choices_to_json
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.core.models.observacao_conciliacao import ObservacaoConciliacao
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -56,6 +57,18 @@ class SolicitacaoAcertoDocumento(ModeloBase):
     receita_incluida = models.ForeignKey('receitas.Receita', on_delete=models.SET_NULL,
                                          related_name='solicitacao_acerto_de_documento_que_incluiu_a_receita',
                                          blank=True, null=True)
+    
+    @property
+    def texto_do_acerto_do_tipo_edicao_de_informacao(self):
+        observacao = ''
+
+        if self.tipo_acerto.categoria == 'EDICAO_INFORMACAO':
+            periodo = self.analise_documento.analise_prestacao_conta.prestacao_conta.periodo
+            associacao = self.analise_documento.analise_prestacao_conta.prestacao_conta.associacao
+            conta = self.analise_documento.conta_associacao
+            observacao = ObservacaoConciliacao.objects.filter(periodo=periodo,conta_associacao=conta,associacao=associacao).first().texto
+
+        return observacao
 
     def __str__(self):
         return f"{self.tipo_acerto} - {self.detalhamento}"
