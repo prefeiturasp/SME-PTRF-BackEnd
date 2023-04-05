@@ -19,6 +19,16 @@ class Parametros(SingletonModel, ModeloBase):
         default=1
     )
 
+    quantidade_tentativas_concluir_pc = models.PositiveSmallIntegerField(
+        'Quantas tentativas deve-se permitir para a conclusão da PC (vezes)?',
+        default=3
+    )
+
+    periodo_de_tempo_tentativas_concluir_pc = models.PositiveSmallIntegerField(
+        'Qual o período de tempo das tentativas de conclusão da PC (minutos)?',
+        default=120
+    )
+
     tempo_notificar_nao_demonstrados = models.PositiveSmallIntegerField(
         'Tempo para notificação de transações não demonstradas (dias)',
         default=0

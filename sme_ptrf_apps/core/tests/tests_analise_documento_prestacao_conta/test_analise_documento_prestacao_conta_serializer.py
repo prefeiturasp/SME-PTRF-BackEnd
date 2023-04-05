@@ -24,6 +24,7 @@ def test_retrieve_serializer(
     assert serializer.data['requer_inclusao_credito'] is not None
     assert serializer.data['requer_inclusao_gasto'] is not None
     assert serializer.data['requer_ajuste_externo'] is not None
+    assert serializer.data['requer_edicao_informacao_conciliacao'] is not None
 
 
 def test_update_serializer(analise_documento_prestacao_conta_com_justificativa_2020_1_ata_correta):

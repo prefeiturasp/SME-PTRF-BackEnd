@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from sme_ptrf_apps.core.models import SolicitacaoAcertoDocumento
+from sme_ptrf_apps.core.models import SolicitacaoAcertoDocumento, AnaliseDocumentoPrestacaoConta
 from sme_ptrf_apps.receitas.models import Receita
 from sme_ptrf_apps.despesas.models import Despesa
 
@@ -63,3 +63,27 @@ class GravarGastoIncluidoDocumentoValidateSerializer(serializers.Serializer): # 
             Despesa.by_uuid(value)
         except Despesa.DoesNotExist:  # noqa
             raise serializers.ValidationError(f"Não foi encontrado um objeto para o uuid {value}.")
+
+
+class EditarInformacaoConciliacaoValidateSerializer(serializers.Serializer): # noqa
+    uuid_analise_documento = serializers.CharField(required=True, allow_blank=False)
+    justificativa_conciliacao = serializers.CharField(required=True, allow_blank=True)
+
+    def validate_uuid_analise_documento(self, value): # noqa
+        try:
+            AnaliseDocumentoPrestacaoConta.by_uuid(value)
+        except AnaliseDocumentoPrestacaoConta.DoesNotExist:
+            raise serializers.ValidationError(f"Não foi encontrado um objeto AnaliseDocumentoPrestacaoConta para o uuid {value}.")
+
+        return value
+
+class DesfazerEditacaoInformacaoConciliacaoValidateSerializer(serializers.Serializer): # noqa
+    uuid_solicitacao_acerto = serializers.CharField(required=True, allow_blank=False)
+
+    def validate_uuid_analise_documento(self, value): # noqa
+        try:
+            SolicitacaoAcertoDocumento.by_uuid(value)
+        except SolicitacaoAcertoDocumento.DoesNotExist:  # noqa
+            raise serializers.ValidationError(f"Não foi encontrado um objeto SolicitacaoAcertoDocumento para o uuid {value}.")
+
+        return value

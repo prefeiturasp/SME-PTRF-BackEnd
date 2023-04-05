@@ -67,6 +67,7 @@ def test_api_previa_prestacao_conta_por_periodo_e_associacao(jwt_authenticated_c
                 'logradouro': 'dos Testes',
                 'nome': 'Escola Teste',
                 'numero': '200',
+                'observacao': '',
                 'qtd_alunos': 0,
                 'sigla': 'ET',
                 'telefone': '58212627',

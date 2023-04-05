@@ -53,6 +53,8 @@ class Lauda(ModeloBase):
         default=STATUS_NAO_GERADA
     )
 
+    sem_movimentacao = models.BooleanField("Sem movimentação?", default=False)
+
     class Meta:
         verbose_name = 'Lauda'
         verbose_name_plural = 'Laudas'

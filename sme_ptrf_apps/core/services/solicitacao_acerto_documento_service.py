@@ -1,5 +1,6 @@
 from rest_framework import status
-from sme_ptrf_apps.core.models import SolicitacaoAcertoDocumento, TipoAcertoDocumento
+from sme_ptrf_apps.core.models import SolicitacaoAcertoDocumento, TipoAcertoDocumento, AnaliseDocumentoPrestacaoConta, \
+    ObservacaoConciliacao
 from sme_ptrf_apps.receitas.models import Receita
 from sme_ptrf_apps.despesas.models import Despesa
 
@@ -12,6 +13,7 @@ class MarcarComoRealizado:
 
     def __set_response(self):
         texto_solicitacoes_nao_atendidas = "Não foi possível alterar o status da solicitação, pois os ajustes solicitados não foram realizados."
+
         self.response = {
             "mensagem": "Status alterados com sucesso!",
             "status": status.HTTP_200_OK,
@@ -48,7 +50,17 @@ class MarcarComoRealizado:
                         solicitacao_acerto.altera_status_realizacao(
                             novo_status=SolicitacaoAcertoDocumento.STATUS_REALIZACAO_PENDENTE,
                         )
+            elif categoria == TipoAcertoDocumento.CATEGORIA_EDICAO_INFORMACAO:
+                if not solicitacao_acerto.analise_documento.informacao_conciliacao_atualizada:
+                    pode_atualizar_status = False
 
+                    self.response["todas_as_solicitacoes_marcadas_como_realizado"] = False
+                    self.response["mensagem"] = texto_solicitacoes_nao_atendidas
+
+                    if solicitacao_acerto.status_realizacao == SolicitacaoAcertoDocumento.STATUS_REALIZACAO_JUSTIFICADO:
+                        solicitacao_acerto.altera_status_realizacao(
+                            novo_status=SolicitacaoAcertoDocumento.STATUS_REALIZACAO_PENDENTE,
+                        )
             elif categoria == TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS:
                 pode_atualizar_status = True
 
@@ -123,6 +135,13 @@ class JustificarNaoRealizacao:
                         self.response["todas_as_solicitacoes_marcadas_como_justificado"] = False
                         self.response["mensagem"] = texto_solicitacoes_nao_atendidas
 
+            elif categoria == TipoAcertoDocumento.CATEGORIA_EDICAO_INFORMACAO:
+                if solicitacao_acerto.analise_documento.informacao_conciliacao_atualizada:
+                    pode_atualizar_status = False
+
+                    self.response["todas_as_solicitacoes_marcadas_como_justificado"] = False
+                    self.response["mensagem"] = texto_solicitacoes_nao_atendidas
+
             elif categoria == TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS:
                 pode_atualizar_status = True
 
@@ -185,3 +204,78 @@ class SolicitacaoAcertoDocumentoService:
             "mensagem": "Gasto incluído atualizado com sucesso.",
             "status": status.HTTP_200_OK
         }
+
+
+    @classmethod
+    def editar_informacao_conciliacao(cls, uuid_analise_documento, justificativa_conciliacao):
+        try:
+            analise_documento = AnaliseDocumentoPrestacaoConta.by_uuid(uuid_analise_documento)
+
+            conta_associacao = analise_documento.conta_associacao
+            periodo = analise_documento.analise_prestacao_conta.prestacao_conta.periodo
+            associacao = analise_documento.analise_prestacao_conta.prestacao_conta.associacao
+
+            analise_documento.informacao_conciliacao_atualizada = True
+            analise_documento.save()
+
+            observacao, _ = ObservacaoConciliacao.objects.get_or_create(
+                periodo=periodo,
+                conta_associacao=conta_associacao,
+                associacao=associacao,
+                defaults={
+                    'periodo': periodo,
+                    'conta_associacao': conta_associacao,
+                    'associacao': associacao,
+                }
+            )
+
+            observacao.texto = justificativa_conciliacao
+            observacao.save()
+
+            return {
+                "mensagem": "Edição de informação da conciliação atualizada com sucesso.",
+                "status": status.HTTP_200_OK
+            }
+        except Exception as err:
+            return {
+                'mensagem': str(err),
+                "status": status.HTTP_400_BAD_REQUEST
+            }
+
+
+    @classmethod
+    def reataurar_justificativa_original(cls, uuid_solicitacao_acerto):
+        try:
+            solicitacao_acerto_documento = SolicitacaoAcertoDocumento.by_uuid(uuid_solicitacao_acerto)
+
+            analise_documento = solicitacao_acerto_documento.analise_documento
+
+            conta_associacao = analise_documento.conta_associacao
+            periodo = analise_documento.analise_prestacao_conta.prestacao_conta.periodo
+            associacao = analise_documento.analise_prestacao_conta.prestacao_conta.associacao
+
+            analise_documento.informacao_conciliacao_atualizada = False
+            analise_documento.save()
+
+            observacao = ObservacaoConciliacao.objects.filter(
+                periodo=periodo,
+                conta_associacao=conta_associacao,
+                associacao=associacao,
+            ).first()
+            if observacao:
+                observacao.texto = observacao.justificativa_original
+                observacao.save()
+
+            cls.limpar_status(
+                uuids_solicitacoes_acertos_documentos=[uuid_solicitacao_acerto],
+            )
+
+            return {
+                "mensagem": "Restaurar justificativa original realizada com sucesso.",
+                "status": status.HTTP_200_OK
+            }
+        except Exception as err:
+            return {
+                'mensagem': str(err),
+                "status": status.HTTP_400_BAD_REQUEST
+            }
