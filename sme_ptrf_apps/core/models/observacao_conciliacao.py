@@ -19,6 +19,9 @@ class ObservacaoConciliacao(ModeloBase):
 
     texto = models.TextField('Observações da conciliação', max_length=600, blank=True, null=True)
 
+    justificativa_original = models.TextField('Observações da conciliação original', max_length=600, blank=True,
+                                              null=True)
+
     data_extrato = models.DateField('data do extrato', blank=True, null=True)
 
     saldo_extrato = models.DecimalField('saldo do extrato', max_digits=12, decimal_places=2, default=0)

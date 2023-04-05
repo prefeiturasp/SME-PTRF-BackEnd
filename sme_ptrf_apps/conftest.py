@@ -1462,6 +1462,9 @@ def parametros():
         permite_saldo_conta_negativo=True,
         fique_de_olho='',
         fique_de_olho_relatorio_dre='',
+        tempo_aguardar_conclusao_pc=1,
+        quantidade_tentativas_concluir_pc=3,
+        periodo_de_tempo_tentativas_concluir_pc=120,
         texto_pagina_suporte_dre='Teste DRE',
         texto_pagina_suporte_sme='Teste SME',
         texto_pagina_valores_reprogramados_ue='Teste UE',
@@ -2410,6 +2413,68 @@ def solicitacao_acerto_documento_status_justificado_02(
     )
 
 
+
+@pytest.fixture
+def permissoes_dadosdiretoria_dre():
+    from django.contrib.auth.models import Permission
+
+    permissoes = [
+        Permission.objects.filter(codename='dre_leitura').first(),
+        Permission.objects.filter(codename='dre_gravacao').first()
+    ]
+
+    return permissoes
+
+
+@pytest.fixture
+def grupo_dados_diretoria_dre(permissoes_dadosdiretoria_dre):
+    from sme_ptrf_apps.users.models import Grupo
+
+    g = Grupo.objects.create(name="dados_diretoria_dre")
+    g.permissions.add(*permissoes_dadosdiretoria_dre)
+    return g
+
+
+@pytest.fixture
+def usuario_permissao_atribuicao(
+        unidade,
+        grupo_dados_diretoria_dre):
+
+    from django.contrib.auth import get_user_model
+    senha = 'Sgp0418'
+    login = '7210418'
+    email = 'sme@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(unidade)
+    user.groups.add(grupo_dados_diretoria_dre)
+    user.save()
+    return user
+
+
+@pytest.fixture
+def jwt_authenticated_client_dre(client, usuario_permissao_atribuicao):
+    from unittest.mock import patch
+
+    from rest_framework.test import APIClient
+    api_client = APIClient()
+    with patch('sme_ptrf_apps.users.api.views.login.AutenticacaoService.autentica') as mock_post:
+        data = {
+            "nome": "LUCIA HELENA",
+            "cpf": "62085077072",
+            "email": "luh@gmail.com",
+            "login": "7210418"
+        }
+        mock_post.return_value.ok = True
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = data
+        resp = api_client.post('/api/login', {'login': usuario_permissao_atribuicao.username,
+                                              'senha': usuario_permissao_atribuicao.password}, format='json')
+        resp_data = resp.json()
+        api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
+    return api_client
+
+
 @pytest.fixture
 def solicitacao_acerto_documento_status_nao_realizado(
     analise_documento_prestacao_conta_2020_1_ata_ajuste,
@@ -2436,3 +2501,53 @@ def solicitacao_acerto_documento_status_nao_realizado_02(
         detalhamento="Detalhamento motivo acerto no documento",
         status_realizacao="PENDENTE"
     )
+
+
+# Edição de Informação
+
+@pytest.fixture
+def tipo_documento_prestacao_conta_demonstrativo_financeiro():
+    return baker.make(
+        'TipoDocumentoPrestacaoConta',
+        nome='Tipo Documento Demonstrativo Financeiro'
+    )
+
+@pytest.fixture
+def tipo_acerto_documento_edicao_informacao(tipo_documento_prestacao_conta_demonstrativo_financeiro):
+    tipo_acerto = baker.make(
+        'TipoAcertoDocumento',
+        nome='Edição de Informação',
+        categoria=TipoAcertoDocumento.CATEGORIA_EDICAO_INFORMACAO
+    )
+    tipo_acerto.tipos_documento_prestacao.add(tipo_documento_prestacao_conta_demonstrativo_financeiro)
+    tipo_acerto.save()
+    return tipo_acerto
+
+
+@pytest.fixture
+def solicitacao_acerto_documento_edicao_informacao(
+    analise_documento_prestacao_conta_demonstativo_financeiro_edicao_informacao,
+    tipo_acerto_documento_edicao_informacao,
+):
+    return baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento_prestacao_conta_demonstativo_financeiro_edicao_informacao,
+        tipo_acerto=tipo_acerto_documento_edicao_informacao,
+        detalhamento="Detalhamento motivo acerto no documento",
+    )
+
+
+@pytest.fixture
+def analise_documento_prestacao_conta_demonstativo_financeiro_edicao_informacao(
+    analise_prestacao_conta_2020_1,
+    tipo_documento_prestacao_conta_demonstrativo_financeiro,
+    conta_associacao_cartao
+):
+    return baker.make(
+        'AnaliseDocumentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
+        tipo_documento_prestacao_conta=tipo_documento_prestacao_conta_demonstrativo_financeiro,
+        conta_associacao=conta_associacao_cartao,
+        resultado='AJUSTE'
+    )
+

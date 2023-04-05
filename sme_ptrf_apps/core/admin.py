@@ -46,7 +46,8 @@ from .models import (
     PresenteAta,
     ValoresReprogramados,
     SolicitacaoDevolucaoAoTesouro,
-    TransferenciaEol
+    TransferenciaEol,
+    FalhaGeracaoPc,
 )
 
 admin.site.register(Acao)
@@ -162,6 +163,7 @@ class UnidadeAdmin(admin.ModelAdmin):
                 'nome',
                 'tipo_unidade',
                 'codigo_eol',
+                'observacao',
                 'dre',
                 'sigla',
                 'cep',
@@ -430,7 +432,7 @@ class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
 
     get_nome_conta.short_description = 'Conta'
 
-    list_display = ('get_unidade', 'periodo', 'get_nome_conta', 'data_extrato', 'saldo_extrato', 'texto')
+    list_display = ('get_unidade', 'periodo', 'get_nome_conta', 'data_extrato', 'saldo_extrato', 'texto', 'justificativa_original')
     list_filter = (
         'associacao',
         'conta_associacao__tipo_conta',
@@ -634,6 +636,8 @@ class ParametrosAdmin(admin.ModelAdmin):
                 (
                     'permite_saldo_conta_negativo',
                     'tempo_aguardar_conclusao_pc',
+                    'quantidade_tentativas_concluir_pc',
+                    'periodo_de_tempo_tentativas_concluir_pc',
                     'tempo_notificar_nao_demonstrados',
                     'dias_antes_inicio_periodo_pc_para_notificacao',
                     'dias_antes_fim_periodo_pc_para_notificacao',
@@ -1227,6 +1231,16 @@ class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome',
         'motivo'
     )
+
+
+@admin.register(FalhaGeracaoPc)
+class FalhaGeracaoPcAdmin(admin.ModelAdmin):
+    list_display = ['ultimo_usuario', 'associacao', 'periodo', 'data_hora_ultima_ocorrencia',
+                    'qtd_ocorrencias_sucessivas', 'resolvido']
+    list_filter = ['ultimo_usuario', 'associacao', 'periodo', 'data_hora_ultima_ocorrencia',
+                   'qtd_ocorrencias_sucessivas', 'resolvido', 'associacao__unidade__dre']
+    readonly_fields = ('uuid', 'id')
+    search_fields = ('ultimo_usuario__username', 'associacao__nome', 'associacao__unidade__nome')
 
 @admin.register(TransferenciaEol)
 class TransferenciaEolAdmin(admin.ModelAdmin):

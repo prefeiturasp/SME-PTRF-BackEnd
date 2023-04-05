@@ -347,6 +347,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def desfazer_analise(self, request, uuid):
         prestacao_conta = self.get_object()
 
+        if prestacao_conta.em_retificacao:
+            return Response({'erro': 'Impossível desfazer análise de uma PC em retificação.'}, status=status.HTTP_403_FORBIDDEN)
+
         if prestacao_conta.status != PrestacaoConta.STATUS_EM_ANALISE:
             response = {
                 'uuid': f'{prestacao_conta.uuid}',
@@ -548,7 +551,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
-            if not prestacao_conta.pode_reabrir():
+            if not prestacao_conta.pode_devolver():
                 response = {
                     'uuid': f'{uuid}',
                     'erro': 'prestacao_de_contas_posteriores',
@@ -861,6 +864,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        devolucao_tesouro = self.request.query_params.get('devolucao_tesouro')
+
         # Pega filtros por nome e tipo de unidade
         nome = self.request.query_params.get('nome')
         tipo_unidade = self.request.query_params.get('tipo_unidade')
@@ -884,6 +889,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             filtro_nome=nome,
             filtro_tipo_unidade=tipo_unidade,
             filtro_por_status=status_pc_list,
+            filtro_por_devolucao_tesouro=devolucao_tesouro
         )
         return Response(result)
 
@@ -1369,7 +1375,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         devolucoes = prestacao_conta.analises_da_prestacao.filter(status='DEVOLVIDA').order_by('id')
         return Response(AnalisePrestacaoContaRetrieveSerializer(devolucoes, many=True).data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'], url_path="ultima-analise-pc", permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    @action(detail=True, methods=['get'], url_path="ultima-analise-pc", permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def ultima_analise_da_pc(self, request, uuid):
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
         ultima_analise_pc = prestacao_conta.analises_da_prestacao.order_by('id').last()

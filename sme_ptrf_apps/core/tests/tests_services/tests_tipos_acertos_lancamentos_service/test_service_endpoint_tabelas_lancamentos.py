@@ -16,6 +16,14 @@ def test_service_tabelas_categorias():
             "nome": "Edição do lançamento"
         },
         {
+            'id': 'CONCILIACAO_LANCAMENTO',
+            'nome': 'Conciliação do lançamento'
+        },
+        {
+            'id': 'DESCONCILIACAO_LANCAMENTO',
+            'nome': 'Desconciliação do lançamento'
+        },
+        {
             "id": "EXCLUSAO_LANCAMENTO",
             "nome": "Exclusão do lançamento"
         },
@@ -29,7 +37,7 @@ def test_service_tabelas_categorias():
         }
     ]
 
-    assert resultado_esperado == TipoAcertoLancamentoService.categorias(TipoAcertoLancamento.CATEGORIA_CHOICES)
+    assert TipoAcertoLancamentoService.categorias(TipoAcertoLancamento.CATEGORIA_CHOICES) == resultado_esperado
 
 
 def test_service_tabelas_agrupado_por_categorias(
