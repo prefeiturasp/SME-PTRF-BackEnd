@@ -41,6 +41,10 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
 
     versao = serializers.SerializerMethodField('get_versao')
 
+    motivo_retificacao = serializers.SerializerMethodField('get_motivo_retificacao')
+
+    eh_retificacao = serializers.SerializerMethodField('get_eh_retificacao')
+
     def get_hora_reuniao(self, obj):
         return obj.hora_reuniao.strftime('%H:%M')
 
@@ -49,6 +53,18 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
 
     def get_versao(self, obj):
         return 'FINAL' if obj.arquivo_pdf else 'PREVIA'
+
+    def get_motivo_retificacao(self, obj):
+        if obj.consolidado_dre and obj.consolidado_dre.eh_retificacao:
+            return obj.consolidado_dre.motivo_retificacao
+
+        return None
+
+    def get_eh_retificacao(self, obj):
+        if obj.consolidado_dre and obj.consolidado_dre.eh_retificacao:
+            return True
+
+        return False
 
     class Meta:
         model = AtaParecerTecnico
@@ -68,11 +84,14 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
             'numero_portaria',
             'data_portaria',
             'versao',
+            'motivo_retificacao',
+            'eh_retificacao'
         )
 
 
 class AtaParecerTecnicoCreateSerializer(serializers.ModelSerializer):
     presentes_na_ata = PresentesAtaDreCreateSerializer(many=True, required=False)
+    motivo_retificacao = serializers.CharField(source="consolidado_dre__motivo_retificacao", required=False, allow_blank=True, allow_null=True)
 
     dre = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -88,7 +107,16 @@ class AtaParecerTecnicoCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         presentes_na_ata = validated_data.pop('presentes_na_ata')
+        motivo_retificacao = None
+
+        if validated_data.get("consolidado_dre__motivo_retificacao"):
+            motivo_retificacao = validated_data.pop('consolidado_dre__motivo_retificacao')
+
         ata = AtaParecerTecnico.objects.create(**validated_data)
+
+        if motivo_retificacao:
+            ata.consolidado_dre.motivo_retificacao = motivo_retificacao
+            ata.consolidado_dre.save()
 
         presentes_lista = []
         for presente in presentes_na_ata:
@@ -107,6 +135,14 @@ class AtaParecerTecnicoCreateSerializer(serializers.ModelSerializer):
             presente_object = PresentesAtaDreCreateSerializer().create(presente)
             presentes_lista.append(presente_object)
 
+        if validated_data.get("consolidado_dre__motivo_retificacao"):
+            motivo_retificacao = validated_data.pop('consolidado_dre__motivo_retificacao')
+            instance.consolidado_dre.motivo_retificacao = motivo_retificacao
+            instance.consolidado_dre.save()
+        elif instance.consolidado_dre:
+            instance.consolidado_dre.motivo_retificacao = None
+            instance.consolidado_dre.save()
+
         update_instance_from_dict(instance, validated_data)
         instance.presentes_na_ata.set(presentes_lista)
         instance.save()
@@ -116,4 +152,3 @@ class AtaParecerTecnicoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = AtaParecerTecnico
         exclude = ('id',)
-

@@ -6,6 +6,7 @@ from django.contrib.auth.models import Permission
 from sme_ptrf_apps.users.models import Grupo
 from django.contrib.contenttypes.models import ContentType
 from datetime import date
+from sme_ptrf_apps.dre.models import ConsolidadoDRE
 
 @pytest.fixture
 def tecnico_dre(dre):
@@ -328,9 +329,17 @@ def verificacao_regularidade_associacao_documento_cnpj(
         regular=True
     )
 
+@pytest.fixture
+def consolidado_dre_ata_parecer_tecnico(periodo, dre):
+    return baker.make(
+        'ConsolidadoDRE',
+        dre=dre,
+        periodo=periodo,
+        status=ConsolidadoDRE.STATUS_NAO_GERADOS,
+    )
 
 @pytest.fixture
-def ata_parecer_tecnico(dre, periodo):
+def ata_parecer_tecnico(dre, periodo, consolidado_dre_ata_parecer_tecnico):
     return baker.make(
         'AtaParecerTecnico',
         arquivo_pdf=None,
@@ -341,4 +350,5 @@ def ata_parecer_tecnico(dre, periodo):
         data_reuniao=date(2020, 7, 1),
         local_reuniao='Escola Teste',
         comentarios='Teste',
+        consolidado_dre=consolidado_dre_ata_parecer_tecnico
     )

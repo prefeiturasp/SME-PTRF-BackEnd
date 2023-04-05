@@ -18,6 +18,7 @@ def test_concluir_consolidado_dre(
         periodo_teste_service_consolidado_dre,
         retorna_parcial_false,
         retorna_username,
+        uuid_retificacao=None
     )
 
     assert consolidado_dre.uuid == consolidado_dre_teste_service_consolidado_dre.uuid
@@ -58,6 +59,7 @@ def test_criar_documentos_relatorio_fisico_financeiro_todas_as_contas(
         periodo=periodo_teste_service_consolidado_dre,
         parcial=parcial,
         usuario=usuario,
+        uuid_retificacao=None
     )
 
     relatorio_consolidado = consolidado_dre.relatorios_consolidados_dre_do_consolidado_dre.all()

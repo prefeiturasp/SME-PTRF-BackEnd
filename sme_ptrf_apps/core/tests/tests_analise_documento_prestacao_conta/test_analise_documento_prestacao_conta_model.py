@@ -65,3 +65,10 @@ def test_model_property_requer_ajuste_externo(
     solicitacao_acerto_documento_ata_ajuste_externo,
 ):
     assert analise_documento_prestacao_conta_2020_1_ata_ajuste.requer_ajuste_externo
+
+
+def test_model_property_requer_edicao_informacao(
+    analise_documento_prestacao_conta_demonstativo_financeiro_edicao_informacao,
+    solicitacao_acerto_documento_edicao_informacao,
+):
+    assert analise_documento_prestacao_conta_demonstativo_financeiro_edicao_informacao.requer_edicao_informacao_conciliacao

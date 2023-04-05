@@ -9,7 +9,8 @@ from .models import (
     JustificativaRelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE,
     ParametroFiqueDeOlhoRelDre, MotivoAprovacaoRessalva, MotivoReprovacao, Comissao, MembroComissao,
     AnoAnaliseRegularidade, AnaliseRegularidadeAssociacao, ParametrosDre, AtaParecerTecnico,
-    PresenteAtaDre, ConsolidadoDRE, Lauda
+    PresenteAtaDre, ConsolidadoDRE, Lauda, DocumentoAdicional, ComentarioAnaliseConsolidadoDRE, AnaliseConsolidadoDre,
+    AnaliseDocumentoConsolidadoDre
 )
 
 admin.site.register(ParametroFiqueDeOlhoRelDre)
@@ -67,10 +68,22 @@ class ConsolidadoDREAdmin(admin.ModelAdmin):
 
     get_nome_dre.short_description = 'DRE'
 
-    list_display = ('get_nome_dre', 'periodo', 'status', 'versao', 'eh_parcial', 'sequencia_de_publicacao')
-    list_filter = ('status', 'dre', 'periodo', 'versao')
+    list_display = (
+        'get_nome_dre',
+        'periodo',
+        'status',
+        'versao',
+        'eh_parcial',
+        'sequencia_de_publicacao',
+        'sequencia_de_retificacao',
+        'status_sme',
+        'data_publicacao',
+        'pagina_publicacao',
+        'responsavel_pela_analise',
+    )
+    list_filter = ('status', 'dre', 'periodo', 'versao', 'status_sme', 'responsavel_pela_analise')
     list_display_links = ('get_nome_dre',)
-    readonly_fields = ('uuid', 'id')
+    readonly_fields = ('uuid', 'id', 'pcs_do_consolidado')
     search_fields = ('dre__nome',)
 
 
@@ -230,7 +243,8 @@ class ComissaoAdmin(admin.ModelAdmin):
 
     def define_como_exame_de_contas(self, request, queryset):
         if queryset.count() != 1:
-            self.message_user(request, "Selecione apenas uma comissão para ser a de exame de contas.", level=messages.ERROR)
+            self.message_user(request, "Selecione apenas uma comissão para ser a de exame de contas.",
+                              level=messages.ERROR)
             return
 
         comissao = queryset.first()
@@ -300,7 +314,7 @@ class AtaParecerTecnicoAdmin(admin.ModelAdmin):
     list_filter = ['periodo', 'dre', 'consolidado_dre']
     readonly_fields = ('uuid', 'id')
 
-    actions = ('vincular_consolidado_dre', )
+    actions = ('vincular_consolidado_dre',)
 
     def vincular_consolidado_dre(self, request, queryset):
         from sme_ptrf_apps.dre.services.vincular_consolidado_service import VincularConsolidadoService
@@ -314,4 +328,80 @@ class AtaParecerTecnicoAdmin(admin.ModelAdmin):
 @admin.register(PresenteAtaDre)
 class PresentesAtaDreAdmin(admin.ModelAdmin):
     list_display = ('rf', 'nome', 'cargo', 'ata')
+    readonly_fields = ('uuid', 'id')
+
+
+@admin.register(DocumentoAdicional)
+class DocumentoAdicionalAdmin(admin.ModelAdmin):
+    list_display = ('nome',)
+    readonly_fields = ('uuid', 'criado_em', 'alterado_em',)
+
+
+@admin.register(ComentarioAnaliseConsolidadoDRE)
+class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
+
+    def get_dre(self, obj):
+        return obj.consolidado_dre.dre if obj and obj.consolidado_dre and obj.consolidado_dre.dre else ''
+
+    get_dre.short_description = 'DRE'
+
+    def get_periodo(self, obj):
+        return obj.consolidado_dre.periodo if obj and obj.consolidado_dre and obj.consolidado_dre.periodo else ''
+
+    get_periodo.short_description = 'Período'
+
+    list_display = ('get_dre', 'get_periodo', 'consolidado_dre', 'ordem', 'comentario', 'notificado_em')
+    list_filter = ('consolidado_dre__dre', 'consolidado_dre__periodo', 'consolidado_dre',)
+    readonly_fields = ('uuid', 'id')
+
+
+@admin.register(AnaliseConsolidadoDre)
+class AnaliseConsolidadoDreAdmin(admin.ModelAdmin):
+
+    def get_dre(self, obj):
+        return obj.consolidado_dre.dre if obj and obj.consolidado_dre and obj.consolidado_dre.dre else ''
+
+    get_dre.short_description = 'DRE'
+
+    def get_periodo(self, obj):
+        return obj.consolidado_dre.periodo if obj and obj.consolidado_dre and obj.consolidado_dre.periodo else ''
+
+    def get_id(self, obj):
+        return f"Análise #{obj.pk}"
+
+    get_id.short_description = 'Análise'
+
+    get_periodo.short_description = 'Período'
+
+    list_display = ('get_dre', 'get_periodo', 'consolidado_dre', 'get_id')
+    list_filter = ('consolidado_dre__dre', 'consolidado_dre__periodo', 'consolidado_dre',)
+    readonly_fields = ('uuid', 'id')
+
+
+@admin.register(AnaliseDocumentoConsolidadoDre)
+class AnaliseDocumentoConsolidadoDreAdmin(admin.ModelAdmin):
+
+    def get_dre(self, obj):
+        return obj.analise_consolidado_dre.consolidado_dre.dre if obj and obj.analise_consolidado_dre.consolidado_dre and obj.analise_consolidado_dre.consolidado_dre.dre else ''
+
+    get_dre.short_description = 'DRE'
+
+    def get_periodo(self, obj):
+        return obj.analise_consolidado_dre.consolidado_dre.periodo if obj and obj.analise_consolidado_dre and obj.analise_consolidado_dre.consolidado_dre.periodo else ''
+
+    get_periodo.short_description = 'Período'
+
+    def get_analise_consolidado_dre(self, obj):
+        return f'Análise Consolidado Dre #{obj.analise_consolidado_dre.pk}' if obj and obj.analise_consolidado_dre else ''
+
+    get_analise_consolidado_dre.short_description = "Análise Consolidado"
+
+    list_display = ('get_dre', 'get_periodo', 'get_analise_consolidado_dre', 'resultado')
+    list_filter = (
+        'analise_consolidado_dre__consolidado_dre__dre',
+        'analise_consolidado_dre__consolidado_dre__periodo',
+        'analise_consolidado_dre__consolidado_dre',
+        'analise_consolidado_dre',
+        'resultado',
+    )
     readonly_fields = ('uuid', 'id')

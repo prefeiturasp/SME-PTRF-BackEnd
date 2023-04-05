@@ -23,11 +23,11 @@ class DresViewSet(mixins.ListModelMixin,
     filter_fields = ('codigo_eol')
 
     def get_queryset(self):
-        qs = Unidade.dres.all()
+        qs = Unidade.dres.all().order_by('codigo_eol')
 
         codigo_eol = self.request.query_params.get('codigo_eol')
         if codigo_eol:
-            qs = qs.filter(codigo_eol=codigo_eol)
+            qs = qs.filter(codigo_eol=codigo_eol).order_by('codigo_eol')
 
         search = self.request.query_params.get('search')
         if search is not None:

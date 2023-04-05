@@ -279,6 +279,32 @@ def prestacao_conta_consolidado_dre_2(periodo_consolidado_dre, associacao_2_cons
     )
 
 
+@pytest.fixture
+def consolidao_com_pcs(
+    associacao,
+    periodo_consolidado_dre,
+    consolidado_dre,
+    prestacao_conta_consolidado_dre,
+    prestacao_conta_consolidado_dre_2
+):
+    consolidado_dre.pcs_do_consolidado.add(prestacao_conta_consolidado_dre)
+    consolidado_dre.pcs_do_consolidado.add(prestacao_conta_consolidado_dre_2)
+    consolidado_dre.save()
+    return consolidado_dre
+
+
+@pytest.fixture
+def consolidao_com_uma_pc(
+    associacao,
+    periodo_consolidado_dre,
+    consolidado_dre,
+    prestacao_conta_consolidado_dre,
+):
+    consolidado_dre.pcs_do_consolidado.add(prestacao_conta_consolidado_dre)
+    consolidado_dre.save()
+    return consolidado_dre
+
+
 def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
     jwt_authenticated_client_relatorio_consolidado,
     dre,
@@ -294,12 +320,12 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
     acao_associacao,
     previsao_repasse_sme_conta_cartao,
     previsao_repasse_sme_conta_cheque,
-    consolidado_dre,
+    consolidao_com_pcs,
     tipo_conta_cartao,
     tipo_conta_cheque,
 ):
     response = jwt_authenticated_client_relatorio_consolidado.get(
-        f'/api/relatorios-consolidados-dre/info-execucao-financeira/?dre={dre.uuid}&periodo={periodo.uuid}&consolidado_dre={consolidado_dre.uuid}',
+        f'/api/relatorios-consolidados-dre/info-execucao-financeira/?dre={dre.uuid}&periodo={periodo.uuid}&consolidado_dre={consolidao_com_pcs.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
 
@@ -311,6 +337,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
         'por_tipo_de_conta': [
             {
                 'consolidado_dre': None,
+                'eh_retificacao': False,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',
@@ -356,6 +383,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
             },
             {
                 'consolidado_dre': None,
+                'eh_retificacao': False,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
@@ -422,13 +450,13 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
     acao_associacao,
     previsao_repasse_sme_conta_cartao,
     previsao_repasse_sme_conta_cheque,
-    consolidado_dre,
+    consolidao_com_uma_pc,
     tipo_conta_cheque,
     tipo_conta_cartao
 
 ):
     response = jwt_authenticated_client_relatorio_consolidado.get(
-        f'/api/relatorios-consolidados-dre/info-execucao-financeira/?dre={dre.uuid}&periodo={periodo.uuid}&consolidado_dre={consolidado_dre.uuid}',
+        f'/api/relatorios-consolidados-dre/info-execucao-financeira/?dre={dre.uuid}&periodo={periodo.uuid}&consolidado_dre={consolidao_com_uma_pc.uuid}',
         content_type='application/json')
     result = json.loads(response.content)
 
@@ -440,6 +468,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
         'por_tipo_de_conta': [
             {
                 'consolidado_dre': None,
+                'eh_retificacao': False,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',
@@ -486,6 +515,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
             },
             {
                 'consolidado_dre': None,
+                'eh_retificacao': False,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
@@ -568,6 +598,7 @@ def test_api_get_info_execucao_financeira_relatorio(
         'por_tipo_de_conta': [
             {
                 'consolidado_dre': None,
+                'eh_retificacao': False,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cheque',
@@ -611,6 +642,7 @@ def test_api_get_info_execucao_financeira_relatorio(
                     'saldo_reprogramado_proximo_periodo_total': 4250.0}},
             {
                 'consolidado_dre': None,
+                'eh_retificacao': False,
                 'justificativa_texto': '',
                 'justificativa_uuid': None,
                 'tipo_conta': 'Cartão',

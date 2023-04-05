@@ -218,3 +218,17 @@ class FuncValoresReprogramadosDRE(models.Model):
             ('access_valores_reprogramados_dre', '[DRE] Pode acessar Valores Reprogramados.'),
             ('change_valores_reprogramados_dre', '[DRE] Pode atualizar Valores Reprogramados.'),
         )
+
+
+class FuncDreRetificacao(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[DRE] Retificacao"
+        verbose_name_plural = "[DRE] Retificacoes"
+
+        permissions = (
+            ('access_retificacao_dre', '[DRE] Pode acessar Retificacao.'),
+        )

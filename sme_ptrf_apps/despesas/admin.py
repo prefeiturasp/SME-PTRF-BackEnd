@@ -66,6 +66,7 @@ class RateioDespesaAdmin(admin.ModelAdmin):
         return obj.acao_associacao.acao.nome if obj.acao_associacao else ''
 
     autocomplete_fields = ['associacao', 'despesa', 'conta_associacao', 'acao_associacao']
+    readonly_fields = ('uuid', 'id')
 
 
 class RateioDespesaInLine(admin.TabularInline):

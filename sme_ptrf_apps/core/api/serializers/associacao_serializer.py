@@ -1,5 +1,5 @@
 from rest_framework import serializers
-
+from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
 from ...api.serializers.unidade_serializer import (UnidadeInfoAtaSerializer, UnidadeLookUpSerializer,
                                                    UnidadeListEmAssociacoesSerializer, UnidadeSerializer, UnidadeCreateSerializer)
 from ...api.serializers.periodo_serializer import PeriodoLookUpSerializer
@@ -30,6 +30,8 @@ class AssociacaoLookupSerializer(serializers.ModelSerializer):
 
 
 class AssociacaoCreateSerializer(serializers.ModelSerializer):
+    observacao = serializers.CharField(source="unidade__observacao", required=False, allow_blank=True, allow_null=True)
+    
     unidade = UnidadeCreateSerializer(many=False)
     periodo_inicial = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -45,8 +47,13 @@ class AssociacaoCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         unidade = validated_data.pop('unidade')
+        observacao = ""
+
+        if validated_data.get("unidade__observacao"):
+            observacao = validated_data.pop('unidade__observacao')
 
         associacao = Associacao.objects.create(**validated_data)
+        unidade['observacao'] = observacao
         unidade_object = UnidadeCreateSerializer().create(unidade)
         associacao.unidade = unidade_object
         associacao.save()
@@ -55,6 +62,8 @@ class AssociacaoCreateSerializer(serializers.ModelSerializer):
 
 
 class AssociacaoUpdateSerializer(serializers.ModelSerializer):
+    observacao = serializers.CharField(source="unidade__observacao", required=False, allow_blank=True, allow_null=True)
+
     unidade = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
@@ -72,6 +81,19 @@ class AssociacaoUpdateSerializer(serializers.ModelSerializer):
         model = Associacao
         fields = '__all__'
 
+    def update(self, instance, validated_data):
+        observacao = ""
+
+        if validated_data.get("unidade__observacao"):
+            observacao = validated_data.pop('unidade__observacao')
+
+        instance.unidade.observacao = observacao
+        instance.unidade.save()
+
+        update_instance_from_dict(instance, validated_data)
+        instance.save()
+
+        return instance
 
 class AssociacaoInfoAtaSerializer(serializers.ModelSerializer):
     unidade = UnidadeInfoAtaSerializer(many=False)

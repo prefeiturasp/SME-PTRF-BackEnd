@@ -96,6 +96,8 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
 
     lancamento_excluido = models.BooleanField("Lançamento Excluído?", default=False)
 
+    conciliacao_atualizada = models.BooleanField("Conciliação Atualizada?", default=False)
+
     def __str__(self):
         return f"{self.analise_prestacao_conta} - Resultado:{self.resultado}"
 
@@ -173,6 +175,22 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         ).exists()
         return requer
 
+    @property
+    def requer_conciliacao_lancamento(self):
+        from . import TipoAcertoLancamento
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_CONCILIACAO_LANCAMENTO
+        ).exists()
+        return requer
+
+    @property
+    def requer_desconciliacao_lancamento(self):
+        from . import TipoAcertoLancamento
+        requer = self.solicitacoes_de_ajuste_da_analise.filter(
+            tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_DESCONCILIACAO_LANCAMENTO
+        ).exists()
+        return requer
+
     def solicitacoes_de_acertos_total(self):
         total_solicitacoes = len(self.solicitacoes_de_ajuste_da_analise.all())
 
@@ -189,6 +207,8 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         categoria_exclusao_lancamento = []
         categoria_ajuste_externo = []
         categoria_solicitacao_esclarecimento = []
+        categoria_conciliacao_lancamento = []
+        categoria_desconciliacao_lancamento = []
 
         for solicitacao in self.solicitacoes_de_ajuste_da_analise.all().order_by('id'):
             categoria = solicitacao.tipo_acerto.categoria
@@ -221,6 +241,10 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
                 categoria_ajuste_externo.append(dado_solicitacao)
             elif categoria == TipoAcertoLancamento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO:
                 categoria_solicitacao_esclarecimento.append(dado_solicitacao)
+            elif categoria == TipoAcertoLancamento.CATEGORIA_CONCILIACAO_LANCAMENTO:
+                categoria_conciliacao_lancamento.append(dado_solicitacao)
+            elif categoria == TipoAcertoLancamento.CATEGORIA_DESCONCILIACAO_LANCAMENTO:
+                categoria_desconciliacao_lancamento.append(dado_solicitacao)
 
         result = {
             "analise_lancamento": f"{self.uuid}",
@@ -229,7 +253,9 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
                 categoria_edicao_lancamento,
                 categoria_exclusao_lancamento,
                 categoria_ajuste_externo,
-                categoria_solicitacao_esclarecimento
+                categoria_solicitacao_esclarecimento,
+                categoria_conciliacao_lancamento,
+                categoria_desconciliacao_lancamento
             )
         }
 
@@ -263,7 +289,9 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         categoria_edicao_lancamento,
         categoria_exclusao_lancamento,
         categoria_ajuste_externo,
-        categoria_solicitacao_esclarecimento
+        categoria_solicitacao_esclarecimento,
+        categoria_conciliacao_lancamento,
+        categoria_desconciliacao_lancamento
     ):
         from . import TipoAcertoLancamento
 
@@ -327,6 +355,30 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
                 "mensagem_inativa": None
             })
 
+        if categoria_conciliacao_lancamento:
+            solicitacoes_acerto_por_categoria.append({
+                "requer_conciliacao_lancamento": self.requer_conciliacao_lancamento,
+                "conciliacao_atualizada": self.conciliacao_atualizada,
+                "acertos": categoria_conciliacao_lancamento,
+                "categoria": TipoAcertoLancamento.CATEGORIA_CONCILIACAO_LANCAMENTO,
+                "despesa": f"{self.despesa.uuid}" if self.despesa else None,
+                "receita": f"{self.receita.uuid}" if self.receita else None,
+                "analise_lancamento": f"{self.uuid}",
+                "mensagem_inativa": None
+            })
+
+        if categoria_desconciliacao_lancamento:
+            solicitacoes_acerto_por_categoria.append({
+                "requer_conciliacao_lancamento": self.requer_desconciliacao_lancamento,
+                "conciliacao_atualizada": self.conciliacao_atualizada,
+                "acertos": categoria_desconciliacao_lancamento,
+                "categoria": TipoAcertoLancamento.CATEGORIA_DESCONCILIACAO_LANCAMENTO,
+                "despesa": f"{self.despesa.uuid}" if self.despesa else None,
+                "receita": f"{self.receita.uuid}" if self.receita else None,
+                "analise_lancamento": f"{self.uuid}",
+                "mensagem_inativa": None
+            })
+
         return solicitacoes_acerto_por_categoria
 
     def calcula_status_realizacao_analise_lancamento(self):
@@ -360,6 +412,49 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
 
         self.status_realizacao = novo_status
         self.save()
+
+    def passar_lancamento_para_conciliado(self, periodo):
+        from ..models import SolicitacaoAcertoLancamento
+        from ..models import TipoAcertoLancamento
+
+        for rateio in self.despesa.rateios.all():
+            rateio.marcar_conferido(periodo_conciliacao=periodo)
+
+        self.conciliacao_atualizada = True if self.requer_conciliacao_lancamento else False
+        self.save()
+
+        if self.requer_desconciliacao_lancamento:
+            solicitacoes_de_desconciliacao = self.solicitacoes_de_ajuste_da_analise.filter(
+                tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_DESCONCILIACAO_LANCAMENTO)
+
+            for solicitacao in solicitacoes_de_desconciliacao:
+                if solicitacao.status_realizacao == SolicitacaoAcertoLancamento.STATUS_REALIZACAO_REALIZADO:
+                    solicitacao.altera_status_realizacao(
+                        novo_status=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE)
+
+        return self
+
+    def passar_lancamento_para_desconciliado(self):
+        from ..models import SolicitacaoAcertoLancamento
+        from ..models import TipoAcertoLancamento
+
+        for rateio in self.despesa.rateios.all():
+            rateio.desmarcar_conferido()
+
+        self.conciliacao_atualizada = True if self.requer_desconciliacao_lancamento else False
+        self.save()
+
+        if self.requer_conciliacao_lancamento:
+            solicitacoes_de_conciliacao = self.solicitacoes_de_ajuste_da_analise.filter(
+                tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_CONCILIACAO_LANCAMENTO)
+
+            for solicitacao in solicitacoes_de_conciliacao:
+                if solicitacao.status_realizacao == SolicitacaoAcertoLancamento.STATUS_REALIZACAO_REALIZADO:
+                    solicitacao.altera_status_realizacao(
+                        novo_status=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE)
+
+        return self
+
 
     class Meta:
         verbose_name = "Análise de lançamento"

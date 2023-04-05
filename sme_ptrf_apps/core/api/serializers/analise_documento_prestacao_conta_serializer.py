@@ -49,6 +49,7 @@ class AnaliseDocumentoPrestacaoContaSolicitacoesAgrupadasRetrieveSerializer(seri
             'requer_inclusao_credito',
             'requer_inclusao_gasto',
             'requer_ajuste_externo',
+            'requer_edicao_informacao_conciliacao',
             'solicitacoes_de_ajuste_da_analise_total'
         )
 
@@ -91,5 +92,6 @@ class AnaliseDocumentoPrestacaoContaRetrieveSerializer(serializers.ModelSerializ
             'requer_inclusao_credito',
             'requer_inclusao_gasto',
             'requer_ajuste_externo',
+            'requer_edicao_informacao_conciliacao',
             'solicitacoes_de_ajuste_da_analise_total'
         )
