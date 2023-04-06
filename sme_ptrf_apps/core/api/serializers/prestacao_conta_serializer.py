@@ -156,7 +156,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     def get_conciliacao_bancaria_ue(self, prestacao_contas):
         result = []
 
-        for conciliacao in prestacao_contas.associacao.observacoes_conciliacao_da_associacao.all():
+        for conciliacao in prestacao_contas.associacao.observacoes_conciliacao_da_associacao.filter(periodo=prestacao_contas.periodo).all():
             result.append({
                 'conta_uuid': f'{conciliacao.conta_associacao.uuid}',
                 'data_extrato': conciliacao.data_extrato,
