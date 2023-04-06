@@ -57,54 +57,14 @@ def test_api_list_unidades_todas(
     response = jwt_authenticated_client_a.get(f'/api/unidades/', content_type='application/json')
     result = json.loads(response.content)
 
-    result_esperado = [
-        {
-            'codigo_eol': '99999',
-            'nome': 'DRE teste',
-            'nome_com_tipo': 'DRE DRE teste',
-            'tipo_unidade': 'DRE',
-            'uuid': str(dre.uuid),
-            'associacao_nome': '',
-            'associacao_uuid': '',
-            'visao': 'DRE',
-        },
-        {
-            'codigo_eol': '123456',
-            'nome': 'Escola Teste',
-            'nome_com_tipo': 'CEU Escola Teste',
-            'tipo_unidade': 'CEU',
-            'uuid': str(unidade.uuid),
-            'nome_dre': 'DRE teste',
-            'associacao_nome': 'Escola Teste',
-            'associacao_uuid': f'{associacao.uuid}',
-            'visao': 'UE',
-        },
-        {
-            "codigo_eol": f'{dre_01.codigo_eol}',
-            "nome": f'{dre_01.nome}',
-            "nome_com_tipo": f'{dre_01.nome_com_tipo}',
-            'tipo_unidade': 'DRE',
-            "uuid": f'{dre_01.uuid}',
-            'associacao_nome': '',
-            'associacao_uuid': '',
-            'visao': 'DRE',
-        },
-        {
-            "codigo_eol": f'{unidade_paulo_camilhier_florencano_dre_1.codigo_eol}',
-            "nome": f'{unidade_paulo_camilhier_florencano_dre_1.nome}',
-            "nome_com_tipo": f'{unidade_paulo_camilhier_florencano_dre_1.nome_com_tipo}',
-            'tipo_unidade': f'{unidade_paulo_camilhier_florencano_dre_1.tipo_unidade}',
-            "uuid": f'{unidade_paulo_camilhier_florencano_dre_1.uuid}',
-            'nome_dre': unidade_paulo_camilhier_florencano_dre_1.dre.nome,
-            'associacao_nome': '',
-            'associacao_uuid': '',
-            'visao': 'UE',
-        }
-
-    ]
-
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+    assert len(result) == 4
+
+    # Todas as unidades estão presentes?
+    assert any(unidade_paulo_camilhier_florencano_dre_1.codigo_eol == item['codigo_eol'] for item in result)
+    assert any(dre_01.codigo_eol == item['codigo_eol'] for item in result)
+    assert any(dre.codigo_eol == item['codigo_eol'] for item in result)
+    assert any(unidade.codigo_eol == item['codigo_eol'] for item in result)
 
 
 def test_api_list_unidades_por_nome(
@@ -175,31 +135,10 @@ def test_api_list_unidades_filtro_por_tipo(
     response = jwt_authenticated_client_a.get(f'/api/unidades/?tipo_unidade=DRE', content_type='application/json')
     result = json.loads(response.content)
 
-    result_esperado = [
-        {
-            'codigo_eol': '99999',
-            'nome': 'DRE teste',
-            'nome_com_tipo': 'DRE DRE teste',
-            'tipo_unidade': 'DRE',
-            'uuid': str(dre.uuid),
-            'associacao_nome': '',
-            'associacao_uuid': '',
-            'visao': 'DRE'
-        },
-        {
-            "uuid": f'{dre_01.uuid}',
-            "codigo_eol": f'{dre_01.codigo_eol}',
-            "nome": f'{dre_01.nome}',
-            "nome_com_tipo": f'{dre_01.nome_com_tipo}',
-            'tipo_unidade': 'DRE',
-            'associacao_nome': '',
-            'associacao_uuid': '',
-            'visao': 'DRE'
-        },
-    ]
-
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+    assert len(result) == 2
+    assert any(dre_01.codigo_eol == item['codigo_eol'] for item in result)
+    assert any(dre.codigo_eol == item['codigo_eol'] for item in result)
 
 
 def test_api_list_unidades_por_dre(

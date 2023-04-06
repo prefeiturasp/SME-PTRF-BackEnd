@@ -57,3 +57,4 @@ from .analise_documento_prestacao_conta_serializer import (
 from .tipo_documento_prestacao_conta_serializer import TipoDocumentoPrestacaoContaSerializer
 from .presentes_ata_serializer import PresentesAtaSerializer, PresentesAtaCreateSerializer
 from .solicitacao_devolucao_ao_tesouro_serializer import SolicitacaoDevolucaoAoTesouroRetrieveSerializer
+from .falha_geracao_pc_serializer import FalhaGeracaoPcSerializer

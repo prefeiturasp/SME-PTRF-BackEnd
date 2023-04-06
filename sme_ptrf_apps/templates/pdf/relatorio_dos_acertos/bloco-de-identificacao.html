@@ -1,0 +1,74 @@
+{% load staticfiles %}
+{% load formata_valores %}
+{% load formata_string %}
+
+<article class="mt-4">
+    <table class="table table-bordered tabela-resumo-por-acao">
+      <thead class="">
+        <tr class="">
+          <th colSpan="1">
+            <strong class="font-16 titulo-bloco ml-2">{{ dados.blocos.identificacao_associacao }}</strong>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="col-12">
+              <p class="pt-2 mt-2 font-12"><strong>Nome da Associação:</strong> {{ dados.dados_associacao.nome_associacao }}</p>
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <div class="col-12">
+              <div class="row">
+                <div class="col">
+                  <p class="pt-2 mt-2 mb-0 font-12"><strong>CNPJ:</strong></p>
+                  <p class="font-12">{{ dados.dados_associacao.cnpj_associacao }}</p>
+                </div>
+                <div class="col">
+                  <p class="pt-2 mt-2 mb-0 font-12"><strong>Código EOL:</strong></p>
+                  <p class="font-12">{{ dados.dados_associacao.codigo_eol_associacao }}</p>
+                </div>
+                <div class="col">
+                  <p class="pt-2 mt-2 mb-0 font-12"><strong>Diretoria Regional de Educação:</strong></p>
+                  <p class="font-12">{{ dados.dados_associacao.nome_dre }}</p>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+
+      <tr>
+        <td>
+          <div class="col-12">
+            <div class="row">
+
+              <div class="col-4">
+                <p class="pt-2 mt-2 mb-0 font-12"><strong>Data da devolução da DRE:</strong></p>
+                {% if dados.dados_associacao.data_devolucao_dre == '-' %}
+                  <p class="font-12">{{ dados.dados_associacao.data_devolucao_dre }}</p>
+                {% else %}
+                  <p class="font-12">{{ dados.dados_associacao.data_devolucao_dre|date:'d/m/Y' }}</p>
+                {% endif %}
+
+              </div>
+              <div class="col-8">
+                <p class="ml-5 pt-2 mt-2 mb-0 font-12"><strong>Prazo para devolução da Associação:</strong></p>
+                {% if dados.dados_associacao.prazo_devolucao_associacao == '-' %}
+                  <p class="ml-5 font-12">{{ dados.dados_associacao.prazo_devolucao_associacao }}</p>
+                {% else %}
+                  <p class="ml-5 font-12">{{ dados.dados_associacao.prazo_devolucao_associacao|date:'d/m/Y' }}</p>
+                {% endif %}
+              </div>
+
+            </div>
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+  </article>

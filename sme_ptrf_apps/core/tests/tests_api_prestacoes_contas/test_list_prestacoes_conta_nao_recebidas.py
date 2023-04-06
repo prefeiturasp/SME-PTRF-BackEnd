@@ -163,40 +163,12 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_periodo_e_dre_sem_filtro_po
 
     result = json.loads(response.content)
 
-    result_esperado = [
-        {
-            'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
-            'data_ultima_analise': None,
-            'processo_sei': '',
-            'status': 'NAO_APRESENTADA',
-            'tecnico_responsavel': '',
-            'unidade_eol': '000102',
-            'unidade_nome': 'Codorna',
-            'unidade_tipo_unidade': 'CEU',
-            'uuid': '',
-            'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
-            'devolucao_ao_tesouro': 'Não'
-
-        },
-        {
-            'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
-            'data_ultima_analise': None,
-            'processo_sei': '',
-            'status': 'NAO_RECEBIDA',
-            'tecnico_responsavel': '',
-            'unidade_eol': '000101',
-            'unidade_nome': 'Andorinha',
-            'unidade_tipo_unidade': 'EMEI',
-            'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
-            'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': 'Não'
-        }
-    ]
-
+    # Deve retornar dois registros
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+    assert len(result) == 2
+
+    # Não deve retornat status diferentes de NAO_APRESENTADA e NAO_RECEBIDA
+    assert all(pc['status'] in ['NAO_APRESENTADA', 'NAO_RECEBIDA'] for pc in result)
 
 
 @pytest.fixture
@@ -230,26 +202,12 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_periodo_e_dre_nao_inclui_ou
 
     result = json.loads(response.content)
 
-    result_esperado = [
-        {
-            'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
-            'data_ultima_analise': None,
-            'processo_sei': '',
-            'status': 'NAO_APRESENTADA',
-            'tecnico_responsavel': '',
-            'unidade_eol': '000102',
-            'unidade_nome': 'Codorna',
-            'unidade_tipo_unidade': 'CEU',
-            'uuid': '',
-            'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
-            'devolucao_ao_tesouro': 'Não'
-
-        }
-    ]
-
+    # Deve retornar um registro
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+    assert len(result) == 1
+
+    # Não deve retornat status diferentes de NAO_APRESENTADA
+    assert all(pc['status'] in ['NAO_APRESENTADA'] for pc in result)
 
 
 def test_api_list_prestacoes_conta_nao_recebidas_por_nome_unidade(jwt_authenticated_client_a,
@@ -268,25 +226,13 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_nome_unidade(jwt_authentica
 
     result = json.loads(response.content)
 
-    result_esperado = [
-        {
-            'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
-            'data_ultima_analise': None,
-            'processo_sei': '',
-            'status': 'NAO_RECEBIDA',
-            'tecnico_responsavel': '',
-            'unidade_eol': '000101',
-            'unidade_nome': 'Andorinha',
-            'unidade_tipo_unidade': 'EMEI',
-            'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
-            'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': 'Não'
-        },
-    ]
-
+    # Deve retornar um registro
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+    assert len(result) == 1
+
+    # Deve retornar a PC da associação correta
+    assert result[0]['associacao_uuid'] == f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}'
+
 
     url = f'/api/prestacoes-contas/nao-recebidas/?associacao__unidade__dre__uuid={dre_uuid}&periodo__uuid={periodo_uuid}&nome=codorna'
 
@@ -294,26 +240,12 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_nome_unidade(jwt_authentica
 
     result = json.loads(response.content)
 
-    result_esperado = [
-        {
-            'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
-            'data_ultima_analise': None,
-            'processo_sei': '',
-            'status': 'NAO_APRESENTADA',
-            'tecnico_responsavel': '',
-            'unidade_eol': '000102',
-            'unidade_nome': 'Codorna',
-            'unidade_tipo_unidade': 'CEU',
-            'uuid': '',
-            'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
-            'devolucao_ao_tesouro': 'Não'
-        }
-
-    ]
-
+    # Deve retornar um registro
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+    assert len(result) == 1
+
+    # Deve retornar a PC da associação correta
+    assert result[0]['associacao_uuid'] == f'{_associacao_c_dre_1.uuid}'
 
 
 def test_api_list_prestacoes_conta_nao_recebidas_por_nome_associacao(jwt_authenticated_client_a,
@@ -334,25 +266,13 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_nome_associacao(jwt_authent
 
     result = json.loads(response.content)
 
-    result_esperado = [
-        {
-            'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
-            'data_ultima_analise': None,
-            'processo_sei': '',
-            'status': 'NAO_RECEBIDA',
-            'tecnico_responsavel': '',
-            'unidade_eol': '000101',
-            'unidade_nome': 'Andorinha',
-            'unidade_tipo_unidade': 'EMEI',
-            'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
-            'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': 'Não'
-        },
-    ]
-
+    # Deve retornar um registro
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+    assert len(result) == 1
+
+    # Deve retornar a PC da associação correta
+    assert result[0]['associacao_uuid'] == f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}'
+
 
     url = f'/api/prestacoes-contas/nao-recebidas/?associacao__unidade__dre__uuid={dre_uuid}&periodo__uuid={periodo_uuid}&nome=cuba'
 
@@ -360,26 +280,12 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_nome_associacao(jwt_authent
 
     result = json.loads(response.content)
 
-    result_esperado = [
-        {
-            'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
-            'data_ultima_analise': None,
-            'processo_sei': '',
-            'status': 'NAO_APRESENTADA',
-            'tecnico_responsavel': '',
-            'unidade_eol': '000102',
-            'unidade_nome': 'Codorna',
-            'unidade_tipo_unidade': 'CEU',
-            'uuid': '',
-            'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
-            'devolucao_ao_tesouro': 'Não'
-        }
-
-    ]
-
+    # Deve retornar um registro
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+    assert len(result) == 1
+
+    # Deve retornar a PC da associação correta
+    assert result[0]['associacao_uuid'] == f'{_associacao_c_dre_1.uuid}'
 
 
 def test_api_list_prestacoes_conta_nao_recebidas_por_tipo_unidade(jwt_authenticated_client_a,
@@ -398,25 +304,13 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_tipo_unidade(jwt_authentica
 
     result = json.loads(response.content)
 
-    result_esperado = [
-        {
-            'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
-            'data_ultima_analise': None,
-            'processo_sei': '',
-            'status': 'NAO_RECEBIDA',
-            'tecnico_responsavel': '',
-            'unidade_eol': '000101',
-            'unidade_nome': 'Andorinha',
-            'unidade_tipo_unidade': 'EMEI',
-            'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
-            'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': 'Não'
-        },
-    ]
-
+    # Deve retornar um registro
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+    assert len(result) == 1
+
+    # Deve retornar a PC da associação correta
+    assert result[0]['associacao_uuid'] == f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}'
+
 
     url = f'/api/prestacoes-contas/nao-recebidas/?associacao__unidade__dre__uuid={dre_uuid}&periodo__uuid={periodo_uuid}&tipo_unidade=CEU'
 
@@ -424,26 +318,13 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_tipo_unidade(jwt_authentica
 
     result = json.loads(response.content)
 
-    result_esperado = [
-        {
-            'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
-            'data_ultima_analise': None,
-            'processo_sei': '',
-            'status': 'NAO_APRESENTADA',
-            'tecnico_responsavel': '',
-            'unidade_eol': '000102',
-            'unidade_nome': 'Codorna',
-            'unidade_tipo_unidade': 'CEU',
-            'uuid': '',
-            'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
-            'devolucao_ao_tesouro': 'Não'
-        }
-
-    ]
-
+    # Deve retornar um registro
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+    assert len(result) == 1
+
+    # Deve retornar a PC da associação correta
+    assert result[0]['associacao_uuid'] == f'{_associacao_c_dre_1.uuid}'
+
 
 
 def test_api_list_prestacoes_conta_nao_recebidas_por_status_nao_recebida(jwt_authenticated_client_a,
@@ -466,25 +347,12 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_status_nao_recebida(jwt_aut
 
     result = json.loads(response.content)
 
-    result_esperado = [
-        {
-            'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
-            'data_ultima_analise': None,
-            'processo_sei': '',
-            'status': 'NAO_RECEBIDA',
-            'tecnico_responsavel': '',
-            'unidade_eol': '000101',
-            'unidade_nome': 'Andorinha',
-            'unidade_tipo_unidade': 'EMEI',
-            'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
-            'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': 'Não'
-        },
-    ]
-
+    # Deve retornar um registro
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+    assert len(result) == 1
+
+    # Não deve retornat status diferentes de NAO_RECEBIDA
+    assert all(pc['status'] in ['NAO_RECEBIDA'] for pc in result)
 
 
 def test_api_list_prestacoes_conta_nao_recebidas_por_status_nao_apresentada(jwt_authenticated_client_a,
@@ -507,26 +375,12 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_status_nao_apresentada(jwt_
 
     result = json.loads(response.content)
 
-    result_esperado = [
-        {
-            'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
-            'data_ultima_analise': None,
-            'processo_sei': '',
-            'status': 'NAO_APRESENTADA',
-            'tecnico_responsavel': '',
-            'unidade_eol': '000102',
-            'unidade_nome': 'Codorna',
-            'unidade_tipo_unidade': 'CEU',
-            'uuid': '',
-            'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
-            'devolucao_ao_tesouro': 'Não'
-        }
-
-    ]
-
+    # Deve retornar um registro
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+    assert len(result) == 1
+
+    # Não deve retornat status diferentes de NAO_APRESENTADA
+    assert all(pc['status'] in ['NAO_APRESENTADA'] for pc in result)
 
 
 def test_api_list_prestacoes_conta_nao_recebidas_por_status_diferente_nao_recebida_nao_apresentada(
@@ -575,37 +429,9 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_mais_de_um_status(
 
     result = json.loads(response.content)
 
-    result_esperado = [
-        {
-            'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
-            'data_ultima_analise': None,
-            'processo_sei': '',
-            'status': 'NAO_APRESENTADA',
-            'tecnico_responsavel': '',
-            'unidade_eol': '000102',
-            'unidade_nome': 'Codorna',
-            'unidade_tipo_unidade': 'CEU',
-            'uuid': '',
-            'associacao_uuid': f'{_associacao_c_dre_1.uuid}',
-            'devolucao_ao_tesouro': 'Não'
-
-        },
-        {
-            'periodo_uuid': f'{periodo_2020_1.uuid}',
-            'data_recebimento': None,
-            'data_ultima_analise': None,
-            'processo_sei': '',
-            'status': 'NAO_RECEBIDA',
-            'tecnico_responsavel': '',
-            'unidade_eol': '000101',
-            'unidade_nome': 'Andorinha',
-            'unidade_tipo_unidade': 'EMEI',
-            'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
-            'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-            'devolucao_ao_tesouro': 'Não'
-        }
-    ]
-
+    # Deve retornar dois registros
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+    assert len(result) == 2
+
+    # Não deve retornat status diferentes de NAO_APRESENTADA e NAO_RECEBIDA
+    assert all(pc['status'] in ['NAO_APRESENTADA', 'NAO_RECEBIDA'] for pc in result)

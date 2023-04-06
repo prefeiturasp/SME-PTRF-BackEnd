@@ -1,6 +1,6 @@
 from sme_ptrf_apps.core.services.prestacao_contas_services import (lancamentos_da_prestacao)
 from ..api.serializers.analise_documento_prestacao_conta_serializer import AnaliseDocumentoPrestacaoContaRetrieveSerializer
-from datetime import date
+from datetime import datetime
 from ...utils.numero_ordinal import formata_numero_ordinal
 
 import logging
@@ -64,7 +64,7 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
 
     dados_documentos = AnaliseDocumentoPrestacaoContaRetrieveSerializer(documentos, many=True).data
 
-    data_geracao_documento = cria_data_geracao_documento(usuario, previa)
+    data_geracao_documento = cria_data_geracao_documento(usuario, previa, dados_associacao["nome_dre"])
 
     dados = {
         'info_cabecalho': info_cabecalho,
@@ -106,11 +106,13 @@ def nome_blocos(dados_ajustes_contas, dados_lancamentos, dados_documentos, dados
     return dados
 
 
-def cria_data_geracao_documento(usuario, previa):
-    data_geracao = date.today().strftime("%d/%m/%Y")
-    tipo_texto = "prévio" if previa else "final"
-    quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}. "
-    texto = f"Documento {tipo_texto} gerado pelo SIG-Escola em {data_geracao} {quem_gerou}"
+def cria_data_geracao_documento(usuario, previa, nome_dre):
+    data_tempo = datetime.now()
+    data_geracao = data_tempo.strftime("%d/%m/%Y às %H:%M")
+    dre = "" if nome_dre == "" else f"DRE {nome_dre}, "
+    tipo_texto = "Prévia gerada" if previa else "Documento final gerado"
+    quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}"
+    texto = f"{dre}{tipo_texto} {quem_gerou}, via SIG-Escola, em {data_geracao}."
 
     return texto
 

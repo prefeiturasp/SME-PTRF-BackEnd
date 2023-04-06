@@ -62,6 +62,12 @@ class TipoAcertoDocumentoAgrupadoPorCategoria:
                          "não reabre o lançamento para alteração.",
                 "cor": 2
             }
+        elif TipoAcertoDocumento.CATEGORIA_EDICAO_INFORMACAO == categoria_id:
+            return {
+                "texto": "Esse tipo de acerto requer que o usuário preencha o campo Justificativas e "
+                         "informações adicionais e o documento será gerado novamente.",
+                "cor": 2
+            }
 
 
 class TipoAcertoDocumentoCategorias:

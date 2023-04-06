@@ -108,5 +108,8 @@ class AnaliseLancamentoPrestacaoContaRetrieveSerializer(serializers.ModelSeriali
             'requer_exclusao_lancamento',
             'requer_ajustes_externos',
             'requer_esclarecimentos',
+            'requer_conciliacao_lancamento',
+            'requer_desconciliacao_lancamento',
+            'conciliacao_atualizada'
         )
 

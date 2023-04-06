@@ -16,6 +16,10 @@ def test_service_tabelas_categorias():
             "nome": "Inclusão de gasto"
         },
         {
+            "id": "EDICAO_INFORMACAO",
+            "nome": "Edição de informação"
+        },
+        {
             "id": "AJUSTES_EXTERNOS",
             "nome": "Ajustes externos"
         },

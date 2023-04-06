@@ -28,3 +28,4 @@ from .analise_conta_prestacao_conta_viewset import AnaliseContaPrestacaoContaVie
 from .parametros_ue_viewset import ParametrosUeViewSet
 from .analise_lancamento_prestacao_conta_viewset import AnaliseLancamentoPrestacaoContaViewSet
 from .analise_documento_prestacao_conta_viewset import AnaliseDocumentoPrestacaoContaViewSet
+from .falhas_geracao_pc_viewset import FalhaGeracaoPcViewSet

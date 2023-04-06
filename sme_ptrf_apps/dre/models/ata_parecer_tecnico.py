@@ -70,14 +70,17 @@ class AtaParecerTecnico(ModeloBase):
 
     sequencia_de_publicacao = models.IntegerField('Sequência de publicação', blank=True, null=True)
 
+    sequencia_de_retificacao = models.IntegerField('Sequência de retificação', blank=True, null=True)
+
 
     @classmethod
-    def criar_ou_retornar_ata_sem_consolidado_dre(cls, dre, periodo, sequencia_de_publicacao):
+    def criar_ou_retornar_ata_sem_consolidado_dre(cls, dre, periodo, sequencia_de_publicacao, sequencia_de_retificacao):
         ata, _ = cls.objects.get_or_create(
             dre=dre,
             periodo=periodo,
             sequencia_de_publicacao=sequencia_de_publicacao,
-            defaults={'dre': dre, 'periodo': periodo, 'sequencia_de_publicacao': sequencia_de_publicacao},
+            sequencia_de_retificacao=sequencia_de_retificacao,
+            defaults={'dre': dre, 'periodo': periodo, 'sequencia_de_publicacao': sequencia_de_publicacao, 'sequencia_de_retificacao': sequencia_de_retificacao},
         )
 
         return ata

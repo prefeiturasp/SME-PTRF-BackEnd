@@ -1,0 +1,22 @@
+{% load staticfiles %}
+{% load formata_string %}
+
+
+{% if dados.dados_responsavel_analise %}
+  <table class="table table-bordered tabela-resumo-por-acao mt-5">
+    <thead>
+      <tr class="">
+        <th>
+          <strong class="font-16 titulo-bloco-sme">{{ dados.blocos.responsavel }}</strong>
+        </th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td class="p-2 font-12">{{ dados.dados_responsavel_analise }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+{% endif %}
