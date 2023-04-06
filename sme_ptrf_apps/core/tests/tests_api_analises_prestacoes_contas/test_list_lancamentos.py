@@ -164,6 +164,9 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                     'lancamento_excluido': False,
                     'requer_ajustes_externos': False,
                     'requer_esclarecimentos': False,
+                    'conciliacao_atualizada': False,
+                    'requer_conciliacao_lancamento': False,
+                    'requer_desconciliacao_lancamento': False,
                     'solicitacoes_de_ajuste_da_analise_total': 1,
                     'solicitacoes_de_ajuste_da_analise': {
                         'analise_lancamento': f'{lancamento["analise_lancamento"].uuid}',

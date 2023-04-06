@@ -10,6 +10,7 @@ from sme_ptrf_apps.core.services.processos_services import get_processo_sei_da_p
 
 from sme_ptrf_apps.dre.api.serializers.motivo_aprovacao_ressalva_serializer import MotivoAprovacaoRessalvaSerializer
 from sme_ptrf_apps.dre.api.serializers.motivo_reprovacao_serializer import MotivoReprovacaoSerializer
+from ....dre.models import ConsolidadoDRE
 
 
 class PrestacaoContaLookUpSerializer(serializers.ModelSerializer):
@@ -100,9 +101,10 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     motivos_reprovacao = MotivoReprovacaoSerializer(many=True)
     arquivos_referencia = serializers.SerializerMethodField('get_arquivos_referencia')
     analise_atual = AnalisePrestacaoContaSerializer(many=False)
-    pode_reabrir = serializers.SerializerMethodField('get_pode_reabrir')
+    pode_devolver = serializers.SerializerMethodField('get_pode_devolver')
     informacoes_conciliacao_ue = serializers.SerializerMethodField('get_conciliacao_bancaria_ue')
     referencia_consolidado_dre = serializers.SerializerMethodField('get_referencia_consolidado_dre')
+    referencia_consolidado_dre_original = serializers.SerializerMethodField('get_referencia_consolidado_dre_original')
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
@@ -164,8 +166,8 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
 
         return result
 
-    def get_pode_reabrir(self, obj):
-        return obj.pode_reabrir()
+    def get_pode_devolver(self, obj):
+        return obj.pode_devolver()
 
     def get_ajustes_por_analise(self, prestacao_contas):
         result = []
@@ -207,7 +209,19 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
         return result
 
     def get_referencia_consolidado_dre(self, obj):
-        return obj.consolidado_dre.referencia if obj.consolidado_dre else ""
+        return obj.get_referencia_do_consolidado
+
+    def get_referencia_consolidado_dre_original(self, obj):
+        if(obj.consolidado_dre and obj.consolidado_dre.id):
+            consolidado_vinculado_id = obj.consolidado_dre.id
+
+            while consolidado_vinculado_id:
+                consolidado_anterior = ConsolidadoDRE.objects.get(id=consolidado_vinculado_id)
+                if consolidado_anterior and consolidado_anterior.consolidado_retificado_id:
+                    consolidado_vinculado_id = consolidado_anterior.consolidado_retificado_id
+                else:
+                    consolidado_original = ConsolidadoDRE.objects.get(id=consolidado_anterior.id)
+                    return consolidado_original.referencia if consolidado_original and consolidado_original.referencia else ""
 
     class Meta:
         model = PrestacaoConta
@@ -232,9 +246,47 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'arquivos_referencia',
             'analise_atual',
             'recomendacoes',
-            'pode_reabrir',
+            'pode_devolver',
             'informacoes_conciliacao_ue',
             'publicada',
             'referencia_consolidado_dre',
+            'referencia_consolidado_dre_original',
             'justificativa_pendencia_realizacao',
+            'em_retificacao'
         )
+
+
+class PrestacaoContaListRetificaveisSerializer(serializers.ModelSerializer):
+    unidade_eol = serializers.SerializerMethodField('get_unidade_eol')
+    unidade_nome = serializers.SerializerMethodField('get_unidade_nome')
+    unidade_tipo_unidade = serializers.SerializerMethodField('get_unidade_tipo_unidade')
+
+    pode_desfazer_retificacao = serializers.SerializerMethodField('get_pode_desfazer_retificacao')
+    tooltip_nao_pode_desfazer_retificacao = serializers.SerializerMethodField('get_tooltip_nao_pode_desfazer_retificacao')
+
+    def get_unidade_eol(self, obj):
+        return obj.associacao.unidade.codigo_eol if obj.associacao and obj.associacao.unidade else ''
+
+    def get_unidade_nome(self, obj):
+        return obj.associacao.unidade.nome if obj.associacao and obj.associacao.unidade else ''
+
+    def get_unidade_tipo_unidade(self, obj):
+        return obj.associacao.unidade.tipo_unidade if obj.associacao and obj.associacao.unidade else ''
+
+    def get_pode_desfazer_retificacao(self, obj):
+        return obj.pode_desfazer_retificacao
+
+    def get_tooltip_nao_pode_desfazer_retificacao(self, obj):
+        return obj.tooltip_nao_pode_desfazer_retificacao
+
+    class Meta:
+        model = PrestacaoConta
+        fields = (
+            'uuid',
+            'unidade_eol',
+            'unidade_nome',
+            'unidade_tipo_unidade',
+            'pode_desfazer_retificacao',
+            'tooltip_nao_pode_desfazer_retificacao',
+        )
+

@@ -59,11 +59,11 @@ def atrelar_pc_ao_consolidado_dre_async(dre, periodo, consolidado_dre):
 
     prestacoes = PrestacaoConta.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid)
     prestacoes = prestacoes.filter(Q(status='APROVADA') | Q(status='APROVADA_RESSALVA') | Q(status='REPROVADA'))
-    prestacoes = prestacoes.filter(publicada=False)
+    prestacoes = prestacoes.filter(publicada=False, consolidado_dre__isnull=True)
 
     for prestacao in prestacoes:
         logger.info(f'Atrelando Prestação ao Consolidado DRE: Prestação {prestacao}. Consolidado Dre {consolidado_dre}')
-        prestacao.atrelar_consolidado_dre(consolidado_dre)
+        consolidado_dre.vincular_pc_ao_consolidado(prestacao)
 
 
 @shared_task(
@@ -72,13 +72,19 @@ def atrelar_pc_ao_consolidado_dre_async(dre, periodo, consolidado_dre):
     time_limit=333333,
     soft_time_limit=333333
 )
-def passar_pcs_do_relatorio_para_publicadas_async(dre, periodo):
+def passar_pcs_do_relatorio_para_publicadas_async(dre, periodo, consolidado_dre):
     dre_uuid = dre.uuid
     periodo_uuid = periodo.uuid
 
     prestacoes = PrestacaoConta.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid)
     prestacoes = prestacoes.filter(Q(status='APROVADA') | Q(status='APROVADA_RESSALVA') | Q(status='REPROVADA'))
-    prestacoes = prestacoes.filter(publicada=False)
+
+    if consolidado_dre.eh_retificacao:
+        # Retificacoes precisam filrar as PCs pelo consolidado vinculado
+
+        prestacoes = prestacoes.filter(publicada=False, consolidado_dre=consolidado_dre)
+    else:
+        prestacoes = prestacoes.filter(publicada=False)
 
     for prestacao in prestacoes:
         logger.info(f'Passando Prestação de Contas para Publicada: Prestação {prestacao}')
@@ -103,14 +109,20 @@ def gerar_previa_consolidado_dre_async(
     dre = Unidade.dres.get(uuid=dre_uuid)
     periodo = Periodo.objects.get(uuid=periodo_uuid)
 
-    consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo,
-                                                 sequencia_de_publicacao=sequencia_de_publicacao)
+    if consolidado_dre_uuid:
+        consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
+    else:
+        consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo,
+                                                     sequencia_de_publicacao=sequencia_de_publicacao)
 
-    atrelar_pc_ao_consolidado_dre_async(
-        dre=dre,
-        periodo=periodo,
-        consolidado_dre=consolidado_dre,
-    )
+    if not consolidado_dre.eh_retificacao:
+        # Uma retificacao ja possui suas PCs vinculadas
+
+        atrelar_pc_ao_consolidado_dre_async(
+            dre=dre,
+            periodo=periodo,
+            consolidado_dre=consolidado_dre,
+        )
 
     gerar_previa_relatorio_consolidado_dre_async(
         dre_uuid=dre_uuid,
@@ -125,6 +137,28 @@ def gerar_previa_consolidado_dre_async(
     eh_parcial = parcial['parcial']
     consolidado_dre.passar_para_status_gerado(eh_parcial)
 
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limit=333333,
+    soft_time_limit=333333
+)
+def verifica_se_relatorio_consolidado_deve_ser_gerado_async(dre, periodo, usuario):
+    qtde_unidades_na_dre = Unidade.objects.filter(
+        dre_id=dre,
+    ).exclude(associacoes__cnpj__exact='').count()
+
+    qtde_pcs_publicadas_no_periodo_pela_dre = PrestacaoConta.objects.filter(
+        periodo=periodo,
+        status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+        associacao__unidade__dre=dre,
+        publicada=True
+    ).count()
+
+    if(int(qtde_unidades_na_dre) == int(qtde_pcs_publicadas_no_periodo_pela_dre)):
+        concluir_consolidado_de_publicacoes_parciais_async(dre.uuid, periodo.uuid, usuario)
+        
 
 @shared_task(
     retry_backoff=2,
@@ -148,14 +182,21 @@ def concluir_consolidado_dre_async(
     periodo = Periodo.objects.get(uuid=periodo_uuid)
     ata = AtaParecerTecnico.objects.get(uuid=ata_uuid)
 
-    consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo,
+    if consolidado_dre_uuid:
+        consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
+    else:
+        consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo,
                                                  sequencia_de_publicacao=sequencia_de_publicacao)
 
-    atrelar_pc_ao_consolidado_dre_async(
-        dre=dre,
-        periodo=periodo,
-        consolidado_dre=consolidado_dre,
-    )
+
+    if not consolidado_dre.eh_retificacao:
+        # Uma retificacao ja possui suas PCs vinculadas
+
+        atrelar_pc_ao_consolidado_dre_async(
+            dre=dre,
+            periodo=periodo,
+            consolidado_dre=consolidado_dre,
+        )
 
     # Atrelando consolidado as justificativas
     for tipo_conta in tipo_contas:
@@ -201,11 +242,18 @@ def concluir_consolidado_dre_async(
     passar_pcs_do_relatorio_para_publicadas_async(
         dre=dre,
         periodo=periodo,
+        consolidado_dre=consolidado_dre
     )
 
     eh_parcial = parcial['parcial']
     consolidado_dre.passar_para_status_gerado(eh_parcial)
 
+    if(eh_parcial):
+        verifica_se_relatorio_consolidado_deve_ser_gerado_async(
+            dre=dre,
+            periodo=periodo,
+            usuario=usuario
+        )
 
 @shared_task(
     retry_backoff=2,
@@ -299,7 +347,11 @@ def gerar_relatorio_consolidado_dre_async(
     consolidado_dre = None
     if not eh_consolidado_de_publicacoes_parciais:
         try:
-            consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo, sequencia_de_publicacao=sequencia_de_publicacao)
+            if consolidado_dre_uuid:
+                consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
+            else:
+                consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo, sequencia_de_publicacao=sequencia_de_publicacao)
+
         except ConsolidadoDRE.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -362,8 +414,11 @@ def gerar_previa_relatorio_consolidado_dre_async(
         raise Exception(erro)
 
     try:
-        consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo,
-                                                     sequencia_de_publicacao=sequencia_de_publicacao)
+        if consolidado_dre_uuid:
+            consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
+        else:
+            consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo,
+                                                         sequencia_de_publicacao=sequencia_de_publicacao)
     except ConsolidadoDRE.DoesNotExist:
         erro = {
             'erro': 'Objeto não encontrado.',
@@ -640,3 +695,34 @@ def atualiza_regularidade_em_massa_async():
         ano.status_atualizacao = AnoAnaliseRegularidade.STATUS_ATUALIZACAO_CONCLUIDA
         ano.save()
         logger.info(f"Finalizado serviço de atualização em massa de regularidade")
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
+def gerar_notificacao_prazo_para_acerto_consolidado_dre_apos_vencimento_async():
+    logger.info(f'Iniciando a geração de notificação prazo acerto apos vencimento async')
+
+    from sme_ptrf_apps.dre.services.notificacao_service.notificacao_prazo_para_acerto_consolidado_devolucao import NotificacaoConsolidadoPrazoAcertoVencimento
+    NotificacaoConsolidadoPrazoAcertoVencimento().notificar_prazo_para_acerto_apos_vencimento()
+
+    logger.info(f'Finalizando a geração de notificação prazo acerto apos vencimento async')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
+def gerar_notificacao_prazo_para_acerto_antes_vencimento_async():
+    logger.info(f'Iniciando a geração de notificação prazo acerto antes vencimento async')
+
+    from sme_ptrf_apps.dre.services.notificacao_service.notificacao_prazo_para_acerto_consolidado_devolucao import NotificacaoConsolidadoPrazoAcertoVencimento
+
+    NotificacaoConsolidadoPrazoAcertoVencimento().notificar_prazo_para_acerto_antes_vencimento()
+
+    logger.info(f'Finalizando a geração de notificação prazo acerto antes vencimento async')

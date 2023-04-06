@@ -30,7 +30,7 @@ class TecnicosDreViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         obj = self.get_object()
-        logger.info('Apagando técnico', obj)
+        logger.info(f'Apagando técnico: {obj}')
         transferir_para = request.query_params.get('transferir_para')
         if transferir_para:
             try:
@@ -41,7 +41,7 @@ class TecnicosDreViewSet(viewsets.ModelViewSet):
                     'erro': 'Objeto não encontrado.',
                     'mensagem': f"O objeto técnico DRE para o uuid {transferir_para} não foi encontrado na base."
                 }
-                logger.info('Erro: %r', erro)
+                logger.info(f'Erro: {erro}')
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         self.perform_destroy(obj)

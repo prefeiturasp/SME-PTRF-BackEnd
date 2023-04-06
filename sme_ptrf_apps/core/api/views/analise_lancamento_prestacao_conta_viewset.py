@@ -1,7 +1,9 @@
+import logging
+
 from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
-from ...models import AnaliseLancamentoPrestacaoConta, SolicitacaoAcertoLancamento, AnalisePrestacaoConta
+from ...models import AnaliseLancamentoPrestacaoConta, SolicitacaoAcertoLancamento, AnalisePrestacaoConta, Periodo
 from ..serializers import AnaliseLancamentoPrestacaoContaRetrieveSerializer
 from sme_ptrf_apps.core.services import AnaliseLancamentoPrestacaoContaService
 from sme_ptrf_apps.core.services import SolicitacaoAcertoLancamentoService
@@ -9,6 +11,8 @@ from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+
+logger = logging.getLogger(__name__)
 
 
 class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
@@ -260,4 +264,66 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
 
         return Response(response, status=status_response)
 
+    @action(detail=False, methods=['post'], url_path='marcar-como-conciliado',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def marcar_como_conciliado(self, request):
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            GravarConciliacaoAnaliseLancamentoValidateSerializer
+
+        query = GravarConciliacaoAnaliseLancamentoValidateSerializer(data=self.request.data)
+
+        query.is_valid(raise_exception=True)
+
+        uuid_analise_lancamento = self.request.data.get('uuid_analise_lancamento', None)
+        uuid_periodo = self.request.data.get('uuid_periodo', None)
+
+        analise_lancamento = AnaliseLancamentoPrestacaoConta.by_uuid(uuid_analise_lancamento)
+        periodo = Periodo.by_uuid(uuid_periodo)
+
+
+        try:
+            response = AnaliseLancamentoPrestacaoContaService.marcar_lancamento_como_conciliado(
+                analise_lancamento=analise_lancamento,
+                periodo=periodo
+            )
+
+            return Response(AnaliseLancamentoPrestacaoContaRetrieveSerializer(
+                response, many=False).data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.info(f'Ocorreu um erro ao tentar conciliar o lançamento: {uuid_analise_lancamento} : {e}')
+
+            erro = {
+                'erro': 'erro_ao_conciliar',
+                'mensagem': f'Não foi possível passar o Lançamento da Análise UUID: {uuid_analise_lancamento} para conciliado'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+
+    @action(detail=False, methods=['post'], url_path='marcar-como-desconciliado',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def marcar_como_desconciliado(self, request):
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            GravarDesconciliacaoAnaliseLancamentoValidateSerializer
+
+        query = GravarDesconciliacaoAnaliseLancamentoValidateSerializer(data=self.request.data)
+        query.is_valid(raise_exception=True)
+
+        uuid_analise_lancamento = self.request.data.get('uuid_analise_lancamento', None)
+        analise_lancamento = AnaliseLancamentoPrestacaoConta.by_uuid(uuid_analise_lancamento)
+
+        try:
+            response = AnaliseLancamentoPrestacaoContaService.marcar_lancamento_como_desconciliado(
+                analise_lancamento=analise_lancamento,
+            )
+
+            return Response(AnaliseLancamentoPrestacaoContaRetrieveSerializer(
+                response, many=False).data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.info(f'Ocorreu um erro ao tentar desconciliar o lançamento: {uuid_analise_lancamento} : {e}')
+
+            erro = {
+                'erro': 'erro_ao_desconciliar',
+                'mensagem': f'Não foi possível passar o Lançamento da Análise UUID: {uuid_analise_lancamento} para desconciliado'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 

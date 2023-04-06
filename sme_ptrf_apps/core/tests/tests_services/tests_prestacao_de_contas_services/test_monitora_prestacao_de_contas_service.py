@@ -4,7 +4,7 @@ from datetime import date
 import pytest
 from model_bakery import baker
 
-from sme_ptrf_apps.core.models import Notificacao, PrestacaoConta
+from sme_ptrf_apps.core.models import PrestacaoConta
 
 pytestmark = pytest.mark.django_db
 
@@ -137,14 +137,6 @@ def test_monitora_pc_deve_passar_pc_para_devolvida(
 
     assert pc.status == 'NAO_APRESENTADA'
 
-    assert not Notificacao.objects.filter(
-        usuario=usuario_notificavel,
-        categoria="ERRO_AO_CONCLUIR_PC",
-        prestacao_conta=None,
-        periodo=periodo,
-        unidade=associacao.unidade
-    ).exists()
-
     concluir_prestacao_de_contas(
         associacao=associacao,
         periodo=periodo,
@@ -157,14 +149,6 @@ def test_monitora_pc_deve_passar_pc_para_devolvida(
 
     assert pc.status == 'DEVOLVIDA'
 
-    assert Notificacao.objects.filter(
-        usuario=usuario_notificavel,
-        categoria="ERRO_AO_CONCLUIR_PC",
-        prestacao_conta=None,
-        periodo=periodo,
-        unidade=associacao.unidade
-    ).exists()
-
 
 @pytest.mark.django_db(True)
 def test_monitora_pc_deve_reabrir_pc(
@@ -173,14 +157,6 @@ def test_monitora_pc_deve_reabrir_pc(
     usuario_notificavel,
     parametros_monitora_pc,
 ):
-    assert not Notificacao.objects.filter(
-        usuario=usuario_notificavel,
-        categoria="ERRO_AO_CONCLUIR_PC",
-        prestacao_conta=None,
-        periodo=periodo,
-        unidade=associacao.unidade
-    ).exists()
-
     concluir_prestacao_de_contas(
         associacao=associacao,
         periodo=periodo,
@@ -194,14 +170,6 @@ def test_monitora_pc_deve_reabrir_pc(
     ).exists()
 
     time.sleep(10)
-
-    assert Notificacao.objects.filter(
-        usuario=usuario_notificavel,
-        categoria="ERRO_AO_CONCLUIR_PC",
-        prestacao_conta=None,
-        periodo=periodo,
-        unidade=associacao.unidade
-    ).exists()
 
     assert not PrestacaoConta.objects.filter(
         associacao=associacao,

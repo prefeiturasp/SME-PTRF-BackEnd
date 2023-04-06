@@ -11,7 +11,7 @@ from sme_ptrf_apps.core.models import (
     PeriodoPrevia,
     PrestacaoConta,
     Ata,
-    AnalisePrestacaoConta, Notificacao
+    AnalisePrestacaoConta, Notificacao, ObservacaoConciliacao
 )
 
 from django.contrib.auth import get_user_model
@@ -40,12 +40,25 @@ def concluir_prestacao_de_contas_async(
 
     from sme_ptrf_apps.core.services.analise_prestacao_conta_service import (criar_relatorio_apos_acertos_final)
 
+    from sme_ptrf_apps.core.services.falha_geracao_pc_service import FalhaGeracaoPcService
+
     periodo = Periodo.by_uuid(periodo_uuid)
     associacao = Associacao.by_uuid(associacao_uuid)
     prestacao = PrestacaoConta.by_periodo(associacao=associacao, periodo=periodo)
 
     acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
     contas = associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
+
+    # Aqui grava observacao da conciliacao bancaria. Grava o campo observacao.justificativa_original com observacao.texto
+    for conta_associacao in contas:
+        observacao = ObservacaoConciliacao.objects.filter(
+            periodo=periodo,
+            conta_associacao=conta_associacao,
+            associacao=associacao,
+        ).first()
+        if observacao:
+            observacao.justificativa_original = observacao.texto
+            observacao.save()
 
     if e_retorno_devolucao:
         ultima_analise_pc = prestacao.analises_da_prestacao.order_by('id').last()
@@ -78,20 +91,15 @@ def concluir_prestacao_de_contas_async(
             justificativa_acertos_pendentes=justificativa_acertos_pendentes
         )
 
-        # Apagando as notificações criadas pela classe MonitoraPc
+        # Aqui marcar como resolvido registro de falha
         usuario_notificacao = get_user_model().objects.get(username=usuario)
-        unidade = associacao.unidade
-
-        notificacoes = Notificacao.objects.filter(
+        logger.info('Iniciando a marcação como resolvido do registro de falha')
+        marcar_como_resolvido_registro_de_falha = FalhaGeracaoPcService(
             usuario=usuario_notificacao,
-            categoria="ERRO_AO_CONCLUIR_PC",
-            prestacao_conta=None,
             periodo=periodo,
-            unidade=unidade
-        ).all().order_by("-criado_em")
-
-        for notificacao in notificacoes:
-            notificacao.delete()
+            associacao=associacao
+        )
+        marcar_como_resolvido_registro_de_falha.marcar_como_resolvido()
 
         logger.info('Concluída a prestação de contas %s.', prestacao)
     except:

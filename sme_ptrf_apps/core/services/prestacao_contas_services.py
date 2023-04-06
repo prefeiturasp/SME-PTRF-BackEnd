@@ -14,14 +14,12 @@ from ..models import (
     AnaliseLancamentoPrestacaoConta,
     SolicitacaoAcertoLancamento,
     TipoAcertoLancamento,
-    # TODO Remover o bloco comentado após conclusão da mudança em solicitações de dev.tesouro
-    # DevolucaoAoTesouro,
     TipoDevolucaoAoTesouro,
     TipoDocumentoPrestacaoConta,
     AnaliseDocumentoPrestacaoConta,
     ContaAssociacao,
     TipoAcertoDocumento,
-    SolicitacaoAcertoDocumento, SolicitacaoDevolucaoAoTesouro, Parametros,
+    SolicitacaoAcertoDocumento, SolicitacaoDevolucaoAoTesouro, Parametros, FalhaGeracaoPc,
 )
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
@@ -365,7 +363,8 @@ def lista_prestacoes_de_conta_nao_recebidas(
             'unidade_tipo_unidade': associacao.unidade.tipo_unidade,
             'uuid': f'{prestacao_conta.uuid}' if prestacao_conta else '',
             'associacao_uuid': f'{associacao.uuid}',
-            'devolucao_ao_tesouro': prestacao_conta.total_devolucao_ao_tesouro_str if prestacao_conta else 'Não'
+            'devolucao_ao_tesouro': prestacao_conta.total_devolucao_ao_tesouro_str if prestacao_conta else 'Não',
+            'associacao': AssociacaoCompletoSerializer(associacao, many=False).data,
         }
 
         prestacoes.append(info_prestacao)
@@ -378,6 +377,7 @@ def lista_prestacoes_de_conta_todos_os_status(
     periodo,
     filtro_nome=None,
     filtro_tipo_unidade=None,
+    filtro_por_devolucao_tesouro=None,
     filtro_por_status=[]
 ):
     associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by(
@@ -402,6 +402,14 @@ def lista_prestacoes_de_conta_todos_os_status(
             # Pula PCs apresentadas se existir um filtro por status e não contiver o status da PC
             continue
 
+        if filtro_por_devolucao_tesouro and filtro_por_devolucao_tesouro == '1':
+            if not prestacao_conta or not prestacao_conta.devolucoes_ao_tesouro_da_prestacao.exists():
+                continue
+
+        if filtro_por_devolucao_tesouro and filtro_por_devolucao_tesouro == '0':
+            if prestacao_conta and prestacao_conta.devolucoes_ao_tesouro_da_prestacao.exists():
+                continue
+
         info_prestacao = {
             'periodo_uuid': f'{periodo.uuid}',
             'data_recebimento': prestacao_conta.data_recebimento if prestacao_conta else None,
@@ -414,7 +422,8 @@ def lista_prestacoes_de_conta_todos_os_status(
             'unidade_tipo_unidade': associacao.unidade.tipo_unidade,
             'uuid': f'{prestacao_conta.uuid}' if prestacao_conta else '',
             'associacao_uuid': f'{associacao.uuid}',
-            'devolucao_ao_tesouro': prestacao_conta.total_devolucao_ao_tesouro_str if prestacao_conta else 'Não'
+            'devolucao_ao_tesouro': prestacao_conta.total_devolucao_ao_tesouro_str if prestacao_conta else 'Não',
+            'associacao': AssociacaoCompletoSerializer(associacao, many=False).data,
         }
 
         prestacoes.append(info_prestacao)
@@ -1503,6 +1512,7 @@ class MonitoraPC:
         logger.info(f"Monitoramento de PC: Iniciando o processo de monitoramento da PC: {self.prestacao_de_contas}")
 
     def verifica_status_pc(self):
+        from ..services import FalhaGeracaoPcService
         pc = PrestacaoConta.objects.filter(uuid=self.uuid_prestacao_de_contas).first()
 
         if pc:
@@ -1518,6 +1528,10 @@ class MonitoraPC:
                             task_name='sme_ptrf_apps.core.tasks.concluir_prestacao_de_contas_async'
                         )
 
+                        # Registrando falha de geracao de pc
+                        registra_falha = FalhaGeracaoPcService(periodo=periodo, usuario=self.usuario, associacao=self.associacao, prestacao_de_contas=pc)
+                        registra_falha.registra_falha_geracao_pc()
+
                         ultima_analise = pc.analises_da_prestacao.last()
 
                         if ultima_analise:
@@ -1525,13 +1539,6 @@ class MonitoraPC:
                             pc.save()
                             logger.info(
                                 f"Monitoramento de PC: Prestação de contas passada para status DEVOLVIDA com sucesso.")
-
-                            notificar_erro_ao_concluir_pc(
-                                prestacao_de_contas=None,
-                                usuario=self.usuario,
-                                associacao=self.associacao,
-                                periodo=periodo,
-                            )
                         else:
                             reaberta = reabrir_prestacao_de_contas(self.uuid_prestacao_de_contas)
 
@@ -1539,13 +1546,6 @@ class MonitoraPC:
                                 logger.info(
                                     f"Monitoramento de PC: Prestação de contas reaberta com sucesso. Todos os seus "
                                     f"registros foram apagados.")
-
-                                notificar_erro_ao_concluir_pc(
-                                    prestacao_de_contas=None,
-                                    usuario=self.usuario,
-                                    associacao=self.associacao,
-                                    periodo=periodo,
-                                )
                             else:
                                 logger.info(
                                     f"Monitoramento de PC: Houve algum erro ao tentar reabrir a prestação de contas.")
@@ -1565,11 +1565,7 @@ class MonitoraPC:
             if periodo:
                 import threading
 
-                def func_wrapper():
-                    self.set_interval(func, sec)
-                    func()
-
-                self.t = threading.Timer(sec, func_wrapper)
+                self.t = threading.Timer(sec, func)
                 self.t.start()
 
     def revoke_tasks_by_name(self, task_name, worker_prefix=''):

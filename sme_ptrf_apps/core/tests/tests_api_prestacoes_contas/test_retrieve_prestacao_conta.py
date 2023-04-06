@@ -269,6 +269,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(
                 'logradouro': 'dos Testes',
                 'nome': 'Escola Teste',
                 'numero': '200',
+                'observacao': '',
                 'qtd_alunos': 0,
                 'sigla': 'ET',
                 'telefone': '58212627',
@@ -298,7 +299,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(
                 'uuid': f'{_devolucao_prestacao_conta.uuid}'
             }
         ],
-        'pode_reabrir': True,
+        'pode_devolver': True,
         'processo_sei': '123456',
         'data_ultima_analise': f'{prestacao_conta.data_ultima_analise}',
         'devolucao_ao_tesouro': '100,00',
@@ -393,7 +394,9 @@ def test_api_retrieve_prestacao_conta_por_uuid(
         },
         'publicada': None,
         'referencia_consolidado_dre': '',
+        'referencia_consolidado_dre_original': None,
         'justificativa_pendencia_realizacao': 'Teste de justificativa.',
+        'em_retificacao': prestacao_conta.em_retificacao
     }
 
     assert response.status_code == status.HTTP_200_OK

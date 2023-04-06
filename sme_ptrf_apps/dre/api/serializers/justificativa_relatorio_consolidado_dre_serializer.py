@@ -31,4 +31,4 @@ class JustificativaRelatorioConsolidadoDreRetrieveSerializer(serializers.ModelSe
 
     class Meta:
         model = JustificativaRelatorioConsolidadoDRE
-        fields = ('uuid', 'dre', 'tipo_conta', 'periodo', 'texto', 'consolidado_dre')
+        fields = ('uuid', 'dre', 'tipo_conta', 'periodo', 'texto', 'consolidado_dre', 'eh_retificacao')
