@@ -61,7 +61,12 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
     )
 
     analise_prestacao_conta = models.ForeignKey('AnalisePrestacaoConta', on_delete=models.CASCADE,
-                                                related_name='analises_de_lancamentos')
+                                                related_name='analises_de_lancamentos', blank=True, null=True)
+
+    analise_prestacao_conta_auxiliar = models.ForeignKey('AnalisePrestacaoConta', on_delete=models.CASCADE,
+                                                related_name='analises_de_lancamentos_auxiliar', blank=True, null=True)
+
+    analise_corrigida_via_admin_action = models.BooleanField("Análise corrigida via admin action?", default=False)
 
     tipo_lancamento = models.CharField(
         'Tipo Lançamento',
