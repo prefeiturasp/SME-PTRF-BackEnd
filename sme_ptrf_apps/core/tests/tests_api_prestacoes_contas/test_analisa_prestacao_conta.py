@@ -131,12 +131,16 @@ def test_api_analisar_prestacao_conta_com_devolucoes_anteriores_nao_deve_copiar_
     assert AnaliseLancamentoPrestacaoConta.objects.count() == 1
     assert SolicitacaoAcertoLancamento.objects.count() == 1
 
+    analise_lancamento_anterior = AnaliseLancamentoPrestacaoConta.objects.first()
+
     jwt_authenticated_client_a.patch(url, content_type='application/json')
 
     assert AnalisePrestacaoConta.objects.count() == 2
     assert AnaliseLancamentoPrestacaoConta.objects.count() == 2
     assert SolicitacaoAcertoLancamento.objects.count() == 1, "Não deve copiar a solicitação de conciliação realizada"
 
+    analise_lancamento_nova = AnaliseLancamentoPrestacaoConta.objects.exclude(uuid=analise_lancamento_anterior.uuid).first()
+    assert analise_lancamento_nova.houve_considerados_corretos_automaticamente is True, "Não deve copiar o ajuste de conciliação realizado. Deve ser considerado corretos automaticamente."
 
 def test_api_analisar_prestacao_conta_com_devolucoes_anteriores_deve_copiar_ajustes_pendentes_de_conciliacao_ou_exclusao(
     jwt_authenticated_client_a,
@@ -149,8 +153,13 @@ def test_api_analisar_prestacao_conta_com_devolucoes_anteriores_deve_copiar_ajus
     assert AnaliseLancamentoPrestacaoConta.objects.count() == 1
     assert SolicitacaoAcertoLancamento.objects.count() == 1
 
+    analise_lancamento_anterior = AnaliseLancamentoPrestacaoConta.objects.first()
+
     jwt_authenticated_client_a.patch(url, content_type='application/json')
 
     assert AnalisePrestacaoConta.objects.count() == 2
     assert AnaliseLancamentoPrestacaoConta.objects.count() == 2, "Deve copiar a solicitação de conciliação pendente"
     assert SolicitacaoAcertoLancamento.objects.count() == 2
+
+    analise_lancamento_nova = AnaliseLancamentoPrestacaoConta.objects.exclude(uuid=analise_lancamento_anterior.uuid).first()
+    assert analise_lancamento_nova.houve_considerados_corretos_automaticamente is False, "Deve copiar o ajuste de conciliação realizado. Não deve ser considerado corretos automaticamente."
