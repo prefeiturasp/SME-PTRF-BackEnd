@@ -7,6 +7,12 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
 class AnaliseLancamentoPrestacaoConta(ModeloBase):
+    # Tags de informações de conferência de lançamentos
+    TAG_AJUSTE = {"id": "1", "nome": "AJUSTE", "descricao": "O lançamento possui acertos para serem conferidos."}
+    TAG_CORRETO = {"id": "2", "nome": "CORRETO", "descricao": "O lançamento está correto e/ou os acertos foram conferidos."}
+    TAG_CONFERENCIA_AUTOMATICA = {"id": "3", "nome": "CONFERENCIA_AUTOMATICA", "descricao": "O lançamento possui acerto(s) que foram conferidos automaticamente pelo sistema."}
+    TAG_NAO_CONFERIDO = {"id": "4", "nome": "NAO_CONFERIDO", "descricao": "Não conferido."}
+
     history = AuditlogHistoryField()
 
     # Status Choice
@@ -456,6 +462,10 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
                         novo_status=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE)
 
         return self
+
+    @classmethod
+    def get_tags_informacoes_de_conferencia_list(cls):
+        return [cls.TAG_AJUSTE, cls.TAG_CORRETO, cls.TAG_CONFERENCIA_AUTOMATICA, cls.TAG_NAO_CONFERIDO]
 
 
     class Meta:
