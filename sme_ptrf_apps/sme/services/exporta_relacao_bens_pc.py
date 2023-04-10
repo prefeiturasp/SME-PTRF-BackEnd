@@ -14,25 +14,21 @@ from tempfile import NamedTemporaryFile
 
 logger = logging.getLogger(__name__)
 
-CABECALHO_SALDO_FINAL_PERIODO = [
-        ('Código EOL', 'associacao__unidade__codigo_eol'),
-        ('Nome Unidade', 'associacao__unidade__nome'),
-        ('Nome Associação', 'associacao__nome'),
-        ('Referência do Período da PC', 'periodo__referencia'),
+CABECALHO_RELACAO_BENS = [
+        ('Código EOL', 'prestacao_conta__associacao__unidade__codigo_eol'),
+        ('Nome Unidade', 'prestacao_conta__associacao__unidade__nome'),
+        ('Nome Associação', 'prestacao_conta__associacao__nome'),
+        ('Referência do Período da PC', 'prestacao_conta__periodo__referencia'),
         ('Status da PC', 'prestacao_conta__status'),
         ('Nome do tipo de Conta', 'conta_associacao__tipo_conta__nome'),
-        ('Nome da Ação', 'acao_associacao__acao__nome'),
-        ('Tipo de aplicação do recurso', 'TIPO_APLICACAO'),
-        ('Valor', 'VALOR_TIPO_APLICACAO'),
+        ('URL do arquivo PDF', 'arquivo_pdf'),
+        ('Status', 'status'),
+        ('Versão', 'versao'),
+        ('Data e hora de criação', 'criado_em'),
+        ('Data e hora da última atualização', 'alterado_em'),
 ]
 
-TIPOS_APLICACAO = [
-    ("Custeio", "saldo_reprogramado_custeio"),
-    ("Capital", "saldo_reprogramado_capital"),
-    ("Livre aplicação", "saldo_reprogramado_livre")
-]
-
-class ExportacoesDadosSaldosFinaisPeriodoService:
+class ExportacoesDadosRelacaoBensService:
 
     def __init__(self, **kwargs):
         self.queryset = kwargs.get('queryset', None)
@@ -40,7 +36,7 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
         self.data_final = kwargs.get('data_final', None)
         self.nome_arquivo = kwargs.get('nome_arquivo', None)
         self.user = kwargs.get('user', None)
-        self.cabecalho = CABECALHO_SALDO_FINAL_PERIODO
+        self.cabecalho = CABECALHO_RELACAO_BENS
         self.ambiente = self.get_ambiente
 
     @property
@@ -48,11 +44,11 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
         ambiente = Ambiente.objects.first()
         return ambiente.prefixo if ambiente else ""
 
-    def exporta_saldos_finais_periodos(self):
+    def exporta_relacao_bens(self):
         self.filtra_range_data('criado_em')
-        self.exporta_saldos_finais_periodos_csv()
+        self.exporta_relacao_bens_csv()
 
-    def exporta_saldos_finais_periodos_csv(self):
+    def exporta_relacao_bens_csv(self):
         dados = self.monta_dados()
 
         with NamedTemporaryFile(
@@ -75,24 +71,38 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
         linhas_vertical = []
 
         for instance in self.queryset:
-            for key, value in TIPOS_APLICACAO:
-                linha_horizontal = []
-                value = str(getattr(instance, value)).replace(".", ",")
+            linha_horizontal = []
 
-                for _, campo in self.cabecalho:
-                    if campo == "TIPO_APLICACAO":
-                        linha_horizontal.append(key)
-                        continue
+            for _, campo in self.cabecalho:
 
-                    if campo == "VALOR_TIPO_APLICACAO":
-                        linha_horizontal.append(value)
-                        continue
-
+                if campo == "arquivo_pdf":
                     campo = get_recursive_attr(instance, campo)
-                    linha_horizontal.append(campo)
 
-                logger.info(f"Escrevendo linha {linha_horizontal} de saldos finais do periodo, fechamento id: {instance.id}.")
-                linhas_vertical.append(linha_horizontal)
+                    if self.ambiente == "local":
+                        url = f"http://127.0.0.1:8000{campo.url}"
+                    else:
+                        url = f"https://{self.ambiente}.sme.prefeitura.sp.gov.br{campo.url}"
+
+                    linha_horizontal.append(url)
+                    continue
+
+                if campo == "criado_em":
+                    campo = get_recursive_attr(instance, campo)
+                    criado_em_formatado = campo.strftime("%d/%m/%Y às %H:%M:%S")
+                    linha_horizontal.append(criado_em_formatado)
+                    continue
+
+                if campo == "alterado_em":
+                    campo = get_recursive_attr(instance, campo)
+                    alterado_em_formatado = campo.strftime("%d/%m/%Y às %H:%M:%S")
+                    linha_horizontal.append(alterado_em_formatado)
+                    continue
+
+                campo = get_recursive_attr(instance, campo)
+                linha_horizontal.append(campo)
+
+            logger.info(f"Escrevendo linha {linha_horizontal} de relação de bens : {instance.id}.")
+            linhas_vertical.append(linha_horizontal)
 
         return linhas_vertical
 

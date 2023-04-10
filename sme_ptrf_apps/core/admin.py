@@ -784,7 +784,7 @@ class RelacaoBensAdmin(admin.ModelAdmin):
 
     list_display_links = ('get_nome_associacao',)
 
-    readonly_fields = ('uuid', 'id',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
     search_fields = (
         'prestacao_conta__associacao__unidade__codigo_eol',
