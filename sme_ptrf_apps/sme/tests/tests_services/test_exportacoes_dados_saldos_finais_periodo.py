@@ -61,8 +61,6 @@ def test_filtra_range_data_com_data_inicio_e_sem_data_final(fechamento_periodo_q
 def test_filtra_range_data_sem_data_inicio_e_com_data_final(fechamento_periodo_queryset):
     data_final = datetime.date.today()
 
-    fechamento_periodo_queryset[0].criado_em = datetime.date(2020, 1, 1)
-
     queryset_filtrado = ExportacoesDadosSaldosFinaisPeriodoService(
         queryset=fechamento_periodo_queryset,
         data_final=data_final
@@ -157,7 +155,7 @@ def test_rodape(fechamento_periodo_queryset, ambiente):
         queryset=fechamento_periodo_queryset,
     ).texto_rodape()
 
-    data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M")
+    data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
     resultado_esperado = f"Arquivo gerado pelo {ambiente.prefixo} em {data_atual}"
 
     assert dados == resultado_esperado
