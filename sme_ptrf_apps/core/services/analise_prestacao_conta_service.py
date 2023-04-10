@@ -6,7 +6,12 @@ from sme_ptrf_apps.core.services.relatorio_acertos_pdf_service import (gerar_arq
 from sme_ptrf_apps.core.services.dados_relatorio_apos_acertos_service import DadosRelatorioAposAcertosService
 from sme_ptrf_apps.core.services.relatorio_apos_acertos_pdf_service import ArquivoRelatorioAposAcertosService
 
-from sme_ptrf_apps.core.models import AnalisePrestacaoConta, SolicitacaoAcertoLancamento, SolicitacaoAcertoDocumento
+from sme_ptrf_apps.core.models import (
+    AnalisePrestacaoConta,
+    SolicitacaoAcertoLancamento,
+    SolicitacaoAcertoDocumento,
+    TipoAcertoLancamento,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -48,14 +53,29 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
             )
         return nova_solicitacao
 
+    def considerar_correto_automaticamente(solicitacao_acerto_lancamento):
+        realizado = solicitacao_acerto_lancamento.status_realizacao == SolicitacaoAcertoLancamento.STATUS_REALIZACAO_REALIZADO
+        categorias_que_podem_ser_consideradas_corretas_automaticamente = [
+            TipoAcertoLancamento.CATEGORIA_CONCILIACAO_LANCAMENTO,
+            TipoAcertoLancamento.CATEGORIA_DESCONCILIACAO_LANCAMENTO,
+            TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO,
+        ]
+        return realizado and solicitacao_acerto_lancamento.tipo_acerto.categoria in categorias_que_podem_ser_consideradas_corretas_automaticamente
+
     def copia_analises_de_lancamento():
         for analise_lancamento in analise_origem.analises_de_lancamentos.all():
             nova_analise_lancamento = copia_analise_lancamento(analise_lancamento)
+
+            houve_considerados_corretos_automaticamente = False
             for solicitacao_acerto_lancamento in analise_lancamento.solicitacoes_de_ajuste_da_analise.all():
-                nova_solicitacao_acerto_lancamento = copia_solicitacao_acerto_lancamento(
-                    solicitacao_acerto_lancamento,
-                    para=nova_analise_lancamento
-                )
+                if not considerar_correto_automaticamente(solicitacao_acerto_lancamento):
+                    copia_solicitacao_acerto_lancamento(solicitacao_acerto_lancamento, para=nova_analise_lancamento)
+                else:
+                    houve_considerados_corretos_automaticamente = True
+
+            if houve_considerados_corretos_automaticamente:
+                nova_analise_lancamento.houve_considerados_corretos_automaticamente = True
+                nova_analise_lancamento.save()
 
     def copia_analise_documento(analise_documento_origem):
         from sme_ptrf_apps.core.models import AnaliseDocumentoPrestacaoConta

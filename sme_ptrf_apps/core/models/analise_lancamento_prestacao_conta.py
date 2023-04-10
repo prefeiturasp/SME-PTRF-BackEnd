@@ -98,6 +98,8 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
 
     conciliacao_atualizada = models.BooleanField("Conciliação Atualizada?", default=False)
 
+    houve_considerados_corretos_automaticamente = models.BooleanField("Houve considerados corretos automaticamente?", default=False)
+
     def __str__(self):
         return f"{self.analise_prestacao_conta} - Resultado:{self.resultado}"
 

@@ -118,3 +118,39 @@ def test_api_analisar_prestacao_conta_com_devolucoes_anteriores_deve_copiar_ajus
     assert SolicitacaoAcertoLancamento.objects.count() == 2
     assert DevolucaoAoTesouro.objects.count() == 1, "Devoluções ao tesouro não devem ser replicadas."
     assert SolicitacaoAcertoDocumento.objects.count() == 2
+
+
+def test_api_analisar_prestacao_conta_com_devolucoes_anteriores_nao_deve_copiar_ajustes_realizados_de_conciliacao_ou_exclusao(
+    jwt_authenticated_client_a,
+    prestacao_conta_com_analise_anterior,
+    solicitacao_acerto_lancamento_conciliacao_realizado,
+):
+    url = f'/api/prestacoes-contas/{prestacao_conta_com_analise_anterior.uuid}/analisar/'
+
+    assert AnalisePrestacaoConta.objects.count() == 1
+    assert AnaliseLancamentoPrestacaoConta.objects.count() == 1
+    assert SolicitacaoAcertoLancamento.objects.count() == 1
+
+    jwt_authenticated_client_a.patch(url, content_type='application/json')
+
+    assert AnalisePrestacaoConta.objects.count() == 2
+    assert AnaliseLancamentoPrestacaoConta.objects.count() == 2
+    assert SolicitacaoAcertoLancamento.objects.count() == 1, "Não deve copiar a solicitação de conciliação realizada"
+
+
+def test_api_analisar_prestacao_conta_com_devolucoes_anteriores_deve_copiar_ajustes_pendentes_de_conciliacao_ou_exclusao(
+    jwt_authenticated_client_a,
+    prestacao_conta_com_analise_anterior,
+    solicitacao_acerto_lancamento_conciliacao_pendente,
+):
+    url = f'/api/prestacoes-contas/{prestacao_conta_com_analise_anterior.uuid}/analisar/'
+
+    assert AnalisePrestacaoConta.objects.count() == 1
+    assert AnaliseLancamentoPrestacaoConta.objects.count() == 1
+    assert SolicitacaoAcertoLancamento.objects.count() == 1
+
+    jwt_authenticated_client_a.patch(url, content_type='application/json')
+
+    assert AnalisePrestacaoConta.objects.count() == 2
+    assert AnaliseLancamentoPrestacaoConta.objects.count() == 2, "Deve copiar a solicitação de conciliação pendente"
+    assert SolicitacaoAcertoLancamento.objects.count() == 2
