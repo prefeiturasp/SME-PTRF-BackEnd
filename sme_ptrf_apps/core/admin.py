@@ -234,7 +234,8 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
                     'fechamento_anterior',
                     'status',
                     'uuid',
-                    'id'
+                    'id',
+                    'criado_em'
                 )
             },
         ),
