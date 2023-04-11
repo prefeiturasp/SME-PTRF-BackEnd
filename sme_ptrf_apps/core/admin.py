@@ -50,6 +50,8 @@ from .models import (
     FalhaGeracaoPc,
 )
 
+from django.db.models import Count
+
 admin.site.register(Acao)
 admin.site.register(ParametroFiqueDeOlhoPc)
 admin.site.register(ModeloCarga)
@@ -234,7 +236,8 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
                     'fechamento_anterior',
                     'status',
                     'uuid',
-                    'id'
+                    'id',
+                    'criado_em'
                 )
             },
         ),
@@ -783,7 +786,7 @@ class RelacaoBensAdmin(admin.ModelAdmin):
 
     list_display_links = ('get_nome_associacao',)
 
-    readonly_fields = ('uuid', 'id',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
     search_fields = (
         'prestacao_conta__associacao__unidade__codigo_eol',
@@ -864,12 +867,12 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
 @admin.register(AnaliseLancamentoPrestacaoConta)
 class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
     def get_unidade(self, obj):
-        return f'{obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_prestacao_conta.prestacao_conta.associacao.unidade else ''
+        return f'{obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj  and obj.analise_prestacao_conta and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_prestacao_conta.prestacao_conta.associacao.unidade else '-'
 
     get_unidade.short_description = 'Unidade'
 
     def get_periodo(self, obj):
-        return f'{obj.analise_prestacao_conta.prestacao_conta.periodo.referencia}' if obj and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.periodo else ''
+        return f'{obj.analise_prestacao_conta.prestacao_conta.periodo.referencia}' if obj and obj.analise_prestacao_conta and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.periodo else ''
 
     get_periodo.short_description = 'Período'
 
@@ -881,6 +884,7 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_lancamento', 'resultado', 'status_realizacao',
                     'devolucao_tesouro_atualizada']
     list_filter = (
+    'analise_corrigida_via_admin_action',
     'analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
     'analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
     'analise_prestacao_conta__prestacao_conta__periodo',
@@ -896,8 +900,153 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
 
     readonly_fields = ('uuid', 'id',)
 
-    autocomplete_fields = ['analise_prestacao_conta', 'despesa', 'receita']
+    raw_id_fields = ['analise_prestacao_conta', 'despesa', 'receita', 'analise_prestacao_conta_auxiliar']
 
+    actions = ['inativar_analises_lancamento_prestacao_conta_duplicadas_gasto',
+               'inativar_analises_lancamento_prestacao_conta_duplicadas_receita',
+               'reverter_inativar_analises_lancamento_prestacao_conta_duplicadas_gasto',
+               'reverter_inativar_analises_lancamento_prestacao_conta_duplicadas_receita']
+
+    def inativar_analises_lancamento_prestacao_conta_duplicadas_gasto(self, request, queryset):
+        contador = 0
+
+        result_gasto = AnaliseLancamentoPrestacaoConta.objects.filter(tipo_lancamento='GASTO').values(
+            'analise_prestacao_conta_id', 'tipo_lancamento', 'despesa_id').annotate(dcount=Count('despesa_id')).filter(
+            dcount__gt=1).order_by('analise_prestacao_conta_id')
+
+        for registro in result_gasto:
+
+            primeira_analise = AnaliseLancamentoPrestacaoConta.objects.filter(
+                analise_prestacao_conta_id=registro['analise_prestacao_conta_id'],
+                tipo_lancamento=registro['tipo_lancamento'],
+                despesa_id=registro['despesa_id'],
+            ).exclude(status_realizacao='PENDENTE').order_by('id').first()
+
+            if not primeira_analise:
+                primeira_analise = AnaliseLancamentoPrestacaoConta.objects.filter(
+                    analise_prestacao_conta_id=registro['analise_prestacao_conta_id'],
+                    tipo_lancamento=registro['tipo_lancamento'],
+                    despesa_id=registro['despesa_id']
+                ).order_by('id').first()
+
+            todas_analises_da_despesa = AnaliseLancamentoPrestacaoConta.objects.filter(
+                analise_prestacao_conta_id=registro['analise_prestacao_conta_id'],
+                tipo_lancamento=registro['tipo_lancamento'],
+                despesa_id=registro['despesa_id']
+            )
+
+            for analise in todas_analises_da_despesa:
+
+                if analise == primeira_analise:
+                    logging.info(f'**************** Primeira Analise PC ID: {primeira_analise.analise_prestacao_conta_id} Despesa ID: {primeira_analise.despesa_id}  Status Realizacao: {primeira_analise.status_realizacao} | Análise Atual PC ID: {analise.analise_prestacao_conta_id} Despesa ID: {analise.despesa_id} Status Realizacao: {analise.status_realizacao}')
+                    continue
+
+                if not analise.analise_corrigida_via_admin_action:
+                    logging.info(f"**************** Demais Analise PC ID: {analise.analise_prestacao_conta_id} Despesa ID: {analise.despesa_id} Status Realizacao: {analise.status_realizacao}")
+                    analise.analise_prestacao_conta_auxiliar = analise.analise_prestacao_conta
+                    analise.analise_corrigida_via_admin_action = True
+                    analise.analise_prestacao_conta = None
+                    analise.save()
+
+                    contador += 1
+
+
+        logging.info(f"**************** Total de registros: {contador}")
+        self.message_user(request, f"{contador} Análise de lançamentos do tipo GASTO inativadas.")
+
+
+    def reverter_inativar_analises_lancamento_prestacao_conta_duplicadas_gasto(self, request, queryset):
+        contador = 0
+
+        result_gasto = AnaliseLancamentoPrestacaoConta.objects.filter(
+            tipo_lancamento='GASTO',
+            analise_corrigida_via_admin_action=True,
+            analise_prestacao_conta__isnull=True,
+            analise_prestacao_conta_auxiliar__isnull=False
+        )
+
+        for analise in result_gasto:
+            analise.analise_prestacao_conta = analise.analise_prestacao_conta_auxiliar
+            analise.analise_prestacao_conta_auxiliar = None
+            analise.analise_corrigida_via_admin_action = False
+            analise.save()
+
+            logging.info(f"**************** Revertendo Inativação da Analise de Lançamento Tipo Gasto: {analise} Despesa ID: {analise.despesa_id}")
+
+            contador += 1
+
+        logging.info(f"**************** Total de registros: {contador}")
+        self.message_user(request, f"{contador} Inativações de Análise de lançamentos do tipo GASTO revertidas.")
+
+
+    def inativar_analises_lancamento_prestacao_conta_duplicadas_receita(self, request, queryset):
+            contador = 0
+
+            result_receita = AnaliseLancamentoPrestacaoConta.objects.filter(tipo_lancamento='CREDITO')\
+                .values('analise_prestacao_conta_id', 'tipo_lancamento', 'receita_id')\
+                .annotate(dcount=Count('receita_id'))\
+                .filter(dcount__gt=1)\
+                .order_by('analise_prestacao_conta_id')
+
+            for registro in result_receita:
+
+                primeira_analise = AnaliseLancamentoPrestacaoConta.objects.filter(
+                    analise_prestacao_conta_id=registro['analise_prestacao_conta_id'],
+                    tipo_lancamento=registro['tipo_lancamento'],
+                    receita_id=registro['receita_id']
+                ).exclude(status_realizacao='PENDENTE').order_by('id').first()
+
+                if not primeira_analise:
+                    primeira_analise = AnaliseLancamentoPrestacaoConta.objects.filter(
+                        analise_prestacao_conta_id=registro['analise_prestacao_conta_id'],
+                        tipo_lancamento=registro['tipo_lancamento'],
+                        receita_id=registro['receita_id']
+                    ).order_by('id').first()
+
+                todas_analises_da_receita = AnaliseLancamentoPrestacaoConta.objects.filter(
+                    analise_prestacao_conta_id=registro['analise_prestacao_conta_id'],
+                    tipo_lancamento=registro['tipo_lancamento'],
+                    receita_id=registro['receita_id']
+                )
+
+                for analise in todas_analises_da_receita:
+                    if analise == primeira_analise:
+                        logging.info(f'**************** Primeira Analise PC ID: {primeira_analise.analise_prestacao_conta_id} Receita ID: {primeira_analise.receita_id}  Status Realizacao: {primeira_analise.status_realizacao} | Análise Atual PC ID: {analise.analise_prestacao_conta_id} Receita ID: {analise.receita_id} Status Realizacao: {analise.status_realizacao}')
+                        continue
+
+                    if not analise.analise_corrigida_via_admin_action:
+                        logging.info(f"**************** Demais Analise PC ID: {analise.analise_prestacao_conta_id} Receita ID: {analise.receita_id} Status Realizacao: {analise.status_realizacao}")
+                        analise.analise_prestacao_conta_auxiliar = analise.analise_prestacao_conta
+                        analise.analise_corrigida_via_admin_action = True
+                        analise.analise_prestacao_conta = None
+                        analise.save()
+                        contador += 1
+
+            logging.info(f"**************** Total de registros: {contador}")
+            self.message_user(request, f"{contador} Análise de lançamentos do tipo RECEITA inativadas.")
+
+    def reverter_inativar_analises_lancamento_prestacao_conta_duplicadas_receita(self, request, queryset):
+        contador = 0
+
+        result_receita = AnaliseLancamentoPrestacaoConta.objects.filter(
+            tipo_lancamento='CREDITO',
+            analise_corrigida_via_admin_action=True,
+            analise_prestacao_conta__isnull=True,
+            analise_prestacao_conta_auxiliar__isnull=False
+        )
+
+        for analise in result_receita:
+            analise.analise_prestacao_conta = analise.analise_prestacao_conta_auxiliar
+            analise.analise_prestacao_conta_auxiliar = None
+            analise.analise_corrigida_via_admin_action = False
+            analise.save()
+
+            logging.info(f"**************** Revertendo Inativação da Analise de Lançamento Tipo Receita: {analise} Receita ID: {analise.receita_id}")
+
+            contador += 1
+
+        logging.info(f"**************** Total de registros: {contador}")
+        self.message_user(request, f"{contador} Inativações de Análise de lançamentos do tipo RECEITA revertidas.")
 
 @admin.register(TipoAcertoLancamento)
 class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
