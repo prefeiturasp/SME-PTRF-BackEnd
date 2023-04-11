@@ -471,7 +471,7 @@ def analise_lancamento_despesa_em_analise_anterior_realizada(
         analise_prestacao_conta=analise_prestacao_conta_anterior,
         tipo_lancamento='GASTO',
         despesa=despesa_2020_1,
-        resultado='CORRETO',
+        resultado='AJUSTE',
         status_realizacao='REALIZADO',
     )
 
@@ -486,7 +486,7 @@ def analise_lancamento_despesa_em_analise_anterior_pendente(
         analise_prestacao_conta=analise_prestacao_conta_anterior,
         tipo_lancamento='GASTO',
         despesa=despesa_2020_1,
-        resultado='CORRETO',
+        resultado='AJUSTE',
         status_realizacao='PENDENTE',
     )
 

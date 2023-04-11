@@ -10,7 +10,7 @@ from sme_ptrf_apps.core.models import (
     AnalisePrestacaoConta,
     SolicitacaoAcertoLancamento,
     SolicitacaoAcertoDocumento,
-    TipoAcertoLancamento,
+    TipoAcertoLancamento, AnaliseLancamentoPrestacaoConta,
 )
 
 logger = logging.getLogger(__name__)
@@ -67,14 +67,19 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
             nova_analise_lancamento = copia_analise_lancamento(analise_lancamento)
 
             houve_considerados_corretos_automaticamente = False
+            houve_nao_considerados_corretos_automaticamente = False
             for solicitacao_acerto_lancamento in analise_lancamento.solicitacoes_de_ajuste_da_analise.all():
                 if not considerar_correto_automaticamente(solicitacao_acerto_lancamento):
                     copia_solicitacao_acerto_lancamento(solicitacao_acerto_lancamento, para=nova_analise_lancamento)
+                    houve_nao_considerados_corretos_automaticamente = True
                 else:
                     houve_considerados_corretos_automaticamente = True
 
             if houve_considerados_corretos_automaticamente:
                 nova_analise_lancamento.houve_considerados_corretos_automaticamente = True
+                if not houve_nao_considerados_corretos_automaticamente:
+                    # Todas as solicitações foram consideradas corretas automaticamente então passa a análise para correta
+                    nova_analise_lancamento.resultado = AnaliseLancamentoPrestacaoConta.RESULTADO_CORRETO
                 nova_analise_lancamento.save()
 
     def copia_analise_documento(analise_documento_origem):

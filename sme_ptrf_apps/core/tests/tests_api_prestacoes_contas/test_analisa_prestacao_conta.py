@@ -132,6 +132,7 @@ def test_api_analisar_prestacao_conta_com_devolucoes_anteriores_nao_deve_copiar_
     assert SolicitacaoAcertoLancamento.objects.count() == 1
 
     analise_lancamento_anterior = AnaliseLancamentoPrestacaoConta.objects.first()
+    assert analise_lancamento_anterior.resultado == AnaliseLancamentoPrestacaoConta.RESULTADO_AJUSTE, "Deveria ter resultado de ajuste."
 
     jwt_authenticated_client_a.patch(url, content_type='application/json')
 
@@ -141,6 +142,8 @@ def test_api_analisar_prestacao_conta_com_devolucoes_anteriores_nao_deve_copiar_
 
     analise_lancamento_nova = AnaliseLancamentoPrestacaoConta.objects.exclude(uuid=analise_lancamento_anterior.uuid).first()
     assert analise_lancamento_nova.houve_considerados_corretos_automaticamente is True, "Não deve copiar o ajuste de conciliação realizado. Deve ser considerado corretos automaticamente."
+    assert analise_lancamento_nova.resultado == AnaliseLancamentoPrestacaoConta.RESULTADO_CORRETO, "Como todos os ajustes foram considerados corretos deve ser marcada como correta."
+
 
 def test_api_analisar_prestacao_conta_com_devolucoes_anteriores_deve_copiar_ajustes_pendentes_de_conciliacao_ou_exclusao(
     jwt_authenticated_client_a,
@@ -154,6 +157,7 @@ def test_api_analisar_prestacao_conta_com_devolucoes_anteriores_deve_copiar_ajus
     assert SolicitacaoAcertoLancamento.objects.count() == 1
 
     analise_lancamento_anterior = AnaliseLancamentoPrestacaoConta.objects.first()
+    assert analise_lancamento_anterior.resultado == AnaliseLancamentoPrestacaoConta.RESULTADO_AJUSTE, "Deveria ter resultado de ajuste."
 
     jwt_authenticated_client_a.patch(url, content_type='application/json')
 
@@ -163,3 +167,4 @@ def test_api_analisar_prestacao_conta_com_devolucoes_anteriores_deve_copiar_ajus
 
     analise_lancamento_nova = AnaliseLancamentoPrestacaoConta.objects.exclude(uuid=analise_lancamento_anterior.uuid).first()
     assert analise_lancamento_nova.houve_considerados_corretos_automaticamente is False, "Deve copiar o ajuste de conciliação realizado. Não deve ser considerado corretos automaticamente."
+    assert analise_lancamento_nova.resultado == AnaliseLancamentoPrestacaoConta.RESULTADO_AJUSTE, "Como o ajuste não foi considerado corretos deve continuar marcada como ajuste."
