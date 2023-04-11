@@ -1,3 +1,6 @@
+### 7.0.1 - 10/04/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 63
+* (90604) Corrige Registros de análise de lançamento duplicados
+
 ### 6.0.6 - 04/04/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 62
 * (90066) Corrige data de documento vazia na conferência de lançamentos
 
