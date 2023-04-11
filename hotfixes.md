@@ -1,3 +1,15 @@
+### 7.0.1 - 10/04/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 63
+* (90604) Corrige Registros de análise de lançamento duplicados
+
+### 6.0.6 - 04/04/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 62
+* (90066) Corrige data de documento vazia na conferência de lançamentos
+
+### 6.0.5 - 31/03/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 62
+* (90233) Corrige exibição de informações de conciliação no acompanhamento de PCs.
+
+### 6.0.4 - 27/03/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 62
+* (88217) Melhorias no admin de devoluções ao tesouro para permitir informar despesa pelo id
+
 ### 6.0.3 - 21/03/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 61
 * (84747) Corrige alinhamento de margem das atas de apresentação
 * (85715) Corrige no relatório consolidado o problema de loading que não é exibido corretamente na solicitação de geração do demonstrativo
