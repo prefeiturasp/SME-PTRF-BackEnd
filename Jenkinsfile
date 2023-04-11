@@ -10,7 +10,7 @@ pipeline {
     }
 
     options {
-      buildDiscarder(logRotator(numToKeepStr: '5', artifactNumToKeepStr: '5'))
+      buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '5'))
       disableConcurrentBuilds()
       skipDefaultCheckout()
     }
@@ -22,11 +22,11 @@ pipeline {
         }
 
         stage('Preparando BD') {
-	  when { branch '_master_' } 
-          agent { label 'master' }  
+	        when { anyOf { branch 'master'; branch 'develop'; branch 'release'; branch 'homolog-r2'; branch 'pre-release'; } } 
+          agent { label 'AGENT-NODES' }  
           steps {
             sh '''
-                docker run -d --rm --cap-add SYS_TIME --name ptrf-db$BUILD_NUMBER --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres postgres:14-alpine
+                docker run -d --rm --cap-add SYS_TIME --name ptrf-db$BUILD_NUMBER${env.branchname} --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres postgres:14-alpine
                '''
           }
         }
@@ -46,7 +46,7 @@ pipeline {
               steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                   sh '''
-                    export POSTGRES_HOST=ptrf-db$BUILD_NUMBER
+                    export POSTGRES_HOST=ptrf-db$BUILD_NUMBER${env.branchname}
                     python manage.py collectstatic --noinput
                     flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests >flake8-output.txt
                     '''
@@ -63,7 +63,7 @@ pipeline {
             stage('Testes Unitarios') {
               steps {
                 sh '''
-                   export POSTGRES_HOST=ptrf-db$BUILD_NUMBER
+                   export POSTGRES_HOST=ptrf-db$BUILD_NUMBER${env.branchname}
                    coverage run -m pytest
                    coverage xml
                    '''
@@ -170,7 +170,7 @@ pipeline {
       post {
         always{
           //Limpando containers de banco
-          sh 'docker rm -f ptrf-db$BUILD_NUMBER'
+          sh 'docker rm -f ptrf-db$BUILD_NUMBER${env.branchname}'
         }
       }
 }
