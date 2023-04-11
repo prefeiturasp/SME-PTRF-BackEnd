@@ -26,7 +26,7 @@ pipeline {
           agent { label 'AGENT-NODES' }  
           steps {
             sh '''
-                docker run -d --rm --cap-add SYS_TIME --name ptrf-db$BUILD_NUMBER$env.branchname --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres postgres:14-alpine
+                docker run -d --rm --cap-add SYS_TIME --name ptrf-db$BUILD_NUMBER$BRANCH_NAME --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres postgres:14-alpine
                '''
           }
         }
@@ -46,7 +46,7 @@ pipeline {
               steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                   sh '''
-                    export POSTGRES_HOST=ptrf-db$BUILD_NUMBER${env.branchname}
+                    export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
                     python manage.py collectstatic --noinput
                     flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests >flake8-output.txt
                     '''
@@ -63,7 +63,7 @@ pipeline {
             stage('Testes Unitarios') {
               steps {
                 sh '''
-                   export POSTGRES_HOST=ptrf-db$BUILD_NUMBER${env.branchname}
+                   export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
                    coverage run -m pytest
                    coverage xml
                    '''
@@ -170,7 +170,7 @@ pipeline {
       post {
         always{
           //Limpando containers de banco
-          sh 'docker rm -f ptrf-db$BUILD_NUMBER${env.branchname}'
+          sh 'docker rm -f ptrf-db$BUILD_NUMBER$BRANCH_NAME'
         }
       }
 }
