@@ -772,8 +772,9 @@ def lancamentos_da_prestacao(
                 'rateios': RateioDespesaConciliacaoSerializer(despesas_filter.order_by('id'), many=True).data,
                 'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
                 'analise_lancamento': {'resultado': analise_lancamento.resultado,
-                                       'uuid': analise_lancamento.uuid} if analise_lancamento else None,
-
+                                       'uuid': analise_lancamento.uuid,
+                                       'houve_considerados_corretos_automaticamente': analise_lancamento.houve_considerados_corretos_automaticamente,
+                                       } if analise_lancamento else None,
                 'despesa_geradora_do_imposto': DespesaImpostoSerializer(despesa_geradora_do_imposto,
                                                                         many=False).data if despesa_geradora_do_imposto else None,
                 'despesas_impostos': DespesaImpostoSerializer(despesas_impostos, many=True,
@@ -793,7 +794,9 @@ def lancamentos_da_prestacao(
                         many=False).data
             else:
                 lancamento['analise_lancamento'] = {'resultado': analise_lancamento.resultado,
-                                                    'uuid': analise_lancamento.uuid} if analise_lancamento else None
+                                                    'uuid': analise_lancamento.uuid,
+                                                    'houve_considerados_corretos_automaticamente': analise_lancamento.houve_considerados_corretos_automaticamente,
+                                                    } if analise_lancamento else None
 
             lancamentos.append(lancamento)
 
@@ -823,7 +826,9 @@ def lancamentos_da_prestacao(
             'rateios': [],
             'notificar_dias_nao_conferido': receita.notificar_dias_nao_conferido,
             'analise_lancamento': {'resultado': analise_lancamento.resultado,
-                                   'uuid': analise_lancamento.uuid} if analise_lancamento else None,
+                                   'uuid': analise_lancamento.uuid,
+                                   'houve_considerados_corretos_automaticamente': False,
+                                   } if analise_lancamento else None,
             'informacoes': receita.tags_de_informacao,
         }
 
@@ -840,7 +845,9 @@ def lancamentos_da_prestacao(
 
         else:
             novo_lancamento['analise_lancamento'] = {'resultado': analise_lancamento.resultado,
-                                                     'uuid': analise_lancamento.uuid} if analise_lancamento else None
+                                                     'uuid': analise_lancamento.uuid,
+                                                     'houve_considerados_corretos_automaticamente': False,
+                                                     } if analise_lancamento else None
 
         lancamento_adicionado = False
 

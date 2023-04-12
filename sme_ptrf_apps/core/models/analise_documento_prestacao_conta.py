@@ -8,6 +8,11 @@ from sme_ptrf_apps.core.models import TipoAcertoDocumento, ObservacaoConciliacao
 
 
 class AnaliseDocumentoPrestacaoConta(ModeloBase):
+    # Tags de informações de conferência de documentos
+    TAG_AJUSTE = {"id": "1", "nome": "AJUSTE", "descricao": "O documento possui acertos para serem conferidos."}
+    TAG_CORRETO = {"id": "2", "nome": "CORRETO", "descricao": "O documento está correto e/ou os acertos foram conferidos."}
+    TAG_NAO_CONFERIDO = {"id": "3", "nome": "NAO_CONFERIDO", "descricao": "Não conferido."}
+
     history = AuditlogHistoryField()
 
     # Status Choice
@@ -286,6 +291,10 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
 
         self.status_realizacao = novo_status
         self.save()
+
+    @classmethod
+    def get_tags_informacoes_de_conferencia_list(cls):
+        return [cls.TAG_AJUSTE, cls.TAG_CORRETO, cls.TAG_NAO_CONFERIDO]
 
     class Meta:
         verbose_name = "Análise de documentos de PC"

@@ -92,7 +92,8 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
         ],
         'id': analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.id,
         'status_realizacao': 'PENDENTE',
-        'uuid': f'{analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}'
+        'uuid': f'{analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}',
+        'houve_considerados_corretos_automaticamente': False,
     }
 
     url = f'/api/prestacoes-contas/{prestacao_conta_2020_1_em_analise.uuid}/analises-de-lancamento/?analise_lancamento={analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}'
