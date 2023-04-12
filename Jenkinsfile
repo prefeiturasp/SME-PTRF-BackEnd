@@ -43,8 +43,6 @@ pipeline {
 
         stage('Testes') {
           when { anyOf { branch 'master'; branch 'develop'; branch 'release'; branch 'homolog-r2'; branch 'pre-release'; } } 
-          parallel {    
-        
             stage('Testes Lint') {
               agent { label 'AGENT-PYTHON36' }
               steps {
@@ -52,9 +50,7 @@ pipeline {
                   sh '''
                     export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
                     python manage.py collectstatic --noinput
-		    pwd
-                    flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests --output-file=flake8-output.txt
-		    echo $?
+                    flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests --output-file=/tmp/flake8-output.txt
                     '''
                 }
               }
@@ -62,7 +58,7 @@ pipeline {
                 success{
                   node('AGENT-PYTHON36'){
                     //Publicando arquivo de relatorio flake8
-                    recordIssues(tools: [flake8(pattern: 'flake8-output.txt')])
+                    recordIssues(tools: [flake8(pattern: '/tmp/flake8-output.txt')])
                   }
                 }
               }
@@ -85,8 +81,7 @@ pipeline {
                   }
                 }
               }
-            }
-          }    
+            }   
         }
 
         stage('AnaliseCodigo') {
