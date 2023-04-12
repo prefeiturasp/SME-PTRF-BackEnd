@@ -50,16 +50,14 @@ pipeline {
                   sh '''
                     export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
                     python manage.py collectstatic --noinput
-                    flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests --output-file=/tmp/flake8-output.txt
+                    flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests --output-file=flake8-output.txt
                     '''
                 }
               }
               post {
                 success{
-                  node('AGENT-PYTHON36'){
                     //Publicando arquivo de relatorio flake8
-                    recordIssues(tools: [flake8(pattern: '/tmp/flake8-output.txt')])
-                  }
+                    recordIssues(tools: [flake8(pattern: 'flake8-output.txt')])
                 }
               }
               
@@ -76,10 +74,8 @@ pipeline {
               }
               post {
                 success{
-                  node('AGENT-PYTHON36'){
                     //Publicando arquivo de cobertura
                     publishCoverage adapters: [cobertura('coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
-                  }
                 }
               }
             }   
