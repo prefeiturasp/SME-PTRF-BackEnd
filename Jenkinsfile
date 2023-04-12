@@ -41,9 +41,9 @@ pipeline {
             
         }
 
-        stage('Testes') {
-          when { anyOf { branch 'master'; branch 'develop'; branch 'release'; branch 'homolog-r2'; branch 'pre-release'; } } 
+
             stage('Testes Lint') {
+              when { anyOf { branch 'master'; branch 'develop'; branch 'release'; branch 'homolog-r2'; branch 'pre-release'; } } 
               agent { label 'AGENT-PYTHON36' }
               steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
@@ -65,6 +65,7 @@ pipeline {
               
             }
             stage('Testes Unitarios') {
+              when { anyOf { branch 'master'; branch 'develop'; branch 'release'; branch 'homolog-r2'; branch 'pre-release'; } } 
               agent { label 'AGENT-PYTHON36' }
               steps {
                 sh '''
@@ -82,7 +83,6 @@ pipeline {
                 }
               }
             }   
-        }
 
         stage('AnaliseCodigo') {
           steps {
