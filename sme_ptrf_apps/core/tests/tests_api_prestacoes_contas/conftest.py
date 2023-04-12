@@ -462,6 +462,36 @@ def analise_lancamento_despesa_em_analise_anterior(
 
 
 @pytest.fixture
+def analise_lancamento_despesa_em_analise_anterior_realizada(
+    analise_prestacao_conta_anterior,
+    despesa_2020_1
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_anterior,
+        tipo_lancamento='GASTO',
+        despesa=despesa_2020_1,
+        resultado='AJUSTE',
+        status_realizacao='REALIZADO',
+    )
+
+
+@pytest.fixture
+def analise_lancamento_despesa_em_analise_anterior_pendente(
+    analise_prestacao_conta_anterior,
+    despesa_2020_1
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_anterior,
+        tipo_lancamento='GASTO',
+        despesa=despesa_2020_1,
+        resultado='AJUSTE',
+        status_realizacao='PENDENTE',
+    )
+
+
+@pytest.fixture
 def tipo_devolucao_ao_tesouro_teste():
     return baker.make('TipoDevolucaoAoTesouro', nome='Devolução teste')
 
@@ -493,6 +523,41 @@ def solicitacao_acerto_lancamento_devolucao_analise_anterior(
         tipo_acerto=tipo_acerto_lancamento_devolucao,
         devolucao_ao_tesouro=devolucao_ao_tesouro_analise_anterior,
         detalhamento="teste"
+    )
+
+
+@pytest.fixture
+def tipo_acerto_lancamento_conciliacao():
+    return baker.make('TipoAcertoLancamento', nome='Conciliar', categoria='CONCILIACAO_LANCAMENTO')
+
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_conciliacao_realizado(
+    analise_lancamento_despesa_em_analise_anterior_realizada,
+    tipo_acerto_lancamento_conciliacao,
+    despesa_2020_1,
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_despesa_em_analise_anterior_realizada,
+        tipo_acerto=tipo_acerto_lancamento_conciliacao,
+        detalhamento="Concliacao teste",
+        status_realizacao='REALIZADO',
+    )
+
+
+@pytest.fixture
+def solicitacao_acerto_lancamento_conciliacao_pendente(
+    analise_lancamento_despesa_em_analise_anterior_pendente,
+    tipo_acerto_lancamento_conciliacao,
+    despesa_2020_1,
+):
+    return baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_despesa_em_analise_anterior_pendente,
+        tipo_acerto=tipo_acerto_lancamento_conciliacao,
+        detalhamento="Concliacao teste",
+        status_realizacao='PENDENTE',
     )
 
 

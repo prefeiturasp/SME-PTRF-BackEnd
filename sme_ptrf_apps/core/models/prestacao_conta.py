@@ -285,13 +285,6 @@ class PrestacaoConta(ModeloBase):
     def __str__(self):
         return f"{self.periodo} - {self.status}"
 
-    # Analisar se com a implementacao da retificacao, sera necessário manter o metodo abaixo
-    # def remove_publicada_e_consolidado_dre(self):
-    #     self.publicada = False
-    #     self.consolidado_dre = None
-    #     self.save()
-    #     return self
-
     def atrelar_consolidado_dre(self, consolidado_dre):
         self.consolidado_dre = consolidado_dre
         self.save()
@@ -514,27 +507,13 @@ class PrestacaoConta(ModeloBase):
             data_limite_ue=data_limite_ue
         )
 
-        # TODO Remover essa linha após validação da história 83304
-        # devolucao_requer_alteracoes = False
-
         if self.analise_atual:
-            # TODO Remover essa linha após validação da história 83304
-            # devolucao_requer_alteracoes = self.analise_atual.requer_alteracao_em_lancamentos
             self.analise_atual.devolucao_prestacao_conta = devolucao
             self.analise_atual.save()
 
         self.analise_atual = None
         self.justificativa_pendencia_realizacao = ""
         self.save()
-
-        # TODO Remover esse bloco após validação da história 83304
-        # if devolucao_requer_alteracoes:
-        #     logging.info('Solicitações de ajustes requerem apagar fechamentos e documentos.')
-        #     self.apaga_fechamentos()
-        #     self.apaga_relacao_bens()
-        #     self.apaga_demonstrativos_financeiros()
-        # else:
-        #     logging.info('Solicitações de ajustes NÃO requerem apagar fechamentos e documentos.')
 
         notificar_prestacao_de_contas_devolvida_para_acertos(self, data_limite_ue)
         return self
@@ -583,10 +562,6 @@ class PrestacaoConta(ModeloBase):
         return prestacao_atualizada
 
     def desfazer_conclusao_analise(self):
-        # TO DO
-        # Analisar se com a implementacao da retificacao, sera necessário manter o metodo abaixo
-        # self.remove_publicada_e_consolidado_dre()
-
         self.motivos_aprovacao_ressalva.set([])
         self.outros_motivos_aprovacao_ressalva = ''
         self.motivos_reprovacao.set([])
@@ -602,7 +577,7 @@ class PrestacaoConta(ModeloBase):
 
             if not requer_alteracao_em_lancamento:
                 return True
-            
+
         pode_rebrir_pc = not self.associacao.fechamentos_associacao.filter(
             periodo__referencia__gt=self.periodo.referencia
         ).exists()
@@ -837,6 +812,5 @@ class PrestacaoConta(ModeloBase):
         verbose_name = "Prestação de conta"
         verbose_name_plural = "09.0) Prestações de contas"
         unique_together = ['associacao', 'periodo']
-
 
 auditlog.register(PrestacaoConta)

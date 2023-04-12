@@ -35,3 +35,29 @@ def test_audit_log(analise_lancamento_receita_prestacao_conta_2020_1):
     assert analise_lancamento_receita_prestacao_conta_2020_1.history.count() == 2  # Um log de inclusão e outro de edição
     assert analise_lancamento_receita_prestacao_conta_2020_1.history.latest().action == 1  # 1-Edição
 
+
+def test_get_tags_informacoes_conferencialist():
+    tags = AnaliseLancamentoPrestacaoConta.get_tags_informacoes_de_conferencia_list()
+    assert tags == [
+        {
+            'id': '1',
+            'nome': 'AJUSTE',
+            'descricao': 'O lançamento possui acertos para serem conferidos.',
+        },
+        {
+            'id': '2',
+            'nome': 'CORRETO',
+            'descricao': 'O lançamento está correto e/ou os acertos foram conferidos.',
+        },
+        {
+            'id': '3',
+            'nome': 'CONFERENCIA_AUTOMATICA',
+            'descricao': 'O lançamento possui acerto(s) que foram conferidos '
+                         'automaticamente pelo sistema.',
+        },
+        {
+            'id': '4',
+            'nome': 'NAO_CONFERIDO',
+            'descricao': 'Não conferido.',
+        }
+    ]

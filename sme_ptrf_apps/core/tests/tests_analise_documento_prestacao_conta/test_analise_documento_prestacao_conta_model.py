@@ -72,3 +72,24 @@ def test_model_property_requer_edicao_informacao(
     solicitacao_acerto_documento_edicao_informacao,
 ):
     assert analise_documento_prestacao_conta_demonstativo_financeiro_edicao_informacao.requer_edicao_informacao_conciliacao
+
+
+def test_get_tags_informacoes_conferencia_list():
+    tags = AnaliseDocumentoPrestacaoConta.get_tags_informacoes_de_conferencia_list()
+    assert tags == [
+        {
+            'id': '1',
+            'nome': 'AJUSTE',
+            'descricao': 'O documento possui acertos para serem conferidos.',
+        },
+        {
+            'id': '2',
+            'nome': 'CORRETO',
+            'descricao': 'O documento está correto e/ou os acertos foram conferidos.',
+        },
+        {
+            'id': '3',
+            'nome': 'NAO_CONFERIDO',
+            'descricao': 'Não conferido.',
+        }
+    ]
