@@ -53,7 +53,8 @@ pipeline {
                     export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
                     python manage.py collectstatic --noinput
 		    pwd
-                    flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests > flake8-output.txt
+                    flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests --output-file=flake8-output.txt
+		    echo $?
                     '''
                 }
               }
