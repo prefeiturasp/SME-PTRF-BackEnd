@@ -22,7 +22,7 @@ pipeline {
         }
 
         stage('Preparando BD') {
-	        when { anyOf { branch 'master'; branch 'develop'; branch 'release'; branch 'homolog-r2'; branch 'pre-release'; } } 
+	        when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } } 
           agent { label 'AGENT-NODES' }  
           steps {
             sh '''
@@ -32,7 +32,7 @@ pipeline {
         }
         
         stage('Istalando dependencias') {
-          when { anyOf { branch 'master'; branch 'develop'; branch 'release'; branch 'homolog-r2'; branch 'pre-release'; } } 
+          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } } 
           agent { label 'AGENT-PYTHON36' }
           steps {
             checkout scm
@@ -43,7 +43,7 @@ pipeline {
 
 
             stage('Testes Lint') {
-              when { anyOf { branch 'master'; branch 'develop'; branch 'release'; branch 'homolog-r2'; branch 'pre-release'; } } 
+              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } } 
               agent { label 'AGENT-PYTHON36' }
               steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
@@ -63,7 +63,7 @@ pipeline {
               
             }
             stage('Testes Unitarios') {
-              when { anyOf { branch 'master'; branch 'develop'; branch 'release'; branch 'homolog-r2'; branch 'pre-release'; } } 
+              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } } 
               agent { label 'AGENT-PYTHON36' }
               steps {
                 sh '''
@@ -81,6 +81,8 @@ pipeline {
             }   
 
         stage('AnaliseCodigo') {
+          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } } 
+          agent { label 'AGENT-PYTHON36' }
           steps {
                 withSonarQubeEnv('sonarqube-local'){
                   sh 'echo "[ INFO ] Iniciando analise Sonar..." && sonar-scanner \
