@@ -149,10 +149,13 @@ class Despesa(ModeloBase):
     @property
     def inativar_em_vez_de_excluir(self):
         from sme_ptrf_apps.core.models import PrestacaoConta
-        return PrestacaoConta.objects.filter(
-            associacao=self.associacao,
-            periodo=self.periodo_da_despesa
-        ).exists()
+        if self.status == STATUS_INCOMPLETO:
+            return False
+        else:
+            return PrestacaoConta.objects.filter(
+                associacao=self.associacao,
+                periodo=self.periodo_da_despesa
+            ).exists()
 
     @property
     def mensagem_inativacao(self):
