@@ -32,17 +32,21 @@ pipeline {
         }
         
         stage('Istalando dependencias') {
+          when { anyOf { branch 'master'; branch 'develop'; branch 'release'; branch 'homolog-r2'; branch 'pre-release'; } } 
+          agent { label 'AGENT-PYTHON36' }
           steps {
+            checkout scm
             sh 'pip install --user pipenv -r requirements/local.txt'
           }
             
         }
 
         stage('Testes') {
-	  when { branch '_master_' } 
+          when { anyOf { branch 'master'; branch 'develop'; branch 'release'; branch 'homolog-r2'; branch 'pre-release'; } } 
           parallel {    
         
             stage('Testes Lint') {
+              agent { label 'AGENT-PYTHON36' }
               steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                   sh '''
@@ -54,13 +58,16 @@ pipeline {
               }
               post {
                 success{
-                  //Publicando arquivo de relatorio flake8
-                  recordIssues(tools: [flake8(pattern: 'flake8-output.txt')])
+                  node('AGENT-PYTHON36'){
+                    //Publicando arquivo de relatorio flake8
+                    recordIssues(tools: [flake8(pattern: 'flake8-output.txt')])
+                  }
                 }
               }
               
             }
             stage('Testes Unitarios') {
+              agent { label 'AGENT-PYTHON36' }
               steps {
                 sh '''
                    export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
@@ -70,8 +77,10 @@ pipeline {
               }
               post {
                 success{
-                  //Publicando arquivo de cobertura
-                  publishCoverage adapters: [cobertura('coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
+                  node('AGENT-PYTHON36'){
+                    //Publicando arquivo de cobertura
+                    publishCoverage adapters: [cobertura('coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
+                  }
                 }
               }
             }
@@ -167,10 +176,12 @@ pipeline {
             }  
         }                    
       }
-      post {
+      post {        
         always{
-          //Limpando containers de banco
-          sh 'docker rm -f ptrf-db$BUILD_NUMBER$BRANCH_NAME'
+          node('AGENT-NODES'){
+            //Limpando containers de banco
+            sh 'docker rm -f ptrf-db$BUILD_NUMBER$BRANCH_NAME'
+          }
         }
       }
 }
