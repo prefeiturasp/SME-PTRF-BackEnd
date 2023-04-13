@@ -1,168 +1,122 @@
 import pytest
 import datetime
 
-from datetime import date
+from datetime import date, timedelta
 
 from model_bakery import baker
 from sme_ptrf_apps.core.models.devolucao_ao_tesouro import DevolucaoAoTesouro
 
 from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
+from sme_ptrf_apps.core.models.solicitacao_devolucao_ao_tesouro import SolicitacaoDevolucaoAoTesouro
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO
 
 pytestmark = pytest.mark.django_db
 
 @pytest.fixture
-def prestacao_conta_em_analise(periodo, associacao):
+def rateio_despesa_01(associacao, despesa_no_periodo, conta_associacao, acao, tipo_aplicacao_recurso_custeio, tipo_custeio_material, especificacao_material_eletrico, acao_associacao):
     return baker.make(
-        'PrestacaoConta',
-        periodo=periodo,
+        'RateioDespesa',
+        despesa=despesa_no_periodo,
         associacao=associacao,
-        data_recebimento=date(2020, 10, 1),
-        status=PrestacaoConta.STATUS_EM_ANALISE
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_material,
+        especificacao_material_servico=especificacao_material_eletrico,
+        valor_rateio=200.00,
+        valor_original=200.00,
+        quantidade_itens_capital=2,
+        valor_item_capital=100.00
     )
 
 @pytest.fixture
-def outra_prestacao_conta_em_analise(periodo, outra_associacao):
+def rateio_despesa_02(associacao, despesa_no_periodo, conta_associacao, acao,tipo_aplicacao_recurso_custeio, tipo_custeio, tipo_custeio_material, especificacao_material_eletrico, acao_associacao):
     return baker.make(
-        'PrestacaoConta',
-        periodo=periodo,
-        associacao=outra_associacao,
-        data_recebimento=date(2020, 8, 1),
-        status=PrestacaoConta.STATUS_EM_ANALISE
+        'RateioDespesa',
+        despesa=despesa_no_periodo,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio,
+        valor_rateio=100.00,
+        valor_original=100.00,
     )
 
 @pytest.fixture
-def tipo_devolucao_ao_tesouro():
-    return baker.make('TipoDevolucaoAoTesouro', nome='Tipo devolução 1', id=10)
-
-@pytest.fixture
-def outro_tipo_devolucao_ao_tesouro():
-    return baker.make('TipoDevolucaoAoTesouro', nome='Tipo devolução 2', id=11)
-
-@pytest.fixture
-def despesa(associacao, tipo_documento, tipo_transacao):
+def despesa_no_periodo(associacao, tipo_documento, tipo_transacao, periodo):
     return baker.make(
         'Despesa',
         id=10,
         associacao=associacao,
         numero_documento='123456',
-        data_documento=date(2020, 3, 10),
+        data_documento=periodo.data_inicio_realizacao_despesas,
         tipo_documento=tipo_documento,
         cpf_cnpj_fornecedor='11.478.276/0001-04',
         nome_fornecedor='Fornecedor SA',
         tipo_transacao=tipo_transacao,
-        data_transacao=date(2020, 3, 10),
-        valor_total=100.00,
-        documento_transacao=12345
+        data_transacao=periodo.data_inicio_realizacao_despesas,
+        valor_total=300.00,
+        valor_original=300,
+        documento_transacao=312321
     )
 
 @pytest.fixture
-def tipo_aplicacao_recurso():
-    return APLICACAO_CUSTEIO
-
-@pytest.fixture
-def especificacao_material_servico(tipo_aplicacao_recurso, tipo_custeio):
+def analise_lancamento_receita_prestacao_conta_2020_1(analise_prestacao_conta_2020_1, receita_no_periodo_2020_1, despesa_no_periodo):
     return baker.make(
-        'EspecificacaoMaterialServico',
-        descricao='Material elétrico',
-        aplicacao_recurso=tipo_aplicacao_recurso,
-        tipo_custeio=tipo_custeio,
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1,
+        tipo_lancamento='CREDITO',
+        receita=receita_no_periodo_2020_1,
+        resultado='CORRETO',
+        despesa=despesa_no_periodo
     )
 
 @pytest.fixture
-def outra_especificacao_material_servico(tipo_aplicacao_recurso, tipo_custeio):
+def solicitacao_acerto_lancamento_devolucao(
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    tipo_acerto_lancamento_devolucao,
+
+):
     return baker.make(
-        'EspecificacaoMaterialServico',
-        descricao='Material de construção',
-        aplicacao_recurso=tipo_aplicacao_recurso,
-        tipo_custeio=tipo_custeio,
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_receita_prestacao_conta_2020_1,
+        tipo_acerto=tipo_acerto_lancamento_devolucao,
+        devolucao_ao_tesouro=None,
+        detalhamento="teste"
     )
 
 @pytest.fixture
-def primeiro_rateio(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso_custeio,
-                                    tipo_custeio_servico, especificacao_material_servico, acao_associacao):
-    return baker.make(
-        'RateioDespesa',
-        despesa=despesa,
-        associacao=associacao,
-        conta_associacao=conta_associacao,
-        acao_associacao=acao_associacao,
-        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
-        tipo_custeio=tipo_custeio_servico,
-        especificacao_material_servico=especificacao_material_servico,
-        valor_rateio=20.00,
-        valor_original=10.00
-    )
+def tipo_devolucao_ao_tesouro_teste():
+    return baker.make('TipoDevolucaoAoTesouro', id='20', nome='Teste tipo devolução')
 
 @pytest.fixture
-def segundo_rateio(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso_custeio,
-                                    tipo_custeio_servico, especificacao_material_servico, acao_associacao):
-    return baker.make(
-        'RateioDespesa',
-        despesa=despesa,
-        associacao=associacao,
-        conta_associacao=conta_associacao,
-        acao_associacao=acao_associacao,
-        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
-        tipo_custeio=tipo_custeio_servico,
-        especificacao_material_servico=especificacao_material_servico,
-        valor_rateio=80.00,
-        valor_original=70.00
-    )
-
-@pytest.fixture
-def outra_despesa(outra_associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
-        id=11,
-        associacao=outra_associacao,
-        numero_documento='123456',
-        data_documento=date(2020, 3, 10),
-        tipo_documento=tipo_documento,
-        cpf_cnpj_fornecedor='11.478.276/0001-04',
-        nome_fornecedor='Fornecedor SA',
-        tipo_transacao=tipo_transacao,
-        data_transacao=date(2020, 3, 10),
-        valor_total=200.00,
-        documento_transacao=6789
-    )
-
-@pytest.fixture
-def devolucao_ao_tesouro(prestacao_conta_em_analise, tipo_devolucao_ao_tesouro, despesa, primeiro_rateio, segundo_rateio):
+def devolucao_ao_tesouro_parcial(prestacao_conta_2020_1_conciliada, tipo_devolucao_ao_tesouro_teste, despesa_no_periodo):
     return baker.make(
         'DevolucaoAoTesouro',
-        prestacao_conta=prestacao_conta_em_analise,
-        tipo=tipo_devolucao_ao_tesouro,
-        data=date(2020, 7, 1),
-        despesa=despesa,
-        devolucao_total=True,
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        tipo=tipo_devolucao_ao_tesouro_teste,
+        data=date(2020, 6, 6),
+        despesa=despesa_no_periodo,
         valor=100.00,
-        motivo='Motivo teste 1',
-        criado_em=datetime.date(2020, 1, 1)
-    )
-
-@pytest.fixture
-def outra_devolucao_ao_tesouro(outra_prestacao_conta_em_analise, outro_tipo_devolucao_ao_tesouro, outra_despesa):
-    return baker.make(
-        'DevolucaoAoTesouro',
-        prestacao_conta=outra_prestacao_conta_em_analise,
-        tipo=outro_tipo_devolucao_ao_tesouro,
-        data=date(2020, 5, 1),
-        despesa=outra_despesa,
+        motivo='Motivo devolucao parcial teste',
         devolucao_total=False,
-        valor=50.00,
-        motivo='Motivo teste 2',
-        criado_em=datetime.date(2021, 1, 1)
     )
 
 @pytest.fixture
-def ambiente():
+def solicitacao_devolucao_ao_tesouro(
+    solicitacao_acerto_lancamento_devolucao,
+    tipo_devolucao_ao_tesouro_teste,
+):
     return baker.make(
-        'Ambiente',
-        prefixo='dev-sig-escola',
-        nome='Ambiente de desenvolvimento',
+        'SolicitacaoDevolucaoAoTesouro',
+        solicitacao_acerto_lancamento=solicitacao_acerto_lancamento_devolucao,
+        tipo=tipo_devolucao_ao_tesouro_teste,
+        devolucao_total=False,
+        valor=100.00,
+        motivo='teste',
     )
 
 @pytest.fixture
-def queryset_ordered(devolucao_ao_tesouro, outra_devolucao_ao_tesouro):
-    return DevolucaoAoTesouro.objects.all().order_by('criado_em')
+def queryset_ordered(rateio_despesa_01, rateio_despesa_02, devolucao_ao_tesouro_parcial, solicitacao_devolucao_ao_tesouro):
+    return SolicitacaoDevolucaoAoTesouro.objects.all().order_by('criado_em')

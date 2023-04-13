@@ -1,23 +1,63 @@
+from tempfile import NamedTemporaryFile
 import pytest
 import datetime
+from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
+from sme_ptrf_apps.core.models.devolucao_ao_tesouro import DevolucaoAoTesouro
 
 from sme_ptrf_apps.sme.services.exporta_devolucao_tesouro_prestacoes_conta import ExportacoesDevolucaoTesouroPrestacoesContaService
 
 pytestmark = pytest.mark.django_db
 
-resultado_esperado = [
-    ['123456', 'Escola Teste', 'Escola Teste', '2019.2', 'EM_ANALISE', 10, '123456', 'NFe', '10/03/2020', '11.478.276/0001-04', 'Fornecedor SA', 'Boleto', '12345', '10/03/2020', '0,00', '100,00', 'CUSTEIO', 'Servico', 'Material elétrico', 'Cheque', 'PTRF', '20,00', '10,00', 10, 'Tipo devolução 1', 'Motivo teste 1', 'Sim', '100,00', '01/07/2020'], ['123456', 'Escola Teste', 'Escola Teste', '2019.2', 'EM_ANALISE', 10, '123456', 'NFe', '10/03/2020', '11.478.276/0001-04', 'Fornecedor SA', 'Boleto', '12345', '10/03/2020', '0,00', '100,00', 'CUSTEIO', 'Servico', 'Material elétrico', 'Cheque', 'PTRF', '80,00', '70,00', 10, 'Tipo devolução 1', 'Motivo teste 1', 'Sim', '100,00', '01/07/2020'], ['123456', 'Escola Teste', 'Outra', '2019.2', 'EM_ANALISE', 11, '123456', 'NFe', '10/03/2020', '11.478.276/0001-04', 'Fornecedor SA', 'Boleto', '6789', '10/03/2020', '0,00', '200,00', '', '', '', '', '', '', '', 11, 'Tipo devolução 2', 'Motivo teste 2', 'Não', '50,00', '01/05/2020']
-]
-
 def test_dados_esperados_csv(queryset_ordered):
-    print(queryset_ordered)
     dados = ExportacoesDevolucaoTesouroPrestacoesContaService(
         queryset=queryset_ordered
     ).monta_dados()
 
-    print(dados)
+    linha_individual = dados[0]
+    primeira_solicitacao = queryset_ordered.first()
 
-    assert dados == resultado_esperado
+    pc = primeira_solicitacao.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta
+
+    despesa = primeira_solicitacao.solicitacao_acerto_lancamento.analise_lancamento.despesa
+
+    rateio = despesa.rateios.first()
+
+    devolucao_ao_tesouro = DevolucaoAoTesouro.objects.filter(despesa_id=despesa.id).first()
+
+    resultado_esperado = [
+        pc.associacao.unidade.codigo_eol,
+        pc.associacao.unidade.nome,
+        pc.associacao.nome,
+        pc.periodo.referencia,
+        pc.status,
+        despesa.id,
+        despesa.numero_documento,
+        despesa.tipo_documento.nome,
+        despesa.data_documento.strftime("%d/%m/%Y"),
+        despesa.cpf_cnpj_fornecedor,
+        despesa.nome_fornecedor,
+        despesa.tipo_transacao.nome,
+        despesa.documento_transacao,
+        despesa.data_transacao.strftime("%d/%m/%Y"),
+        str(despesa.valor_original).replace(".", ","),
+        str(despesa.valor_total).replace(".", ","),
+        rateio.aplicacao_recurso,
+        rateio.tipo_custeio.nome,
+        rateio.especificacao_material_servico.descricao,
+        rateio.conta_associacao.tipo_conta.nome,
+        rateio.acao_associacao.acao.nome,
+        str(rateio.valor_rateio).replace(".", ","),
+        str(rateio.valor_original).replace(".", ","),
+        devolucao_ao_tesouro.tipo.id,
+        devolucao_ao_tesouro.tipo.nome,
+        devolucao_ao_tesouro.motivo,
+        'Sim' if devolucao_ao_tesouro.devolucao_total else 'Não',
+        str(devolucao_ao_tesouro.valor).replace(".", ","),
+        devolucao_ao_tesouro.data.strftime("%d/%m/%Y"),
+        primeira_solicitacao.solicitacao_acerto_lancamento.justificativa if primeira_solicitacao.solicitacao_acerto_lancamento.justificativa is not None else ''
+    ]
+
+    assert linha_individual == resultado_esperado
 
 def test_cabecalho():
     dados = ExportacoesDevolucaoTesouroPrestacoesContaService()
@@ -53,7 +93,8 @@ def test_cabecalho():
         'Motivo',
         'É devolução total?',
         'Valor (Devolução)',
-        'Data de devolução ao tesouro'
+        'Data de devolução ao tesouro',
+        'Justificativa (não realização)',
     ]
 
     assert cabecalho == resultado_esperado
@@ -116,3 +157,38 @@ def test_filtra_range_data_sem_data_inicio_e_sem_data_final(queryset_ordered):
     ).filtra_range_data('criado_em')
     
     assert queryset_filtrado.count() == len(queryset_ordered)
+
+def test_cria_registro_central_download(usuario_para_teste):
+    exportacao_saldo_final = ExportacoesDevolucaoTesouroPrestacoesContaService(
+        nome_arquivo='pcs_saldo_final_periodo.csv',
+        user=usuario_para_teste.username
+    )
+
+    exportacao_saldo_final.cria_registro_central_download()
+    objeto_arquivo_download = exportacao_saldo_final.objeto_arquivo_download
+
+    assert objeto_arquivo_download.status == ArquivoDownload.STATUS_EM_PROCESSAMENTO
+    assert objeto_arquivo_download.identificador == 'pcs_saldo_final_periodo.csv'
+    assert ArquivoDownload.objects.count() == 1
+
+def test_envia_arquivo_central_download(usuario_para_teste):
+    with NamedTemporaryFile(
+        mode="r+",
+        newline='',
+        encoding='utf-8',
+        prefix='pcs_relacoes_bens',
+        suffix='.csv'
+    ) as file:
+        file.write("testando central de download")
+
+        exportacao_relacao_bens = ExportacoesDevolucaoTesouroPrestacoesContaService(
+            nome_arquivo='pcs_relacoes_bens.csv',
+            user=usuario_para_teste.username
+        )
+        exportacao_relacao_bens.cria_registro_central_download()
+        exportacao_relacao_bens.envia_arquivo_central_download(file)
+        objeto_arquivo_download = exportacao_relacao_bens.objeto_arquivo_download
+
+    assert objeto_arquivo_download.status == ArquivoDownload.STATUS_CONCLUIDO
+    assert objeto_arquivo_download.identificador == 'pcs_relacoes_bens.csv'
+    assert ArquivoDownload.objects.count() == 1
