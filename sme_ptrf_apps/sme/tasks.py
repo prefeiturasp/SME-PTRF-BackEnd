@@ -2,6 +2,7 @@ import logging
 
 from celery import shared_task
 from sme_ptrf_apps.core.models.devolucao_ao_tesouro import DevolucaoAoTesouro
+from sme_ptrf_apps.core.models.solicitacao_devolucao_ao_tesouro import SolicitacaoDevolucaoAoTesouro
 from sme_ptrf_apps.despesas.models.especificacao_material_servico import EspecificacaoMaterialServico
 from sme_ptrf_apps.despesas.models.tipo_custeio import TipoCusteio
 from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
@@ -59,7 +60,7 @@ def exportar_receitas_async(data_inicio, data_final, username):
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
     time_limet=600,
-    soft_time_limit=300
+    soft_time_limit=30000
 )
 def exportar_materiais_e_servicos_async(data_inicio, data_final, username):
     logger.info("Exportando csv em processamento...")
@@ -158,7 +159,7 @@ def exportar_relacao_bens_async(data_inicio, data_final, username):
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
     time_limet=600,
-    soft_time_limit=300
+    soft_time_limit=30000
 )
 def exportar_status_prestacoes_contas_async(data_inicio, data_final, username):
     logger.info("Exportando csv em processamento...")
@@ -178,6 +179,37 @@ def exportar_status_prestacoes_contas_async(data_inicio, data_final, username):
             **params,
             nome_arquivo='status_prestacoes_de_contas.csv'
         ).exporta_status_prestacoes_conta()
+
+    except Exception as e:
+        logger.error(f"Erro ao exportar csv: {e}")
+        raise e
+
+    logger.info("Exportação csv finalizada com sucesso.")
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=30000
+)
+def exportar_devolucoes_ao_tesouro_async(data_inicio, data_final, username):
+    logger.info("Exportando csv em processamento...")
+
+    queryset = SolicitacaoDevolucaoAoTesouro.objects.all().order_by('criado_em')
+
+    try:
+        logger.info("Criando arquivo %s pcs_devolucoes_tesouro.csv")
+        params = {
+            'queryset': queryset,
+            'data_inicio': data_inicio,
+            'data_final': data_final,
+            'user': username,
+        }
+
+        ExportacoesDevolucaoTesouroPrestacoesContaService(
+            **params,
+            nome_arquivo='pcs_devolucoes_tesouro.csv'
+        ).exporta_devolucao_tesouro_pc()
 
     except Exception as e:
         logger.error(f"Erro ao exportar csv: {e}")
