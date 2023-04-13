@@ -43,7 +43,7 @@ CABECALHO = [
         ('Motivo','motivo'),
         ('É devolução total?','devolucao_total'),
         ('Valor (Devolução)','valor'),
-        ('Data de devolução ao tesouro','data'),
+        ('Data de devolução ao tesouro','data')
     ],
 
 
@@ -99,27 +99,27 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                     linha_horizontal.append('')
                 elif campo == 'despesa__data_documento':
                     campo = get_recursive_attr(instance, campo)
-                    data_doc_formatado = campo.strftime("%d/%m/%Y")
+                    data_doc_formatado = campo.strftime("%d/%m/%Y") if campo is not None else ''
                     linha_horizontal.append(data_doc_formatado)
                 elif campo == 'despesa__data_transacao':
                     campo = get_recursive_attr(instance, campo)
-                    data_tran_formatado = campo.strftime("%d/%m/%Y")
+                    data_tran_formatado = campo.strftime("%d/%m/%Y") if campo is not None else ''
                     linha_horizontal.append(data_tran_formatado)
                 elif campo == 'data':
                     campo = get_recursive_attr(instance, campo)
-                    data_formatado = campo.strftime("%d/%m/%Y")
+                    data_formatado = campo.strftime("%d/%m/%Y") if campo is not None else ''
                     linha_horizontal.append(data_formatado)
                 elif campo == 'despesa__valor_original':
                     campo = get_recursive_attr(instance, campo)
-                    valor_original_formatado = str(campo).replace(".", ",")
+                    valor_original_formatado = str(campo).replace(".", ",") if campo is not None else ''
                     linha_horizontal.append(valor_original_formatado)
                 elif campo == 'despesa__valor_total':
                     campo = get_recursive_attr(instance, campo)
-                    valor_total_formatado = str(campo).replace(".", ",")
+                    valor_total_formatado = str(campo).replace(".", ",") if campo is not None else ''
                     linha_horizontal.append(valor_total_formatado)
                 elif campo == 'valor':
                     campo = get_recursive_attr(instance, campo)
-                    valor_formatado = str(campo).replace(".", ",")
+                    valor_formatado = str(campo).replace(".", ",") if campo is not None else ''
                     linha_horizontal.append(valor_formatado)
                 elif campo == 'devolucao_total':
                     campo = get_recursive_attr(instance, campo)
