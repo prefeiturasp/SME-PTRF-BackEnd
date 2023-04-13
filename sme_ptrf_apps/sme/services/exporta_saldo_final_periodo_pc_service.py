@@ -9,6 +9,7 @@ from sme_ptrf_apps.core.services.arquivo_download_service import (
     gerar_arquivo_download
 )
 from sme_ptrf_apps.utils.built_in_custom import get_recursive_attr
+from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
 
 from tempfile import NamedTemporaryFile
 
@@ -42,6 +43,7 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
         self.user = kwargs.get('user', None)
         self.cabecalho = CABECALHO_SALDO_FINAL_PERIODO
         self.ambiente = self.get_ambiente
+        self.objeto_arquivo_download = None
 
     @property
     def get_ambiente(self):
@@ -49,6 +51,7 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
         return ambiente.prefixo if ambiente else ""
 
     def exporta_saldos_finais_periodos(self):
+        self.cria_registro_central_download()
         self.filtra_range_data('criado_em')
         self.exporta_saldos_finais_periodos_csv()
 
@@ -75,6 +78,7 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
         linhas_vertical = []
 
         for instance in self.queryset:
+            logger.info(f"Iniciando extração de dados de saldos finais do periodo, fechamento id {instance.id}.")
             for key, value in TIPOS_APLICACAO:
                 linha_horizontal = []
                 value = str(getattr(instance, value)).replace(".", ",")
@@ -88,11 +92,18 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
                         linha_horizontal.append(value)
                         continue
 
+                    if campo == "prestacao_conta__status":
+                        campo = get_recursive_attr(instance, campo)
+                        status_pc = campo if campo else PrestacaoConta.STATUS_NAO_APRESENTADA
+                        linha_horizontal.append(status_pc)
+                        continue
+
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo)
 
                 logger.info(f"Escrevendo linha {linha_horizontal} de saldos finais do periodo, fechamento id: {instance.id}.")
                 linhas_vertical.append(linha_horizontal)
+                logger.info(f"Finalizado extração de dados de saldos finais do periodo, fechamento id: {instance.id}.")
 
         return linhas_vertical
 
@@ -119,27 +130,30 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
             )
         return self.queryset
 
-    def envia_arquivo_central_download(self, tmp):
-        logger.info("Gerando arquivo download...")
-        obj_arquivo_download = gerar_arquivo_download(
+    def cria_registro_central_download(self):
+        logger.info(f"Criando registro na central de download")
+        obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo
         )
 
+        self.objeto_arquivo_download = obj
+
+    def envia_arquivo_central_download(self, tmp):
         try:
             logger.info("Salvando arquivo download...")
-            obj_arquivo_download.arquivo.save(
-                name=obj_arquivo_download.identificador,
+            self.objeto_arquivo_download.arquivo.save(
+                name=self.objeto_arquivo_download.identificador,
                 content=File(tmp)
             )
-            obj_arquivo_download.status = ArquivoDownload.STATUS_CONCLUIDO
-            obj_arquivo_download.save()
+            self.objeto_arquivo_download.status = ArquivoDownload.STATUS_CONCLUIDO
+            self.objeto_arquivo_download.save()
             logger.info("Arquivo salvo com sucesso...")
 
         except Exception as e:
-            obj_arquivo_download.status = ArquivoDownload.STATUS_ERRO
-            obj_arquivo_download.msg_erro = str(e)
-            obj_arquivo_download.save()
+            self.objeto_arquivo_download.status = ArquivoDownload.STATUS_ERRO
+            self.objeto_arquivo_download.msg_erro = str(e)
+            self.objeto_arquivo_download.save()
             logger.error("Erro arquivo download...")
 
 
