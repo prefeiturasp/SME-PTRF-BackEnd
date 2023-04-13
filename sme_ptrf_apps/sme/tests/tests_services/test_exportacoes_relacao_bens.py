@@ -8,6 +8,19 @@ from tempfile import NamedTemporaryFile
 pytestmark = pytest.mark.django_db
 
 
+def test_cria_registro_central_download(usuario_para_teste):
+    exportacao_relacao_bens = ExportacoesDadosRelacaoBensService(
+        nome_arquivo='pcs_relacoes_bens.csv',
+        user=usuario_para_teste.username
+    )
+
+    exportacao_relacao_bens.cria_registro_central_download()
+    objeto_arquivo_download = exportacao_relacao_bens.objeto_arquivo_download
+
+    assert objeto_arquivo_download.status == ArquivoDownload.STATUS_EM_PROCESSAMENTO
+    assert objeto_arquivo_download.identificador == 'pcs_relacoes_bens.csv'
+    assert ArquivoDownload.objects.count() == 1
+
 def test_envia_arquivo_central_download(usuario_para_teste):
     with NamedTemporaryFile(
         mode="r+",
@@ -17,11 +30,17 @@ def test_envia_arquivo_central_download(usuario_para_teste):
         suffix='.csv'
     ) as file:
         file.write("testando central de download")
-    ExportacoesDadosRelacaoBensService(
-        nome_arquivo='pcs_relacoes_bens.csv',
-        user=usuario_para_teste.username
-    ).envia_arquivo_central_download(file)
 
+        exportacao_relacao_bens = ExportacoesDadosRelacaoBensService(
+            nome_arquivo='pcs_relacoes_bens.csv',
+            user=usuario_para_teste.username
+        )
+        exportacao_relacao_bens.cria_registro_central_download()
+        exportacao_relacao_bens.envia_arquivo_central_download(file)
+        objeto_arquivo_download = exportacao_relacao_bens.objeto_arquivo_download
+
+    assert objeto_arquivo_download.status == ArquivoDownload.STATUS_CONCLUIDO
+    assert objeto_arquivo_download.identificador == 'pcs_relacoes_bens.csv'
     assert ArquivoDownload.objects.count() == 1
 
 def test_filtra_range_data_fora_do_range(relacao_bens_queryset):

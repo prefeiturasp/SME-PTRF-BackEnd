@@ -13,7 +13,10 @@ from sme_ptrf_apps.sme.services.exporta_status_prestacoes_conta_service import E
 from sme_ptrf_apps.sme.services.exporta_saldo_final_periodo_pc_service import ExportacoesDadosSaldosFinaisPeriodoService
 from sme_ptrf_apps.sme.services.exporta_relacao_bens_pc import ExportacoesDadosRelacaoBensService
 from sme_ptrf_apps.sme.services.exporta_devolucao_tesouro_prestacoes_conta import ExportacoesDevolucaoTesouroPrestacoesContaService
+from sme_ptrf_apps.sme.services.exporta_rateios_service import ExportacoesRateiosService
 from sme_ptrf_apps.core.models import FechamentoPeriodo, RelacaoBens
+from sme_ptrf_apps.despesas.models import RateioDespesa
+from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_INATIVO
 
 
 logger = logging.getLogger(__name__)
@@ -23,7 +26,7 @@ logger = logging.getLogger(__name__)
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
     time_limet=600,
-    soft_time_limit=300
+    soft_time_limit=30000
 )
 def exportar_receitas_async(data_inicio, data_final, username):
     logger.info("Exportando csv em processamento...")
@@ -95,12 +98,12 @@ def exportar_materiais_e_servicos_async(data_inicio, data_final, username):
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
     time_limet=600,
-    soft_time_limit=300
+    soft_time_limit=300000
 )
 def exportar_saldos_finais_periodo_async(data_inicio, data_final, username):
     logger.info("Exportando csv em processamento...")
 
-    queryset = FechamentoPeriodo.objects.all()
+    queryset = FechamentoPeriodo.objects.all().order_by('id')
 
     try:
         logger.info("Criando arquivo %s pcs_saldo_final_periodo.csv")
@@ -125,12 +128,12 @@ def exportar_saldos_finais_periodo_async(data_inicio, data_final, username):
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
     time_limet=600,
-    soft_time_limit=300
+    soft_time_limit=30000
 )
 def exportar_relacao_bens_async(data_inicio, data_final, username):
     logger.info("Exportando csv em processamento...")
 
-    queryset = RelacaoBens.objects.all()
+    queryset = RelacaoBens.objects.all().order_by('id')
 
     try:
         logger.info("Criando arquivo %s pcs_relacoes_bens.csv")
@@ -206,6 +209,37 @@ def exportar_devolucoes_ao_tesouro_async(data_inicio, data_final, username):
             **params,
             nome_arquivo='pcs_devolucoes_tesouro.csv'
         ).exporta_devolucao_tesouro_pc()
+
+    except Exception as e:
+        logger.error(f"Erro ao exportar csv: {e}")
+        raise e
+
+    logger.info("Exportação csv finalizada com sucesso.")
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300000
+)
+def exportar_rateios_async(data_inicio, data_final, username):
+    logger.info("Exportando csv em processamento...")
+
+    queryset = RateioDespesa.objects.exclude(status=STATUS_INATIVO).order_by('id')
+
+    try:
+        logger.info("Criando arquivo %s despesas_classificacao_item.csv")
+        params = {
+            'queryset': queryset,
+            'data_inicio': data_inicio,
+            'data_final': data_final,
+            'user': username,
+        }
+
+        ExportacoesRateiosService(
+            **params,
+            nome_arquivo='despesas_classificacao_item.csv'
+        ).exporta_rateios()
 
     except Exception as e:
         logger.error(f"Erro ao exportar csv: {e}")
