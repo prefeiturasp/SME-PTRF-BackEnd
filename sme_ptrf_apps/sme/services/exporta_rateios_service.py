@@ -4,7 +4,6 @@ import logging
 
 from django.core.files import File
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
-from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
 from sme_ptrf_apps.core.models.ambiente import Ambiente
 from sme_ptrf_apps.core.services.arquivo_download_service import (
     gerar_arquivo_download
@@ -15,21 +14,44 @@ from tempfile import NamedTemporaryFile
 
 logger = logging.getLogger(__name__)
 
-CABECALHO_RELACAO_BENS = [
-        ('Código EOL', 'conta_associacao__associacao__unidade__codigo_eol'),
-        ('Nome Unidade', 'conta_associacao__associacao__unidade__nome'),
-        ('Nome Associação', 'conta_associacao__associacao__nome'),
-        ('Referência do Período da PC', 'prestacao_conta__periodo__referencia'),
-        ('Status da PC', 'prestacao_conta__status'),
+CABECALHO_RATEIOS = [
+        ('Código EOL', 'associacao__unidade__codigo_eol'),
+        ('Nome Unidade', 'associacao__unidade__nome'),
+        ('Nome Associação', 'associacao__nome'),
+        ('ID do Gasto', 'despesa__id'),
+        ('Número do documento', 'despesa__numero_documento'),
+        ('Tipo de documento', 'despesa__tipo_documento__nome'),
+        ('Data do documento', 'despesa__data_documento'),
+        ('CPF_CNPJ do fornecedor', 'despesa__cpf_cnpj_fornecedor'),
+        ('Nome do fornecedor', 'despesa__nome_fornecedor'),
+        ('Tipo de transação', 'despesa__tipo_transacao__nome'),
+        ('Número do documento da transação', 'despesa__documento_transacao'),
+        ('Data da transação', 'despesa__data_transacao'),
+        ('Tipo de aplicação do recurso', 'aplicacao_recurso'),
+        ('Nome do Tipo de Custeio', 'tipo_custeio__nome'),
+        ('Descrição da Especificação de Material ou Serviço', 'especificacao_material_servico__descricao'),
         ('Nome do tipo de Conta', 'conta_associacao__tipo_conta__nome'),
-        ('URL do arquivo PDF', 'arquivo_pdf'),
-        ('Status', 'status'),
-        ('Versão', 'versao'),
+        ('Nome da Ação', 'acao_associacao__acao__nome'),
+        ('Quantidade de itens', 'quantidade_itens_capital'),
+        ('Valor unitário', 'valor_item_capital'),
+        ('Número do processo de incorporação', 'numero_processo_incorporacao_capital'),
+        ('Valor', 'valor_rateio'),
+        ('Valor realizado', 'valor_original'),
+        ('Status do rateio', 'status'),
+        ('Conferido', 'conferido'),
+        ('Referência do período de conciliação', 'periodo_conciliacao__referencia'),
+        ('Descrição da tag', 'tag__nome'),
+        ('É saída de recurso externo?', 'saida_de_recurso_externo'),
+        ('É gasto sem comprovação fiscal?', 'eh_despesa_sem_comprovacao_fiscal'),
+        ('É pagamento antecipado?', 'PAGAMENTO_ANTECIPADO'),
+        ('Tem estorno cadastrado?', 'POSSUI_ESTORNO'),
         ('Data e hora de criação', 'criado_em'),
         ('Data e hora da última atualização', 'alterado_em'),
+        ('UUID do rateio', 'uuid'),
 ]
 
-class ExportacoesDadosRelacaoBensService:
+
+class ExportacoesRateiosService:
 
     def __init__(self, **kwargs):
         self.queryset = kwargs.get('queryset', None)
@@ -37,7 +59,7 @@ class ExportacoesDadosRelacaoBensService:
         self.data_final = kwargs.get('data_final', None)
         self.nome_arquivo = kwargs.get('nome_arquivo', None)
         self.user = kwargs.get('user', None)
-        self.cabecalho = CABECALHO_RELACAO_BENS
+        self.cabecalho = CABECALHO_RATEIOS
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
 
@@ -46,12 +68,12 @@ class ExportacoesDadosRelacaoBensService:
         ambiente = Ambiente.objects.first()
         return ambiente.prefixo if ambiente else ""
 
-    def exporta_relacao_bens(self):
+    def exporta_rateios(self):
         self.cria_registro_central_download()
-        self.filtra_range_data('criado_em')
-        self.exporta_relacao_bens_csv()
+        self.filtra_range_data('despesa__criado_em')
+        self.exporta_rateios_csv()
 
-    def exporta_relacao_bens_csv(self):
+    def exporta_rateios_csv(self):
         dados = self.monta_dados()
 
         with NamedTemporaryFile(
@@ -74,22 +96,69 @@ class ExportacoesDadosRelacaoBensService:
         linhas_vertical = []
 
         for instance in self.queryset:
-            logger.info(f"Iniciando extração de dados de relação de bens : {instance.id}.")
+            logger.info(f"Iniciando extração de dados de rateios, rateio id: {instance.id}.")
             linha_horizontal = []
 
             for _, campo in self.cabecalho:
-
-                if campo == "arquivo_pdf":
+                if campo == "despesa__data_documento":
                     campo = get_recursive_attr(instance, campo)
-                    url = ""
+                    data_documento_formatado = campo.strftime("%d/%m/%Y") if campo else ""
+                    linha_horizontal.append(data_documento_formatado)
+                    continue
 
-                    if campo:
-                        if self.ambiente == "local":
-                            url = f"http://127.0.0.1:8000{campo.url}"
-                        else:
-                            url = f"https://{self.ambiente}.sme.prefeitura.sp.gov.br{campo.url}"
+                if campo == "despesa__data_transacao":
+                    campo = get_recursive_attr(instance, campo)
+                    data_transacao_formatado = campo.strftime("%d/%m/%Y") if campo else ""
+                    linha_horizontal.append(data_transacao_formatado)
+                    continue
 
-                    linha_horizontal.append(url)
+                if campo == "valor_item_capital":
+                    valor_capital = str(getattr(instance, campo)).replace(".", ",")
+                    linha_horizontal.append(valor_capital)
+                    continue
+
+                if campo == "valor_rateio":
+                    valor_rateio = str(getattr(instance, campo)).replace(".", ",")
+                    linha_horizontal.append(valor_rateio)
+                    continue
+
+                if campo == "valor_original":
+                    valor_original = str(getattr(instance, campo)).replace(".", ",")
+                    linha_horizontal.append(valor_original)
+                    continue
+
+                if campo == "status":
+                    campo = get_recursive_attr(instance, campo)
+                    status = "Completo" if campo == "COMPLETO" else "Rascunho"
+                    linha_horizontal.append(status)
+                    continue
+
+                if campo == "conferido":
+                    campo = get_recursive_attr(instance, campo)
+                    conferido = "Sim" if campo else "Não"
+                    linha_horizontal.append(conferido)
+                    continue
+
+                if campo == "saida_de_recurso_externo":
+                    campo = get_recursive_attr(instance, campo)
+                    saido_recurso_externo = "Sim" if campo else "Não"
+                    linha_horizontal.append(saido_recurso_externo)
+                    continue
+
+                if campo == "eh_despesa_sem_comprovacao_fiscal":
+                    campo = get_recursive_attr(instance, campo)
+                    eh_despesa_sem_comprovao = "Sim" if campo else "Não"
+                    linha_horizontal.append(eh_despesa_sem_comprovao)
+                    continue
+
+                if campo == "PAGAMENTO_ANTECIPADO":
+                    pagamento_antecipado = "Sim" if instance.despesa and instance.despesa.teve_pagamento_antecipado() else "Não"
+                    linha_horizontal.append(pagamento_antecipado)
+                    continue
+
+                if campo == "POSSUI_ESTORNO":
+                    estorno = "Sim" if instance.despesa and instance.despesa.possui_estornos() else "Não"
+                    linha_horizontal.append(estorno)
                     continue
 
                 if campo == "criado_em":
@@ -104,18 +173,12 @@ class ExportacoesDadosRelacaoBensService:
                     linha_horizontal.append(alterado_em_formatado)
                     continue
 
-                if campo == "prestacao_conta__status":
-                    campo = get_recursive_attr(instance, campo)
-                    status_pc = campo if campo else PrestacaoConta.STATUS_NAO_APRESENTADA
-                    linha_horizontal.append(status_pc)
-                    continue
-
                 campo = get_recursive_attr(instance, campo)
                 linha_horizontal.append(campo)
 
-            logger.info(f"Escrevendo linha {linha_horizontal} de relação de bens : {instance.id}.")
+            logger.info(f"Escrevendo linha {linha_horizontal} de rateios, rateio id: {instance.id}.")
             linhas_vertical.append(linha_horizontal)
-            logger.info(f"Finalizado extração de dados de relação de bens : {instance.id}.")
+            logger.info(f"Finalizando extração de dados de rateios, rateio id: {instance.id}.")
 
         return linhas_vertical
 
