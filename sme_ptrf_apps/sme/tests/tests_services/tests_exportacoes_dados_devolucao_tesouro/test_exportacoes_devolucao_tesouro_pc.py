@@ -160,7 +160,7 @@ def test_filtra_range_data_sem_data_inicio_e_sem_data_final(queryset_ordered):
 
 def test_cria_registro_central_download(usuario_para_teste):
     exportacao_saldo_final = ExportacoesDevolucaoTesouroPrestacoesContaService(
-        nome_arquivo='pcs_saldo_final_periodo.csv',
+        nome_arquivo='pcs_devolucoes_tesouro.csv',
         user=usuario_para_teste.username
     )
 
@@ -168,7 +168,7 @@ def test_cria_registro_central_download(usuario_para_teste):
     objeto_arquivo_download = exportacao_saldo_final.objeto_arquivo_download
 
     assert objeto_arquivo_download.status == ArquivoDownload.STATUS_EM_PROCESSAMENTO
-    assert objeto_arquivo_download.identificador == 'pcs_saldo_final_periodo.csv'
+    assert objeto_arquivo_download.identificador == 'pcs_devolucoes_tesouro.csv'
     assert ArquivoDownload.objects.count() == 1
 
 def test_envia_arquivo_central_download(usuario_para_teste):
@@ -182,7 +182,7 @@ def test_envia_arquivo_central_download(usuario_para_teste):
         file.write("testando central de download")
 
         exportacao_relacao_bens = ExportacoesDevolucaoTesouroPrestacoesContaService(
-            nome_arquivo='pcs_relacoes_bens.csv',
+            nome_arquivo='pcs_devolucoes_tesouro.csv',
             user=usuario_para_teste.username
         )
         exportacao_relacao_bens.cria_registro_central_download()
@@ -190,5 +190,5 @@ def test_envia_arquivo_central_download(usuario_para_teste):
         objeto_arquivo_download = exportacao_relacao_bens.objeto_arquivo_download
 
     assert objeto_arquivo_download.status == ArquivoDownload.STATUS_CONCLUIDO
-    assert objeto_arquivo_download.identificador == 'pcs_relacoes_bens.csv'
+    assert objeto_arquivo_download.identificador == 'pcs_devolucoes_tesouro.csv'
     assert ArquivoDownload.objects.count() == 1
