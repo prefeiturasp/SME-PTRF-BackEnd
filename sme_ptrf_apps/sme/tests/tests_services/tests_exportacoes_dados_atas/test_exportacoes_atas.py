@@ -26,6 +26,8 @@ def test_cabecalho():
         'Convocação',
         'Presidente da reunião',
         'Cargo do presidente',
+        'Secretário da reunião',
+        'Cargo do secretário',
         'Justificativas de repasses pendentes',
         'Manifestações',
         'Retificações',
@@ -58,6 +60,8 @@ def test_dados_esperados_csv(queryset_ordered, ambiente):
         ata.convocacao,
         ata.presidente_reuniao,
         ata.cargo_presidente_reuniao,
+        ata.secretario_reuniao,
+        ata.cargo_secretaria_reuniao,
         ata.justificativa_repasses_pendentes,
         ata.comentarios,
         ata.retificacoes,
@@ -150,18 +154,18 @@ def test_envia_arquivo_central_download(usuario_para_teste):
         mode="r+",
         newline='',
         encoding='utf-8',
-        prefix='pcs_relacoes_bens',
+        prefix='pcs_atas',
         suffix='.csv'
     ) as file:
         file.write("testando central de download")
 
-        exportacao_relacao_bens = ExportacoesAtasService(
+        exportacao_atas = ExportacoesAtasService(
             nome_arquivo='pcs_atas.csv',
             user=usuario_para_teste.username
         )
-        exportacao_relacao_bens.cria_registro_central_download()
-        exportacao_relacao_bens.envia_arquivo_central_download(file)
-        objeto_arquivo_download = exportacao_relacao_bens.objeto_arquivo_download
+        exportacao_atas.cria_registro_central_download()
+        exportacao_atas.envia_arquivo_central_download(file)
+        objeto_arquivo_download = exportacao_atas.objeto_arquivo_download
 
     assert objeto_arquivo_download.status == ArquivoDownload.STATUS_CONCLUIDO
     assert objeto_arquivo_download.identificador == 'pcs_atas.csv'

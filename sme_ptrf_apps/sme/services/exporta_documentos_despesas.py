@@ -14,34 +14,35 @@ from tempfile import NamedTemporaryFile
 
 logger = logging.getLogger(__name__)
 
-CABECALHO_ATAS = [
+CABECALHO_DOCS = [
         ('Código EOL', 'associacao__unidade__codigo_eol'),
         ('Nome unidade', 'associacao__unidade__nome'),
         ('Nome associação', 'associacao__nome'),
-        ('Referência do período da PC', 'periodo__referencia'),
-        ('Tipo de ata', 'tipo_ata'),
-        ('Tipo de reunião', 'tipo_reuniao'),
-        ('Data da reunião', 'data_reuniao'),
-        ('Hora da reunião', 'hora_reuniao'),
-        ('Local da reunião', 'local_reuniao'),
-        ('Convocação', 'convocacao'),
-        ('Presidente da reunião', 'presidente_reuniao'),
-        ('Cargo do presidente', 'cargo_presidente_reuniao'),
-        ('Secretário da reunião', 'secretario_reuniao'),
-        ('Cargo do secretário', 'cargo_secretaria_reuniao'),
-        ('Justificativas de repasses pendentes', 'justificativa_repasses_pendentes'),
-        ('Manifestações', 'comentarios'),
-        ('Retificações', 'retificacoes'),
-        ('Parecer dos presentes', 'parecer_conselho'),
-        ('Data e hora de preenchimento', 'preenchida_em'),
-        ('URL do arquivo PDF', 'arquivo_pdf'),
-        ('Status', 'status_geracao_pdf'),
+        ('ID do gasto', 'id'),
+        ('É despesa sem comprovação fiscal?', 'eh_despesa_sem_comprovacao_fiscal'),
+        ('É despesa reconhecida pela Associação?', 'eh_despesa_reconhecida_pela_associacao'),
+        ('Número do documento', 'numero_documento'),
+        ('Tipo de documento', 'tipo_documento__nome'),
+        ('Data do documento', 'data_documento'),
+        ('CPF_CNPJ do fornecedor', 'cpf_cnpj_fornecedor'),
+        ('Nome do fornecedor', 'nome_fornecedor'),
+        ('Tipo de transação', 'tipo_transacao__nome'),
+        ('Número do documento de transação', 'documento_transacao'),
+        ('Data da transação', 'data_transacao'),
+        ('Valor total do documento', 'valor_total'),
+        ('Valor realizado', 'valor_original'),
+        ('Valor pago com recursos próprios', 'valor_recursos_proprios'),
+        ('Número do Boletim de Ocorrência', 'numero_boletim_de_ocorrencia'),
+        ('Retem impostos?', 'retem_imposto'),
+        ('Descrição do motivo de pagamento antecipado', 'motivos'),
+        ('É saída de recurso externo?', 'saida_recurso_externo'),
+        ('Status do gasto', 'status'),
         ('Data e hora de criação', 'criado_em'),
-        ('Data e hora da última atualização', 'alterado_em')
+        ('Data e hora da última atualização', 'alterado_em'),
+        ('UUID do gasto', 'uuid')
 ]
 
-
-class ExportacoesAtasService:
+class ExportacoesDocumentosDespesasService:
 
     def __init__(self, **kwargs):
         self.queryset = kwargs.get('queryset', None)
@@ -49,7 +50,7 @@ class ExportacoesAtasService:
         self.data_final = kwargs.get('data_final', None)
         self.nome_arquivo = kwargs.get('nome_arquivo', None)
         self.user = kwargs.get('user', None)
-        self.cabecalho = CABECALHO_ATAS
+        self.cabecalho = CABECALHO_DOCS
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
 
@@ -58,12 +59,12 @@ class ExportacoesAtasService:
         ambiente = Ambiente.objects.first()
         return ambiente.prefixo if ambiente else ""
 
-    def exporta_atas(self):
+    def exporta_despesas(self):
         self.cria_registro_central_download()
         self.filtra_range_data('criado_em')
-        self.exporta_atas_csv()
+        self.exporta_despesas_csv()
 
-    def exporta_atas_csv(self):
+    def exporta_despesas_csv(self):
         dados = self.monta_dados()
 
         with NamedTemporaryFile(
@@ -86,41 +87,66 @@ class ExportacoesAtasService:
         linhas_vertical = []
 
         for instance in self.queryset:
-            logger.info(f"Iniciando extração de dados de atas, ata id: {instance.id}.")
+
+            logger.info(f"Iniciando extração de dados de despesas, despesa id: {instance.id}.")
             linha_horizontal = []
 
+            motivos = list(instance.motivos_pagamento_antecipado.all())
+
             for _, campo in self.cabecalho:
-                if campo == "data_reuniao":
+                if campo == "eh_despesa_sem_comprovacao_fiscal":
                     campo = get_recursive_attr(instance, campo)
-                    data_reuniao_formatado = campo.strftime("%d/%m/%Y") if campo else ""
-                    linha_horizontal.append(data_reuniao_formatado)
+                    linha_horizontal.append("Sim" if campo else "Não")
                     continue
 
-                if campo == "hora_reuniao":
+                if campo == "eh_despesa_reconhecida_pela_associacao":
                     campo = get_recursive_attr(instance, campo)
-                    hora_reuniao_formatado = campo.strftime("%H:%M") if campo else ""
-                    if hora_reuniao_formatado == "00:00":
-                        hora_reuniao_formatado = ""
-                    linha_horizontal.append(hora_reuniao_formatado)
+                    linha_horizontal.append("Sim" if campo else "Não")
                     continue
 
-                if campo == "preenchida_em":
+                if campo == "data_transacao":
                     campo = get_recursive_attr(instance, campo)
-                    preenchida_em_formatado = campo.strftime("%d/%m/%Y") if campo else ""
-                    linha_horizontal.append(preenchida_em_formatado)
+                    data_transacao_formatada = campo.strftime("%d/%m/%Y") if campo else ""
+                    linha_horizontal.append(data_transacao_formatada)
                     continue
 
-                if campo == "arquivo_pdf":
+                if campo == "valor_total":
                     campo = get_recursive_attr(instance, campo)
-                    url = ""
+                    valor_total_formatado = str(campo).replace(".", ",") if campo is not None else ''
+                    linha_horizontal.append(valor_total_formatado)
+                    continue
+                    
+                if campo == "valor_original":
+                    campo = get_recursive_attr(instance, campo)
+                    valor_original_formatado = str(campo).replace(".", ",") if campo is not None else ''
+                    linha_horizontal.append(valor_original_formatado)
+                    continue
+                    
+                if campo == "valor_recursos_proprios":
+                    campo = get_recursive_attr(instance, campo)
+                    valor_recursos_proprios_formatado = str(campo).replace(".", ",") if campo is not None else ''
+                    linha_horizontal.append(valor_recursos_proprios_formatado)
+                    continue
 
-                    if campo:
-                        if self.ambiente == "local":
-                            url = f"http://127.0.0.1:8000{campo.url}"
-                        else:
-                            url = f"https://{self.ambiente}.sme.prefeitura.sp.gov.br{campo.url}"
+                if campo == "data_documento":
+                    campo = get_recursive_attr(instance, campo)
+                    data_documento_formatada = campo.strftime("%d/%m/%Y") if campo else ""
+                    linha_horizontal.append(data_documento_formatada)
+                    continue
 
-                    linha_horizontal.append(url)
+                if campo == "numero_boletim_de_ocorrencia":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo if campo else "")
+                    continue
+
+                if campo == "retem_imposto":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append("Sim" if campo else "Não")
+                    continue
+
+                if campo == "saida_recurso_externo":
+                    campo = instance.valor_recursos_proprios > 0
+                    linha_horizontal.append("Sim" if campo else "Não")
                     continue
 
                 if campo == "criado_em":
@@ -135,12 +161,31 @@ class ExportacoesAtasService:
                     linha_horizontal.append(alterado_em_formatado)
                     continue
 
+                if campo == "motivos":
+                    if len(instance.outros_motivos_pagamento_antecipado) > 0:
+                        motivos.append(instance.outros_motivos_pagamento_antecipado)
+                    linha_horizontal.append('')
+                    continue
+
+                if campo == "uuid":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(str(campo))
+                    continue
+
                 campo = get_recursive_attr(instance, campo)
                 linha_horizontal.append(campo)
-
-            logger.info(f"Escrevendo linha {linha_horizontal} de atas, ata id: {instance.id}.")
-            linhas_vertical.append(linha_horizontal)
-            logger.info(f"Finalizando extração de dados de atas, ata id: {instance.id}.")
+            
+            if len(motivos) > 0:
+                for motivo in motivos:
+                    linha_nova = linha_horizontal.copy()
+                    linha_nova[19] = str(motivo)
+                    logger.info(f"Escrevendo linha {linha_nova} de despesas, despesa id: {instance.id}.")
+                    linhas_vertical.append(linha_nova)
+            else:
+                logger.info(f"Escrevendo linha {linha_horizontal} de despesas, despesa id: {instance.id}.")
+                linhas_vertical.append(linha_horizontal)
+            
+            logger.info(f"Finalizando extração de dados de despesas, despesa id: {instance.id}.")
 
         return linhas_vertical
 
@@ -192,7 +237,6 @@ class ExportacoesAtasService:
             self.objeto_arquivo_download.msg_erro = str(e)
             self.objeto_arquivo_download.save()
             logger.error("Erro arquivo download...")
-
 
     def texto_rodape(self):
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
