@@ -17,13 +17,43 @@ from sme_ptrf_apps.sme.services.exporta_saldo_final_periodo_pc_service import Ex
 from sme_ptrf_apps.sme.services.exporta_relacao_bens_pc import ExportacoesDadosRelacaoBensService
 from sme_ptrf_apps.sme.services.exporta_devolucao_tesouro_prestacoes_conta import ExportacoesDevolucaoTesouroPrestacoesContaService
 from sme_ptrf_apps.sme.services.exporta_rateios_service import ExportacoesRateiosService
-from sme_ptrf_apps.core.models import FechamentoPeriodo, RelacaoBens
+from sme_ptrf_apps.sme.services.exporta_demonstrativos_financeiros_service import ExportaDemonstrativosFinanceirosService
+from sme_ptrf_apps.core.models import FechamentoPeriodo, RelacaoBens, DemonstrativoFinanceiro
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_INATIVO
 
 
 logger = logging.getLogger(__name__)
 
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=30000
+)
+def exportar_demonstativos_financeiros_async(data_inicio, data_final, username):
+    logger.info("Exportando csv em processamento...")
+
+    queryset = DemonstrativoFinanceiro.objects.all().order_by('id')
+
+    try:
+        logger.info("Criando arquivo %s pcs_demonstrativos.csv")
+        params = {
+            'queryset': queryset,
+            'data_inicio': data_inicio,
+            'data_final': data_final,
+            'user': username,
+        }
+
+        ExportaDemonstrativosFinanceirosService(
+            **params,
+            nome_arquivo='pcs_demonstrativos.csv'
+        ).exporta_demonstrativos_financeiros()
+
+    except Exception as e:
+        logger.error(f"Erro ao exportar csv: {e}")
+        raise e
 
 @shared_task(
     retry_backoff=2,
