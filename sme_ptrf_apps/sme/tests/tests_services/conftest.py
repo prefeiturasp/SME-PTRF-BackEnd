@@ -5,7 +5,7 @@ from model_bakery import baker
 from django.contrib.auth import get_user_model
 from sme_ptrf_apps.receitas.models.receita import Receita
 from sme_ptrf_apps.receitas.models.motivo_estorno import MotivoEstorno
-from sme_ptrf_apps.core.models import FechamentoPeriodo, PrestacaoConta, RelacaoBens
+from sme_ptrf_apps.core.models import FechamentoPeriodo, PrestacaoConta, RelacaoBens, DemonstrativoFinanceiro
 
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.template.loader import get_template
@@ -136,6 +136,22 @@ def arquivo_pdf_relacao_bens():
     return SimpleUploadedFile(filename, pdf_file, content_type='application/pdf')
 
 @pytest.fixture
+def arquivo_pdf_demonstrativo_financeiro():
+    html_template = get_template('pdf/demonstrativo_financeiro/pdf-horizontal.html')
+    rendered_html = html_template.render(
+        {'dados': {}, 'base_static_url': staticfiles_storage.location})
+
+    pdf_file = HTML(
+        string=rendered_html,
+        base_url=staticfiles_storage.location
+    ).write_pdf(
+        stylesheets=[CSS(staticfiles_storage.location + '/css/pdf-demo-financeiro-horizontal.css')])
+
+    filename = 'demonstrativo_financeiro_pdf_%s.pdf'
+
+    return SimpleUploadedFile(filename, pdf_file, content_type='application/pdf')
+
+@pytest.fixture
 def relacao_bens_queryset(prestacao_conta_2020_1, conta_associacao, arquivo_pdf_relacao_bens):
     baker.make(
         'RelacaoBens',
@@ -154,6 +170,38 @@ def relacao_bens_queryset(prestacao_conta_2020_1, conta_associacao, arquivo_pdf_
     )
 
     return RelacaoBens.objects.all()
+
+@pytest.fixture
+def demonstrativo_financeiro_queryset(prestacao_conta_2020_1, conta_associacao, arquivo_pdf_demonstrativo_financeiro):
+    baker.make(
+        'DemonstrativoFinanceiro',
+        arquivo_pdf=arquivo_pdf_demonstrativo_financeiro,
+        conta_associacao=conta_associacao,
+        prestacao_conta=prestacao_conta_2020_1,
+        periodo_previa=None
+    )
+
+    baker.make(
+        'DemonstrativoFinanceiro',
+        arquivo_pdf=arquivo_pdf_demonstrativo_financeiro,
+        conta_associacao=conta_associacao,
+        prestacao_conta=prestacao_conta_2020_1,
+        periodo_previa=None
+    )
+
+    return DemonstrativoFinanceiro.objects.all()
+
+@pytest.fixture
+def observacao_conciliacao_teste_exportacao(periodo_2020_1, conta_associacao):
+    return baker.make(
+        'ObservacaoConciliacao',
+        periodo=periodo_2020_1,
+        associacao=conta_associacao.associacao,
+        conta_associacao=conta_associacao,
+        texto="Uma bela observação.",
+        data_extrato = datetime.date(2020, 7, 1),
+        saldo_extrato = 1000
+    )
 
 @pytest.fixture
 def tipo_documento():

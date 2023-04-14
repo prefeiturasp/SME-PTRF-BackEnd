@@ -8,7 +8,9 @@ from rest_framework.status import HTTP_201_CREATED
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.sme.tasks import exportar_atas_async, exportar_materiais_e_servicos_async, \
     exportar_receitas_async, exportar_saldos_finais_periodo_async, exportar_relacao_bens_async, \
-    exportar_status_prestacoes_contas_async, exportar_devolucoes_ao_tesouro_async, exportar_rateios_async
+    exportar_status_prestacoes_contas_async, exportar_devolucoes_ao_tesouro_async, exportar_rateios_async, \
+    exportar_demonstativos_financeiros_async
+
 from sme_ptrf_apps.users.permissoes import PermissaoAPIApenasSmeComLeituraOuGravacao
 
 logger = logging.getLogger(__name__)
@@ -18,6 +20,23 @@ class ExportacoesDadosViewSet(GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
     lookup_field = 'uuid'
     queryset = ArquivoDownload.objects.all()
+
+    @action(
+        detail=False, methods=['get'],
+        url_path='demonstrativos-financeiros',
+        permission_classes=permission_classes
+    )
+    def demonstrativos_financeiros(self, request):
+        exportar_demonstativos_financeiros_async.delay(
+            data_inicio=request.query_params.get('data_inicio'),
+            data_final=request.query_params.get('data_final'),
+            username=request.user.username
+        )
+
+        return Response(
+            {'response': "Arquivo gerado com sucesso, enviado para a central de download"},
+            status=HTTP_201_CREATED
+        )
 
     @action(
         detail=False, methods=['get'],
@@ -103,6 +122,7 @@ class ExportacoesDadosViewSet(GenericViewSet):
             {'response': "Arquivo gerado com sucesso, enviado para a central de download"},
             status=HTTP_201_CREATED
         )
+
     @action(
         detail=False, methods=['get'],
         url_path='devolucao-ao-tesouro-prestacoes-contas',
@@ -136,7 +156,7 @@ class ExportacoesDadosViewSet(GenericViewSet):
             {'response': "Arquivo gerado com sucesso, enviado para a central de download"},
             status=HTTP_201_CREATED
         )
-    
+
     @action(
         detail=False, methods=['get'],
         url_path='atas-prestacoes-contas',
