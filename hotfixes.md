@@ -1,3 +1,6 @@
+### 7.0.2 - 10/04/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 63
+* (89801) Corrige Impossível deletar despesa rascunho
+
 ### 7.0.1 - 10/04/2023 - Hotfix - Soluções de bugs urgentes durante a sprint 63
 * (90604) Corrige Registros de análise de lançamento duplicados
 
