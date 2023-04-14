@@ -21,7 +21,7 @@ def ambiente():
     )
 
 @pytest.fixture
-def arquivo_pdf_relacao_bens():
+def arquivo_pdf_atas():
     html_template = get_template('pdf/ata/pdf.html')
 
     rendered_html = html_template.render({'dados': {}, 'base_static_url': staticfiles_storage.location})
@@ -37,7 +37,7 @@ def arquivo_pdf_relacao_bens():
     return SimpleUploadedFile(filename, pdf_file, content_type='application/pdf')
 
 @pytest.fixture
-def ata_prestacao_conta(prestacao_conta, arquivo_pdf_relacao_bens):
+def ata_prestacao_conta(prestacao_conta, arquivo_pdf_atas):
     return baker.make(
         'Ata',
         prestacao_conta=prestacao_conta,
@@ -57,7 +57,7 @@ def ata_prestacao_conta(prestacao_conta, arquivo_pdf_relacao_bens):
         justificativa_repasses_pendentes='Justificativa teste',
         parecer_conselho='APROVADA',
         hora_reuniao=datetime.time(12, 30, 0),
-        arquivo_pdf=arquivo_pdf_relacao_bens,
+        arquivo_pdf=arquivo_pdf_atas,
         preenchida_em=date(2020, 7, 2)
     )
 
