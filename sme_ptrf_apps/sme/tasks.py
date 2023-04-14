@@ -2,8 +2,8 @@ import logging
 
 from celery import shared_task
 from sme_ptrf_apps.core.models.ata import Ata
-from sme_ptrf_apps.core.models.devolucao_ao_tesouro import DevolucaoAoTesouro
 from sme_ptrf_apps.core.models.solicitacao_devolucao_ao_tesouro import SolicitacaoDevolucaoAoTesouro
+from sme_ptrf_apps.despesas.models.despesa import Despesa
 from sme_ptrf_apps.despesas.models.especificacao_material_servico import EspecificacaoMaterialServico
 from sme_ptrf_apps.despesas.models.tipo_custeio import TipoCusteio
 from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
@@ -11,6 +11,7 @@ from sme_ptrf_apps.receitas.models.receita import Receita
 from sme_ptrf_apps.sme.services.exporta_atas_service import ExportacoesAtasService
 from sme_ptrf_apps.sme.services.exporta_dados_creditos_service import ExportacoesDadosCreditosService
 from sme_ptrf_apps.dre.models import AnaliseConsolidadoDre
+from sme_ptrf_apps.sme.services.exporta_documentos_despesas import ExportacoesDocumentosDespesasService
 from sme_ptrf_apps.sme.services.exporta_materiais_e_servicos_service import ExportacoesDadosMateriaisEServicosService
 from sme_ptrf_apps.sme.services.exporta_status_prestacoes_conta_service import ExportacoesStatusPrestacoesContaService
 from sme_ptrf_apps.sme.services.exporta_saldo_final_periodo_pc_service import ExportacoesDadosSaldosFinaisPeriodoService
@@ -304,6 +305,37 @@ def exportar_atas_async(data_inicio, data_final, username):
             **params,
             nome_arquivo='pcs_atas.csv'
         ).exporta_atas()
+
+    except Exception as e:
+        logger.error(f"Erro ao exportar csv: {e}")
+        raise e
+
+    logger.info("Exportação csv finalizada com sucesso.")
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300000
+)
+def exportar_documentos_despesas_async(data_inicio, data_final, username):
+    logger.info("Exportando csv em processamento...")
+
+    queryset = Despesa.objects.all().order_by("criado_em")
+
+    try:
+        logger.info("Criando arquivo %s despesas_documento.csv")
+        params = {
+            'queryset': queryset,
+            'data_inicio': data_inicio,
+            'data_final': data_final,
+            'user': username,
+        }
+
+        ExportacoesDocumentosDespesasService(
+            **params,
+            nome_arquivo='despesas_documento.csv'
+        ).exporta_despesas()
 
     except Exception as e:
         logger.error(f"Erro ao exportar csv: {e}")

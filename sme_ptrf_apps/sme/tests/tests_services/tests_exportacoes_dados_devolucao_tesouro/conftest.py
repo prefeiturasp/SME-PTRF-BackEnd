@@ -1,14 +1,8 @@
 import pytest
-import datetime
-
-from datetime import date, timedelta
-
+from datetime import date
 from model_bakery import baker
-from sme_ptrf_apps.core.models.devolucao_ao_tesouro import DevolucaoAoTesouro
 
-from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
 from sme_ptrf_apps.core.models.solicitacao_devolucao_ao_tesouro import SolicitacaoDevolucaoAoTesouro
-from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO
 
 pytestmark = pytest.mark.django_db
 
