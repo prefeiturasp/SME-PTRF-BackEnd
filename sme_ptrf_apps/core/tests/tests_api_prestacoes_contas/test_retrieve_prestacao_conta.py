@@ -225,6 +225,7 @@ def test_api_retrieve_prestacao_conta_por_uuid(
             'cnpj': '52.302.275/0001-83',
             'email': 'ollyverottoboni@gmail.com',
             'nome': 'Escola Teste',
+            'data_de_encerramento': None,
             'presidente_associacao': {
                 'bairro': '',
                 'cargo_educacao': '',

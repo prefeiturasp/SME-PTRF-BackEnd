@@ -23,6 +23,7 @@ def test_api_previa_prestacao_conta_por_periodo_e_associacao(jwt_authenticated_c
             'cnpj': '52.302.275/0001-83',
             'email': 'ollyverottoboni@gmail.com',
             'nome': 'Escola Teste',
+            'data_de_encerramento': None,
             'presidente_associacao': {
                 'bairro': '',
                 'cargo_educacao': '',

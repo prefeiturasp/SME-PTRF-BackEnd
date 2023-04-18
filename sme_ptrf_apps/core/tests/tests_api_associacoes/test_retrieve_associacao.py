@@ -65,6 +65,7 @@ def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, preside
             'cnpj': f'{associacao.cnpj}',
             'email': f'{associacao.email}',
             'nome': f'{associacao.nome}',
+            'data_de_encerramento': None,
             'presidente_associacao': {
                 'nome': presidente_associacao.nome,
                 'email': presidente_associacao.email,
@@ -231,6 +232,7 @@ def test_api_retrieve_associacao_apenas_com_permissao_ver_dados_unidade_dre(jwt_
             'cnpj': f'{associacao.cnpj}',
             'email': f'{associacao.email}',
             'nome': f'{associacao.nome}',
+            'data_de_encerramento': None,
             'presidente_associacao': {
                 'nome': presidente_associacao.nome,
                 'email': presidente_associacao.email,

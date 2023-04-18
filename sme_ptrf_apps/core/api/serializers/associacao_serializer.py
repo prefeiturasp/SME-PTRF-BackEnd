@@ -31,7 +31,7 @@ class AssociacaoLookupSerializer(serializers.ModelSerializer):
 
 class AssociacaoCreateSerializer(serializers.ModelSerializer):
     observacao = serializers.CharField(source="unidade__observacao", required=False, allow_blank=True, allow_null=True)
-    
+
     unidade = UnidadeCreateSerializer(many=False)
     periodo_inicial = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -118,6 +118,7 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
             'nome',
             'cnpj',
             'status_valores_reprogramados',
+            'data_de_encerramento',
             'unidade'
         ]
 
@@ -139,5 +140,6 @@ class AssociacaoCompletoSerializer(serializers.ModelSerializer):
             'presidente_conselho_fiscal',
             'processo_regularidade',
             'periodo_inicial',
+            'data_de_encerramento',
             'id'
         ]
