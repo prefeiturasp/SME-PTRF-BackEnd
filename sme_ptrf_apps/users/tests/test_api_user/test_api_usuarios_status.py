@@ -136,33 +136,28 @@ def test_get_usuario_status_nao_servidor_membro_associacoes(
         username = '00746198701'
         response = jwt_authenticated_client_u.get(f'/api/usuarios/status/?username={username}&servidor=False')
 
-        usuario_sig_escola_esperado = {
-            'info_sig_escola': {
-                'visoes': ['UE', 'DRE'],
-                'unidades': ['123456', ],
-                'user_id': usuario_nao_servidor.id
-            },
-            'mensagem': 'Usuário encontrado no Sig.Escola.',
-            'associacoes_que_e_membro': [f'{associacao_271170.uuid}', ],
+        usuario_core_sso ={
+            'info_core_sso': None,
+            'mensagem': 'Usuário não encontrado no CoreSSO.'
         }
-        esperado = {
-            'usuario_core_sso': {
-                'info_core_sso': None,
-                'mensagem': 'Usuário não encontrado no CoreSSO.'
-            },
-            'usuario_sig_escola': usuario_sig_escola_esperado,
-            'validacao_username': {
-                'username_e_valido': True,
-                'mensagem': "",
-            },
-            'e_servidor_na_unidade': False
+
+        validacao_username = {
+            'username_e_valido': True,
+            'mensagem': "",
         }
 
         result = json.loads(response.content)
-        assert response.status_code == status.HTTP_200_OK
 
-        # TODO Rever assert. A ordem das visões muda de teste para teste.
-        # assert result == esperado
+        assert result["usuario_core_sso"] == usuario_core_sso
+        assert "UE" in result["usuario_sig_escola"]["info_sig_escola"]["visoes"]
+        assert "DRE" in result["usuario_sig_escola"]["info_sig_escola"]["visoes"]
+        assert "123456" in result["usuario_sig_escola"]["info_sig_escola"]["unidades"]
+        assert result["usuario_sig_escola"]["info_sig_escola"]["user_id"] == usuario_nao_servidor.id
+        assert result["usuario_sig_escola"]["mensagem"] == "Usuário encontrado no Sig.Escola."
+        assert f'{associacao_271170.uuid}' in result["usuario_sig_escola"]["associacoes_que_e_membro"]
+        assert result["validacao_username"] == validacao_username
+        assert result["e_servidor_na_unidade"] is False
+        assert response.status_code == status.HTTP_200_OK
 
 
 def test_get_usuario_status_servidor_lotado_na_unidade(jwt_authenticated_client_u, unidade_ue_271170, usuario_para_teste):

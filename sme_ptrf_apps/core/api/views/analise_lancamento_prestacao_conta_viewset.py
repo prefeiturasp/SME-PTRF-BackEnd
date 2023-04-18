@@ -327,3 +327,10 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, url_path='tags-informacoes-conferencia',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def tags_informacoes_conferencia_list(self, request):
+
+        result = AnaliseLancamentoPrestacaoConta.get_tags_informacoes_de_conferencia_list()
+
+        return Response(result)
