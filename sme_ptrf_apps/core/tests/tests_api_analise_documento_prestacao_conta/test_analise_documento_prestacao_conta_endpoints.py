@@ -291,3 +291,8 @@ def test_endpoint_justificar_nao_realizado_sem_justificativa(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+
+def test_endpoint_tags_informacoes_conferencia(jwt_authenticated_client_a):
+    response = jwt_authenticated_client_a.get( f'/api/analises-documento-prestacao-conta/tags-informacoes-conferencia/')
+
+    assert response.status_code == status.HTTP_200_OK
