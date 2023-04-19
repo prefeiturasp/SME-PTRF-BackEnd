@@ -54,6 +54,7 @@ class AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer(
             'requer_exclusao_lancamento',
             'requer_ajustes_externos',
             'requer_esclarecimentos',
+            'houve_considerados_corretos_automaticamente',
         )
 
 
@@ -110,6 +111,7 @@ class AnaliseLancamentoPrestacaoContaRetrieveSerializer(serializers.ModelSeriali
             'requer_esclarecimentos',
             'requer_conciliacao_lancamento',
             'requer_desconciliacao_lancamento',
-            'conciliacao_atualizada'
+            'conciliacao_atualizada',
+            'houve_considerados_corretos_automaticamente',
         )
 
