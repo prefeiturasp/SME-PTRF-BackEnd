@@ -12,6 +12,7 @@ from ....core.choices import MembroEnum, RepresentacaoCargo
 
 pytestmark = pytest.mark.django_db
 
+
 @pytest.fixture
 def presidente_associacao(associacao):
     return baker.make(
@@ -24,6 +25,7 @@ def presidente_associacao(associacao):
         codigo_identificacao='567432',
         email='arthur@gmail.com'
     )
+
 
 @pytest.fixture
 def presidente_conselho_fiscal(associacao):
@@ -49,14 +51,15 @@ def censo(unidade):
     )
 
 
-def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, presidente_associacao, presidente_conselho_fiscal, censo):
+def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, presidente_associacao,
+                                 presidente_conselho_fiscal, censo):
     from unittest.mock import patch
     with patch('sme_ptrf_apps.core.api.views.associacoes_viewset.atualiza_dados_unidade') as mock_patch:
-        response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/', content_type='application/json')
+        response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/',
+                                                  content_type='application/json')
         result = json.loads(response.content)
 
         mock_patch.return_value = None
-
 
         result_esperado = {
             'uuid': f'{associacao.uuid}',
@@ -65,7 +68,10 @@ def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, preside
             'cnpj': f'{associacao.cnpj}',
             'email': f'{associacao.email}',
             'nome': f'{associacao.nome}',
-            'data_de_encerramento': None,
+            'data_de_encerramento': {
+                'data': None,
+                'help_text': 'A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.'
+            },
             'presidente_associacao': {
                 'nome': presidente_associacao.nome,
                 'email': presidente_associacao.email,
@@ -81,6 +87,11 @@ def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, preside
                 'cargo_educacao': presidente_conselho_fiscal.cargo_educacao
             },
             'processo_regularidade': '123456',
+            'retorna_se_pode_editar_periodo_inicial': {
+                'mensagem_pode_editar_periodo_inicial': 'Não é permitido alterar o período inicial da Associação, pois há valores reprogramados cadastrados conferidos como corretos no início de uso do sistema.',
+                'pode_editar_periodo_inicial': False,
+                "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
+            },
             'periodo_inicial': {
                 'data_fim_realizacao_despesas': '2019-08-31',
                 'data_inicio_realizacao_despesas': '2019-01-01',
@@ -145,7 +156,6 @@ def grupo_permissoes_unidades_dre(permissoes_ver_dados_unidade_dre):
 
 @pytest.fixture
 def usuario_permissao_unidades_dre(unidade, grupo_permissoes_unidades_dre):
-
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
     login = '7210418'
@@ -217,10 +227,13 @@ def jwt_authenticated_client_sem_permissao(client, usuario_sem_permissao_unidade
     return api_client
 
 
-def test_api_retrieve_associacao_apenas_com_permissao_ver_dados_unidade_dre(jwt_authenticated_client_a, associacao, presidente_associacao, presidente_conselho_fiscal, censo):
+def test_api_retrieve_associacao_apenas_com_permissao_ver_dados_unidade_dre(jwt_authenticated_client_a, associacao,
+                                                                            presidente_associacao,
+                                                                            presidente_conselho_fiscal, censo):
     from unittest.mock import patch
     with patch('sme_ptrf_apps.core.api.views.associacoes_viewset.atualiza_dados_unidade') as mock_patch:
-        response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/', content_type='application/json')
+        response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/',
+                                                  content_type='application/json')
         result = json.loads(response.content)
 
         mock_patch.return_value = None
@@ -232,7 +245,10 @@ def test_api_retrieve_associacao_apenas_com_permissao_ver_dados_unidade_dre(jwt_
             'cnpj': f'{associacao.cnpj}',
             'email': f'{associacao.email}',
             'nome': f'{associacao.nome}',
-            'data_de_encerramento': None,
+            'data_de_encerramento': {
+                'data': None,
+                'help_text': 'A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.'
+            },
             'presidente_associacao': {
                 'nome': presidente_associacao.nome,
                 'email': presidente_associacao.email,
@@ -248,6 +264,11 @@ def test_api_retrieve_associacao_apenas_com_permissao_ver_dados_unidade_dre(jwt_
                 'cargo_educacao': presidente_conselho_fiscal.cargo_educacao
             },
             'processo_regularidade': '123456',
+            'retorna_se_pode_editar_periodo_inicial': {
+                'mensagem_pode_editar_periodo_inicial': 'Não é permitido alterar o período inicial da Associação, pois há valores reprogramados cadastrados conferidos como corretos no início de uso do sistema.',
+                'pode_editar_periodo_inicial': False,
+                "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
+            },
             'periodo_inicial': {
                 'data_fim_realizacao_despesas': '2019-08-31',
                 'data_inicio_realizacao_despesas': '2019-01-01',

@@ -127,6 +127,15 @@ class AssociacaoCompletoSerializer(serializers.ModelSerializer):
     unidade = UnidadeSerializer(many=False)
     periodo_inicial = PeriodoLookUpSerializer()
 
+    data_de_encerramento = serializers.SerializerMethodField('get_data_de_encerramento')
+
+    def get_data_de_encerramento(self, obj):
+        response = {
+            "data": obj.data_de_encerramento,
+            "help_text": "A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada."
+        }
+        return response
+
     class Meta:
         model = Associacao
         fields = [
@@ -141,5 +150,6 @@ class AssociacaoCompletoSerializer(serializers.ModelSerializer):
             'processo_regularidade',
             'periodo_inicial',
             'data_de_encerramento',
-            'id'
+            'id',
+            'retorna_se_pode_editar_periodo_inicial',
         ]
