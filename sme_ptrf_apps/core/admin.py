@@ -214,7 +214,7 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
                     'total_despesas', 'saldo_reprogramado', 'status')
     list_filter = ('status', 'associacao', 'acao_associacao__acao', 'periodo', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre', 'conta_associacao__tipo_conta')
     list_display_links = ('periodo',)
-    readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre', 'uuid', 'id')
+    readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre', 'uuid', 'id', 'criado_em')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome',)
     autocomplete_fields = (
         'prestacao_conta',
@@ -236,7 +236,8 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
                     'fechamento_anterior',
                     'status',
                     'uuid',
-                    'id'
+                    'id',
+                    'criado_em'
                 )
             },
         ),
@@ -785,7 +786,7 @@ class RelacaoBensAdmin(admin.ModelAdmin):
 
     list_display_links = ('get_nome_associacao',)
 
-    readonly_fields = ('uuid', 'id',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
     search_fields = (
         'prestacao_conta__associacao__unidade__codigo_eol',
