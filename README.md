@@ -5,9 +5,24 @@ API da aplicação *SIG.Escola* da Secretaria de Educação da cidade de São Pa
 
 License: MIT
 
-Versão: 7.0.0
+Versão: 7.1.0
 
 ## Release Notes
+
+### 7.1.0 - 18/05/2023 - Entregas da Release 7.1 - (Sprint 63)
+* DRE > Consolidado das PCs: No Demonstrativo/Consolidado a coluna Devolução ao Tesouro foi alterada para exibir o valor mesclado entre as contas
+* DRE > Acompanhamento da PC: Na conferência de Lançamentos agora algumas categorias de acerto que não precisam de uma nova conferência da DRE são considerados corretos automaticamente.
+* SME > Nova extração de dados: Prestações de Contas: Status
+* SME > Nova extração de dados: Prestações de Contas: Saldo final do período
+* SME > Nova extração de dados: Prestações de Contas: Devoluções ao tesouro
+* SME > Nova extração de dados: Prestações de Contas: Demonstrativos
+* SME > Nova extração de dados: Prestações de Contas: Relação de bens
+* SME > Nova extração de dados: Prestações de Contas: Atas
+* SME > Nova extração de dados: Despesas: Documentos
+* SME > Nova extração de dados: Despesas: Classificação dos rateios
+* SME > Acompanhamento das PCs: Agora é exibido o nome completo das DREs, em vez de apenas sua sigla
+* TEC > Atualização de versão - Python 3.6.14 -> 3.8.16
+* GLO > 🐞 Correção de bugs.
 
 ### 7.0.0 - 19/01/2023 - Entregas da Release 7 - (Sprints 59 a 62)
 * UE > Análises DRE: Relatório após acertos: Melhorias no layout

@@ -197,3 +197,12 @@ class AnaliseDocumentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
         status_response = response.pop("status")
 
         return Response(response, status=status_response)
+
+
+    @action(detail=False, url_path='tags-informacoes-conferencia',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def tags_informacoes_conferencia_list(self, request):
+
+        result = AnaliseDocumentoPrestacaoConta.get_tags_informacoes_de_conferencia_list()
+
+        return Response(result)

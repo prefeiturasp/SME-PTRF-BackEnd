@@ -1093,13 +1093,10 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
     ]
     list_filter = [
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo__referencia',
-        'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
-        'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo',
         'analise_lancamento__tipo_lancamento',
         'tipo_acerto',
-        'devolucao_ao_tesouro',
         'copiado'
     ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')

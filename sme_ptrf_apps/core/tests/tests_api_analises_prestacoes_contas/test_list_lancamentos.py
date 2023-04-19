@@ -150,6 +150,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                 lancamento["mestre"].notificar_dias_nao_conferido,
                 'conferido': lancamento["mestre"].conferido,
                 'analise_lancamento': {
+                    'houve_considerados_corretos_automaticamente': False,
                     'analise_prestacao_conta': f'{lancamento["analise_lancamento"].analise_prestacao_conta.uuid}',
                     'despesa': f'{lancamento["mestre"].uuid}',
                     'id': lancamento["analise_lancamento"].id,
