@@ -54,7 +54,7 @@ class RedefinirSenhaViewSet(viewsets.ModelViewSet):
         usuario = User.objects.get(hash_redefinicao=validated_data.get('hash_redefinicao'))
         result = serialize.update(usuario, validated_data)
         if isinstance(result, Response):
-            logger.error('Erro ao alterar a senha:', result)
+            logger.error(f'Erro ao alterar a senha: {result}')
             return result
         return Response({'detail': 'Senha redefinida com sucesso'}, status=status.HTTP_200_OK)
 
