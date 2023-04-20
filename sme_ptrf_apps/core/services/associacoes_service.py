@@ -1,13 +1,15 @@
 import logging
-
+from rest_framework import status
 from .periodo_services import status_prestacao_conta_associacao
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from sme_ptrf_apps.core.choices import MembroEnum
 from sme_ptrf_apps.receitas.models.repasse import Repasse, StatusRepasse
-from ..models import PrestacaoConta, Associacao, SolicitacaoAcertoDocumento
+from ..models import PrestacaoConta, Associacao, SolicitacaoAcertoDocumento, FechamentoPeriodo
 from ...despesas.models import Despesa
-from datetime import datetime
+import datetime
+
+from ...receitas.models import Receita
 
 logger = logging.getLogger(__name__)
 
@@ -281,7 +283,186 @@ def get_implantacao_de_saldos_da_associacao(associacao):
 def formata_data(data):
     data_formatada = " - "
     if data:
-        d = datetime.strptime(str(data), '%Y-%m-%d')
+        d = datetime.datetime.strptime(str(data), '%Y-%m-%d')
         data_formatada = d.strftime("%d/%m/%Y")
 
     return f'{data_formatada}'
+
+
+class AssociacaoService:
+
+    def __init__(self, associacao):
+        self.__associacao = associacao
+
+
+    @property
+    def associacao(self):
+        return self.__associacao
+
+
+
+class ValidaDataDeEncerramento(AssociacaoService):
+    def __init__(self, associacao, data_de_encerramento):
+        super().__init__(associacao)
+        self.__data_de_encerramento = data_de_encerramento
+        self.despesas = None
+        self.receitas = None
+        self.prestacoes = None
+        self.fechamentos = None
+        self.data_inicio_realizacao_despesas = None
+        self.data_fim_realizacao_despesas = None
+        self.__set_response()
+
+
+    @property
+    def data_de_encerramento(self):
+        return self.__data_de_encerramento
+
+    def retorna_se_tem_despesa(self):
+        return Despesa.objects.filter(
+                Q(status="COMPLETO") &
+                Q(data_e_hora_de_inativacao__isnull=True) &
+                Q(associacao=self.associacao) &
+                Q(data_transacao__gte=self.data_inicio_realizacao_despesas)
+            ).exists()
+
+    def retorna_se_tem_receita(self):
+        return Receita.objects.filter(
+                Q(status="COMPLETO") &
+                Q(associacao=self.associacao) &
+                Q(data__gte=self.data_inicio_realizacao_despesas)
+            ).exists()
+
+    def retorna_se_tem_pc(self):
+        return PrestacaoConta.objects.filter(
+                associacao=self.associacao,
+                periodo__data_inicio_realizacao_despesas__gte=self.data_inicio_realizacao_despesas,
+                status__in=[PrestacaoConta.STATUS_APROVADA,
+                            PrestacaoConta.STATUS_APROVADA_RESSALVA,
+                            PrestacaoConta.STATUS_REPROVADA]
+            ).exists()
+
+    def retorna_se_tem_fechamento(self):
+        return FechamentoPeriodo.objects.filter(
+                associacao=self.associacao,
+                periodo__data_inicio_realizacao_despesas__gte=self.data_inicio_realizacao_despesas,
+            ).exists()
+
+
+    def __set_response(self):
+        self.response = {
+            'erro': 'data_valida',
+            'mensagem': 'Data de encerramento válida',
+            "status": status.HTTP_200_OK,
+        }
+
+        self.data_inicio_realizacao_despesas = self.associacao.periodo_inicial.data_inicio_realizacao_despesas if self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_inicio_realizacao_despesas else None
+        self.data_fim_realizacao_despesas = self.associacao.periodo_inicial.data_fim_realizacao_despesas if self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_fim_realizacao_despesas else None
+
+        if self.data_de_encerramento and self.data_de_encerramento > datetime.date.today():
+            self.response = {
+                'erro': 'data_invalida',
+                'mensagem': 'Data de encerramento não pode ser maior que a data de Hoje',
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return
+
+        if self.data_fim_realizacao_despesas and self.data_de_encerramento and self.data_de_encerramento < self.data_fim_realizacao_despesas:
+            self.response = {
+                'erro': 'data_invalida',
+                'mensagem': 'Data de encerramento não pode ser menor que data_fim_realizacao_despesas do período inicial',
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return
+
+        if self.data_inicio_realizacao_despesas:
+            self.despesas = self.retorna_se_tem_despesa()
+
+            self.receitas = self.retorna_se_tem_receita()
+
+            self.prestacoes = self.retorna_se_tem_pc()
+
+            self.fechamentos = self.retorna_se_tem_fechamento()
+
+        if self.despesas or self.receitas or self.prestacoes or self.fechamentos:
+            self.response = {
+                'erro': 'data_invalida',
+                'mensagem': 'Já houve movimentação após o início de uso do sistema.',
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return
+
+
+class ValidaSePodeEditarPeriodoInicial(AssociacaoService):
+    def __init__(self, associacao):
+        super().__init__(associacao)
+        self.despesas = None
+        self.receitas = None
+        self.prestacoes = None
+        self.__set_response()
+
+    def retorna_se_tem_despesa(self):
+        return Despesa.objects.filter(
+                Q(status="COMPLETO") &
+                Q(data_e_hora_de_inativacao__isnull=True) &
+                Q(associacao=self.associacao) &
+                Q(data_transacao__gte=self.data_inicio_realizacao_despesas)
+            ).exists()
+
+    def retorna_se_tem_receita(self):
+        return Receita.objects.filter(
+                Q(status="COMPLETO") &
+                Q(associacao=self.associacao) &
+                Q(data__gte=self.data_inicio_realizacao_despesas)
+            ).exists()
+
+    def retorna_se_tem_pc(self):
+        return PrestacaoConta.objects.filter(
+                associacao=self.associacao,
+                periodo__data_inicio_realizacao_despesas__gte=self.data_inicio_realizacao_despesas,
+                status__in=[PrestacaoConta.STATUS_APROVADA,
+                            PrestacaoConta.STATUS_APROVADA_RESSALVA,
+                            PrestacaoConta.STATUS_REPROVADA]
+            ).exists()
+
+
+    def __set_response(self):
+        self.response = {
+            "pode_editar_periodo_inicial": True,
+            "mensagem_pode_editar_periodo_inicial": "",
+            "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado.",
+        }
+
+        self.data_inicio_realizacao_despesas = self.associacao.periodo_inicial.data_inicio_realizacao_despesas if self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_inicio_realizacao_despesas else None
+
+        if self.data_inicio_realizacao_despesas:
+            self.despesas = self.retorna_se_tem_despesa()
+
+            self.receitas = self.retorna_se_tem_receita()
+
+
+        if self.data_inicio_realizacao_despesas and self.retorna_se_tem_pc():
+            self.response = {
+                "pode_editar_periodo_inicial": False,
+                "mensagem_pode_editar_periodo_inicial": "Não é permitido alterar o período inicial da Associação, pois há prestação de contas concluída após o início de uso do sistema.",
+                "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado.",
+            }
+            return
+
+        if self.associacao.status_valores_reprogramados == self.associacao.STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS:
+            self.response = {
+                "pode_editar_periodo_inicial": False,
+                "mensagem_pode_editar_periodo_inicial": "Não é permitido alterar o período inicial da Associação, pois há valores reprogramados cadastrados conferidos como corretos no início de uso do sistema.",
+                "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado.",
+            }
+            return
+
+        if self.despesas or self.receitas:
+            self.response = {
+                "pode_editar_periodo_inicial": False,
+                "mensagem_pode_editar_periodo_inicial": "Não é permitido alterar o período inicial pois já houve movimentação após o início de uso do sistema.",
+                "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
+            }
+            return
+
+

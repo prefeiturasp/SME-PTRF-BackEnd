@@ -419,7 +419,7 @@ class AssociacoesViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def exportarpdf(self, _, uuid=None):
 
-        data_atual = date.today().strftime("%d-%m-%Y")
+        data_atual = datetime.date.today().strftime("%d-%m-%Y")
         usuario_logado = self.request.user
         associacao = Associacao.by_uuid(uuid)
         contas = list(ContaAssociacao.objects.filter(associacao=associacao).all())
@@ -652,9 +652,10 @@ class AssociacoesViewSet(ModelViewSet):
 
         return Response(AtaLookUpSerializer(ata_previa, many=False).data, status=status.HTTP_200_OK)
 
-    @action(detail=True, url_path='valida-data-de-encerramento', methods=['get'],
+    @action(detail=True, url_path='validar-data-de-encerramento', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def valida_data_de_encerramento(self, request, uuid=None):
+        from ...services.associacoes_service import ValidaDataDeEncerramento
 
         associacao = self.get_object()
 
@@ -669,65 +670,9 @@ class AssociacoesViewSet(ModelViewSet):
         data_de_encerramento = datetime.datetime.strptime(data_de_encerramento, '%Y-%m-%d')
         data_de_encerramento = data_de_encerramento.date()
 
-        despesas = None
-        receitas = None
-        prestacoes = None
-        fechamentos = None
+        response = ValidaDataDeEncerramento(associacao=associacao, data_de_encerramento=data_de_encerramento).response
 
-        data_inicio_realizacao_despesas = associacao.periodo_inicial.data_inicio_realizacao_despesas if associacao.periodo_inicial and associacao.periodo_inicial.data_inicio_realizacao_despesas else None
-        data_fim_realizacao_despesas = associacao.periodo_inicial.data_fim_realizacao_despesas if associacao.periodo_inicial and associacao.periodo_inicial.data_fim_realizacao_despesas else None
+        status_response = response.pop("status")
 
-        if data_de_encerramento and data_de_encerramento > datetime.date.today():
-            erro = {
-                'erro': 'data_invalida',
-                'mensagem': 'Data de encerramento não pode ser maior que a data de Hoje'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        return Response(response, status=status_response)
 
-        if data_fim_realizacao_despesas and data_de_encerramento and data_de_encerramento < data_fim_realizacao_despesas:
-            erro = {
-                'erro': 'data_invalida',
-                'mensagem': 'Data de encerramento não pode ser menor que data_fim_realizacao_despesas do período inicial'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        if data_inicio_realizacao_despesas:
-            despesas = Despesa.objects.filter(
-                Q(status="COMPLETO") &
-                Q(data_e_hora_de_inativacao__isnull=True) &
-                Q(associacao=associacao) &
-                Q(data_transacao__gte=data_inicio_realizacao_despesas)
-            ).exists()
-
-            receitas = Receita.objects.filter(
-                Q(status="COMPLETO") &
-                Q(associacao=associacao) &
-                Q(data__gte=data_inicio_realizacao_despesas)
-            ).exists()
-
-            prestacoes = PrestacaoConta.objects.filter(
-                associacao=associacao,
-                periodo__data_inicio_realizacao_despesas__gte=data_inicio_realizacao_despesas,
-                status__in=[PrestacaoConta.STATUS_APROVADA,
-                            PrestacaoConta.STATUS_APROVADA_RESSALVA,
-                            PrestacaoConta.STATUS_REPROVADA]
-            ).exists()
-
-            fechamentos = FechamentoPeriodo.objects.filter(
-                associacao=associacao,
-                periodo__data_inicio_realizacao_despesas__gte=data_inicio_realizacao_despesas,
-            ).exists()
-
-        if despesas or receitas or prestacoes or fechamentos:
-            erro = {
-                'erro': 'data_invalida',
-                'mensagem': 'Já houve movimentação após o início de uso do sistema.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            mensagem = {
-                'erro': 'data_valida',
-                'mensagem': 'Data de encerramento válida'
-            }
-
-            return Response(mensagem, status=status.HTTP_200_OK)

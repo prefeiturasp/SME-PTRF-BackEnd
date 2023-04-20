@@ -64,3 +64,16 @@ def test_api_update_associacao_deve_gerar_erro_data_de_encerramento_maior_que_da
     assert excinfo.typename == 'ValidationError'
 
     assert excinfo.value.messages[0] == 'Data de encerramento não pode ser maior que a data de Hoje'
+
+
+def test_api_update_associacao_erro_cnpj_invalido(jwt_authenticated_client_a, associacao):
+    payload = {
+        "nome": "Nome alterado",
+        "processo_regularidade": "123456",
+        "cnpj": '52.302.275/0001-82',
+    }
+    response = jwt_authenticated_client_a.put(f'/api/associacoes/{associacao.uuid}/', data=json.dumps(payload),
+                          content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+

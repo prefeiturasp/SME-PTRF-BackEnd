@@ -217,62 +217,10 @@ class Associacao(ModeloIdNome):
 
     @property
     def retorna_se_pode_editar_periodo_inicial(self):
-        from . import PrestacaoConta
-        from ...despesas.models.despesa import Despesa
-        from ...receitas.models.receita import Receita
-
-        response = {
-            "pode_editar_periodo_inicial": True,
-            "mensagem_pode_editar_periodo_inicial": "",
-            "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
-        }
-
-        despesas = None
-        receitas = None
-
-        data_inicio_realizacao_despesas = self.periodo_inicial.data_inicio_realizacao_despesas if self.periodo_inicial and self.periodo_inicial.data_inicio_realizacao_despesas else None
-
-        if data_inicio_realizacao_despesas:
-            despesas = Despesa.objects.filter(
-                Q(status="COMPLETO") &
-                Q(data_e_hora_de_inativacao__isnull=True) &
-                Q(associacao=self) &
-                Q(data_transacao__gte=data_inicio_realizacao_despesas)
-            ).exists()
-
-            receitas = Receita.objects.filter(
-                Q(status="COMPLETO") &
-                Q(associacao=self) &
-                Q(data__gte=data_inicio_realizacao_despesas)
-            ).exists()
-
-        if data_inicio_realizacao_despesas and PrestacaoConta.objects.filter(
-            associacao=self,
-            periodo__data_inicio_realizacao_despesas__gte=data_inicio_realizacao_despesas,
-            status__in=[PrestacaoConta.STATUS_APROVADA, PrestacaoConta.STATUS_APROVADA_RESSALVA,
-                        PrestacaoConta.STATUS_REPROVADA]
-        ).exists():
-            response = {
-                "pode_editar_periodo_inicial": False,
-                "mensagem_pode_editar_periodo_inicial": "Não é permitido alterar o período inicial da Associação, pois há prestação de contas concluída após o início de uso do sistema.",
-                "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
-            }
-
-        elif self.status_valores_reprogramados == self.STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS:
-            response = {
-                "pode_editar_periodo_inicial": False,
-                "mensagem_pode_editar_periodo_inicial": "Não é permitido alterar o período inicial da Associação, pois há valores reprogramados cadastrados conferidos como corretos no início de uso do sistema.",
-                "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
-            }
-
-        elif despesas or receitas:
-            response = {
-                "pode_editar_periodo_inicial": False,
-                "mensagem_pode_editar_periodo_inicial": "Não é permitido alterar o período inicial pois já houve movimentação após o início de uso do sistema.",
-                "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
-            }
-
+        from ..services.associacoes_service import ValidaSePodeEditarPeriodoInicial
+        response = ValidaSePodeEditarPeriodoInicial(associacao=self).response
         return response
+
 
     objects = models.Manager()  # Manager Padrão
     ativas = AssociacoesAtivasManager()
@@ -290,8 +238,7 @@ class Associacao(ModeloIdNome):
 
         if data_fim_realizacao_despesas and self.data_de_encerramento and self.data_de_encerramento < data_fim_realizacao_despesas:
             raise ValidationError(
-                {
-                    'data_de_encerramento': "Data de encerramento não pode ser menor que data_fim_realizacao_despesas do período inicial"})
+                {'data_de_encerramento': "Data de encerramento não pode ser menor que data_fim_realizacao_despesas do período inicial"})
 
     def save(self, *args, **kwargs):
         self.clean()
