@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
@@ -8,6 +10,9 @@ from auditlog.registry import auditlog
 
 # necessario para utilizacao da funcao sorted
 from .periodo import Periodo
+
+from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 
 class AssociacoesAtivasManager(models.Manager):
@@ -65,6 +70,13 @@ class Associacao(ModeloIdNome):
 
     periodo_inicial = models.ForeignKey('Periodo', on_delete=models.PROTECT, verbose_name='período inicial',
                                         related_name='associacoes_iniciadas_no_periodo', null=True, blank=True)
+
+    data_de_encerramento = models.DateField(
+        'Data de encerramento',
+        blank=True,
+        null=True,
+        help_text="A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada."
+    )
 
     ccm = models.CharField('CCM', max_length=15, null=True, blank=True, default="")
 
@@ -163,8 +175,9 @@ class Associacao(ModeloIdNome):
             return self.periodo_inicial.periodo_seguinte.first() if self.periodo_inicial else None
 
     def periodos_para_prestacoes_de_conta(self):
-        periodos = set(self.periodos_com_prestacao_de_contas(ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=True))
-        
+        periodos = set(
+            self.periodos_com_prestacao_de_contas(ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=True))
+
         proximo_periodo = self.proximo_periodo_de_prestacao_de_contas(ignorar_devolvidas=True)
         if proximo_periodo:
             periodos.add(proximo_periodo)
@@ -202,12 +215,34 @@ class Associacao(ModeloIdNome):
         self.status_valores_reprogramados = status
         self.save()
 
+    @property
+    def retorna_se_pode_editar_periodo_inicial(self):
+        from ..services.associacoes_service import ValidaSePodeEditarPeriodoInicial
+        response = ValidaSePodeEditarPeriodoInicial(associacao=self).response
+        return response
+
+
     objects = models.Manager()  # Manager Padrão
     ativas = AssociacoesAtivasManager()
 
     class Meta:
         verbose_name = "Associação"
         verbose_name_plural = "07.0) Associações"
+
+    def clean(self):
+        data_fim_realizacao_despesas = self.periodo_inicial.data_fim_realizacao_despesas if self.periodo_inicial and self.periodo_inicial.data_fim_realizacao_despesas else None
+
+        if self.data_de_encerramento and self.data_de_encerramento > datetime.date.today():
+            raise ValidationError(
+                {'data_de_encerramento': "Data de encerramento não pode ser maior que a data de Hoje"})
+
+        if data_fim_realizacao_despesas and self.data_de_encerramento and self.data_de_encerramento < data_fim_realizacao_despesas:
+            raise ValidationError(
+                {'data_de_encerramento': "Data de encerramento não pode ser menor que data_fim_realizacao_despesas do período inicial"})
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        return super().save(*args, **kwargs)
 
 
 auditlog.register(Associacao)

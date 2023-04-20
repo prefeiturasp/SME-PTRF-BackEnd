@@ -66,7 +66,12 @@ class AssociacaoAdmin(admin.ModelAdmin):
 
     list_display = ('nome', 'cnpj', 'get_nome_escola')
     search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome', 'unidade__codigo_eol', )
-    list_filter = ('unidade__dre', 'periodo_inicial', 'unidade__tipo_unidade', )
+    list_filter = (
+        'unidade__dre',
+        'periodo_inicial',
+        'unidade__tipo_unidade',
+        ('data_de_encerramento', DateRangeFilter),
+    )
     readonly_fields = ('uuid', 'id')
     list_display_links = ('nome', 'cnpj')
 
@@ -638,6 +643,7 @@ class ParametrosAdmin(admin.ModelAdmin):
            'fields':
                 (
                     'permite_saldo_conta_negativo',
+                    'desconsiderar_associacoes_nao_iniciadas',
                     'tempo_aguardar_conclusao_pc',
                     'quantidade_tentativas_concluir_pc',
                     'periodo_de_tempo_tentativas_concluir_pc',
