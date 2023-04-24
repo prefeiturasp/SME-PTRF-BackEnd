@@ -10,4 +10,4 @@ Esse é o repositório de código da API da aplicação Sig-Escola, um sistema i
 
 Você pode encontrar mais informações sobre o projeto e instruções detalhadas sobre como colaborar com a documentação 
 na própria 
-[documentação do SigEscola](https://sigescoladocs.readthedocs.io/en/latest/). 
+[documentação do SigEscola](https://sigescoladocs.readthedocs.io/pt/latest/). 
