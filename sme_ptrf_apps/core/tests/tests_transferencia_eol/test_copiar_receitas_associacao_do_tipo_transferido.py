@@ -10,6 +10,8 @@ def test_deve_copiar_as_receitas_da_associacao_origem_que_tenham_o_tipo_de_conta
     transf_eol_acao_associacao_ptrf,
     transf_eol_acao_associacao_role,
     transf_eol_associacao_nova,
+    transf_eol_acao_associacao_ptrf_nova,
+    transf_eol_conta_associacao_cartao_nova,
     transf_eol_acao_ptrf,
     transf_eol_acao_role,
     transf_eol_conta_associacao_cheque,
@@ -23,7 +25,18 @@ def test_deve_copiar_as_receitas_da_associacao_origem_que_tenham_o_tipo_de_conta
     receitas_original = transf_eol_associacao_eol_transferido.receitas.all()
     receitas_nova = transf_eol_associacao_nova.receitas.all()
 
+    assert transf_eol_receita_conta_cartao.acao_associacao is not None
+
     assert receitas_nova.count() == 1, "Deve ter copiado apenas as receitas que possuem rateios em contas_associacao de tipo_conta transferido"
-    assert receitas_nova.first().detalhe_outros == transf_eol_receita_conta_cartao.detalhe_outros, "Deve ter copiado a receita correta"
+
+    receita_copiada = receitas_nova.first()
+    assert receita_copiada.detalhe_outros == transf_eol_receita_conta_cartao.detalhe_outros, "Deve ter copiado a receita correta"
+
+    assert receita_copiada.acao_associacao is not None, "A ação deve ser copiada"
+    assert receita_copiada.acao_associacao.associacao == transf_eol_associacao_nova, "A ação deve ser da nova associação"
+
+    assert receita_copiada.conta_associacao is not None, "A conta_associacao deve ser copiada"
+    assert receita_copiada.conta_associacao.associacao == transf_eol_associacao_nova, "A conta_associacao deve ser da nova associação"
+
     assert receitas_original.count() == 2, "A associação original deve manter as receitas originais"
 
