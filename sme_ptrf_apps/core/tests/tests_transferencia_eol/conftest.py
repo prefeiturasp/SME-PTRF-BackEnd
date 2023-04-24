@@ -279,6 +279,30 @@ def transf_eol_associacao_nova(transf_eol_unidade_eol_historico, transferencia_e
 
 
 @pytest.fixture
+def transf_eol_acao_associacao_ptrf_nova(transf_eol_associacao_nova, transf_eol_acao_ptrf):
+    return baker.make(
+        'AcaoAssociacao',
+        associacao=transf_eol_associacao_nova,
+        acao=transf_eol_acao_ptrf
+    )
+
+@pytest.fixture
+def transf_eol_conta_associacao_cartao_nova(
+    transf_eol_associacao_nova,
+    transf_eol_tipo_conta_cartao
+):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=transf_eol_associacao_nova,
+        tipo_conta=transf_eol_tipo_conta_cartao,
+        banco_nome='ITAU',
+        agencia='45678',
+        numero_conta='999999-x',
+    )
+
+
+
+@pytest.fixture
 def transf_eol_despesa_2_conta_cheque(
     transf_eol_associacao_eol_transferido,
     tipo_documento,
