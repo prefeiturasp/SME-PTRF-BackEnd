@@ -49,7 +49,7 @@ class AssociacaoCreateSerializer(serializers.ModelSerializer):
         unidade = validated_data.pop('unidade')
         observacao = ""
 
-        if validated_data.get("unidade__observacao"):
+        if "unidade__observacao" in validated_data:
             observacao = validated_data.pop('unidade__observacao')
 
         associacao = Associacao.objects.create(**validated_data)
