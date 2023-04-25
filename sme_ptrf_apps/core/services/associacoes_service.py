@@ -302,9 +302,10 @@ class AssociacaoService:
 
 
 class ValidaDataDeEncerramento(AssociacaoService):
-    def __init__(self, associacao, data_de_encerramento):
+    def __init__(self, associacao, data_de_encerramento, periodo_inicial=None):
         super().__init__(associacao)
         self.__data_de_encerramento = data_de_encerramento
+        self.__periodo_inicial = periodo_inicial
         self.despesas = None
         self.receitas = None
         self.prestacoes = None
@@ -317,6 +318,10 @@ class ValidaDataDeEncerramento(AssociacaoService):
     @property
     def data_de_encerramento(self):
         return self.__data_de_encerramento
+
+    @property
+    def periodo_inicial(self):
+        return self.__periodo_inicial
 
     def retorna_se_tem_despesa(self):
         return Despesa.objects.filter(
@@ -356,8 +361,12 @@ class ValidaDataDeEncerramento(AssociacaoService):
             "status": status.HTTP_200_OK,
         }
 
-        self.data_inicio_realizacao_despesas = self.associacao.periodo_inicial.data_inicio_realizacao_despesas if self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_inicio_realizacao_despesas else None
-        self.data_fim_realizacao_despesas = self.associacao.periodo_inicial.data_fim_realizacao_despesas if self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_fim_realizacao_despesas else None
+        if self.periodo_inicial:
+            self.data_inicio_realizacao_despesas = self.periodo_inicial.data_inicio_realizacao_despesas if self.periodo_inicial.data_inicio_realizacao_despesas else None
+            self.data_fim_realizacao_despesas = self.periodo_inicial.data_fim_realizacao_despesas if self.periodo_inicial.data_fim_realizacao_despesas else None
+        else:
+            self.data_inicio_realizacao_despesas = self.associacao.periodo_inicial.data_inicio_realizacao_despesas if self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_inicio_realizacao_despesas else None
+            self.data_fim_realizacao_despesas = self.associacao.periodo_inicial.data_fim_realizacao_despesas if self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_fim_realizacao_despesas else None
 
         if self.data_de_encerramento and self.data_de_encerramento > datetime.date.today():
             self.response = {
@@ -435,10 +444,11 @@ class ValidaSePodeEditarPeriodoInicial(AssociacaoService):
 
         self.data_inicio_realizacao_despesas = self.associacao.periodo_inicial.data_inicio_realizacao_despesas if self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_inicio_realizacao_despesas else None
 
-        if self.data_inicio_realizacao_despesas:
-            self.despesas = self.retorna_se_tem_despesa()
-
-            self.receitas = self.retorna_se_tem_receita()
+        # TODO Removida a verificação de despesas e receitas a pedido da PO História 91682
+        # if self.data_inicio_realizacao_despesas:
+        #     self.despesas = self.retorna_se_tem_despesa()
+        #
+        #     self.receitas = self.retorna_se_tem_receita()
 
 
         if self.data_inicio_realizacao_despesas and self.retorna_se_tem_pc():
@@ -457,12 +467,13 @@ class ValidaSePodeEditarPeriodoInicial(AssociacaoService):
             }
             return
 
-        if self.despesas or self.receitas:
-            self.response = {
-                "pode_editar_periodo_inicial": False,
-                "mensagem_pode_editar_periodo_inicial": "Não é permitido alterar o período inicial pois já houve movimentação após o início de uso do sistema.",
-                "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
-            }
-            return
+        # TODO Removida a verificação de despesas e receitas a pedido da PO História 91682
+        # if self.despesas or self.receitas:
+        #     self.response = {
+        #         "pode_editar_periodo_inicial": False,
+        #         "mensagem_pode_editar_periodo_inicial": "Não é permitido alterar o período inicial pois já houve movimentação após o início de uso do sistema.",
+        #         "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
+        #     }
+        #     return
 
 

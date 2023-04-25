@@ -53,7 +53,7 @@ def test_valida_data_de_encerramento_deve_gerar_erro_data_maior_que_hoje(
 
     assert response == esperado
 
-def test_valida_data_de_encerramento_deve_gerar_erro_data_menor_que_data_periodo_inical(
+def test_valida_data_de_encerramento_deve_gerar_erro_data_menor_que_data_periodo_inicial(
     associacao,
     periodo_anterior,
     periodo,
@@ -71,6 +71,51 @@ def test_valida_data_de_encerramento_deve_gerar_erro_data_menor_que_data_periodo
         "erro": "data_invalida",
         "mensagem": "Data de encerramento não pode ser menor que data_fim_realizacao_despesas do período inicial",
         "status": status.HTTP_400_BAD_REQUEST,
+    }
+
+    assert response == esperado
+
+
+def test_valida_data_de_encerramento_deve_gerar_erro_data_menor_que_data_periodo_inicial_passando_parametro_periodo_inicial(
+    associacao,
+    periodo_anterior,
+    periodo,
+    acao_associacao,
+    receita_100_no_periodo,
+):
+    # data periodo = 2019, 8, 31
+    data_de_encerramento = '2019-08-30'
+    data_de_encerramento = datetime.datetime.strptime(data_de_encerramento, '%Y-%m-%d')
+    data_de_encerramento = data_de_encerramento.date()
+
+    response = ValidaDataDeEncerramento(associacao=associacao, data_de_encerramento=data_de_encerramento, periodo_inicial=periodo_anterior).response
+
+    esperado = {
+        "erro": "data_invalida",
+        "mensagem": "Data de encerramento não pode ser menor que data_fim_realizacao_despesas do período inicial",
+        "status": status.HTTP_400_BAD_REQUEST,
+    }
+
+    assert response == esperado
+
+
+def test_valida_data_de_encerramento_deve_passar_data_maior_que_data_periodo_inicial_passando_parametro_periodo_inicial(
+    associacao,
+    periodo_anterior,
+    periodo,
+    acao_associacao,
+):
+    # data periodo = 2019, 8, 31
+    data_de_encerramento = '2019-09-01'
+    data_de_encerramento = datetime.datetime.strptime(data_de_encerramento, '%Y-%m-%d')
+    data_de_encerramento = data_de_encerramento.date()
+
+    response = ValidaDataDeEncerramento(associacao=associacao, data_de_encerramento=data_de_encerramento, periodo_inicial=periodo_anterior).response
+
+    esperado = {
+        'erro': 'data_valida',
+        'mensagem': 'Data de encerramento válida',
+        "status": status.HTTP_200_OK,
     }
 
     assert response == esperado

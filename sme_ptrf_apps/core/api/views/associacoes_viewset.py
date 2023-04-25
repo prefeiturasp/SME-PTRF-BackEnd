@@ -667,10 +667,24 @@ class AssociacoesViewSet(ModelViewSet):
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        periodo_inicial_uuid = request.query_params.get('periodo_inicial')
+        periodo_inicial = None
+        if periodo_inicial_uuid:
+            try:
+                periodo_inicial = Periodo.objects.get(uuid=periodo_inicial_uuid)
+            except Periodo.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto período inicial para o uuid {periodo_inicial_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+
         data_de_encerramento = datetime.datetime.strptime(data_de_encerramento, '%Y-%m-%d')
         data_de_encerramento = data_de_encerramento.date()
 
-        response = ValidaDataDeEncerramento(associacao=associacao, data_de_encerramento=data_de_encerramento).response
+        response = ValidaDataDeEncerramento(associacao=associacao, data_de_encerramento=data_de_encerramento, periodo_inicial=periodo_inicial).response
 
         status_response = response.pop("status")
 
