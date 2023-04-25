@@ -44,7 +44,7 @@ class EsqueciMinhaSenhaSerializer(serializers.ModelSerializer):
         except Exception as err:
             logger.info("Erro ao enviar email: %s", str(err))
             raise ProblemaEnvioEmail("Problema ao enviar email.")
-        
+
         instance.email = result['email'].strip()
         instance.save()
         return instance
@@ -80,18 +80,17 @@ class RedefinirSenhaSerializerCreator(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         try:
-            result = SmeIntegracaoService.redefine_senha(instance.username, validated_data['password'])
+            SmeIntegracaoService.redefine_senha(instance.username, validated_data['password'])
             instance.set_password(validated_data.get('password'))
             instance.hash_redefinicao = ''
             instance.save()
-            return Response(result)
+            return instance
         except SmeIntegracaoException as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except ReadTimeout:
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
         except ConnectTimeout:
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
-        return instance
 
     class Meta:
         model = User

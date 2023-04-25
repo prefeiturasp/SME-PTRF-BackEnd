@@ -23,10 +23,27 @@ def customTitledFilter(title):
 
 @admin.register(Receita)
 class ReceitaAdmin(admin.ModelAdmin):
-
+    raw_id_fields = (
+        'associacao',
+        'conta_associacao',
+        'acao_associacao',
+        'tipo_receita',
+        'repasse',
+        'detalhe_tipo_receita',
+        'referencia_devolucao',
+        'periodo_conciliacao',
+        'saida_do_recurso',
+        'rateio_estornado',
+    )
     list_display = ('data', 'valor', 'categoria_receita', 'detalhamento', 'associacao', 'repasse','status')
     ordering = ('-data',)
-    search_fields = ('detalhe_tipo_receita__nome', 'detalhe_outros', 'associacao__nome', 'associacao__unidade__nome', 'associacao__unidade__codigo_eol')
+    search_fields = (
+        'detalhe_tipo_receita__nome',
+        'detalhe_outros',
+        'associacao__nome',
+        'associacao__unidade__nome',
+        'associacao__unidade__codigo_eol'
+    )
     list_filter = (
         ('conferido', customTitledFilter('Conferido')),
         ('data', DateRangeFilter),
@@ -34,9 +51,7 @@ class ReceitaAdmin(admin.ModelAdmin):
         ('acao_associacao__acao__nome', customTitledFilter('Ação')),
         ('conta_associacao__tipo_conta__nome', customTitledFilter('Tipo Conta')),
         ('tipo_receita', customTitledFilter('Tipo Receita')),
-        'detalhe_tipo_receita',
         'categoria_receita',
-        'repasse',
         'status',
     )
     readonly_fields = ('uuid', 'id',)

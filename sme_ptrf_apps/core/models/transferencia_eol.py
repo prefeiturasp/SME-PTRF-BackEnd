@@ -335,6 +335,7 @@ class TransferenciaEol(ModeloBase):
             receita.uuid = uuid.uuid4()
             receita.associacao = associacao_nova
             receita.conta_associacao = associacao_nova.contas.filter(tipo_conta=self.tipo_conta_transferido).first()
+            receita.acao_associacao = associacao_nova.acoes.filter(acao=receita.acao_associacao.acao).first()
             receita.save()
             self.adicionar_log_info(f'Receita  {receita} copiada para a nova associação.')
 
