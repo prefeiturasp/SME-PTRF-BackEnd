@@ -26,6 +26,7 @@ def test_api_valores_reprogramados_filtro_nome_unidade(
             'associacao': {
                 'cnpj': associacao_2.cnpj,
                 'nome': associacao_2.nome,
+                'data_de_encerramento': None,
                 'status_valores_reprogramados': associacao_2.status_valores_reprogramados,
                 'unidade': {
                     'codigo_eol': unidade_valores_reprogramados.codigo_eol,
@@ -72,6 +73,7 @@ def test_api_valores_reprogramados_filtro_nome_associacao(
             'associacao': {
                 'cnpj': associacao_2.cnpj,
                 'nome': associacao_2.nome,
+                'data_de_encerramento': None,
                 'status_valores_reprogramados': associacao_2.status_valores_reprogramados,
                 'unidade': {
                     'codigo_eol': unidade_valores_reprogramados.codigo_eol,
@@ -118,6 +120,7 @@ def test_api_valores_reprogramados_filtro_codigo_eol(
             'associacao': {
                 'cnpj': associacao_2.cnpj,
                 'nome': associacao_2.nome,
+                'data_de_encerramento': None,
                 'status_valores_reprogramados': associacao_2.status_valores_reprogramados,
                 'unidade': {
                     'codigo_eol': unidade_valores_reprogramados.codigo_eol,
@@ -164,6 +167,7 @@ def test_api_valores_reprogramados_filtro_tipo_unidade(
             'associacao': {
                 'cnpj': associacao_2.cnpj,
                 'nome': associacao_2.nome,
+                'data_de_encerramento': None,
                 'status_valores_reprogramados': associacao_2.status_valores_reprogramados,
                 'unidade': {
                     'codigo_eol': unidade_valores_reprogramados.codigo_eol,

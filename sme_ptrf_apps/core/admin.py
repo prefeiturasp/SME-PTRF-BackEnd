@@ -66,7 +66,12 @@ class AssociacaoAdmin(admin.ModelAdmin):
 
     list_display = ('nome', 'cnpj', 'get_nome_escola')
     search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome', 'unidade__codigo_eol', )
-    list_filter = ('unidade__dre', 'periodo_inicial', 'unidade__tipo_unidade', )
+    list_filter = (
+        'unidade__dre',
+        'periodo_inicial',
+        'unidade__tipo_unidade',
+        ('data_de_encerramento', DateRangeFilter),
+    )
     readonly_fields = ('uuid', 'id')
     list_display_links = ('nome', 'cnpj')
 
@@ -638,6 +643,7 @@ class ParametrosAdmin(admin.ModelAdmin):
            'fields':
                 (
                     'permite_saldo_conta_negativo',
+                    'desconsiderar_associacoes_nao_iniciadas',
                     'tempo_aguardar_conclusao_pc',
                     'quantidade_tentativas_concluir_pc',
                     'periodo_de_tempo_tentativas_concluir_pc',
@@ -1093,13 +1099,10 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
     ]
     list_filter = [
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo__referencia',
-        'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
-        'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo',
         'analise_lancamento__tipo_lancamento',
         'tipo_acerto',
-        'devolucao_ao_tesouro',
         'copiado'
     ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
