@@ -80,22 +80,21 @@ def test_valida_se_pode_editar_periodo_inicial_deve_retornar_erro_tem_pc(associa
 
     assert response == esperado
 
-
-def test_valida_se_pode_editar_periodo_inicial_deve_retornar_erro_tem_movimentacao(
-    associacao_02_02,
-    periodo_anterior,
-    periodo,
-    acao_associacao,
-    receita_100_no_periodo_02
-):
-    response = ValidaSePodeEditarPeriodoInicial(associacao=associacao_02_02).response
-
-    esperado = {
-        "pode_editar_periodo_inicial": False,
-        "mensagem_pode_editar_periodo_inicial": "Não é permitido alterar o período inicial pois já houve movimentação após o início de uso do sistema.",
-        "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
-    }
-
-    assert response == esperado
-
+# TODO Teste comentado pois foi Removida a verificação de despesas e receitas a pedido da PO História 91682
+# def test_valida_se_pode_editar_periodo_inicial_deve_retornar_erro_tem_movimentacao(
+#     associacao_02_02,
+#     periodo_anterior,
+#     periodo,
+#     acao_associacao,
+#     receita_100_no_periodo_02
+# ):
+#     response = ValidaSePodeEditarPeriodoInicial(associacao=associacao_02_02).response
+#
+#     esperado = {
+#         "pode_editar_periodo_inicial": False,
+#         "mensagem_pode_editar_periodo_inicial": "Não é permitido alterar o período inicial pois já houve movimentação após o início de uso do sistema.",
+#         "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
+#     }
+#
+#     assert response == esperado
 
