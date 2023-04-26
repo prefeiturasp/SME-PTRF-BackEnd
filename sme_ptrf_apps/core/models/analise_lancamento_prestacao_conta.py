@@ -4,6 +4,7 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from ...utils.choices_to_json import choices_to_json
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from django.db.models import UniqueConstraint, Q
 
 
 class AnaliseLancamentoPrestacaoConta(ModeloBase):
@@ -476,6 +477,15 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
     class Meta:
         verbose_name = "Análise de lançamento"
         verbose_name_plural = "16.1) Análises de lançamentos"
+        constraints = [
+            UniqueConstraint(fields=['analise_prestacao_conta', 'receita'],
+                             condition=Q(despesa__isnull=True),
+                             name='unique_constraint_analise_pc_e_receita'),
+
+            UniqueConstraint(fields=['analise_prestacao_conta', 'despesa'],
+                             condition=Q(receita__isnull=True),
+                             name='unique_constraint_analise_pc_e_despesa'),
+        ]
 
 
 auditlog.register(AnaliseLancamentoPrestacaoConta)
