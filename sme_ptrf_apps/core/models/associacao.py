@@ -245,4 +245,20 @@ class Associacao(ModeloIdNome):
         return super().save(*args, **kwargs)
 
 
+    @classmethod
+    def get_associacoes_ativas_no_periodo(cls, periodo, dre=None):
+        from .parametros import Parametros
+
+        associacoes_ativas = cls.ativas
+
+        if dre:
+            associacoes_ativas = associacoes_ativas.filter(unidade__dre=dre)
+
+        if Parametros.get().desconsiderar_associacoes_nao_iniciadas:
+            associacoes_ativas = associacoes_ativas.exclude(periodo_inicial__referencia__gte=periodo.referencia)
+
+        associacoes_ativas = associacoes_ativas.exclude(data_de_encerramento__lte=periodo.data_inicio_realizacao_despesas)
+
+        return associacoes_ativas
+
 auditlog.register(Associacao)

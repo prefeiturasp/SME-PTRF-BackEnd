@@ -287,6 +287,15 @@ def unidade(dre):
         dre_designacao_ano='2017',
     )
 
+@pytest.fixture
+def outra_unidade(dre):
+    return baker.make(
+        'Unidade',
+        nome='Outra Escola Teste',
+        tipo_unidade='CEU',
+        codigo_eol='777777',
+        dre=dre,
+    )
 
 @pytest.fixture
 def associacao(unidade, periodo_anterior):
@@ -300,6 +309,49 @@ def associacao(unidade, periodo_anterior):
         email="ollyverottoboni@gmail.com",
         processo_regularidade='123456'
     )
+
+@pytest.fixture
+def associacao_iniciada_2020_1(periodo_2020_1, unidade):
+    return baker.make(
+        'Associacao',
+        nome='Escola Iniciada em 2020.1',
+        cnpj='99.073.449/0001-47',
+        unidade=unidade,
+        periodo_inicial=periodo_2020_1,
+    )
+
+@pytest.fixture
+def associacao_iniciada_2020_2(periodo_2020_2, outra_unidade):
+    return baker.make(
+        'Associacao',
+        nome='Escola Iniciada em 2020.2',
+        cnpj='23.500.058/0001-08',
+        unidade=outra_unidade,
+        periodo_inicial=periodo_2020_2,
+    )
+
+@pytest.fixture
+def associacao_encerrada_2020_1(periodo_2019_2, periodo_2020_1, unidade):
+    return baker.make(
+        'Associacao',
+        nome='Escola Encerrada em 2020.1',
+        cnpj='99.073.449/0001-47',
+        unidade=unidade,
+        periodo_inicial=periodo_2019_2,
+        data_de_encerramento = periodo_2020_1.data_fim_realizacao_despesas,
+    )
+
+@pytest.fixture
+def associacao_encerrada_2020_2(periodo_2019_2, periodo_2020_2, outra_unidade):
+    return baker.make(
+        'Associacao',
+        nome='Escola Iniciada em 2020.2',
+        cnpj='23.500.058/0001-08',
+        unidade=outra_unidade,
+        periodo_inicial=periodo_2019_2,
+        data_de_encerramento=periodo_2020_2.data_fim_realizacao_despesas,
+    )
+
 
 
 @pytest.fixture
@@ -541,6 +593,25 @@ def periodo_2020_1(periodo):
         periodo_anterior=periodo
     )
 
+@pytest.fixture
+def periodo_2020_2(periodo_2020_1):
+    return baker.make(
+        'Periodo',
+        referencia='2020.2',
+        data_inicio_realizacao_despesas=date(2020, 7, 1),
+        data_fim_realizacao_despesas=date(2020, 12, 31),
+        periodo_anterior=periodo_2020_1,
+    )
+
+@pytest.fixture
+def periodo_2021_1(periodo_2020_2):
+    return baker.make(
+        'Periodo',
+        referencia='2021.1',
+        data_inicio_realizacao_despesas=date(2021, 1, 1),
+        data_fim_realizacao_despesas=date(2021, 6, 30),
+        periodo_anterior=periodo_2020_2,
+    )
 
 @pytest.fixture
 def periodo_2019_2(periodo):
@@ -1471,6 +1542,19 @@ def parametros():
         texto_pagina_valores_reprogramados_dre='Teste DRE'
     )
 
+@pytest.fixture
+def parametros_desconsidera_nao_iniciadas():
+    return baker.make(
+        'Parametros',
+        desconsiderar_associacoes_nao_iniciadas=True,
+    )
+
+@pytest.fixture
+def parametros_nao_desconsidera_nao_iniciadas():
+    return baker.make(
+        'Parametros',
+        desconsiderar_associacoes_nao_iniciadas=False,
+    )
 
 @pytest.fixture
 def parametro_fique_de_olho_pc():
