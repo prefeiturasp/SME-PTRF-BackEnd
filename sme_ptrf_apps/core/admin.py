@@ -890,7 +890,7 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_lancamento', 'resultado', 'status_realizacao',
                     'devolucao_tesouro_atualizada']
     list_filter = (
-    'analise_corrigida_via_admin_action',
+    # 'analise_corrigida_via_admin_action', # TODO remover esse filtro quando não for mais necessário
     'analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
     'analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
     'analise_prestacao_conta__prestacao_conta__periodo',
@@ -904,14 +904,15 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
         'analise_prestacao_conta__prestacao_conta__associacao__nome',
     )
 
-    readonly_fields = ('uuid', 'id',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
     raw_id_fields = ['analise_prestacao_conta', 'despesa', 'receita', 'analise_prestacao_conta_auxiliar']
 
-    actions = ['inativar_analises_lancamento_prestacao_conta_duplicadas_gasto',
-               'inativar_analises_lancamento_prestacao_conta_duplicadas_receita',
-               'reverter_inativar_analises_lancamento_prestacao_conta_duplicadas_gasto',
-               'reverter_inativar_analises_lancamento_prestacao_conta_duplicadas_receita']
+    # TODO remover actions quando não forem mais necessárias
+    # actions = ['inativar_analises_lancamento_prestacao_conta_duplicadas_gasto',
+    #            'inativar_analises_lancamento_prestacao_conta_duplicadas_receita',
+    #            'reverter_inativar_analises_lancamento_prestacao_conta_duplicadas_gasto',
+    #            'reverter_inativar_analises_lancamento_prestacao_conta_duplicadas_receita']
 
     def inativar_analises_lancamento_prestacao_conta_duplicadas_gasto(self, request, queryset):
         contador = 0
