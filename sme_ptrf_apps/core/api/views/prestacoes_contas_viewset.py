@@ -712,24 +712,27 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def dashboard(self, request):
         dre_uuid = request.query_params.get('dre_uuid')
-        periodo = request.query_params.get('periodo')
+        periodo_uuid = request.query_params.get('periodo')
 
-        if not dre_uuid or not periodo:
+        if not dre_uuid or not periodo_uuid:
             erro = {
                 'erro': 'parametros_requerido',
                 'mensagem': 'É necessário enviar o uuid da dre (dre_uuid) e o periodo como parâmetros.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        total_associacoes_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
+        periodo = Periodo.by_uuid(periodo_uuid)
+        dre = Unidade.by_uuid(dre_uuid)
+
+        total_associacoes_dre = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo, dre=dre).count()
 
         par_add_aprovados_ressalva = request.query_params.get('add_aprovadas_ressalva')
         add_aprovados_ressalva = par_add_aprovados_ressalva == 'SIM'
         cards = PrestacaoConta.dashboard(
-            periodo,
+            periodo_uuid,
             dre_uuid,
             add_aprovado_ressalva=add_aprovados_ressalva,
-            add_info_devolvidas_retornadas=True
+            add_info_devolvidas_retornadas=True,
         )
         dashboard = {
             "total_associacoes_dre": total_associacoes_dre,
