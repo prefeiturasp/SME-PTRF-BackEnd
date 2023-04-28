@@ -23,6 +23,8 @@ from ..serializers.tipo_transacao_serializer import TipoTransacaoSerializer
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Subquery
+from sme_ptrf_apps.core.models import Associacao
+import datetime
 
 DEFAULT_PAGE = 1
 DEFAULT_PAGE_SIZE = 10
@@ -306,3 +308,28 @@ class DespesasViewSet(mixins.CreateModelMixin,
         result = Despesa.get_tags_informacoes_list()
 
         return Response(result)
+
+    @action(detail=False, url_path='validar-data-da-despesa', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def valida_data_da_despesa(self, request):
+        from ..serializers.validation_serializers.despesas_validate_serializer import \
+            ValidarDataDespesaValidationSerializer
+
+        from ...services.valida_data_despesa_service import ValidaDataDaDespesaAssociacaoEncerrada
+
+        query = ValidarDataDespesaValidationSerializer(data=self.request.query_params)
+        query.is_valid(raise_exception=True)
+
+        associacao_uuid = request.query_params.get('associacao_uuid')
+        associacao = Associacao.by_uuid(associacao_uuid)
+
+        data_da_despesa = request.query_params.get('data')
+        data_da_despesa = datetime.datetime.strptime(data_da_despesa, '%Y-%m-%d')
+        data_da_despesa = data_da_despesa.date()
+
+        response = ValidaDataDaDespesaAssociacaoEncerrada(data_da_despesa=data_da_despesa,
+                                                          associacao=associacao).response
+
+        status_response = response.pop("status")
+
+        return Response(response, status=status_response)
