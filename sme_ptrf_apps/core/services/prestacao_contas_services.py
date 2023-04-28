@@ -380,7 +380,20 @@ def lista_prestacoes_de_conta_todos_os_status(
     filtro_por_devolucao_tesouro=None,
     filtro_por_status=[]
 ):
-    associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by(
+    desconsiderar_associacoes_nao_iniciadas = getattr(Parametros.get(), 'desconsiderar_associacoes_nao_iniciadas', False)
+    if desconsiderar_associacoes_nao_iniciadas:
+        associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(
+            Q(data_de_encerramento__isnull=False) & Q(data_de_encerramento__lt=periodo.data_fim_realizacao_despesas)
+            ).exclude(
+            periodo_inicial__isnull=True
+            ).exclude(
+            periodo_inicial__data_inicio_realizacao_despesas__gte=periodo.data_inicio_realizacao_despesas
+            ).exclude(
+            cnpj__exact=''
+            ).order_by(
+            'unidade__tipo_unidade', 'unidade__nome')
+    else:
+        associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by(
         'unidade__tipo_unidade', 'unidade__nome')
 
     if filtro_nome is not None:
