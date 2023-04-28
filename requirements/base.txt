@@ -2,7 +2,7 @@
 
 # Django
 # ------------------------------------------------------------------------------
-django==2.2.28  # https://www.djangoproject.com/
+django==3.0.14  # https://www.djangoproject.com/
 
 
 # Dependencias não revisadas
