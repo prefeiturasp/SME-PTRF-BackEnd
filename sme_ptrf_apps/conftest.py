@@ -298,6 +298,16 @@ def outra_unidade(dre):
     )
 
 @pytest.fixture
+def terceira_unidade(dre):
+    return baker.make(
+        'Unidade',
+        nome='Terceira Escola Teste',
+        tipo_unidade='CEU',
+        codigo_eol='888889',
+        dre=dre,
+    )
+
+@pytest.fixture
 def associacao(unidade, periodo_anterior):
     return baker.make(
         'Associacao',
@@ -433,6 +443,16 @@ def associacao_sem_periodo_inicial(unidade):
         nome='Escola Teste',
         cnpj='44.219.758/0001-90',
         unidade=unidade,
+        periodo_inicial=None,
+    )
+
+@pytest.fixture
+def outra_associacao_sem_periodo_inicial(terceira_unidade):
+    return baker.make(
+        'Associacao',
+        nome='Associacao Não Iniciada',
+        cnpj='78.275.825/0001-06',
+        unidade=terceira_unidade,
         periodo_inicial=None,
     )
 
