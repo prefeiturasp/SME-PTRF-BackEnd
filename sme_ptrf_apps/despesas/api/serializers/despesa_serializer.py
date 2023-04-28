@@ -10,6 +10,7 @@ from ..serializers.rateio_despesa_serializer import RateioDespesaCreateSerialize
 from ...models import Despesa, RateioDespesa, TipoDocumento, TipoTransacao
 from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
 from ....core.models import Associacao
+from django.core.exceptions import ValidationError
 
 log = logging.getLogger(__name__)
 
@@ -72,6 +73,36 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     despesas_impostos = DespesaImpostoSerializer(many=True, required=False, allow_null=True)
 
     def create(self, validated_data):
+
+        data_de_encerramento = validated_data['associacao'].data_de_encerramento \
+            if validated_data['associacao'] and validated_data['associacao'].data_de_encerramento else None
+
+        # Validando data de encerramento data_documento
+        data_documento = validated_data['data_documento'] if validated_data['data_documento'] else None
+
+        if data_documento and data_de_encerramento and data_documento > data_de_encerramento:
+            data_de_encerramento = data_de_encerramento.strftime("%d/%m/%Y")
+            erro = {
+                "erro_data_de_encerramento": True,
+                "data_de_encerramento": f"{data_de_encerramento}",
+                "mensagem": f"A data de documento e/ou data do pagamento não pode ser posterior à "
+                            f"{data_de_encerramento}, data de encerramento da associação."
+            }
+            raise ValidationError(erro)
+
+        # Validando data de encerramento data_pagamento
+        data_transacao = validated_data['data_transacao'] if validated_data['data_transacao'] else None
+
+        if data_transacao and data_de_encerramento and data_transacao > data_de_encerramento:
+            data_de_encerramento = data_de_encerramento.strftime("%d/%m/%Y")
+            erro = {
+                "erro_data_de_encerramento": True,
+                "data_de_encerramento": f"{data_de_encerramento}",
+                "mensagem": f"A data de documento e/ou data do pagamento não pode ser posterior à "
+                            f"{data_de_encerramento}, data de encerramento da associação."
+            }
+            raise ValidationError(erro)
+
         rateios = validated_data.pop('rateios')
 
         despesas_impostos = validated_data.pop('despesas_impostos') if validated_data.get('despesas_impostos') else None
@@ -158,6 +189,35 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         return despesa
 
     def update(self, instance, validated_data):
+        data_de_encerramento = validated_data['associacao'].data_de_encerramento \
+            if validated_data['associacao'] and validated_data['associacao'].data_de_encerramento else None
+
+        # Validando data de encerramento data_documento
+        data_documento = instance.data_documento if instance and instance.data_documento else None
+
+        if data_documento and data_de_encerramento and data_documento > data_de_encerramento:
+            data_de_encerramento = validated_data['associacao'].data_de_encerramento.strftime("%d/%m/%Y")
+            erro = {
+                "erro_data_de_encerramento": True,
+                "data_de_encerramento": f"{data_de_encerramento}",
+                "mensagem": f"A data de documento e/ou data do pagamento não pode ser posterior à "
+                            f"{data_de_encerramento}, data de encerramento da associação."
+            }
+            raise ValidationError(erro)
+
+        # Validando data de encerramento data_pagamento
+        data_transacao = instance.data_transacao if instance and instance.data_transacao else None
+
+        if data_transacao and data_de_encerramento and data_transacao > data_de_encerramento:
+            data_de_encerramento = validated_data['associacao'].data_de_encerramento.strftime("%d/%m/%Y")
+            erro = {
+                "erro_data_de_encerramento": True,
+                "data_de_encerramento": f"{data_de_encerramento}",
+                "mensagem": f"A data de documento e/ou data do pagamento não pode ser posterior à "
+                            f"{data_de_encerramento}, data de encerramento da associação."
+            }
+            raise ValidationError(erro)
+
         rateios = validated_data.pop('rateios')
 
         despesas_impostos = validated_data.pop('despesas_impostos') if 'despesas_impostos' in validated_data else []
