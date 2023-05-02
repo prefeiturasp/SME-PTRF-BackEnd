@@ -289,6 +289,21 @@ def unidade(dre):
 
 
 @pytest.fixture
+def associacao_com_data_de_encerramento(unidade, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste',
+        cnpj='34.845.266/0001-57',
+        unidade=unidade,
+        periodo_inicial=periodo_anterior,
+        ccm='0.000.00-0',
+        email="ollyverottoboni2@gmail.com",
+        processo_regularidade='123456',
+        data_de_encerramento=date(2023, 4, 25),
+    )
+
+
+@pytest.fixture
 def associacao(unidade, periodo_anterior):
     return baker.make(
         'Associacao',
