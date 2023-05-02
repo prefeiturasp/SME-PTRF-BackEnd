@@ -38,7 +38,7 @@ class SaldosBancariosSMEViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            Periodo.objects.get(uuid=periodo_uuid)
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
         except ValidationError:
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -66,7 +66,7 @@ class SaldosBancariosSMEViewSet(GenericViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        saldos = saldo_por_tipo_de_unidade(self.queryset, periodo=periodo_uuid, conta=conta_uuid)
+        saldos = saldo_por_tipo_de_unidade(self.queryset, periodo=periodo, conta=conta_uuid)
 
         return Response(saldos, status=status.HTTP_200_OK)
 
@@ -86,7 +86,7 @@ class SaldosBancariosSMEViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            Periodo.objects.get(uuid=periodo_uuid)
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
         except ValidationError:
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -114,7 +114,7 @@ class SaldosBancariosSMEViewSet(GenericViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        saldos = saldo_por_dre(self.queryset, periodo=periodo_uuid, conta=conta_uuid)
+        saldos = saldo_por_dre(self.queryset, periodo=periodo, conta=conta_uuid)
 
         return Response(saldos, status=status.HTTP_200_OK)
 
@@ -134,7 +134,7 @@ class SaldosBancariosSMEViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            Periodo.objects.get(uuid=periodo_uuid)
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
         except ValidationError:
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -162,7 +162,7 @@ class SaldosBancariosSMEViewSet(GenericViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        saldos = saldo_por_ue_dre(self.queryset, periodo=periodo_uuid, conta=conta_uuid)
+        saldos = saldo_por_ue_dre(self.queryset, periodo=periodo, conta=conta_uuid)
 
         return Response(saldos, status=status.HTTP_200_OK)
 

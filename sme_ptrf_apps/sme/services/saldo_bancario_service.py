@@ -6,19 +6,20 @@ from django.contrib.auth import get_user_model
 
 from sme_ptrf_apps.core.models import Associacao, Unidade, Periodo, TipoConta
 from sme_ptrf_apps.core.choices.tipos_unidade import TIPOS_CHOICE
+from sme_ptrf_apps.core.models.parametros import Parametros
 
 logger = logging.getLogger(__name__)
 
 
 def saldo_por_tipo_de_unidade(queryset, periodo, conta):
     saldo_por_tipo_unidade = queryset.filter(
-        periodo__uuid=periodo,
+        periodo__uuid=periodo.uuid,
         conta_associacao__tipo_conta__uuid=conta
     ).values('associacao__unidade__tipo_unidade').annotate(
         qtde_unidades_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
     )
 
-    total_unidades_por_tipo = Associacao.objects.exclude(cnpj__exact='').values('unidade__tipo_unidade').annotate(
+    total_unidades_por_tipo = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo).values('unidade__tipo_unidade').annotate(
         qtde=Count('uuid'))
 
     choices = TIPOS_CHOICE
@@ -49,7 +50,7 @@ def saldo_por_tipo_de_unidade(queryset, periodo, conta):
 
 def saldo_por_dre(queryset, periodo, conta):
     saldo_por_dre = queryset.filter(
-        periodo__uuid=periodo,
+        periodo__uuid=periodo.uuid,
         conta_associacao__tipo_conta__uuid=conta
     ).values('associacao__unidade__dre', 'associacao__unidade__dre__nome').annotate(
         qtde_dre_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
@@ -57,9 +58,23 @@ def saldo_por_dre(queryset, periodo, conta):
 
     total_unidades_por_dre = Associacao.objects.exclude(cnpj__exact='').values('unidade__dre','unidade__dre__nome').annotate(qtde=Count('uuid'))
 
-    result = dict()
+    total_unidades_por_dre_dict = {}
+    for unidade in total_unidades_por_dre:
+        unidade['qtde'] = 0
+        unidade['qtd'] = 0
+        total_unidades_por_dre_dict[unidade['unidade__dre']] = unidade
 
-    for nome in total_unidades_por_dre:
+    total_unidades_por_dre_associacao_ativa = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo).values('unidade__dre','unidade__dre__nome').annotate(qtde=Count('uuid'))
+
+    for unidade in total_unidades_por_dre_associacao_ativa:
+        if unidade['unidade__dre'] in total_unidades_por_dre_dict:
+            total_unidades_por_dre_dict[unidade['unidade__dre']]['qtde'] = unidade['qtde']
+
+    total_unidades_por_dre_dict_list = list(total_unidades_por_dre_dict.values())
+
+    result = dict()
+    
+    for nome in total_unidades_por_dre_dict_list:
         if nome['unidade__dre'] is not None and nome['unidade__dre__nome'] is not None:
             result[nome['unidade__dre']] = {"nome_dre": nome['unidade__dre__nome'], "qtde_dre_informadas": 0,
                                             "saldo_bancario_informado": 0, "total_unidades": 0}
@@ -90,13 +105,27 @@ def saldo_por_ue_dre(queryset, periodo, conta):
             choices.append(choice[0])
 
     for dre in dres:
-        saldo_por_tipo_da_dre = queryset.filter(
-            periodo__uuid=periodo,
-            conta_associacao__tipo_conta__uuid=conta,
-            associacao__unidade__dre=dre
-        ).values('associacao__unidade__tipo_unidade', 'associacao__unidade__dre__sigla').annotate(
-            saldo_bancario_informado=Sum('saldo_extrato')
-        )
+
+        if Parametros.get().desconsiderar_associacoes_nao_iniciadas:
+            saldo_por_tipo_da_dre = queryset.filter(
+                Q(associacao__periodo_inicial__isnull=False) & 
+                Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
+                    Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
+                ),
+                periodo__uuid=periodo.uuid,
+                conta_associacao__tipo_conta__uuid=conta,
+                associacao__unidade__dre=dre
+            ).values('associacao__unidade__tipo_unidade', 'associacao__unidade__dre__sigla').annotate(
+                saldo_bancario_informado=Sum('saldo_extrato')
+            )
+        else:
+            saldo_por_tipo_da_dre = queryset.filter(
+                periodo__uuid=periodo.uuid,
+                conta_associacao__tipo_conta__uuid=conta,
+                associacao__unidade__dre=dre
+            ).values('associacao__unidade__tipo_unidade', 'associacao__unidade__dre__sigla').annotate(
+                saldo_bancario_informado=Sum('saldo_extrato')
+            )
         saldos_por_ue_dre.extend(saldo_por_tipo_da_dre)
 
         result[dre.sigla] = {"sigla_dre": dre.sigla, "uuid_dre": dre.uuid, "associacoes": []}
@@ -117,19 +146,17 @@ def saldo_por_ue_dre(queryset, periodo, conta):
     return lista_de_saldos_bancarios_ue_dre
 
 
-def saldo_detalhe_associacao(periodo_uuid, conta_uuid, dre_uuid, unidade, tipo_ue):
+def saldo_detalhe_associacao(periodo, conta_uuid, dre_uuid, unidade, tipo_ue):
     dres = Unidade.dres.exclude(sigla='')
 
     dre = dres.get(uuid=dre_uuid)
 
-    periodo_relation = Periodo.objects.get(uuid=periodo_uuid)
-
     filtered_relation = FilteredRelation(
         'observacoes_conciliacao_da_associacao',
-        condition=Q(observacoes_conciliacao_da_associacao__periodo=periodo_relation)
+        condition=Q(observacoes_conciliacao_da_associacao__periodo=periodo)
     )
 
-    qs = Associacao.objects.filter(unidade__dre__sigla=dre.sigla).annotate(
+    qs = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo).filter(unidade__dre__sigla=dre.sigla).annotate(
         obs_periodo=filtered_relation
     ).filter(
         Q(obs_periodo__conta_associacao__tipo_conta__uuid=conta_uuid) | Q(obs_periodo__isnull=True)
