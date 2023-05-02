@@ -380,8 +380,7 @@ def lista_prestacoes_de_conta_todos_os_status(
     filtro_por_devolucao_tesouro=None,
     filtro_por_status=[]
 ):
-    associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by(
-        'unidade__tipo_unidade', 'unidade__nome')
+    associacoes_da_dre = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo, dre=dre).order_by('unidade__tipo_unidade', 'unidade__nome')
 
     if filtro_nome is not None:
         associacoes_da_dre = associacoes_da_dre.filter(Q(nome__unaccent__icontains=filtro_nome) | Q(

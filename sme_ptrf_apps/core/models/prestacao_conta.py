@@ -723,7 +723,8 @@ class PrestacaoConta(ModeloBase):
     @classmethod
     def quantidade_por_status_sme(cls, periodo_uuid):
 
-        from ..models import Associacao
+        from ..models import Periodo, Associacao
+        periodo = Periodo.by_uuid(periodo_uuid)
 
         qtd_por_status = {
             cls.STATUS_NAO_RECEBIDA: 0,
@@ -737,10 +738,11 @@ class PrestacaoConta(ModeloBase):
             'TOTAL_UNIDADES': 0
         }
 
-        qs = cls.objects.filter(periodo__uuid=periodo_uuid)
+        qs = cls.objects.filter(periodo__uuid=periodo.uuid)
+
 
         quantidade_pcs_apresentadas = 0
-        qtd_por_status['TOTAL_UNIDADES'] = Associacao.objects.exclude(cnpj__exact='').count()
+        qtd_por_status['TOTAL_UNIDADES'] = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo).count()
 
         for status in qtd_por_status.keys():
             if status == 'TOTAL_UNIDADES' or status == cls.STATUS_NAO_APRESENTADA:
@@ -758,8 +760,8 @@ class PrestacaoConta(ModeloBase):
     @classmethod
     def quantidade_por_status_por_dre(cls, periodo_uuid):
 
-        from ...core.models import Unidade
-        from ..models import Associacao
+        from ..models import Unidade, Associacao, Periodo, Associacao
+        periodo = Periodo.by_uuid(periodo_uuid)
 
         qtd_por_status_dre = []
         for dre in Unidade.dres.all().order_by('sigla'):
@@ -779,8 +781,7 @@ class PrestacaoConta(ModeloBase):
             qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre.uuid)
 
             quantidade_pcs_apresentadas = 0
-            qtd_por_status['TOTAL_UNIDADES'] = Associacao.objects.filter(unidade__dre__uuid=dre.uuid).exclude(
-                cnpj__exact='').count()
+            qtd_por_status['TOTAL_UNIDADES'] = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo, dre=dre).count()
 
             for status in qtd_por_status.keys():
                 if status == 'TOTAL_UNIDADES' or status == cls.STATUS_NAO_APRESENTADA:

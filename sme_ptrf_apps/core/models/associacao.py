@@ -255,6 +255,8 @@ class Associacao(ModeloIdNome):
             associacoes_ativas = associacoes_ativas.filter(unidade__dre=dre)
 
         if Parametros.get().desconsiderar_associacoes_nao_iniciadas:
+            associacoes_ativas = associacoes_ativas.exclude(periodo_inicial__isnull=True)
+            
             associacoes_ativas = associacoes_ativas.exclude(periodo_inicial__referencia__gte=periodo.referencia)
 
         associacoes_ativas = associacoes_ativas.exclude(data_de_encerramento__lte=periodo.data_inicio_realizacao_despesas)
