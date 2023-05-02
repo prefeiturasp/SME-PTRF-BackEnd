@@ -318,7 +318,7 @@ def lista_prestacoes_de_conta_nao_recebidas(
     periodo,
     filtro_nome=None, filtro_tipo_unidade=None, filtro_status=[]
 ):
-    associacoes_da_dre = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').order_by(
+    associacoes_da_dre = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo, dre=dre).order_by(
         'unidade__tipo_unidade', 'unidade__nome')
 
     if filtro_nome is not None:
