@@ -34,6 +34,29 @@ def tipo_receita_devolucao(tipo_conta):
 
 
 @pytest.fixture
+def receita_data_de_encerramento(associacao_com_data_de_encerramento, conta_associacao, acao_associacao, tipo_receita, prestacao_conta_iniciada,
+            detalhe_tipo_receita, periodo_2020_1, despesa_saida_recurso):
+    return baker.make(
+        'Receita',
+        associacao=associacao_com_data_de_encerramento,
+        data=datetime.date(2023, 4, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
+        update_conferido=True,
+        conferido=True,
+        categoria_receita='CUSTEIO',
+        detalhe_tipo_receita=detalhe_tipo_receita,
+        detalhe_outros='teste',
+        periodo_conciliacao=periodo_2020_1,
+        saida_do_recurso=despesa_saida_recurso,
+        motivos_estorno=[],
+        outros_motivos_estorno="",
+    )
+
+
+@pytest.fixture
 def receita(associacao, conta_associacao, acao_associacao, tipo_receita, prestacao_conta_iniciada,
             detalhe_tipo_receita, periodo_2020_1, despesa_saida_recurso):
     return baker.make(
@@ -94,6 +117,23 @@ def receita_sem_detalhe_tipo_receita(associacao, conta_associacao, acao_associac
         detalhe_outros='teste',
         periodo_conciliacao=periodo_2020_1
     )
+
+
+@pytest.fixture
+def payload_receita_data_de_encerramento(associacao_com_data_de_encerramento, conta_associacao, acao_associacao, tipo_conta, tipo_receita, detalhe_tipo_receita):
+    payload = {
+        'associacao': str(associacao_com_data_de_encerramento.uuid),
+        'data': '2023-04-26',
+        'valor': 100.00,
+        'categoria_receita': 'CUSTEIO',
+        'conta_associacao': str(conta_associacao.uuid),
+        'acao_associacao': str(acao_associacao.uuid),
+        'tipo_receita': tipo_receita.id,
+        'detalhe_tipo_receita': detalhe_tipo_receita.id,
+        'detalhe_outros': 'teste',
+        'rateio_estornado': None,
+    }
+    return payload
 
 
 @pytest.fixture
