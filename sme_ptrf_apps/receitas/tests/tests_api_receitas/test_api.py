@@ -14,6 +14,34 @@ from sme_ptrf_apps.receitas.models import Receita, Repasse
 pytestmark = pytest.mark.django_db
 
 
+def test_create_receita_deve_gerar_erro_data_da_receita_maior_que_data_encerramento_associacao(
+    jwt_authenticated_client_p,
+    tipo_receita,
+    detalhe_tipo_receita,
+    acao,
+    acao_associacao,
+    associacao_com_data_de_encerramento,
+    tipo_conta,
+    conta_associacao,
+    payload_receita_data_de_encerramento
+):
+    response = jwt_authenticated_client_p.post('/api/receitas/', data=json.dumps(payload_receita_data_de_encerramento),
+                                               content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    result = json.loads(response.content)
+
+    data_de_encerramento = associacao_com_data_de_encerramento.data_de_encerramento.strftime("%d/%m/%Y")
+    esperado = {
+        "erro_data_de_encerramento": 'True',
+        "data_de_encerramento": f"{data_de_encerramento}",
+        "mensagem": f"A data do crédito não pode ser posterior à {data_de_encerramento}, data de encerramento da associação."
+    }
+
+    assert result == esperado
+
+
 def test_create_receita(
     jwt_authenticated_client_p,
     tipo_receita,
@@ -338,6 +366,36 @@ def test_get_receitas(
     esperado = results
 
     assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
+
+
+def test_update_receita_deve_gerar_erro_data_da_receita_maior_que_data_encerramento_associacao(
+    jwt_authenticated_client_p,
+    tipo_receita,
+    detalhe_tipo_receita,
+    acao,
+    acao_associacao,
+    associacao_com_data_de_encerramento,
+    tipo_conta,
+    conta_associacao,
+    receita_data_de_encerramento,
+    payload_receita_data_de_encerramento
+):
+    response = jwt_authenticated_client_p.put(f'/api/receitas/{receita_data_de_encerramento.uuid}/?associacao_uuid={associacao_com_data_de_encerramento.uuid}',
+                                              data=json.dumps(payload_receita_data_de_encerramento),
+                                              content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    result = json.loads(response.content)
+
+    data_de_encerramento = associacao_com_data_de_encerramento.data_de_encerramento.strftime("%d/%m/%Y")
+    esperado = {
+        "erro_data_de_encerramento": 'True',
+        "data_de_encerramento": f"{data_de_encerramento}",
+        "mensagem": f"A data do crédito não pode ser posterior à {data_de_encerramento}, data de encerramento da associação."
+    }
+
     assert result == esperado
 
 

@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 from django.db.models import Q
@@ -71,6 +72,49 @@ class ReceitaViewSet(mixins.CreateModelMixin,
                 detalhe_tipo_receita__nome__unaccent__icontains=search))
 
         return qs
+
+
+    @action(detail=False, url_path='periodos-validos-associacao-encerrada', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def periodos_validos_associacao_encerrada(self, request):
+
+        from ..serializers.validation_serializers.receitas_validate_serializer import ValidarPeriodosAssociacaoEncerradaValidationSerializer
+        from ...services.receita_service import ValidaPeriodosReceitaAssociacaoEncerrada
+
+        query = ValidarPeriodosAssociacaoEncerradaValidationSerializer(data=self.request.query_params)
+        query.is_valid(raise_exception=True)
+
+        associacao_uuid = request.query_params.get('associacao_uuid')
+        associacao = Associacao.by_uuid(associacao_uuid)
+
+        qs = ValidaPeriodosReceitaAssociacaoEncerrada(associacao=associacao).response
+
+        return Response(PeriodoLookUpSerializer(qs, many=True).data, status=status.HTTP_200_OK)
+
+
+    @action(detail=False, url_path='validar-data-da-receita-associacao-encerrada', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def validar_data_da_receita_associacao_encerrada(self, request):
+
+        from ..serializers.validation_serializers.receitas_validate_serializer import ValidarDataDaReceitaAssociacaoEncerradaValidationSerializer
+        from ...services.receita_service import ValidaDataDaReceitaAssociacaoEncerrada
+
+        query = ValidarDataDaReceitaAssociacaoEncerradaValidationSerializer(data=self.request.query_params)
+        query.is_valid(raise_exception=True)
+
+        associacao_uuid = request.query_params.get('associacao_uuid')
+        associacao = Associacao.by_uuid(associacao_uuid)
+
+        data_da_receita = request.query_params.get('data_da_receita')
+        data_da_receita = datetime.datetime.strptime(data_da_receita, '%Y-%m-%d')
+        data_da_receita = data_da_receita.date()
+
+        response = ValidaDataDaReceitaAssociacaoEncerrada(data_da_receita=data_da_receita, associacao=associacao).response
+
+        status_response = response.pop("status")
+
+        return Response(response, status=status_response)
+
 
     @action(detail=False, url_path='totais', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
