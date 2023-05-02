@@ -12,16 +12,25 @@ logger = logging.getLogger(__name__)
 
 
 def saldo_por_tipo_de_unidade(queryset, periodo, conta):
-    saldo_por_tipo_unidade = queryset.filter(
-        Q(associacao__periodo_inicial__isnull=False) & 
-        Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
-            Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
-        ),
-        periodo__uuid=periodo.uuid,
-        conta_associacao__tipo_conta__uuid=conta
-    ).values('associacao__unidade__tipo_unidade').annotate(
-        qtde_unidades_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
-    )
+
+    if Parametros.get().desconsiderar_associacoes_nao_iniciadas:
+        saldo_por_tipo_unidade = queryset.filter(
+            Q(associacao__periodo_inicial__isnull=False) & 
+            Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
+                Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
+            ),
+            periodo__uuid=periodo.uuid,
+            conta_associacao__tipo_conta__uuid=conta
+        ).values('associacao__unidade__tipo_unidade').annotate(
+            qtde_unidades_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
+        )
+    else:
+        saldo_por_tipo_unidade = queryset.filter(
+            periodo__uuid=periodo.uuid,
+            conta_associacao__tipo_conta__uuid=conta
+        ).values('associacao__unidade__tipo_unidade').annotate(
+            qtde_unidades_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
+        )
 
     total_unidades_por_tipo = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo).values('unidade__tipo_unidade').annotate(
         qtde=Count('uuid'))
@@ -53,16 +62,26 @@ def saldo_por_tipo_de_unidade(queryset, periodo, conta):
 
 
 def saldo_por_dre(queryset, periodo, conta):
-    saldo_por_dre = queryset.filter(
-        Q(associacao__periodo_inicial__isnull=False) & 
-        Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
-            Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
-        ),
-        periodo__uuid=periodo.uuid,
-        conta_associacao__tipo_conta__uuid=conta
-    ).values('associacao__unidade__dre', 'associacao__unidade__dre__nome').annotate(
-        qtde_dre_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
-    )
+
+    if Parametros.get().desconsiderar_associacoes_nao_iniciadas:
+        saldo_por_dre = queryset.filter(
+            Q(associacao__periodo_inicial__isnull=False) & 
+            Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
+                Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
+            ),
+            periodo__uuid=periodo.uuid,
+            conta_associacao__tipo_conta__uuid=conta
+        ).values('associacao__unidade__dre', 'associacao__unidade__dre__nome').annotate(
+            qtde_dre_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
+        )
+    else:
+        saldo_por_dre = queryset.filter(
+            periodo__uuid=periodo.uuid,
+            conta_associacao__tipo_conta__uuid=conta
+        ).values('associacao__unidade__dre', 'associacao__unidade__dre__nome').annotate(
+            qtde_dre_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
+        )
+
 
     total_unidades_por_dre = Associacao.objects.exclude(cnpj__exact='').values('unidade__dre','unidade__dre__nome').annotate(qtde=Count('uuid'))
 
