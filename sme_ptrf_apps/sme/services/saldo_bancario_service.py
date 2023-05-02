@@ -108,7 +108,8 @@ def saldo_por_ue_dre(queryset, periodo, conta):
 
         if Parametros.get().desconsiderar_associacoes_nao_iniciadas:
             saldo_por_tipo_da_dre = queryset.filter(
-                Q(associacao__periodo_inicial__isnull=False) & (
+                Q(associacao__periodo_inicial__isnull=False) & 
+                Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
                     Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
                 ),
                 periodo__uuid=periodo.uuid,
