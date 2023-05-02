@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 
 from sme_ptrf_apps.core.models import Associacao, Unidade, Periodo, TipoConta
 from sme_ptrf_apps.core.choices.tipos_unidade import TIPOS_CHOICE
+from sme_ptrf_apps.core.models.parametros import Parametros
 
 logger = logging.getLogger(__name__)
 
@@ -104,16 +105,26 @@ def saldo_por_ue_dre(queryset, periodo, conta):
             choices.append(choice[0])
 
     for dre in dres:
-        saldo_por_tipo_da_dre = queryset.filter(
-            Q(associacao__periodo_inicial__isnull=False) & (
-                Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
-            ),
-            periodo__uuid=periodo.uuid,
-            conta_associacao__tipo_conta__uuid=conta,
-            associacao__unidade__dre=dre
-        ).values('associacao__unidade__tipo_unidade', 'associacao__unidade__dre__sigla').annotate(
-            saldo_bancario_informado=Sum('saldo_extrato')
-        )
+
+        if Parametros.get().desconsiderar_associacoes_nao_iniciadas:
+            saldo_por_tipo_da_dre = queryset.filter(
+                Q(associacao__periodo_inicial__isnull=False) & (
+                    Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
+                ),
+                periodo__uuid=periodo.uuid,
+                conta_associacao__tipo_conta__uuid=conta,
+                associacao__unidade__dre=dre
+            ).values('associacao__unidade__tipo_unidade', 'associacao__unidade__dre__sigla').annotate(
+                saldo_bancario_informado=Sum('saldo_extrato')
+            )
+        else:
+            saldo_por_tipo_da_dre = queryset.filter(
+                periodo__uuid=periodo.uuid,
+                conta_associacao__tipo_conta__uuid=conta,
+                associacao__unidade__dre=dre
+            ).values('associacao__unidade__tipo_unidade', 'associacao__unidade__dre__sigla').annotate(
+                saldo_bancario_informado=Sum('saldo_extrato')
+            )
         saldos_por_ue_dre.extend(saldo_por_tipo_da_dre)
 
         result[dre.sigla] = {"sigla_dre": dre.sigla, "uuid_dre": dre.uuid, "associacoes": []}
