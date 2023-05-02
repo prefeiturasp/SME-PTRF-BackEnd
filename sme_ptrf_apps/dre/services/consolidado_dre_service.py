@@ -398,7 +398,10 @@ def retornar_trilha_de_status(dre_uuid=None, periodo_uuid=None, add_aprovado_res
         2 - Vermelho: Circulo preenchido vermelho
     """
 
-    from ...core.models import Associacao, PrestacaoConta
+    from ...core.models import Associacao, PrestacaoConta, Periodo
+
+    periodo = Periodo.by_uuid(periodo_uuid)
+    dre = Unidade.dres.get(uuid=dre_uuid)
 
     titulo_e_estilo_css = {
         'NAO_RECEBIDA':
@@ -520,9 +523,10 @@ def retornar_trilha_de_status(dre_uuid=None, periodo_uuid=None, add_aprovado_res
             }
             cards.append(card_concluidas)
 
-    quantidade_unidades_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
+    quantidade_unidades_dre = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo, dre=dre).count()
     quantidade_pcs_retificacoes = qs.filter(Q(consolidado_dre__consolidado_retificado__isnull=False)).count()
     quantidade_pcs_nao_apresentadas = quantidade_unidades_dre - quantidade_pcs_apresentadas - quantidade_pcs_retificacoes
+
     card_nao_recebidas = {
         "titulo": titulo_e_estilo_css['NAO_RECEBIDA']['titulo'],
         "estilo_css": titulo_e_estilo_css['NAO_RECEBIDA']['estilo_css'],
