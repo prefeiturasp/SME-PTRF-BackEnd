@@ -396,7 +396,7 @@ class ValidaDataDeEncerramento(AssociacaoService):
         if self.despesas or self.receitas:
             self.response = {
                 'erro': 'data_invalida',
-                'mensagem': 'Já houve movimentação após o início de uso do sistema.',
+                'mensagem': 'Existem movimentações cadastradas após a data informada. Favor alterar a data das movimentações ou a data do encerramento.',
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return
