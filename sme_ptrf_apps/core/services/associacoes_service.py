@@ -393,7 +393,7 @@ class ValidaDataDeEncerramento(AssociacaoService):
 
             self.fechamentos = self.retorna_se_tem_fechamento()
 
-        if self.despesas or self.receitas or self.prestacoes or self.fechamentos:
+        if self.despesas or self.receitas:
             self.response = {
                 'erro': 'data_invalida',
                 'mensagem': 'Já houve movimentação após o início de uso do sistema.',
