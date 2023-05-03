@@ -96,7 +96,7 @@ def test_action_valida_data_de_encerramento_deve_gerar_erro_tem_movimentacao(
 
     esperado = {
         "erro": "data_invalida",
-        "mensagem": "Já houve movimentação após o início de uso do sistema."
+        "mensagem": "Existem movimentações cadastradas após a data informada. Favor alterar a data das movimentações ou a data do encerramento."
     }
 
     assert result == esperado
