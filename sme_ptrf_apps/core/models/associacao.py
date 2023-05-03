@@ -68,8 +68,13 @@ class Associacao(ModeloIdNome):
         "CNPJ", max_length=20, validators=[cnpj_validation], blank=True, default="", unique=True
     )
 
-    periodo_inicial = models.ForeignKey('Periodo', on_delete=models.PROTECT, verbose_name='período inicial',
-                                        related_name='associacoes_iniciadas_no_periodo', null=True, blank=True)
+    periodo_inicial = models.ForeignKey(
+        'Periodo',
+        on_delete=models.PROTECT,
+        verbose_name='período inicial',
+        related_name='associacoes_iniciadas_no_periodo', null=True, blank=True,
+        help_text="O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
+    )
 
     data_de_encerramento = models.DateField(
         'Data de encerramento',
@@ -221,7 +226,6 @@ class Associacao(ModeloIdNome):
         response = ValidaSePodeEditarPeriodoInicial(associacao=self).response
         return response
 
-
     objects = models.Manager()  # Manager Padrão
     ativas = AssociacoesAtivasManager()
 
@@ -238,12 +242,12 @@ class Associacao(ModeloIdNome):
 
         if data_fim_realizacao_despesas and self.data_de_encerramento and self.data_de_encerramento < data_fim_realizacao_despesas:
             raise ValidationError(
-                {'data_de_encerramento': "Data de encerramento não pode ser menor que data_fim_realizacao_despesas do período inicial"})
+                {
+                    'data_de_encerramento': "Data de encerramento não pode ser menor que data_fim_realizacao_despesas do período inicial"})
 
     def save(self, *args, **kwargs):
         self.clean()
         return super().save(*args, **kwargs)
-
 
     @classmethod
     def get_associacoes_ativas_no_periodo(cls, periodo, dre=None):
@@ -256,11 +260,13 @@ class Associacao(ModeloIdNome):
 
         if Parametros.get().desconsiderar_associacoes_nao_iniciadas:
             associacoes_ativas = associacoes_ativas.exclude(periodo_inicial__isnull=True)
-            
+
             associacoes_ativas = associacoes_ativas.exclude(periodo_inicial__referencia__gte=periodo.referencia)
 
-        associacoes_ativas = associacoes_ativas.exclude(data_de_encerramento__lte=periodo.data_inicio_realizacao_despesas)
+        associacoes_ativas = associacoes_ativas.exclude(
+            data_de_encerramento__lte=periodo.data_inicio_realizacao_despesas)
 
         return associacoes_ativas
+
 
 auditlog.register(Associacao)
