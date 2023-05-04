@@ -666,7 +666,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        total_associacoes_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
+        total_associacoes_dre = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo, dre=dre).count()
 
         cards = retornar_trilha_de_status(
             dre_uuid=dre_uuid,

@@ -135,3 +135,18 @@ class FuncSmeAnaliseRelatoriosConsolidados(models.Model):
         permissions = (
             ('access_analise_relatorios_consolidados_sme', '[SME] Pode acessar a Análise de Relatórios Consolidados.'),
         )
+
+
+
+class FuncSmeEncerrarAssociacao(models.Model):
+
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[SME] Encerrar Associação"
+        verbose_name_plural = "[SME] Encerrar Associações"
+
+        permissions = (
+            ('change_encerrar_associacoes', '[SME] Pode encerrar associações'),
+        )

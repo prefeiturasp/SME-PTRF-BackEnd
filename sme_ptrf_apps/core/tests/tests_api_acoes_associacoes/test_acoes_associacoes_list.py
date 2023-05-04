@@ -28,6 +28,7 @@ def test_api_list_acoes_associacoes_todas(
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
+                    'data_de_encerramento': None,
                     'status_valores_reprogramados': acao_associacao.associacao.status_valores_reprogramados,
                     'unidade': {
                         'uuid': f'{acao_associacao.associacao.unidade.uuid}',
@@ -75,6 +76,7 @@ def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
+                    'data_de_encerramento': None,
                     'status_valores_reprogramados': acao_associacao.associacao.status_valores_reprogramados,
                     'unidade': {
                         'uuid': f'{acao_associacao.associacao.unidade.uuid}',
@@ -121,6 +123,7 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
+                    'data_de_encerramento': None,
                     'status_valores_reprogramados': acao_associacao.associacao.status_valores_reprogramados,
                     'unidade': {
                         'uuid': f'{acao_associacao.associacao.unidade.uuid}',
@@ -167,6 +170,7 @@ def test_api_list_associacoes_pelo_eol_escola(jwt_authenticated_client_a,
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
+                    'data_de_encerramento': None,
                     'status_valores_reprogramados': acao_associacao.associacao.status_valores_reprogramados,
                     'unidade': {
                         'uuid': f'{acao_associacao.associacao.unidade.uuid}',
@@ -215,6 +219,7 @@ def test_api_list_associacoes_por_acao(jwt_authenticated_client_a,
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
+                    'data_de_encerramento': None,
                     'status_valores_reprogramados': acao_associacao.associacao.status_valores_reprogramados,
                     'unidade': {
                         'uuid': f'{acao_associacao.associacao.unidade.uuid}',
@@ -264,6 +269,7 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
+                    'data_de_encerramento': None,
                     'status_valores_reprogramados': acao_associacao.associacao.status_valores_reprogramados,
                     'unidade': {
                         'uuid': f'{acao_associacao.associacao.unidade.uuid}',

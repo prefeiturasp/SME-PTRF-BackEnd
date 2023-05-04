@@ -14,6 +14,9 @@ class Parametros(SingletonModel, ModeloBase):
     fique_de_olho = RichTextField(null=True)
     fique_de_olho_relatorio_dre = RichTextField(null=True, verbose_name='Fique de olho (Relatório DRE)')
 
+    desconsiderar_associacoes_nao_iniciadas = models.BooleanField('Desconsiderar associações não iniciadas?',
+                                                                  default=False)
+
     tempo_aguardar_conclusao_pc = models.PositiveSmallIntegerField(
         'Quanto tempo deve-se aguardar a conclusão da PC (segundos)?',
         default=1
