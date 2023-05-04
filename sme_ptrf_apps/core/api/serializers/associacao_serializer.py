@@ -119,6 +119,7 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
             'cnpj',
             'status_valores_reprogramados',
             'data_de_encerramento',
+            'tooltip_data_encerramento',
             'unidade'
         ]
 
