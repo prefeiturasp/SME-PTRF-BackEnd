@@ -4,7 +4,7 @@ from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 from .validators import cnpj_validation
-from ..choices import MembroEnum
+from ..choices import MembroEnum, FiltroInformacoesAssociacao
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
@@ -201,6 +201,11 @@ class Associacao(ModeloIdNome):
             qry_periodos = qry_periodos.filter(
                 data_inicio_realizacao_despesas__gte=self.periodo_inicial.data_fim_realizacao_despesas
             )
+
+        if self.data_de_encerramento:
+            qry_periodos = qry_periodos.filter(
+                data_fim_realizacao_despesas__lte=self.data_de_encerramento
+            )
         return qry_periodos.all()
 
     def membros_por_cargo(self):
@@ -225,6 +230,11 @@ class Associacao(ModeloIdNome):
         from ..services.associacoes_service import ValidaSePodeEditarPeriodoInicial
         response = ValidaSePodeEditarPeriodoInicial(associacao=self).response
         return response
+
+    @property
+    def tooltip_data_encerramento(self):
+        return f"A associação foi encerrada em {self.data_de_encerramento.strftime('%d/%m/%Y')}" if \
+            self.data_de_encerramento else None
 
     objects = models.Manager()  # Manager Padrão
     ativas = AssociacoesAtivasManager()
@@ -267,6 +277,10 @@ class Associacao(ModeloIdNome):
             data_de_encerramento__lte=periodo.data_inicio_realizacao_despesas)
 
         return associacoes_ativas
+
+    @classmethod
+    def filtro_informacoes_to_json(cls):
+        return FiltroInformacoesAssociacao.choices()
 
 
 auditlog.register(Associacao)
