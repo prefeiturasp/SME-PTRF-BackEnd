@@ -626,16 +626,33 @@ class PrestacaoConta(ModeloBase):
         return cls.objects.filter(associacao=associacao, periodo=periodo).first()
 
     @classmethod
-    def dashboard(cls, periodo_uuid, dre_uuid, add_aprovado_ressalva=False, add_info_devolvidas_retornadas=False,
-                  apenas_nao_publicadas=False):
+    def dashboard(
+        cls,
+        periodo_uuid,
+        dre_uuid,
+        add_aprovado_ressalva=False,
+        add_info_devolvidas_retornadas=False,
+        apenas_nao_publicadas=False,
+    ):
         """
+        Retorna um dicionário com as informações para o dashboard de prestação de contas.
+
+        :param periodo_uuid: UUID do período que será utilizado para filtrar as prestações de contas.
+
+        :param dre_uuid: UUID da DRE que será utilizado para filtrar as prestações de contas.
+
         :param add_aprovado_ressalva: True para retornar a quantidade de aprovados com ressalva separadamente ou
         False para retornar a quantidade de aprovadas com ressalva somada a quantidade de aprovadas
 
         :param add_info_devolvidas_retornadas: True para retornar a quantidade de devolvidas retornadas no card de
         devolução.
+
+        :param apenas_nao_publicadas: True para retornar apenas as prestações de contas que não foram publicadas.
         """
-        from ..models import Associacao
+        from ..models import Associacao, Periodo, Unidade
+
+        periodo = Periodo.by_uuid(periodo_uuid)
+        dre = Unidade.by_uuid(dre_uuid)
 
         titulos_por_status = {
             cls.STATUS_NAO_RECEBIDA: "Prestações de contas não recebidas",
@@ -688,8 +705,12 @@ class PrestacaoConta(ModeloBase):
                 }
             cards.append(card)
 
-        quantidade_unidades_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
+        associacoes_dre = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo, dre=dre)
+
+        quantidade_unidades_dre = associacoes_dre.count()
+
         quantidade_pcs_nao_apresentadas = quantidade_unidades_dre - quantidade_pcs_apresentadas
+
         card_nao_recebidas = {
             "titulo": titulos_por_status['NAO_RECEBIDA'],
             "quantidade_prestacoes": quantidade_pcs_nao_apresentadas,
@@ -702,7 +723,8 @@ class PrestacaoConta(ModeloBase):
     @classmethod
     def quantidade_por_status_sme(cls, periodo_uuid):
 
-        from ..models import Associacao
+        from ..models import Periodo, Associacao
+        periodo = Periodo.by_uuid(periodo_uuid)
 
         qtd_por_status = {
             cls.STATUS_NAO_RECEBIDA: 0,
@@ -716,10 +738,11 @@ class PrestacaoConta(ModeloBase):
             'TOTAL_UNIDADES': 0
         }
 
-        qs = cls.objects.filter(periodo__uuid=periodo_uuid)
+        qs = cls.objects.filter(periodo__uuid=periodo.uuid)
+
 
         quantidade_pcs_apresentadas = 0
-        qtd_por_status['TOTAL_UNIDADES'] = Associacao.objects.exclude(cnpj__exact='').count()
+        qtd_por_status['TOTAL_UNIDADES'] = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo).count()
 
         for status in qtd_por_status.keys():
             if status == 'TOTAL_UNIDADES' or status == cls.STATUS_NAO_APRESENTADA:
@@ -737,8 +760,8 @@ class PrestacaoConta(ModeloBase):
     @classmethod
     def quantidade_por_status_por_dre(cls, periodo_uuid):
 
-        from ...core.models import Unidade
-        from ..models import Associacao
+        from ..models import Unidade, Associacao, Periodo, Associacao
+        periodo = Periodo.by_uuid(periodo_uuid)
 
         qtd_por_status_dre = []
         for dre in Unidade.dres.all().order_by('sigla'):
@@ -758,8 +781,7 @@ class PrestacaoConta(ModeloBase):
             qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre.uuid)
 
             quantidade_pcs_apresentadas = 0
-            qtd_por_status['TOTAL_UNIDADES'] = Associacao.objects.filter(unidade__dre__uuid=dre.uuid).exclude(
-                cnpj__exact='').count()
+            qtd_por_status['TOTAL_UNIDADES'] = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo, dre=dre).count()
 
             for status in qtd_por_status.keys():
                 if status == 'TOTAL_UNIDADES' or status == cls.STATUS_NAO_APRESENTADA:
