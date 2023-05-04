@@ -201,6 +201,11 @@ class Associacao(ModeloIdNome):
             qry_periodos = qry_periodos.filter(
                 data_inicio_realizacao_despesas__gte=self.periodo_inicial.data_fim_realizacao_despesas
             )
+
+        if self.data_de_encerramento:
+            qry_periodos = qry_periodos.filter(
+                data_fim_realizacao_despesas__lte=self.data_de_encerramento
+            )
         return qry_periodos.all()
 
     def membros_por_cargo(self):
