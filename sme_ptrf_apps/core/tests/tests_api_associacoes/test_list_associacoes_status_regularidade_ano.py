@@ -104,6 +104,7 @@ def test_api_list_status_associacoes_dre_1(
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
                 'nome': associacao_valenca_ceu_vassouras_dre_1.nome,
                 'data_de_encerramento': None,
+                'tooltip_data_encerramento': None,
                 'status_valores_reprogramados': associacao_valenca_ceu_vassouras_dre_1.status_valores_reprogramados,
                 'unidade': {
                     'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
@@ -142,6 +143,7 @@ def test_api_list_status_associacoes_pelo_nome_associacao_ignorando_acentos(
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
                 'nome': associacao_valenca_ceu_vassouras_dre_1.nome,
                 'data_de_encerramento': None,
+                'tooltip_data_encerramento': None,
                 'status_valores_reprogramados': associacao_valenca_ceu_vassouras_dre_1.status_valores_reprogramados,
                 'unidade': {
                     'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
@@ -179,6 +181,7 @@ def test_api_list_status_associacoes_pelo_nome_escola(
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
                 'nome': associacao_valenca_ceu_vassouras_dre_1.nome,
                 'data_de_encerramento': None,
+                'tooltip_data_encerramento': None,
                 'status_valores_reprogramados': associacao_valenca_ceu_vassouras_dre_1.status_valores_reprogramados,
                 'unidade': {
                     'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
@@ -218,6 +221,7 @@ def test_api_list_status_associacoes_pelo_tipo_unidade(
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
                 'nome': associacao_valenca_ceu_vassouras_dre_1.nome,
                 'data_de_encerramento': None,
+                'tooltip_data_encerramento': None,
                 'status_valores_reprogramados': associacao_valenca_ceu_vassouras_dre_1.status_valores_reprogramados,
                 'unidade': {
                     'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
@@ -256,6 +260,7 @@ def test_api_list_status_associacoes_pelo_status(
                 'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
                 'nome': associacao_valenca_ceu_vassouras_dre_1.nome,
                 'data_de_encerramento': None,
+                'tooltip_data_encerramento': None,
                 'status_valores_reprogramados': associacao_valenca_ceu_vassouras_dre_1.status_valores_reprogramados,
                 'unidade': {
                     'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',

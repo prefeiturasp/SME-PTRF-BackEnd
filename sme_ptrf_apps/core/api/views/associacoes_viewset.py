@@ -61,6 +61,7 @@ from ..serializers.ata_serializer import AtaLookUpSerializer
 
 from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_geracao_documentos, lancamentos_da_prestacao
 from ....receitas.models import Receita
+from ...choices import FiltroInformacoesAssociacao
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +113,21 @@ class AssociacoesViewSet(ModelViewSet):
         if nome is not None:
             qs = qs.filter(Q(unidade__codigo_eol=nome) | Q(nome__unaccent__icontains=nome) | Q(
                 unidade__nome__unaccent__icontains=nome))
+
+        filtro_informacoes = self.request.query_params.get('filtro_informacoes')
+        filtro_informacoes_list = filtro_informacoes.split(',') if filtro_informacoes else []
+
+        encerradas = FiltroInformacoesAssociacao.FILTRO_INFORMACOES_ENCERRADAS
+        nao_encerradas = FiltroInformacoesAssociacao.FILTRO_INFORMACOES_NAO_ENCERRADAS
+
+        if filtro_informacoes_list:
+            if encerradas in filtro_informacoes_list and nao_encerradas in filtro_informacoes_list:
+                qs = qs
+            elif nao_encerradas in filtro_informacoes_list:
+                qs = qs.filter(data_de_encerramento__isnull=True)
+
+            elif encerradas in filtro_informacoes_list:
+                qs = qs.filter(data_de_encerramento__isnull=False)
 
         return qs
 
@@ -388,7 +404,8 @@ class AssociacoesViewSet(ModelViewSet):
     def tabelas(self, _):
         result = {
             'tipos_unidade': Unidade.tipos_unidade_to_json(),
-            'dres': Unidade.dres_to_json()
+            'dres': Unidade.dres_to_json(),
+            'filtro_informacoes': Associacao.filtro_informacoes_to_json()
         }
         return Response(result)
 
