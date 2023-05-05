@@ -8,7 +8,7 @@ django-auditlog==1.0.0
 
 # Outras
 # ------------------------------------------------------------------------------
-Pillow==9.4.0
+Pillow==8.4.0
 
 # Dependencias não revisadas
 
