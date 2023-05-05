@@ -107,3 +107,39 @@ def test_get_periodos_prestacao_de_contas_da_associacao(
         esperados.discard(p['uuid'])
 
     assert esperados == set()
+
+
+@freeze_time('2020-06-15')
+def test_get_periodos_prestacao_de_contas_ate_encerramento_da_associacao_com_prestacao_anterior(
+    jwt_authenticated_client_a,
+    associacao_encerrada_2020_1,
+    periodo_2019_2,
+    prestacao_conta_2019_2_aprovada_associacao_encerrada
+):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao_encerrada_2020_1.uuid}/periodos-para-prestacao-de-contas/',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    esperados = {
+        f'{periodo_2019_2.uuid}',
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+
+    for p in result:
+        esperados.discard(p['uuid'])
+
+    assert esperados == set()
+
+@freeze_time('2020-06-15')
+def test_get_periodos_prestacao_de_contas_ate_encerramento_da_associacao_sem_prestacao_anterior(
+    jwt_authenticated_client_a,
+    associacao_encerrada_2020_2
+):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao_encerrada_2020_2.uuid}/periodos-para-prestacao-de-contas/',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+
+    assert result == []
