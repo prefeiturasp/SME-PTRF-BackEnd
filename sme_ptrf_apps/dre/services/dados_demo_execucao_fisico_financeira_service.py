@@ -457,10 +457,10 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
 
     publicada = not apenas_nao_publicadas
 
-    quantidade_ues_cnpj = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').count()
+    quantidade_associacoes_ativas = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo, dre=dre).count()
 
     # TODO Implementar contagem de regulares considerando o ano
-    quantidade_regular = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').count()
+    quantidade_regular = quantidade_associacoes_ativas
 
     cards = PrestacaoConta.dashboard(periodo.uuid, dre.uuid, add_aprovado_ressalva=True, add_info_devolvidas_retornadas=True, apenas_nao_publicadas=apenas_nao_publicadas)
 
@@ -522,7 +522,7 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
 
     if consolidado_dre and consolidado_dre.eh_retificacao:
         quantidade_nao_apresentada = \
-            quantidade_ues_cnpj \
+            quantidade_associacoes_ativas \
             - quantidade_aprovada \
             - quantidade_aprovada_ressalva \
             - quantidade_nao_aprovada \
@@ -532,7 +532,7 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
     # (-) todos os outros status com exceção dos quantidade_recebida e quantidade_devolvida (Porque não aparecem nesse bloco)
     elif not eh_consolidado_de_publicacoes_parciais:
         quantidade_nao_apresentada = \
-            quantidade_ues_cnpj \
+            quantidade_associacoes_ativas \
             - quantidade_aprovada \
             - quantidade_aprovada_ressalva \
             - quantidade_nao_aprovada\
@@ -540,7 +540,7 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
             - quantidade_publicacoes_anteriores
     else:
         quantidade_nao_apresentada = \
-            quantidade_ues_cnpj \
+            quantidade_associacoes_ativas \
             - quantidade_aprovada \
             - quantidade_aprovada_ressalva \
             - quantidade_nao_aprovada\
@@ -557,7 +557,7 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
 
     execucao_fisica = {
         "ues_da_dre": dre.unidades_da_dre.count(),
-        "ues_com_associacao": quantidade_ues_cnpj,
+        "ues_com_associacao": quantidade_associacoes_ativas,
         "associacoes_regulares": quantidade_regular,
         "aprovada": quantidade_aprovada,
         "aprovada_ressalva": quantidade_aprovada_ressalva,

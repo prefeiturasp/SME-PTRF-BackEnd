@@ -1,5 +1,5 @@
+import datetime
 import logging
-from datetime import date
 from io import BytesIO
 
 from django.db.models import Q
@@ -23,13 +23,15 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasDreComGravacao,
     PermissaoAPIApenasDreComLeituraOuGravacao
 )
+from ....despesas.models import Despesa
 
 from ....dre.services import (
     get_verificacao_regularidade_associacao,
     get_lista_associacoes_e_status_regularidade_no_ano,
     atualiza_itens_verificacao,
 )
-from ...models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade, Ata, AnalisePrestacaoConta
+from ...models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade, Ata, AnalisePrestacaoConta, \
+    FechamentoPeriodo
 from ...services import (
     atualiza_dados_unidade,
     gerar_planilha,
@@ -58,6 +60,7 @@ from ..serializers.processo_associacao_serializer import ProcessoAssociacaoRetri
 from ..serializers.ata_serializer import AtaLookUpSerializer
 
 from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_geracao_documentos, lancamentos_da_prestacao
+from ....receitas.models import Receita
 
 logger = logging.getLogger(__name__)
 
@@ -203,10 +206,12 @@ class AssociacoesViewSet(ModelViewSet):
         gerar_ou_editar_ata_retificacao = False
 
         if prestacao_conta_status:
-            if prestacao_conta_status['status_prestacao'] == 'NAO_RECEBIDA' or prestacao_conta_status['status_prestacao'] == 'NAO_APRESENTADA':
+            if prestacao_conta_status['status_prestacao'] == 'NAO_RECEBIDA' or prestacao_conta_status[
+                'status_prestacao'] == 'NAO_APRESENTADA':
                 gerar_ou_editar_ata_apresentacao = True
 
-            if prestacao_conta_status['status_prestacao'] == 'DEVOLVIDA_RETORNADA' or prestacao_conta_status['status_prestacao'] == 'DEVOLVIDA':
+            if prestacao_conta_status['status_prestacao'] == 'DEVOLVIDA_RETORNADA' or prestacao_conta_status[
+                'status_prestacao'] == 'DEVOLVIDA':
                 gerar_ou_editar_ata_retificacao = True
 
         gerar_previas = True
@@ -414,13 +419,15 @@ class AssociacoesViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def exportarpdf(self, _, uuid=None):
 
-        data_atual = date.today().strftime("%d-%m-%Y")
+        data_atual = datetime.date.today().strftime("%d-%m-%Y")
         usuario_logado = self.request.user
         associacao = Associacao.by_uuid(uuid)
         contas = list(ContaAssociacao.objects.filter(associacao=associacao).all())
         atualiza_dados_unidade(associacao)
 
-        html_string = render_to_string('pdf/associacoes/exportarpdf/pdf.html', {'associacao': associacao, 'contas': contas, 'dataAtual': data_atual, 'usuarioLogado': usuario_logado}).encode(encoding="UTF-8")
+        html_string = render_to_string('pdf/associacoes/exportarpdf/pdf.html',
+                                       {'associacao': associacao, 'contas': contas, 'dataAtual': data_atual,
+                                        'usuarioLogado': usuario_logado}).encode(encoding="UTF-8")
 
         html_pdf = HTML(string=html_string, base_url=self.request.build_absolute_uri()).write_pdf()
 
@@ -459,7 +466,7 @@ class AssociacoesViewSet(ModelViewSet):
         if periodo_uuid:
             try:
                 Periodo.objects.filter(uuid=periodo_uuid).get()
-                periodos=Periodo.objects.filter(uuid=periodo_uuid)
+                periodos = Periodo.objects.filter(uuid=periodo_uuid)
             except (ValidationError, Exception):
                 erro = {
                     'erro': 'parametro_invalido',
@@ -644,3 +651,42 @@ class AssociacoesViewSet(ModelViewSet):
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
         return Response(AtaLookUpSerializer(ata_previa, many=False).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, url_path='validar-data-de-encerramento', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def valida_data_de_encerramento(self, request, uuid=None):
+        from ...services.associacoes_service import ValidaDataDeEncerramento
+
+        associacao = self.get_object()
+
+        data_de_encerramento = request.query_params.get('data_de_encerramento')
+        if not data_de_encerramento:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário informar a data de encerramento'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        periodo_inicial_uuid = request.query_params.get('periodo_inicial')
+        periodo_inicial = None
+        if periodo_inicial_uuid:
+            try:
+                periodo_inicial = Periodo.objects.get(uuid=periodo_inicial_uuid)
+            except Periodo.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto período inicial para o uuid {periodo_inicial_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+
+        data_de_encerramento = datetime.datetime.strptime(data_de_encerramento, '%Y-%m-%d')
+        data_de_encerramento = data_de_encerramento.date()
+
+        response = ValidaDataDeEncerramento(associacao=associacao, data_de_encerramento=data_de_encerramento, periodo_inicial=periodo_inicial).response
+
+        status_response = response.pop("status")
+
+        return Response(response, status=status_response)
+

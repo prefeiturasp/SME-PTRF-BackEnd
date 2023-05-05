@@ -49,7 +49,7 @@ class SaldosBancariosSmeDetalhesAsocciacoesViewSet(mixins.ListModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            Periodo.objects.get(uuid=periodo_uuid)
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
         except ValidationError:
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -96,7 +96,7 @@ class SaldosBancariosSmeDetalhesAsocciacoesViewSet(mixins.ListModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        saldos = saldo_detalhe_associacao(periodo_uuid=periodo_uuid, conta_uuid=conta_uuid, dre_uuid=dre_uuid,
+        saldos = saldo_detalhe_associacao(periodo=periodo, conta_uuid=conta_uuid, dre_uuid=dre_uuid,
                                           unidade=unidade, tipo_ue=tipo_ue)
 
         return Response(saldos, status=status.HTTP_200_OK)

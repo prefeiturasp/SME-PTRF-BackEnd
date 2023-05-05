@@ -225,6 +225,10 @@ def test_api_retrieve_prestacao_conta_por_uuid(
             'cnpj': '52.302.275/0001-83',
             'email': 'ollyverottoboni@gmail.com',
             'nome': 'Escola Teste',
+            'data_de_encerramento': {
+                'data': None,
+                'help_text': 'A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.'
+            },
             'presidente_associacao': {
                 'bairro': '',
                 'cargo_educacao': '',
@@ -240,6 +244,11 @@ def test_api_retrieve_prestacao_conta_por_uuid(
                 'nome': ''
             },
             'processo_regularidade': '123456',
+            'retorna_se_pode_editar_periodo_inicial': {
+                'mensagem_pode_editar_periodo_inicial': 'Não é permitido alterar o período inicial da Associação, pois há valores reprogramados cadastrados conferidos como corretos no início de uso do sistema.',
+                'pode_editar_periodo_inicial': False,
+                "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
+            },
             'periodo_inicial': {
                 'data_fim_realizacao_despesas': '2019-08-31',
                 'data_inicio_realizacao_despesas': '2019-01-01',
