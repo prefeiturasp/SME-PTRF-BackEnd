@@ -154,10 +154,19 @@ class Associacao(ModeloIdNome):
                 'cargo_educacao': ''
             }
 
+    @property
+    def encerrada(self):
+        return self.data_de_encerramento is not None
+
     def periodos_com_prestacao_de_contas(self, ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=False):
         periodos = set()
 
         prestacoes_da_associacao = self.prestacoes_de_conta_da_associacao
+
+        if self.encerrada:
+            prestacoes_da_associacao = prestacoes_da_associacao.filter(
+                periodo__data_fim_realizacao_despesas__lte=self.data_de_encerramento
+            )
 
         for prestacao in prestacoes_da_associacao.all():
             if ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos:
@@ -172,10 +181,17 @@ class Associacao(ModeloIdNome):
         if ignorar_devolvidas:
             prestacoes_da_associacao = prestacoes_da_associacao.exclude(status='DEVOLVIDA')
 
+        if self.encerrada:
+            prestacoes_da_associacao = prestacoes_da_associacao.filter(
+                periodo__data_fim_realizacao_despesas__lte=self.data_de_encerramento
+            )
+
         ultima_prestacao_feita = prestacoes_da_associacao.last()
         ultimo_periodo_com_prestacao = ultima_prestacao_feita.periodo if ultima_prestacao_feita else None
         if ultimo_periodo_com_prestacao:
             return ultimo_periodo_com_prestacao.periodo_seguinte.first()
+        elif self.encerrada:
+            return None
         else:
             return self.periodo_inicial.periodo_seguinte.first() if self.periodo_inicial else None
 

@@ -840,6 +840,15 @@ def prestacao_conta_2019_2_conciliada(periodo_2019_2, associacao):
         status=PrestacaoConta.STATUS_NAO_RECEBIDA
     )
 
+@pytest.fixture
+def prestacao_conta_2019_2_aprovada_associacao_encerrada(periodo_2019_2, associacao_encerrada_2020_1):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2019_2,
+        associacao=associacao_encerrada_2020_1,
+        status=PrestacaoConta.STATUS_APROVADA
+    )
+
 
 @pytest.fixture
 def prestacao_conta_2020_1_conciliada_outra_conta(periodo_2020_1, associacao):
@@ -1148,6 +1157,30 @@ def detalhe_tipo_receita_repasse(tipo_receita_repasse):
 def detalhe_tipo_receita(tipo_receita):
     return baker.make('DetalheTipoReceita', nome='Estorno A', tipo_receita=tipo_receita)
 
+
+@pytest.fixture
+def receita_teste_valida_data_de_encerramento(associacao, conta_associacao, acao_associacao, tipo_receita, periodo):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=date(2023,4,20),
+        valor=100.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
+    )
+
+@pytest.fixture
+def receita_teste_valida_data_de_encerramento_associacao_02(associacao_02, conta_associacao, acao_associacao, tipo_receita, periodo):
+    return baker.make(
+        'Receita',
+        associacao=associacao_02,
+        data=date(2023,4,20),
+        valor=100.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
+    )
 
 @pytest.fixture
 def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita, periodo):

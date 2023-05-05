@@ -328,14 +328,14 @@ class ValidaDataDeEncerramento(AssociacaoService):
                 Q(status="COMPLETO") &
                 Q(data_e_hora_de_inativacao__isnull=True) &
                 Q(associacao=self.associacao) &
-                Q(data_transacao__gte=self.data_inicio_realizacao_despesas)
+                Q(data_transacao__gte=self.data_de_encerramento)
             ).exists()
 
     def retorna_se_tem_receita(self):
         return Receita.objects.filter(
                 Q(status="COMPLETO") &
                 Q(associacao=self.associacao) &
-                Q(data__gte=self.data_inicio_realizacao_despesas)
+                Q(data__gte=self.data_de_encerramento)
             ).exists()
 
     def retorna_se_tem_pc(self):
