@@ -31,7 +31,7 @@ class AssociacaoLookupSerializer(serializers.ModelSerializer):
 
 class AssociacaoCreateSerializer(serializers.ModelSerializer):
     observacao = serializers.CharField(source="unidade__observacao", required=False, allow_blank=True, allow_null=True)
-    
+
     unidade = UnidadeCreateSerializer(many=False)
     periodo_inicial = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -49,7 +49,7 @@ class AssociacaoCreateSerializer(serializers.ModelSerializer):
         unidade = validated_data.pop('unidade')
         observacao = ""
 
-        if validated_data.get("unidade__observacao"):
+        if "unidade__observacao" in validated_data:
             observacao = validated_data.pop('unidade__observacao')
 
         associacao = Associacao.objects.create(**validated_data)
@@ -118,6 +118,7 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
             'nome',
             'cnpj',
             'status_valores_reprogramados',
+            'data_de_encerramento',
             'unidade'
         ]
 
@@ -125,6 +126,15 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
 class AssociacaoCompletoSerializer(serializers.ModelSerializer):
     unidade = UnidadeSerializer(many=False)
     periodo_inicial = PeriodoLookUpSerializer()
+
+    data_de_encerramento = serializers.SerializerMethodField('get_data_de_encerramento')
+
+    def get_data_de_encerramento(self, obj):
+        response = {
+            "data": obj.data_de_encerramento,
+            "help_text": "A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada."
+        }
+        return response
 
     class Meta:
         model = Associacao
@@ -139,5 +149,7 @@ class AssociacaoCompletoSerializer(serializers.ModelSerializer):
             'presidente_conselho_fiscal',
             'processo_regularidade',
             'periodo_inicial',
-            'id'
+            'data_de_encerramento',
+            'id',
+            'retorna_se_pode_editar_periodo_inicial',
         ]

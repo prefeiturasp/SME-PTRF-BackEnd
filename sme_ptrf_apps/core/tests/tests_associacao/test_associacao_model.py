@@ -36,3 +36,41 @@ def test_srt_model(associacao):
 def test_admin():
     # pylint: disable=W0212
     assert admin.site._registry[Associacao]
+
+
+def test_get_associacoes_ativas_no_periodo_deve_desconsiderar_associacoes_nao_iniciadas_parametro_ativo(
+    associacao_iniciada_2020_1,
+    associacao_iniciada_2020_2,
+    outra_associacao_sem_periodo_inicial,
+    periodo_2020_2,
+    parametros_desconsidera_nao_iniciadas,
+    dre,
+):
+    result = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo_2020_2, dre=dre)
+    # Quantidade de associações deve ser 1, pois a associacao iniciada em 2020_2 e a associacaoo sem periodo inicial nao devem ser consideradas
+    assert len(result) == 1
+    assert result[0] == associacao_iniciada_2020_1
+
+def test_get_associacoes_ativas_no_periodo_deve_desconsiderar_associacoes_nao_iniciadas_parametro_inativo(
+    associacao_iniciada_2020_1,
+    associacao_iniciada_2020_2,
+    outra_associacao_sem_periodo_inicial,
+    periodo_2020_2,
+    parametros_nao_desconsidera_nao_iniciadas,
+    dre,
+):
+    result = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo_2020_2, dre=dre)
+    # Quantidade de associações deve ser deve ser 3, pois o parâmetro de desconsiderar associacoes nao iniciadas está inativo
+    assert len(result) == 3
+
+
+def test_get_associacoes_ativas_no_periodo_deve_desconsiderar_associacoes_encerradas(
+    associacao_encerrada_2020_1,
+    associacao_encerrada_2020_2,
+    periodo_2020_2,
+    dre,
+):
+    result = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo_2020_2, dre=dre)
+    # Quantidade de associações deve ser 1, pois a associacao encerrada em 2020_1 nao deve ser considerada
+    assert len(result) == 1
+    assert result[0] == associacao_encerrada_2020_2
