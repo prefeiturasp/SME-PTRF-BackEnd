@@ -1150,6 +1150,30 @@ def detalhe_tipo_receita(tipo_receita):
 
 
 @pytest.fixture
+def receita_teste_valida_data_de_encerramento(associacao, conta_associacao, acao_associacao, tipo_receita, periodo):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=date(2023,4,20),
+        valor=100.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
+    )
+
+@pytest.fixture
+def receita_teste_valida_data_de_encerramento_associacao_02(associacao_02, conta_associacao, acao_associacao, tipo_receita, periodo):
+    return baker.make(
+        'Receita',
+        associacao=associacao_02,
+        data=date(2023,4,20),
+        valor=100.00,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
+    )
+
+@pytest.fixture
 def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita, periodo):
     return baker.make(
         'Receita',
