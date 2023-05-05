@@ -126,7 +126,7 @@ def test_valida_data_de_encerramento_deve_gerar_erro_tem_movimentacao(
     periodo_anterior,
     periodo,
     acao_associacao,
-    receita_100_no_periodo,
+    receita_teste_valida_data_de_encerramento,
 ):
     data_de_encerramento = '2023-04-20'
     data_de_encerramento = datetime.datetime.strptime(data_de_encerramento, '%Y-%m-%d')
@@ -148,7 +148,7 @@ def test_valida_data_de_encerramento_periodo_sem_fim(
     periodo_anterior,
     periodo,
     acao_associacao,
-    receita_100_no_periodo,
+    receita_teste_valida_data_de_encerramento_associacao_02,
 ):
     data_de_encerramento = '2023-04-20'
     data_de_encerramento = datetime.datetime.strptime(data_de_encerramento, '%Y-%m-%d')
@@ -157,9 +157,9 @@ def test_valida_data_de_encerramento_periodo_sem_fim(
     response = ValidaDataDeEncerramento(associacao=associacao_02, data_de_encerramento=data_de_encerramento).response
 
     esperado = {
-        'erro': 'data_valida',
-        'mensagem': 'Data de encerramento válida',
-        "status": status.HTTP_200_OK,
+        'erro': 'data_invalida',
+        'mensagem': 'Existem movimentações cadastradas após a data informada. Favor alterar a data das movimentações ou a data do encerramento.',
+        "status": status.HTTP_400_BAD_REQUEST,
     }
 
     assert response == esperado
