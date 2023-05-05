@@ -378,6 +378,16 @@ def associacao_encerrada_2020_2(periodo_2019_2, periodo_2020_2, outra_unidade):
     )
 
 
+@pytest.fixture
+def associacao_encerrada_2021_2(periodo_2019_2, periodo_2021_2, outra_unidade):
+    return baker.make(
+        'Associacao',
+        nome='Escola Encerrada em 2021.2',
+        cnpj='23.500.058/0001-08',
+        unidade=outra_unidade,
+        periodo_inicial=periodo_2019_2,
+        data_de_encerramento=date(2021, 12, 30),
+    )
 
 @pytest.fixture
 def associacao_status_nao_finalizado(unidade, periodo_anterior):
@@ -649,6 +659,16 @@ def periodo_2021_1(periodo_2020_2):
     )
 
 @pytest.fixture
+def periodo_2021_2(periodo_2021_1):
+    return baker.make(
+        'Periodo',
+        referencia='2021.2',
+        data_inicio_realizacao_despesas=date(2021, 7, 1),
+        data_fim_realizacao_despesas=None,
+        periodo_anterior=periodo_2021_1,
+    )
+
+@pytest.fixture
 def periodo_2019_2(periodo):
     return baker.make(
         'Periodo',
@@ -840,15 +860,6 @@ def prestacao_conta_2019_2_conciliada(periodo_2019_2, associacao):
         status=PrestacaoConta.STATUS_NAO_RECEBIDA
     )
 
-@pytest.fixture
-def prestacao_conta_2019_2_aprovada_associacao_encerrada(periodo_2019_2, associacao_encerrada_2020_1):
-    return baker.make(
-        'PrestacaoConta',
-        periodo=periodo_2019_2,
-        associacao=associacao_encerrada_2020_1,
-        status=PrestacaoConta.STATUS_APROVADA
-    )
-
 
 @pytest.fixture
 def prestacao_conta_2020_1_conciliada_outra_conta(periodo_2020_1, associacao):
@@ -857,6 +868,15 @@ def prestacao_conta_2020_1_conciliada_outra_conta(periodo_2020_1, associacao):
         periodo=periodo_2020_1,
         associacao=associacao,
         status=STATUS_ABERTO,
+    )
+
+@pytest.fixture
+def prestacao_conta_2021_1_aprovada_associacao_encerrada(periodo_2021_1, associacao_encerrada_2021_2):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2021_1,
+        associacao=associacao_encerrada_2021_2,
+        status=PrestacaoConta.STATUS_APROVADA
     )
 
 
