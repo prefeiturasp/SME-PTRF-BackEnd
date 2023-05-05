@@ -63,7 +63,8 @@ def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valen
                 'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
                 'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
-            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj
+            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
+            'data_de_encerramento': None,
         },
         {
             'uuid': f'{associacao_pinheiros_emef_mendes_dre_2.uuid}',
@@ -75,7 +76,8 @@ def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valen
                 'nome_com_tipo': associacao_pinheiros_emef_mendes_dre_2.unidade.nome_com_tipo,
                 'nome_dre': associacao_pinheiros_emef_mendes_dre_2.unidade.nome_dre
             },
-            'cnpj': associacao_pinheiros_emef_mendes_dre_2.cnpj
+            'cnpj': associacao_pinheiros_emef_mendes_dre_2.cnpj,
+            'data_de_encerramento': None,
         },
     ]
 
@@ -101,7 +103,8 @@ def test_api_list_associacoes_de_uma_dre(jwt_authenticated_client_a, associacao_
                 'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
                 'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
-            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj
+            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
+            'data_de_encerramento': None,
         },
     ]
 
@@ -125,7 +128,8 @@ def test_api_list_associacoes_pelo_nome_associacao_ignorando_acentos(jwt_authent
                 'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
                 'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
-            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj
+            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
+            'data_de_encerramento': None,
         },
     ]
 
@@ -149,7 +153,8 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a, assoc
                 'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
                 'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
-            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj
+            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
+            'data_de_encerramento': None,
         },
     ]
 
@@ -173,7 +178,8 @@ def test_api_list_associacoes_pelo_tipo_unidade(jwt_authenticated_client_a, asso
                 'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
                 'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
-            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj
+            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
+            'data_de_encerramento': None,
         },
     ]
 
@@ -197,7 +203,8 @@ def test_api_list_associacoes_pelo_codigo_eol(jwt_authenticated_client_a, associ
                 'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
                 'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
             },
-            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj
+            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
+            'data_de_encerramento': None,
         },
     ]
 

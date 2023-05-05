@@ -64,9 +64,19 @@ class AssociacaoAdmin(admin.ModelAdmin):
 
     get_nome_escola.short_description = 'Escola'
 
-    list_display = ('nome', 'cnpj', 'get_nome_escola')
+    def get_periodo_inicial_referencia(self, obj):
+        return obj.periodo_inicial.referencia if obj and obj.periodo_inicial else ''
+
+    get_periodo_inicial_referencia.short_description = 'Período Inicial'
+
+    list_display = ('nome', 'cnpj', 'get_nome_escola', 'get_periodo_inicial_referencia', 'data_de_encerramento')
     search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome', 'unidade__codigo_eol', )
-    list_filter = ('unidade__dre', 'periodo_inicial', 'unidade__tipo_unidade', )
+    list_filter = (
+        'unidade__dre',
+        'periodo_inicial',
+        'unidade__tipo_unidade',
+        ('data_de_encerramento', DateRangeFilter),
+    )
     readonly_fields = ('uuid', 'id')
     list_display_links = ('nome', 'cnpj')
 
@@ -638,6 +648,7 @@ class ParametrosAdmin(admin.ModelAdmin):
            'fields':
                 (
                     'permite_saldo_conta_negativo',
+                    'desconsiderar_associacoes_nao_iniciadas',
                     'tempo_aguardar_conclusao_pc',
                     'quantidade_tentativas_concluir_pc',
                     'periodo_de_tempo_tentativas_concluir_pc',
@@ -876,6 +887,7 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
 
     get_periodo.short_description = 'Período'
 
+
     def get_analise_pc(self, obj):
         return f'#{obj.analise_prestacao_conta.pk}' if obj and obj.analise_prestacao_conta else ''
 
@@ -884,7 +896,7 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_lancamento', 'resultado', 'status_realizacao',
                     'devolucao_tesouro_atualizada']
     list_filter = (
-    'analise_corrigida_via_admin_action',
+    # 'analise_corrigida_via_admin_action', # TODO remover esse filtro quando não for mais necessário
     'analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
     'analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
     'analise_prestacao_conta__prestacao_conta__periodo',
@@ -898,14 +910,15 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
         'analise_prestacao_conta__prestacao_conta__associacao__nome',
     )
 
-    readonly_fields = ('uuid', 'id',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
     raw_id_fields = ['analise_prestacao_conta', 'despesa', 'receita', 'analise_prestacao_conta_auxiliar']
 
-    actions = ['inativar_analises_lancamento_prestacao_conta_duplicadas_gasto',
-               'inativar_analises_lancamento_prestacao_conta_duplicadas_receita',
-               'reverter_inativar_analises_lancamento_prestacao_conta_duplicadas_gasto',
-               'reverter_inativar_analises_lancamento_prestacao_conta_duplicadas_receita']
+    # TODO remover actions quando não forem mais necessárias
+    # actions = ['inativar_analises_lancamento_prestacao_conta_duplicadas_gasto',
+    #            'inativar_analises_lancamento_prestacao_conta_duplicadas_receita',
+    #            'reverter_inativar_analises_lancamento_prestacao_conta_duplicadas_gasto',
+    #            'reverter_inativar_analises_lancamento_prestacao_conta_duplicadas_receita']
 
     def inativar_analises_lancamento_prestacao_conta_duplicadas_gasto(self, request, queryset):
         contador = 0
