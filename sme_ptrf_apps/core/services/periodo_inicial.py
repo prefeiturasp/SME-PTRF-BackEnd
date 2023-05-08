@@ -24,26 +24,39 @@ def processa_periodo_inicial(reader, arquivo):
     for index, row in enumerate(reader):
         if index != 0:
             logger.info('Linha %s: %s', index, row)
-            associacao = get_associacao(str(row[CODIGO_EOL]).strip())
-            if not associacao:
-                msg_erro = f"Associação ({str(row[CODIGO_EOL])}) não encontrado. Linha: {index}"
-                logger.info(msg_erro)
-                logs = f"{logs}\n{msg_erro}"
-                erros += 1
-                continue
 
-            periodo = get_periodo(str(row[PERIODO]).strip())
-            if not periodo:
-                msg_erro = f"Período ({str(row[PERIODO])}) não encontrado. Linha: {index}"
-                logger.info(msg_erro)
-                logs = f"{logs}\n{msg_erro}"
-                erros += 1
-                continue
+            try:
+                associacao = get_associacao(str(row[CODIGO_EOL]).strip())
+                if not associacao:
+                    msg_erro = f"Associação ({str(row[CODIGO_EOL])}) não encontrado. Linha: {index}"
+                    raise Exception(msg_erro)
 
-            associacao.periodo_inicial = periodo
-            associacao.save()
-            logger.info("Periodo inicial da associação %s importado com sucesso.", associacao)
-            importados += 1
+                periodo = get_periodo(str(row[PERIODO]).strip())
+                if not periodo:
+                    msg_erro = f"Período ({str(row[PERIODO])}) não encontrado. Linha: {index}"
+                    raise Exception(msg_erro)
+
+                data_referencia = periodo.data_fim_realizacao_despesas if periodo.data_fim_realizacao_despesas else periodo.data_inicio_realizacao_despesas
+
+                if associacao.encerrada and (data_referencia >= associacao.data_de_encerramento):
+                    msg_erro = f'A associação foi encerrada em {associacao.data_de_encerramento.strftime("%d/%m/%Y")}. Linha ID:{index}'
+                    raise Exception(msg_erro)
+
+                if associacao.periodo_inicial and (data_referencia <= associacao.periodo_inicial.data_fim_realizacao_despesas):
+                    msg_erro = f'O período informado é anterior ao período inicial da associação. Linha ID:{index}'
+                    raise Exception(msg_erro)
+
+                associacao.periodo_inicial = periodo
+                associacao.save()
+                logger.info("Periodo inicial da associação %s importado com sucesso.", associacao)
+                importados += 1
+
+            except Exception as e:
+                msg = f"Erro na linha {index}: {str(e)}"
+                logger.info(msg)
+
+                logs = f'{logs}\n{msg}'
+                erros += 1
 
     if importados > 0 and erros > 0:
         arquivo.status = PROCESSADO_COM_ERRO
