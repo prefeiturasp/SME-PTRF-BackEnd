@@ -249,7 +249,7 @@ class Associacao(ModeloIdNome):
     @property
     def pode_editar_dados_associacao_encerrada(self):
         if self.encerrada:
-            ultima_pc = self.prestacoes_de_conta_da_associacao.order_by('id').all().last()
+            ultima_pc = self.prestacoes_de_conta_da_associacao.order_by('id').last()
             if ultima_pc:
                 if ultima_pc.pc_publicada_no_diario_oficial:
                     return False
