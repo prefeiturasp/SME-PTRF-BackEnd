@@ -227,7 +227,8 @@ def test_api_retrieve_prestacao_conta_por_uuid(
             'nome': 'Escola Teste',
             'data_de_encerramento': {
                 'data': None,
-                'help_text': 'A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.'
+                'help_text': 'A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.',
+                'pode_editar_dados_associacao_encerrada': True
             },
             'presidente_associacao': {
                 'bairro': '',

@@ -26,7 +26,12 @@ def test_get_membros_associacoes(
             'associacao':
             {
                 'id': associacao.id,
-                'nome': associacao.nome
+                'nome': associacao.nome,
+                'data_de_encerramento': {
+                    'data': None,
+                    'help_text': 'A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.',
+                    'pode_editar_dados_associacao_encerrada': True
+                },
             },
             'criado_em': membro_associacao.criado_em.isoformat("T"),
             'alterado_em': membro_associacao.alterado_em.isoformat("T"),
@@ -62,7 +67,12 @@ def test_get_membro_associacao(
         'associacao':
             {
                 'id': associacao.id,
-                'nome': associacao.nome
+                'nome': associacao.nome,
+                'data_de_encerramento': {
+                    'data': None,
+                    'help_text': 'A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.',
+                    'pode_editar_dados_associacao_encerrada': True
+                },
             },
         'criado_em': membro_associacao.criado_em.isoformat("T"),
         'alterado_em': membro_associacao.alterado_em.isoformat("T"),
@@ -179,7 +189,12 @@ def test_get_membros_associacoes_por_cpf(
             'associacao':
             {
                 'id': associacao.id,
-                'nome': associacao.nome
+                'nome': associacao.nome,
+                'data_de_encerramento': {
+                    'data': None,
+                    'help_text': 'A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.',
+                    'pode_editar_dados_associacao_encerrada': True
+                },
             },
             'criado_em': membro_associacao.criado_em.isoformat("T"),
             'alterado_em': membro_associacao.alterado_em.isoformat("T"),

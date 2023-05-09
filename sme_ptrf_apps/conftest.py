@@ -16,6 +16,7 @@ from .core.models import (
 )
 from .core.models.prestacao_conta import PrestacaoConta
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
+from sme_ptrf_apps.dre.models import ConsolidadoDRE
 import datetime
 
 
@@ -799,6 +800,43 @@ def prestacao_conta_devolvida_posterior(periodo_futuro, associacao):
         periodo=periodo_futuro,
         associacao=associacao,
         status=PrestacaoConta.STATUS_DEVOLVIDA
+    )
+
+
+@pytest.fixture
+def consolidado_dre_publicado_diario_oficial(periodo, dre):
+    return baker.make(
+        'ConsolidadoDRE',
+        dre=dre,
+        periodo=periodo,
+        status=ConsolidadoDRE.STATUS_NAO_GERADOS,
+        data_publicacao=date(2020, 7, 1),
+        pagina_publicacao='1'
+    )
+
+
+@pytest.fixture
+def prestacao_conta_2020_1_aprovada_associacao_encerrada_publicada_diario_oficial(
+    periodo_2020_1,
+    associacao_encerrada_2020_1,
+    consolidado_dre_publicado_diario_oficial
+):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao_encerrada_2020_1,
+        status=PrestacaoConta.STATUS_APROVADA,
+        consolidado_dre=consolidado_dre_publicado_diario_oficial
+    )
+
+
+@pytest.fixture
+def prestacao_conta_2020_1_aprovada_associacao_encerrada(periodo_2020_1, associacao_encerrada_2020_1):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao_encerrada_2020_1,
+        status=PrestacaoConta.STATUS_APROVADA,
     )
 
 

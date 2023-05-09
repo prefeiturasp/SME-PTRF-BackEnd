@@ -24,9 +24,19 @@ class AssociacaoSerializer(serializers.ModelSerializer):
 
 
 class AssociacaoLookupSerializer(serializers.ModelSerializer):
+    data_de_encerramento = serializers.SerializerMethodField('get_data_de_encerramento')
+
+    def get_data_de_encerramento(self, obj):
+        response = {
+            "data": obj.data_de_encerramento,
+            "help_text": "A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.",
+            "pode_editar_dados_associacao_encerrada": obj.pode_editar_dados_associacao_encerrada
+        }
+        return response
+
     class Meta:
         model = Associacao
-        fields = ('id', 'nome')
+        fields = ('id', 'nome', 'data_de_encerramento',)
 
 
 class AssociacaoCreateSerializer(serializers.ModelSerializer):
@@ -133,7 +143,8 @@ class AssociacaoCompletoSerializer(serializers.ModelSerializer):
     def get_data_de_encerramento(self, obj):
         response = {
             "data": obj.data_de_encerramento,
-            "help_text": "A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada."
+            "help_text": "A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.",
+            "pode_editar_dados_associacao_encerrada": obj.pode_editar_dados_associacao_encerrada
         }
         return response
 
