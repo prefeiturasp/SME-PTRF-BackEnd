@@ -1,15 +1,23 @@
-# Dependencias revisadas
+# DEPENDENCIAS JÁ REVISTAS
 
 # Django
 # ------------------------------------------------------------------------------
-django==3.0.14  # https://www.djangoproject.com/
+django==3.0.14
+django-auditlog==1.0.0
 
+# Dependências do Django Rest Framework
+# ------------------------------------------------------------------------------
+drf-spectacular==0.26.2                 # Auto-generate OpenAPI 3.0 schemas from Django Rest Framework code
 
-# Dependencias não revisadas
+# Outras
+# ------------------------------------------------------------------------------
+Pillow==8.4.0
+
+# DEPENDENCIAS AINDA NÃO REVISTAS
 
 pytz==2019.3  # https://github.com/stub42/pytz
 python-slugify==4.0.0  # https://github.com/un33k/python-slugify
-Pillow==7.0.0  # https://github.com/python-pillow/Pillow
+
 rcssmin==1.0.6  # https://github.com/ndparker/rcssmin
 argon2-cffi==19.2.0  # https://github.com/hynek/argon2_cffi
 whitenoise==5.0.1  # https://github.com/evansd/whitenoise
@@ -42,11 +50,6 @@ djangorestframework-jwt==1.11.0  # https://getblimp.github.io/django-rest-framew
 
 django-cors-headers # https://github.com/adamchainz/django-cors-headers
 
-# Para gravação de log de alterações nos modelos
-# https://django-auditlog.readthedocs.io/en/latest/index.html
-# Pegando última versão diretamente do repositório oficial.
-#-e git://github.com/jjkester/django-auditlog.git##egg=django-auditlog
-django-auditlog==1.0.0
 
 # Para validação e formatação de CNPJ e CPF
 # https://github.com/poliquin/brazilnum
