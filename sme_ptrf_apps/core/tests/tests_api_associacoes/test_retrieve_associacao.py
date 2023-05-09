@@ -70,7 +70,8 @@ def test_api_retrieve_associacao(jwt_authenticated_client_a, associacao, preside
             'nome': f'{associacao.nome}',
             'data_de_encerramento': {
                 'data': None,
-                'help_text': 'A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.'
+                'help_text': 'A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.',
+                'pode_editar_dados_associacao_encerrada': True
             },
             'presidente_associacao': {
                 'nome': presidente_associacao.nome,
@@ -247,7 +248,8 @@ def test_api_retrieve_associacao_apenas_com_permissao_ver_dados_unidade_dre(jwt_
             'nome': f'{associacao.nome}',
             'data_de_encerramento': {
                 'data': None,
-                'help_text': 'A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.'
+                'help_text': 'A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.',
+                'pode_editar_dados_associacao_encerrada': True
             },
             'presidente_associacao': {
                 'nome': presidente_associacao.nome,
@@ -310,3 +312,72 @@ def test_api_retrieve_associacao_apenas_com_permissao_ver_dados_unidade_dre(jwt_
 
         assert response.status_code == status.HTTP_200_OK
         assert result == result_esperado
+
+
+def test_api_retrieve_associacao_pode_editar_dados_associacao_nao_encerrada(
+    jwt_authenticated_client_a,
+    associacao,
+    prestacao_conta
+):
+
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/',
+                                              content_type='application/json')
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        'data_de_encerramento': {
+            'data': None,
+            'help_text': 'A associação deixará de ser exibida nos períodos posteriores à '
+                         'data de encerramento informada.',
+            'pode_editar_dados_associacao_encerrada': True
+        }
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result["data_de_encerramento"] == resultado_esperado["data_de_encerramento"]
+
+
+def test_api_retrieve_associacao_pode_editar_dados_associacao_encerrada(
+    jwt_authenticated_client_a,
+    associacao_encerrada_2020_1,
+    prestacao_conta_2020_1_aprovada_associacao_encerrada
+):
+
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao_encerrada_2020_1.uuid}/',
+                                              content_type='application/json')
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        'data_de_encerramento': {
+            'data': '2020-06-30',
+            'help_text': 'A associação deixará de ser exibida nos períodos posteriores à '
+                         'data de encerramento informada.',
+            'pode_editar_dados_associacao_encerrada': True
+        }
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result["data_de_encerramento"] == resultado_esperado["data_de_encerramento"]
+
+
+def test_api_retrieve_associacao_nao_pode_editar_dados_associacao_encerrada_com_pc_publicada(
+    jwt_authenticated_client_a,
+    associacao_encerrada_2020_1,
+    prestacao_conta_2020_1_aprovada_associacao_encerrada_publicada_diario_oficial
+):
+
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao_encerrada_2020_1.uuid}/',
+                                              content_type='application/json')
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        'data_de_encerramento': {
+            'data': '2020-06-30',
+            'help_text': 'A associação deixará de ser exibida nos períodos posteriores à '
+                         'data de encerramento informada.',
+            'pode_editar_dados_associacao_encerrada': False
+        }
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result["data_de_encerramento"] == resultado_esperado["data_de_encerramento"]
