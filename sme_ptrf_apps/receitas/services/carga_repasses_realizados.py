@@ -161,6 +161,16 @@ def processa_repasse(reader, tipo_conta, arquivo):
                 msg_erro = f'Período {periodo.referencia} fechado para alterações na associação. Linha ID:{id_linha}'
                 raise Exception(msg_erro)
 
+            data_referencia = periodo.data_fim_realizacao_despesas if periodo.data_fim_realizacao_despesas else periodo.data_inicio_realizacao_despesas
+
+            if associacao.encerrada and (data_referencia >= associacao.data_de_encerramento):
+                msg_erro = f'A associação foi encerrada em {associacao.data_de_encerramento.strftime("%d/%m/%Y")}. Linha ID:{id_linha}'
+                raise Exception(msg_erro)
+
+            if associacao.periodo_inicial and (data_referencia <= associacao.periodo_inicial.data_fim_realizacao_despesas):
+                msg_erro = f'O período informado é anterior ao período inicial da associação. Linha ID:{id_linha}'
+                raise Exception(msg_erro)
+
             valor_capital = get_valor(row[VALOR_CAPITAL])
             valor_custeio = get_valor(row[VALOR_CUSTEIO])
             valor_livre = get_valor(row[VALOR_LIVRE])
