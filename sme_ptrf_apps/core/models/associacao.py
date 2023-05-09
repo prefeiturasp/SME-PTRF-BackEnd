@@ -246,6 +246,15 @@ class Associacao(ModeloIdNome):
         return f"A associação foi encerrada em {self.data_de_encerramento.strftime('%d/%m/%Y')}" if \
             self.data_de_encerramento else None
 
+    @property
+    def pode_editar_dados_associacao_encerrada(self):
+        if self.encerrada:
+            ultima_pc = self.prestacoes_de_conta_da_associacao.order_by('id').last()
+            if ultima_pc:
+                if ultima_pc.pc_publicada_no_diario_oficial:
+                    return False
+        return True
+
     objects = models.Manager()  # Manager Padrão
     ativas = AssociacoesAtivasManager()
 
