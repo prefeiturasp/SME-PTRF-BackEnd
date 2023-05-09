@@ -309,6 +309,16 @@ def terceira_unidade(dre):
     )
 
 @pytest.fixture
+def quarta_unidade(dre):
+    return baker.make(
+        'Unidade',
+        nome='Quarta Escola Teste',
+        tipo_unidade='CEU',
+        codigo_eol='999999',
+        dre=dre,
+    )
+
+@pytest.fixture
 def associacao_com_data_de_encerramento(unidade, periodo_anterior):
     return baker.make(
         'Associacao',
@@ -368,12 +378,12 @@ def associacao_encerrada_2020_1(periodo_2019_2, periodo_2020_1, unidade):
     )
 
 @pytest.fixture
-def associacao_encerrada_2020_2(periodo_2019_2, periodo_2020_2, outra_unidade):
+def associacao_encerrada_2020_2(periodo_2019_2, periodo_2020_2, quarta_unidade):
     return baker.make(
         'Associacao',
         nome='Escola Iniciada em 2020.2',
         cnpj='23.500.058/0001-08',
-        unidade=outra_unidade,
+        unidade=quarta_unidade,
         periodo_inicial=periodo_2019_2,
         data_de_encerramento=periodo_2020_2.data_fim_realizacao_despesas,
     )
