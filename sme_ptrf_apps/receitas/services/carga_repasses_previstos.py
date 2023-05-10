@@ -183,6 +183,10 @@ def processa_repasse(reader, tipo_conta, arquivo):
                     logger.info(f'O repasse da linha de id {id_linha} já foi importado anteriormente. Anterior apagado.'
                                 f'{id_linha if id_linha else ""}')
 
+                if associacao.encerrada:
+                    msg_erro = f'A associação foi encerrada em {associacao.data_de_encerramento.strftime("%d/%m/%Y")}. Linha ID:{index}'
+                    raise Exception(msg_erro)
+
                 if valor_capital > 0 or valor_custeio > 0 or valor_livre > 0:
                     Repasse.objects.create(
                         associacao=associacao,
