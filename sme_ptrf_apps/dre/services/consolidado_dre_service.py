@@ -701,16 +701,34 @@ def gerar_previa_consolidado_dre(dre, periodo, parcial, usuario, uuid_retificaca
         ).last()
 
     else:
-        consolidado_dre = ConsolidadoDRE.criar_ou_retornar_consolidado_dre(dre=dre, periodo=periodo,
-                                                                           sequencia_de_publicacao=sequencia_de_publicacao)
-
-        consolidado_dre.atribuir_versao(previa=True)
+        if eh_parcial:
+            logger.info('Apagando qualquer prévia existente de um consolidado único para a DRE no período...')
+            ConsolidadoDRE.objects.filter(
+                dre=dre,
+                periodo=periodo,
+                sequencia_de_publicacao=0,
+                versao=ConsolidadoDRE.VERSAO_PREVIA,
+            ).delete()
+        else:
+            logger.info('Apagando qualquer prévia existente de um consolidado parcial para a DRE no período...')
+            ConsolidadoDRE.objects.filter(
+                dre=dre,
+                periodo=periodo,
+                sequencia_de_publicacao__gt=0,
+                versao=ConsolidadoDRE.VERSAO_PREVIA,
+            ).delete()
 
         ata_parecer_tecnico = AtaParecerTecnico.objects.filter(
             dre=dre,
             periodo=periodo,
             sequencia_de_publicacao=sequencia_de_publicacao
         ).last()
+
+
+        consolidado_dre = ConsolidadoDRE.criar_ou_retornar_consolidado_dre(dre=dre, periodo=periodo,
+                                                                           sequencia_de_publicacao=sequencia_de_publicacao)
+
+        consolidado_dre.atribuir_versao(previa=True)
 
 
     logger.info(f'Criado Pŕevia do Consolidado DRE  {consolidado_dre}.')
@@ -729,14 +747,16 @@ def gerar_previa_consolidado_dre(dre, periodo, parcial, usuario, uuid_retificaca
     periodo_uuid = periodo.uuid
     consolidado_dre_uuid = consolidado_dre.uuid
 
-    gerar_previa_consolidado_dre_async.delay(
-        dre_uuid=dre_uuid,
-        periodo_uuid=periodo_uuid,
-        parcial=parcial,
-        usuario=usuario,
-        consolidado_dre_uuid=consolidado_dre_uuid,
-        sequencia_de_publicacao=sequencia_de_publicacao,
-        apenas_nao_publicadas=True,
+    gerar_previa_consolidado_dre_async.apply_async(
+        (
+            dre_uuid,
+            periodo_uuid,
+            parcial,
+            usuario,
+            consolidado_dre_uuid,
+            sequencia_de_publicacao,
+            True,
+        ), countdown=1
     )
 
     return consolidado_dre
