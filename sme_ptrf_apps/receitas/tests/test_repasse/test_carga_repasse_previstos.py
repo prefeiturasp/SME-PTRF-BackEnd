@@ -31,6 +31,13 @@ def arquivo_processado():
 
 
 @pytest.fixture
+def arquivo_associacao_encerrada():
+    return SimpleUploadedFile(
+        f'carga_repasse_cheque_2.csv',
+        bytes(f"""Id_Linha,Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao\n10,999999,99000.98,99000.98,,PTRF Básico""", encoding="utf-8"))
+
+
+@pytest.fixture
 def arquivo_carga(arquivo):
     return baker.make(
         'Arquivo',
@@ -62,6 +69,16 @@ def arquivo_carga_virgula_processado(arquivo_processado):
         tipo_delimitador=DELIMITADOR_VIRGULA
     )
 
+@pytest.fixture
+def arquivo_carga_virgula_processado_com_associacao_encerrada(arquivo_associacao_encerrada):
+    return baker.make(
+        'Arquivo',
+        identificador='2019_01_01_a_2019_11_30_cheque_2',
+        conteudo=arquivo_associacao_encerrada,
+        tipo_carga=CARGA_REPASSE_PREVISTO,
+        tipo_delimitador=DELIMITADOR_VIRGULA
+    )
+
 
 def test_carga_com_erro_formatacao(arquivo_carga, tipo_conta_cheque):
     carrega_repasses_previstos(arquivo_carga)
@@ -81,6 +98,12 @@ Foram criados 0 repasses. Erro na importação de 1 repasse(s)."""
 def acao_role_cultural_teste():
     return baker.make('Acao', nome='Role Cultural')
 
+@pytest.fixture
+def acao_ptrf_basico():
+    return baker.make('Acao', nome='PTRF Básico',
+                      aceita_capital=True, aceita_custeio=True,
+                      aceita_livre=True)
+
 
 def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao, tipo_receita_repasse,
                                    tipo_conta_cheque, acao_role_cultural, acao_role_cultural_teste):
@@ -89,3 +112,12 @@ def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, as
 Foram criados 0 repasses. Erro na importação de 2 repasse(s)."""
     assert arquivo_carga_virgula_processado.log == msg
     assert arquivo_carga_virgula_processado.status == ERRO
+
+
+def test_carga_processado_com_erro_associacao_encerrada(arquivo_carga_virgula_processado_com_associacao_encerrada, associacao_encerrada_2020_2,
+                                                        periodo, tipo_receita_repasse, tipo_conta_cheque, acao_ptrf_basico):
+    carrega_repasses_previstos(arquivo_carga_virgula_processado_com_associacao_encerrada)
+    msg = """Erro na linha 1: A associação foi encerrada em 31/12/2020. Linha ID:1
+Foram criados 0 repasses. Erro na importação de 1 repasse(s)."""
+    assert arquivo_carga_virgula_processado_com_associacao_encerrada.log == msg
+    assert arquivo_carga_virgula_processado_com_associacao_encerrada.status == ERRO
