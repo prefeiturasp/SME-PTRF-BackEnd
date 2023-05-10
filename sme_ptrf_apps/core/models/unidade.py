@@ -19,8 +19,7 @@ class Unidade(ModeloBase, TemNome):
     tipo_unidade = models.CharField(max_length=10, choices=TIPOS_CHOICE, default='ADM')
     codigo_eol = models.CharField(max_length=6, validators=[MinLengthValidator(6)], primary_key=True, unique=True)
 
-    observacao = models.CharField('Observação', max_length=255, help_text="Preencha este campo, se necessário, com informações relacionadas a unidade educacional.", blank=True, null=True, default='')
-    
+    observacao = models.TextField('Observação', max_length=600, help_text="Preencha este campo, se necessário, com informações relacionadas a unidade educacional.", blank=True, null=True, default='')
     dre = models.ForeignKey('Unidade', on_delete=models.PROTECT, related_name='unidades_da_dre', to_field="codigo_eol",
                             blank=True, null=True, limit_choices_to={'tipo_unidade': 'DRE'})
     sigla = models.CharField(max_length=4, blank=True, default='')
