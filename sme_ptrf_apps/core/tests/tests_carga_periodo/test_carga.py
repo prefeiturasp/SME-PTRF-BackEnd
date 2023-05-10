@@ -71,8 +71,8 @@ def test_carga_com_erro_formatacao(arquivo_carga):
 
 def test_carga_com_erro(arquivo_carga_virgula):
     carrega_periodo_inicial(arquivo_carga_virgula)
-    msg = """\nAssociação (000256) não encontrado. Linha: 1
-Associação (00094) não encontrado. Linha: 2
+    msg = """\nErro na linha 1: Associação (000256) não encontrado. Linha ID:1
+Erro na linha 2: Associação (00094) não encontrado. Linha ID:2
 Importados 0 períodos iniciais. Erro na importação de 2 períodos iniciais."""
     assert arquivo_carga_virgula.log == msg
     assert arquivo_carga_virgula.status == ERRO
@@ -80,7 +80,7 @@ Importados 0 períodos iniciais. Erro na importação de 2 períodos iniciais.""
 
 def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao):
     carrega_periodo_inicial(arquivo_carga_virgula_processado)
-    msg = """\nAssociação (00094) não encontrado. Linha: 2
+    msg = """\nErro na linha 2: Associação (00094) não encontrado. Linha ID:2
 Importados 1 períodos iniciais. Erro na importação de 1 períodos iniciais."""
     assert arquivo_carga_virgula_processado.log == msg
     assert arquivo_carga_virgula_processado.status == PROCESSADO_COM_ERRO
