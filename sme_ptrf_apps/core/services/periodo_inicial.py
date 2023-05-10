@@ -28,12 +28,12 @@ def processa_periodo_inicial(reader, arquivo):
             try:
                 associacao = get_associacao(str(row[CODIGO_EOL]).strip())
                 if not associacao:
-                    msg_erro = f"Associação ({str(row[CODIGO_EOL])}) não encontrado. Linha: {index}"
+                    msg_erro = f"Associação ({str(row[CODIGO_EOL])}) não encontrado. Linha ID:{index}"
                     raise Exception(msg_erro)
 
                 periodo = get_periodo(str(row[PERIODO]).strip())
                 if not periodo:
-                    msg_erro = f"Período ({str(row[PERIODO])}) não encontrado. Linha: {index}"
+                    msg_erro = f"Período ({str(row[PERIODO])}) não encontrado. Linha ID:{index}"
                     raise Exception(msg_erro)
 
                 data_referencia = periodo.data_fim_realizacao_despesas if periodo.data_fim_realizacao_despesas else periodo.data_inicio_realizacao_despesas
