@@ -84,6 +84,11 @@ class Unidade(ModeloBase, TemNome):
         censo = self.censos.order_by('-ano').first()
         return censo.quantidade_alunos if censo else 0
 
+    @property
+    def tooltip_associacao_encerrada(self):
+        return self.associacoes.first().tooltip_data_encerramento \
+            if self.associacoes.exists() and self.associacoes.first().encerrada else None
+
     class Meta:
         verbose_name = 'Unidade'
         verbose_name_plural = '06.0) Unidades'
