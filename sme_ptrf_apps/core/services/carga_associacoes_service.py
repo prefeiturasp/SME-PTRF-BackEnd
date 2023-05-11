@@ -214,6 +214,10 @@ class CargaAssociacoesService:
                 msg_erro = f'A associação foi encerrada em {associacao.data_de_encerramento.strftime("%d/%m/%Y")}.'
                 self.loga_erro_carga_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
                 return None
+            else:
+                associacao.unidade = self.__dados_associacao['ue_obj']
+                associacao.nome = self.__dados_associacao['nome']
+                associacao.save()
 
         self.__dados_associacao['associacao_obj'] = associacao
 
