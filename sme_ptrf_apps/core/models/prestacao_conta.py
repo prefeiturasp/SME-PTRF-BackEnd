@@ -568,6 +568,11 @@ class PrestacaoConta(ModeloBase):
         self.outros_motivos_reprovacao = ''
         self.recomendacoes = ''
         self.status = self.STATUS_EM_ANALISE
+
+        if self.consolidado_dre:
+            self.consolidado_dre.desvincular_pc_do_consolidado(self)
+            self.consolidado_dre = None
+
         self.save()
         return self
 
