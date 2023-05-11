@@ -381,7 +381,7 @@ def associacao_encerrada_2020_1(periodo_2019_2, periodo_2020_1, unidade):
 def associacao_encerrada_2020_2(periodo_2019_2, periodo_2020_2, quarta_unidade):
     return baker.make(
         'Associacao',
-        nome='Escola Iniciada em 2020.2',
+        nome='Escola Encerrada em 2020.2',
         cnpj='23.500.058/0001-08',
         unidade=quarta_unidade,
         periodo_inicial=periodo_2019_2,
