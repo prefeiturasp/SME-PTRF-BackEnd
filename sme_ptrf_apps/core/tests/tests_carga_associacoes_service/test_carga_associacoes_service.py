@@ -29,6 +29,13 @@ def arquivo():
 000094;EMEI VICENTE PAULO DA SILVA;6139086000
 000108;EMEF SEN JOSÉ ERMINIO DE MORAIS;1095757000179""", encoding="utf-8"))
 
+@pytest.fixture
+def arquivo_com_associacao_encerrada():
+    return SimpleUploadedFile(
+        f'arquivo.csv',
+        bytes(f"""Código EOL UE;Nome da associação;CNPJ da associação
+999999;Escola Iniciada em 2020.2;23500058000108""", encoding="utf-8"))
+
 
 @pytest.fixture
 def arquivo_carga(arquivo):
@@ -51,12 +58,30 @@ def arquivo_carga_ponto_virgula(arquivo):
         tipo_delimitador=DELIMITADOR_PONTO_VIRGULA
     )
 
+@pytest.fixture
+def arquivo_carga_associacao_encerrada(arquivo_com_associacao_encerrada):
+    return baker.make(
+        'Arquivo',
+        identificador='carga_associacoes',
+        conteudo=arquivo_com_associacao_encerrada,
+        tipo_carga=CARGA_ASSOCIACOES,
+        tipo_delimitador=DELIMITADOR_PONTO_VIRGULA
+    )
+
 
 def test_carga_com_erro_formatacao(arquivo_carga):
     CargaAssociacoesService().carrega_associacoes(arquivo_carga)
     msg = """\nLinha:0 Formato definido (DELIMITADOR_VIRGULA) é diferente do formato do arquivo csv (DELIMITADOR_PONTO_VIRGULA)\n0 linha(s) importada(s) com sucesso. 1 erro(s) reportado(s)."""
     assert arquivo_carga.log == msg
     assert arquivo_carga.status == ERRO
+
+def test_carga_com_erro_associacao_encerrada(arquivo_carga_associacao_encerrada, associacao_encerrada_2020_2):
+    CargaAssociacoesService().carrega_associacoes(arquivo_carga_associacao_encerrada)
+    msg = """\nLinha:1 A associação foi encerrada em 31/12/2020.
+0 linha(s) importada(s) com sucesso. 1 erro(s) reportado(s)."""
+    print(arquivo_carga_associacao_encerrada.log)
+    assert arquivo_carga_associacao_encerrada.log == msg
+    assert arquivo_carga_associacao_encerrada.status == ERRO
 
 
 def __test_carga_processada_com_erro(arquivo_carga_ponto_virgula):
