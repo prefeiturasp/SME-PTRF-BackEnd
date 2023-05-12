@@ -90,8 +90,22 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
         eh_parcial = parcial['parcial']
         sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
 
+        # TODO remover comentários após testes
+        # Tratativa dos Bugs: 91797, 93549 e 93018 da Sprint 65
+        # Gerava divergência em Tela do Relatório Consolidado em Tela
+        # Quando uma prévia era gerada com um número X de PCS e depois concluisse mais PCS sempre olhava para o numero
+        # Que já estava na Prévia, não levava em consideração as novas PCs concluídas
+        # Não considera mais as PCs do Consolidado
+
         if consolidado_dre:
-            qtde_unidades = consolidado_dre.pcs_do_consolidado.all().count()
+            # qtde_unidades = consolidado_dre.pcs_do_consolidado.all().count()
+
+            qtde_unidades = PrestacaoConta.objects.filter(
+                periodo=periodo,
+                status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+                associacao__unidade__dre=dre,
+                publicada=False
+            ).count()
             sequencia_de_publicacao_do_consolidado = consolidado_dre.sequencia_de_publicacao
 
             if sequencia_de_publicacao_do_consolidado > 0:
@@ -125,7 +139,11 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
     objeto_tipo_de_conta = []
 
     for tipo_conta in tipos_de_conta:
-        totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True, consolidado_dre=consolidado_dre)
+        # TODO remover comentários após testes
+        # Tratativa dos Bugs: 91797, 93549 e 93018 da Sprint 65
+        # totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True, consolidado_dre=consolidado_dre)
+
+        totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True)
 
         if consolidado_dre and consolidado_dre.eh_retificacao:
             if consolidado_dre.laudas_do_consolidado_dre.all():
