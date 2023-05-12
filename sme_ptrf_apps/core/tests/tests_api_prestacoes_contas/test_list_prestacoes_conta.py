@@ -177,106 +177,52 @@ def test_api_list_prestacoes_conta_por_periodo_e_dre(jwt_authenticated_client_a,
     assert result == result_esperado
 
 
-# TODO Refatorar esse teste. Resultados as vezes vem em ordem diferente. A ser resolvido na história 92035
-# def test_api_list_prestacoes_conta_por_nome_unidade(jwt_authenticated_client_a,
-#                                                     _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
-#                                                     _prestacao_conta_2020_1_unidade_c_dre1,  # Não entra
-#                                                     _prestacao_conta_2019_2_unidade_a_dre1,  # Entra
-#                                                     _prestacao_conta_2020_1_unidade_b_dre2,  # Não entra
-#                                                     _dre_01,
-#                                                     periodo_2020_1,
-#                                                     periodo_2019_2):
-#     url = f'/api/prestacoes-contas/?nome=andorinha'
-#
-#     response = jwt_authenticated_client_a.get(url, content_type='application/json')
-#
-#     result = json.loads(response.content)
-#
-#     result_esperado = [
-#         {
-#             'periodo_uuid': f'{periodo_2020_1.uuid}',
-#             'data_recebimento': '2020-01-01',
-#             'data_ultima_analise': None,
-#             'processo_sei': '',
-#             'status': 'APROVADA',
-#             'tecnico_responsavel': '',
-#             'unidade_eol': '000101',
-#             'unidade_nome': 'Andorinha',
-#             'unidade_tipo_unidade': 'EMEI',
-#             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
-#             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-#             'devolucao_ao_tesouro': 'Não'
-#         },
-#         {
-#             'periodo_uuid': f'{periodo_2019_2.uuid}',
-#             'data_recebimento': '2019-01-01',
-#             'data_ultima_analise': None,
-#             'processo_sei': '',
-#             'status': 'APROVADA_RESSALVA',
-#             'tecnico_responsavel': '',
-#             'unidade_eol': '000101',
-#             'unidade_nome': 'Andorinha',
-#             'unidade_tipo_unidade': 'EMEI',
-#             'uuid': f'{_prestacao_conta_2019_2_unidade_a_dre1.uuid}',
-#             'associacao_uuid': f'{_prestacao_conta_2019_2_unidade_a_dre1.associacao.uuid}',
-#             'devolucao_ao_tesouro': 'Não'
-#
-#         },
-#
-#     ]
-#
-#     assert response.status_code == status.HTTP_200_OK
-#     assert result == result_esperado
+def test_api_list_prestacoes_conta_por_nome_unidade(jwt_authenticated_client_a,
+                                                    _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
+                                                    _prestacao_conta_2020_1_unidade_c_dre1,  # Não entra
+                                                    _prestacao_conta_2019_2_unidade_a_dre1,  # Entra
+                                                    _prestacao_conta_2020_1_unidade_b_dre2,  # Não entra
+                                                    _dre_01,
+                                                    periodo_2020_1,
+                                                    periodo_2019_2):
+    url = f'/api/prestacoes-contas/?nome=andorinha'
 
-# TODO Refatorar esse teste. Resultados as vezes vem em ordem diferente. A ser resolvido na história 92035
-# def test_api_list_prestacoes_conta_por_nome_associacao(jwt_authenticated_client_a,
-#                                                        _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
-#                                                        _prestacao_conta_2020_1_unidade_c_dre1,  # Não entra
-#                                                        _prestacao_conta_2019_2_unidade_a_dre1,  # Entra
-#                                                        _prestacao_conta_2020_1_unidade_b_dre2,  # Não entra
-#                                                        _dre_01,
-#                                                        periodo_2020_1,
-#                                                        periodo_2019_2):
-#     url = f'/api/prestacoes-contas/?nome=america'
-#
-#     response = jwt_authenticated_client_a.get(url, content_type='application/json')
-#
-#     result = json.loads(response.content)
-#
-#     result_esperado = [
-#         {
-#             'periodo_uuid': f'{periodo_2020_1.uuid}',
-#             'data_recebimento': '2020-01-01',
-#             'data_ultima_analise': None,
-#             'processo_sei': '',
-#             'status': 'APROVADA',
-#             'tecnico_responsavel': '',
-#             'unidade_eol': '000101',
-#             'unidade_nome': 'Andorinha',
-#             'unidade_tipo_unidade': 'EMEI',
-#             'uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.uuid}',
-#             'associacao_uuid': f'{_prestacao_conta_2020_1_unidade_a_dre1.associacao.uuid}',
-#             'devolucao_ao_tesouro': 'Não'
-#         },
-#         {
-#             'periodo_uuid': f'{periodo_2019_2.uuid}',
-#             'data_recebimento': '2019-01-01',
-#             'data_ultima_analise': None,
-#             'processo_sei': '',
-#             'status': 'APROVADA_RESSALVA',
-#             'tecnico_responsavel': '',
-#             'unidade_eol': '000101',
-#             'unidade_nome': 'Andorinha',
-#             'unidade_tipo_unidade': 'EMEI',
-#             'uuid': f'{_prestacao_conta_2019_2_unidade_a_dre1.uuid}',
-#             'associacao_uuid': f'{_prestacao_conta_2019_2_unidade_a_dre1.associacao.uuid}',
-#             'devolucao_ao_tesouro': 'Não'
-#         },
-#
-#     ]
-#
-#     assert response.status_code == status.HTTP_200_OK
-#     assert result == result_esperado
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+
+    # Deve retornar dois registros
+    assert len(result) == 2
+
+    # O resultado deve incluir apenas associações com nome que inclui "andorinha"
+    assert all([assoc['unidade_nome'].lower().find('andorinha') >= 0 for assoc in result])
+
+
+def test_api_list_prestacoes_conta_por_nome_associacao(jwt_authenticated_client_a,
+                                                       _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
+                                                       _prestacao_conta_2020_1_unidade_c_dre1,  # Não entra
+                                                       _prestacao_conta_2019_2_unidade_a_dre1,  # Entra
+                                                       _prestacao_conta_2020_1_unidade_b_dre2,  # Não entra
+                                                       _dre_01,
+                                                       periodo_2020_1,
+                                                       periodo_2019_2):
+    url = f'/api/prestacoes-contas/?nome=america'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+
+    # Deve retornar dois registros
+    assert len(result) == 2
+
+    # O resultado deve incluir apenas as prestações de contas _prestacao_conta_2020_1_unidade_a_dre1 e _prestacao_conta_2019_2_unidade_a_dre1
+    # Essas são as únicas que tem associações com nome que inclui "america"
+    assert all([pc['uuid'] in [str(_prestacao_conta_2020_1_unidade_a_dre1.uuid), str(_prestacao_conta_2019_2_unidade_a_dre1.uuid)] for pc in result])
+
 
 
 def test_api_list_prestacoes_conta_por_tipo_unidade(jwt_authenticated_client_a,
