@@ -91,7 +91,8 @@ def test_carga_com_erro_formatacao(arquivo_carga):
 
 def test_carga_com_erro(arquivo_carga_virgula):
     carrega_previsoes_repasses(arquivo_carga_virgula)
-    msg = """\nAssociação com código eol: 93238 não encontrado. Linha 1\nImportados 0 previsões de repasse. Erro na importação de 1 previsões."""
+    msg = """Erro na linha 1: Associação com código eol: 93238 não encontrado.
+Importados 0 previsões de repasse. Erro na importação de 1 previsões."""
     assert arquivo_carga_virgula.log == msg
     assert arquivo_carga_virgula.status == ERRO
 
@@ -99,7 +100,8 @@ def test_carga_com_erro(arquivo_carga_virgula):
 def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao, conta_associacao, acao_associacao):
     assert not PrevisaoRepasseSme.objects.exists()
     carrega_previsoes_repasses(arquivo_carga_virgula_processado)
-    msg = """\nAssociação com código eol: 93238 não encontrado. Linha 2\nImportados 1 previsões de repasse. Erro na importação de 1 previsões."""
+    msg = """Erro na linha 2: Associação com código eol: 93238 não encontrado.
+Importados 1 previsões de repasse. Erro na importação de 1 previsões."""
     assert arquivo_carga_virgula_processado.log == msg
     assert arquivo_carga_virgula_processado.status == PROCESSADO_COM_ERRO
     assert PrevisaoRepasseSme.objects.exists()
@@ -110,7 +112,7 @@ def test_carga_processado_com_sucesso(arquivo_carga_virgula_processado_com_duas_
     from decimal import Decimal
     assert not PrevisaoRepasseSme.objects.exists()
     carrega_previsoes_repasses(arquivo_carga_virgula_processado_com_duas_acoes)
-    msg = """\nImportados 1 previsões de repasse. Erro na importação de 0 previsões."""
+    msg = """Importados 1 previsões de repasse. Erro na importação de 0 previsões."""
     assert arquivo_carga_virgula_processado_com_duas_acoes.log == msg
     assert arquivo_carga_virgula_processado_com_duas_acoes.status == SUCESSO
     assert len(PrevisaoRepasseSme.objects.all()) == 1
