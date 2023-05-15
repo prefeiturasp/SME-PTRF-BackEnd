@@ -424,7 +424,7 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
         fields = (
         'uuid', 'associacao', 'numero_documento', 'status', 'tipo_documento', 'data_documento', 'cpf_cnpj_fornecedor',
         'nome_fornecedor', 'valor_total', 'valor_ptrf', 'data_transacao', 'tipo_transacao', 'documento_transacao',
-        'rateios', 'receitas_saida_do_recurso', 'despesa_geradora_do_imposto', 'despesas_impostos')
+        'rateios', 'receitas_saida_do_recurso', 'despesa_geradora_do_imposto', 'despesas_impostos', 'tags_de_informacao')
 
 
 class DespesaConciliacaoSerializer(serializers.ModelSerializer):
