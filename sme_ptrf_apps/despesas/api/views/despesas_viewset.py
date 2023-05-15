@@ -156,6 +156,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
             qs = qs.exclude(id__in=ids_para_excluir)
 
+        """ Ordenação por soma dos valores dos rateios e numero de documento das despesas:
         ordenar = self.request.query_params.get('ordenar')
         if ordenar:
             if ordenar == 'valor_total':
@@ -163,7 +164,10 @@ class DespesasViewSet(mixins.CreateModelMixin,
             if ordenar == 'numero_documento':
                 qs = qs.order_by(ordenar)
         else:
-            qs = qs.order_by('-data_documento')
+            qs = qs.order_by('-data_documento') 
+        """
+
+        qs = qs.order_by('-data_documento') 
 
         return qs
 
