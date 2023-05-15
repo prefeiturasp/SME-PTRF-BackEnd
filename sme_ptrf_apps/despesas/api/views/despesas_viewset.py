@@ -22,7 +22,7 @@ from ..serializers.tipo_documento_serializer import TipoDocumentoSerializer
 from ..serializers.tipo_transacao_serializer import TipoTransacaoSerializer
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import PageNumberPagination
-from django.db.models import Subquery
+from django.db.models import Subquery, Sum
 from sme_ptrf_apps.core.models import Associacao
 import datetime
 
@@ -120,7 +120,54 @@ class DespesasViewSet(mixins.CreateModelMixin,
         if data_inicio is not None and data_fim is not None and data_inicio != '' and data_fim != '':
             qs = qs.filter(data_documento__range=[data_inicio, data_fim])
 
-        qs = qs.order_by('-data_documento')
+        assoc_uuid = self.request.query_params.get('associacao__uuid')
+        if assoc_uuid is not None:
+            qs = qs.filter(associacao__uuid=assoc_uuid).all()
+
+        filtro_vinculo_atividades = self.request.query_params.get('filtro_vinculo_atividades')
+        filtro_vinculo_atividades_list = filtro_vinculo_atividades.split(',') if filtro_vinculo_atividades else []
+
+        if filtro_vinculo_atividades_list:
+            qs = qs.filter(
+                pk__in=Subquery(
+                    qs.filter(rateios__tag__id__in=filtro_vinculo_atividades_list).distinct("uuid").values('pk')
+                )
+            )
+
+        filtro_informacoes = self.request.query_params.get('filtro_informacoes')
+        filtro_informacoes_list = filtro_informacoes.split(',') if filtro_informacoes else []
+        if filtro_informacoes_list:
+            ids_para_excluir = []
+            for despesa in qs:
+                excluir_despesa = True
+                if Despesa.TAG_ANTECIPADO['id'] in filtro_informacoes_list and despesa.teve_pagamento_antecipado():
+                    excluir_despesa = False
+                if Despesa.TAG_ESTORNADO['id'] in filtro_informacoes_list and despesa.possui_estornos():
+                    excluir_despesa = False
+                if Despesa.TAG_IMPOSTO['id'] in filtro_informacoes_list and despesa.possui_retencao_de_impostos():
+                    excluir_despesa = False
+                if Despesa.TAG_IMPOSTO_PAGO['id'] in filtro_informacoes_list and despesa.e_despesa_de_imposto():
+                    excluir_despesa = False
+                if Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and despesa.tem_pagamento_com_recursos_proprios() or Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and despesa.tem_pagamentos_em_multiplas_contas():
+                    excluir_despesa = False
+
+                if excluir_despesa:
+                    ids_para_excluir.append(despesa.id)
+
+            qs = qs.exclude(id__in=ids_para_excluir)
+
+        """ Ordenação por soma dos valores dos rateios e numero de documento das despesas:
+        ordenar = self.request.query_params.get('ordenar')
+        if ordenar:
+            if ordenar == 'valor_total':
+                qs = qs.annotate(soma_rateios=Sum('rateios__valor_rateio')).order_by('soma_rateios')
+            if ordenar == 'numero_documento':
+                qs = qs.order_by(ordenar)
+        else:
+            qs = qs.order_by('-data_documento') 
+        """
+
+        qs = qs.order_by('-data_documento') 
 
         return qs
 
