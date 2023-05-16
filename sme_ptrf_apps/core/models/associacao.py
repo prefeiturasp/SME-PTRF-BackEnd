@@ -214,7 +214,7 @@ class Associacao(ModeloIdNome):
 
         if self.data_de_encerramento:
             qry_periodos = qry_periodos.filter(
-                data_fim_realizacao_despesas__lte=self.data_de_encerramento
+                data_inicio_realizacao_despesas__lte=self.data_de_encerramento
             )
         return qry_periodos.all()
 
