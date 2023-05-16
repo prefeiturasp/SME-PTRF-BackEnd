@@ -88,7 +88,7 @@ def associacao_encerrada_teste(unidade, periodo_2019_1, periodo_2019_2):
         ccm='0.000.00-0',
         email="ollyverottoboni@gmail.com",
         processo_regularidade='123456',
-        data_de_encerramento=periodo_2019_2.data_fim_realizacao_despesas
+        data_de_encerramento=date(2019, 12, 10)
     )
 
 
