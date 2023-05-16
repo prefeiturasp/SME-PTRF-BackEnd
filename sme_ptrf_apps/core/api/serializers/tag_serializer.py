@@ -14,4 +14,4 @@ class TagLookupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tag
-        fields = ('uuid', 'nome', 'status')
+        fields = ('uuid', 'nome', 'status', 'id')
