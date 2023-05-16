@@ -117,6 +117,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                 "conferido": rateio.conferido,
                 "valor_rateio": f'{rateio.valor_rateio:.2f}',
                 "tag": {
+                    'id': rateio.tag.id,
                     'uuid': f'{rateio.tag.uuid}',
                     'status': 'Inativo',
                     'nome': f'{rateio.tag.nome}'
