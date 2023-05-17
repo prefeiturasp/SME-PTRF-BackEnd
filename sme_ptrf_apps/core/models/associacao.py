@@ -165,7 +165,7 @@ class Associacao(ModeloIdNome):
 
         if self.encerrada:
             prestacoes_da_associacao = prestacoes_da_associacao.filter(
-                periodo__data_fim_realizacao_despesas__lte=self.data_de_encerramento
+                periodo__data_inicio_realizacao_despesas__lte=self.data_de_encerramento
             )
 
         for prestacao in prestacoes_da_associacao.all():
@@ -195,12 +195,12 @@ class Associacao(ModeloIdNome):
         else:
             return self.periodo_inicial.periodo_seguinte.first() if self.periodo_inicial else None
 
-    def periodos_para_prestacoes_de_conta(self):
+    def periodos_para_prestacoes_de_conta(self, ignorar_devolvidas=False):
         periodos = set(
             self.periodos_com_prestacao_de_contas(ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=True))
 
         if not self.encerrada:
-            proximo_periodo = self.proximo_periodo_de_prestacao_de_contas(ignorar_devolvidas=True)
+            proximo_periodo = self.proximo_periodo_de_prestacao_de_contas(ignorar_devolvidas)
             if proximo_periodo:
                 periodos.add(proximo_periodo)
 
@@ -221,7 +221,7 @@ class Associacao(ModeloIdNome):
 
         if self.data_de_encerramento:
             qry_periodos = qry_periodos.filter(
-                data_fim_realizacao_despesas__lte=self.data_de_encerramento
+                data_inicio_realizacao_despesas__lte=self.data_de_encerramento
             )
         return qry_periodos.all()
 

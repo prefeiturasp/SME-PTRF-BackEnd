@@ -120,7 +120,9 @@ def test_get_periodos_prestacao_de_contas_ate_encerramento_da_associacao_com_pre
     jwt_authenticated_client_a,
     associacao_encerrada_2021_2,
     periodo_2021_1,
-    prestacao_conta_2021_1_aprovada_associacao_encerrada
+    periodo_2021_2,
+    prestacao_conta_2021_1_aprovada_associacao_encerrada,
+    prestacao_conta_2021_2_aprovada_associacao_encerrada
 ):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao_encerrada_2021_2.uuid}/periodos-para-prestacao-de-contas/',
                           content_type='application/json')
@@ -131,7 +133,9 @@ def test_get_periodos_prestacao_de_contas_ate_encerramento_da_associacao_com_pre
         result_uuids.append(_result['uuid'])
 
     uuids_esperados = [
+        f'{periodo_2021_2.uuid}',
         f'{periodo_2021_1.uuid}',
+
     ]
 
     assert response.status_code == status.HTTP_200_OK

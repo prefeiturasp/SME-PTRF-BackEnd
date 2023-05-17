@@ -412,19 +412,23 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
     despesa_geradora_do_imposto = serializers.SerializerMethodField(method_name="get_despesa_de_imposto",
                                                                     required=False)
 
+    informacoes = serializers.SerializerMethodField(method_name='get_informacoes', required=False)
+
     def get_despesa_de_imposto(self, despesa):
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
         return DespesaImpostoSerializer(despesa_geradora_do_imposto, many=False).data if despesa_geradora_do_imposto else None
 
     def get_recurso_externo(self, despesa):
         return despesa.receitas_saida_do_recurso.first().uuid if despesa.receitas_saida_do_recurso.exists() else None
-
+    
+    def get_informacoes(self, despesa):
+        return despesa.tags_de_informacao
     class Meta:
         model = Despesa
         fields = (
         'uuid', 'associacao', 'numero_documento', 'status', 'tipo_documento', 'data_documento', 'cpf_cnpj_fornecedor',
         'nome_fornecedor', 'valor_total', 'valor_ptrf', 'data_transacao', 'tipo_transacao', 'documento_transacao',
-        'rateios', 'receitas_saida_do_recurso', 'despesa_geradora_do_imposto', 'despesas_impostos')
+        'rateios', 'receitas_saida_do_recurso', 'despesa_geradora_do_imposto', 'despesas_impostos', 'informacoes')
 
 
 class DespesaConciliacaoSerializer(serializers.ModelSerializer):
