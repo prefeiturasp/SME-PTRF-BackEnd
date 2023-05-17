@@ -191,6 +191,8 @@ class Associacao(ModeloIdNome):
         ultimo_periodo_com_prestacao = ultima_prestacao_feita.periodo if ultima_prestacao_feita else None
         if ultimo_periodo_com_prestacao:
             return ultimo_periodo_com_prestacao.periodo_seguinte.first()
+        elif self.encerrada:
+            return None
         else:
             return self.periodo_inicial.periodo_seguinte.first() if self.periodo_inicial else None
 

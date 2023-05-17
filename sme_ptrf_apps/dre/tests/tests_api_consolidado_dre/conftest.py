@@ -405,4 +405,3 @@ def lauda_teste_api(
         usuario=usuario_dre_teste_api,
         status='GERADA_TOTAL',
     )
-

@@ -707,4 +707,3 @@ class AssociacoesViewSet(ModelViewSet):
         status_response = response.pop("status")
 
         return Response(response, status=status_response)
-

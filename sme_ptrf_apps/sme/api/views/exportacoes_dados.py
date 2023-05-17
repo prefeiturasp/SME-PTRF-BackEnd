@@ -156,7 +156,7 @@ class ExportacoesDadosViewSet(GenericViewSet):
             {'response': "Arquivo gerado com sucesso, enviado para a central de download"},
             status=HTTP_201_CREATED
         )
-    
+
     @action(
         detail=False, methods=['get'],
         url_path='atas-prestacoes-contas',

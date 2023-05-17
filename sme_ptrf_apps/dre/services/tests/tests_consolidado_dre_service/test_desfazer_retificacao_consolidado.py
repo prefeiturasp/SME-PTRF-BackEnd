@@ -24,6 +24,7 @@ def test_desfazer_retificacao_sem_motivo_deve_levantar_excecao__motivo_nao_eh_ma
         assert False, f"'É necessário informar o motivo da retificação {exc}"
 
 
+
 def test_desfazer_retificacao_sem_pcs_deve_levantar_excecao(
     retificacao_dre,
     prestacao_conta_pc1_com_status_anterior
