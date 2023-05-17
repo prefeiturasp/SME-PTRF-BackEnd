@@ -10,4 +10,6 @@ Esse é o repositório de código da API da aplicação Sig-Escola, um sistema i
 
 Você pode encontrar mais informações sobre o projeto e instruções detalhadas sobre como colaborar com a documentação 
 na própria 
+
 [documentação do SigEscola](https://sig-escola.sme.prefeitura.sp.gov.br/docs/). 
+

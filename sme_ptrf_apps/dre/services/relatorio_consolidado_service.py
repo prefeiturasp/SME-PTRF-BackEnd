@@ -90,7 +90,15 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
         eh_parcial = parcial['parcial']
         sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
 
-        if consolidado_dre:
+        # TODO remover comentários após testes
+        # Tratativa dos Bugs: 91797, 93549 e 93018 da Sprint 65
+        # Gerava divergência em Tela do Relatório Consolidado em Tela
+        # Quando uma prévia era gerada com um número X de PCS e depois concluisse mais PCS sempre olhava para o numero
+        # Que já estava na Prévia, não levava em consideração as novas PCs concluídas
+        # Não considera mais as PCs do Consolidado
+        # Foi adicionado and consolidado_dre.versao == "FINAL" para verificar se passa ou não o consolidado
+
+        if consolidado_dre and consolidado_dre.versao == "FINAL":
             qtde_unidades = consolidado_dre.pcs_do_consolidado.all().count()
             sequencia_de_publicacao_do_consolidado = consolidado_dre.sequencia_de_publicacao
 
@@ -125,7 +133,16 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
     objeto_tipo_de_conta = []
 
     for tipo_conta in tipos_de_conta:
-        totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True, consolidado_dre=consolidado_dre)
+        # TODO remover comentários após testes
+        # Tratativa dos Bugs: 91797, 93549 e 93018 da Sprint 65
+        # totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True, consolidado_dre=consolidado_dre)
+        # Foi adicionado and consolidado_dre.versao == "FINAL" para verificar se passa ou não o consolidado
+
+        if consolidado_dre and consolidado_dre.versao == "FINAL":
+            totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True,
+                                                     consolidado_dre=consolidado_dre)
+        else:
+            totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True)
 
         if consolidado_dre and consolidado_dre.eh_retificacao:
             if consolidado_dre.laudas_do_consolidado_dre.all():

@@ -164,10 +164,10 @@ class DespesasViewSet(mixins.CreateModelMixin,
             if ordenar == 'numero_documento':
                 qs = qs.order_by(ordenar)
         else:
-            qs = qs.order_by('-data_documento') 
+            qs = qs.order_by('-data_documento')
         """
 
-        qs = qs.order_by('-data_documento') 
+        qs = qs.order_by('-data_documento')
 
         return qs
 
