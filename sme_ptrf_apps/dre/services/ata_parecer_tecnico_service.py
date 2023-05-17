@@ -159,10 +159,17 @@ def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre(
 
     consolidado_dre = None
 
+    # TODO remover comentários após testes
+    # Tratativa dos Bugs: 91797, 93549 e 93018 da Sprint 65
+    # Gerava divergência em Tela da  Visualização da Ata Parecer Técnico em Tela
+    # Quando uma prévia era gerada com um número X de PCS e depois concluisse mais PCS sempre olhava para o numero
+    # Que já estava na Prévia, não levava em consideração as novas PCs concluídas
+    # Foi adicionado and consolidado_dre.versao == "FINAL" para verificar se passa ou não o consolidado
+
     if ata_de_parecer_tecnico:
         consolidado_dre = ata_de_parecer_tecnico.consolidado_dre
 
-    if consolidado_dre:
+    if consolidado_dre and consolidado_dre.versao == "FINAL":
         prestacoes = consolidado_dre.pcs_do_consolidado.all()
     else:
         prestacoes = PrestacaoConta.objects.filter(
@@ -175,6 +182,7 @@ def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre(
             Q(status=PrestacaoConta.STATUS_REPROVADA)
         )
         prestacoes = prestacoes.filter(publicada=False)
+
 
     resultado = []
     for prestacao in prestacoes:
