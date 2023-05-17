@@ -358,7 +358,18 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
 
-    actions = ['marcar_como_nao_publicada']
+    actions = ['marcar_como_nao_publicada', 'desvincular_pcs_do_consolidado']
+
+    def desvincular_pcs_do_consolidado(self, request, queryset):
+        contador = 0
+        for prestacao_conta in queryset.all():
+            if prestacao_conta.consolidado_dre and not prestacao_conta.publicada:
+                contador += 1
+                prestacao_conta.consolidado_dre.desvincular_pc_do_consolidado(prestacao_conta)
+                prestacao_conta.consolidado_dre = None
+                prestacao_conta.save()
+
+        self.message_user(request, f"{contador} PC(s) desvinculada(s)")
 
     def marcar_como_nao_publicada(self, request, queryset):
         for prestacao_conta in queryset.all():
