@@ -385,9 +385,8 @@ def associacao_encerrada_2020_2(periodo_2019_2, periodo_2020_2, quarta_unidade):
         cnpj='23.500.058/0001-08',
         unidade=quarta_unidade,
         periodo_inicial=periodo_2019_2,
-        data_de_encerramento=periodo_2020_2.data_fim_realizacao_despesas,
+        data_de_encerramento = periodo_2020_2.data_fim_realizacao_despesas,
     )
-
 
 @pytest.fixture
 def associacao_encerrada_2021_2(periodo_2019_2, periodo_2021_2, outra_unidade):

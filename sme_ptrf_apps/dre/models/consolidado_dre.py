@@ -146,6 +146,10 @@ class ConsolidadoDRE(ModeloBase):
         pc.save()
         self.pcs_do_consolidado.add(pc)
 
+    def desvincular_pc_do_consolidado(self, pc):
+        logger.info(f'Desvinculando PC {pc} do consolidado #{self.id}')
+        self.pcs_do_consolidado.remove(pc)
+
     @property
     def foi_publicado(self):
         return self.status_sme == self.STATUS_SME_PUBLICADO
