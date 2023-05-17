@@ -165,7 +165,7 @@ class Associacao(ModeloIdNome):
 
         if self.encerrada:
             prestacoes_da_associacao = prestacoes_da_associacao.filter(
-                periodo__data_fim_realizacao_despesas__lte=self.data_de_encerramento
+                periodo__data_inicio_realizacao_despesas__lte=self.data_de_encerramento
             )
 
         for prestacao in prestacoes_da_associacao.all():

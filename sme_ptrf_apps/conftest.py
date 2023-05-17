@@ -396,7 +396,7 @@ def associacao_encerrada_2021_2(periodo_2019_2, periodo_2021_2, outra_unidade):
         cnpj='23.500.058/0001-08',
         unidade=outra_unidade,
         periodo_inicial=periodo_2019_2,
-        data_de_encerramento=date(2021, 12, 30),
+        data_de_encerramento=date(2021, 12, 10),
     )
 
 @pytest.fixture
@@ -922,6 +922,15 @@ def prestacao_conta_2021_1_aprovada_associacao_encerrada(periodo_2021_1, associa
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2021_1,
+        associacao=associacao_encerrada_2021_2,
+        status=PrestacaoConta.STATUS_APROVADA
+    )
+
+@pytest.fixture
+def prestacao_conta_2021_2_aprovada_associacao_encerrada(periodo_2021_2, associacao_encerrada_2021_2):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2021_2,
         associacao=associacao_encerrada_2021_2,
         status=PrestacaoConta.STATUS_APROVADA
     )
