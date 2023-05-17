@@ -178,12 +178,13 @@ class Associacao(ModeloIdNome):
 
     def proximo_periodo_de_prestacao_de_contas(self, ignorar_devolvidas=False):
         prestacoes_da_associacao = self.prestacoes_de_conta_da_associacao
+
         if ignorar_devolvidas:
             prestacoes_da_associacao = prestacoes_da_associacao.exclude(status='DEVOLVIDA')
 
         if self.encerrada:
             prestacoes_da_associacao = prestacoes_da_associacao.filter(
-                periodo__data_fim_realizacao_despesas__lte=self.data_de_encerramento
+                periodo__data_inicio_realizacao_despesas__lte=self.data_de_encerramento
             )
 
         ultima_prestacao_feita = prestacoes_da_associacao.last()
@@ -199,10 +200,10 @@ class Associacao(ModeloIdNome):
         periodos = set(
             self.periodos_com_prestacao_de_contas(ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=True))
 
-        if not self.encerrada:
-            proximo_periodo = self.proximo_periodo_de_prestacao_de_contas(ignorar_devolvidas)
-            if proximo_periodo:
-                periodos.add(proximo_periodo)
+
+        proximo_periodo = self.proximo_periodo_de_prestacao_de_contas(ignorar_devolvidas)
+        if proximo_periodo:
+            periodos.add(proximo_periodo)
 
         periodos_ordenados = sorted(periodos, key=Periodo.get_referencia, reverse=True)
         return periodos_ordenados
