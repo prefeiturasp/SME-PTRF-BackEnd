@@ -16,4 +16,3 @@ class ConsolidadoDreRetificacaoSerializer(serializers.Serializer): # noqa
                 raise serializers.ValidationError(f"Não foi encontrada uma PC para o uuid {pc_uuid}.")
 
         return value
-

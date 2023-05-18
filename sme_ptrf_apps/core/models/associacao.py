@@ -195,6 +195,8 @@ class Associacao(ModeloIdNome):
                 return periodo_seguinte
             else:
                 return None
+        elif self.encerrada:
+            return None
         else:
             return self.periodo_inicial.periodo_seguinte.first() if self.periodo_inicial else None
 

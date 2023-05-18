@@ -907,6 +907,15 @@ def prestacao_conta_2019_2_conciliada(periodo_2019_2, associacao):
         status=PrestacaoConta.STATUS_NAO_RECEBIDA
     )
 
+@pytest.fixture
+def prestacao_conta_2019_2_aprovada_associacao_encerrada(periodo_2019_2, associacao_encerrada_2020_1):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2019_2,
+        associacao=associacao_encerrada_2020_1,
+        status=PrestacaoConta.STATUS_APROVADA
+    )
+
 
 @pytest.fixture
 def prestacao_conta_2020_1_conciliada_outra_conta(periodo_2020_1, associacao):

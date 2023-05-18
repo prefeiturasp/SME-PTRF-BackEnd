@@ -23,6 +23,7 @@ def test_patch_alterar_motivo_retificacao(
 
     assert response.status_code == status.HTTP_200_OK
 
+
 def test_update_motivo_retificacao_em_branco_deve_retornar_400__motivo_nao_eh_mais_obrigatorio(
     jwt_authenticated_client_dre,
     retificacao_dre_teste_api_consolidado_dre,
@@ -40,3 +41,4 @@ def test_update_motivo_retificacao_em_branco_deve_retornar_400__motivo_nao_eh_ma
     )
 
     assert response.status_code == status.HTTP_200_OK
+
