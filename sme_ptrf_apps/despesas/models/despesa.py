@@ -22,7 +22,7 @@ class DespesasCompletasManager(models.Manager):
 class Despesa(ModeloBase):
     # Tags de informações
     TAG_ANTECIPADO = {"id": "1", "nome": "Antecipado", "descricao": "Data do pagamento anterior à data do documento."}
-    TAG_ESTORNADO = {"id": "2", "nome": "Estornado", "descricao": "Gasto estornado."}
+    TAG_ESTORNADO = {"id": "2", "nome": "Estornado", "descricao": "Despesa estornada."}
     TAG_PARCIAL = {"id": "3", "nome": "Parcial", "descricao": "Parte da despesa paga com recursos próprios ou de mais de uma conta."}
     TAG_IMPOSTO = {"id": "4", "nome": "Imposto", "descricao": "Despesa com recolhimento de imposto."}
     TAG_IMPOSTO_PAGO = {"id": "5", "nome": "Imposto Pago", "descricao": "Imposto recolhido relativo a uma despesa de serviço."}
