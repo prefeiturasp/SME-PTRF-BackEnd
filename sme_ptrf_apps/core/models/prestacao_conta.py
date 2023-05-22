@@ -282,6 +282,13 @@ class PrestacaoConta(ModeloBase):
 
         return mensagem
 
+    @property
+    def pc_publicada_no_diario_oficial(self):
+        if self.consolidado_dre:
+            return True if self.consolidado_dre.data_publicacao and self.consolidado_dre.pagina_publicacao else False
+
+        return False
+
     def __str__(self):
         return f"{self.periodo} - {self.status}"
 

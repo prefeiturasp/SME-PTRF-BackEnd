@@ -29,7 +29,14 @@ def test_list_processos_da_associacao(jwt_authenticated_client_a, associacao, pr
             'associacao':
                 {
                     'id': processo_associacao_123456_2019.associacao.id,
-                    'nome': processo_associacao_123456_2019.associacao.nome
+                    'nome': processo_associacao_123456_2019.associacao.nome,
+                    'data_de_encerramento':
+                        {
+                            'data': None,
+                            'help_text': 'A associação deixará de ser exibida nos períodos posteriores à data de '
+                                         'encerramento informada.',
+                            'pode_editar_dados_associacao_encerrada': True
+                        },
                 },
             'criado_em': processo_associacao_123456_2019.criado_em.isoformat("T"),
             'alterado_em': processo_associacao_123456_2019.alterado_em.isoformat("T"),

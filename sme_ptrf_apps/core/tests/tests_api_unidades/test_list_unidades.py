@@ -87,7 +87,9 @@ def test_api_list_unidades_por_nome(
             'uuid': str(unidade.uuid),
             'associacao_nome': '',
             'associacao_uuid': '',
-            'visao': 'UE'
+            'visao': 'UE',
+            'data_de_encerramento_associacao': None,
+            'tooltip_associacao_encerrada': None,
         },
 
     ]
@@ -116,7 +118,9 @@ def test_api_list_unidades_por_codigo_eol(
             'uuid': str(unidade.uuid),
             'associacao_nome': '',
             'associacao_uuid': '',
-            'visao': 'UE'
+            'visao': 'UE',
+            'data_de_encerramento_associacao': None,
+            'tooltip_associacao_encerrada': None,
         },
 
     ]
@@ -161,8 +165,39 @@ def test_api_list_unidades_por_dre(
             'uuid': str(unidade.uuid),
             'associacao_nome': '',
             'associacao_uuid': '',
-            'visao': 'UE'
+            'visao': 'UE',
+            'data_de_encerramento_associacao': None,
+            'tooltip_associacao_encerrada': None,
         },
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == result_esperado
+
+
+def test_api_list_unidades_com_associacao_encerrada(
+    jwt_authenticated_client_a,
+    unidade,
+    associacao_encerrada_2020_1
+):
+    response = jwt_authenticated_client_a.get(f'/api/unidades/?search=Escola', content_type='application/json')
+    result = json.loads(response.content)
+
+    result_esperado = [
+        {
+            'codigo_eol': '123456',
+            'nome_dre': 'DRE teste',
+            'nome': 'Escola Teste',
+            'nome_com_tipo': 'CEU Escola Teste',
+            'tipo_unidade': 'CEU',
+            'uuid': str(unidade.uuid),
+            'associacao_nome': associacao_encerrada_2020_1.nome,
+            'associacao_uuid': f'{associacao_encerrada_2020_1.uuid}',
+            'visao': 'UE',
+            'data_de_encerramento_associacao': f'{associacao_encerrada_2020_1.data_de_encerramento}',
+            'tooltip_associacao_encerrada': unidade.tooltip_associacao_encerrada,
+        },
+
     ]
 
     assert response.status_code == status.HTTP_200_OK

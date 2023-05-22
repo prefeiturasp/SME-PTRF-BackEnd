@@ -199,7 +199,7 @@ class CargaAssociacoesService:
 
     def cria_ou_atualiza_associacao(self):
 
-        associacao, created = Associacao.objects.update_or_create(
+        associacao, created = Associacao.objects.get_or_create(
             cnpj=self.__dados_associacao['cnpj'],
             defaults={
                 'unidade': self.__dados_associacao['ue_obj'],
@@ -209,6 +209,15 @@ class CargaAssociacoesService:
 
         if created:
             logger.info(f'Criada Associacao {associacao.nome}')
+        else:
+            if associacao.encerrada:
+                msg_erro = f'A associação foi encerrada em {associacao.data_de_encerramento.strftime("%d/%m/%Y")}.'
+                self.loga_erro_carga_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
+                return None
+            else:
+                associacao.unidade = self.__dados_associacao['ue_obj']
+                associacao.nome = self.__dados_associacao['nome']
+                associacao.save()
 
         self.__dados_associacao['associacao_obj'] = associacao
 
@@ -226,8 +235,9 @@ class CargaAssociacoesService:
                 try:
                     self.carrega_e_valida_dados_associacao(linha_conteudo=linha, linha_index=index)
                     self.cria_ou_atualiza_ue_e_dre()
-                    self.cria_ou_atualiza_associacao()
-                    self.loga_sucesso_carga_associacao()
+                    associacao = self.cria_ou_atualiza_associacao()
+                    if associacao:
+                        self.loga_sucesso_carga_associacao()
                 except Exception as e:
                     self.loga_erro_carga_associacao(f'Houve um erro na carga dessa linha:{str(e)}', index)
                     continue

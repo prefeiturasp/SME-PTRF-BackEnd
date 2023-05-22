@@ -2,8 +2,12 @@
 
 -r ./base.txt
 
+# Dependencias revisadas
+psycopg2==2.9.5 --no-binary psycopg2
+
+# Dependencias não revisadas
+
 gunicorn==20.0.4  # https://github.com/benoitc/gunicorn
-psycopg2==2.8.4 --no-binary psycopg2  # https://github.com/psycopg/psycopg2
 
 # Django
 # ------------------------------------------------------------------------------

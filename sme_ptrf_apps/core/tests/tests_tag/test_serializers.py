@@ -26,7 +26,8 @@ def test_taglookupserializer(tag):
     campos_esperados = [
         'uuid',
         'nome',
-        'status'
+        'status',
+        'id'
     ]
 
     assert serializer.data
