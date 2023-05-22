@@ -25,7 +25,8 @@ def test_api_previa_prestacao_conta_por_periodo_e_associacao(jwt_authenticated_c
             'nome': 'Escola Teste',
             'data_de_encerramento': {
                 'data': None,
-                'help_text': 'A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.'
+                'help_text': 'A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.',
+                'pode_editar_dados_associacao_encerrada': True
             },
             'presidente_associacao': {
                 'bairro': '',

@@ -74,7 +74,21 @@ def associacao_teste(unidade, periodo_2019_1):
         periodo_inicial=periodo_2019_1,
         ccm='0.000.00-0',
         email="ollyverottoboni@gmail.com",
-        processo_regularidade='123456'
+        processo_regularidade='123456',
+    )
+
+@pytest.fixture
+def associacao_encerrada_teste(unidade, periodo_2019_1, periodo_2019_2):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste',
+        cnpj='52.302.275/0001-83',
+        unidade=unidade,
+        periodo_inicial=periodo_2019_1,
+        ccm='0.000.00-0',
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456',
+        data_de_encerramento=date(2019, 12, 10)
     )
 
 
@@ -102,6 +116,36 @@ def test_get_periodos_ate_agora_fora_implantacao_da_associacao(
             'referencia_por_extenso': periodo_2020_1.referencia_por_extenso,
             'uuid': f'{periodo_2020_1.uuid}'
         },
+        {
+            'data_fim_realizacao_despesas': f'{periodo_2019_2.data_fim_realizacao_despesas}',
+            'data_inicio_realizacao_despesas': f'{periodo_2019_2.data_inicio_realizacao_despesas}',
+            'referencia': '2019.2',
+            'referencia_por_extenso': periodo_2019_2.referencia_por_extenso,
+            'uuid': f'{periodo_2019_2.uuid}'
+        },
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+
+    assert result == esperados
+
+@freeze_time('2020-06-15')
+def test_get_periodos_ate_encerramento_da_associacao_e_fora_implantacao_da_associacao(
+    jwt_authenticated_client_a,
+    associacao_encerrada_teste,
+    periodo_2018_1,
+    periodo_2019_1,
+    periodo_2019_2,
+    periodo_2020_1,
+    periodo_2020_2,
+):
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao_encerrada_teste.uuid}/periodos-ate-agora-fora-implantacao/',
+        content_type='application/json')
+
+    result = json.loads(response.content)
+
+    esperados = [
         {
             'data_fim_realizacao_despesas': f'{periodo_2019_2.data_fim_realizacao_despesas}',
             'data_inicio_realizacao_despesas': f'{periodo_2019_2.data_inicio_realizacao_despesas}',
