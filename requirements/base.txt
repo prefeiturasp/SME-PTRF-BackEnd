@@ -11,7 +11,7 @@ drf-spectacular==0.26.2                 # Auto-generate OpenAPI 3.0 schemas from
 
 # Outras
 # ------------------------------------------------------------------------------
-Pillow==8.4.0
+Pillow==9.3.0
 
 # DEPENDENCIAS AINDA NÃO REVISTAS
 
