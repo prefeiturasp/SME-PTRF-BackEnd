@@ -16,6 +16,7 @@ from .core.models import (
 )
 from .core.models.prestacao_conta import PrestacaoConta
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
+from sme_ptrf_apps.dre.models import ConsolidadoDRE
 import datetime
 
 
@@ -308,6 +309,16 @@ def terceira_unidade(dre):
     )
 
 @pytest.fixture
+def quarta_unidade(dre):
+    return baker.make(
+        'Unidade',
+        nome='Quarta Escola Teste',
+        tipo_unidade='CEU',
+        codigo_eol='999999',
+        dre=dre,
+    )
+
+@pytest.fixture
 def associacao_com_data_de_encerramento(unidade, periodo_anterior):
     return baker.make(
         'Associacao',
@@ -363,21 +374,30 @@ def associacao_encerrada_2020_1(periodo_2019_2, periodo_2020_1, unidade):
         cnpj='99.073.449/0001-47',
         unidade=unidade,
         periodo_inicial=periodo_2019_2,
-        data_de_encerramento = periodo_2020_1.data_fim_realizacao_despesas,
+        data_de_encerramento=periodo_2020_1.data_fim_realizacao_despesas,
     )
 
 @pytest.fixture
-def associacao_encerrada_2020_2(periodo_2019_2, periodo_2020_2, outra_unidade):
+def associacao_encerrada_2020_2(periodo_2019_2, periodo_2020_2, quarta_unidade):
     return baker.make(
         'Associacao',
-        nome='Escola Iniciada em 2020.2',
+        nome='Escola Encerrada em 2020.2',
+        cnpj='23.500.058/0001-08',
+        unidade=quarta_unidade,
+        periodo_inicial=periodo_2019_2,
+        data_de_encerramento = periodo_2020_2.data_fim_realizacao_despesas,
+    )
+
+@pytest.fixture
+def associacao_encerrada_2021_2(periodo_2019_2, periodo_2021_2, outra_unidade):
+    return baker.make(
+        'Associacao',
+        nome='Escola Encerrada em 2021.2',
         cnpj='23.500.058/0001-08',
         unidade=outra_unidade,
         periodo_inicial=periodo_2019_2,
-        data_de_encerramento=periodo_2020_2.data_fim_realizacao_despesas,
+        data_de_encerramento=date(2021, 12, 10),
     )
-
-
 
 @pytest.fixture
 def associacao_status_nao_finalizado(unidade, periodo_anterior):
@@ -649,6 +669,16 @@ def periodo_2021_1(periodo_2020_2):
     )
 
 @pytest.fixture
+def periodo_2021_2(periodo_2021_1):
+    return baker.make(
+        'Periodo',
+        referencia='2021.2',
+        data_inicio_realizacao_despesas=date(2021, 7, 1),
+        data_fim_realizacao_despesas=None,
+        periodo_anterior=periodo_2021_1,
+    )
+
+@pytest.fixture
 def periodo_2019_2(periodo):
     return baker.make(
         'Periodo',
@@ -783,6 +813,43 @@ def prestacao_conta_devolvida_posterior(periodo_futuro, associacao):
 
 
 @pytest.fixture
+def consolidado_dre_publicado_diario_oficial(periodo, dre):
+    return baker.make(
+        'ConsolidadoDRE',
+        dre=dre,
+        periodo=periodo,
+        status=ConsolidadoDRE.STATUS_NAO_GERADOS,
+        data_publicacao=date(2020, 7, 1),
+        pagina_publicacao='1'
+    )
+
+
+@pytest.fixture
+def prestacao_conta_2020_1_aprovada_associacao_encerrada_publicada_diario_oficial(
+    periodo_2020_1,
+    associacao_encerrada_2020_1,
+    consolidado_dre_publicado_diario_oficial
+):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao_encerrada_2020_1,
+        status=PrestacaoConta.STATUS_APROVADA,
+        consolidado_dre=consolidado_dre_publicado_diario_oficial
+    )
+
+
+@pytest.fixture
+def prestacao_conta_2020_1_aprovada_associacao_encerrada(periodo_2020_1, associacao_encerrada_2020_1):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao_encerrada_2020_1,
+        status=PrestacaoConta.STATUS_APROVADA,
+    )
+
+
+@pytest.fixture
 def fechamento_periodo_anterior(periodo_anterior, associacao, conta_associacao, acao_associacao, ):
     return baker.make(
         'FechamentoPeriodo',
@@ -848,6 +915,24 @@ def prestacao_conta_2020_1_conciliada_outra_conta(periodo_2020_1, associacao):
         periodo=periodo_2020_1,
         associacao=associacao,
         status=STATUS_ABERTO,
+    )
+
+@pytest.fixture
+def prestacao_conta_2021_1_aprovada_associacao_encerrada(periodo_2021_1, associacao_encerrada_2021_2):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2021_1,
+        associacao=associacao_encerrada_2021_2,
+        status=PrestacaoConta.STATUS_APROVADA
+    )
+
+@pytest.fixture
+def prestacao_conta_2021_2_aprovada_associacao_encerrada(periodo_2021_2, associacao_encerrada_2021_2):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2021_2,
+        associacao=associacao_encerrada_2021_2,
+        status=PrestacaoConta.STATUS_APROVADA
     )
 
 

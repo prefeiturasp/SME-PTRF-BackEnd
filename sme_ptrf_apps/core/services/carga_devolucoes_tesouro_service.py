@@ -92,6 +92,18 @@ class CargaDevolucoesTesouroService:
         except PrestacaoConta.DoesNotExist:
             raise CargaDevolcuoesTesouroException(f'Não encontrada uma PC de id {pc_id}. Devolução não criada.')
 
+        associacao = prestacao_conta.associacao
+        periodo = prestacao_conta.periodo
+        data_referencia = periodo.data_fim_realizacao_despesas if periodo.data_fim_realizacao_despesas else periodo.data_inicio_realizacao_despesas
+
+        if associacao.encerrada and (data_referencia >= associacao.data_de_encerramento):
+            msg_erro = f'A associação foi encerrada em {associacao.data_de_encerramento.strftime("%d/%m/%Y")}'
+            raise Exception(msg_erro)
+
+        if associacao.periodo_inicial and (data_referencia <= associacao.periodo_inicial.data_fim_realizacao_despesas):
+            msg_erro = f'O período informado é anterior ao período inicial da associação'
+            raise Exception(msg_erro)
+
         # Define a Despesa
         try:
             despesa_id = int(linha_conteudo[self.DESPESA_ID].strip())

@@ -81,7 +81,7 @@ def test_api_get_despesas_tabelas(associacao, jwt_authenticated_client_d, tipo_a
         ],
 
         'tags': [
-            {
+            {   'id': tag_ativa.id,
                 'uuid': str(tag_ativa.uuid),
                 'nome': tag_ativa.nome,
                 'status': tag_ativa.status
