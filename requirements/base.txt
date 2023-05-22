@@ -2,7 +2,7 @@
 
 # Django
 # ------------------------------------------------------------------------------
-django==3.0.14
+django==3.1.14
 django-auditlog==1.0.0
 
 # Dependências do Django Rest Framework
