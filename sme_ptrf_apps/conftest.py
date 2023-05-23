@@ -389,7 +389,7 @@ def associacao_encerrada_2020_2(periodo_2019_2, periodo_2020_2, quarta_unidade):
     )
 
 @pytest.fixture
-def associacao_encerrada_2021_2(periodo_2019_2, periodo_2021_2, outra_unidade):
+def associacao_encerrada_2021_2(periodo_2019_2, outra_unidade):
     return baker.make(
         'Associacao',
         nome='Escola Encerrada em 2021.2',
