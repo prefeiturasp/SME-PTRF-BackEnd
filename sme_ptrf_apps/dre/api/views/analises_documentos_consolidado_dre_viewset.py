@@ -3,7 +3,10 @@ import logging
 from rest_framework import mixins, status
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
-from sme_ptrf_apps.users.permissoes import PermissaoApiDre, PermissaoAPIApenasDreComLeituraOuGravacao
+from sme_ptrf_apps.users.permissoes import (
+    PermissaoApiDre,
+    PermissaoAPIApenasSmeComLeituraOuGravacao,
+)
 from ...models.analise_documento_consolidado_dre import AnaliseDocumentoConsolidadoDre
 from ...models.analise_consolidado_dre import AnaliseConsolidadoDre
 from ..serializers.analise_documento_consolidado_dre_serializer import AnalisesDocumentosConsolidadoDreSerializer
@@ -29,7 +32,7 @@ class AnalisesDocumentosConsolidadoDreViewSet(
 
     @action(detail=False, methods=['post'],
             url_path='gravar-acerto',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def gravar_acerto(self, request):
 
         from ...services.analise_documento_consolidado_dre_service import CriarAcerto
@@ -89,7 +92,7 @@ class AnalisesDocumentosConsolidadoDreViewSet(
 
     @action(detail=False, methods=['patch'],
             url_path='marcar-como-correto',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def marcar_como_correto(self, request):
 
         from ...services.analise_documento_consolidado_dre_service import MarcarComoCorreto
@@ -127,7 +130,7 @@ class AnalisesDocumentosConsolidadoDreViewSet(
 
     @action(detail=False, methods=['patch'],
             url_path='marcar-como-nao-conferido',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def marcar_como_nao_conferido(self, request):
         from ...services.analise_documento_consolidado_dre_service import MarcarComoNaoConferido
 
@@ -164,7 +167,7 @@ class AnalisesDocumentosConsolidadoDreViewSet(
 
     @action(detail=False, methods=['get'],
             url_path='download-documento',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def download_documento(self, request):
 
         from ...services.analise_documento_consolidado_dre_service import DownloadDocumento

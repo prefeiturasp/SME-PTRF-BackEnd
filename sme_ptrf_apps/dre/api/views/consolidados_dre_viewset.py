@@ -20,7 +20,8 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoApiDre,
     PermissaoAPIApenasDreComLeituraOuGravacao,
     PermissaoAPIApenasDreComGravacao,
-    PermissaoAPITodosComLeituraOuGravacao
+    PermissaoAPITodosComLeituraOuGravacao,
+    PermissaoAPIApenasSmeComLeituraOuGravacao
 )
 
 from ...services import concluir_consolidado_dre, \
@@ -684,7 +685,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=False, methods=['get'],
             url_path='detalhamento',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def detalhamento_relatorio_consolidado(self, request):
         uuid = request.query_params.get('uuid')
 
@@ -710,7 +711,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=False, methods=['get'],
             url_path='detalhamento-conferencia-documentos',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def detalhamento_relatorio_consolidado_conferencia_documentos(self, request):
         uuid = request.query_params.get('uuid')
         uuid_analise_atual = request.query_params.get('analise_atual')
@@ -873,7 +874,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=True, methods=['patch'],
             url_path='devolver-consolidado',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def devolver(self, request, uuid):
         from sme_ptrf_apps.dre.api.validation_serializers.consolidado_dre_devolver_serializer import ConsolidadoDreDevolverSerializer
         consolidado: ConsolidadoDRE = self.get_object()
@@ -900,7 +901,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=False, methods=['post'],
             url_path='marcar-como-publicado-no-diario-oficial',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def marcar_como_publicado_no_diario_oficial(self, request):
         dados = request.data
 
@@ -988,7 +989,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=False, methods=['delete'],
             url_path='reabrir-consolidado',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def reabrir(self, request):
         uuid = request.query_params.get('uuid')
 
@@ -1037,7 +1038,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=False, methods=['post'],
             url_path='analisar',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def analisar(self, request):
 
         dados = request.data
@@ -1090,7 +1091,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=False, methods=['post'],
             url_path='marcar-como-analisado',
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def marcar_como_analisado(self, request):
         dados = request.data
 
