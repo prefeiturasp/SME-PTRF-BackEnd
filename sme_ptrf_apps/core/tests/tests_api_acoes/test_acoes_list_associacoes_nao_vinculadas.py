@@ -25,6 +25,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas(jwt_authenticated_client_a,
             'nome': associacao_eco_delta_000087.nome,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
+            'encerrada': False,
             'status_valores_reprogramados': associacao_eco_delta_000087.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_eco_delta_000087.unidade.uuid}',
@@ -56,6 +57,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome(jwt_authenticated_cl
             'uuid': f'{associacao_eco_delta_000087.uuid}',
             'nome': associacao_eco_delta_000087.nome,
             'data_de_encerramento': None,
+            'encerrada': False,
             'tooltip_data_encerramento': None,
             'status_valores_reprogramados': associacao_eco_delta_000087.status_valores_reprogramados,
             'unidade': {
