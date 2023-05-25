@@ -75,7 +75,7 @@ def payload_passar_para_status_sme_analisado(consolidado_dre_teste_api_consolida
 
 
 def test_passar_relatorio_para_status_sme_analisado(
-    jwt_authenticated_client_dre,
+    jwt_authenticated_client_sme,
     usuario_dre_teste_api,
     payload_passar_para_status_sme_em_analise,
     consolidado_dre_teste_api_consolidado_dre,
@@ -83,7 +83,7 @@ def test_passar_relatorio_para_status_sme_analisado(
 
     uuid_consolidado = f"{consolidado_dre_teste_api_consolidado_dre.uuid}"
 
-    response = jwt_authenticated_client_dre.post(
+    response = jwt_authenticated_client_sme.post(
         '/api/consolidados-dre/marcar-como-analisado/',
         data=json.dumps(payload_passar_para_status_sme_em_analise),
         content_type='application/json'
@@ -97,7 +97,7 @@ def test_passar_relatorio_para_status_sme_analisado(
 
 
 def test_passar_relatorio_para_status_sme_em_analise(
-    jwt_authenticated_client_dre,
+    jwt_authenticated_client_sme,
     usuario_dre_teste_api,
     payload_passar_para_status_sme_em_analise,
     consolidado_dre_teste_api_consolidado_dre,
@@ -105,7 +105,7 @@ def test_passar_relatorio_para_status_sme_em_analise(
 
     uuid_consolidado = f"{consolidado_dre_teste_api_consolidado_dre.uuid}"
 
-    response = jwt_authenticated_client_dre.post(
+    response = jwt_authenticated_client_sme.post(
         '/api/consolidados-dre/analisar/',
         data=json.dumps(payload_passar_para_status_sme_em_analise),
         content_type='application/json'
@@ -123,7 +123,7 @@ def test_passar_relatorio_para_status_sme_em_analise(
 
 
 def test_passar_relatorio_para_status_sme_em_analise_apos_devolvida_para_acertos(
-    jwt_authenticated_client_dre,
+    jwt_authenticated_client_sme,
     payload_passar_para_status_sme_em_analise_ja_existente,
     consolidado_dre_teste_api_consolidado_dre_com_analise_atual,
     comentario_analise_consolidado_dre_01,
@@ -133,7 +133,7 @@ def test_passar_relatorio_para_status_sme_em_analise_apos_devolvida_para_acertos
     analise_documento_consolidado_dre_02
 ):
     uuid_consolidado = f"{consolidado_dre_teste_api_consolidado_dre_com_analise_atual.uuid}"
-    response = jwt_authenticated_client_dre.post(
+    response = jwt_authenticated_client_sme.post(
         '/api/consolidados-dre/analisar/',
         data=json.dumps(payload_passar_para_status_sme_em_analise_ja_existente),
         content_type='application/json'
