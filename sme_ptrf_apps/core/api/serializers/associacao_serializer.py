@@ -120,6 +120,10 @@ class AssociacaoInfoAtaSerializer(serializers.ModelSerializer):
 
 class AssociacaoListSerializer(serializers.ModelSerializer):
     unidade = UnidadeListEmAssociacoesSerializer(many=False)
+    encerrada = serializers.SerializerMethodField('get_encerrada')
+
+    def get_encerrada(self, obj):
+        return obj.encerrada
 
     class Meta:
         model = Associacao
@@ -130,7 +134,8 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
             'status_valores_reprogramados',
             'data_de_encerramento',
             'tooltip_data_encerramento',
-            'unidade'
+            'unidade',
+            'encerrada'
         ]
 
 

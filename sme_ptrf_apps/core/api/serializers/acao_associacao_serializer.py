@@ -62,7 +62,15 @@ class AcaoAssociacaoCreateSerializer(serializers.ModelSerializer):
 class AcaoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
     associacao = AssociacaoListSerializer()
     acao = AcaoSerializer()
+    data_de_encerramento_associacao = serializers.SerializerMethodField('get_data_de_encerramento_associacao')
+    tooltip_associacao_encerrada = serializers.SerializerMethodField('get_tooltip_associacao_encerrada')
+
+    def get_data_de_encerramento_associacao(self, obj):
+        return obj.associacao.data_de_encerramento
+
+    def get_tooltip_associacao_encerrada(self, obj):
+        return obj.associacao.tooltip_data_encerramento
 
     class Meta:
         model = AcaoAssociacao
-        fields = ('uuid', 'id', 'associacao', 'acao', 'status', 'criado_em')
+        fields = ('uuid', 'id', 'associacao', 'data_de_encerramento_associacao', 'tooltip_associacao_encerrada', 'acao', 'status', 'criado_em')
