@@ -290,7 +290,7 @@ class SmeIntegracaoService:
                     codigo_cargo=cargo["codigoCargo"]
                 )
                 if rfs_com_o_cargo_na_escola:
-                    cargos_do_rf_na_escola = list(filter(lambda d: d['codigoRF'] == int(rf), rfs_com_o_cargo_na_escola))
+                    cargos_do_rf_na_escola = list(filter(lambda d: str(d['codigoRF']) == str(rf), rfs_com_o_cargo_na_escola))
 
             except Exception as err:
                 logger.info(f'Erro ao consultar rfs com o cargo {cargo["codigoCargo"]} na escola {codigo_eol}: {err}')
