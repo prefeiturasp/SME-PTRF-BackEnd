@@ -8,7 +8,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_action_gravar_acerto_nao_deve_passar_uuid_documento_invalido(
-    jwt_authenticated_client_relatorio_consolidado,
+    jwt_authenticated_client_sme,
     analise_consolidado_dre_01,
     relatorio_consolidado_dre_01,
     analise_documento_consolidado_dre_gravar_acerto,
@@ -24,7 +24,7 @@ def test_action_gravar_acerto_nao_deve_passar_uuid_documento_invalido(
         "detalhamento": "Este é o novo detalhamento XXXXXXXXXXXx"
     }
 
-    response = jwt_authenticated_client_relatorio_consolidado.post(
+    response = jwt_authenticated_client_sme.post(
         f'/api/analises-documentos-consolidados-dre/gravar-acerto/',
         data=json.dumps(payload),
         content_type='application/json'
@@ -42,7 +42,7 @@ def test_action_gravar_acerto_nao_deve_passar_uuid_documento_invalido(
 
 
 def test_action_gravar_acerto_nao_deve_passar_tipo_documento_invalido(
-    jwt_authenticated_client_relatorio_consolidado,
+    jwt_authenticated_client_sme,
     analise_consolidado_dre_01,
     relatorio_consolidado_dre_01,
     analise_documento_consolidado_dre_gravar_acerto,
@@ -58,7 +58,7 @@ def test_action_gravar_acerto_nao_deve_passar_tipo_documento_invalido(
         "detalhamento": "Este é o novo detalhamento XXXXXXXXXXXx"
     }
 
-    response = jwt_authenticated_client_relatorio_consolidado.post(
+    response = jwt_authenticated_client_sme.post(
         f'/api/analises-documentos-consolidados-dre/gravar-acerto/',
         data=json.dumps(payload),
         content_type='application/json'
@@ -76,7 +76,7 @@ def test_action_gravar_acerto_nao_deve_passar_tipo_documento_invalido(
 
 
 def test_action_gravar_acerto_nao_deve_passar_analise_consolidado_dre_inexistente(
-    jwt_authenticated_client_relatorio_consolidado,
+    jwt_authenticated_client_sme,
     analise_consolidado_dre_01,
     relatorio_consolidado_dre_01,
     analise_documento_consolidado_dre_gravar_acerto,
@@ -90,7 +90,7 @@ def test_action_gravar_acerto_nao_deve_passar_analise_consolidado_dre_inexistent
         "detalhamento": "Este é o novo detalhamento XXXXXXXXXXXx"
     }
 
-    response = jwt_authenticated_client_relatorio_consolidado.post(
+    response = jwt_authenticated_client_sme.post(
         f'/api/analises-documentos-consolidados-dre/gravar-acerto/',
         data=json.dumps(payload),
         content_type='application/json'
@@ -108,7 +108,7 @@ def test_action_gravar_acerto_nao_deve_passar_analise_consolidado_dre_inexistent
 
 
 def test_action_analise_documento_consolidado_dre_gravar_acerto(
-    jwt_authenticated_client_relatorio_consolidado,
+    jwt_authenticated_client_sme,
     analise_consolidado_dre_01,
     relatorio_consolidado_dre_01,
     analise_documento_consolidado_dre_gravar_acerto,
@@ -120,7 +120,7 @@ def test_action_analise_documento_consolidado_dre_gravar_acerto(
         "detalhamento": "Este é o novo detalhamento XXXXXXXXXXXx"
     }
 
-    response = jwt_authenticated_client_relatorio_consolidado.post(
+    response = jwt_authenticated_client_sme.post(
         f'/api/analises-documentos-consolidados-dre/gravar-acerto/',
         data=json.dumps(payload),
         content_type='application/json'

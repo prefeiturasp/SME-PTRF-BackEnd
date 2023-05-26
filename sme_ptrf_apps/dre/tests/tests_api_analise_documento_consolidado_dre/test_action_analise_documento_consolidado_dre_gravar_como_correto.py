@@ -8,7 +8,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_action_analise_documento_consolidado_dre_gravar_como_correto_analise_documento_nao_existente(
-    jwt_authenticated_client_relatorio_consolidado,
+    jwt_authenticated_client_sme,
     analise_consolidado_dre_01,
     relatorio_consolidado_dre_01,
 ):
@@ -29,7 +29,7 @@ def test_action_analise_documento_consolidado_dre_gravar_como_correto_analise_do
             ]
     }
 
-    response = jwt_authenticated_client_relatorio_consolidado.patch(
+    response = jwt_authenticated_client_sme.patch(
         f'/api/analises-documentos-consolidados-dre/marcar-como-correto/',
         data=json.dumps(payload),
         content_type='application/json'
@@ -53,7 +53,7 @@ def test_action_analise_documento_consolidado_dre_gravar_como_correto_analise_do
 
 
 def test_action_analise_documento_consolidado_dre_gravar_como_correto_analise_documento_ja_existente(
-    jwt_authenticated_client_relatorio_consolidado,
+    jwt_authenticated_client_sme,
     analise_consolidado_dre_01,
     relatorio_consolidado_dre_01,
     analise_documento_consolidado_dre_marcar_como_correto_analise_existente,
@@ -69,7 +69,7 @@ def test_action_analise_documento_consolidado_dre_gravar_como_correto_analise_do
             ]
     }
 
-    response = jwt_authenticated_client_relatorio_consolidado.patch(
+    response = jwt_authenticated_client_sme.patch(
         f'/api/analises-documentos-consolidados-dre/marcar-como-correto/',
         data=json.dumps(payload),
         content_type='application/json'
