@@ -191,12 +191,10 @@ class Associacao(ModeloIdNome):
         ultimo_periodo_com_prestacao = ultima_prestacao_feita.periodo if ultima_prestacao_feita else None
         if ultimo_periodo_com_prestacao:
             periodo_seguinte = ultimo_periodo_com_prestacao.periodo_seguinte.first()
-            if not self.encerrada or (self.encerrada and periodo_seguinte.data_inicio_realizacao_despesas <= self.data_de_encerramento):
+            if not self.encerrada or (self.encerrada and periodo_seguinte and periodo_seguinte.data_inicio_realizacao_despesas <= self.data_de_encerramento):
                 return periodo_seguinte
             else:
                 return None
-        elif self.encerrada:
-            return None
         else:
             return self.periodo_inicial.periodo_seguinte.first() if self.periodo_inicial else None
 

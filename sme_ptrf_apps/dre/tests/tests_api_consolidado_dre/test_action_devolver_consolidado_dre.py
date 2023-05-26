@@ -8,7 +8,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_devolver_consolidado(
-    jwt_authenticated_client_dre,
+    jwt_authenticated_client_sme,
     consolidado_dre_teste_api_consolidado_dre,
 ):
     payload = {
@@ -17,7 +17,7 @@ def test_devolver_consolidado(
 
     with patch('sme_ptrf_apps.dre.models.consolidado_dre.ConsolidadoDRE.devolver_consolidado') as mock_devolver_consolidado:
 
-        response = jwt_authenticated_client_dre.patch(
+        response = jwt_authenticated_client_sme.patch(
             f'/api/consolidados-dre/{consolidado_dre_teste_api_consolidado_dre.uuid}/devolver-consolidado/',
             data=json.dumps(payload),
             content_type='application/json',
@@ -30,12 +30,12 @@ def test_devolver_consolidado(
 
 
 def test_devolver_consolidado_requer_data_limite(
-    jwt_authenticated_client_dre,
+    jwt_authenticated_client_sme,
     consolidado_dre_teste_api_consolidado_dre,
 ):
     with patch('sme_ptrf_apps.dre.models.consolidado_dre.ConsolidadoDRE.devolver_consolidado') as mock_devolver_consolidado:
 
-        response = jwt_authenticated_client_dre.patch(
+        response = jwt_authenticated_client_sme.patch(
             f'/api/consolidados-dre/{consolidado_dre_teste_api_consolidado_dre.uuid}/devolver-consolidado/',
             content_type='application/json'
         )
@@ -48,7 +48,7 @@ def test_devolver_consolidado_requer_data_limite(
 
 @freeze_time("2022-10-29 10:33:50")
 def test_devolver_consolidado_requer_data_limite_igual_ou_posterior_a_hoje(
-    jwt_authenticated_client_dre,
+    jwt_authenticated_client_sme,
     consolidado_dre_teste_api_consolidado_dre,
 ):
     payload = {
@@ -57,7 +57,7 @@ def test_devolver_consolidado_requer_data_limite_igual_ou_posterior_a_hoje(
 
     with patch('sme_ptrf_apps.dre.models.consolidado_dre.ConsolidadoDRE.devolver_consolidado') as mock_devolver_consolidado:
 
-        response = jwt_authenticated_client_dre.patch(
+        response = jwt_authenticated_client_sme.patch(
             f'/api/consolidados-dre/{consolidado_dre_teste_api_consolidado_dre.uuid}/devolver-consolidado/',
             data=json.dumps(payload),
             content_type='application/json'
