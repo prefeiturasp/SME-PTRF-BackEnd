@@ -64,11 +64,16 @@ class DespesasViewSet(mixins.CreateModelMixin,
     pagination_class = CustomPagination
 
     def get_queryset(self):
+        from ...services.despesa_service import ordena_despesas_por_imposto
         qs = Despesa.objects.exclude(status='INATIVO').all()
 
         search = self.request.query_params.get('search')
         if search is not None and search != '':
-            qs = qs.filter(rateios__especificacao_material_servico__descricao__unaccent__icontains=search)
+            qs = qs.filter(
+                pk__in=Subquery(
+                    qs.filter(rateios__especificacao_material_servico__descricao__unaccent__icontains=search).distinct("uuid").values('pk')
+                )
+            )
 
         tag_uuid = self.request.query_params.get('rateios__tag__uuid')
         if tag_uuid:
@@ -150,24 +155,60 @@ class DespesasViewSet(mixins.CreateModelMixin,
                     excluir_despesa = False
                 if Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and despesa.tem_pagamento_com_recursos_proprios() or Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and despesa.tem_pagamentos_em_multiplas_contas():
                     excluir_despesa = False
+                if Despesa.TAG_NAO_RECONHECIDA['id'] in filtro_informacoes_list and despesa.e_despesa_nao_reconhecida():
+                    excluir_despesa = False
+                if Despesa.TAG_SEM_COMPROVACAO_FISCAL['id'] in filtro_informacoes_list and despesa.e_despesa_sem_comprovacao_fiscal():
+                    excluir_despesa = False
 
                 if excluir_despesa:
                     ids_para_excluir.append(despesa.id)
 
             qs = qs.exclude(id__in=ids_para_excluir)
 
-        """ Ordenação por soma dos valores dos rateios e numero de documento das despesas:
-        ordenar = self.request.query_params.get('ordenar')
-        if ordenar:
-            if ordenar == 'valor_total':
-                qs = qs.annotate(soma_rateios=Sum('rateios__valor_rateio')).order_by('soma_rateios')
-            if ordenar == 'numero_documento':
-                qs = qs.order_by(ordenar)
-        else:
-            qs = qs.order_by('-data_documento')
-        """
+        # Ordenação
+        ordenar_por_numero_do_documento = self.request.query_params.get('ordenar_por_numero_do_documento')
+        ordenar_por_data_especificacao = self.request.query_params.get('ordenar_por_data_especificacao')
+        ordenar_por_valor = self.request.query_params.get('ordenar_por_valor')
+        ordenar_por_imposto = self.request.query_params.get('ordenar_por_imposto')
 
-        qs = qs.order_by('-data_documento')
+        lista_argumentos_ordenacao = []
+        if ordenar_por_numero_do_documento and ordenar_por_numero_do_documento == 'crescente':
+            lista_argumentos_ordenacao.append('numero_documento')
+
+        if ordenar_por_numero_do_documento and ordenar_por_numero_do_documento == 'decrescente':
+            lista_argumentos_ordenacao.append('-numero_documento')
+
+        if ordenar_por_data_especificacao and ordenar_por_data_especificacao == 'crescente':
+            lista_argumentos_ordenacao.append('data_documento')
+
+        if ordenar_por_data_especificacao and ordenar_por_data_especificacao == 'decrescente':
+            lista_argumentos_ordenacao.append('-data_documento')
+
+        if ordenar_por_valor and ordenar_por_valor == 'crescente':
+            lista_argumentos_ordenacao.append('valor_total')
+
+        if ordenar_por_valor and ordenar_por_valor == 'decrescente':
+            lista_argumentos_ordenacao.append('-valor_total')
+
+        if ordenar_por_imposto == 'true':
+            # Cria uma lista com os impostos ordenados. Passo os demais argumentos de ordenação e já retorna ordenada por todos
+            qs = ordena_despesas_por_imposto(qs, lista_argumentos_ordenacao)
+
+            # Cria uma lista com os ids dos importos ordenados na ordem correta
+            pk_list = [obj.pk for obj in qs]
+
+            # Converte a lista de impostos em um queryset respeitando a ordem da lista
+            clauses = ' '.join(['WHEN despesas_despesa.id=%s THEN %s' % (pk, i) for i, pk in enumerate(pk_list)])
+            ordering = 'CASE %s END' % clauses
+            qs = Despesa.objects.filter(pk__in=pk_list).extra(
+                select={'ordering': ordering}, order_by=('ordering',))
+
+        # Caso nenhum argumento de ordenação seja passado, ordenamos por -data_documento
+        if not ordenar_por_imposto == 'true': # Caso tenha sido solicitado ordenar por imposto já é retornada ordenada por todos os argumentos, além do imposto
+            if not lista_argumentos_ordenacao:
+                qs = qs.order_by('-data_documento')
+            else:
+                qs = qs.order_by(*lista_argumentos_ordenacao)
 
         return qs
 
@@ -311,42 +352,6 @@ class DespesasViewSet(mixins.CreateModelMixin,
         }
 
         return Response(result)
-
-    @action(detail=False, url_path='ordenar-por-imposto',
-            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def retorna_despesas_ordenadas_por_imposto(self, request):
-        from ...services.despesa_service import ordena_despesas_por_imposto
-
-        associacao_uuid = request.query_params.get('associacao__uuid')
-        ordenar_por_imposto = request.query_params.get('ordenar_por_imposto')
-
-        if associacao_uuid is None:
-            erro = {
-                'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar o uuid da associação (associacao_uuid) como parâmetro.'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        if not ordenar_por_imposto or ordenar_por_imposto not in ['true', 'false']:
-            erro = {
-                'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar true ou false no parametro ordenar por imposto'
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        queryset = Despesa.objects.filter(associacao__uuid=associacao_uuid).order_by('-data_documento')
-
-        if ordenar_por_imposto == 'true':
-            queryset = ordena_despesas_por_imposto(queryset)
-
-        # *** Paginação ***
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = DespesaListComRateiosSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = DespesaListComRateiosSerializer(queryset, many=True)
-        return Response(serializer.data)
 
     @action(detail=False, url_path='tags-informacoes',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])

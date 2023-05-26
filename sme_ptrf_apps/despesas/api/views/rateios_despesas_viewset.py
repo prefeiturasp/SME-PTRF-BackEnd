@@ -180,6 +180,10 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
                     excluir_rateio = False
                 if Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and rateio.despesa.tem_pagamento_com_recursos_proprios() or Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and rateio.despesa.tem_pagamentos_em_multiplas_contas():
                     excluir_rateio = False
+                if Despesa.TAG_NAO_RECONHECIDA['id'] in filtro_informacoes_list and rateio.despesa.e_despesa_nao_reconhecida():
+                    excluir_rateio = False
+                if Despesa.TAG_SEM_COMPROVACAO_FISCAL['id'] in filtro_informacoes_list and rateio.despesa.e_despesa_sem_comprovacao_fiscal():
+                    excluir_rateio = False
 
                 if excluir_rateio:
                     ids_para_excluir.append(rateio.id)

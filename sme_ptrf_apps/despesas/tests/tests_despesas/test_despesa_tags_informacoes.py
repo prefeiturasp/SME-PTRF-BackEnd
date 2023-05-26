@@ -14,4 +14,6 @@ def test_get_tags_informacoes_list():
         {"id": "4", "nome": "Imposto", "descricao": "Despesa com recolhimento de imposto."},
         {"id": "5", "nome": "Imposto Pago", "descricao": "Imposto recolhido relativo a uma despesa de serviço."},
         {"id": "6", "nome": "Excluído", "descricao": "Lançamento excluído."},
+        {"id": "7", "nome": "Não Reconhecida", "descricao": "Despesa não reconhecida pela associação."},
+        {"id": "8", "nome": "Sem comprovação fiscal", "descricao": "Despesa sem comprovação fiscal."},
     ]
