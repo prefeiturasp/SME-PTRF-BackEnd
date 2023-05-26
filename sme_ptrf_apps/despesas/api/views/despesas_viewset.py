@@ -150,6 +150,10 @@ class DespesasViewSet(mixins.CreateModelMixin,
                     excluir_despesa = False
                 if Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and despesa.tem_pagamento_com_recursos_proprios() or Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and despesa.tem_pagamentos_em_multiplas_contas():
                     excluir_despesa = False
+                if Despesa.TAG_NAO_RECONHECIDA['id'] in filtro_informacoes_list and despesa.e_despesa_nao_reconhecida():
+                    excluir_despesa = False
+                if Despesa.TAG_SEM_COMPROVACAO_FISCAL['id'] in filtro_informacoes_list and despesa.e_despesa_sem_comprovacao_fiscal():
+                    excluir_despesa = False
 
                 if excluir_despesa:
                     ids_para_excluir.append(despesa.id)
