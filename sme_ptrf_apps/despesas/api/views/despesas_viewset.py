@@ -159,6 +159,10 @@ class DespesasViewSet(mixins.CreateModelMixin,
                     excluir_despesa = False
                 if Despesa.TAG_SEM_COMPROVACAO_FISCAL['id'] in filtro_informacoes_list and despesa.e_despesa_sem_comprovacao_fiscal():
                     excluir_despesa = False
+                if Despesa.TAG_CONCILIADA['id'] in filtro_informacoes_list and despesa.conferido:
+                    excluir_despesa = False
+                if Despesa.TAG_NAO_CONCILIADA['id'] in filtro_informacoes_list and not despesa.conferido:
+                    excluir_despesa = False
 
                 if excluir_despesa:
                     ids_para_excluir.append(despesa.id)
