@@ -29,6 +29,9 @@ class Despesa(ModeloBase):
     TAG_INATIVA = {"id": "6", "nome": "Excluído", "descricao": "Lançamento excluído."}
     TAG_NAO_RECONHECIDA = {"id": "7", "nome": "Não Reconhecida", "descricao": "Despesa não reconhecida pela associação."}
     TAG_SEM_COMPROVACAO_FISCAL = {"id": "8", "nome": "Sem comprovação fiscal", "descricao": "Despesa sem comprovação fiscal."}
+    TAG_CONCILIADA = {"id": "9", "nome": "Conciliada", "descricao": "Despesa com conciliação bancária realizada."}
+    TAG_NAO_CONCILIADA = {"id": "10", "nome": "Não conciliada", "descricao": "Despesa sem conciliação bancária realizada."}
+
 
     history = AuditlogHistoryField()
 
@@ -153,6 +156,19 @@ class Despesa(ModeloBase):
                 self.TAG_SEM_COMPROVACAO_FISCAL,
                 f"Essa despesa não possui comprovação fiscal."
             ))
+
+        if self.conferido:
+            tags.append(tag_informacao(
+                self.TAG_CONCILIADA,
+                f"Essa despesa já possui conciliação bancária."
+            ))
+
+        if not self.conferido:
+            tags.append(tag_informacao(
+                self.TAG_NAO_CONCILIADA,
+                f"Essa despesa não possui conciliação bancária."
+            ))
+
         return tags
 
     @property
@@ -281,13 +297,13 @@ class Despesa(ModeloBase):
 
     def e_despesa_inativa(self):
         return self.status == STATUS_INATIVO
-    
+
     def e_despesa_nao_reconhecida(self):
         return not self.eh_despesa_reconhecida_pela_associacao
-    
+
     def e_despesa_sem_comprovacao_fiscal(self):
         return self.eh_despesa_sem_comprovacao_fiscal
-    
+
     def inativar_despesa(self):
         self.status = STATUS_INATIVO
         self.data_e_hora_de_inativacao = datetime.now()
@@ -309,7 +325,7 @@ class Despesa(ModeloBase):
 
     @classmethod
     def get_tags_informacoes_list(cls):
-        return [cls.TAG_ANTECIPADO, cls.TAG_ESTORNADO, cls.TAG_PARCIAL, cls.TAG_IMPOSTO, cls.TAG_IMPOSTO_PAGO, cls.TAG_INATIVA, cls.TAG_NAO_RECONHECIDA, cls.TAG_SEM_COMPROVACAO_FISCAL]
+        return [cls.TAG_ANTECIPADO, cls.TAG_ESTORNADO, cls.TAG_PARCIAL, cls.TAG_IMPOSTO, cls.TAG_IMPOSTO_PAGO, cls.TAG_INATIVA, cls.TAG_NAO_RECONHECIDA, cls.TAG_SEM_COMPROVACAO_FISCAL, cls.TAG_CONCILIADA, cls.TAG_NAO_CONCILIADA]
 
     class Meta:
         verbose_name = "Documento comprobatório da despesa"
