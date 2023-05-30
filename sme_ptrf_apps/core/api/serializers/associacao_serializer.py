@@ -122,9 +122,14 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
     unidade = UnidadeListEmAssociacoesSerializer(many=False)
     encerrada = serializers.SerializerMethodField('get_encerrada')
 
+    informacoes = serializers.SerializerMethodField(method_name='get_informacoes', required=False)
+
     def get_encerrada(self, obj):
         return obj.encerrada
-
+    
+    def get_informacoes(self, obj):
+        return obj.tags_de_informacao
+    
     class Meta:
         model = Associacao
         fields = [
@@ -135,7 +140,8 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
             'data_de_encerramento',
             'tooltip_data_encerramento',
             'unidade',
-            'encerrada'
+            'encerrada',
+            'informacoes'
         ]
 
 

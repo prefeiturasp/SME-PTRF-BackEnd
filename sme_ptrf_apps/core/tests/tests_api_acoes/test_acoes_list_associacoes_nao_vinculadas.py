@@ -26,6 +26,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas(jwt_authenticated_client_a,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
             'encerrada': False,
+            'informacoes': associacao_eco_delta_000087.tags_de_informacao,
             'status_valores_reprogramados': associacao_eco_delta_000087.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_eco_delta_000087.unidade.uuid}',
@@ -60,6 +61,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_encerradas_e_nao_encerradas(j
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
             'encerrada': False,
+            'informacoes': associacao_eco_delta_000087.tags_de_informacao,
             'status_valores_reprogramados': associacao_eco_delta_000087.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_eco_delta_000087.unidade.uuid}',
@@ -75,6 +77,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_encerradas_e_nao_encerradas(j
             'data_de_encerramento': associacao_eco_delta_000088.data_de_encerramento.strftime("%Y-%m-%d"),
             'tooltip_data_encerramento': associacao_eco_delta_000088.tooltip_data_encerramento,
             'encerrada': associacao_eco_delta_000088.encerrada,
+            'informacoes': associacao_eco_delta_000088.tags_de_informacao,
             'status_valores_reprogramados': associacao_eco_delta_000088.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_eco_delta_000088.unidade.uuid}',
@@ -109,6 +112,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_somente_nao_encerradas(jwt_au
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
             'encerrada': False,
+            'informacoes': associacao_eco_delta_000087.tags_de_informacao,
             'status_valores_reprogramados': associacao_eco_delta_000087.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_eco_delta_000087.unidade.uuid}',
@@ -143,6 +147,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_somente_encerradas(jwt_authen
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
             'encerrada': False,
+            'informacoes': associacao_eco_delta_000087.tags_de_informacao,
             'status_valores_reprogramados': associacao_eco_delta_000087.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_eco_delta_000087.unidade.uuid}',
@@ -175,6 +180,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome(jwt_authenticated_cl
             'nome': associacao_eco_delta_000087.nome,
             'data_de_encerramento': None,
             'encerrada': False,
+            'informacoes': associacao_eco_delta_000087.tags_de_informacao,
             'tooltip_data_encerramento': None,
             'status_valores_reprogramados': associacao_eco_delta_000087.status_valores_reprogramados,
             'unidade': {
@@ -210,6 +216,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome_e_encerradas_e_nao_e
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
             'encerrada': False,
+            'informacoes': associacao_eco_delta_000087.tags_de_informacao,
             'status_valores_reprogramados': associacao_eco_delta_000087.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_eco_delta_000087.unidade.uuid}',
@@ -225,6 +232,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome_e_encerradas_e_nao_e
             'data_de_encerramento': associacao_eco_delta_000088.data_de_encerramento.strftime("%Y-%m-%d"),
             'tooltip_data_encerramento': associacao_eco_delta_000088.tooltip_data_encerramento,
             'encerrada': associacao_eco_delta_000088.encerrada,
+            'informacoes': associacao_eco_delta_000088.tags_de_informacao,
             'status_valores_reprogramados': associacao_eco_delta_000088.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_eco_delta_000088.unidade.uuid}',
@@ -259,6 +267,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome_e_somente_nao_encerr
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
             'encerrada': False,
+            'informacoes': associacao_eco_delta_000087.tags_de_informacao,
             'status_valores_reprogramados': associacao_eco_delta_000087.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_eco_delta_000087.unidade.uuid}',
@@ -293,6 +302,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome_e_somente_encerradas
             'data_de_encerramento': associacao_eco_delta_000088.data_de_encerramento.strftime("%Y-%m-%d"),
             'tooltip_data_encerramento': associacao_eco_delta_000088.tooltip_data_encerramento,
             'encerrada': associacao_eco_delta_000088.encerrada,
+            'informacoes': associacao_eco_delta_000088.tags_de_informacao,
             'status_valores_reprogramados': associacao_eco_delta_000088.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{associacao_eco_delta_000088.unidade.uuid}',

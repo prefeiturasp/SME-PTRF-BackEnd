@@ -29,6 +29,7 @@ def test_api_valores_reprogramados_filtro_nome_unidade(
                 'data_de_encerramento': None,
                 'tooltip_data_encerramento': None,
                 'encerrada': False,
+                'informacoes': associacao_2.tags_de_informacao,
                 'status_valores_reprogramados': associacao_2.status_valores_reprogramados,
                 'unidade': {
                     'codigo_eol': unidade_valores_reprogramados.codigo_eol,
@@ -78,6 +79,7 @@ def test_api_valores_reprogramados_filtro_nome_associacao(
                 'data_de_encerramento': None,
                 'tooltip_data_encerramento': None,
                 'encerrada': False,
+                'informacoes': associacao_2.tags_de_informacao,
                 'status_valores_reprogramados': associacao_2.status_valores_reprogramados,
                 'unidade': {
                     'codigo_eol': unidade_valores_reprogramados.codigo_eol,
@@ -127,6 +129,7 @@ def test_api_valores_reprogramados_filtro_codigo_eol(
                 'data_de_encerramento': None,
                 'tooltip_data_encerramento': None,
                 'encerrada': False,
+                'informacoes': associacao_2.tags_de_informacao,
                 'status_valores_reprogramados': associacao_2.status_valores_reprogramados,
                 'unidade': {
                     'codigo_eol': unidade_valores_reprogramados.codigo_eol,
@@ -176,6 +179,7 @@ def test_api_valores_reprogramados_filtro_tipo_unidade(
                 'data_de_encerramento': None,
                 'tooltip_data_encerramento': None,
                 'encerrada': False,
+                'informacoes': associacao_2.tags_de_informacao,
                 'status_valores_reprogramados': associacao_2.status_valores_reprogramados,
                 'unidade': {
                     'codigo_eol': unidade_valores_reprogramados.codigo_eol,
