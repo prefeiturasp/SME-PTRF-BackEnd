@@ -66,7 +66,8 @@ def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valen
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
-            'encerrada': False
+            'encerrada': False,
+            'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
         },
         {
             'uuid': f'{associacao_pinheiros_emef_mendes_dre_2.uuid}',
@@ -81,7 +82,8 @@ def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valen
             'cnpj': associacao_pinheiros_emef_mendes_dre_2.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
-            'encerrada': False
+            'encerrada': False,
+            'informacoes': associacao_pinheiros_emef_mendes_dre_2.tags_de_informacao,
         },
     ]
 
@@ -110,7 +112,9 @@ def test_api_list_associacoes_de_uma_dre(jwt_authenticated_client_a, associacao_
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
-            'encerrada': False
+            'encerrada': False,
+            'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
+            
         },
     ]
 
@@ -137,7 +141,8 @@ def test_api_list_associacoes_pelo_nome_associacao_ignorando_acentos(jwt_authent
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
-            'encerrada': False
+            'encerrada': False,
+            'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
         },
     ]
 
@@ -164,7 +169,8 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a, assoc
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
-            'encerrada': False
+            'encerrada': False,
+            'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
         },
     ]
 
@@ -191,7 +197,8 @@ def test_api_list_associacoes_pelo_tipo_unidade(jwt_authenticated_client_a, asso
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
-            'encerrada': False
+            'encerrada': False,
+            'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
         },
     ]
 
@@ -218,7 +225,8 @@ def test_api_list_associacoes_pelo_codigo_eol(jwt_authenticated_client_a, associ
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
-            'encerrada': False
+            'encerrada': False,
+            'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
         },
     ]
 
@@ -248,7 +256,8 @@ def test_api_list_associacoes_filtro_somente_encerradas(
             'cnpj': associacao_encerrada_2020_1.cnpj,
             'data_de_encerramento': f'{associacao_encerrada_2020_1.data_de_encerramento}',
             'tooltip_data_encerramento': associacao_encerrada_2020_1.tooltip_data_encerramento,
-            'encerrada': True
+            'encerrada': True,
+            'informacoes': associacao_encerrada_2020_1.tags_de_informacao,
         },
         {
             'uuid': f'{associacao_encerrada_2020_2.uuid}',
@@ -263,7 +272,8 @@ def test_api_list_associacoes_filtro_somente_encerradas(
             'cnpj': associacao_encerrada_2020_2.cnpj,
             'data_de_encerramento': f'{associacao_encerrada_2020_2.data_de_encerramento}',
             'tooltip_data_encerramento': associacao_encerrada_2020_2.tooltip_data_encerramento,
-            'encerrada': True
+            'encerrada': True,
+            'informacoes': associacao_encerrada_2020_2.tags_de_informacao,
         },
     ]
 
@@ -294,7 +304,8 @@ def test_api_list_associacoes_filtro_somente_nao_encerradas(
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
-            'encerrada': False
+            'encerrada': False,
+            'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
         },
         {
             'uuid': f'{associacao_pinheiros_emef_mendes_dre_2.uuid}',
@@ -309,7 +320,8 @@ def test_api_list_associacoes_filtro_somente_nao_encerradas(
             'cnpj': associacao_pinheiros_emef_mendes_dre_2.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
-            'encerrada': False
+            'encerrada': False,
+            'informacoes': associacao_pinheiros_emef_mendes_dre_2.tags_de_informacao,
         },
     ]
 
@@ -339,7 +351,8 @@ def test_api_list_associacoes_filtro_encerradas_e_nao_encerradas(
             'cnpj': associacao_encerrada_2020_1.cnpj,
             'data_de_encerramento': f'{associacao_encerrada_2020_1.data_de_encerramento}',
             'tooltip_data_encerramento': associacao_encerrada_2020_1.tooltip_data_encerramento,
-            'encerrada': True
+            'encerrada': True,
+            'informacoes': associacao_encerrada_2020_1.tags_de_informacao,
         },
         {
             'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
@@ -354,7 +367,8 @@ def test_api_list_associacoes_filtro_encerradas_e_nao_encerradas(
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
-            'encerrada': False
+            'encerrada': False,
+            'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
         },
         {
             'uuid': f'{associacao_pinheiros_emef_mendes_dre_2.uuid}',
@@ -369,7 +383,8 @@ def test_api_list_associacoes_filtro_encerradas_e_nao_encerradas(
             'cnpj': associacao_pinheiros_emef_mendes_dre_2.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
-            'encerrada': False
+            'encerrada': False,
+            'informacoes': associacao_pinheiros_emef_mendes_dre_2.tags_de_informacao,
         },
     ]
 

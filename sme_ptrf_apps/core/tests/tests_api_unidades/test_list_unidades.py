@@ -4,6 +4,8 @@ import pytest
 from model_bakery import baker
 from rest_framework import status
 
+from sme_ptrf_apps.core.models import Associacao
+
 pytestmark = pytest.mark.django_db
 
 
@@ -90,6 +92,7 @@ def test_api_list_unidades_por_nome(
             'visao': 'UE',
             'data_de_encerramento_associacao': None,
             'tooltip_associacao_encerrada': None,
+            'informacoes':[]
         },
 
     ]
@@ -121,6 +124,8 @@ def test_api_list_unidades_por_codigo_eol(
             'visao': 'UE',
             'data_de_encerramento_associacao': None,
             'tooltip_associacao_encerrada': None,
+            'informacoes':[]
+
         },
 
     ]
@@ -168,6 +173,7 @@ def test_api_list_unidades_por_dre(
             'visao': 'UE',
             'data_de_encerramento_associacao': None,
             'tooltip_associacao_encerrada': None,
+            'informacoes':[]
         },
     ]
 
@@ -183,6 +189,8 @@ def test_api_list_unidades_com_associacao_encerrada(
     response = jwt_authenticated_client_a.get(f'/api/unidades/?search=Escola', content_type='application/json')
     result = json.loads(response.content)
 
+    assoc_informacoes = Associacao.objects.get(unidade__codigo_eol=unidade.codigo_eol).tags_de_informacao
+
     result_esperado = [
         {
             'codigo_eol': '123456',
@@ -196,6 +204,7 @@ def test_api_list_unidades_com_associacao_encerrada(
             'visao': 'UE',
             'data_de_encerramento_associacao': f'{associacao_encerrada_2020_1.data_de_encerramento}',
             'tooltip_associacao_encerrada': unidade.tooltip_associacao_encerrada,
+            'informacoes': assoc_informacoes
         },
 
     ]

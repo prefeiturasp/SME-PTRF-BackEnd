@@ -23,6 +23,9 @@ class AssociacoesAtivasManager(models.Manager):
 class Associacao(ModeloIdNome):
     history = AuditlogHistoryField()
 
+    # Tags de informações
+    TAG_ENCERRADA = {"id": "7", "nome": "Associação encerrada", "descricao": "A associação foi encerrada."}
+
     # Status do Presidente
     STATUS_PRESIDENTE_PRESENTE = 'PRESENTE'
     STATUS_PRESIDENTE_AUSENTE = 'AUSENTE'
@@ -110,6 +113,21 @@ class Associacao(ModeloIdNome):
         choices=STATUS_VALORES_REPROGRAMADOS_CHOICES,
         default=STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS
     )
+
+    def foi_encerrada(self):
+        return self.data_de_encerramento is not None
+
+    @property
+    def tags_de_informacao(self):
+        tags = []
+
+        if self.foi_encerrada():
+            tags.append(tag_informacao(
+                self.TAG_ENCERRADA,
+                f"{self.tooltip_data_encerramento}"
+            ))
+        
+        return tags
 
     def apaga_implantacoes_de_saldo(self):
         self.fechamentos_associacao.filter(status='IMPLANTACAO').delete()
@@ -310,5 +328,15 @@ class Associacao(ModeloIdNome):
     def filtro_informacoes_to_json(cls):
         return FiltroInformacoesAssociacao.choices()
 
+    @classmethod
+    def get_tags_informacoes_list(cls):
+        return [cls.TAG_ENCERRADA]
+
+def tag_informacao(tipo_de_tag, hint):
+    return {
+        'tag_id': tipo_de_tag['id'],
+        'tag_nome': tipo_de_tag['nome'],
+        'tag_hint': hint,
+    }
 
 auditlog.register(Associacao)
