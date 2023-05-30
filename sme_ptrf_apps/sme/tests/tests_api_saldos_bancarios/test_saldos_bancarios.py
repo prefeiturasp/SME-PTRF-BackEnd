@@ -151,6 +151,7 @@ def test_saldo_bancario_por_ue_dre(jwt_authenticated_client_sme, observacao_conc
                                            {'associacao': 'CEU CEMEI', 'saldo_total': 0},
                                            {'associacao': 'CEI DIRET', 'saldo_total': 0}
                                            ],
+                           'nome_dre': 'DRE TESTE',
                            'sigla_dre': dre.sigla,
                            'uuid_dre': f'{dre.uuid}'},
                           {'associacoes': [{'associacao': 'IFSP', 'saldo_total': 0},
@@ -170,6 +171,7 @@ def test_saldo_bancario_por_ue_dre(jwt_authenticated_client_sme, observacao_conc
                                            {'associacao': 'CEU CEMEI', 'saldo_total': 0},
                                            {'associacao': 'CEI DIRET', 'saldo_total': 0}
                                            ],
+                           'nome_dre': 'DRE TESTE2',
                            'sigla_dre': dre_saldos_bancarios.sigla,
                            'uuid_dre': f'{dre_saldos_bancarios.uuid}'}]
 
@@ -230,6 +232,7 @@ def test_saldo_bancario_detalhes_associacoes(jwt_authenticated_client_sme,
             'nome': associacao_saldos_bancarios.nome,
             'obs_periodo__comprovante_extrato': '',
             'unidade__codigo_eol': associacao_saldos_bancarios.unidade.codigo_eol,
+            'unidade__nome': associacao_saldos_bancarios.unidade.nome,
             'obs_periodo__saldo_extrato': 1000.0,
             'obs_periodo__uuid': f'{observacao_conciliacao_saldos_bancarios.uuid}',
             'obs_periodo__data_extrato': None
@@ -331,6 +334,7 @@ def test_saldo_bancario_detalhes_associacoes_filtro_unidade(jwt_authenticated_cl
             'nome': associacao_saldos_bancarios.nome,
             'obs_periodo__comprovante_extrato': '',
             'unidade__codigo_eol': associacao_saldos_bancarios.unidade.codigo_eol,
+            'unidade__nome': associacao_saldos_bancarios.unidade.nome,
             'obs_periodo__saldo_extrato': 1000.0,
             'obs_periodo__uuid': f'{observacao_conciliacao_saldos_bancarios.uuid}',
             'obs_periodo__data_extrato': None
@@ -360,6 +364,7 @@ def test_saldo_bancario_detalhes_associacoes_filtro_codigo_eol(jwt_authenticated
             'nome': associacao_saldos_bancarios.nome,
             'obs_periodo__comprovante_extrato': '',
             'unidade__codigo_eol': associacao_saldos_bancarios.unidade.codigo_eol,
+            'unidade__nome': associacao_saldos_bancarios.unidade.nome,
             'obs_periodo__saldo_extrato': 1000.0,
             'obs_periodo__uuid': f'{observacao_conciliacao_saldos_bancarios.uuid}',
             'obs_periodo__data_extrato': None
@@ -389,6 +394,7 @@ def test_saldo_bancario_detalhes_associacoes_filtro_tipo_unidade(jwt_authenticat
             'nome': associacao_saldos_bancarios.nome,
             'obs_periodo__comprovante_extrato': '',
             'unidade__codigo_eol': associacao_saldos_bancarios.unidade.codigo_eol,
+            'unidade__nome': associacao_saldos_bancarios.unidade.nome,
             'obs_periodo__saldo_extrato': 1000.0,
             'obs_periodo__uuid': f'{observacao_conciliacao_saldos_bancarios.uuid}',
             'obs_periodo__data_extrato': None
