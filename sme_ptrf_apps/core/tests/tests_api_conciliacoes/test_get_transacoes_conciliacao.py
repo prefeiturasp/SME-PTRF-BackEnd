@@ -240,21 +240,6 @@ def test_deve_trazer_transacoes_nao_conferidas_de_periodos_anteriores(jwt_authen
                                                                       ):
     transacoes_esperadas = [
         {
-            'mestre': despesa_2019_2,
-            'rateios': [
-                rateio_despesa_2019_role_conferido,
-                rateio_despesa_2019_role_nao_conferido,
-            ],
-            'tipo': 'Gasto',
-            'valor_transacao_na_conta': 200.0,
-            'valores_por_conta': [
-                {
-                    'conta_associacao__tipo_conta__nome': 'Cartão',
-                    'valor_rateio__sum': 200.0
-                },
-            ],
-        },
-        {
             'mestre': despesa_2020_1,
             'rateios': [
                 rateio_despesa_2020_role_conferido,
@@ -274,7 +259,21 @@ def test_deve_trazer_transacoes_nao_conferidas_de_periodos_anteriores(jwt_authen
                 }
             ],
         },
-
+        {
+            'mestre': despesa_2019_2,
+            'rateios': [
+                rateio_despesa_2019_role_conferido,
+                rateio_despesa_2019_role_nao_conferido,
+            ],
+            'tipo': 'Gasto',
+            'valor_transacao_na_conta': 200.0,
+            'valores_por_conta': [
+                {
+                    'conta_associacao__tipo_conta__nome': 'Cartão',
+                    'valor_rateio__sum': 200.0
+                },
+            ],
+        },
     ]
 
     conta_uuid = conta_associacao_cartao.uuid
