@@ -168,5 +168,5 @@ class AssociacaoCompletoSerializer(serializers.ModelSerializer):
             'periodo_inicial',
             'data_de_encerramento',
             'id',
-            'retorna_se_pode_editar_periodo_inicial',
+            'pode_editar_periodo_inicial',
         ]
