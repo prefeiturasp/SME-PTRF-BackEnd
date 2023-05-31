@@ -139,16 +139,19 @@ class AssociacaoAdmin(admin.ModelAdmin):
 class ContaAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('associacao', 'tipo_conta', 'status')
     search_fields = ('uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
-    list_filter = ('status', 'associacao', 'tipo_conta', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre',)
-    readonly_fields = ('uuid', 'id')
+    list_filter = ('status', 'tipo_conta', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    raw_id_fields = ('associacao',)
+
 
 
 @admin.register(AcaoAssociacao)
 class AcaoAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('associacao', 'acao', 'status', 'criado_em')
     search_fields = ('uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
-    list_filter = ('status', 'associacao', 'acao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre',)
-    readonly_fields = ('uuid', 'id')
+    list_filter = ('status', 'acao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    raw_id_fields = ('associacao',)
 
 
 @admin.register(Periodo)

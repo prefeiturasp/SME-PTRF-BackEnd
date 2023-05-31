@@ -263,7 +263,7 @@ class Associacao(ModeloIdNome):
         self.save()
 
     @property
-    def retorna_se_pode_editar_periodo_inicial(self):
+    def pode_editar_periodo_inicial(self):
         from ..services.associacoes_service import ValidaSePodeEditarPeriodoInicial
         response = ValidaSePodeEditarPeriodoInicial(associacao=self).response
         return response
