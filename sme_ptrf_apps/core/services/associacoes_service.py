@@ -405,74 +405,73 @@ class ValidaDataDeEncerramento(AssociacaoService):
 class ValidaSePodeEditarPeriodoInicial(AssociacaoService):
     def __init__(self, associacao):
         super().__init__(associacao)
-        self.despesas = None
-        self.receitas = None
-        self.prestacoes = None
+        self.pode_editar = None
+        self.tem_despesas = None
+        self.tem_receitas = None
+        self.tem_prestacoes = None
+        self.tem_valores_reprogramados = None
+        self.__faz_validacao()
         self.__set_response()
 
-    def retorna_se_tem_despesa(self):
-        return Despesa.objects.filter(
+    def __set_tem_despesas(self):
+        self.tem_despesas = Despesa.objects.filter(
                 Q(status="COMPLETO") &
                 Q(data_e_hora_de_inativacao__isnull=True) &
-                Q(associacao=self.associacao) &
-                Q(data_transacao__gte=self.data_inicio_realizacao_despesas)
+                Q(associacao=self.associacao)
             ).exists()
 
-    def retorna_se_tem_receita(self):
-        return Receita.objects.filter(
+    def __set_tem_receitas(self):
+        self.tem_receitas = Receita.objects.filter(
                 Q(status="COMPLETO") &
-                Q(associacao=self.associacao) &
-                Q(data__gte=self.data_inicio_realizacao_despesas)
+                Q(associacao=self.associacao)
             ).exists()
 
-    def retorna_se_tem_pc(self):
-        return PrestacaoConta.objects.filter(
+    def __set_tem_prestacoes(self):
+        self.tem_prestacoes = PrestacaoConta.objects.filter(
                 associacao=self.associacao,
-                periodo__data_inicio_realizacao_despesas__gte=self.data_inicio_realizacao_despesas,
-                status__in=[PrestacaoConta.STATUS_APROVADA,
-                            PrestacaoConta.STATUS_APROVADA_RESSALVA,
-                            PrestacaoConta.STATUS_REPROVADA]
             ).exists()
 
+    def __set_tem_valores_reprogramados(self):
+        self.tem_valores_reprogramados = self.associacao.status_valores_reprogramados != self.associacao.STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO
+
+    def __faz_validacao(self):
+        self.__set_tem_despesas()
+        self.__set_tem_receitas()
+        self.__set_tem_prestacoes()
+        self.__set_tem_valores_reprogramados()
+        self.pode_editar = not (self.tem_despesas or self.tem_receitas or self.tem_prestacoes or self.tem_valores_reprogramados)
 
     def __set_response(self):
+        if self.pode_editar:
+            self.response = {
+                "pode_editar_periodo_inicial": True,
+                "mensagem_pode_editar_periodo_inicial": [],
+                "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado.",
+            }
+            return
+
+        mensagem = [
+            "Não é permitido alterar o período inicial da Associação.",
+            "Há cadastros já realizados pela Associação no primeiro período de uso do sistema:"
+        ]
+
+        if self.tem_valores_reprogramados:
+            mensagem.append("- Valores Reprogramados")
+
+        if self.tem_despesas:
+            mensagem.append("- Despesa(s)")
+
+        if self.tem_receitas:
+            mensagem.append("- Crédito(s)")
+
+        if self.tem_prestacoes:
+            mensagem.append("- Prestação de Contas")
+
         self.response = {
-            "pode_editar_periodo_inicial": True,
-            "mensagem_pode_editar_periodo_inicial": "",
+            "pode_editar_periodo_inicial": False,
+            "mensagem_pode_editar_periodo_inicial": mensagem,
             "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado.",
         }
 
-        self.data_inicio_realizacao_despesas = self.associacao.periodo_inicial.data_inicio_realizacao_despesas if self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_inicio_realizacao_despesas else None
-
-        # TODO Removida a verificação de despesas e receitas a pedido da PO História 91682
-        # if self.data_inicio_realizacao_despesas:
-        #     self.despesas = self.retorna_se_tem_despesa()
-        #
-        #     self.receitas = self.retorna_se_tem_receita()
-
-
-        if self.data_inicio_realizacao_despesas and self.retorna_se_tem_pc():
-            self.response = {
-                "pode_editar_periodo_inicial": False,
-                "mensagem_pode_editar_periodo_inicial": "Não é permitido alterar o período inicial da Associação, pois há prestação de contas concluída após o início de uso do sistema.",
-                "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado.",
-            }
-            return
-
-        if self.associacao.status_valores_reprogramados == self.associacao.STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS:
-            self.response = {
-                "pode_editar_periodo_inicial": False,
-                "mensagem_pode_editar_periodo_inicial": "Não é permitido alterar o período inicial da Associação, pois há valores reprogramados cadastrados conferidos como corretos no início de uso do sistema.",
-                "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado.",
-            }
-            return
-
-        # TODO Removida a verificação de despesas e receitas a pedido da PO História 91682
-        # if self.despesas or self.receitas:
-        #     self.response = {
-        #         "pode_editar_periodo_inicial": False,
-        #         "mensagem_pode_editar_periodo_inicial": "Não é permitido alterar o período inicial pois já houve movimentação após o início de uso do sistema.",
-        #         "help_text": "O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
-        #     }
-        #     return
+        return
 
