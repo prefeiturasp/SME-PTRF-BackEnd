@@ -1,5 +1,5 @@
 import pytest
-
+from datetime import date
 from model_bakery import baker
 
 
@@ -81,6 +81,17 @@ def unidade_delta_000087(dre_alfa):
         dre=dre_alfa,
     )
 
+@pytest.fixture
+def unidade_delta_000088(dre_alfa):
+    return baker.make(
+        'Unidade',
+        codigo_eol="000088",
+        tipo_unidade="EMEI",
+        nome="Delta",
+        sigla="",
+        dre=dre_alfa,
+    )
+
 
 @pytest.fixture
 def associacao_eco_delta_000087(unidade_delta_000087, periodo_anterior):
@@ -90,6 +101,17 @@ def associacao_eco_delta_000087(unidade_delta_000087, periodo_anterior):
         cnpj='94.175.194/0001-00',
         unidade=unidade_delta_000087,
         periodo_inicial=periodo_anterior,
+    )
+
+@pytest.fixture
+def associacao_eco_delta_000088(unidade_delta_000088, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Eco Delta 000088',
+        cnpj='49.218.902/0001-98',
+        unidade=unidade_delta_000088,
+        periodo_inicial=periodo_anterior,
+        data_de_encerramento=date(2023, 5, 1)
     )
 
 
@@ -109,4 +131,12 @@ def acao_associacao_eco_delta_000087_y_inativa(associacao_eco_delta_000087, acao
         associacao=associacao_eco_delta_000087,
         acao=acao_y,
         status='INATIVA'
+    )
+
+@pytest.fixture
+def acao_associacao_eco_delta_000087_z(associacao_eco_delta_000088, acao_x):
+    return baker.make(
+        'AcaoAssociacao',
+        associacao=associacao_eco_delta_000088,
+        acao=acao_x
     )

@@ -15,7 +15,7 @@ def saldo_por_tipo_de_unidade(queryset, periodo, conta):
 
     if Parametros.get().desconsiderar_associacoes_nao_iniciadas:
         saldo_por_tipo_unidade = queryset.filter(
-            Q(associacao__periodo_inicial__isnull=False) & 
+            Q(associacao__periodo_inicial__isnull=False) &
             Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
                 Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
             ),
@@ -65,7 +65,7 @@ def saldo_por_dre(queryset, periodo, conta):
 
     if Parametros.get().desconsiderar_associacoes_nao_iniciadas:
         saldo_por_dre = queryset.filter(
-            Q(associacao__periodo_inicial__isnull=False) & 
+            Q(associacao__periodo_inicial__isnull=False) &
             Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
                 Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
             ),
@@ -100,7 +100,7 @@ def saldo_por_dre(queryset, periodo, conta):
     total_unidades_por_dre_dict_list = list(total_unidades_por_dre_dict.values())
 
     result = dict()
-    
+
     for nome in total_unidades_por_dre_dict_list:
         if nome['unidade__dre'] is not None and nome['unidade__dre__nome'] is not None:
             result[nome['unidade__dre']] = {"nome_dre": nome['unidade__dre__nome'], "qtde_dre_informadas": 0,
@@ -135,7 +135,7 @@ def saldo_por_ue_dre(queryset, periodo, conta):
 
         if Parametros.get().desconsiderar_associacoes_nao_iniciadas:
             saldo_por_tipo_da_dre = queryset.filter(
-                Q(associacao__periodo_inicial__isnull=False) & 
+                Q(associacao__periodo_inicial__isnull=False) &
                 Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
                     Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
                 ),
@@ -155,7 +155,7 @@ def saldo_por_ue_dre(queryset, periodo, conta):
             )
         saldos_por_ue_dre.extend(saldo_por_tipo_da_dre)
 
-        result[dre.sigla] = {"sigla_dre": dre.sigla, "uuid_dre": dre.uuid, "associacoes": []}
+        result[dre.sigla] = {"sigla_dre": dre.sigla, "uuid_dre": dre.uuid, "nome_dre": formata_nome_dre(dre.nome), "associacoes": []}
 
         for tipo in choices:
             result[dre.sigla]['associacoes'].append({"associacao": tipo, "saldo_total": 0})
@@ -169,6 +169,8 @@ def saldo_por_ue_dre(queryset, periodo, conta):
 
     for valor in result.values():
         lista_de_saldos_bancarios_ue_dre.append(valor)
+
+    lista_de_saldos_bancarios_ue_dre = sorted(lista_de_saldos_bancarios_ue_dre, key=lambda i: i['nome_dre'])
 
     return lista_de_saldos_bancarios_ue_dre
 
@@ -189,6 +191,7 @@ def saldo_detalhe_associacao(periodo, conta_uuid, dre_uuid, unidade, tipo_ue):
         Q(obs_periodo__conta_associacao__tipo_conta__uuid=conta_uuid) | Q(obs_periodo__isnull=True)
     ).values(
         'nome',
+        'unidade__nome',
         'unidade__codigo_eol',
         'obs_periodo__saldo_extrato',
         'obs_periodo__data_extrato',
@@ -255,3 +258,15 @@ def formata_data(data):
     original_date = datetime.datetime.strptime(str(data), '%Y-%m-%d')
     formatted_date = original_date.strftime("%d/%m/%Y")
     return formatted_date
+
+
+def formata_nome_dre(nome):
+    if nome:
+        nome_dre = nome.upper()
+        if "DIRETORIA REGIONAL DE EDUCACAO" in nome_dre:
+            nome_dre = nome_dre.replace("DIRETORIA REGIONAL DE EDUCACAO", "")
+            nome_dre = nome_dre.strip()
+
+        return nome_dre
+    else:
+        return ""

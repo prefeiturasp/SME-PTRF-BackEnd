@@ -25,6 +25,8 @@ def test_retrieve_acao_associacao(
             'nome': acao_associacao.associacao.nome,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
+            'encerrada': False,
+            'informacoes': acao_associacao.associacao.tags_de_informacao,
             'status_valores_reprogramados': acao_associacao.associacao.status_valores_reprogramados,
             'unidade': {
                 'uuid': f'{acao_associacao.associacao.unidade.uuid}',
@@ -34,6 +36,8 @@ def test_retrieve_acao_associacao(
             },
             'cnpj': acao_associacao.associacao.cnpj
         },
+        'data_de_encerramento_associacao': None,
+        'tooltip_associacao_encerrada': None,
         'acao': {
             'id': acao_associacao.acao.id,
             'uuid': f'{acao_associacao.acao.uuid}',

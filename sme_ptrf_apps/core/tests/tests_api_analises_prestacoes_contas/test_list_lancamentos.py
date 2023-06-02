@@ -6,13 +6,23 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
+def retorna_tags_de_informacao(lancamento):
+    informacoes = []
+    if lancamento and lancamento['mestre'] and lancamento['mestre'].tags_de_informacao:
+        for tag in lancamento['mestre'].tags_de_informacao:
+            informacoes.append(tag)
+
+    return informacoes
+
+
 def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
     result_esperado = []
 
     for lancamento in lancamentos_esperados:
 
         if inativa:
-            lancamento["mestre"].mensagem_inativa = f'Este gasto foi excluído em {lancamento["mestre"].data_e_hora_de_inativacao.strftime("%d/%m/%Y %H:%M:%S")}'
+            lancamento[
+                "mestre"].mensagem_inativa = f'Este gasto foi excluído em {lancamento["mestre"].data_e_hora_de_inativacao.strftime("%d/%m/%Y %H:%M:%S")}'
 
         mestre_esperado = {
             'associacao': f'{lancamento["mestre"].associacao.uuid}',
@@ -30,7 +40,8 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
             'documento_transacao': f'{lancamento["mestre"].documento_transacao}',
             'data_documento': f'{lancamento["mestre"].data_documento}',
             'data_transacao': f'{lancamento["mestre"].data_transacao}',
-            'mensagem_inativa': lancamento["mestre"].mensagem_inativa if 'mensagem_inativa' in lancamento["mestre"].__dict__ else None,
+            'mensagem_inativa': lancamento["mestre"].mensagem_inativa if 'mensagem_inativa' in lancamento[
+                "mestre"].__dict__ else None,
             'cpf_cnpj_fornecedor': lancamento["mestre"].cpf_cnpj_fornecedor,
             'nome_fornecedor': lancamento["mestre"].nome_fornecedor,
             'valor_ptrf': lancamento["mestre"].valor_ptrf,
@@ -38,7 +49,8 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
             'status': lancamento["mestre"].status,
             'conferido': lancamento["mestre"].conferido,
             'uuid': f'{lancamento["mestre"].uuid}',
-            'data_e_hora_de_inativacao': lancamento["mestre"].data_e_hora_de_inativacao.isoformat("T") if lancamento["mestre"].data_e_hora_de_inativacao else None,
+            'data_e_hora_de_inativacao': lancamento["mestre"].data_e_hora_de_inativacao.isoformat("T") if lancamento[
+                "mestre"].data_e_hora_de_inativacao else None,
 
         } if lancamento["tipo"] == 'Gasto' else {
             'associacao': f'{lancamento["mestre"].associacao.uuid}',
@@ -59,7 +71,8 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                 }
             },
             'categoria_receita': lancamento["mestre"].categoria_receita,
-            'tipo_receita': {'id': lancamento["mestre"].tipo_receita.id, 'nome': lancamento["mestre"].tipo_receita.nome},
+            'tipo_receita': {'id': lancamento["mestre"].tipo_receita.id,
+                             'nome': lancamento["mestre"].tipo_receita.nome},
             'detalhamento': lancamento["mestre"].detalhamento,
             'data': f'{lancamento["mestre"].data}',
             'valor': f'{lancamento["mestre"].valor:.2f}',
@@ -86,17 +99,17 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                 },
                 "notificar_dias_nao_conferido": rateio.notificar_dias_nao_conferido,
                 'estorno': {'categoria_receita': None,
-                           'data': None,
-                           'detalhe_outros': '',
-                           'detalhe_tipo_receita': None,
-                           'tipo_receita': {'aceita_capital': False,
-                                            'aceita_custeio': False,
-                                            'aceita_livre': False,
-                                            'e_devolucao': False,
-                                            'e_recursos_proprios': False,
-                                            'e_repasse': False,
-                                            'nome': ''},
-                           'valor': None},
+                            'data': None,
+                            'detalhe_outros': '',
+                            'detalhe_tipo_receita': None,
+                            'tipo_receita': {'aceita_capital': False,
+                                             'aceita_custeio': False,
+                                             'aceita_livre': False,
+                                             'e_devolucao': False,
+                                             'e_recursos_proprios': False,
+                                             'e_repasse': False,
+                                             'nome': ''},
+                            'valor': None},
                 "aplicacao_recurso": rateio.aplicacao_recurso,
                 "acao_associacao": {
                     "uuid": f'{rateio.acao_associacao.uuid}',
@@ -141,7 +154,8 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                     "mestre"].tipo_receita.nome,
                 'despesa_geradora_do_imposto': None,
                 'despesas_impostos': None,
-                'valor_transacao_total': lancamento["mestre"].valor_total if lancamento["tipo"] == "Gasto" else lancamento[
+                'valor_transacao_total': lancamento["mestre"].valor_total if lancamento["tipo"] == "Gasto" else
+                lancamento[
                     "mestre"].valor,
                 'valor_transacao_na_conta': lancamento["valor_transacao_na_conta"],
                 'valores_por_conta': lancamento["valores_por_conta"],
@@ -245,23 +259,9 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                     'tipo_lancamento': 'GASTO',
                     'uuid': f'{lancamento["analise_lancamento"].uuid}'
                 } if lancamento["analise_lancamento"] else None,
-                'informacoes': [
-                                {
-                                    'tag_hint': 'Parte da despesa foi paga com recursos '
-                                                'próprios ou por mais de uma conta.',
-                                    'tag_id': '3',
-                                    'tag_nome': 'Parcial'},
-                               ],
+                'informacoes': retorna_tags_de_informacao(lancamento=lancamento),
             }
         )
-
-        if lancamento["mestre"].data_e_hora_de_inativacao:
-                result_esperado[0]['informacoes'].append({
-                    'tag_hint': 'Este gasto foi excluído em 10/05/2020 '
-                                '05:10:10',
-                    'tag_id': '6',
-                    'tag_nome': 'Excluído'
-                })
 
     return result_esperado
 
@@ -311,7 +311,6 @@ def test_api_list_lancamentos_todos_da_conta(
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
-
 
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado, "Não retornou a lista de lançamentos esperados."
