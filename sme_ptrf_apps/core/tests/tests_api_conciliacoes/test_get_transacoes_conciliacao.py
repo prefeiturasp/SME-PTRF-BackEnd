@@ -6,6 +6,15 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
+def retorna_tags_de_informacao(transacao):
+    informacoes = []
+    if transacao and transacao['mestre'] and transacao['mestre'].tags_de_informacao:
+        for tag in transacao['mestre'].tags_de_informacao:
+            informacoes.append(tag)
+
+    return informacoes
+
+
 def monta_result_esperado(transacoes_esperadas, periodo, conta):
     result_esperado = []
 
@@ -108,10 +117,7 @@ def monta_result_esperado(transacoes_esperadas, periodo, conta):
                     "mestre"].valor,
                 'valor_transacao_na_conta': transacao["valor_transacao_na_conta"],
                 'valores_por_conta': transacao["valores_por_conta"],
-                'informacoes': [{'tag_hint': 'Parte da despesa foi paga com recursos '
-                                             'próprios ou por mais de uma conta.',
-                                 'tag_id': '3',
-                                 'tag_nome': 'Parcial'}],
+                'informacoes': retorna_tags_de_informacao(transacao=transacao),
                 'documento_mestre': mestre_esperado,
                 'rateios': rateios_esperados,
                 'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido if transacao["tipo"] == "Gasto" else
@@ -234,21 +240,6 @@ def test_deve_trazer_transacoes_nao_conferidas_de_periodos_anteriores(jwt_authen
                                                                       ):
     transacoes_esperadas = [
         {
-            'mestre': despesa_2019_2,
-            'rateios': [
-                rateio_despesa_2019_role_conferido,
-                rateio_despesa_2019_role_nao_conferido,
-            ],
-            'tipo': 'Gasto',
-            'valor_transacao_na_conta': 200.0,
-            'valores_por_conta': [
-                {
-                    'conta_associacao__tipo_conta__nome': 'Cartão',
-                    'valor_rateio__sum': 200.0
-                },
-            ],
-        },
-        {
             'mestre': despesa_2020_1,
             'rateios': [
                 rateio_despesa_2020_role_conferido,
@@ -268,7 +259,21 @@ def test_deve_trazer_transacoes_nao_conferidas_de_periodos_anteriores(jwt_authen
                 }
             ],
         },
-
+        {
+            'mestre': despesa_2019_2,
+            'rateios': [
+                rateio_despesa_2019_role_conferido,
+                rateio_despesa_2019_role_nao_conferido,
+            ],
+            'tipo': 'Gasto',
+            'valor_transacao_na_conta': 200.0,
+            'valores_por_conta': [
+                {
+                    'conta_associacao__tipo_conta__nome': 'Cartão',
+                    'valor_rateio__sum': 200.0
+                },
+            ],
+        },
     ]
 
     conta_uuid = conta_associacao_cartao.uuid

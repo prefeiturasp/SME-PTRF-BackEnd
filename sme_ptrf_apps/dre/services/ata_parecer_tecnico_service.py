@@ -170,7 +170,7 @@ def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre(
         consolidado_dre = ata_de_parecer_tecnico.consolidado_dre
 
     if consolidado_dre and consolidado_dre.versao == "FINAL":
-        prestacoes = consolidado_dre.pcs_do_consolidado.all()
+        prestacoes = consolidado_dre.pcs_do_consolidado.all().order_by("associacao__unidade__tipo_unidade", "associacao__unidade__nome")
     else:
         prestacoes = PrestacaoConta.objects.filter(
             periodo=periodo,
@@ -182,7 +182,7 @@ def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre(
             Q(status=PrestacaoConta.STATUS_REPROVADA)
         )
         prestacoes = prestacoes.filter(publicada=False)
-
+        prestacoes = prestacoes.order_by("associacao__unidade__tipo_unidade", "associacao__unidade__nome")
 
     resultado = []
     for prestacao in prestacoes:

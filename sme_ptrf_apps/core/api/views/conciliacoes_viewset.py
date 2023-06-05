@@ -505,15 +505,21 @@ class ConciliacoesViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        # Define a flag de ordenar por impostos
-        ordenar_por_imposto = request.query_params.get('ordenar_por_imposto')
-
         conferido = conferido == 'True'
+
+        # Ordenação
+        ordenar_por_numero_do_documento = self.request.query_params.get('ordenar_por_numero_do_documento')
+        ordenar_por_data_especificacao = self.request.query_params.get('ordenar_por_data_especificacao')
+        ordenar_por_valor = self.request.query_params.get('ordenar_por_valor')
+        ordenar_por_imposto = self.request.query_params.get('ordenar_por_imposto')
 
         transacoes = transacoes_para_conciliacao(
             periodo=periodo, conta_associacao=conta_associacao,
             conferido=conferido,
             acao_associacao=acao_associacao,
+            ordenar_por_numero_do_documento=ordenar_por_numero_do_documento,
+            ordenar_por_data_especificacao=ordenar_por_data_especificacao,
+            ordenar_por_valor=ordenar_por_valor,
             ordenar_por_imposto=ordenar_por_imposto
         )
 

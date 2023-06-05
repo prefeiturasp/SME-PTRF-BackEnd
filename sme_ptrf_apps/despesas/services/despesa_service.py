@@ -1,9 +1,12 @@
-from django.db.models import Count, Max
+from django.db.models import Count
 
 
-def ordena_despesas_por_imposto(qs):
-    qs = qs.annotate(c=Count('despesas_impostos'), c2=Count('despesa_geradora'),
-                     c3=Max('data_transacao')).order_by('-c', '-c2', '-c3')
+def ordena_despesas_por_imposto(qs, lista_argumentos_ordenacao=None):
+
+    if lista_argumentos_ordenacao is None:
+        lista_argumentos_ordenacao = []
+
+    qs = qs.annotate(c=Count('despesas_impostos'), c2=Count('despesa_geradora')).order_by('-c', '-c2', *lista_argumentos_ordenacao)
     despesas_ordenadas = []
     for despesa in qs:
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
@@ -17,3 +20,4 @@ def ordena_despesas_por_imposto(qs):
                 despesas_ordenadas.append(despesa_imposto)
 
     return despesas_ordenadas
+

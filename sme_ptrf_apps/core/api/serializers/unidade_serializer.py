@@ -66,6 +66,8 @@ class UnidadeListSerializer(serializers.ModelSerializer):
     visao = serializers.SerializerMethodField('get_visao')
     data_de_encerramento_associacao = serializers.SerializerMethodField('get_data_de_encerramento_associacao')
 
+    informacoes = serializers.SerializerMethodField(method_name='get_tags_da_associacao', required=False)
+
     def get_associacao_uuid(self, obj):
         return obj.associacoes.first().uuid if obj.associacoes.exists() else ''
 
@@ -77,6 +79,9 @@ class UnidadeListSerializer(serializers.ModelSerializer):
 
     def get_data_de_encerramento_associacao(self, obj):
         return obj.associacoes.first().data_de_encerramento if obj.associacoes.exists() else None
+    
+    def get_tags_da_associacao(self, obj):
+        return obj.associacoes.first().tags_de_informacao if obj.associacoes.exists() else []
 
     class Meta:
         model = Unidade
@@ -91,7 +96,8 @@ class UnidadeListSerializer(serializers.ModelSerializer):
             'associacao_nome',
             'visao',
             'data_de_encerramento_associacao',
-            'tooltip_associacao_encerrada'
+            'tooltip_associacao_encerrada',
+            'informacoes'
         )
 
 

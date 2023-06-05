@@ -707,4 +707,12 @@ class AssociacoesViewSet(ModelViewSet):
         status_response = response.pop("status")
 
         return Response(response, status=status_response)
+    
+    @action(detail=False, url_path='tags-informacoes',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def tags_informacoes_list(self, request):
+
+        result = Associacao.get_tags_informacoes_list()
+
+        return Response(result)
 

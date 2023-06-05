@@ -503,12 +503,15 @@ def transacoes_para_conciliacao_agrupado_por_impostos(despesas, periodo, conta_a
 
 
 def transacoes_para_conciliacao(periodo, conta_associacao, conferido=False, acao_associacao=None,
-                                ordenar_por_imposto=False):
+                                ordenar_por_numero_do_documento=False, ordenar_por_data_especificacao=False,
+                                ordenar_por_valor=False, ordenar_por_imposto=False):
+
     from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaConciliacaoSerializer, \
         DespesaImpostoSerializer
     from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaConciliacaoSerializer
+    from sme_ptrf_apps.despesas.services.despesa_service import ordena_despesas_por_imposto
 
-    despesas = []
+    lista_argumentos_ordenacao = []
 
     if conferido:
         despesas = documentos_de_despesa_conciliados_por_conta_e_acao_na_conciliacao(
@@ -521,60 +524,95 @@ def transacoes_para_conciliacao(periodo, conta_associacao, conferido=False, acao
             acao_associacao=acao_associacao,
             periodo=periodo)
 
+    # Ordenação
+    if ordenar_por_numero_do_documento:
+        if ordenar_por_numero_do_documento == 'crescente':
+            lista_argumentos_ordenacao.append('numero_documento')
+        elif ordenar_por_numero_do_documento == 'decrescente':
+            lista_argumentos_ordenacao.append('-numero_documento')
+
+    if ordenar_por_data_especificacao:
+        if ordenar_por_data_especificacao == 'crescente':
+            lista_argumentos_ordenacao.append('data_documento')
+        elif ordenar_por_data_especificacao == 'decrescente':
+            lista_argumentos_ordenacao.append('-data_documento')
+
+    if ordenar_por_valor:
+        if ordenar_por_valor == 'crescente':
+            lista_argumentos_ordenacao.append('valor_total')
+        elif ordenar_por_valor == 'decrescente':
+            lista_argumentos_ordenacao.append('-valor_total')
+
     if ordenar_por_imposto:
-        despesas = despesas.annotate(c=Count('despesas_impostos'), c2=Count('despesa_geradora'),
-                                     c3=Max('data_transacao')).order_by('-c', 'c3', '-c2')
+        # Cria uma lista com os impostos ordenados.
+        # Passo os demais argumentos de ordenação e já retorna ordenada por todos
+        despesas = ordena_despesas_por_imposto(despesas, lista_argumentos_ordenacao)
+
+        # Cria uma lista com os ids dos importos ordenados na ordem correta
+        pk_list = [obj.pk for obj in despesas]
+
+        # Converte a lista de impostos em um queryset respeitando a ordem da lista
+        clauses = ' '.join(['WHEN despesas_despesa.id=%s THEN %s' % (pk, i) for i, pk in enumerate(pk_list)])
+        ordering = 'CASE %s END' % clauses
+        despesas = Despesa.objects.filter(pk__in=pk_list).extra(
+            select={'ordering': ordering}, order_by=('ordering',))
 
         return transacoes_para_conciliacao_agrupado_por_impostos(despesas, periodo, conta_associacao, acao_associacao,
                                                                  conferido)
 
-    else:
+    # Caso nenhum argumento de ordenação seja passado, ordenamos por -data_transacao
+    # Caso tenha sido solicitado ordenar por imposto já é retornada ordenada por todos os argumentos, além do imposto
+    if not ordenar_por_imposto:
+        if not lista_argumentos_ordenacao:
+            despesas = despesas.order_by('-data_transacao')
+        else:
+            despesas = despesas.order_by(*lista_argumentos_ordenacao)
 
-        despesas = despesas.order_by("data_transacao")
+    # Iniciar a lista de transacoes com a lista de despesas ordenada
+    transacoes = []
+    for despesa in despesas:
 
-        # Iniciar a lista de transacoes com a lista de despesas ordenada
-        transacoes = []
-        for despesa in despesas:
+        max_notificar_dias_nao_conferido = 0
+        for rateio in despesa.rateios.filter(status=STATUS_COMPLETO, conta_associacao=conta_associacao):
+            if rateio.notificar_dias_nao_conferido > max_notificar_dias_nao_conferido:
+                max_notificar_dias_nao_conferido = rateio.notificar_dias_nao_conferido
 
-            max_notificar_dias_nao_conferido = 0
-            for rateio in despesa.rateios.filter(status=STATUS_COMPLETO, conta_associacao=conta_associacao):
-                if rateio.notificar_dias_nao_conferido > max_notificar_dias_nao_conferido:
-                    max_notificar_dias_nao_conferido = rateio.notificar_dias_nao_conferido
+        despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
+        despesas_impostos = despesa.despesas_impostos.all()
 
-            despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
-            despesas_impostos = despesa.despesas_impostos.all()
+        transacao = {
+            'periodo': f'{periodo.uuid}',
+            'conta': f'{conta_associacao.uuid}',
+            'data': despesa.data_transacao,
+            'tipo_transacao': 'Gasto',
+            'numero_documento': despesa.numero_documento,
+            'descricao': despesa.nome_fornecedor,
+            'valor_transacao_total': despesa.valor_total,
+            'valor_transacao_na_conta':
+                despesa.rateios.filter(status=STATUS_COMPLETO).filter(
+                    conta_associacao=conta_associacao).aggregate(
+                    Sum('valor_rateio'))[
+                    'valor_rateio__sum'],
+            'valores_por_conta': despesa.rateios.filter(status=STATUS_COMPLETO).values(
+                'conta_associacao__tipo_conta__nome').annotate(
+                Sum('valor_rateio')),
+            'conferido': despesa.conferido,
+            'informacoes': despesa.tags_de_informacao,
+            'documento_mestre': DespesaConciliacaoSerializer(despesa, many=False).data,
+            'rateios': RateioDespesaConciliacaoSerializer(
+                despesa.rateios.filter(status=STATUS_COMPLETO).filter(
+                    conta_associacao=conta_associacao).order_by(
+                    'id'),
+                many=True).data,
+            'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
+            'despesa_geradora_do_imposto': DespesaImpostoSerializer(despesa_geradora_do_imposto,
+                                                                    many=False).data if despesa_geradora_do_imposto else None,
+            'despesas_impostos': DespesaImpostoSerializer(despesas_impostos, many=True,
+                                                          required=False).data if despesas_impostos else None
+        }
+        transacoes.append(transacao)
 
-            transacao = {
-                'periodo': f'{periodo.uuid}',
-                'conta': f'{conta_associacao.uuid}',
-                'data': despesa.data_transacao,
-                'tipo_transacao': 'Gasto',
-                'numero_documento': despesa.numero_documento,
-                'descricao': despesa.nome_fornecedor,
-                'valor_transacao_total': despesa.valor_total,
-                'valor_transacao_na_conta':
-                    despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).aggregate(
-                        Sum('valor_rateio'))[
-                        'valor_rateio__sum'],
-                'valores_por_conta': despesa.rateios.filter(status=STATUS_COMPLETO).values(
-                    'conta_associacao__tipo_conta__nome').annotate(
-                    Sum('valor_rateio')),
-                'conferido': despesa.conferido,
-                'informacoes': despesa.tags_de_informacao,
-                'documento_mestre': DespesaConciliacaoSerializer(despesa, many=False).data,
-                'rateios': RateioDespesaConciliacaoSerializer(
-                    despesa.rateios.filter(status=STATUS_COMPLETO).filter(conta_associacao=conta_associacao).order_by(
-                        'id'),
-                    many=True).data,
-                'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
-                'despesa_geradora_do_imposto': DespesaImpostoSerializer(despesa_geradora_do_imposto,
-                                                                        many=False).data if despesa_geradora_do_imposto else None,
-                'despesas_impostos': DespesaImpostoSerializer(despesas_impostos, many=True,
-                                                              required=False).data if despesas_impostos else None
-            }
-            transacoes.append(transacao)
-
-        return transacoes
+    return transacoes
 
 
 def conciliar_transacao(periodo, conta_associacao, transacao):
