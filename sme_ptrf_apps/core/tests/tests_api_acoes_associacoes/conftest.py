@@ -1,5 +1,4 @@
 import pytest
-
 from model_bakery import baker
 from datetime import date
 
@@ -47,6 +46,17 @@ def associacao_charli_bravo_000086(unidade_bravo_000086, periodo_anterior):
         periodo_inicial=periodo_anterior,
     )
 
+@pytest.fixture
+def associacao_charli_bingo_000086(unidade_bravo_000086, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Bingo',
+        cnpj='17.980.696/0001-62',
+        unidade=unidade_bravo_000086,
+        periodo_inicial=periodo_anterior,
+        data_de_encerramento=date(2020, 3, 26),
+    )
+
 
 @pytest.fixture
 def acao_associacao_charli_bravo_000086_x(associacao_charli_bravo_000086, acao_x):
@@ -63,6 +73,14 @@ def acao_associacao_charli_bravo_000086_y(associacao_charli_bravo_000086, acao_y
         'AcaoAssociacao',
         associacao=associacao_charli_bravo_000086,
         acao=acao_y
+    )
+
+@pytest.fixture
+def acao_associacao_charli_bingo_000086_x(associacao_charli_bingo_000086, acao_x):
+    return baker.make(
+        'AcaoAssociacao',
+        associacao=associacao_charli_bingo_000086,
+        acao=acao_x
     )
 
 

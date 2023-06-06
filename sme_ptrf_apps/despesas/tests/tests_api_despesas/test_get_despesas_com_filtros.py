@@ -167,7 +167,11 @@ def test_api_get_despesas_campos(jwt_authenticated_client_d, associacao, despesa
             'informacoes': [{'tag_hint': 'Parte da despesa foi paga com recursos '
                                          'próprios ou por mais de uma conta.',
                              'tag_id': '3',
-                             'tag_nome': 'Parcial'}],
+                             'tag_nome': 'Parcial'},
+                            {'tag_hint': 'Essa despesa já possui conciliação bancária.',
+                             'tag_id': '9',
+                             'tag_nome': 'Conciliada'}
+                            ],
             'rateios': [],
             'receitas_saida_do_recurso': None
         }

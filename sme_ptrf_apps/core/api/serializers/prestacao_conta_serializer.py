@@ -105,6 +105,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     informacoes_conciliacao_ue = serializers.SerializerMethodField('get_conciliacao_bancaria_ue')
     referencia_consolidado_dre = serializers.SerializerMethodField('get_referencia_consolidado_dre')
     referencia_consolidado_dre_original = serializers.SerializerMethodField('get_referencia_consolidado_dre_original')
+    devolucao_atual = serializers.SerializerMethodField('get_devolucao_atual')
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
@@ -223,6 +224,12 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
                     consolidado_original = ConsolidadoDRE.objects.get(id=consolidado_anterior.id)
                     return consolidado_original.referencia if consolidado_original and consolidado_original.referencia else ""
 
+    def get_devolucao_atual(self, obj):
+        devolucoes = obj.devolucoes_da_prestacao.order_by('id')
+        if devolucoes.exists():
+            return DevolucaoPrestacaoContaRetrieveSerializer(devolucoes.last()).data
+        return None
+
     class Meta:
         model = PrestacaoConta
         fields = (
@@ -252,7 +259,8 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'referencia_consolidado_dre',
             'referencia_consolidado_dre_original',
             'justificativa_pendencia_realizacao',
-            'em_retificacao'
+            'em_retificacao',
+            'devolucao_atual'
         )
 
 
