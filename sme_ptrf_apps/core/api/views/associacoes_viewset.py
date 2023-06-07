@@ -234,6 +234,16 @@ class AssociacoesViewSet(ModelViewSet):
         if prestacao_conta:
             gerar_previas = pc_requer_geracao_documentos(prestacao_conta)
 
+        pendencias_dados = associacao.pendencias_dados_da_associacao_para_geracao_de_documentos()
+        pendencias_conciliacao = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(periodo)
+        if pendencias_dados or pendencias_conciliacao:
+            pendencias_cadastrais = {
+                'dados_associacao': pendencias_dados,
+                'conciliacao_bancaria': pendencias_conciliacao,
+            }
+        else:
+            pendencias_cadastrais = None
+
         result = {
             'associacao': f'{uuid}',
             'periodo_referencia': periodo_referencia,
@@ -243,6 +253,7 @@ class AssociacoesViewSet(ModelViewSet):
             'gerar_ou_editar_ata_apresentacao': gerar_ou_editar_ata_apresentacao,
             'gerar_ou_editar_ata_retificacao': gerar_ou_editar_ata_retificacao,
             'gerar_previas': gerar_previas,
+            'pendencias_cadastrais': pendencias_cadastrais
         }
 
         return Response(result)
@@ -707,7 +718,7 @@ class AssociacoesViewSet(ModelViewSet):
         status_response = response.pop("status")
 
         return Response(response, status=status_response)
-    
+
     @action(detail=False, url_path='tags-informacoes',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tags_informacoes_list(self, request):
