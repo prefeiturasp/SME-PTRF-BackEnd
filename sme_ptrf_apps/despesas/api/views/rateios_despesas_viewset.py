@@ -180,12 +180,20 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
                     excluir_rateio = False
                 if Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and rateio.despesa.tem_pagamento_com_recursos_proprios() or Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and rateio.despesa.tem_pagamentos_em_multiplas_contas():
                     excluir_rateio = False
+                if Despesa.TAG_NAO_RECONHECIDA['id'] in filtro_informacoes_list and rateio.despesa.e_despesa_nao_reconhecida():
+                    excluir_rateio = False
+                if Despesa.TAG_SEM_COMPROVACAO_FISCAL['id'] in filtro_informacoes_list and rateio.despesa.e_despesa_sem_comprovacao_fiscal():
+                    excluir_rateio = False
+                if Despesa.TAG_CONCILIADA['id'] in filtro_informacoes_list and rateio.despesa.conferido:
+                    excluir_rateio = False
+                if Despesa.TAG_NAO_CONCILIADA['id'] in filtro_informacoes_list and not rateio.despesa.conferido:
+                    excluir_rateio = False
 
                 if excluir_rateio:
                     ids_para_excluir.append(rateio.id)
 
             filtered_queryset = filtered_queryset.exclude(id__in=ids_para_excluir)
-        
+
         filtro_vinculo_atividades = self.request.query_params.get('filtro_vinculo_atividades')
         filtro_vinculo_atividades_list = filtro_vinculo_atividades.split(',') if filtro_vinculo_atividades else []
 

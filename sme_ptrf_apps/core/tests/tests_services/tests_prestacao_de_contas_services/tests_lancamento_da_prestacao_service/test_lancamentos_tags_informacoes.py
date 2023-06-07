@@ -19,7 +19,6 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_antecipad
     analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
     tipo_transacao_pix
 ):
-
     despesa_2020_1_fornecedor_antonio_jose.data_transacao = date(2020, 3, 9)
     despesa_2020_1_fornecedor_antonio_jose.save()
 
@@ -38,7 +37,11 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_antecipad
         'tag_id': '1',
         'tag_nome': 'Antecipado',
         'tag_hint': 'Data do pagamento (09/03/2020) anterior à data do documento (10/03/2020).'
-    }, ]
+    },
+        {'tag_hint': 'Essa despesa já possui conciliação bancária.',
+         'tag_id': '9',
+         'tag_nome': 'Conciliada'}
+    ]
 
 
 def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_estornado(
@@ -55,7 +58,6 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_estornado
     tipo_transacao_pix,
     receita_estorno_do_rateio_despesa_2020_antonio_jose
 ):
-
     lancamentos = lancamentos_da_prestacao(
         analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise,
         conta_associacao=conta_associacao_cartao,
@@ -71,7 +73,11 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_estornado
         'tag_id': '2',
         'tag_nome': 'Estornado',
         'tag_hint': 'Esse gasto possui estornos.'
-    }, ]
+    },
+        {'tag_hint': 'Essa despesa já possui conciliação bancária.',
+         'tag_id': '9',
+         'tag_nome': 'Conciliada'}
+    ]
 
 
 def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_apenas_um_imposto_retido(
@@ -89,7 +95,6 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_a
     analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
     tipo_transacao_pix,
 ):
-
     lancamentos = lancamentos_da_prestacao(
         analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise,
         conta_associacao=conta_associacao_cartao,
@@ -105,7 +110,11 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_a
         'tag_id': '4',
         'tag_nome': 'Imposto',
         'tag_hint': ['Essa despesa teve retenção de imposto:', 'R$ 10,00, pago em 10/03/2020.']
-    }, ]
+    },
+        {'tag_hint': 'Essa despesa não possui conciliação bancária.',
+         'tag_id': '10',
+         'tag_nome': 'Não conciliada'}
+    ]
 
 
 def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_apenas_dois_impostos_retidos(
@@ -125,7 +134,6 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_a
     analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
     tipo_transacao_pix,
 ):
-
     lancamentos = lancamentos_da_prestacao(
         analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise,
         conta_associacao=conta_associacao_cartao,
@@ -160,7 +168,6 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_p
     analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
     tipo_transacao_pix,
 ):
-
     lancamentos = lancamentos_da_prestacao(
         analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise,
         conta_associacao=conta_associacao_cartao,
@@ -176,7 +183,11 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_p
         'tag_id': '5',
         'tag_nome': 'Imposto Pago',
         'tag_hint': 'Esse imposto está relacionado à despesa 123315 / Antônio José SA.',
-    }, ]
+    },
+        {'tag_hint': 'Essa despesa não possui conciliação bancária.',
+         'tag_id': '10',
+         'tag_nome': 'Não conciliada'}
+    ]
 
 
 def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_parcial_recurso_proprio(
@@ -192,7 +203,6 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_parcial_r
     analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
     tipo_transacao_pix,
 ):
-
     lancamentos = lancamentos_da_prestacao(
         analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise,
         conta_associacao=conta_associacao_cartao,
@@ -208,7 +218,11 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_parcial_r
         'tag_id': '3',
         'tag_nome': 'Parcial',
         'tag_hint': 'Parte da despesa foi paga com recursos próprios ou por mais de uma conta.',
-    }, ]
+    },
+        {'tag_hint': 'Essa despesa já possui conciliação bancária.',
+         'tag_id': '9',
+         'tag_nome': 'Conciliada'}
+    ]
 
 
 def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_parcial_multiplas_contas(
@@ -225,7 +239,6 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_parcial_m
     analise_lancamento_despesa_prestacao_conta_2020_1_em_analise,
     tipo_transacao_pix,
 ):
-
     lancamentos = lancamentos_da_prestacao(
         analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise,
         conta_associacao=conta_associacao_cartao,
@@ -241,4 +254,8 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_parcial_m
         'tag_id': '3',
         'tag_nome': 'Parcial',
         'tag_hint': 'Parte da despesa foi paga com recursos próprios ou por mais de uma conta.',
-    }, ]
+    },
+        {'tag_hint': 'Essa despesa já possui conciliação bancária.',
+         'tag_id': '9',
+         'tag_nome': 'Conciliada'}
+    ]
