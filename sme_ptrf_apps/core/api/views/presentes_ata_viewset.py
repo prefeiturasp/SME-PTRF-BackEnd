@@ -100,7 +100,8 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
                 "identificacao": membro.codigo_identificacao if membro.codigo_identificacao != "" else membro.cpf,
                 "nome": membro.nome,
                 "editavel": False,
-                "membro": True
+                "membro": True,
+                "presente": True
             }
 
             membros.append(dado)

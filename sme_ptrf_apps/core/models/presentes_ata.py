@@ -14,6 +14,7 @@ class PresenteAta(ModeloBase):
     cargo = models.CharField('Cargo', max_length=200, blank=True, default='')
     membro = models.BooleanField('Membro ?', default=False)
     conselho_fiscal = models.BooleanField('Pertence ao conselho fiscal ?', default=False)
+    presente = models.BooleanField('Presente ?', default=True)
 
     def eh_conselho_fiscal(self):
         if "Presidente do conselho fiscal" in self.cargo or "Conselheiro" in self.cargo:

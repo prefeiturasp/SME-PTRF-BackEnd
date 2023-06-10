@@ -14,7 +14,7 @@ class PresentesAtaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PresenteAta
-        fields = ('ata', 'identificacao', 'nome', 'cargo', 'membro', 'editavel')
+        fields = ('ata', 'identificacao', 'nome', 'cargo', 'membro', 'editavel', 'presente')
 
 
 class PresentesAtaCreateSerializer(serializers.ModelSerializer):
@@ -26,4 +26,4 @@ class PresentesAtaCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PresenteAta
-        fields = ('ata', 'identificacao', 'nome', 'cargo', 'membro')
+        fields = ('ata', 'identificacao', 'nome', 'cargo', 'membro', 'presente')
