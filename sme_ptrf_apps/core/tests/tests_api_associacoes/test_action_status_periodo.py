@@ -282,11 +282,11 @@ def test_status_periodo_pendencias_cadastrais_sem_contas_pendentes(
 @freeze_time('2020-07-10 10:20:00')
 def test_status_periodo_pendencias_cadastrais_somente_dados_associacao_com_pendencia_cadastro_e_pendencia_membros(
     jwt_authenticated_client_a,
-    associacao_sem_nome,
+    associacao_cadastro_incompleto,
     periodo_2020_1,
 ):
 
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao_sem_nome.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao_cadastro_incompleto.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
                           content_type='application/json')
     result = json.loads(response.content)
 

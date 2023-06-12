@@ -488,7 +488,7 @@ def ata_2022_2_teste_valido(prestacao_conta_2020_1_conciliada):
 @pytest.fixture
 def presente_ata_membro_arnaldo(ata_2022_2_teste_valido):
     return baker.make(
-        'PresenteAta',
+        'Participante',
         ata=ata_2022_2_teste_valido,
         identificacao="0001",
         nome="Arnaldo",
@@ -501,7 +501,7 @@ def presente_ata_membro_arnaldo(ata_2022_2_teste_valido):
 @pytest.fixture
 def presente_ata_membro_falcao(ata_2022_2_teste_valido):
     return baker.make(
-        'PresenteAta',
+        'Participante',
         ata=ata_2022_2_teste_valido,
         identificacao="0001",
         nome="Falcao",

@@ -727,3 +727,9 @@ class AssociacoesViewSet(ModelViewSet):
 
         return Response(result)
 
+    @action(detail=True, url_path='status-cadastro',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def status_cadastro(self, request, uuid=None):
+        associacao = self.get_object()
+        response = associacao.pendencias_dados_da_associacao_para_geracao_de_documentos()
+        return Response(response)

@@ -5,7 +5,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe
 )
 from rest_framework.permissions import IsAuthenticated
-from ...models import PresenteAta, Ata, MembroAssociacao
+from ...models import Participante, Ata, MembroAssociacao
 from ..serializers.presentes_ata_serializer import PresentesAtaSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -23,7 +23,7 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
                           mixins.ListModelMixin,
                           GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiUe]
-    queryset = PresenteAta.objects.all()
+    queryset = Participante.objects.all()
     serializer_class = PresentesAtaSerializer
     filter_fields = ('ata__uuid',)
     filter_backends = (filters.DjangoFilterBackend,)
@@ -52,11 +52,11 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         ata = Ata.objects.filter(uuid=ata_uuid).first()
-        presentes_ata_membros = PresenteAta.objects.filter(ata=ata).filter(membro=True).values()
-        presentes_ata_nao_membros = PresenteAta.objects.filter(ata=ata).filter(membro=False).order_by('nome').values()
+        presentes_ata_membros = Participante.objects.filter(ata=ata).filter(membro=True).values()
+        presentes_ata_nao_membros = Participante.objects.filter(ata=ata).filter(membro=False).order_by('nome').values()
 
         associacao = ata.associacao
-        # presentes_ata_conselho_fiscal = PresenteAta.objects.filter(ata=ata).filter(membro=True).filter(conselho_fiscal=True).values()
+        # presentes_ata_conselho_fiscal = Participante.objects.filter(ata=ata).filter(membro=True).filter(conselho_fiscal=True).values()
         presentes_ata_conselho_fiscal = retorna_membros_do_conselho_fiscal_por_associacao(associacao)
 
         result = {
@@ -100,7 +100,8 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
                 "identificacao": membro.codigo_identificacao if membro.codigo_identificacao != "" else membro.cpf,
                 "nome": membro.nome,
                 "editavel": False,
-                "membro": True
+                "membro": True,
+                "presente": True
             }
 
             membros.append(dado)
@@ -191,6 +192,6 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
                 "cargo": MembroEnum[membro.cargo_associacao].value
             }
         else:
-            result = PresenteAta.get_informacao_servidor(identificador)
+            result = Participante.get_informacao_servidor(identificador)
 
         return Response(result)

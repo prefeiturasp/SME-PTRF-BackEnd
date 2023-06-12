@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ...models import Ata, PresenteAta
+from ...models import Ata, Participante
 
 
 class PresentesAtaSerializer(serializers.ModelSerializer):
@@ -13,8 +13,8 @@ class PresentesAtaSerializer(serializers.ModelSerializer):
         return obj.editavel
 
     class Meta:
-        model = PresenteAta
-        fields = ('ata', 'identificacao', 'nome', 'cargo', 'membro', 'editavel')
+        model = Participante
+        fields = ('ata', 'identificacao', 'nome', 'cargo', 'membro', 'editavel', 'presente')
 
 
 class PresentesAtaCreateSerializer(serializers.ModelSerializer):
@@ -25,5 +25,5 @@ class PresentesAtaCreateSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = PresenteAta
-        fields = ('ata', 'identificacao', 'nome', 'cargo', 'membro')
+        model = Participante
+        fields = ('ata', 'identificacao', 'nome', 'cargo', 'membro', 'presente')
