@@ -43,7 +43,7 @@ from .models import (
     TipoAcertoDocumento,
     AnaliseDocumentoPrestacaoConta,
     SolicitacaoAcertoDocumento,
-    PresenteAta,
+    Participante,
     ValoresReprogramados,
     SolicitacaoDevolucaoAoTesouro,
     TransferenciaEol,
@@ -1237,7 +1237,7 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
     autocomplete_fields = ['analise_documento', 'despesa_incluida', 'receita_incluida']
 
 
-@admin.register(PresenteAta)
+@admin.register(Participante)
 class PresenteAtaAdmin(admin.ModelAdmin):
     def get_unidade(self, obj):
         return f'{obj.ata.associacao.unidade.codigo_eol} - {obj.ata.associacao.unidade.nome}' if obj and obj.ata and obj.ata.associacao and obj.ata.associacao.unidade else ''
@@ -1259,12 +1259,14 @@ class PresenteAtaAdmin(admin.ModelAdmin):
     ]
     list_filter = [
         'ata__periodo__referencia',
-        'ata__associacao__unidade',
         'ata__associacao__unidade__tipo_unidade',
         'ata__associacao__unidade__dre',
         'cargo',
-        'membro'
+        'membro',
+        ('criado_em', DateRangeFilter),
+        ('alterado_em', DateRangeFilter),
     ]
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 
 @admin.register(ValoresReprogramados)
