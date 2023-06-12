@@ -89,33 +89,47 @@ class User(AbstractUser):
         return False
 
     def add_visao_se_nao_existir(self, visao):
-        if not self.visoes.filter(nome=visao).first():
-            visao_obj = Visao.objects.filter(nome=visao).first()
-            if visao_obj:
-                self.visoes.add(visao_obj)
-                self.save()
-                logger.info(f'Visão {visao_obj} adicionada para o usuário {self}.')
+        if self.visoes.filter(nome=visao).first():
+            logger.info(f'Visão {visao} já existe para o usuário {self}.')
+            return
+
+        visao_obj = Visao.objects.filter(nome=visao).first()
+        if visao_obj:
+            self.visoes.add(visao_obj)
+            self.save()
+            logger.info(f'Visão {visao_obj} adicionada para o usuário {self}.')
+        else:
+            logger.error(f'Visão {visao} não existe.')
 
     def remove_visao_se_existir(self, visao):
-        if self.visoes.filter(nome=visao).exists():
-            visao_obj = Visao.objects.get(nome=visao)
-            self.visoes.remove(visao_obj)
-            self.save()
-            logger.info(f'Visão {visao} removida do usuário {self}.')
+        if not self.visoes.filter(nome=visao).exists():
+            logger.info(f'Visão {visao} não existe para o usuário {self}.')
+            return
+
+        visao_obj = Visao.objects.get(nome=visao)
+        self.visoes.remove(visao_obj)
+        self.save()
+        logger.info(f'Visão {visao} removida do usuário {self}.')
 
     def add_unidade_se_nao_existir(self, codigo_eol):
-        if not self.unidades.filter(codigo_eol=codigo_eol).exists():
-            unidade = Unidade.objects.get(codigo_eol=codigo_eol)
-            self.unidades.add(unidade)
-            self.save()
-            logger.info(f'Unidade {codigo_eol} adicionada para o usuário {self}.')
+        if self.unidades.filter(codigo_eol=codigo_eol).exists():
+            logger.info(f'Unidade {codigo_eol} já existe para o usuário {self}.')
+            return
+
+        unidade = Unidade.objects.get(codigo_eol=codigo_eol)
+        self.unidades.add(unidade)
+        self.save()
+        logger.info(f'Unidade {codigo_eol} adicionada para o usuário {self}.')
 
     def remove_unidade_se_existir(self, codigo_eol):
-        if self.unidades.filter(codigo_eol=codigo_eol).exists():
-            unidade = Unidade.objects.get(codigo_eol=codigo_eol)
-            self.unidades.remove(unidade)
-            self.save()
-            logger.info(f'Unidade {codigo_eol} removida do usuário {self}.')
+        if not self.unidades.filter(codigo_eol=codigo_eol).exists():
+            logger.info(f'Unidade {codigo_eol} não existe para o usuário {self}.')
+            return
+
+        unidade = Unidade.objects.get(codigo_eol=codigo_eol)
+        self.unidades.remove(unidade)
+        self.save()
+        logger.info(f'Unidade {codigo_eol} removida do usuário {self}.')
 
     @classmethod
     def criar_usuario(cls, dados):
@@ -277,3 +291,21 @@ class UnidadeEmSuporte(ModeloBase):
         verbose_name = 'Unidade em suporte'
         verbose_name_plural = 'Unidades em suporte'
         unique_together = ('unidade', 'user',)
+
+    @classmethod
+    def criar_acesso_suporte_se_nao_existir(cls, unidade, user):
+        if not cls.objects.filter(unidade=unidade, user=user).exists():
+            novo_acesso = cls(unidade=unidade, user=user)
+            novo_acesso.save()
+            logger.info(f'Unidade {unidade} em suporte por {user}. #{novo_acesso.id}')
+            return novo_acesso
+
+    @classmethod
+    def remover_acesso_suporte_se_existir(cls, unidade, user):
+        if cls.objects.filter(unidade=unidade, user=user).exists():
+            acesso = cls.objects.get(unidade=unidade, user=user)
+            acesso.delete()
+            logger.info(f'Unidade {unidade} removida de suporte por {user}.')
+            return acesso
+
+auditlog.register(UnidadeEmSuporte)

@@ -113,7 +113,7 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
     houve_considerados_corretos_automaticamente = models.BooleanField("Houve considerados corretos automaticamente?", default=False)
 
     def __str__(self):
-        return f"{self.analise_prestacao_conta} - Resultado:{self.resultado}"
+        return f"#{self.id} - Resultado:{self.resultado}"
 
     @classmethod
     def status_realizacao_choices_to_json(cls):
