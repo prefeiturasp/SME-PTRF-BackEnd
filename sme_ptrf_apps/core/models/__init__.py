@@ -64,7 +64,7 @@ from .tipo_documento_prestacao_conta import TipoDocumentoPrestacaoConta
 from .tipo_acerto_documento import TipoAcertoDocumento
 from .analise_documento_prestacao_conta import AnaliseDocumentoPrestacaoConta
 from .solicitacao_acerto_documento import SolicitacaoAcertoDocumento
-from .presentes_ata import PresenteAta
+from .participante import Participante
 from .valores_reprogramados import ValoresReprogramados
 from .solicitacao_devolucao_ao_tesouro import SolicitacaoDevolucaoAoTesouro
 from .falha_geracao_pc import FalhaGeracaoPc

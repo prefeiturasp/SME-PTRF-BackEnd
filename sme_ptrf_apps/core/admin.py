@@ -43,7 +43,7 @@ from .models import (
     TipoAcertoDocumento,
     AnaliseDocumentoPrestacaoConta,
     SolicitacaoAcertoDocumento,
-    PresenteAta,
+    Participante,
     ValoresReprogramados,
     SolicitacaoDevolucaoAoTesouro,
     TransferenciaEol,
@@ -1237,7 +1237,7 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
     autocomplete_fields = ['analise_documento', 'despesa_incluida', 'receita_incluida']
 
 
-@admin.register(PresenteAta)
+@admin.register(Participante)
 class PresenteAtaAdmin(admin.ModelAdmin):
     def get_unidade(self, obj):
         return f'{obj.ata.associacao.unidade.codigo_eol} - {obj.ata.associacao.unidade.nome}' if obj and obj.ata and obj.ata.associacao and obj.ata.associacao.unidade else ''

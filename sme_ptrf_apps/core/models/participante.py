@@ -5,7 +5,7 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 
-class PresenteAta(ModeloBase):
+class Participante(ModeloBase):
     history = AuditlogHistoryField()
 
     ata = models.ForeignKey('Ata', on_delete=models.CASCADE, related_name='presentes_na_ata')
@@ -64,4 +64,4 @@ class PresenteAta(ModeloBase):
         verbose_name_plural = "17.0) Presentes das atas"
 
 
-auditlog.register(PresenteAta)
+auditlog.register(Participante)

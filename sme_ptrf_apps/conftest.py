@@ -1808,7 +1808,7 @@ def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
 @pytest.fixture
 def presente_ata_membro(ata_2020_1_cheque_aprovada):
     return baker.make(
-        'PresenteAta',
+        'Participante',
         ata=ata_2020_1_cheque_aprovada,
         identificacao="123",
         nome="membro",
@@ -1833,7 +1833,7 @@ def membro_associacao_presidente_conselho_01(associacao):
 @pytest.fixture
 def presente_ata_membro_e_conselho_fiscal(ata_2020_1_cheque_aprovada):
     return baker.make(
-        'PresenteAta',
+        'Participante',
         ata=ata_2020_1_cheque_aprovada,
         identificacao="123",
         nome="membro",
@@ -1845,7 +1845,7 @@ def presente_ata_membro_e_conselho_fiscal(ata_2020_1_cheque_aprovada):
 @pytest.fixture
 def presente_ata_nao_membro(ata_2020_1_cheque_aprovada):
     return baker.make(
-        'PresenteAta',
+        'Participante',
         ata=ata_2020_1_cheque_aprovada,
         identificacao="123",
         nome="membro",

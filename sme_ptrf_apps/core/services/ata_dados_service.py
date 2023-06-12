@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 
-from sme_ptrf_apps.core.models import PresenteAta, DevolucaoAoTesouro, Associacao, Periodo
+from sme_ptrf_apps.core.models import Participante, DevolucaoAoTesouro, Associacao, Periodo
 from sme_ptrf_apps.core.services.prestacao_contas_services import informacoes_financeiras_para_atas
 from sme_ptrf_apps.core.services.associacoes_service import retorna_repasses_pendentes_periodos_ate_agora
 from sme_ptrf_apps.utils.numero_por_extenso import real
@@ -82,8 +82,8 @@ def devolucoes_ao_tesouro_ata(ata, prestacao_de_contas):
 
 def presentes_ata(ata):
     from .membro_associacao_service import retorna_membros_do_conselho_fiscal_por_associacao
-    presentes_ata_membros = PresenteAta.objects.filter(ata=ata).filter(membro=True).values()
-    presentes_ata_nao_membros = PresenteAta.objects.filter(ata=ata).filter(membro=False).filter(
+    presentes_ata_membros = Participante.objects.filter(ata=ata).filter(membro=True).values()
+    presentes_ata_nao_membros = Participante.objects.filter(ata=ata).filter(membro=False).filter(
         conselho_fiscal=False).order_by('nome').values()
 
     presentes_ata_conselho_fiscal = retorna_membros_do_conselho_fiscal_por_associacao(ata.associacao)
