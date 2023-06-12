@@ -460,16 +460,16 @@ def associacao_com_presidente_ausente(unidade, periodo_anterior):
     )
 
 @pytest.fixture
-def associacao_sem_nome(unidade, periodo_anterior):
+def associacao_cadastro_incompleto(unidade, periodo_anterior):
     return baker.make(
         'Associacao',
         nome='',
-        cnpj='52.302.275/0001-83',
+        cnpj='52.302.275/0001-84',
         unidade=unidade,
         periodo_inicial=periodo_anterior,
         ccm='0.000.00-0',
-        email="ollyverottoboni@gmail.com",
-        processo_regularidade='123456',
+        email="associacaosemnome@gmail.com",
+        processo_regularidade='000000',
         status_presidente='AUSENTE',
         cargo_substituto_presidente_ausente=MembroEnum.VICE_PRESIDENTE_DIRETORIA_EXECUTIVA.name
     )
@@ -532,13 +532,20 @@ def conta_associacao_tipo_cheque(associacao, tipo_conta_cheque):
     )
 
 @pytest.fixture
-def conta_associacao_incompleta(associacao_sem_nome, tipo_conta_cartao):
+def conta_associacao_incompleta(associacao_cadastro_incompleto, tipo_conta_cartao):
     return baker.make(
         'ContaAssociacao',
-        associacao=associacao_sem_nome,
+        associacao=associacao_cadastro_incompleto,
         tipo_conta=tipo_conta_cartao,
     )
 
+@pytest.fixture
+def conta_associacao_incompleta_002(associacao, tipo_conta_cartao):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao,
+        tipo_conta=tipo_conta_cartao,
+    )
 
 @pytest.fixture
 def conta_associacao_cheque(associacao, tipo_conta_cheque):
