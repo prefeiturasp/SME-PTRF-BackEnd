@@ -18,7 +18,7 @@ def test_instance_model(analise_lancamento_receita_prestacao_conta_2020_1):
 
 
 def test_srt_model(analise_lancamento_receita_prestacao_conta_2020_1):
-    assert analise_lancamento_receita_prestacao_conta_2020_1.__str__() == f'2020.1 - 2020-01-01 a 2020-06-30 - Análise #{analise_lancamento_receita_prestacao_conta_2020_1.analise_prestacao_conta.id} - Resultado:CORRETO'
+    assert analise_lancamento_receita_prestacao_conta_2020_1.__str__() == f'#{analise_lancamento_receita_prestacao_conta_2020_1.id} - Resultado:CORRETO'
 
 
 def test_admin():
