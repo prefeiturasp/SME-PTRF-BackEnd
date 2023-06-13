@@ -2086,6 +2086,18 @@ def observacao_conciliacao_campos_nao_preenchidos(periodo_2020_1, conta_associac
     )
 
 @pytest.fixture
+def observacao_conciliacao_com_saldo_zero(periodo_2020_1, conta_associacao):
+    return baker.make(
+        'ObservacaoConciliacao',
+        periodo=periodo_2020_1,
+        associacao=conta_associacao.associacao,
+        conta_associacao=conta_associacao,
+        data_extrato = date(2020, 7, 1),
+        saldo_extrato = 0,
+        texto="Observação com saldo zero."
+    )
+
+@pytest.fixture
 def observacao_conciliacao_campos_nao_preenchidos_002(periodo_2020_1, conta_associacao_tipo_cheque):
     return baker.make(
         'ObservacaoConciliacao',
