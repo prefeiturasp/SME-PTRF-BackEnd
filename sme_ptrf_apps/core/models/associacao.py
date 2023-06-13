@@ -316,8 +316,7 @@ class Associacao(ModeloIdNome):
 
         for conta in contas:
             observacao = observacoes.filter(conta_associacao=conta).first()
-
-            if observacao is None or not all([observacao.data_extrato, observacao.saldo_extrato, observacao.comprovante_extrato]):
+            if observacao is None or not (observacao.data_extrato and ((observacao.saldo_extrato > 0 and observacao.comprovante_extrato) or observacao.saldo_extrato == 0)):
                 pendencias['contas_pendentes'].append(conta.uuid)
 
         if not pendencias['contas_pendentes']:
