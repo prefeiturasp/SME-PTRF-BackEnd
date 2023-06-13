@@ -1,6 +1,10 @@
 import logging
 
-from ..models import UnidadeEmSuporte
+from django.contrib.auth import get_user_model
+
+from sme_ptrf_apps.core.models import Unidade
+
+from ..models import UnidadeEmSuporte, User
 
 logger = logging.getLogger(__name__)
 
@@ -9,10 +13,7 @@ class CriaAcessoSuporteException(Exception):
     pass
 
 
-def criar_acesso_de_suporte(unidade_do_suporte, usuario_do_suporte):
-    from sme_ptrf_apps.core.models import Unidade
-    from django.contrib.auth import get_user_model
-
+def criar_acesso_de_suporte(unidade_do_suporte: Unidade, usuario_do_suporte: User):
     logger.info('Criação de acesso de suporte.')
 
     if not unidade_do_suporte or not isinstance(unidade_do_suporte, Unidade):
@@ -36,9 +37,6 @@ def criar_acesso_de_suporte(unidade_do_suporte, usuario_do_suporte):
     else:
         usuario_do_suporte.add_visao_se_nao_existir(visao='UE')
 
-    novo_unidade_em_suporte = UnidadeEmSuporte.objects.create(
-        unidade=unidade_do_suporte,
-        user=usuario_do_suporte,
-    )
-    logger.info(f'Criado novo acesso de suporte usuário {novo_unidade_em_suporte.user.username} unidade {novo_unidade_em_suporte.unidade.codigo_eol}')
+    novo_unidade_em_suporte = UnidadeEmSuporte.criar_acesso_suporte_se_nao_existir(unidade=unidade_do_suporte, user=usuario_do_suporte)
+
     return novo_unidade_em_suporte

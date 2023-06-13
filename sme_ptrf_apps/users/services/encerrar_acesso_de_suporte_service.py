@@ -33,9 +33,6 @@ def encerrar_acesso_de_suporte(unidade_do_suporte, usuario_do_suporte):
     if unidade_do_suporte.tipo_unidade == 'UE' and not usuario_do_suporte.unidades.exclude(tipo_unidade='DRE').exists():
         usuario_do_suporte.remove_visao_se_existir(visao='UE')
 
-    unidade_em_suporte = UnidadeEmSuporte.objects.filter(unidade=unidade_do_suporte, user=usuario_do_suporte).first()
-    if unidade_em_suporte:
-        unidade_em_suporte.delete()
-        logger.info(f'Apagado acesso de suporte usuário {usuario_do_suporte.username} unidade {unidade_do_suporte.codigo_eol}')
+    UnidadeEmSuporte.remover_acesso_suporte_se_existir(unidade=unidade_do_suporte, user=usuario_do_suporte)
 
     return
