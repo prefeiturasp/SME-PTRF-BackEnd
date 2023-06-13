@@ -257,6 +257,32 @@ def test_status_periodo_pendencias_cadastrais_com_contas_pendentes(
     assert result['pendencias_cadastrais'] == pendencias_cadastrais_esperado
 
 @freeze_time('2020-07-10 10:20:00')
+def test_status_periodo_pendencias_cadastrais_somente_uma_conta_pendente(
+    jwt_authenticated_client_a, associacao,
+    observacao_conciliacao_campos_nao_preenchidos_002,
+    observacao_conciliacao_com_saldo_zero,
+    periodo_2020_1
+):
+
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    pendencias_cadastrais_esperado = {
+        'conciliacao_bancaria': {
+            'contas_pendentes': [f'{observacao_conciliacao_campos_nao_preenchidos_002.conta_associacao.uuid}',],
+        },
+        'dados_associacao': {
+            'pendencia_cadastro': False,
+            'pendencia_contas': False,
+            'pendencia_membros': True
+        }
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['pendencias_cadastrais'] == pendencias_cadastrais_esperado
+
+@freeze_time('2020-07-10 10:20:00')
 def test_status_periodo_pendencias_cadastrais_sem_contas_pendentes(
     jwt_authenticated_client_a,
     associacao,
