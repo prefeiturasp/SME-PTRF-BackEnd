@@ -384,7 +384,10 @@
 
 
   {% comment %} Comentários {% endcomment %}
-  <p class="mt-4 texto-justificado">{{ dados.dados_texto_da_ata.comentarios }}</p>
+  {% if dados.dados_texto_da_ata.comentarios %}
+    <p class="font-12 mt-5 titulo-membros-conselho-fiscal">Manifestações, comentários e justificativas</p>
+    <p class="mt-4 texto-justificado">{{ dados.dados_texto_da_ata.comentarios }}</p>
+  {% endif %}
 
   {% if not dados.dados_texto_da_ata.comentarios %}
     <p class="mt-4 texto-justificado">Esgotados os assuntos o(a) senhor(a) presidente ofereceu a palavra a quem dela
@@ -405,7 +408,7 @@
       de {{ dados.dados_da_ata.data_reuniao|date:"F"|lower }} de {{ dados.dados_da_ata.data_reuniao|date:"Y" }}</p>
   {% endlanguage %}
 
-  <p class="font-12 mt-5 titulo-membros-conselho-fiscal">Presentes</p>
+  <p class="font-12 mt-5 titulo-membros-conselho-fiscal">Membros da Diretoria Executiva e do Conselho Fiscal</p>
   <table class="table table-bordered tabela-assinaturas">
     <thead>
     <tr>
@@ -420,7 +423,11 @@
           <p class='mb-0'><strong>{{ info.nome }}</strong></p>
           <p class='mb-0'>{{ info.cargo }}</p>
         </td>
-        <td></td>
+        {% if info.presente %}
+          <td></td>
+        {% else %}
+          <td>Ausente</td>
+        {% endif %}
       </tr>
       </tbody>
     {% endfor %}
