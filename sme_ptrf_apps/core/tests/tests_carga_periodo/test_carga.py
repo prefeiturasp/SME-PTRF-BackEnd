@@ -77,8 +77,31 @@ Importados 0 períodos iniciais. Erro na importação de 2 períodos iniciais.""
     assert arquivo_carga_virgula.log == msg
     assert arquivo_carga_virgula.status == ERRO
 
+def test_carga_com_erro_periodo_inicial_valores_reprogramados(arquivo_carga_virgula_processado, periodo, associacao):
+    carrega_periodo_inicial(arquivo_carga_virgula_processado)
+    msg = """Não é permitido alterar o período inicial da Associação. Há cadastros já realizados pela Associação no primeiro período de uso do sistema: - Valores Reprogramados."""
+    assert msg in arquivo_carga_virgula_processado.log
+    assert arquivo_carga_virgula_processado.status == ERRO
 
-def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao):
+def test_carga_com_erro_periodo_inicial_despesas(arquivo_carga_virgula_processado, periodo, associacao, despesa_no_periodo):
+    carrega_periodo_inicial(arquivo_carga_virgula_processado)
+    msg = """Não é permitido alterar o período inicial da Associação. Há cadastros já realizados pela Associação no primeiro período de uso do sistema: - Valores Reprogramados - Despesa(s)."""
+    assert msg in arquivo_carga_virgula_processado.log
+    assert arquivo_carga_virgula_processado.status == ERRO
+
+def test_carga_com_erro_periodo_inicial_receitas(arquivo_carga_virgula_processado, periodo, associacao, despesa_no_periodo, receita_100_no_periodo_capital):
+    carrega_periodo_inicial(arquivo_carga_virgula_processado)
+    msg = """Não é permitido alterar o período inicial da Associação. Há cadastros já realizados pela Associação no primeiro período de uso do sistema: - Valores Reprogramados - Despesa(s) - Crédito(s)."""
+    assert msg in arquivo_carga_virgula_processado.log
+    assert arquivo_carga_virgula_processado.status == ERRO
+
+def test_carga_com_erro_periodo_inicial_prestacao_conta(arquivo_carga_virgula_processado, periodo, associacao, despesa_no_periodo, receita_100_no_periodo_capital, prestacao_conta):
+    carrega_periodo_inicial(arquivo_carga_virgula_processado)
+    msg = """Não é permitido alterar o período inicial da Associação. Há cadastros já realizados pela Associação no primeiro período de uso do sistema: - Valores Reprogramados - Despesa(s) - Crédito(s) - Prestação de Contas."""
+    assert msg in arquivo_carga_virgula_processado.log
+    assert arquivo_carga_virgula_processado.status == ERRO
+
+def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao_status_nao_finalizado):
     carrega_periodo_inicial(arquivo_carga_virgula_processado)
     msg = """\nErro na linha 2: Associação (00094) não encontrado. Linha ID:2
 Importados 1 períodos iniciais. Erro na importação de 1 períodos iniciais."""
