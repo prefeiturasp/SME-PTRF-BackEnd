@@ -2,8 +2,8 @@
 
 # Django
 # ------------------------------------------------------------------------------
-django==3.0.14
-django-auditlog==1.0.0
+django==3.1.14
+django-auditlog==2.0.0
 
 # Dependências do Django Rest Framework
 # ------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ djangorestframework==3.11.0  # https://github.com/encode/django-rest-framework
 
 # Para filtros no DRF
 # https://django-filter.readthedocs.io/en/master/#
-django-filter==2.2.0
+django-filter==2.4.0
 
 djangorestframework-jwt==1.11.0  # https://getblimp.github.io/django-rest-framework-jwt/
 
