@@ -475,16 +475,22 @@
         <th scope="col">Assinatura</th>
       </tr>
       </thead>
-      {% for info in dados.presentes_na_ata.presentes_ata_conselho_fiscal %}
+      {% for info in dados.presentes_na_ata.presentes_ata_membros %}
+        {% if info.conselho_fiscal %}
         <tbody>
-        <tr>
-          <td>
-            <p class='mb-0'><strong>{{ info.nome }}</strong></p>
-            <p class='mb-0'>{{ info.cargo }}</p>
-          </td>
-          <td></td>
-        </tr>
+          <tr>
+            <td>
+              <p class='mb-0'><strong>{{ info.nome }}</strong></p>
+              <p class='mb-0'>{{ info.cargo }}</p>
+            </td>
+            {% if info.presente %}
+              <td></td>
+            {% else %}
+              <td>Ausente</td>
+            {% endif %}
+          </tr>
         </tbody>
+        {% endif %}
       {% endfor %}
     </table>
 
