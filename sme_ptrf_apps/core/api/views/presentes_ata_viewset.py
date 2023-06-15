@@ -56,8 +56,28 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
         presentes_ata_nao_membros = Participante.objects.filter(ata=ata).filter(membro=False).order_by('nome').values()
 
         associacao = ata.associacao
-        # presentes_ata_conselho_fiscal = Participante.objects.filter(ata=ata).filter(membro=True).filter(conselho_fiscal=True).values()
-        presentes_ata_conselho_fiscal = retorna_membros_do_conselho_fiscal_por_associacao(associacao)
+
+        if not presentes_ata_membros:
+            membros_associacao = ata.associacao.membros_por_cargo()
+            presentes_ata_membros = []
+            for membro in membros_associacao:
+
+                dado = {
+                    "ata": ata_uuid,
+                    "cargo": remove_digitos(MembroEnum[membro.cargo_associacao].value),
+                    "identificacao": membro.codigo_identificacao if membro.codigo_identificacao != "" else membro.cpf,
+                    "nome": membro.nome,
+                    "editavel": False,
+                    "membro": True,
+                    "presente": True
+                }
+
+                presentes_ata_membros.append(dado)
+                
+            presentes_ata_conselho_fiscal = retorna_membros_do_conselho_fiscal_por_associacao(associacao)
+        else:
+           presentes_ata_conselho_fiscal = Participante.objects.filter(ata=ata).filter(membro=True, conselho_fiscal=True).values()
+        
 
         result = {
             'presentes_membros': presentes_ata_membros,
