@@ -5,7 +5,7 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 
-class PresenteAta(ModeloBase):
+class Participante(ModeloBase):
     history = AuditlogHistoryField()
 
     ata = models.ForeignKey('Ata', on_delete=models.CASCADE, related_name='presentes_na_ata')
@@ -14,6 +14,7 @@ class PresenteAta(ModeloBase):
     cargo = models.CharField('Cargo', max_length=200, blank=True, default='')
     membro = models.BooleanField('Membro ?', default=False)
     conselho_fiscal = models.BooleanField('Pertence ao conselho fiscal ?', default=False)
+    presente = models.BooleanField('Presente ?', default=True)
 
     def eh_conselho_fiscal(self):
         if "Presidente do conselho fiscal" in self.cargo or "Conselheiro" in self.cargo:
@@ -63,4 +64,4 @@ class PresenteAta(ModeloBase):
         verbose_name_plural = "17.0) Presentes das atas"
 
 
-auditlog.register(PresenteAta)
+auditlog.register(Participante)
