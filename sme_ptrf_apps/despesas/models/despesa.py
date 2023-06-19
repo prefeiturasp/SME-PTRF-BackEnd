@@ -166,7 +166,7 @@ class Despesa(ModeloBase):
         if not self.conferido:
             tags.append(tag_informacao(
                 self.TAG_NAO_CONCILIADA,
-                f"Essa despesa não possui conciliação bancária."
+                self.__hint_nao_conciliada()
             ))
 
         return tags
@@ -194,7 +194,18 @@ class Despesa(ModeloBase):
 
     def __str__(self):
         return f"{self.numero_documento} - {self.data_documento} - {self.valor_total:.2f}"
-
+    
+    def __hint_nao_conciliada(self):
+        max_notificar_dias_nao_conferido = 0
+        for rateio in self.rateios.filter(status=STATUS_COMPLETO):
+            if rateio.notificar_dias_nao_conferido > max_notificar_dias_nao_conferido:
+                max_notificar_dias_nao_conferido = rateio.notificar_dias_nao_conferido
+        
+        meses = max_notificar_dias_nao_conferido // 30
+        msg = '1 mês.' if max_notificar_dias_nao_conferido <= 59 else f'{meses} meses.'
+        
+        return [f'Essa despesa não possui conciliação bancária.', f'Não demonstrado por {msg}']
+        
     def __hint_impostos(self):
         if not self.despesas_impostos.exists():
             return []

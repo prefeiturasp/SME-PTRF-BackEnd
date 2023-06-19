@@ -459,6 +459,21 @@ def associacao_com_presidente_ausente(unidade, periodo_anterior):
         cargo_substituto_presidente_ausente=MembroEnum.VICE_PRESIDENTE_DIRETORIA_EXECUTIVA.name
     )
 
+@pytest.fixture
+def associacao_cadastro_incompleto(unidade, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='',
+        cnpj='52.302.275/0001-84',
+        unidade=unidade,
+        periodo_inicial=periodo_anterior,
+        ccm='0.000.00-0',
+        email="associacaosemnome@gmail.com",
+        processo_regularidade='000000',
+        status_presidente='AUSENTE',
+        cargo_substituto_presidente_ausente=MembroEnum.VICE_PRESIDENTE_DIRETORIA_EXECUTIVA.name
+    )
+
 
 @pytest.fixture
 def outra_associacao(unidade, periodo_anterior):
@@ -504,6 +519,33 @@ def conta_associacao(associacao, tipo_conta):
         numero_cartao='534653264523'
     )
 
+@pytest.fixture
+def conta_associacao_tipo_cheque(associacao, tipo_conta_cheque):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao,
+        tipo_conta=tipo_conta_cheque,
+        banco_nome='Banco do Brasil',
+        agencia='12345',
+        numero_conta='123456-x',
+        numero_cartao='534653264523'
+    )
+
+@pytest.fixture
+def conta_associacao_incompleta(associacao_cadastro_incompleto, tipo_conta_cartao):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao_cadastro_incompleto,
+        tipo_conta=tipo_conta_cartao,
+    )
+
+@pytest.fixture
+def conta_associacao_incompleta_002(associacao, tipo_conta_cartao):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao,
+        tipo_conta=tipo_conta_cartao,
+    )
 
 @pytest.fixture
 def conta_associacao_cheque(associacao, tipo_conta_cheque):
@@ -1773,7 +1815,7 @@ def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
 @pytest.fixture
 def presente_ata_membro(ata_2020_1_cheque_aprovada):
     return baker.make(
-        'PresenteAta',
+        'Participante',
         ata=ata_2020_1_cheque_aprovada,
         identificacao="123",
         nome="membro",
@@ -1798,7 +1840,7 @@ def membro_associacao_presidente_conselho_01(associacao):
 @pytest.fixture
 def presente_ata_membro_e_conselho_fiscal(ata_2020_1_cheque_aprovada):
     return baker.make(
-        'PresenteAta',
+        'Participante',
         ata=ata_2020_1_cheque_aprovada,
         identificacao="123",
         nome="membro",
@@ -1810,7 +1852,7 @@ def presente_ata_membro_e_conselho_fiscal(ata_2020_1_cheque_aprovada):
 @pytest.fixture
 def presente_ata_nao_membro(ata_2020_1_cheque_aprovada):
     return baker.make(
-        'PresenteAta',
+        'Participante',
         ata=ata_2020_1_cheque_aprovada,
         identificacao="123",
         nome="membro",
@@ -2022,6 +2064,51 @@ def observacao_conciliacao(periodo, conta_associacao):
         texto="Uma bela observação.",
         data_extrato = date(2020, 7, 1),
         saldo_extrato = 1000
+    )
+
+@pytest.fixture
+def observacao_conciliacao_campos_nao_preenchidos(periodo_2020_1, conta_associacao):
+    return baker.make(
+        'ObservacaoConciliacao',
+        periodo=periodo_2020_1,
+        associacao=conta_associacao.associacao,
+        conta_associacao=conta_associacao,
+        texto="Observação com campos não preenchidos.",
+    )
+
+@pytest.fixture
+def observacao_conciliacao_com_saldo_zero(periodo_2020_1, conta_associacao):
+    return baker.make(
+        'ObservacaoConciliacao',
+        periodo=periodo_2020_1,
+        associacao=conta_associacao.associacao,
+        conta_associacao=conta_associacao,
+        data_extrato = date(2020, 7, 1),
+        saldo_extrato = 0,
+        texto="Observação com saldo zero."
+    )
+
+@pytest.fixture
+def observacao_conciliacao_campos_nao_preenchidos_002(periodo_2020_1, conta_associacao_tipo_cheque):
+    return baker.make(
+        'ObservacaoConciliacao',
+        periodo=periodo_2020_1,
+        associacao=conta_associacao_tipo_cheque.associacao,
+        conta_associacao=conta_associacao_tipo_cheque,
+        texto="Observação com campos não preenchidos 002.",
+    )
+
+@pytest.fixture
+def observacao_conciliacao_campos_preenchidos(periodo_2020_1, conta_associacao):
+    return baker.make(
+        'ObservacaoConciliacao',
+        periodo=periodo_2020_1,
+        associacao=conta_associacao.associacao,
+        conta_associacao=conta_associacao,
+        texto="Observação com campos não preenchidos.",
+        data_extrato = date(2020, 7, 1),
+        saldo_extrato = 1000,
+        comprovante_extrato=None
     )
 
 @pytest.fixture

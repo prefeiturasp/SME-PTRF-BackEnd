@@ -37,7 +37,14 @@ def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, per
             'tem_acertos_pendentes': False,
         },
         'prestacao_conta': '',
-
+        'pendencias_cadastrais': {
+            'conciliacao_bancaria': None,
+            'dados_associacao': {
+                'pendencia_cadastro': False,
+                'pendencia_contas': False,
+                'pendencia_membros': True
+            }
+        }
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -69,6 +76,14 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
             'tem_acertos_pendentes': False,
         },
         'prestacao_conta': '',
+        'pendencias_cadastrais': {
+            'conciliacao_bancaria': None,
+            'dados_associacao': {
+                'pendencia_cadastro': False,
+                'pendencia_contas': False,
+                'pendencia_membros': True
+            }
+        }
 
     }
 
@@ -104,6 +119,14 @@ def test_chamada_data_sem_periodo(jwt_authenticated_client_a, associacao, period
         'aceita_alteracoes': True,
         'prestacao_contas_status': {},
         'prestacao_conta': '',
+        'pendencias_cadastrais': {
+            'conciliacao_bancaria': None,
+            'dados_associacao': {
+                'pendencia_cadastro': False,
+                'pendencia_contas': False,
+                'pendencia_membros': True
+            }
+        }
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -137,6 +160,14 @@ def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prest
             'tem_acertos_pendentes': False,
         },
         'prestacao_conta': f'{prestacao_conta_2020_1_conciliada.uuid}',
+        'pendencias_cadastrais': {
+            'conciliacao_bancaria': None,
+            'dados_associacao': {
+                'pendencia_cadastro': False,
+                'pendencia_contas': False,
+                'pendencia_membros': True
+            }
+        }
 
     }
 
@@ -185,8 +216,139 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
             'tem_acertos_pendentes': False,
         },
         'prestacao_conta': f'{_prestacao_conta_devolvida.uuid}',
+        'pendencias_cadastrais': {
+            'conciliacao_bancaria': None,
+            'dados_associacao': {
+                'pendencia_cadastro': False,
+                'pendencia_contas': False,
+                'pendencia_membros': True
+            }
+        }
 
     }
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
+
+@freeze_time('2020-07-10 10:20:00')
+def test_status_periodo_pendencias_cadastrais_com_contas_pendentes(
+    jwt_authenticated_client_a, associacao,
+    observacao_conciliacao_campos_nao_preenchidos,
+    observacao_conciliacao_campos_nao_preenchidos_002,
+    periodo_2020_1
+):
+
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    pendencias_cadastrais_esperado = {
+        'conciliacao_bancaria': {
+            'contas_pendentes': [f'{observacao_conciliacao_campos_nao_preenchidos.conta_associacao.uuid}', f'{observacao_conciliacao_campos_nao_preenchidos_002.conta_associacao.uuid}',],
+        },
+        'dados_associacao': {
+            'pendencia_cadastro': False,
+            'pendencia_contas': False,
+            'pendencia_membros': True
+        }
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['pendencias_cadastrais'] == pendencias_cadastrais_esperado
+
+@freeze_time('2020-07-10 10:20:00')
+def test_status_periodo_pendencias_cadastrais_somente_uma_conta_pendente(
+    jwt_authenticated_client_a, associacao,
+    observacao_conciliacao_campos_nao_preenchidos_002,
+    observacao_conciliacao_com_saldo_zero,
+    periodo_2020_1
+):
+
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    pendencias_cadastrais_esperado = {
+        'conciliacao_bancaria': {
+            'contas_pendentes': [f'{observacao_conciliacao_campos_nao_preenchidos_002.conta_associacao.uuid}',],
+        },
+        'dados_associacao': {
+            'pendencia_cadastro': False,
+            'pendencia_contas': False,
+            'pendencia_membros': True
+        }
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['pendencias_cadastrais'] == pendencias_cadastrais_esperado
+
+@freeze_time('2020-07-10 10:20:00')
+def test_status_periodo_pendencias_cadastrais_sem_contas_pendentes(
+    jwt_authenticated_client_a,
+    associacao,
+    periodo_2020_1,
+):
+
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    pendencias_cadastrais_esperado = {
+        'conciliacao_bancaria': None,
+        'dados_associacao': {
+            'pendencia_cadastro': False,
+            'pendencia_contas': False,
+            'pendencia_membros': True
+        }
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['pendencias_cadastrais'] == pendencias_cadastrais_esperado
+
+@freeze_time('2020-07-10 10:20:00')
+def test_status_periodo_pendencias_cadastrais_somente_dados_associacao_com_pendencia_cadastro_e_pendencia_membros(
+    jwt_authenticated_client_a,
+    associacao_cadastro_incompleto,
+    periodo_2020_1,
+):
+
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao_cadastro_incompleto.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    pendencias_cadastrais_esperado = {
+        'conciliacao_bancaria': None,
+        'dados_associacao': {
+            'pendencia_cadastro': True,
+            'pendencia_contas': False,
+            'pendencia_membros': True
+        }
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['pendencias_cadastrais'] == pendencias_cadastrais_esperado
+
+@freeze_time('2020-07-10 10:20:00')
+def test_status_periodo_todas_as_pendencias_cadastrais(
+    jwt_authenticated_client_a,
+    conta_associacao_incompleta,
+    periodo_2020_1,
+):
+
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{conta_associacao_incompleta.associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    pendencias_cadastrais_esperado = {
+        'dados_associacao': {
+            'pendencia_cadastro': True,
+            'pendencia_membros': True,
+            'pendencia_contas': True,
+        },
+        'conciliacao_bancaria': {
+            'contas_pendentes': [f'{conta_associacao_incompleta.uuid}']
+        },
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['pendencias_cadastrais'] == pendencias_cadastrais_esperado
