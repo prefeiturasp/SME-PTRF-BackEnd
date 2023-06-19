@@ -111,10 +111,11 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_a
         'tag_nome': 'Imposto',
         'tag_hint': ['Essa despesa teve retenção de imposto:', 'R$ 10,00, pago em 10/03/2020.']
     },
-        {'tag_hint': 'Essa despesa não possui conciliação bancária.',
+        {'tag_hint': ['Essa despesa não possui conciliação bancária.', 'Não demonstrado por 39 meses.'],
          'tag_id': '10',
          'tag_nome': 'Não conciliada'}
     ]
+    
 
 
 def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_apenas_dois_impostos_retidos(
@@ -184,7 +185,7 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_p
         'tag_nome': 'Imposto Pago',
         'tag_hint': 'Esse imposto está relacionado à despesa 123315 / Antônio José SA.',
     },
-        {'tag_hint': 'Essa despesa não possui conciliação bancária.',
+        {'tag_hint': ['Essa despesa não possui conciliação bancária.', 'Não demonstrado por 39 meses.'],
          'tag_id': '10',
          'tag_nome': 'Não conciliada'}
     ]

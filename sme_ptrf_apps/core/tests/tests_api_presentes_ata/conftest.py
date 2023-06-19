@@ -30,7 +30,7 @@ def ata_2020_1_teste(prestacao_conta_2020_1_conciliada):
 @pytest.fixture
 def presente_ata_membro_arnaldo(ata_2020_1_teste):
     return baker.make(
-        'PresenteAta',
+        'Participante',
         ata=ata_2020_1_teste,
         identificacao="0001",
         nome="Arnaldo",
@@ -43,7 +43,7 @@ def presente_ata_membro_arnaldo(ata_2020_1_teste):
 @pytest.fixture
 def presente_ata_membro_e_conselho_fiscal_benedito(ata_2020_1_teste):
     return baker.make(
-        'PresenteAta',
+        'Participante',
         ata=ata_2020_1_teste,
         identificacao="0002",
         nome="Benedito",
@@ -55,7 +55,7 @@ def presente_ata_membro_e_conselho_fiscal_benedito(ata_2020_1_teste):
 @pytest.fixture
 def presente_ata_nao_membro_carlos(ata_2020_1_teste):
     return baker.make(
-        'PresenteAta',
+        'Participante',
         ata=ata_2020_1_teste,
         identificacao="0003",
         nome="Carlos",

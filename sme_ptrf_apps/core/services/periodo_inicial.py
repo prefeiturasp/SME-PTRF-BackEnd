@@ -46,6 +46,13 @@ def processa_periodo_inicial(reader, arquivo):
                     msg_erro = f'O período informado é anterior ao período inicial da associação. Linha ID:{index}'
                     raise Exception(msg_erro)
 
+                if associacao.periodo_inicial:
+                    response_pode_editar_periodo_inicial = associacao.pode_editar_periodo_inicial
+                    if response_pode_editar_periodo_inicial['pode_editar_periodo_inicial'] == False:
+                        msg_erro = ' '.join(response_pode_editar_periodo_inicial['mensagem_pode_editar_periodo_inicial'])
+                        msg_erro = f"{msg_erro}. Linha ID:{index}"
+                        raise Exception(msg_erro)
+
                 associacao.periodo_inicial = periodo
                 associacao.save()
                 logger.info("Periodo inicial da associação %s importado com sucesso.", associacao)
@@ -67,7 +74,7 @@ def processa_periodo_inicial(reader, arquivo):
 
     logs = f"{logs}\nImportados {importados} períodos iniciais. Erro na importação de {erros} períodos iniciais."
     logger.info(f'Importados {importados} períodos iniciais. Erro na importação de {erros} períodos iniciais.')
-
+    print(logs)
     arquivo.log = logs
     arquivo.save()
 
