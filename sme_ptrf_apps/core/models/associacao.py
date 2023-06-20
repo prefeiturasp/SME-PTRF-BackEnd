@@ -1,6 +1,6 @@
 import datetime
-
 from django.db import models
+from sme_ptrf_apps.core.models.conta_associacao import ContaAssociacao
 
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 from .validators import cnpj_validation
@@ -24,7 +24,7 @@ class Associacao(ModeloIdNome):
     history = AuditlogHistoryField()
 
     # Tags de informações
-    TAG_ENCERRADA = {"id": "7", "nome": "Associação encerrada", "descricao": "A associação foi encerrada."}
+    TAG_ENCERRADA = {"id": "1", "nome": "Associação encerrada", "descricao": "A associação foi encerrada."}
 
     # Status do Presidente
     STATUS_PRESIDENTE_PRESENTE = 'PRESENTE'
@@ -126,7 +126,7 @@ class Associacao(ModeloIdNome):
                 self.TAG_ENCERRADA,
                 f"{self.tooltip_data_encerramento}"
             ))
-        
+
         return tags
 
     def apaga_implantacoes_de_saldo(self):
@@ -281,6 +281,48 @@ class Associacao(ModeloIdNome):
                 if ultima_pc.pc_publicada_no_diario_oficial:
                     return False
         return True
+
+    @property
+    def membros_diretoria_executiva_e_conselho_fiscal_cadastrados(self):
+        for key in MembroEnum:
+            cargo = self.cargos.filter(cargo_associacao=key.name)
+            if not cargo.exists():
+                return False
+        return True
+
+    def pendencias_dados_da_associacao_para_geracao_de_documentos(self):
+        pendencia_cadastro = not self.nome or not self.ccm or not self.unidade.email
+        pendencia_membros = not self.membros_diretoria_executiva_e_conselho_fiscal_cadastrados
+        pendencia_contas =  self.contas.filter(Q(banco_nome__exact='') | Q(agencia__exact='') | Q(numero_conta__exact='',
+                                               status=ContaAssociacao.STATUS_ATIVA)).exists()
+        if pendencia_cadastro or pendencia_membros or pendencia_contas:
+            pendencias = {
+                'pendencia_cadastro': pendencia_cadastro,
+                'pendencia_membros': pendencia_membros,
+                'pendencia_contas': pendencia_contas
+            }
+        else:
+            pendencias = None
+
+        return pendencias
+
+    def pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(self, periodo):
+        pendencias = {
+            'contas_pendentes': []
+        }
+
+        contas = self.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
+        observacoes = self.observacoes_conciliacao_da_associacao.filter(periodo=periodo)
+
+        for conta in contas:
+            observacao = observacoes.filter(conta_associacao=conta).first()
+            if observacao is None or not (observacao.data_extrato and ((observacao.saldo_extrato > 0 and observacao.comprovante_extrato) or observacao.saldo_extrato == 0)):
+                pendencias['contas_pendentes'].append(conta.uuid)
+
+        if not pendencias['contas_pendentes']:
+            return None
+
+        return pendencias
 
     objects = models.Manager()  # Manager Padrão
     ativas = AssociacoesAtivasManager()
