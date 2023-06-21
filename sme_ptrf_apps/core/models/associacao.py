@@ -24,7 +24,7 @@ class Associacao(ModeloIdNome):
     history = AuditlogHistoryField()
 
     # Tags de informações
-    TAG_ENCERRADA = {"id": "7", "nome": "Associação encerrada", "descricao": "A associação foi encerrada."}
+    TAG_ENCERRADA = {"id": "1", "nome": "Associação encerrada", "descricao": "A associação foi encerrada."}
 
     # Status do Presidente
     STATUS_PRESIDENTE_PRESENTE = 'PRESENTE'

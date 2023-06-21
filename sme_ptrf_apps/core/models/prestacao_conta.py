@@ -365,6 +365,14 @@ class PrestacaoConta(ModeloBase):
         self.save()
         return self
 
+    def atualizar_comentarios_de_analise_sem_pc(self):
+        from sme_ptrf_apps.core.models import ComentarioAnalisePrestacao
+        comentarios_de_analise_relacionados_sem_pc = ComentarioAnalisePrestacao.objects.filter(Q(associacao=self.associacao) & \
+                                                                                               Q(periodo=self.periodo) & \
+                                                                                               Q(prestacao_conta__isnull=True))
+        print('comentarios_de_analise_relacionados_sem_pc', comentarios_de_analise_relacionados_sem_pc)
+        comentarios_de_analise_relacionados_sem_pc.update(prestacao_conta=self, associacao=None, periodo=None)
+
     def get_contas_com_movimento(self, add_sem_movimento_com_saldo=False):
         from sme_ptrf_apps.core.models import ContaAssociacao
         from sme_ptrf_apps.receitas.models import Receita
@@ -630,7 +638,7 @@ class PrestacaoConta(ModeloBase):
                 'status': cls.STATUS_NAO_APRESENTADA
             }
         )
-
+        prestacao_de_conta.atualizar_comentarios_de_analise_sem_pc()
         return prestacao_de_conta
 
     @classmethod
