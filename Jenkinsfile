@@ -4,7 +4,7 @@ pipeline {
       kubeconfig = getKubeconf(env.branchname)
       registryCredential = 'jenkins_registry'
     }
-  
+
     agent {
       node { label 'python-36-ptrf' }
     }
@@ -14,37 +14,37 @@ pipeline {
       disableConcurrentBuilds()
       skipDefaultCheckout()
     }
-  
+
     stages {
-        
-        stage('CheckOut') {            
-            steps { checkout scm }            
+
+        stage('CheckOut') {
+            steps { checkout scm }
         }
 
         stage('Preparando BD') {
-	        when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } } 
-          agent { label 'AGENT-NODES' }  
+	        when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } }
+          agent { label 'AGENT-NODES' }
           steps {
             sh '''
                 docker run -d --rm --cap-add SYS_TIME --name ptrf-db$BUILD_NUMBER$BRANCH_NAME --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres postgres:14-alpine
                '''
           }
         }
-        
+
         stage('Istalando dependencias') {
-          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } } 
-          agent { label 'AGENT-PYTHON36' }
+          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } }
+          agent { label 'AGENT-PYTHON310' }
           steps {
             checkout scm
             sh 'pip install --user pipenv -r requirements/local.txt'
           }
-            
+
         }
 
 
             stage('Testes Lint') {
-              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } } 
-              agent { label 'AGENT-PYTHON36' }
+              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } }
+              agent { label 'AGENT-PYTHON310' }
               steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                   sh '''
@@ -60,11 +60,11 @@ pipeline {
                     recordIssues(tools: [flake8(pattern: 'flake8-output.txt')])
                 }
               }
-              
+
             }
             stage('Testes Unitarios') {
-              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } } 
-              agent { label 'AGENT-PYTHON36' }
+              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } }
+              agent { label 'AGENT-PYTHON310' }
               steps {
                 sh '''
                    export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
@@ -78,11 +78,11 @@ pipeline {
                     publishCoverage adapters: [cobertura('coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
                 }
               }
-            }   
+            }
 
         stage('AnaliseCodigo') {
-          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } } 
-          agent { label 'AGENT-PYTHON36' }
+          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } }
+          agent { label 'AGENT-PYTHON310' }
           steps {
                 withSonarQubeEnv('sonarqube-local'){
                   sh 'echo "[ INFO ] Iniciando analise Sonar..." && sonar-scanner \
@@ -92,9 +92,9 @@ pipeline {
             }
         }
 
-        
+
         stage('Build') {
-          when { anyOf { branch 'master'; branch 'main'; branch "story/*"; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; } } 
+          when { anyOf { branch 'master'; branch 'main'; branch "story/*"; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; } }
           steps {
             script {
               imagename1 = "registry.sme.prefeitura.sp.gov.br/${env.branchname}/ptrf-backend"
@@ -110,9 +110,9 @@ pipeline {
             }
           }
         }
-	    
+
         stage('Deploy'){
-            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; } }        
+            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; } }
             steps {
               script{
                 if ( env.branchname == 'main' ||  env.branchname == 'master' || env.branchname == 'homolog' || env.branchname == 'release' ) {
@@ -124,7 +124,7 @@ pipeline {
                   }
                 }
                   withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
-                            
+
                     if ( env.branchname == 'homolog-r2' ) {
                         sh('cp $config '+"$home"+'/.kube/config')
                         sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf-hom2'
@@ -146,32 +146,32 @@ pipeline {
 				          }
                 }
               }
-            }           
-        
+            }
+
 
         stage('Deploy Ambientes'){
             when { anyOf {  branch 'master'; branch 'main' } }
               parallel {
-              stage('Deploy Treino'){          
+              stage('Deploy Treino'){
                 steps {
                   sh 'kubectl rollout restart deployment/treinamento-backend -n sigescola-treinamento'
                   sh 'kubectl rollout restart deployment/treinamento-celery -n sigescola-treinamento'
-                  sh 'kubectl rollout restart deployment/treinamento-flower -n sigescola-treinamento'	  
+                  sh 'kubectl rollout restart deployment/treinamento-flower -n sigescola-treinamento'
                 }
               }
 
-              stage('Deploy Treinamento2'){          
+              stage('Deploy Treinamento2'){
                 steps {
                   sh 'kubectl rollout restart deployment/treinamento-backend -n sigescola-treinamento2'
                   sh 'kubectl rollout restart deployment/treinamento-celery -n sigescola-treinamento2'
-                  sh 'kubectl rollout restart deployment/treinamento-flower -n sigescola-treinamento2'   
+                  sh 'kubectl rollout restart deployment/treinamento-flower -n sigescola-treinamento2'
                 }
               }
 
-            }  
-        }                    
+            }
+        }
       }
-      post {        
+      post {
         always{
           node('AGENT-NODES'){
             //Limpando containers de banco
@@ -188,6 +188,6 @@ def getKubeconf(branchName) {
     else if ("homolog-r2".equals(branchName)) { return "config_hom"; }
     else if ("release".equals(branchName)) { return "config_hom"; }
     else if ("development".equals(branchName)) { return "config_dev"; }
-    else if ("develop".equals(branchName)) { return "config_dev"; }	
+    else if ("develop".equals(branchName)) { return "config_dev"; }
     else if ("pre-release".equals(branchName)) { return "config_prd"; }
 }
