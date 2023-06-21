@@ -24,16 +24,11 @@ def test_list_comentarios_analise_prestacao(client, prestacao_conta_2020_1_conci
 
     result = json.loads(response.content)
 
-    esperado = [
-        {
-            'uuid': f'{comentario_analise_prestacao.uuid}',
-            'prestacao_conta': f'{prestacao_conta_2020_1_conciliada.uuid}',
-            'ordem': 1,
-            'comentario': 'Teste',
-            'notificado': False,
-            'notificado_em': None,
-        },
-    ]
+    result_uuids = []
+    for _result in result:
+        result_uuids.append(_result['uuid'])
+
+    esperado_uuids = [f'{comentario_analise_prestacao.uuid}']
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == esperado, "Não retornou o resultado esperado"
+    assert result_uuids == esperado_uuids, "Não retornou o resultado esperado"

@@ -11,8 +11,14 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 class ComentarioAnalisePrestacao(ModeloBase):
     history = AuditlogHistoryField()
 
-    prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE,
-                                        related_name='comentarios_de_analise_da_prestacao')
+    prestacao_conta = models.ForeignKey('PrestacaoConta', on_delete=models.CASCADE, related_name='comentarios_de_analise_da_prestacao',
+                                        blank=True, null=True)
+
+    periodo = models.ForeignKey('Periodo', on_delete=models.PROTECT, related_name='comentarios_de_analise_do_periodo',
+                                 blank=True, null=True)
+
+    associacao = models.ForeignKey('Associacao', on_delete=models.PROTECT, related_name='comentarios_de_analise_da_associacao',
+                                   blank=True, null=True)
 
     ordem = models.PositiveSmallIntegerField('ordem')
 
