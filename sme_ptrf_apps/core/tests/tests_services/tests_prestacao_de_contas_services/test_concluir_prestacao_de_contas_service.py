@@ -161,6 +161,17 @@ def _receita_2020_1(associacao, conta_associacao, acao_associacao, tipo_receita_
         conferido=True,
     )
 
+@pytest.fixture
+def comentario_analise_prestacao_com_associacao_e_periodo(associacao, periodo_2020_1):
+    return baker.make(
+        'ComentarioAnalisePrestacao',
+        associacao=associacao,
+        periodo=periodo_2020_1,
+        ordem=1,
+        comentario='Teste comentário com associação e período 01',
+        notificado=False,
+        notificado_em=None
+    )
 
 @pytest.mark.django_db(transaction=False)
 def test_fechamentos_devem_ser_vinculados_a_anteriores(_fechamento_2019_2,
@@ -325,6 +336,40 @@ def test_relacoes_de_bens_devem_ser_criadas_por_conta(associacao,
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
     prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
+    task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid, criar_arquivos=False)
+    assert isinstance(task_result, EagerResult)
+    prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
+    assert prestacao
+
+    assert prestacao.relacoes_de_bens_da_prestacao.count() == 1, "Deveriam ter sido criados uma, 1 contas."
+
+@pytest.mark.django_db(transaction=False)
+def test_comentarios_de_analise_sem_pc_atribuida_devem_ser_atualizados( associacao,
+                                                                        comentario_analise_prestacao_com_associacao_e_periodo,
+                                                                        periodo_2020_1,
+                                                                        receita_2020_1_role_repasse_custeio_conferida,
+                                                                        receita_2020_1_ptrf_repasse_capital_conferida,
+                                                                        receita_2020_1_role_repasse_capital_nao_conferida,
+                                                                        receita_2019_2_role_repasse_capital_conferida,
+                                                                        receita_2020_1_role_repasse_capital_conferida,
+                                                                        receita_2020_1_role_rendimento_custeio_conferida,
+                                                                        receita_2020_1_role_repasse_custeio_conferida_outra_conta,
+                                                                        despesa_2020_1,
+                                                                        rateio_despesa_2020_role_custeio_conferido,
+                                                                        rateio_despesa_2020_role_custeio_nao_conferido,
+                                                                        rateio_despesa_2020_role_capital_conferido,
+                                                                        despesa_2019_2,
+                                                                        rateio_despesa_2019_role_conferido,
+                                                                        acao_associacao_ptrf,
+                                                                        settings):
+    from sme_ptrf_apps.core.tasks import concluir_prestacao_de_contas_async
+    from celery.result import EagerResult
+
+    settings.CELERY_TASK_ALWAYS_EAGER = True
+    prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
+    assert prestacao_criada.comentarios_de_analise_da_prestacao.exists()
+    assert prestacao_criada.comentarios_de_analise_da_prestacao.first().associacao == None
+    assert prestacao_criada.comentarios_de_analise_da_prestacao.first().periodo == None
     task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid, criar_arquivos=False)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
