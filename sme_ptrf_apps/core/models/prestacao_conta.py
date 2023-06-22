@@ -523,7 +523,10 @@ class PrestacaoConta(ModeloBase):
             data_limite_ue=data_limite_ue
         )
 
+        devolucao_requer_alteracoes = False
+
         if self.analise_atual:
+            devolucao_requer_alteracoes = self.analise_atual.verifica_se_requer_alteracao_em_lancamentos(considera_realizacao=False)
             self.analise_atual.devolucao_prestacao_conta = devolucao
             self.analise_atual.save()
 
@@ -531,8 +534,9 @@ class PrestacaoConta(ModeloBase):
         self.justificativa_pendencia_realizacao = ""
         self.save()
 
-        logging.info('A devolução de PC apaga os seus fechamentos.')
-        self.apaga_fechamentos()
+        if devolucao_requer_alteracoes:
+            logging.info('A devolução de PC requer alterações e por isso deve apagar os seus fechamentos.')
+            self.apaga_fechamentos()
 
         notificar_prestacao_de_contas_devolvida_para_acertos(self, data_limite_ue)
         return self
