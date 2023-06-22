@@ -159,8 +159,7 @@ def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre(
 
     consolidado_dre = None
 
-    # TODO remover comentários após testes
-    # Tratativa dos Bugs: 91797, 93549 e 93018 da Sprint 65
+    # TODO Tratativa dos Bugs: 91797, 93549 e 93018 da Sprint 65
     # Gerava divergência em Tela da  Visualização da Ata Parecer Técnico em Tela
     # Quando uma prévia era gerada com um número X de PCS e depois concluisse mais PCS sempre olhava para o numero
     # Que já estava na Prévia, não levava em consideração as novas PCs concluídas
@@ -187,7 +186,15 @@ def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre(
     resultado = []
     for prestacao in prestacoes:
 
-        status_prestacao_conta = prestacao.status if not prestacao.em_retificacao else prestacao.status_anterior_a_retificacao
+        # TODO Tratativa do Bug: 97031 ([DRE] Retificação do Consolidado PC: ata não acompanha a retificação) da Sprint 68
+        # Foi incluido: if consolidado_dre and not consolidado_dre.eh_retificacao:
+        # Anteriormente só existia a verificação: status_prestacao_conta = prestacao.status if not prestacao.em_retificacao else prestacao.status_anterior_a_retificacao
+        if consolidado_dre and not consolidado_dre.eh_retificacao:
+            status_prestacao_conta = prestacao.status if not prestacao.em_retificacao else prestacao.status_anterior_a_retificacao
+        elif consolidado_dre and consolidado_dre.eh_retificacao and consolidado_dre.gerou_uma_retificacao:
+            status_prestacao_conta = prestacao.status if not prestacao.em_retificacao else prestacao.status_anterior_a_retificacao
+        else:
+            status_prestacao_conta = prestacao.status
 
         dado = {
             'unidade': {
