@@ -303,6 +303,7 @@ class PrestacaoConta(ModeloBase):
         return self
 
     def apaga_fechamentos(self):
+        logging.info('Apagando fechamentos da prestação de contas')
         for fechamento in self.fechamentos_da_prestacao.all():
             fechamento.delete()
 
@@ -529,6 +530,9 @@ class PrestacaoConta(ModeloBase):
         self.analise_atual = None
         self.justificativa_pendencia_realizacao = ""
         self.save()
+
+        logging.info('A devolução de PC apaga os seus fechamentos.')
+        self.apaga_fechamentos()
 
         notificar_prestacao_de_contas_devolvida_para_acertos(self, data_limite_ue)
         return self
