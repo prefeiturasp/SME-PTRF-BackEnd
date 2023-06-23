@@ -6,7 +6,7 @@ pipeline {
     }
 
     agent {
-      node { label 'python-39-ptrf' }
+      node { label 'python-36-ptrf' }
     }
 
     options {
