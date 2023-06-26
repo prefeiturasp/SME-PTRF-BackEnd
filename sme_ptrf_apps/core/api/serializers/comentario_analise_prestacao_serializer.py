@@ -18,25 +18,32 @@ class ComentarioAnalisePrestacaoRetrieveSerializer(serializers.ModelSerializer):
     prestacao_conta = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
+        allow_null=True,
         queryset=PrestacaoConta.objects.all()
     )
     associacao = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
+        allow_null=True,
         queryset=Associacao.objects.all()
     )
     periodo = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
+        allow_null=True,
         queryset=Periodo.objects.all()
     )
 
     def validate(self, data):
-        if not self.instance:
-            prestacao_conta = self.initial_data['prestacao_conta'] if 'prestacao_conta' in self.initial_data else None
-            associacao = self.initial_data['associacao'] if 'associacao' in self.initial_data else None
-            periodo = self.initial_data['periodo'] if 'periodo' in self.initial_data else None
+        prestacao_conta = self.initial_data['prestacao_conta'] if 'prestacao_conta' in self.initial_data else None
+        associacao = self.initial_data['associacao'] if 'associacao' in self.initial_data else None
+        periodo = self.initial_data['periodo'] if 'periodo' in self.initial_data else None
 
+        if self.instance:
+            if 'prestacao_conta' in self.initial_data or 'associacao' in self.initial_data or 'periodo' in self.initial_data:
+                if not (prestacao_conta or (associacao and periodo)):
+                    raise CustomError({"detail": "É necessário enviar a prestação de contas ou associação e período."})
+        else:
             if not (prestacao_conta or (associacao and periodo)):
                 raise CustomError({"detail": "É necessário enviar a prestação de contas ou associação e período."})
 
