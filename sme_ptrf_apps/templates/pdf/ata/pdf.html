@@ -324,8 +324,8 @@
         conta nº {{ conta.conta_associacao.numero_conta }} do {{ conta.conta_associacao.banco_nome }},
         agência {{ conta.conta_associacao.agencia }} os valores de
         R$ {{ conta.totais.saldo_atual_custeio|formata_valor }}
-        para despesas de custeio, R$ {{ conta.totais.saldo_atual_capital|formata_valor }}, para despesas de capital e
-        R$ {{ conta.totais.saldo_atual_livre|formata_valor }} para despesas de livre aplicação, valores estes que foram
+        para saldo de custeio, R$ {{ conta.totais.saldo_atual_capital|formata_valor }}, para saldo de capital e
+        R$ {{ conta.totais.saldo_atual_livre|formata_valor }} para saldo de livre aplicação, valores estes que foram
         reprogramados, além de
         R$ {{ conta.totais.despesas_nao_conciliadas|addition:conta.totais.despesas_nao_conciliadas_anteriores|formata_valor }}
         relativo a despesas pendentes de compensação bancária, totalizando
@@ -340,8 +340,8 @@
         conta nº {{ conta.conta_associacao.numero_conta }} do {{ conta.conta_associacao.banco_nome }},
         agência {{ conta.conta_associacao.agencia }} os valores de
         R$ {{ conta.totais.saldo_atual_custeio|formata_valor }}
-        para despesas de custeio, R$ {{ conta.totais.saldo_atual_capital|formata_valor }}, para despesas de capital e
-        R$ {{ conta.totais.saldo_atual_livre|formata_valor }} para despesas de livre aplicação, totalizando
+        para saldo de custeio, R$ {{ conta.totais.saldo_atual_capital|formata_valor }}, para saldo de capital e
+        R$ {{ conta.totais.saldo_atual_livre|formata_valor }} para saldo de livre aplicação, totalizando
         R$ {{ conta.totais.saldo_bancario_total|formata_valor }},
         valores estes que foram reprogramados.</p>
     {% endif %}
