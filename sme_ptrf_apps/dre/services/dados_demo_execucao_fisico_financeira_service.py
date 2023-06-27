@@ -59,7 +59,8 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
             "execucao_fisica": execucao_fisica,
             "dados_fisicos_financeiros": dados_fisicos_financeiros,
             "assinatura_dre": assinatura_dre,
-            "versao_relatorio": "PARCIAL" if parcial else "FINAL"
+            "versao_relatorio": "PARCIAL" if parcial else "FINAL",
+            "previa": previa
         }
 
     finally:
