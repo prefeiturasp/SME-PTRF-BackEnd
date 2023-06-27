@@ -250,25 +250,3 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
 .watermark-2 {
   top: 500px;
 }
-
-.container-watermark {
-  position: relative;
-  height: 100vh;
-}
-
-.watermark1 {
-  position: fixed;
-  top: 25%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0.5;
-  z-index: 99;
-}
-.watermark2 {
-  position: fixed;
-  top: 75%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0.5;
-  z-index: 99;
-}
