@@ -61,7 +61,7 @@ django-admin-interface==0.12.2
 sentry-sdk==0.14.2  # https://github.com/getsentry/sentry-python
 
 # Gerador de PDF
-WeasyPrint==52.2
+WeasyPrint==54.3
 django-weasyprint==1.0.2
 
 # Para somar valores nos templates (incluindo floats)
