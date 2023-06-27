@@ -13,7 +13,12 @@
   <title>Demonstrativo Financeiro PTRF</title>
 </head>
 <body>
-
+{% if "parcial" in dados.data_geracao_documento %}
+<div class="container-watermark">
+    <img class="watermark1" src="{{ base_static_url }}/images/watermark-visualizacao-previa.svg" alt="Marca da água visão prévia">
+    <img class="watermark2" src="{{ base_static_url }}/images/watermark-visualizacao-previa.svg" alt="Marca da água visão prévia">
+</div>
+{% endif %}
 {# ************************* Cabecalho das páginas *************************  #}
 <header>
   <div class="d-flex">
@@ -38,11 +43,6 @@
       </p>
     </div>
   </div>
-
-  {% if "parcial" in dados.data_geracao_documento %}
-    <img id="watermark-previa-1" class="watermark-previa watermark-1" src="{{base_static_url}}//images/watermark-visualizacao-previa.svg" alt="Marca da água visão prévia">
-    <img id="watermark-previa-2" class="watermark-previa watermark-2" src="{{base_static_url}}//images/watermark-visualizacao-previa.svg" alt="Marca da água visão prévia">
-  {% endif %}
 </header>
 {# ************************* Fim Cabecalho das páginas *************************  #}
 
