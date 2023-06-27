@@ -131,6 +131,10 @@ class AnalisePrestacaoConta(ModeloBase):
         "Arquivo pdf apresentação após acertos gerado em", null=True)
 
     @property
+    def requer_geracao_fechamentos(self):
+        return self.verifica_se_requer_alteracao_em_lancamentos(considera_realizacao=False)
+
+    @property
     def requer_alteracao_em_lancamentos(self):
         return self.verifica_se_requer_alteracao_em_lancamentos()
 
@@ -279,6 +283,7 @@ class AnalisePrestacaoConta(ModeloBase):
     def verifica_se_requer_alteracao_em_lancamentos(self, considera_realizacao=True):
         from sme_ptrf_apps.core.models import TipoAcertoDocumento, TipoAcertoLancamento
         from sme_ptrf_apps.core.models import SolicitacaoAcertoLancamento, SolicitacaoAcertoDocumento
+
         categorias_que_requerem_alteracoes = [
             TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
             TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO,
