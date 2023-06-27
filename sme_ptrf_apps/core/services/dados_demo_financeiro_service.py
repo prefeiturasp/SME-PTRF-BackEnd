@@ -16,8 +16,7 @@ from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (APLICACAO_C
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao, prestacao, observacao_conciliacao,
-                                         previa=False):
+def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao, prestacao, observacao_conciliacao, previa=False):
     try:
         LOGGER.info("GERANDO DADOS DEMONSTRATIVO...")
         rateios_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
@@ -91,7 +90,8 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
             "observacoes_acoes": observacoes,
             "justificativas": justificativas,
             "data_geracao_documento": data_geracao_documento,
-            "data_geracao": data_geracao
+            "data_geracao": data_geracao,
+            "previa": previa
         }
     # except Exception as e:
     #    LOGGER.error("ERRO no DADOS DEMONSTRATIVO: %s", str(e))
