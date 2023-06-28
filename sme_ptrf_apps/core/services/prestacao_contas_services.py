@@ -38,6 +38,24 @@ from ..api.serializers.associacao_serializer import AssociacaoCompletoSerializer
 logger = logging.getLogger(__name__)
 
 
+def pc_requer_geracao_fechamentos(prestacao):
+    if prestacao.status in (
+        PrestacaoConta.STATUS_NAO_RECEBIDA,
+        PrestacaoConta.STATUS_RECEBIDA,
+        PrestacaoConta.STATUS_EM_ANALISE,
+        PrestacaoConta.STATUS_APROVADA,
+        PrestacaoConta.STATUS_APROVADA_RESSALVA,
+        PrestacaoConta.STATUS_REPROVADA,
+        PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA,
+    ):
+        return False
+
+    if prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA:
+        ultima_analise = prestacao.analises_da_prestacao.last()
+        return ultima_analise is not None and ultima_analise.requer_geracao_fechamentos
+    else:
+        return True
+
 def pc_requer_geracao_documentos(prestacao):
     if prestacao.status in (
         PrestacaoConta.STATUS_NAO_RECEBIDA,
@@ -64,12 +82,14 @@ def concluir_prestacao_de_contas(periodo, associacao, usuario=None, monitoraPc=F
 
     e_retorno_devolucao = prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA
     requer_geracao_documentos = pc_requer_geracao_documentos(prestacao)
+    requer_geracao_fechamentos = pc_requer_geracao_fechamentos(prestacao)
 
     if prestacao.status == PrestacaoConta.STATUS_EM_PROCESSAMENTO:
         return {
             "prestacao": prestacao,
             "e_retorno_devolucao": e_retorno_devolucao,
             "requer_geracao_documentos": requer_geracao_documentos,
+            "requer_geracao_fechamentos": requer_geracao_fechamentos,
             "erro": "A pc já está em processamento, não é possivel alterar o status para em processamento."
         }
 
@@ -83,6 +103,7 @@ def concluir_prestacao_de_contas(periodo, associacao, usuario=None, monitoraPc=F
         "prestacao": prestacao,
         "e_retorno_devolucao": e_retorno_devolucao,
         "requer_geracao_documentos": requer_geracao_documentos,
+        "requer_geracao_fechamentos": requer_geracao_fechamentos,
         "erro": None
     }
 
