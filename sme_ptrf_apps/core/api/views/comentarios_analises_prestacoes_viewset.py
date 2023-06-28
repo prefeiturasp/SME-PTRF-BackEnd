@@ -91,7 +91,7 @@ class ComentariosAnalisesPrestacoesViewSet(viewsets.ModelViewSet):
             comentarios_nao_notificados = ComentarioAnalisePrestacao.objects.filter(
                 notificado=False,
                 prestacao_conta=prestacao_de_conta
-            )
+            ).order_by('ordem')
 
             comentarios_notificados = ComentarioAnalisePrestacao.objects.filter(
                 notificado=True,
@@ -101,7 +101,7 @@ class ComentariosAnalisesPrestacoesViewSet(viewsets.ModelViewSet):
             comentarios_nao_notificados = ComentarioAnalisePrestacao.objects.filter(
                 Q(associacao=associacao) & Q(periodo=periodo),
                 notificado=False
-            )
+            ).order_by('ordem')
 
             comentarios_notificados = ComentarioAnalisePrestacao.objects.filter(
                 Q(associacao=associacao) & Q(periodo=periodo),
