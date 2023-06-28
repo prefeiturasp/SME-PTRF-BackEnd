@@ -291,7 +291,7 @@ class Associacao(ModeloIdNome):
         return True
 
     def pendencias_dados_da_associacao_para_geracao_de_documentos(self):
-        pendencia_cadastro = not self.nome or not self.ccm or not self.unidade.email
+        pendencia_cadastro = not self.nome or not self.ccm
         pendencia_membros = not self.membros_diretoria_executiva_e_conselho_fiscal_cadastrados
         pendencia_contas =  self.contas.filter(Q(banco_nome__exact='') | Q(agencia__exact='') | Q(numero_conta__exact='',
                                                status=ContaAssociacao.STATUS_ATIVA)).exists()
