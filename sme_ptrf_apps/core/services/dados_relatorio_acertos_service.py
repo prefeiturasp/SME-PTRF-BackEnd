@@ -75,7 +75,8 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
         'dados_documentos': dados_documentos,
         'dados_tecnico': dados_tecnico,
         'data_geracao_documento': data_geracao_documento,
-        'blocos': nome_blocos(dados_ajustes_contas, dados_lancamentos, dados_documentos, dados_tecnico, previa)
+        'blocos': nome_blocos(dados_ajustes_contas, dados_lancamentos, dados_documentos, dados_tecnico, previa),
+        'previa': previa
     }
 
     return dados
