@@ -156,7 +156,8 @@ class DadosRelatorioAposAcertos:
             'dados_lancamentos': self.dados_lancamentos,
             'dados_documentos': self.dados_documentos,
             'blocos': self.blocos,
-            'rodape': self.rodape
+            'rodape': self.rodape,
+            'previa': self.previa
         }
 
 
