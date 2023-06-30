@@ -303,6 +303,7 @@ class PrestacaoConta(ModeloBase):
         return self
 
     def apaga_fechamentos(self):
+        logging.info('Apagando fechamentos da prestação de contas')
         for fechamento in self.fechamentos_da_prestacao.all():
             fechamento.delete()
 
@@ -364,6 +365,14 @@ class PrestacaoConta(ModeloBase):
         self.status = self.STATUS_DEVOLVIDA_RETORNADA
         self.save()
         return self
+
+    def atualizar_comentarios_de_analise_sem_pc(self):
+        from sme_ptrf_apps.core.models import ComentarioAnalisePrestacao
+        comentarios_de_analise_relacionados_sem_pc = ComentarioAnalisePrestacao.objects.filter(Q(associacao=self.associacao) & \
+                                                                                               Q(periodo=self.periodo) & \
+                                                                                               Q(prestacao_conta__isnull=True))
+        print('comentarios_de_analise_relacionados_sem_pc', comentarios_de_analise_relacionados_sem_pc)
+        comentarios_de_analise_relacionados_sem_pc.update(prestacao_conta=self, associacao=None, periodo=None)
 
     def get_contas_com_movimento(self, add_sem_movimento_com_saldo=False):
         from sme_ptrf_apps.core.models import ContaAssociacao
@@ -514,13 +523,20 @@ class PrestacaoConta(ModeloBase):
             data_limite_ue=data_limite_ue
         )
 
+        devolucao_requer_alteracoes = False
+
         if self.analise_atual:
+            devolucao_requer_alteracoes = self.analise_atual.verifica_se_requer_alteracao_em_lancamentos(considera_realizacao=False)
             self.analise_atual.devolucao_prestacao_conta = devolucao
             self.analise_atual.save()
 
         self.analise_atual = None
         self.justificativa_pendencia_realizacao = ""
         self.save()
+
+        if devolucao_requer_alteracoes:
+            logging.info('A devolução de PC requer alterações e por isso deve apagar os seus fechamentos.')
+            self.apaga_fechamentos()
 
         notificar_prestacao_de_contas_devolvida_para_acertos(self, data_limite_ue)
         return self
@@ -630,7 +646,7 @@ class PrestacaoConta(ModeloBase):
                 'status': cls.STATUS_NAO_APRESENTADA
             }
         )
-
+        prestacao_de_conta.atualizar_comentarios_de_analise_sem_pc()
         return prestacao_de_conta
 
     @classmethod

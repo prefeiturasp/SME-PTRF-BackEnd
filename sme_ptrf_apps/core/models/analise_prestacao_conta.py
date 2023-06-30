@@ -131,6 +131,10 @@ class AnalisePrestacaoConta(ModeloBase):
         "Arquivo pdf apresentação após acertos gerado em", null=True)
 
     @property
+    def requer_geracao_fechamentos(self):
+        return self.verifica_se_requer_alteracao_em_lancamentos(considera_realizacao=False)
+
+    @property
     def requer_alteracao_em_lancamentos(self):
         return self.verifica_se_requer_alteracao_em_lancamentos()
 
@@ -279,6 +283,7 @@ class AnalisePrestacaoConta(ModeloBase):
     def verifica_se_requer_alteracao_em_lancamentos(self, considera_realizacao=True):
         from sme_ptrf_apps.core.models import TipoAcertoDocumento, TipoAcertoLancamento
         from sme_ptrf_apps.core.models import SolicitacaoAcertoLancamento, SolicitacaoAcertoDocumento
+
         categorias_que_requerem_alteracoes = [
             TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
             TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO,
@@ -322,11 +327,11 @@ class AnalisePrestacaoConta(ModeloBase):
                     analises_de_documentos_requerem_alteracoes = True
                     break
 
-        """ logger.info(f'Prestação de conta: {self.prestacao_conta.id}')
-        logger.info(f'Análise de Prestação de conta: {self.id}')K
-        logger.info(f'analises_de_lancamentos_requerem_alteracoes: {analises_de_lancamentos_requerem_alteracoes}')
-        logger.info(f'analises_de_documentos_requerem_alteracoes: {analises_de_documentos_requerem_alteracoes}')
-        logger.info(f'É necessário recalcular fechamentos e documentos? {analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes}') """
+        logger.debug(f'Prestação de conta: {self.prestacao_conta.id}')
+        logger.debug(f'Análise de Prestação de conta: {self.id}')
+        logger.debug(f'analises_de_lancamentos_requerem_alteracoes: {analises_de_lancamentos_requerem_alteracoes}')
+        logger.debug(f'analises_de_documentos_requerem_alteracoes: {analises_de_documentos_requerem_alteracoes}')
+        logger.debug(f'É necessário recalcular fechamentos e documentos? {analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes}')
         return analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes
 
     @classmethod

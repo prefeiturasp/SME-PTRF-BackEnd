@@ -135,7 +135,8 @@ class DadosRelatorioDevolucaoAcertosSme:
             'dados_comentarios': self.dados_comentarios,
             'dados_responsavel_analise': self.dados_responsavel_analise,
             'blocos': self.blocos,
-            'info_rodape': self.info_rodape
+            'info_rodape': self.info_rodape,
+            'previa': self.previa
         }
 
 
