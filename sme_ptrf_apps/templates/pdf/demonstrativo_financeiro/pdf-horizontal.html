@@ -13,7 +13,12 @@
   <title>Demonstrativo Financeiro PTRF</title>
 </head>
 <body>
-
+{% if dados.previa %}
+<div class="container-watermark">
+    <img class="watermark1" src="{{ base_static_url }}/images/watermark-visualizacao-previa.svg" alt="Marca da água visão prévia">
+    <img class="watermark2" src="{{ base_static_url }}/images/watermark-visualizacao-previa.svg" alt="Marca da água visão prévia">
+</div>
+{% endif %}
 {# ************************* Cabecalho das páginas *************************  #}
 <header>
   <div class="d-flex">
@@ -666,39 +671,41 @@
     </div>
   </article>
 
-  <article id="bloco-9" class="mt-4">
-    <p class="font-14 border-bottom pb-3"><strong>Bloco 9 - Assinatura dos Responsáveis pela Prestação de
-      Contas</strong></p>
-    <div class="col-12 border mt-4">
-      <div class="row">
-        <div class="col d-flex align-items-center justify-content-start">
-          <p class="pt-2 pb-2 mb-1">Declaramos, sob as penas da lei, que as informações prestadas são verdadeiras.</p>
+  {% if not dados.previa %}
+    <article id="bloco-9" class="mt-4">
+      <p class="font-14 border-bottom pb-3"><strong>Bloco 9 - Assinatura dos Responsáveis pela Prestação de
+        Contas</strong></p>
+      <div class="col-12 border mt-4">
+        <div class="row">
+          <div class="col d-flex align-items-center justify-content-start">
+            <p class="pt-2 pb-2 mb-1">Declaramos, sob as penas da lei, que as informações prestadas são verdadeiras.</p>
+          </div>
+          <div class="col d-flex align-items-center justify-content-end">
+            <p class="pt-2 pb-2 mb-1">Data: <strong>{{ dados.data_geracao }}</strong></p>
+          </div>
         </div>
-        <div class="col d-flex align-items-center justify-content-end">
-          <p class="pt-2 pb-2 mb-1">Data: <strong>{{ dados.data_geracao }}</strong></p>
-        </div>
-      </div>
 
 
-    </div>
-    <div class="col-12 border-right border-left border-bottom">
-      <div class="row pt-5">
-        <div class="col mr-2 ml-0 pt-5">
-          <p class="mb-0 text-center">
-            __________________________________________________________________________________</p>
-          <p class="font-12 text-center mb-0">Assinatura
-            do {{ dados.identificacao_apm.cargo_substituto_presidente_ausente }} da Associação</p>
-          <p class="text-center"><strong>{{ dados.identificacao_apm.presidente_diretoria_executiva }}</strong></p>
-        </div>
-        <div class="col ml-2 mr-0 pt-5">
-          <p class="mb-0 text-center">
-            __________________________________________________________________________________</p>
-          <p class="font-12 text-center mb-0">Assinatura do Presidente do Conselho Fiscal da Associação</p>
-          <p class="text-center"><strong>{{ dados.identificacao_apm.presidente_conselho_fiscal }}</strong></p>
+      </div>
+      <div class="col-12 border-right border-left border-bottom">
+        <div class="row pt-5">
+          <div class="col mr-2 ml-0 pt-5">
+            <p class="mb-0 text-center">
+              __________________________________________________________________________________</p>
+            <p class="font-12 text-center mb-0">Assinatura
+              do {{ dados.identificacao_apm.cargo_substituto_presidente_ausente }} da Associação</p>
+            <p class="text-center"><strong>{{ dados.identificacao_apm.presidente_diretoria_executiva }}</strong></p>
+          </div>
+          <div class="col ml-2 mr-0 pt-5">
+            <p class="mb-0 text-center">
+              __________________________________________________________________________________</p>
+            <p class="font-12 text-center mb-0">Assinatura do Presidente do Conselho Fiscal da Associação</p>
+            <p class="text-center"><strong>{{ dados.identificacao_apm.presidente_conselho_fiscal }}</strong></p>
+          </div>
         </div>
       </div>
-    </div>
-  </article>
+    </article>
+  {% endif %}
 
 </section>
 

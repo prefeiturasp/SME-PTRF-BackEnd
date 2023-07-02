@@ -26,7 +26,8 @@ def gerar_dados_relacao_de_bens(usuario, conta_associacao=None, periodo=None, pr
             "identificacao_apm": identificacao_apm,
             "data_geracao": data_geracao,
             "relacao_de_bens_adquiridos_ou_produzidos": relacao_de_bens_adquiridos_ou_produzidos,
-            "data_geracao_documento": data_geracao_documento
+            "data_geracao_documento": data_geracao_documento,
+            "previa": previa
         }
     finally:
         LOGGER.info("DADOS RELAÇÃO DE BENS GERADO")

@@ -90,8 +90,7 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
         eh_parcial = parcial['parcial']
         sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
 
-        # TODO remover comentários após testes
-        # Tratativa dos Bugs: 91797, 93549 e 93018 da Sprint 65
+        # TODO Tratativa dos Bugs: 91797, 93549 e 93018 da Sprint 65
         # Gerava divergência em Tela do Relatório Consolidado em Tela
         # Quando uma prévia era gerada com um número X de PCS e depois concluisse mais PCS sempre olhava para o numero
         # Que já estava na Prévia, não levava em consideração as novas PCs concluídas
@@ -133,8 +132,7 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
     objeto_tipo_de_conta = []
 
     for tipo_conta in tipos_de_conta:
-        # TODO remover comentários após testes
-        # Tratativa dos Bugs: 91797, 93549 e 93018 da Sprint 65
+        # TODO Tratativa dos Bugs: 91797, 93549 e 93018 da Sprint 65
         # totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True, consolidado_dre=consolidado_dre)
         # Foi adicionado and consolidado_dre.versao == "FINAL" para verificar se passa ou não o consolidado
 

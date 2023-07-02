@@ -33,6 +33,7 @@ def concluir_prestacao_de_contas_async(
     criar_arquivos=True,
     e_retorno_devolucao=False,
     requer_geracao_documentos=True,
+    requer_geracao_fechamentos=False,
     justificativa_acertos_pendentes='',
 ):
     from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_documentos, _criar_fechamentos,
@@ -63,6 +64,13 @@ def concluir_prestacao_de_contas_async(
     if e_retorno_devolucao:
         ultima_analise_pc = prestacao.analises_da_prestacao.order_by('id').last()
         criar_relatorio_apos_acertos_final(analise_prestacao_conta=ultima_analise_pc, usuario=usuario)
+
+    if e_retorno_devolucao and requer_geracao_fechamentos and not requer_geracao_documentos:
+        logging.info(f'Solicitações de ajustes Justificadas requerem apagar fechamentos pc {prestacao.uuid}.')
+        prestacao.apaga_fechamentos()
+        logging.info(f'Solicitações de ajustes Justificadas requerem criar os fechamentos pc {prestacao.uuid}.')
+        _criar_fechamentos(acoes, contas, periodo, prestacao)
+        logger.info('Fechamentos criados para a prestação de contas %s.', prestacao)
 
     if e_retorno_devolucao and requer_geracao_documentos:
         logging.info(f'Solicitações de ajustes requerem apagar fechamentos e documentos da pc {prestacao.uuid}.')

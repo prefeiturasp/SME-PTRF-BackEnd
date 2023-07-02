@@ -583,12 +583,22 @@ class TipoDevolucaoTesouroAdmin(admin.ModelAdmin):
 class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
 
     def get_associacao(self, obj):
-        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''
+        if obj.prestacao_conta:
+            return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta.associacao else ''
+        elif obj.associacao:
+            return obj.associacao.nome
+        else:
+            return ''
 
     get_associacao.short_description = 'Associação'
 
     def get_referencia_periodo(self, obj):
-        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
+        if obj.prestacao_conta:
+            return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta.periodo else ''
+        elif obj.periodo:
+            return obj.periodo.referencia
+        else:
+            return ''
 
     get_referencia_periodo.short_description = 'Período'
 
