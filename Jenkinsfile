@@ -4,10 +4,10 @@ pipeline {
       kubeconfig = getKubeconf(env.branchname)
       registryCredential = 'jenkins_registry'
     }
-
     agent {
-      node { label 'python-36-ptrf' }
+      node { label 'AGENT-NODES' }
     }
+
 
     options {
       buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '5'))
@@ -33,7 +33,7 @@ pipeline {
 
         stage('Istalando dependencias') {
           when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } }
-          agent { label 'AGENT-PYTHON36' }
+          agent { label 'AGENT-PYTHON310' }
           steps {
             checkout scm
             sh 'pip install --user pipenv -r requirements/local.txt'
@@ -44,7 +44,7 @@ pipeline {
 
             stage('Testes Lint') {
               when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } }
-              agent { label 'AGENT-PYTHON36' }
+              agent { label 'AGENT-PYTHON310' }
               steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                   sh '''
@@ -64,7 +64,7 @@ pipeline {
             }
             stage('Testes Unitarios') {
               when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } }
-              agent { label 'AGENT-PYTHON36' }
+              agent { label 'AGENT-PYTHON310' }
               steps {
                 sh '''
                    export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
@@ -82,7 +82,7 @@ pipeline {
 
         stage('AnaliseCodigo') {
           when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } }
-          agent { label 'AGENT-PYTHON36' }
+          agent { label 'AGENT-PYTHON310' }
           steps {
                 withSonarQubeEnv('sonarqube-local'){
                   sh 'echo "[ INFO ] Iniciando analise Sonar..." && sonar-scanner \
