@@ -14,6 +14,12 @@
   <title>Relação de Bens PTRF</title>
 </head>
 <body>
+{% if dados.previa %}
+<div class="container-watermark">
+    <img class="watermark1" src="{{ base_static_url }}/images/watermark-visualizacao-previa.svg" alt="Marca da água visão prévia">
+    <img class="watermark2" src="{{ base_static_url }}/images/watermark-visualizacao-previa.svg" alt="Marca da água visão prévia">
+</div>
+{% endif %}
 
 {# ************************* Cabecalho das páginas *************************  #}
 <header>
@@ -117,29 +123,31 @@
     </table>
   </article>
 
-  <article id="bloco-3" class="mt-3">
-    <p class="font-14 border-bottom pb-1"><strong>Bloco 3 - Autenticação</strong>
-    </p>
-    <div class="col-12 border mt-3">
-      <p class="pt-2 mb-1">Declaro, sob as penas de Lei, que os bens acima relacionados, adquiridos ou produzidos com
-        recursos do PTRF foram doados à Prefeitura do Município de São Paulo/ Secretaria Municipal de Educação, para
-        serem incorporados ao patrimônio público e destinados à
-        (ao) {{ dados.identificacao_apm.tipo_unidade }} {{ dados.identificacao_apm.nome_unidade }}, responsável por sua
-        guarda e conservação.</p>
-      <p class="mt-0">Data: <strong class="data-geracao">{{ dados.data_geracao }}</strong></p>
-    </div>
-    <div class="col-12 border-right border-left border-bottom pt-5 pb-1">
-      <div class="row">
-        <div class="col">
-          <p class="mb-0 text-center">
-            __________________________________________________________________________________</p>
-          <p class="font-12 text-center mb-0">Assinatura
-            do {{ dados.identificacao_apm.cargo_substituto_presidente_ausente }} da Associação</p>
-          <p class="text-center pb-2"><strong>{{ dados.identificacao_apm.presidente_diretoria_executiva }}</strong></p>
+  {% if not dados.previa %}
+    <article id="bloco-3" class="mt-3">
+      <p class="font-14 border-bottom pb-1"><strong>Bloco 3 - Autenticação</strong>
+      </p>
+      <div class="col-12 border mt-3">
+        <p class="pt-2 mb-1">Declaro, sob as penas de Lei, que os bens acima relacionados, adquiridos ou produzidos com
+          recursos do PTRF foram doados à Prefeitura do Município de São Paulo/ Secretaria Municipal de Educação, para
+          serem incorporados ao patrimônio público e destinados à
+          (ao) {{ dados.identificacao_apm.tipo_unidade }} {{ dados.identificacao_apm.nome_unidade }}, responsável por sua
+          guarda e conservação.</p>
+        <p class="mt-0">Data: <strong class="data-geracao">{{ dados.data_geracao }}</strong></p>
+      </div>
+      <div class="col-12 border-right border-left border-bottom pt-5 pb-1">
+        <div class="row">
+          <div class="col">
+            <p class="mb-0 text-center">
+              __________________________________________________________________________________</p>
+            <p class="font-12 text-center mb-0">Assinatura
+              do {{ dados.identificacao_apm.cargo_substituto_presidente_ausente }} da Associação</p>
+            <p class="text-center pb-2"><strong>{{ dados.identificacao_apm.presidente_diretoria_executiva }}</strong></p>
+          </div>
         </div>
       </div>
-    </div>
-  </article>
+    </article>
+  {% endif %}
 
 </section>
 

@@ -28,12 +28,6 @@ def gerar_arquivo_demonstrativo_execucao_fisico_financeiro_pdf(dados_demonstrati
 
         tipos_de_conta_list.append(objeto_tipo_de_conta)
 
-    dados = {
-        'dados': dados_demonstrativo,
-        'tipos_de_conta_list': tipos_de_conta_list
-    }
-
-    # rendered_html = html_template.render({'dados': dados_demonstrativo, 'tipos_de_conta_list': tipos_de_conta_list, 'base_static_url': staticfiles_storage.location})
     rendered_html = html_template.render({'dados': dados_demonstrativo, 'tipos_de_conta_list': tipos_de_conta_list, 'base_static_url': staticfiles_storage.location})
 
     LOGGER.info(f'base_url: {os.path.basename(staticfiles_storage.location)}')

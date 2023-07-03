@@ -221,6 +221,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                     usuario=request.user.username,
                     e_retorno_devolucao=dados["e_retorno_devolucao"],
                     requer_geracao_documentos=dados["requer_geracao_documentos"],
+                    requer_geracao_fechamentos=dados["requer_geracao_fechamentos"],
                     justificativa_acertos_pendentes=justificativa_acertos_pendentes,
                 )
         except(IntegrityError):

@@ -6,6 +6,19 @@
   src: url(../fonts/Roboto-Regular.ttf);
 }
 
+@font-face {
+  font-family: Roboto;
+  font-weight: 700;
+  src: url(../fonts/Roboto-Bold.ttf);
+}
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  font-style: italic;
+  src: url(../fonts/Roboto-Italic.ttf);
+}
+
 @page {
   size: A4 landscape;
   margin: 3cm -2mm 2cm -2mm;
@@ -222,4 +235,26 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
 
 .detalhe-linha-tabela {
   margin-bottom: 0px;
+}
+
+.container-watermark {
+  position: relative;
+  height: 100vh;
+}
+
+.watermark1 {
+  position: fixed;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.5;
+  z-index: 99;
+}
+.watermark2 {
+  position: fixed;
+  top: 75%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.5;
+  z-index: 99;
 }
