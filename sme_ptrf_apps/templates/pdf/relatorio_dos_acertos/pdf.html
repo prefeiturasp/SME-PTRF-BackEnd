@@ -12,6 +12,13 @@
   <title>Relatório de acertos PTRF</title>
 </head>
 <body>
+
+{% if dados.previa %}
+<div class="container-watermark">
+    <img class="watermark1" src="{{ base_static_url }}/images/watermark-visualizacao-previa.svg" alt="Marca da água visão prévia">
+    <img class="watermark2" src="{{ base_static_url }}/images/watermark-visualizacao-previa.svg" alt="Marca da água visão prévia">
+</div>
+{% endif %}
 {# ************************* Cabecalho das páginas *************************  #}
 
 <header>

@@ -12,7 +12,7 @@ def test_devolver_consolidado(
     consolidado_dre_teste_api_consolidado_dre,
 ):
     payload = {
-        'data_limite': '2023-07-01',
+        'data_limite': '2123-07-01',
     }
 
     with patch('sme_ptrf_apps.dre.models.consolidado_dre.ConsolidadoDRE.devolver_consolidado') as mock_devolver_consolidado:
