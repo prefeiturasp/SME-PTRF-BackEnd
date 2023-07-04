@@ -85,6 +85,8 @@ class AnaliseContaPrestacaoContaViewSet(viewsets.ModelViewSet):
         prestacao_conta_uuid = dados_analise_saldo['prestacao_conta']
         data_extrato = dados_analise_saldo['data_extrato']
         saldo_extrato = dados_analise_saldo['saldo_extrato']
+        solicitar_envio_do_comprovante_do_saldo_da_conta = dados_analise_saldo['solicitar_envio_do_comprovante_do_saldo_da_conta']
+        observacao_solicitar_envio_do_comprovante_do_saldo_da_conta = dados_analise_saldo['observacao_solicitar_envio_do_comprovante_do_saldo_da_conta']
 
         try:
             analise_prestacao_conta = AnalisePrestacaoConta.by_uuid(analise_prestacao_conta_uuid)
@@ -119,7 +121,9 @@ class AnaliseContaPrestacaoContaViewSet(viewsets.ModelViewSet):
                 conta_associacao=conta_associacao,
                 prestacao_conta=prestacao_conta,
                 data_extrato=data_extrato,
-                saldo_extrato=saldo_extrato
+                saldo_extrato=saldo_extrato,
+                solicitar_envio_do_comprovante_do_saldo_da_conta=solicitar_envio_do_comprovante_do_saldo_da_conta,
+                observacao_solicitar_envio_do_comprovante_do_saldo_da_conta=observacao_solicitar_envio_do_comprovante_do_saldo_da_conta,
             )
         except Exception as err:
             erro = {

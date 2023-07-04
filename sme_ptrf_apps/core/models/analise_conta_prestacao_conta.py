@@ -22,6 +22,11 @@ class AnaliseContaPrestacaoConta(ModeloBase):
     analise_prestacao_conta = models.ForeignKey('AnalisePrestacaoConta', on_delete=models.CASCADE,
                                                 related_name='analises_de_extratos', null=True, blank=True, default=None)
 
+    solicitar_envio_do_comprovante_do_saldo_da_conta = models.BooleanField("Solicitar envio do comprovante do saldo da conta", default=False)
+
+    observacao_solicitar_envio_do_comprovante_do_saldo_da_conta = models.TextField('Observação solicitação de envio do comprovante do saldo da conta', max_length=600, blank=True, null=True)
+
+
     def __str__(self):
         return f"{self.conta_associacao} - {self.data_extrato} - {self.saldo_extrato}"
 
