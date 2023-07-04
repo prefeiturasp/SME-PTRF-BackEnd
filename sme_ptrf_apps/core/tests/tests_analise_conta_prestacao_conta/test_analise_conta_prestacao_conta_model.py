@@ -6,13 +6,15 @@ from ...models import PrestacaoConta, AnaliseContaPrestacaoConta, ContaAssociaca
 pytestmark = pytest.mark.django_db
 
 
-def test_instance_model(analise_conta_prestacao_conta_2020_1):
-    model = analise_conta_prestacao_conta_2020_1
+def test_instance_model(analise_conta_prestacao_conta_2020_1_solicitar_envio_do_comprovante_do_saldo_da_conta):
+    model = analise_conta_prestacao_conta_2020_1_solicitar_envio_do_comprovante_do_saldo_da_conta
     assert isinstance(model, AnaliseContaPrestacaoConta)
     assert isinstance(model.prestacao_conta, PrestacaoConta)
     assert isinstance(model.conta_associacao, ContaAssociacao)
     assert model.data_extrato
     assert model.saldo_extrato
+    assert model.solicitar_envio_do_comprovante_do_saldo_da_conta
+    assert model.observacao_solicitar_envio_do_comprovante_do_saldo_da_conta
 
 
 def test_srt_model(analise_conta_prestacao_conta_2020_1):

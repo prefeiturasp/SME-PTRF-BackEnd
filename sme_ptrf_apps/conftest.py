@@ -2134,6 +2134,18 @@ def devolucao_prestacao_conta_2019_2(prestacao_conta_devolvida):
 
 
 @pytest.fixture
+def analise_conta_prestacao_conta_2020_1_solicitar_envio_do_comprovante_do_saldo_da_conta(prestacao_conta_2020_1_conciliada, conta_associacao_cheque):
+    return baker.make(
+        'AnaliseContaPrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_conciliada,
+        conta_associacao=conta_associacao_cheque,
+        data_extrato=date(2020, 7, 1),
+        saldo_extrato=100.00,
+        solicitar_envio_do_comprovante_do_saldo_da_conta=True,
+        observacao_solicitar_envio_do_comprovante_do_saldo_da_conta='Observação de solicitação de envio de comprovante de saldo conta cheque',
+    )
+
+@pytest.fixture
 def analise_conta_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, conta_associacao_cheque):
     return baker.make(
         'AnaliseContaPrestacaoConta',
