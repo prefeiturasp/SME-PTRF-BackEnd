@@ -225,7 +225,9 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
                     },
                     "data_extrato": analise.data_extrato,
                     "saldo_extrato": analise.saldo_extrato,
-                    "analise_prestacao_conta": f'{analise.analise_prestacao_conta.uuid}'
+                    "analise_prestacao_conta": f'{analise.analise_prestacao_conta.uuid}',
+                    'solicitar_envio_do_comprovante_do_saldo_da_conta': analise.solicitar_envio_do_comprovante_do_saldo_da_conta,
+                    'observacao_solicitar_envio_do_comprovante_do_saldo_da_conta': analise.observacao_solicitar_envio_do_comprovante_do_saldo_da_conta,
                 }
             )
 
