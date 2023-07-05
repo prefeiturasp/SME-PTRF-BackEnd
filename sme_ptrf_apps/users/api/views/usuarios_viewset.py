@@ -4,20 +4,25 @@ import logging
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+import django_filters
+from django_filters import rest_framework as filters
 
 from requests import ConnectTimeout, ReadTimeout
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import SearchFilter
+
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from sme_ptrf_apps.users.api.serializers import (
     AlteraEmailSerializer,
     RedefinirSenhaSerializer,
     UserCreateSerializer,
-    UserSerializer,
+    UsuarioSerializer,
     UserRetrieveSerializer
 )
 from sme_ptrf_apps.users.models import Grupo, Visao
@@ -55,16 +60,41 @@ class CustomPagination(PageNumberPagination):
             }
         )
 
+class UsuariosFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    username = django_filters.CharFilter(lookup_expr='icontains')
+    email = django_filters.CharFilter(lookup_expr='icontains')
+    unidades__nome = django_filters.CharFilter(lookup_expr='icontains')
+
+    class Meta:
+        model = User
+        fields = [
+            'name',
+            'username',
+            'email',
+            'groups__id',
+            'e_servidor',
+            'unidades__codigo_eol',
+            'unidades__nome',
+            'visoes__nome',
+        ]
+
 class UsuariosViewSet(ModelViewSet):
     lookup_field = "id"
-    serializer_class = UserSerializer
+    serializer_class = UsuarioSerializer
     queryset = User.objects.all().order_by("name", "id")
-    permission_classes = [IsAuthenticated ]
+   # TODO: Voltar com a permissão de autenticação
+   # permission_classes = [IsAuthenticated ]
+    permission_classes = [AllowAny]
     pagination_class = CustomPagination
+    filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
+    search_fields = ['name', 'username', ]
+    filterset_class = UsuariosFilter
+
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return UserSerializer
+            return UsuarioSerializer
 
         elif self.action == 'retrieve':
             return UserRetrieveSerializer
@@ -74,54 +104,50 @@ class UsuariosViewSet(ModelViewSet):
 
     def get_queryset(self, *args, **kwargs):
         """
-        Visão == SME - Se a visão for SME, todos os usuários devem ser retornados, caso tenham alguma visão associada
+        Uso do parâmetro codigo_eol_base:
+        Texto "SME"    - Considera todos os usuários que tenham alguma visão associada
 
-        Visão == DRE - Se a visão for DRE, devem ser retornados todos os usuários da DRE e das UEs subordinadas
+        EOL de uma DRE - Considera todos os usuários da DRE e das UEs subordinadas
 
-        Visão == UE - Se a visão for UE, devem ser retornados apenas os usuários da unidade
+        EOL de uma UE  - Considera apenas os usuários da unidade
         """
         qs = self.queryset
         qs = qs.exclude(visoes=None)
 
-        visao = self.request.query_params.get('visao')
-        unidade_uuid = self.request.query_params.get('unidade_uuid')
+        unidade_codigo_eol = self.request.query_params.get('codigo_eol_base')
 
-        if visao == 'UE':
-            qs = qs.filter(unidades__uuid=unidade_uuid)
-        elif visao == 'DRE':
-            unidades_da_dre = Unidade.dres.get(uuid=unidade_uuid).unidades_da_dre.values_list("uuid", flat=True)
-            qs = qs.filter(Q(unidades__uuid=unidade_uuid) | Q(unidades__uuid__in=unidades_da_dre) ).distinct('name', 'id')
+        if not unidade_codigo_eol or unidade_codigo_eol == 'SME':
+            return qs
 
-        groups__id = self.request.query_params.get('groups__id')
-        if groups__id:
-            qs = qs.filter(groups__id=groups__id)
+        unidade_base = Unidade.objects.filter(codigo_eol=unidade_codigo_eol).first()
 
-        search = self.request.query_params.get('search')
-        if search is not None:
-            qs = qs.filter(Q(name__unaccent__icontains=search) | Q(username=search))
+        if not unidade_base:
+            raise ValidationError(f"Não foi encontrada uma unidade com código EOL {unidade_codigo_eol}.")
 
-        associacao_uuid = self.request.query_params.get('associacao_uuid')
-        if associacao_uuid:
-            qs = qs.filter(unidades__associacoes__uuid=associacao_uuid)
+        visao_consulta = 'DRE' if unidade_base.tipo_unidade == 'DRE' else 'UE'
 
-        username = self.request.query_params.get('username')
-        if username:
-            qs = qs.filter(username=username)
+        if visao_consulta  == 'UE':
+            return qs.filter(unidades__codigo_eol=unidade_codigo_eol)
 
-        servidor = self.request.query_params.get('servidor')
-        if servidor:
-            e_servidor = servidor == 'True'
-            qs = qs.filter(e_servidor=e_servidor)
+        if visao_consulta  == 'DRE':
+            unidades_da_dre = Unidade.dres.get(codigo_eol=unidade_codigo_eol).unidades_da_dre.values_list("codigo_eol", flat=True)
+            return qs.filter(Q(unidades__codigo_eol=unidade_codigo_eol) | Q(unidades__codigo_eol__in=unidades_da_dre) ).distinct('name', 'id')
 
-        unidade_nome = self.request.query_params.get('unidade_nome')
-        if unidade_nome:
-            qs = qs.filter(unidades__nome__unaccent__icontains=unidade_nome)
-
-        return qs
+    @extend_schema(parameters=[
+        OpenApiParameter(
+            name='codigo_eol_base',
+            description='EOL da unidade ou "SME". Para exibir usuários da unidade e subordinadas. ',
+            required=False,
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+        ),
+    ])
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     @action(detail=False, methods=["GET"])
     def me(self, request):
-        serializer = UserSerializer(request.user, context={"request": request})
+        serializer = UsuarioSerializer(request.user, context={"request": request})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     @action(detail=True, url_path='altera-email', methods=['patch'])
@@ -133,7 +159,7 @@ class UsuariosViewSet(ModelViewSet):
         instance = serialize.update(usuario, validated_data)
         if isinstance(instance, Response):
             return instance
-        return Response(UserSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
+        return Response(UsuarioSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
 
     @action(detail=True, url_path='altera-senha', methods=['patch'])
     def altera_senha(self, request, id):
@@ -144,7 +170,7 @@ class UsuariosViewSet(ModelViewSet):
         instance = serializer.update(usuario, validated_data)
         if isinstance(instance, Response):
             return instance
-        return Response(UserSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
+        return Response(UsuarioSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
 
     @action(detail=False, url_path="grupos", methods=['get'])
     def grupos(self, request):
