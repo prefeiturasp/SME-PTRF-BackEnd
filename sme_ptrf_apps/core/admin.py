@@ -554,6 +554,8 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
 
+    raw_id_fields = ['prestacao_conta', 'analise_prestacao_conta', 'conta_associacao']
+
     actions = ['vincula_analise_prestacao_contas', ]
 
     def vincula_analise_prestacao_contas(self, request, queryset):
