@@ -177,3 +177,16 @@ class FuncValoresReprogramadosUE(models.Model):
             ('access_valores_reprogramados_ue', '[UE] Pode acessar Valores Reprogramados.'),
             ('change_valores_reprogramados_ue', '[UE] Pode atualizar Valores Reprogramados.'),
         )
+
+class FuncUeGestaoUsuarios(models.Model):
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[UE] Gestão de usuários"
+        verbose_name_plural = "[UE] Gestão de usuários"
+
+        permissions = (
+            ('access_gestao_usuarios_ue', '[UE] Pode acessar Gestão de Usuários da UE.'),
+            ('change_gestao_usuarios_ue', '[UE] Pode atualizar Gestão de Usuários da UE.'),
+        )
