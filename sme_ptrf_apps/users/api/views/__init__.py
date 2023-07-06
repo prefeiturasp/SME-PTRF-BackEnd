@@ -2,3 +2,4 @@ from .user import UserViewSet # TODO - Remover ao fim da implantação da nova g
 from .usuarios_viewset import UsuariosViewSet
 from .login import LoginView
 from .senha_viewset import EsqueciMinhaSenhaViewSet, RedefinirSenhaViewSet
+from .grupos_viewset import GruposViewSet

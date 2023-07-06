@@ -78,6 +78,7 @@ from sme_ptrf_apps.users.api.views import (
     RedefinirSenhaViewSet,
     UserViewSet, # TODO - Remover ao fim da implantação da nova gestão de usuários
     UsuariosViewSet,
+    GruposViewSet
 )
 
 
@@ -93,6 +94,7 @@ else:
 
 router.register("usuarios", UserViewSet) # TODO - Remover ao fim da implantação da nova gestão de usuários
 router.register("usuarios-v2", UsuariosViewSet)
+router.register("grupos", GruposViewSet)
 router.register("despesas", DespesasViewSet)
 router.register("especificacoes", EspecificacaoMaterialServicoViewSet)
 router.register("rateios-despesas", RateiosDespesasViewSet)

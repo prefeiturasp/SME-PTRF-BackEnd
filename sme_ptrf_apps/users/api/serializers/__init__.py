@@ -12,3 +12,7 @@ from .user import (
 from .usuario_serializer import (
     UsuarioSerializer,
 )
+
+from .grupo_serializer import (
+    GrupoSerializer,
+)
