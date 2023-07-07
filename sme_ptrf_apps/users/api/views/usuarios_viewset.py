@@ -114,29 +114,29 @@ class UsuariosViewSet(ModelViewSet):
         qs = self.queryset
         qs = qs.exclude(visoes=None)
 
-        unidade_codigo_eol = self.request.query_params.get('codigo_eol_base')
+        uuid_unidade_base = self.request.query_params.get('uuid_unidade_base')
 
-        if not unidade_codigo_eol or unidade_codigo_eol == 'SME':
+        if not uuid_unidade_base or uuid_unidade_base == 'SME':
             return qs
 
-        unidade_base = Unidade.objects.filter(codigo_eol=unidade_codigo_eol).first()
+        unidade_base = Unidade.objects.filter(uuid=uuid_unidade_base).first()
 
         if not unidade_base:
-            raise ValidationError(f"Não foi encontrada uma unidade com código EOL {unidade_codigo_eol}.")
+            raise ValidationError(f"Não foi encontrada uma unidade com uuid {uuid_unidade_base}.")
 
         visao_consulta = 'DRE' if unidade_base.tipo_unidade == 'DRE' else 'UE'
 
         if visao_consulta  == 'UE':
-            return qs.filter(unidades__codigo_eol=unidade_codigo_eol)
+            return qs.filter(unidades__uuid=uuid_unidade_base)
 
         if visao_consulta  == 'DRE':
-            unidades_da_dre = Unidade.dres.get(codigo_eol=unidade_codigo_eol).unidades_da_dre.values_list("codigo_eol", flat=True)
-            return qs.filter(Q(unidades__codigo_eol=unidade_codigo_eol) | Q(unidades__codigo_eol__in=unidades_da_dre) ).distinct('name', 'id')
+            unidades_da_dre = Unidade.dres.get(uuid=uuid_unidade_base).unidades_da_dre.values_list("uuid", flat=True)
+            return qs.filter(Q(unidades__uuid=uuid_unidade_base) | Q(unidades__uuid__in=unidades_da_dre) ).distinct('name', 'id')
 
     @extend_schema(parameters=[
         OpenApiParameter(
-            name='codigo_eol_base',
-            description='EOL da unidade ou "SME". Para exibir usuários da unidade e subordinadas. ',
+            name='uuid_unidade_base',
+            description='UUID da unidade ou "SME". Para exibir usuários da unidade e subordinadas. ',
             required=False,
             type=OpenApiTypes.STR,
             location=OpenApiParameter.QUERY,
