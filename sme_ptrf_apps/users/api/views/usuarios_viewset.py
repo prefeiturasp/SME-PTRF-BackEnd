@@ -76,6 +76,7 @@ class UsuariosFilter(django_filters.FilterSet):
             'e_servidor',
             'unidades__codigo_eol',
             'unidades__nome',
+            'unidades__uuid',
             'visoes__nome',
         ]
 
