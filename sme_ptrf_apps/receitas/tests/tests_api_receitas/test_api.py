@@ -205,9 +205,16 @@ def test_get_tabelas(
                 'mensagem_usuario': tipo_receita.mensagem_usuario,
                 'possui_detalhamento': tipo_receita.possui_detalhamento,
                 'tipos_conta': [{
+                    'agencia': tipo_conta.agencia,
+                    'apenas_leitura': tipo_conta.apenas_leitura,
+                    'banco_nome': tipo_conta.banco_nome,
                     'uuid': f'{tipo_conta.uuid}',
                     'id': tipo_conta.id,
                     'nome': tipo_conta.nome,
+                    'numero_cartao': tipo_conta.numero_cartao,
+                    'numero_conta': tipo_conta.numero_conta,
+                    'permite_inativacao': tipo_conta.permite_inativacao,
+
                     'apenas_leitura': False
                 }],
                 'detalhes_tipo_receita': [

@@ -19,8 +19,13 @@ def test_api_list_tipos_conta(jwt_authenticated_client_a, tipo_conta):
 
     resultado_esperado = [
         {
+            'agencia': '',
+            'banco_nome': '',
             'id': tipo_conta.id,
             'nome': 'Teste',
+            'numero_cartao': '',
+            'numero_conta': '',
+            'permite_inativacao': False,
             'apenas_leitura': tipo_conta.apenas_leitura,
             'uuid': f'{tipo_conta.uuid}'
 
