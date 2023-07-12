@@ -92,6 +92,28 @@ class UsuariosViewSet(ModelViewSet):
     search_fields = ['name', 'username', ]
     filterset_class = UsuariosFilter
 
+    def get_serializer(self, *args, **kwargs):
+        kwargs['context'] = self.get_serializer_context()
+        return super().get_serializer(*args, **kwargs)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        uuid_unidade_base = self.request.query_params.get('uuid_unidade_base')
+
+        visao_consulta = None
+
+        if not uuid_unidade_base or uuid_unidade_base == 'SME':
+            visao_consulta = 'SME'
+
+        elif uuid_unidade_base:
+            unidade_base = Unidade.objects.filter(uuid=uuid_unidade_base).first()
+            if unidade_base:
+                visao_consulta = 'DRE' if unidade_base.tipo_unidade == 'DRE' else 'UE'
+
+        if visao_consulta:
+            context.update({'visao_consulta': visao_consulta})
+
+        return context
 
     def get_serializer_class(self):
         if self.action == 'list':

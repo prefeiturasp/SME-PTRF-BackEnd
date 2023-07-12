@@ -73,8 +73,15 @@ class UsuarioSerializer(serializers.ModelSerializer):
         """
         Retorna a versão estendida dos grupos do usuário que inclui as informações de visões e descrição.
         """
+        visao_consulta = self.context.get('visao_consulta')
         groups_padrao = instance.groups.values_list("id", flat=True)
         groups_extendido = Grupo.objects.filter(id__in=groups_padrao).order_by('id')
+
+        if visao_consulta == 'UE':
+            groups_extendido = groups_extendido.filter(visoes__nome='UE')
+        elif visao_consulta == 'DRE':
+            groups_extendido = groups_extendido.exclude(visoes__nome='SME')
+
         return GrupoComVisaoSerializer(groups_extendido, many=True).data
 
     def get_unidades(selfself, instance):
