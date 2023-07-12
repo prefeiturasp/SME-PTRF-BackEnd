@@ -75,7 +75,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         """
         groups_padrao = instance.groups.values_list("id", flat=True)
         groups_extendido = Grupo.objects.filter(id__in=groups_padrao).order_by('id')
-        return GrupoSerializer(groups_extendido, many=True).data
+        return GrupoComVisaoSerializer(groups_extendido, many=True).data
 
     def get_unidades(selfself, instance):
         return UnidadeSerializer(instance.unidades, many=True, context={'user': instance}).data
