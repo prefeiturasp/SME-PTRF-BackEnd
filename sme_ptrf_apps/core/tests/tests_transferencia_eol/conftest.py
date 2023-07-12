@@ -19,7 +19,7 @@ def transf_eol_periodo_2022_2():
 def transf_eol_tipo_conta_cheque():
     return baker.make(
         'TipoConta',
-        nome='Cheque',
+        nome='Cheque transferencia_eol',
     )
 
 
