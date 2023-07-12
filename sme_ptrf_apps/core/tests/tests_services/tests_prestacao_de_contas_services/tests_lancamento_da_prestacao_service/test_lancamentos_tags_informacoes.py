@@ -107,16 +107,16 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_a
 
     lancamento = lancamentos[0]
     assert lancamento['documento_mestre']['uuid'] == f'{despesa_com_retencao_imposto.uuid}'
-    
+
     informacoes = lancamento['informacoes']
     informacoes_filtradas_tag_imposto = [info for info in informacoes if info['tag_id'] == '4']
-    
+
     assert informacoes_filtradas_tag_imposto == [{
         'tag_id': '4',
         'tag_nome': 'Imposto',
         'tag_hint': ['Essa despesa teve retenção de imposto:', 'R$ 10,00, pago em 10/03/2020.']
     }]
-    
+
 
 
 def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_apenas_dois_impostos_retidos(
@@ -181,16 +181,16 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_p
 
     lancamento = lancamentos[0]
     assert lancamento['documento_mestre']['uuid'] == f'{despesa_imposto_retido.uuid}'
-    
+
     informacoes = lancamento['informacoes']
     informacoes_filtradas_tag_imposto_pago = [info for info in informacoes if info['tag_id'] == '5']
-    
+
     assert informacoes_filtradas_tag_imposto_pago == [{
         'tag_id': '5',
         'tag_nome': 'Imposto Pago',
         'tag_hint': 'Esse imposto está relacionado à despesa 123315 / Antônio José SA.',
     }]
-    
+
 @freeze_time("2023-06-22")
 def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_nao_conciliada(
     jwt_authenticated_client_a,
@@ -218,10 +218,10 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_nao_conci
 
     lancamento = lancamentos[0]
     assert lancamento['documento_mestre']['uuid'] == f'{despesa_imposto_retido.uuid}'
-    
+
     informacoes = lancamento['informacoes']
     informacoes_filtradas_tag_nao_conciliada = [info for info in informacoes if info['tag_id'] == '10']
-    
+
     assert informacoes_filtradas_tag_nao_conciliada == [
         {'tag_hint': ['Essa despesa não possui conciliação bancária.', 'Não demonstrado por 39 meses.'],
          'tag_id': '10',
@@ -292,6 +292,42 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_parcial_m
         'tag_id': '3',
         'tag_nome': 'Parcial',
         'tag_hint': 'Parte da despesa foi paga com recursos próprios ou por mais de uma conta.',
+    },
+        {'tag_hint': 'Essa despesa já possui conciliação bancária.',
+         'tag_id': '9',
+         'tag_nome': 'Conciliada'}
+    ]
+
+
+def test_get_lancamentos_da_analise_da_prestacao_com_tag_inativa(
+    jwt_authenticated_client_a,
+    rateio_despesa_2020_inativa_teste_tag,
+    periodo_2020_1,
+    conta_associacao_cartao,
+    acao_associacao_ptrf,
+    prestacao_conta_2020_1_em_analise_despesa_inativa,
+    analise_prestacao_conta_2020_1_em_analise_despesa_inativa,
+    analise_lancamento_despesa_prestacao_conta_2020_1_despesa_inativa,
+    despesa_2020_1_inativa_teste_tag,
+    tipo_transacao,
+):
+    filtro_informacoes_list = ['6']
+
+    lancamentos = lancamentos_da_prestacao(
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise_despesa_inativa,
+        conta_associacao=conta_associacao_cartao,
+        tipo_transacao='GASTOS',
+        filtro_informacoes_list=filtro_informacoes_list
+    )
+
+    assert len(lancamentos) == 1
+
+    lancamento = lancamentos[0]
+    assert lancamento['documento_mestre']['uuid'] == f'{despesa_2020_1_inativa_teste_tag.uuid}'
+    assert lancamento['informacoes'] == [{
+        'tag_id': '6',
+        'tag_nome': 'Excluído',
+        'tag_hint': 'Este gasto foi excluído em 10/05/2020 05:10:10',
     },
         {'tag_hint': 'Essa despesa já possui conciliação bancária.',
          'tag_id': '9',
