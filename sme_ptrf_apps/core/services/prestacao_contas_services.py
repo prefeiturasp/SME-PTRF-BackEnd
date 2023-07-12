@@ -648,6 +648,8 @@ def lancamentos_da_prestacao(
     filtrar_por_data_inicio=None,
     filtrar_por_data_fim=None,
     filtrar_por_nome_fornecedor=None,
+    filtro_informacoes_list=None,
+    filtro_conferencia_list=None,
     inclui_inativas=False,
     agrupa_solicitacoes=True
 ):
@@ -669,6 +671,8 @@ def lancamentos_da_prestacao(
         filtrar_por_data_inicio,
         filtrar_por_data_fim,
         filtrar_por_nome_fornecedor=None,
+        filtro_informacoes_list=None,
+        filtro_conferencia_list=None,
         inclui_inativas=False,
     ):
         rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
@@ -712,6 +716,60 @@ def lancamentos_da_prestacao(
 
         if filtrar_por_nome_fornecedor:
             dataset = dataset.filter(nome_fornecedor__unaccent__icontains=filtrar_por_nome_fornecedor)
+
+        if filtro_informacoes_list:
+            ids_para_excluir = []
+            for despesa in dataset:
+                excluir_despesa = True
+                if Despesa.TAG_ANTECIPADO['id'] in filtro_informacoes_list and despesa.teve_pagamento_antecipado():
+                    excluir_despesa = False
+                if Despesa.TAG_ESTORNADO['id'] in filtro_informacoes_list and despesa.possui_estornos():
+                    excluir_despesa = False
+                if Despesa.TAG_IMPOSTO['id'] in filtro_informacoes_list and despesa.possui_retencao_de_impostos():
+                    excluir_despesa = False
+                if Despesa.TAG_IMPOSTO_PAGO['id'] in filtro_informacoes_list and despesa.e_despesa_de_imposto():
+                    excluir_despesa = False
+                if Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and despesa.tem_pagamento_com_recursos_proprios() or Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and despesa.tem_pagamentos_em_multiplas_contas():
+                    excluir_despesa = False
+                if Despesa.TAG_NAO_RECONHECIDA['id'] in filtro_informacoes_list and despesa.e_despesa_nao_reconhecida():
+                    excluir_despesa = False
+                if Despesa.TAG_SEM_COMPROVACAO_FISCAL['id'] in filtro_informacoes_list and despesa.e_despesa_sem_comprovacao_fiscal():
+                    excluir_despesa = False
+                if Despesa.TAG_CONCILIADA['id'] in filtro_informacoes_list and despesa.conferido:
+                    excluir_despesa = False
+                if Despesa.TAG_NAO_CONCILIADA['id'] in filtro_informacoes_list and not despesa.conferido:
+                    excluir_despesa = False
+                if Despesa.TAG_INATIVA['id'] in filtro_informacoes_list and despesa.e_despesa_inativa():
+                    excluir_despesa = False
+
+                if excluir_despesa:
+                    ids_para_excluir.append(despesa.id)
+
+            dataset = dataset.exclude(id__in=ids_para_excluir)
+
+        if filtro_conferencia_list:
+            ids_para_excluir = []
+            for despesa in dataset:
+                excluir_despesa = True
+                analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(despesa=despesa).first()
+
+                if 'AJUSTE' in filtro_conferencia_list and analise_lancamento and analise_lancamento.resultado == 'AJUSTE':
+                    excluir_despesa = False
+
+                if 'CORRETO' in filtro_conferencia_list and analise_lancamento and analise_lancamento.resultado == 'CORRETO' and analise_lancamento.houve_considerados_corretos_automaticamente == False:
+                    excluir_despesa = False
+
+                if 'CONFERENCIA_AUTOMATICA' in filtro_conferencia_list and analise_lancamento and analise_lancamento.houve_considerados_corretos_automaticamente == True:
+                    excluir_despesa = False
+
+                if 'NAO_CONFERIDO' in filtro_conferencia_list and not analise_lancamento:
+                    excluir_despesa = False
+
+                if excluir_despesa:
+                    ids_para_excluir.append(despesa.id)
+
+            dataset = dataset.exclude(id__in=ids_para_excluir)
+
         return dataset.all()
 
     receitas = []
@@ -727,6 +785,9 @@ def lancamentos_da_prestacao(
             periodo=prestacao_conta.periodo,
             filtrar_por_data_inicio=filtrar_por_data_inicio,
             filtrar_por_data_fim=filtrar_por_data_fim,
+            filtro_informacoes_list=filtro_informacoes_list,
+            filtro_conferencia_list=filtro_conferencia_list,
+            analise_prestacao_conta=analise_prestacao_conta,
             inclui_inativas=True,
         )
 
@@ -743,6 +804,8 @@ def lancamentos_da_prestacao(
             filtrar_por_data_inicio=filtrar_por_data_inicio,
             filtrar_por_data_fim=filtrar_por_data_fim,
             filtrar_por_nome_fornecedor=filtrar_por_nome_fornecedor,
+            filtro_informacoes_list=filtro_informacoes_list,
+            filtro_conferencia_list=filtro_conferencia_list,
             inclui_inativas=True,
         )
 
@@ -847,7 +910,7 @@ def lancamentos_da_prestacao(
             'notificar_dias_nao_conferido': receita.notificar_dias_nao_conferido,
             'analise_lancamento': {'resultado': analise_lancamento.resultado,
                                    'uuid': analise_lancamento.uuid,
-                                   'houve_considerados_corretos_automaticamente': False,
+                                   'houve_considerados_corretos_automaticamente': analise_lancamento.houve_considerados_corretos_automaticamente,
                                    } if analise_lancamento else None,
             'informacoes': receita.tags_de_informacao,
         }
@@ -866,7 +929,7 @@ def lancamentos_da_prestacao(
         else:
             novo_lancamento['analise_lancamento'] = {'resultado': analise_lancamento.resultado,
                                                      'uuid': analise_lancamento.uuid,
-                                                     'houve_considerados_corretos_automaticamente': False,
+                                                     'houve_considerados_corretos_automaticamente': analise_lancamento.houve_considerados_corretos_automaticamente,
                                                      } if analise_lancamento else None
 
         lancamento_adicionado = False
