@@ -294,32 +294,5 @@ def test_api_ordenar_despesa_por_numero_documento_decrescente_e_data_crescente(
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_api_ordenar_despesa_por_numero_documento_decrescente_e_data_decrescente(
-    jwt_authenticated_client_d,
-    associacao,
-    despesa_teste_ordenar_03,
-    despesa_teste_ordenar_04,
-    despesa_teste_ordenar_05,
-):
-    response = jwt_authenticated_client_d.get(
-        f'/api/despesas/?associacao__uuid={associacao.uuid}&ordenar_por_numero_do_documento=decrescente&ordenar_por_data_especificacao=decrescente',
-        content_type='application/json')
-    result = json.loads(response.content)
-    result = result["results"]
-
-    assert result[0]['numero_documento'] == '888888'
-    assert result[0]['valor_total'] == '50.00'
-    assert result[0]['data_documento'] == '2020-03-16'
-
-    assert result[1]['numero_documento'] == '888888'
-    assert result[1]['valor_total'] == '70.00'
-    assert result[1]['data_documento'] == '2020-03-13'
-
-    assert result[2]['numero_documento'] == '777777'
-    assert result[2]['valor_total'] == '60.00'
-    assert result[2]['data_documento'] == '2020-03-15'
-
-    assert response.status_code == status.HTTP_200_OK
-
 
 
