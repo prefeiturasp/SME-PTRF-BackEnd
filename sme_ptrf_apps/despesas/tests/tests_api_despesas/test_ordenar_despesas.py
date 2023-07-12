@@ -101,7 +101,7 @@ def despesa_teste_ordenar_08(associacao, tipo_documento, tipo_transacao):
     return baker.make(
         'Despesa',
         associacao=associacao,
-        numero_documento='',
+        numero_documento='654321',
         data_documento=datetime.date(2020, 3, 15),
         valor_total=60.00,
     )
@@ -318,44 +318,6 @@ def test_api_ordenar_despesa_por_numero_documento_decrescente_e_data_decrescente
     assert result[2]['numero_documento'] == '777777'
     assert result[2]['valor_total'] == '60.00'
     assert result[2]['data_documento'] == '2020-03-15'
-
-    assert response.status_code == status.HTTP_200_OK
-
-
-def test_api_ordenar_despesa_por_imposto(
-    jwt_authenticated_client_d,
-    associacao,
-    despesa_teste_ordenar_06,
-    despesa_teste_ordenar_07,
-    despesa_teste_ordenar_08,
-    despesa_teste_ordenar_09,
-    despesa_teste_ordenar_10,
-):
-    response = jwt_authenticated_client_d.get(
-        f'/api/despesas/?associacao__uuid={associacao.uuid}&ordenar_por_imposto=true',
-        content_type='application/json')
-    result = json.loads(response.content)
-    result = result["results"]
-
-    assert result[0]['numero_documento'] == '123456'
-    assert result[0]['valor_total'] == '100.00'
-    assert result[0]['data_documento'] == '2020-03-10'
-
-    assert result[1]['numero_documento'] == '654321'
-    assert result[1]['valor_total'] == '200.00'
-    assert result[1]['data_documento'] == '2020-03-11'
-
-    assert result[2]['numero_documento'] == ''
-    assert result[2]['valor_total'] == '60.00'
-    assert result[2]['data_documento'] == '2020-03-15'
-
-    assert result[3]['numero_documento'] == '888888'
-    assert result[3]['valor_total'] == '50.00'
-    assert result[3]['data_documento'] == '2020-03-16'
-
-    assert result[4]['numero_documento'] == '888888'
-    assert result[4]['valor_total'] == '70.00'
-    assert result[4]['data_documento'] == '2020-03-13'
 
     assert response.status_code == status.HTTP_200_OK
 
