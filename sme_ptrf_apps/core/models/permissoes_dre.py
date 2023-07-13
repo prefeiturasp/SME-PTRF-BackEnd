@@ -232,3 +232,17 @@ class FuncDreRetificacao(models.Model):
         permissions = (
             ('access_retificacao_dre', '[DRE] Pode acessar Retificacao.'),
         )
+
+
+class FuncDreGestaoUsuarios(models.Model):
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[DRE] Gestão de usuários"
+        verbose_name_plural = "[DRE] Gestão de usuários"
+
+        permissions = (
+            ('access_gestao_usuarios_dre', '[DRE] Pode acessar Gestão de Usuários da DRE.'),
+            ('change_gestao_usuarios_dre', '[DRE] Pode atualizar Gestão de Usuários da DRE.'),
+        )
