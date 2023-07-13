@@ -8,3 +8,11 @@ from .user import (
     UserLookupSerializer,
     UserRetrieveSerializer,
 )
+
+from .usuario_serializer import (
+    UsuarioSerializer,
+)
+
+from .grupo_serializer import (
+    GrupoSerializer,
+)
