@@ -14,6 +14,9 @@ def retorna_tags_de_informacao(lancamento):
 
     return informacoes
 
+def retorna_tags_de_informacao_concatenadas(lancamento):
+    if lancamento and lancamento['mestre'] and lancamento['mestre'].tags_de_informacao_concatenadas:
+        return lancamento['mestre'].tags_de_informacao_concatenadas
 
 def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
     result_esperado = []
@@ -260,6 +263,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                     'uuid': f'{lancamento["analise_lancamento"].uuid}'
                 } if lancamento["analise_lancamento"] else None,
                 'informacoes': retorna_tags_de_informacao(lancamento=lancamento),
+                'informacoes_ordenamento': retorna_tags_de_informacao_concatenadas(lancamento=lancamento),
             }
         )
 

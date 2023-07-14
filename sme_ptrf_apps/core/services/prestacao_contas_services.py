@@ -863,6 +863,7 @@ def lancamentos_da_prestacao(
                 'despesas_impostos': DespesaImpostoSerializer(despesas_impostos, many=True,
                                                               required=False).data if despesas_impostos else None,
                 'informacoes': despesa.tags_de_informacao,
+                'informacoes_ordenamento': despesa.tags_de_informacao_concatenadas
             }
 
             if com_ajustes:
@@ -913,6 +914,7 @@ def lancamentos_da_prestacao(
                                    'houve_considerados_corretos_automaticamente': analise_lancamento.houve_considerados_corretos_automaticamente,
                                    } if analise_lancamento else None,
             'informacoes': receita.tags_de_informacao,
+            'informacoes_ordenamento': receita.tags_de_informacao_concatenadas
         }
 
         if com_ajustes:
