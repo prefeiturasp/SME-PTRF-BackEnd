@@ -122,6 +122,16 @@ class Receita(ModeloBase):
         return detalhe
 
     @property
+    def tags_de_informacao_concatenadas(self):
+        tags = []
+        for tag in self.tags_de_informacao:
+            tags.append(tag['tag_nome'])
+
+        tags.sort()
+
+        return ",".join(tags)
+
+    @property
     def tags_de_informacao(self):
         """
         Arquitetura dinâmica para futuras tags que poderam ser atribuidas.
