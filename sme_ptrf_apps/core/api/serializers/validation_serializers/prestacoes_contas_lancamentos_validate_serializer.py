@@ -18,6 +18,8 @@ class PrestacoesContasLancamentosValidateSerializer(serializers.Serializer): # n
     filtrar_por_tipo_de_documento = serializers.IntegerField(required=False, allow_null=True)
     filtrar_por_tipo_de_pagamento = serializers.IntegerField(required=False, allow_null=True)
     filtrar_por_nome_fornecedor = serializers.CharField(required=False, allow_null=True)
+    filtrar_por_informacoes = serializers.CharField(required=False, allow_null=True)
+    filtrar_por_conferencia = serializers.CharField(required=False, allow_null=True)
 
     def validate_analise_prestacao(self, value): # noqa
         try:

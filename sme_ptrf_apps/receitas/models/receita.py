@@ -122,6 +122,16 @@ class Receita(ModeloBase):
         return detalhe
 
     @property
+    def tags_de_informacao_concatenadas(self):
+        tags = []
+        for tag in self.tags_de_informacao:
+            tags.append(tag['tag_nome'])
+
+        tags.sort()
+
+        return ",".join(tags)
+
+    @property
     def tags_de_informacao(self):
         """
         Arquitetura dinâmica para futuras tags que poderam ser atribuidas.
@@ -207,7 +217,7 @@ class Receita(ModeloBase):
         return dataset.all()
 
     @classmethod
-    def receitas_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None, acao_associacao=None, filtrar_por_data_inicio=None, filtrar_por_data_fim=None, inclui_inativas=False):
+    def receitas_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None, acao_associacao=None, filtrar_por_data_inicio=None, filtrar_por_data_fim=None, inclui_inativas=False, filtro_informacoes_list=None, filtro_conferencia_list=None, analise_prestacao_conta=None):
         if inclui_inativas:
             dataset = cls.objects
         else:
@@ -238,6 +248,32 @@ class Receita(ModeloBase):
             dataset = dataset.filter(
                 Q(data__lte=filtrar_por_data_fim)
             ).order_by('data')
+
+        if filtro_informacoes_list is not None and Receita.TAG_INATIVA['id'] in filtro_informacoes_list:
+            dataset = dataset.filter(status=cls.STATUS_INATIVO).order_by('data')
+
+        if filtro_conferencia_list and analise_prestacao_conta:
+            ids_para_excluir = []
+            for receita in dataset:
+                excluir_receita = True
+                analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(receita=receita).first()
+
+                if 'AJUSTE' in filtro_conferencia_list and analise_lancamento and analise_lancamento.resultado == 'AJUSTE':
+                    excluir_receita = False
+
+                if 'CORRETO' in filtro_conferencia_list and analise_lancamento and analise_lancamento.resultado == 'CORRETO' and analise_lancamento.houve_considerados_corretos_automaticamente == False:
+                    excluir_receita = False
+
+                if 'CONFERENCIA_AUTOMATICA' in filtro_conferencia_list and analise_lancamento and analise_lancamento.houve_considerados_corretos_automaticamente == True:
+                    excluir_receita = False
+
+                if 'NAO_CONFERIDO' in filtro_conferencia_list and not analise_lancamento:
+                    excluir_receita = False
+
+                if excluir_receita:
+                    ids_para_excluir.append(receita.id)
+
+            dataset = dataset.exclude(id__in=ids_para_excluir)
 
         return dataset.all()
 

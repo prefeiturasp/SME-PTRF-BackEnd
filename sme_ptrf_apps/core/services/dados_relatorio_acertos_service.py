@@ -33,6 +33,8 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
                 'nome_conta': analise_conta.conta_associacao.tipo_conta.nome,
                 'data_extrato': analise_conta.data_extrato,
                 'saldo_extrato': analise_conta.saldo_extrato,
+                'solicitar_envio_do_comprovante_do_saldo_da_conta': analise_conta.solicitar_envio_do_comprovante_do_saldo_da_conta,
+                'observacao_solicitar_envio_do_comprovante_do_saldo_da_conta': analise_conta.observacao_solicitar_envio_do_comprovante_do_saldo_da_conta,
             }
             logger.info(f'Ajuste em conta:{dados["nome_conta"]} data:{dados["data_extrato"]} saldo:{dados["saldo_extrato"]}')
             dados_ajustes_contas.append(dados)

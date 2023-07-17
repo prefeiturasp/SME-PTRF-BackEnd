@@ -632,7 +632,89 @@ def prestacao_conta_2020_1_em_analise(periodo_2020_1, associacao):
 
 
 @pytest.fixture
-def analise_prestacao_conta_2020_1_em_analise(prestacao_conta_2020_1_em_analise,):
+def prestacao_conta_2020_1_em_analise_despesa_inativa(periodo_2020_1, associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        data_recebimento=datetime.date(2020, 10, 1),
+        status="EM_ANALISE"
+    )
+
+
+@pytest.fixture
+def analise_prestacao_conta_2020_1_em_analise_despesa_inativa(
+    prestacao_conta_2020_1_em_analise_despesa_inativa
+):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_em_analise_despesa_inativa,
+    )
+
+
+@pytest.fixture
+def analise_lancamento_despesa_prestacao_conta_2020_1_despesa_inativa(
+    analise_prestacao_conta_2020_1_em_analise_despesa_inativa,
+    despesa_2020_1_inativa_teste_tag
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise_despesa_inativa,
+        tipo_lancamento='GASTO',
+        despesa=despesa_2020_1_inativa_teste_tag,
+        resultado='CORRETO'
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_inativa_teste_tag(
+    associacao,
+    despesa_2020_1_inativa_teste_tag,
+    conta_associacao_cartao,
+    acao,
+    tipo_aplicacao_recurso_custeio,
+    tipo_custeio_servico,
+    especificacao_instalacao_eletrica,
+    acao_associacao_role_cultural,
+    periodo_2020_1,
+):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1_inativa_teste_tag,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=200.00,
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
+    )
+
+
+@pytest.fixture
+def despesa_2020_1_inativa_teste_tag(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='José Multiplas Contas',
+        tipo_transacao=tipo_transacao,
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=200.00,
+        valor_recursos_proprios=0.00,
+        status="INATIVO",
+        data_e_hora_de_inativacao=datetime.datetime(2020, 5, 10, 5, 10, 10),
+    )
+
+
+@pytest.fixture
+def analise_prestacao_conta_2020_1_em_analise(prestacao_conta_2020_1_em_analise, ):
     return baker.make(
         'AnalisePrestacaoConta',
         prestacao_conta=prestacao_conta_2020_1_em_analise,
@@ -683,7 +765,8 @@ def tipo_devolucao_ao_tesouro_teste():
 
 
 @pytest.fixture
-def devolucao_ao_tesouro_parcial_ajuste(prestacao_conta_2020_1_em_analise, tipo_devolucao_ao_tesouro_teste, despesa_2020_1):
+def devolucao_ao_tesouro_parcial_ajuste(prestacao_conta_2020_1_em_analise, tipo_devolucao_ao_tesouro_teste,
+                                        despesa_2020_1):
     return baker.make(
         'DevolucaoAoTesouro',
         prestacao_conta=prestacao_conta_2020_1_em_analise,
@@ -736,9 +819,11 @@ def despesa_imposto_retido(
         valor_total=10.00,
     )
 
+
 @pytest.fixture
-def rateio_despesa_imposto_retido(associacao, tipo_custeio, especificacao_instalacao_eletrica, acao_associacao_role_cultural,
-                                   conta_associacao_cartao, despesa_imposto_retido):
+def rateio_despesa_imposto_retido(associacao, tipo_custeio, especificacao_instalacao_eletrica,
+                                  acao_associacao_role_cultural,
+                                  conta_associacao_cartao, despesa_imposto_retido):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_imposto_retido,
@@ -775,12 +860,13 @@ def despesa_com_retencao_imposto(
         tipo_transacao=tipo_transacao,
         data_transacao=datetime.date(2020, 3, 10),
         valor_total=110.00,
-        despesas_impostos=[despesa_imposto_retido,],
+        despesas_impostos=[despesa_imposto_retido, ],
     )
 
 
 @pytest.fixture
-def rateio_despesa_com_retencao_imposto(associacao, despesa_com_retencao_imposto, acao_associacao_role_cultural, conta_associacao_cartao, tipo_custeio, especificacao_instalacao_eletrica):
+def rateio_despesa_com_retencao_imposto(associacao, despesa_com_retencao_imposto, acao_associacao_role_cultural,
+                                        conta_associacao_cartao, tipo_custeio, especificacao_instalacao_eletrica):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_com_retencao_imposto,
@@ -820,8 +906,9 @@ def despesa_imposto_retido_2(
 
 
 @pytest.fixture
-def rateio_despesa_imposto_retido_2(associacao, tipo_custeio, especificacao_instalacao_eletrica, acao_associacao_role_cultural,
-                                   conta_associacao_cartao, despesa_imposto_retido_2):
+def rateio_despesa_imposto_retido_2(associacao, tipo_custeio, especificacao_instalacao_eletrica,
+                                    acao_associacao_role_cultural,
+                                    conta_associacao_cartao, despesa_imposto_retido_2):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_imposto_retido_2,
@@ -834,6 +921,7 @@ def rateio_despesa_imposto_retido_2(associacao, tipo_custeio, especificacao_inst
         valor_original=10,
         valor_rateio=10
     )
+
 
 @pytest.fixture
 def despesa_com_retencao_imposto_2(
@@ -863,7 +951,8 @@ def despesa_com_retencao_imposto_2(
 
 
 @pytest.fixture
-def rateio_despesa_com_retencao_imposto_2(associacao, despesa_com_retencao_imposto_2, acao_associacao_role_cultural, conta_associacao_cartao, tipo_custeio, especificacao_instalacao_eletrica):
+def rateio_despesa_com_retencao_imposto_2(associacao, despesa_com_retencao_imposto_2, acao_associacao_role_cultural,
+                                          conta_associacao_cartao, tipo_custeio, especificacao_instalacao_eletrica):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_com_retencao_imposto_2,
@@ -916,7 +1005,6 @@ def rateio_despesa_2020_recurso_proprio(associacao, despesa_2020_1_recurso_propr
         periodo_conciliacao=periodo_2020_1,
         tag=tag_teste,
     )
-
 
 
 @pytest.fixture
@@ -982,3 +1070,387 @@ def rateio_despesa_2020_multiplas_contas_cheque(associacao, despesa_2020_1_multi
         periodo_conciliacao=periodo_2020_1,
         tag=tag_teste,
     )
+
+
+# Testes lancamentos_da_prestacao conferencia (CORRETO, AJUSTE, CONFERENCIA_AUTOMATICA, NAO_CONFERIDO)
+@pytest.fixture
+def prestacao_conta_teste_conferencia(periodo_2020_1, associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2020_1,
+        associacao=associacao,
+        data_recebimento=datetime.date(2020, 10, 1),
+        status="EM_ANALISE"
+    )
+
+
+# CORRETO
+@pytest.fixture
+def analise_prestacao_conta_2020_1_em_analise_conferencia_correto(
+    prestacao_conta_teste_conferencia
+):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_teste_conferencia,
+    )
+
+
+@pytest.fixture
+def analise_lancamento_despesa_prestacao_conta_2020_1_conferencia_correto(
+    analise_prestacao_conta_2020_1_em_analise_conferencia_correto,
+    despesa_2020_1_inativa_conferencia_correto
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise_conferencia_correto,
+        tipo_lancamento='GASTO',
+        despesa=despesa_2020_1_inativa_conferencia_correto,
+        resultado='CORRETO'
+    )
+
+
+@pytest.fixture
+def despesa_2020_1_inativa_conferencia_correto(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='José Multiplas Contas',
+        tipo_transacao=tipo_transacao,
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=200.00,
+        valor_recursos_proprios=0.00,
+        status="INATIVO",
+        data_e_hora_de_inativacao=datetime.datetime(2020, 5, 10, 5, 10, 10),
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_inativa_conferencia_correto(
+    associacao,
+    despesa_2020_1_inativa_conferencia_correto,
+    conta_associacao_cartao,
+    acao,
+    tipo_aplicacao_recurso_custeio,
+    tipo_custeio_servico,
+    especificacao_instalacao_eletrica,
+    acao_associacao_role_cultural,
+    periodo_2020_1,
+):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1_inativa_conferencia_correto,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=200.00,
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
+    )
+
+
+# AJUSTE
+@pytest.fixture
+def analise_prestacao_conta_2020_1_em_analise_conferencia_ajuste(
+    prestacao_conta_teste_conferencia
+):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_teste_conferencia,
+    )
+
+
+@pytest.fixture
+def analise_lancamento_despesa_prestacao_conta_2020_1_conferencia_ajuste(
+    analise_prestacao_conta_2020_1_em_analise_conferencia_ajuste,
+    despesa_2020_1_inativa_conferencia_ajuste
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise_conferencia_ajuste,
+        tipo_lancamento='GASTO',
+        despesa=despesa_2020_1_inativa_conferencia_ajuste,
+        resultado='AJUSTE'
+    )
+
+
+@pytest.fixture
+def despesa_2020_1_inativa_conferencia_ajuste(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='José Multiplas Contas',
+        tipo_transacao=tipo_transacao,
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=300.00,
+        valor_recursos_proprios=0.00,
+        status="INATIVO",
+        data_e_hora_de_inativacao=datetime.datetime(2020, 5, 10, 5, 10, 10),
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_inativa_conferencia_ajuste(
+    associacao,
+    despesa_2020_1_inativa_conferencia_ajuste,
+    conta_associacao_cartao,
+    acao,
+    tipo_aplicacao_recurso_custeio,
+    tipo_custeio_servico,
+    especificacao_instalacao_eletrica,
+    acao_associacao_role_cultural,
+    periodo_2020_1,
+):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1_inativa_conferencia_ajuste,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=200.00,
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
+    )
+
+
+# CONFERENCIA_AUTOMATICA
+@pytest.fixture
+def analise_prestacao_conta_2020_1_em_analise_conferencia_automatica(
+    prestacao_conta_teste_conferencia
+):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_teste_conferencia,
+    )
+
+
+@pytest.fixture
+def analise_lancamento_despesa_prestacao_conta_2020_1_conferencia_automatica(
+    analise_prestacao_conta_2020_1_em_analise_conferencia_automatica,
+    despesa_2020_1_inativa_conferencia_automatica,
+    receita_conferencia_automatica,
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise_conferencia_automatica,
+        tipo_lancamento='GASTO',
+        despesa=despesa_2020_1_inativa_conferencia_automatica,
+        receita=receita_conferencia_automatica,
+        resultado='CORRETO',
+        houve_considerados_corretos_automaticamente=True,
+    )
+
+
+@pytest.fixture
+def receita_conferencia_automatica(
+    associacao,
+    conta_associacao_cartao,
+    acao_associacao_role_cultural,
+    tipo_receita_repasse, periodo_2020_1
+):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
+    )
+
+
+@pytest.fixture
+def despesa_2020_1_inativa_conferencia_automatica(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='José Multiplas Contas',
+        tipo_transacao=tipo_transacao,
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=200.00,
+        valor_recursos_proprios=0.00,
+        status="INATIVO",
+        data_e_hora_de_inativacao=datetime.datetime(2020, 5, 10, 5, 10, 10),
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_inativa_conferencia_automatica(
+    associacao,
+    despesa_2020_1_inativa_conferencia_automatica,
+    conta_associacao_cartao,
+    acao,
+    tipo_aplicacao_recurso_custeio,
+    tipo_custeio_servico,
+    especificacao_instalacao_eletrica,
+    acao_associacao_role_cultural,
+    periodo_2020_1,
+):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1_inativa_conferencia_automatica,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=200.00,
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
+    )
+
+
+# NAO_CONFERIDO
+@pytest.fixture
+def analise_prestacao_conta_2020_1_em_analise_nao_conferido(
+    prestacao_conta_teste_conferencia
+):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_teste_conferencia,
+    )
+
+
+@pytest.fixture
+def receita_nao_conferido(
+    associacao,
+    conta_associacao_cartao,
+    acao_associacao_role_cultural,
+    tipo_receita_repasse, periodo_2020_1
+):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=datetime.date(2020, 3, 26),
+        valor=100.00,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        tipo_receita=tipo_receita_repasse,
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
+    )
+
+
+@pytest.fixture
+def despesa_2020_1_inativa_nao_conferido(associacao, tipo_documento, tipo_transacao):
+    return baker.make(
+        'Despesa',
+        associacao=associacao,
+        numero_documento='123456',
+        data_documento=datetime.date(2020, 3, 10),
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='José Multiplas Contas',
+        tipo_transacao=tipo_transacao,
+        data_transacao=datetime.date(2020, 3, 10),
+        valor_total=200.00,
+        valor_recursos_proprios=0.00,
+        status="INATIVO",
+        data_e_hora_de_inativacao=datetime.datetime(2020, 5, 10, 5, 10, 10),
+    )
+
+
+@pytest.fixture
+def rateio_despesa_2020_inativa_nao_conferido(
+    associacao,
+    despesa_2020_1_inativa_nao_conferido,
+    conta_associacao_cartao,
+    acao,
+    tipo_aplicacao_recurso_custeio,
+    tipo_custeio_servico,
+    especificacao_instalacao_eletrica,
+    acao_associacao_role_cultural,
+    periodo_2020_1,
+):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1_inativa_nao_conferido,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_instalacao_eletrica,
+        valor_rateio=200.00,
+        update_conferido=True,
+        conferido=True,
+        periodo_conciliacao=periodo_2020_1,
+    )
+
+# Todos
+@pytest.fixture
+def analise_prestacao_conta_2020_1_em_analise_todos(
+    prestacao_conta_teste_conferencia
+):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_teste_conferencia,
+    )
+
+@pytest.fixture
+def analise_lancamento_despesa_prestacao_conta_todos_01(
+    analise_prestacao_conta_2020_1_em_analise_todos,
+    despesa_2020_1_inativa_conferencia_correto
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise_todos,
+        tipo_lancamento='GASTO',
+        despesa=despesa_2020_1_inativa_conferencia_correto,
+        resultado='CORRETO'
+    )
+
+@pytest.fixture
+def analise_lancamento_despesa_prestacao_conta_2020_1_todos_02(
+    analise_prestacao_conta_2020_1_em_analise_todos,
+    despesa_2020_1_inativa_conferencia_ajuste
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise_todos,
+        tipo_lancamento='GASTO',
+        despesa=despesa_2020_1_inativa_conferencia_ajuste,
+        resultado='AJUSTE'
+    )
+
+@pytest.fixture
+def analise_lancamento_despesa_prestacao_conta_2020_1_todos_03(
+    analise_prestacao_conta_2020_1_em_analise_todos,
+    despesa_2020_1_inativa_conferencia_automatica,
+    receita_conferencia_automatica,
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_em_analise_todos,
+        tipo_lancamento='GASTO',
+        despesa=despesa_2020_1_inativa_conferencia_automatica,
+        receita=receita_conferencia_automatica,
+        resultado='CORRETO',
+        houve_considerados_corretos_automaticamente=True,
+    )
+

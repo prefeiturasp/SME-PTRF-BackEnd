@@ -16,10 +16,12 @@ class TipoConta(ModeloIdNome):
     numero_conta = models.CharField('Nº conta', max_length=30, blank=True, default='')
     numero_cartao = models.CharField('Nº do cartão', max_length=80, blank=True, default='')
     apenas_leitura = models.BooleanField("Apenas Leitura?", default=False)
+    permite_inativacao = models.BooleanField("Permite inativação da conta?", default=False)
 
     class Meta:
         verbose_name = "Tipo de conta"
         verbose_name_plural = "04.0) Tipos de conta"
+        unique_together = ['nome', ]
 
 
 auditlog.register(TipoConta)

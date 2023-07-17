@@ -160,6 +160,7 @@ class FuncUeRecebimentoDeNotificacoes(models.Model):
             ('recebe_notificacao_aprovacao_pc', '[UE] Pode receber Notificação Prestação de Contas Aprovada'),
             ('recebe_notificacao_reprovacao_pc_nao_incluindo_motivos', '[UE] Pode receber Notificação Prestação de Contas Reprovada Não Incluindo Motivos'),
             ('recebe_notificacao_reprovacao_pc_incluindo_motivos', '[UE] Pode receber Notificação Prestação de Contas Reprovada Incluindo Motivos'),
+            ('recebe_notificacao_automatica_inativacao_conta', '[UE] Pode receber Notificação Encerramento de Conta Bancária'),
         )
 
 
@@ -175,4 +176,17 @@ class FuncValoresReprogramadosUE(models.Model):
         permissions = (
             ('access_valores_reprogramados_ue', '[UE] Pode acessar Valores Reprogramados.'),
             ('change_valores_reprogramados_ue', '[UE] Pode atualizar Valores Reprogramados.'),
+        )
+
+class FuncUeGestaoUsuarios(models.Model):
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[UE] Gestão de usuários"
+        verbose_name_plural = "[UE] Gestão de usuários"
+
+        permissions = (
+            ('access_gestao_usuarios_ue', '[UE] Pode acessar Gestão de Usuários da UE.'),
+            ('change_gestao_usuarios_ue', '[UE] Pode atualizar Gestão de Usuários da UE.'),
         )
