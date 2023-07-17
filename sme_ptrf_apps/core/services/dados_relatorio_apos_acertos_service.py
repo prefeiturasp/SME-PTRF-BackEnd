@@ -57,6 +57,8 @@ class DadosRelatorioAposAcertos:
                     'nome_conta': analise_conta.conta_associacao.tipo_conta.nome,
                     'data_extrato': analise_conta.data_extrato,
                     'saldo_extrato': analise_conta.saldo_extrato,
+                    'solicitar_envio_do_comprovante_do_saldo_da_conta': analise_conta.solicitar_envio_do_comprovante_do_saldo_da_conta,
+                    'observacao_solicitar_envio_do_comprovante_do_saldo_da_conta': analise_conta.observacao_solicitar_envio_do_comprovante_do_saldo_da_conta,
                 }
                 dados_extratos.append(dados)
 

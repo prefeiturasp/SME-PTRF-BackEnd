@@ -152,6 +152,28 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
                         'conta_uuid': f'{extrato.conta_associacao.uuid}'
                     }
                 )
+                
+        for ata_apresentacao in prestacao_contas.atas_da_prestacao.all():
+            if ata_apresentacao.status_geracao_pdf == 'CONCLUIDO':
+                if ata_apresentacao.tipo_ata == 'RETIFICACAO':
+                    result.append(
+                        {
+                            'tipo': 'APR',
+                            'nome': f'Ata de retificação da prestação de conta',
+                            'uuid': f'{ata_apresentacao.uuid}',
+                            'arquivo_apresentado_em_todas_as_contas': True
+                        }
+                    )
+                    
+                if ata_apresentacao.tipo_ata == 'APRESENTACAO':
+                    result.append(
+                        {
+                            'tipo': 'AP',
+                            'nome': f'Ata de apresentação da prestação de conta',
+                            'uuid': f'{ata_apresentacao.uuid}',
+                            'arquivo_apresentado_em_todas_as_contas': True
+                        }
+                    )
         return result
 
     def get_conciliacao_bancaria_ue(self, prestacao_contas):
@@ -203,7 +225,9 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
                     },
                     "data_extrato": analise.data_extrato,
                     "saldo_extrato": analise.saldo_extrato,
-                    "analise_prestacao_conta": f'{analise.analise_prestacao_conta.uuid}'
+                    "analise_prestacao_conta": f'{analise.analise_prestacao_conta.uuid}',
+                    'solicitar_envio_do_comprovante_do_saldo_da_conta': analise.solicitar_envio_do_comprovante_do_saldo_da_conta,
+                    'observacao_solicitar_envio_do_comprovante_do_saldo_da_conta': analise.observacao_solicitar_envio_do_comprovante_do_saldo_da_conta,
                 }
             )
 
