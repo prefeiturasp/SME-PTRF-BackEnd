@@ -141,10 +141,10 @@ class User(AbstractUser):
 
         visoes = dados.pop('visoes') if 'visoes' in dados else None
 
-        unidade = dados.pop('unidade')
+        unidade = dados.pop('unidade') if 'unidade' in dados else None
         unidade_obj = Unidade.objects.filter(codigo_eol=unidade).first() if unidade else None
 
-        groups = dados.pop('groups')
+        groups = dados.pop('groups') if 'groups' in dados else None
 
         user = cls.objects.create(**dados)
 
@@ -153,7 +153,8 @@ class User(AbstractUser):
         elif visoes:
             user.visoes.add(*visoes)
 
-        user.groups.add(*groups)
+        if groups:
+            user.groups.add(*groups)
 
         if unidade_obj:
             user.unidades.add(unidade_obj)

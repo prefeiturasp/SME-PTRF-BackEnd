@@ -107,27 +107,17 @@ class UsuarioRetrieveSerializer(serializers.ModelSerializer):
 
 
 class UsuarioCreateSerializer(serializers.ModelSerializer):
-    visao = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
-    unidade = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
-
     class Meta:
         model = User
-        fields = ["username", "email", "name", "e_servidor", "visao", "groups", "unidade", "visoes", "id"]
+        fields = ["username", "email", "name", "e_servidor", "id"]
 
     def create(self, validated_data):
         dados_usuario = {
             "login": validated_data["username"],
-            "eol_unidade": validated_data["unidade"],
             "email": validated_data["email"],
             "nome": validated_data["name"],
             "servidor_s_n": "S" if validated_data["e_servidor"] else "N",
         }
-
-        # O usuário pode ser criado informando uma visão ou uma lista de visões
-        if "visao" in validated_data:
-            dados_usuario["visao"] = validated_data["visao"]
-        elif "visoes" in validated_data:
-            dados_usuario["visoes"] = validated_data["visoes"]
 
         try:
             cria_ou_atualiza_usuario_core_sso(
@@ -145,17 +135,10 @@ class UsuarioCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         dados_usuario = {
             "login": validated_data["username"],
-            "eol_unidade": validated_data["unidade"],
             "email": validated_data["email"],
             "nome": validated_data["name"],
             "servidor_s_n": "S" if validated_data["e_servidor"] else "N",
         }
-
-        # O usuário pode ser criado informando uma visão ou uma lista de visões
-        if "visao" in validated_data:
-            dados_usuario["visao"] = validated_data["visao"]
-        elif "visoes" in validated_data:
-            dados_usuario["visoes"] = validated_data["visoes"]
 
         try:
             cria_ou_atualiza_usuario_core_sso(
@@ -165,13 +148,5 @@ class UsuarioCreateSerializer(serializers.ModelSerializer):
 
         except Exception as e:
             logger.error(f'Erro ao tentar cria/atualizar usuário {validated_data["username"]} no CoreSSO: {str(e)}')
-
-        visao = validated_data.pop('visao') if 'visao' in validated_data else None
-        if visao:
-            instance.add_visao_se_nao_existir(visao=visao)
-
-        unidade = validated_data.pop('unidade')
-        if unidade:
-            instance.add_unidade_se_nao_existir(codigo_eol=unidade)
 
         return super().update(instance, validated_data)
