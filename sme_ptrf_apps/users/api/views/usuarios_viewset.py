@@ -196,6 +196,20 @@ class UsuariosViewSet(ModelViewSet):
             type=OpenApiTypes.STR,
             location=OpenApiParameter.QUERY,
         ),
+        OpenApiParameter(
+            name='e_servidor',
+            description='É servidor? ("True" ou "False")',
+            required=False,
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+        ),
+        OpenApiParameter(
+            name='uuid_unidade',
+            description='UUID da unidade base.',
+            required=False,
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+        ),
     ])
     @action(detail=False, methods=['get'], url_path='status')
     def usuario_status(self, request):
@@ -206,9 +220,9 @@ class UsuariosViewSet(ModelViewSet):
         if not username:
             return Response("Parâmetro username obrigatório.", status=status.HTTP_400_BAD_REQUEST)
 
-        e_servidor = request.query_params.get('servidor', 'True') == 'True'
+        e_servidor = request.query_params.get('e_servidor', 'True') == 'True'
 
-        unidade_uuid = request.query_params.get('unidade')
+        unidade_uuid = request.query_params.get('uuid_unidade')
         unidade = None
         if unidade_uuid:
             try:
@@ -264,6 +278,11 @@ class UsuariosViewSet(ModelViewSet):
             'usuario_sig_escola': info_sig_escola,
             'validacao_username': validar_username(username=username, e_servidor=e_servidor),
             'e_servidor_na_unidade': e_servidor_na_unidade,
+            'pode_acessar_unidade': {
+                'unidade': unidade_uuid,
+                'pode_acessar': False,
+                'mensagem': 'Servidor não está em execício na unidade.'
+            }
         }
 
         return Response(result, status=status.HTTP_200_OK)

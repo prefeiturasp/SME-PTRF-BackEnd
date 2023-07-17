@@ -5,6 +5,7 @@ import logging
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
+from rest_framework.exceptions import ValidationError
 
 from sme_ptrf_apps.users.services import cria_ou_atualiza_usuario_core_sso
 from sme_ptrf_apps.users.models import Grupo, Visao, UnidadeEmSuporte
@@ -107,9 +108,11 @@ class UsuarioRetrieveSerializer(serializers.ModelSerializer):
 
 
 class UsuarioCreateSerializer(serializers.ModelSerializer):
+    visao = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
+    unidade = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
     class Meta:
         model = User
-        fields = ["username", "email", "name", "e_servidor", "id"]
+        fields = ["username", "name", "email", "e_servidor", "visao", "unidade", "id"]
 
     def create(self, validated_data):
         dados_usuario = {
@@ -118,6 +121,15 @@ class UsuarioCreateSerializer(serializers.ModelSerializer):
             "nome": validated_data["name"],
             "servidor_s_n": "S" if validated_data["e_servidor"] else "N",
         }
+
+        if "unidade" in validated_data:
+            unidade_obj = Unidade.objects.filter(uuid=validated_data["unidade"]).first()
+            dados_usuario["eol_unidade"] = unidade_obj.codigo_eol if unidade_obj else None
+            logger.info(f'Unidade de EOL {dados_usuario["eol_unidade"] } será vinculada ao usuário {validated_data["username"]}.')
+
+        if "visao" in validated_data:
+            dados_usuario["visao"] = validated_data["visao"]
+            logger.info(f'Visão {dados_usuario["visao"] } será vinculada ao usuário {validated_data["username"]}.')
 
         try:
             cria_ou_atualiza_usuario_core_sso(
@@ -128,11 +140,16 @@ class UsuarioCreateSerializer(serializers.ModelSerializer):
         except Exception as e:
             logger.error(f'Erro ao tentar cria/atualizar usuário {validated_data["username"]} no CoreSSO: {str(e)}')
 
-        user = User.criar_usuario(dados=validated_data)
+        user = User.criar_usuario_v2(dados=validated_data)
 
         return user
 
     def update(self, instance, validated_data):
+        required_fields = ["username", "email", "name", "e_servidor"]
+        for field in required_fields:
+            if field not in validated_data:
+                raise ValidationError({field: 'This field is required.'})
+
         dados_usuario = {
             "login": validated_data["username"],
             "email": validated_data["email"],
