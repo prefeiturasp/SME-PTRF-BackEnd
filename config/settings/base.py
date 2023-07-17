@@ -292,6 +292,7 @@ SPECTACULAR_SETTINGS = {
     'VERSION': api_version,
     'SERVE_INCLUDE_SCHEMA': False,
     'SCHEMA_PATH_PREFIX': r'/api/',
+    'WARNINGS': False,
 }
 
 # JWT settings
