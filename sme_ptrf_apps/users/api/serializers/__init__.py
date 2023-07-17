@@ -11,6 +11,8 @@ from .user import (
 
 from .usuario_serializer import (
     UsuarioSerializer,
+    UsuarioRetrieveSerializer,
+    UsuarioCreateSerializer,
 )
 
 from .grupo_serializer import (
