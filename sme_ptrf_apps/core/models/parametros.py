@@ -64,6 +64,11 @@ class Parametros(SingletonModel, ModeloBase):
     texto_pagina_valores_reprogramados_dre = RichTextField(
         null=True, verbose_name='Texto da página de valores reprogramados (DRE)')
 
+    numero_periodos_consecutivos = models.PositiveSmallIntegerField(
+        'Quantos períodos consecutivos com saldo zerado para notificar a possibilidade de inativações de contas',
+        default=2
+    )
+
     def __str__(self):
         return 'Parâmetros do PTRF'
 

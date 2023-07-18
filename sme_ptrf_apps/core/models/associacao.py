@@ -14,7 +14,6 @@ from .periodo import Periodo
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 
-
 class AssociacoesAtivasManager(models.Manager):
     def get_queryset(self):
         return super(AssociacoesAtivasManager, self).get_queryset().exclude(cnpj="")
@@ -307,16 +306,18 @@ class Associacao(ModeloIdNome):
         return pendencias
 
     def pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(self, periodo):
+        from ..services import info_resumo_conciliacao
+
         pendencias = {
             'contas_pendentes': []
         }
 
         contas = self.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
         observacoes = self.observacoes_conciliacao_da_associacao.filter(periodo=periodo)
-
         for conta in contas:
+            resumo = info_resumo_conciliacao(periodo, conta)
             observacao = observacoes.filter(conta_associacao=conta).first()
-            if observacao is None or not (observacao.data_extrato and ((observacao.saldo_extrato > 0 and observacao.comprovante_extrato) or observacao.saldo_extrato == 0)):
+            if observacao is None or not (observacao.data_extrato and ((resumo['saldo_posterior_total'] > 0 and observacao.comprovante_extrato) or resumo['saldo_posterior_total'] == 0)):
                 pendencias['contas_pendentes'].append(conta.uuid)
 
         if not pendencias['contas_pendentes']:
