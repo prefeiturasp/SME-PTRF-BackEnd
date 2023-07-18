@@ -228,7 +228,7 @@ def exportar_status_prestacoes_contas_async(data_inicio, data_final, username):
 def exportar_devolucoes_ao_tesouro_async(data_inicio, data_final, username):
     logger.info("Exportando csv em processamento...")
 
-    queryset = SolicitacaoDevolucaoAoTesouro.objects.all().order_by('criado_em')
+    queryset = SolicitacaoDevolucaoAoTesouro.objects.order_by('solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo_id', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta_id', 'solicitacao_acerto_lancamento__analise_lancamento__despesa_id', '-criado_em').distinct('solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo_id', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta_id', 'solicitacao_acerto_lancamento__analise_lancamento__despesa_id')
 
     try:
         logger.info("Criando arquivo %s pcs_devolucoes_tesouro.csv")

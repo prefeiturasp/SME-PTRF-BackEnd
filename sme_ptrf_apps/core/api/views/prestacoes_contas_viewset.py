@@ -932,6 +932,12 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         from sme_ptrf_apps.core.api.serializers.validation_serializers.prestacoes_contas_lancamentos_validate_serializer import PrestacoesContasLancamentosValidateSerializer
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
 
+        filtro_informacoes = self.request.query_params.get('filtrar_por_informacoes')
+        filtro_informacoes_list = filtro_informacoes.split(',') if filtro_informacoes else []
+
+        filtro_conferencia = self.request.query_params.get('filtrar_por_conferencia')
+        filtro_conferencia_list = filtro_conferencia.split(',') if filtro_conferencia else []
+
         query = PrestacoesContasLancamentosValidateSerializer(data=self.request.query_params, context={'prestacao_conta': prestacao_conta})
         query.is_valid(raise_exception=True)
 
@@ -947,6 +953,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             filtrar_por_data_inicio=request.query_params.get('filtrar_por_data_inicio'),
             filtrar_por_data_fim=request.query_params.get('filtrar_por_data_fim'),
             filtrar_por_nome_fornecedor=request.query_params.get('filtrar_por_nome_fornecedor'),
+            filtro_informacoes_list=filtro_informacoes_list,
+            filtro_conferencia_list=filtro_conferencia_list,
         )
 
         return Response(lancamentos, status=status.HTTP_200_OK)

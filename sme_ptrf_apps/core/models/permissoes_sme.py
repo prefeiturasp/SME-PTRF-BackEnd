@@ -150,3 +150,16 @@ class FuncSmeEncerrarAssociacao(models.Model):
         permissions = (
             ('change_encerrar_associacoes', '[SME] Pode encerrar associações'),
         )
+
+class FuncSmeGestaoUsuarios(models.Model):
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[SME] Gestão de usuários"
+        verbose_name_plural = "[SME] Gestão de usuários"
+
+        permissions = (
+            ('access_gestao_usuarios_sme', '[SME] Pode acessar Gestão de Usuários da SME.'),
+            ('change_gestao_usuarios_sme', '[SME] Pode atualizar Gestão de Usuários da SME.'),
+        )

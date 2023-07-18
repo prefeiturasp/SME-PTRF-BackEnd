@@ -60,8 +60,8 @@ class Participante(ModeloBase):
         return result
 
     class Meta:
-        verbose_name = "Presente da ata"
-        verbose_name_plural = "17.0) Presentes das atas"
+        verbose_name = "Participantes ata"
+        verbose_name_plural = "17.0) Participantes ata"
 
 
 auditlog.register(Participante)

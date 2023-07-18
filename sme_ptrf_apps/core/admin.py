@@ -229,14 +229,6 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
     list_display_links = ('periodo',)
     readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre', 'uuid', 'id', 'criado_em')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome',)
-    autocomplete_fields = (
-        'prestacao_conta',
-        'periodo',
-        'associacao',
-        'conta_associacao',
-        'acao_associacao',
-        'fechamento_anterior'
-    )
     fieldsets = (
         (
             None, {
@@ -313,6 +305,14 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
         ),
     )
 
+    raw_id_fields = [
+        'prestacao_conta',
+        'periodo',
+        'associacao',
+        'conta_associacao',
+        'acao_associacao',
+        'fechamento_anterior'
+    ]
 
 
 @admin.register(PrestacaoConta)
@@ -554,6 +554,8 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
 
+    raw_id_fields = ['prestacao_conta', 'analise_prestacao_conta', 'conta_associacao']
+
     actions = ['vincula_analise_prestacao_contas', ]
 
     def vincula_analise_prestacao_contas(self, request, queryset):
@@ -680,6 +682,7 @@ class ParametrosAdmin(admin.ModelAdmin):
                     'dias_antes_inicio_periodo_pc_para_notificacao',
                     'dias_antes_fim_periodo_pc_para_notificacao',
                     'dias_antes_fim_prazo_ajustes_pc_para_notificacao',
+                    'numero_periodos_consecutivos',
                     'texto_pagina_valores_reprogramados_ue'
                 )
         }),
