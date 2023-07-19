@@ -48,6 +48,7 @@ from .models import (
     SolicitacaoDevolucaoAoTesouro,
     TransferenciaEol,
     FalhaGeracaoPc,
+    SolicitacaoEncerramentoContaAssociacao
 )
 
 from django.db.models import Count
@@ -56,6 +57,13 @@ admin.site.register(Acao)
 admin.site.register(ParametroFiqueDeOlhoPc)
 admin.site.register(ModeloCarga)
 
+@admin.register(SolicitacaoEncerramentoContaAssociacao)
+class SolicitacaoEncerramentoContaAssociacaoAdmin(admin.ModelAdmin):
+    raw_id_fields = ('conta_associacao',)
+    list_filter = (
+        ('data_de_encerramento_na_agencia', DateRangeFilter),
+    )
+    search_fields = ('uuid', 'conta_associacao__uuid', 'conta_associacao__associacao__unidade__codigo_eol', 'conta_associacao__associacao__unidade__nome', 'conta_associacao__associacao__nome')
 
 @admin.register(Associacao)
 class AssociacaoAdmin(admin.ModelAdmin):
