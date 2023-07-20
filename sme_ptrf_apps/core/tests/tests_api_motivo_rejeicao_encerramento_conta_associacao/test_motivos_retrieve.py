@@ -6,7 +6,7 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_retrieve_periodo(
+def test_retrieve_motivo(
     jwt_authenticated_client_a,
     motivo_rejeicao
 ):

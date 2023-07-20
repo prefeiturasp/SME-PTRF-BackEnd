@@ -5,6 +5,8 @@ from rest_framework.viewsets import GenericViewSet
 from ..serializers import MotivoRejeicaoEncerramentoContaAssociacaoSerializer
 from ...models import MotivoRejeicaoEncerramentoContaAssociacao
 from ..utils.pagination import CustomPagination
+
+
 class MotivoRejeicaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
                         mixins.RetrieveModelMixin,
                         mixins.CreateModelMixin,
