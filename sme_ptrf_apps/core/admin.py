@@ -48,7 +48,8 @@ from .models import (
     SolicitacaoDevolucaoAoTesouro,
     TransferenciaEol,
     FalhaGeracaoPc,
-    SolicitacaoEncerramentoContaAssociacao
+    SolicitacaoEncerramentoContaAssociacao,
+    MotivoRejeicaoEncerramentoContaAssociacao
 )
 
 from django.db.models import Count
@@ -56,6 +57,7 @@ from django.db.models import Count
 admin.site.register(Acao)
 admin.site.register(ParametroFiqueDeOlhoPc)
 admin.site.register(ModeloCarga)
+admin.site.register(MotivoRejeicaoEncerramentoContaAssociacao)
 
 @admin.register(SolicitacaoEncerramentoContaAssociacao)
 class SolicitacaoEncerramentoContaAssociacaoAdmin(admin.ModelAdmin):

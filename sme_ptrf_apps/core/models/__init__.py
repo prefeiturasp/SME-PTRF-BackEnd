@@ -6,6 +6,7 @@ from .associacao import Associacao
 from .ata import Ata
 from .conta_associacao import ContaAssociacao
 from .solicitacao_encerramento_conta_associacao import SolicitacaoEncerramentoContaAssociacao
+from .motivo_rejeicao_encerramento_conta_associacao import MotivoRejeicaoEncerramentoContaAssociacao
 from .demonstrativo_financeiro import DemonstrativoFinanceiro
 from .fechamento_periodo import STATUS_ABERTO, STATUS_FECHADO, STATUS_IMPLANTACAO, FechamentoPeriodo
 from .membro_associacao import MembroAssociacao

@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
 
-from ..serializers.solicitacao_encerramento_conta_associacao_serializer import SolicitacaoEncerramentoContaAssociacaoSerializer
+from ..serializers import SolicitacaoEncerramentoContaAssociacaoSerializer
 from ...models import SolicitacaoEncerramentoContaAssociacao
 
 class SolicitacaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
