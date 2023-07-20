@@ -1536,6 +1536,19 @@ def despesa_no_periodo(associacao, tipo_documento, tipo_transacao, periodo):
 
 
 @pytest.fixture
+def receita_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita_repasse, periodo):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=periodo.data_inicio_realizacao_despesas,
+        valor=10000,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita_repasse,
+    )
+
+
+@pytest.fixture
 def rateio_despesa_demonstrativo(associacao, despesa_no_periodo, conta_associacao, acao, tipo_aplicacao_recurso_capital,
                                  tipo_custeio,
                                  especificacao_material_eletrico, acao_associacao):

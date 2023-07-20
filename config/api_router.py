@@ -36,7 +36,8 @@ from sme_ptrf_apps.core.api.views import (
     ParametrosUeViewSet,
     AnaliseLancamentoPrestacaoContaViewSet,
     AnaliseDocumentoPrestacaoContaViewSet,
-    FalhaGeracaoPcViewSet
+    FalhaGeracaoPcViewSet,
+    SolicitacaoEncerramentoContaAssociacaoViewset
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
@@ -160,6 +161,7 @@ router.register("comentarios-de-analises-consolidados-dre", ComentariosAnalisesC
 router.register("analises-documentos-consolidados-dre", AnalisesDocumentosConsolidadoDreViewSet)
 router.register("analises-consolidados-dre", AnalisesConsolidadoDreViewSet)
 router.register("falhas-geracao-pc", FalhaGeracaoPcViewSet)
+router.register("solicitacoes-encerramento-conta", SolicitacaoEncerramentoContaAssociacaoViewset)
 
 app_name = "api"
 urlpatterns = router.urls
