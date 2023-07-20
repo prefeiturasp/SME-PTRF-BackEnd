@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from ..serializers.associacao_serializer import AssociacaoSerializer
 from ..serializers.tipo_conta_serializer import TipoContaSerializer
+from ..serializers.solicitacao_encerramento_conta_associacao_serializer import SolicitacaoEncerramentoContaAssociacaoSerializer
 from ...models import ContaAssociacao, Associacao
 
 
@@ -38,11 +39,39 @@ class ContaAssociacaoInfoAtaSerializer(serializers.ModelSerializer):
 
 class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
     tipo_conta = TipoContaSerializer()
+    solicitacao_encerramento = SolicitacaoEncerramentoContaAssociacaoSerializer()
+    saldo_atual_conta = serializers.SerializerMethodField()
+    habilitar_solicitar_encerramento = serializers.SerializerMethodField()
+
 
     class Meta:
         model = ContaAssociacao
-        fields = ('uuid', 'tipo_conta', 'banco_nome', 'agencia', 'numero_conta', )
+        fields = (
+            'uuid',
+            'tipo_conta',
+            'banco_nome',
+            'agencia',
+            'numero_conta',
+            'solicitacao_encerramento',
+            'saldo_atual_conta',
+            'habilitar_solicitar_encerramento'
+        )
 
+    def get_habilitar_solicitar_encerramento(self, obj):
+        saldo_atual = self.get_saldo_atual_conta(obj)
+
+        try:
+            solicitacao_encerramento = obj.solicitacao_encerramento
+        except ContaAssociacao.solicitacao_encerramento.RelatedObjectDoesNotExist:
+            solicitacao_encerramento = None
+
+        if saldo_atual == 0 and (not solicitacao_encerramento or (solicitacao_encerramento and solicitacao_encerramento.rejeitada)):
+            return True
+
+        return False
+
+    def get_saldo_atual_conta(self, obj):
+        return obj.get_saldo_atual_conta()
 
 class ContaAssociacaoCreateSerializer(serializers.ModelSerializer):
     class Meta:

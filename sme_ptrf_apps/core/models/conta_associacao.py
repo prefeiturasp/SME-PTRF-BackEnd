@@ -47,6 +47,25 @@ class ContaAssociacao(ModeloBase):
         self.status = self.STATUS_INATIVA
         self.save()
 
+    def ativar(self):
+        self.status = self.STATUS_ATIVA
+        self.save()
+
+    def pode_encerrar(self, data_encerramento):
+        from sme_ptrf_apps.core.services.encerramento_conta_associacao_service import ValidaDataDeEncerramento
+
+        validacao = ValidaDataDeEncerramento(associacao=self.associacao, data_de_encerramento=data_encerramento)
+        return validacao.pode_encerrar
+
+    def get_saldo_atual_conta(self):
+        from sme_ptrf_apps.core.services.info_por_acao_services import info_conta_associacao_no_periodo
+        from sme_ptrf_apps.core.models import Periodo
+        periodo = Periodo.periodo_atual()
+        saldos_conta = info_conta_associacao_no_periodo(self, periodo=periodo)
+        saldo_conta = saldos_conta['saldo_atual_custeio'] + saldos_conta['saldo_atual_capital'] + saldos_conta['saldo_atual_livre']
+
+        return saldo_conta
+
     @classmethod
     def get_valores(cls, user=None, associacao_uuid=None):
         query = cls.objects.filter(status=cls.STATUS_ATIVA)
