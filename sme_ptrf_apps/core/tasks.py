@@ -113,6 +113,8 @@ def concluir_prestacao_de_contas_async(
     except:
         logger.info('Erro ao concluir a prestação de contas %s.', prestacao)
 
+    task = prestacao.tasks_celery_da_prestacao_conta.filter(finalizada=False).first()
+    task.registra_data_hora_finalizacao()
 
 
 @shared_task(
