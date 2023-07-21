@@ -30,7 +30,8 @@ from ...models import (
     AcaoAssociacao,
     AnalisePrestacaoConta,
     AnaliseLancamentoPrestacaoConta,
-    AnaliseDocumentoPrestacaoConta
+    AnaliseDocumentoPrestacaoConta,
+    TaskCelery
 )
 from ...services import (
     concluir_prestacao_de_contas,
@@ -215,14 +216,26 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             if erro_pc:
                 raise Exception(erro_pc)
             else:
-                concluir_prestacao_de_contas_async.delay(
-                    periodo.uuid,
-                    associacao.uuid,
-                    usuario=request.user.username,
-                    e_retorno_devolucao=dados["e_retorno_devolucao"],
-                    requer_geracao_documentos=dados["requer_geracao_documentos"],
-                    requer_geracao_fechamentos=dados["requer_geracao_fechamentos"],
-                    justificativa_acertos_pendentes=justificativa_acertos_pendentes,
+                id_task = concluir_prestacao_de_contas_async.apply_async(
+                    (
+                        periodo.uuid,
+                        associacao.uuid,
+                        request.user.username,
+                        True,
+                        dados["e_retorno_devolucao"],
+                        dados["requer_geracao_documentos"],
+                        dados["requer_geracao_fechamentos"],
+                        justificativa_acertos_pendentes,
+                    ), countdown=1
+                )
+
+                TaskCelery.objects.create(
+                    id_task_assincrona=id_task,
+                    nome_task="concluir_prestacao_de_contas_async",
+                    usuario=usuario,
+                    associacao=associacao,
+                    periodo=periodo,
+                    prestacao_conta=prestacao_de_contas
                 )
         except(IntegrityError):
             erro = {
