@@ -49,7 +49,8 @@ from .models import (
     TransferenciaEol,
     FalhaGeracaoPc,
     SolicitacaoEncerramentoContaAssociacao,
-    MotivoRejeicaoEncerramentoContaAssociacao
+    MotivoRejeicaoEncerramentoContaAssociacao,
+    TaskCelery
 )
 
 from django.db.models import Count
@@ -59,6 +60,7 @@ admin.site.register(ParametroFiqueDeOlhoPc)
 admin.site.register(ModeloCarga)
 admin.site.register(MotivoRejeicaoEncerramentoContaAssociacao)
 
+
 @admin.register(SolicitacaoEncerramentoContaAssociacao)
 class SolicitacaoEncerramentoContaAssociacaoAdmin(admin.ModelAdmin):
     raw_id_fields = ('conta_associacao',)
@@ -66,6 +68,7 @@ class SolicitacaoEncerramentoContaAssociacaoAdmin(admin.ModelAdmin):
         ('data_de_encerramento_na_agencia', DateRangeFilter),
     )
     search_fields = ('uuid', 'conta_associacao__uuid', 'conta_associacao__associacao__unidade__codigo_eol', 'conta_associacao__associacao__unidade__nome', 'conta_associacao__associacao__nome')
+
 
 @admin.register(Associacao)
 class AssociacaoAdmin(admin.ModelAdmin):
@@ -1440,6 +1443,7 @@ class FalhaGeracaoPcAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id')
     search_fields = ('ultimo_usuario__username', 'associacao__nome', 'associacao__unidade__nome')
 
+
 @admin.register(TransferenciaEol)
 class TransferenciaEolAdmin(admin.ModelAdmin):
     def transfere_codigo_eol(self, request, queryset):
@@ -1451,3 +1455,26 @@ class TransferenciaEolAdmin(admin.ModelAdmin):
     list_display = ('eol_transferido', 'eol_historico', 'tipo_nova_unidade', 'tipo_conta_transferido', 'data_inicio_atividades', 'status_processamento')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em', 'log_execucao')
     actions = [transfere_codigo_eol]
+
+
+@admin.register(TaskCelery)
+class TaskCeleryAdmin(admin.ModelAdmin):
+    list_display = ['associacao', 'id_task_assincrona', 'nome_task', 'finalizada', ]
+    readonly_fields = ('uuid', 'id_task_assincrona', 'nome_task', 'criado_em')
+    raw_id_fields = ('usuario', 'associacao', 'prestacao_conta', 'periodo',)
+
+    search_fields = [
+        'nome_task',
+        'associacao__unidade__codigo_eol',
+        'associacao__unidade__nome',
+        'associacao__nome',
+        'usuario__username'
+    ]
+
+    list_filter = [
+        'finalizada',
+        'finalizacao_forcada',
+        ('criado_em', DateRangeFilter),
+        ('alterado_em', DateRangeFilter),
+        ('data_hora_finalizacao', DateRangeFilter),
+    ]
