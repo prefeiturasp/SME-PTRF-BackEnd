@@ -18,6 +18,8 @@ from rest_framework.filters import SearchFilter
 
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
+from brazilnum.cpf import format_cpf
+
 from sme_ptrf_apps.users.api.serializers import (
     UsuarioSerializer,
     UsuarioRetrieveSerializer,
@@ -28,7 +30,7 @@ from sme_ptrf_apps.users.services import (
     SmeIntegracaoService,
 )
 from sme_ptrf_apps.users.services.validacao_username_service import validar_username
-from sme_ptrf_apps.core.models import Unidade
+from sme_ptrf_apps.core.models import Unidade, MembroAssociacao
 
 from django.core.exceptions import ValidationError
 
@@ -211,6 +213,8 @@ class UsuariosViewSet(ModelViewSet):
             location=OpenApiParameter.QUERY,
         ),
     ])
+    # TODO Extrair validações para um serializer
+    # TODO Extrair regras de negócio para um service
     @action(detail=False, methods=['get'], url_path='status')
     def usuario_status(self, request):
         from ....core.models import MembroAssociacao, Unidade
@@ -224,7 +228,7 @@ class UsuariosViewSet(ModelViewSet):
 
         unidade_uuid = request.query_params.get('uuid_unidade')
         unidade = None
-        if unidade_uuid:
+        if unidade_uuid and unidade_uuid != 'SME':
             try:
                 unidade = Unidade.objects.get(uuid=unidade_uuid)
             except Unidade.DoesNotExist:
@@ -235,12 +239,12 @@ class UsuariosViewSet(ModelViewSet):
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        e_servidor_na_unidade = False
-        if e_servidor and unidade:
-            e_servidor_na_unidade = SmeIntegracaoService.get_cargos_do_rf_na_escola(
-                rf=username,
-                codigo_eol=unidade.codigo_eol
-            ) != []
+        # e_servidor_na_unidade = False
+        # if e_servidor and unidade:
+        #     e_servidor_na_unidade = SmeIntegracaoService.get_cargos_do_rf_na_escola(
+        #         rf=username,
+        #         codigo_eol=unidade.codigo_eol
+        #     ) != []
 
         try:
             user_core_sso = SmeIntegracaoService.usuario_core_sso_or_none(username)
@@ -254,7 +258,7 @@ class UsuariosViewSet(ModelViewSet):
                 'mensagem': 'Erro ao buscar usuário no CoreSSO!'
             }
 
-        onde_e_membro = MembroAssociacao.associacoes_onde_cpf_e_membro(cpf=username) if not e_servidor else []
+        # onde_e_membro = MembroAssociacao.associacoes_onde_cpf_e_membro(cpf=username) if not e_servidor else []
         try:
             user_sig_escola = User.objects.get(username=username)
             info_sig_escola = {
@@ -264,26 +268,109 @@ class UsuariosViewSet(ModelViewSet):
                     'user_id': user_sig_escola.id
                 },
                 'mensagem': 'Usuário encontrado no Sig.Escola.',
-                'associacoes_que_e_membro': onde_e_membro,
+                # 'associacoes_que_e_membro': onde_e_membro,
             }
         except User.DoesNotExist as e:
             info_sig_escola = {
                 'info_sig_escola': None,
                 'mensagem': 'Usuário não encontrado no Sig.Escola.',
-                'associacoes_que_e_membro': onde_e_membro,
+                # 'associacoes_que_e_membro': onde_e_membro,
             }
+
+        visao_base = None
+        if unidade:
+            visao_base = 'DRE' if unidade.tipo_unidade == 'DRE' else 'UE'
+        else:
+            visao_base = 'SME' if unidade_uuid == 'SME' else None
+
+        # pode_acessar_unidade = False
+        # if e_servidor:
+        #     if visao_base == 'SME':
+        #         pode_acessar_unidade =
+
+        pode_acessar, mensagem_pode_acessar, info_exercicio = pode_acessar_unidade(username, e_servidor, visao_base, unidade)
+
+        info_membro_nao_servidor = ""
+        if not e_servidor:
+            membro_associacao = MembroAssociacao.objects.filter(cpf=format_cpf(username)).first()
+            if membro_associacao:
+                info_membro_nao_servidor = {
+                    'nome': membro_associacao.nome,
+                    'email': membro_associacao.email,
+                    'cpf': membro_associacao.cpf,
+                    'associacao': membro_associacao.associacao.nome if membro_associacao.associacao else '',
+                    'codigo_eol': membro_associacao.associacao.unidade.codigo_eol if membro_associacao.associacao else '',
+                    'cargo_associacao': membro_associacao.cargo_associacao,
+                }
 
         result = {
             'usuario_core_sso': info_core_sso,
             'usuario_sig_escola': info_sig_escola,
             'validacao_username': validar_username(username=username, e_servidor=e_servidor),
-            'e_servidor_na_unidade': e_servidor_na_unidade,
+            # 'e_servidor_na_unidade': e_servidor_na_unidade,
+            'info_membro_nao_servidor': info_membro_nao_servidor,
             'pode_acessar_unidade': {
+                'visao_base': visao_base,
                 'unidade': unidade_uuid,
-                'pode_acessar': False,
-                'mensagem': 'Servidor não está em execício na unidade.'
+                'pode_acessar': pode_acessar,
+                'mensagem': mensagem_pode_acessar,
+                # TODO Remover info_exercicio do resultado final após implantação. Apenas para debug.
+                'info_exercicio': info_exercicio
             }
         }
 
         return Response(result, status=status.HTTP_200_OK)
 
+
+
+# TODO Mover para um service
+# TODO Criar testes unitários
+def pode_acessar_unidade(username, e_servidor, visao_base, unidade):
+
+    info_exercicio = ''
+
+    if e_servidor:
+        try:
+            info_exercicio = SmeIntegracaoService.get_info_lotacao_e_exercicio_do_servidor(username)
+        except SmeIntegracaoException as e:
+            logger.error('Erro ao obter informações de lotação e exercício: %r', e)
+            return False, 'Erro ao obter informações de lotação e exercício.', ''
+
+        unidade_exercicio = info_exercicio['unidadeExercicio']['codigo'] if info_exercicio['unidadeExercicio'] else None
+        unidade_lotacao = info_exercicio['unidadeLotacao']['codigo'] if info_exercicio['unidadeLotacao'] else None
+        logger.info(f'EOL da unidade_exercicio: {unidade_exercicio}' )
+        logger.info(f'EOL da unidade_lotacao: {unidade_lotacao}' )
+
+        unidade_servidor = unidade_exercicio if unidade_exercicio else unidade_lotacao
+
+        if visao_base == 'SME' and not unidade_servidor:
+            return False, 'Servidor não está em exercício em uma unidade.', info_exercicio
+
+        if visao_base == 'DRE':
+            unidades_dre = unidade.unidades_da_dre.values_list("codigo_eol", flat=True)
+            if unidade_servidor != unidade.codigo_eol and unidade_servidor not in unidades_dre:
+                return False, 'Servidor em exercício em outra unidade.', info_exercicio
+
+        if visao_base == 'UE' and unidade_servidor != unidade.codigo_eol:
+            if  MembroAssociacao.objects.filter(codigo_identificacao=username, associacao__unidade__codigo_eol=unidade.codigo_eol).exists():
+                logger.info('Servidor é membro da associação da unidade, mas não está em exercício nesta unidade.')
+                return False, 'O usuário é membro da associação, porém não está em exercício nesta unidade. Favor entrar em contato com a DRE.', info_exercicio
+            else:
+                logger.info('Servidor não está em exercício nesta unidade e não é membro da associação.')
+                return False, 'Servidor em exercício em outra unidade.', info_exercicio
+
+    else:
+        # Inclui a máscara de CPF ao username. O cadastro de membros usa o CPF com máscara para membros não servidores.
+        codigo_membro = format_cpf(username)
+        if visao_base == 'SME' and not MembroAssociacao.objects.filter(cpf=codigo_membro).exists():
+            return False, 'Usuário não é membro de nenhuma associação.', ''
+
+        if visao_base == 'DRE':
+            unidades_dre = unidade.unidades_da_dre.values_list("codigo_eol", flat=True)
+            if not MembroAssociacao.objects.filter(cpf=codigo_membro, associacao__unidade__codigo_eol__in=unidades_dre).exists():
+                return False, 'Usuário não é membro de nenhuma associação da DRE.', ''
+
+        if visao_base == 'UE' and not MembroAssociacao.objects.filter(cpf=codigo_membro, associacao__unidade__codigo_eol=unidade.codigo_eol).exists():
+            return False, 'Usuário não é membro da associação.', ''
+
+    return True, '', info_exercicio
