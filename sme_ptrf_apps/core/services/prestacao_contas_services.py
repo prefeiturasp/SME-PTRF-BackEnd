@@ -19,7 +19,7 @@ from ..models import (
     AnaliseDocumentoPrestacaoConta,
     ContaAssociacao,
     TipoAcertoDocumento,
-    SolicitacaoAcertoDocumento, SolicitacaoDevolucaoAoTesouro, Parametros, FalhaGeracaoPc,
+    SolicitacaoAcertoDocumento, SolicitacaoDevolucaoAoTesouro, Parametros, FalhaGeracaoPc
 )
 from ..services import info_acoes_associacao_no_periodo
 from ..services.relacao_bens import gerar_arquivo_relacao_de_bens, apagar_previas_relacao_de_bens
@@ -1616,8 +1616,8 @@ class MonitoraPC:
 
                     try:
 
-                        self.revoke_tasks_by_name(
-                            task_name='sme_ptrf_apps.core.tasks.concluir_prestacao_de_contas_async'
+                        self.revoke_tasks_by_id(
+                            prestacao_conta=pc
                         )
 
                         # Registrando falha de geracao de pc
@@ -1686,3 +1686,20 @@ class MonitoraPC:
                         if task['type'] == task_name:
                             print('Revoking task {}'.format(task))
                             c.revoke(task['id'], terminate=True)
+
+    def revoke_tasks_by_id(self, prestacao_conta):
+        import celery.task.control as c
+        """
+        Revoke one task by the id of the celery task
+        :param prestacao_conta: PC of the celery task
+        :return: None
+        Examples:
+            revoke_tasks_by_id(
+                prestacao_conta=Object
+            )
+        """
+
+        task = prestacao_conta.tasks_celery_da_prestacao_conta.filter(finalizada=False).first()
+        logger.info(f'Revoking: {task}')
+        c.revoke(task.id_task_assincrona, terminate=True)
+        task.registra_data_hora_finalizacao_forcada()
