@@ -18,28 +18,23 @@ from rest_framework.filters import SearchFilter
 
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
+from brazilnum.cpf import format_cpf
+
 from sme_ptrf_apps.users.api.serializers import (
-    AlteraEmailSerializer,
-    RedefinirSenhaSerializer,
-    UserCreateSerializer,
     UsuarioSerializer,
-    UserRetrieveSerializer
+    UsuarioRetrieveSerializer,
+    UsuarioCreateSerializer,
 )
-from sme_ptrf_apps.users.models import Grupo, Visao
 from sme_ptrf_apps.users.services import (
     SmeIntegracaoException,
     SmeIntegracaoService,
-    criar_acesso_de_suporte,
-    encerrar_acesso_de_suporte
 )
-from sme_ptrf_apps.users.services.unidades_e_permissoes_service import unidades_do_usuario_e_permissoes_na_visao
 from sme_ptrf_apps.users.services.validacao_username_service import validar_username
-from sme_ptrf_apps.core.models import Unidade
+from sme_ptrf_apps.core.models import Unidade, MembroAssociacao
 
 from django.core.exceptions import ValidationError
 
 User = get_user_model()
-
 
 logger = logging.getLogger(__name__)
 
@@ -120,10 +115,10 @@ class UsuariosViewSet(ModelViewSet):
             return UsuarioSerializer
 
         elif self.action == 'retrieve':
-            return UserRetrieveSerializer
+            return UsuarioRetrieveSerializer
 
         else:
-            return UserCreateSerializer
+            return UsuarioCreateSerializer
 
     def get_queryset(self, *args, **kwargs):
         """
@@ -168,89 +163,16 @@ class UsuariosViewSet(ModelViewSet):
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
-    @action(detail=False, methods=["GET"])
-    def me(self, request):
-        serializer = UsuarioSerializer(request.user, context={"request": request})
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
-
-    @action(detail=True, url_path='altera-email', methods=['patch'])
-    def altera_email(self, request, id):
-        data = request.data
-        serialize = AlteraEmailSerializer()
-        validated_data = serialize.validate(data)
-        usuario = User.objects.get(username=id)
-        instance = serialize.update(usuario, validated_data)
-        if isinstance(instance, Response):
-            return instance
-        return Response(UsuarioSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
-
-    @action(detail=True, url_path='altera-senha', methods=['patch'])
-    def altera_senha(self, request, id):
-        data = request.data
-        serializer = RedefinirSenhaSerializer()
-        validated_data = serializer.validate(data)
-        usuario = User.objects.get(username=id)
-        instance = serializer.update(usuario, validated_data)
-        if isinstance(instance, Response):
-            return instance
-        return Response(UsuarioSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
-
-    @action(detail=False, url_path="grupos", methods=['get'])
-    def grupos(self, request):
-        logger.info("Buscando grupos para usuario: %s", request.user)
-        usuario = request.user
-        visao = request.query_params.get('visao')
-
-        if not visao:
-            return Response("Parâmetro visão é obrigatório.", status=status.HTTP_400_BAD_REQUEST)
-
-        if visao not in ["SME", "DRE", "UE"]:
-            erro = {
-                    'erro': 'erro_ao_consultar_grupos',
-                    'mensagem': f'Visao {visao} nao foi encontrada. Os valores permitidos sao SME, DRE ou UE'
-                }
-            logging.info("Erro ao buscar grupos do usuário %s", erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        if visao == 'SME':
-            try:
-                grupos = Grupo.objects.all().order_by('name')
-                return Response(
-                    [{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao, "visao": visao} for grupo
-                     in grupos])
-            except Exception as err:
-                erro = {
-                    'erro': 'erro_ao_consultar_grupos',
-                    'mensagem': str(err)
-                }
-                logging.info("Erro ao buscar grupos do usuário %s", erro)
-                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        elif visao == "DRE":
-            try:
-                grupos = Grupo.objects.filter(Q(visoes__nome="DRE") | Q(visoes__nome="UE")).order_by('name')
-                return Response(
-                         [{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao, "visao": visao} for grupo in grupos])
-            except Exception as err:
-                erro = {
-                    'erro': 'erro_ao_consultar_grupos',
-                    'mensagem': str(err)
-                }
-                logging.info("Erro ao buscar grupos do usuário %s", erro)
-                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            try:
-                grupos = Grupo.objects.filter(visoes__nome="UE").order_by('name')
-                return Response(
-                         [{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao, "visao": visao} for grupo in grupos])
-            except Exception as err:
-                erro = {
-                    'erro': 'erro_ao_consultar_grupos',
-                    'mensagem': str(err)
-                }
-                logging.info("Erro ao buscar grupos do usuário %s", erro)
-                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
     # TODO Rever url_path 'usuarios/consultar'. É boa prática em APIs Rest evitar verbos. Poderia ser 'servidores'
+    @extend_schema(parameters=[
+        OpenApiParameter(
+            name='username',
+            description='Id do usuário',
+            required=True,
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+        ),
+    ])
     @action(detail=False, methods=['get'], url_path='consultar')
     def consulta_servidor_sgp(self, request):
         username = self.request.query_params.get('username')
@@ -268,6 +190,31 @@ class UsuariosViewSet(ModelViewSet):
         except ConnectTimeout:
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(parameters=[
+        OpenApiParameter(
+            name='username',
+            description='Id do usuário',
+            required=True,
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+        ),
+        OpenApiParameter(
+            name='e_servidor',
+            description='É servidor? ("True" ou "False")',
+            required=False,
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+        ),
+        OpenApiParameter(
+            name='uuid_unidade',
+            description='UUID da unidade base.',
+            required=False,
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+        ),
+    ])
+    # TODO Extrair validações para um serializer
+    # TODO Extrair regras de negócio para um service
     @action(detail=False, methods=['get'], url_path='status')
     def usuario_status(self, request):
         from ....core.models import MembroAssociacao, Unidade
@@ -277,11 +224,11 @@ class UsuariosViewSet(ModelViewSet):
         if not username:
             return Response("Parâmetro username obrigatório.", status=status.HTTP_400_BAD_REQUEST)
 
-        e_servidor = request.query_params.get('servidor', 'True') == 'True'
+        e_servidor = request.query_params.get('e_servidor', 'True') == 'True'
 
-        unidade_uuid = request.query_params.get('unidade')
+        unidade_uuid = request.query_params.get('uuid_unidade')
         unidade = None
-        if unidade_uuid:
+        if unidade_uuid and unidade_uuid != 'SME':
             try:
                 unidade = Unidade.objects.get(uuid=unidade_uuid)
             except Unidade.DoesNotExist:
@@ -292,12 +239,12 @@ class UsuariosViewSet(ModelViewSet):
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        e_servidor_na_unidade = False
-        if e_servidor and unidade:
-            e_servidor_na_unidade = SmeIntegracaoService.get_cargos_do_rf_na_escola(
-                rf=username,
-                codigo_eol=unidade.codigo_eol
-            ) != []
+        # e_servidor_na_unidade = False
+        # if e_servidor and unidade:
+        #     e_servidor_na_unidade = SmeIntegracaoService.get_cargos_do_rf_na_escola(
+        #         rf=username,
+        #         codigo_eol=unidade.codigo_eol
+        #     ) != []
 
         try:
             user_core_sso = SmeIntegracaoService.usuario_core_sso_or_none(username)
@@ -311,7 +258,7 @@ class UsuariosViewSet(ModelViewSet):
                 'mensagem': 'Erro ao buscar usuário no CoreSSO!'
             }
 
-        onde_e_membro = MembroAssociacao.associacoes_onde_cpf_e_membro(cpf=username) if not e_servidor else []
+        # onde_e_membro = MembroAssociacao.associacoes_onde_cpf_e_membro(cpf=username) if not e_servidor else []
         try:
             user_sig_escola = User.objects.get(username=username)
             info_sig_escola = {
@@ -321,180 +268,109 @@ class UsuariosViewSet(ModelViewSet):
                     'user_id': user_sig_escola.id
                 },
                 'mensagem': 'Usuário encontrado no Sig.Escola.',
-                'associacoes_que_e_membro': onde_e_membro,
+                # 'associacoes_que_e_membro': onde_e_membro,
             }
         except User.DoesNotExist as e:
             info_sig_escola = {
                 'info_sig_escola': None,
                 'mensagem': 'Usuário não encontrado no Sig.Escola.',
-                'associacoes_que_e_membro': onde_e_membro,
+                # 'associacoes_que_e_membro': onde_e_membro,
             }
+
+        visao_base = None
+        if unidade:
+            visao_base = 'DRE' if unidade.tipo_unidade == 'DRE' else 'UE'
+        else:
+            visao_base = 'SME' if unidade_uuid == 'SME' else None
+
+        # pode_acessar_unidade = False
+        # if e_servidor:
+        #     if visao_base == 'SME':
+        #         pode_acessar_unidade =
+
+        pode_acessar, mensagem_pode_acessar, info_exercicio = pode_acessar_unidade(username, e_servidor, visao_base, unidade)
+
+        info_membro_nao_servidor = ""
+        if not e_servidor:
+            membro_associacao = MembroAssociacao.objects.filter(cpf=format_cpf(username)).first()
+            if membro_associacao:
+                info_membro_nao_servidor = {
+                    'nome': membro_associacao.nome,
+                    'email': membro_associacao.email,
+                    'cpf': membro_associacao.cpf,
+                    'associacao': membro_associacao.associacao.nome if membro_associacao.associacao else '',
+                    'codigo_eol': membro_associacao.associacao.unidade.codigo_eol if membro_associacao.associacao else '',
+                    'cargo_associacao': membro_associacao.cargo_associacao,
+                }
 
         result = {
             'usuario_core_sso': info_core_sso,
             'usuario_sig_escola': info_sig_escola,
             'validacao_username': validar_username(username=username, e_servidor=e_servidor),
-            'e_servidor_na_unidade': e_servidor_na_unidade,
+            # 'e_servidor_na_unidade': e_servidor_na_unidade,
+            'info_membro_nao_servidor': info_membro_nao_servidor,
+            'pode_acessar_unidade': {
+                'visao_base': visao_base,
+                'unidade': unidade_uuid,
+                'pode_acessar': pode_acessar,
+                'mensagem': mensagem_pode_acessar,
+                # TODO Remover info_exercicio do resultado final após implantação. Apenas para debug.
+                'info_exercicio': info_exercicio
+            }
         }
 
         return Response(result, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'], url_path='unidades-e-permissoes-na-visao/(?P<visao>[^/.]+)')
-    def unidades_e_permissoes_na_visao(self, request, visao, id):
-        from ....core.models import Unidade
 
-        unidade_logada_uuid = request.query_params.get('unidade_logada_uuid')
 
-        if visao not in ["SME", "DRE", "UE"]:
-            erro = {
-                'erro': 'Visão inválida',
-                'mensagem': f"A visão {visao} não é uma visão válida. Esperado UE, DRE ou SME."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+# TODO Mover para um service
+# TODO Criar testes unitários
+def pode_acessar_unidade(username, e_servidor, visao_base, unidade):
 
-        if visao != "SME" and not unidade_logada_uuid:
-            erro = {
-                'erro': 'Parâmetro obrigatório',
-                'mensagem': f"Para visões UE e DRE é necessário informar o parâmetro unidade_logada_uuid."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+    info_exercicio = ''
 
-        unidade_logada = None
-        if unidade_logada_uuid:
-            try:
-                unidade_logada = Unidade.objects.get(uuid=unidade_logada_uuid)
-            except Unidade.DoesNotExist:
-                erro = {
-                    'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto unidade para o uuid {unidade_logada_uuid} não foi encontrado na base."
-                }
-                logger.info('Erro: %r', erro)
-                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        unidades_e_permissoes = unidades_do_usuario_e_permissoes_na_visao(
-            usuario=self.get_object(),
-            visao=visao,
-            unidade_logada=unidade_logada
-        )
-
-        return Response(unidades_e_permissoes, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=['post'], url_path='unidades')
-    def cria_vinculo_usuario_unidade(self, request, id):
-        """ (post) /usuarios/{usuario.id}/unidades/  """
-        usuario = self.get_object()
-
-        codigo_eol = request.data.get('codigo_eol')
-        if not codigo_eol:
-            return Response("Campo 'codigo_eol' não encontrado no payload.", status=status.HTTP_400_BAD_REQUEST)
-
-        usuario.add_unidade_se_nao_existir(codigo_eol=codigo_eol)
-        return Response({"mensagem": "Unidade vinculada com sucesso"}, status=status.HTTP_201_CREATED)
-
-    @action(detail=True, methods=['delete'], url_path='unidades/(?P<codigo_eol>[0-9]+)')
-    def deleta_vinculo_usuario_unidade(self, request, codigo_eol, id):
-        """ (delete) /usuarios/{usuario.id}/unidades/{codigo_eol}  """
-        usuario = self.get_object()
-        usuario.remove_unidade_se_existir(codigo_eol=codigo_eol)
-        return Response({"mensagem": "Unidade desvinculada com sucesso"}, status=status.HTTP_201_CREATED)
-
-    @action(detail=False, url_path="visoes", methods=['get'])
-    def visoes(self, request):
+    if e_servidor:
         try:
-            visoes = Visao.objects.all().order_by("nome")
+            info_exercicio = SmeIntegracaoService.get_info_lotacao_e_exercicio_do_servidor(username)
+        except SmeIntegracaoException as e:
+            logger.error('Erro ao obter informações de lotação e exercício: %r', e)
+            return False, 'Erro ao obter informações de lotação e exercício.', ''
 
-            return Response([{'id': str(visao.id), "nome": visao.nome} for visao in visoes])
-        except Exception as err:
-            erro = {
-                'erro': 'erro_ao_consultar_visoes',
-                'mensagem': str(err)
-            }
-            logging.info("Erro ao buscar visoes %s", erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        unidade_exercicio = info_exercicio['unidadeExercicio']['codigo'] if info_exercicio['unidadeExercicio'] else None
+        unidade_lotacao = info_exercicio['unidadeLotacao']['codigo'] if info_exercicio['unidadeLotacao'] else None
+        logger.info(f'EOL da unidade_exercicio: {unidade_exercicio}' )
+        logger.info(f'EOL da unidade_lotacao: {unidade_lotacao}' )
 
-    @action(detail=True, methods=['post'], url_path='viabilizar-acesso-suporte')
-    def viabilizar_acesso_suporte_usuario_unidade(self, request, id):
-        """ (post) /usuarios/{usuario.username}/viabilizar-acesso-suporte/  """
-        usuario = User.objects.get(username=id)
-        codigo_eol = request.data.get('codigo_eol')
-        if not codigo_eol:
-            return Response("Campo 'codigo_eol' não encontrado no payload.", status=status.HTTP_400_BAD_REQUEST)
+        unidade_servidor = unidade_exercicio if unidade_exercicio else unidade_lotacao
 
-        try:
-            unidade = Unidade.objects.get(codigo_eol=codigo_eol)
-        except Unidade.DoesNotExist:
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto Unidade para o código EOL {codigo_eol} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        if visao_base == 'SME' and not unidade_servidor:
+            return False, 'Servidor não está em exercício em uma unidade.', info_exercicio
 
-        criar_acesso_de_suporte(unidade_do_suporte=unidade, usuario_do_suporte=usuario)
+        if visao_base == 'DRE':
+            unidades_dre = unidade.unidades_da_dre.values_list("codigo_eol", flat=True)
+            if unidade_servidor != unidade.codigo_eol and unidade_servidor not in unidades_dre:
+                return False, 'Servidor em exercício em outra unidade.', info_exercicio
 
-        return Response({"mensagem": "Acesso de suporte viabilizado."}, status=status.HTTP_201_CREATED)
+        if visao_base == 'UE' and unidade_servidor != unidade.codigo_eol:
+            if  MembroAssociacao.objects.filter(codigo_identificacao=username, associacao__unidade__codigo_eol=unidade.codigo_eol).exists():
+                logger.info('Servidor é membro da associação da unidade, mas não está em exercício nesta unidade.')
+                return False, 'O usuário é membro da associação, porém não está em exercício nesta unidade. Favor entrar em contato com a DRE.', info_exercicio
+            else:
+                logger.info('Servidor não está em exercício nesta unidade e não é membro da associação.')
+                return False, 'Servidor em exercício em outra unidade.', info_exercicio
 
-    @action(detail=True, methods=['post'], url_path='encerrar-acesso-suporte')
-    def encerrar_acesso_suporte_usuario_unidade(self, request, id):
-        """ (post) /usuarios/{usuario.username}/encerrar-acesso-suporte/  """
-        usuario = User.objects.get(username=id)
-        unidade_suporte_uuid = request.data.get('unidade_suporte_uuid')
-        if not unidade_suporte_uuid:
-            return Response("Campo 'unidade_suporte_uuid' não encontrado no payload.", status=status.HTTP_400_BAD_REQUEST)
+    else:
+        # Inclui a máscara de CPF ao username. O cadastro de membros usa o CPF com máscara para membros não servidores.
+        codigo_membro = format_cpf(username)
+        if visao_base == 'SME' and not MembroAssociacao.objects.filter(cpf=codigo_membro).exists():
+            return False, 'Usuário não é membro de nenhuma associação.', ''
 
-        try:
-            unidade = Unidade.objects.get(uuid=unidade_suporte_uuid)
-        except Unidade.DoesNotExist:
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto Unidade para o UUID {unidade_suporte_uuid} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        if visao_base == 'DRE':
+            unidades_dre = unidade.unidades_da_dre.values_list("codigo_eol", flat=True)
+            if not MembroAssociacao.objects.filter(cpf=codigo_membro, associacao__unidade__codigo_eol__in=unidades_dre).exists():
+                return False, 'Usuário não é membro de nenhuma associação da DRE.', ''
 
-        encerrar_acesso_de_suporte(unidade_do_suporte=unidade, usuario_do_suporte=usuario)
+        if visao_base == 'UE' and not MembroAssociacao.objects.filter(cpf=codigo_membro, associacao__unidade__codigo_eol=unidade.codigo_eol).exists():
+            return False, 'Usuário não é membro da associação.', ''
 
-        return Response({"mensagem": "Acesso de suporte encerrado."}, status=status.HTTP_200_OK)
-
-    @action(detail=False, url_path="usuarios-servidores-por-visao", methods=['get'])
-    def usuarios_servidores_por_visao(self, request):
-        from ...services.get_usuarios_servidores_por_visao import get_usuarios_servidores_por_visao
-
-        visao = request.query_params.get('visao')
-
-        if not visao:
-            erro = {
-                'erro': 'parametros_requerido',
-                'mensagem': 'É necessário o parametro ?visao='
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        if visao not in ['SME', 'DRE', 'UE']:
-            erro = {
-                'erro': 'parametro_incorreto',
-                'mensagem': f"A visão {visao} não é uma visão válida. Esperado UE, DRE ou SME."
-            }
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            visao_objeto = Visao.objects.filter(nome=visao).first()
-        except (Visao.DoesNotExist, ValidationError):
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"A visão {visao} não foi encontrada na Base"
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            usuarios = get_usuarios_servidores_por_visao(visao_objeto)
-            return Response(usuarios, status=status.HTTP_200_OK)
-        except:
-            erro = {
-                'erro': 'Erro ao retornar usuarios_servidores_por_visao',
-                'mensagem': f"Não foi possível retornar os usuários"
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+    return True, '', info_exercicio
