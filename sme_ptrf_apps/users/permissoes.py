@@ -231,3 +231,28 @@ class PermissaoAPIApenasSmeComLeituraOuGravacao(PermissaoCRUD):
     def has_permission(self, request, view):
         perms = self.get_required_permissions(request.method)
         return self.has_perms(perms, request.user)
+
+
+class PermissaoApiSME(PermissaoCRUD):
+    """
+    Recursos de API da visão de SME
+    """
+    perms_map = {
+        'GET': ['sme_leitura', 'sme_gravacao'],
+        'OPTIONS': ['sme_leitura', 'sme_gravacao'],
+        'HEAD': ['sme_leitura', 'sme_gravacao'],
+        'POST': ['sme_gravacao'],
+        'PUT': ['sme_gravacao'],
+        'PATCH': ['sme_gravacao'],
+        'DELETE': ['sme_gravacao'],
+    }
+
+    def get_required_permissions(self, method):
+        if method not in self.perms_map:
+            raise exceptions.MethodNotAllowed(method)
+
+        return [perm for perm in self.perms_map[method]]
+
+    def has_permission(self, request, view):
+        perms = self.get_required_permissions(request.method)
+        return self.has_perms(perms, request.user)
