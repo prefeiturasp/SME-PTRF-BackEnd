@@ -81,6 +81,8 @@ from sme_ptrf_apps.users.api.views import (
     GruposViewSet
 )
 
+from sme_ptrf_apps.mandatos.api.views import MandatosViewSet
+
 
 @api_view()
 def versao(request):
@@ -160,6 +162,7 @@ router.register("comentarios-de-analises-consolidados-dre", ComentariosAnalisesC
 router.register("analises-documentos-consolidados-dre", AnalisesDocumentosConsolidadoDreViewSet)
 router.register("analises-consolidados-dre", AnalisesConsolidadoDreViewSet)
 router.register("falhas-geracao-pc", FalhaGeracaoPcViewSet)
+router.register("mandatos", MandatosViewSet)
 
 app_name = "api"
 urlpatterns = router.urls
