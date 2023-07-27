@@ -351,13 +351,21 @@ def pode_acessar_unidade(username, e_servidor, visao_base, unidade):
             if unidade_servidor != unidade.codigo_eol and unidade_servidor not in unidades_dre:
                 return False, 'Servidor em exercício em outra unidade.', info_exercicio
 
-        if visao_base == 'UE' and unidade_servidor != unidade.codigo_eol:
-            if  MembroAssociacao.objects.filter(codigo_identificacao=username, associacao__unidade__codigo_eol=unidade.codigo_eol).exists():
+        if visao_base == 'UE':
+            e_membro_associacao = MembroAssociacao.objects.filter(codigo_identificacao=username, associacao__unidade__codigo_eol=unidade.codigo_eol).exists()
+            em_exercicio_na_unidade = unidade_servidor == unidade.codigo_eol
+
+            if not em_exercicio_na_unidade and e_membro_associacao:
                 logger.info('Servidor é membro da associação da unidade, mas não está em exercício nesta unidade.')
                 return False, 'O usuário é membro da associação, porém não está em exercício nesta unidade. Favor entrar em contato com a DRE.', info_exercicio
-            else:
+
+            if not em_exercicio_na_unidade and not e_membro_associacao:
                 logger.info('Servidor não está em exercício nesta unidade e não é membro da associação.')
                 return False, 'Servidor em exercício em outra unidade.', info_exercicio
+
+            if em_exercicio_na_unidade and not e_membro_associacao:
+                logger.info('Servidor não é membro da associação da unidade.')
+                return False, 'Servidor não é membro da associação da unidade.', info_exercicio
 
     else:
         # Inclui a máscara de CPF ao username. O cadastro de membros usa o CPF com máscara para membros não servidores.
