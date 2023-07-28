@@ -69,10 +69,7 @@ class ExportacoesStatusPrestacoesContaService:
         for instance in self.queryset:
             
             linha_horizontal = []
-
-            status = ''
-            motivos = []
-
+            
             for _, campo in self.cabecalho:
 
                 if campo != 'motivos_reprovacao' and campo != 'motivos_aprovacao_ressalva':
@@ -82,39 +79,33 @@ class ExportacoesStatusPrestacoesContaService:
                     linha_horizontal.append('')
 
                 if campo == 'motivos_aprovacao_ressalva' and getattr(instance, 'status') == 'APROVADA_RESSALVA':
-                    status = 'APROVADA_RESSALVA'
                     motivosAprovacaoRessalva = instance.motivos_aprovacao_ressalva.values_list('motivo', flat=True)
+                    
                     if len(motivosAprovacaoRessalva) > 0:
-                        for motivoAprovacaoRessalva in motivosAprovacaoRessalva:
-                            motivos.append(motivoAprovacaoRessalva) 
+                        motivos_concatenados = '; '.join(motivosAprovacaoRessalva)
                         
                     outros_motivos = getattr(instance, 'outros_motivos_aprovacao_ressalva')
                     if outros_motivos.strip():
-                        motivos.append(outros_motivos)
+                        motivos_concatenados += "; " + outros_motivos
+                        
+                    linha_horizontal[5] = motivos_concatenados
 
                 if campo == 'motivos_reprovacao' and getattr(instance, 'status') == 'REPROVADA':
-                    status = 'REPROVADA'
                     motivosReprovacao = instance.motivos_reprovacao.values_list('motivo', flat=True)
+                    
+                    motivos_concatenados = ""
+                    
                     if len(motivosReprovacao) > 0:
-                        for motivoReprovacao in motivosReprovacao:
-                            motivos.append(motivoReprovacao)
+                        motivos_concatenados = '; '.join(motivosReprovacao)
 
                     outros_motivos = getattr(instance, 'outros_motivos_reprovacao')
                     if outros_motivos.strip():
-                        motivos.append(outros_motivos)
+                        motivos_concatenados += "; " + outros_motivos
+                        
+                    linha_horizontal[7] = motivos_concatenados
                     
-            if len(motivos) > 0:
-                for motivo in motivos:
-                    linha_nova = linha_horizontal.copy()
-                    if status == 'APROVADA_RESSALVA':
-                        linha_nova[5] = motivo
-                    else:
-                        linha_nova[7] = motivo
-                    logger.info(f"Escrevendo linha {linha_nova} de status de prestação de conta de custeio {instance.id}.")
-                    linhas_vertical.append(linha_nova)
-            else:
-                logger.info(f"Escrevendo linha {linha_horizontal} de status de prestação de conta de custeio {instance.id}.")
-                linhas_vertical.append(linha_horizontal)
+            logger.info(f"Escrevendo linha {linha_horizontal} de status de prestação de conta de custeio {instance.id}.")
+            linhas_vertical.append(linha_horizontal)
 
         return linhas_vertical
 

@@ -6,12 +6,9 @@ from sme_ptrf_apps.sme.services.exporta_status_prestacoes_conta_service import E
 pytestmark = pytest.mark.django_db
 
 resultado_esperado = [
-    ['123456', 'Escola Teste', 'Escola Teste', '2019.2', 'APROVADA_RESSALVA', 'Motivo aprovação 1', 'Recomendação teste', ''], 
-    ['123456', 'Escola Teste', 'Escola Teste', '2019.2', 'APROVADA_RESSALVA', 'Motivo aprovação 2', 'Recomendação teste', ''], 
-    ['123456', 'Escola Teste', 'Escola Teste', '2019.2', 'APROVADA_RESSALVA', 'Teste outro motivo aprovação ressalva', 'Recomendação teste', ''], 
-    ['123456', 'Escola Teste', 'Outra', '2019.2', 'REPROVADA', '', '', 'Motivo reprovação 1'], 
-    ['123456', 'Escola Teste', 'Outra', '2019.2', 'REPROVADA', '', '', 'Motivo reprovação 2'], 
-    ['123456', 'Escola Teste', 'Outra', '2019.2', 'REPROVADA', '', '', 'Teste outro motivo reprovação']]
+    ['123456', 'Escola Teste', 'Escola Teste', '2019.2', 'APROVADA_RESSALVA', 'Motivo aprovação 1; Motivo aprovação 2; Teste outro motivo aprovação ressalva', 'Recomendação teste', ''], 
+    ['123456', 'Escola Teste', 'Outra', '2019.2', 'REPROVADA', '', '', 'Motivo reprovação 1; Motivo reprovação 2; Teste outro motivo reprovação']
+]
 
 def test_dados_esperados_csv(queryset_ordered):
     dados = ExportacoesStatusPrestacoesContaService(
