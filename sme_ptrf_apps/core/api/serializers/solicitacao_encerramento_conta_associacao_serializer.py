@@ -28,7 +28,9 @@ class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializ
 
     def create(self, validated_data):
         try:
-            return super().create(validated_data)
+            solicitacao = super().create(validated_data)
+            solicitacao.notificar_dre()
+            return solicitacao
         except IntegrityError:
             raise serializers.ValidationError({"mensagem": "Já existe uma solicitação para essa conta de associação."})
 
