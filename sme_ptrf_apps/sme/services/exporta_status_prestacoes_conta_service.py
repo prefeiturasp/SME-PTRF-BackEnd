@@ -104,17 +104,15 @@ class ExportacoesStatusPrestacoesContaService:
                         motivos.append(outros_motivos)
                     
             if len(motivos) > 0:
-                for motivo in motivos:
-                    linha_nova = linha_horizontal.copy()
-                    if status == 'APROVADA_RESSALVA':
-                        linha_nova[5] = motivo
-                    else:
-                        linha_nova[7] = motivo
-                    logger.info(f"Escrevendo linha {linha_nova} de status de prestação de conta de custeio {instance.id}.")
-                    linhas_vertical.append(linha_nova)
-            else:
-                logger.info(f"Escrevendo linha {linha_horizontal} de status de prestação de conta de custeio {instance.id}.")
-                linhas_vertical.append(linha_horizontal)
+                motivos_concatenados = '; '.join(motivos)
+                
+                if status == 'APROVADA_RESSALVA':
+                    linha_horizontal[5] = motivos_concatenados
+                else:
+                    linha_horizontal[7] = motivos_concatenados
+                
+            logger.info(f"Escrevendo linha {linha_horizontal} de status de prestação de conta de custeio {instance.id}.")
+            linhas_vertical.append(linha_horizontal)
 
         return linhas_vertical
 
