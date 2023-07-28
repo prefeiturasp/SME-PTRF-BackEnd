@@ -13,5 +13,6 @@ class MotivoRejeicaoEncerramentoContaAssociacaoSerializer(serializers.ModelSeria
             'uuid',
             'nome',
             'criado_em',
+            'id'
         )
 
