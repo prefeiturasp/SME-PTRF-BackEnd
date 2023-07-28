@@ -63,6 +63,10 @@ class SolicitacaoEncerramentoContaAssociacao(ModeloBase):
     def pode_apagar(self):
         return self.pendente
 
+    def notificar_dre(self):
+        from sme_ptrf_apps.core.services.notificacao_services import notificar_solicitacao_encerramento_conta_bancaria
+        notificar_solicitacao_encerramento_conta_bancaria(conta_associacao=self.conta_associacao)
+
     class Meta:
         verbose_name = "Solicitação de Encerramento de Conta de Associação"
         verbose_name_plural = "07.4) Solicitações de Encerramento de Conta de Associação"

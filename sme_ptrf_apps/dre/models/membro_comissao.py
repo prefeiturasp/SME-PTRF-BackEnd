@@ -45,6 +45,12 @@ class MembroComissao(ModeloBase):
         self.comissoes.set(comissoes)
         self.save()
 
+    @property
+    def pertence_a_comissao_exame_contas(self):
+        from sme_ptrf_apps.dre.models import ParametrosDre
+        comissao_exame_contas = ParametrosDre.get().comissao_exame_contas
+        return True if comissao_exame_contas in self.comissoes.all() else False
+
     class Meta:
         verbose_name = "Membro de Comissão"
         verbose_name_plural = "Membros de Comissões"
