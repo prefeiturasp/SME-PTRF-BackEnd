@@ -218,7 +218,7 @@ def test_dashboard_sme(
                 'quantidade_prestacoes': 3,  # Uma PC não recebida + Duas Associações sem PC.
                 'status': 'NAO_RECEBIDA'},
             {
-                'titulo': 'Prestações de contas recebidas aguardando análise',
+                'titulo': 'Prestações de contas aguardando análise',
                 'quantidade_prestacoes': 0,
                 'status': 'RECEBIDA'},
             {

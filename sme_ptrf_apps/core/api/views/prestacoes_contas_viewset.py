@@ -915,6 +915,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def dashboard_sme(self, request):
         # Determina o período
         periodo_uuid = self.request.query_params.get('periodo')
+        unificar_pcs_apresentadas_nao_recebidas = self.request.query_params.get('unificar_pcs_apresentadas_nao_recebidas')
 
         if not periodo_uuid:
             erro = {
@@ -935,7 +936,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        dashboard = dashboard_sme(periodo=periodo)
+        dashboard = dashboard_sme(periodo=periodo, unificar_pcs_apresentadas_nao_recebidas=unificar_pcs_apresentadas_nao_recebidas)
 
         return Response(dashboard)
 
