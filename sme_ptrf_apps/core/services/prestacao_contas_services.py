@@ -1699,7 +1699,9 @@ class MonitoraPC:
             )
         """
 
-        task = prestacao_conta.tasks_celery_da_prestacao_conta.filter(finalizada=False).first()
-        logger.info(f'Revoking: {task}')
-        c.revoke(task.id_task_assincrona, terminate=True)
-        task.registra_data_hora_finalizacao_forcada()
+        tasks_ativas_dessa_pc = prestacao_conta.tasks_celery_da_prestacao_conta.filter(
+            nome_task='concluir_prestacao_de_contas_async').filter(finalizada=False).all()
+        for task in tasks_ativas_dessa_pc:
+            logger.info(f'Revoking: {task}')
+            c.revoke(task.id_task_assincrona, terminate=True)
+            task.registra_data_hora_finalizacao_forcada(log="Finalização forçada pela falha de PC.")

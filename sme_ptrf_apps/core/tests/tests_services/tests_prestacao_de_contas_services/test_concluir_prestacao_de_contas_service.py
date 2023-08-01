@@ -34,12 +34,15 @@ def test_fechamentos_devem_ser_criados_por_acao(associacao,
                                                 despesa_2019_2,
                                                 rateio_despesa_2019_role_conferido,
                                                 acao_associacao_ptrf,
-                                                settings):
+                                                settings,
+                                                task_celery_criada):
     from sme_ptrf_apps.core.tasks import concluir_prestacao_de_contas_async
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
     prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
+    task_celery_criada.prestacao_conta = prestacao_criada
+    task_celery_criada.save()
     task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
@@ -61,12 +64,15 @@ def test_deve_sumarizar_transacoes_incluindo_nao_conferidas(associacao,
                                                             rateio_despesa_2020_role_capital_conferido,
                                                             despesa_2019_2,
                                                             rateio_despesa_2019_role_conferido,
-                                                            settings):
+                                                            settings,
+                                                            task_celery_criada):
     from sme_ptrf_apps.core.tasks import concluir_prestacao_de_contas_async
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
     prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
+    task_celery_criada.prestacao_conta = prestacao_criada
+    task_celery_criada.save()
     task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
@@ -181,12 +187,16 @@ def test_fechamentos_devem_ser_vinculados_a_anteriores(_fechamento_2019_2,
                                                        _periodo_2020_1,
                                                        _receita_2020_1,
                                                        acao_associacao,
-                                                       settings):
+                                                       settings,
+                                                       task_celery_criada):
     from sme_ptrf_apps.core.tasks import concluir_prestacao_de_contas_async
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
     prestacao_criada = PrestacaoConta.abrir(periodo=_periodo_2020_1, associacao=associacao)
+    task_celery_criada.prestacao_conta = prestacao_criada
+    task_celery_criada.save()
+
     task_result = concluir_prestacao_de_contas_async.delay(_periodo_2020_1.uuid, associacao.uuid)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=_periodo_2020_1, associacao=associacao).first()
@@ -206,12 +216,15 @@ def test_deve_gravar_lista_de_especificacoes_despesas(associacao,
                                                       rateio_despesa_2020_role_capital_conferido,
                                                       despesa_2019_2,
                                                       rateio_despesa_2019_role_conferido,
-                                                      settings):
+                                                      settings,
+                                                      task_celery_criada):
     from sme_ptrf_apps.core.tasks import concluir_prestacao_de_contas_async
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
     prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
+    task_celery_criada.prestacao_conta = prestacao_criada
+    task_celery_criada.save()
     task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
@@ -242,12 +255,15 @@ def test_deve_sumarizar_transacoes_considerando_conta(associacao,
                                                       rateio_despesa_2019_role_conferido,
                                                       receita_2020_1_role_repasse_custeio_conferida_outra_conta,
                                                       rateio_despesa_2020_role_custeio_conferido_outra_conta,
-                                                      settings):
+                                                      settings,
+                                                      task_celery_criada):
     from sme_ptrf_apps.core.tasks import concluir_prestacao_de_contas_async
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
     prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
+    task_celery_criada.prestacao_conta = prestacao_criada
+    task_celery_criada.save()
     task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
@@ -301,12 +317,15 @@ def test_demonstrativos_financeiros_devem_ser_criados_por_conta_e_acao(associaca
                                                                        despesa_2019_2,
                                                                        rateio_despesa_2019_role_conferido,
                                                                        acao_associacao_ptrf,
-                                                                       settings):
+                                                                       settings,
+                                                                       task_celery_criada):
     from sme_ptrf_apps.core.tasks import concluir_prestacao_de_contas_async
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
     prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
+    task_celery_criada.prestacao_conta = prestacao_criada
+    task_celery_criada.save()
     task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid, criar_arquivos=False)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
@@ -331,12 +350,15 @@ def test_relacoes_de_bens_devem_ser_criadas_por_conta(associacao,
                                                       despesa_2019_2,
                                                       rateio_despesa_2019_role_conferido,
                                                       acao_associacao_ptrf,
-                                                      settings):
+                                                      settings,
+                                                      task_celery_criada):
     from sme_ptrf_apps.core.tasks import concluir_prestacao_de_contas_async
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
     prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
+    task_celery_criada.prestacao_conta = prestacao_criada
+    task_celery_criada.save()
     task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid, criar_arquivos=False)
     assert isinstance(task_result, EagerResult)
     prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
@@ -362,12 +384,15 @@ def test_comentarios_de_analise_sem_pc_atribuida_devem_ser_atualizados( associac
                                                                         despesa_2019_2,
                                                                         rateio_despesa_2019_role_conferido,
                                                                         acao_associacao_ptrf,
-                                                                        settings):
+                                                                        settings,
+                                                                        task_celery_criada):
     from sme_ptrf_apps.core.tasks import concluir_prestacao_de_contas_async
     from celery.result import EagerResult
 
     settings.CELERY_TASK_ALWAYS_EAGER = True
     prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
+    task_celery_criada.prestacao_conta = prestacao_criada
+    task_celery_criada.save()
     assert prestacao_criada.comentarios_de_analise_da_prestacao.exists()
     assert prestacao_criada.comentarios_de_analise_da_prestacao.first().associacao == None
     assert prestacao_criada.comentarios_de_analise_da_prestacao.first().periodo == None
@@ -377,3 +402,117 @@ def test_comentarios_de_analise_sem_pc_atribuida_devem_ser_atualizados( associac
     assert prestacao
 
     assert prestacao.relacoes_de_bens_da_prestacao.count() == 1, "Deveriam ter sido criados uma, 1 contas."
+
+
+@pytest.mark.django_db(transaction=False)  # Tests de tarefa de conclusão de pc duplicada
+def test_fechamentos_nao_devem_ser_criados_por_acao_task_duplicada(
+    associacao,
+    periodo_2020_1,
+    receita_2020_1_role_repasse_custeio_conferida,
+    receita_2020_1_ptrf_repasse_capital_conferida,
+    receita_2020_1_role_repasse_capital_nao_conferida,
+    receita_2019_2_role_repasse_capital_conferida,
+    receita_2020_1_role_repasse_capital_conferida,
+    receita_2020_1_role_rendimento_custeio_conferida,
+    despesa_2020_1,
+    rateio_despesa_2020_role_custeio_conferido,
+    rateio_despesa_2020_role_custeio_nao_conferido,
+    rateio_despesa_2020_role_capital_conferido,
+    despesa_2019_2,
+    rateio_despesa_2019_role_conferido,
+    acao_associacao_ptrf,
+    settings,
+    task_celery_criada,
+    task_celery_criada_2
+):
+    from sme_ptrf_apps.core.tasks import concluir_prestacao_de_contas_async
+    from celery.result import EagerResult
+
+    settings.CELERY_TASK_ALWAYS_EAGER = True
+    prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
+    task_celery_criada.prestacao_conta = prestacao_criada
+    task_celery_criada.save()
+    task_celery_criada_2.prestacao_conta = prestacao_criada
+    task_celery_criada_2.save()
+    task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid)
+    assert isinstance(task_result, EagerResult)
+    prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
+    assert prestacao
+    assert prestacao.fechamentos_da_prestacao.count() == 0, "Não deve ser criado nenhum fechamento"
+
+
+@pytest.mark.django_db(transaction=False)  # Tests de tarefa de conclusão de pc duplicada
+def test_demonstrativos_financeiros_nao_devem_ser_criados_por_conta_e_acao_task_duplicada(
+    associacao,
+    periodo_2020_1,
+    receita_2020_1_role_repasse_custeio_conferida,
+    receita_2020_1_ptrf_repasse_capital_conferida,
+    receita_2020_1_role_repasse_capital_nao_conferida,
+    receita_2019_2_role_repasse_capital_conferida,
+    receita_2020_1_role_repasse_capital_conferida,
+    receita_2020_1_role_rendimento_custeio_conferida,
+    receita_2020_1_role_repasse_custeio_conferida_outra_conta,
+    despesa_2020_1,
+    rateio_despesa_2020_role_custeio_conferido,
+    rateio_despesa_2020_role_custeio_nao_conferido,
+    rateio_despesa_2020_role_capital_conferido,
+    despesa_2019_2,
+    rateio_despesa_2019_role_conferido,
+    acao_associacao_ptrf,
+    settings,
+    task_celery_criada,
+    task_celery_criada_2
+):
+    from sme_ptrf_apps.core.tasks import concluir_prestacao_de_contas_async
+    from celery.result import EagerResult
+
+    settings.CELERY_TASK_ALWAYS_EAGER = True
+    prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
+    task_celery_criada.prestacao_conta = prestacao_criada
+    task_celery_criada.save()
+    task_celery_criada_2.prestacao_conta = prestacao_criada
+    task_celery_criada_2.save()
+    task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid, criar_arquivos=False)
+    assert isinstance(task_result, EagerResult)
+    prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
+    assert prestacao
+    assert prestacao.demonstrativos_da_prestacao.count() == 0, "Não deve criar nenhum demonstrativo"
+
+
+@pytest.mark.django_db(transaction=False)  # Tests de tarefa de conclusão de pc duplicada
+def test_relacoes_de_bens_nao_devem_ser_criadas_por_conta_task_duplicada(
+    associacao,
+    periodo_2020_1,
+    receita_2020_1_role_repasse_custeio_conferida,
+    receita_2020_1_ptrf_repasse_capital_conferida,
+    receita_2020_1_role_repasse_capital_nao_conferida,
+    receita_2019_2_role_repasse_capital_conferida,
+    receita_2020_1_role_repasse_capital_conferida,
+    receita_2020_1_role_rendimento_custeio_conferida,
+    receita_2020_1_role_repasse_custeio_conferida_outra_conta,
+    despesa_2020_1,
+    rateio_despesa_2020_role_custeio_conferido,
+    rateio_despesa_2020_role_custeio_nao_conferido,
+    rateio_despesa_2020_role_capital_conferido,
+    despesa_2019_2,
+    rateio_despesa_2019_role_conferido,
+    acao_associacao_ptrf,
+    settings,
+    task_celery_criada,
+    task_celery_criada_2
+):
+    from sme_ptrf_apps.core.tasks import concluir_prestacao_de_contas_async
+    from celery.result import EagerResult
+
+    settings.CELERY_TASK_ALWAYS_EAGER = True
+    prestacao_criada = PrestacaoConta.abrir(periodo=periodo_2020_1, associacao=associacao)
+    task_celery_criada.prestacao_conta = prestacao_criada
+    task_celery_criada.save()
+    task_celery_criada_2.prestacao_conta = prestacao_criada
+    task_celery_criada_2.save()
+    task_result = concluir_prestacao_de_contas_async.delay(periodo_2020_1.uuid, associacao.uuid, criar_arquivos=False)
+    assert isinstance(task_result, EagerResult)
+    prestacao = PrestacaoConta.objects.filter(periodo=periodo_2020_1, associacao=associacao).first()
+    assert prestacao
+
+    assert prestacao.relacoes_de_bens_da_prestacao.count() == 0, "Não deve ser criada nenhuma relação de bens"
