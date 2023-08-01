@@ -22,7 +22,7 @@ pipeline {
         }
 
         stage('Preparando BD') {
-	        when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'feature/96046-atualizar-versao-python' } }
+	        when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
           agent { label 'AGENT-NODES' }
           steps {
             sh '''
@@ -32,7 +32,7 @@ pipeline {
         }
 
         stage('Istalando dependencias') {
-          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'feature/96046-atualizar-versao-python' } }
+          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
           agent { label 'AGENT-PYTHON310' }
           steps {
             checkout scm
@@ -43,7 +43,7 @@ pipeline {
 
 
             stage('Testes Lint') {
-              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'feature/96046-atualizar-versao-python' } }
+              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
               agent { label 'AGENT-PYTHON310' }
               steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
@@ -63,7 +63,7 @@ pipeline {
 
             }
             stage('Testes Unitarios') {
-              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'feature/96046-atualizar-versao-python' } }
+              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
               agent { label 'AGENT-PYTHON310' }
               steps {
                 sh '''
@@ -81,7 +81,7 @@ pipeline {
             }
 
         stage('AnaliseCodigo') {
-          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'feature/96046-atualizar-versao-python' } }
+          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
           agent { label 'AGENT-PYTHON310' }
           steps {
                 withSonarQubeEnv('sonarqube-local'){
@@ -94,7 +94,7 @@ pipeline {
 
 
         stage('Build') {
-          when { anyOf { branch 'master'; branch 'main'; branch "story/*"; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; branch 'feature/96046-atualizar-versao-python' } }
+          when { anyOf { branch 'master'; branch 'main'; branch "story/*"; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
           steps {
             script {
               imagename1 = "registry.sme.prefeitura.sp.gov.br/${env.branchname}/ptrf-backend"
@@ -112,7 +112,7 @@ pipeline {
         }
 
         stage('Deploy'){
-            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; branch 'feature/96046-atualizar-versao-python' } }
+            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
             steps {
               script{
                 if ( env.branchname == 'main' ||  env.branchname == 'master' || env.branchname == 'homolog' || env.branchname == 'release' ) {
@@ -190,5 +190,5 @@ def getKubeconf(branchName) {
     else if ("development".equals(branchName)) { return "config_dev"; }
     else if ("develop".equals(branchName)) { return "config_dev"; }
     else if ("pre-release".equals(branchName)) { return "config_prd"; }
-    else if ("branch 'feature/96046-atualizar-versao-python".equals(branchName)) { return "config_prd"; }
+    else if ("atualizarpython".equals(branchName)) { return "config_prd"; }
 }
