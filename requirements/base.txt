@@ -11,7 +11,8 @@ drf-spectacular==0.26.2                 # Auto-generate OpenAPI 3.0 schemas from
 
 # Celery
 # ------------------------------------------------------------------------------
-celery==5.1.2
+celery==5.2.1
+flower==1.2.0  # https://github.com/mher/flower
 
 # Outras
 # ------------------------------------------------------------------------------
@@ -28,7 +29,6 @@ whitenoise==5.0.1  # https://github.com/evansd/whitenoise
 redis==3.4.1 # https://github.com/andymccurdy/redis-py
 
 django-celery-beat==2.0.0  # https://github.com/celery/django-celery-beat
-flower==0.9.3  # https://github.com/mher/flower
 openpyxl==3.0.3
 
 # Django
