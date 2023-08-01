@@ -171,14 +171,14 @@ pipeline {
             }
         }
       }
-      post {
-        always{
-          node('AGENT-NODES'){
+      //post {
+       // always{
+        //  node('AGENT-NODES'){
             //Limpando containers de banco
-            sh 'docker rm -f ptrf-db$BUILD_NUMBER$BRANCH_NAME'
-          }
-        }
-      }
+       //     sh 'docker rm -f ptrf-db$BUILD_NUMBER$BRANCH_NAME'
+       //   }
+      //  }
+     // }
 }
 
 def getKubeconf(branchName) {
