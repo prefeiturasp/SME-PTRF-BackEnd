@@ -190,5 +190,5 @@ def getKubeconf(branchName) {
     else if ("development".equals(branchName)) { return "config_dev"; }
     else if ("develop".equals(branchName)) { return "config_dev"; }
     else if ("pre-release".equals(branchName)) { return "config_prd"; }
-    else if ("branch 'feature/96046-atualizar-versao-python".equals(branchName)) { return "config_hom"; }
+    else if ("branch 'feature/96046-atualizar-versao-python".equals(branchName)) { return "config_prd"; }
 }
