@@ -131,7 +131,7 @@ pipeline {
                         sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf-hom2'
                         sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf-hom2'
                     }
-                    else if( env.branchname == 'pre-release' ){
+                    else if( env.branchname == 'atualizarpython' ){
                         sh('cp $config '+"$home"+'/.kube/config')
                         sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
                         sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
