@@ -373,6 +373,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     list_display_links = ('get_nome_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
+    raw_id_fields = ('periodo', 'associacao', 'analise_atual', 'consolidado_dre',)
 
     actions = ['marcar_como_nao_publicada', 'desvincular_pcs_do_consolidado']
 
@@ -1459,8 +1460,18 @@ class TransferenciaEolAdmin(admin.ModelAdmin):
 
 @admin.register(TaskCelery)
 class TaskCeleryAdmin(admin.ModelAdmin):
-    list_display = ['associacao', 'id_task_assincrona', 'nome_task', 'finalizada', ]
-    readonly_fields = ('uuid', 'id_task_assincrona', 'nome_task', 'criado_em')
+    def get_eol_unidade(self, obj):
+        return obj.associacao.unidade.codigo_eol if obj and obj.associacao and obj.associacao.unidade else ''
+
+    list_display = [
+        'get_eol_unidade',
+        'nome_task',
+        'associacao',
+        'periodo',
+        'id_task_assincrona',
+        'finalizada',
+    ]
+    readonly_fields = ('uuid', 'id_task_assincrona', 'nome_task', 'log', 'criado_em', 'alterado_em', )
     raw_id_fields = ('usuario', 'associacao', 'prestacao_conta', 'periodo',)
 
     search_fields = [

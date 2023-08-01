@@ -2954,3 +2954,23 @@ def jwt_authenticated_client_sme(client, usuario_permissao_sme):
         resp_data = resp.json()
         api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
     return api_client
+
+
+@pytest.fixture
+def task_celery_criada(periodo_2020_1, associacao):
+    return baker.make(
+        'TaskCelery',
+        nome_task='concluir_prestacao_de_contas_async',
+        associacao=associacao,
+        periodo=periodo_2020_1
+    )
+
+
+@pytest.fixture
+def task_celery_criada_2(periodo_2020_1, associacao):
+    return baker.make(
+        'TaskCelery',
+        nome_task='concluir_prestacao_de_contas_async',
+        associacao=associacao,
+        periodo=periodo_2020_1
+    )
