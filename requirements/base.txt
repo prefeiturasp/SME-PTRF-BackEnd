@@ -28,7 +28,7 @@ argon2-cffi==19.2.0  # https://github.com/hynek/argon2_cffi
 whitenoise==5.0.1  # https://github.com/evansd/whitenoise
 redis==3.4.1 # https://github.com/andymccurdy/redis-py
 
-django-celery-beat==2.0.0  # https://github.com/celery/django-celery-beat
+django-celery-beat==2.1.0  # https://github.com/celery/django-celery-beat
 openpyxl==3.0.3
 
 # Django
