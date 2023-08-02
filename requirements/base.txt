@@ -74,3 +74,8 @@ django-mathfilters==1.0.0
 # Integração com Kibana
 elastic-apm==6.15.1
 psutil==5.9.4
+
+# Formatação de números
+# https://github.com/python-babel/babel
+
+Babel==2.12.1
