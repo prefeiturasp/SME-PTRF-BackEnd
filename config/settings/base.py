@@ -52,7 +52,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # APPS
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
-    "elasticapm.contrib.django",
+    # "elasticapm.contrib.django",
     "corsheaders",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -89,6 +89,7 @@ LOCAL_APPS = [
     "sme_ptrf_apps.receitas.apps.ReceitasConfig",
     "sme_ptrf_apps.dre.apps.DreConfig",
     "sme_ptrf_apps.sme.apps.SmeConfig",
+    "sme_ptrf_apps.mandatos.apps.MandatosConfig",
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -123,7 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # MIDDLEWARE CONFIGURATION
 # ------------------------------------------------------------------------------
 MIDDLEWARE = [
-    "elasticapm.contrib.django.middleware.TracingMiddleware",
+    # "elasticapm.contrib.django.middleware.TracingMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -223,36 +224,37 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
-        'elasticapm': {
-            'level': env('ELASTIC_APM_LOG_LEVEL', default='INFO'),
-            'class': 'elasticapm.contrib.django.handlers.LoggingHandler',
-        },
+        # 'elasticapm': {
+        #     'level': env('ELASTIC_APM_LOG_LEVEL', default='INFO'),
+        #     'class': 'elasticapm.contrib.django.handlers.LoggingHandler',
+        # },
     },
-    "root": {"level": env("DJANGO_LOG_LEVEL", default="INFO"), "handlers": ["console", "elasticapm"]},
-    "loggers": {
-        "django.db.backends": {
-            "level": "ERROR",
-            "handlers": ["console"],
-            "propagate": False,
-        },
-        # Errors logged by the SDK itself
-        "sentry_sdk": {"level": "ERROR", "handlers": ["console"], "propagate": False},
-        "django.security.DisallowedHost": {
-            "level": "ERROR",
-            "handlers": ["console"],
-            "propagate": False,
-        },
-        'django': {
-            'handlers': ['elasticapm'],
-            'level': 'WARNING',
-            'propagate': False,
-        },
-        'elasticapm.errors': {
-            'level': 'ERROR',
-            'handlers': ['console'],
-            'propagate': False,
-        },
-    },
+    # "root": {"level": env("DJANGO_LOG_LEVEL", default="INFO"), "handlers": ["console", "elasticapm"]},
+    "root": {"level": env("DJANGO_LOG_LEVEL", default="INFO"), "handlers": ["console"]},
+    # "loggers": {
+    #     "django.db.backends": {
+    #         "level": "ERROR",
+    #         "handlers": ["console"],
+    #         "propagate": False,
+    #     },
+    #     # Errors logged by the SDK itself
+    #     "sentry_sdk": {"level": "ERROR", "handlers": ["console"], "propagate": False},
+    #     "django.security.DisallowedHost": {
+    #         "level": "ERROR",
+    #         "handlers": ["console"],
+    #         "propagate": False,
+    #     },
+    #     'django': {
+    #         'handlers': ['elasticapm'],
+    #         'level': 'WARNING',
+    #         'propagate': False,
+    #     },
+    #     'elasticapm.errors': {
+    #         'level': 'ERROR',
+    #         'handlers': ['console'],
+    #         'propagate': False,
+    #     },
+    # },
 }
 
 # CELERY SETTINGS
@@ -292,6 +294,7 @@ SPECTACULAR_SETTINGS = {
     'VERSION': api_version,
     'SERVE_INCLUDE_SCHEMA': False,
     'SCHEMA_PATH_PREFIX': r'/api/',
+    'WARNINGS': False,
 }
 
 # JWT settings
@@ -386,12 +389,12 @@ CKEDITOR_CONFIGS = {
 
 # ELASTIC APM CONFIGS
 # ------------------------------------------------------------------------------
-ELASTIC_APM = {
-    'SERVICE_NAME': env('ELASTIC_APM_SERVICE_NAME', default='SIG_ESCOLA_API'),
-    'SECRET_TOKEN': env('ELASTIC_APM_SECRET_TOKEN', default=''),
-    'DEBUG': env('ELASTIC_APM_DEBUG', default=False),
-    'SERVER_URL': env('ELASTIC_APM_SERVER_URL', default='http://localhost:8200'),
-    'ENVIRONMENT': env('ELASTIC_APM_ENVIRONMENT', default='local'),
-    'ENABLED': env('ELASTIC_APM_ENABLED', default=False),
-    'DISABLE_SEND': env('ELASTIC_APM_DISABLE_SEND', default=True),
-}
+# ELASTIC_APM = {
+#     'SERVICE_NAME': env('ELASTIC_APM_SERVICE_NAME', default='SIG_ESCOLA_API'),
+#     'SECRET_TOKEN': env('ELASTIC_APM_SECRET_TOKEN', default=''),
+#     'DEBUG': env('ELASTIC_APM_DEBUG', default=False),
+#     'SERVER_URL': env('ELASTIC_APM_SERVER_URL', default='http://localhost:8200'),
+#     'ENVIRONMENT': env('ELASTIC_APM_ENVIRONMENT', default='local'),
+#     'ENABLED': env('ELASTIC_APM_ENABLED', default=False),
+#     'DISABLE_SEND': env('ELASTIC_APM_DISABLE_SEND', default=True),
+# }

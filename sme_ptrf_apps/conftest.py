@@ -1527,6 +1527,19 @@ def despesa_no_periodo(associacao, tipo_documento, tipo_transacao, periodo):
 
 
 @pytest.fixture
+def receita_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita_repasse, periodo):
+    return baker.make(
+        'Receita',
+        associacao=associacao,
+        data=periodo.data_inicio_realizacao_despesas,
+        valor=10000,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita_repasse,
+    )
+
+
+@pytest.fixture
 def rateio_despesa_demonstrativo(associacao, despesa_no_periodo, conta_associacao, acao, tipo_aplicacao_recurso_capital,
                                  tipo_custeio,
                                  especificacao_material_eletrico, acao_associacao):
@@ -2932,3 +2945,23 @@ def jwt_authenticated_client_sme(client, usuario_permissao_sme):
         resp_data = resp.json()
         api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
     return api_client
+
+
+@pytest.fixture
+def task_celery_criada(periodo_2020_1, associacao):
+    return baker.make(
+        'TaskCelery',
+        nome_task='concluir_prestacao_de_contas_async',
+        associacao=associacao,
+        periodo=periodo_2020_1
+    )
+
+
+@pytest.fixture
+def task_celery_criada_2(periodo_2020_1, associacao):
+    return baker.make(
+        'TaskCelery',
+        nome_task='concluir_prestacao_de_contas_async',
+        associacao=associacao,
+        periodo=periodo_2020_1
+    )

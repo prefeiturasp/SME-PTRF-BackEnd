@@ -216,6 +216,14 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             if erro_pc:
                 raise Exception(erro_pc)
             else:
+                task_celery = TaskCelery.objects.create(
+                    nome_task="concluir_prestacao_de_contas_async",
+                    usuario=usuario,
+                    associacao=associacao,
+                    periodo=periodo,
+                    prestacao_conta=prestacao_de_contas
+                )
+
                 id_task = concluir_prestacao_de_contas_async.apply_async(
                     (
                         periodo.uuid,
@@ -229,14 +237,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                     ), countdown=1
                 )
 
-                TaskCelery.objects.create(
-                    id_task_assincrona=id_task,
-                    nome_task="concluir_prestacao_de_contas_async",
-                    usuario=usuario,
-                    associacao=associacao,
-                    periodo=periodo,
-                    prestacao_conta=prestacao_de_contas
-                )
+                task_celery.id_task_assincrona = id_task
+                task_celery.save()
         except(IntegrityError):
             erro = {
                 'erro': 'prestacao_ja_iniciada',
@@ -915,6 +917,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def dashboard_sme(self, request):
         # Determina o período
         periodo_uuid = self.request.query_params.get('periodo')
+        unificar_pcs_apresentadas_nao_recebidas = self.request.query_params.get('unificar_pcs_apresentadas_nao_recebidas')
 
         if not periodo_uuid:
             erro = {
@@ -935,7 +938,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        dashboard = dashboard_sme(periodo=periodo)
+        dashboard = dashboard_sme(periodo=periodo, unificar_pcs_apresentadas_nao_recebidas=unificar_pcs_apresentadas_nao_recebidas)
 
         return Response(dashboard)
 

@@ -141,10 +141,10 @@ class User(AbstractUser):
 
         visoes = dados.pop('visoes') if 'visoes' in dados else None
 
-        unidade = dados.pop('unidade')
+        unidade = dados.pop('unidade') if 'unidade' in dados else None
         unidade_obj = Unidade.objects.filter(codigo_eol=unidade).first() if unidade else None
 
-        groups = dados.pop('groups')
+        groups = dados.pop('groups') if 'groups' in dados else None
 
         user = cls.objects.create(**dados)
 
@@ -153,7 +153,8 @@ class User(AbstractUser):
         elif visoes:
             user.visoes.add(*visoes)
 
-        user.groups.add(*groups)
+        if groups:
+            user.groups.add(*groups)
 
         if unidade_obj:
             user.unidades.add(unidade_obj)
@@ -161,6 +162,40 @@ class User(AbstractUser):
         user.save()
 
         return user
+
+    # TODO Substituirá a função criar_usuario acima após implantação da nova gestão de usuários.
+    @classmethod
+    def criar_usuario_v2(cls, dados):
+        """ Recebe dados de usuário incluindo as listas de unidades, visões e grupos vinculados a ele e cria o usuário
+        vinculando a eles as unidades, visões e grupos de acesso.
+        """
+        visao = dados.pop('visao') if 'visao' in dados else None
+        visao_obj = Visao.objects.filter(nome=visao).first() if visao else None
+
+        visoes = dados.pop('visoes') if 'visoes' in dados else None
+
+        unidade = dados.pop('unidade') if 'unidade' in dados else None
+        unidade_obj = Unidade.objects.filter(uuid=unidade).first() if unidade else None
+
+        groups = dados.pop('groups') if 'groups' in dados else None
+
+        user = cls.objects.create(**dados)
+
+        if visao_obj:
+            user.visoes.add(visao_obj)
+        elif visoes:
+            user.visoes.add(*visoes)
+
+        if groups:
+            user.groups.add(*groups)
+
+        if unidade_obj:
+            user.unidades.add(unidade_obj)
+
+        user.save()
+
+        return user
+
 
     class Meta:
         verbose_name = 'Usuário'
