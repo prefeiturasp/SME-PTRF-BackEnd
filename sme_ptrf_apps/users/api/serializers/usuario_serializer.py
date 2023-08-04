@@ -3,19 +3,11 @@
 import logging
 
 from django.contrib.auth import get_user_model
-from requests import ConnectTimeout, ReadTimeout
-from rest_framework import serializers, status, exceptions
+from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
-from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 
-from sme_ptrf_apps.users.api.validations.usuario_validations import (
-    checa_senha,
-    emails_devem_ser_iguais,
-    senha_nao_pode_ser_nulo,
-    senhas_devem_ser_iguais,
-)
-from sme_ptrf_apps.users.services import (SmeIntegracaoException, SmeIntegracaoService,
-                                          cria_ou_atualiza_usuario_core_sso)
+from sme_ptrf_apps.users.services import cria_ou_atualiza_usuario_core_sso
 from sme_ptrf_apps.users.models import Grupo, Visao, UnidadeEmSuporte
 
 from ....core.models import Unidade
@@ -90,7 +82,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
     def get_visoes(selfself, instance):
         return VisaoSerializer(instance.visoes, many=True).data
 
-class UserRetrieveSerializer(serializers.ModelSerializer):
+class UsuarioRetrieveSerializer(serializers.ModelSerializer):
     visoes = VisaoSerializer(many=True)
     groups = SerializerMethodField()
     unidades = SerializerMethodField()
@@ -115,34 +107,29 @@ class UserRetrieveSerializer(serializers.ModelSerializer):
         }
 
 
-class UserLookupSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ["id", "username", "name"]
-
-
-class UserCreateSerializer(serializers.ModelSerializer):
+class UsuarioCreateSerializer(serializers.ModelSerializer):
     visao = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
     unidade = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
-
     class Meta:
         model = User
-        fields = ["username", "email", "name", "e_servidor", "visao", "groups", "unidade", "visoes", "id"]
+        fields = ["username", "name", "email", "e_servidor", "visao", "unidade", "id"]
 
     def create(self, validated_data):
         dados_usuario = {
             "login": validated_data["username"],
-            "eol_unidade": validated_data["unidade"],
             "email": validated_data["email"],
             "nome": validated_data["name"],
             "servidor_s_n": "S" if validated_data["e_servidor"] else "N",
         }
 
-        # O usuário pode ser criado informando uma visão ou uma lista de visões
+        if "unidade" in validated_data:
+            unidade_obj = Unidade.objects.filter(uuid=validated_data["unidade"]).first()
+            dados_usuario["eol_unidade"] = unidade_obj.codigo_eol if unidade_obj else None
+            logger.info(f'Unidade de EOL {dados_usuario["eol_unidade"] } será vinculada ao usuário {validated_data["username"]}.')
+
         if "visao" in validated_data:
             dados_usuario["visao"] = validated_data["visao"]
-        elif "visoes" in validated_data:
-            dados_usuario["visoes"] = validated_data["visoes"]
+            logger.info(f'Visão {dados_usuario["visao"] } será vinculada ao usuário {validated_data["username"]}.')
 
         try:
             cria_ou_atualiza_usuario_core_sso(
@@ -153,24 +140,22 @@ class UserCreateSerializer(serializers.ModelSerializer):
         except Exception as e:
             logger.error(f'Erro ao tentar cria/atualizar usuário {validated_data["username"]} no CoreSSO: {str(e)}')
 
-        user = User.criar_usuario(dados=validated_data)
+        user = User.criar_usuario_v2(dados=validated_data)
 
         return user
 
     def update(self, instance, validated_data):
+        required_fields = ["username", "email", "name", "e_servidor"]
+        for field in required_fields:
+            if field not in validated_data:
+                raise ValidationError({field: 'This field is required.'})
+
         dados_usuario = {
             "login": validated_data["username"],
-            "eol_unidade": validated_data["unidade"],
             "email": validated_data["email"],
             "nome": validated_data["name"],
             "servidor_s_n": "S" if validated_data["e_servidor"] else "N",
         }
-
-        # O usuário pode ser criado informando uma visão ou uma lista de visões
-        if "visao" in validated_data:
-            dados_usuario["visao"] = validated_data["visao"]
-        elif "visoes" in validated_data:
-            dados_usuario["visoes"] = validated_data["visoes"]
 
         try:
             cria_ou_atualiza_usuario_core_sso(
@@ -181,73 +166,19 @@ class UserCreateSerializer(serializers.ModelSerializer):
         except Exception as e:
             logger.error(f'Erro ao tentar cria/atualizar usuário {validated_data["username"]} no CoreSSO: {str(e)}')
 
-        visao = validated_data.pop('visao') if 'visao' in validated_data else None
-        if visao:
-            instance.add_visao_se_nao_existir(visao=visao)
+        if "unidade" in validated_data and validated_data["unidade"] != "SME":
+            unidade_obj = Unidade.objects.filter(uuid=validated_data["unidade"]).first()
+            try:
+                instance.add_unidade_se_nao_existir(unidade_obj.codigo_eol)
+                logger.info(f'Unidade de EOL {unidade_obj.codigo_eol  } vinculada ao usuário {validated_data["username"]}.')
+            except Exception as e:
+                logger.error(f'Erro ao tentar vincular unidade de EOL {validated_data["unidade"] } ao usuário {validated_data["username"]}: {str(e)}')
 
-        unidade = validated_data.pop('unidade')
-        if unidade:
-            instance.add_unidade_se_nao_existir(codigo_eol=unidade)
+        if "visao" in validated_data:
+            try:
+                instance.add_visao_se_nao_existir(validated_data["visao"])
+                logger.info(f'Visão {validated_data["visao"] } vinculada ao usuário {validated_data["username"]}.')
+            except Exception as e:
+                logger.error(f'Erro ao tentar vincular visão {validated_data["visao"] } ao usuário {validated_data["username"]}: {str(e)}')
 
         return super().update(instance, validated_data)
-
-
-class AlteraEmailSerializer(serializers.ModelSerializer):
-    email2 = serializers.EmailField(required=False)
-
-    def validate(self, attrs):
-        emails_devem_ser_iguais(attrs.get('email'), attrs.get('email2'))
-        attrs.pop('email2')
-        return attrs
-
-    def update(self, instance, validated_data):
-        try:
-            SmeIntegracaoService.redefine_email(instance.username, validated_data['email'])
-            instance.email = validated_data.get('email')
-            instance.save()
-        except SmeIntegracaoException as e:
-            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        except ReadTimeout:
-            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
-        except ConnectTimeout:
-            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
-        return instance
-
-    class Meta:
-        model = User
-        fields = ["uuid", "username", "email", "email2"]
-
-
-class RedefinirSenhaSerializer(serializers.ModelSerializer):
-    password_atual = serializers.CharField(required=True)
-    password2 = serializers.CharField(required=True)
-
-    def validate(self, attrs):
-        senha_nao_pode_ser_nulo(attrs.get('password_atual'))
-        senha_nao_pode_ser_nulo(attrs.get('password'))
-        senha_nao_pode_ser_nulo(attrs.get('password2'))
-        senhas_devem_ser_iguais(attrs.get('password'), attrs.get('password2'))
-        attrs.pop('password2')
-        return attrs
-
-    def update(self, instance, validated_data):
-        try:
-            checa_senha(instance, validated_data['password_atual'])
-            SmeIntegracaoService.redefine_senha(instance.username, validated_data['password'])
-            instance.set_password(validated_data.get('password'))
-            instance.hash_redefinicao = ''
-            instance.save()
-        except SmeIntegracaoException as e:
-            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        except ReadTimeout:
-            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
-        except ConnectTimeout:
-            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as err:
-            return Response({'detail': str(err)}, status=status.HTTP_400_BAD_REQUEST)
-
-        return instance
-
-    class Meta:
-        model = User
-        fields = ['password_atual', 'password', 'password2']

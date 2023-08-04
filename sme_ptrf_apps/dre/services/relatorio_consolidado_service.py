@@ -1246,12 +1246,12 @@ def update_observacao_devolucao(dre, tipo_conta, periodo, tipo_devolucao, subtip
     return resultado
 
 
-def dashboard_sme(periodo):
+def dashboard_sme(periodo, unificar_pcs_apresentadas_nao_recebidas = False):
     def add_card_dashboard(dashboard, status, quantidade):
         titulos_por_status = {
             PrestacaoConta.STATUS_NAO_APRESENTADA: "Prestações de contas não apresentadas",
             PrestacaoConta.STATUS_NAO_RECEBIDA: "Prestações de contas não recebidas",
-            PrestacaoConta.STATUS_RECEBIDA: "Prestações de contas recebidas aguardando análise",
+            PrestacaoConta.STATUS_RECEBIDA: "Prestações de contas aguardando análise",
             PrestacaoConta.STATUS_EM_ANALISE: "Prestações de contas em análise",
             PrestacaoConta.STATUS_DEVOLVIDA: "Prestações de conta devolvidas para acertos",
             PrestacaoConta.STATUS_APROVADA: "Prestações de contas aprovadas",
@@ -1267,7 +1267,7 @@ def dashboard_sme(periodo):
             }
         )
 
-    qtd_status = PrestacaoConta.quantidade_por_status_sme(periodo_uuid=periodo.uuid)
+    qtd_status = PrestacaoConta.quantidade_por_status_sme(periodo_uuid=periodo.uuid, numero_bruto_nao_apresentadas=unificar_pcs_apresentadas_nao_recebidas)
 
     cards_dashboard = []
 
@@ -1279,12 +1279,28 @@ def dashboard_sme(periodo):
         or qtd_status[PrestacaoConta.STATUS_EM_ANALISE] > 0
         or qtd_status[PrestacaoConta.STATUS_DEVOLVIDA] > 0
     ):
+        
+        if unificar_pcs_apresentadas_nao_recebidas:
+        
+            add_card_dashboard(
+                cards_dashboard,
+                PrestacaoConta.STATUS_NAO_APRESENTADA,
+                qtd_status[PrestacaoConta.STATUS_NAO_APRESENTADA]
+            )
+            
+            add_card_dashboard(
+                cards_dashboard,
+                PrestacaoConta.STATUS_NAO_RECEBIDA,
+                qtd_status[PrestacaoConta.STATUS_NAO_RECEBIDA]
+            )
+            
+        else:
 
-        add_card_dashboard(
-            cards_dashboard,
-            PrestacaoConta.STATUS_NAO_RECEBIDA,
-            qtd_status[PrestacaoConta.STATUS_NAO_RECEBIDA] + qtd_status[PrestacaoConta.STATUS_NAO_APRESENTADA]
-        )
+            add_card_dashboard(
+                cards_dashboard,
+                PrestacaoConta.STATUS_NAO_RECEBIDA,
+                qtd_status[PrestacaoConta.STATUS_NAO_RECEBIDA] + qtd_status[PrestacaoConta.STATUS_NAO_APRESENTADA]
+            )
 
         add_card_dashboard(
             cards_dashboard,
@@ -1340,7 +1356,7 @@ def dashboard_sme(periodo):
         qtd_status[PrestacaoConta.STATUS_REPROVADA]
     )
 
-    resumo_por_dre = PrestacaoConta.quantidade_por_status_por_dre(periodo_uuid=periodo.uuid)
+    resumo_por_dre = PrestacaoConta.quantidade_por_status_por_dre(periodo_uuid=periodo.uuid, numero_bruto_nao_apresentadas=unificar_pcs_apresentadas_nao_recebidas)
 
     dashboard = {
         "status": status_periodo,

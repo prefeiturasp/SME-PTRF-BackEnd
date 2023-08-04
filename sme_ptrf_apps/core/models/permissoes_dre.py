@@ -246,3 +246,16 @@ class FuncDreGestaoUsuarios(models.Model):
             ('access_gestao_usuarios_dre', '[DRE] Pode acessar Gestão de Usuários da DRE.'),
             ('change_gestao_usuarios_dre', '[DRE] Pode atualizar Gestão de Usuários da DRE.'),
         )
+
+
+class FuncDreRecebimentoDeNotificacoes(models.Model):
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[DRE] Recebimento de notificações"
+        verbose_name_plural = "[DRE] Recebimento de notificações"
+
+        permissions = (
+            ('recebe_notificacao_encerramento_conta', '[DRE] Pode receber Notificação de Solicitação de Encerramento de Conta Bancária'),
+        )
