@@ -1,7 +1,8 @@
+from datetime import date
+
 from django.db import models
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
-from django.db.models.signals import pre_delete
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
@@ -43,6 +44,14 @@ class SolicitacaoEncerramentoContaAssociacao(ModeloBase):
         null=True,
     )
 
+    motivos_reprovacao = models.ManyToManyField('MotivoRejeicaoEncerramentoContaAssociacao', blank=True)
+
+    data_aprovacao = models.DateField(
+        'Data de aprovação',
+        blank=True,
+        null=True,
+    )
+
     def __str__(self):
         status = SolicitacaoEncerramentoContaAssociacao.STATUS_NOMES[self.status]
         return f"Solicitação #{self.id} {status}: {self.conta_associacao.__str__()}"
@@ -66,6 +75,22 @@ class SolicitacaoEncerramentoContaAssociacao(ModeloBase):
     def notificar_dre(self):
         from sme_ptrf_apps.core.services.notificacao_services import notificar_solicitacao_encerramento_conta_bancaria
         notificar_solicitacao_encerramento_conta_bancaria(conta_associacao=self.conta_associacao)
+
+    def reenviar(self):
+        self.status = SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE
+        self.motivos_reprovacao.clear()
+        self.save()
+
+    def aprovar(self):
+        self.status = SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA
+        self.motivos_reprovacao.clear()
+        self.data_aprovacao = date.today()
+        self.save()
+
+    def reprovar(self):
+        self.status = SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA
+        self.save()
+
 
     class Meta:
         verbose_name = "Solicitação de Encerramento de Conta de Associação"

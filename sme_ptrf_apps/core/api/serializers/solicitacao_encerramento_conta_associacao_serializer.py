@@ -14,6 +14,9 @@ class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializ
     data_de_encerramento_na_agencia = serializers.DateField(
         required=True,
     )
+    motivos_reprovacao = serializers.ManyRelatedField(
+        required=False,
+    )
 
 
     class Meta:
