@@ -561,8 +561,7 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
 
     list_display = (
         'get_associacao', 'get_referencia_periodo', 'data_extrato', 'saldo_extrato', 'get_id_analise_prestacao_contas')
-    list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta',
-                   'analise_prestacao_conta')
+    list_filter = ('prestacao_conta__periodo',)
     list_display_links = ('get_associacao',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',

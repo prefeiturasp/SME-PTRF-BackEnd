@@ -93,7 +93,8 @@ def concluir_prestacao_de_contas_async(
             prestacao.apaga_relacao_bens()
             prestacao.apaga_demonstrativos_financeiros()
             logging.info(f'Fechamentos e documentos da pc {prestacao.uuid} apagados.')
-        else:
+
+        if e_retorno_devolucao and not requer_geracao_documentos:
             logging.info(f'Solicitações de ajustes NÃO requerem apagar fechamentos e documentos da pc {prestacao.uuid}.')
 
         if requer_geracao_documentos:
