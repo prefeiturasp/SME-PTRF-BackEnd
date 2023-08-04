@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 
 from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasDreComGravacao,
+    PermissaoAPITodosComGravacao
 )
 
 from ..serializers import SolicitacaoEncerramentoContaAssociacaoSerializer
@@ -37,7 +38,7 @@ class SolicitacaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['patch'],
-            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def reenviar(self, request, uuid):
         solicitacao = self.get_object()
 
@@ -50,7 +51,7 @@ class SolicitacaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
 
         solicitacao.reenviar()
 
-        serializer = self.get_serializer()
+        serializer = self.get_serializer(solicitacao)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -68,7 +69,7 @@ class SolicitacaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
 
         solicitacao.aprovar()
 
-        serializer = self.get_serializer()
+        serializer = self.get_serializer(solicitacao)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -77,10 +78,10 @@ class SolicitacaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
     def rejeitar(self, request, uuid):
         solicitacao = self.get_object()
 
-        motivos_reprovacao_uuid = request.data.get('motivos_reprovacao', [])
+        motivos_rejeicao_uuid = request.data.get('motivos_rejeicao', [])
 
         motivos = []
-        for motivo_uuid in motivos_reprovacao_uuid:
+        for motivo_uuid in motivos_rejeicao_uuid:
             try:
                 motivo_aprovacao_ressalva = MotivoRejeicaoEncerramentoContaAssociacao.objects.get(uuid=motivo_uuid)
                 motivos.append(motivo_aprovacao_ressalva)
@@ -103,7 +104,7 @@ class SolicitacaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
         solicitacao.motivos_rejeicao.set(motivos)
         solicitacao.reprovar()
 
-        serializer = self.get_serializer()
+        serializer = self.get_serializer(solicitacao)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 

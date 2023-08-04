@@ -44,7 +44,7 @@ class SolicitacaoEncerramentoContaAssociacao(ModeloBase):
         null=True,
     )
 
-    motivos_reprovacao = models.ManyToManyField('MotivoRejeicaoEncerramentoContaAssociacao', blank=True)
+    motivos_rejeicao = models.ManyToManyField('MotivoRejeicaoEncerramentoContaAssociacao', blank=True)
 
     data_aprovacao = models.DateField(
         'Data de aprovação',
@@ -78,12 +78,12 @@ class SolicitacaoEncerramentoContaAssociacao(ModeloBase):
 
     def reenviar(self):
         self.status = SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE
-        self.motivos_reprovacao.clear()
+        self.motivos_rejeicao.clear()
         self.save()
 
     def aprovar(self):
         self.status = SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA
-        self.motivos_reprovacao.clear()
+        self.motivos_rejeicao.clear()
         self.data_aprovacao = date.today()
         self.save()
 
