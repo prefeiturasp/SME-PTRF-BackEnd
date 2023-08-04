@@ -15,7 +15,6 @@ class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializ
         required=True,
     )
 
-
     class Meta:
         model = SolicitacaoEncerramentoContaAssociacao
         fields = (
@@ -23,6 +22,8 @@ class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializ
             'conta_associacao',
             'status',
             'data_de_encerramento_na_agencia',
+            'motivos_rejeicao',
+            'data_aprovacao',
             'criado_em',
         )
 
