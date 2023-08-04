@@ -48,6 +48,8 @@ from .models import (
     SolicitacaoDevolucaoAoTesouro,
     TransferenciaEol,
     FalhaGeracaoPc,
+    SolicitacaoEncerramentoContaAssociacao,
+    MotivoRejeicaoEncerramentoContaAssociacao,
     TaskCelery
 )
 
@@ -56,6 +58,16 @@ from django.db.models import Count
 admin.site.register(Acao)
 admin.site.register(ParametroFiqueDeOlhoPc)
 admin.site.register(ModeloCarga)
+admin.site.register(MotivoRejeicaoEncerramentoContaAssociacao)
+
+
+@admin.register(SolicitacaoEncerramentoContaAssociacao)
+class SolicitacaoEncerramentoContaAssociacaoAdmin(admin.ModelAdmin):
+    raw_id_fields = ('conta_associacao',)
+    list_filter = (
+        ('data_de_encerramento_na_agencia', DateRangeFilter),
+    )
+    search_fields = ('uuid', 'conta_associacao__uuid', 'conta_associacao__associacao__unidade__codigo_eol', 'conta_associacao__associacao__unidade__nome', 'conta_associacao__associacao__nome')
 
 
 @admin.register(Associacao)
@@ -361,6 +373,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     list_display_links = ('get_nome_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
+    raw_id_fields = ('periodo', 'associacao', 'analise_atual', 'consolidado_dre',)
 
     actions = ['marcar_como_nao_publicada', 'desvincular_pcs_do_consolidado']
 
@@ -548,8 +561,7 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
 
     list_display = (
         'get_associacao', 'get_referencia_periodo', 'data_extrato', 'saldo_extrato', 'get_id_analise_prestacao_contas')
-    list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta',
-                   'analise_prestacao_conta')
+    list_filter = ('prestacao_conta__periodo',)
     list_display_links = ('get_associacao',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
@@ -1447,8 +1459,18 @@ class TransferenciaEolAdmin(admin.ModelAdmin):
 
 @admin.register(TaskCelery)
 class TaskCeleryAdmin(admin.ModelAdmin):
-    list_display = ['associacao', 'id_task_assincrona', 'nome_task', 'finalizada', ]
-    readonly_fields = ('uuid', 'id_task_assincrona', 'nome_task', 'criado_em')
+    def get_eol_unidade(self, obj):
+        return obj.associacao.unidade.codigo_eol if obj and obj.associacao and obj.associacao.unidade else ''
+
+    list_display = [
+        'get_eol_unidade',
+        'nome_task',
+        'associacao',
+        'periodo',
+        'id_task_assincrona',
+        'finalizada',
+    ]
+    readonly_fields = ('uuid', 'id_task_assincrona', 'nome_task', 'log', 'criado_em', 'alterado_em', )
     raw_id_fields = ('usuario', 'associacao', 'prestacao_conta', 'periodo',)
 
     search_fields = [
