@@ -1,0 +1,1 @@
+from .mandato import Mandato

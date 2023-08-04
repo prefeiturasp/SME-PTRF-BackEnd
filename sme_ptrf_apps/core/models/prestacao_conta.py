@@ -749,7 +749,7 @@ class PrestacaoConta(ModeloBase):
         return cards
 
     @classmethod
-    def quantidade_por_status_sme(cls, periodo_uuid):
+    def quantidade_por_status_sme(cls, periodo_uuid, numero_bruto_nao_apresentadas=False):
 
         from ..models import Periodo, Associacao
         periodo = Periodo.by_uuid(periodo_uuid)
@@ -780,13 +780,13 @@ class PrestacaoConta(ModeloBase):
             quantidade_pcs_apresentadas += quantidade_status
             qtd_por_status[status] = quantidade_status
 
-        quantidade_pcs_nao_apresentadas = qtd_por_status['TOTAL_UNIDADES'] - quantidade_pcs_apresentadas
+        quantidade_pcs_nao_apresentadas = qtd_por_status['TOTAL_UNIDADES'] - quantidade_pcs_apresentadas  
         qtd_por_status[cls.STATUS_NAO_APRESENTADA] = quantidade_pcs_nao_apresentadas
 
         return qtd_por_status
 
     @classmethod
-    def quantidade_por_status_por_dre(cls, periodo_uuid):
+    def quantidade_por_status_por_dre(cls, periodo_uuid, numero_bruto_nao_apresentadas=False):
 
         from ..models import Unidade, Associacao, Periodo, Associacao
         periodo = Periodo.by_uuid(periodo_uuid)
@@ -829,7 +829,8 @@ class PrestacaoConta(ModeloBase):
                 and qtd_por_status[PrestacaoConta.STATUS_DEVOLVIDA] == 0
             )
 
-            qtd_por_status[PrestacaoConta.STATUS_NAO_RECEBIDA] += qtd_por_status[cls.STATUS_NAO_APRESENTADA]
+            if not numero_bruto_nao_apresentadas:
+                qtd_por_status[PrestacaoConta.STATUS_NAO_RECEBIDA] += qtd_por_status[cls.STATUS_NAO_APRESENTADA]
 
             qtd_por_status_dre.append(
                 {
