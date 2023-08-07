@@ -53,6 +53,7 @@ class ContaAssociacao(ModeloBase):
     numero_conta = models.CharField('Nº conta', max_length=30, blank=True, default='')
     numero_cartao = models.CharField('Nº do cartão', max_length=80, blank=True, default='')
 
+    objects = models.Manager()
     ativas = ContasAtivas()
     encerradas = ContasEncerradas()
 
