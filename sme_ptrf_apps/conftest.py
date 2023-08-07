@@ -11,6 +11,7 @@ from .core.choices import MembroEnum, RepresentacaoCargo, StatusTag
 from .core.models import (
     AcaoAssociacao,
     ContaAssociacao,
+    SolicitacaoEncerramentoContaAssociacao,
     STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO,
     TipoAcertoDocumento
 )
@@ -574,6 +575,14 @@ def conta_associacao_inativa(associacao, tipo_conta):
         status=ContaAssociacao.STATUS_INATIVA
     )
 
+@pytest.fixture
+def solicitacao_encerramento_conta_associacao(conta_associacao_inativa):
+    return baker.make(
+        'SolicitacaoEncerramentoContaAssociacao',
+        conta_associacao=conta_associacao_inativa,
+        data_de_encerramento_na_agencia='2019-09-02',
+        status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA
+    )
 
 @pytest.fixture
 def acao_associacao(associacao, acao):
