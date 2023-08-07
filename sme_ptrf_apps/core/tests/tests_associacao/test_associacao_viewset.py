@@ -29,6 +29,13 @@ def test_get_contas_associacoes(jwt_authenticated_client_a, associacao, conta_as
     assert str(conta_associacao_cartao.uuid) in [c['uuid'] for c in result]
     assert str(conta_associacao_cheque.uuid) in [c['uuid'] for c in result]
 
+def test_get_contas_associacoes_encerradas(jwt_authenticated_client_a, associacao, conta_associacao_inativa, solicitacao_encerramento_conta_associacao):
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/contas/encerradas/', content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert str(conta_associacao_inativa.uuid) in [c['uuid'] for c in result]
 
 def test_update_contas_associacoes(jwt_authenticated_client_a, associacao, tipo_conta_cartao, tipo_conta_cheque, conta_associacao, conta_associacao_cartao, conta_associacao_cheque):
     payload =  [
