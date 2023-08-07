@@ -312,7 +312,15 @@ class AssociacoesViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def contas(self, request, uuid=None):
         associacao = self.get_object()
-        contas = ContaAssociacao.objects.filter(associacao=associacao).all()
+        contas = ContaAssociacao.ativas.filter(associacao=associacao).all()
+        contas_data = ContaAssociacaoDadosSerializer(contas, many=True).data
+        return Response(contas_data)
+
+    @action(detail=True, url_path='contas/encerradas', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def contas_encerradas(self, request, uuid=None):
+        associacao = self.get_object()
+        contas = ContaAssociacao.encerradas.filter(associacao=associacao).all()
         contas_data = ContaAssociacaoDadosSerializer(contas, many=True).data
         return Response(contas_data)
 

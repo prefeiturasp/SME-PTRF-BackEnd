@@ -1,10 +1,26 @@
 from django.db import models
+from django.db.models import Q
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
+
+
+class ContasAtivas(models.Manager):
+    def get_queryset(self):
+        from ..models import SolicitacaoEncerramentoContaAssociacao
+        return super(ContasAtivas, self).get_queryset().filter(Q(status=ContaAssociacao.STATUS_ATIVA) |
+                                                               Q(solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE) |
+                                                               Q(solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA))
+
+class ContasEncerradas(models.Manager):
+    def get_queryset(self):
+        from ..models import SolicitacaoEncerramentoContaAssociacao
+        return super(ContasEncerradas, self).get_queryset().filter(Q(status=ContaAssociacao.STATUS_INATIVA) &
+                                                                 Q(solicitacao_encerramento__isnull=False)  &
+                                                                 Q(solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA))
 
 
 class ContaAssociacao(ModeloBase):
@@ -36,6 +52,9 @@ class ContaAssociacao(ModeloBase):
     agencia = models.CharField('Nº agência',  max_length=15, blank=True, default='')
     numero_conta = models.CharField('Nº conta', max_length=30, blank=True, default='')
     numero_cartao = models.CharField('Nº do cartão', max_length=80, blank=True, default='')
+
+    ativas = ContasAtivas()
+    encerradas = ContasEncerradas()
 
     def __str__(self):
         associacao = self.associacao.nome if self.associacao else 'ACM indefinida'
