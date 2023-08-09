@@ -5,7 +5,7 @@ pipeline {
       registryCredential = 'jenkins_registry'
     }
     agent {
-      node { label 'AGENT-PYTHON310' }
+      node { label 'AGENT-NODES' }
     }
 
 
