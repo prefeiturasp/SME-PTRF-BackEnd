@@ -190,3 +190,18 @@ class FuncUeGestaoUsuarios(models.Model):
             ('access_gestao_usuarios_ue', '[UE] Pode acessar Gestão de Usuários da UE.'),
             ('change_gestao_usuarios_ue', '[UE] Pode atualizar Gestão de Usuários da UE.'),
         )
+
+
+# Nova versão com mandato e composições
+class FuncUeMembrosDaAssociacao(models.Model):
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[UE] Membro da Associação"
+        verbose_name_plural = "[UE] Membros da Associação"
+
+        permissions = (
+            ('access_membros_da_associacao', '[UE] Pode acessar Membros da Associação.'),
+            ('change_membros_da_associacao', '[UE] Pode editar Membros da Associação.'),
+        )
