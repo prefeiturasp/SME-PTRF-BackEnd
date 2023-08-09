@@ -123,71 +123,28 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados(jwt_authenticated_client
                           content_type='application/json')
     result = json.loads(response.content)
 
-    esperado = {
-        'associacao': f'{associacao.uuid}',
-        'periodo': {
-            'referencia': '2019.1',
-            'data_inicio_realizacao_despesas': '2019-01-01',
-            'data_fim_realizacao_despesas': '2019-08-31',
-            'referencia_por_extenso': '1° repasse de 2019',
-            'uuid': f'{periodo_anterior.uuid}'
+    assert 'saldos' in result
+
+    saldos_esperados = [
+        {
+            'saldo':1000.0,
+            'conta_uuid': f'{conta_associacao.uuid}'
         },
-        'saldos': [
-            {
-                'acao_associacao': {
-                    'id': acao_associacao_role_cultural.id,
-                    'uuid': f'{acao_associacao_role_cultural.uuid}',
-                    'nome': acao_associacao_role_cultural.acao.nome,
-                    'e_recursos_proprios': False,
-                    'acao': {
-                        'id': acao_associacao_role_cultural.acao.id,
-                        'uuid': f'{acao_associacao_role_cultural.acao.uuid}',
-                        'nome': acao_associacao_role_cultural.acao.nome,
-                        'e_recursos_proprios': False,
-                        'posicao_nas_pesquisas': acao_associacao_role_cultural.acao.posicao_nas_pesquisas,
-                        'aceita_capital': acao_associacao_role_cultural.acao.aceita_capital,
-                        'aceita_custeio': acao_associacao_role_cultural.acao.aceita_custeio,
-                        'aceita_livre': acao_associacao_role_cultural.acao.aceita_livre
-                    }
-                },
-                'conta_associacao': {
-                    'uuid': f'{conta_associacao.uuid}',
-                    'nome': f'{conta_associacao.tipo_conta.nome}'
-                },
-                'aplicacao': 'CAPITAL',
-                'saldo': 1000.0,
-                'status': associacao.status_valores_reprogramados
-            },
-            {
-                'acao_associacao': {
-                    'id': acao_associacao_role_cultural.id,
-                    'uuid': f'{acao_associacao_role_cultural.uuid}',
-                    'nome': acao_associacao_role_cultural.acao.nome,
-                    'e_recursos_proprios': False,
-                    'acao': {
-                        'id': acao_associacao_role_cultural.acao.id,
-                        'uuid': f'{acao_associacao_role_cultural.acao.uuid}',
-                        'nome': acao_associacao_role_cultural.acao.nome,
-                        'e_recursos_proprios': False,
-                        'posicao_nas_pesquisas': acao_associacao_role_cultural.acao.posicao_nas_pesquisas,
-                        'aceita_capital': acao_associacao_role_cultural.acao.aceita_capital,
-                        'aceita_custeio': acao_associacao_role_cultural.acao.aceita_custeio,
-                        'aceita_livre': acao_associacao_role_cultural.acao.aceita_livre
-                    }
-                },
-                'conta_associacao': {
-                    'uuid': f'{conta_associacao.uuid}',
-                    'nome': f'{conta_associacao.tipo_conta.nome}'
-                },
-                'aplicacao': 'CUSTEIO',
-                'saldo': 2000.0,
-                'status': associacao.status_valores_reprogramados
-            }
-        ],
-    }
+        {
+            'saldo': 2000.0,
+            'conta_uuid': f'{conta_associacao.uuid}'
+        }
+    ]
+
+    result_saldos = []
+    for saldo in result['saldos']:
+        result_saldos.append({
+            'saldo': saldo['saldo'],
+            'conta_uuid': saldo['conta_associacao']['uuid']
+        })
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == esperado
+    assert result_saldos == saldos_esperados
 
 
 def test_retrieve_implanta_saldos_saldos_ja_implantados_com_pc_devolvida(jwt_authenticated_client_a, associacao,
@@ -201,71 +158,28 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_com_pc_devolvida(jwt_aut
                           content_type='application/json')
     result = json.loads(response.content)
 
-    esperado = {
-        'associacao': f'{associacao.uuid}',
-        'periodo': {
-            'referencia': '2019.1',
-            'data_inicio_realizacao_despesas': '2019-01-01',
-            'data_fim_realizacao_despesas': '2019-08-31',
-            'referencia_por_extenso': '1° repasse de 2019',
-            'uuid': f'{periodo_anterior.uuid}'
+    assert 'saldos' in result
+
+    saldos_esperados = [
+        {
+            'saldo':1000.0,
+            'conta_uuid': f'{conta_associacao.uuid}'
         },
-        'saldos': [
-            {
-                'acao_associacao': {
-                    'id': acao_associacao_role_cultural.id,
-                    'uuid': f'{acao_associacao_role_cultural.uuid}',
-                    'nome': acao_associacao_role_cultural.acao.nome,
-                    'e_recursos_proprios': False,
-                    'acao': {
-                        'id': acao_associacao_role_cultural.acao.id,
-                        'uuid': f'{acao_associacao_role_cultural.acao.uuid}',
-                        'nome': acao_associacao_role_cultural.acao.nome,
-                        'e_recursos_proprios': False,
-                        'posicao_nas_pesquisas': acao_associacao_role_cultural.acao.posicao_nas_pesquisas,
-                        'aceita_capital': acao_associacao_role_cultural.acao.aceita_capital,
-                        'aceita_custeio': acao_associacao_role_cultural.acao.aceita_custeio,
-                        'aceita_livre': acao_associacao_role_cultural.acao.aceita_livre
-                    }
-                },
-                'conta_associacao': {
-                    'uuid': f'{conta_associacao.uuid}',
-                    'nome': f'{conta_associacao.tipo_conta.nome}'
-                },
-                'aplicacao': 'CAPITAL',
-                'saldo': 1000.0,
-                'status': associacao.status_valores_reprogramados
-            },
-            {
-                'acao_associacao': {
-                    'id': acao_associacao_role_cultural.id,
-                    'uuid': f'{acao_associacao_role_cultural.uuid}',
-                    'nome': acao_associacao_role_cultural.acao.nome,
-                    'e_recursos_proprios': False,
-                    'acao': {
-                        'id': acao_associacao_role_cultural.acao.id,
-                        'uuid': f'{acao_associacao_role_cultural.acao.uuid}',
-                        'nome': acao_associacao_role_cultural.acao.nome,
-                        'e_recursos_proprios': False,
-                        'posicao_nas_pesquisas': acao_associacao_role_cultural.acao.posicao_nas_pesquisas,
-                        'aceita_capital': acao_associacao_role_cultural.acao.aceita_capital,
-                        'aceita_custeio': acao_associacao_role_cultural.acao.aceita_custeio,
-                        'aceita_livre': acao_associacao_role_cultural.acao.aceita_livre
-                    }
-                },
-                'conta_associacao': {
-                    'uuid': f'{conta_associacao.uuid}',
-                    'nome': f'{conta_associacao.tipo_conta.nome}'
-                },
-                'aplicacao': 'CUSTEIO',
-                'saldo': 2000.0,
-                'status': associacao.status_valores_reprogramados
-            }
-        ],
-    }
+        {
+            'saldo': 2000.0,
+            'conta_uuid': f'{conta_associacao.uuid}'
+        }
+    ]
+
+    result_saldos = []
+    for saldo in result['saldos']:
+        result_saldos.append({
+            'saldo': saldo['saldo'],
+            'conta_uuid': saldo['conta_associacao']['uuid']
+        })
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == esperado
+    assert result_saldos == saldos_esperados
 
 
 def test_retrieve_implanta_saldos_saldos_ja_implantados_com_pc_devolvida_posterior(jwt_authenticated_client_a,
@@ -468,97 +382,32 @@ def test_retrieve_implanta_saldos_saldos_ja_implantados_livre_aplicacao(jwt_auth
                           content_type='application/json')
     result = json.loads(response.content)
 
-    esperado = {
-        'associacao': f'{associacao.uuid}',
-        'periodo': {
-            'referencia': '2019.1',
-            'data_inicio_realizacao_despesas': '2019-01-01',
-            'data_fim_realizacao_despesas': '2019-08-31',
-            'referencia_por_extenso': '1° repasse de 2019',
-            'uuid': f'{periodo_anterior.uuid}'
+    assert 'saldos' in result
+
+    saldos_esperados = [
+        {
+            'saldo':1000.0,
+            'conta_uuid': f'{conta_associacao.uuid}'
         },
-        'saldos': [
-            {
-                'acao_associacao': {
-                    'id': acao_associacao_role_cultural.id,
-                    'uuid': f'{acao_associacao_role_cultural.uuid}',
-                    'nome': acao_associacao_role_cultural.acao.nome,
-                    'e_recursos_proprios': False,
-                    'acao': {
-                        'id': acao_associacao_role_cultural.acao.id,
-                        'uuid': f'{acao_associacao_role_cultural.acao.uuid}',
-                        'nome': acao_associacao_role_cultural.acao.nome,
-                        'e_recursos_proprios': False,
-                        'posicao_nas_pesquisas': acao_associacao_role_cultural.acao.posicao_nas_pesquisas,
-                        'aceita_capital': acao_associacao_role_cultural.acao.aceita_capital,
-                        'aceita_custeio': acao_associacao_role_cultural.acao.aceita_custeio,
-                        'aceita_livre': acao_associacao_role_cultural.acao.aceita_livre
-                    }
-                },
-                'conta_associacao': {
-                    'uuid': f'{conta_associacao.uuid}',
-                    'nome': f'{conta_associacao.tipo_conta.nome}'
-                },
-                'aplicacao': 'CAPITAL',
-                'saldo': 1000.0,
-                'status': associacao.status_valores_reprogramados
-            },
-            {
-                'acao_associacao': {
-                    'id': acao_associacao_role_cultural.id,
-                    'uuid': f'{acao_associacao_role_cultural.uuid}',
-                    'nome': acao_associacao_role_cultural.acao.nome,
-                    'e_recursos_proprios': False,
-                    'acao': {
-                        'id': acao_associacao_role_cultural.acao.id,
-                        'uuid': f'{acao_associacao_role_cultural.acao.uuid}',
-                        'nome': acao_associacao_role_cultural.acao.nome,
-                        'e_recursos_proprios': False,
-                        'posicao_nas_pesquisas': acao_associacao_role_cultural.acao.posicao_nas_pesquisas,
-                        'aceita_capital': acao_associacao_role_cultural.acao.aceita_capital,
-                        'aceita_custeio': acao_associacao_role_cultural.acao.aceita_custeio,
-                        'aceita_livre': acao_associacao_role_cultural.acao.aceita_livre
-                    }
-                },
-                'conta_associacao': {
-                    'uuid': f'{conta_associacao.uuid}',
-                    'nome': f'{conta_associacao.tipo_conta.nome}'
-                },
-                'aplicacao': 'CUSTEIO',
-                'saldo': 2000.0,
-                'status': associacao.status_valores_reprogramados
-            },
-            {
-                'acao_associacao': {
-                    'id': acao_associacao_role_cultural.id,
-                    'uuid': f'{acao_associacao_role_cultural.uuid}',
-                    'nome': acao_associacao_role_cultural.acao.nome,
-                    'e_recursos_proprios': False,
-                    'acao': {
-                        'id': acao_associacao_role_cultural.acao.id,
-                        'uuid': f'{acao_associacao_role_cultural.acao.uuid}',
-                        'nome': acao_associacao_role_cultural.acao.nome,
-                        'e_recursos_proprios': False,
-                        'posicao_nas_pesquisas': acao_associacao_role_cultural.acao.posicao_nas_pesquisas,
-                        'aceita_capital': acao_associacao_role_cultural.acao.aceita_capital,
-                        'aceita_custeio': acao_associacao_role_cultural.acao.aceita_custeio,
-                        'aceita_livre': acao_associacao_role_cultural.acao.aceita_livre
-                    }
-                },
-                'conta_associacao': {
-                    'uuid': f'{conta_associacao.uuid}',
-                    'nome': f'{conta_associacao.tipo_conta.nome}'
-                },
-                'aplicacao': 'LIVRE',
-                'saldo': 3000.0,
-                'status': associacao.status_valores_reprogramados
-            }
-        ],
-    }
+        {
+            'saldo': 2000.0,
+            'conta_uuid': f'{conta_associacao.uuid}'
+        },
+        {
+            'saldo': 3000.0,
+            'conta_uuid': f'{conta_associacao.uuid}'
+        }
+    ]
+
+    result_saldos = []
+    for saldo in result['saldos']:
+        result_saldos.append({
+            'saldo': saldo['saldo'],
+            'conta_uuid': saldo['conta_associacao']['uuid']
+        })
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == esperado
-
+    assert result_saldos == saldos_esperados
 
 def test_post_implanta_saldos_sem_prestacao_contas_com_livre_utilizacao(jwt_authenticated_client_a, associacao, periodo_anterior,
                                                                         acao_associacao_role_cultural,

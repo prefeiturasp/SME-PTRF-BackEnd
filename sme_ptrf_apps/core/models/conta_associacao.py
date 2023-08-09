@@ -71,6 +71,10 @@ class ContaAssociacao(ModeloBase):
         self.status = self.STATUS_ATIVA
         self.save()
 
+    @property
+    def inativa(self):
+        return self.status == self.STATUS_INATIVA
+
     def pode_encerrar(self, data_encerramento):
         from sme_ptrf_apps.core.services.encerramento_conta_associacao_service import ValidaDataDeEncerramento
 
@@ -88,7 +92,7 @@ class ContaAssociacao(ModeloBase):
 
     @classmethod
     def get_valores(cls, user=None, associacao_uuid=None):
-        query = cls.objects.filter(status=cls.STATUS_ATIVA)
+        query = cls.objects.all()
         if user:
             query = query.filter(associacao__uuid=associacao_uuid)
         return query.all()

@@ -45,4 +45,4 @@ def test_get_valores(conta_associacao, tipo_conta, associacao):
 
 
 def test_get_valores_com_inativos(conta_associacao, conta_associacao_inativa, tipo_conta, associacao):
-    assert ContaAssociacao.get_valores().count() == 1
+    assert ContaAssociacao.get_valores().count() == 2
