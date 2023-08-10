@@ -46,6 +46,8 @@ class SolicitacaoEncerramentoContaAssociacao(ModeloBase):
 
     motivos_rejeicao = models.ManyToManyField('MotivoRejeicaoEncerramentoContaAssociacao', blank=True)
 
+    outros_motivos_rejeicao = models.TextField('Outros motivos para rejeição pela DRE', blank=True, default='')
+
     data_aprovacao = models.DateField(
         'Data de aprovação',
         blank=True,
@@ -79,11 +81,13 @@ class SolicitacaoEncerramentoContaAssociacao(ModeloBase):
     def reenviar(self):
         self.status = SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE
         self.motivos_rejeicao.clear()
+        self.outros_motivos_rejeicao = ''
         self.save()
 
     def aprovar(self):
         self.status = SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA
         self.motivos_rejeicao.clear()
+        self.outros_motivos_rejeicao = ''
         self.data_aprovacao = date.today()
         self.save()
 

@@ -42,6 +42,7 @@ def test_rejeitar_solicitacao_encerramento_conta_associacao(jwt_authenticated_cl
 
     assert response.json()['status'] == SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA
     assert response.json()['motivos_rejeicao']
+    assert response.json()['outros_motivos_rejeicao'] == 'UE com pendências cadastrais.'
     assert response.status_code == status.HTTP_200_OK
 
 def test_validacao_rejeitar_solicitacao_encerramento_conta_associacao(jwt_authenticated_client_a, solicitacao_encerramento_reprovada):
