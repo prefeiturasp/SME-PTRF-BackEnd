@@ -17,13 +17,14 @@ class ContaAssociacaoSerializer(serializers.ModelSerializer):
 
 class ContaAssociacaoLookUpSerializer(serializers.ModelSerializer):
     nome = serializers.SerializerMethodField('get_nome_conta')
+    solicitacao_encerramento = SolicitacaoEncerramentoContaAssociacaoSerializer()
 
     def get_nome_conta(self, obj):
         return obj.tipo_conta.nome
 
     class Meta:
         model = ContaAssociacao
-        fields = ('uuid', 'nome')
+        fields = ('uuid', 'nome', 'status', 'solicitacao_encerramento')
 
 
 class ContaAssociacaoInfoAtaSerializer(serializers.ModelSerializer):
