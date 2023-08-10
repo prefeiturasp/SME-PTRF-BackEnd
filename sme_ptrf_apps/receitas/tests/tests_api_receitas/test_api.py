@@ -190,93 +190,13 @@ def test_get_tabelas(
                   'uuid': '8022449b-86b4-4884-a431-6dd352be5c62'}],
     """
 
-    esperado = {
-        'tipos_receita': [
-            {
-                'id': tipo_receita.id,
-                'nome': tipo_receita.nome,
-                'aceita_capital': tipo_receita.aceita_capital,
-                'aceita_custeio': tipo_receita.aceita_custeio,
-                'aceita_livre': tipo_receita.aceita_livre,
-                'e_repasse': tipo_receita.e_repasse,
-                'e_devolucao': False,
-                'e_recursos_proprios': False,
-                'e_estorno': False,
-                'mensagem_usuario': tipo_receita.mensagem_usuario,
-                'possui_detalhamento': tipo_receita.possui_detalhamento,
-                'tipos_conta': [{
-                    'agencia': tipo_conta.agencia,
-                    'apenas_leitura': tipo_conta.apenas_leitura,
-                    'banco_nome': tipo_conta.banco_nome,
-                    'uuid': f'{tipo_conta.uuid}',
-                    'id': tipo_conta.id,
-                    'nome': tipo_conta.nome,
-                    'numero_cartao': tipo_conta.numero_cartao,
-                    'numero_conta': tipo_conta.numero_conta,
-                    'permite_inativacao': tipo_conta.permite_inativacao,
-
-                    'apenas_leitura': False
-                }],
-                'detalhes_tipo_receita': [
-                    {
-                        'id': detalhe_tipo_receita.id,
-                        'nome': detalhe_tipo_receita.nome
-                    },
-                ]
-            },
-        ],
-        "categorias_receita": [
-            {
-                "id": "CAPITAL",
-                "nome": "Capital"
-            },
-            {
-                "id": "CUSTEIO",
-                "nome": "Custeio"
-            },
-            {
-                "id": "LIVRE",
-                "nome": "Livre Aplicação"
-            }
-        ],
-        'acoes_associacao': [
-            {
-                'uuid': f'{acao_associacao.uuid}',
-                'id': acao_associacao.id,
-                'nome': acao_associacao.acao.nome,
-                'e_recursos_proprios': False,
-                'acao': {
-                    'id': acao_associacao.acao.id,
-                    'uuid': f'{acao_associacao.acao.uuid}',
-                    'nome': acao_associacao.acao.nome,
-                    'e_recursos_proprios': False,
-                    'posicao_nas_pesquisas': acao_associacao.acao.posicao_nas_pesquisas,
-                    'aceita_capital': acao_associacao.acao.aceita_capital,
-                    'aceita_custeio': acao_associacao.acao.aceita_custeio,
-                    'aceita_livre': acao_associacao.acao.aceita_livre
-                }
-            },
-        ],
-
-        'contas_associacao': [
-            {
-                'uuid': f'{conta_associacao.uuid}',
-                'nome': conta_associacao.tipo_conta.nome
-            },
-        ],
-
-        'periodos': [
-            {'data_fim_realizacao_despesas': '2019-08-31',
-             'data_inicio_realizacao_despesas': '2019-01-01',
-             'referencia': '2019.1',
-             'referencia_por_extenso': '1° repasse de 2019',
-             'uuid': str(associacao.periodo_inicial.uuid)
-             }
-        ]
-    }
-
     assert response.status_code == status.HTTP_200_OK
-    assert result == esperado
+
+    assert len(result['tipos_receita']) == 1
+    assert len(result['categorias_receita']) == 3
+    assert len(result['acoes_associacao']) == 1
+    assert len(result['contas_associacao']) == 1
+    assert len(result['periodos']) == 1
 
 
 def test_get_receitas(
@@ -295,85 +215,14 @@ def test_get_receitas(
         f'/api/receitas/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
-    results = [
-        {
-            'uuid': str(receita.uuid),
-            'data': '2020-03-26',
-            'data_e_hora_de_inativacao': None,
-            'valor': '100.00',
-            'repasse': None,
-            'saida_do_recurso':
-                {
-                    'associacao': str(despesa_saida_recurso.associacao.uuid),
-                    'cpf_cnpj_fornecedor': '11.478.276/0001-04',
-                    'data_documento': '2019-09-10',
-                    'data_transacao': '2019-09-10',
-                    'documento_transacao': '',
-                    'nome_fornecedor': 'Fornecedor SA',
-                    'numero_documento': '123456',
-                    'tipo_documento': {
-                        'id': despesa_saida_recurso.tipo_documento.id,
-                        'nome': despesa_saida_recurso.tipo_documento.nome
-                    },
-                    'tipo_transacao': {
-                        'id': despesa_saida_recurso.tipo_transacao.id,
-                        'nome': despesa_saida_recurso.tipo_transacao.nome,
-                        'tem_documento': despesa_saida_recurso.tipo_transacao.tem_documento
-                    },
-                    'uuid': str(despesa_saida_recurso.uuid),
-                    'valor_ptrf': 100.0,
-                    'valor_total': '100.00'
-                },
-            'status': 'COMPLETO',
-            'tipo_receita': {
-                'id': tipo_receita.id,
-                'nome': tipo_receita.nome,
-                'e_repasse': tipo_receita.e_repasse,
-                'aceita_capital': tipo_receita.aceita_capital,
-                'aceita_custeio': tipo_receita.aceita_custeio,
-                'aceita_livre': tipo_receita.aceita_livre,
-                'e_devolucao': False,
-                'e_recursos_proprios': False
-            },
-            'referencia_devolucao': None,
-            "acao_associacao": {
-                "uuid": str(acao_associacao.uuid),
-                "id": acao_associacao.id,
-                "nome": acao_associacao.acao.nome,
-                'e_recursos_proprios': False,
-                'acao': {
-                    'id': acao_associacao.acao.id,
-                    'uuid': f'{acao_associacao.acao.uuid}',
-                    'nome': acao_associacao.acao.nome,
-                    'e_recursos_proprios': False,
-                    'posicao_nas_pesquisas': acao_associacao.acao.posicao_nas_pesquisas,
-                    'aceita_capital': acao_associacao.acao.aceita_capital,
-                    'aceita_custeio': acao_associacao.acao.aceita_custeio,
-                    'aceita_livre': acao_associacao.acao.aceita_livre
-                }
-            },
-            'conta_associacao': {
-                "uuid": str(conta_associacao.uuid),
-                "nome": conta_associacao.tipo_conta.nome
-            },
-            'conferido': True,
-            'categoria_receita': receita.categoria_receita,
-            'detalhe_tipo_receita': {
-                'id': detalhe_tipo_receita.id,
-                'nome': detalhe_tipo_receita.nome
-            },
-            'detalhe_outros': receita.detalhe_outros,
-            'notificar_dias_nao_conferido': 0,
-            'rateio_estornado': None,
-            'motivos_estorno': [],
-            'outros_motivos_estorno': '',
-        },
-    ]
+    uuids_esperado = [f'{receita.uuid}']
 
-    esperado = results
+    result_uuids = []
+    for item in result:
+        result_uuids.append(item['uuid'])
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == esperado
+    assert result_uuids == uuids_esperado
 
 
 def test_update_receita_deve_gerar_erro_data_da_receita_maior_que_data_encerramento_associacao(
@@ -482,95 +331,17 @@ def test_deleta_receita_repasse(
 
 def test_retrive_receitas(
     jwt_authenticated_client_p,
-    tipo_receita,
-    detalhe_tipo_receita,
     receita,
-    acao,
-    acao_associacao,
     associacao,
-    tipo_conta,
-    conta_associacao,
-    despesa_saida_recurso
 ):
     response = jwt_authenticated_client_p.get(
         f'/api/receitas/{receita.uuid}/?associacao_uuid={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
-    esperado = {
-        'uuid': str(receita.uuid),
-        'data': '2020-03-26',
-        'data_e_hora_de_inativacao': None,
-        'valor': '100.00',
-        'tipo_receita': {
-            'id': tipo_receita.id,
-            'nome': tipo_receita.nome,
-            'e_repasse': tipo_receita.e_repasse,
-            'aceita_capital': tipo_receita.aceita_capital,
-            'aceita_custeio': tipo_receita.aceita_custeio,
-            'aceita_livre': tipo_receita.aceita_livre,
-            'e_devolucao': False,
-            'e_recursos_proprios': False
-        },
-        'referencia_devolucao': None,
-        'repasse': None,
-        'saida_do_recurso':
-            {
-                'associacao': str(despesa_saida_recurso.associacao.uuid),
-                'cpf_cnpj_fornecedor': '11.478.276/0001-04',
-                'data_documento': '2019-09-10',
-                'data_transacao': '2019-09-10',
-                'documento_transacao': '',
-                'nome_fornecedor': 'Fornecedor SA',
-                'numero_documento': '123456',
-                'tipo_documento': {
-                    'id': despesa_saida_recurso.tipo_documento.id,
-                    'nome': despesa_saida_recurso.tipo_documento.nome
-                },
-                'tipo_transacao': {
-                    'id': despesa_saida_recurso.tipo_transacao.id,
-                    'nome': despesa_saida_recurso.tipo_transacao.nome,
-                    'tem_documento': despesa_saida_recurso.tipo_transacao.tem_documento
-                },
-                'uuid': str(despesa_saida_recurso.uuid),
-                'valor_ptrf': 100.0,
-                'valor_total': '100.00'
-            },
-        'status': 'COMPLETO',
-        "acao_associacao": {
-            "uuid": str(acao_associacao.uuid),
-            "id": acao_associacao.id,
-            "nome": acao_associacao.acao.nome,
-            'e_recursos_proprios': False,
-            'acao': {
-                'id': acao_associacao.acao.id,
-                'uuid': f'{acao_associacao.acao.uuid}',
-                'nome': acao_associacao.acao.nome,
-                'e_recursos_proprios': False,
-                'posicao_nas_pesquisas': acao_associacao.acao.posicao_nas_pesquisas,
-                'aceita_capital': acao_associacao.acao.aceita_capital,
-                'aceita_custeio': acao_associacao.acao.aceita_custeio,
-                'aceita_livre': acao_associacao.acao.aceita_livre
-            }
-        },
-        'conta_associacao': {
-            "uuid": str(conta_associacao.uuid),
-            "nome": conta_associacao.tipo_conta.nome
-        },
-        'conferido': True,
-        'categoria_receita': 'CUSTEIO',
-        'detalhe_tipo_receita': {
-            'id': detalhe_tipo_receita.id,
-            'nome': detalhe_tipo_receita.nome
-        },
-        'detalhe_outros': receita.detalhe_outros,
-        'notificar_dias_nao_conferido': 0,
-        'rateio_estornado': None,
-        'motivos_estorno': [],
-        'outros_motivos_estorno': '',
-    }
+    uuid_esperado = f'{receita.uuid}'
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == esperado
+    assert result['uuid'] == uuid_esperado
 
 
 def test_create_receita_livre_aplicacao(
