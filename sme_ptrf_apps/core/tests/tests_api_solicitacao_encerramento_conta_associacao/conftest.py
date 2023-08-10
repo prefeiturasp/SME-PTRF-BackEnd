@@ -38,7 +38,8 @@ def payload_solicitacao_encerramento_data_invalida(conta_associacao):
 @pytest.fixture
 def payload_rejeitar_solicitacao(motivo_rejeicao, motivo_rejeicao_2):
     payload = {
-        'motivos_rejeicao': [f'{motivo_rejeicao.uuid}', f'{motivo_rejeicao_2.uuid}']
+        'motivos_rejeicao': [f'{motivo_rejeicao.uuid}', f'{motivo_rejeicao_2.uuid}'],
+        'outros_motivos_rejeicao': 'UE com pendências cadastrais.'
     }
     return payload
 
