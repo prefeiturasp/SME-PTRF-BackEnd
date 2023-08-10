@@ -21,6 +21,7 @@ class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializ
             'status',
             'data_de_encerramento_na_agencia',
             'motivos_rejeicao',
+            'outros_motivos_rejeicao',
             'data_aprovacao',
             'criado_em',
         )

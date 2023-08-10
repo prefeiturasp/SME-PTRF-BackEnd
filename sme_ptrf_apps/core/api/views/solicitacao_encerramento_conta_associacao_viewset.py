@@ -79,6 +79,7 @@ class SolicitacaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
         solicitacao = self.get_object()
 
         motivos_rejeicao_uuid = request.data.get('motivos_rejeicao', [])
+        outros_motivos_rejeicao = request.data.get('outros_motivos_rejeicao', '')
 
         motivos = []
         for motivo_uuid in motivos_rejeicao_uuid:
@@ -102,6 +103,7 @@ class SolicitacaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         solicitacao.motivos_rejeicao.set(motivos)
+        solicitacao.outros_motivos_rejeicao = outros_motivos_rejeicao
         solicitacao.reprovar()
 
         serializer = self.get_serializer(solicitacao)
