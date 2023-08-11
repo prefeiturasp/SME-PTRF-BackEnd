@@ -130,18 +130,21 @@ pipeline {
                         sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf-hom2'
                         sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf-hom2'
                         sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf-hom2'
+			sh('rm -f '+"$home"+'/.kube/config')
                     }
                     else if( env.branchname == 'pre-release' ){
                         sh('cp $config '+"$home"+'/.kube/config')
                         sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
                         sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
                         sh 'kubectl rollout restart deployment/sigescolapre-flower -n sme-sigescola-pre'
+			sh('rm -f '+"$home"+'/.kube/config')
                     }
                     else {
                         sh('cp $config '+"$home"+'/.kube/config')
                         sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf'
                         sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf'
                         sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf'
+			sh('rm -f '+"$home"+'/.kube/config')
                     }
 				          }
                 }
