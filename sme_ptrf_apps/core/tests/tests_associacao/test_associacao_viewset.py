@@ -56,10 +56,9 @@ def test_get_contas_associacoes_com_filtro_por_periodo(
         uuids_result.append(item['uuid'])
 
     uuids_esperados = [
-        f'{conta_associacao_inativa_x.uuid}',
         f'{conta_associacao.uuid}',
+        f'{conta_associacao_inativa_x.uuid}',
     ]
-
     assert response.status_code == status.HTTP_200_OK
     assert uuids_result == uuids_esperados
 
