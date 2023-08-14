@@ -528,6 +528,7 @@ class PrestacaoConta(ModeloBase):
         if self.analise_atual:
             devolucao_requer_alteracoes = self.analise_atual.verifica_se_requer_alteracao_em_lancamentos(considera_realizacao=False)
             self.analise_atual.devolucao_prestacao_conta = devolucao
+            self.analise_atual.status = self.STATUS_DEVOLVIDA
             self.analise_atual.save()
 
         self.analise_atual = None
