@@ -221,6 +221,47 @@ def payload_despesa_status_completo_eh_despesa_sem_comprovacao_fiscal(
     }
     return payload
 
+@pytest.fixture
+def payload_despesa_com_conta_associacao_inativa(
+    associacao,
+    tipo_documento,
+    tipo_transacao,
+    conta_associacao_inativa,
+    acao_associacao,
+    tipo_aplicacao_recurso,
+    tipo_custeio,
+    especificacao_material_servico,
+):
+    payload = {
+        "associacao": f'{associacao.uuid}',
+        "tipo_documento": tipo_documento.id,
+        "tipo_transacao": tipo_transacao.id,
+        "documento_transacao": "123456789",
+        "numero_documento": "634767",
+        "data_documento": "2020-03-10",
+        "cpf_cnpj_fornecedor": "36.352.197/0001-75",
+        "nome_fornecedor": "FORNECEDOR TESTE SA",
+        "data_transacao": "2020-03-10",
+        "valor_total": 11000.50,
+        "valor_recursos_proprios": 1000.50,
+        "motivos_pagamento_antecipado": [],
+        "outros_motivos_pagamento_antecipado": "",
+        "rateios": [
+            {
+                "associacao": f'{associacao.uuid}',
+                "conta_associacao": f'{conta_associacao_inativa.uuid}',
+                "acao_associacao": f'{acao_associacao.uuid}',
+                "aplicacao_recurso": tipo_aplicacao_recurso,
+                "tipo_custeio": tipo_custeio.id,
+                "especificacao_material_servico": especificacao_material_servico.id,
+                "valor_rateio": 1000.00,
+                "quantidade_itens_capital": 2,
+                "valor_item_capital": 500.00,
+                "numero_processo_incorporacao_capital": "6234673223462364632"
+            }
+        ]
+    }
+    return payload
 
 @pytest.fixture
 def tapi_periodo_2019_2():
@@ -374,6 +415,24 @@ def tapi_rateio_despesa_com_imposto(associacao, tapi_despesa_com_imposto, conta_
         despesa=tapi_despesa_com_imposto,
         associacao=associacao,
         conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso,
+        tipo_custeio=tipo_custeio,
+        especificacao_material_servico=especificacao_material_servico,
+        valor_rateio=100.00,
+        quantidade_itens_capital=2,
+        valor_item_capital=50.00,
+        numero_processo_incorporacao_capital='Teste123456'
+
+    )
+
+@pytest.fixture
+def tapi_rateio_despesa_com_conta_associacao_inativa(associacao, tapi_despesa, conta_associacao_inativa, tipo_aplicacao_recurso, tipo_custeio, especificacao_material_servico, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=tapi_despesa,
+        associacao=associacao,
+        conta_associacao=conta_associacao_inativa,
         acao_associacao=acao_associacao,
         aplicacao_recurso=tipo_aplicacao_recurso,
         tipo_custeio=tipo_custeio,

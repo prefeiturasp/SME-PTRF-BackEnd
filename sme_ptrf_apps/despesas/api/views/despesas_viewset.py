@@ -226,9 +226,15 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
     def destroy(self, request, *args, **kwargs):
         from django.db.models.deletion import ProtectedError
-        from ....core.models import DevolucaoAoTesouro
-
+        from ....core.models import DevolucaoAoTesouro, ContaAssociacao
         despesa = self.get_object()
+
+        if despesa.rateios.filter(conta_associacao__status=ContaAssociacao.STATUS_INATIVA).exists():
+            erro = {
+                'erro': 'rateio_com_conta_status_inativa',
+                'mensagem': f'Não é permitido deletar despesa com rateios com conta associação status {ContaAssociacao.STATUS_INATIVA}'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         if not despesa.inativar_em_vez_de_excluir:
             # Em caso de inativação, a inativação dos impostos é feita pelo próprio método inativar_despesa.
