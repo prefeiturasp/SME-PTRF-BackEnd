@@ -126,6 +126,7 @@ pipeline {
                   withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
 
                     if ( env.branchname == 'homolog-r2' ) {
+                        sh('rm -f '+"$home"+'/.kube/config')
 			sh('cp $config '+"$home"+'/.kube/config')
                         sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf-hom2'
                         sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf-hom2'
@@ -133,6 +134,7 @@ pipeline {
 			sh('rm -f '+"$home"+'/.kube/config')
                     }
                     else if( env.branchname == 'pre-release' ){
+                        sh('rm -f '+"$home"+'/.kube/config')
                         sh('cp $config '+"$home"+'/.kube/config')
                         sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
                         sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
@@ -140,6 +142,7 @@ pipeline {
 			sh('rm -f '+"$home"+'/.kube/config')
                     }
                     else {
+                        sh('rm -f '+"$home"+'/.kube/config')
                         sh('cp $config '+"$home"+'/.kube/config')
                         sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf'
                         sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf'
