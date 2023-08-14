@@ -43,7 +43,10 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
     solicitacao_encerramento = SolicitacaoEncerramentoContaAssociacaoSerializer()
     saldo_atual_conta = serializers.SerializerMethodField()
     habilitar_solicitar_encerramento = serializers.SerializerMethodField()
+    nome = serializers.SerializerMethodField('get_nome_conta')
 
+    def get_nome_conta(self, obj):
+        return obj.tipo_conta.nome
 
     class Meta:
         model = ContaAssociacao
@@ -55,7 +58,8 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
             'numero_conta',
             'solicitacao_encerramento',
             'saldo_atual_conta',
-            'habilitar_solicitar_encerramento'
+            'habilitar_solicitar_encerramento',
+            'nome'
         )
 
     def get_habilitar_solicitar_encerramento(self, obj):

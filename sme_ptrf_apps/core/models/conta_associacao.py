@@ -8,10 +8,10 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 
-class ContasAtivas(models.Manager):
+class ContasAtivasComSolicitacaoEmAberto(models.Manager):
     def get_queryset(self):
         from ..models import SolicitacaoEncerramentoContaAssociacao
-        return super(ContasAtivas, self).get_queryset().filter(Q(status=ContaAssociacao.STATUS_ATIVA) |
+        return super(ContasAtivasComSolicitacaoEmAberto, self).get_queryset().filter(Q(status=ContaAssociacao.STATUS_ATIVA) |
                                                                Q(solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE) |
                                                                Q(solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA))
 
@@ -54,7 +54,7 @@ class ContaAssociacao(ModeloBase):
     numero_cartao = models.CharField('Nº do cartão', max_length=80, blank=True, default='')
 
     objects = models.Manager()
-    ativas = ContasAtivas()
+    ativas_com_solicitacao_em_aberto = ContasAtivasComSolicitacaoEmAberto()
     encerradas = ContasEncerradas()
 
     def __str__(self):
