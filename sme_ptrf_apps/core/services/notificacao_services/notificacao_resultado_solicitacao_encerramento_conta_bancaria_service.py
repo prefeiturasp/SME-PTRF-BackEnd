@@ -18,7 +18,7 @@ def notificar_resultado_solicitacao_encerramento_conta_bancaria(conta_associacao
     users = users.filter(visoes__nome="UE")
     users = users.filter(unidades__codigo_eol=associacao.unidade.codigo_eol)
 
-    if resultado:
+    if resultado and resultado != SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE:
         for usuario in users:
             logging.info(f"Gerando notificação de resultado de solicitação de encerramento "
                          f"de conta bancária para o usuário: {usuario}")

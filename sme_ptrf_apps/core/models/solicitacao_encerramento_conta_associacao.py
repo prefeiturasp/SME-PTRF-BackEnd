@@ -99,13 +99,13 @@ class SolicitacaoEncerramentoContaAssociacao(ModeloBase):
         self.data_aprovacao = date.today()
         self.save()
 
-        self.notificar_ue(resultado=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA)
+        self.notificar_ue(resultado=self.status)
 
     def reprovar(self):
         self.status = SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA
         self.save()
 
-        self.notificar_ue(resultado=SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA)
+        self.notificar_ue(resultado=self.status)
 
 
     class Meta:
