@@ -126,6 +126,7 @@ pipeline {
                   withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
 
                     if ( env.branchname == 'homolog-r2' ) {
+			sh('rm -f '+"$home"+'/.kube/config')
                         sh('cp $config '+"$home"+'/.kube/config')
                         sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf-hom2'
                         sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf-hom2'
