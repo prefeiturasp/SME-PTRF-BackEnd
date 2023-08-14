@@ -78,6 +78,14 @@ class SolicitacaoEncerramentoContaAssociacao(ModeloBase):
         from sme_ptrf_apps.core.services.notificacao_services import notificar_solicitacao_encerramento_conta_bancaria
         notificar_solicitacao_encerramento_conta_bancaria(conta_associacao=self.conta_associacao)
 
+    def notificar_ue(self, resultado=None):
+        from sme_ptrf_apps.core.services.notificacao_services import (
+            notificar_resultado_solicitacao_encerramento_conta_bancaria)
+
+        notificar_resultado_solicitacao_encerramento_conta_bancaria(
+            conta_associacao=self.conta_associacao, resultado=resultado)
+
+
     def reenviar(self):
         self.status = SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE
         self.motivos_rejeicao.clear()
@@ -91,9 +99,13 @@ class SolicitacaoEncerramentoContaAssociacao(ModeloBase):
         self.data_aprovacao = date.today()
         self.save()
 
+        self.notificar_ue(resultado=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA)
+
     def reprovar(self):
         self.status = SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA
         self.save()
+
+        self.notificar_ue(resultado=SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA)
 
 
     class Meta:
