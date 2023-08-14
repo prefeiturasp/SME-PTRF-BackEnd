@@ -124,3 +124,17 @@ def test_api_delete_despesas_com_estorno_com_pc(
     assert RateioDespesa.by_uuid(tapi_rateio_despesa_capital.uuid).status == 'INATIVO', "Rateio deveria estar inativo."
 
     assert Receita.objects.get(id=tapi_receita_estorno.id).status == 'INATIVO', "Estorno deveria estar inativo."
+
+
+def test_validacao_api_delete_despesas_com_conta_associacao_inativa(
+    jwt_authenticated_client_d,
+    tapi_despesa,
+    tapi_rateio_despesa_com_conta_associacao_inativa,
+    tapi_periodo_2019_2,
+):
+    assert Despesa.objects.filter(uuid=tapi_despesa.uuid).exists()
+    assert RateioDespesa.objects.filter(uuid=tapi_rateio_despesa_com_conta_associacao_inativa.uuid).exists()
+
+    response = jwt_authenticated_client_d.delete(f'/api/despesas/{tapi_despesa.uuid}/', content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
