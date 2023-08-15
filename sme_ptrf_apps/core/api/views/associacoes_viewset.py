@@ -312,8 +312,31 @@ class AssociacoesViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def contas(self, request, uuid=None):
         associacao = self.get_object()
-        contas = ContaAssociacao.ativas.filter(associacao=associacao).all()
+
+        periodo_uuid = request.query_params.get('periodo_uuid')
+
+        if periodo_uuid:
+            try:
+                periodo = Periodo.objects.get(uuid=periodo_uuid)
+            except Periodo.DoesNotExist:
+                erro = {
+                    'erro': 'parametro_invalido',
+                    'mensagem': f"Não foi encontrado o objeto periodo para o uuid {periodo_uuid}"
+                }
+                return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+            contas = ContaAssociacao.objects.filter(
+                Q(status=ContaAssociacao.STATUS_ATIVA) |
+                (Q(status=ContaAssociacao.STATUS_INATIVA) &
+                 Q(solicitacao_encerramento__isnull=False) &
+                 Q(solicitacao_encerramento__data_de_encerramento_na_agencia__gte=periodo.data_inicio_realizacao_despesas)),
+                associacao=associacao
+            )
+        else:
+            contas = ContaAssociacao.ativas_com_solicitacao_em_aberto.filter(associacao=associacao).all()
+
         contas_data = ContaAssociacaoDadosSerializer(contas, many=True).data
+
         return Response(contas_data)
 
     @action(detail=True, url_path='contas/encerradas', methods=['get'],

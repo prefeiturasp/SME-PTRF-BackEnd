@@ -576,6 +576,16 @@ def conta_associacao_inativa(associacao, tipo_conta):
     )
 
 @pytest.fixture
+def conta_associacao_inativa_x(associacao, tipo_conta):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao,
+        tipo_conta=tipo_conta,
+        banco_nome='Bando X',
+        status=ContaAssociacao.STATUS_INATIVA
+    )
+
+@pytest.fixture
 def solicitacao_encerramento_conta_associacao(conta_associacao_inativa):
     return baker.make(
         'SolicitacaoEncerramentoContaAssociacao',
@@ -583,6 +593,15 @@ def solicitacao_encerramento_conta_associacao(conta_associacao_inativa):
         data_de_encerramento_na_agencia='2019-09-02',
         status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA
     )
+@pytest.fixture
+def solicitacao_encerramento_conta_associacao_no_periodo_2020_1(conta_associacao_inativa_x, periodo_2020_1):
+    return baker.make(
+        'SolicitacaoEncerramentoContaAssociacao',
+        conta_associacao=conta_associacao_inativa_x,
+        data_de_encerramento_na_agencia=periodo_2020_1.data_inicio_realizacao_despesas,
+        status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA
+    )
+
 
 @pytest.fixture
 def acao_associacao(associacao, acao):
