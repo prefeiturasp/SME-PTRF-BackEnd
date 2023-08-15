@@ -43,6 +43,13 @@ def payload_rejeitar_solicitacao(motivo_rejeicao, motivo_rejeicao_2):
     }
     return payload
 
+@pytest.fixture
+def payload_reenviar_solicitacao(conta_associacao):
+    payload = {
+        'conta_associacao': str(conta_associacao.uuid),
+        'data_de_encerramento_na_agencia': "2019-09-02",
+    }
+    return payload
 
 @pytest.fixture
 def solicitacao_encerramento(conta_associacao):

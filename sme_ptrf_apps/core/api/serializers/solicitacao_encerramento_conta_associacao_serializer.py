@@ -25,6 +25,7 @@ class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializ
             'data_aprovacao',
             'criado_em',
         )
+        read_only_fields = ('status', )
 
     def create(self, validated_data):
         try:

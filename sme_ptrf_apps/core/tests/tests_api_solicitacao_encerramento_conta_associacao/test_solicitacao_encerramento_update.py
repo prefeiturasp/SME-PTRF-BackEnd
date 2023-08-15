@@ -2,12 +2,14 @@ import json
 import pytest
 from rest_framework import status
 
-from sme_ptrf_apps.core.models import SolicitacaoEncerramentoContaAssociacao, ContaAssociacao
+from sme_ptrf_apps.core.models import SolicitacaoEncerramentoContaAssociacao
 pytestmark = pytest.mark.django_db
 
-def test_reenviar_solicitacao_encerramento_conta_associacao(jwt_authenticated_client_a, solicitacao_encerramento_reprovada):
+def test_reenviar_solicitacao_encerramento_conta_associacao(jwt_authenticated_client_a, solicitacao_encerramento_reprovada, payload_reenviar_solicitacao):
     response = jwt_authenticated_client_a.patch(
-        f'/api/solicitacoes-encerramento-conta/{solicitacao_encerramento_reprovada.uuid}/reenviar/', content_type='application/json')
+        f'/api/solicitacoes-encerramento-conta/{solicitacao_encerramento_reprovada.uuid}/reenviar/',
+        data=json.dumps(payload_reenviar_solicitacao),
+        content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
