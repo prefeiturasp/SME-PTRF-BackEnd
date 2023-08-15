@@ -49,11 +49,12 @@ class SolicitacaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        solicitacao.reenviar()
-
-        serializer = self.get_serializer(solicitacao)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = SolicitacaoEncerramentoContaAssociacaoSerializer(data=request.data, instance=solicitacao)
+        if serializer.is_valid():
+            serializer.save()
+            solicitacao.reenviar()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['patch'],
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
