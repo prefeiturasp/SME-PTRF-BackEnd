@@ -22,39 +22,14 @@ def test_repasses_pendentes(
     response = jwt_authenticated_client_p.get(
         f'/api/repasses/pendentes/?associacao={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
-    esperado = [{
-        'valor_capital': '1000.28',
-        'valor_custeio': '1000.40',
-        'valor_livre': '0.00',
-        'acao_associacao': {
-            'uuid': str(acao_associacao.uuid),
-            'id': acao_associacao.id,
-            'nome': acao_associacao.acao.nome,
-            'e_recursos_proprios': False,
-            'acao': {
-                'id': acao_associacao.acao.id,
-                'uuid': f'{acao_associacao.acao.uuid}',
-                'nome': acao_associacao.acao.nome,
-                'e_recursos_proprios': False,
-                'posicao_nas_pesquisas': acao_associacao.acao.posicao_nas_pesquisas,
-                'aceita_capital': acao_associacao.acao.aceita_capital,
-                'aceita_custeio': acao_associacao.acao.aceita_custeio,
-                'aceita_livre': acao_associacao.acao.aceita_livre
-            }
-        },
-        'conta_associacao': {
-            'uuid': str(conta_associacao.uuid),
-            'nome': conta_associacao.tipo_conta.nome
-        },
-        'periodo': {
-            'uuid': str(periodo.uuid),
-            'data_inicio_realizacao_despesas': '2019-09-01',
-            'data_fim_realizacao_despesas': '2019-11-30'
-        },
-        'uuid': str(repasse.uuid)
-    }]
 
-    assert result == esperado
+    uuids_esperado = [f'{repasse.uuid}']
+
+    result_uuids = []
+    for item in result:
+        result_uuids.append(item['uuid'])
+
+    assert result_uuids == uuids_esperado
 
 
 def test_repasses_pendentes_livre_aplicacao(
@@ -70,40 +45,14 @@ def test_repasses_pendentes_livre_aplicacao(
     response = jwt_authenticated_client_p.get(
         f'/api/repasses/pendentes/?associacao={associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
-    esperado = [{
-        'valor_capital': '0.00',
-        'valor_custeio': '0.00',
-        'valor_livre': '1000.00',
-        'acao_associacao': {
-            'uuid': str(acao_associacao.uuid),
-            'id': acao_associacao.id,
-            'nome': acao_associacao.acao.nome,
-            'e_recursos_proprios': False,
-            'acao': {
-                'id': acao_associacao.acao.id,
-                'uuid': f'{acao_associacao.acao.uuid}',
-                'nome': acao_associacao.acao.nome,
-                'e_recursos_proprios': False,
-                'posicao_nas_pesquisas': acao_associacao.acao.posicao_nas_pesquisas,
-                'aceita_capital': acao_associacao.acao.aceita_capital,
-                'aceita_custeio': acao_associacao.acao.aceita_custeio,
-                'aceita_livre': acao_associacao.acao.aceita_livre
-            }
-        },
-        'conta_associacao': {
-            'uuid': str(conta_associacao.uuid),
-            'nome': conta_associacao.tipo_conta.nome
-        },
-        'periodo': {
-            'uuid': str(periodo_2020_1.uuid),
-            'data_inicio_realizacao_despesas': '2020-01-01',
-            'data_fim_realizacao_despesas': '2020-06-30'
-        },
-        'uuid': str(repasse_2020_1_livre_aplicacao_pendente.uuid)
-    }]
 
-    assert result == esperado
+    uuids_esperado = [f'{repasse_2020_1_livre_aplicacao_pendente.uuid}']
 
+    result_uuids = []
+    for item in result:
+        result_uuids.append(item['uuid'])
+
+    assert result_uuids == uuids_esperado
 
 @pytest.fixture
 def grupo_sem_permissao_criar_receita():

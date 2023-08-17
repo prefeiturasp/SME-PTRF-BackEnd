@@ -161,6 +161,7 @@ class FuncUeRecebimentoDeNotificacoes(models.Model):
             ('recebe_notificacao_reprovacao_pc_nao_incluindo_motivos', '[UE] Pode receber Notificação Prestação de Contas Reprovada Não Incluindo Motivos'),
             ('recebe_notificacao_reprovacao_pc_incluindo_motivos', '[UE] Pode receber Notificação Prestação de Contas Reprovada Incluindo Motivos'),
             ('recebe_notificacao_automatica_inativacao_conta', '[UE] Pode receber Notificação Encerramento de Conta Bancária'),
+            ('recebe_notificacao_resultado_encerramento_conta', '[UE] Pode receber Notificação Resultado Encerramento de Conta Bancária'),
         )
 
 
@@ -189,4 +190,19 @@ class FuncUeGestaoUsuarios(models.Model):
         permissions = (
             ('access_gestao_usuarios_ue', '[UE] Pode acessar Gestão de Usuários da UE.'),
             ('change_gestao_usuarios_ue', '[UE] Pode atualizar Gestão de Usuários da UE.'),
+        )
+
+
+# Nova versão com mandato e composições
+class FuncUeMembrosDaAssociacao(models.Model):
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[UE] Membro da Associação"
+        verbose_name_plural = "[UE] Membros da Associação"
+
+        permissions = (
+            ('access_membros_da_associacao', '[UE] Pode acessar Membros da Associação.'),
+            ('change_membros_da_associacao', '[UE] Pode editar Membros da Associação.'),
         )

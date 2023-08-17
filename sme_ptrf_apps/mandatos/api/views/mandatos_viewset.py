@@ -1,34 +1,14 @@
-from rest_framework import viewsets
-
-from sme_ptrf_apps.users.permissoes import PermissaoApiSME
+from rest_framework import viewsets, status
+from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
+from sme_ptrf_apps.core.models import Associacao
+from sme_ptrf_apps.users.permissoes import PermissaoApiSME, PermissaoApiUe
 from ...models import Mandato
-from ..serializers.mandato_serializer import MandatoSerializer
+from ..serializers.mandato_serializer import MandatoSerializer, MandatoComComposicoesSerializer
 from rest_framework.permissions import IsAuthenticated
-
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
-
-DEFAULT_PAGE = 1
-DEFAULT_PAGE_SIZE = 10
-
-
-class CustomPagination(PageNumberPagination):
-    page = DEFAULT_PAGE
-    page_size = DEFAULT_PAGE_SIZE
-    page_size_query_param = 'page_size'
-
-    def get_paginated_response(self, data):
-        return Response({
-            'links': {
-                'next': self.get_next_link(),
-                'previous': self.get_previous_link()
-            },
-            'count': self.page.paginator.count,
-            'page': int(self.request.GET.get('page', DEFAULT_PAGE)),
-            'page_size': int(self.request.GET.get('page_size', self.page_size)),
-            'results': data
-        })
+from ...services import ServicoMandatoVigente
 
 
 class MandatosViewSet(viewsets.ModelViewSet):
@@ -47,3 +27,29 @@ class MandatosViewSet(viewsets.ModelViewSet):
             qs = qs.filter(referencia_mandato__unaccent__icontains=filtro_referencia)
 
         return qs
+
+    @action(detail=False, methods=['get'], url_path='mandato-vigente',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def mandato_vigente(self, request):
+        from ..serializers.validation_serializers.mandato_validate_serializer import MandatoVigenteValidateSerializer
+
+        query = MandatoVigenteValidateSerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+
+        associacao_uuid = request.query_params.get('associacao_uuid')
+        associacao = Associacao.objects.get(uuid=associacao_uuid)
+
+        servico_mandato_vigente = ServicoMandatoVigente()
+        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+        if mandato_vigente:
+            mandato_vigente = MandatoSerializer(mandato_vigente, many=False).data
+            result = MandatoComComposicoesSerializer(mandato_vigente, context={'associacao': associacao}).data
+        else:
+            result = {
+                "composicoes": []
+            }
+
+        return Response(result, status=status.HTTP_200_OK)
+
+

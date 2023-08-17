@@ -29,6 +29,38 @@ def test_get_contas_associacoes(jwt_authenticated_client_a, associacao, conta_as
     assert str(conta_associacao_cartao.uuid) in [c['uuid'] for c in result]
     assert str(conta_associacao_cheque.uuid) in [c['uuid'] for c in result]
 
+def test_get_contas_associacoes_encerradas(jwt_authenticated_client_a, associacao, conta_associacao_inativa, solicitacao_encerramento_conta_associacao):
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/contas/encerradas/', content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert str(conta_associacao_inativa.uuid) in [c['uuid'] for c in result]
+
+def test_get_contas_associacoes_com_filtro_por_periodo(
+    jwt_authenticated_client_a,
+    periodo_2020_1,
+    associacao,
+    conta_associacao,
+    conta_associacao_inativa,
+    solicitacao_encerramento_conta_associacao,
+    conta_associacao_inativa_x,
+    solicitacao_encerramento_conta_associacao_no_periodo_2020_1
+):
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/contas/?periodo_uuid={periodo_2020_1.uuid}', content_type='application/json')
+    result = json.loads(response.content)
+
+    uuids_result = []
+    for item in result:
+        uuids_result.append(item['uuid'])
+
+    uuids_esperados = [
+        f'{conta_associacao.uuid}',
+        f'{conta_associacao_inativa_x.uuid}',
+    ]
+    assert response.status_code == status.HTTP_200_OK
+    assert uuids_result == uuids_esperados
 
 def test_update_contas_associacoes(jwt_authenticated_client_a, associacao, tipo_conta_cartao, tipo_conta_cheque, conta_associacao, conta_associacao_cartao, conta_associacao_cheque):
     payload =  [

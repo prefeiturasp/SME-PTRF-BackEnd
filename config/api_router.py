@@ -83,7 +83,7 @@ from sme_ptrf_apps.users.api.views import (
     GruposViewSet
 )
 
-from sme_ptrf_apps.mandatos.api.views import MandatosViewSet
+from sme_ptrf_apps.mandatos.api.views import MandatosViewSet, ComposicoesViewSet, OcupantesCargosViewSet, CargosComposicoesViewSet
 
 
 @api_view()
@@ -167,6 +167,9 @@ router.register("falhas-geracao-pc", FalhaGeracaoPcViewSet)
 router.register("solicitacoes-encerramento-conta", SolicitacaoEncerramentoContaAssociacaoViewset)
 router.register("motivos-rejeicao-encerramento-conta", MotivoRejeicaoEncerramentoContaAssociacaoViewset)
 router.register("mandatos", MandatosViewSet)
+router.register("composicoes", ComposicoesViewSet)
+router.register("ocupantes-cargos", OcupantesCargosViewSet)
+router.register("cargos-composicao", CargosComposicoesViewSet)
 
 app_name = "api"
 urlpatterns = router.urls
