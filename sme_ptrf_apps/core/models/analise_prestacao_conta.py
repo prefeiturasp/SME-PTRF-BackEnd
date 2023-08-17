@@ -8,6 +8,7 @@ from auditlog.registry import auditlog
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from datetime import datetime
 from django.db.models import Q
+from sme_ptrf_apps.core.models import AnaliseContaPrestacaoConta
 
 
 logger = logging.getLogger(__name__)
@@ -129,6 +130,16 @@ class AnalisePrestacaoConta(ModeloBase):
 
     arquivo_pdf_apresentacao_apos_acertos_criado_em = models.DateTimeField(
         "Arquivo pdf apresentação após acertos gerado em", null=True)
+
+    @property
+    def requer_acertos_em_extrato(self):
+        prestacao_de_contas = self.prestacao_conta
+        associacao = prestacao_de_contas.associacao
+        contas_da_associacao = associacao.contas.all()
+
+        requer_acertos = AnaliseContaPrestacaoConta.objects.filter(analise_prestacao_conta=self, prestacao_conta=prestacao_de_contas, conta_associacao__in=contas_da_associacao).exists()
+
+        return requer_acertos
 
     @property
     def requer_geracao_fechamentos(self):

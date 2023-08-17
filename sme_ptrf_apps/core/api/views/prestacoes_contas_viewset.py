@@ -233,6 +233,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                         dados["e_retorno_devolucao"],
                         dados["requer_geracao_documentos"],
                         dados["requer_geracao_fechamentos"],
+                        dados["requer_acertos_em_extrato"],
                         justificativa_acertos_pendentes,
                     ), countdown=1
                 )
