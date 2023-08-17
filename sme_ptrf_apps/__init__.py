@@ -1,4 +1,4 @@
-__version__ = "8.6.1"
+__version__ = "8.7.0"
 
 __version_info__ = tuple(
     [
