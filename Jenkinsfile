@@ -5,7 +5,7 @@ pipeline {
       registryCredential = 'jenkins_registry'
     }
     agent {
-      node { label 'AGENT-PYTHON36' }
+      node { label 'AGENT-NODES' }
     }
 
 
@@ -22,7 +22,7 @@ pipeline {
         }
 
         stage('Preparando BD') {
-	        when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } }
+	        when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
           agent { label 'AGENT-NODES' }
           steps {
             sh '''
@@ -32,8 +32,8 @@ pipeline {
         }
 
         stage('Istalando dependencias') {
-          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } }
-          agent { label 'AGENT-PYTHON36' }
+          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
+          agent { label 'AGENT-PYTHON310' }
           steps {
             checkout scm
             sh 'pip install --user pipenv -r requirements/local.txt'
@@ -43,8 +43,8 @@ pipeline {
 
 
             stage('Testes Lint') {
-              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } }
-              agent { label 'AGENT-PYTHON36' }
+              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
+              agent { label 'AGENT-PYTHON310' }
               steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                   sh '''
@@ -63,8 +63,8 @@ pipeline {
 
             }
             stage('Testes Unitarios') {
-              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } }
-              agent { label 'AGENT-PYTHON36' }
+              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
+              agent { label 'AGENT-PYTHON310' }
               steps {
                 sh '''
                    export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
@@ -81,8 +81,8 @@ pipeline {
             }
 
         stage('AnaliseCodigo') {
-          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; } }
-          agent { label 'AGENT-PYTHON36' }
+          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
+          agent { label 'AGENT-PYTHON310' }
           steps {
                 withSonarQubeEnv('sonarqube-local'){
                   sh 'echo "[ INFO ] Iniciando analise Sonar..." && sonar-scanner \
@@ -94,7 +94,7 @@ pipeline {
 
 
         stage('Build') {
-          when { anyOf { branch 'master'; branch 'main'; branch "story/*"; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; } }
+          when { anyOf { branch 'master'; branch 'main'; branch "story/*"; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
           steps {
             script {
               imagename1 = "registry.sme.prefeitura.sp.gov.br/${env.branchname}/ptrf-backend"
@@ -112,7 +112,7 @@ pipeline {
         }
 
         stage('Deploy'){
-            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; } }
+            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
             steps {
               script{
                 if ( env.branchname == 'main' ||  env.branchname == 'master' || env.branchname == 'homolog' || env.branchname == 'release' ) {
@@ -131,7 +131,7 @@ pipeline {
                         sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf-hom2'
                         sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf-hom2'
                     }
-                    else if( env.branchname == 'pre-release' ){
+                    else if( env.branchname == 'atualizarpython' ){
                         sh('cp $config '+"$home"+'/.kube/config')
                         sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
                         sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
@@ -190,4 +190,5 @@ def getKubeconf(branchName) {
     else if ("development".equals(branchName)) { return "config_dev"; }
     else if ("develop".equals(branchName)) { return "config_dev"; }
     else if ("pre-release".equals(branchName)) { return "config_prd"; }
+    else if ("atualizarpython".equals(branchName)) { return "config_prd"; }
 }

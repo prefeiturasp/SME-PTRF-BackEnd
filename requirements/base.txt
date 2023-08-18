@@ -9,6 +9,11 @@ django-auditlog==2.0.0
 # ------------------------------------------------------------------------------
 drf-spectacular==0.26.2                 # Auto-generate OpenAPI 3.0 schemas from Django Rest Framework code
 
+# Celery
+# ------------------------------------------------------------------------------
+celery==5.2.1
+flower==1.2.0  # https://github.com/mher/flower
+
 # Outras
 # ------------------------------------------------------------------------------
 Pillow==8.4.0
@@ -22,9 +27,8 @@ rcssmin==1.0.6  # https://github.com/ndparker/rcssmin
 argon2-cffi==19.2.0  # https://github.com/hynek/argon2_cffi
 whitenoise==5.0.1  # https://github.com/evansd/whitenoise
 redis==3.4.1 # https://github.com/andymccurdy/redis-py
-celery==4.4.0  # pyup: < 5.0  # https://github.com/celery/celery
-django-celery-beat==2.0.0  # https://github.com/celery/django-celery-beat
-flower==0.9.3  # https://github.com/mher/flower
+
+django-celery-beat==2.1.0  # https://github.com/celery/django-celery-beat
 openpyxl==3.0.3
 
 # Django
@@ -70,3 +74,8 @@ django-mathfilters==1.0.0
 # Integração com Kibana
 elastic-apm==6.15.1
 psutil==5.9.4
+
+# Formatação de números
+# https://github.com/python-babel/babel
+
+Babel==2.12.1

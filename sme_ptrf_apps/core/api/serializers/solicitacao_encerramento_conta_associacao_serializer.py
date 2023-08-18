@@ -3,8 +3,7 @@ from django.db import IntegrityError
 from rest_framework import serializers
 
 from ...models import SolicitacaoEncerramentoContaAssociacao, ContaAssociacao
-
-
+from ..serializers.motivo_rejeicao_encerramento_conta_associacao_serializer import MotivoRejeicaoEncerramentoContaAssociacaoSerializer
 class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializer):
     conta_associacao = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -14,8 +13,6 @@ class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializ
     data_de_encerramento_na_agencia = serializers.DateField(
         required=True,
     )
-
-
     class Meta:
         model = SolicitacaoEncerramentoContaAssociacao
         fields = (
@@ -23,8 +20,12 @@ class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializ
             'conta_associacao',
             'status',
             'data_de_encerramento_na_agencia',
+            'motivos_rejeicao',
+            'outros_motivos_rejeicao',
+            'data_aprovacao',
             'criado_em',
         )
+        read_only_fields = ('status', )
 
     def create(self, validated_data):
         try:
@@ -56,3 +57,7 @@ class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializ
 
         return data
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['motivos_rejeicao'] = MotivoRejeicaoEncerramentoContaAssociacaoSerializer(instance.motivos_rejeicao, many=True).data
+        return representation
