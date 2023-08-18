@@ -11,7 +11,7 @@ drf-spectacular==0.26.2                 # Auto-generate OpenAPI 3.0 schemas from
 
 # Celery
 # ------------------------------------------------------------------------------
-celery==5.2.1
+celery==5.2.2
 flower==1.2.0  # https://github.com/mher/flower
 
 # Outras
