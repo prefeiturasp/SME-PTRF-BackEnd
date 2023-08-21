@@ -3,8 +3,6 @@ import logging
 from django.db import transaction
 from django.db.models import Q, Sum, Count, Max
 
-from .notificacao_services.notificacao_erro_ao_concluir_pc import notificar_erro_ao_concluir_pc
-
 from ..models import (
     PrestacaoConta,
     FechamentoPeriodo,
@@ -75,6 +73,26 @@ def pc_requer_geracao_documentos(prestacao):
         return True
 
 
+def pc_requer_acerto_em_extrato(prestacao):
+
+    if prestacao.status in (
+        PrestacaoConta.STATUS_NAO_RECEBIDA,
+        PrestacaoConta.STATUS_RECEBIDA,
+        PrestacaoConta.STATUS_EM_ANALISE,
+        PrestacaoConta.STATUS_APROVADA,
+        PrestacaoConta.STATUS_APROVADA_RESSALVA,
+        PrestacaoConta.STATUS_REPROVADA,
+        PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA,
+    ):
+        return False
+
+    if prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA:
+        ultima_analise = prestacao.analises_da_prestacao.last()
+        return ultima_analise is not None and ultima_analise.requer_acertos_em_extrato
+    else:
+        return True
+
+
 @transaction.atomic
 def concluir_prestacao_de_contas(periodo, associacao, usuario=None, monitoraPc=False):
     prestacao = PrestacaoConta.abrir(periodo=periodo, associacao=associacao)
@@ -83,6 +101,7 @@ def concluir_prestacao_de_contas(periodo, associacao, usuario=None, monitoraPc=F
     e_retorno_devolucao = prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA
     requer_geracao_documentos = pc_requer_geracao_documentos(prestacao)
     requer_geracao_fechamentos = pc_requer_geracao_fechamentos(prestacao)
+    requer_acertos_em_extrato = pc_requer_acerto_em_extrato(prestacao)
 
     if prestacao.status == PrestacaoConta.STATUS_EM_PROCESSAMENTO:
         return {
@@ -104,6 +123,7 @@ def concluir_prestacao_de_contas(periodo, associacao, usuario=None, monitoraPc=F
         "e_retorno_devolucao": e_retorno_devolucao,
         "requer_geracao_documentos": requer_geracao_documentos,
         "requer_geracao_fechamentos": requer_geracao_fechamentos,
+        "requer_acertos_em_extrato": requer_acertos_em_extrato,
         "erro": None
     }
 
@@ -463,21 +483,9 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
     )
 
     try:
-        observacao_conciliacao = ObservacaoConciliacao.objects.get(periodo__uuid=periodo.uuid,
-                                                                   conta_associacao__uuid=conta_associacao.uuid)
+        observacao_conciliacao = ObservacaoConciliacao.objects.filter(periodo__uuid=periodo.uuid, conta_associacao__uuid=conta_associacao.uuid).first()
     except Exception:
         observacao_conciliacao = None
-
-    # TODO Remover Excel
-    # if criar_arquivos:
-    #     logger.info(f'Gerando demonstrativo financeiro em XLSX da conta {conta_associacao}.')
-    #     demonstrativo = gerar_arquivo_demonstrativo_financeiro_xlsx(acoes=acoes, periodo=periodo,
-    #                                                                 conta_associacao=conta_associacao,
-    #                                                                 prestacao=prestacao,
-    #                                                                 previa=previa,
-    #                                                                 demonstrativo_financeiro=demonstrativo,
-    #                                                                 observacao_conciliacao=observacao_conciliacao,
-    #                                                                 )
 
     logger.info(f'Gerando demonstrativo financeiro em PDF da conta {conta_associacao}.')
     dados_demonstrativo = gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao,
