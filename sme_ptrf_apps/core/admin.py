@@ -367,7 +367,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
         'periodo',
         'publicada',
         'consolidado_dre__sequencia_de_publicacao',
-        'consolidado_dre',
+        'consolidado_dre__id',
         'associacao__unidade__tipo_unidade'
     )
     list_display_links = ('get_nome_unidade',)
@@ -375,7 +375,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
     raw_id_fields = ('periodo', 'associacao', 'analise_atual', 'consolidado_dre',)
 
-    actions = ['marcar_como_nao_publicada', 'desvincular_pcs_do_consolidado']
+    actions = ['marcar_como_nao_publicada', 'desvincular_pcs_do_consolidado', 'setar_status_anterior_a_retificacao']
 
     def desvincular_pcs_do_consolidado(self, request, queryset):
         contador = 0
@@ -395,6 +395,15 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
                 prestacao_conta.save()
 
         self.message_user(request, f"PCs marcadas como não publicadas com sucesso!")
+
+    # TODO remover action após solução do bug 100138
+    def setar_status_anterior_a_retificacao(self, request, queryset):
+        for prestacao_conta in queryset.all():
+            if prestacao_conta.status_anterior_a_retificacao:
+                prestacao_conta.status = prestacao_conta.status_anterior_a_retificacao
+                prestacao_conta.save()
+
+        self.message_user(request, f"PCs setadas ao status anterior da retificação com sucesso!")
 
 
 @admin.register(Ata)
@@ -534,11 +543,16 @@ class DevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
 
     list_display = (
         'get_associacao', 'get_referencia_periodo', 'data', 'data_limite_ue')
-    list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao', 'prestacao_conta')
+    list_filter = (
+        'prestacao_conta__periodo',
+        'prestacao_conta__associacao__unidade__tipo_unidade',
+        'prestacao_conta__associacao__unidade__dre',
+    )
     list_display_links = ('get_associacao',)
-    readonly_fields = ('uuid', 'id')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em', )
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
+    raw_id_fields = ['prestacao_conta', ]
 
 
 @admin.register(AnaliseContaPrestacaoConta)
@@ -898,11 +912,8 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ('get_unidade', 'get_referencia_periodo', 'criado_em', 'status',)
     list_filter = (
         'prestacao_conta__periodo',
-        'prestacao_conta__associacao',
-        'prestacao_conta__associacao__unidade',
         'prestacao_conta__associacao__unidade__tipo_unidade',
         'prestacao_conta__associacao__unidade__dre',
-        'prestacao_conta',
         'status',
         'status_versao',
         'versao',
@@ -913,6 +924,7 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
                      'prestacao_conta__associacao__nome')
+    raw_id_fields = ['prestacao_conta', 'devolucao_prestacao_conta', ]
 
 
 @admin.register(AnaliseLancamentoPrestacaoConta)
