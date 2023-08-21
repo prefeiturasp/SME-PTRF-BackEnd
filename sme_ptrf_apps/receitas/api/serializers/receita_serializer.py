@@ -63,6 +63,14 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
         queryset=RateioDespesa.objects.all()
     )
 
+    def validate(self, data):
+        conta_associacao = data['conta_associacao']
+
+        if conta_associacao.inativa:
+            raise serializers.ValidationError({"mensagem": "Não é permitido criar/editar receita com conta inativada."})
+
+        return data
+
     def create(self, validated_data):
 
         # Validando data de encerramento

@@ -7,7 +7,7 @@ from django.contrib.auth.models import Permission
 from model_bakery import baker
 
 from sme_ptrf_apps.users.models import Grupo
-from sme_ptrf_apps.core.models import STATUS_IMPLANTACAO
+from sme_ptrf_apps.core.models import STATUS_IMPLANTACAO, SolicitacaoEncerramentoContaAssociacao
 
 
 @pytest.fixture
@@ -103,6 +103,11 @@ def permissao_recebe_notificacao_solicitacao_encerramento_conta():
 
 
 @pytest.fixture
+def permissao_recebe_notificacao_resultado_encerramento_conta():
+    return Permission.objects.filter(codename='recebe_notificacao_resultado_encerramento_conta').first()
+
+
+@pytest.fixture
 def grupo_notificavel(
     permissao_recebe_notificacao_proximidade_inicio_pc,
     permissao_recebe_notificacao_inicio_pc,
@@ -116,6 +121,7 @@ def grupo_notificavel(
     permissao_recebe_notificacao_pc_reprovada,
     permissao_recebe_notificacao_encerramento_conta,
     permissao_recebe_notificacao_solicitacao_encerramento_conta,
+    permissao_recebe_notificacao_resultado_encerramento_conta,
     visao_ue
 ):
     g = Grupo.objects.create(name="grupo_notificavel")
@@ -131,6 +137,7 @@ def grupo_notificavel(
     g.permissions.add(permissao_recebe_notificacao_pc_reprovada)
     g.permissions.add(permissao_recebe_notificacao_encerramento_conta)
     g.permissions.add(permissao_recebe_notificacao_solicitacao_encerramento_conta)
+    g.permissions.add(permissao_recebe_notificacao_resultado_encerramento_conta)
     g.visoes.add(visao_ue)
     g.descricao = "Grupo que recebe notificações"
     g.save()
@@ -214,6 +221,29 @@ def usuario_notificavel_que_pertence_a_comissao_contas_em_outra_dre(
     user = User.objects.create_user(username=login, password=senha, email=email)
     user.unidades.add(unidade_a)
     user.unidades.add(unidade_encerramento_conta)
+    user.groups.add(grupo_notificavel)
+    user.visoes.add(visao_ue)
+    user.visoes.add(visao_dre)
+    user.save()
+    return user
+
+
+@pytest.fixture
+def usuario_notificavel_que_nao_possui_unidade_encerramento_conta(
+    unidade_a,
+    grupo_notificavel,
+    visao_ue,
+    visao_dre
+):
+    from django.contrib.auth import get_user_model
+
+    senha = 'Sgp0418'
+    login = '2711001'
+    email = 'notificavel@amcom.com.br'
+
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(unidade_a)
     user.groups.add(grupo_notificavel)
     user.visoes.add(visao_ue)
     user.visoes.add(visao_dre)
@@ -704,3 +734,35 @@ def membro_thiaguin_comissao_a(comissao_a, dre_ipiranga):
         comissoes=[comissao_a]
     )
     return membro
+
+
+@pytest.fixture
+def solicitacao_encerramento_conta_aprovada(conta_associacao_encerramento_conta):
+    return baker.make(
+        'SolicitacaoEncerramentoContaAssociacao',
+        conta_associacao=conta_associacao_encerramento_conta,
+        status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA,
+        data_de_encerramento_na_agencia=date.today(),
+        data_aprovacao=date.today()
+    )
+
+
+@pytest.fixture
+def solicitacao_encerramento_conta_rejeitada(conta_associacao_encerramento_conta):
+    return baker.make(
+        'SolicitacaoEncerramentoContaAssociacao',
+        conta_associacao=conta_associacao_encerramento_conta,
+        status=SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA,
+        data_de_encerramento_na_agencia=date.today(),
+        data_aprovacao=date.today()
+    )
+
+
+@pytest.fixture
+def solicitacao_encerramento_conta_pendente(conta_associacao_encerramento_conta):
+    return baker.make(
+        'SolicitacaoEncerramentoContaAssociacao',
+        conta_associacao=conta_associacao_encerramento_conta,
+        status=SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE,
+        data_de_encerramento_na_agencia=date.today(),
+    )

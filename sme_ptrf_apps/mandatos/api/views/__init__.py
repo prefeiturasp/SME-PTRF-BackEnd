@@ -1,1 +1,4 @@
 from .mandatos_viewset import MandatosViewSet
+from .composicoes_viewset import ComposicoesViewSet
+from .ocupantes_cargos_viewset import OcupantesCargosViewSet
+from .cargos_composicoes_viewset import CargosComposicoesViewSet

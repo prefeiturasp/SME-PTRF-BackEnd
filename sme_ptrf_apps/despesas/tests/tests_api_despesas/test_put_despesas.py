@@ -33,3 +33,23 @@ def test_api_post_despesas(
     despesa = Despesa.objects.get(uuid=result["uuid"])
 
     assert despesa.cpf_cnpj_fornecedor == payload_despesa_valida['cpf_cnpj_fornecedor']
+
+def test_validacao_put_despesas_com_rateio_com_conta_inativa(
+    jwt_authenticated_client_d,
+    tipo_aplicacao_recurso,
+    tipo_custeio,
+    tipo_documento,
+    tipo_transacao,
+    acao,
+    acao_associacao,
+    associacao,
+    tipo_conta,
+    conta_associacao_inativa,
+    despesa,
+    rateio_despesa_capital,
+    payload_despesa_com_conta_associacao_inativa
+):
+    response = jwt_authenticated_client_d.put(f'/api/despesas/{despesa.uuid}/', data=json.dumps(payload_despesa_com_conta_associacao_inativa),
+                          content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
