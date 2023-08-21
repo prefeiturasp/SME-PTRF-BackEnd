@@ -83,8 +83,31 @@ class ConsolidadoDREAdmin(admin.ModelAdmin):
     )
     list_filter = ('status', 'dre', 'periodo', 'versao', 'status_sme', 'responsavel_pela_analise')
     list_display_links = ('get_nome_dre',)
-    readonly_fields = ('uuid', 'id', 'pcs_do_consolidado')
+    readonly_fields = ('uuid', 'id', 'pcs_do_consolidado', 'criado_em', 'alterado_em', )
     search_fields = ('dre__nome',)
+
+    actions = ('vincular_pcs_faltantes',)
+
+    # TODO remover action após solução do bug 100138
+    def vincular_pcs_faltantes(self, request, queryset):
+        from sme_ptrf_apps.core.models import PrestacaoConta
+
+        for consolidado in queryset.all():
+            dre = consolidado.dre
+            periodo = consolidado.periodo
+            pcs_do_consolidado = consolidado.pcs_do_consolidado.all()
+
+            pcs_dessa_dre_e_periodo = PrestacaoConta.objects.filter(
+                periodo=periodo, associacao__unidade__dre=dre, consolidado_dre=consolidado).all()
+
+            if pcs_do_consolidado.count() == pcs_dessa_dre_e_periodo.count():
+                continue
+
+            for pc in pcs_dessa_dre_e_periodo:
+                if pc not in pcs_do_consolidado:
+                    consolidado.pcs_do_consolidado.add(pc)
+
+        self.message_user(request, f"Prestações faltantes vinculadas com sucesso!")
 
 
 @admin.register(GrupoVerificacaoRegularidade)

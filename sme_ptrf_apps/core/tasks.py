@@ -11,7 +11,7 @@ from sme_ptrf_apps.core.models import (
     PeriodoPrevia,
     PrestacaoConta,
     Ata,
-    AnalisePrestacaoConta, Notificacao, ObservacaoConciliacao
+    AnalisePrestacaoConta, ObservacaoConciliacao
 )
 
 from django.contrib.auth import get_user_model
@@ -34,6 +34,7 @@ def concluir_prestacao_de_contas_async(
     e_retorno_devolucao=False,
     requer_geracao_documentos=True,
     requer_geracao_fechamentos=False,
+    requer_acertos_em_extrato=False,
     justificativa_acertos_pendentes='',
 ):
     import time
@@ -87,17 +88,17 @@ def concluir_prestacao_de_contas_async(
             _criar_fechamentos(acoes, contas, periodo, prestacao)
             logger.info('Fechamentos criados para a prestação de contas %s.', prestacao)
 
-        if e_retorno_devolucao and requer_geracao_documentos:
+        if e_retorno_devolucao and (requer_geracao_documentos or requer_acertos_em_extrato):
             logging.info(f'Solicitações de ajustes requerem apagar fechamentos e documentos da pc {prestacao.uuid}.')
             prestacao.apaga_fechamentos()
             prestacao.apaga_relacao_bens()
             prestacao.apaga_demonstrativos_financeiros()
             logging.info(f'Fechamentos e documentos da pc {prestacao.uuid} apagados.')
 
-        if e_retorno_devolucao and not requer_geracao_documentos:
+        if e_retorno_devolucao and not requer_geracao_fechamentos and not requer_geracao_documentos and not requer_acertos_em_extrato:
             logging.info(f'Solicitações de ajustes NÃO requerem apagar fechamentos e documentos da pc {prestacao.uuid}.')
 
-        if requer_geracao_documentos:
+        if requer_geracao_documentos or requer_acertos_em_extrato:
             _criar_fechamentos(acoes, contas, periodo, prestacao)
             logger.info('Fechamentos criados para a prestação de contas %s.', prestacao)
 
