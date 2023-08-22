@@ -3,6 +3,7 @@ import json
 import pytest
 from model_bakery import baker
 from rest_framework import status
+from sme_ptrf_apps.core.models import SolicitacaoEncerramentoContaAssociacao
 
 pytestmark = pytest.mark.django_db
 
@@ -47,6 +48,25 @@ def associacao_pinheiros_emef_mendes_dre_2(emef_mendes_dre_2, periodo_anterior):
     )
 
 
+@pytest.fixture
+def solicitacao_encerramento_pendente(conta_associacao):
+    return baker.make(
+        'SolicitacaoEncerramentoContaAssociacao',
+        conta_associacao=conta_associacao,
+        data_de_encerramento_na_agencia='2019-09-02',
+        status=SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE
+    )
+
+
+# @pytest.fixture
+# def solicitacao_encerramento_reprovada(conta_associacao):
+#     return baker.make(
+#         'SolicitacaoEncerramentoContaAssociacao',
+#         conta_associacao=conta_associacao,
+#         data_de_encerramento_na_agencia='2019-09-02',
+#         status=SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA
+#     )
+
 def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valenca_ceu_vassouras_dre_1,
                                     associacao_pinheiros_emef_mendes_dre_2):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/', content_type='application/json')
@@ -66,6 +86,7 @@ def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valen
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
+            'tooltip_encerramento_conta': None,
             'encerrada': False,
             'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
         },
@@ -82,6 +103,7 @@ def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valen
             'cnpj': associacao_pinheiros_emef_mendes_dre_2.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
+            'tooltip_encerramento_conta': None,
             'encerrada': False,
             'informacoes': associacao_pinheiros_emef_mendes_dre_2.tags_de_informacao,
         },
@@ -112,9 +134,10 @@ def test_api_list_associacoes_de_uma_dre(jwt_authenticated_client_a, associacao_
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
+            'tooltip_encerramento_conta': None,
             'encerrada': False,
             'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
-            
+
         },
     ]
 
@@ -141,6 +164,7 @@ def test_api_list_associacoes_pelo_nome_associacao_ignorando_acentos(jwt_authent
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
+            'tooltip_encerramento_conta': None,
             'encerrada': False,
             'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
         },
@@ -169,6 +193,7 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a, assoc
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
+            'tooltip_encerramento_conta': None,
             'encerrada': False,
             'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
         },
@@ -197,6 +222,7 @@ def test_api_list_associacoes_pelo_tipo_unidade(jwt_authenticated_client_a, asso
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
+            'tooltip_encerramento_conta': None,
             'encerrada': False,
             'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
         },
@@ -225,6 +251,7 @@ def test_api_list_associacoes_pelo_codigo_eol(jwt_authenticated_client_a, associ
             'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
+            'tooltip_encerramento_conta': None,
             'encerrada': False,
             'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
         },
@@ -232,6 +259,7 @@ def test_api_list_associacoes_pelo_codigo_eol(jwt_authenticated_client_a, associ
 
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado
+
 
 def test_api_list_associacoes_filtro_somente_encerradas(
     jwt_authenticated_client_a,
@@ -256,6 +284,7 @@ def test_api_list_associacoes_filtro_somente_encerradas(
             'cnpj': associacao_encerrada_2020_1.cnpj,
             'data_de_encerramento': f'{associacao_encerrada_2020_1.data_de_encerramento}',
             'tooltip_data_encerramento': associacao_encerrada_2020_1.tooltip_data_encerramento,
+            'tooltip_encerramento_conta': None,
             'encerrada': True,
             'informacoes': associacao_encerrada_2020_1.tags_de_informacao,
         },
@@ -272,6 +301,7 @@ def test_api_list_associacoes_filtro_somente_encerradas(
             'cnpj': associacao_encerrada_2020_2.cnpj,
             'data_de_encerramento': f'{associacao_encerrada_2020_2.data_de_encerramento}',
             'tooltip_data_encerramento': associacao_encerrada_2020_2.tooltip_data_encerramento,
+            'tooltip_encerramento_conta': None,
             'encerrada': True,
             'informacoes': associacao_encerrada_2020_2.tags_de_informacao,
         },
@@ -281,112 +311,36 @@ def test_api_list_associacoes_filtro_somente_encerradas(
     assert result == result_esperado
 
 
-def test_api_list_associacoes_filtro_somente_nao_encerradas(
+def test_api_list_associacoes_filtro_somente_encerramento_conta_pendente(
     jwt_authenticated_client_a,
-    associacao_encerrada_2020_1,
-    associacao_valenca_ceu_vassouras_dre_1,
-    associacao_pinheiros_emef_mendes_dre_2
+    solicitacao_encerramento_pendente
 ):
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/?filtro_informacoes=NAO_ENCERRADAS', content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/?filtro_informacoes=ENCERRAMENTO_CONTA_PENDENTE', content_type='application/json')
     result = json.loads(response.content)
 
-    result_esperado = [
-        {
-            'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
-            'nome': associacao_valenca_ceu_vassouras_dre_1.nome,
-            'status_valores_reprogramados': associacao_valenca_ceu_vassouras_dre_1.status_valores_reprogramados,
-            'unidade': {
-                'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
-                'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
-                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
-                'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
-            },
-            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
-            'data_de_encerramento': None,
-            'tooltip_data_encerramento': None,
-            'encerrada': False,
-            'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
-        },
-        {
-            'uuid': f'{associacao_pinheiros_emef_mendes_dre_2.uuid}',
-            'nome': associacao_pinheiros_emef_mendes_dre_2.nome,
-            'status_valores_reprogramados': associacao_pinheiros_emef_mendes_dre_2.status_valores_reprogramados,
-            'unidade': {
-                'uuid': f'{associacao_pinheiros_emef_mendes_dre_2.unidade.uuid}',
-                'codigo_eol': associacao_pinheiros_emef_mendes_dre_2.unidade.codigo_eol,
-                'nome_com_tipo': associacao_pinheiros_emef_mendes_dre_2.unidade.nome_com_tipo,
-                'nome_dre': associacao_pinheiros_emef_mendes_dre_2.unidade.nome_dre
-            },
-            'cnpj': associacao_pinheiros_emef_mendes_dre_2.cnpj,
-            'data_de_encerramento': None,
-            'tooltip_data_encerramento': None,
-            'encerrada': False,
-            'informacoes': associacao_pinheiros_emef_mendes_dre_2.tags_de_informacao,
-        },
-    ]
+    associacao = solicitacao_encerramento_pendente.conta_associacao.associacao
 
+    assert len(result) == 1
+    assert result[0]["tooltip_encerramento_conta"] == associacao.tooltip_encerramento_conta
+    assert result[0]["informacoes"] == associacao.tags_de_informacao
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
 
-def test_api_list_associacoes_filtro_encerradas_e_nao_encerradas(
+
+def test_api_list_associacoes_filtro_encerradas_e_encerramento_conta_pendente(
     jwt_authenticated_client_a,
-    associacao_encerrada_2020_1,
-    associacao_valenca_ceu_vassouras_dre_1,
-    associacao_pinheiros_emef_mendes_dre_2
+    solicitacao_encerramento_pendente,
+    associacao_encerrada_2020_1
 ):
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/?filtro_informacoes=ENCERRADAS,NAO_ENCERRADAS', content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/?filtro_informacoes=ENCERRAMENTO_CONTA_PENDENTE,ENCERRADAS', content_type='application/json')
     result = json.loads(response.content)
 
-    result_esperado = [
-        {
-            'uuid': f'{associacao_encerrada_2020_1.uuid}',
-            'nome': associacao_encerrada_2020_1.nome,
-            'status_valores_reprogramados': associacao_encerrada_2020_1.status_valores_reprogramados,
-            'unidade': {
-                'uuid': f'{associacao_encerrada_2020_1.unidade.uuid}',
-                'codigo_eol': associacao_encerrada_2020_1.unidade.codigo_eol,
-                'nome_com_tipo': associacao_encerrada_2020_1.unidade.nome_com_tipo,
-                'nome_dre': associacao_encerrada_2020_1.unidade.nome_dre
-            },
-            'cnpj': associacao_encerrada_2020_1.cnpj,
-            'data_de_encerramento': f'{associacao_encerrada_2020_1.data_de_encerramento}',
-            'tooltip_data_encerramento': associacao_encerrada_2020_1.tooltip_data_encerramento,
-            'encerrada': True,
-            'informacoes': associacao_encerrada_2020_1.tags_de_informacao,
-        },
-        {
-            'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.uuid}',
-            'nome': associacao_valenca_ceu_vassouras_dre_1.nome,
-            'status_valores_reprogramados': associacao_valenca_ceu_vassouras_dre_1.status_valores_reprogramados,
-            'unidade': {
-                'uuid': f'{associacao_valenca_ceu_vassouras_dre_1.unidade.uuid}',
-                'codigo_eol': associacao_valenca_ceu_vassouras_dre_1.unidade.codigo_eol,
-                'nome_com_tipo': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_com_tipo,
-                'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
-            },
-            'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
-            'data_de_encerramento': None,
-            'tooltip_data_encerramento': None,
-            'encerrada': False,
-            'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
-        },
-        {
-            'uuid': f'{associacao_pinheiros_emef_mendes_dre_2.uuid}',
-            'nome': associacao_pinheiros_emef_mendes_dre_2.nome,
-            'status_valores_reprogramados': associacao_pinheiros_emef_mendes_dre_2.status_valores_reprogramados,
-            'unidade': {
-                'uuid': f'{associacao_pinheiros_emef_mendes_dre_2.unidade.uuid}',
-                'codigo_eol': associacao_pinheiros_emef_mendes_dre_2.unidade.codigo_eol,
-                'nome_com_tipo': associacao_pinheiros_emef_mendes_dre_2.unidade.nome_com_tipo,
-                'nome_dre': associacao_pinheiros_emef_mendes_dre_2.unidade.nome_dre
-            },
-            'cnpj': associacao_pinheiros_emef_mendes_dre_2.cnpj,
-            'data_de_encerramento': None,
-            'tooltip_data_encerramento': None,
-            'encerrada': False,
-            'informacoes': associacao_pinheiros_emef_mendes_dre_2.tags_de_informacao,
-        },
-    ]
+    uuids_result = []
+    for item in result:
+        uuids_result.append(item['uuid'])
 
+    assert len(result) == 2
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+    assert f'{solicitacao_encerramento_pendente.conta_associacao.associacao.uuid}' in uuids_result
+    assert f'{associacao_encerrada_2020_1.uuid}' in uuids_result
