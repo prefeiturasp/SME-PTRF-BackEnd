@@ -58,15 +58,6 @@ def solicitacao_encerramento_pendente(conta_associacao):
     )
 
 
-# @pytest.fixture
-# def solicitacao_encerramento_reprovada(conta_associacao):
-#     return baker.make(
-#         'SolicitacaoEncerramentoContaAssociacao',
-#         conta_associacao=conta_associacao,
-#         data_de_encerramento_na_agencia='2019-09-02',
-#         status=SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA
-#     )
-
 def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valenca_ceu_vassouras_dre_1,
                                     associacao_pinheiros_emef_mendes_dre_2):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/', content_type='application/json')
