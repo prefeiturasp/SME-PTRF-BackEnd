@@ -593,7 +593,7 @@ class PrestacaoConta(ModeloBase):
         self.recomendacoes = ''
         self.status = self.STATUS_EM_ANALISE
 
-        if self.consolidado_dre:
+        if self.consolidado_dre and not self.consolidado_dre.eh_retificacao:
             self.consolidado_dre.desvincular_pc_do_consolidado(self)
             self.consolidado_dre = None
 
@@ -781,7 +781,7 @@ class PrestacaoConta(ModeloBase):
             quantidade_pcs_apresentadas += quantidade_status
             qtd_por_status[status] = quantidade_status
 
-        quantidade_pcs_nao_apresentadas = qtd_por_status['TOTAL_UNIDADES'] - quantidade_pcs_apresentadas  
+        quantidade_pcs_nao_apresentadas = qtd_por_status['TOTAL_UNIDADES'] - quantidade_pcs_apresentadas
         qtd_por_status[cls.STATUS_NAO_APRESENTADA] = quantidade_pcs_nao_apresentadas
 
         return qtd_por_status
