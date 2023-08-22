@@ -3,7 +3,7 @@ from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.users.permissoes import PermissaoApiSME, PermissaoApiUe
 from ...models import Mandato
-from ..serializers.mandato_serializer import MandatoSerializer, MandatoComComposicoesSerializer
+from ..serializers.mandato_serializer import MandatoSerializer, MandatoVigenteComComposicoesSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -44,7 +44,7 @@ class MandatosViewSet(viewsets.ModelViewSet):
 
         if mandato_vigente:
             mandato_vigente = MandatoSerializer(mandato_vigente, many=False).data
-            result = MandatoComComposicoesSerializer(mandato_vigente, context={'associacao': associacao}).data
+            result = MandatoVigenteComComposicoesSerializer(mandato_vigente, context={'associacao': associacao}).data
         else:
             result = {
                 "composicoes": []
