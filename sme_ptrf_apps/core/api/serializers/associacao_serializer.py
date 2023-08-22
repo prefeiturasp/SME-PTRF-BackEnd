@@ -126,10 +126,10 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
 
     def get_encerrada(self, obj):
         return obj.encerrada
-    
+
     def get_informacoes(self, obj):
         return obj.tags_de_informacao
-    
+
     class Meta:
         model = Associacao
         fields = [
@@ -139,6 +139,7 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
             'status_valores_reprogramados',
             'data_de_encerramento',
             'tooltip_data_encerramento',
+            'tooltip_encerramento_conta',
             'unidade',
             'encerrada',
             'informacoes'

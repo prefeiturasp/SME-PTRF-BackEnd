@@ -398,3 +398,8 @@ CKEDITOR_CONFIGS = {
 #     'ENABLED': env('ELASTIC_APM_ENABLED', default=False),
 #     'DISABLE_SEND': env('ELASTIC_APM_DISABLE_SEND', default=True),
 # }
+
+
+# DEFAULT_AUTO_FIELD: Resolve warnings após update para Django 3.2
+# -------------------------------------------------------------------------------
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
