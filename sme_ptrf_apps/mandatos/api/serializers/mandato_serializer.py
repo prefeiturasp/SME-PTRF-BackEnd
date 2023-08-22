@@ -6,6 +6,7 @@ from ...models import Mandato, Composicao
 from ...services import ServicoMandatoVigente
 from ...services.composicao_service import ServicoComposicaoVigente, ServicoCriaComposicaoVigenteDoMandato
 
+
 class CustomError(APIException):
     """Readers error class"""
 
@@ -33,7 +34,8 @@ class MandatoSerializer(serializers.ModelSerializer):
             mandatos = Mandato.objects.filter(data_inicial__lte=data_inicial, data_final__gte=data_inicial)
 
             if self.instance:
-                mandatos = mandatos.exclude(uuid=self.instance.uuid)  # Excluir o próprio objeto atual ao verificar colisões
+                mandatos = mandatos.exclude(
+                    uuid=self.instance.uuid)  # Excluir o próprio objeto atual ao verificar colisões
 
             if mandatos.exists():
                 raise CustomError({"detail": "A data inicial informada é de vigência de outro mandato cadastrado."})
@@ -41,8 +43,9 @@ class MandatoSerializer(serializers.ModelSerializer):
         return data
 
 
-class MandatoComComposicoesSerializer(serializers.ModelSerializer):
+class MandatoVigenteComComposicoesSerializer(serializers.ModelSerializer):
     composicoes = serializers.SerializerMethodField('get_composicoes')
+
     def get_composicoes(self, obj):
         from sme_ptrf_apps.mandatos.api.serializers.composicao_serializer import ComposicaoLookupSerializer
         associacao = self.context.get("associacao")
@@ -57,13 +60,15 @@ class MandatoComComposicoesSerializer(serializers.ModelSerializer):
             composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
 
             if not composicao_vigente:
-                servico_cria_composicao_vigente = ServicoCriaComposicaoVigenteDoMandato(associacao=associacao, mandato=mandato_vigente)
+                servico_cria_composicao_vigente = ServicoCriaComposicaoVigenteDoMandato(associacao=associacao,
+                                                                                        mandato=mandato_vigente)
                 composicao_vigente = servico_cria_composicao_vigente.cria_composicao_vigente()
 
             # Seta a Composição Vigente como primeira da lista
             composicoes_list.append(composicao_vigente)
 
-            qs = Composicao.objects.filter(mandato=mandato_vigente, associacao=associacao).exclude(uuid=composicao_vigente.uuid).order_by('-data_inicial')
+            qs = Composicao.objects.filter(mandato=mandato_vigente, associacao=associacao).exclude(
+                uuid=composicao_vigente.uuid).order_by('-data_inicial')
 
             # Acrescenta as demais composições a lista
             for q in qs:
@@ -76,4 +81,3 @@ class MandatoComComposicoesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mandato
         fields = ('id', 'uuid', 'referencia_mandato', 'data_inicial', 'data_final', 'composicoes',)
-
