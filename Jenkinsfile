@@ -5,7 +5,7 @@ pipeline {
       registryCredential = 'jenkins_registry'
     }
     agent {
-      node { label 'AGENT-NODES' }
+      kubernetes { label 'AGENT-NODES' }
     }
 
 
