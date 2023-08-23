@@ -26,7 +26,7 @@ pipeline {
           steps {
           agent { kubernetes { 
                   label 'ptrf'
-                  defaultContainer 'postgress'
+                  defaultContainer 'postgres'
                 }
               }
           /*steps {
