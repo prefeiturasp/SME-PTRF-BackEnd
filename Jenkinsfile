@@ -5,7 +5,7 @@ pipeline {
       registryCredential = 'jenkins_registry'
     }
     agent {
-      kubernetes { label 'AGENT-NODES' }
+      kubernetes { label 'AGENT' }
     }
 
 
@@ -24,7 +24,7 @@ pipeline {
         stage('Preparando BD') {
 	        when { anyOf { branch 'master_'; branch 'develop_'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
           agent {
-      kubernetes { label 'AGENT-NODES' }
+      kubernetes { label 'AGENT' }
     }
           steps {
             sh '''
@@ -36,7 +36,7 @@ pipeline {
         stage('Istalando dependencias') {
           when { anyOf { branch 'master_'; branch 'develop_'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
           agent {
-      kubernetes { label 'AGENT-NODES' }
+      kubernetes { label 'AGENT-PYTHON310' }
     }
           steps {
             checkout scm
@@ -49,7 +49,7 @@ pipeline {
             stage('Testes Lint') {
               when { anyOf { branch 'master_'; branch 'develop_'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
               agent {
-      kubernetes { label 'AGENT-NODES' }
+      kubernetes { label 'AGENT-PYTHON310' }
     }
               steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
@@ -71,7 +71,7 @@ pipeline {
             stage('Testes Unitarios') {
               when { anyOf { branch 'master_'; branch 'develop_'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
               agent {
-      kubernetes { label 'AGENT-NODES' }
+      kubernetes { label 'AGENT' }
     }
               steps {
                 sh '''
