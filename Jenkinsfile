@@ -24,7 +24,7 @@ pipeline {
         stage('Preparando BD') {
 	        when { anyOf { branch 'master_'; branch 'develop_'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
           steps {
-          agent { kubernetes { 
+          agent { kubernetes {
                   label 'ptrf'
                   defaultContainer 'postgres'
                 }
