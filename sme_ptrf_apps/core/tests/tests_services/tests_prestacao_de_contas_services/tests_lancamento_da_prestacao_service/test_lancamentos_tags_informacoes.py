@@ -37,7 +37,7 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_antecipad
     assert lancamento['informacoes'] == [{
         'tag_id': '1',
         'tag_nome': 'Antecipado',
-        'tag_hint': 'Data do pagamento (09/03/2020) anterior à data do documento (10/03/2020).'
+        'tag_hint': ['Data do pagamento (09/03/2020) anterior à data do documento (10/03/2020), motivos:']
     },
         {'tag_hint': 'Essa despesa já possui conciliação bancária.',
          'tag_id': '9',
@@ -113,7 +113,7 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_a
 
     assert informacoes_filtradas_tag_imposto == [{
         'tag_id': '4',
-        'tag_nome': 'Imposto',
+        'tag_nome': 'Serviço com imposto',
         'tag_hint': ['Essa despesa teve retenção de imposto:', 'R$ 10,00, pago em 10/03/2020.']
     }]
 
@@ -149,7 +149,7 @@ def test_get_lancamentos_da_analise_da_prestacao_com_tag_de_informacao_imposto_a
     assert lancamento['documento_mestre']['uuid'] == f'{despesa_com_retencao_imposto_2.uuid}'
 
     assert lancamento['informacoes'][0]["tag_id"] == '4'
-    assert lancamento['informacoes'][0]["tag_nome"] == "Imposto"
+    assert lancamento['informacoes'][0]["tag_nome"] == "Serviço com imposto"
     assert "Essa despesa teve retenções de impostos:" in lancamento['informacoes'][0]["tag_hint"]
     assert "R$ 10,00, pagamento ainda não realizado." in lancamento['informacoes'][0]["tag_hint"]
     assert "R$ 10,00, pago em 10/03/2020." in lancamento['informacoes'][0]["tag_hint"]
