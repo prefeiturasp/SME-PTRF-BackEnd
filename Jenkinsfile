@@ -58,8 +58,11 @@ pipeline {
             stage('Testes Lint') {
               when { anyOf { branch 'master_'; branch 'develop_'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
               agent {
-      kubernetes { label 'AGENT-PYTHON310' }
-    }
+               kubernetes {
+                   label 'python310'
+                   defaultContainer 'python310'
+                }
+              }
               steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                   sh '''
