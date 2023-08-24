@@ -83,8 +83,11 @@ pipeline {
             stage('Testes Unitarios') {
               when { anyOf { branch 'master_'; branch 'develop_'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
               agent {
-      kubernetes { label 'AGENT' }
-    }
+               kubernetes {
+                   label 'python310'
+                   defaultContainer 'python310'
+                }
+              }
               steps {
                 sh '''
                    export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
