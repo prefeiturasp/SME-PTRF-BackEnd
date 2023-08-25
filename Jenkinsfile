@@ -70,7 +70,9 @@ pipeline {
                 }
               }
               steps {
-                sh '''
+                   checkout scm
+                   sh 'pip install --user pipenv -r requirements/local.txt' //instalação das dependências
+                   sh '''
                    coverage run -m pytest
                    coverage xml
                    '''
