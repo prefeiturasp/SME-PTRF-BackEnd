@@ -39,7 +39,7 @@ pipeline {
         
         }*/
 
-        stage('Istalando dependencias') {
+        stage('Testes Lint') {
           when { anyOf { branch 'master_'; branch 'develop_'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
           agent {
                kubernetes {
@@ -60,33 +60,7 @@ pipeline {
           }
 
         }
-
-
-            stage('Testes Lint') {
-              when { anyOf { branch 'master_'; branch 'develop_'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
-              agent {
-               kubernetes {
-                   label 'python310'
-                   defaultContainer 'python310'
-                }
-              }
-              steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                  sh '''
-                    pwd
-                    python manage.py collectstatic --noinput
-                    flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests --output-file=flake8-output.txt
-                    '''
-                }
-              }
-              post {
-                success{
-                    //Publicando arquivo de relatorio flake8
-                    recordIssues(tools: [flake8(pattern: 'flake8-output.txt')])
-                }
-              }
-
-            }
+  
             stage('Testes Unitarios') {
               when { anyOf { branch 'master_'; branch 'develop_'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
               agent {
