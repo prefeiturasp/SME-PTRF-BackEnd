@@ -97,7 +97,6 @@ pipeline {
               }
               steps {
                 sh '''
-                   export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
                    coverage run -m pytest
                    coverage xml
                    '''
