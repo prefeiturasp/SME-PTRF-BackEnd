@@ -73,6 +73,7 @@ pipeline {
                    checkout scm
                    sh 'pip install --user pipenv -r requirements/local.txt' //instalação das dependências
                    sh '''
+		   python manage.py collectstatic --noinput	
                    coverage run -m pytest
                    coverage xml
                    '''
