@@ -11,3 +11,11 @@ def test_url_retrieve(jwt_authenticated_client_a, associacao):
 def test_url_painel_por_acoes(jwt_authenticated_client_a, associacao, periodo):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/')
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_action_contas_do_periodo(jwt_authenticated_client_a, associacao, periodo):
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/contas-do-periodo/?periodo_uuid={periodo.uuid}',
+    )
+
+    assert response.status_code == status.HTTP_200_OK

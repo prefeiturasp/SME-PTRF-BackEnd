@@ -90,6 +90,21 @@ class ContaAssociacao(ModeloBase):
 
         return saldo_conta
 
+    def ativa_no_periodo(self, periodo):
+        from sme_ptrf_apps.core.models import SolicitacaoEncerramentoContaAssociacao
+
+        if hasattr(self, 'solicitacao_encerramento'):
+            if self.solicitacao_encerramento.status != SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA:
+                data_encerramento = self.solicitacao_encerramento.data_de_encerramento_na_agencia
+
+                if data_encerramento < periodo.data_inicio_realizacao_despesas:
+                    return False
+
+                return True
+        else:
+            return True
+
+
     @classmethod
     def get_valores(cls, user=None, associacao_uuid=None):
         query = cls.objects.all()

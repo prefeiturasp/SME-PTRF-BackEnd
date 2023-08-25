@@ -620,21 +620,10 @@ class PrestacaoConta(ModeloBase):
         return pode_rebrir_pc
 
     def contas_ativas_no_periodo(self):
-        from sme_ptrf_apps.core.models import SolicitacaoEncerramentoContaAssociacao, Periodo
-
         contas_a_exibir = []
 
         for conta in self.associacao.contas.all():
-            if hasattr(conta, 'solicitacao_encerramento'):
-                if conta.solicitacao_encerramento.status != SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA:
-                    data_encerramento = conta.solicitacao_encerramento.data_de_encerramento_na_agencia
-
-                    if data_encerramento < self.periodo.data_inicio_realizacao_despesas:
-                        continue
-
-                    # NESSE CASO PODE EXIBIR A CONTA
-                    contas_a_exibir.append(conta)
-            else:
+            if conta.ativa_no_periodo(periodo=self.periodo):
                 contas_a_exibir.append(conta)
 
         return contas_a_exibir
