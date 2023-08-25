@@ -78,12 +78,7 @@ pipeline {
                    coverage xml
                    '''
               }
-              post {
-                success{
-                    //Publicando arquivo de cobertura
-                    publishCoverage adapters: [cobertura('coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
-                }
-              }
+              
             }
 
         }
