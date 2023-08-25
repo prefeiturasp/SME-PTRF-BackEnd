@@ -49,7 +49,7 @@ pipeline {
               }
           steps {
             checkout scm
-            sh 'pip install --user pipenv -r requirements/local.txt'
+            sh 'pip install --user pipenv -r requirements/local.txt' //instalação das dependências
 	    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                   sh '''
                     pwd
