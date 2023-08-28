@@ -355,6 +355,21 @@ class Associacao(ModeloIdNome):
 
         return pendencias
 
+    def contas_ativas_do_periodo_selecionado(self, periodo):
+        contas_a_retornar = []
+
+        for conta in self.contas.all():
+            if conta.ativa_no_periodo(periodo=periodo):
+                obj_conta = {
+                    "nome": conta.tipo_conta.nome,
+                    "status": conta.status,
+                    "uuid": conta.uuid
+                }
+
+                contas_a_retornar.append(obj_conta)
+
+        return contas_a_retornar
+
     objects = models.Manager()  # Manager Padrão
     ativas = AssociacoesAtivasManager()
 

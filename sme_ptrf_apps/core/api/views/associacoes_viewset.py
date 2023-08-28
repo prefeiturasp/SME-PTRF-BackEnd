@@ -771,3 +771,29 @@ class AssociacoesViewSet(ModelViewSet):
         associacao = self.get_object()
         response = associacao.pendencias_dados_da_associacao_para_geracao_de_documentos()
         return Response(response)
+
+    @action(detail=True, url_path='contas-do-periodo', methods=['get'],
+            permission_classes=[IsAuthenticated, PermissaoAPITodosComLeituraOuGravacao])
+    def contas_do_periodo(self, request, uuid=None):
+        associacao = self.get_object()
+        periodo_uuid = request.query_params.get('periodo_uuid')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário informar o uuid do periodo'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            Periodo.objects.filter(uuid=periodo_uuid).get()
+            periodo = Periodo.objects.filter(uuid=periodo_uuid).first()
+        except (ValidationError, Exception):
+            erro = {
+                'erro': 'parametro_invalido',
+                'mensagem': f"Não foi encontrado o objeto periodo para o uuid {periodo_uuid}"
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        lista_contas = associacao.contas_ativas_do_periodo_selecionado(periodo)
+        return Response(lista_contas)
