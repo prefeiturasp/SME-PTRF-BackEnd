@@ -258,3 +258,7 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
   opacity: 0.5;
   z-index: 99;
 }
+
+#conta-encerrada {
+  color: #42474A
+}

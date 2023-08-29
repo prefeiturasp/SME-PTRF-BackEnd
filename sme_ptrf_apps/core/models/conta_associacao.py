@@ -75,6 +75,19 @@ class ContaAssociacao(ModeloBase):
     def inativa(self):
         return self.status == self.STATUS_INATIVA
 
+    def conta_encerrada_em(self, periodo):
+        from sme_ptrf_apps.core.models import Periodo
+
+        if hasattr(self, 'solicitacao_encerramento'):
+            if self.solicitacao_encerramento.aprovada:
+                data_encerramento = self.solicitacao_encerramento.data_de_encerramento_na_agencia
+                periodo_data_encerramento = Periodo.da_data(data_encerramento)
+
+                if periodo_data_encerramento == periodo:
+                    return f"Conta encerrada em {data_encerramento.strftime('%d/%m/%Y')}"
+
+        return None
+
     def pode_encerrar(self, data_encerramento):
         from sme_ptrf_apps.core.services.encerramento_conta_associacao_service import ValidaDataDeEncerramento
 
