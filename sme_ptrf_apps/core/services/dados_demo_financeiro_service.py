@@ -36,7 +36,7 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
 
         cabecalho = cria_cabecalho(periodo, conta_associacao, previa)
         identificacao_apm = cria_identificacao_apm(acoes)
-        identificacao_conta = cria_identificacao_conta(conta_associacao, observacao_conciliacao)
+        identificacao_conta = cria_identificacao_conta(conta_associacao, observacao_conciliacao, periodo)
         resumo_por_acao = cria_resumo_por_acao(acoes, conta_associacao, periodo)
         creditos_demonstrados = cria_creditos_demonstrados(receitas_demonstradas)
         despesas_demonstradas = cria_despesas(rateios_conferidos)
@@ -162,14 +162,15 @@ def cria_identificacao_apm(acoes):
     return identificacao_apm
 
 
-def cria_identificacao_conta(conta_associacao, observacao_conciliacao):
+def cria_identificacao_conta(conta_associacao, observacao_conciliacao, periodo):
     identificacao_conta = {
         "banco": conta_associacao.banco_nome,
         "agencia": conta_associacao.agencia,
         "conta": conta_associacao.numero_conta,
         "data_extrato": observacao_conciliacao.data_extrato.strftime(
             "%d/%m/%Y") if observacao_conciliacao and observacao_conciliacao.data_extrato else "",
-        "saldo_extrato": observacao_conciliacao.saldo_extrato if observacao_conciliacao and observacao_conciliacao.saldo_extrato else 0
+        "saldo_extrato": observacao_conciliacao.saldo_extrato if observacao_conciliacao and observacao_conciliacao.saldo_extrato else 0,
+        "encerrada_em": conta_associacao.conta_encerrada_em(periodo) if conta_associacao.conta_encerrada_em(periodo) else ""
     }
 
     return identificacao_conta
