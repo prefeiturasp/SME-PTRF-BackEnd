@@ -241,12 +241,22 @@ class AssociacoesViewSet(ModelViewSet):
         if prestacao_conta:
             gerar_previas = pc_requer_geracao_documentos(prestacao_conta)
 
+        # TODO código comentado propositalmente em função da história 102412 - Sprint 73 (Conciliação Bancária: Retirar validação e obrigatoriedade de preenchimento dos campos do Saldo bancário da conta ao concluir acerto/período) - que entrou como Hotfix
+        # TODO Remover quando implementado solução definitiva
         pendencias_dados = associacao.pendencias_dados_da_associacao_para_geracao_de_documentos()
-        pendencias_conciliacao = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(periodo)
-        if pendencias_dados or pendencias_conciliacao:
+        pendencias_conciliacao = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(
+            periodo)
+
+        # if pendencias_dados or pendencias_conciliacao:
+        #     pendencias_cadastrais = {
+        #         'dados_associacao': pendencias_dados,
+        #         'conciliacao_bancaria': pendencias_conciliacao,
+        #     }
+
+        if pendencias_dados:
             pendencias_cadastrais = {
                 'dados_associacao': pendencias_dados,
-                'conciliacao_bancaria': pendencias_conciliacao,
+                'conciliacao_bancaria': None,
             }
         else:
             pendencias_cadastrais = None
@@ -747,11 +757,11 @@ class AssociacoesViewSet(ModelViewSet):
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-
         data_de_encerramento = datetime.datetime.strptime(data_de_encerramento, '%Y-%m-%d')
         data_de_encerramento = data_de_encerramento.date()
 
-        response = ValidaDataDeEncerramento(associacao=associacao, data_de_encerramento=data_de_encerramento, periodo_inicial=periodo_inicial).response
+        response = ValidaDataDeEncerramento(associacao=associacao, data_de_encerramento=data_de_encerramento,
+                                            periodo_inicial=periodo_inicial).response
 
         status_response = response.pop("status")
 
