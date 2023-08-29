@@ -3,7 +3,7 @@ pipeline {
       branchname =  env.BRANCH_NAME.toLowerCase()
       kubeconfig = getKubeconf(env.branchname)
       registryCredential = 'jenkins_registry'
-      namespace = "${env.branchname == 'develop' ? 'sme-ptrf-dev' : env.branchname == 'homolog' ? 'sme-ptrf' : env.branchname == 'homolog-r2' ? 'sme-ptrf-hom2' : 'sme-ptrf' }"  
+      namespace = "${env.branchname == 'develop' ? 'sme-ptrf-dev' : env.branchname == 'homolog' ? 'sme-ptrf' : env.branchname == 'homolog-r2' ? 'sme-ptrf-hom2' : 'sme-ptrf' }"
     }
     agent {
       node { label 'AGENT-NODES' }
@@ -124,7 +124,7 @@ pipeline {
                     }
                   }
                 }
-                  withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){			  
+                  withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
                     if( env.branchname == 'atualizarpython' ){
 			sh('rm -f '+"$home"+'/.kube/config')
                         sh('cp $config '+"$home"+'/.kube/config')
@@ -139,7 +139,7 @@ pipeline {
                         sh "kubectl rollout restart deployment/ptrf-backend -n ${namespace}"
                         sh "kubectl rollout restart deployment/ptrf-celery -n ${namespace}"
                         sh "kubectl rollout restart deployment/ptrf-flower -n ${namespace}"
-			sh('rm -f '+"$home"+'/.kube/config')    
+			sh('rm -f '+"$home"+'/.kube/config')
 		    }
                   }
                 }

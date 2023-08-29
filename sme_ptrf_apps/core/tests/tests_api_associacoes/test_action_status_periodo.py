@@ -237,15 +237,18 @@ def test_status_periodo_pendencias_cadastrais_com_contas_pendentes(
     observacao_conciliacao_campos_nao_preenchidos_002,
     periodo_2020_1
 ):
+    # TODO código comentado propositalmente em função da história 102412 - Sprint 73 (Conciliação Bancária: Retirar validação e obrigatoriedade de preenchimento dos campos do Saldo bancário da conta ao concluir acerto/período) - que entrou como Hotfix
+    # TODO Remover quando implementado solução definitiva
 
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
                           content_type='application/json')
     result = json.loads(response.content)
 
     pendencias_cadastrais_esperado = {
-        'conciliacao_bancaria': {
-            'contas_pendentes': [f'{observacao_conciliacao_campos_nao_preenchidos.conta_associacao.uuid}', f'{observacao_conciliacao_campos_nao_preenchidos_002.conta_associacao.uuid}',],
-        },
+        # 'conciliacao_bancaria': {
+        #     'contas_pendentes': [f'{observacao_conciliacao_campos_nao_preenchidos.conta_associacao.uuid}', f'{observacao_conciliacao_campos_nao_preenchidos_002.conta_associacao.uuid}',],
+        # },
+        'conciliacao_bancaria': None,
         'dados_associacao': {
             'pendencia_cadastro': False,
             'pendencia_contas': False,
@@ -264,14 +267,18 @@ def test_status_periodo_pendencias_cadastrais_somente_uma_conta_pendente(
     periodo_2020_1
 ):
 
+    # TODO código comentado propositalmente em função da história 102412 - Sprint 73 (Conciliação Bancária: Retirar validação e obrigatoriedade de preenchimento dos campos do Saldo bancário da conta ao concluir acerto/período) - que entrou como Hotfix
+    # TODO Remover quando implementado solução definitiva
+
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
                           content_type='application/json')
     result = json.loads(response.content)
 
     pendencias_cadastrais_esperado = {
-        'conciliacao_bancaria': {
-            'contas_pendentes': [f'{observacao_conciliacao_campos_nao_preenchidos_002.conta_associacao.uuid}',],
-        },
+        # 'conciliacao_bancaria': {
+        #     'contas_pendentes': [f'{observacao_conciliacao_campos_nao_preenchidos_002.conta_associacao.uuid}',],
+        # },
+        'conciliacao_bancaria': None,
         'dados_associacao': {
             'pendencia_cadastro': False,
             'pendencia_contas': False,
@@ -335,6 +342,9 @@ def test_status_periodo_todas_as_pendencias_cadastrais(
     periodo_2020_1,
 ):
 
+    # TODO código comentado propositalmente em função da história 102412 - Sprint 73 (Conciliação Bancária: Retirar validação e obrigatoriedade de preenchimento dos campos do Saldo bancário da conta ao concluir acerto/período) - que entrou como Hotfix
+    # TODO Remover quando implementado solução definitiva
+
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{conta_associacao_incompleta.associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
                           content_type='application/json')
     result = json.loads(response.content)
@@ -345,9 +355,10 @@ def test_status_periodo_todas_as_pendencias_cadastrais(
             'pendencia_membros': True,
             'pendencia_contas': True,
         },
-        'conciliacao_bancaria': {
-            'contas_pendentes': [f'{conta_associacao_incompleta.uuid}']
-        },
+        'conciliacao_bancaria': None,
+        # 'conciliacao_bancaria': {
+        #     'contas_pendentes': [f'{conta_associacao_incompleta.uuid}']
+        # },
     }
 
     assert response.status_code == status.HTTP_200_OK
