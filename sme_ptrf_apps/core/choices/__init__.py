@@ -1,3 +1,4 @@
 from .membro_associacao import RepresentacaoCargo, MembroEnum
 from .tags import StatusTag
 from .filtro_informacoes_associacao import FiltroInformacoesAssociacao
+from .filtro_informacoes_associacao_dre import FiltroInformacoesAssociacaoDre
