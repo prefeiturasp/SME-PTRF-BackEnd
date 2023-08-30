@@ -190,7 +190,7 @@ class ContaAssociacao(ModeloBase):
         }
 
         pc_do_primeiro_periodo_de_uso_do_sistema = self.associacao.prestacoes_de_conta_da_associacao.filter(
-            periodo=self.associacao.periodo_inicial)
+            periodo=self.associacao.periodo_inicial.proximo_periodo)
 
         if pc_do_primeiro_periodo_de_uso_do_sistema.exists():
             resultado["pode_encerrar_conta"] = True
@@ -229,6 +229,26 @@ class ContaAssociacao(ModeloBase):
                 resultado["mensagem"] = "O pedido de solicitação de encerramento de conta bancária foi efetuado com sucesso. O encerramento definitivo da conta será realizado após a geração da PC e a conclusão da análise pela DRE."
 
         return resultado
+
+    def get_info_solicitacao_encerramento(self):
+        from sme_ptrf_apps.core.models import SolicitacaoEncerramentoContaAssociacao
+
+        info = {
+            "data_encerramento": None,
+            "saldo": None,
+            "possui_solicitacao_encerramento": False
+        }
+
+        if hasattr(self, 'solicitacao_encerramento'):
+            if self.solicitacao_encerramento.status != SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA:
+                data_encerramento = self.solicitacao_encerramento.data_de_encerramento_na_agencia
+                saldo = 0
+
+                info["data_encerramento"] = data_encerramento
+                info["saldo"] = saldo
+                info["possui_solicitacao_encerramento"] = True
+
+        return info
 
     @property
     def msg_sucesso_ao_encerrar(self):

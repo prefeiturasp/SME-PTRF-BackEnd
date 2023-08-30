@@ -370,6 +370,19 @@ class ConciliacoesViewSet(GenericViewSet):
                 'data_atualizacao_comprovante_extrato': observacao.data_atualizacao_comprovante_extrato,
             }
 
+        info_solicitacao = conta_associacao.get_info_solicitacao_encerramento()
+
+        if info_solicitacao["possui_solicitacao_encerramento"]:
+            result = {
+                'data_extrato': info_solicitacao["data_encerramento"],
+                'saldo_extrato': info_solicitacao["saldo"],
+                'possui_solicitacao_encerramento': info_solicitacao["possui_solicitacao_encerramento"],
+                'observacao_uuid': observacao.uuid if observacao else None,
+                'observacao': observacao.texto if observacao else None,
+                'comprovante_extrato': comprovante_extrato_nome if observacao else None,
+                'data_atualizacao_comprovante_extrato': observacao.data_atualizacao_comprovante_extrato if observacao else None
+            }
+
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='download-extrato-bancario',
