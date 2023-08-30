@@ -460,11 +460,14 @@ class AssociacoesViewSet(ModelViewSet):
 
     @action(detail=False, url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def tabelas(self, _):
+    def tabelas(self, request):
+        
+        filtros_informacoes_associacao_dre = request.query_params.get('filtros_informacoes_associacao_dre')
+        
         result = {
             'tipos_unidade': Unidade.tipos_unidade_to_json(),
             'dres': Unidade.dres_to_json(),
-            'filtro_informacoes': Associacao.filtro_informacoes_to_json()
+            'filtro_informacoes': Associacao.filtro_informacoes_dre_to_json() if filtros_informacoes_associacao_dre else Associacao.filtro_informacoes_to_json()
         }
         return Response(result)
 
