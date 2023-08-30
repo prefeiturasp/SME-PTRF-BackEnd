@@ -10,6 +10,9 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+import environ
+env = environ.Env()
+
 logger = logging.getLogger(__name__)
 
 class NotificacaoCreateException(Exception):
@@ -179,6 +182,10 @@ class Notificacao(ModeloBase):
             }
             result.append(status)
         return result
+    
+    @classmethod
+    def verifica_ambiente_de_producao_para_envio_notificacao(cls):
+        return env('SERVER_NAME') == 'sig-escola.sme.prefeitura.sp.gov.br'
 
     @classmethod
     def notificar(
@@ -194,6 +201,7 @@ class Notificacao(ModeloBase):
         unidade=None,
         prestacao_conta=None,
         periodo=None,
+        testing=False
     ):
 
         from sme_ptrf_apps.core.services.notificacao_services.enviar_email_notificacao import enviar_email_nova_notificacao
@@ -259,7 +267,7 @@ class Notificacao(ModeloBase):
             )
             logger.info(f'===> Notificação criada: {nc.uuid}, usuário:{nc.usuario}, titulo:{nc.titulo}, descricao:{nc.descricao}, unidade:{nc.unidade if nc.unidade else ""}')
 
-        if (renotificar or not notificacao_existente) and enviar_email:
+        if (renotificar or not notificacao_existente) and enviar_email and (cls.verifica_ambiente_de_producao_para_envio_notificacao() or testing):
             enviar_email_nova_notificacao(usuario=usuario, titulo=titulo, descricao=descricao)
 
 
