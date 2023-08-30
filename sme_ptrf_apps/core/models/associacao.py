@@ -5,7 +5,7 @@ from sme_ptrf_apps.core.models.solicitacao_encerramento_conta_associacao import 
 
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 from .validators import cnpj_validation
-from ..choices import MembroEnum, FiltroInformacoesAssociacao
+from ..choices import MembroEnum, FiltroInformacoesAssociacao, FiltroInformacoesAssociacaoDre
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
@@ -32,7 +32,7 @@ class Associacao(ModeloIdNome):
 
     TAG_ENCERRAMENTO_DE_CONTA = {
         "id": "2",
-        "nome": "Encerramento de conta",
+        "nome": "Encerramento de conta pendente",
         "descricao": "Solicitação de encerramento de conta pendente.",
         "key": "ENCERRAMENTO_CONTA_PENDENTE"
     }
@@ -415,6 +415,10 @@ class Associacao(ModeloIdNome):
     @classmethod
     def filtro_informacoes_to_json(cls):
         return FiltroInformacoesAssociacao.choices()
+    
+    @classmethod
+    def filtro_informacoes_dre_to_json(cls):
+        return FiltroInformacoesAssociacaoDre.choices()
 
     @classmethod
     def get_tags_informacoes_list(cls):
