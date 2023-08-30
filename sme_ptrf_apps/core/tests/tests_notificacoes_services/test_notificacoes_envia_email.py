@@ -18,7 +18,8 @@ def test_notificar_deve_enviar_email(usuario_notificavel):
             descricao=f"Descricao teste",
             usuario=usuario_notificavel,
             renotificar=False,
-            enviar_email=True
+            enviar_email=True,
+            testing=True
         )
         mock_enviar_email.assert_called_once_with(usuario=usuario_notificavel, titulo='Notificacao teste', descricao="Descricao teste")
 
