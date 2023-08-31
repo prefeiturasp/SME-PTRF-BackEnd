@@ -10,7 +10,9 @@ pytestmark = pytest.mark.django_db
 
 
 @freeze_time("2022-11-22")
-def test_deve_notificar_tecnico_dre_pois_foi_devolvida(usuario_tecnico_notificavel, associacao_a, consolidado_dre_devolucao_apos_acertos_dentro_do_prazo):
+def test_deve_notificar_tecnico_dre_pois_foi_devolvida(usuario_tecnico_notificavel, associacao_a, consolidado_dre_devolucao_apos_acertos_dentro_do_prazo, monkeypatch):
+    monkeypatch.setenv('SERVER_NAME', 'sig-escola.sme.prefeitura.sp.gov.br')
+    
     assert not Notificacao.objects.exists()
     NotificacaoConsolidadoPrazoAcertoVencimento(
         enviar_email=True
