@@ -1,10 +1,11 @@
 import datetime
 from django.db import models
 from sme_ptrf_apps.core.models.conta_associacao import ContaAssociacao
+from sme_ptrf_apps.core.models.solicitacao_encerramento_conta_associacao import SolicitacaoEncerramentoContaAssociacao
 
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 from .validators import cnpj_validation
-from ..choices import MembroEnum, FiltroInformacoesAssociacao
+from ..choices import MembroEnum, FiltroInformacoesAssociacao, FiltroInformacoesAssociacaoDre
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
@@ -23,7 +24,18 @@ class Associacao(ModeloIdNome):
     history = AuditlogHistoryField()
 
     # Tags de informações
-    TAG_ENCERRADA = {"id": "1", "nome": "Associação encerrada", "descricao": "A associação foi encerrada."}
+    TAG_ENCERRADA = {
+        "id": "1",
+        "nome": "Associação encerrada",
+        "descricao": "A associação foi encerrada.", "key": "ENCERRADAS"
+    }
+
+    TAG_ENCERRAMENTO_DE_CONTA = {
+        "id": "2",
+        "nome": "Encerramento de conta pendente",
+        "descricao": "Solicitação de encerramento de conta pendente.",
+        "key": "ENCERRAMENTO_CONTA_PENDENTE"
+    }
 
     # Status do Presidente
     STATUS_PRESIDENTE_PRESENTE = 'PRESENTE'
@@ -116,6 +128,14 @@ class Associacao(ModeloIdNome):
     def foi_encerrada(self):
         return self.data_de_encerramento is not None
 
+    def tem_solicitacao_conta_pendente(self):
+        solicitacao = ContaAssociacao.ativas_com_solicitacao_em_aberto.filter(
+            associacao=self,
+            solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE
+        ).exists()
+
+        return solicitacao
+
     @property
     def tags_de_informacao(self):
         tags = []
@@ -124,6 +144,12 @@ class Associacao(ModeloIdNome):
             tags.append(tag_informacao(
                 self.TAG_ENCERRADA,
                 f"{self.tooltip_data_encerramento}"
+            ))
+
+        if self.tem_solicitacao_conta_pendente():
+            tags.append(tag_informacao(
+                self.TAG_ENCERRAMENTO_DE_CONTA,
+                f"{self.tooltip_encerramento_conta}"
             ))
 
         return tags
@@ -273,6 +299,10 @@ class Associacao(ModeloIdNome):
             self.data_de_encerramento else None
 
     @property
+    def tooltip_encerramento_conta(self):
+        return "Solicitação de encerramento de conta pendente." if self.tem_solicitacao_conta_pendente() else None
+
+    @property
     def pode_editar_dados_associacao_encerrada(self):
         if self.encerrada:
             ultima_pc = self.prestacoes_de_conta_da_associacao.order_by('id').last()
@@ -325,6 +355,21 @@ class Associacao(ModeloIdNome):
 
         return pendencias
 
+    def contas_ativas_do_periodo_selecionado(self, periodo):
+        contas_a_retornar = []
+
+        for conta in self.contas.all():
+            if conta.ativa_no_periodo(periodo=periodo):
+                obj_conta = {
+                    "nome": conta.tipo_conta.nome,
+                    "status": conta.status,
+                    "uuid": conta.uuid
+                }
+
+                contas_a_retornar.append(obj_conta)
+
+        return contas_a_retornar
+
     objects = models.Manager()  # Manager Padrão
     ativas = AssociacoesAtivasManager()
 
@@ -370,10 +415,15 @@ class Associacao(ModeloIdNome):
     @classmethod
     def filtro_informacoes_to_json(cls):
         return FiltroInformacoesAssociacao.choices()
+    
+    @classmethod
+    def filtro_informacoes_dre_to_json(cls):
+        return FiltroInformacoesAssociacaoDre.choices()
 
     @classmethod
     def get_tags_informacoes_list(cls):
-        return [cls.TAG_ENCERRADA]
+        return [cls.TAG_ENCERRADA, cls.TAG_ENCERRAMENTO_DE_CONTA]
+
 
 def tag_informacao(tipo_de_tag, hint):
     return {
@@ -381,5 +431,6 @@ def tag_informacao(tipo_de_tag, hint):
         'tag_nome': tipo_de_tag['nome'],
         'tag_hint': hint,
     }
+
 
 auditlog.register(Associacao)

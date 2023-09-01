@@ -109,6 +109,10 @@ class AssociacoesViewSet(ModelViewSet):
     def get_queryset(self):
         qs = Associacao.objects.all().order_by('unidade__tipo_unidade', 'unidade__nome')
 
+        uuid_dre = self.request.query_params.get('unidade__dre__uuid')
+        if uuid_dre is not None and uuid_dre != "":
+            qs = qs.filter(unidade__dre__uuid=uuid_dre)
+
         nome = self.request.query_params.get('nome')
         if nome is not None:
             qs = qs.filter(Q(unidade__codigo_eol=nome) | Q(nome__unaccent__icontains=nome) | Q(
@@ -117,17 +121,20 @@ class AssociacoesViewSet(ModelViewSet):
         filtro_informacoes = self.request.query_params.get('filtro_informacoes')
         filtro_informacoes_list = filtro_informacoes.split(',') if filtro_informacoes else []
 
-        encerradas = FiltroInformacoesAssociacao.FILTRO_INFORMACOES_ENCERRADAS
-        nao_encerradas = FiltroInformacoesAssociacao.FILTRO_INFORMACOES_NAO_ENCERRADAS
-
         if filtro_informacoes_list:
-            if encerradas in filtro_informacoes_list and nao_encerradas in filtro_informacoes_list:
-                qs = qs
-            elif nao_encerradas in filtro_informacoes_list:
-                qs = qs.filter(data_de_encerramento__isnull=True)
+            ids_para_excluir_da_listagem = []
+            for associacao in qs:
+                excluir_associacao_da_listagem = True
+                if Associacao.TAG_ENCERRADA['key'] in filtro_informacoes_list and associacao.foi_encerrada():
+                    excluir_associacao_da_listagem = False
 
-            elif encerradas in filtro_informacoes_list:
-                qs = qs.filter(data_de_encerramento__isnull=False)
+                if Associacao.TAG_ENCERRAMENTO_DE_CONTA['key'] in filtro_informacoes_list and associacao.tem_solicitacao_conta_pendente():
+                    excluir_associacao_da_listagem = False
+
+                if excluir_associacao_da_listagem:
+                    ids_para_excluir_da_listagem.append(associacao.id)
+
+            qs = qs.exclude(id__in=ids_para_excluir_da_listagem)
 
         return qs
 
@@ -453,11 +460,14 @@ class AssociacoesViewSet(ModelViewSet):
 
     @action(detail=False, url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def tabelas(self, _):
+    def tabelas(self, request):
+        
+        filtros_informacoes_associacao_dre = request.query_params.get('filtros_informacoes_associacao_dre')
+        
         result = {
             'tipos_unidade': Unidade.tipos_unidade_to_json(),
             'dres': Unidade.dres_to_json(),
-            'filtro_informacoes': Associacao.filtro_informacoes_to_json()
+            'filtro_informacoes': Associacao.filtro_informacoes_dre_to_json() if filtros_informacoes_associacao_dre else Associacao.filtro_informacoes_to_json()
         }
         return Response(result)
 
@@ -774,3 +784,29 @@ class AssociacoesViewSet(ModelViewSet):
         associacao = self.get_object()
         response = associacao.pendencias_dados_da_associacao_para_geracao_de_documentos()
         return Response(response)
+
+    @action(detail=True, url_path='contas-do-periodo', methods=['get'],
+            permission_classes=[IsAuthenticated, PermissaoAPITodosComLeituraOuGravacao])
+    def contas_do_periodo(self, request, uuid=None):
+        associacao = self.get_object()
+        periodo_uuid = request.query_params.get('periodo_uuid')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário informar o uuid do periodo'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            Periodo.objects.filter(uuid=periodo_uuid).get()
+            periodo = Periodo.objects.filter(uuid=periodo_uuid).first()
+        except (ValidationError, Exception):
+            erro = {
+                'erro': 'parametro_invalido',
+                'mensagem': f"Não foi encontrado o objeto periodo para o uuid {periodo_uuid}"
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        lista_contas = associacao.contas_ativas_do_periodo_selecionado(periodo)
+        return Response(lista_contas)
