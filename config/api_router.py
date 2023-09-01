@@ -1,3 +1,5 @@
+import waffle
+
 from django.conf import settings
 from django.urls import path, include
 from rest_framework.decorators import api_view
@@ -89,7 +91,10 @@ from sme_ptrf_apps.mandatos.api.views import MandatosViewSet, ComposicoesViewSet
 
 @api_view()
 def versao(request):
-    return Response({"versao": __version__})
+    versao = __version__
+    if waffle.flag_is_active(request, 'teste-flag'):
+        versao = "teste-flag"
+    return Response({"versao": versao})
 
 
 if settings.DEBUG:
