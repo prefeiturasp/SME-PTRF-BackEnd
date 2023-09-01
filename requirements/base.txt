@@ -17,6 +17,7 @@ flower==1.2.0  # https://github.com/mher/flower
 # Outras
 # ------------------------------------------------------------------------------
 Pillow==8.4.0
+django-waffle==4.0.0
 
 # DEPENDENCIAS AINDA NÃO REVISTAS
 
