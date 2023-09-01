@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.urls import path
+from django.urls import path, include
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter, SimpleRouter
@@ -38,7 +38,8 @@ from sme_ptrf_apps.core.api.views import (
     AnaliseDocumentoPrestacaoContaViewSet,
     FalhaGeracaoPcViewSet,
     SolicitacaoEncerramentoContaAssociacaoViewset,
-    MotivoRejeicaoEncerramentoContaAssociacaoViewset
+    MotivoRejeicaoEncerramentoContaAssociacaoViewset,
+    feature_flags,
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
@@ -176,4 +177,5 @@ urlpatterns = router.urls
 urlpatterns += [
     path("versao", versao),
     path("login", LoginView.as_view()),
+    path("feature-flags", feature_flags),
 ]
