@@ -80,6 +80,7 @@ THIRD_PARTY_APPS = [
     "ckeditor",
     "mathfilters",
     "drf_spectacular",
+    "waffle",
 ]
 
 LOCAL_APPS = [
@@ -138,6 +139,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "sme_ptrf_apps.jwt_middleware.JWTAuthenticationMiddleware",
     "auditlog.middleware.AuditlogMiddleware",
+    "waffle.middleware.WaffleMiddleware",
 ]
 
 # STATIC (DJANGO)
