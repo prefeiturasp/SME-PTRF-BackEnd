@@ -1,5 +1,7 @@
 import waffle
 
+from waffle.decorators import waffle_flag
+
 from django.conf import settings
 from django.urls import path, include
 from rest_framework.decorators import api_view
@@ -97,6 +99,12 @@ def versao(request):
     return Response({"versao": versao})
 
 
+@api_view()
+@waffle_flag('teste-flag')
+def teste_flag_view(request):
+    return Response({"mensagem": "Se está vendo essa mensagem é porque a teste-flag está ativa."})
+
+
 if settings.DEBUG:
     router = DefaultRouter()
 else:
@@ -181,6 +189,7 @@ app_name = "api"
 urlpatterns = router.urls
 urlpatterns += [
     path("versao", versao),
+    path("teste-flag", teste_flag_view),
     path("login", LoginView.as_view()),
     path("feature-flags", feature_flags),
 ]
