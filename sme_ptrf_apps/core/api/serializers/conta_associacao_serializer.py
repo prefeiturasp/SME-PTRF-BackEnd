@@ -35,7 +35,7 @@ class ContaAssociacaoInfoAtaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ContaAssociacao
-        fields = ('uuid', 'nome', 'banco_nome', 'agencia', 'numero_conta', )
+        fields = ('uuid', 'nome', 'banco_nome', 'agencia', 'numero_conta', 'status', )
 
 
 class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
@@ -59,7 +59,8 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
             'solicitacao_encerramento',
             'saldo_atual_conta',
             'habilitar_solicitar_encerramento',
-            'nome'
+            'nome',
+            'status'
         )
 
     def get_habilitar_solicitar_encerramento(self, obj):
