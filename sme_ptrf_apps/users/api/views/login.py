@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework_jwt.views import ObtainJSONWebToken
+from waffle import get_waffle_flag_model
 
 from sme_ptrf_apps.users.api.services import AutenticacaoService
 from sme_ptrf_apps.core.models import Associacao
@@ -54,6 +55,8 @@ class LoginView(ObtainJSONWebToken):
                     else:
                         associacao = Associacao.objects.filter(unidade__uuid=unidades[0]['uuid']).first()
 
+                    feature_flags = self.get_feature_flags_ativas(user)
+
                     #TODO Rever esse bloco
                     # Mantive esse trecho da associação pra não quebrar o front até o mesmo tratar as mudanças de
                     # visões. Após o front ficar pronto esse trecho deve ser removido.
@@ -69,6 +72,7 @@ class LoginView(ObtainJSONWebToken):
                     user_dict['associacao'] = associacao_dict
                     user_dict['unidades'] = unidades
                     user_dict['permissoes'] = self.get_user_permissions(user)
+                    user_dict['feature_flags'] = feature_flags
                     data = {**user_dict, **resp.data}
                     return Response(data)
             return Response(response.json(), response.status_code)
@@ -82,3 +86,10 @@ class LoginView(ObtainJSONWebToken):
                 perms.append(permission.codename)
 
         return perms
+
+    def get_feature_flags_ativas(self, user):
+        Flag = get_waffle_flag_model()
+        return [
+            flag.name for flag in Flag.get_all()
+            if flag.is_active_for_user(user)
+        ]
