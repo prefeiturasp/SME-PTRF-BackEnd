@@ -4,6 +4,8 @@ from rest_framework import serializers
 
 from ...models import SolicitacaoEncerramentoContaAssociacao, ContaAssociacao
 from ..serializers.motivo_rejeicao_encerramento_conta_associacao_serializer import MotivoRejeicaoEncerramentoContaAssociacaoSerializer
+
+
 class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializer):
     conta_associacao = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -13,6 +15,12 @@ class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializ
     data_de_encerramento_na_agencia = serializers.DateField(
         required=True,
     )
+
+    msg_sucesso_ao_encerrar = serializers.SerializerMethodField('get_msg_sucesso_ao_encerrar')
+
+    def get_msg_sucesso_ao_encerrar(self, obj):
+        return obj.conta_associacao.msg_sucesso_ao_encerrar
+
     class Meta:
         model = SolicitacaoEncerramentoContaAssociacao
         fields = (
@@ -24,6 +32,7 @@ class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializ
             'outros_motivos_rejeicao',
             'data_aprovacao',
             'criado_em',
+            'msg_sucesso_ao_encerrar'
         )
         read_only_fields = ('status', )
 
@@ -44,6 +53,7 @@ class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializ
         conta_associacao = data['conta_associacao']
         data_de_encerramento_na_agencia = data['data_de_encerramento_na_agencia']
         associacao = conta_associacao.associacao
+        valida_valores_reprogramados = conta_associacao.valida_status_valores_reprogramados()
 
         if conta_associacao.get_saldo_atual_conta() != 0:
             raise serializers.ValidationError({"mensagem": "Não é permitido encerrar conta com saldo diferente de 0."})
@@ -54,6 +64,9 @@ class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializ
 
         if not conta_associacao.pode_encerrar(data_de_encerramento_na_agencia):
             raise serializers.ValidationError({"mensagem": "Existem movimentações cadastradas após a data informada. Favor alterar a data das movimentações ou a data de encerramento da conta."})
+
+        if not valida_valores_reprogramados["pode_encerrar_conta"]:
+            raise serializers.ValidationError({"mensagem": valida_valores_reprogramados["mensagem"]})
 
         return data
 

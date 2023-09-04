@@ -3,6 +3,7 @@ pipeline {
       branchname =  env.BRANCH_NAME.toLowerCase()
       kubeconfig = getKubeconf(env.branchname)
       registryCredential = 'jenkins_registry'
+      namespace = "${env.branchname == 'develop' ? 'sme-ptrf-dev' : env.branchname == 'homolog' ? 'sme-ptrf' : env.branchname == 'homolog-r2' ? 'sme-ptrf-hom2' : 'sme-ptrf' }"
     }
     agent {
       node { label 'AGENT-NODES' }
@@ -117,43 +118,33 @@ pipeline {
               script{
                 if ( env.branchname == 'main' ||  env.branchname == 'master' || env.branchname == 'homolog' || env.branchname == 'release' ) {
 
-			            withCredentials([string(credentialsId: 'aprovadores-ptrf', variable: 'aprovadores')]) {
+                  withCredentials([string(credentialsId: 'aprovadores-ptrf', variable: 'aprovadores')]) {
                     timeout(time: 24, unit: "HOURS") {
                       input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: "${aprovadores}"
                     }
                   }
                 }
                   withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
-
-                    if ( env.branchname == 'homolog-r2' ) {
-			sh('rm -f '+"$home"+'/.kube/config')
-                        sh('cp $config '+"$home"+'/.kube/config')
-                        sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf-hom2'
-                        sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf-hom2'
-                        sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf-hom2'
-			sh('rm -f '+"$home"+'/.kube/config')
-                    }
-                    else if( env.branchname == 'atualizarpython' ){
+                    if( env.branchname == 'atualizarpython' ){
 			sh('rm -f '+"$home"+'/.kube/config')
                         sh('cp $config '+"$home"+'/.kube/config')
                         sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
                         sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
                         sh 'kubectl rollout restart deployment/sigescolapre-flower -n sme-sigescola-pre'
 			sh('rm -f '+"$home"+'/.kube/config')
-                    }
-                    else {
+                    } else {
 			sh('rm -f '+"$home"+'/.kube/config')
                         sh('cp $config '+"$home"+'/.kube/config')
-                        sh 'kubectl rollout restart deployment/ptrf-backend -n sme-ptrf'
-                        sh 'kubectl rollout restart deployment/ptrf-celery -n sme-ptrf'
-                        sh 'kubectl rollout restart deployment/ptrf-flower -n sme-ptrf'
-			sh('rm -f '+"$home"+'/.kube/config')    			
-                    }
-				          }
+			sh "echo ${namespace}"
+                        sh "kubectl rollout restart deployment/ptrf-backend -n ${namespace}"
+                        sh "kubectl rollout restart deployment/ptrf-celery -n ${namespace}"
+                        sh "kubectl rollout restart deployment/ptrf-flower -n ${namespace}"
+			sh('rm -f '+"$home"+'/.kube/config')
+		    }
+                  }
                 }
               }
             }
-
 
         stage('Deploy Ambientes'){
             when { anyOf {  branch 'master'; branch 'main' } }
@@ -193,8 +184,8 @@ def getKubeconf(branchName) {
     else if ("homolog".equals(branchName)) { return "config_hom"; }
     else if ("homolog-r2".equals(branchName)) { return "config_hom"; }
     else if ("release".equals(branchName)) { return "config_hom"; }
-    else if ("development".equals(branchName)) { return "config_dev"; }
-    else if ("develop".equals(branchName)) { return "config_dev"; }
+    else if ("development".equals(branchName)) { return "config_release"; }
+    else if ("develop".equals(branchName)) { return "config_release"; }
     else if ("pre-release".equals(branchName)) { return "config_prd"; }
     else if ("atualizarpython".equals(branchName)) { return "config_prd"; }
 }

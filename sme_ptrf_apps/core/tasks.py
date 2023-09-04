@@ -64,7 +64,7 @@ def concluir_prestacao_de_contas_async(
         from sme_ptrf_apps.core.services.falha_geracao_pc_service import FalhaGeracaoPcService
 
         acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
-        contas = associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
+        contas = prestacao.contas_ativas_no_periodo()
 
         # Aqui grava observacao da conciliacao bancaria. Grava o campo observacao.justificativa_original com observacao.texto
         for conta_associacao in contas:

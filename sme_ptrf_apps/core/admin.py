@@ -1338,6 +1338,7 @@ class ValoresReprogramadosAdmin(admin.ModelAdmin):
         'aplicacao_recurso'
     )
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    raw_id_fields = ('associacao', 'periodo', 'conta_associacao', 'acao_associacao',)
 
 
 @admin.register(DevolucaoAoTesouro)

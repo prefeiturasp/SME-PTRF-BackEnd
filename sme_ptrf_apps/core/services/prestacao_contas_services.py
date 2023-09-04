@@ -322,7 +322,7 @@ def informacoes_financeiras_para_atas(prestacao_contas):
         f'Get info financeiras para ata. Associacao:{prestacao_contas.associacao.uuid} Período:{prestacao_contas.periodo}')
 
     info_contas = []
-    for conta_associacao in prestacao_contas.associacao.contas.all():
+    for conta_associacao in prestacao_contas.contas_ativas_no_periodo():
         logger.info(
             f'Get info financeiras por conta para a ata. Associacao:{prestacao_contas.associacao.uuid} Conta:{conta_associacao}')
         info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=prestacao_contas.associacao.uuid,

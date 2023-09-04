@@ -34,13 +34,19 @@ from sme_ptrf_apps.core.models import Unidade, MembroAssociacao
 
 from django.core.exceptions import ValidationError
 
+from sme_ptrf_apps.users.models import UnidadeEmSuporte
+
 User = get_user_model()
 
 logger = logging.getLogger(__name__)
 
+# TODO Mover para um arquivo de constantes
+UUID_OR_SME_REGEX = r'(?:[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}|SME)'
+
 
 class CustomPagination(PageNumberPagination):
     page_size = 10
+
     def get_paginated_response(self, data):
         return Response(
             {
@@ -54,6 +60,7 @@ class CustomPagination(PageNumberPagination):
                 'results': data,
             }
         )
+
 
 class UsuariosFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
@@ -75,12 +82,13 @@ class UsuariosFilter(django_filters.FilterSet):
             'visoes__nome',
         ]
 
+
 class UsuariosViewSet(ModelViewSet):
     lookup_field = "id"
     serializer_class = UsuarioSerializer
     queryset = User.objects.all().order_by("name", "id")
-   # TODO: Voltar com a permissão de autenticação
-   # permission_classes = [IsAuthenticated ]
+    # TODO: Voltar com a permissão de autenticação
+    # permission_classes = [IsAuthenticated ]
     permission_classes = [AllowAny]
     pagination_class = CustomPagination
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
@@ -135,7 +143,7 @@ class UsuariosViewSet(ModelViewSet):
         uuid_unidade_base = self.request.query_params.get('uuid_unidade_base')
 
         if not uuid_unidade_base or uuid_unidade_base == 'SME':
-            return qs
+            return qs.filter(Q(unidades__isnull=False) | Q(visoes__nome='SME')).distinct('name', 'id')
 
         unidade_base = Unidade.objects.filter(uuid=uuid_unidade_base).first()
 
@@ -321,7 +329,35 @@ class UsuariosViewSet(ModelViewSet):
 
         return Response(result, status=status.HTTP_200_OK)
 
+    # TODO Extrair validações para um serializer
+    @extend_schema(request=None)
+    @action(detail=True, methods=['put'], url_path=f'remover-acessos-unidade-base/(?P<unidade_uuid>{UUID_OR_SME_REGEX})')
+    def remover_acessos(self, request, unidade_uuid, id=None):
+        usuario = self.get_object()
+        unidade = None
+        if unidade_uuid and unidade_uuid != 'SME':
+            try:
+                unidade = Unidade.objects.get(uuid=unidade_uuid)
+            except Unidade.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto unidade para o uuid {unidade_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        elif unidade_uuid == 'SME':
+           unidade = "SME"
 
+        if not unidade:
+            return Response("Parâmetro unidade_uuid obrigatório.", status=status.HTTP_400_BAD_REQUEST)
+
+        if unidade:
+            try:
+                remover_acessos_a_unidade_e_subordinadas(usuario=usuario, unidade_base=unidade)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            except Exception as e:
+                logger.error('Erro ao remover acessos: %r', e)
+                return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # TODO Mover para um service
 # TODO Criar testes unitários
@@ -382,3 +418,40 @@ def pode_acessar_unidade(username, e_servidor, visao_base, unidade):
             return False, 'Usuário não é membro da associação.', ''
 
     return True, '', info_exercicio
+
+
+# TODO Mover para um service
+# TODO Criar testes unitários
+def remover_acessos_a_unidade_e_subordinadas(usuario, unidade_base):
+    logger.info(f'Removendo acessos do usuário {usuario} à unidade {unidade_base} e subordinadas.')
+
+    if not unidade_base:
+        raise ValidationError('Parâmetro unidade_base obrigatório.')
+
+    if unidade_base != 'SME' and not isinstance(unidade_base, Unidade):
+        raise ValidationError('Parâmetro unidade_base deve ser uma string "SME" ou um objeto Unidade.')
+
+    if unidade_base == 'SME':
+        visao_base = 'SME'
+    else:
+        visao_base = 'DRE' if unidade_base.tipo_unidade == 'DRE' else 'UE'
+
+    if visao_base == 'UE':
+        logger.info(f'Unidade base é uma UE. Removendo acessos à unidade {unidade_base} para o usuário {usuario}.')
+        usuario.remove_unidade_se_existir(unidade_base.codigo_eol)
+        return
+
+    if visao_base == 'DRE':
+        logger.info(f'Unidade base é uma DRE. Removendo acessos à unidade {unidade_base} e subordinadas para o usuário {usuario}.')
+        usuario.remove_unidade_se_existir(unidade_base.codigo_eol)
+        unidades_subordinadas = unidade_base.unidades_da_dre.values_list("codigo_eol", flat=True)
+        for unidade in usuario.unidades.filter(codigo_eol__in=unidades_subordinadas):
+            usuario.remove_unidade_se_existir(unidade.codigo_eol)
+        return
+
+    if visao_base == 'SME':
+        logger.info(f'Unidade base é a SME. Removendo acessos a todas as unidades para o usuário {usuario}.')
+        usuario.unidades.clear()
+        UnidadeEmSuporte.objects.filter(user=usuario).delete()
+        usuario.remove_visao_se_existir('SME')
+        return

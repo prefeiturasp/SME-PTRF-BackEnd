@@ -117,6 +117,13 @@
           </div>
         </div>
       </div>
+
+      {% if dados.identificacao_conta.encerrada_em %}
+        <div class="mt-1">
+          <span class="font-10 mt-5" id="conta-encerrada"><strong>{{ dados.identificacao_conta.encerrada_em }}</strong></span>
+        </div>
+      {% endif %}
+
     </article>
   </section>
 

@@ -131,6 +131,8 @@ class User(AbstractUser):
         self.save()
         logger.info(f'Unidade {codigo_eol} removida do usuário {self}.')
 
+        UnidadeEmSuporte.objects.filter(unidade=unidade, user=self).delete()
+
     @classmethod
     def criar_usuario(cls, dados):
         """ Recebe dados de usuário incluindo as listas de unidades, visões e grupos vinculados a ele e cria o usuário

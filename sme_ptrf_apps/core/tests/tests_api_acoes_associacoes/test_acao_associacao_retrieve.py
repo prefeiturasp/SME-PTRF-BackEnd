@@ -25,6 +25,7 @@ def test_retrieve_acao_associacao(
             'nome': acao_associacao.associacao.nome,
             'data_de_encerramento': None,
             'tooltip_data_encerramento': None,
+            'tooltip_encerramento_conta': None,
             'encerrada': False,
             'informacoes': acao_associacao.associacao.tags_de_informacao,
             'status_valores_reprogramados': acao_associacao.associacao.status_valores_reprogramados,

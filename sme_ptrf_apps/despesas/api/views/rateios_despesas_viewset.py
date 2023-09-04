@@ -12,6 +12,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from sme_ptrf_apps.despesas.models.despesa import Despesa
 
+from sme_ptrf_apps.despesas.services.filtra_despesas_por_tags import filtra_despesas_por_tags
+
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
     PermissaoAPITodosComLeituraOuGravacao,
@@ -162,36 +164,12 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
             filter_value = request.query_params.get(field)
             if filter_value:
                 filtered_queryset = filtered_queryset.exclude(despesa__status='INATIVO').filter(**{field: filter_value})
-
+         
         filtro_informacoes = self.request.query_params.get('filtro_informacoes')
         filtro_informacoes_list = filtro_informacoes.split(',') if filtro_informacoes else []
 
         if filtro_informacoes_list:
-            ids_para_excluir = []
-            for rateio in filtered_queryset:
-                excluir_rateio = True
-                if Despesa.TAG_ANTECIPADO['id'] in filtro_informacoes_list and rateio.despesa.teve_pagamento_antecipado():
-                    excluir_rateio = False
-                if Despesa.TAG_ESTORNADO['id'] in filtro_informacoes_list and rateio.despesa.possui_estornos():
-                    excluir_rateio = False
-                if Despesa.TAG_IMPOSTO['id'] in filtro_informacoes_list and rateio.despesa.possui_retencao_de_impostos():
-                    excluir_rateio = False
-                if Despesa.TAG_IMPOSTO_PAGO['id'] in filtro_informacoes_list and rateio.despesa.e_despesa_de_imposto():
-                    excluir_rateio = False
-                if Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and rateio.despesa.tem_pagamento_com_recursos_proprios() or Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and rateio.despesa.tem_pagamentos_em_multiplas_contas():
-                    excluir_rateio = False
-                if Despesa.TAG_NAO_RECONHECIDA['id'] in filtro_informacoes_list and rateio.despesa.e_despesa_nao_reconhecida():
-                    excluir_rateio = False
-                if Despesa.TAG_SEM_COMPROVACAO_FISCAL['id'] in filtro_informacoes_list and rateio.despesa.e_despesa_sem_comprovacao_fiscal():
-                    excluir_rateio = False
-                if Despesa.TAG_CONCILIADA['id'] in filtro_informacoes_list and rateio.despesa.conferido:
-                    excluir_rateio = False
-                if Despesa.TAG_NAO_CONCILIADA['id'] in filtro_informacoes_list and not rateio.despesa.conferido:
-                    excluir_rateio = False
-
-                if excluir_rateio:
-                    ids_para_excluir.append(rateio.id)
-
+            ids_para_excluir = [item.id for item in filtered_queryset if filtra_despesas_por_tags(item, filtro_informacoes_list)]
             filtered_queryset = filtered_queryset.exclude(id__in=ids_para_excluir)
 
         filtro_vinculo_atividades = self.request.query_params.get('filtro_vinculo_atividades')
