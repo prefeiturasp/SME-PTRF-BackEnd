@@ -151,17 +151,23 @@ pipeline {
               parallel {
               stage('Deploy Treino'){
                 steps {
+		  sh('rm -f '+"$home"+'/.kube/config')
+                  sh('cp $config '+"$home"+'/.kube/config')	
                   sh 'kubectl rollout restart deployment/treinamento-backend -n sigescola-treinamento'
                   sh 'kubectl rollout restart deployment/treinamento-celery -n sigescola-treinamento'
                   sh 'kubectl rollout restart deployment/treinamento-flower -n sigescola-treinamento'
+		  sh('rm -f '+"$home"+'/.kube/config')	
                 }
               }
 
               stage('Deploy Treinamento2'){
                 steps {
+		  sh('rm -f '+"$home"+'/.kube/config')
+                  sh('cp $config '+"$home"+'/.kube/config')	
                   sh 'kubectl rollout restart deployment/treinamento-backend -n sigescola-treinamento2'
                   sh 'kubectl rollout restart deployment/treinamento-celery -n sigescola-treinamento2'
                   sh 'kubectl rollout restart deployment/treinamento-flower -n sigescola-treinamento2'
+                  sh('rm -f '+"$home"+'/.kube/config')
                 }
               }
 
