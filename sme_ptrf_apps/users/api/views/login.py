@@ -88,8 +88,15 @@ class LoginView(ObtainJSONWebToken):
         return perms
 
     def get_feature_flags_ativas(self, user):
+        from django.http import HttpRequest
+
+        # Criando um request com o usuário autenticado para que o waffle possa verificar as flags
+        request_com_user = HttpRequest()
+        request_com_user.META = self.request.META
+        request_com_user.user = user
+
         Flag = get_waffle_flag_model()
         return [
             flag.name for flag in Flag.get_all()
-            if flag.is_active_for_user(user)
+            if flag.is_active(request_com_user)
         ]
