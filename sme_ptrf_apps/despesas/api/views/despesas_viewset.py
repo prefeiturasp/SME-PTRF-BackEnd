@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from django.db.models.query import QuerySet
+from sme_ptrf_apps.despesas.services.filtra_despesas_por_tags import filtra_despesas_por_tags
 
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
@@ -141,32 +142,9 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
         filtro_informacoes = self.request.query_params.get('filtro_informacoes')
         filtro_informacoes_list = filtro_informacoes.split(',') if filtro_informacoes else []
+
         if filtro_informacoes_list:
-            ids_para_excluir = []
-            for despesa in qs:
-                excluir_despesa = True
-                if Despesa.TAG_ANTECIPADO['id'] in filtro_informacoes_list and despesa.teve_pagamento_antecipado():
-                    excluir_despesa = False
-                if Despesa.TAG_ESTORNADO['id'] in filtro_informacoes_list and despesa.possui_estornos():
-                    excluir_despesa = False
-                if Despesa.TAG_IMPOSTO['id'] in filtro_informacoes_list and despesa.possui_retencao_de_impostos():
-                    excluir_despesa = False
-                if Despesa.TAG_IMPOSTO_PAGO['id'] in filtro_informacoes_list and despesa.e_despesa_de_imposto():
-                    excluir_despesa = False
-                if Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and despesa.tem_pagamento_com_recursos_proprios() or Despesa.TAG_PARCIAL['id'] in filtro_informacoes_list and despesa.tem_pagamentos_em_multiplas_contas():
-                    excluir_despesa = False
-                if Despesa.TAG_NAO_RECONHECIDA['id'] in filtro_informacoes_list and despesa.e_despesa_nao_reconhecida():
-                    excluir_despesa = False
-                if Despesa.TAG_SEM_COMPROVACAO_FISCAL['id'] in filtro_informacoes_list and despesa.e_despesa_sem_comprovacao_fiscal():
-                    excluir_despesa = False
-                if Despesa.TAG_CONCILIADA['id'] in filtro_informacoes_list and despesa.conferido:
-                    excluir_despesa = False
-                if Despesa.TAG_NAO_CONCILIADA['id'] in filtro_informacoes_list and not despesa.conferido:
-                    excluir_despesa = False
-
-                if excluir_despesa:
-                    ids_para_excluir.append(despesa.id)
-
+            ids_para_excluir = [despesa.id for despesa in qs if filtra_despesas_por_tags(despesa, filtro_informacoes_list, False)]
             qs = qs.exclude(id__in=ids_para_excluir)
 
         # Ordenação

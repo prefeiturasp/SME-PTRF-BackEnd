@@ -375,13 +375,20 @@ class PrestacaoConta(ModeloBase):
         comentarios_de_analise_relacionados_sem_pc.update(prestacao_conta=self, associacao=None, periodo=None)
 
     def get_contas_com_movimento(self, add_sem_movimento_com_saldo=False):
-        from sme_ptrf_apps.core.models import ContaAssociacao
+        from sme_ptrf_apps.core.models import ContaAssociacao, SolicitacaoEncerramentoContaAssociacao
         from sme_ptrf_apps.receitas.models import Receita
         from sme_ptrf_apps.despesas.models import RateioDespesa
         contas = ContaAssociacao.objects.filter(associacao=self.associacao).order_by('id')
 
         contas_com_movimento = []
         for conta in contas:
+            if hasattr(conta, 'solicitacao_encerramento'):
+                if conta.solicitacao_encerramento.status != SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA:
+                    data_encerramento = conta.solicitacao_encerramento.data_de_encerramento_na_agencia
+
+                    if data_encerramento < self.periodo.data_inicio_realizacao_despesas:
+                        continue
+
             tem_receitas_no_periodo = Receita.receitas_da_conta_associacao_no_periodo(
                 conta_associacao=conta,
                 periodo=self.periodo,
@@ -611,6 +618,15 @@ class PrestacaoConta(ModeloBase):
             periodo__referencia__gt=self.periodo.referencia
         ).exists()
         return pode_rebrir_pc
+
+    def contas_ativas_no_periodo(self):
+        contas_a_exibir = []
+
+        for conta in self.associacao.contas.all():
+            if conta.ativa_no_periodo(periodo=self.periodo):
+                contas_a_exibir.append(conta)
+
+        return contas_a_exibir
 
     @classmethod
     @transaction.atomic
