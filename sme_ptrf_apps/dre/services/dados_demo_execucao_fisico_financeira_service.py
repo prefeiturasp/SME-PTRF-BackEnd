@@ -852,8 +852,6 @@ def cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_conso
             "referencia_consolidado": dados['referencia_consolidado'] if eh_consolidado_de_publicacoes_parciais else None,
         })
 
-        print("lista_de_informacoes_por_conta", lista_de_informacoes_por_conta)
-
     informacoes = {
         "lista": lista,
     }
