@@ -11,7 +11,7 @@
   <tr>
     <th style="width: 3%">19 - Ordem</th>
     <th style="width: 15%">20 - Unidade</th>
-    <th style="width: 5%">21 - Conta</th>
+    <th style="width: 7%">21 - Conta</th>
     <th colspan="2">22 - Reprogramado do período anterior</th>
     <th colspan="2">23 - Transferido pela DRE</th>
     <th colspan="2">24 - Outros créditos</th>
@@ -46,7 +46,15 @@
 
         {% if conta.exibe_valores %} {% comment %} Caso exista valores eles são exibidos, senão exibe uma mensagem que vem do back - Não houve movimentação financeira. {% endcomment %}
 
-            <td rowspan="8">{{ conta.tipo_conta }}</td>
+            <td rowspan="8">
+              {{ conta.tipo_conta }}
+
+              {% if conta.encerrada_em %}
+                <br/>
+                <span class="mt-2"><strong>Encerrada</strong> em: {{conta.encerrada_em}}</span>
+              {% endif %}
+
+            </td>
 
             <td rowSpan="2" style="width: 4%;">C</td>
             <td rowSpan="2" class="text-right">{{ conta.custeio.saldo_reprogramado_anterior_custeio }}</td>
@@ -147,7 +155,14 @@
 
       {% else %} {% comment %} if conta.exibe_valores {% endcomment %}
           <tr>
-            <td class="py-2">{{ conta.tipo_conta }}</td>
+            <td class="py-2">
+              {{ conta.tipo_conta }}
+
+              {% if conta.encerrada_em %}
+                <br/>
+                <span class="mt-2"><strong>Encerrada</strong> em: {{conta.encerrada_em}}</span>
+              {% endif %}
+            </td>
             <td class="py-2" colspan="12">{{ conta.mensagem_movimentacao_financeira }}</td>
             {% if forloop.counter == 1 %}
               <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>T</strong></td>

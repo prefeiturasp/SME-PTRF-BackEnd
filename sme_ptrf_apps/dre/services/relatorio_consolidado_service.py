@@ -1150,14 +1150,19 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
                 'referencia_consolidado': referencia_consolidado,
             }
 
+            data_encerramento = conta_associacao.conta_encerrada_em(periodo=periodo, adiciona_prefixo=False) \
+                if conta_associacao.conta_encerrada_em(periodo=periodo, adiciona_prefixo=False) else ''
+
             if soma_dos_totais: # Verifica se existe valores, senão será exibida mensagem Não houve movimentação financeira por conta
                 objeto_tipo_de_conta.append({
                     'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
+                    'encerrada_em': data_encerramento,
                     'valores': totais,
                 })
             else:
                 objeto_tipo_de_conta.append({
                     'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
+                    'encerrada_em': data_encerramento,
                     'valores': None,
                 })
 
@@ -1279,21 +1284,21 @@ def dashboard_sme(periodo, unificar_pcs_apresentadas_nao_recebidas = False):
         or qtd_status[PrestacaoConta.STATUS_EM_ANALISE] > 0
         or qtd_status[PrestacaoConta.STATUS_DEVOLVIDA] > 0
     ):
-        
+
         if unificar_pcs_apresentadas_nao_recebidas:
-        
+
             add_card_dashboard(
                 cards_dashboard,
                 PrestacaoConta.STATUS_NAO_APRESENTADA,
                 qtd_status[PrestacaoConta.STATUS_NAO_APRESENTADA]
             )
-            
+
             add_card_dashboard(
                 cards_dashboard,
                 PrestacaoConta.STATUS_NAO_RECEBIDA,
                 qtd_status[PrestacaoConta.STATUS_NAO_RECEBIDA]
             )
-            
+
         else:
 
             add_card_dashboard(
