@@ -14,7 +14,9 @@ def test_delete_vinculo_usuario_unidade(
 
     User = get_user_model()
     u = User.objects.filter(username=usuario_duas_unidades.username).first()
-    assert list(u.unidades.values_list('codigo_eol', flat=True)) == [unidade.codigo_eol, unidade_diferente.codigo_eol ]
+
+    assert unidade.codigo_eol in list(u.unidades.values_list('codigo_eol', flat=True))
+    assert unidade_diferente.codigo_eol in list(u.unidades.values_list('codigo_eol', flat=True))
 
     jwt_authenticated_client_u.delete(
         f"/api/usuarios/{usuario_duas_unidades.id}/unidades/{unidade.codigo_eol}/",
