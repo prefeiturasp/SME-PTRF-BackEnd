@@ -82,14 +82,14 @@ def devolucoes_ao_tesouro_ata(ata, prestacao_de_contas):
 
 def presentes_ata(ata):
     from .membro_associacao_service import retorna_membros_do_conselho_fiscal_por_associacao
-    presentes_ata_membros = Participante.objects.filter(ata=ata).filter(membro=True).values()
+    presentes_ata_membros_ordenados = Participante.participantes_ordenados_por_cargo(ata, True)
     presentes_ata_nao_membros = Participante.objects.filter(ata=ata).filter(membro=False).filter(
         conselho_fiscal=False).order_by('nome').values()
 
     presentes_ata_conselho_fiscal = retorna_membros_do_conselho_fiscal_por_associacao(ata.associacao)
 
     presentes_na_ata = {
-        "presentes_ata_membros": presentes_ata_membros,
+        "presentes_ata_membros": presentes_ata_membros_ordenados,
         "presentes_ata_nao_membros": presentes_ata_nao_membros,
         "presentes_ata_conselho_fiscal": presentes_ata_conselho_fiscal,
     }
