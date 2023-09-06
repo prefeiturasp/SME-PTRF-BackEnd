@@ -832,7 +832,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_conso
                         'tipo_conta': info.get('tipo_conta'),
                         'encerrada_em': info.get('encerrada_em'),
                         'exibe_valores': False,
-                        'mensagem_movimentacao_financeira': 'Não houve movimentação financeira.',
+                        'mensagem_movimentacao_financeira': 'Conta inativa.',
                         'custeio': None,
                         'capital': None,
                         'livre': None,

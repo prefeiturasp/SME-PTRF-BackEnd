@@ -44,7 +44,7 @@
           </td>
         {% endif %}
 
-        {% if conta.exibe_valores %} {% comment %} Caso exista valores eles são exibidos, senão exibe uma mensagem que vem do back - Não houve movimentação financeira. {% endcomment %}
+        {% if conta.exibe_valores %} {% comment %} Caso exista valores eles são exibidos, senão exibe uma mensagem que vem do back - Conta inativa. {% endcomment %}
 
             <td rowspan="8">
               {{ conta.tipo_conta }}
