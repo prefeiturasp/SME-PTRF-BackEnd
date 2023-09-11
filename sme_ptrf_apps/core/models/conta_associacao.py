@@ -52,6 +52,7 @@ class ContaAssociacao(ModeloBase):
     agencia = models.CharField('Nº agência',  max_length=15, blank=True, default='')
     numero_conta = models.CharField('Nº conta', max_length=30, blank=True, default='')
     numero_cartao = models.CharField('Nº do cartão', max_length=80, blank=True, default='')
+    data_inicio = models.DateField(verbose_name='Data de início da conta', blank=True, null=True)
 
     objects = models.Manager()
     ativas_com_solicitacao_em_aberto = ContasAtivasComSolicitacaoEmAberto()
