@@ -86,12 +86,17 @@ def get_acao_associacao(acao, associacao):
     return AcaoAssociacao.objects.create(acao=acao, associacao=associacao)
 
 
-def get_conta_associacao(tipo_conta, associacao):
+def get_conta_associacao(tipo_conta, associacao, nome_arquivo=None):
     if ContaAssociacao.objects.filter(tipo_conta=tipo_conta, associacao=associacao).exists():
         return ContaAssociacao.objects.filter(tipo_conta=tipo_conta, associacao=associacao).get()
 
     logger.info(f"Conta Associação {tipo_conta.nome} não encontrada. Registro será criado.")
-    return ContaAssociacao.objects.create(tipo_conta=tipo_conta, associacao=associacao)
+    if nome_arquivo:
+        start, end = get_datas_periodo(nome_arquivo)
+        start_converted_date = start.date()
+        return ContaAssociacao.objects.create(tipo_conta=tipo_conta, associacao=associacao, data_inicio=start_converted_date)
+    else:
+        return ContaAssociacao.objects.create(tipo_conta=tipo_conta, associacao=associacao)
 
 
 def get_datas_periodo(nome_arquivo):
@@ -165,7 +170,7 @@ def processa_repasse(reader, tipo_conta, arquivo):
                 verifica_tipo_aplicacao(row[__ACAO], valor_capital, valor_custeio, valor_livre)
 
                 acao_associacao = get_acao_associacao(acao, associacao)
-                conta_associacao = get_conta_associacao(tipo_conta, associacao)
+                conta_associacao = get_conta_associacao(tipo_conta, associacao, nome_arquivo)
 
                 id_linha = get_id_linha(row[__ID_LINHA])
 
@@ -186,6 +191,13 @@ def processa_repasse(reader, tipo_conta, arquivo):
                 if associacao.encerrada:
                     msg_erro = f'A associação foi encerrada em {associacao.data_de_encerramento.strftime("%d/%m/%Y")}. Linha ID:{index}'
                     raise Exception(msg_erro)
+
+                if conta_associacao and conta_associacao.data_inicio:
+                    start, end = get_datas_periodo(nome_arquivo)
+                    start_converted_date = start.date()
+                    if start_converted_date < conta_associacao.data_inicio:
+                        msg_erro = f"O período informado de repasse é anterior ao período de criação da conta."
+                        raise Exception(msg_erro)
 
                 if valor_capital > 0 or valor_custeio > 0 or valor_livre > 0:
                     Repasse.objects.create(
