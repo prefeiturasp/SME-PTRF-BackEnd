@@ -255,6 +255,23 @@ class ContaAssociacao(ModeloBase):
 
         return info
 
+    def conta_criada_no_periodo_ou_periodo_anteriores(self, periodo):
+        from sme_ptrf_apps.core.models import Periodo
+
+        if not self.data_inicio:
+            return False
+
+        periodo_da_data = Periodo.da_data(self.data_inicio)
+        if periodo_da_data == periodo:
+            return True
+
+        periodos_anteriores = Periodo.objects.filter(
+            data_inicio_realizacao_despesas__lt=periodo.data_inicio_realizacao_despesas).order_by('-referencia')
+        if periodo_da_data in list(periodos_anteriores):
+            return True
+
+        return False
+
     @property
     def msg_sucesso_ao_encerrar(self):
         mensagem = self.valida_status_valores_reprogramados()["mensagem"]
