@@ -351,6 +351,11 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publica
             )
 
         for fechamento in fechamentos:
+            conta_associacao = fechamento.conta_associacao
+
+            if not conta_associacao.conta_criada_no_periodo_ou_periodo_anteriores(periodo=periodo):
+                continue
+
             totais = _soma_fechamento(totais, fechamento)
             totais = _soma_receitas_tipo_rendimento(
                 periodo=periodo,
@@ -395,6 +400,10 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publica
             ).distinct()
 
         for previsao in previsoes:
+            conta_associacao = previsao.conta_associacao
+            if not conta_associacao.conta_criada_no_periodo_ou_periodo_anteriores(periodo=periodo):
+                continue
+
             totais['repasses_previstos_sme_custeio'] += previsao.valor_custeio
             totais['repasses_previstos_sme_capital'] += previsao.valor_capital
             totais['repasses_previstos_sme_livre'] += previsao.valor_livre
@@ -430,6 +439,10 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publica
             ).distinct("pk")
 
         for devolucao in devolucoes:
+            conta_associacao = devolucao.despesa__rateios__conta_associacao
+            if not conta_associacao.conta_criada_no_periodo_ou_periodo_anteriores(periodo=periodo):
+                continue
+
             totais['devolucoes_ao_tesouro_no_periodo_total'] += devolucao.valor
 
         return totais
@@ -1109,6 +1122,9 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
         objeto_tipo_de_conta = []
 
         for conta_associacao in associacao.contas.all():
+
+            if not conta_associacao.conta_criada_no_periodo_ou_periodo_anteriores(periodo=periodo):
+                continue
 
             totais = _totalizador_zerado()
 
