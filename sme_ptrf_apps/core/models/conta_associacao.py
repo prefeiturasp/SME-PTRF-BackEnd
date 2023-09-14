@@ -111,6 +111,9 @@ class ContaAssociacao(ModeloBase):
     def ativa_no_periodo(self, periodo):
         from sme_ptrf_apps.core.models import SolicitacaoEncerramentoContaAssociacao
 
+        if not self.conta_criada_no_periodo_ou_periodo_anteriores(periodo=periodo):
+            return False
+
         if hasattr(self, 'solicitacao_encerramento'):
             if self.solicitacao_encerramento.status != SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA:
                 data_encerramento = self.solicitacao_encerramento.data_de_encerramento_na_agencia

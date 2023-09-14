@@ -517,7 +517,8 @@ def conta_associacao(associacao, tipo_conta):
         banco_nome='Banco do Brasil',
         agencia='12345',
         numero_conta='123456-x',
-        numero_cartao='534653264523'
+        numero_cartao='534653264523',
+        data_inicio=date(2019, 1, 1)
     )
 
 @pytest.fixture
@@ -553,7 +554,8 @@ def conta_associacao_cheque(associacao, tipo_conta_cheque):
     return baker.make(
         'ContaAssociacao',
         associacao=associacao,
-        tipo_conta=tipo_conta_cheque
+        tipo_conta=tipo_conta_cheque,
+        data_inicio=date(2019, 1, 1)
     )
 
 
@@ -562,7 +564,8 @@ def conta_associacao_cartao(associacao, tipo_conta_cartao):
     return baker.make(
         'ContaAssociacao',
         associacao=associacao,
-        tipo_conta=tipo_conta_cartao
+        tipo_conta=tipo_conta_cartao,
+        data_inicio=date(2019, 1, 1)
     )
 
 
@@ -572,7 +575,8 @@ def conta_associacao_inativa(associacao, tipo_conta):
         'ContaAssociacao',
         associacao=associacao,
         tipo_conta=tipo_conta,
-        status=ContaAssociacao.STATUS_INATIVA
+        status=ContaAssociacao.STATUS_INATIVA,
+        data_inicio=date(2019, 1, 1)
     )
 
 @pytest.fixture
@@ -582,7 +586,8 @@ def conta_associacao_inativa_x(associacao, tipo_conta):
         associacao=associacao,
         tipo_conta=tipo_conta,
         banco_nome='Bando X',
-        status=ContaAssociacao.STATUS_INATIVA
+        status=ContaAssociacao.STATUS_INATIVA,
+        data_inicio=date(2019, 1, 1)
     )
 
 @pytest.fixture
