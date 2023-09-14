@@ -472,7 +472,7 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
             dre=dre,
             periodo=periodo
         ).exclude(
-            id__gt=consolidado_dre.id
+            id__gte=consolidado_dre.id
         ).aggregate(qtde_publicacoes_anteriores=Coalesce(Count('prestacoes_de_conta_do_consolidado_dre'), Value(0)))[
             'qtde_publicacoes_anteriores']
 
@@ -510,11 +510,7 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
 
         quantidade_retificadas = 0
     else:
-        quantidade_publicacoes_anteriores = ConsolidadoDRE.objects.filter(
-            dre=dre,
-            periodo=periodo
-        ).aggregate(qtde_publicacoes_anteriores=Coalesce(Count('prestacoes_de_conta_do_consolidado_dre'), Value(0)))['qtde_publicacoes_anteriores']
-
+        quantidade_publicacoes_anteriores = 0
         quantidade_aprovada = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'APROVADA'][0]
         quantidade_aprovada_ressalva = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'APROVADA_RESSALVA'][0]
         quantidade_nao_aprovada = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'REPROVADA'][0]
@@ -531,7 +527,6 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
             - quantidade_nao_aprovada \
             - quantidade_em_analise \
             - quantidade_publicacoes_anteriores \
-            - quantidade_retificadas
 
     # (-) todos os outros status com exceção dos quantidade_recebida e quantidade_devolvida (Porque não aparecem nesse bloco)
     elif not eh_consolidado_de_publicacoes_parciais:
