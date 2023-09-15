@@ -93,11 +93,24 @@ def get_acao_associacao(acao, associacao):
     return AcaoAssociacao.objects.create(acao=acao, associacao=associacao)
 
 
-def get_conta_associacao(tipo_conta, associacao):
+def get_conta_associacao(tipo_conta, associacao, periodo=None):
     if ContaAssociacao.objects.filter(tipo_conta=tipo_conta, associacao=associacao).exists():
         return ContaAssociacao.objects.filter(tipo_conta=tipo_conta, associacao=associacao).get()
 
-    return ContaAssociacao.objects.create(tipo_conta=tipo_conta, associacao=associacao)
+    logger.info(f"Conta Associação {tipo_conta.nome} não encontrada. Registro será criado.")
+    if periodo:
+        start, end = get_datas_periodo(periodo)
+        return ContaAssociacao.objects.create(tipo_conta=tipo_conta, associacao=associacao,
+                                              data_inicio=start)
+    else:
+        return ContaAssociacao.objects.create(tipo_conta=tipo_conta, associacao=associacao)
+
+
+def get_datas_periodo(periodo):
+    start = periodo.data_inicio_realizacao_despesas
+    end = periodo.data_fim_realizacao_despesas
+
+    return (start, end)
 
 
 def get_periodo(referencia):
@@ -180,7 +193,7 @@ def processa_repasse(reader, tipo_conta, arquivo):
             verifica_tipo_aplicacao(str(row[ACAO]).strip(" "), valor_capital, valor_custeio, valor_livre)
 
             acao_associacao = get_acao_associacao(acao, associacao)
-            conta_associacao = get_conta_associacao(tipo_conta, associacao)
+            conta_associacao = get_conta_associacao(tipo_conta, associacao, periodo)
 
 
             repasse_anterior = Repasse.objects.filter(
@@ -194,6 +207,12 @@ def processa_repasse(reader, tipo_conta, arquivo):
                 repasse_anterior.delete()
                 logger.info(f'O repasse da linha de id {id_linha} já foi importado anteriormente. Anterior e suas receitas apagados.'
                             f'{id_linha if id_linha else ""}')
+
+            if conta_associacao and conta_associacao.data_inicio:
+                start, end = get_datas_periodo(periodo)
+                if start < conta_associacao.data_inicio:
+                    msg_erro = f"O período informado de repasse é anterior ao período de criação da conta."
+                    raise Exception(msg_erro)
 
             if valor_capital > 0 or valor_custeio > 0 or valor_livre > 0:
                 repasse = Repasse.objects.create(
