@@ -3,6 +3,7 @@ import pytest
 from rest_framework import status
 
 from sme_ptrf_apps.core.models import SolicitacaoEncerramentoContaAssociacao
+from sme_ptrf_apps.core.models.conta_associacao import ContaAssociacao
 pytestmark = pytest.mark.django_db
 
 def test_reenviar_solicitacao_encerramento_conta_associacao(jwt_authenticated_client_a, solicitacao_encerramento_reprovada, payload_reenviar_solicitacao):
@@ -41,11 +42,14 @@ def test_rejeitar_solicitacao_encerramento_conta_associacao(jwt_authenticated_cl
         f'/api/solicitacoes-encerramento-conta/{solicitacao_encerramento.uuid}/rejeitar/',
         data=json.dumps(payload_rejeitar_solicitacao),
         content_type='application/json')
+    
+    conta = ContaAssociacao.objects.get(uuid=response.json()['conta_associacao'])
 
     assert response.json()['status'] == SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA
     assert response.json()['motivos_rejeicao']
     assert response.json()['outros_motivos_rejeicao'] == 'UE com pendências cadastrais.'
     assert response.status_code == status.HTTP_200_OK
+    assert conta.status == ContaAssociacao.STATUS_ATIVA
 
 def test_validacao_rejeitar_solicitacao_encerramento_conta_associacao(jwt_authenticated_client_a, solicitacao_encerramento_reprovada):
     response = jwt_authenticated_client_a.patch(
