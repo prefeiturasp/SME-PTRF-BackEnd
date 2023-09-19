@@ -1,5 +1,9 @@
+import waffle
+
+from waffle.decorators import waffle_flag
+
 from django.conf import settings
-from django.urls import path
+from django.urls import path, include
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter, SimpleRouter
@@ -38,7 +42,8 @@ from sme_ptrf_apps.core.api.views import (
     AnaliseDocumentoPrestacaoContaViewSet,
     FalhaGeracaoPcViewSet,
     SolicitacaoEncerramentoContaAssociacaoViewset,
-    MotivoRejeicaoEncerramentoContaAssociacaoViewset
+    MotivoRejeicaoEncerramentoContaAssociacaoViewset,
+    feature_flags,
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
@@ -88,7 +93,16 @@ from sme_ptrf_apps.mandatos.api.views import MandatosViewSet, ComposicoesViewSet
 
 @api_view()
 def versao(request):
-    return Response({"versao": __version__})
+    versao = __version__
+    if waffle.flag_is_active(request, 'teste-flag'):
+        versao = "teste-flag"
+    return Response({"versao": versao})
+
+
+@api_view()
+@waffle_flag('teste-flag')
+def teste_flag_view(request):
+    return Response({"mensagem": "Se está vendo essa mensagem é porque a teste-flag está ativa."})
 
 
 if settings.DEBUG:
@@ -175,5 +189,7 @@ app_name = "api"
 urlpatterns = router.urls
 urlpatterns += [
     path("versao", versao),
+    path("teste-flag", teste_flag_view),
     path("login", LoginView.as_view()),
+    path("feature-flags", feature_flags),
 ]

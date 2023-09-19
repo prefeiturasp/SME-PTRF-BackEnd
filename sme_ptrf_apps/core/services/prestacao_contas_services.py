@@ -1532,30 +1532,33 @@ def previa_informacoes_financeiras_para_atas(associacao, periodo):
 
     info_contas = []
     for conta_associacao in associacao.contas.all():
-        logger.info(
-            f'Get prévia info financeiras por conta para a ata. Associacao:{associacao.uuid} Conta:{conta_associacao}')
-        info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=associacao.uuid,
-                                                      periodo=periodo,
-                                                      conta=conta_associacao,
-                                                      apenas_transacoes_do_periodo=True,
-                                                      )
 
-        info_acoes = [info for info in info_acoes if
-                      info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+        # Faz a verificação se a conta deve ser exibida em função da sua data de inicio
+        if conta_associacao.conta_criada_no_periodo_ou_periodo_anteriores(periodo=periodo):
 
-        info_contas.append(
-            {
-                'conta_associacao': {
-                    'uuid': f'{conta_associacao.uuid}',
-                    'nome': f'{conta_associacao.tipo_conta.nome}',
-                    'banco_nome': f'{conta_associacao.banco_nome}',
-                    'agencia': f'{conta_associacao.agencia}',
-                    'numero_conta': f'{conta_associacao.numero_conta}',
-                },
-                'acoes': info_acoes,
-                'totais': totaliza_info_acoes(info_acoes),
-            }
-        )
+            logger.info(f'Get prévia info financeiras por conta para a ata. Associacao:{associacao.uuid} Conta:{conta_associacao}')
+            info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=associacao.uuid,
+                                                          periodo=periodo,
+                                                          conta=conta_associacao,
+                                                          apenas_transacoes_do_periodo=True,
+                                                          )
+
+            info_acoes = [info for info in info_acoes if
+                          info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+
+            info_contas.append(
+                {
+                    'conta_associacao': {
+                        'uuid': f'{conta_associacao.uuid}',
+                        'nome': f'{conta_associacao.tipo_conta.nome}',
+                        'banco_nome': f'{conta_associacao.banco_nome}',
+                        'agencia': f'{conta_associacao.agencia}',
+                        'numero_conta': f'{conta_associacao.numero_conta}',
+                    },
+                    'acoes': info_acoes,
+                    'totais': totaliza_info_acoes(info_acoes),
+                }
+            )
 
     info = {
         'uuid': None,

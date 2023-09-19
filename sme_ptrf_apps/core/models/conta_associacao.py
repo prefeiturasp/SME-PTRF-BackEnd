@@ -52,6 +52,7 @@ class ContaAssociacao(ModeloBase):
     agencia = models.CharField('Nº agência',  max_length=15, blank=True, default='')
     numero_conta = models.CharField('Nº conta', max_length=30, blank=True, default='')
     numero_cartao = models.CharField('Nº do cartão', max_length=80, blank=True, default='')
+    data_inicio = models.DateField(verbose_name='Data de início da conta', blank=True, null=True)
 
     objects = models.Manager()
     ativas_com_solicitacao_em_aberto = ContasAtivasComSolicitacaoEmAberto()
@@ -75,7 +76,7 @@ class ContaAssociacao(ModeloBase):
     def inativa(self):
         return self.status == self.STATUS_INATIVA
 
-    def conta_encerrada_em(self, periodo):
+    def conta_encerrada_em(self, periodo, adiciona_prefixo=True):
         from sme_ptrf_apps.core.models import Periodo
 
         if hasattr(self, 'solicitacao_encerramento'):
@@ -84,7 +85,11 @@ class ContaAssociacao(ModeloBase):
                 periodo_data_encerramento = Periodo.da_data(data_encerramento)
 
                 if periodo_data_encerramento == periodo:
-                    return f"Conta encerrada em {data_encerramento.strftime('%d/%m/%Y')}"
+
+                    if adiciona_prefixo:
+                        return f"Conta encerrada em {data_encerramento.strftime('%d/%m/%Y')}"
+                    else:
+                        return f"{data_encerramento.strftime('%d/%m/%Y')}"
 
         return None
 
@@ -105,6 +110,9 @@ class ContaAssociacao(ModeloBase):
 
     def ativa_no_periodo(self, periodo):
         from sme_ptrf_apps.core.models import SolicitacaoEncerramentoContaAssociacao
+
+        if not self.conta_criada_no_periodo_ou_periodo_anteriores(periodo=periodo):
+            return False
 
         if hasattr(self, 'solicitacao_encerramento'):
             if self.solicitacao_encerramento.status != SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA:
@@ -249,6 +257,23 @@ class ContaAssociacao(ModeloBase):
                 info["possui_solicitacao_encerramento"] = True
 
         return info
+
+    def conta_criada_no_periodo_ou_periodo_anteriores(self, periodo):
+        from sme_ptrf_apps.core.models import Periodo
+
+        if not self.data_inicio:
+            return False
+
+        periodo_da_data = Periodo.da_data(self.data_inicio)
+        if periodo_da_data == periodo:
+            return True
+
+        periodos_anteriores = Periodo.objects.filter(
+            data_inicio_realizacao_despesas__lt=periodo.data_inicio_realizacao_despesas).order_by('-referencia')
+        if periodo_da_data in list(periodos_anteriores):
+            return True
+
+        return False
 
     @property
     def msg_sucesso_ao_encerrar(self):
