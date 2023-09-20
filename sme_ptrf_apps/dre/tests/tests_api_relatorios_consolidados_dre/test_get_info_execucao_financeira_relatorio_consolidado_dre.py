@@ -17,6 +17,7 @@ def conta_associacao_cheque(associacao, tipo_conta_cheque):
         'ContaAssociacao',
         associacao=associacao,
         tipo_conta=tipo_conta_cheque,
+        data_inicio=date(2019, 9, 1)
     )
 
 
@@ -26,6 +27,7 @@ def conta_associacao_cartao(associacao, tipo_conta_cartao):
         'ContaAssociacao',
         associacao=associacao,
         tipo_conta=tipo_conta_cartao,
+        data_inicio=date(2019, 9, 1)
     )
 
 

@@ -461,9 +461,9 @@ class AssociacoesViewSet(ModelViewSet):
     @action(detail=False, url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, request):
-        
+
         filtros_informacoes_associacao_dre = request.query_params.get('filtros_informacoes_associacao_dre')
-        
+
         result = {
             'tipos_unidade': Unidade.tipos_unidade_to_json(),
             'dres': Unidade.dres_to_json(),
@@ -504,9 +504,16 @@ class AssociacoesViewSet(ModelViewSet):
         contas = list(ContaAssociacao.objects.filter(associacao=associacao).all())
         atualiza_dados_unidade(associacao)
 
-        html_string = render_to_string('pdf/associacoes/exportarpdf/pdf.html',
-                                       {'associacao': associacao, 'contas': contas, 'dataAtual': data_atual,
-                                        'usuarioLogado': usuario_logado}).encode(encoding="UTF-8")
+        html_string = render_to_string(
+            'pdf/associacoes/exportarpdf/pdf.html',
+            {
+                'associacao': associacao,
+                'contas': contas,
+                'dataAtual': data_atual,
+                'usuarioLogado': usuario_logado
+            },
+            request=self.request  # Inclua o request aqui
+        ).encode(encoding="UTF-8")
 
         html_pdf = HTML(string=html_string, base_url=self.request.build_absolute_uri()).write_pdf()
 

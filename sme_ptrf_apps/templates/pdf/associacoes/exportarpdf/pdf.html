@@ -1,3 +1,5 @@
+{% load waffle_tags %}
+
 <!DOCTYPE html>
 
 <html>
@@ -21,6 +23,10 @@
         </table>
 
             <h1 class="titulo">Ficha cadastral da associação e do presidente</h1>
+
+            {% flag "teste-flag" %}
+              <h2>Teste flag está ativo!</h2>
+            {% endflag %}
 
 
     <table>
