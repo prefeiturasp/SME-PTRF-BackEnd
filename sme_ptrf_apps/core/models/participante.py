@@ -58,6 +58,26 @@ class Participante(ModeloBase):
         }
 
         return result
+    
+    @staticmethod
+    def ordenar_por_cargo(participante):
+        cargos = {
+            'Presidente da diretoria executiva': 1,
+            'Vice-Presidente da diretoria executiva': 2,
+            'Secretário': 3,
+            'Tesoureiro': 4,
+            'Vogal': 5,
+            'Presidente do conselho fiscal': 6,
+            'Conselheiro': 7,
+        }
+        return cargos.get(participante['cargo'], 8)  # 8 para cargos não listados
+    
+    @classmethod
+    def participantes_ordenados_por_cargo(cls, ata, membro):
+        presentes_ata_membros = cls.objects.filter(ata=ata, membro=membro).values()
+        
+        presentes_ata_membros_ordenados = sorted(presentes_ata_membros, key=cls.ordenar_por_cargo)
+        return presentes_ata_membros_ordenados
 
     class Meta:
         verbose_name = "Participantes ata"

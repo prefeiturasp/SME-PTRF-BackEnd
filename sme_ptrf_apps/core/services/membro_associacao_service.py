@@ -2,6 +2,7 @@ import logging
 from functools import reduce
 from django.db.models import Q
 from operator import or_
+from operator import itemgetter
 
 import requests
 from django.conf import settings
@@ -110,6 +111,7 @@ def retorna_membros_do_conselho_fiscal_por_associacao(associacao):
         reduce(or_, [Q(cargo_associacao__icontains=c) for c in cargos_membros_conselho_fiscal]))
 
     lista_content = []
+    presidente = None
 
     for membro in result:
         content = {
@@ -123,6 +125,12 @@ def retorna_membros_do_conselho_fiscal_por_associacao(associacao):
             'uuid': membro.uuid,
         }
 
-        lista_content.append(content)
+        if "PRESIDENTE_CONSELHO_FISCAL" in membro.cargo_associacao:
+            presidente = content
+        else:
+            lista_content.append(content)
+
+    if presidente:
+        lista_content.insert(0, presidente)
 
     return lista_content
