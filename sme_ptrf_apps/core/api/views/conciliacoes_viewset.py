@@ -374,9 +374,11 @@ class ConciliacoesViewSet(GenericViewSet):
 
         if info_solicitacao["possui_solicitacao_encerramento"]:
             result = {
-                'data_extrato': info_solicitacao["data_encerramento"],
-                'saldo_extrato': info_solicitacao["saldo"],
+                'data_encerramento': info_solicitacao["data_encerramento"],
+                'saldo_encerramewnto': info_solicitacao["saldo"],
                 'possui_solicitacao_encerramento': info_solicitacao["possui_solicitacao_encerramento"],
+                'data_extrato': observacao.data_extrato if observacao else None,
+                'saldo_extrato': observacao.saldo_extrato if observacao else None,
                 'observacao_uuid': observacao.uuid if observacao else None,
                 'observacao': observacao.texto if observacao else None,
                 'comprovante_extrato': comprovante_extrato_nome if observacao else None,

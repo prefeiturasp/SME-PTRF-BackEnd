@@ -9,17 +9,17 @@
     </th>
   </tr>
   <tr>
-    <th style="width: 3%">19 - Ordem</th>
-    <th style="width: 15%">20 - Unidade</th>
-    <th style="width: 5%">21 - Conta</th>
-    <th colspan="2">22 - Reprogramado do período anterior</th>
-    <th colspan="2">23 - Transferido pela DRE</th>
-    <th colspan="2">24 - Outros créditos</th>
-    <th colspan="2">25 - Valor total disponível</th>
-    <th colspan="2">26 - Despesa realizada</th>
-    <th colspan="2">27 - Saldo reprogramado para<br/>o próximo período</th>
-    <th colspan="2">28 - Devolução ao Tesouro</th>
-    <th>29 - Situação da PC</th>
+    <th style="width: 3%">20 - Ordem</th>
+    <th style="width: 15%">21 - Unidade</th>
+    <th style="width: 7%">22 - Conta</th>
+    <th colspan="2">23 - Reprogramado do período anterior</th>
+    <th colspan="2">24 - Transferido pela DRE</th>
+    <th colspan="2">25 - Outros créditos</th>
+    <th colspan="2">26 - Valor total disponível</th>
+    <th colspan="2">27 - Despesa realizada</th>
+    <th colspan="2">28 - Saldo reprogramado para<br/>o próximo período</th>
+    <th colspan="2">29 - Devolução ao Tesouro</th>
+    <th>30 - Situação da PC</th>
   </tr>
   </thead>
 
@@ -46,7 +46,15 @@
 
         {% if conta.exibe_valores %} {% comment %} Caso exista valores eles são exibidos, senão exibe uma mensagem que vem do back - Conta inativa. {% endcomment %}
 
-            <td rowspan="8">{{ conta.tipo_conta }}</td>
+            <td rowspan="8">
+              {{ conta.tipo_conta }}
+
+              {% if conta.encerrada_em %}
+                <br/>
+                <span class="mt-2"><strong>Encerrada</strong> em: {{conta.encerrada_em}}</span>
+              {% endif %}
+
+            </td>
 
             <td rowSpan="2" style="width: 4%;">C</td>
             <td rowSpan="2" class="text-right">{{ conta.custeio.saldo_reprogramado_anterior_custeio }}</td>
@@ -147,7 +155,14 @@
 
       {% else %} {% comment %} if conta.exibe_valores {% endcomment %}
           <tr>
-            <td class="py-2">{{ conta.tipo_conta }}</td>
+            <td class="py-2">
+              {{ conta.tipo_conta }}
+
+              {% if conta.encerrada_em %}
+                <br/>
+                <span class="mt-2"><strong>Encerrada</strong> em: {{conta.encerrada_em}}</span>
+              {% endif %}
+            </td>
             <td class="py-2" colspan="12">{{ conta.mensagem_movimentacao_financeira }}</td>
             {% if forloop.counter == 1 %}
               <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>T</strong></td>

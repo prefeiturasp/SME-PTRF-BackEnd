@@ -76,7 +76,8 @@ def ata_conta_associacao_cartao(associacao, ata_tipo_conta_cartao):
     return baker.make(
         'ContaAssociacao',
         associacao=associacao,
-        tipo_conta=ata_tipo_conta_cartao
+        tipo_conta=ata_tipo_conta_cartao,
+        data_inicio=datetime.date(2019, 1, 1)
     )
 
 
