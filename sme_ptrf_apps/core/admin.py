@@ -150,12 +150,11 @@ class AssociacaoAdmin(admin.ModelAdmin):
 
 @admin.register(ContaAssociacao)
 class ContaAssociacaoAdmin(admin.ModelAdmin):
-    list_display = ('associacao', 'tipo_conta', 'status')
+    list_display = ('associacao', 'tipo_conta', 'status', 'data_inicio')
     search_fields = ('uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
-    list_filter = ('status', 'tipo_conta', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre',)
+    list_filter = ('status', 'tipo_conta', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre', ('data_inicio', DateRangeFilter),)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     raw_id_fields = ('associacao',)
-
 
 
 @admin.register(AcaoAssociacao)

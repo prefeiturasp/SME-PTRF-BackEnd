@@ -106,6 +106,7 @@ class SolicitacaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
         solicitacao.motivos_rejeicao.set(motivos)
         solicitacao.outros_motivos_rejeicao = outros_motivos_rejeicao
         solicitacao.reprovar()
+        solicitacao.conta_associacao.ativar()
 
         serializer = self.get_serializer(solicitacao)
 

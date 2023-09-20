@@ -472,7 +472,7 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
             dre=dre,
             periodo=periodo
         ).exclude(
-            id__gt=consolidado_dre.id
+            id__gte=consolidado_dre.id
         ).aggregate(qtde_publicacoes_anteriores=Coalesce(Count('prestacoes_de_conta_do_consolidado_dre'), Value(0)))[
             'qtde_publicacoes_anteriores']
 
@@ -481,6 +481,8 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
                                                                         publicada=publicada).count()
         quantidade_nao_aprovada = prestacoes_do_consolidado.filter(status="REPROVADA", publicada=publicada).count()
         # Fim Dados do Consolidado DRE Retificacao
+
+        quantidade_retificadas = consolidado_dre.pcs_do_consolidado.all().count()
 
     # Se não for o Consolidado de Publicações Parciais
     elif not eh_consolidado_de_publicacoes_parciais:
@@ -505,21 +507,17 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
         quantidade_aprovada_ressalva = prestacoes_do_consolidado.filter(status="APROVADA_RESSALVA", publicada=publicada).count()
         quantidade_nao_aprovada = prestacoes_do_consolidado.filter(status="REPROVADA", publicada=publicada).count()
         # Fim Dados do Consolidado DRE
-    else:
-        quantidade_publicacoes_anteriores = ConsolidadoDRE.objects.filter(
-            dre=dre,
-            periodo=periodo
-        ).aggregate(qtde_publicacoes_anteriores=Coalesce(Count('prestacoes_de_conta_do_consolidado_dre'), Value(0)))['qtde_publicacoes_anteriores']
 
+        quantidade_retificadas = 0
+    else:
+        quantidade_publicacoes_anteriores = 0
         quantidade_aprovada = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'APROVADA'][0]
         quantidade_aprovada_ressalva = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'APROVADA_RESSALVA'][0]
         quantidade_nao_aprovada = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'REPROVADA'][0]
 
+        quantidade_retificadas = 0
 
     quantidade_em_analise = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'EM_ANALISE'][0]
-    quantidade_recebida = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'RECEBIDA'][0]
-    quantidade_devolvida = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'DEVOLVIDA'][0]
-    quantidade_nao_recebida = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'NAO_RECEBIDA'][0]
 
     if consolidado_dre and consolidado_dre.eh_retificacao:
         quantidade_nao_apresentada = \
@@ -528,7 +526,7 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
             - quantidade_aprovada_ressalva \
             - quantidade_nao_aprovada \
             - quantidade_em_analise \
-            - quantidade_publicacoes_anteriores
+            - quantidade_publicacoes_anteriores \
 
     # (-) todos os outros status com exceção dos quantidade_recebida e quantidade_devolvida (Porque não aparecem nesse bloco)
     elif not eh_consolidado_de_publicacoes_parciais:
@@ -548,13 +546,12 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
             - quantidade_em_analise
 
     total = \
-        quantidade_nao_recebida \
-        + quantidade_aprovada \
+        quantidade_aprovada \
         + quantidade_aprovada_ressalva \
         + quantidade_nao_aprovada \
         + quantidade_em_analise \
-        + quantidade_recebida \
-        + quantidade_devolvida
+        + quantidade_nao_apresentada \
+        + quantidade_publicacoes_anteriores
 
     execucao_fisica = {
         "ues_da_dre": dre.unidades_da_dre.count(),
@@ -566,6 +563,7 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
         "analise": quantidade_em_analise,
         "nao_apresentadas": quantidade_nao_apresentada,
         "publicadas_anteriormente": quantidade_publicacoes_anteriores,
+        "ues_retificadas": quantidade_retificadas,
         "total": total
     }
 
@@ -817,6 +815,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_conso
                 lista_de_informacoes_por_conta.append(
                     {
                         'tipo_conta': info.get('tipo_conta'),
+                        'encerrada_em': info.get('encerrada_em'),
                         'exibe_valores': True,
                         'mensagem_movimentacao_financeira': '',
                         'custeio': dados["custeio"],
@@ -829,6 +828,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_conso
                 lista_de_informacoes_por_conta.append(
                     {
                         'tipo_conta': info.get('tipo_conta'),
+                        'encerrada_em': info.get('encerrada_em'),
                         'exibe_valores': False,
                         'mensagem_movimentacao_financeira': 'Conta inativa.',
                         'custeio': None,
