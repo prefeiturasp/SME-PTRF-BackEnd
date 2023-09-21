@@ -39,19 +39,19 @@ pipeline {
         //  }
         //}
 
-        stage('Istalando dependencias') {
-          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
-          agent { kubernetes { 
-                  label 'python310'
-                  defaultContainer 'python310'
-                }
-              } 
-          steps {
-            checkout scm
-            sh 'pip install --user pipenv -r requirements/local.txt'
-          }
+        //stage('Istalando dependencias') {
+        //  when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
+        //  agent { kubernetes { 
+        //          label 'python310'
+        //          defaultContainer 'python310'
+        //        }
+        //      } 
+        //  steps {
+        //    checkout scm
+        //    sh 'pip install --user pipenv -r requirements/local.txt'
+        //  }
 
-        }
+        //}
 
 
             stage('Testes Lint') {
