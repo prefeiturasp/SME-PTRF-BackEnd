@@ -88,8 +88,10 @@ pipeline {
                 }
               } 
               steps {
-                sh '''
-                   export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
+                   checkout scm
+                   sh 'pip install --user pipenv -r requirements/local.txt' //instalação das dependências
+                   sh '''
+		   python manage.py collectstatic --noinput	
                    coverage run -m pytest
                    coverage xml
                    '''
