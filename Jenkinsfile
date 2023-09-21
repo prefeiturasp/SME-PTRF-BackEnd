@@ -88,17 +88,20 @@ pipeline {
                 }
               } 
               steps {
-                sh '''
+                   checkout scm
+                   sh 'pip install --user pipenv -r requirements/local.txt' //instalação das dependências
+                   sh '''
+		               python manage.py collectstatic --noinput	
                    coverage run -m pytest
                    coverage xml
                    '''
               }
-              post {
-                success{
-                    //Publicando arquivo de cobertura
-                    publishCoverage adapters: [cobertura('coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
-                }
-              }
+            // post {
+             //   success{
+             //       //Publicando arquivo de cobertura
+             //       publishCoverage adapters: [cobertura('coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
+             //   }
+              //}
             }
 
         stage('AnaliseCodigo') {
