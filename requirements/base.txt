@@ -9,22 +9,38 @@ django-auditlog==2.0.0
 # ------------------------------------------------------------------------------
 drf-spectacular==0.26.2                 # Auto-generate OpenAPI 3.0 schemas from Django Rest Framework code
 
+# Django Admin Interface
+# Para melhoria da aparência do Django Admin
+# ------------------------------------------------------------------------------
+django-admin-interface==0.26.1
+
 # Celery
 # ------------------------------------------------------------------------------
 celery==5.2.1
 flower==1.2.0  # https://github.com/mher/flower
 
-# Outras
+# Solução para features flags
 # ------------------------------------------------------------------------------
-Pillow==8.4.0
 django-waffle==4.0.0
+
+# Outras dependências
+# ------------------------------------------------------------------------------
+Pillow==9.5.0
+python-slugify==8.0.1
+django-allauth==0.56.1
+django-ckeditor==6.7.0
+django-compressor==4.4
+rcssmin==1.1.1
+
+# Django DES - EmailBackend that allows email configuration to be changed while the server is running.
+# Fork do django-des para suportar o Django 4
+git+https://github.com/prefeiturasp/django-des-fork.git#egg=django-des
+
 
 # DEPENDENCIAS AINDA NÃO REVISTAS
 
 pytz==2019.3  # https://github.com/stub42/pytz
-python-slugify==4.0.0  # https://github.com/un33k/python-slugify
 
-rcssmin==1.0.6  # https://github.com/ndparker/rcssmin
 argon2-cffi==19.2.0  # https://github.com/hynek/argon2_cffi
 whitenoise==5.0.1  # https://github.com/evansd/whitenoise
 redis==3.4.1 # https://github.com/andymccurdy/redis-py
@@ -36,13 +52,10 @@ openpyxl==3.0.3
 # ------------------------------------------------------------------------------
 django-environ==0.4.5  # https://github.com/joke2k/django-environ
 django-model-utils==4.0.0  # https://github.com/jazzband/django-model-utils
-django-allauth==0.41.0  # https://github.com/pennersr/django-allauth
 django-crispy-forms==1.9.0  # https://github.com/django-crispy-forms/django-crispy-forms
-django-compressor==2.4  # https://github.com/django-compressor/django-compressor
+
 django-redis==4.11.0  # https://github.com/niwinz/django-redis
 django-admin-rangefilter==0.5.4 # https://github.com/silentsokolov/django-admin-rangefilter
-django-des==2.4.1  # https://github.com/jamiecounsell/django-des
-django-ckeditor==5.9.0
 
 # Django REST Framework
 djangorestframework==3.11.0  # https://github.com/encode/django-rest-framework
@@ -60,9 +73,6 @@ django-cors-headers # https://github.com/adamchainz/django-cors-headers
 # https://github.com/poliquin/brazilnum
 brazilnum==0.8.8
 
-# Para melhoria da aparência do Django Admin
-# https://github.com/fabiocaccamo/django-admin-interface
-django-admin-interface==0.12.2
 sentry-sdk==0.14.2  # https://github.com/getsentry/sentry-python
 
 # Gerador de PDF
