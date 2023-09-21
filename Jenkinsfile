@@ -4,9 +4,11 @@ pipeline {
       kubeconfig = getKubeconf(env.branchname)
       registryCredential = 'jenkins_registry'
     }
-    agent {
-      kubernetes { label 'AGENT' }
-    }
+    agent { kubernetes { 
+                  label 'builder'
+                  defaultContainer 'builder'
+                }
+              } 
 
 
     options {
