@@ -165,29 +165,29 @@ pipeline {
             }
 
         stage('Deploy Ambientes'){
-          withCredentials([file(credentialsId: "config_release", variable: 'config')]){
-            when { anyOf {  branch 'master'; branch 'main' } }
+              when { anyOf {  branch 'master'; branch 'main' } }
               parallel {
               stage('Deploy Treino'){
+                withCredentials([file(credentialsId: "config_release", variable: 'config')]){
                 steps {
 		              sh('cp $config '+"$home"+'/.kube/config')	
                   sh 'kubectl rollout restart deployment/treinamento-backend -n sme-ptrf-treino'
                   sh 'kubectl rollout restart deployment/treinamento-celery -n sme-ptrf-treino'
                   sh 'kubectl rollout restart deployment/treinamento-flower -n sme-ptrf-treino'
-		 
+                }
                 }
               }
               stage('Deploy Treino2'){
+                withCredentials([file(credentialsId: "config_release", variable: 'config')]){
                 steps {
                   sh 'kubectl rollout restart deployment/treinamento-backend -n sme-ptrf-treino2'
                   sh 'kubectl rollout restart deployment/treinamento-celery -n sme-ptrf-treino2'
                   sh 'kubectl rollout restart deployment/treinamento-flower -n sme-ptrf-treino2'
                 }
               }
-
+              }
             }
           }
-        }
       }
       }
 
