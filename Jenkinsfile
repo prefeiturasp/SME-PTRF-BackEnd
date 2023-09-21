@@ -47,11 +47,8 @@ pipeline {
 	    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                   sh '''
                     pwd
-		    //whoami
-		    //export PATH=$PATH:/root/.local/bin	
-                    python manage.py collectstatic --noinput
-		    //find . -name flake8		
-                    flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests --output-file=flake8-output.txt
+		    python manage.py collectstatic --noinput
+		    flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests --output-file=flake8-output.txt
                     '''
                 }	  
           }
