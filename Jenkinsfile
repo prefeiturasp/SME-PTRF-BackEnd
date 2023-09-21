@@ -24,20 +24,20 @@ pipeline {
             steps { checkout scm }
         }
 
-        stage('Preparando BD') {
-	        when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
-         agent { kubernetes { 
-                  label 'builder'
-                  defaultContainer 'builder'
-                }
-              } 
-          steps {
-            sh '''
-                docker network create python-network
-                docker run -d --rm --cap-add SYS_TIME --name ptrf-db$BUILD_NUMBER$BRANCH_NAME --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres postgres:14-alpine
-               '''
-          }
-        }
+        //stage('Preparando BD') {
+	      //  when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
+        // agent { kubernetes { 
+        //          label 'builder'
+        //          defaultContainer 'builder'
+        //        }
+        //      } 
+        //  steps {
+        //    sh '''
+        //        docker network create python-network
+        //        docker run -d --rm --cap-add SYS_TIME --name ptrf-db$BUILD_NUMBER$BRANCH_NAME --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres postgres:14-alpine
+        //       '''
+        //  }
+        //}
 
         stage('Istalando dependencias') {
           when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
