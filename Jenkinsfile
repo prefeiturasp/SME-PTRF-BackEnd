@@ -168,8 +168,8 @@ pipeline {
               when { anyOf {  branch 'master'; branch 'main' } }
               parallel {
               stage('Deploy Treino'){
-                withCredentials([file(credentialsId: "config_release", variable: 'config')]){
                 steps {
+                  withCredentials([file(credentialsId: "config_release", variable: 'config')]){
 		              sh('cp $config '+"$home"+'/.kube/config')	
                   sh 'kubectl rollout restart deployment/treinamento-backend -n sme-ptrf-treino'
                   sh 'kubectl rollout restart deployment/treinamento-celery -n sme-ptrf-treino'
@@ -178,8 +178,8 @@ pipeline {
                 }
               }
               stage('Deploy Treino2'){
-                withCredentials([file(credentialsId: "config_release", variable: 'config')]){
                 steps {
+                  withCredentials([file(credentialsId: "config_release", variable: 'config')]){
                   sh 'kubectl rollout restart deployment/treinamento-backend -n sme-ptrf-treino2'
                   sh 'kubectl rollout restart deployment/treinamento-celery -n sme-ptrf-treino2'
                   sh 'kubectl rollout restart deployment/treinamento-flower -n sme-ptrf-treino2'
