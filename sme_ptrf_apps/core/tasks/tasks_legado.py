@@ -137,18 +137,18 @@ logger = logging.getLogger(__name__)
 #             task.registra_data_hora_finalizacao(log=e)
 
 
-@shared_task(
-    retry_backoff=2,
-    retry_kwargs={'max_retries': 8},)
-def processa_carga_async(arquivo_uuid):
-    from sme_ptrf_apps.core.services import processa_carga
-    logger.info("Processando arquivo %s", arquivo_uuid)
-    arquivo = Arquivo.objects.filter(uuid=arquivo_uuid).first()
-    if not arquivo:
-        logger.info("Arquivo não encontrado %s", arquivo_uuid)
-    else:
-        logger.info("Arquivo encontrado %s", arquivo_uuid)
-    processa_carga(arquivo)
+# @shared_task(
+#     retry_backoff=2,
+#     retry_kwargs={'max_retries': 8},)
+# def processa_carga_async(arquivo_uuid):
+#     from sme_ptrf_apps.core.services import processa_carga
+#     logger.info("Processando arquivo %s", arquivo_uuid)
+#     arquivo = Arquivo.objects.filter(uuid=arquivo_uuid).first()
+#     if not arquivo:
+#         logger.info("Arquivo não encontrado %s", arquivo_uuid)
+#     else:
+#         logger.info("Arquivo encontrado %s", arquivo_uuid)
+#     processa_carga(arquivo)
 
 
 @shared_task(
