@@ -5,4 +5,5 @@ from .processa_carga import processa_carga_async
 from .gerar_previa_demonstrativo_financeiro import gerar_previa_demonstrativo_financeiro_async
 from .gerar_previa_relacao_de_bens import gerar_previa_relacao_de_bens_async
 from .gerar_arquivo_ata import gerar_arquivo_ata_async
+from .gerar_notificacao_inicio_periodo_pc import gerar_notificacao_inicio_periodo_prestacao_de_contas_async
 
