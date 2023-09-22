@@ -14,7 +14,4 @@ from .gerar_notificacao_proximidade_fim_prazo_ajustes_pc import gerar_notificaca
 from .gerar_xlsx_extrato_dres import gerar_xlsx_extrato_dres_async
 from .gerar_previa_relatorio_acertos import gerar_previa_relatorio_acertos_async
 from .gerar_previa_relacao_apos_acertos import gerar_previa_relatorio_apos_acertos_async
-
-
-
-
+from .gerar_notificacao_encerramento_conta import gerar_notificacao_encerramento_conta_bancaria_async
