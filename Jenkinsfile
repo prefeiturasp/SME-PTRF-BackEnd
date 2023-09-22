@@ -69,7 +69,8 @@ pipeline {
                    sh 'pip install --user pipenv -r requirements/local.txt' //instalação das dependências
                    sh '''
                    export PATH=$PATH:/root/.local/bin
-                   python manage.py collectstatic --noinput	
+                   python manage.py collectstatic --noinput
+		   export POSTGRES_HOST=localhost		
                    coverage run -m pytest
                    coverage xml
                    '''
