@@ -48,8 +48,7 @@ pipeline {
                   sh '''
                     pwd
 		    export PATH=$PATH:/root/.local/bin
-                    export POSTGRES_HOST=ptrf-db
-		    python manage.py collectstatic --noinput
+                    python manage.py collectstatic --noinput
 		    flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests --output-file=flake8-output.txt
                     '''
                 }	  
@@ -70,8 +69,7 @@ pipeline {
                    sh 'pip install --user pipenv -r requirements/local.txt' //instalação das dependências
                    sh '''
                    export PATH=$PATH:/root/.local/bin
-                   export POSTGRES_HOST=ptrf-db
-		   python manage.py collectstatic --noinput	
+                   python manage.py collectstatic --noinput	
                    coverage run -m pytest
                    coverage xml
                    '''
