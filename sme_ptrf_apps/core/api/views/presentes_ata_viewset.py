@@ -65,7 +65,7 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
                 dado = {
                     "ata": ata_uuid,
                     "cargo": remove_digitos(MembroEnum[membro.cargo_associacao].value),
-                    "identificacao": membro.codigo_identificacao if membro.codigo_identificacao != "" else membro.cpf,
+                    "identificacao": membro.codigo_identificacao if membro.codigo_identificacao else membro.cpf,
                     "nome": membro.nome,
                     "editavel": False,
                     "membro": True,
@@ -73,11 +73,11 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
                 }
 
                 presentes_ata_membros.append(dado)
-                
+
             presentes_ata_conselho_fiscal = retorna_membros_do_conselho_fiscal_por_associacao(associacao)
         else:
            presentes_ata_conselho_fiscal = Participante.objects.filter(ata=ata).filter(membro=True, conselho_fiscal=True).values()
-        
+
 
         result = {
             'presentes_membros': presentes_ata_membros,
@@ -117,7 +117,7 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
             dado = {
                 "ata": ata_uuid,
                 "cargo": remove_digitos(MembroEnum[membro.cargo_associacao].value),
-                "identificacao": membro.codigo_identificacao if membro.codigo_identificacao != "" else membro.cpf,
+                "identificacao": membro.codigo_identificacao if membro.codigo_identificacao else membro.cpf,
                 "nome": membro.nome,
                 "editavel": False,
                 "membro": True,
