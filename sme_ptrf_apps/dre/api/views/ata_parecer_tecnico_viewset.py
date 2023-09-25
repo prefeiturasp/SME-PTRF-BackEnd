@@ -21,7 +21,7 @@ from ...services import (
 )
 from django.core.exceptions import ValidationError
 
-from ...tasks import gerar_arquivo_ata_parecer_tecnico_async
+from ...tasks.gerar_arquivo_ata_parecer_tecnico import gerar_arquivo_ata_parecer_tecnico_async
 
 from django.http import HttpResponse
 
