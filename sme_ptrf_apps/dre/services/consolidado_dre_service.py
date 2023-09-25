@@ -5,9 +5,9 @@ from django.db.models.functions import Coalesce
 
 from ..api.serializers.ata_parecer_tecnico_serializer import AtaParecerTecnicoLookUpSerializer
 from ..models import ConsolidadoDRE, AtaParecerTecnico, RelatorioConsolidadoDRE
-from ..tasks import concluir_consolidado_dre_async, \
-    gerar_previa_consolidado_dre_async, \
-    concluir_consolidado_de_publicacoes_parciais_async
+
+# Refatoração dre/tasks
+from ..tasks import gerar_previa_consolidado_dre_async, concluir_consolidado_dre_async, concluir_consolidado_de_publicacoes_parciais_async
 
 from ...core.models import Unidade, PrestacaoConta, Periodo, Associacao
 
@@ -980,6 +980,83 @@ def update_motivo_retificacao(retificacao, motivo):
         logger.info(f'Motivo retificação atualizado')
     else:
         logger.info(f'Não foi possível identificar o Consolidado DRE {retificacao} como uma retificação')
+
+
+# Refatoração dre/tasks
+def atrelar_pc_ao_consolidado_dre(dre, periodo, consolidado_dre):
+    dre_uuid = dre.uuid
+    periodo_uuid = periodo.uuid
+
+    prestacoes = PrestacaoConta.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre_uuid)
+    prestacoes = prestacoes.filter(Q(status='APROVADA') | Q(status='APROVADA_RESSALVA') | Q(status='REPROVADA'))
+    prestacoes = prestacoes.filter(publicada=False, consolidado_dre__isnull=True)
+
+    for prestacao in prestacoes:
+        logger.info(f'Atrelando Prestação ao Consolidado DRE: Prestação {prestacao}. Consolidado Dre {consolidado_dre}')
+        consolidado_dre.vincular_pc_ao_consolidado(prestacao)
+
+
+def gerar_relatorio_consolidado_dre(
+    dre_uuid,
+    periodo_uuid,
+    parcial,
+    usuario,
+    consolidado_dre_uuid,
+    sequencia_de_publicacao,
+    apenas_nao_publicadas,
+    eh_consolidado_de_publicacoes_parciais=False,
+):
+    logger.info(f'Iniciando Relatório DRE. DRE:{dre_uuid} Período:{periodo_uuid}')
+
+    from sme_ptrf_apps.dre.services import _criar_demonstrativo_execucao_fisico_financeiro
+
+    try:
+        periodo = Periodo.objects.get(uuid=periodo_uuid)
+    except Periodo.DoesNotExist:
+        erro = {
+            'erro': 'Objeto não encontrado.',
+            'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+        }
+        logger.error('Erro: %r', erro)
+        raise Exception(erro)
+
+    try:
+        dre = Unidade.dres.get(uuid=dre_uuid)
+    except Unidade.DoesNotExist:
+        erro = {
+            'erro': 'Objeto não encontrado.',
+            'mensagem': f"O objeto dre para o uuid {dre_uuid} não foi encontrado na base."
+        }
+        logger.error('Erro: %r', erro)
+        raise Exception(erro)
+
+    consolidado_dre = None
+    if not eh_consolidado_de_publicacoes_parciais:
+        try:
+            if consolidado_dre_uuid:
+                consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
+            else:
+                consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo, sequencia_de_publicacao=sequencia_de_publicacao)
+
+        except ConsolidadoDRE.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto Consolidado DRE para o uuid {consolidado_dre_uuid} não foi encontrado na base."
+            }
+            logger.error('Erro: %r', erro)
+            raise Exception(erro)
+
+    try:
+        _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, usuario, parcial, consolidado_dre, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais)
+    except Exception as err:
+        erro = {
+            'erro': 'problema_geracao_relatorio',
+            'mensagem': 'Erro ao gerar relatório.'
+        }
+        logger.error("Erro ao gerar relatório consolidado: %s", str(err))
+        raise Exception(erro)
+
+    logger.info(f'Finalizado Relatório DRE. DRE:{dre_uuid} Período:{periodo_uuid}')
 
 
 class AcompanhamentoDeRelatoriosConsolidados:
