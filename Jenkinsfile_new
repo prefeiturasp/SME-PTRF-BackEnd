@@ -24,33 +24,34 @@ pipeline {
             steps { checkout scm }
         }
 
-        stage('Preparando BD') {
-	        when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
-         agent { kubernetes { 
-                  label 'builder'
-                  defaultContainer 'builder'
-                }
-              } 
-          steps {
-            sh '''
-                docker run -d --rm --cap-add SYS_TIME --name ptrf-db$BUILD_NUMBER$BRANCH_NAME --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres postgres:14-alpine
-               '''
-          }
-        }
+        //stage('Preparando BD') {
+	      //  when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
+        // agent { kubernetes { 
+        //          label 'builder'
+        //          defaultContainer 'builder'
+        //        }
+        //      } 
+        //  steps {
+        //    sh '''
+        //        docker network create python-network
+        //        docker run -d --rm --cap-add SYS_TIME --name ptrf-db$BUILD_NUMBER$BRANCH_NAME --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres postgres:14-alpine
+        //       '''
+        //  }
+        //}
 
-        stage('Istalando dependencias') {
-          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
-          agent { kubernetes { 
-                  label 'python310'
-                  defaultContainer 'python310'
-                }
-              } 
-          steps {
-            checkout scm
-            sh 'pip install --user pipenv -r requirements/local.txt'
-          }
+        //stage('Istalando dependencias') {
+        //  when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
+        //  agent { kubernetes { 
+        //          label 'python310'
+        //          defaultContainer 'python310'
+        //        }
+        //      } 
+        //  steps {
+        //    checkout scm
+        //    sh 'pip install --user pipenv -r requirements/local.txt'
+        //  }
 
-        }
+        //}
 
 
             stage('Testes Lint') {
@@ -60,15 +61,17 @@ pipeline {
                   defaultContainer 'python310'
                 }
               } 
-              steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+          steps {
+            checkout scm
+            sh 'pip install --user pipenv -r requirements/local.txt' //instalação das dependências
+	          catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                   sh '''
-                    export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
+                    pwd
                     python manage.py collectstatic --noinput
                     flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests --output-file=flake8-output.txt
                     '''
-                }
-              }
+                }	  
+          }
               post {
                 success{
                     //Publicando arquivo de relatorio flake8
@@ -85,18 +88,20 @@ pipeline {
                 }
               } 
               steps {
-                sh '''
-                   export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
+                   checkout scm
+                   sh 'pip install --user pipenv -r requirements/local.txt' //instalação das dependências
+                   sh '''
+		               python manage.py collectstatic --noinput	
                    coverage run -m pytest
                    coverage xml
                    '''
               }
-              post {
-                success{
-                    //Publicando arquivo de cobertura
-                    publishCoverage adapters: [cobertura('coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
-                }
-              }
+            // post {
+             //   success{
+             //       //Publicando arquivo de cobertura
+             //       publishCoverage adapters: [cobertura('coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
+             //   }
+              //}
             }
 
         stage('AnaliseCodigo') {
@@ -165,33 +170,33 @@ pipeline {
             }
 
         stage('Deploy Ambientes'){
-          withCredentials([file(credentialsId: "config_release", variable: 'config')]){
-            when { anyOf {  branch 'master'; branch 'main' } }
+              when { anyOf {  branch 'master'; branch 'main' } }
               parallel {
               stage('Deploy Treino'){
                 steps {
+                  withCredentials([file(credentialsId: "config_release", variable: 'config')]){
 		              sh('cp $config '+"$home"+'/.kube/config')	
                   sh 'kubectl rollout restart deployment/treinamento-backend -n sme-ptrf-treino'
                   sh 'kubectl rollout restart deployment/treinamento-celery -n sme-ptrf-treino'
                   sh 'kubectl rollout restart deployment/treinamento-flower -n sme-ptrf-treino'
-		 
+                }
                 }
               }
               stage('Deploy Treino2'){
                 steps {
+                  withCredentials([file(credentialsId: "config_release", variable: 'config')]){
                   sh 'kubectl rollout restart deployment/treinamento-backend -n sme-ptrf-treino2'
                   sh 'kubectl rollout restart deployment/treinamento-celery -n sme-ptrf-treino2'
                   sh 'kubectl rollout restart deployment/treinamento-flower -n sme-ptrf-treino2'
                 }
               }
-
+              }
             }
           }
-        }
       }
       }
 
-def getKubeconf(branchName, stageName) {
+def getKubeconf(branchName) {
     if("main".equals(branchName)) { return "config_prd"; }
     else if ("master".equals(branchName)) { return "config_prd"; }
     else if ("homolog".equals(branchName)) { return "config_release"; }   
