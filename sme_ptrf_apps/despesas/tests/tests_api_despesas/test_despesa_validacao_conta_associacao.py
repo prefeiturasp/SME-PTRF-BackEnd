@@ -130,7 +130,7 @@ def test_api_post_despesa_rateio_com_conta_nao_iniciada(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     assert 'mensagem' in response.json()
-    assert "Um ou mais rateios possuem conta com data de início anterior a data de transação." in response.json()['mensagem']
+    assert "Um ou mais rateios possuem conta com data de início posterior a data de transação." in response.json()['mensagem']
 
 def test_api_post_despesa_rateio_imposto_com_conta_nao_iniciada(
     jwt_authenticated_client_d,
@@ -150,5 +150,5 @@ def test_api_post_despesa_rateio_imposto_com_conta_nao_iniciada(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     assert 'mensagem' in response.json()
-    assert "Um ou mais rateios de imposto possuem conta com data de início anterior a data de transação." in response.json()['mensagem']
+    assert "Um ou mais rateios de imposto possuem conta com data de início posterior a data de transação." in response.json()['mensagem']
 
