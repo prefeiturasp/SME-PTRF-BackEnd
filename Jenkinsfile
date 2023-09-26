@@ -5,9 +5,11 @@ pipeline {
       registryCredential = 'jenkins_registry'
       namespace = "${env.branchname == 'develop' ? 'sme-ptrf-dev' : env.branchname == 'homolog' ? 'sme-ptrf-hom' : env.branchname == 'homolog-r2' ? 'sme-ptrf-hom2' : 'sme-ptrf' }"
     }
-    agent {
-      node { label 'AGENT-NODES' }
-    }
+    agent { kubernetes {
+                  label 'builder'
+                  defaultContainer 'builder'
+                }
+              }
 
 
     options {
@@ -22,68 +24,86 @@ pipeline {
             steps { checkout scm }
         }
 
-        stage('Preparando BD') {
-	        when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
-          agent { label 'AGENT-NODES' }
-          steps {
-            sh '''
-                docker run -d --rm --cap-add SYS_TIME --name ptrf-db$BUILD_NUMBER$BRANCH_NAME --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres postgres:14-alpine
-               '''
-          }
-        }
+        //stage('Preparando BD') {
+	      //  when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
+        // agent { kubernetes {
+        //          label 'builder'
+        //          defaultContainer 'builder'
+        //        }
+        //      }
+        //  steps {
+        //    sh '''
+        //        docker network create python-network
+        //        docker run -d --rm --cap-add SYS_TIME --name ptrf-db$BUILD_NUMBER$BRANCH_NAME --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=ptrf -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres postgres:14-alpine
+        //       '''
+        //  }
+        //}
 
-        stage('Istalando dependencias') {
-          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
-          agent { label 'AGENT-PYTHON310' }
+        //stage('Istalando dependencias') {
+        //  when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
+        //  agent { kubernetes {
+        //          label 'python310'
+        //          defaultContainer 'python310'
+        //        }
+        //      }
+        //  steps {
+        //    checkout scm
+        //    sh 'pip install --user pipenv -r requirements/local.txt'
+        //  }
+
+        //}
+
+
+        stage('Testes Lint') {
+          when { anyOf { branch 'master_'; branch 'develop_'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
+          agent {
+               kubernetes {
+                   label 'python310'
+                   defaultContainer 'python310'
+                }
+              }
           steps {
             checkout scm
-            sh 'pip install --user pipenv -r requirements/local.txt'
+            sh 'pip install --user pipenv -r requirements/local.txt' //instalação das dependências
+	    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                  sh '''
+                    pwd
+		    export PATH=$PATH:/root/.local/bin
+                    python manage.py collectstatic --noinput
+		    flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests --output-file=flake8-output.txt
+                    '''
+                }
           }
 
         }
-
-
-            stage('Testes Lint') {
-              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
-              agent { label 'AGENT-PYTHON310' }
-              steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                  sh '''
-                    export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
-                    python manage.py collectstatic --noinput
-                    flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests --output-file=flake8-output.txt
-                    '''
-                }
-              }
-              post {
-                success{
-                    //Publicando arquivo de relatorio flake8
-                    recordIssues(tools: [flake8(pattern: 'flake8-output.txt')])
-                }
-              }
-
-            }
             stage('Testes Unitarios') {
-              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
-              agent { label 'AGENT-PYTHON310' }
+              when { anyOf { branch 'master_'; branch 'develop_'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
+              agent {
+               kubernetes {
+                   label 'python310'
+                   defaultContainer 'python310'
+                }
+              }
               steps {
-                sh '''
-                   export POSTGRES_HOST=ptrf-db$BUILD_NUMBER$BRANCH_NAME
-                   coverage run -m pytest
+                   checkout scm
+                   sh 'pip install --user pipenv -r requirements/local.txt' //instalação das dependências
+                   sh '''
+                   export PATH=$PATH:/root/.local/bin
+                   python manage.py collectstatic --noinput
+		   coverage run -m pytest
                    coverage xml
                    '''
               }
-              post {
-                success{
-                    //Publicando arquivo de cobertura
-                    publishCoverage adapters: [cobertura('coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
-                }
-              }
+
             }
 
         stage('AnaliseCodigo') {
           when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
-          agent { label 'AGENT-PYTHON310' }
+          agent { kubernetes {
+                  label 'python310'
+                  defaultContainer 'python310'
+                }
+              }
           steps {
                 withSonarQubeEnv('sonarqube-local'){
                   sh 'echo "[ INFO ] Iniciando analise Sonar..." && sonar-scanner \
@@ -99,16 +119,13 @@ pipeline {
           steps {
             script {
               imagename1 = "registry.sme.prefeitura.sp.gov.br/${env.branchname}/ptrf-backend"
-              //imagename2 = "registry.sme.prefeitura.sp.gov.br/${env.branchname}/sme-outra"
               dockerImage1 = docker.build(imagename1, "-f Dockerfile .")
-              //dockerImage2 = docker.build(imagename2, "-f Dockerfile_outro .")
               docker.withRegistry( 'https://registry.sme.prefeitura.sp.gov.br', registryCredential ) {
               dockerImage1.push()
-              //dockerImage2.push()
+
               }
               sh "docker rmi $imagename1"
-              //sh "docker rmi $imagename2"
-            }
+               }
           }
         }
 
@@ -126,63 +143,51 @@ pipeline {
                 }
                   withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
                     if( env.branchname == 'atualizarpython' ){
-			sh('rm -f '+"$home"+'/.kube/config')
+			                  sh('rm -f '+"$home"+'/.kube/config')
                         sh('cp $config '+"$home"+'/.kube/config')
                         sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
                         sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
                         sh 'kubectl rollout restart deployment/sigescolapre-flower -n sme-sigescola-pre'
-			sh('rm -f '+"$home"+'/.kube/config')
+			                  sh('rm -f '+"$home"+'/.kube/config')
                     } else {
-			sh('rm -f '+"$home"+'/.kube/config')
+			                  sh('rm -f '+"$home"+'/.kube/config')
                         sh('cp $config '+"$home"+'/.kube/config')
-			sh "echo ${namespace}"
+			                  sh "echo ${namespace}"
                         sh "kubectl rollout restart deployment/ptrf-backend -n ${namespace}"
                         sh "kubectl rollout restart deployment/ptrf-celery -n ${namespace}"
                         sh "kubectl rollout restart deployment/ptrf-flower -n ${namespace}"
-			//sh('rm -f '+"$home"+'/.kube/config')
-		    }
+					    }
                   }
                 }
               }
             }
 
         stage('Deploy Ambientes'){
-            when { anyOf {  branch 'master'; branch 'main' } }
+              when { anyOf {  branch 'master'; branch 'main' } }
               parallel {
               stage('Deploy Treino'){
                 steps {
-		  //sh('rm -f '+"$home"+'/.kube/config')
-                  //sh('cp $config '+"$home"+'/.kube/config')	
-                  sh 'kubectl rollout restart deployment/treinamento-backend -n sigescola-treinamento'
-                  sh 'kubectl rollout restart deployment/treinamento-celery -n sigescola-treinamento'
-                  sh 'kubectl rollout restart deployment/treinamento-flower -n sigescola-treinamento'
-		  //sh('rm -f '+"$home"+'/.kube/config')	
+                  withCredentials([file(credentialsId: "config_release", variable: 'config')]){
+		              sh('cp $config '+"$home"+'/.kube/config')
+                  sh 'kubectl rollout restart deployment/treinamento-backend -n sme-ptrf-treino'
+                  sh 'kubectl rollout restart deployment/treinamento-celery -n sme-ptrf-treino'
+                  sh 'kubectl rollout restart deployment/treinamento-flower -n sme-ptrf-treino'
+                }
                 }
               }
-
-              stage('Deploy Treinamento2'){
+              stage('Deploy Treino2'){
                 steps {
-		  //sh('rm -f '+"$home"+'/.kube/config')
-                  //sh('cp $config '+"$home"+'/.kube/config')	
-                  sh 'kubectl rollout restart deployment/treinamento-backend -n sigescola-treinamento2'
-                  sh 'kubectl rollout restart deployment/treinamento-celery -n sigescola-treinamento2'
-                  sh 'kubectl rollout restart deployment/treinamento-flower -n sigescola-treinamento2'
-                  sh('rm -f '+"$home"+'/.kube/config')
+                  withCredentials([file(credentialsId: "config_release", variable: 'config')]){
+                  sh 'kubectl rollout restart deployment/treinamento-backend -n sme-ptrf-treino2'
+                  sh 'kubectl rollout restart deployment/treinamento-celery -n sme-ptrf-treino2'
+                  sh 'kubectl rollout restart deployment/treinamento-flower -n sme-ptrf-treino2'
                 }
               }
-
+              }
             }
-        }
-      }
-      post {
-        always{
-          node('AGENT-NODES'){
-            //Limpando containers de banco
-            sh 'docker rm -f ptrf-db$BUILD_NUMBER$BRANCH_NAME'
           }
-        }
       }
-}
+      }
 
 def getKubeconf(branchName) {
     if("main".equals(branchName)) { return "config_prd"; }
@@ -194,4 +199,4 @@ def getKubeconf(branchName) {
     else if ("develop".equals(branchName)) { return "config_release"; }
     else if ("pre-release".equals(branchName)) { return "config_prd"; }
     else if ("atualizarpython".equals(branchName)) { return "config_prd"; }
-}
+    }
