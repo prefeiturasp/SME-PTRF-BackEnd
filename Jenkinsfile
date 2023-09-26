@@ -54,56 +54,47 @@ pipeline {
         //}
 
 
-            stage('Testes Lint') {
-              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
-              agent { kubernetes { 
-                  label 'python310'
-                  defaultContainer 'python310'
+        stage('Testes Lint') {
+          when { anyOf { branch 'master_'; branch 'develop_'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
+          agent {
+               kubernetes {
+                   label 'python310'
+                   defaultContainer 'python310'
                 }
-              } 
+              }
           steps {
             checkout scm
             sh 'pip install --user pipenv -r requirements/local.txt' //instalação das dependências
-	          catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+	    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                   sh '''
                     pwd
-                    export PATH=$PATH:/root/.local/bin
+		    export PATH=$PATH:/root/.local/bin
                     python manage.py collectstatic --noinput
-                    flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests --output-file=flake8-output.txt
+		    flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests --output-file=flake8-output.txt
                     '''
                 }	  
           }
-              post {
-                success{
-                    //Publicando arquivo de relatorio flake8
-                    recordIssues(tools: [flake8(pattern: 'flake8-output.txt')])
+
+        }
+            stage('Testes Unitarios') {
+              when { anyOf { branch 'master_'; branch 'develop_'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
+              agent {
+               kubernetes {
+                   label 'python310'
+                   defaultContainer 'python310'
                 }
               }
-
-            }
-            stage('Testes Unitarios') {
-              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
-              agent { kubernetes { 
-                  label 'python310'
-                  defaultContainer 'python310'
-                }
-              } 
               steps {
                    checkout scm
                    sh 'pip install --user pipenv -r requirements/local.txt' //instalação das dependências
                    sh '''
                    export PATH=$PATH:/root/.local/bin
-		   python manage.py collectstatic --noinput	
-                   coverage run -m pytest
+                   python manage.py collectstatic --noinput
+		   coverage run -m pytest
                    coverage xml
                    '''
               }
-              post {
-                success{
-                    //Publicando arquivo de cobertura
-                    publishCoverage adapters: [cobertura('coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
-                }
-              }
+              
             }
 
         stage('AnaliseCodigo') {
