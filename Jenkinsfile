@@ -101,7 +101,7 @@ pipeline {
           when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
           agent { kubernetes { 
                   label 'python310'
-                  defaultContainer 'python310'
+                  defaultContainer 'builder'
                 }
               } 
           steps {
