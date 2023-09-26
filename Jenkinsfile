@@ -55,7 +55,7 @@ pipeline {
 
 
         stage('Testes Lint') {
-          when { anyOf { branch 'master_'; branch 'develop'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
+          when { anyOf { branch 'master_'; branch 'develop'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'homolog' } }
           agent {
                kubernetes {
                    label 'python310'
@@ -77,7 +77,7 @@ pipeline {
 
         }
             stage('Testes Unitarios') {
-              when { anyOf { branch 'master_'; branch 'develop'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'testeptrf' } }
+              when { anyOf { branch 'master_'; branch 'develop'; branch 'homolog-r2_'; branch 'pre-release_'; branch 'atualizarpython_'; branch 'homolog' } }
               agent {
                kubernetes {
                    label 'python310'
