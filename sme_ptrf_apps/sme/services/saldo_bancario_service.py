@@ -10,6 +10,17 @@ from sme_ptrf_apps.core.models.parametros import Parametros
 
 logger = logging.getLogger(__name__)
 
+def filtrar_por_data_inicio_e_data_encerramento_conta(queryset, periodo):
+    query_result = queryset
+
+    if periodo.data_fim_realizacao_despesas:
+        query_conta_iniciada_no_periodo_ou_anterior = {Q(conta_associacao__data_inicio__isnull=True) | Q(conta_associacao__data_inicio__lte=periodo.data_fim_realizacao_despesas)}
+        query_result = queryset.filter(*query_conta_iniciada_no_periodo_ou_anterior)
+
+    query_conta_encerrada_no_periodo_ou_posterior = {Q(conta_associacao__solicitacao_encerramento__isnull=True) | Q(conta_associacao__solicitacao_encerramento__data_de_encerramento_na_agencia__gte=periodo.data_inicio_realizacao_despesas)}
+    query_result = query_result.filter(*query_conta_encerrada_no_periodo_ou_posterior)
+
+    return query_result
 
 def saldo_por_tipo_de_unidade(queryset, periodo, conta):
 
@@ -21,16 +32,18 @@ def saldo_por_tipo_de_unidade(queryset, periodo, conta):
             ),
             periodo__uuid=periodo.uuid,
             conta_associacao__tipo_conta__uuid=conta
-        ).values('associacao__unidade__tipo_unidade').annotate(
-            qtde_unidades_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
         )
     else:
         saldo_por_tipo_unidade = queryset.filter(
             periodo__uuid=periodo.uuid,
             conta_associacao__tipo_conta__uuid=conta
-        ).values('associacao__unidade__tipo_unidade').annotate(
-            qtde_unidades_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
         )
+
+    saldo_por_tipo_unidade = filtrar_por_data_inicio_e_data_encerramento_conta(saldo_por_tipo_unidade, periodo)
+
+    saldo_por_tipo_unidade = saldo_por_tipo_unidade.values('associacao__unidade__tipo_unidade').annotate(
+        qtde_unidades_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
+    )
 
     total_unidades_por_tipo = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo).values('unidade__tipo_unidade').annotate(
         qtde=Count('uuid'))
@@ -71,17 +84,18 @@ def saldo_por_dre(queryset, periodo, conta):
             ),
             periodo__uuid=periodo.uuid,
             conta_associacao__tipo_conta__uuid=conta
-        ).values('associacao__unidade__dre', 'associacao__unidade__dre__nome').annotate(
-            qtde_dre_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
         )
     else:
         saldo_por_dre = queryset.filter(
             periodo__uuid=periodo.uuid,
             conta_associacao__tipo_conta__uuid=conta
-        ).values('associacao__unidade__dre', 'associacao__unidade__dre__nome').annotate(
-            qtde_dre_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
         )
 
+    saldo_por_dre = filtrar_por_data_inicio_e_data_encerramento_conta(saldo_por_dre, periodo)
+
+    saldo_por_dre = saldo_por_dre.values('associacao__unidade__dre', 'associacao__unidade__dre__nome').annotate(
+        qtde_dre_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
+    )
 
     total_unidades_por_dre = Associacao.objects.exclude(cnpj__exact='').values('unidade__dre','unidade__dre__nome').annotate(qtde=Count('uuid'))
 
@@ -119,7 +133,6 @@ def saldo_por_dre(queryset, periodo, conta):
 
     return lista_de_saldos_bancarios_dre
 
-
 def saldo_por_ue_dre(queryset, periodo, conta):
     saldos_por_ue_dre = []
     choices = []
@@ -132,7 +145,6 @@ def saldo_por_ue_dre(queryset, periodo, conta):
             choices.append(choice[0])
 
     for dre in dres:
-
         if Parametros.get().desconsiderar_associacoes_nao_iniciadas:
             saldo_por_tipo_da_dre = queryset.filter(
                 Q(associacao__periodo_inicial__isnull=False) &
@@ -142,17 +154,20 @@ def saldo_por_ue_dre(queryset, periodo, conta):
                 periodo__uuid=periodo.uuid,
                 conta_associacao__tipo_conta__uuid=conta,
                 associacao__unidade__dre=dre
-            ).values('associacao__unidade__tipo_unidade', 'associacao__unidade__dre__sigla').annotate(
-                saldo_bancario_informado=Sum('saldo_extrato')
             )
         else:
             saldo_por_tipo_da_dre = queryset.filter(
                 periodo__uuid=periodo.uuid,
                 conta_associacao__tipo_conta__uuid=conta,
                 associacao__unidade__dre=dre
-            ).values('associacao__unidade__tipo_unidade', 'associacao__unidade__dre__sigla').annotate(
-                saldo_bancario_informado=Sum('saldo_extrato')
             )
+
+        saldo_por_tipo_da_dre = filtrar_por_data_inicio_e_data_encerramento_conta(saldo_por_tipo_da_dre, periodo)
+
+        saldo_por_tipo_da_dre = saldo_por_tipo_da_dre.values('associacao__unidade__tipo_unidade', 'associacao__unidade__dre__sigla').annotate(
+            saldo_bancario_informado=Sum('saldo_extrato')
+        )
+
         saldos_por_ue_dre.extend(saldo_por_tipo_da_dre)
 
         result[dre.sigla] = {"sigla_dre": dre.sigla, "uuid_dre": dre.uuid, "nome_dre": formata_nome_dre(dre.nome), "associacoes": []}
