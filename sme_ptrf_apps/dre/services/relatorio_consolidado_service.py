@@ -439,8 +439,9 @@ def informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publica
             ).distinct("pk")
 
         for devolucao in devolucoes:
-            conta_associacao = devolucao.despesa__rateios__conta_associacao
-            if not conta_associacao.conta_criada_no_periodo_ou_periodo_anteriores(periodo=periodo):
+            rateio = devolucao.despesa.rateios.filter(conta_associacao__tipo_conta=tipo_conta).first()
+            conta_associacao = rateio.conta_associacao if rateio else None
+            if conta_associacao and not conta_associacao.conta_criada_no_periodo_ou_periodo_anteriores(periodo=periodo):
                 continue
 
             totais['devolucoes_ao_tesouro_no_periodo_total'] += devolucao.valor

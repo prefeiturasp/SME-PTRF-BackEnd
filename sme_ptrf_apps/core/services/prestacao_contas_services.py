@@ -32,6 +32,7 @@ from .demonstrativo_financeiro_pdf_service import gerar_arquivo_demonstrativo_fi
 from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO, STATUS_INCOMPLETO
 
 from ..api.serializers.associacao_serializer import AssociacaoCompletoSerializer
+from celery import Celery
 
 logger = logging.getLogger(__name__)
 
@@ -1571,6 +1572,9 @@ def previa_informacoes_financeiras_para_atas(associacao, periodo):
 class MonitoraPC:
 
     def __init__(self, prestacao_de_contas, usuario, associacao, status=PrestacaoConta.STATUS_EM_PROCESSAMENTO):
+        # Instancia do celery
+        self.app = Celery("sme_ptrf_apps")
+        self.app.config_from_object("django.conf:settings", namespace="CELERY")
 
         self.__prestacao_de_contas = prestacao_de_contas
         self.__uuid_pc = prestacao_de_contas.uuid
@@ -1671,35 +1675,7 @@ class MonitoraPC:
                 self.t = threading.Timer(sec, func)
                 self.t.start()
 
-    def revoke_tasks_by_name(self, task_name, worker_prefix=''):
-        import celery.task.control as c
-        """
-        Revoke all tasks by the name of the celery task
-        :param task_name: Name of the celery task
-        :param worker_prefix: Prefix for the worker
-        :return: None
-        Examples:
-            revoke_tasks_by_name(
-                task_name='users.tasks.indexing.reindex_all_users'
-            )
-            revoke_tasks_by_name(
-                worker_prefix='celery@users-indexer-',
-                task_name='users.tasks.indexing.reindex_all_users'
-            )
-        """
-
-        items = c.inspect().active().items() if c and c.inspect() and c.inspect().active() and c.inspect().active().items() else None
-
-        if items:
-            for worker_name, tasks in items:
-                if worker_name.startswith(worker_prefix):
-                    for task in tasks:
-                        if task['type'] == task_name:
-                            print('Revoking task {}'.format(task))
-                            c.revoke(task['id'], terminate=True)
-
     def revoke_tasks_by_id(self, prestacao_conta):
-        import celery.task.control as c
         """
         Revoke one task by the id of the celery task
         :param prestacao_conta: PC of the celery task
@@ -1714,5 +1690,5 @@ class MonitoraPC:
             nome_task='concluir_prestacao_de_contas_async').filter(finalizada=False).all()
         for task in tasks_ativas_dessa_pc:
             logger.info(f'Revoking: {task}')
-            c.revoke(task.id_task_assincrona, terminate=True)
+            self.app.control.revoke(task_id=task.id_task_assincrona, terminate=True)
             task.registra_data_hora_finalizacao_forcada(log="Finalização forçada pela falha de PC.")
