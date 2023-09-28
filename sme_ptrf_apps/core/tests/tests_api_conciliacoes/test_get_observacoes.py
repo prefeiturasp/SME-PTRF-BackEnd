@@ -16,11 +16,13 @@ def test_api_get_observacoes_lista_vazia(jwt_authenticated_client_a,
                                          ):
     conta_uuid = conta_associacao_cartao.uuid
 
-    url = f'/api/conciliacoes/observacoes/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}'
+    url = f'/api/conciliacoes/observacoes/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&associacao={conta_associacao_cartao.associacao.uuid}'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
+    
+    del result['permite_editar_campos_extrato']
 
     assert response.status_code == status.HTTP_200_OK
     assert result == {}
@@ -33,11 +35,13 @@ def test_api_get_observacoes(jwt_authenticated_client_a,
                              ):
     conta_uuid = conta_associacao.uuid
 
-    url = f'/api/conciliacoes/observacoes/?periodo={periodo.uuid}&conta_associacao={conta_uuid}'
+    url = f'/api/conciliacoes/observacoes/?periodo={periodo.uuid}&conta_associacao={conta_uuid}&associacao={conta_associacao.associacao.uuid}'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
+    
+    del result['permite_editar_campos_extrato']
 
     assert response.status_code == status.HTTP_200_OK
     assert result == {
