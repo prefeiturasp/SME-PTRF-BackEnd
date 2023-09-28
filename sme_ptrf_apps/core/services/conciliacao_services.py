@@ -1,6 +1,7 @@
 from django.db.models import Sum, Q, Count, Max
 
 from sme_ptrf_apps.core.models import Associacao, FechamentoPeriodo, PrestacaoConta
+from sme_ptrf_apps.core.models.periodo import Periodo
 from sme_ptrf_apps.despesas.models import RateioDespesa, Despesa
 from sme_ptrf_apps.receitas.models import Receita
 
@@ -668,7 +669,13 @@ def permite_editar_campos_extrato(associacao, periodo, conta_associacao):
 
     if not prestacao_conta:
         return True
-
+    
+    criada_no_periodo = False
+    if periodo and conta_associacao and conta_associacao.data_inicio:
+        criada_no_periodo = periodo == Periodo.da_data(conta_associacao.data_inicio)
+        if criada_no_periodo and (not periodo.encerrado or prestacao_conta.status in [PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_NAO_APRESENTADA]):
+            return True
+        
     if prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
         return False
 

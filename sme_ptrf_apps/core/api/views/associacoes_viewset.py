@@ -356,6 +356,12 @@ class AssociacoesViewSet(ModelViewSet):
                  Q(solicitacao_encerramento__data_de_encerramento_na_agencia__gte=periodo.data_inicio_realizacao_despesas)),
                 associacao=associacao
             )
+            
+            contas_criadas_nesse_periodo_ou_anteriores = []
+            for conta in contas:
+                if conta.conta_criada_no_periodo_ou_periodo_anteriores(periodo):
+                    contas_criadas_nesse_periodo_ou_anteriores.append(conta)
+            contas = contas_criadas_nesse_periodo_ou_anteriores
         else:
             contas = ContaAssociacao.ativas_com_solicitacao_em_aberto.filter(associacao=associacao).all()
 
