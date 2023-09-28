@@ -44,7 +44,8 @@ def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, per
                 'pendencia_contas': False,
                 'pendencia_membros': True
             }
-        }
+        },
+        'tem_conta_encerrada_com_saldo': False
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -83,7 +84,8 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
                 'pendencia_contas': False,
                 'pendencia_membros': True
             }
-        }
+        },
+        'tem_conta_encerrada_com_saldo': False
 
     }
 
@@ -126,7 +128,8 @@ def test_chamada_data_sem_periodo(jwt_authenticated_client_a, associacao, period
                 'pendencia_contas': False,
                 'pendencia_membros': True
             }
-        }
+        },
+        'tem_conta_encerrada_com_saldo': False
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -167,7 +170,8 @@ def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prest
                 'pendencia_contas': False,
                 'pendencia_membros': True
             }
-        }
+        },
+        'tem_conta_encerrada_com_saldo': False
 
     }
 
@@ -223,7 +227,8 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
                 'pendencia_contas': False,
                 'pendencia_membros': True
             }
-        }
+        },
+        'tem_conta_encerrada_com_saldo': False
 
     }
 
@@ -363,3 +368,22 @@ def test_status_periodo_todas_as_pendencias_cadastrais(
 
     assert response.status_code == status.HTTP_200_OK
     assert result['pendencias_cadastrais'] == pendencias_cadastrais_esperado
+
+
+@freeze_time('2020-07-10 10:20:00')
+def test_status_periodo_com_conta_encerrada_com_saldo(
+    jwt_authenticated_client_a,
+    periodo_2020_1,
+    conta_associacao_encerramento_conta,
+    solicitacao_encerramento_conta_aprovada,
+    receita_conta_encerrada
+):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{conta_associacao_encerramento_conta.associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert 'tem_conta_encerrada_com_saldo' in result
+    assert result['tem_conta_encerrada_com_saldo'] == True
+
+
