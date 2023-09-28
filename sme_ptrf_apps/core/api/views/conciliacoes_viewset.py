@@ -381,12 +381,6 @@ class ConciliacoesViewSet(GenericViewSet):
 
         result = {}
         
-        permite_editar = permite_editar_campos_extrato(
-            associacao,
-            periodo,
-            conta_associacao
-        )
-
         if observacao:
             result = {
                 'observacao_uuid': observacao.uuid,
@@ -395,7 +389,6 @@ class ConciliacoesViewSet(GenericViewSet):
                 'saldo_extrato': observacao.saldo_extrato,
                 'comprovante_extrato': comprovante_extrato_nome,
                 'data_atualizacao_comprovante_extrato': observacao.data_atualizacao_comprovante_extrato,
-                'permite_editar_campos_extrato': permite_editar
             }
 
         info_solicitacao = conta_associacao.get_info_solicitacao_encerramento()
@@ -411,8 +404,15 @@ class ConciliacoesViewSet(GenericViewSet):
                 'observacao': observacao.texto if observacao else None,
                 'comprovante_extrato': comprovante_extrato_nome if observacao else None,
                 'data_atualizacao_comprovante_extrato': observacao.data_atualizacao_comprovante_extrato if observacao else None,
-                'permite_editar_campos_extrato': permite_editar
             }
+            
+        permite_editar = permite_editar_campos_extrato(
+            associacao,
+            periodo,
+            conta_associacao
+        )
+        
+        result['permite_editar_campos_extrato'] = permite_editar
             
         return Response(result, status=status.HTTP_200_OK)
 
