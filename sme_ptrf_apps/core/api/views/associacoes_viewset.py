@@ -262,11 +262,13 @@ class AssociacoesViewSet(ModelViewSet):
             pendencias_cadastrais = None
 
         tem_conta_encerrada_com_saldo = False
+        tipos_das_contas_encerradas_com_saldo = []
         contas = ContaAssociacao.encerradas.filter(associacao=associacao).all()
         for conta in contas:
             if conta.get_saldo_atual_conta() != 0:
                 tem_conta_encerrada_com_saldo = True
-
+                tipos_das_contas_encerradas_com_saldo.append(conta.tipo_conta.nome)
+                
         result = {
             'associacao': f'{uuid}',
             'periodo_referencia': periodo_referencia,
@@ -277,7 +279,8 @@ class AssociacoesViewSet(ModelViewSet):
             'gerar_ou_editar_ata_retificacao': gerar_ou_editar_ata_retificacao,
             'gerar_previas': gerar_previas,
             'pendencias_cadastrais': pendencias_cadastrais,
-            'tem_conta_encerrada_com_saldo': tem_conta_encerrada_com_saldo
+            'tem_conta_encerrada_com_saldo': tem_conta_encerrada_com_saldo,
+            'tipos_das_contas_encerradas_com_saldo': tipos_das_contas_encerradas_com_saldo
         }
 
         return Response(result)
