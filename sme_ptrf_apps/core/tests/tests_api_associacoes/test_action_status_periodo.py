@@ -45,7 +45,8 @@ def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, per
                 'pendencia_membros': True
             }
         },
-        'tem_conta_encerrada_com_saldo': False
+        'tem_conta_encerrada_com_saldo': False,
+        'tipos_das_contas_encerradas_com_saldo': []
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -85,8 +86,8 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
                 'pendencia_membros': True
             }
         },
-        'tem_conta_encerrada_com_saldo': False
-
+        'tem_conta_encerrada_com_saldo': False,
+        'tipos_das_contas_encerradas_com_saldo': []
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -129,7 +130,8 @@ def test_chamada_data_sem_periodo(jwt_authenticated_client_a, associacao, period
                 'pendencia_membros': True
             }
         },
-        'tem_conta_encerrada_com_saldo': False
+        'tem_conta_encerrada_com_saldo': False,
+        'tipos_das_contas_encerradas_com_saldo': []
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -171,8 +173,8 @@ def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prest
                 'pendencia_membros': True
             }
         },
-        'tem_conta_encerrada_com_saldo': False
-
+        'tem_conta_encerrada_com_saldo': False,
+        'tipos_das_contas_encerradas_com_saldo': []
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -228,8 +230,8 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
                 'pendencia_membros': True
             }
         },
-        'tem_conta_encerrada_com_saldo': False
-
+        'tem_conta_encerrada_com_saldo': False,
+        'tipos_das_contas_encerradas_com_saldo': []
     }
 
     assert response.status_code == status.HTTP_200_OK
