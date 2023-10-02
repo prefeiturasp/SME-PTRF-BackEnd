@@ -81,6 +81,8 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             conta_associacao = rateio['conta_associacao']
             if conta_associacao and (conta_associacao.data_inicio > data_transacao):
                 raise serializers.ValidationError({"mensagem": "Um ou mais rateios possuem conta com data de início posterior a data de transação."})
+            if conta_associacao and (conta_associacao.data_encerramento and conta_associacao.data_encerramento < data_transacao):
+                raise serializers.ValidationError({"mensagem": "Um ou mais rateios possuem conta com data de encerramento anterior a data de transação."})
 
         for imposto in despesas_impostos:
             data_transacao = imposto['data_transacao']
@@ -90,6 +92,8 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                     conta_associacao = rateio['conta_associacao']
                     if conta_associacao and (conta_associacao.data_inicio > data_transacao):
                         raise serializers.ValidationError({"mensagem": "Um ou mais rateios de imposto possuem conta com data de início posterior a data de transação."})
+                    if conta_associacao and (conta_associacao.data_encerramento and conta_associacao.data_encerramento < data_transacao):
+                        raise serializers.ValidationError({"mensagem": "Um ou mais rateios de imposto possuem conta com data de encerramento anterior a data de transação."})
 
         return data
 

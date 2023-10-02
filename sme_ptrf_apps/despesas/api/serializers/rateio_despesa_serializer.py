@@ -72,13 +72,6 @@ class RateioDespesaCreateSerializer(serializers.ModelSerializer):
         model = RateioDespesa
         exclude = ('id', 'despesa')
 
-    def validate(self, data):
-        conta_associacao = data['conta_associacao']
-
-        if conta_associacao and conta_associacao.inativa:
-            raise serializers.ValidationError({"mensagem": "Não é permitido criar/editar rateio com conta inativada."})
-
-        return data
 
 class RateioDespesaListaSerializer(serializers.ModelSerializer):
     despesa = serializers.SlugRelatedField(
