@@ -400,6 +400,16 @@ def solicitacao_encerramento_conta_aprovada(conta_associacao_encerramento_conta,
 
 
 @pytest.fixture
+def solicitacao_encerramento_conta_pendente(conta_associacao_encerramento_conta, periodo_2020_1):
+    return baker.make(
+        'SolicitacaoEncerramentoContaAssociacao',
+        conta_associacao=conta_associacao_encerramento_conta,
+        status=SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE,
+        data_de_encerramento_na_agencia=periodo_2020_1.data_inicio_realizacao_despesas,
+    )
+
+
+@pytest.fixture
 def receita_conta_encerrada(associacao_encerramento_conta, conta_associacao_encerramento_conta, acao_associacao, tipo_receita, periodo_2020_1):
     return baker.make(
         'Receita',
