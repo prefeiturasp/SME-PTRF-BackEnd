@@ -15,6 +15,10 @@ class ContasAtivasComSolicitacaoEmAberto(models.Manager):
                                                                Q(solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE) |
                                                                Q(solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA))
 
+class ContasComSolicitacaoDeEncerramento(models.Manager):
+    def get_queryset(self):
+        return super(ContasAtivasComSolicitacaoEmAberto, self).get_queryset().filter(solicitacao_encerramento__isnull=False)
+
 class ContasEncerradas(models.Manager):
     def get_queryset(self):
         from ..models import SolicitacaoEncerramentoContaAssociacao
@@ -56,6 +60,7 @@ class ContaAssociacao(ModeloBase):
 
     objects = models.Manager()
     ativas_com_solicitacao_em_aberto = ContasAtivasComSolicitacaoEmAberto()
+    com_solicitacao_de_encerramento = ContasAtivasComSolicitacaoEmAberto()
     encerradas = ContasEncerradas()
 
     def __str__(self):

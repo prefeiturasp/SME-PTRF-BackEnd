@@ -377,7 +377,7 @@ def test_status_periodo_com_conta_encerrada_com_saldo(
     jwt_authenticated_client_a,
     periodo_2020_1,
     conta_associacao_encerramento_conta,
-    solicitacao_encerramento_conta_aprovada,
+    solicitacao_encerramento_conta_pendente,
     receita_conta_encerrada
 ):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{conta_associacao_encerramento_conta.associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
