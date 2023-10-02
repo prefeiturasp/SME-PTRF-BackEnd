@@ -76,6 +76,13 @@ class ContaAssociacao(ModeloBase):
     def inativa(self):
         return self.status == self.STATUS_INATIVA
 
+    @property
+    def data_encerramento(self):
+        data_encerramento = None
+        if hasattr(self, 'solicitacao_encerramento'):
+            data_encerramento = self.solicitacao_encerramento.data_de_encerramento_na_agencia
+        return data_encerramento
+
     def conta_encerrada_em(self, periodo, adiciona_prefixo=True):
         from sme_ptrf_apps.core.models import Periodo
 
