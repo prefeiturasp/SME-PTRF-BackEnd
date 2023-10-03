@@ -3,7 +3,8 @@ import logging
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, status
 from rest_framework.response import Response
-from rest_framework_jwt.views import ObtainJSONWebToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+
 from waffle import get_waffle_flag_model
 
 from sme_ptrf_apps.users.api.services import AutenticacaoService
@@ -14,7 +15,7 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-class LoginView(ObtainJSONWebToken):
+class LoginView(TokenObtainPairView):
     """
     POST auth/login/
     """
@@ -73,6 +74,10 @@ class LoginView(ObtainJSONWebToken):
                     user_dict['unidades'] = unidades
                     user_dict['permissoes'] = self.get_user_permissions(user)
                     user_dict['feature_flags'] = feature_flags
+
+                    # Para manter compatibilidade com o front que espera o token no campo token
+                    user_dict['token'] = resp.data['access']
+
                     data = {**user_dict, **resp.data}
                     return Response(data)
             return Response(response.json(), response.status_code)
