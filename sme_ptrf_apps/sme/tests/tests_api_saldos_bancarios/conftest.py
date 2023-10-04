@@ -53,10 +53,10 @@ def tipo_conta_saldos_bancarios():
 
 
 @pytest.fixture
-def conta_associacao_saldos_bancarios(associacao, tipo_conta_saldos_bancarios):
+def conta_associacao_saldos_bancarios(associacao_saldos_bancarios, tipo_conta_saldos_bancarios):
     return baker.make(
         'core.ContaAssociacao',
-        associacao=associacao,
+        associacao=associacao_saldos_bancarios,
         tipo_conta=tipo_conta_saldos_bancarios,
         banco_nome='Banco do Brasil',
         agencia='12345',
@@ -66,10 +66,10 @@ def conta_associacao_saldos_bancarios(associacao, tipo_conta_saldos_bancarios):
 
 
 @pytest.fixture
-def conta_associacao_saldos_bancarios_iniciada_em_2021_1(associacao, tipo_conta_saldos_bancarios, periodo_posterior_saldos_bancarios):
+def conta_associacao_saldos_bancarios_iniciada_em_2021_1(associacao_saldos_bancarios, tipo_conta_saldos_bancarios, periodo_posterior_saldos_bancarios):
     return baker.make(
         'core.ContaAssociacao',
-        associacao=associacao,
+        associacao=associacao_saldos_bancarios,
         tipo_conta=tipo_conta_saldos_bancarios,
         banco_nome='Banco do Brasil',
         agencia='12345',
@@ -80,10 +80,10 @@ def conta_associacao_saldos_bancarios_iniciada_em_2021_1(associacao, tipo_conta_
 
 
 @pytest.fixture
-def conta_associacao_saldos_bancarios_encerrada_em_2020_1(associacao, tipo_conta_saldos_bancarios):
+def conta_associacao_saldos_bancarios_encerrada_em_2020_1(associacao_saldos_bancarios, tipo_conta_saldos_bancarios):
     return baker.make(
         'core.ContaAssociacao',
-        associacao=associacao,
+        associacao=associacao_saldos_bancarios,
         tipo_conta=tipo_conta_saldos_bancarios,
         banco_nome='Banco do Brasil',
         agencia='12345',

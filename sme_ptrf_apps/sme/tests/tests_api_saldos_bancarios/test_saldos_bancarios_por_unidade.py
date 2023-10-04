@@ -17,7 +17,7 @@ cenario_1 = [
         {'tipo_de_unidade': 'EMEF', 'qtde_unidades_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 0},
         {'tipo_de_unidade': 'EMEFM', 'qtde_unidades_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 0},
         {'tipo_de_unidade': 'EMEI', 'qtde_unidades_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 0},
-        {'tipo_de_unidade': 'CEU', 'qtde_unidades_informadas': 1, 'saldo_bancario_informado': 1000, 'total_unidades': 2},
+        {'tipo_de_unidade': 'CEU', 'qtde_unidades_informadas': 1, 'saldo_bancario_informado': 1000, 'total_unidades': 1},
         {'tipo_de_unidade': 'CEU CEI', 'qtde_unidades_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 0},
         {'tipo_de_unidade': 'CEU EMEF', 'qtde_unidades_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 0},
         {'tipo_de_unidade': 'CEU EMEI', 'qtde_unidades_informadas': 0, 'saldo_bancario_informado': 0, 'total_unidades': 0},
@@ -33,7 +33,6 @@ def test_saldo_bancario_por_tipo_de_unidade(jwt_authenticated_client_sme, observ
         content_type='application/json')
 
     result = json.loads(response.content)
-
     resultado_esperado = cenario_1
 
     assert response.status_code == status.HTTP_200_OK
