@@ -1,96 +1,57 @@
-# DEPENDENCIAS JÁ REVISTAS
-
 # Django
 # ------------------------------------------------------------------------------
 django==3.2.21
-django-auditlog==2.0.0
-
-# Dependências do Django Rest Framework
-# ------------------------------------------------------------------------------
-drf-spectacular==0.26.2                 # Auto-generate OpenAPI 3.0 schemas from Django Rest Framework code
-
-# Django Admin Interface
-# Para melhoria da aparência do Django Admin
-# ------------------------------------------------------------------------------
 django-admin-interface==0.26.1
-
-# Celery
-# ------------------------------------------------------------------------------
-celery==5.2.1
-flower==1.2.0  # https://github.com/mher/flower
-
-# Solução para features flags
-# ------------------------------------------------------------------------------
-django-waffle==4.0.0
-
-# Outras dependências
-# ------------------------------------------------------------------------------
-Pillow==9.5.0
-python-slugify==8.0.1
+django-admin-rangefilter==0.5.4
 django-allauth==0.56.1
+django-auditlog==2.0.0
 django-ckeditor==6.7.0
 django-compressor==4.4
-rcssmin==1.1.1
+django-cors-headers
+django-crispy-forms==1.9.0
+django-environ==0.4.5
+django-filter==2.4.0
+django-mathfilters==1.0.0
+django-model-utils==4.0.0
+django-waffle==4.0.0                    # Solução para features flags
 
 # Django DES - EmailBackend that allows email configuration to be changed while the server is running.
 # Fork do django-des para suportar o Django 4
 git+https://github.com/prefeiturasp/django-des-fork.git#egg=django-des
 
-# Django REST Framework e plugins
+# Django Rest Framework
 # ------------------------------------------------------------------------------
-djangorestframework-simplejwt==5.3.0
+djangorestframework==3.11.0
+djangorestframework-simplejwt==5.3.0    # JWT authentication for DRF
+drf-spectacular==0.26.2                 # Auto-generate OpenAPI 3.0 schemas from Django Rest Framework code
 
-
-# DEPENDENCIAS AINDA NÃO REVISTAS
-
-pytz==2019.3  # https://github.com/stub42/pytz
-
-argon2-cffi==19.2.0  # https://github.com/hynek/argon2_cffi
-whitenoise==5.0.1  # https://github.com/evansd/whitenoise
-redis==3.4.1 # https://github.com/andymccurdy/redis-py
-
-django-celery-beat==2.1.0  # https://github.com/celery/django-celery-beat
-openpyxl==3.0.3
-
-# Django
+# Celery e Redis
 # ------------------------------------------------------------------------------
-django-environ==0.4.5  # https://github.com/joke2k/django-environ
-django-model-utils==4.0.0  # https://github.com/jazzband/django-model-utils
-django-crispy-forms==1.9.0  # https://github.com/django-crispy-forms/django-crispy-forms
-
-django-redis==4.11.0  # https://github.com/niwinz/django-redis
-django-admin-rangefilter==0.5.4 # https://github.com/silentsokolov/django-admin-rangefilter
-
-# Django REST Framework
-djangorestframework==3.11.0  # https://github.com/encode/django-rest-framework
-
-# Para filtros no DRF
-# https://django-filter.readthedocs.io/en/master/#
-django-filter==2.4.0
-
-# djangorestframework-jwt==1.11.0  # https://getblimp.github.io/django-rest-framework-jwt/
-
-django-cors-headers # https://github.com/adamchainz/django-cors-headers
-
-
-# Para validação e formatação de CNPJ e CPF
-# https://github.com/poliquin/brazilnum
-brazilnum==0.8.8
-
-sentry-sdk==0.14.2  # https://github.com/getsentry/sentry-python
-
-# Gerador de PDF
-WeasyPrint==52.2
-django-weasyprint==1.0.2
-
-# Para somar valores nos templates (incluindo floats)
-django-mathfilters==1.0.0
+celery==5.2.1
+flower==1.2.0
+django-celery-beat==2.1.0
+redis==3.4.1
+django-redis==4.11.0
 
 # Integração com Kibana
+# ------------------------------------------------------------------------------
 elastic-apm==6.15.1
 psutil==5.9.4
 
-# Formatação de números
-# https://github.com/python-babel/babel
-
+# Outras libs e utilitários
+# ------------------------------------------------------------------------------
 Babel==2.12.1
+Pillow==9.5.0
+argon2-cffi==19.2.0
+brazilnum==0.8.8
+openpyxl==3.0.3
+python-slugify==8.0.1
+pytz==2019.3
+rcssmin==1.1.1
+sentry-sdk==0.14.2
+whitenoise==5.0.1
+
+# Gerador de PDF
+# ------------------------------------------------------------------------------
+WeasyPrint==52.2
+django-weasyprint==1.0.2
