@@ -1,5 +1,6 @@
 from django.contrib.auth.middleware import get_user
 from django.utils.functional import SimpleLazyObject
+from django.contrib.auth.models import AnonymousUser
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken
 
@@ -21,6 +22,6 @@ class JWTAuthenticationMiddleware:
             if authenticated_tuple:
                 user, jwt = authenticated_tuple
         except InvalidToken:
-            return None
+            return AnonymousUser()
 
-        return user if user and user.is_authenticated else None
+        return user if user and user.is_authenticated else AnonymousUser()
