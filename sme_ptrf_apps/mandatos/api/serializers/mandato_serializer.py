@@ -3,7 +3,6 @@ from rest_framework.exceptions import APIException
 from rest_framework.status import HTTP_400_BAD_REQUEST
 
 from ...models import Mandato, Composicao
-from ...services import ServicoMandatoVigente
 from ...services.composicao_service import ServicoComposicaoVigente, ServicoCriaComposicaoVigenteDoMandato
 
 
@@ -47,36 +46,46 @@ class MandatoVigenteComComposicoesSerializer(serializers.ModelSerializer):
     composicoes = serializers.SerializerMethodField('get_composicoes')
 
     def get_composicoes(self, obj):
-        from sme_ptrf_apps.mandatos.api.serializers.composicao_serializer import ComposicaoLookupSerializer
+        from sme_ptrf_apps.mandatos.api.serializers.composicao_serializer import ComposicaoComCargosSerializer
         associacao = self.context.get("associacao")
 
         composicoes_list = []
 
-        servico_mandato_vigente = ServicoMandatoVigente()
-        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+        servico_composicao_vigente = ServicoComposicaoVigente(associacao=associacao, mandato=obj)
+        composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
 
-        if mandato_vigente:
-            servico_composicao_vigente = ServicoComposicaoVigente(associacao=associacao, mandato=mandato_vigente)
-            composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
+        if not composicao_vigente:
+            servico_cria_composicao_vigente = ServicoCriaComposicaoVigenteDoMandato(associacao=associacao,
+                                                                                    mandato=obj)
+            composicao_vigente = servico_cria_composicao_vigente.cria_composicao_vigente()
 
-            if not composicao_vigente:
-                servico_cria_composicao_vigente = ServicoCriaComposicaoVigenteDoMandato(associacao=associacao,
-                                                                                        mandato=mandato_vigente)
-                composicao_vigente = servico_cria_composicao_vigente.cria_composicao_vigente()
+        # Seta a Composição Vigente como primeira da lista
+        composicoes_list.append(composicao_vigente)
 
-            # Seta a Composição Vigente como primeira da lista
-            composicoes_list.append(composicao_vigente)
+        qs = Composicao.objects.filter(mandato=obj, associacao=associacao).exclude(
+            uuid=composicao_vigente.uuid).order_by('-data_inicial')
 
-            qs = Composicao.objects.filter(mandato=mandato_vigente, associacao=associacao).exclude(
-                uuid=composicao_vigente.uuid).order_by('-data_inicial')
+        # Acrescenta as demais composições a lista
+        for q in qs:
+            composicoes_list.append(q)
 
-            # Acrescenta as demais composições a lista
-            for q in qs:
-                composicoes_list.append(q)
+        return ComposicaoComCargosSerializer(composicoes_list, many=True).data
 
-            return ComposicaoLookupSerializer(composicoes_list, many=True).data
-        else:
-            return composicoes_list
+    class Meta:
+        model = Mandato
+        fields = ('id', 'uuid', 'referencia_mandato', 'data_inicial', 'data_final', 'composicoes',)
+
+
+class MandatoComComposicoesSerializer(serializers.ModelSerializer):
+    composicoes = serializers.SerializerMethodField('get_composicoes')
+
+    def get_composicoes(self, obj):
+        from sme_ptrf_apps.mandatos.api.serializers.composicao_serializer import ComposicaoComCargosSerializer
+        associacao = self.context.get("associacao")
+
+        qs = Composicao.objects.filter(mandato=obj, associacao=associacao).order_by('-data_inicial')
+
+        return ComposicaoComCargosSerializer(qs, many=True).data
 
     class Meta:
         model = Mandato

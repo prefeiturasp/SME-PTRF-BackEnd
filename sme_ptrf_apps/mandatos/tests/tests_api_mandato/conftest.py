@@ -73,3 +73,24 @@ def payload_01_update_mandato():
         "data_final": "2029-12-31"
     }
     return payload
+
+
+@pytest.fixture
+def mandato_anterior_01_2021_a_2022_api():
+    return baker.make(
+        'Mandato',
+        referencia_mandato='2021 a 2022',
+        data_inicial=date(2021, 1, 1),
+        data_final=date(2022, 12, 31),
+    )
+
+
+@pytest.fixture
+def composicao_anterior_01_2021_a_2022_api(mandato_anterior_01_2021_a_2022_api, associacao):
+    return baker.make(
+        'Composicao',
+        associacao=associacao,
+        mandato=mandato_anterior_01_2021_a_2022_api,
+        data_inicial=date(2021, 1, 1),
+        data_final=date(2022, 12, 31),
+    )
