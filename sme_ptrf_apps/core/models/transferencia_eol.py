@@ -28,6 +28,11 @@ class StatusProcessamento(models.TextChoices):
     PROCESSANDO = 'PROCESSANDO', 'Processando...'
 
 
+class ComportamentoContas(models.TextChoices):
+    TRANSFERE_SELECIONADA = 'TRANSFERE_SELECIONADA', 'Transferir apenas o tipo de conta selecionada e inativa-la na associação original.'
+    COPIA_TODAS = 'COPIA_TODAS', 'Copiar todas as contas da associação original para a nova associação mantendo-as ativas em ambas.'
+
+
 class TransferenciaEol(ModeloBase):
     """
     Transferência de código EOL de uma unidade para outra.
@@ -45,6 +50,20 @@ class TransferenciaEol(ModeloBase):
     - A Associação nova irá referenciar a unidade original com o código EOL transferido.
     - A conta_associacao do tipo_conta_transferido da Associação original será copiado para a nova e inativado na original.
     - As receitas e despesas da Associação original serão copiados para a nova e inativados na original.
+
+    Novo caso: CEU Perús - História 105534:
+
+    - É necessário separar o histórico de prestações de contas da Associação CEU Perús em dois momentos: Antes e depois do período 2023.1
+    - A associação atual ficará como histórico e terá o seu código EOL alterado. O seu código EOL será transferido para a nova associação.
+    - É necessário manter o histórico de receitas e despesas da unidade/associação de histórico.
+    - Para referenciar o histórico será criada uma unidade com o código EOL de histórico.
+    - A Associação original passará a referenciar a unidade histórico.
+    - A Associação nova irá referenciar a unidade original com o código EOL transferido.
+    - Nesse caso NÃO existem receitas e despesas lançados que já se referem a nova unidade/associação
+    - NÃO há ainda movimentação referente à nova associação.
+    - O tipo de conta indica a conta que deve ser copiada para a nova associação. Se não informado, serão copaidas todas as contas.
+    - A conta de tipo selecionado ou todas as conta_associacao da Associação original serão copiadas para a nova, mas MANTIDAS ATIVAS NA ORIGINAL.
+    - Nesse caso NÃO HÁ COPIA DE receitas e despesas da Associação original.
 
     A transferência é realizada pelo método 'transferir'.
 
@@ -83,10 +102,20 @@ class TransferenciaEol(ModeloBase):
         help_text='Data de início das atividades da nova unidade.',
     )
 
+    comportamento_contas = models.CharField(
+        'Comportamento quanto às contas',
+        max_length=30,
+        choices=ComportamentoContas.choices,
+        default=ComportamentoContas.TRANSFERE_SELECIONADA,
+        help_text='O que deseja fazer com as contas da associação original?',
+    )
+
     tipo_conta_transferido = models.ForeignKey(
         'TipoConta',
         on_delete=models.PROTECT,
-        help_text='Tipo de conta que será transferido para a nova unidade.',
+        help_text='Tipo de conta que será transferido para a nova unidade. Deixe vazio, caso o comportamento escolhido seja copiar todas as contas.',
+        blank=True,
+        null=True,
     )
 
     status_processamento = models.CharField(
@@ -142,8 +171,8 @@ class TransferenciaEol(ModeloBase):
         - O código EOL que será usado para o histórico NÃO deve existir;
         - Deve existir um período para a data de início das atividades da nova unidade;
         - Não deve existir fechamentos na associação original para o período de início das atividades da nova unidade;
-        - A conta_associação que será transferida para a nova associação deve existir;
-        - Não devem existir despesas na associação original com rateios em múltiplas contas.
+        - A conta_associação que será transferida para a nova associação deve existir. Apenas para o modo de transferência de conta.
+        - Não devem existir despesas na associação original com rateios em múltiplas contas. Apenas para o modo de transferência de conta.
         """
 
         # O código EOL transferido deve existir
@@ -169,14 +198,16 @@ class TransferenciaEol(ModeloBase):
             return False, f'Já existem fechamentos para a associação original {associacao_original} no período {periodo_da_data_inicio_atividades}.'
 
         # Deve existir uma conta_associacao do tipo tipo_conta_transferido para a associação do código eol transferido
-        if not ContaAssociacao.objects.filter(associacao=associacao_original,
-                                              tipo_conta=self.tipo_conta_transferido).exists():
+        if (self.comportamento_contas == ComportamentoContas.TRANSFERE_SELECIONADA and
+            not ContaAssociacao.objects.filter(associacao=associacao_original,
+                                              tipo_conta=self.tipo_conta_transferido).exists()):
             return False, f'Não existe conta_associacao do tipo {self.tipo_conta_transferido} para a associação original {associacao_original}.'
 
         # Nao devem existir despesas da associação original que tenham com rateios no tipo_conta_transferido e em outro tipo de conta
-        for despesa in associacao_original.despesas.all():
-            if despesa.tem_pagamentos_em_multiplas_contas():
-                return False, f'A associação original {associacao_original} possui despesas com rateios no tipo de conta {self.tipo_conta_transferido} e em outro tipo de conta.'
+        if self.comportamento_contas == ComportamentoContas.TRANSFERE_SELECIONADA:
+            for despesa in associacao_original.despesas.all():
+                if despesa.tem_pagamentos_em_multiplas_contas():
+                    return False, f'A associação original {associacao_original} possui despesas com rateios no tipo de conta {self.tipo_conta_transferido} e em outro tipo de conta.'
 
         return True, ""
 
@@ -231,12 +262,16 @@ class TransferenciaEol(ModeloBase):
 
         self.adicionar_log_info(f'Ações_associacao da associação original copiadas para a nova associação.')
 
-    def copiar_contas_associacao_do_tipo_transferido(self, associacao_original, associacao_nova):
-        self.adicionar_log_info(f'Copiando contas_associacao do tipo {self.tipo_conta_transferido} da associação original para a nova associação.')
-        contas_associacao_original = associacao_original.contas.filter(tipo_conta=self.tipo_conta_transferido).all()
+    def copiar_contas_associacao(self, associacao_original, associacao_nova):
+        if self.comportamento_contas == ComportamentoContas.TRANSFERE_SELECIONADA:
+            self.adicionar_log_info(f'Copiando contas_associacao do tipo {self.tipo_conta_transferido} da associação original para a nova associação.')
+            contas_associacao_original = associacao_original.contas.filter(tipo_conta=self.tipo_conta_transferido).all()
+        else:
+            self.adicionar_log_info(f'Copiando todas as contas_associacao da associação original para a nova associação.')
+            contas_associacao_original = associacao_original.contas.all()
 
         if not contas_associacao_original.exists():
-            self.adicionar_log_info(f'Associação original não possui contas_associacao do tipo {self.tipo_conta_transferido}.')
+            self.adicionar_log_info(f'Associação original não possui contas_associacao a serem copiadas.')
             return
 
         for conta_associacao in contas_associacao_original:
@@ -246,7 +281,10 @@ class TransferenciaEol(ModeloBase):
             conta_associacao.save()
             self.adicionar_log_info(f'Conta_associacao {conta_associacao} copiada para a nova associação.')
 
-        self.adicionar_log_info(f'Contas_associacao do tipo {self.tipo_conta_transferido} da associação original copiadas para a nova associação.')
+        if self.comportamento_contas == ComportamentoContas.TRANSFERE_SELECIONADA:
+            self.adicionar_log_info(f'Contas_associacao do tipo {self.tipo_conta_transferido} da associação original copiadas para a nova associação.')
+        else:
+            self.adicionar_log_info(f'Todas as contas_associacao da associação original copiadas para a nova associação.')
 
     def inativar_contas_associacao_do_tipo_transferido(self, associacao_original):
         self.adicionar_log_info(f'Inativando contas_associacao do tipo {self.tipo_conta_transferido} da associação original.')
@@ -360,33 +398,39 @@ class TransferenciaEol(ModeloBase):
 
     def inicializar_transferencia(self):
         self.adicionar_log_info(f'Iniciando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico. Data: {datetime.today()}')
-        self.status_processamento = PROCESSANDO
+        self.status_processamento = StatusProcessamento.PROCESSANDO
         self.save()
         self.associacao_original_uuid = Associacao.objects.get(unidade__codigo_eol=self.eol_transferido).uuid
 
     def abortar_transferencia(self, motivo, excecao=False):
         self.adicionar_log_info(
             f'Abortando transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico. Motivo: {motivo}')
-        self.status_processamento = ERRO if excecao else ABORTADO
+        self.status_processamento = StatusProcessamento.ERRO if excecao else StatusProcessamento.ABORTADO
+        self.save()
+        self.salvar_logs()
+
+    def tratar_contas(self, associacao_original, associacao_nova):
+        if self.comportamento_contas == ComportamentoContas.TRANSFERE_SELECIONADA:
+            self.copiar_contas_associacao(associacao_original, associacao_nova)
+            self.inativar_contas_associacao_do_tipo_transferido(associacao_original)
+        else:
+            self.copiar_contas_associacao(associacao_original, associacao_nova)
+
+    def finalizar_transferencia(self):
+        self.adicionar_log_info(f'Finalizada com sucesso a transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico.')
+        self.status_processamento = StatusProcessamento.SUCESSO
         self.save()
         self.salvar_logs()
 
     def executar_transferencia(self):
         associacao_nova = self.criar_associacao_nova()
         self.copiar_acoes_associacao(self.associacao_original, associacao_nova)
-        self.copiar_contas_associacao_do_tipo_transferido(self.associacao_original, associacao_nova)
-        self.inativar_contas_associacao_do_tipo_transferido(self.associacao_original)
+        self.tratar_contas(self.associacao_original, associacao_nova)
         self.copiar_despesas_associacao_do_tipo_transferido(self.associacao_original, associacao_nova)
         self.inativar_despesas_associacao_do_tipo_transferido(self.associacao_original)
         self.copiar_receitas_associacao_do_tipo_transferido(self.associacao_original, associacao_nova)
         self.inativar_receitas_associacao_do_tipo_transferido(self.associacao_original)
         self.finalizar_transferencia()
-
-    def finalizar_transferencia(self):
-        self.adicionar_log_info(f'Finalizada com sucesso a transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico.')
-        self.status_processamento = SUCESSO
-        self.save()
-        self.salvar_logs()
 
     def transferir(self):
         try:

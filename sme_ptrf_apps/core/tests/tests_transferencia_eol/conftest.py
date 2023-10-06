@@ -55,6 +55,21 @@ def transferencia_eol(tipo_conta, transf_eol_tipo_conta_cartao):
         log_execucao='Teste',
     )
 
+@pytest.fixture
+def transferencia_eol_copiar_todas_contas(tipo_conta, transf_eol_tipo_conta_cartao):
+    return baker.make(
+        'TransferenciaEol',
+        eol_transferido='400232',
+        eol_historico='900232',
+        tipo_nova_unidade='CEMEI',
+        cnpj_nova_associacao='44.445.671/0001-31',
+        data_inicio_atividades=datetime.date(2022, 7, 1),
+        tipo_conta_transferido=None,
+        comportamento_contas='COPIA_TODAS',
+        status_processamento='PENDENTE',
+        log_execucao='Teste',
+    )
+
 
 @pytest.fixture
 def transf_eol_unidade_eol_transferido(dre):
