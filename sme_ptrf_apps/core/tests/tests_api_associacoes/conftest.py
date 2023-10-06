@@ -1,6 +1,7 @@
 import pytest
 from model_bakery import baker
 from sme_ptrf_apps.core.models.membro_associacao import MembroEnum, RepresentacaoCargo
+from sme_ptrf_apps.core.models import ContaAssociacao, SolicitacaoEncerramentoContaAssociacao
 
 @pytest.fixture
 def membro_associacao_001(associacao):
@@ -339,4 +340,83 @@ def membro_associacao_cadastro_incompleto_014(associacao_cadastro_incompleto):
         email='membroassociacao014@gmail.com',
         representacao=RepresentacaoCargo.SERVIDOR.name,
         codigo_identificacao='0014'
+    )
+
+@pytest.fixture
+def tipo_conta_encerramento_conta():
+    return baker.make(
+        'TipoConta',
+        nome='Cheque encerramento conta',
+        banco_nome='Banco do Inter',
+        agencia='67945',
+        numero_conta='935556-x',
+        numero_cartao='987644164221',
+        permite_inativacao=True
+    )
+
+@pytest.fixture
+def unidade_encerramento_conta(dre):
+    return baker.make(
+        'Unidade',
+        nome='Escola encerramento conta',
+        tipo_unidade='EMEI',
+        codigo_eol='270009',
+        dre=dre,
+        sigla='EA'
+    )
+
+
+@pytest.fixture
+def associacao_encerramento_conta(unidade_encerramento_conta, periodo_2020_1):
+    return baker.make(
+        'Associacao',
+        nome='Associacao 271170',
+        cnpj='62.738.735/0001-74',
+        unidade=unidade_encerramento_conta,
+        periodo_inicial=periodo_2020_1
+    )
+
+@pytest.fixture
+def conta_associacao_encerramento_conta(associacao_encerramento_conta, tipo_conta_encerramento_conta):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao_encerramento_conta,
+        tipo_conta=tipo_conta_encerramento_conta,
+        banco_nome='Banco do Brasil',
+        agencia='12345',
+        numero_conta='123456-x',
+        numero_cartao='534653264523',
+        status=ContaAssociacao.STATUS_INATIVA
+    )
+@pytest.fixture
+def solicitacao_encerramento_conta_aprovada(conta_associacao_encerramento_conta, periodo_2020_1):
+    return baker.make(
+        'SolicitacaoEncerramentoContaAssociacao',
+        conta_associacao=conta_associacao_encerramento_conta,
+        status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA,
+        data_de_encerramento_na_agencia=periodo_2020_1.data_inicio_realizacao_despesas,
+        data_aprovacao=periodo_2020_1.data_inicio_realizacao_despesas
+    )
+
+
+@pytest.fixture
+def solicitacao_encerramento_conta_pendente(conta_associacao_encerramento_conta, periodo_2020_1):
+    return baker.make(
+        'SolicitacaoEncerramentoContaAssociacao',
+        conta_associacao=conta_associacao_encerramento_conta,
+        status=SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE,
+        data_de_encerramento_na_agencia=periodo_2020_1.data_inicio_realizacao_despesas,
+    )
+
+
+@pytest.fixture
+def receita_conta_encerrada(associacao_encerramento_conta, conta_associacao_encerramento_conta, acao_associacao, tipo_receita, periodo_2020_1):
+    return baker.make(
+        'Receita',
+        associacao=associacao_encerramento_conta,
+        data=periodo_2020_1.data_inicio_realizacao_despesas,
+        valor=100.00,
+        conta_associacao=conta_associacao_encerramento_conta,
+        acao_associacao=acao_associacao,
+        tipo_receita=tipo_receita,
     )

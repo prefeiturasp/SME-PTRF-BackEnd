@@ -15,6 +15,10 @@ class ContasAtivasComSolicitacaoEmAberto(models.Manager):
                                                                Q(solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE) |
                                                                Q(solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA))
 
+class ContasComSolicitacaoDeEncerramento(models.Manager):
+    def get_queryset(self):
+        return super(ContasAtivasComSolicitacaoEmAberto, self).get_queryset().filter(solicitacao_encerramento__isnull=False)
+
 class ContasEncerradas(models.Manager):
     def get_queryset(self):
         from ..models import SolicitacaoEncerramentoContaAssociacao
@@ -56,6 +60,7 @@ class ContaAssociacao(ModeloBase):
 
     objects = models.Manager()
     ativas_com_solicitacao_em_aberto = ContasAtivasComSolicitacaoEmAberto()
+    com_solicitacao_de_encerramento = ContasAtivasComSolicitacaoEmAberto()
     encerradas = ContasEncerradas()
 
     def __str__(self):
@@ -75,6 +80,13 @@ class ContaAssociacao(ModeloBase):
     @property
     def inativa(self):
         return self.status == self.STATUS_INATIVA
+
+    @property
+    def data_encerramento(self):
+        data_encerramento = None
+        if hasattr(self, 'solicitacao_encerramento'):
+            data_encerramento = self.solicitacao_encerramento.data_de_encerramento_na_agencia
+        return data_encerramento
 
     def conta_encerrada_em(self, periodo, adiciona_prefixo=True):
         from sme_ptrf_apps.core.models import Periodo
