@@ -45,6 +45,7 @@ class TransferenciaEol(ModeloBase):
 
     Esse modelo é usado para apoiar a transferência do código EOL de uma unidade para uma nova.
 
+    Comportamento: Transferência de conta de certo tipo incluindo seus lançamentos.
     O cenário de uso é o seguinte:
     - Uma unidade/associação será inativada e o código EOL será transferido para outra unidade/associação.
     - É necessário manter o histórico de receitas e despesas da unidade/associação que será inativada.
@@ -57,10 +58,10 @@ class TransferenciaEol(ModeloBase):
     - A conta_associacao do tipo_conta_transferido da Associação original será copiado para a nova e inativado na original.
     - As receitas e despesas da Associação original serão copiados para a nova e inativados na original.
 
-    Novo caso: CEU Perús - História 105534:
+    Comportamento: Cópia de todas as contas. Caso: CEU Perús - História 105534:
 
     - É necessário separar o histórico de prestações de contas da Associação CEU Perús em dois momentos: Antes e depois do período 2023.1
-    - A associação atual ficará como histórico e terá o seu código EOL alterado. O seu código EOL será transferido para a nova associação.
+    - A associação atual ficará com o histórico e terá o seu código EOL alterado. O seu código EOL será transferido para a nova associação.
     - É necessário manter o histórico de receitas e despesas da unidade/associação de histórico.
     - Para referenciar o histórico será criada uma unidade com o código EOL de histórico.
     - A Associação original passará a referenciar a unidade histórico.
@@ -562,6 +563,16 @@ class TransferenciaEol(ModeloBase):
         else:
             self.copiar_contas_associacao(associacao_original, associacao_nova)
 
+    def transferir_lancamentos(self, associacao_original, associacao_nova):
+        self.copiar_despesas_associacao_do_tipo_transferido(
+            associacao_original, associacao_nova
+        )
+        self.inativar_despesas_associacao_do_tipo_transferido(associacao_original)
+        self.copiar_receitas_associacao_do_tipo_transferido(
+            associacao_original, associacao_nova
+        )
+        self.inativar_receitas_associacao_do_tipo_transferido(associacao_original)
+
     def finalizar_transferencia(self):
         self.adicionar_log_info(
             f"Finalizada com sucesso a transferência de código EOL {self.eol_transferido} usando {self.eol_historico} para o histórico."
@@ -572,16 +583,14 @@ class TransferenciaEol(ModeloBase):
 
     def executar_transferencia(self):
         associacao_nova = self.criar_associacao_nova()
+
         self.copiar_acoes_associacao(self.associacao_original, associacao_nova)
+
         self.tratar_contas(self.associacao_original, associacao_nova)
-        self.copiar_despesas_associacao_do_tipo_transferido(
-            self.associacao_original, associacao_nova
-        )
-        self.inativar_despesas_associacao_do_tipo_transferido(self.associacao_original)
-        self.copiar_receitas_associacao_do_tipo_transferido(
-            self.associacao_original, associacao_nova
-        )
-        self.inativar_receitas_associacao_do_tipo_transferido(self.associacao_original)
+
+        if self.comportamento_contas == ComportamentoContas.TRANSFERE_SELECIONADA:
+            self.transferir_lancamentos(self.associacao_original, associacao_nova)
+
         self.finalizar_transferencia()
 
     def transferir(self):
