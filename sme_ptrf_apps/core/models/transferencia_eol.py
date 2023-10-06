@@ -556,7 +556,7 @@ class TransferenciaEol(ModeloBase):
         self.save()
         self.salvar_logs()
 
-    def tratar_contas(self, associacao_original, associacao_nova):
+    def copiar_contas(self, associacao_original, associacao_nova):
         if self.comportamento_contas == ComportamentoContas.TRANSFERE_SELECIONADA:
             self.copiar_contas_associacao(associacao_original, associacao_nova)
             self.inativar_contas_associacao_do_tipo_transferido(associacao_original)
@@ -586,7 +586,7 @@ class TransferenciaEol(ModeloBase):
 
         self.copiar_acoes_associacao(self.associacao_original, associacao_nova)
 
-        self.tratar_contas(self.associacao_original, associacao_nova)
+        self.copiar_contas(self.associacao_original, associacao_nova)
 
         if self.comportamento_contas == ComportamentoContas.TRANSFERE_SELECIONADA:
             self.transferir_lancamentos(self.associacao_original, associacao_nova)
