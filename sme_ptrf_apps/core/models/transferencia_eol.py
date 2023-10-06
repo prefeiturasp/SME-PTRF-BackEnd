@@ -19,28 +19,13 @@ from .validators import cnpj_validation
 
 logger = logging.getLogger(__name__)
 
-# status processamento
-PENDENTE = 'PENDENTE'
-SUCESSO = 'SUCESSO'
-ABORTADO = 'ABORTADO'
-ERRO = 'ERRO'
-PROCESSANDO = "PROCESSANDO"
 
-STATUS_PROCESSAMENTO = {
-    PENDENTE: 'Pendente',
-    SUCESSO: 'Sucesso',
-    ABORTADO: 'Abortado',
-    ERRO: 'Erro',
-    PROCESSANDO: 'Processando...'
-}
-
-STATUS_PROCESSAMENTO_CHOICES = (
-    (PENDENTE, STATUS_PROCESSAMENTO[PENDENTE]),
-    (SUCESSO, STATUS_PROCESSAMENTO[SUCESSO]),
-    (ABORTADO, STATUS_PROCESSAMENTO[ABORTADO]),
-    (ERRO, STATUS_PROCESSAMENTO[ERRO]),
-    (PROCESSANDO, STATUS_PROCESSAMENTO[PROCESSANDO]),
-)
+class StatusProcessamento(models.TextChoices):
+    PENDENTE = 'PENDENTE', 'Pendente'
+    SUCESSO = 'SUCESSO', 'Sucesso'
+    ABORTADO = 'ABORTADO', 'Abortado'
+    ERRO = 'ERRO', 'Erro'
+    PROCESSANDO = 'PROCESSANDO', 'Processando...'
 
 
 class TransferenciaEol(ModeloBase):
@@ -107,8 +92,8 @@ class TransferenciaEol(ModeloBase):
     status_processamento = models.CharField(
         'Status do processamento',
         max_length=20,
-        choices=STATUS_PROCESSAMENTO_CHOICES,
-        default=PENDENTE,
+        choices=StatusProcessamento.choices,
+        default=StatusProcessamento.PENDENTE,
         help_text='Status do processamento da transferência.',
     )
 
