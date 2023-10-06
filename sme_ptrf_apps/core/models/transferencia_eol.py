@@ -57,7 +57,8 @@ class TransferenciaEol(ModeloBase):
     - A Associação nova irá referenciar a unidade original com o código EOL transferido.
     - A conta_associacao do tipo_conta_transferido da Associação original será copiado para a nova e inativado na original.
     - As receitas e despesas da Associação original serão copiados para a nova e inativados na original.
-
+    - Membros da diretoria serão copiados para a nova associação, caso essa opção seja marcada.
+    
     Comportamento: Cópia de todas as contas. Caso: CEU Perús - História 105534:
 
     - É necessário separar o histórico de prestações de contas da Associação CEU Perús em dois momentos: Antes e depois do período 2023.1
@@ -71,6 +72,7 @@ class TransferenciaEol(ModeloBase):
     - O tipo de conta indica a conta que deve ser copiada para a nova associação. Se não informado, serão copiadas todas as contas.
     - A conta de tipo selecionado ou todas as conta_associacao da Associação original serão copiadas para a nova, mas MANTIDAS ATIVAS NA ORIGINAL.
     - Nesse caso NÃO HÁ COPIA DE receitas e despesas da Associação original.
+    - Membros da diretoria serão copiados para a nova associação, caso essa opção seja marcada.
 
     A transferência é realizada pelo método 'transferir'.
 
@@ -123,6 +125,12 @@ class TransferenciaEol(ModeloBase):
         help_text="Tipo de conta que será transferido para a nova unidade. Deixe vazio, caso o comportamento escolhido seja copiar todas as contas.",
         blank=True,
         null=True,
+    )
+
+    copiar_membros = models.BooleanField(
+        "Copiar membros?",
+        default=False,
+        help_text="Caso marcado, os membros da associação serão copiados para a nova associação.",
     )
 
     status_processamento = models.CharField(
@@ -524,6 +532,28 @@ class TransferenciaEol(ModeloBase):
             f"Receitas da conta {self.tipo_conta_transferido} da associação original inativadas."
         )
 
+    def copiar_membros_associacao(self, associacao_original, associacao_nova):
+        self.adicionar_log_info(
+            f"Copiando membros da associação original para a nova associação."
+        )
+
+        membros_associacao_original = associacao_original.cargos.all()
+
+        if not membros_associacao_original.exists():
+            self.adicionar_log_info(
+                f"Associação original não possui membros a serem copiados."
+            )
+            return
+
+        for membro in membros_associacao_original:
+            membro.pk = None
+            membro.uuid = uuid.uuid4()
+            membro.associacao = associacao_nova
+            membro.save()
+            self.adicionar_log_info(f"Membro {membro} copiado para a nova associação.")
+
+        self.adicionar_log_info("Membros da associação original copiados.")
+
     @property
     def associacao_original(self):
         return Associacao.by_uuid(self.associacao_original_uuid)
@@ -590,6 +620,9 @@ class TransferenciaEol(ModeloBase):
 
         if self.comportamento_contas == ComportamentoContas.TRANSFERE_SELECIONADA:
             self.transferir_lancamentos(self.associacao_original, associacao_nova)
+
+        if self.copiar_membros:
+            self.copiar_membros_associacao(self.associacao_original, associacao_nova)
 
         self.finalizar_transferencia()
 

@@ -3,6 +3,7 @@ import datetime
 import pytest
 from model_bakery import baker
 
+from sme_ptrf_apps.core.choices import MembroEnum
 
 @pytest.fixture
 def transf_eol_periodo_2022_2():
@@ -411,4 +412,24 @@ def transf_eol_receita_conta_cartao(
         categoria_receita='CUSTEIO',
         periodo_conciliacao=transf_eol_periodo_2022_2,
         detalhe_outros='receita conta cartão',
+    )
+
+
+@pytest.fixture
+def transf_membro_associacao_presidente(transf_eol_associacao_eol_transferido):
+    return baker.make(
+        'MembroAssociacao',
+        nome='Jose Presidente',
+        associacao=transf_eol_associacao_eol_transferido,
+        cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value,
+    )
+
+
+@pytest.fixture
+def transf_membro_associacao_vice_presidente(transf_eol_associacao_eol_transferido):
+    return baker.make(
+        'MembroAssociacao',
+        nome='Maria Vice-Presidente',
+        associacao=transf_eol_associacao_eol_transferido,
+        cargo_associacao=MembroEnum.VICE_PRESIDENTE_DIRETORIA_EXECUTIVA.value,
     )
