@@ -41,3 +41,20 @@ def test_action_mandado_vigente_composicoes_anteriores(
     assert len(result['composicoes']) == 2
 
 
+@freeze_time('2023-08-08 13:59:00')
+def test_action_mandado_vigente_sem_mandato_vigente(
+    jwt_authenticated_client_sme,
+    associacao
+):
+    response = jwt_authenticated_client_sme.get(
+        f'/api/mandatos/mandato-vigente/?associacao_uuid={associacao.uuid}',
+        content_type='application/json'
+    )
+
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+
+    assert result == {'composicoes': []}
+
+

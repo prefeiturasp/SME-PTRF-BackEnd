@@ -4,7 +4,6 @@ from sme_ptrf_apps.core.api.serializers import AssociacaoSerializer
 from sme_ptrf_apps.mandatos.api.serializers.mandato_serializer import MandatoSerializer
 
 from ...models import Composicao
-from ...services import ServicoMandatoVigente, ServicoComposicaoVigente
 
 
 class ComposicaoSerializer(serializers.ModelSerializer):
@@ -24,7 +23,7 @@ class ComposicaoSerializer(serializers.ModelSerializer):
         )
 
 
-class ComposicaoLookupSerializer(serializers.ModelSerializer):
+class ComposicaoComCargosSerializer(serializers.ModelSerializer):
 
     from .cargo_composicao_serializer import CargoComposicaoLookupSerializer
 
