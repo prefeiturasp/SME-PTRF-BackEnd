@@ -65,6 +65,9 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         conta_associacao = data['conta_associacao']
+        
+        if conta_associacao and (data['conta_associacao'].data_inicio > data['data']):
+            raise serializers.ValidationError({"mensagem": "A conta possui data de início posterior a data do crédito."})
 
         if conta_associacao.inativa:
             raise serializers.ValidationError({"mensagem": "Não é permitido criar/editar receita com conta inativada."})

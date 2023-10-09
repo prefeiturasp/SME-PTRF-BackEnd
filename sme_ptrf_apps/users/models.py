@@ -6,7 +6,7 @@ from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
 from django.db.models import CharField
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext as _
 
 from sme_ptrf_apps.core.models import Unidade
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome, ModeloBase

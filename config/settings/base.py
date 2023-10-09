@@ -140,6 +140,7 @@ MIDDLEWARE = [
     "sme_ptrf_apps.jwt_middleware.JWTAuthenticationMiddleware",
     "auditlog.middleware.AuditlogMiddleware",
     "waffle.middleware.WaffleMiddleware",
+    "allauth.account.middleware.AccountMiddleware",  # Requerido na versão 0.56.1 do django-allauth, necessária para o Django 4
 ]
 
 # STATIC (DJANGO)

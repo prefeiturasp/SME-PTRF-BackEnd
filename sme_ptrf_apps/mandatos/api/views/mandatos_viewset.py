@@ -53,3 +53,26 @@ class MandatosViewSet(viewsets.ModelViewSet):
         return Response(result, status=status.HTTP_200_OK)
 
 
+
+    def destroy(self, request, *args, **kwargs):
+        from django.db.models.deletion import ProtectedError
+
+        obj = self.get_object()
+
+        if obj.composicoes_do_mandato.filter(cargos_da_composicao_da_composicao__isnull=False).exists():
+            content = {
+                'erro': 'ProtectedError',
+                'mensagem': 'Não é possível excluir o período de mandato pois já existem membros cadastrados nas associações.'
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            self.perform_destroy(obj)
+        except ProtectedError:
+            content = {
+                'erro': 'ProtectedError',
+                'mensagem': 'Essa operação não pode ser realizada. Há dados vinculados a essa ação da referida Associação'
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
