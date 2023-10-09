@@ -55,6 +55,8 @@ def test_api_acoes_list_associacoes_nao_vinculadas_encerradas_e_nao_encerradas(j
     response = jwt_authenticated_client_a.get(f'/api/acoes/{acao_y.uuid}/associacoes-nao-vinculadas/?filtro_informacoes=ENCERRADAS,NAO_ENCERRADAS', content_type='application/json')
     result = json.loads(response.content)
 
+    result = sorted(result, key=lambda i: i['cnpj'], reverse=True)
+
     resultado_esperado = [
         {
             'uuid': f'{associacao_eco_delta_000087.uuid}',
