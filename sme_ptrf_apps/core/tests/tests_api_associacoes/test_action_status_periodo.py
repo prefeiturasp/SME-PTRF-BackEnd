@@ -388,4 +388,19 @@ def test_status_periodo_com_conta_encerrada_com_saldo(
     assert 'tem_conta_encerrada_com_saldo' in result
     assert result['tem_conta_encerrada_com_saldo'] == True
 
+@freeze_time('2020-07-10 10:20:00')
+def test_status_periodo_com_conta_encerrada_sem_saldo(
+    jwt_authenticated_client_a,
+    periodo_2020_1,
+    conta_associacao_encerramento_conta,
+    solicitacao_encerramento_conta_aprovada,
+):
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{conta_associacao_encerramento_conta.associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert 'tem_conta_encerrada_com_saldo' in result
+    assert result['tem_conta_encerrada_com_saldo'] == False
+
 
