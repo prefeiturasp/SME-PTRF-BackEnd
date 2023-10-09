@@ -810,7 +810,7 @@ class PrestacaoConta(ModeloBase):
         periodo = Periodo.by_uuid(periodo_uuid)
 
         qtd_por_status_dre = []
-        for dre in Unidade.dres.all().order_by('sigla'):
+        for dre in Unidade.dres.all().order_by('nome'):
 
             qtd_por_status = {
                 cls.STATUS_NAO_RECEBIDA: 0,

@@ -72,6 +72,31 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     rateios = RateioDespesaCreateSerializer(many=True, required=False)
     despesas_impostos = DespesaImpostoSerializer(many=True, required=False, allow_null=True)
 
+    def validate(self, data):
+        rateios = data['rateios'] if 'rateios' in data else []
+        despesas_impostos = data['despesas_impostos'] if 'despesas_impostos' in data else []
+
+        for rateio in rateios:
+            data_transacao = data['data_transacao']
+            conta_associacao = rateio['conta_associacao']
+            if conta_associacao and (conta_associacao.data_inicio > data_transacao):
+                raise serializers.ValidationError({"mensagem": "Um ou mais rateios possuem conta com data de início posterior a data de transação."})
+            if conta_associacao and (conta_associacao.data_encerramento and conta_associacao.data_encerramento < data_transacao):
+                raise serializers.ValidationError({"mensagem": "Um ou mais rateios possuem conta com data de encerramento anterior a data de transação."})
+
+        for imposto in despesas_impostos:
+            data_transacao = imposto['data_transacao']
+
+            if data_transacao:
+                for rateio in imposto['rateios']:
+                    conta_associacao = rateio['conta_associacao']
+                    if conta_associacao and (conta_associacao.data_inicio > data_transacao):
+                        raise serializers.ValidationError({"mensagem": "Um ou mais rateios de imposto possuem conta com data de início posterior a data de transação."})
+                    if conta_associacao and (conta_associacao.data_encerramento and conta_associacao.data_encerramento < data_transacao):
+                        raise serializers.ValidationError({"mensagem": "Um ou mais rateios de imposto possuem conta com data de encerramento anterior a data de transação."})
+
+        return data
+
     def create(self, validated_data):
 
         data_de_encerramento = validated_data['associacao'].data_de_encerramento \
@@ -420,7 +445,7 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
 
     def get_recurso_externo(self, despesa):
         return despesa.receitas_saida_do_recurso.first().uuid if despesa.receitas_saida_do_recurso.exists() else None
-    
+
     def get_informacoes(self, despesa):
         return despesa.tags_de_informacao
     class Meta:

@@ -24,7 +24,7 @@ class ContaAssociacaoLookUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ContaAssociacao
-        fields = ('uuid', 'nome', 'status', 'solicitacao_encerramento')
+        fields = ('uuid', 'nome', 'status', 'solicitacao_encerramento', 'data_inicio', )
 
 
 class ContaAssociacaoInfoAtaSerializer(serializers.ModelSerializer):
