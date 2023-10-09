@@ -16,7 +16,7 @@ django-admin-interface==0.26.1
 
 # Celery
 # ------------------------------------------------------------------------------
-celery==5.2.1
+celery==5.2.2
 flower==1.2.0  # https://github.com/mher/flower
 
 # Solução para features flags
