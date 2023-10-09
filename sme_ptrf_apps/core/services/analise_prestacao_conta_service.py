@@ -81,9 +81,9 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
                     # Todas as solicitações foram consideradas corretas automaticamente então passa a análise para correta
                     nova_analise_lancamento.resultado = AnaliseLancamentoPrestacaoConta.RESULTADO_CORRETO
                 nova_analise_lancamento.save()
-                         
+
             # Verifica se não há solicitações de acerto e, se não houver, exclui a nova_analise_lancamento
-            if not analise_lancamento.solicitacoes_de_ajuste_da_analise.exists():
+            if analise_lancamento.requer_ajuste and not analise_lancamento.solicitacoes_de_ajuste_da_analise.exists():
                 nova_analise_lancamento.delete()
 
     def copia_analise_documento(analise_documento_origem):

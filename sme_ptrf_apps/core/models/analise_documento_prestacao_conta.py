@@ -78,6 +78,10 @@ class AnaliseDocumentoPrestacaoConta(ModeloBase):
     )
 
     @property
+    def requer_ajuste(self):
+        return self.resultado == AnaliseDocumentoPrestacaoConta.RESULTADO_AJUSTE
+
+    @property
     def requer_edicao_informacao_conciliacao(self):
         requer = self.solicitacoes_de_ajuste_da_analise.filter(
             tipo_acerto__categoria=TipoAcertoDocumento.CATEGORIA_EDICAO_INFORMACAO
