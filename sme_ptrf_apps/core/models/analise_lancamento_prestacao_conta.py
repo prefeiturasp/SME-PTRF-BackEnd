@@ -120,6 +120,10 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         return choices_to_json(cls.STATUS_REALIZACAO_CHOICES)
 
     @property
+    def requer_ajuste(self):
+        return self.resultado == AnaliseLancamentoPrestacaoConta.RESULTADO_AJUSTE
+
+    @property
     def requer_atualizacao_devolucao_ao_tesouro(self):
         from . import TipoAcertoLancamento
         requer = self.solicitacoes_de_ajuste_da_analise.filter(
