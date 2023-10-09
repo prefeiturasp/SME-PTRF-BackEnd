@@ -28,9 +28,6 @@ class CargoComposicaoLookupSerializer(serializers.ModelSerializer):
 
     cargo_associacao_label = serializers.CharField(source='get_cargo_associacao_display')
 
-    def get_cargo_associacao_label(self, obj):
-        pass
-
     ocupante_do_cargo = OcupanteCargoSerializer()
 
     class Meta:
