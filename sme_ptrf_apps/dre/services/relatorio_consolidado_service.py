@@ -7,6 +7,7 @@ from sme_ptrf_apps.core.models import (
     FechamentoPeriodo,
     PrevisaoRepasseSme,
     DevolucaoAoTesouro, TipoConta,
+    ContaAssociacao
 )
 from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE, \
     JustificativaRelatorioConsolidadoDRE, ConsolidadoDRE
@@ -71,7 +72,6 @@ def status_de_geracao_do_relatorio(dre, periodo, tipo_conta):
 
 def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consolidado_dre=None):
     from .consolidado_dre_service import verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao
-
     eh_retificacao = True if consolidado_dre and consolidado_dre.eh_retificacao else False
 
     dre_uuid = dre.uuid
@@ -135,63 +135,70 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
         # TODO Tratativa dos Bugs: 91797, 93549 e 93018 da Sprint 65
         # totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True, consolidado_dre=consolidado_dre)
         # Foi adicionado and consolidado_dre.versao == "FINAL" para verificar se passa ou não o consolidado
-
-        if consolidado_dre and consolidado_dre.versao == "FINAL":
-            totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True,
-                                                     consolidado_dre=consolidado_dre)
+        if periodo.data_fim_realizacao_despesas:
+            existem_contas_criadas_no_periodo_ou_anterior = ContaAssociacao.objects.filter(Q(data_inicio__isnull=True) | Q(data_inicio__lte=periodo.data_fim_realizacao_despesas),
+                                                                                           tipo_conta=tipo_conta).exists()
         else:
-            totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True)
+            existem_contas_criadas_no_periodo_ou_anterior = True
 
-        if consolidado_dre and consolidado_dre.eh_retificacao:
-            if consolidado_dre.laudas_do_consolidado_dre.all():
-                # foi gerado
+        if existem_contas_criadas_no_periodo_ou_anterior:
 
+            if consolidado_dre and consolidado_dre.versao == "FINAL":
+                totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True,
+                                                        consolidado_dre=consolidado_dre)
+            else:
+                totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True)
+
+            if consolidado_dre and consolidado_dre.eh_retificacao:
+                if consolidado_dre.laudas_do_consolidado_dre.all():
+                    # foi gerado
+
+                    justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                        dre=dre,
+                        tipo_conta=tipo_conta,
+                        periodo=periodo,
+                        consolidado_dre=consolidado_dre,
+                        eh_retificacao=True
+                    ).last()
+
+                else:
+                    justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
+                        dre=dre,
+                        tipo_conta=tipo_conta,
+                        periodo=periodo,
+                        consolidado_dre__isnull=True,
+                        eh_retificacao=True
+                    ).last()
+
+            elif consolidado_dre and consolidado_dre.versao == 'FINAL':
+                # Justificativa
                 justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
                     dre=dre,
                     tipo_conta=tipo_conta,
                     periodo=periodo,
                     consolidado_dre=consolidado_dre,
-                    eh_retificacao=True
+                    eh_retificacao=False
                 ).last()
-
             else:
                 justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
                     dre=dre,
                     tipo_conta=tipo_conta,
                     periodo=periodo,
                     consolidado_dre__isnull=True,
-                    eh_retificacao=True
+                    eh_retificacao=False
                 ).last()
 
-        elif consolidado_dre and consolidado_dre.versao == 'FINAL':
-            # Justificativa
-            justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
-                dre=dre,
-                tipo_conta=tipo_conta,
-                periodo=periodo,
-                consolidado_dre=consolidado_dre,
-                eh_retificacao=False
-            ).last()
-        else:
-            justificativa = JustificativaRelatorioConsolidadoDRE.objects.filter(
-                dre=dre,
-                tipo_conta=tipo_conta,
-                periodo=periodo,
-                consolidado_dre__isnull=True,
-                eh_retificacao=False
-            ).last()
+            objeto_tipo_de_conta.append({
+                'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
+                'valores': totais,
+                'justificativa_texto': justificativa.texto if justificativa else '',
+                'justificativa_uuid': justificativa.uuid if justificativa else None,
+                'consolidado_dre': consolidado_dre.uuid if justificativa and justificativa.consolidado_dre and justificativa.consolidado_dre.uuid else None,
+                'tipo_conta_uuid': tipo_conta.uuid,
+                'eh_retificacao': consolidado_dre.eh_retificacao if consolidado_dre else False
+            })
 
-        objeto_tipo_de_conta.append({
-            'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
-            'valores': totais,
-            'justificativa_texto': justificativa.texto if justificativa else '',
-            'justificativa_uuid': justificativa.uuid if justificativa else None,
-            'consolidado_dre': consolidado_dre.uuid if justificativa and justificativa.consolidado_dre and justificativa.consolidado_dre.uuid else None,
-            'tipo_conta_uuid': tipo_conta.uuid,
-            'eh_retificacao': consolidado_dre.eh_retificacao if consolidado_dre else False
-        })
-
-    dados['por_tipo_de_conta'] = objeto_tipo_de_conta
+            dados['por_tipo_de_conta'] = objeto_tipo_de_conta
 
     return dados
 
