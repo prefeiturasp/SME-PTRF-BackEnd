@@ -58,7 +58,7 @@ class TransferenciaEol(ModeloBase):
     - A conta_associacao do tipo_conta_transferido da Associação original será copiado para a nova e inativado na original.
     - As receitas e despesas da Associação original serão copiados para a nova e inativados na original.
     - Membros da diretoria serão copiados para a nova associação, caso essa opção seja marcada.
-    
+
     Comportamento: Cópia de todas as contas. Caso: CEU Perús - História 105534:
 
     - É necessário separar o histórico de prestações de contas da Associação CEU Perús em dois momentos: Antes e depois do período 2023.1
@@ -109,6 +109,16 @@ class TransferenciaEol(ModeloBase):
     data_inicio_atividades = models.DateField(
         "Data de início das atividades",
         help_text="Data de início das atividades da nova unidade.",
+    )
+
+    periodo_inicial_associacao = models.ForeignKey(
+        "Periodo",
+        on_delete=models.PROTECT,
+        verbose_name="período inicial",
+        related_name="+",
+        null=True,
+        blank=True,
+        help_text="Indique o período inicial para a nova associação. Deixe vazio, se não quiser indicar um período inicial.",
     )
 
     comportamento_contas = models.CharField(
@@ -297,6 +307,8 @@ class TransferenciaEol(ModeloBase):
         associacao_nova.pk = None
         associacao_nova.uuid = uuid.uuid4()
         associacao_nova.cnpj = self.cnpj_nova_associacao
+        if self.periodo_inicial_associacao:
+            associacao_nova.periodo_inicial = self.periodo_inicial_associacao
         associacao_nova.save()
 
         self.adicionar_log_info(
