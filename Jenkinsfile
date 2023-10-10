@@ -164,7 +164,7 @@ pipeline {
 
         stage('Deploy Ambientes'){
               when { anyOf {  branch 'master'; branch 'main' } }
-              //parallel {
+              parallel {
               stage('Deploy Treino'){
                 steps {
                   withCredentials([file(credentialsId: "config_release", variable: 'config')]){
@@ -189,7 +189,7 @@ pipeline {
                 }
               }
               }
-            //}
+            }
           }
       }
       }
