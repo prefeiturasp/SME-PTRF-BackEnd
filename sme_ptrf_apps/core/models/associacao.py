@@ -79,7 +79,7 @@ class Associacao(ModeloIdNome):
                                 null=True)
 
     cnpj = models.CharField(
-        "CNPJ", max_length=20, validators=[cnpj_validation], blank=True, default="", unique=True
+        "CNPJ", max_length=20, validators=[cnpj_validation], blank=True, default=""
     )
 
     periodo_inicial = models.ForeignKey(
@@ -415,7 +415,7 @@ class Associacao(ModeloIdNome):
     @classmethod
     def filtro_informacoes_to_json(cls):
         return FiltroInformacoesAssociacao.choices()
-    
+
     @classmethod
     def filtro_informacoes_dre_to_json(cls):
         return FiltroInformacoesAssociacaoDre.choices()
