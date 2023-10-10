@@ -99,6 +99,9 @@ def tipo_conta_cheque(tipo_conta):
 def tipo_conta_cartao():
     return baker.make('TipoConta', nome='Cartão')
 
+@pytest.fixture
+def tipo_conta_teste():
+    return baker.make('TipoConta', nome='Teste')
 
 @pytest.fixture
 def acao():
@@ -518,6 +521,18 @@ def conta_associacao_tipo_cheque(associacao, tipo_conta_cheque):
         agencia='12345',
         numero_conta='123456-x',
         numero_cartao='534653264523'
+    )
+@pytest.fixture
+def conta_associacao_tipo_teste(associacao, tipo_conta_teste, periodo_2020_1):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao,
+        tipo_conta=tipo_conta_teste,
+        banco_nome='Banco do Brasil',
+        agencia='12345',
+        numero_conta='123456-x',
+        numero_cartao='534653264523',
+        data_inicio=periodo_2020_1.data_inicio_realizacao_despesas
     )
 
 @pytest.fixture

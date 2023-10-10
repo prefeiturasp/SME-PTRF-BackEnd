@@ -179,6 +179,31 @@ def usuario_notificavel(
 
 
 @pytest.fixture
+def usuario_notificavel_nao_encontrado_sme_integracao(
+    unidade_a,
+    grupo_notificavel,
+    unidade_encerramento_conta,
+    visao_ue,
+    visao_dre
+):
+    from django.contrib.auth import get_user_model
+
+    senha = 'Sgp0418'
+    login = '0000000'
+    email = 'notificavel_nao_encontrado_sme_integracao@amcom.com.br'
+
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(unidade_a)
+    user.unidades.add(unidade_encerramento_conta)
+    user.groups.add(grupo_notificavel)
+    user.visoes.add(visao_ue)
+    user.visoes.add(visao_dre)
+    user.save()
+    return user
+
+
+@pytest.fixture
 def usuario_notificavel_que_nao_pertence_a_comissao_contas(
     unidade_a,
     grupo_notificavel,
