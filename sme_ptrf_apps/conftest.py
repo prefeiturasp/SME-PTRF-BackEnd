@@ -20,6 +20,25 @@ from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTE
 from sme_ptrf_apps.dre.models import ConsolidadoDRE
 import datetime
 
+from pytest_factoryboy import register
+from sme_ptrf_apps.core.fixtures.factories.unidade_factory import DreFactory, UnidadeFactory
+from sme_ptrf_apps.core.fixtures.factories.associacao_factory import AssociacaoFactory
+from sme_ptrf_apps.core.fixtures.factories.conta_associacao_factory import ContaAssociacaoFactory
+from sme_ptrf_apps.core.fixtures.factories.periodo_factory import PeriodoFactory
+from sme_ptrf_apps.core.fixtures.factories.tipo_conta_factory import TipoContaFactory
+from sme_ptrf_apps.core.fixtures.factories.observacao_conciliacao_factory import ObservacaoConciliacaoFactory
+from sme_ptrf_apps.core.fixtures.factories.prestacao_conta_factory import PrestacaoContaFactory
+
+from sme_ptrf_apps.fixtures import *
+
+register(DreFactory)
+register(UnidadeFactory)
+register(AssociacaoFactory)
+register(ContaAssociacaoFactory)
+register(PeriodoFactory)
+register(TipoContaFactory)
+register(ObservacaoConciliacaoFactory)
+register(PrestacaoContaFactory)
 
 @pytest.fixture
 def fake_user(client, django_user_model, unidade):
