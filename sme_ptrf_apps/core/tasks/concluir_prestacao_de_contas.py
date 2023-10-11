@@ -78,16 +78,17 @@ def concluir_prestacao_de_contas_async(
             ultima_analise_pc = prestacao.analises_da_prestacao.order_by('id').last()
             criar_relatorio_apos_acertos_final(analise_prestacao_conta=ultima_analise_pc, usuario=usuario)
 
-        if e_retorno_devolucao and requer_geracao_fechamentos and not requer_geracao_documentos:
+        if e_retorno_devolucao and (requer_geracao_documentos or requer_geracao_fechamentos):
             logging.info(f'Solicitações de ajustes Justificadas requerem apagar fechamentos pc {prestacao.uuid}.')
             prestacao.apaga_fechamentos()
+
+        if e_retorno_devolucao and requer_geracao_fechamentos and not requer_geracao_documentos:
             logging.info(f'Solicitações de ajustes Justificadas requerem criar os fechamentos pc {prestacao.uuid}.')
             _criar_fechamentos(acoes, contas, periodo, prestacao)
             logger.info('Fechamentos criados para a prestação de contas %s.', prestacao)
 
         if e_retorno_devolucao and (requer_geracao_documentos or requer_acertos_em_extrato):
             logging.info(f'Solicitações de ajustes requerem apagar fechamentos e documentos da pc {prestacao.uuid}.')
-            prestacao.apaga_fechamentos()
             prestacao.apaga_relacao_bens()
             prestacao.apaga_demonstrativos_financeiros()
             logging.info(f'Fechamentos e documentos da pc {prestacao.uuid} apagados.')
@@ -95,10 +96,11 @@ def concluir_prestacao_de_contas_async(
         if e_retorno_devolucao and not requer_geracao_fechamentos and not requer_geracao_documentos and not requer_acertos_em_extrato:
             logging.info(f'Solicitações de ajustes NÃO requerem apagar fechamentos e documentos da pc {prestacao.uuid}.')
 
-        if requer_geracao_documentos or requer_acertos_em_extrato:
+        if requer_geracao_documentos:
             _criar_fechamentos(acoes, contas, periodo, prestacao)
             logger.info('Fechamentos criados para a prestação de contas %s.', prestacao)
 
+        if requer_geracao_documentos or requer_acertos_em_extrato:
             _apagar_previas_documentos(contas=contas, periodo=periodo, prestacao=prestacao)
             logger.info('Prévias apagadas.')
 
