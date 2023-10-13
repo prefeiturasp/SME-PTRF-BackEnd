@@ -17,7 +17,7 @@ class ContasAtivasComSolicitacaoEmAberto(models.Manager):
 
 class ContasComSolicitacaoDeEncerramento(models.Manager):
     def get_queryset(self):
-        return super(ContasAtivasComSolicitacaoEmAberto, self).get_queryset().filter(solicitacao_encerramento__isnull=False)
+        return super(ContasComSolicitacaoDeEncerramento, self).get_queryset().filter(solicitacao_encerramento__isnull=False)
 
 class ContasEncerradas(models.Manager):
     def get_queryset(self):
@@ -60,7 +60,7 @@ class ContaAssociacao(ModeloBase):
 
     objects = models.Manager()
     ativas_com_solicitacao_em_aberto = ContasAtivasComSolicitacaoEmAberto()
-    com_solicitacao_de_encerramento = ContasAtivasComSolicitacaoEmAberto()
+    com_solicitacao_de_encerramento = ContasComSolicitacaoDeEncerramento()
     encerradas = ContasEncerradas()
 
     def __str__(self):

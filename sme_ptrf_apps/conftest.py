@@ -20,6 +20,25 @@ from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTE
 from sme_ptrf_apps.dre.models import ConsolidadoDRE
 import datetime
 
+from pytest_factoryboy import register
+from sme_ptrf_apps.core.fixtures.factories.unidade_factory import DreFactory, UnidadeFactory
+from sme_ptrf_apps.core.fixtures.factories.associacao_factory import AssociacaoFactory
+from sme_ptrf_apps.core.fixtures.factories.conta_associacao_factory import ContaAssociacaoFactory
+from sme_ptrf_apps.core.fixtures.factories.periodo_factory import PeriodoFactory
+from sme_ptrf_apps.core.fixtures.factories.tipo_conta_factory import TipoContaFactory
+from sme_ptrf_apps.core.fixtures.factories.observacao_conciliacao_factory import ObservacaoConciliacaoFactory
+from sme_ptrf_apps.core.fixtures.factories.prestacao_conta_factory import PrestacaoContaFactory
+
+from sme_ptrf_apps.fixtures import *
+
+register(DreFactory)
+register(UnidadeFactory)
+register(AssociacaoFactory)
+register(ContaAssociacaoFactory)
+register(PeriodoFactory)
+register(TipoContaFactory)
+register(ObservacaoConciliacaoFactory)
+register(PrestacaoContaFactory)
 
 @pytest.fixture
 def fake_user(client, django_user_model, unidade):
@@ -58,21 +77,8 @@ def usuario(unidade):
 
 @pytest.fixture
 def jwt_authenticated_client(client, usuario):
-    from unittest.mock import patch
     api_client = APIClient()
-    with patch('sme_ptrf_apps.users.api.views.login.AutenticacaoService.autentica') as mock_post:
-        data = {
-            "nome": "LUCIA HELENA",
-            "cpf": "62085077072",
-            "email": "luh@gmail.com",
-            "login": "7210418"
-        }
-        mock_post.return_value.ok = True
-        mock_post.return_value.status_code = 200
-        mock_post.return_value.json.return_value = data
-        resp = api_client.post('/api/login', {'login': usuario.username, 'senha': usuario.password}, format='json')
-        resp_data = resp.json()
-        api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
+    api_client.force_authenticate(user=usuario)
     return api_client
 
 
@@ -112,6 +118,9 @@ def tipo_conta_cheque(tipo_conta):
 def tipo_conta_cartao():
     return baker.make('TipoConta', nome='Cartão')
 
+@pytest.fixture
+def tipo_conta_teste():
+    return baker.make('TipoConta', nome='Teste')
 
 @pytest.fixture
 def acao():
@@ -531,6 +540,18 @@ def conta_associacao_tipo_cheque(associacao, tipo_conta_cheque):
         agencia='12345',
         numero_conta='123456-x',
         numero_cartao='534653264523'
+    )
+@pytest.fixture
+def conta_associacao_tipo_teste(associacao, tipo_conta_teste, periodo_2020_1):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao,
+        tipo_conta=tipo_conta_teste,
+        banco_nome='Banco do Brasil',
+        agencia='12345',
+        numero_conta='123456-x',
+        numero_cartao='534653264523',
+        data_inicio=periodo_2020_1.data_inicio_realizacao_despesas
     )
 
 @pytest.fixture
@@ -2970,22 +2991,8 @@ def usuario_permissao_sme(unidade, grupo_sme):
 
 @pytest.fixture
 def jwt_authenticated_client_sme(client, usuario_permissao_sme):
-    from unittest.mock import patch
-    from rest_framework.test import APIClient
     api_client = APIClient()
-    with patch('sme_ptrf_apps.users.api.views.login.AutenticacaoService.autentica') as mock_post:
-        data = {
-            "nome": "Usuario SME",
-            "cpf": "12345678910",
-            "email": "usuario.sme@gmail.com",
-            "login": "1235678"
-        }
-        mock_post.return_value.ok = True
-        mock_post.return_value.status_code = 200
-        mock_post.return_value.json.return_value = data
-        resp = api_client.post('/api/login', {'login': usuario_permissao_sme.username, 'senha': usuario_permissao_sme.password}, format='json')
-        resp_data = resp.json()
-        api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
+    api_client.force_authenticate(user=usuario_permissao_sme)
     return api_client
 
 

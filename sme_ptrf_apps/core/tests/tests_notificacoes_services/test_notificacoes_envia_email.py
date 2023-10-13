@@ -2,12 +2,12 @@ import pytest
 from unittest.mock import patch
 
 from ....core.models import Notificacao
+from ....core.services.notificacao_services.enviar_email_notificacao import enviar_email_nova_notificacao
 
 pytestmark = pytest.mark.django_db
 
 def test_notificar_deve_enviar_email(usuario_notificavel, monkeypatch):
     monkeypatch.setenv('SERVER_NAME', 'sig-escola.sme.prefeitura.sp.gov.br')
-    
     path = 'sme_ptrf_apps.core.services.notificacao_services.enviar_email_notificacao.enviar_email_nova_notificacao'
 
     with patch(path) as mock_enviar_email:
@@ -26,7 +26,6 @@ def test_notificar_deve_enviar_email(usuario_notificavel, monkeypatch):
 
 def test_nao_notificar_deve_enviar_email_se_estiver_fora_de_ambiente_de_producao(usuario_notificavel, monkeypatch):
     monkeypatch.setenv('SERVER_NAME', 'um_server_name_qualquer')
-    
     path = 'sme_ptrf_apps.core.services.notificacao_services.enviar_email_notificacao.enviar_email_nova_notificacao'
 
     with patch(path) as mock_enviar_email:
@@ -41,3 +40,8 @@ def test_nao_notificar_deve_enviar_email_se_estiver_fora_de_ambiente_de_producao
             enviar_email=True,
         )
         mock_enviar_email.assert_not_called()
+
+def test_enviar_email_nova_notificacao_usuario_nao_encontrado_sem_excecao(usuario_notificavel_nao_encontrado_sme_integracao):
+    enviar_email_nova_notificacao(usuario=usuario_notificavel_nao_encontrado_sme_integracao, titulo='Notificacao teste', descricao="Descricao teste")
+    with pytest.raises(Exception) as exc_info:
+        assert exc_info.value is None
