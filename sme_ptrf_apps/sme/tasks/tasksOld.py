@@ -7,9 +7,7 @@ from sme_ptrf_apps.despesas.models.despesa import Despesa
 from sme_ptrf_apps.despesas.models.especificacao_material_servico import EspecificacaoMaterialServico
 from sme_ptrf_apps.despesas.models.tipo_custeio import TipoCusteio
 from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
-from sme_ptrf_apps.receitas.models.receita import Receita
 from sme_ptrf_apps.sme.services.exporta_atas_service import ExportacoesAtasService
-from sme_ptrf_apps.sme.services.exporta_dados_creditos_service import ExportacoesDadosCreditosService
 from sme_ptrf_apps.dre.models import AnaliseConsolidadoDre
 from sme_ptrf_apps.sme.services.exporta_documentos_despesas import ExportacoesDocumentosDespesasService
 from sme_ptrf_apps.sme.services.exporta_materiais_e_servicos_service import ExportacoesDadosMateriaisEServicosService
@@ -18,8 +16,6 @@ from sme_ptrf_apps.sme.services.exporta_saldo_final_periodo_pc_service import Ex
 from sme_ptrf_apps.sme.services.exporta_relacao_bens_pc import ExportacoesDadosRelacaoBensService
 from sme_ptrf_apps.sme.services.exporta_devolucao_tesouro_prestacoes_conta import ExportacoesDevolucaoTesouroPrestacoesContaService
 from sme_ptrf_apps.sme.services.exporta_rateios_service import ExportacoesRateiosService
-from sme_ptrf_apps.sme.services.exporta_demonstrativos_financeiros_service import ExportaDemonstrativosFinanceirosService
-from sme_ptrf_apps.core.models import FechamentoPeriodo, RelacaoBens, DemonstrativoFinanceiro
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_INATIVO
 
@@ -27,7 +23,7 @@ from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_INATIVO
 logger = logging.getLogger(__name__)
 
 
-@shared_task(
+""" @shared_task(
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
     time_limet=600,
@@ -54,7 +50,7 @@ def exportar_demonstativos_financeiros_async(data_inicio, data_final, username):
 
     except Exception as e:
         logger.error(f"Erro ao exportar csv: {e}")
-        raise e
+        raise e """
 
 """ @shared_task(
     retry_backoff=2,
