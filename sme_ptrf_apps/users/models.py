@@ -133,6 +133,12 @@ class User(AbstractUser):
 
         UnidadeEmSuporte.objects.filter(unidade=unidade, user=self).delete()
 
+    def possui_unidades_da_visao(self, visao):
+        if visao == 'DRE':
+            return self.unidades.filter(tipo_unidade='DRE').exists()
+
+        return self.unidades.exclude(tipo_unidade='DRE').exists()
+
     @classmethod
     def criar_usuario(cls, dados):
         """ Recebe dados de usuário incluindo as listas de unidades, visões e grupos vinculados a ele e cria o usuário
