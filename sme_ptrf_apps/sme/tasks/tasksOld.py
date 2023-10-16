@@ -9,10 +9,10 @@ from sme_ptrf_apps.sme.services.exporta_atas_service import ExportacoesAtasServi
 from sme_ptrf_apps.dre.models import AnaliseConsolidadoDre
 from sme_ptrf_apps.sme.services.exporta_documentos_despesas import ExportacoesDocumentosDespesasService
 from sme_ptrf_apps.sme.services.exporta_status_prestacoes_conta_service import ExportacoesStatusPrestacoesContaService
-from sme_ptrf_apps.sme.services.exporta_saldo_final_periodo_pc_service import ExportacoesDadosSaldosFinaisPeriodoService
 from sme_ptrf_apps.sme.services.exporta_relacao_bens_pc import ExportacoesDadosRelacaoBensService
 from sme_ptrf_apps.sme.services.exporta_devolucao_tesouro_prestacoes_conta import ExportacoesDevolucaoTesouroPrestacoesContaService
 from sme_ptrf_apps.sme.services.exporta_rateios_service import ExportacoesRateiosService
+from sme_ptrf_apps.core.models import RelacaoBens
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_INATIVO
 
@@ -121,7 +121,7 @@ def exportar_materiais_e_servicos_async(data_inicio, data_final, username):
     logger.info("Exportação csv finalizada com sucesso.") """
 
 
-@shared_task(
+""" @shared_task(
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
     time_limet=600,
@@ -149,7 +149,7 @@ def exportar_saldos_finais_periodo_async(data_inicio, data_final, username):
         logger.error(f"Erro ao exportar csv: {e}")
         raise e
 
-    logger.info("Exportação csv finalizada com sucesso.")
+    logger.info("Exportação csv finalizada com sucesso.") """
 
 @shared_task(
     retry_backoff=2,
