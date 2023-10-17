@@ -18,26 +18,6 @@ def teste_post_mandato(
     assert response.status_code == status.HTTP_201_CREATED
 
 
-def teste_post_mandato_deve_gerar_erro_data_vigencia_outro_mandato(
-    jwt_authenticated_client_sme,
-    mandato_02_2023_a_2025_api,
-    payload_01_mandato_erro_vigencia_outro_mandato,
-):
-    response = jwt_authenticated_client_sme.post(
-        f'/api/mandatos/',
-        data=json.dumps(payload_01_mandato_erro_vigencia_outro_mandato),
-        content_type='application/json'
-    )
-
-    result = json.loads(response.content)
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    assert result == {
-        "detail": "A data inicial informada é de vigência de outro mandato cadastrado."
-    }
-
-
 def teste_post_mandato_deve_gerar_erro_data_final_menor_que_data_inicial(
     jwt_authenticated_client_sme,
     payload_01_mandato_erro_data_final_maior_que_data_inical,
@@ -54,4 +34,24 @@ def teste_post_mandato_deve_gerar_erro_data_final_menor_que_data_inicial(
 
     assert result == {
         "detail": "A data final não pode ser menor que a data inicial"
+    }
+
+
+def teste_post_mandato_deve_gerar_erro_data_inicial_menor_que_data_final_mandato_anterior(
+    jwt_authenticated_client_sme,
+    payload_mandato_erro_data_inicial_menor_que_data_final_mandato_anterior,
+    mandato_01_2021_a_2022_api,
+):
+    response = jwt_authenticated_client_sme.post(
+        f'/api/mandatos/',
+        data=json.dumps(payload_mandato_erro_data_inicial_menor_que_data_final_mandato_anterior),
+        content_type='application/json'
+    )
+
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    assert result == {
+        "detail": "A data inicial do período de mandato deve ser maior que a data final do mandato anterior"
     }
