@@ -144,13 +144,13 @@ class Despesa(ModeloBase):
                 self.TAG_IMPOSTO_PAGO,
                 self.__hint_imposto_pago()
             ))
-            
+
         if self.e_imposto_nao_pago():
             tags.append(tag_informacao(
                 self.TAG_IMPOSTO_A_SER_PAGO,
                 self.__hint_imposto_a_ser_pago()
             ))
-            
+
         if self.tem_pagamento_com_recursos_proprios() or self.tem_pagamentos_em_multiplas_contas():
             tags.append(tag_informacao(
                 self.TAG_PARCIAL,
@@ -193,6 +193,18 @@ class Despesa(ModeloBase):
     def periodo_da_despesa(self):
         from sme_ptrf_apps.core.models import Periodo
         return Periodo.da_data(self.data_transacao)
+
+    @property
+    def prestacao_conta(self):
+        from sme_ptrf_apps.core.models import PrestacaoConta
+        pc = PrestacaoConta.objects.filter(
+            associacao=self.associacao,
+            periodo=self.periodo_da_despesa
+        )
+        if pc.exists():
+            return pc.last()
+        else:
+            return None
 
     @property
     def inativar_em_vez_de_excluir(self):
@@ -249,37 +261,37 @@ class Despesa(ModeloBase):
         referencia_despesa = f'{despesa_geradora.numero_documento}{separador}{despesa_geradora.nome_fornecedor}.'
 
         return f'Esse imposto está relacionado à despesa {referencia_despesa}'
-    
+
     def __hint_imposto_a_ser_pago(self):
         linhas_hint = []
-        
+
         if self.despesa_geradora.exists():
             despesa_geradora = self.despesa_geradora.first()
             separador = ' / ' if despesa_geradora.numero_documento and despesa_geradora.nome_fornecedor else ''
             referencia_despesa = f'{despesa_geradora.numero_documento}{separador}{despesa_geradora.nome_fornecedor}.'
-            
+
             linhas_hint.append(f'Esse imposto está relacionado à despesa {referencia_despesa}')
-            
+
         linhas_hint.append("E esse imposto ainda não possui data de pagamento cadastrada.")
-        
+
         return linhas_hint
-        
+
     def __hint_pagamento_antecipado(self):
         linhas_hint = []
-        
+
         if not self.motivos_pagamento_antecipado and not self.outros_motivos_pagamento_antecipado:
             linhas_hint.append(f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à data do documento ({self.data_documento:%d/%m/%Y})')
             return linhas_hint
-        
+
         linhas_hint.append(f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à data do documento ({self.data_documento:%d/%m/%Y}), motivos:')
-            
+
         if self.motivos_pagamento_antecipado:
             for motivo in self.motivos_pagamento_antecipado.all():
                 linhas_hint.append(motivo.motivo)
-                
+
         if self.outros_motivos_pagamento_antecipado:
             linhas_hint.append(self.outros_motivos_pagamento_antecipado)
-            
+
         return linhas_hint
 
     def cadastro_completo(self):
@@ -364,10 +376,10 @@ class Despesa(ModeloBase):
 
     def e_despesa_sem_comprovacao_fiscal(self):
         return self.eh_despesa_sem_comprovacao_fiscal
-    
+
     def e_imposto_nao_pago(self):
         return self.e_despesa_de_imposto() and not self.data_transacao
-    
+
     def e_imposto_pago(self):
         return self.e_despesa_de_imposto() and self.data_transacao
 
