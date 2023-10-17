@@ -66,6 +66,17 @@ def payload_01_mandato_erro_data_final_maior_que_data_inical():
 
 
 @pytest.fixture
+def payload_mandato_erro_data_inicial_menor_que_data_final_mandato_anterior():
+    # data_final = date(2022, 12, 31) do periodo anterior
+    payload = {
+        "referencia_mandato": "2026 a 2027",
+        "data_inicial": "2022-12-30",
+        "data_final": "2024-12-30"
+    }
+    return payload
+
+
+@pytest.fixture
 def payload_01_update_mandato():
     payload = {
         "referencia_mandato": "2028 a 2029",
