@@ -32,6 +32,16 @@ def mandato_2023_a_2025_testes_servicos_02():
         data_final=date(2023, 7, 20),
     )
 
+
+@pytest.fixture
+def mandato_2026_a_2027_testes_servicos_03():
+    return baker.make(
+        'Mandato',
+        referencia_mandato='2026 a 2027',
+        data_inicial=date(2026, 1, 1),
+        data_final=date(2027, 12, 31),
+    )
+
 @pytest.fixture
 def composicao_01_2023_a_2025_testes_servicos(mandato_2023_a_2025_testes_servicos_01, associacao):
     return baker.make(

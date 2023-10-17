@@ -9,13 +9,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ...services import ServicoMandatoVigente
+from ...services import ServicoMandatoVigente, ServicoMandato
 
 
 class MandatosViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiSME]
     lookup_field = 'uuid'
-    queryset = Mandato.objects.all().order_by('-referencia_mandato')
+    queryset = Mandato.objects.all().order_by('-data_inicial')
     serializer_class = MandatoSerializer
     pagination_class = CustomPagination
 
@@ -85,10 +85,35 @@ class MandatosViewSet(viewsets.ModelViewSet):
 
         return Response(result, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['get'], url_path='mandato-mais-recente',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def mandato_mais_recente(self, request):
+        servico_mandato = ServicoMandato()
+        mandato_mais_recente = servico_mandato.get_mandato_mais_recente()
+
+        if mandato_mais_recente:
+            result = MandatoSerializer(mandato_mais_recente, many=False).data
+            return Response(result, status=status.HTTP_200_OK)
+        else:
+            # Se não houver mandato mais recente, retorna uma queryset vazia
+            queryset_vazia = Mandato.objects.none()
+            result = MandatoSerializer(queryset_vazia, many=True).data
+            return Response(result, status=status.HTTP_200_OK)
+
     def destroy(self, request, *args, **kwargs):
         from django.db.models.deletion import ProtectedError
 
         obj = self.get_object()
+        servico_mandato = ServicoMandato()
+        mandato_mais_recente = servico_mandato.get_mandato_mais_recente()
+
+        # Verificar se está sendo excluído o mandato mais recente
+        if mandato_mais_recente and obj != mandato_mais_recente:
+            content = {
+                'erro': 'ProtectedError',
+                'mensagem': 'Somente o mandato mais recente pode ser excluído'
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
         if obj.composicoes_do_mandato.filter(cargos_da_composicao_da_composicao__isnull=False).exists():
             content = {
