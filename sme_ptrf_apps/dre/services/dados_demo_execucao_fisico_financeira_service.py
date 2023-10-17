@@ -4,12 +4,13 @@ from datetime import datetime
 from datetime import date
 
 from sme_ptrf_apps.dre.models import JustificativaRelatorioConsolidadoDRE, AnoAnaliseRegularidade, ConsolidadoDRE
-from sme_ptrf_apps.core.models import Associacao, PrestacaoConta, TipoConta
+from sme_ptrf_apps.core.models import Associacao, PrestacaoConta, TipoConta, Unidade
 from sme_ptrf_apps.dre.models import ParametrosDre
 
 from django.db.models import Max, Value, Count
 from django.db.models.functions import Coalesce
 
+from sme_ptrf_apps.dre.services.consolidado_dre_service import verifica_se_eh_relatorio_publicacoes_parciais
 
 LOGGER = logging.getLogger(__name__)
 
@@ -515,8 +516,18 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
         quantidade_aprovada_ressalva = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'APROVADA_RESSALVA'][0]
         quantidade_nao_aprovada = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'REPROVADA'][0]
 
-        quantidade_retificadas = 0
+        unidades_exclusivas = set()
+        
+        consolidados_retificados = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, consolidado_retificado__isnull=False)
+        
+        for consolidado_retificado in consolidados_retificados:
+            unidades_retificadas = consolidado_retificado.pcs_do_consolidado.all()
+            unidades_exclusivas.update(unidades_retificadas)
+            
+        numero_de_unidades_retificadas = len(unidades_exclusivas)
 
+        quantidade_retificadas = numero_de_unidades_retificadas
+        
     quantidade_em_analise = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'EM_ANALISE'][0]
 
     if consolidado_dre and consolidado_dre.eh_retificacao:
@@ -552,6 +563,8 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
         + quantidade_em_analise \
         + quantidade_nao_apresentada \
         + quantidade_publicacoes_anteriores
+        
+    eh_relatorio_consolidado_publicacoes_parciais = verifica_se_eh_relatorio_publicacoes_parciais(dre, periodo)
 
     execucao_fisica = {
         "ues_da_dre": dre.unidades_da_dre.count(),
@@ -564,7 +577,8 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
         "nao_apresentadas": quantidade_nao_apresentada,
         "publicadas_anteriormente": quantidade_publicacoes_anteriores,
         "ues_retificadas": quantidade_retificadas,
-        "total": total
+        "total": total,
+        "eh_relatorio_consolidado_publicacoes_parciais": eh_relatorio_consolidado_publicacoes_parciais
     }
 
     return execucao_fisica
