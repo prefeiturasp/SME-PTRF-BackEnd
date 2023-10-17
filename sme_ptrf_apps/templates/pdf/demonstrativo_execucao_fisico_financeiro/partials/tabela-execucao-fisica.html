@@ -64,7 +64,11 @@
           <div>
             <span class="font-10 pt-2 pb-2">Coluna 18 - É a soma das colunas 12 a 17.</span>
             <br/>
-            <span class="font-10 pt-2">Coluna 19 - Exibe a quantidade de UEs cuja a PC foi retificada na referida publicação.</span>
+            {% if dados.execucao_fisica.eh_relatorio_consolidado_publicacoes_parciais %}
+              <span class="font-10 pt-2">Coluna 19 - Exibe a quantidade de UEs cuja a PC foi retificada nas publicações parciais.</span>
+            {% else %}
+              <span class="font-10 pt-2">Coluna 19 - Exibe a quantidade de UEs cuja a PC foi retificada na referida publicação.</span>
+            {% endif %}
           </div>
         </div>
 
