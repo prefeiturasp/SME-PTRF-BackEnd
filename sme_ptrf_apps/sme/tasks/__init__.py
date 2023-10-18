@@ -8,3 +8,4 @@ from .exportar_status_prestacoes_contas import exportar_status_prestacoes_contas
 from .exportar_devolucoes_ao_tesouro import exportar_devolucoes_ao_tesouro_async
 from .exportar_rateios import exportar_rateios_async
 from .exportar_atas import exportar_atas_async
+from .exportar_documentos_despesas import exportar_documentos_despesas_async
