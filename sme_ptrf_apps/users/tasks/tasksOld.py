@@ -35,7 +35,7 @@ def enviar_email_redifinicao_senha(email, username, nome, hash_definicao):
     ) """
 
 
-@shared_task(
+""" @shared_task(
     autoretry_for=(SMTPServerDisconnected,),
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
@@ -57,7 +57,7 @@ def enviar_email_nova_notificacao_async(email, username, nome, titulo, descricao
         template='email_nova_notificacao.html',
         context=context,
         enviar_para=email
-    )
+    ) """
 
 
 @celery_app.task()
