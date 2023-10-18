@@ -60,8 +60,8 @@ def enviar_email_nova_notificacao_async(email, username, nome, titulo, descricao
     ) """
 
 
-@celery_app.task()
+""" @celery_app.task()
 def get_users_count():
-    """A pointless Celery task to demonstrate usage."""
+    # A pointless Celery task to demonstrate usage.
     from django.contrib.auth import get_user_model
-    return get_user_model().objects.count()
+    return get_user_model().objects.count() """
