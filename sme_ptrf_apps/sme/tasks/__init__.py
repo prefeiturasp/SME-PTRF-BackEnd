@@ -1,4 +1,3 @@
-from .tasksOld import *
 from .exportar_receitas import exportar_receitas_async
 from .exportar_demonstrativos_financeiros import exportar_demonstativos_financeiros_async
 from .exportar_materiais_e_servicos import exportar_materiais_e_servicos_async
@@ -9,3 +8,4 @@ from .exportar_devolucoes_ao_tesouro import exportar_devolucoes_ao_tesouro_async
 from .exportar_rateios import exportar_rateios_async
 from .exportar_atas import exportar_atas_async
 from .exportar_documentos_despesas import exportar_documentos_despesas_async
+from .gerar_relatorio_devolucao_acertos import gerar_relatorio_devolucao_acertos_async

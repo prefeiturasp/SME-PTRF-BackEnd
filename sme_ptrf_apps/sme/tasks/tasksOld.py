@@ -336,7 +336,7 @@ def exportar_documentos_despesas_async(data_inicio, data_final, username):
 
     logger.info("Exportação csv finalizada com sucesso.") """
 
-@shared_task(
+""" @shared_task(
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
     time_limet=600,
@@ -358,4 +358,4 @@ def gerar_relatorio_devolucao_acertos_async(analise_consolidado_uuid, username, 
     relatorio.gerar_arquivo_relatorio_devolucao_acertos()
 
 
-    logger.info("Finalizando geração do relatório de devolução de acertos da sme async")
+    logger.info("Finalizando geração do relatório de devolução de acertos da sme async") """
