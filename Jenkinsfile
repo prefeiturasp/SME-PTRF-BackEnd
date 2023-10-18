@@ -180,8 +180,8 @@ pipeline {
               stage('Deploy Treino2'){
                 steps {
                   withCredentials([file(credentialsId: "config_release", variable: 'config')]){
-		  sh('rm -f '+"$home"+'/.kube/config')
-                  sh('cp $config '+"$home"+'/.kube/config')
+		  //sh('rm -f '+"$home"+'/.kube/config')
+                  //sh('cp $config '+"$home"+'/.kube/config')
                   sh 'kubectl rollout restart deployment/treinamento-backend -n sme-ptrf-treino2'
                   sh 'kubectl rollout restart deployment/treinamento-celery -n sme-ptrf-treino2'
                   sh 'kubectl rollout restart deployment/treinamento-flower -n sme-ptrf-treino2'

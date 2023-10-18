@@ -113,6 +113,10 @@ class PrestacaoConta(ModeloBase):
     )
 
     @property
+    def devolvida_para_acertos(self):
+        return self.status == PrestacaoConta.STATUS_DEVOLVIDA
+
+    @property
     def tecnico_responsavel(self):
         atribuicoes = Atribuicao.search(
             **{'unidade__uuid': self.associacao.unidade.uuid, 'periodo__uuid': self.periodo.uuid})

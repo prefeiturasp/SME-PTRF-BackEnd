@@ -127,13 +127,15 @@ class ContaAssociacao(ModeloBase):
             return False
 
         if hasattr(self, 'solicitacao_encerramento'):
-            if self.solicitacao_encerramento.status != SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA:
-                data_encerramento = self.solicitacao_encerramento.data_de_encerramento_na_agencia
-
-                if data_encerramento < periodo.data_inicio_realizacao_despesas:
-                    return False
-
+            if self.solicitacao_encerramento.status == SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA:
                 return True
+
+            # Só ira executar esse bloco se o status for aprovada ou pendente
+            data_encerramento = self.solicitacao_encerramento.data_de_encerramento_na_agencia
+            if data_encerramento < periodo.data_inicio_realizacao_despesas:
+                return False
+
+            return True
         else:
             return True
 
