@@ -243,7 +243,7 @@ def exportar_devolucoes_ao_tesouro_async(data_inicio, data_final, username):
 
     logger.info("Exportação csv finalizada com sucesso.") """
 
-@shared_task(
+""" @shared_task(
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
     time_limet=600,
@@ -272,7 +272,7 @@ def exportar_rateios_async(data_inicio, data_final, username):
         logger.error(f"Erro ao exportar csv: {e}")
         raise e
 
-    logger.info("Exportação csv finalizada com sucesso.")
+    logger.info("Exportação csv finalizada com sucesso.") """
 
 @shared_task(
     retry_backoff=2,
