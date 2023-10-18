@@ -11,7 +11,7 @@ from sme_ptrf_apps.core.services.enviar_email import enviar_email_html, enviar_e
 env = environ.Env()
 logger = logging.getLogger(__name__)
 
-@shared_task(
+""" @shared_task(
     autoretry_for=(SMTPServerDisconnected,),
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
@@ -32,7 +32,7 @@ def enviar_email_redifinicao_senha(email, username, nome, hash_definicao):
         template='email_redefinicao_senha.html',
         context=context,
         enviar_para=email
-    )
+    ) """
 
 
 @shared_task(
