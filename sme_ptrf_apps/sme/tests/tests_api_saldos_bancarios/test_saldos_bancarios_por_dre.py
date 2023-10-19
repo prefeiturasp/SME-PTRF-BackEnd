@@ -18,7 +18,7 @@ def test_saldo_bancario_por_dre(jwt_authenticated_client_sme, observacao_concili
         content_type='application/json')
 
     result = json.loads(response.content)
-    resultado = [{'nome_dre': 'DRE teste2', 'qtde_dre_informadas': 1, 'saldo_bancario_informado': 1000.0, 'total_unidades': 1}]
+    resultado = [{'nome_dre': 'DRE TESTE2', 'qtde_dre_informadas': 1, 'saldo_bancario_informado': 1000.0, 'total_unidades': 1}]
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado
 
@@ -35,7 +35,7 @@ def test_saldo_bancario_por_dre_com_conta_nao_iniciada(jwt_authenticated_client_
         content_type='application/json')
 
     result = json.loads(response.content)
-    resultado = [{'nome_dre': 'DRE teste2', 'qtde_dre_informadas': 1, 'saldo_bancario_informado': 1000.0, 'total_unidades': 1}]
+    resultado = [{'nome_dre': 'DRE TESTE2', 'qtde_dre_informadas': 1, 'saldo_bancario_informado': 1000.0, 'total_unidades': 1}]
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado
 
@@ -54,7 +54,7 @@ def test_saldo_bancario_por_dre_com_conta_encerrada(jwt_authenticated_client_sme
         content_type='application/json')
 
     result = json.loads(response.content)
-    resultado = [{'nome_dre': 'DRE teste2', 'qtde_dre_informadas': 1, 'saldo_bancario_informado': 1000.0, 'total_unidades': 1}]
+    resultado = [{'nome_dre': 'DRE TESTE2', 'qtde_dre_informadas': 1, 'saldo_bancario_informado': 1000.0, 'total_unidades': 1}]
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado
 

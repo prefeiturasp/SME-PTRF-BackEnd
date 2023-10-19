@@ -34,29 +34,6 @@ def teste_patch_mandato(
     assert mandato_alterado.data_final == date(2029, 12, 31)
 
 
-def teste_path_mandato_deve_gerar_erro_data_vigencia_outro_mandato(
-    jwt_authenticated_client_sme,
-    mandato_02_2023_a_2025_api,
-    mandato_01_2021_a_2022_api,
-    payload_02_mandato_erro_vigencia_outro_mandato,
-):
-    uuid_mandato = f'{mandato_02_2023_a_2025_api.uuid}'
-
-    response = jwt_authenticated_client_sme.patch(
-        f'/api/mandatos/{uuid_mandato}/',
-        data=json.dumps(payload_02_mandato_erro_vigencia_outro_mandato),
-        content_type='application/json'
-    )
-
-    result = json.loads(response.content)
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    assert result == {
-        "detail": "A data inicial informada é de vigência de outro mandato cadastrado."
-    }
-
-
 def teste_post_mandato_deve_gerar_erro_data_final_menor_que_data_inicial(
     jwt_authenticated_client_sme,
     mandato_02_2023_a_2025_api,
@@ -76,4 +53,27 @@ def teste_post_mandato_deve_gerar_erro_data_final_menor_que_data_inicial(
 
     assert result == {
         "detail": "A data final não pode ser menor que a data inicial"
+    }
+
+
+def teste_patch_mandato_deve_gerar_erro_somente_o_mandato_mais_recente_pode_ser_editado(
+    jwt_authenticated_client_sme,
+    mandato_01_2021_a_2022_api,
+    mandato_02_2023_a_2025_api,
+    payload_01_update_mandato,
+):
+    uuid_mandato = f'{mandato_01_2021_a_2022_api.uuid}'
+
+    response = jwt_authenticated_client_sme.patch(
+        f'/api/mandatos/{uuid_mandato}/',
+        data=json.dumps(payload_01_update_mandato),
+        content_type='application/json'
+    )
+
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    assert result == {
+        "detail": "Somente o mandato mais recente pode ser editado"
     }
