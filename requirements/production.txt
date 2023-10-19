@@ -2,13 +2,11 @@
 
 -r ./base.txt
 
-# Dependencias revisadas
+# Banco de dados
+# ------------------------------------------------------------------------------
 psycopg2==2.9.5 --no-binary psycopg2
-
-# Dependencias não revisadas
-
-gunicorn==20.0.4  # https://github.com/benoitc/gunicorn
 
 # Django
 # ------------------------------------------------------------------------------
-django-anymail[mailgun]==7.0.0  # https://github.com/anymail/django-anymail
+django-anymail[mailgun]==7.0.0
+gunicorn==20.0.4

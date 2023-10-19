@@ -1,6 +1,9 @@
 import pytest
 
 from django.contrib.auth.models import Permission
+
+from rest_framework.test import APIClient
+
 from model_bakery import baker
 
 from sme_ptrf_apps.users.models import Grupo
@@ -341,24 +344,8 @@ def usuario_permissao_associacao_so_leitura(
 
 @pytest.fixture
 def jwt_authenticated_client_a(client, usuario_permissao_associacao):
-    from unittest.mock import patch
-
-    from rest_framework.test import APIClient
     api_client = APIClient()
-    with patch('sme_ptrf_apps.users.api.views.login.AutenticacaoService.autentica') as mock_post:
-        data = {
-            "nome": "LUCIA HELENA",
-            "cpf": "62085077072",
-            "email": "luh@gmail.com",
-            "login": "7210418"
-        }
-        mock_post.return_value.ok = True
-        mock_post.return_value.status_code = 200
-        mock_post.return_value.json.return_value = data
-        resp = api_client.post('/api/login', {'login': usuario_permissao_associacao.username,
-                                              'senha': usuario_permissao_associacao.password}, format='json')
-        resp_data = resp.json()
-        api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
+    api_client.force_authenticate(user=usuario_permissao_associacao)
     return api_client
 
 

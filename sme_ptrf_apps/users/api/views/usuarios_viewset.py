@@ -36,6 +36,9 @@ from django.core.exceptions import ValidationError
 
 from sme_ptrf_apps.users.models import UnidadeEmSuporte
 
+from sme_ptrf_apps.users.services import GestaoUsuarioService
+
+
 User = get_user_model()
 
 logger = logging.getLogger(__name__)
@@ -137,27 +140,32 @@ class UsuariosViewSet(ModelViewSet):
 
         EOL de uma UE  - Considera apenas os usuários da unidade
         """
-        qs = self.queryset
-        qs = qs.exclude(visoes=None)
 
-        uuid_unidade_base = self.request.query_params.get('uuid_unidade_base')
+        if self.action == 'retrieve':
+            qs = self.queryset
+            return qs
+        else:
+            qs = self.queryset
+            qs = qs.exclude(visoes=None)
 
-        if not uuid_unidade_base or uuid_unidade_base == 'SME':
-            return qs.filter(Q(unidades__isnull=False) | Q(visoes__nome='SME')).distinct('name', 'id')
+            uuid_unidade_base = self.request.query_params.get('uuid_unidade_base')
 
-        unidade_base = Unidade.objects.filter(uuid=uuid_unidade_base).first()
+            if not uuid_unidade_base or uuid_unidade_base == 'SME':
+                return qs.filter(Q(unidades__isnull=False) | Q(visoes__nome='SME')).distinct('name', 'id')
 
-        if not unidade_base:
-            raise ValidationError(f"Não foi encontrada uma unidade com uuid {uuid_unidade_base}.")
+            unidade_base = Unidade.objects.filter(uuid=uuid_unidade_base).first()
 
-        visao_consulta = 'DRE' if unidade_base.tipo_unidade == 'DRE' else 'UE'
+            if not unidade_base:
+                raise ValidationError(f"Não foi encontrada uma unidade com uuid {uuid_unidade_base}.")
 
-        if visao_consulta  == 'UE':
-            return qs.filter(unidades__uuid=uuid_unidade_base)
+            visao_consulta = 'DRE' if unidade_base.tipo_unidade == 'DRE' else 'UE'
 
-        if visao_consulta  == 'DRE':
-            unidades_da_dre = Unidade.dres.get(uuid=uuid_unidade_base).unidades_da_dre.values_list("uuid", flat=True)
-            return qs.filter(Q(unidades__uuid=uuid_unidade_base) | Q(unidades__uuid__in=unidades_da_dre) ).distinct('name', 'id')
+            if visao_consulta == 'UE':
+                return qs.filter(unidades__uuid=uuid_unidade_base)
+
+            if visao_consulta == 'DRE':
+                unidades_da_dre = Unidade.dres.get(uuid=uuid_unidade_base).unidades_da_dre.values_list("uuid", flat=True)
+                return qs.filter(Q(unidades__uuid=uuid_unidade_base) | Q(unidades__uuid__in=unidades_da_dre) ).distinct('name', 'id')
 
     @extend_schema(parameters=[
         OpenApiParameter(
@@ -346,7 +354,7 @@ class UsuariosViewSet(ModelViewSet):
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
         elif unidade_uuid == 'SME':
-           unidade = "SME"
+            unidade = "SME"
 
         if not unidade:
             return Response("Parâmetro unidade_uuid obrigatório.", status=status.HTTP_400_BAD_REQUEST)
@@ -358,6 +366,60 @@ class UsuariosViewSet(ModelViewSet):
             except Exception as e:
                 logger.error('Erro ao remover acessos: %r', e)
                 return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'], url_path='unidades-do-usuario')
+    def unidades_do_usuario(self, request):
+        from ....core.models import Unidade
+        from sme_ptrf_apps.users.api.validations.usuario_validations import UnidadesDoUsuarioSerializer
+
+        query = UnidadesDoUsuarioSerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+
+        # Validados no serializer
+        usuario = User.objects.get(username=request.query_params.get('username'))
+        unidade_uuid = request.query_params.get('uuid_unidade')
+        unidade = 'SME' if unidade_uuid == 'SME' else Unidade.objects.get(uuid=unidade_uuid)
+        visao_base = request.query_params.get('visao_base')
+
+        gestao_usuario = GestaoUsuarioService(usuario=usuario)
+        result = gestao_usuario.unidades_do_usuario(unidade_base=unidade, visao_base=visao_base)
+
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['patch'], url_path='habilitar-acesso')
+    def habilitar_acesso(self, request):
+        from sme_ptrf_apps.users.api.validations.usuario_validations import HabilitarDesabilitarAcessoSerializer
+
+        query = HabilitarDesabilitarAcessoSerializer(data=request.data)
+        query.is_valid(raise_exception=True)
+
+        # Validado no serializer
+        usuario = User.objects.get(username=request.data.get("username"))
+        unidade = Unidade.by_uuid(request.data.get('uuid_unidade'))
+
+        gestao_usuario = GestaoUsuarioService(usuario=usuario)
+        response = gestao_usuario.habilitar_acesso(unidade=unidade)
+
+        return Response(response, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['patch'], url_path='desabilitar-acesso')
+    def desabilitar_acesso(self, request):
+        from sme_ptrf_apps.users.api.validations.usuario_validations import HabilitarDesabilitarAcessoSerializer
+
+        query = HabilitarDesabilitarAcessoSerializer(data=request.data)
+        query.is_valid(raise_exception=True)
+
+        # Validado no serializer
+        usuario = User.objects.get(username=request.data.get("username"))
+        unidade = Unidade.by_uuid(request.data.get('uuid_unidade'))
+
+        gestao_usuario = GestaoUsuarioService(usuario=usuario)
+        response = gestao_usuario.desabilitar_acesso(unidade=unidade)
+
+        return Response(response, status=status.HTTP_200_OK)
+
+
+
 
 # TODO Mover para um service
 # TODO Criar testes unitários

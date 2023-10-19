@@ -132,7 +132,7 @@ def saldo_por_dre(queryset, periodo, conta):
 
     for nome in total_unidades_por_dre_dict_list:
         if nome['unidade__dre'] is not None and nome['unidade__dre__nome'] is not None:
-            result[nome['unidade__dre']] = {"nome_dre": nome['unidade__dre__nome'], "qtde_dre_informadas": 0,
+            result[nome['unidade__dre']] = {"nome_dre": formata_nome_dre(nome['unidade__dre__nome']), "qtde_dre_informadas": 0,
                                             "saldo_bancario_informado": 0, "total_unidades": 0}
             result[nome["unidade__dre"]]["total_unidades"] = nome["qtde"]
 
@@ -145,7 +145,10 @@ def saldo_por_dre(queryset, periodo, conta):
     for valor in result.values():
         lista_de_saldos_bancarios_dre.append(valor)
 
+    lista_de_saldos_bancarios_dre = sorted(lista_de_saldos_bancarios_dre, key=lambda i: i['nome_dre'])
+
     return lista_de_saldos_bancarios_dre
+
 
 def saldo_por_ue_dre(queryset, periodo, conta):
     saldos_por_ue_dre = []

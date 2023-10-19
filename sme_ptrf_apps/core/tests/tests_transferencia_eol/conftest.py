@@ -3,6 +3,7 @@ import datetime
 import pytest
 from model_bakery import baker
 
+from sme_ptrf_apps.core.choices import MembroEnum
 
 @pytest.fixture
 def transf_eol_periodo_2022_2():
@@ -51,6 +52,21 @@ def transferencia_eol(tipo_conta, transf_eol_tipo_conta_cartao):
         cnpj_nova_associacao='44.445.671/0001-31',
         data_inicio_atividades=datetime.date(2022, 7, 1),
         tipo_conta_transferido=transf_eol_tipo_conta_cartao,
+        status_processamento='PENDENTE',
+        log_execucao='Teste',
+    )
+
+@pytest.fixture
+def transferencia_eol_copiar_todas_contas(tipo_conta, transf_eol_tipo_conta_cartao):
+    return baker.make(
+        'TransferenciaEol',
+        eol_transferido='400232',
+        eol_historico='900232',
+        tipo_nova_unidade='CEMEI',
+        cnpj_nova_associacao='44.445.671/0001-31',
+        data_inicio_atividades=datetime.date(2022, 7, 1),
+        tipo_conta_transferido=None,
+        comportamento_contas='COPIA_TODAS',
         status_processamento='PENDENTE',
         log_execucao='Teste',
     )
@@ -396,4 +412,24 @@ def transf_eol_receita_conta_cartao(
         categoria_receita='CUSTEIO',
         periodo_conciliacao=transf_eol_periodo_2022_2,
         detalhe_outros='receita conta cartão',
+    )
+
+
+@pytest.fixture
+def transf_membro_associacao_presidente(transf_eol_associacao_eol_transferido):
+    return baker.make(
+        'MembroAssociacao',
+        nome='Jose Presidente',
+        associacao=transf_eol_associacao_eol_transferido,
+        cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value,
+    )
+
+
+@pytest.fixture
+def transf_membro_associacao_vice_presidente(transf_eol_associacao_eol_transferido):
+    return baker.make(
+        'MembroAssociacao',
+        nome='Maria Vice-Presidente',
+        associacao=transf_eol_associacao_eol_transferido,
+        cargo_associacao=MembroEnum.VICE_PRESIDENTE_DIRETORIA_EXECUTIVA.value,
     )
