@@ -73,8 +73,15 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     despesas_impostos = DespesaImpostoSerializer(many=True, required=False, allow_null=True)
 
     def validate(self, data):
+        from sme_ptrf_apps.core.models import Periodo
         rateios = data['rateios'] if 'rateios' in data else []
         despesas_impostos = data['despesas_impostos'] if 'despesas_impostos' in data else []
+        if data['data_transacao']:
+            periodo = Periodo.da_data(data['data_transacao'])
+
+            if self.instance and self.instance.prestacao_conta and self.instance.prestacao_conta.devolvida_para_acertos and periodo:
+                if periodo.referencia != self.instance.prestacao_conta.periodo.referencia:
+                    raise serializers.ValidationError({"mensagem": "Permitido apenas datas dentro do período referente à devolução."})
 
         for rateio in rateios:
             data_transacao = data['data_transacao']
@@ -94,7 +101,6 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                         raise serializers.ValidationError({"mensagem": "Um ou mais rateios de imposto possuem conta com data de início posterior a data de transação."})
                     if conta_associacao and (conta_associacao.data_encerramento and conta_associacao.data_encerramento < data_transacao):
                         raise serializers.ValidationError({"mensagem": "Um ou mais rateios de imposto possuem conta com data de encerramento anterior a data de transação."})
-
         return data
 
     def create(self, validated_data):
@@ -260,9 +266,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                 motivos_pagamento_antecipado = []
                 outros_motivos_pagamento_antecipado = ""
 
-        # Atualiza campos da despesa
-        Despesa.objects.filter(uuid=instance.uuid).update(**validated_data)
-        despesa_updated_somente_validade_data = Despesa.objects.get(uuid=instance.uuid)
+        despesa = super(DespesaCreateSerializer, self).update(instance, validated_data)
 
         # Atualiza os rateios
         log.info(f"Atualizando rateios da despesa {instance.uuid}")
@@ -273,7 +277,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                     f"Encontrada chave uuid no rateio {rateio['uuid']} R${rateio['valor_rateio']}. Será atualizado.")
                 if RateioDespesa.objects.filter(uuid=rateio["uuid"]).exists():
                     log.info(f"Rateio encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
-                    rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa_updated_somente_validade_data.eh_despesa_sem_comprovacao_fiscal
+                    rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
                     RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)
                     rateio_updated = RateioDespesa.objects.get(uuid=rateio["uuid"])
 
@@ -286,7 +290,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                     continue
             else:
                 log.info(f"Não encontrada chave uuid de rateio R${rateio['valor_rateio']}. Será criado.")
-                rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa_updated_somente_validade_data.eh_despesa_sem_comprovacao_fiscal
+                rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
                 rateio_updated = RateioDespesa.objects.create(**rateio, despesa=instance)
                 keep_rateios.append(rateio_updated.uuid)
 
@@ -329,7 +333,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                             if "uuid" in rateio.keys():
                                 if RateioDespesa.objects.filter(uuid=rateio["uuid"]).exists():
                                     rateio[
-                                        "eh_despesa_sem_comprovacao_fiscal"] = despesa_updated_somente_validade_data.eh_despesa_sem_comprovacao_fiscal
+                                        "eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
                                     RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)
                                     rateio_updated = RateioDespesa.objects.get(uuid=rateio["uuid"])
                                     rateio_updated.save()
@@ -361,7 +365,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                     rateios_do_imposto_lista = []
                     for rateio in rateios_imposto:
                         rateio[
-                            "eh_despesa_sem_comprovacao_fiscal"] = despesa_updated_somente_validade_data.eh_despesa_sem_comprovacao_fiscal
+                            "eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
                         rateio_object = RateioDespesaCreateSerializer().create(rateio)
                         rateios_do_imposto_lista.append(rateio_object)
 
@@ -383,21 +387,18 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                 for despesa_imposto in instance.despesas_impostos.all():
                     despesa_imposto.delete()
 
-        # Retorna a despesa atualizada
-        despesa_updated = Despesa.objects.get(uuid=instance.uuid)
-
-        despesa_updated.motivos_pagamento_antecipado.set(motivos_list)
-        despesa_updated.outros_motivos_pagamento_antecipado = outros_motivos_pagamento_antecipado
-        despesa_updated.atualiza_status()
-        despesa_updated.save()
+        despesa.motivos_pagamento_antecipado.set(motivos_list)
+        despesa.outros_motivos_pagamento_antecipado = outros_motivos_pagamento_antecipado
+        despesa.atualiza_status()
+        despesa.save()
 
         # necessário repassar pelas despesas impostos para atualizar o status
         # pois só a partir desse ponto existe o vinculo entre despesa geradora e despesa imposto
-        for despesa_imposto in despesa_updated.despesas_impostos.all():
+        for despesa_imposto in despesa.despesas_impostos.all():
             despesa_imposto.verifica_data_documento_vazio()
             despesa_imposto.atualiza_status()
 
-        return despesa_updated
+        return despesa
 
     class Meta:
         model = Despesa
