@@ -21,7 +21,7 @@ git+https://github.com/prefeiturasp/django-des-fork.git#egg=django-des
 
 # Django Rest Framework
 # ------------------------------------------------------------------------------
-djangorestframework==3.11.0
+djangorestframework==3.11.2
 djangorestframework-simplejwt==5.3.0    # JWT authentication for DRF
 drf-spectacular==0.26.2                 # Auto-generate OpenAPI 3.0 schemas from Django Rest Framework code
 
