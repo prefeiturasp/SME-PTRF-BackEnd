@@ -173,7 +173,7 @@ pipeline {
                   sh 'kubectl rollout restart deployment/treinamento-backend -n sme-ptrf-treino'
                   sh 'kubectl rollout restart deployment/treinamento-celery -n sme-ptrf-treino'
                   sh 'kubectl rollout restart deployment/treinamento-flower -n sme-ptrf-treino'
-		  sh('rm -f '+"$home"+'/.kube/config')
+		  //sh('rm -f '+"$home"+'/.kube/config')
                 }
                 }
               }
