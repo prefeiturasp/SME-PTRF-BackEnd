@@ -7,7 +7,7 @@ psycopg2-binary==2.9.5
 # Django
 # ------------------------------------------------------------------------------
 Sphinx==2.4.3
-Werkzeug==1.0.0
+Werkzeug==2.2.3
 django-coverage-plugin==1.8.0
 django-debug-toolbar==2.2
 django-extensions==3.2.3
