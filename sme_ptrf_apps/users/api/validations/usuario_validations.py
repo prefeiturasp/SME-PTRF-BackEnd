@@ -1,7 +1,11 @@
 import logging
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from sme_ptrf_apps.users.services import SmeIntegracaoException 
+from sme_ptrf_apps.users.services import SmeIntegracaoException
+from sme_ptrf_apps.core.models import Unidade
+
+User = get_user_model()
+
 
 logger = logging.getLogger(__name__)
 
@@ -38,3 +42,57 @@ def hash_redefinicao_deve_existir(hash):
 def checa_senha(usuario, senha):
     if not usuario.check_password(senha):
         raise serializers.ValidationError({'detail': 'Senha atual incorreta'})
+
+
+# user v2
+
+class UnidadesDoUsuarioSerializer(serializers.Serializer): # noqa
+    username = serializers.CharField(required=True)
+    uuid_unidade = serializers.CharField(required=True)
+    visao_base = serializers.CharField(required=True)
+
+    def validate_username(self, value): # noqa
+        try:
+            usuario = User.objects.get(username=value)
+        except User.DoesNotExist: # noqa
+            raise serializers.ValidationError(f"Não foi encontrado um objeto para o username {value}.")
+
+        return value
+
+    def validate_uuid_unidade(self, value): # noqa
+        if value == 'SME':
+            return value
+        else:
+            try:
+                unidade = Unidade.objects.get(uuid=value)
+            except Unidade.DoesNotExist:  # noqa
+                raise serializers.ValidationError(f"Não foi encontrado um objeto para o uuid {value}.")
+
+            return value
+
+    def validate_visao_base(self, value): # noqa
+        if value == 'SME' or value == 'DRE':
+            return value
+        else:
+            raise serializers.ValidationError(f"A visão {value} não é aceita como parametro.")
+
+
+class HabilitarDesabilitarAcessoSerializer(serializers.Serializer): # noqa
+    username = serializers.CharField(required=True)
+    uuid_unidade = serializers.UUIDField(required=True, allow_null=False)
+
+    def validate_username(self, value): # noqa
+        try:
+            usuario = User.objects.get(username=value)
+        except User.DoesNotExist: # noqa
+            raise serializers.ValidationError(f"Não foi encontrado um objeto para o username {value}.")
+
+        return value
+
+    def validate_uuid_unidade(self, value): # noqa
+        try:
+            unidade = Unidade.objects.get(uuid=value)
+        except Unidade.DoesNotExist:  # noqa
+            raise serializers.ValidationError(f"Não foi encontrado um objeto para o uuid {value}.")
+
+        return value

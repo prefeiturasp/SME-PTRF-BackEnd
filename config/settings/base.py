@@ -282,8 +282,7 @@ STATICFILES_FINDERS += ["compressor.finders.CompressorFinder"]
 # -------------------------------------------------------------------------------
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_jwt.authentication.JSONWebTokenAuthentication",
-        # "rest_framework.authentication.TokenAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
@@ -300,13 +299,11 @@ SPECTACULAR_SETTINGS = {
     'WARNINGS': False,
 }
 
-# JWT settings
+# SIMPLE JWT settings
 # ------------------------------------------------------------------------------
-JWT_AUTH = {
-    # TODO: rever a configuração...
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=100),
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(hours=100),
-    'JWT_ALLOW_REFRESH': True,
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT',),
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(hours=100),
 }
 
 # CORS SETTINGS

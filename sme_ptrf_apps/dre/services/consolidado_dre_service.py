@@ -995,6 +995,21 @@ def atrelar_pc_ao_consolidado_dre(dre, periodo, consolidado_dre):
         logger.info(f'Atrelando Prestação ao Consolidado DRE: Prestação {prestacao}. Consolidado Dre {consolidado_dre}')
         consolidado_dre.vincular_pc_ao_consolidado(prestacao)
 
+def verifica_se_eh_relatorio_publicacoes_parciais(dre, periodo):
+    qtde_unidades_na_dre = Unidade.objects.filter(
+        dre_id=dre,
+    ).exclude(associacoes__cnpj__exact='').count()
+
+    qtde_pcs_publicadas_no_periodo_pela_dre = PrestacaoConta.objects.filter(
+        periodo=periodo,
+        status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+        associacao__unidade__dre=dre,
+        publicada=True
+    ).count()
+
+    if (int(qtde_unidades_na_dre) == int(qtde_pcs_publicadas_no_periodo_pela_dre)):
+        return True
+    return False
 
 def gerar_relatorio_consolidado_dre(
     dre_uuid,

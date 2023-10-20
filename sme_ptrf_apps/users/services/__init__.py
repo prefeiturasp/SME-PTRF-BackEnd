@@ -5,3 +5,4 @@ from .criar_acesso_de_suporte_service import criar_acesso_de_suporte, CriaAcesso
 from .get_unidades_usuario_service import get_unidades_do_usuario
 from .encerrar_acesso_de_suporte_service import encerrar_acesso_de_suporte, EncerraAcessoSuporteException
 from .get_usuarios_servidores_por_visao import get_usuarios_servidores_por_visao
+from .gestao_usuario_service import GestaoUsuarioService
