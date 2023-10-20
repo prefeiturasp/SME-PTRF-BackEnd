@@ -4,8 +4,8 @@ pytestmark = pytest.mark.django_db
 
 
 def test_deve_copiar_contas_associacao_do_tipo_transferido_da_original_para_a_nova(
-    transf_eol_unidade_eol_transferido,
     transferencia_eol,
+    transf_eol_unidade_eol_transferido,
     transf_eol_associacao_eol_transferido,
     transf_eol_acao_associacao_ptrf,
     transf_eol_acao_associacao_role,
@@ -18,7 +18,7 @@ def test_deve_copiar_contas_associacao_do_tipo_transferido_da_original_para_a_no
     assert transf_eol_associacao_eol_transferido.contas.count() == 2
     assert transf_eol_associacao_nova.contas.count() == 0
 
-    transferencia_eol.copiar_contas_associacao_do_tipo_transferido(
+    transferencia_eol.copiar_contas_associacao(
         transf_eol_associacao_eol_transferido,
         transf_eol_associacao_nova
     )

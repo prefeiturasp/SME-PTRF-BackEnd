@@ -84,3 +84,20 @@ def test_transferencia_eol_nao_devem_existir_despesas_associacao_original_com_ra
     assert not possivel
     assert motivo == f'A associação original {transf_eol_associacao_eol_transferido} possui despesas com rateios no tipo de conta {transferencia_eol.tipo_conta_transferido} e em outro tipo de conta.'
 
+
+def test_transferencia_eol_nao_devem_existir_despesas_associacao_original_a_partir_data_inicio_atividades_caso_comportamento_copiar_todas_contas(
+    transferencia_eol_copiar_todas_contas,
+    transf_eol_unidade_eol_transferido,
+    transf_eol_periodo_2022_2,
+    transf_eol_associacao_eol_transferido,
+    transf_eol_conta_associacao_cheque,
+    transf_eol_conta_associacao_cartao,
+    transf_eol_despesa,
+    transf_eol_rateio_despesa_conta_cheque,
+    transf_eol_rateio_despesa_conta_cartao,
+):
+    # Nao devem existir despesas da associação original que tenham com rateios no tipo_conta_transferido e em outro tipo de conta
+    possivel, motivo = transferencia_eol_copiar_todas_contas.transferencia_possivel()
+    assert not possivel
+    assert motivo == f'A associação original {transf_eol_associacao_eol_transferido} possui despesas com data de transação a partir da data de início das atividades da nova associação {transferencia_eol_copiar_todas_contas.data_inicio_atividades}.'
+
