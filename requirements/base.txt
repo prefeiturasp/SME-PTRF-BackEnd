@@ -41,7 +41,7 @@ psutil==5.9.4
 # Outras libs e utilitários
 # ------------------------------------------------------------------------------
 Babel==2.12.1
-Pillow==9.5.0
+Pillow==10.0.1
 argon2-cffi==19.2.0
 brazilnum==0.8.8
 openpyxl==3.0.3
