@@ -321,7 +321,7 @@ class Despesa(ModeloBase):
         if completo and not self.eh_despesa_sem_comprovacao_fiscal and self.tipo_transacao.tem_documento:
             completo = completo and self.documento_transacao
 
-        if completo:
+        if completo and self.id is not None:
             for rateio in self.rateios.all():
                 completo = completo and rateio.status == STATUS_COMPLETO
 
