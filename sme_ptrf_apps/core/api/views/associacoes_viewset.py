@@ -366,7 +366,7 @@ class AssociacoesViewSet(ModelViewSet):
                     contas_criadas_nesse_periodo_ou_anteriores.append(conta)
             contas = contas_criadas_nesse_periodo_ou_anteriores
         else:
-            contas = ContaAssociacao.ativas_com_solicitacao_em_aberto.filter(associacao=associacao).all()
+            contas = ContaAssociacao.ativas_com_solicitacao_em_aberto.filter(associacao=associacao, data_inicio__isnull=False).all()
 
         contas_data = ContaAssociacaoDadosSerializer(contas, many=True).data
 
