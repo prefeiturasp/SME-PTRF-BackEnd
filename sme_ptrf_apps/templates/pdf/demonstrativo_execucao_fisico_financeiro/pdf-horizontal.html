@@ -92,6 +92,16 @@
     </article>
 </section>
 
+{% if dados.previa == False %}
+    <section class="mt-4">
+        <article id="bloco-5" class="">
+            {% include "./partials/tabela-autenticacao.html" with dados=dados %}
+        </article>
+    </section>
+{% endif %}
+
+
+
 </section>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
