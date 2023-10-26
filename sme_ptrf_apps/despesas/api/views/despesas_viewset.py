@@ -188,9 +188,9 @@ class DespesasViewSet(mixins.CreateModelMixin,
         # Caso nenhum argumento de ordenação seja passado, ordenamos por -data_documento
         if not ordenar_por_imposto == 'true': # Caso tenha sido solicitado ordenar por imposto já é retornada ordenada por todos os argumentos, além do imposto
             if not lista_argumentos_ordenacao:
-                qs = qs.order_by('-data_documento')
+                qs = qs.order_by('-data_documento', 'id')
             else:
-                qs = qs.order_by(*lista_argumentos_ordenacao)
+                qs = qs.order_by(*lista_argumentos_ordenacao, 'id')
 
         return qs
 

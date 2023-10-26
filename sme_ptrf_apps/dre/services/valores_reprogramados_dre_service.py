@@ -175,6 +175,9 @@ def monta_estrutura_valores_reprogramados(associacao):
     lista_contas = []
 
     for conta_associacao in associacao.contas.all():
+        if not conta_associacao.ativa_no_periodo(associacao.periodo_inicial):
+            continue
+
         acoes = []
 
         for acao_associacao in associacao.acoes.exclude(acao__e_recursos_proprios=True):
