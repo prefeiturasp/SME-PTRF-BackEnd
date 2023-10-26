@@ -123,7 +123,7 @@ def test_quantidade_linha_individual_dados_extracao(fechamento_periodo_queryset)
             Valor
     """
 
-    assert len(linha_individual) == 9
+    assert len(linha_individual) == 10
 
 def test_resultado_esperado_dados_extracao(fechamento_periodo_queryset):
     dados = ExportacoesDadosSaldosFinaisPeriodoService(
@@ -137,6 +137,7 @@ def test_resultado_esperado_dados_extracao(fechamento_periodo_queryset):
         primeiro_fechamento.associacao.unidade.codigo_eol,
         primeiro_fechamento.associacao.unidade.nome,
         primeiro_fechamento.associacao.nome,
+        primeiro_fechamento.associacao.unidade.dre.nome,
         primeiro_fechamento.periodo.referencia,
         primeiro_fechamento.prestacao_conta.status,
         primeiro_fechamento.conta_associacao.tipo_conta.nome,
@@ -158,6 +159,7 @@ def test_cabecalho(fechamento_periodo_queryset):
         'Código EOL',
         'Nome Unidade',
         'Nome Associação',
+        'DRE',
         'Referência do Período da PC',
         'Status da PC',
         'Nome do tipo de Conta',
