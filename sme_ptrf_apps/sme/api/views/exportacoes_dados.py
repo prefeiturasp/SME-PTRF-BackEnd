@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class ExportacoesDadosViewSet(GenericViewSet):
-    permission_classes = [IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao, PermissaoAPIApenasDreComLeituraOuGravacao]
+    permission_classes = [IsAuthenticated & (PermissaoAPIApenasSmeComLeituraOuGravacao | PermissaoAPIApenasDreComLeituraOuGravacao)]
     lookup_field = 'uuid'
     queryset = ArquivoDownload.objects.all()
 
