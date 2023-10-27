@@ -18,7 +18,7 @@ def exportar_saldos_finais_periodo_async(data_inicio, data_final, username, dre_
     if dre_uuid:
         queryset = FechamentoPeriodo.objects.filter(
             associacao__unidade__dre__uuid=dre_uuid,
-        )
+        ).order_by('id')
     else:
         queryset = FechamentoPeriodo.objects.all().order_by('id')
 
