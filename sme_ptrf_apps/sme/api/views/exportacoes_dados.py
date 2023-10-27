@@ -1,5 +1,5 @@
 import logging
-
+from rest_framework import status
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -11,13 +11,14 @@ from sme_ptrf_apps.sme.tasks import exportar_atas_async, exportar_documentos_des
     exportar_status_prestacoes_contas_async, exportar_devolucoes_ao_tesouro_async, exportar_rateios_async, \
     exportar_demonstativos_financeiros_async
 
-from sme_ptrf_apps.users.permissoes import PermissaoAPIApenasSmeComLeituraOuGravacao
+from sme_ptrf_apps.users.permissoes import PermissaoAPIApenasSmeComLeituraOuGravacao, PermissaoAPIApenasDreComLeituraOuGravacao
+from sme_ptrf_apps.sme.api.serializers import ExportacaoDadosSerializer
 
 logger = logging.getLogger(__name__)
 
 
 class ExportacoesDadosViewSet(GenericViewSet):
-    permission_classes = [IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
+    permission_classes = [IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao, PermissaoAPIApenasDreComLeituraOuGravacao]
     lookup_field = 'uuid'
     queryset = ArquivoDownload.objects.all()
 
@@ -95,11 +96,21 @@ class ExportacoesDadosViewSet(GenericViewSet):
         permission_classes=permission_classes
     )
     def saldos_finais_periodos(self, request):
-        exportar_saldos_finais_periodo_async.delay(
-            data_inicio=request.query_params.get('data_inicio'),
-            data_final=request.query_params.get('data_final'),
-            username=request.user.username
-        )
+        serializer = ExportacaoDadosSerializer(data=request.query_params)
+
+        if serializer.is_valid():
+            exportar_saldos_finais_periodo_async.delay(
+                data_inicio=request.query_params.get('data_inicio'),
+                data_final=request.query_params.get('data_final'),
+                username=request.user.username,
+                dre_uuid=request.query_params.get('dre_uuid'),
+            )
+        else:
+            erro = {
+                'erro': 'Um ou mais parâmetros inválidos.',
+                'mensagem': ' '.join([message[0] for message in serializer.errors.values()])
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             {'response': "Arquivo gerado com sucesso, enviado para a central de download"},
@@ -156,7 +167,7 @@ class ExportacoesDadosViewSet(GenericViewSet):
             {'response': "Arquivo gerado com sucesso, enviado para a central de download"},
             status=HTTP_201_CREATED
         )
-    
+
     @action(
         detail=False, methods=['get'],
         url_path='atas-prestacoes-contas',
@@ -173,7 +184,7 @@ class ExportacoesDadosViewSet(GenericViewSet):
             {'response': "Arquivo gerado com sucesso, enviado para a central de download"},
             status=HTTP_201_CREATED
         )
-    
+
     @action(
         detail=False, methods=['get'],
         url_path='documentos-despesas',

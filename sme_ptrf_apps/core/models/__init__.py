@@ -45,6 +45,7 @@ from .permissoes_dre import (
     FuncDreAcompanhamentoDePcs,
     FuncDreFaqDre,
     FuncDreRelatorioConsolidado,
+    FuncDreExtracaoDeDados,
     FuncDreGestaoPerfis,
 )
 from .permissoes_sme import (
