@@ -82,13 +82,14 @@ class AssociacaoAdmin(admin.ModelAdmin):
 
     get_periodo_inicial_referencia.short_description = 'Período Inicial'
 
-    list_display = ('nome', 'cnpj', 'get_nome_escola', 'get_periodo_inicial_referencia', 'data_de_encerramento')
+    list_display = ('nome', 'cnpj', 'get_nome_escola', 'get_periodo_inicial_referencia', 'data_de_encerramento', 'migrada_para_historico_de_membros')
     search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome', 'unidade__codigo_eol', )
     list_filter = (
         'unidade__dre',
         'periodo_inicial',
         'unidade__tipo_unidade',
         ('data_de_encerramento', DateRangeFilter),
+        'migrada_para_historico_de_membros',
     )
     readonly_fields = ('uuid', 'id')
     list_display_links = ('nome', 'cnpj')

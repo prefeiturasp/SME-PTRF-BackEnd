@@ -125,6 +125,12 @@ class Associacao(ModeloIdNome):
         default=STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS
     )
 
+    migrada_para_historico_de_membros = models.BooleanField(
+        'Migrada para o histórico de membros?',
+        help_text="Identifica se esta associação foi migrada para o histórico de membros",
+        default=False
+    )
+
     def foi_encerrada(self):
         return self.data_de_encerramento is not None
 
