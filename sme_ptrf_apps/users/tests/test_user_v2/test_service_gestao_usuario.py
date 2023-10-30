@@ -398,7 +398,7 @@ def test_servidor_membro_associacao_na_unidade(
     unidade_gestao_usuario_a
 ):
     gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
-    result = gestao_usuario.servidor_membro_associacao_na_unidade(unidade=unidade_gestao_usuario_a)
+    result = gestao_usuario.usuario_membro_associacao_na_unidade(unidade=unidade_gestao_usuario_a)
 
     assert result is True
 
@@ -410,7 +410,7 @@ def test_servidor_nao_e_membro_associacao_na_unidade(
     unidade_gestao_usuario_c
 ):
     gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
-    result = gestao_usuario.servidor_membro_associacao_na_unidade(unidade=unidade_gestao_usuario_c)
+    result = gestao_usuario.usuario_membro_associacao_na_unidade(unidade=unidade_gestao_usuario_c)
 
     assert result is False
 
