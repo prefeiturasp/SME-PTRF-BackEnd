@@ -96,3 +96,37 @@ class HabilitarDesabilitarAcessoSerializer(serializers.Serializer): # noqa
             raise serializers.ValidationError(f"Não foi encontrado um objeto para o uuid {value}.")
 
         return value
+
+
+class UnidadesDisponiveisInclusaoSerializer(serializers.Serializer): # noqa
+    username = serializers.CharField(required=True)
+    search = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+
+    def validate_username(self, value): # noqa
+        try:
+            usuario = User.objects.get(username=value)
+        except User.DoesNotExist: # noqa
+            raise serializers.ValidationError(f"Não foi encontrado um objeto para o username {value}.")
+
+        return value
+
+
+class IncluirUnidadeSerializer(serializers.Serializer): # noqa
+    username = serializers.CharField(required=True)
+    uuid_unidade = serializers.UUIDField(required=True, allow_null=False)
+
+    def validate_username(self, value): # noqa
+        try:
+            usuario = User.objects.get(username=value)
+        except User.DoesNotExist: # noqa
+            raise serializers.ValidationError(f"Não foi encontrado um objeto para o username {value}.")
+
+        return value
+
+    def validate_uuid_unidade(self, value): # noqa
+        try:
+            unidade = Unidade.objects.get(uuid=value)
+        except Unidade.DoesNotExist:  # noqa
+            raise serializers.ValidationError(f"Não foi encontrado um objeto para o uuid {value}.")
+
+        return value
