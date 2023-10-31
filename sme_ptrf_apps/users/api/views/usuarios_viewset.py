@@ -40,6 +40,7 @@ from sme_ptrf_apps.users.services import GestaoUsuarioService
 
 from sme_ptrf_apps.core.api.serializers import UnidadeListSerializer
 
+from waffle.mixins import WaffleFlagMixin
 
 User = get_user_model()
 
@@ -88,7 +89,8 @@ class UsuariosFilter(django_filters.FilterSet):
         ]
 
 
-class UsuariosViewSet(ModelViewSet):
+class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
+    waffle_flag = "gestao-usuarios"
     lookup_field = "id"
     serializer_class = UsuarioSerializer
     queryset = User.objects.all().order_by("name", "id")
