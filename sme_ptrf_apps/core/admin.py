@@ -863,6 +863,13 @@ class RelacaoBensAdmin(admin.ModelAdmin):
 
     autocomplete_fields = ['conta_associacao', 'periodo_previa', 'prestacao_conta']
 
+    actions = ['gerar_pdf']
+
+    def gerar_pdf(self, request, queryset):
+        from .services.relacao_bens import gerar_arquivo_relacao_de_bens_dados_persistidos
+        for item in queryset:
+            gerar_arquivo_relacao_de_bens_dados_persistidos(item)
+
 class ItemRelatorioRelacaoDeBensInline(admin.TabularInline):
     extra = 0
     model = ItemRelatorioRelacaoDeBens

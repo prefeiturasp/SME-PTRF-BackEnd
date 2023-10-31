@@ -10,12 +10,12 @@ from sme_ptrf_apps.core.models import (MembroAssociacao, RelatorioRelacaoBens, I
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_dados_relacao_de_bens(usuario, conta_associacao=None, periodo=None, previa=False, rateios=None):
+def gerar_dados_relacao_de_bens(conta_associacao=None, periodo=None, rateios=None):
 
     try:
         LOGGER.info("GERANDO DADOS RELAÇÃO DE BENS...")
 
-        cabecalho = cria_cabecalho(periodo, conta_associacao, previa)
+        cabecalho = cria_cabecalho(periodo, conta_associacao)
         identificacao_apm = cria_identificacao_apm(conta_associacao)
         relacao_de_bens_adquiridos_ou_produzidos = cria_relacao_de_bens_adquiridos_ou_produzidos(rateios)
 
@@ -30,12 +30,10 @@ def gerar_dados_relacao_de_bens(usuario, conta_associacao=None, periodo=None, pr
     return dados_relacao_de_bens
 
 
-def cria_cabecalho(periodo, conta_associacao, previa):
+def cria_cabecalho(periodo, conta_associacao):
     """ GERA CABECALHO DOCUMENTO EM PDF RELACAO DE BENS """
 
     cabecalho = {
-        "titulo": "Relação de Bens - PRÉVIA" if previa else "Relação de Bens - FINAL",
-        "periodo": str(periodo),
         "periodo_referencia": periodo.referencia,
         "periodo_data_inicio": periodo.data_inicio_realizacao_despesas,
         "periodo_data_fim": periodo.data_fim_realizacao_despesas,
@@ -184,7 +182,7 @@ def persistir_dados_relacao_bens(dados, relacao_bens, usuario):
             valor_rateio=item['valor_rateio']
         )
 
-def retorna_dicionario_formatado_dados_relacao_bens_persistidos(relatorio):
+def formatar_e_retornar_dados_relatorio_relacao_bens(relatorio):
     linhas = []
 
     for item in relatorio.bens.all():
@@ -203,8 +201,8 @@ def retorna_dicionario_formatado_dados_relacao_bens_persistidos(relatorio):
     dados_relacao_de_bens = {
         "cabecalho": {
             "periodo_referencia": relatorio.periodo_referencia,
-            "periodo_data_inicio": relatorio.periodo_data_inicio,
-            "periodo_data_fim": relatorio.periodo_data_fim,
+            "periodo_data_inicio": formata_data(relatorio.periodo_data_inicio),
+            "periodo_data_fim": formata_data(relatorio.periodo_data_fim),
             "conta": relatorio.conta,
         },
         "identificacao_apm": {
@@ -217,9 +215,9 @@ def retorna_dicionario_formatado_dados_relacao_bens_persistidos(relatorio):
             "nome_unidade": relatorio.nome_unidade,
             "cargo_substituto_presidente_ausente": relatorio.cargo_substituto_presidente_ausente
         },
-        "data_geracao": formata_data(relatorio.data_geracao),
+        "data_geracao": formata_data(relatorio.data_geracao.date()),
         "relacao_de_bens_adquiridos_ou_produzidos": {
-            "valor_total": formata_data(relatorio.valor_total),
+            "valor_total": formata_valor(relatorio.valor_total),
             "linhas": linhas
         },
         "data_geracao_documento": cria_data_geracao_documento(relatorio.data_geracao, relatorio.usuario, relatorio.relacao_bens.previa),
