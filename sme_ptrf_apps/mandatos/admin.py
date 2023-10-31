@@ -21,9 +21,9 @@ class ComposicaoAdmin(admin.ModelAdmin):
 
 @admin.register(CargoComposicao)
 class CargoComposicaoAdmin(admin.ModelAdmin):
-    list_display = ('ocupante_do_cargo', 'cargo_associacao', 'substituto', 'substituido')
+    list_display = ('ocupante_do_cargo', 'cargo_associacao', 'substituto', 'substituido', 'composicao')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
-    search_fields = ('composicao__associacao__unidade__codigo_eol', 'composicao__associacao__unidade__nome')
+    search_fields = ('ocupante_do_cargo__nome', 'composicao__associacao__unidade__codigo_eol', 'composicao__associacao__unidade__nome')
     raw_id_fields = ('composicao', 'ocupante_do_cargo')
 
 
@@ -31,6 +31,7 @@ class CargoComposicaoAdmin(admin.ModelAdmin):
 class OcupanteCargoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'representacao', 'cargo_educacao')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    search_fields = ('nome', 'representacao', 'cargo_educacao')
 
 
 @admin.register(SolicitacaoDeMigracao)
@@ -47,7 +48,8 @@ class SolicitacaoDeMigracaoAdmin(admin.ModelAdmin):
         mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
 
         if not mandato_vigente:
-            self.message_user(request, mark_safe(f"<strong>Erro: Não existe um mandato vigente cadastrado</strong>"), level=messages.ERROR)
+            self.message_user(request, mark_safe(f"<strong>Erro: Não existe um mandato vigente cadastrado</strong>"),
+                              level=messages.ERROR)
         else:
             ServicoSolicitacaoDeMigracao().executa_migracoes(queryset)
             self.message_user(request, mark_safe(
