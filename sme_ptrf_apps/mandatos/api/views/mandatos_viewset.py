@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status
+from waffle.mixins import WaffleFlagMixin
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.users.permissoes import PermissaoApiSME, PermissaoApiUe
@@ -12,7 +13,8 @@ from rest_framework.response import Response
 from ...services import ServicoMandatoVigente, ServicoMandato
 
 
-class MandatosViewSet(viewsets.ModelViewSet):
+class MandatosViewSet(WaffleFlagMixin, viewsets.ModelViewSet):
+    waffle_flag = "historico-de-membros"
     permission_classes = [IsAuthenticated & PermissaoApiSME]
     lookup_field = 'uuid'
     queryset = Mandato.objects.all().order_by('-data_inicial')
