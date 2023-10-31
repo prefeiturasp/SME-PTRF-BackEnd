@@ -1,10 +1,12 @@
 import json
 import pytest
 from rest_framework import status
+from waffle.testutils import override_flag
 
 pytestmark = pytest.mark.django_db
 
 
+@override_flag('historico-de-membros', active=True)
 def teste_post_mandato(
     jwt_authenticated_client_sme,
     payload_01_mandato,
@@ -18,6 +20,7 @@ def teste_post_mandato(
     assert response.status_code == status.HTTP_201_CREATED
 
 
+@override_flag('historico-de-membros', active=True)
 def teste_post_mandato_deve_gerar_erro_data_final_menor_que_data_inicial(
     jwt_authenticated_client_sme,
     payload_01_mandato_erro_data_final_maior_que_data_inical,
@@ -37,6 +40,7 @@ def teste_post_mandato_deve_gerar_erro_data_final_menor_que_data_inicial(
     }
 
 
+@override_flag('historico-de-membros', active=True)
 def teste_post_mandato_deve_gerar_erro_data_inicial_menor_que_data_final_mandato_anterior(
     jwt_authenticated_client_sme,
     payload_mandato_erro_data_inicial_menor_que_data_final_mandato_anterior,
