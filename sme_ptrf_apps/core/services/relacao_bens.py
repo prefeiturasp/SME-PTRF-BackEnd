@@ -17,7 +17,7 @@ from sme_ptrf_apps.core.models import MembroAssociacao, RelacaoBens
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL
 
-from ..services.relacao_bens_dados_service import gerar_dados_relacao_de_bens, persistir_dados_relacao_bens
+from ..services.relacao_bens_dados_service import gerar_dados_relacao_de_bens, persistir_dados_relacao_bens, retorna_dicionario_formatado_dados_relacao_bens_persistidos
 from ..services.relacao_bens_pdf_service import gerar_arquivo_relacao_de_bens_pdf
 
 LOGGER = logging.getLogger(__name__)

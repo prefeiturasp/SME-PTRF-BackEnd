@@ -80,6 +80,9 @@ class RelacaoBens(ModeloBase):
         self.status = self.STATUS_CONCLUIDO
         self.save()
 
+    @property
+    def previa(self):
+        return self.version == RelacaoBens.VERSAO_PREVIA
 
 @receiver(models.signals.post_delete, sender=RelacaoBens)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
