@@ -17,7 +17,7 @@ from sme_ptrf_apps.core.models import MembroAssociacao, RelacaoBens
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL
 
-from ..services.relacao_bens_dados_service import gerar_dados_relacao_de_bens
+from ..services.relacao_bens_dados_service import gerar_dados_relacao_de_bens, persistir_dados_relacao_bens
 from ..services.relacao_bens_pdf_service import gerar_arquivo_relacao_de_bens_pdf
 
 LOGGER = logging.getLogger(__name__)
@@ -57,9 +57,10 @@ def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, usuario, prestacao=
             versao=RelacaoBens.VERSAO_PREVIA if previa else RelacaoBens.VERSAO_FINAL,
             status=RelacaoBens.STATUS_EM_PROCESSAMENTO,
         )
-
         # PDF
         dados_relacao_de_bens = gerar_dados_relacao_de_bens(conta_associacao=conta_associacao, periodo=periodo, rateios=rateios, previa=previa, usuario=usuario)
+
+        persistir_dados_relacao_bens(dados_relacao_de_bens, relacao_bens, usuario)
 
         if criar_arquivos:
             gerar_arquivo_relacao_de_bens_pdf(dados_relacao_de_bens=dados_relacao_de_bens, relacao_bens=relacao_bens)
@@ -226,4 +227,9 @@ def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, usuario, prestacao=
 
 
 def apagar_previas_relacao_de_bens(periodo, conta_associacao):
-    RelacaoBens.objects.filter(periodo_previa=periodo, conta_associacao=conta_associacao).delete()
+    for relacao_bens in RelacaoBens.objects.filter(periodo_previa=periodo, conta_associacao=conta_associacao):
+        for relatorio in relacao_bens.relatoriorelacaobens_set.all():
+            for item_relatorio in relatorio.bens.all():
+                item_relatorio.delete()
+            relatorio.delete()
+        relacao_bens.delete()
