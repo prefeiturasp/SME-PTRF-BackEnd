@@ -20,6 +20,8 @@ from .models import (
     PrestacaoConta,
     ProcessoAssociacao,
     RelacaoBens,
+    RelatorioRelacaoBens,
+    ItemRelatorioRelacaoDeBens,
     Tag,
     TipoConta,
     Unidade,
@@ -861,6 +863,29 @@ class RelacaoBensAdmin(admin.ModelAdmin):
 
     autocomplete_fields = ['conta_associacao', 'periodo_previa', 'prestacao_conta']
 
+class ItemRelatorioRelacaoDeBensInline(admin.TabularInline):
+    extra = 0
+    model = ItemRelatorioRelacaoDeBens
+
+@admin.register(RelatorioRelacaoBens)
+class RelatorioRelacaoBensAdmin(admin.ModelAdmin):
+    inlines = [ItemRelatorioRelacaoDeBensInline]
+    list_display = ('id', 'relacao_bens', 'nome_associacao', 'periodo_referencia', 'data_geracao', )
+    fieldsets = [('Cabeçalho', {
+                    "fields": ["periodo_referencia", "periodo_data_inicio", "periodo_data_fim", "conta"],
+                }),
+                ('Identificação APM', {
+                    "fields": ["tipo_unidade", "nome_unidade", "nome_associacao", "cnpj_associacao", "codigo_eol_associacao", "nome_dre_associacao",
+                               "presidente_diretoria_executiva",  "cargo_substituto_presidente_ausente"],
+                }),
+                ('Valor', {
+                    "fields": ["valor_total"],
+                }),
+                ("Informações adicionais", {
+                  "fields": ['relacao_bens', 'usuario', 'data_geracao','uuid', 'id', 'criado_em', 'alterado_em']
+                }),]
+
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 @admin.register(MembroAssociacao)
 class MembroAssociacaoAdmin(admin.ModelAdmin):
