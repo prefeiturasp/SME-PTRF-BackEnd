@@ -17,7 +17,7 @@ from sme_ptrf_apps.core.models import MembroAssociacao, RelacaoBens
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL
 
-from ..services.relacao_bens_dados_service import gerar_dados_relacao_de_bens, persistir_dados_relacao_bens
+from ..services.relacao_bens_dados_service import gerar_dados_relacao_de_bens, persistir_dados_relacao_bens, formatar_e_retornar_dados_relatorio_relacao_bens
 from ..services.relacao_bens_pdf_service import gerar_arquivo_relacao_de_bens_pdf
 
 LOGGER = logging.getLogger(__name__)
@@ -40,6 +40,11 @@ LOGGER = logging.getLogger(__name__)
 # BLOCO_3 = 19
 # LAST_LINE = 26
 
+def gerar_arquivo_relacao_de_bens_dados_persistidos(relacao_bens):
+    relatorio_persistido = relacao_bens.relatoriorelacaobens_set.last()
+    if relatorio_persistido:
+        gerar_arquivo_relacao_de_bens_pdf(dados_relacao_de_bens=formatar_e_retornar_dados_relatorio_relacao_bens(relatorio_persistido),
+                                        relacao_bens=relacao_bens)
 
 def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, usuario, prestacao=None, previa=False, criar_arquivos=True):
 
@@ -58,12 +63,14 @@ def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, usuario, prestacao=
             status=RelacaoBens.STATUS_EM_PROCESSAMENTO,
         )
         # PDF
-        dados_relacao_de_bens = gerar_dados_relacao_de_bens(conta_associacao=conta_associacao, periodo=periodo, rateios=rateios, previa=previa, usuario=usuario)
+        dados_relacao_de_bens = gerar_dados_relacao_de_bens(conta_associacao=conta_associacao, periodo=periodo, rateios=rateios)
 
         persistir_dados_relacao_bens(dados_relacao_de_bens, relacao_bens, usuario)
 
+        relatorio_persistido = relacao_bens.relatoriorelacaobens_set.last()
+
         if criar_arquivos:
-            gerar_arquivo_relacao_de_bens_pdf(dados_relacao_de_bens=dados_relacao_de_bens, relacao_bens=relacao_bens)
+            gerar_arquivo_relacao_de_bens_pdf(dados_relacao_de_bens=formatar_e_retornar_dados_relatorio_relacao_bens(relatorio_persistido), relacao_bens=relacao_bens)
 
         # TODO Remover Excel
         # Gera arquivo Excell

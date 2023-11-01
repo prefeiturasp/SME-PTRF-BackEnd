@@ -10,24 +10,19 @@ from sme_ptrf_apps.core.models import (MembroAssociacao, RelatorioRelacaoBens, I
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_dados_relacao_de_bens(usuario, conta_associacao=None, periodo=None, previa=False, rateios=None):
+def gerar_dados_relacao_de_bens(conta_associacao=None, periodo=None, rateios=None):
 
     try:
         LOGGER.info("GERANDO DADOS RELAÇÃO DE BENS...")
 
-        cabecalho = cria_cabecalho(periodo, conta_associacao, previa)
+        cabecalho = cria_cabecalho(periodo, conta_associacao)
         identificacao_apm = cria_identificacao_apm(conta_associacao)
-        data_geracao = cria_data_geracao()
         relacao_de_bens_adquiridos_ou_produzidos = cria_relacao_de_bens_adquiridos_ou_produzidos(rateios)
-        data_geracao_documento = cria_data_geracao_documento(usuario, previa)
 
         dados_relacao_de_bens = {
             "cabecalho": cabecalho,
             "identificacao_apm": identificacao_apm,
-            "data_geracao": data_geracao,
-            "relacao_de_bens_adquiridos_ou_produzidos": relacao_de_bens_adquiridos_ou_produzidos,
-            "data_geracao_documento": data_geracao_documento,
-            "previa": previa
+            "relacao_de_bens_adquiridos_ou_produzidos": relacao_de_bens_adquiridos_ou_produzidos
         }
     finally:
         LOGGER.info("DADOS RELAÇÃO DE BENS GERADO")
@@ -35,12 +30,10 @@ def gerar_dados_relacao_de_bens(usuario, conta_associacao=None, periodo=None, pr
     return dados_relacao_de_bens
 
 
-def cria_cabecalho(periodo, conta_associacao, previa):
+def cria_cabecalho(periodo, conta_associacao):
     """ GERA CABECALHO DOCUMENTO EM PDF RELACAO DE BENS """
 
     cabecalho = {
-        "titulo": "Relação de Bens - PRÉVIA" if previa else "Relação de Bens - FINAL",
-        "periodo": str(periodo),
         "periodo_referencia": periodo.referencia,
         "periodo_data_inicio": periodo.data_inicio_realizacao_despesas,
         "periodo_data_fim": periodo.data_fim_realizacao_despesas,
@@ -130,19 +123,13 @@ def cria_relacao_de_bens_adquiridos_ou_produzidos(rateios):
     return despesas
 
 
-def cria_data_geracao_documento(usuario, previa):
-    data_geracao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+def cria_data_geracao_documento(data_geracao, usuario, previa):
+    data_geracao = data_geracao.strftime("%d/%m/%Y %H:%M:%S")
     tipo_texto = "parcial" if previa else "final"
     quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}, "
     texto = f"Documento {tipo_texto} gerado {quem_gerou}via SIG - Escola, em: {data_geracao}"
 
     return texto
-
-
-def cria_data_geracao():
-    data_geracao = date.today().strftime("%d/%m/%Y")
-
-    return data_geracao
 
 
 def formata_valor(valor):
@@ -194,3 +181,48 @@ def persistir_dados_relacao_bens(dados, relacao_bens, usuario):
             valor_item=item['valor_item'],
             valor_rateio=item['valor_rateio']
         )
+
+def formatar_e_retornar_dados_relatorio_relacao_bens(relatorio):
+    linhas = []
+
+    for item in relatorio.bens.all():
+        linha = {
+            "tipo_documento": item.tipo_documento,
+            "numero_documento": item.numero_documento,
+            "especificacao_material": item.especificacao_material,
+            "numero_documento_incorporacao": item.numero_documento_incorporacao,
+            "quantidade": item.quantidade,
+            "data_documento": formata_data(item.data_documento),
+            "valor_item": formata_valor(item.valor_item),
+            "valor_rateio": formata_valor(item.valor_rateio)
+        }
+        linhas.append(linha)
+
+    dados_relacao_de_bens = {
+        "cabecalho": {
+            "periodo_referencia": relatorio.periodo_referencia,
+            "periodo_data_inicio": formata_data(relatorio.periodo_data_inicio),
+            "periodo_data_fim": formata_data(relatorio.periodo_data_fim),
+            "conta": relatorio.conta,
+        },
+        "identificacao_apm": {
+            "nome_associacao": relatorio.nome_associacao,
+            "cnpj_associacao": relatorio.cnpj_associacao,
+            "codigo_eol_associacao": relatorio.codigo_eol_associacao,
+            "nome_dre_associacao": relatorio.nome_dre_associacao,
+            "presidente_diretoria_executiva": relatorio.presidente_diretoria_executiva,
+            "tipo_unidade": relatorio.tipo_unidade,
+            "nome_unidade": relatorio.nome_unidade,
+            "cargo_substituto_presidente_ausente": relatorio.cargo_substituto_presidente_ausente
+        },
+        "data_geracao": formata_data(relatorio.data_geracao.date()),
+        "relacao_de_bens_adquiridos_ou_produzidos": {
+            "valor_total": formata_valor(relatorio.valor_total),
+            "linhas": linhas
+        },
+        "data_geracao_documento": cria_data_geracao_documento(relatorio.data_geracao, relatorio.usuario, relatorio.relacao_bens.previa),
+        "previa": relatorio.relacao_bens.previa
+    }
+
+    return dados_relacao_de_bens
+

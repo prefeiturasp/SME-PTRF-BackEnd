@@ -1,5 +1,6 @@
 import pytest
-from sme_ptrf_apps.core.services.relacao_bens_dados_service import persistir_dados_relacao_bens
+from sme_ptrf_apps.core.services.relacao_bens_dados_service import persistir_dados_relacao_bens, formatar_e_retornar_dados_relatorio_relacao_bens
+from sme_ptrf_apps.core.services.relacao_bens import apagar_previas_relacao_de_bens
 from sme_ptrf_apps.core.models.relatorio_relacao_bens import RelatorioRelacaoBens
 from sme_ptrf_apps.core.fixtures.factories.relacao_bens_factory import RelacaoBensFactory, RelatorioRelacaoBensFactory, ItemRelatorioRelacaoDeBensFactory
 pytestmark = pytest.mark.django_db
@@ -86,12 +87,48 @@ def test_persistir_relatorio_relacao_bens(usuario):
     assert relatorio
 
 def test_persistir_relatorio_final_relacao_bens_com_relatorios_anteriores(usuario):
+    relacao_bens_anterior = RelacaoBensFactory()
+    relatorio_anterior = RelatorioRelacaoBensFactory(relacao_bens=relacao_bens_anterior)
+    ItemRelatorioRelacaoDeBensFactory(relatorio=relatorio_anterior)
+
+    apagar_previas_relacao_de_bens(relacao_bens_anterior.periodo_previa, relacao_bens_anterior.conta_associacao)
+
     relacao_bens = RelacaoBensFactory()
-    relatorio_instance = RelatorioRelacaoBensFactory(relacao_bens=relacao_bens)
-    ItemRelatorioRelacaoDeBensFactory(relatorio=relatorio_instance)
 
     persistir_dados_relacao_bens(dados_relacao_bens, relacao_bens, usuario)
 
     relatorio = RelatorioRelacaoBens.objects.filter(relacao_bens=relacao_bens)
 
     assert relatorio.count() == 1
+
+
+def test_formatar_e_retornar_dados_relatorio_relacao_bens():
+    relacao_bens = RelacaoBensFactory()
+    relatorio_instance = RelatorioRelacaoBensFactory(relacao_bens=relacao_bens)
+    ItemRelatorioRelacaoDeBensFactory(relatorio=relatorio_instance)
+
+    resultado = formatar_e_retornar_dados_relatorio_relacao_bens(relatorio_instance)
+
+    assert 'cabecalho' in resultado
+    assert 'periodo_referencia' in resultado['cabecalho']
+    assert 'periodo_data_inicio' in resultado['cabecalho']
+    assert 'periodo_data_fim' in resultado['cabecalho']
+    assert 'conta' in resultado['cabecalho']
+
+    assert 'identificacao_apm' in resultado
+    assert 'nome_associacao' in resultado['identificacao_apm']
+    assert 'cnpj_associacao' in resultado['identificacao_apm']
+    assert 'codigo_eol_associacao' in resultado['identificacao_apm']
+    assert 'nome_dre_associacao' in resultado['identificacao_apm']
+    assert 'presidente_diretoria_executiva' in resultado['identificacao_apm']
+    assert 'tipo_unidade' in resultado['identificacao_apm']
+    assert 'nome_unidade' in resultado['identificacao_apm']
+    assert  'cargo_substituto_presidente_ausente' in resultado['identificacao_apm']
+
+    assert 'data_geracao' in resultado
+    assert 'relacao_de_bens_adquiridos_ou_produzidos' in resultado
+    assert 'valor_total' in resultado['relacao_de_bens_adquiridos_ou_produzidos']
+    assert 'linhas' in resultado['relacao_de_bens_adquiridos_ou_produzidos']
+    assert len(resultado['relacao_de_bens_adquiridos_ou_produzidos']['linhas']) == 1
+    assert 'data_geracao_documento' in resultado
+    assert 'previa' in resultado

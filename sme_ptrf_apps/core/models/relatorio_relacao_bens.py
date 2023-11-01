@@ -28,7 +28,7 @@ class RelatorioRelacaoBens(ModeloBase):
         , blank=True, null=True, default=""
     )
     codigo_eol_associacao = models.CharField(verbose_name='Código eol associação', max_length=6, validators=[MinLengthValidator(6)])
-    nome_dre_associacao = models.CharField(verbose_name='Nome associação', max_length=200, blank=True, null=True)
+    nome_dre_associacao = models.CharField(verbose_name='Nome DRE associação', max_length=200, blank=True, null=True)
     presidente_diretoria_executiva = models.CharField(verbose_name='Presidente diretoria executiva', max_length=200, blank=True, null=True)
     cargo_substituto_presidente_ausente = models.CharField(verbose_name='Cargo substituto presidente ausente', max_length=200, blank=True, null=True)
 
