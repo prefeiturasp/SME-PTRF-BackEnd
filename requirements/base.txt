@@ -1,6 +1,6 @@
 # Django
 # ------------------------------------------------------------------------------
-django==3.2.21
+django==3.2.23
 django-admin-interface==0.26.1
 django-admin-rangefilter==0.5.4
 django-allauth==0.56.1
