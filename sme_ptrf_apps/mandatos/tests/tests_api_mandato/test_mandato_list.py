@@ -1,10 +1,13 @@
 import json
 import pytest
 from rest_framework import status
+from waffle.testutils import override_flag
+
 
 pytestmark = pytest.mark.django_db
 
 
+@override_flag('historico-de-membros', active=True)
 def teste_get_mandatos(
     mandato_01_2021_a_2022_api,
     mandato_02_2023_a_2025_api,
@@ -22,6 +25,7 @@ def teste_get_mandatos(
     assert len(result['results']) == 2
 
 
+@override_flag('historico-de-membros', active=True)
 def teste_get_mandato(
     mandato_01_2021_a_2022_api,
     mandato_02_2023_a_2025_api,
@@ -38,6 +42,7 @@ def teste_get_mandato(
     assert result['referencia_mandato'] == '2021 a 2022'
 
 
+@override_flag('historico-de-membros', active=True)
 def teste_get_mandatos_filtros(
     mandato_01_2021_a_2022_api,
     mandato_02_2023_a_2025_api,

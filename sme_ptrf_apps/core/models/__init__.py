@@ -45,6 +45,7 @@ from .permissoes_dre import (
     FuncDreAcompanhamentoDePcs,
     FuncDreFaqDre,
     FuncDreRelatorioConsolidado,
+    FuncDreExtracaoDeDados,
     FuncDreGestaoPerfis,
 )
 from .permissoes_sme import (
@@ -72,3 +73,4 @@ from .solicitacao_devolucao_ao_tesouro import SolicitacaoDevolucaoAoTesouro
 from .falha_geracao_pc import FalhaGeracaoPc
 from .transferencia_eol import TransferenciaEol
 from .tasks_celery import TaskCelery
+from .relatorio_relacao_bens import RelatorioRelacaoBens, ItemRelatorioRelacaoDeBens

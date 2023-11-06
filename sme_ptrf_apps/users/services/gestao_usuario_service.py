@@ -1,9 +1,11 @@
 from sme_ptrf_apps.core.models import MembroAssociacao, Unidade
+from sme_ptrf_apps.users.models import AcessoConcedidoSme
 from brazilnum.cpf import format_cpf
 from django.contrib.auth import get_user_model
 from sme_ptrf_apps.users.services import (
     SmeIntegracaoService,
 )
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -29,6 +31,14 @@ class GestaoUsuarioService:
         return MembroAssociacao.objects.filter(
             codigo_identificacao=self.usuario.username, associacao__unidade=unidade).exists()
 
+    def usuario_membro_associacao_na_unidade(self, unidade):
+        if not self.usuario.e_servidor:
+            return MembroAssociacao.objects.filter(
+                cpf=format_cpf(self.usuario.username), associacao__unidade=unidade).exists()
+        else:
+            return MembroAssociacao.objects.filter(
+                codigo_identificacao=self.usuario.username, associacao__unidade=unidade).exists()
+
     def get_info_unidade(self):
         info = SmeIntegracaoService.get_info_lotacao_e_exercicio_do_servidor(self.usuario.username)
         unidade_encontrada = None
@@ -44,6 +54,7 @@ class GestaoUsuarioService:
     def retorna_lista_unidades_nao_servidor(self, unidade_base, visao_base):
         lista = []
         membro_associacoes = MembroAssociacao.objects.filter(cpf=format_cpf(self.usuario.username)).all()
+        acessos_concedidos_pela_sme = AcessoConcedidoSme.objects.filter(user=self.usuario).all()
         unidades = []
 
         if visao_base == 'SME':
@@ -57,7 +68,18 @@ class GestaoUsuarioService:
                 'nome_com_tipo': f'{membro.associacao.unidade.tipo_unidade} {membro.associacao.unidade.nome}',
                 'membro': True,
                 'tem_acesso': self.usuario_possui_acesso_a_unidade(membro.associacao.unidade),
-                'username': self.usuario.username
+                'username': self.usuario.username,
+                'acesso_concedido_sme': False
+            })
+
+        for acesso in acessos_concedidos_pela_sme.filter(unidade__codigo_eol__in=unidades).all():
+            lista.append({
+                'uuid_unidade': f'{acesso.unidade.uuid}',
+                'nome_com_tipo': f'{acesso.unidade.tipo_unidade} {acesso.unidade.nome}',
+                'membro': self.usuario_membro_associacao_na_unidade(acesso.unidade),
+                'tem_acesso': self.usuario_possui_acesso_a_unidade(acesso.unidade),
+                'username': self.usuario.username,
+                'acesso_concedido_sme': True
             })
 
         lista_ordenada = sorted(lista, key=lambda row: (row['tem_acesso'] is False, row['nome_com_tipo']))
@@ -82,10 +104,11 @@ class GestaoUsuarioService:
             lista.append({
                 'uuid_unidade': f'{unidade_encontrada_na_base.uuid}',
                 'nome_com_tipo': f'{unidade_encontrada_na_base.tipo_unidade} {unidade_encontrada_na_base.nome}',
-                'membro': self.servidor_membro_associacao_na_unidade(unidade_encontrada_na_base),
+                'membro': self.usuario_membro_associacao_na_unidade(unidade_encontrada_na_base),
                 'tem_acesso': self.usuario_possui_acesso_a_unidade(unidade_encontrada_na_base),
                 'username': self.usuario.username,
-                'unidade_em_exercicio': True
+                'unidade_em_exercicio': True,
+                'acesso_concedido_sme': False
             })
 
         membro_associacoes = MembroAssociacao.objects.filter(codigo_identificacao=self.usuario.username).all()
@@ -101,7 +124,20 @@ class GestaoUsuarioService:
                 'membro': True,
                 'tem_acesso': self.usuario_possui_acesso_a_unidade(membro.associacao.unidade),
                 'username': self.usuario.username,
-                'unidade_em_exercicio': False
+                'unidade_em_exercicio': False,
+                'acesso_concedido_sme': False
+            })
+
+        acessos_concedidos_pela_sme = AcessoConcedidoSme.objects.filter(user=self.usuario).all()
+        for acesso in acessos_concedidos_pela_sme.filter(unidade__codigo_eol__in=unidades).all():
+            lista.append({
+                'uuid_unidade': f'{acesso.unidade.uuid}',
+                'nome_com_tipo': f'{acesso.unidade.tipo_unidade} {acesso.unidade.nome}',
+                'membro': self.usuario_membro_associacao_na_unidade(acesso.unidade),
+                'tem_acesso': self.usuario_possui_acesso_a_unidade(acesso.unidade),
+                'username': self.usuario.username,
+                'unidade_em_exercicio': False,
+                'acesso_concedido_sme': True
             })
 
         lista_ordenada = sorted(lista, key=lambda row: (row['tem_acesso'] is False, row['nome_com_tipo']))
@@ -119,15 +155,39 @@ class GestaoUsuarioService:
 
         return response
 
-    def desabilitar_acesso(self, unidade):
+    def desabilitar_acesso(self, unidade, acesso_concedido_sme=False):
         self.usuario.remove_unidade_se_existir(codigo_eol=unidade.codigo_eol)
 
         visao_da_unidade = 'DRE' if unidade.tipo_unidade == 'DRE' else 'UE'
         if not self.usuario.possui_unidades_da_visao(visao_da_unidade):
             self.usuario.remove_visao_se_existir(visao_da_unidade)
 
+        if acesso_concedido_sme:
+            AcessoConcedidoSme.remover_acesso_se_existir(unidade=unidade, user=self.usuario)
+
         response = {
             "mensagem": "Acesso desativado para unidade selecionada",
         }
 
         return response
+
+    def unidades_disponiveis_para_inclusao(self, search):
+        unidades_do_usuario = self.unidades_do_usuario('SME', 'SME')
+        uuids_unidades_do_usuarios = [u['uuid_unidade'] for u in unidades_do_usuario]
+        query = Unidade.objects.exclude(uuid__in=uuids_unidades_do_usuarios)
+
+        if search is not None:
+            query = query.filter(Q(codigo_eol=search) | Q(nome__unaccent__icontains=search))
+
+        return query.order_by("tipo_unidade", "nome")
+
+    def incluir_unidade(self, unidade):
+        self.usuario.add_unidade_se_nao_existir(codigo_eol=unidade.codigo_eol)
+        visao_da_unidade = 'DRE' if unidade.tipo_unidade == 'DRE' else 'UE'
+        self.usuario.add_visao_se_nao_existir(visao=visao_da_unidade)
+
+        novo_acesso = AcessoConcedidoSme.criar_acesso_se_nao_existir(unidade=unidade, user=self.usuario)
+        mensagem = "Unidade adicionada salva com sucesso." if novo_acesso else None
+
+        return mensagem
+

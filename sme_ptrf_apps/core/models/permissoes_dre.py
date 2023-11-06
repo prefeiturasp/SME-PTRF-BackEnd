@@ -86,6 +86,18 @@ class FuncDreRelatorioConsolidado(models.Model):
             ('change_ata_parecer_tecnico', '[DRE] Pode atualizar atas de Parecer Tecnico.'),
         )
 
+class FuncDreExtracaoDeDados(models.Model):
+
+    class Meta:
+        managed = False
+        default_permissions = ()
+
+        verbose_name = "[DRE] Extração de dados"
+        verbose_name_plural = "[DRE] Extração de dados"
+
+        permissions = (
+            ('access_extracao_de_dados_dre', '[DRE] Pode acessar Extração de dados da DRE.'),
+        )
 
 class FuncDreGestaoPerfis(models.Model):
 

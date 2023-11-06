@@ -1,6 +1,6 @@
 # Django
 # ------------------------------------------------------------------------------
-django==3.2.21
+django==4.1.12
 django-admin-interface==0.26.1
 django-admin-rangefilter==0.5.4
 django-allauth==0.56.1
@@ -21,13 +21,13 @@ git+https://github.com/prefeiturasp/django-des-fork.git#egg=django-des
 
 # Django Rest Framework
 # ------------------------------------------------------------------------------
-djangorestframework==3.11.0
+djangorestframework==3.14.0
 djangorestframework-simplejwt==5.3.0    # JWT authentication for DRF
 drf-spectacular==0.26.2                 # Auto-generate OpenAPI 3.0 schemas from Django Rest Framework code
 
 # Celery e Redis
 # ------------------------------------------------------------------------------
-celery==5.2.1
+celery==5.2.2
 flower==1.2.0
 django-celery-beat==2.1.0
 redis==3.4.1
@@ -41,14 +41,14 @@ psutil==5.9.4
 # Outras libs e utilitários
 # ------------------------------------------------------------------------------
 Babel==2.12.1
-Pillow==9.5.0
+Pillow==10.0.1
 argon2-cffi==19.2.0
 brazilnum==0.8.8
 openpyxl==3.0.3
 python-slugify==8.0.1
 pytz==2019.3
 rcssmin==1.1.1
-sentry-sdk==0.14.2
+sentry-sdk==1.14.0
 whitenoise==5.0.1
 
 # Gerador de PDF

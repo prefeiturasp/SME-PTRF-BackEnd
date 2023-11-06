@@ -55,6 +55,7 @@ def test_valida_data_de_encerramento_deve_gerar_erro_data_maior_que_hoje(
 
     assert response == esperado
 
+
 def test_valida_data_de_encerramento_deve_gerar_erro_data_menor_que_data_periodo_inicial(
     associacao,
     periodo_anterior,

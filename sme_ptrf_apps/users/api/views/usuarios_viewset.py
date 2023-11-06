@@ -38,6 +38,9 @@ from sme_ptrf_apps.users.models import UnidadeEmSuporte
 
 from sme_ptrf_apps.users.services import GestaoUsuarioService
 
+from sme_ptrf_apps.core.api.serializers import UnidadeListSerializer
+
+from waffle.mixins import WaffleFlagMixin
 
 User = get_user_model()
 
@@ -86,7 +89,8 @@ class UsuariosFilter(django_filters.FilterSet):
         ]
 
 
-class UsuariosViewSet(ModelViewSet):
+class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
+    waffle_flag = "gestao-usuarios"
     lookup_field = "id"
     serializer_class = UsuarioSerializer
     queryset = User.objects.all().order_by("name", "id")
@@ -412,12 +416,48 @@ class UsuariosViewSet(ModelViewSet):
         # Validado no serializer
         usuario = User.objects.get(username=request.data.get("username"))
         unidade = Unidade.by_uuid(request.data.get('uuid_unidade'))
+        acesso_concedido_sme = request.data.get('acesso_concedido_sme', False)
 
         gestao_usuario = GestaoUsuarioService(usuario=usuario)
-        response = gestao_usuario.desabilitar_acesso(unidade=unidade)
+        response = gestao_usuario.desabilitar_acesso(unidade=unidade, acesso_concedido_sme=acesso_concedido_sme)
 
         return Response(response, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['get'], url_path='unidades-disponiveis-para-inclusao')
+    def unidades_disponiveis_para_inclusao(self, request):
+        from sme_ptrf_apps.users.api.validations.usuario_validations import UnidadesDisponiveisInclusaoSerializer
+
+        query = UnidadesDisponiveisInclusaoSerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+
+        # validar no serializer
+        usuario = User.objects.get(username=request.query_params.get('username'))
+        search = request.query_params.get('search')
+        gestao_usuario = GestaoUsuarioService(usuario=usuario)
+
+        result = gestao_usuario.unidades_disponiveis_para_inclusao(search)
+
+        page = self.paginate_queryset(result)
+        if page is not None:
+            serializer = UnidadeListSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], url_path='incluir-unidade')
+    def incluir_unidade(self, request):
+        from sme_ptrf_apps.users.api.validations.usuario_validations import IncluirUnidadeSerializer
+
+        query = IncluirUnidadeSerializer(data=request.data)
+        query.is_valid(raise_exception=True)
+
+        usuario = User.objects.get(username=request.data.get("username"))
+        unidade = Unidade.by_uuid(request.data.get('uuid_unidade'))
+
+        gestao_usuario = GestaoUsuarioService(usuario=usuario)
+        response = gestao_usuario.incluir_unidade(unidade=unidade)
+
+        return Response(response, status=status.HTTP_201_CREATED)
 
 
 
