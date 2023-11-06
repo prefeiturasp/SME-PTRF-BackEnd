@@ -74,10 +74,6 @@ def concluir_prestacao_de_contas_async(
                 observacao.justificativa_original = observacao.texto
                 observacao.save()
 
-        if e_retorno_devolucao:
-            ultima_analise_pc = prestacao.analises_da_prestacao.order_by('id').last()
-            criar_relatorio_apos_acertos_final(analise_prestacao_conta=ultima_analise_pc, usuario=usuario)
-
         if e_retorno_devolucao and (requer_geracao_documentos or requer_geracao_fechamentos):
             logging.info(f'Solicitações de ajustes Justificadas requerem apagar fechamentos pc {prestacao.uuid}.')
             prestacao.apaga_fechamentos()

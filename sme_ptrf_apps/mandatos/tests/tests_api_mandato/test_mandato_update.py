@@ -2,12 +2,14 @@ import json
 import pytest
 from datetime import date
 from rest_framework import status
+from waffle.testutils import override_flag
 
 from sme_ptrf_apps.mandatos.models import Mandato
 
 pytestmark = pytest.mark.django_db
 
 
+@override_flag('historico-de-membros', active=True)
 def teste_patch_mandato(
     jwt_authenticated_client_sme,
     mandato_01_2021_a_2022_api,
@@ -34,6 +36,7 @@ def teste_patch_mandato(
     assert mandato_alterado.data_final == date(2029, 12, 31)
 
 
+@override_flag('historico-de-membros', active=True)
 def teste_post_mandato_deve_gerar_erro_data_final_menor_que_data_inicial(
     jwt_authenticated_client_sme,
     mandato_02_2023_a_2025_api,
@@ -56,6 +59,7 @@ def teste_post_mandato_deve_gerar_erro_data_final_menor_que_data_inicial(
     }
 
 
+@override_flag('historico-de-membros', active=True)
 def teste_patch_mandato_deve_gerar_erro_somente_o_mandato_mais_recente_pode_ser_editado(
     jwt_authenticated_client_sme,
     mandato_01_2021_a_2022_api,

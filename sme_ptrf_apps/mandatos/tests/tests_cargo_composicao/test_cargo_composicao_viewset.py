@@ -1,5 +1,6 @@
 import pytest
 from rest_framework import status
+from waffle.testutils import override_flag
 from rest_framework.test import APIRequestFactory
 from rest_framework.test import force_authenticate
 
@@ -8,6 +9,7 @@ from ...api.views import CargosComposicoesViewSet
 pytestmark = pytest.mark.django_db
 
 
+@override_flag('historico-de-membros', active=True)
 def test_view_set(cargo_composicao_01, usuario_permissao_sme):
     request = APIRequestFactory().get('')
     detalhe = CargosComposicoesViewSet.as_view({'get': 'retrieve'})

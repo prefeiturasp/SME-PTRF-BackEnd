@@ -351,4 +351,49 @@ class UnidadeEmSuporte(ModeloBase):
             logger.info(f'Unidade {unidade} removida de suporte por {user}.')
             return acesso
 
+
 auditlog.register(UnidadeEmSuporte)
+
+
+class AcessoConcedidoSme(ModeloBase):
+    history = AuditlogHistoryField()
+
+    unidade = models.ForeignKey(
+        'core.Unidade',
+        on_delete=models.CASCADE,
+        related_name="incluidas_pela_sme",
+        to_field="codigo_eol",
+    )
+
+    user = models.ForeignKey(
+        'User',
+        on_delete=models.CASCADE,
+        related_name="acessos_habilitados_pela_sme",
+    )
+
+    def __str__(self):
+        return f'Unidade {self.unidade.codigo_eol} incluida pela SME para o usuário {self.user.username}.'
+
+    class Meta:
+        verbose_name = 'Acesso concedido pela SME'
+        verbose_name_plural = 'Acessos concedidos pela SME'
+        unique_together = ('unidade', 'user',)
+
+    @classmethod
+    def criar_acesso_se_nao_existir(cls, unidade, user):
+        if not cls.objects.filter(unidade=unidade, user=user).exists():
+            nova_inclusao = cls(unidade=unidade, user=user)
+            nova_inclusao.save()
+            logger.info(f'Unidade {unidade} incluida para: {user}. #{nova_inclusao.id}')
+            return nova_inclusao
+
+    @classmethod
+    def remover_acesso_se_existir(cls, unidade, user):
+        if cls.objects.filter(unidade=unidade, user=user).exists():
+            acesso = cls.objects.get(unidade=unidade, user=user)
+            acesso.delete()
+            logger.info(f'Unidade {unidade} removida para: {user}.')
+            return acesso
+
+
+auditlog.register(AcessoConcedidoSme)

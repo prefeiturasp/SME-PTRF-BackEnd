@@ -61,7 +61,7 @@ from ..serializers import (
     AnalisePrestacaoContaRetrieveSerializer
 )
 
-from sme_ptrf_apps.core.tasks import gerar_previa_relatorio_acertos_async, concluir_prestacao_de_contas_async
+from sme_ptrf_apps.core.tasks import gerar_previa_relatorio_acertos_async, concluir_prestacao_de_contas_async, gerar_relatorio_apos_acertos_async
 from ...services.analise_prestacao_conta_service import _criar_documento_final_relatorio_acertos
 
 from django.core.exceptions import ValidationError
@@ -237,7 +237,27 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                         justificativa_acertos_pendentes,
                     ), countdown=1
                 )
-
+                
+                if dados["e_retorno_devolucao"]:
+                    task_celery_geracao_relatorio_apos_acerto = TaskCelery.objects.create(
+                        nome_task="gerar_relatorio_apos_acertos_async",
+                        associacao=associacao,
+                        periodo=periodo,
+                        usuario=usuario
+                    )
+                    
+                    id_task_geracao_relatorio_apos_acerto = gerar_relatorio_apos_acertos_async.apply_async(
+                        (
+                            task_celery_geracao_relatorio_apos_acerto.uuid,
+                            associacao.uuid,
+                            periodo.uuid,
+                            request.user.name
+                        ), countdown=1
+                    )
+                
+                    task_celery_geracao_relatorio_apos_acerto.id_task_assincrona = id_task_geracao_relatorio_apos_acerto
+                    task_celery_geracao_relatorio_apos_acerto.save()
+                    
                 task_celery.id_task_assincrona = id_task
                 task_celery.save()
         except(IntegrityError):

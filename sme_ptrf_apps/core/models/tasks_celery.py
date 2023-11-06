@@ -73,6 +73,11 @@ class TaskCelery(ModeloBase):
         logger.info(f"{log}")
         self.log = log
         self.save()
+        
+    def grava_log_concatenado(self, log):
+        logger.info(f"{log}")
+        self.log = self.log + f"\n{log}"
+        self.save()
 
 
 auditlog.register(TaskCelery)
