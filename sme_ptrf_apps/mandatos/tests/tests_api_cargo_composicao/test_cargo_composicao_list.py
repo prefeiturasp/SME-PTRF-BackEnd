@@ -1,10 +1,12 @@
 import json
 import pytest
 from rest_framework import status
+from waffle.testutils import override_flag
 
 pytestmark = pytest.mark.django_db
 
 
+@override_flag('historico-de-membros', active=True)
 def teste_get_cargos_composicao(
     cargo_composicao_01,
     cargo_composicao_02,
@@ -22,6 +24,7 @@ def teste_get_cargos_composicao(
     assert len(result['results']) == 2
 
 
+@override_flag('historico-de-membros', active=True)
 def teste_get_cargo_composicao(
     cargo_composicao_01,
     cargo_composicao_02,

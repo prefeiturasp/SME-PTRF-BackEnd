@@ -20,6 +20,7 @@ CABECALHO_RECEITA = [
         ('Código EOL', 'associacao__unidade__codigo_eol'),
         ('Nome Unidade', 'associacao__unidade__nome'),
         ('Nome Associação', 'associacao__nome'),
+        ('DRE', 'associacao__unidade__dre__nome'),
         ('ID do crédito', 'id'),
         ('Data do crédito', 'data'),
         ('Valor do crédito', 'valor'),
@@ -40,7 +41,7 @@ CABECALHO_RECEITA = [
         ('Referência do Período da Prestação de contas da devolução ao tesouro', 'referencia_devolucao__referencia'),
         ('ID da despesa referente a saída de recurso externo', 'saida_do_recurso__id'),
         ('ID da despesa estornada (no caso de estorno)', 'rateio_estornado__id'),
-        ('Outros motivos para estorno (no caso de estorno)', 'outros_motivos_estorno'),
+        ('Motivos para estorno (no caso de estorno)', 'outros_motivos_estorno'),
         ('Data e hora de criação do registro', 'criado_em'),
         ('Data e hora da última atualização do registro', 'alterado_em'),
         ('Data e hora de inativação', 'data_e_hora_de_inativacao'),
@@ -87,8 +88,11 @@ class ExportacoesDadosCreditosService:
         ) as tmp:
             write = csv.writer(tmp.file, delimiter=";")
             write.writerow([cabecalho[0] for cabecalho in self.cabecalho])
-
+            
             for instance in self.queryset:
+                
+                motivos = list(instance.motivos_estorno.all())
+                
                 for _, campo in self.cabecalho:
 
                     if campo == 'data':
@@ -98,6 +102,14 @@ class ExportacoesDadosCreditosService:
                     elif campo == 'valor':
                         campo = str(getattr(instance, campo)).replace(".", ",")
                         linha.append(campo)
+                        
+                    elif campo == 'outros_motivos_estorno':
+                        motivo_string = '; '.join(str(motivo) for motivo in motivos)
+                        if(len(motivo_string)):
+                            motivo_string = motivo_string + '; ' + instance.outros_motivos_estorno
+                        elif(len(instance.outros_motivos_estorno)):
+                            motivo_string = instance.outros_motivos_estorno
+                        linha.append(motivo_string)
 
                     elif isinstance(campo, tuple) and campo[1] == 'categoria_receita':
                         linha.append(campo[0][getattr(instance, campo[1])])

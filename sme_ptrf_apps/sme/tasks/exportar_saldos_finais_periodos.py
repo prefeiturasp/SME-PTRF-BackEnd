@@ -12,10 +12,15 @@ logger = logging.getLogger(__name__)
     time_limet=600,
     soft_time_limit=300000
 )
-def exportar_saldos_finais_periodo_async(data_inicio, data_final, username):
+def exportar_saldos_finais_periodo_async(data_inicio, data_final, username, dre_uuid=None):
     logger.info("Exportando csv em processamento...")
 
-    queryset = FechamentoPeriodo.objects.all().order_by('id')
+    if dre_uuid:
+        queryset = FechamentoPeriodo.objects.filter(
+            associacao__unidade__dre__uuid=dre_uuid,
+        ).order_by('id')
+    else:
+        queryset = FechamentoPeriodo.objects.all().order_by('id')
 
     try:
         logger.info("Criando arquivo %s pcs_saldo_final_periodo.csv")

@@ -1,5 +1,6 @@
 from rest_framework import mixins, status
 from rest_framework.viewsets import GenericViewSet
+from waffle.mixins import WaffleFlagMixin
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
@@ -13,10 +14,12 @@ from ...services.cargo_composicao_service import ServicoCargosDaComposicao
 
 
 class CargosComposicoesViewSet(
+    WaffleFlagMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     GenericViewSet
 ):
+    waffle_flag = "historico-de-membros"
     permission_classes = [IsAuthenticated, PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = CargoComposicao.objects.all()
