@@ -104,7 +104,7 @@ def concluir_prestacao_de_contas(periodo, associacao, usuario=None, monitoraPc=F
     requer_geracao_fechamentos = pc_requer_geracao_fechamentos(prestacao)
     requer_acertos_em_extrato = pc_requer_acerto_em_extrato(prestacao)
 
-    if prestacao.status == PrestacaoConta.STATUS_EM_PROCESSAMENTO:
+    if prestacao.status in (PrestacaoConta.STATUS_EM_PROCESSAMENTO, PrestacaoConta.STATUS_A_PROCESSAR):
         return {
             "prestacao": prestacao,
             "e_retorno_devolucao": e_retorno_devolucao,
@@ -113,11 +113,11 @@ def concluir_prestacao_de_contas(periodo, associacao, usuario=None, monitoraPc=F
             "erro": "A pc já está em processamento, não é possivel alterar o status para em processamento."
         }
 
-    prestacao.em_processamento()
+    prestacao.a_processar()
     if monitoraPc:
         MonitoraPC(prestacao_de_contas=prestacao, usuario=usuario, associacao=associacao)
 
-    logger.info(f'Prestação de contas em processamento {prestacao}.')
+    logger.info(f'Prestação de contas aguardando processamento {prestacao}.')
 
     return {
         "prestacao": prestacao,
