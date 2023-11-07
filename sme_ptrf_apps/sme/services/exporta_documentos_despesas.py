@@ -18,6 +18,7 @@ CABECALHO_DOCS = [
         ('Código EOL', 'associacao__unidade__codigo_eol'),
         ('Nome unidade', 'associacao__unidade__nome'),
         ('Nome associação', 'associacao__nome'),
+        ('DRE', 'associacao__unidade__dre__nome'),
         ('ID do gasto', 'id'),
         ('É despesa sem comprovação fiscal?', 'eh_despesa_sem_comprovacao_fiscal'),
         ('É despesa reconhecida pela Associação?', 'eh_despesa_reconhecida_pela_associacao'),
@@ -162,9 +163,12 @@ class ExportacoesDocumentosDespesasService:
                     continue
 
                 if campo == "motivos":
-                    if len(instance.outros_motivos_pagamento_antecipado) > 0:
-                        motivos.append(instance.outros_motivos_pagamento_antecipado)
-                    linha_horizontal.append('')
+                    motivo_string = '; '.join(str(motivo) for motivo in motivos)
+                    if(len(motivo_string)):
+                        motivo_string = motivo_string + '; ' + instance.outros_motivos_pagamento_antecipado
+                    elif(len(instance.outros_motivos_pagamento_antecipado)):
+                        motivo_string = instance.outros_motivos_pagamento_antecipado
+                    linha_horizontal.append(motivo_string)
                     continue
 
                 if campo == "uuid":
@@ -175,16 +179,9 @@ class ExportacoesDocumentosDespesasService:
                 campo = get_recursive_attr(instance, campo)
                 linha_horizontal.append(campo)
             
-            if len(motivos) > 0:
-                for motivo in motivos:
-                    linha_nova = linha_horizontal.copy()
-                    linha_nova[19] = str(motivo)
-                    logger.info(f"Escrevendo linha {linha_nova} de despesas, despesa id: {instance.id}.")
-                    linhas_vertical.append(linha_nova)
-            else:
-                logger.info(f"Escrevendo linha {linha_horizontal} de despesas, despesa id: {instance.id}.")
-                linhas_vertical.append(linha_horizontal)
-            
+            logger.info(f"Escrevendo linha {linha_horizontal} de despesas, despesa id: {instance.id}.")
+            linhas_vertical.append(linha_horizontal)
+
             logger.info(f"Finalizando extração de dados de despesas, despesa id: {instance.id}.")
 
         return linhas_vertical

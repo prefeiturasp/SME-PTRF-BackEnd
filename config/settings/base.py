@@ -200,6 +200,8 @@ CSRF_COOKIE_HTTPONLY = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = "DENY"
 
+CSRF_TRUSTED_ORIGINS = env.str('CSRF_TRUSTED_ORIGINS', default='https://*.sme.prefeitura.sp.gov.br').split(',')
+
 # EMAIL CONFIGURATION
 # ------------------------------------------------------------------------------
 EMAIL_BACKEND = 'des.backends.ConfiguredEmailBackend'
@@ -309,6 +311,7 @@ SIMPLE_JWT = {
 # CORS SETTINGS
 # ------------------------------------------------------------------------------
 CORS_ORIGIN_ALLOW_ALL = True
+
 
 # API TERCEIRIZADAS
 # ------------------------------------------------------------------------------

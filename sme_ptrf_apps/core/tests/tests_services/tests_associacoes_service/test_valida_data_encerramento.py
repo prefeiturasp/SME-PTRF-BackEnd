@@ -1,5 +1,6 @@
 import datetime
 from datetime import date
+from freezegun import freeze_time
 
 import pytest
 from model_bakery import baker
@@ -32,6 +33,7 @@ def associacao_02(unidade, periodo_anterior_sem_fim_realizacao_despesas):
     )
 
 
+@freeze_time('2023-10-09 13:59:00')
 def test_valida_data_de_encerramento_deve_gerar_erro_data_maior_que_hoje(
     associacao,
     periodo_anterior,
@@ -52,6 +54,7 @@ def test_valida_data_de_encerramento_deve_gerar_erro_data_maior_que_hoje(
     }
 
     assert response == esperado
+
 
 def test_valida_data_de_encerramento_deve_gerar_erro_data_menor_que_data_periodo_inicial(
     associacao,

@@ -2,10 +2,12 @@ import pytest
 import json
 from rest_framework import status
 from freezegun import freeze_time
+from waffle.testutils import override_flag
 
 pytestmark = pytest.mark.django_db
 
 
+@override_flag('historico-de-membros', active=True)
 @freeze_time('2023-08-08 13:59:00')
 def test_action_mandatos_anteriores(
     mandato_01_2021_a_2022_api,
@@ -20,6 +22,7 @@ def test_action_mandatos_anteriores(
     assert response.status_code == status.HTTP_200_OK
 
 
+@override_flag('historico-de-membros', active=True)
 @freeze_time('2023-08-08 13:59:00')
 def test_action_mandatos_anteriores_quantidade(
     mandato_01_2021_a_2022_api,

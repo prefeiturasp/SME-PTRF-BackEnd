@@ -73,15 +73,16 @@ class CargoComposicao(ModeloBase):
 
     substituido = models.BooleanField("Substituido", default=False)
 
+    data_inicio_no_cargo = models.DateField(verbose_name='Data de início no cargo', blank=True, null=True)
+
+    data_fim_no_cargo = models.DateField(verbose_name='Data de término no cargo', blank=True, null=True)
 
     class Meta:
         verbose_name = 'Cargo Composição'
         verbose_name_plural = 'Cargos Composições'
 
-
     def __str__(self):
         return f"{self.cargo_associacao}"
-
 
 
 auditlog.register(CargoComposicao)
