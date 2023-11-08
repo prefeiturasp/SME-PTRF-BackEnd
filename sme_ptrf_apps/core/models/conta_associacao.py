@@ -78,6 +78,15 @@ class ContaAssociacao(ModeloBase):
         self.save()
 
     @property
+    def periodo_encerramento(self):
+        from sme_ptrf_apps.core.models import Periodo
+        if self.data_encerramento:
+            periodo = Periodo.da_data(self.data_encerramento)
+            if periodo:
+                return periodo
+        return None
+
+    @property
     def inativa(self):
         return self.status == self.STATUS_INATIVA
 
