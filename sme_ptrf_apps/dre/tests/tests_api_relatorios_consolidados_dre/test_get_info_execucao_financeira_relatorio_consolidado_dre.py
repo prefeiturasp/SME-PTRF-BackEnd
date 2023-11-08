@@ -30,6 +30,41 @@ def conta_associacao_cartao(associacao, tipo_conta_cartao):
         data_inicio=date(2019, 9, 1)
     )
 
+@pytest.fixture
+def conta_outra_associacao(outra_associacao, tipo_conta_cartao):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=outra_associacao,
+        tipo_conta=tipo_conta_cartao,
+        data_inicio=date(2019, 9, 1)
+    )
+
+@pytest.fixture
+def solicitacao_encerramento_conta_outra_associacao(conta_outra_associacao, periodo_2020_1):
+    return baker.make(
+        'SolicitacaoEncerramentoContaAssociacao',
+        conta_associacao=conta_outra_associacao,
+        data_de_encerramento_na_agencia=periodo_2020_1.data_inicio_realizacao_despesas,
+        status='APROVADA'
+    )
+
+@pytest.fixture
+def solicitacao_encerramento_conta_outra_associacao_periodo_anterior(conta_outra_associacao, periodo):
+    return baker.make(
+        'SolicitacaoEncerramentoContaAssociacao',
+        conta_associacao=conta_outra_associacao,
+        data_de_encerramento_na_agencia=periodo.data_inicio_realizacao_despesas,
+        status='APROVADA'
+    )
+
+@pytest.fixture
+def solicitacao_encerramento_conta_outra_associacao_periodo_anterior_status_pendente(conta_outra_associacao, periodo):
+    return baker.make(
+        'SolicitacaoEncerramentoContaAssociacao',
+        conta_associacao=conta_outra_associacao,
+        data_de_encerramento_na_agencia=periodo.data_inicio_realizacao_despesas,
+        status='PENDENTE'
+    )
 
 @pytest.fixture
 def prestacao_conta(periodo, associacao):
@@ -42,6 +77,16 @@ def prestacao_conta(periodo, associacao):
         status='APROVADA',
     )
 
+@pytest.fixture
+def outra_prestacao_conta(periodo, outra_associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo,
+        associacao=outra_associacao,
+        data_recebimento=date(2020, 10, 1),
+        data_ultima_analise=date(2020, 10, 1),
+        status='APROVADA',
+    )
 
 @pytest.fixture
 def fechamento_conta_cartao(periodo, associacao, conta_associacao_cartao, acao_associacao, prestacao_conta):
@@ -709,6 +754,108 @@ def test_api_get_info_execucao_financeira_relatorio_tipos_com_contas_criadas_no_
     acao_associacao,
     previsao_repasse_sme_conta_cartao,
     previsao_repasse_sme_conta_cheque,
+):
+    response = jwt_authenticated_client_relatorio_consolidado.get(
+        f'/api/relatorios-consolidados-dre/info-execucao-financeira/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    result_uuids =  []
+    for item in result['por_tipo_de_conta']:
+        result_uuids.append(item['tipo_conta_uuid'])
+
+    resultado_esperado = [f'{tipo_conta_cheque.uuid}', f'{tipo_conta_cartao.uuid}']
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result_uuids == resultado_esperado
+
+def test_api_get_info_execucao_financeira_relatorio_tipos_de_conta_das_associacoes_do_consolidado(
+    jwt_authenticated_client_relatorio_consolidado,
+    dre,
+    periodo,
+    tipo_conta_cheque,
+    tipo_conta_cartao,
+    tipo_conta_teste,
+    conta_associacao_cheque,
+    prestacao_conta
+):
+    response = jwt_authenticated_client_relatorio_consolidado.get(
+        f'/api/relatorios-consolidados-dre/info-execucao-financeira/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    result_uuids =  []
+    for item in result['por_tipo_de_conta']:
+        result_uuids.append(item['tipo_conta_uuid'])
+
+    resultado_esperado = [f'{tipo_conta_cheque.uuid}']
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result_uuids == resultado_esperado
+
+def test_api_get_info_execucao_financeira_relatorio_tipos_com_contas_encerradas_no_periodo_posterior(
+    jwt_authenticated_client_relatorio_consolidado,
+    dre,
+    periodo,
+    tipo_conta_cheque,
+    tipo_conta_cartao,
+    prestacao_conta,
+    outra_prestacao_conta,
+    conta_associacao_cheque,
+    conta_outra_associacao,
+    solicitacao_encerramento_conta_outra_associacao,
+):
+    response = jwt_authenticated_client_relatorio_consolidado.get(
+        f'/api/relatorios-consolidados-dre/info-execucao-financeira/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    result_uuids =  []
+    for item in result['por_tipo_de_conta']:
+        result_uuids.append(item['tipo_conta_uuid'])
+
+    resultado_esperado = [f'{tipo_conta_cheque.uuid}', f'{tipo_conta_cartao.uuid}']
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result_uuids == resultado_esperado
+
+def test_api_get_info_execucao_financeira_relatorio_tipos_com_contas_encerradas_no_periodo_anterior(
+    jwt_authenticated_client_relatorio_consolidado,
+    dre,
+    periodo,
+    tipo_conta_cheque,
+    tipo_conta_cartao,
+    prestacao_conta,
+    outra_prestacao_conta,
+    conta_associacao_cheque,
+    conta_outra_associacao,
+    solicitacao_encerramento_conta_outra_associacao_periodo_anterior,
+):
+    response = jwt_authenticated_client_relatorio_consolidado.get(
+        f'/api/relatorios-consolidados-dre/info-execucao-financeira/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    result_uuids =  []
+    for item in result['por_tipo_de_conta']:
+        result_uuids.append(item['tipo_conta_uuid'])
+
+    resultado_esperado = [f'{tipo_conta_cheque.uuid}']
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result_uuids == resultado_esperado
+
+def test_api_get_info_execucao_financeira_relatorio_tipos_com_contas_encerradas_no_periodo_anterior_status_pendente(
+    jwt_authenticated_client_relatorio_consolidado,
+    dre,
+    periodo,
+    tipo_conta_cheque,
+    tipo_conta_cartao,
+    prestacao_conta,
+    outra_prestacao_conta,
+    conta_associacao_cheque,
+    conta_outra_associacao,
+    solicitacao_encerramento_conta_outra_associacao_periodo_anterior_status_pendente,
 ):
     response = jwt_authenticated_client_relatorio_consolidado.get(
         f'/api/relatorios-consolidados-dre/info-execucao-financeira/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}',
