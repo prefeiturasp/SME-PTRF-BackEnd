@@ -88,7 +88,7 @@ class ContaAssociacao(ModeloBase):
             data_encerramento = self.solicitacao_encerramento.data_de_encerramento_na_agencia
         return data_encerramento
 
-    def conta_encerrada_em(self, periodo, adiciona_prefixo=True):
+    def conta_encerrada_em_periodos_anteriores(self, periodo):
         from sme_ptrf_apps.core.models import Periodo
 
         if hasattr(self, 'solicitacao_encerramento'):
@@ -96,12 +96,32 @@ class ContaAssociacao(ModeloBase):
                 data_encerramento = self.solicitacao_encerramento.data_de_encerramento_na_agencia
                 periodo_data_encerramento = Periodo.da_data(data_encerramento)
 
-                if periodo_data_encerramento == periodo:
+                return periodo_data_encerramento.data_inicio_realizacao_despesas < periodo.data_inicio_realizacao_despesas
 
-                    if adiciona_prefixo:
-                        return f"Conta encerrada em {data_encerramento.strftime('%d/%m/%Y')}"
-                    else:
-                        return f"{data_encerramento.strftime('%d/%m/%Y')}"
+        return None
+
+    def conta_encerrada_em(self, periodo, adiciona_prefixo=True, origem_relatorio_consolidado=False):
+        from sme_ptrf_apps.core.models import Periodo
+
+        if hasattr(self, 'solicitacao_encerramento'):
+            if self.solicitacao_encerramento.aprovada:
+                data_encerramento = self.solicitacao_encerramento.data_de_encerramento_na_agencia
+                periodo_data_encerramento = Periodo.da_data(data_encerramento)
+
+                if origem_relatorio_consolidado:
+                    if periodo_data_encerramento == periodo or periodo_data_encerramento.data_inicio_realizacao_despesas > periodo.data_inicio_realizacao_despesas:
+
+                        if adiciona_prefixo:
+                            return f"Conta encerrada em {data_encerramento.strftime('%d/%m/%Y')}"
+                        else:
+                            return f"{data_encerramento.strftime('%d/%m/%Y')}"
+                else:
+                    if periodo_data_encerramento == periodo:
+
+                        if adiciona_prefixo:
+                            return f"Conta encerrada em {data_encerramento.strftime('%d/%m/%Y')}"
+                        else:
+                            return f"{data_encerramento.strftime('%d/%m/%Y')}"
 
         return None
 
