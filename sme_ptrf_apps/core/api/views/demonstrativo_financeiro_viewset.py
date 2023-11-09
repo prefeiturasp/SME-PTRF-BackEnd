@@ -269,32 +269,6 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         return Response(result)
 
-    # TODO Estava dando erro na atualização do DRF 3.14. Aparentemente não é usado. Confirmar e remover.
-    # @action(detail=False, methods=['get'], url_path='__demonstrativo-info',
-    #         permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    # def __demonstrativo_info(self, request):
-    #     acao_associacao_uuid = self.request.query_params.get('acao-associacao')
-    #     conta_associacao_uuid = self.request.query_params.get('conta-associacao')
-    #     periodo_uuid = self.request.query_params.get('periodo')
-    #
-    #     if not acao_associacao_uuid or not conta_associacao_uuid or not periodo_uuid:
-    #         erro = {
-    #             'erro': 'parametros_requeridos',
-    #             'mensagem': 'É necessário enviar o uuid do período, o uuid da ação da associação e o uuid da conta da associação.'
-    #         }
-    #         return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-    #
-    #     conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
-    #     prestacao_conta = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao,
-    #                                                     periodo__uuid=periodo_uuid).first()
-    #
-    #     demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(acao_associacao__uuid=acao_associacao_uuid,
-    #                                                                       conta_associacao__uuid=conta_associacao_uuid,
-    #                                                                       prestacao_conta=prestacao_conta).last()
-    #     msg = str(demonstrativo_financeiro) if demonstrativo_financeiro else 'Documento pendente de geração'
-    #
-    #     return Response(msg)
-
     @action(detail=False, methods=['get'], url_path='demonstrativo-info',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def demonstrativo_info(self, request):
