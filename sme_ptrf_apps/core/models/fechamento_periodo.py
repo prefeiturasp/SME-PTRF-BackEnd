@@ -306,6 +306,7 @@ class FechamentoPeriodo(ModeloBase):
     @classmethod
     def implanta_saldo(cls, acao_associacao, conta_associacao, aplicacao, saldo):
         total_receitas_field = f'total_receitas_{aplicacao.lower()}'
+        saldo_reprogramado_field = f'saldo_reprogramado_{aplicacao.lower()}'
         fechamento_implantacao = cls.objects.update_or_create(
             periodo=conta_associacao.associacao.periodo_inicial,
             associacao=conta_associacao.associacao,
@@ -315,6 +316,7 @@ class FechamentoPeriodo(ModeloBase):
                 total_receitas_field: saldo,
                 'fechamento_anterior': None,
                 'status': STATUS_IMPLANTACAO,
+                saldo_reprogramado_field: 0,  # Será recalculado no pre_save, mas precisa ser informado aqui a partir do Django 4.2
             }
         )
 
