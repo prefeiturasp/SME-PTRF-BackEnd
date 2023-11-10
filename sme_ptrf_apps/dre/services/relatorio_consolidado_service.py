@@ -147,22 +147,21 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
         # totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True, consolidado_dre=consolidado_dre)
         # Foi adicionado and consolidado_dre.versao == "FINAL" para verificar se passa ou não o consolidado
         contas_inativas_com_solicitacao_de_encerramento =  {Q(status=ContaAssociacao.STATUS_INATIVA) & Q(solicitacao_encerramento__isnull=False)}
-        contas_encerradas_posteriores_ao_periodo =  {Q(*contas_inativas_com_solicitacao_de_encerramento) & Q(solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA) & Q(solicitacao_encerramento__data_de_encerramento_na_agencia__gte=periodo.data_fim_realizacao_despesas)}
-        contas_inativas_com_solicitacao_de_encerramento_pendente =  {Q(*contas_inativas_com_solicitacao_de_encerramento) & Q(solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE)}
-        contas_criadas_no_periodo_ou_anterior = {Q(data_inicio__isnull=True) | Q(data_inicio__lte=periodo.data_fim_realizacao_despesas)}
-
+        contas_encerradas_em_periodos_anteriores = {Q(*contas_inativas_com_solicitacao_de_encerramento) &
+                                                    Q(solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA) &
+                                                    Q(solicitacao_encerramento__data_de_encerramento_na_agencia__lt=periodo.data_inicio_realizacao_despesas)}
         if periodo.data_fim_realizacao_despesas:
-            existem_contas_criadas_no_periodo_ou_anterior = ContaAssociacao.objects.filter( (Q(status=ContaAssociacao.STATUS_ATIVA) |
-                                                                                            Q(*contas_encerradas_posteriores_ao_periodo) |
-                                                                                            Q(*contas_inativas_com_solicitacao_de_encerramento_pendente)) &
-                                                                                            Q(*contas_criadas_no_periodo_ou_anterior),
-                                                                                            associacao__in=associacoes_do_consolidado,
-                                                                                            tipo_conta=tipo_conta).exists()
+            contas_criadas_no_periodo_ou_anterior = {Q(data_inicio__isnull=True) | Q(data_inicio__lte=periodo.data_fim_realizacao_despesas)}
         else:
-            existem_contas_criadas_no_periodo_ou_anterior = True
+            contas_criadas_no_periodo_ou_anterior = {}
 
-        if existem_contas_criadas_no_periodo_ou_anterior:
+        contas_validas = ContaAssociacao.objects.filter(Q(*contas_criadas_no_periodo_ou_anterior),
+                                                        associacao__in=associacoes_do_consolidado,
+                                                        tipo_conta=tipo_conta).exclude(
+                                                            Q(*contas_encerradas_em_periodos_anteriores)
+                                                        )
 
+        if contas_validas.exists():
             if consolidado_dre and consolidado_dre.versao == "FINAL":
                 totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True,
                                                         consolidado_dre=consolidado_dre)

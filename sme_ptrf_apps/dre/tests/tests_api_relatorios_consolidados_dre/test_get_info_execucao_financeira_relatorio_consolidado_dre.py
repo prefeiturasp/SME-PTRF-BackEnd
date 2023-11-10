@@ -49,11 +49,11 @@ def solicitacao_encerramento_conta_outra_associacao(conta_outra_associacao, peri
     )
 
 @pytest.fixture
-def solicitacao_encerramento_conta_outra_associacao_periodo_anterior(conta_outra_associacao, periodo):
+def solicitacao_encerramento_conta_outra_associacao_periodo_anterior(conta_outra_associacao, periodo_anterior):
     return baker.make(
         'SolicitacaoEncerramentoContaAssociacao',
         conta_associacao=conta_outra_associacao,
-        data_de_encerramento_na_agencia=periodo.data_inicio_realizacao_despesas,
+        data_de_encerramento_na_agencia=periodo_anterior.data_inicio_realizacao_despesas,
         status='APROVADA'
     )
 
