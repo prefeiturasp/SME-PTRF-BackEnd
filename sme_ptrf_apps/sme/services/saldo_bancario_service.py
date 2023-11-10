@@ -181,19 +181,19 @@ def saldo_por_ue_dre(queryset, periodo, conta):
 
         saldo_por_tipo_da_dre = filtrar_por_data_inicio_e_data_encerramento_conta(saldo_por_tipo_da_dre, periodo)
 
-        saldo_por_tipo_da_dre = saldo_por_tipo_da_dre.values('associacao__unidade__tipo_unidade', 'associacao__unidade__dre__sigla').annotate(
+        saldo_por_tipo_da_dre = saldo_por_tipo_da_dre.values('associacao__unidade__tipo_unidade', 'associacao__unidade__dre__sigla', 'associacao__unidade__dre__codigo_eol').annotate(
             saldo_bancario_informado=Sum('saldo_extrato')
         )
 
         saldos_por_ue_dre.extend(saldo_por_tipo_da_dre)
 
-        result[dre.sigla] = {"sigla_dre": dre.sigla, "uuid_dre": dre.uuid, "nome_dre": formata_nome_dre(dre.nome), "associacoes": []}
+        result[dre.codigo_eol] = {"sigla_dre": dre.sigla, "uuid_dre": dre.uuid, "nome_dre": formata_nome_dre(dre.nome), "associacoes": []}
 
         for tipo in choices:
-            result[dre.sigla]['associacoes'].append({"associacao": tipo, "saldo_total": 0})
+            result[dre.codigo_eol]['associacoes'].append({"associacao": tipo, "saldo_total": 0})
 
     for saldo in saldos_por_ue_dre:
-        for r in result[saldo['associacao__unidade__dre__sigla']]['associacoes']:
+        for r in result[saldo['associacao__unidade__dre__codigo_eol']]['associacoes']:
             if r['associacao'] in saldo['associacao__unidade__tipo_unidade']:
                 r['saldo_total'] = saldo['saldo_bancario_informado']
 
