@@ -33,7 +33,7 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
         'tipo_lancamento': 'GASTO',
         'despesa': f'{despesa_2020_1.uuid}',
         'receita': None,
-        'resultado': 'CORRETO',
+        'resultado': 'AJUSTE',
         'devolucao_tesouro_atualizada': False,
         'requer_atualizacao_devolucao_ao_tesouro': True,
         'requer_atualizacao_lancamento': False,

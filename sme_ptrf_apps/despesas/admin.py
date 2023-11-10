@@ -108,7 +108,7 @@ class DespesaAdmin(admin.ModelAdmin):
         'retem_imposto',
     )
     inlines = [RateioDespesaInLine, ]
-    readonly_fields = ('uuid', 'id')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     filter_horizontal = ('despesas_impostos', 'motivos_pagamento_antecipado')
 
     def associacao(self, obj):
