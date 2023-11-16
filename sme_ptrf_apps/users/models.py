@@ -165,6 +165,14 @@ class User(AbstractUser):
         ids_grupos_para_serem_desabilitados = set()
 
         for grupo in grupos:
+            visoes = grupo.visoes.all()
+            
+            if "SME" in visoes:
+                visoes = visoes.pop("SME")
+                
+            if len(visoes) > 1:
+                continue
+            
             for visao in grupo.visoes.all():
                 if tipo == "DRE" and visao.nome == "DRE":
                     ids_grupos_para_serem_desabilitados.add(grupo.id)
