@@ -276,8 +276,6 @@ class PersistenciaDadosDemoFinanceiro:
             motivos_estorno = self.dict_list_to_text(dict_list=motivos_estorno_list, key='motivo')
             outros_motivos_estorno = receita["estorno"]["outros_motivos_estorno"] if eh_estorno else None
 
-            valor_total = self.dados["creditos_demonstrados"]["valor_total"]
-
             ItemCredito.objects.create(
                 dados_demonstrativo=self.registro,
                 tipo_receita=tipo_receita,
@@ -292,8 +290,9 @@ class PersistenciaDadosDemoFinanceiro:
                 outros_motivos_estorno=outros_motivos_estorno
             )
 
-            self.registro.total_creditos = valor_total
-            self.registro.save()
+        valor_total = self.dados["creditos_demonstrados"]["valor_total"]
+        self.registro.total_creditos = valor_total
+        self.registro.save()
 
     def cria_registros_despesas(self, lista_despesas, categoria_despesa):
         for despesa in lista_despesas:
@@ -310,6 +309,7 @@ class PersistenciaDadosDemoFinanceiro:
             tipo_transacao = despesa["tipo_transacao"]
             data_transacao = self.string_to_date(despesa["data_transacao"])
             valor = despesa["valor"]
+            valor_total = despesa["valor_total"]
 
             if not ItemDespesa.objects.filter(uuid_rateio_referencia=uuid_rateio_referencia).filter(categoria_despesa=categoria_despesa).exists():
                 item_criado = ItemDespesa.objects.create(
@@ -328,6 +328,7 @@ class PersistenciaDadosDemoFinanceiro:
                     tipo_transacao=tipo_transacao,
                     data_transacao=data_transacao,
                     valor=valor,
+                    valor_total=valor_total
                 )
 
                 lista_despesas_imposto = []
@@ -360,7 +361,7 @@ class PersistenciaDadosDemoFinanceiro:
                             data_transacao=data_transacao_imposto,
                             data_documento=data_documento_imposto,
                             valor=valor_imposto,
-
+                            valor_total=valor_imposto,
                         )
 
                         lista_despesas_imposto.append(despesa_imposto_criada.id)
