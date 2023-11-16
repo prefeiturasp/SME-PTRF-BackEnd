@@ -52,7 +52,11 @@ from .models import (
     FalhaGeracaoPc,
     SolicitacaoEncerramentoContaAssociacao,
     MotivoRejeicaoEncerramentoContaAssociacao,
-    TaskCelery
+    TaskCelery,
+    DadosDemonstrativoFinanceiro,
+    ItemResumoPorAcao,
+    ItemCredito,
+    ItemDespesa
 )
 
 from django.db.models import Count
@@ -870,9 +874,11 @@ class RelacaoBensAdmin(admin.ModelAdmin):
         for item in queryset:
             gerar_arquivo_relacao_de_bens_dados_persistidos(item)
 
+
 class ItemRelatorioRelacaoDeBensInline(admin.TabularInline):
     extra = 0
     model = ItemRelatorioRelacaoDeBens
+
 
 @admin.register(RelatorioRelacaoBens)
 class RelatorioRelacaoBensAdmin(admin.ModelAdmin):
@@ -893,6 +899,7 @@ class RelatorioRelacaoBensAdmin(admin.ModelAdmin):
                 }),]
 
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
 
 @admin.register(MembroAssociacao)
 class MembroAssociacaoAdmin(admin.ModelAdmin):
@@ -1533,3 +1540,29 @@ class TaskCeleryAdmin(admin.ModelAdmin):
         ('alterado_em', DateRangeFilter),
         ('data_hora_finalizacao', DateRangeFilter),
     ]
+
+
+class ItemResumoPorAcaoInLine(admin.TabularInline):
+    model = ItemResumoPorAcao
+    extra = 1  # Quantidade de linhas que serão exibidas.
+
+
+@admin.register(DadosDemonstrativoFinanceiro)
+class DadosDemonstrativoFinanceiroAdmin(admin.ModelAdmin):
+    list_display = ['nome_associacao',]
+    inlines = [ItemResumoPorAcaoInLine, ]
+
+
+@admin.register(ItemResumoPorAcao)
+class ItemResumoPorAcaoAdmin(admin.ModelAdmin):
+    list_display = ['acao_associacao',]
+
+
+@admin.register(ItemCredito)
+class ItemCreditoAdmin(admin.ModelAdmin):
+    list_display = ['tipo_receita',]
+
+
+@admin.register(ItemDespesa)
+class ItemDespesaAdmin(admin.ModelAdmin):
+    list_display = ['dados_demonstrativo', 'razao_social', 'categoria_despesa']
