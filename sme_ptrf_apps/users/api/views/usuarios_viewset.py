@@ -392,6 +392,7 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
 
     @action(detail=False, methods=['patch'], url_path='habilitar-acesso')
     def habilitar_acesso(self, request):
+        
         from sme_ptrf_apps.users.api.validations.usuario_validations import HabilitarDesabilitarAcessoSerializer
 
         query = HabilitarDesabilitarAcessoSerializer(data=request.data)
@@ -420,6 +421,7 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
 
         gestao_usuario = GestaoUsuarioService(usuario=usuario)
         response = gestao_usuario.desabilitar_acesso(unidade=unidade, acesso_concedido_sme=acesso_concedido_sme)
+        gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade=unidade, usuario=usuario)
 
         return Response(response, status=status.HTTP_200_OK)
 
