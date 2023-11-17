@@ -77,6 +77,9 @@ class DadosDemonstrativoFinanceiro(ModeloBase):
         verbose_name = 'Dados Demonstrativo Financeiro'
         verbose_name_plural = '20.0) Dados dos Demonstrativos Financeiros'
 
+    def __str__(self):
+        return f"Relatório {self.nome_associacao} | {self.periodo_referencia} | {self.conta_associacao}"
+
 
 class ItemResumoPorAcao(ModeloBase):
     history = AuditlogHistoryField()
@@ -133,6 +136,9 @@ class ItemResumoPorAcao(ModeloBase):
         verbose_name = 'Dados Demonstrativo Financeiro Item Resumo por Ação'
         verbose_name_plural = '20.1) Dados dos Demonstrativos Financeiros Itens Resumo por Ação'
 
+    def __str__(self):
+        return self.acao_associacao
+
 
 class ItemCredito(ModeloBase):
     history = AuditlogHistoryField()
@@ -155,6 +161,9 @@ class ItemCredito(ModeloBase):
     class Meta:
         verbose_name = 'Dados Demonstrativo Financeiro Item de Crédito'
         verbose_name_plural = '20.2) Dados dos Demonstrativos Financeiros Itens de Créditos'
+
+    def __str__(self):
+        return self.nome_acao
 
 
 class CategoriaDespesaChoices(models.TextChoices):
@@ -207,10 +216,14 @@ class ItemDespesa(ModeloBase):
     data_transacao = models.DateField('Data transacao', null=True, default=None)
     valor = models.DecimalField('Valor', max_digits=12, decimal_places=2, null=True, default=0)
     despesas_impostos = models.ManyToManyField('ItemDespesa', blank=True, related_name='despesa_geradora')
+    valor_total = models.DecimalField('Valor Total', max_digits=12, decimal_places=2, null=True, default=0)
 
     class Meta:
         verbose_name = 'Dados Demonstrativo Financeiro Item de Despesa'
         verbose_name_plural = '20.3) Dados dos Demonstrativos Financeiros Itens de Despesas'
+
+    def __str__(self):
+        return f"{self.dados_demonstrativo}"
 
 
 auditlog.register(DadosDemonstrativoFinanceiro)
