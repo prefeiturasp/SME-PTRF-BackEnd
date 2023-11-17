@@ -29,6 +29,7 @@ from ..tasks import gerar_previa_demonstrativo_financeiro_async
 from ..services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
 from .demonstrativo_financeiro_pdf_service import gerar_arquivo_demonstrativo_financeiro_pdf
 from ..services.persistencia_dados_demo_financeiro_service import PersistenciaDadosDemoFinanceiro
+from ..services.recuperacao_dados_persistindos_demo_financeiro_service import RecuperaDadosDemoFinanceiro
 from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO, STATUS_INCOMPLETO
 
 from ..api.serializers.associacao_serializer import AssociacaoCompletoSerializer
@@ -493,11 +494,11 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
                                                                prestacao, observacao_conciliacao=observacao_conciliacao,
                                                                previa=previa)
 
-    # aqui
-    dados_persistidos = PersistenciaDadosDemoFinanceiro(dados=dados_demonstrativo, demonstrativo=demonstrativo)
+    PersistenciaDadosDemoFinanceiro(dados=dados_demonstrativo, demonstrativo=demonstrativo)
+    dados_recuperados = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
 
     if criar_arquivos:
-        gerar_arquivo_demonstrativo_financeiro_pdf(dados_demonstrativo, demonstrativo)
+        gerar_arquivo_demonstrativo_financeiro_pdf(dados_recuperados, demonstrativo)
 
     demonstrativo.arquivo_concluido()
 

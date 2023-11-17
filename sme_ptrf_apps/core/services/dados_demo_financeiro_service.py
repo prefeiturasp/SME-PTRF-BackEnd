@@ -687,6 +687,7 @@ def cria_despesas(rateios):
         data_documento = rateio.despesa.data_documento.strftime("%d/%m/%Y") if rateio.despesa.data_documento else ''
         data_transacao = rateio.despesa.data_transacao.strftime("%d/%m/%Y") if rateio.despesa.data_transacao else ''
         valor = rateio.valor_rateio
+        valor_total = rateio.despesa.valor_total
         linha = {
             "razao_social": razao_social,
             "cnpj_cpf": cnpj_cpf,
@@ -699,6 +700,7 @@ def cria_despesas(rateios):
             "data_documento": data_documento,
             "data_transacao": data_transacao,
             "valor": valor,
+            "valor_total": valor_total,
             "uuid_despesa": f"{rateio.despesa.uuid}",
             "uuid_rateio": f"{rateio.uuid}"
         }
@@ -725,13 +727,19 @@ def cria_despesas(rateios):
 
                 data_documento_imposto = despesa_imposto.data_documento.strftime("%d/%m/%Y") if despesa_imposto.data_documento else ''
 
+                tipo_documento_imposto = despesa_imposto.tipo_documento.nome if despesa_imposto.tipo_documento.nome else ''
+                nome_acao_documento_imposto = \
+                    rateio_imposto.acao_associacao.acao.nome if rateio_imposto and rateio_imposto.acao_associacao and rateio_imposto.acao_associacao.acao.nome else ""
+                especificacao_material_imposto = \
+                    rateio_imposto.especificacao_material_servico.descricao if rateio_imposto.especificacao_material_servico else ''
+
                 linha["despesas_impostos"].append(
                     {
-                        "tipo_documento": despesa_imposto.tipo_documento.nome,
+                        "tipo_documento": tipo_documento_imposto,
                         "data_transacao": data_transacao,
                         "data_documento_imposto": data_documento_imposto,
-                        "nome_acao_documento": rateio_imposto.acao_associacao.acao.nome,
-                        "especificacao_material": rateio_imposto.especificacao_material_servico.descricao,
+                        "nome_acao_documento": nome_acao_documento_imposto,
+                        "especificacao_material": especificacao_material_imposto,
                         "tipo_despesa": rateio_imposto.aplicacao_recurso,
                         "tipo_transacao": tipo_transacao_imposto,
                         "info_pagamento": info_pagamento,

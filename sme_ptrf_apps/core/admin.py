@@ -774,6 +774,17 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
 
     gera_pdf.short_description = "Gerar PDF"
 
+    def gerar_pdf_dados_persistidos(self, request, queryset):
+        from .services.recuperacao_dados_persistindos_demo_financeiro_service import RecuperaDadosDemoFinanceiro
+        from .services.demonstrativo_financeiro_pdf_service import gerar_arquivo_demonstrativo_financeiro_pdf
+
+        for item in queryset:
+            if item.dados.exists():
+                dados = RecuperaDadosDemoFinanceiro(item).dados_formatados
+                gerar_arquivo_demonstrativo_financeiro_pdf(dados, item)
+
+    gerar_pdf_dados_persistidos.short_description = "Gerar PDF Dados Persistidos"
+
     list_display = (
         'get_nome_associacao',
         'get_periodo',
@@ -806,7 +817,7 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
 
     autocomplete_fields = ['conta_associacao', 'periodo_previa', 'prestacao_conta']
 
-    actions = ['gera_pdf', ]
+    actions = ['gera_pdf', 'gerar_pdf_dados_persistidos']
 
 
 @admin.register(RelacaoBens)
@@ -1545,24 +1556,183 @@ class TaskCeleryAdmin(admin.ModelAdmin):
 class ItemResumoPorAcaoInLine(admin.TabularInline):
     model = ItemResumoPorAcao
     extra = 1  # Quantidade de linhas que serão exibidas.
+    classes = ('collapse', )
+
+
+class ItemCreditoInLine(admin.TabularInline):
+    model = ItemCredito
+    extra = 1  # Quantidade de linhas que serão exibidas.
+    classes = ('collapse', )
+
+
+class ItemDespesaInLine(admin.TabularInline):
+    model = ItemDespesa
+    extra = 1  # Quantidade de linhas que serão exibidas.
+    classes = ('collapse', )
 
 
 @admin.register(DadosDemonstrativoFinanceiro)
 class DadosDemonstrativoFinanceiroAdmin(admin.ModelAdmin):
-    list_display = ['nome_associacao',]
-    inlines = [ItemResumoPorAcaoInLine, ]
+    list_display = ['nome_associacao', 'conta_associacao', 'periodo_referencia']
+
+    search_fields = [
+        'nome_associacao',
+        'codigo_eol_associacao',
+    ]
+
+    fieldsets = [
+        ('Demonstrativo Financeiro', {
+            "fields": [
+                "demonstrativo",
+            ],
+        }),
+        ('Cabeçalho', {
+            "fields": [
+                "periodo_referencia",
+                "periodo_data_inicio",
+                "periodo_data_fim",
+                "conta_associacao",
+            ],
+        }),
+        ('Identificação da Associação', {
+            "fields": [
+                "nome_associacao",
+                "cnpj_associacao",
+                "nome_dre_associacao",
+                "codigo_eol_associacao",
+                "cargo_substituto_presidente_ausente",
+                "presidente_diretoria_executiva",
+                "presidente_conselho_fiscal",
+            ],
+        }),
+        ('Identificação da Associação', {
+            "fields": [
+                "banco",
+                "agencia",
+                "conta",
+                "data_extrato",
+                "saldo_extrato",
+                "conta_encerrada_em"
+            ],
+        }),
+        ('Justificativa', {
+            "fields": [
+                "justificativa_info_adicionais",
+            ],
+        }),
+        ('Rodapé', {
+            "fields": [
+                "tipo_unidade",
+                "nome_unidade",
+                "texto_rodape",
+                "data_geracao",
+            ],
+        }),
+        ('Totais', {
+            "fields": [
+                "total_creditos",
+                "total_despesas_demonstradas",
+                "total_despesas_nao_demonstradas",
+                "total_despesas_nao_demonstradas_periodos_anteriores",
+            ],
+        }),
+        ('Informações Adicionais', {
+            "fields": [
+                "id",
+                "uuid",
+                "criado_em",
+                "alterado_em",
+            ],
+        }),
+    ]
+
+    inlines = [ItemResumoPorAcaoInLine, ItemCreditoInLine, ItemDespesaInLine]
+    raw_id_fields = ('demonstrativo', )
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 
 @admin.register(ItemResumoPorAcao)
 class ItemResumoPorAcaoAdmin(admin.ModelAdmin):
-    list_display = ['acao_associacao',]
+    list_display = ['acao_associacao', 'dados_demonstrativo']
+    raw_id_fields = ('dados_demonstrativo',)
+    search_fields = [
+        'acao_associacao',
+        'dados_demonstrativo__codigo_eol_associacao',
+        'dados_demonstrativo__nome_associacao',
+    ]
+
+    fieldsets = [
+        ('Informações Adicionais', {
+            "fields": [
+                "dados_demonstrativo",
+                "acao_associacao",
+                "total_geral",
+                "id",
+                "uuid",
+                "criado_em",
+                "alterado_em",
+            ],
+        }),
+        ('Custeio', {
+            "fields": [
+                "custeio_saldo_anterior",
+                "custeio_credito",
+                "custeio_despesa_realizada",
+                "custeio_despesa_nao_realizada",
+                "custeio_saldo_reprogramado_proximo",
+                "custeio_despesa_nao_demostrada_outros_periodos",
+                "custeio_valor_saldo_bancario_custeio",
+            ],
+        }),
+        ('Livre Aplicação', {
+            "fields": [
+                "livre_saldo_anterior",
+                "livre_credito",
+                "livre_saldo_reprogramado_proximo",
+                "livre_valor_saldo_reprogramado_proximo_periodo",
+            ],
+        }),
+        ('Capital', {
+            "fields": [
+                "capital_saldo_anterior",
+                "capital_credito",
+                "capital_despesa_realizada",
+                "capital_despesa_nao_realizada",
+                "capital_saldo_reprogramado_proximo",
+                "capital_despesa_nao_demostrada_outros_periodos",
+                "capital_valor_saldo_bancario_capital",
+            ],
+        }),
+        ('Totais', {
+            "fields": [
+                "total_valores",
+                "saldo_bancario",
+            ],
+        }),
+    ]
+
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 
 @admin.register(ItemCredito)
 class ItemCreditoAdmin(admin.ModelAdmin):
-    list_display = ['tipo_receita',]
+    list_display = ['nome_acao', 'dados_demonstrativo', 'tipo_receita', 'valor']
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    raw_id_fields = ('dados_demonstrativo',)
+    search_fields = [
+        'nome_acao',
+        'dados_demonstrativo__codigo_eol_associacao',
+        'dados_demonstrativo__nome_associacao',
+    ]
 
 
 @admin.register(ItemDespesa)
 class ItemDespesaAdmin(admin.ModelAdmin):
-    list_display = ['dados_demonstrativo', 'razao_social', 'categoria_despesa']
+    list_display = ['razao_social', 'categoria_despesa', 'dados_demonstrativo']
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    raw_id_fields = ('dados_demonstrativo',)
+    search_fields = [
+        'razao_social',
+        'dados_demonstrativo__codigo_eol_associacao',
+        'dados_demonstrativo__nome_associacao',
+    ]
