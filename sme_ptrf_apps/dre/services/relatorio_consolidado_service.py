@@ -7,7 +7,8 @@ from sme_ptrf_apps.core.models import (
     FechamentoPeriodo,
     PrevisaoRepasseSme,
     DevolucaoAoTesouro, TipoConta,
-    ContaAssociacao
+    ContaAssociacao,
+    SolicitacaoEncerramentoContaAssociacao
 )
 from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE, \
     JustificativaRelatorioConsolidadoDRE, ConsolidadoDRE
@@ -81,6 +82,8 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
         eh_parcial = consolidado_dre.eh_parcial
         qtde_unidades = consolidado_dre.pcs_do_consolidado.all().count()
 
+        associacoes_do_consolidado = consolidado_dre.pcs_do_consolidado.values_list("associacao_id", flat=True).distinct()
+
         if consolidado_dre.consolidado_retificado and consolidado_dre.consolidado_retificado.data_publicacao:
             titulo_parcial = f"Retificação da Publicação de {consolidado_dre.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y')} - {qtde_unidades} unidade(s)"
         else:
@@ -99,6 +102,9 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
 
         if consolidado_dre and consolidado_dre.versao == "FINAL":
             qtde_unidades = consolidado_dre.pcs_do_consolidado.all().count()
+
+            associacoes_do_consolidado = consolidado_dre.pcs_do_consolidado.values_list("associacao_id", flat=True).distinct()
+
             sequencia_de_publicacao_do_consolidado = consolidado_dre.sequencia_de_publicacao
 
             if sequencia_de_publicacao_do_consolidado > 0:
@@ -106,12 +112,16 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
             else:
                 titulo_parcial = "Publicação Única"
         else:
-            qtde_unidades = PrestacaoConta.objects.filter(
+            pcs = PrestacaoConta.objects.filter(
                 periodo=periodo,
                 status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
                 associacao__unidade__dre=dre,
                 publicada=False
-            ).count()
+            )
+
+            qtde_unidades = pcs.count()
+
+            associacoes_do_consolidado = pcs.values_list("associacao_id", flat=True).distinct()
 
             if sequencia_de_publicacao > 0:
                 titulo_parcial = f"Publicação Parcial #{sequencia_de_publicacao} - {qtde_unidades} unidade(s)" if eh_parcial else f"Publicação Única {qtde_unidades} unidade(s)"
@@ -130,19 +140,28 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
     tipos_de_conta = TipoConta.objects.all()
 
     objeto_tipo_de_conta = []
+    dados['por_tipo_de_conta'] = []
 
     for tipo_conta in tipos_de_conta:
         # TODO Tratativa dos Bugs: 91797, 93549 e 93018 da Sprint 65
         # totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True, consolidado_dre=consolidado_dre)
         # Foi adicionado and consolidado_dre.versao == "FINAL" para verificar se passa ou não o consolidado
+        contas_inativas_com_solicitacao_de_encerramento =  {Q(status=ContaAssociacao.STATUS_INATIVA) & Q(solicitacao_encerramento__isnull=False)}
+        contas_encerradas_em_periodos_anteriores = {Q(*contas_inativas_com_solicitacao_de_encerramento) &
+                                                    Q(solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA) &
+                                                    Q(solicitacao_encerramento__data_de_encerramento_na_agencia__lt=periodo.data_inicio_realizacao_despesas)}
         if periodo.data_fim_realizacao_despesas:
-            existem_contas_criadas_no_periodo_ou_anterior = ContaAssociacao.objects.filter(Q(data_inicio__isnull=True) | Q(data_inicio__lte=periodo.data_fim_realizacao_despesas),
-                                                                                           tipo_conta=tipo_conta).exists()
+            contas_criadas_no_periodo_ou_anterior = {Q(data_inicio__isnull=True) | Q(data_inicio__lte=periodo.data_fim_realizacao_despesas)}
         else:
-            existem_contas_criadas_no_periodo_ou_anterior = True
+            contas_criadas_no_periodo_ou_anterior = {}
 
-        if existem_contas_criadas_no_periodo_ou_anterior:
+        contas_validas = ContaAssociacao.objects.filter(Q(*contas_criadas_no_periodo_ou_anterior),
+                                                        associacao__in=associacoes_do_consolidado,
+                                                        tipo_conta=tipo_conta).exclude(
+                                                            Q(*contas_encerradas_em_periodos_anteriores)
+                                                        )
 
+        if contas_validas.exists():
             if consolidado_dre and consolidado_dre.versao == "FINAL":
                 totais = informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=True,
                                                         consolidado_dre=consolidado_dre)
