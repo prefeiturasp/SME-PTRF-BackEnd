@@ -784,10 +784,10 @@ def solicitacao_encerramento_conta_rejeitada(conta_associacao_encerramento_conta
 
 
 @pytest.fixture
-def solicitacao_encerramento_conta_pendente(conta_associacao_encerramento_conta):
+def solicitacao_encerramento_conta_pendente(conta_associacao_encerramento_conta, periodo_2020_1):
     return baker.make(
         'SolicitacaoEncerramentoContaAssociacao',
         conta_associacao=conta_associacao_encerramento_conta,
         status=SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE,
-        data_de_encerramento_na_agencia=date.today(),
+        data_de_encerramento_na_agencia=periodo_2020_1.data_inicio_realizacao_despesas,
     )
