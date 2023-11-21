@@ -91,6 +91,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
 
     associacao = AssociacaoCompletoSerializer(many=False)
     periodo_uuid = serializers.SerializerMethodField('get_periodo_uuid')
+    periodo_referencia = serializers.SerializerMethodField('get_periodo_referencia')
     tecnico_responsavel = TecnicoResponsavelSerializer(many=False)
     devolucoes_da_prestacao = DevolucaoPrestacaoContaRetrieveSerializer(many=True)
     processo_sei = serializers.SerializerMethodField('get_processo_sei')
@@ -109,6 +110,9 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
+
+    def get_periodo_referencia(self, obj):
+        return obj.periodo.referencia
 
     def get_processo_sei(self, obj):
         return get_processo_sei_da_prestacao(prestacao_contas=obj)
@@ -152,7 +156,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
                         'conta_uuid': f'{extrato.conta_associacao.uuid}'
                     }
                 )
-                
+
         for ata_apresentacao in prestacao_contas.atas_da_prestacao.all():
             if ata_apresentacao.status_geracao_pdf == 'CONCLUIDO':
                 if ata_apresentacao.tipo_ata == 'RETIFICACAO':
@@ -164,7 +168,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
                             'arquivo_apresentado_em_todas_as_contas': True
                         }
                     )
-                    
+
                 if ata_apresentacao.tipo_ata == 'APRESENTACAO':
                     result.append(
                         {
@@ -284,7 +288,8 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'referencia_consolidado_dre_original',
             'justificativa_pendencia_realizacao',
             'em_retificacao',
-            'devolucao_atual'
+            'devolucao_atual',
+            'periodo_referencia'
         )
 
 

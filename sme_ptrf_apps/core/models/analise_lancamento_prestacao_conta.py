@@ -5,6 +5,8 @@ from auditlog.registry import auditlog
 from ...utils.choices_to_json import choices_to_json
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from django.db.models import UniqueConstraint, Q
+from django.dispatch import receiver
+from django.db.models.signals import pre_save
 
 
 class AnaliseLancamentoPrestacaoConta(ModeloBase):
@@ -473,6 +475,10 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
 
         return self
 
+    def verifica_se_deve_apagar_analise(self):
+        if self.requer_ajuste and not self.solicitacoes_de_ajuste_da_analise.exists():
+            self.delete()
+
     @classmethod
     def get_tags_informacoes_de_conferencia_list(cls):
         return [cls.TAG_AJUSTE, cls.TAG_CORRETO, cls.TAG_CONFERENCIA_AUTOMATICA, cls.TAG_NAO_CONFERIDO]
@@ -490,6 +496,19 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
                              condition=Q(receita__isnull=True),
                              name='unique_constraint_analise_pc_e_despesa'),
         ]
+
+
+@receiver(pre_save, sender=AnaliseLancamentoPrestacaoConta)
+def proponente_pre_save(instance, **kwargs):
+    from sme_ptrf_apps.core.models import SolicitacaoAcertoLancamento
+
+    if instance.id is not None:
+        solicitacoes = SolicitacaoAcertoLancamento.objects.filter(analise_lancamento=instance)
+
+        if solicitacoes.exists():
+            instance.resultado = AnaliseLancamentoPrestacaoConta.RESULTADO_AJUSTE
+        else:
+            instance.resultado = AnaliseLancamentoPrestacaoConta.RESULTADO_CORRETO
 
 
 auditlog.register(AnaliseLancamentoPrestacaoConta)

@@ -346,7 +346,7 @@ class Despesa(ModeloBase):
 
     def verifica_data_documento_vazio(self):
         if self.data_transacao:
-            if not self.data_documento:
+            if not self.data_documento or self.e_despesa_de_imposto():
                 self.data_documento = self.data_transacao
                 self.save()
 
