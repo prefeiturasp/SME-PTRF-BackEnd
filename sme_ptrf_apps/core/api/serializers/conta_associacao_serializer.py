@@ -44,9 +44,21 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
     saldo_atual_conta = serializers.SerializerMethodField()
     habilitar_solicitar_encerramento = serializers.SerializerMethodField()
     nome = serializers.SerializerMethodField('get_nome_conta')
+    periodo_encerramento_conta = serializers.SerializerMethodField('get_periodo_encerramento_conta')
 
     def get_nome_conta(self, obj):
         return obj.tipo_conta.nome
+
+    def get_periodo_encerramento_conta(self, obj):
+        from sme_ptrf_apps.core.models import Periodo
+
+        if obj.data_encerramento:
+            periodo = Periodo.da_data(obj.data_encerramento)
+            if periodo:
+                return periodo.referencia
+        return None
+
+
 
     class Meta:
         model = ContaAssociacao
@@ -60,7 +72,8 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
             'saldo_atual_conta',
             'habilitar_solicitar_encerramento',
             'nome',
-            'status'
+            'status',
+            'periodo_encerramento_conta'
         )
 
     def get_habilitar_solicitar_encerramento(self, obj):
