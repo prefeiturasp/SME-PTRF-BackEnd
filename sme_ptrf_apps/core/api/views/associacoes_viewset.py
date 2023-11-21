@@ -261,13 +261,9 @@ class AssociacoesViewSet(ModelViewSet):
         else:
             pendencias_cadastrais = None
 
-        tem_conta_encerrada_com_saldo = False
-        tipos_das_contas_encerradas_com_saldo = []
-        contas = ContaAssociacao.com_solicitacao_de_encerramento.filter(associacao=associacao).all()
-        for conta in contas:
-            if conta.get_saldo_atual_conta() != 0:
-                tem_conta_encerrada_com_saldo = True
-                tipos_das_contas_encerradas_com_saldo.append(conta.tipo_conta.nome)
+        from sme_ptrf_apps.core.services.conta_associacao_service import checa_se_tem_conta_encerrada_com_saldo_no_periodo
+
+        tem_conta_encerrada_com_saldo, tipos_das_contas_encerradas = checa_se_tem_conta_encerrada_com_saldo_no_periodo(associacao, periodo)
 
         result = {
             'associacao': f'{uuid}',
@@ -280,7 +276,7 @@ class AssociacoesViewSet(ModelViewSet):
             'gerar_previas': gerar_previas,
             'pendencias_cadastrais': pendencias_cadastrais,
             'tem_conta_encerrada_com_saldo': tem_conta_encerrada_com_saldo,
-            'tipos_das_contas_encerradas_com_saldo': tipos_das_contas_encerradas_com_saldo
+            'tipos_das_contas_encerradas_com_saldo': tipos_das_contas_encerradas
         }
 
         return Response(result)
