@@ -1193,22 +1193,24 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
                 'referencia_consolidado': referencia_consolidado,
             }
 
-            data_encerramento = conta_associacao.conta_encerrada_em(periodo=periodo, adiciona_prefixo=False) \
-                if conta_associacao.conta_encerrada_em(periodo=periodo, adiciona_prefixo=False) else ''
+            data_encerramento = conta_associacao.conta_encerrada_em(periodo=periodo, adiciona_prefixo=False, origem_relatorio_consolidado=True) if conta_associacao.conta_encerrada_em(periodo=periodo, adiciona_prefixo=False, origem_relatorio_consolidado=True) else ''
 
-            if soma_dos_totais: # Verifica se existe valores, senão será exibida mensagem Não houve movimentação financeira por conta
-                objeto_tipo_de_conta.append({
-                    'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
-                    'encerrada_em': data_encerramento,
-                    'valores': totais,
-                })
-            else:
-                objeto_tipo_de_conta.append({
-                    'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
-                    'encerrada_em': data_encerramento,
-                    'valores': None,
-                })
+            conta_encerrada_em_periodos_anteriores = conta_associacao.conta_encerrada_em_periodos_anteriores(periodo=periodo)
 
+            if not conta_encerrada_em_periodos_anteriores:
+
+                if soma_dos_totais: # Verifica se existe valores, senão será exibida mensagem Não houve movimentação financeira por conta
+                    objeto_tipo_de_conta.append({
+                        'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
+                        'encerrada_em': data_encerramento,
+                        'valores': totais,
+                    })
+                else:
+                    objeto_tipo_de_conta.append({
+                        'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
+                        'encerrada_em': data_encerramento,
+                        'valores': None,
+                    })
 
             dado['por_tipo_de_conta'] = objeto_tipo_de_conta
 
