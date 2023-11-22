@@ -263,7 +263,7 @@ class AssociacoesViewSet(ModelViewSet):
 
         from sme_ptrf_apps.core.services.conta_associacao_service import checa_se_tem_conta_encerrada_com_saldo_no_periodo
 
-        tem_conta_encerrada_com_saldo, tipos_das_contas_encerradas = checa_se_tem_conta_encerrada_com_saldo_no_periodo(associacao, periodo)
+        tem_conta_encerrada_com_saldo, tipos_das_contas_encerradas = checa_se_tem_conta_encerrada_com_saldo_no_periodo(associacao, periodo, data)
 
         result = {
             'associacao': f'{uuid}',
