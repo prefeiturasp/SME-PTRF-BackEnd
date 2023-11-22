@@ -83,8 +83,8 @@ def copia_ajustes_entre_analises(analise_origem, analise_destino):
                 nova_analise_lancamento.save()
 
             # Verifica se não há solicitações de acerto e, se não houver, exclui a nova_analise_lancamento
-            if analise_lancamento.requer_ajuste and not analise_lancamento.solicitacoes_de_ajuste_da_analise.exists():
-                nova_analise_lancamento.delete()
+            nova_analise_lancamento.verifica_se_deve_apagar_analise()
+            nova_analise_lancamento.save()
 
     def copia_analise_documento(analise_documento_origem):
         from sme_ptrf_apps.core.models import AnaliseDocumentoPrestacaoConta

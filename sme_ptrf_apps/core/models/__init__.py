@@ -74,3 +74,11 @@ from .falha_geracao_pc import FalhaGeracaoPc
 from .transferencia_eol import TransferenciaEol
 from .tasks_celery import TaskCelery
 from .relatorio_relacao_bens import RelatorioRelacaoBens, ItemRelatorioRelacaoDeBens
+from .dados_demonstrativo_financeiro import (
+    DadosDemonstrativoFinanceiro,
+    ItemResumoPorAcao,
+    ItemCredito,
+    ItemDespesa,
+    CategoriaDespesaChoices,
+    InformacaoDespesaChoices
+)
