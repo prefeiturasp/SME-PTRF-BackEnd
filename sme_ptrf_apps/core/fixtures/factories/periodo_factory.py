@@ -12,3 +12,5 @@ class PeriodoFactory(DjangoModelFactory):
     data_inicio_realizacao_despesas = Sequence(lambda n: fake.date_between_dates(date_start=datetime(2019, 1, 1), date_end=datetime.today()))
     data_fim_realizacao_despesas = LazyAttribute(lambda obj: obj.data_inicio_realizacao_despesas + timedelta(days=120))
     referencia = LazyAttribute(lambda obj: obj.data_inicio_realizacao_despesas.strftime("%Y.1"))
+    
+    # TODO adicionar outros campos
