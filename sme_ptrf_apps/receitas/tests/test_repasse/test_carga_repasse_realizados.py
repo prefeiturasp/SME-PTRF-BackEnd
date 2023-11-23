@@ -179,3 +179,26 @@ Foram criados 0 repasses. Erro na importação de 1 repasses."""
 
     assert arquivo_carga_deve_criar_conta.log == msg
     assert arquivo_carga_deve_criar_conta.status == ERRO
+
+def test_carga_em_conta_encerrada_deve_gerar_erro(periodos_de_2019_ate_2023, acao_factory, acao_associacao_factory, associacao_factory, arquivo_factory, unidade_factory, tipo_conta_factory, conta_associacao_factory, solicitacao_encerramento_conta_associacao_factory):
+    from sme_ptrf_apps.core.models.solicitacao_encerramento_conta_associacao import SolicitacaoEncerramentoContaAssociacao
+    
+    unidade = unidade_factory(codigo_eol='666666')
+    associacao = associacao_factory(unidade=unidade)
+    acao = acao_factory(nome='Acao teste', aceita_capital=True, aceita_custeio=True)
+    acao_associacao_factory.create(associacao=associacao, acao=acao)
+    tipo_conta = tipo_conta_factory.create(nome='Cheque')
+    conta = conta_associacao_factory.create(associacao=associacao, data_inicio='2018-10-20', tipo_conta=tipo_conta)
+    solicitacao_encerramento_conta_associacao_factory.create(conta_associacao=conta, status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA)
+
+    conteudo_arquivo = SimpleUploadedFile(f'carga_repasse_cheque.csv',
+        bytes(f"""Linha_ID,Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao,Data receita,Periodo\n10,666666,99000.98,99000.98,,Acao teste,02/04/2019,2019.2""", encoding="utf-8"))
+    
+    arquivo = arquivo_factory.create(identificador='carga_repasse_teste_conta_encerrada', conteudo=conteudo_arquivo, tipo_carga=CARGA_REPASSE_REALIZADO, tipo_delimitador=DELIMITADOR_VIRGULA)
+    
+    carrega_repasses_realizados(arquivo)
+    
+    msg= """\nErro na linha 1: A conta possui pedido de encerramento aprovado pela DRE.\nForam criados 0 repasses. Erro na importação de 1 repasses."""
+    
+    assert arquivo.log == msg
+    assert arquivo.status == ERRO
