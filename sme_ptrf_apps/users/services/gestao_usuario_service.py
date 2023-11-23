@@ -170,6 +170,16 @@ class GestaoUsuarioService:
         }
 
         return response
+    
+    def remover_grupos_acesso_apos_remocao_acesso_unidade(self, unidade, usuario):
+        lista_tipos_unidades_usuario_tem_acesso = list(self.tipos_unidades_usuario_tem_acesso())
+        
+        if unidade.tipo_unidade == "DRE" and "DRE" not in lista_tipos_unidades_usuario_tem_acesso: 
+            usuario.desabilita_todos_grupos_acesso("DRE")      
+        elif not lista_tipos_unidades_usuario_tem_acesso or lista_tipos_unidades_usuario_tem_acesso == ["DRE"]:
+            usuario.desabilita_todos_grupos_acesso("UE")
+            
+        return
 
     def unidades_disponiveis_para_inclusao(self, search):
         unidades_do_usuario = self.unidades_do_usuario('SME', 'SME')
@@ -191,3 +201,19 @@ class GestaoUsuarioService:
 
         return mensagem
 
+    def tipos_unidades_usuario_tem_acesso(self):
+        from sme_ptrf_apps.core.choices.tipos_unidade import TIPOS_CHOICE
+        
+        unidades_usuario = self.usuario.unidades.all()
+        tipos_unidades_usuario_tem_acesso = set() # DRE ou UE
+        
+        for unidade in unidades_usuario:
+            if unidade.tipo_unidade == "DRE":
+                tipos_unidades_usuario_tem_acesso.add("DRE")
+            else:
+                for tipo in TIPOS_CHOICE:
+                    if unidade.tipo_unidade == tipo[0]:
+                        tipos_unidades_usuario_tem_acesso.add("UE")
+                        break
+                
+        return tipos_unidades_usuario_tem_acesso

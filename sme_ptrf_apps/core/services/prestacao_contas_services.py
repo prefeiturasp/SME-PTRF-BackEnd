@@ -28,7 +28,8 @@ from ..tasks import gerar_previa_demonstrativo_financeiro_async
 
 from ..services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
 from .demonstrativo_financeiro_pdf_service import gerar_arquivo_demonstrativo_financeiro_pdf
-
+from ..services.persistencia_dados_demo_financeiro_service import PersistenciaDadosDemoFinanceiro
+from ..services.recuperacao_dados_persistindos_demo_financeiro_service import RecuperaDadosDemoFinanceiro
 from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO, STATUS_INCOMPLETO
 
 from ..api.serializers.associacao_serializer import AssociacaoCompletoSerializer
@@ -104,7 +105,7 @@ def concluir_prestacao_de_contas(periodo, associacao, usuario=None, monitoraPc=F
     requer_geracao_fechamentos = pc_requer_geracao_fechamentos(prestacao)
     requer_acertos_em_extrato = pc_requer_acerto_em_extrato(prestacao)
 
-    if prestacao.status == PrestacaoConta.STATUS_EM_PROCESSAMENTO:
+    if prestacao.status in (PrestacaoConta.STATUS_EM_PROCESSAMENTO, PrestacaoConta.STATUS_A_PROCESSAR):
         return {
             "prestacao": prestacao,
             "e_retorno_devolucao": e_retorno_devolucao,
@@ -113,11 +114,11 @@ def concluir_prestacao_de_contas(periodo, associacao, usuario=None, monitoraPc=F
             "erro": "A pc já está em processamento, não é possivel alterar o status para em processamento."
         }
 
-    prestacao.em_processamento()
+    prestacao.a_processar()
     if monitoraPc:
         MonitoraPC(prestacao_de_contas=prestacao, usuario=usuario, associacao=associacao)
 
-    logger.info(f'Prestação de contas em processamento {prestacao}.')
+    logger.info(f'Prestação de contas aguardando processamento {prestacao}.')
 
     return {
         "prestacao": prestacao,
@@ -493,8 +494,11 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
                                                                prestacao, observacao_conciliacao=observacao_conciliacao,
                                                                previa=previa)
 
+    PersistenciaDadosDemoFinanceiro(dados=dados_demonstrativo, demonstrativo=demonstrativo)
+    dados_recuperados = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
+
     if criar_arquivos:
-        gerar_arquivo_demonstrativo_financeiro_pdf(dados_demonstrativo, demonstrativo)
+        gerar_arquivo_demonstrativo_financeiro_pdf(dados_recuperados, demonstrativo)
 
     demonstrativo.arquivo_concluido()
 
