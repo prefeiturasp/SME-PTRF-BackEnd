@@ -138,6 +138,49 @@ class User(AbstractUser):
             return self.unidades.filter(tipo_unidade='DRE').exists()
 
         return self.unidades.exclude(tipo_unidade='DRE').exists()
+    
+    def habilita_grupo_acesso(self, group_id):
+        group_obj = Group.objects.filter(id=group_id).first()
+        if group_obj:
+            if group_obj not in self.groups.all():
+                self.groups.add(group_obj)
+                self.save()
+            else:
+                pass
+        else:
+            pass
+        
+    def desabilita_grupo_acesso(self, group_id):
+        group_obj = Group.objects.filter(id=group_id).first()
+        
+        if group_obj and group_obj in self.groups.all():
+            self.groups.remove(group_obj)
+            self.save()
+        else:
+            pass
+        
+    def desabilita_todos_grupos_acesso(self, tipo):
+        grupos = Grupo.objects.all()
+        
+        ids_grupos_para_serem_desabilitados = set()
+
+        for grupo in grupos:
+            visoes = grupo.visoes.all()
+            
+            if "SME" in visoes:
+                visoes = visoes.pop("SME")
+                
+            if len(visoes) > 1:
+                continue
+            
+            for visao in grupo.visoes.all():
+                if tipo == "DRE" and visao.nome == "DRE":
+                    ids_grupos_para_serem_desabilitados.add(grupo.id)
+                elif tipo != "DRE" and visao.nome != "DRE":
+                    ids_grupos_para_serem_desabilitados.add(grupo.id)
+
+        for grupo_id in ids_grupos_para_serem_desabilitados:
+            self.desabilita_grupo_acesso(grupo_id)
 
     @classmethod
     def criar_usuario(cls, dados):

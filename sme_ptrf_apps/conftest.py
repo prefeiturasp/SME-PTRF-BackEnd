@@ -28,6 +28,9 @@ from sme_ptrf_apps.core.fixtures.factories.periodo_factory import PeriodoFactory
 from sme_ptrf_apps.core.fixtures.factories.tipo_conta_factory import TipoContaFactory
 from sme_ptrf_apps.core.fixtures.factories.observacao_conciliacao_factory import ObservacaoConciliacaoFactory
 from sme_ptrf_apps.core.fixtures.factories.prestacao_conta_factory import PrestacaoContaFactory
+from sme_ptrf_apps.users.fixtures.factories.usuario_factory import UsuarioFactory
+from sme_ptrf_apps.users.fixtures.factories.grupo_acesso_factory import GrupoAcessoFactory
+from sme_ptrf_apps.users.fixtures.factories.visao_factory import VisaoFactory
 
 from sme_ptrf_apps.fixtures import *
 
@@ -39,6 +42,9 @@ register(PeriodoFactory)
 register(TipoContaFactory)
 register(ObservacaoConciliacaoFactory)
 register(PrestacaoContaFactory)
+register(UsuarioFactory)
+register(GrupoAcessoFactory)
+register(VisaoFactory)
 
 @pytest.fixture
 def fake_user(client, django_user_model, unidade):

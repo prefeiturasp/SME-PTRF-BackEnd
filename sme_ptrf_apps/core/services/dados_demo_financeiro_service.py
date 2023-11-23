@@ -629,7 +629,8 @@ def cria_creditos_demonstrados(receitas_demonstradas):
             "detalhamento": receita.detalhamento,
             "nome_acao": receita.acao_associacao.acao.nome,
             "data": receita.data.strftime("%d/%m/%Y"),
-            "valor": receita.valor
+            "valor": receita.valor,
+            "eh_estorno": True if receita.rateio_estornado else False
         }
 
         if receita.rateio_estornado:
@@ -686,6 +687,7 @@ def cria_despesas(rateios):
         data_documento = rateio.despesa.data_documento.strftime("%d/%m/%Y") if rateio.despesa.data_documento else ''
         data_transacao = rateio.despesa.data_transacao.strftime("%d/%m/%Y") if rateio.despesa.data_transacao else ''
         valor = rateio.valor_rateio
+        valor_total = rateio.despesa.valor_total
         linha = {
             "razao_social": razao_social,
             "cnpj_cpf": cnpj_cpf,
@@ -697,7 +699,10 @@ def cria_despesas(rateios):
             "tipo_transacao": tipo_transacao,
             "data_documento": data_documento,
             "data_transacao": data_transacao,
-            "valor": valor
+            "valor": valor,
+            "valor_total": valor_total,
+            "uuid_despesa": f"{rateio.despesa.uuid}",
+            "uuid_rateio": f"{rateio.uuid}"
         }
 
         if rateio.despesa.despesas_impostos.exists():
@@ -705,6 +710,9 @@ def cria_despesas(rateios):
             logging.info(f'Obtendo lista de impostos da despesa {rateio.despesa.uuid}')
             linha["despesas_impostos"] = []
             for despesa_imposto in rateio.despesa.despesas_impostos.all():
+
+                rateio_imposto = despesa_imposto.rateios.first()
+
                 logging.info(f'Encontrado imposto {despesa_imposto.valor_total if despesa_imposto.valor_total else ""}')
                 if despesa_imposto.data_transacao:
                     data_transacao = despesa_imposto.data_transacao.strftime("%d/%m/%Y")
@@ -712,11 +720,33 @@ def cria_despesas(rateios):
                 else:
                     data_transacao = ""
                     info_pagamento = "pagamento ainda não realizado"
+
+                tipo_transacao_imposto = despesa_imposto.tipo_transacao.nome
+                if "CHEQUE" in tipo_transacao_imposto.upper():
+                    tipo_transacao_imposto = f"Ch-{despesa_imposto.documento_transacao}"
+
+                data_documento_imposto = despesa_imposto.data_documento.strftime("%d/%m/%Y") if despesa_imposto.data_documento else ''
+
+                tipo_documento_imposto = despesa_imposto.tipo_documento.nome if despesa_imposto.tipo_documento.nome else ''
+                nome_acao_documento_imposto = \
+                    rateio_imposto.acao_associacao.acao.nome if rateio_imposto and rateio_imposto.acao_associacao and rateio_imposto.acao_associacao.acao.nome else ""
+                especificacao_material_imposto = \
+                    rateio_imposto.especificacao_material_servico.descricao if rateio_imposto.especificacao_material_servico else ''
+
                 linha["despesas_impostos"].append(
                     {
+                        "tipo_documento": tipo_documento_imposto,
                         "data_transacao": data_transacao,
+                        "data_documento_imposto": data_documento_imposto,
+                        "nome_acao_documento": nome_acao_documento_imposto,
+                        "especificacao_material": especificacao_material_imposto,
+                        "tipo_despesa": rateio_imposto.aplicacao_recurso,
+                        "tipo_transacao": tipo_transacao_imposto,
                         "info_pagamento": info_pagamento,
-                        "valor": despesa_imposto.valor_total if despesa_imposto.valor_total else ""
+                        "valor": despesa_imposto.valor_total if despesa_imposto.valor_total else "",
+                        "conferido": rateio_imposto.conferido,
+                        "uuid_despesa_imposto": f"{despesa_imposto.uuid}",
+                        "uuid_rateio_imposto": f"{rateio_imposto.uuid}"
                     }
                 )
 

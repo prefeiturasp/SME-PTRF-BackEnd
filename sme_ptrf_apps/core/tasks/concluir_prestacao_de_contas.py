@@ -56,9 +56,9 @@ def concluir_prestacao_de_contas_async(
         from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_documentos, _criar_fechamentos,
                                                                            _apagar_previas_documentos)
 
-        from sme_ptrf_apps.core.services.analise_prestacao_conta_service import (criar_relatorio_apos_acertos_final)
-
         from sme_ptrf_apps.core.services.falha_geracao_pc_service import FalhaGeracaoPcService
+
+        prestacao.em_processamento()
 
         acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
         contas = prestacao.contas_ativas_no_periodo()

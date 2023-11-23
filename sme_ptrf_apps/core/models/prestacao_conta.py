@@ -32,6 +32,7 @@ class PrestacaoConta(ModeloBase):
     STATUS_APROVADA_RESSALVA = 'APROVADA_RESSALVA'
     STATUS_REPROVADA = 'REPROVADA'
     STATUS_EM_PROCESSAMENTO = 'EM_PROCESSAMENTO'
+    STATUS_A_PROCESSAR = 'A_PROCESSAR'
 
     STATUS_NOMES = {
         STATUS_NAO_APRESENTADA: 'Não apresentada',
@@ -44,7 +45,8 @@ class PrestacaoConta(ModeloBase):
         STATUS_APROVADA: 'Aprovada',
         STATUS_APROVADA_RESSALVA: 'Aprovada com ressalvas',
         STATUS_REPROVADA: 'Reprovada',
-        STATUS_EM_PROCESSAMENTO: 'Em processamento'
+        STATUS_EM_PROCESSAMENTO: 'Em processamento',
+        STATUS_A_PROCESSAR: 'A processar'
     }
 
     STATUS_CHOICES = (
@@ -59,6 +61,7 @@ class PrestacaoConta(ModeloBase):
         (STATUS_APROVADA_RESSALVA, STATUS_NOMES[STATUS_APROVADA_RESSALVA]),
         (STATUS_REPROVADA, STATUS_NOMES[STATUS_REPROVADA]),
         (STATUS_EM_PROCESSAMENTO, STATUS_NOMES[STATUS_EM_PROCESSAMENTO]),
+        (STATUS_A_PROCESSAR, STATUS_NOMES[STATUS_A_PROCESSAR]),
     )
 
     periodo = models.ForeignKey('Periodo', on_delete=models.PROTECT, related_name='prestacoes_de_conta')
@@ -448,6 +451,11 @@ class PrestacaoConta(ModeloBase):
 
     def em_processamento(self):
         self.status = self.STATUS_EM_PROCESSAMENTO
+        self.save()
+        return self
+
+    def a_processar(self):
+        self.status = self.STATUS_A_PROCESSAR
         self.save()
         return self
 
