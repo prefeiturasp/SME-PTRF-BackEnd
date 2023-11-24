@@ -10,6 +10,7 @@ class TipoReceitaAdmin(admin.ModelAdmin):
         'nome', 'e_repasse', 'e_rendimento', 'aceita_capital', 'aceita_custeio', 'aceita_livre',
         'mensagem_usuario', 'possui_detalhamento'
     )
+    raw_id_fields = ('unidades',)
 
 
 def customTitledFilter(title):
