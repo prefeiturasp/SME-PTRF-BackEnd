@@ -41,7 +41,7 @@ class TipoReceita(ModeloIdNome):
             try:
                 associacao = Associacao.objects.get(uuid=associacao_uuid)
             except Associacao.DoesNotExist:
-                pass
+                associacao = None
 
             if associacao:
                 query = query.filter(Q(unidades__isnull=True) | Q(unidades__in=[associacao.unidade]))
