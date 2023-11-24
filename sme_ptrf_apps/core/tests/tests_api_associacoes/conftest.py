@@ -388,6 +388,14 @@ def conta_associacao_encerramento_conta(associacao_encerramento_conta, tipo_cont
         numero_cartao='534653264523',
         status=ContaAssociacao.STATUS_INATIVA
     )
+
+@pytest.fixture
+def acao_associacao_encerramento_conta(associacao_encerramento_conta, acao):
+    return baker.make(
+        'AcaoAssociacao',
+        associacao=associacao_encerramento_conta,
+        acao=acao
+    )
 @pytest.fixture
 def solicitacao_encerramento_conta_aprovada(conta_associacao_encerramento_conta, periodo_2020_1):
     return baker.make(
@@ -410,13 +418,13 @@ def solicitacao_encerramento_conta_pendente(conta_associacao_encerramento_conta,
 
 
 @pytest.fixture
-def receita_conta_encerrada(associacao_encerramento_conta, conta_associacao_encerramento_conta, acao_associacao, tipo_receita, periodo_2020_1):
+def receita_conta_encerrada(associacao_encerramento_conta, conta_associacao_encerramento_conta, acao_associacao_encerramento_conta, tipo_receita, periodo_2020_1):
     return baker.make(
         'Receita',
         associacao=associacao_encerramento_conta,
         data=periodo_2020_1.data_inicio_realizacao_despesas,
         valor=100.00,
         conta_associacao=conta_associacao_encerramento_conta,
-        acao_associacao=acao_associacao,
+        acao_associacao=acao_associacao_encerramento_conta,
         tipo_receita=tipo_receita,
     )
