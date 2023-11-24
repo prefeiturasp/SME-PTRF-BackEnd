@@ -203,10 +203,15 @@ class ContaAssociacao(ModeloBase):
         )
         from sme_ptrf_apps.core.models import Periodo
 
-        painel = PainelResumoRecursosService.painel_resumo_recursos(
-            self.associacao, Periodo.periodo_atual(), self
-        )
-        return painel.info_conta.saldo_atual_total
+        saldo_atual = 0
+        periodo_saldo = Periodo.da_data(data) if data else Periodo.periodo_atual()
+        if periodo_saldo:
+            painel = PainelResumoRecursosService.painel_resumo_recursos(
+                self.associacao, periodo_saldo, self
+            )
+            saldo_atual = painel.info_conta.saldo_atual_total
+
+        return saldo_atual
 
     def ativa_no_periodo(self, periodo):
         from sme_ptrf_apps.core.models import SolicitacaoEncerramentoContaAssociacao
