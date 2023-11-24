@@ -170,10 +170,8 @@ def valida_rateios_quanto_aos_saldos(rateios, associacao, data_documento=None, e
             'situacao_do_saldo': 'saldo_insuficiente',
             'mensagem': 'Não há saldo disponível em alguma das ações da despesa.',
             'saldos_insuficientes': saldos_insuficientes['saldos_insuficientes'],
-            'aceitar_lancamento': True
+            'aceitar_lancamento': Parametros.get().permite_saldo_acoes_negativo
         }
-
-        print(result)
 
     return result
 
