@@ -28,8 +28,8 @@ pipeline {
           when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython_'; branch 'homolog_' } }
           agent {
                kubernetes {
-                   label 'python310'
-                   defaultContainer 'python310'
+                   label 'python311'
+                   defaultContainer 'python311'
                 }
               }
           steps {
@@ -50,8 +50,8 @@ pipeline {
               when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython_'; branch 'homolog_' } }
               agent {
                kubernetes {
-                   label 'python310'
-                   defaultContainer 'python310'
+                   label 'python311'
+                   defaultContainer 'python311'
                 }
               }
               steps {
@@ -70,7 +70,7 @@ pipeline {
         stage('AnaliseCodigo') {
           when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
           agent { kubernetes { 
-                  label 'python310'
+                  label 'python311'
                   defaultContainer 'builder'
                 }
               } 
