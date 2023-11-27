@@ -194,7 +194,7 @@ def test_carga_em_conta_encerrada_deve_gerar_erro(periodos_de_2019_ate_2023, aca
     conteudo_arquivo = SimpleUploadedFile(f'carga_repasse_cheque.csv',
         bytes(f"""Linha_ID,Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao,Data receita,Periodo\n10,666666,99000.98,99000.98,,Acao teste,02/04/2019,2019.2""", encoding="utf-8"))
     
-    arquivo = arquivo_factory.create(identificador='carga_repasse_teste_conta_encerrada', conteudo=conteudo_arquivo, tipo_carga=CARGA_REPASSE_REALIZADO, tipo_delimitador=DELIMITADOR_VIRGULA)
+    arquivo = arquivo_factory.create(identificador='carga_repasse_cheque', conteudo=conteudo_arquivo, tipo_carga=CARGA_REPASSE_REALIZADO, tipo_delimitador=DELIMITADOR_VIRGULA)
     
     carrega_repasses_realizados(arquivo)
     
