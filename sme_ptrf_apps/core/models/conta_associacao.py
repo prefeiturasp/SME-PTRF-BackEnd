@@ -283,6 +283,9 @@ class ContaAssociacao(ModeloBase):
             if self.todos_valores_reprogramados_foram_preenchidos(valida_valor_dre=True):
                 resultado["pode_encerrar_conta"] = True
                 resultado["mensagem"] = "O pedido de solicitação de encerramento de conta bancária foi efetuado com sucesso. O encerramento definitivo da conta será realizado após a geração da PC e a conclusão da análise pela DRE."
+            elif not self.valida_se_algum_valor_reprogramado_foi_preenchido():
+                resultado["pode_encerrar_conta"] = True
+                resultado["mensagem"] = None
 
         return resultado
 
