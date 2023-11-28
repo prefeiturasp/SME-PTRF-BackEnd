@@ -138,7 +138,7 @@ class User(AbstractUser):
             return self.unidades.filter(tipo_unidade='DRE').exists()
 
         return self.unidades.exclude(tipo_unidade='DRE').exists()
-    
+
     def habilita_grupo_acesso(self, group_id):
         group_obj = Group.objects.filter(id=group_id).first()
         if group_obj:
@@ -149,34 +149,36 @@ class User(AbstractUser):
                 pass
         else:
             pass
-        
+
     def desabilita_grupo_acesso(self, group_id):
         group_obj = Group.objects.filter(id=group_id).first()
-        
+
         if group_obj and group_obj in self.groups.all():
             self.groups.remove(group_obj)
             self.save()
         else:
             pass
-        
+
     def desabilita_todos_grupos_acesso(self, tipo):
         grupos = Grupo.objects.all()
-        
+
         ids_grupos_para_serem_desabilitados = set()
 
         for grupo in grupos:
             visoes = grupo.visoes.all()
-            
+
             if "SME" in visoes:
                 visoes = visoes.pop("SME")
-                
+
             if len(visoes) > 1:
                 continue
-            
+
             for visao in grupo.visoes.all():
-                if tipo == "DRE" and visao.nome == "DRE":
+                if tipo == "SME" and visao.nome == "SME":
                     ids_grupos_para_serem_desabilitados.add(grupo.id)
-                elif tipo != "DRE" and visao.nome != "DRE":
+                elif tipo == "DRE" and visao.nome == "DRE":
+                    ids_grupos_para_serem_desabilitados.add(grupo.id)
+                elif tipo == "UE" and visao.nome == "UE":
                     ids_grupos_para_serem_desabilitados.add(grupo.id)
 
         for grupo_id in ids_grupos_para_serem_desabilitados:
