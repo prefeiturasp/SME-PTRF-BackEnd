@@ -1,5 +1,6 @@
 from sme_ptrf_apps.core.models import MembroAssociacao, Unidade
 from sme_ptrf_apps.users.models import AcessoConcedidoSme
+from sme_ptrf_apps.sme.models import ParametrosSme
 from brazilnum.cpf import format_cpf
 from django.contrib.auth import get_user_model
 from sme_ptrf_apps.users.services import (
@@ -27,6 +28,10 @@ class GestaoUsuarioService:
         usuario = User.objects.get(username=self.usuario.username)
         return usuario.unidades.filter(codigo_eol=unidade.codigo_eol).exists()
 
+    def usuario_possui_visao(self, visao):
+        usuario = User.objects.get(username=self.usuario.username)
+        return usuario.visoes.filter(nome=visao).exists()
+
     def servidor_membro_associacao_na_unidade(self, unidade):
         return MembroAssociacao.objects.filter(
             codigo_identificacao=self.usuario.username, associacao__unidade=unidade).exists()
@@ -50,6 +55,16 @@ class GestaoUsuarioService:
             unidade_encontrada = info['unidadeLotacao']
 
         return unidade_encontrada
+
+    @staticmethod
+    def permite_tipo_unidade_administrativa(codigo_eol):
+        resultado = SmeIntegracaoService.get_dados_unidade_eol(codigo_eol, retorna_json=True)
+
+        if resultado and "tipoUnidadeAdm" in resultado:
+            if str(resultado["tipoUnidadeAdm"]) in ParametrosSme.get().tipos_unidade_adm_da_sme:
+                return True
+
+        return False
 
     def retorna_lista_unidades_nao_servidor(self, unidade_base, visao_base):
         lista = []
@@ -141,13 +156,32 @@ class GestaoUsuarioService:
             })
 
         lista_ordenada = sorted(lista, key=lambda row: (row['tem_acesso'] is False, row['nome_com_tipo']))
+
+        if unidade_encontrada_na_api and visao_base == 'SME':
+            if self.permite_tipo_unidade_administrativa(unidade_encontrada_na_api['codigo']):
+                dados = {
+                    'uuid_unidade': f'SME',
+                    'nome_com_tipo': f'SME Secretária Municipal de Educação',
+                    'membro': False,
+                    'tem_acesso': self.usuario_possui_visao("SME"),
+                    'username': self.usuario.username,
+                    'unidade_em_exercicio': False,
+                    'acesso_concedido_sme': False
+                }
+
+                lista_ordenada.insert(0, dados)
+
         return lista_ordenada
 
     def habilitar_acesso(self, unidade):
-        self.usuario.add_unidade_se_nao_existir(codigo_eol=unidade.codigo_eol)
 
-        visao_da_unidade = 'DRE' if unidade.tipo_unidade == 'DRE' else 'UE'
-        self.usuario.add_visao_se_nao_existir(visao=visao_da_unidade)
+        if unidade == 'SME':
+            self.usuario.add_visao_se_nao_existir(visao=unidade)
+        else:
+            self.usuario.add_unidade_se_nao_existir(codigo_eol=unidade.codigo_eol)
+
+            visao_da_unidade = 'DRE' if unidade.tipo_unidade == 'DRE' else 'UE'
+            self.usuario.add_visao_se_nao_existir(visao=visao_da_unidade)
 
         response = {
             "mensagem": "Acesso ativado para unidade selecionada"
@@ -156,34 +190,39 @@ class GestaoUsuarioService:
         return response
 
     def desabilitar_acesso(self, unidade, acesso_concedido_sme=False):
-        self.usuario.remove_unidade_se_existir(codigo_eol=unidade.codigo_eol)
+        if unidade == 'SME':
+            self.usuario.remove_visao_se_existir(visao=unidade)
+        else:
+            self.usuario.remove_unidade_se_existir(codigo_eol=unidade.codigo_eol)
 
-        visao_da_unidade = 'DRE' if unidade.tipo_unidade == 'DRE' else 'UE'
-        if not self.usuario.possui_unidades_da_visao(visao_da_unidade):
-            self.usuario.remove_visao_se_existir(visao_da_unidade)
+            visao_da_unidade = 'DRE' if unidade.tipo_unidade == 'DRE' else 'UE'
+            if not self.usuario.possui_unidades_da_visao(visao_da_unidade):
+                self.usuario.remove_visao_se_existir(visao_da_unidade)
 
-        if acesso_concedido_sme:
-            AcessoConcedidoSme.remover_acesso_se_existir(unidade=unidade, user=self.usuario)
+            if acesso_concedido_sme:
+                AcessoConcedidoSme.remover_acesso_se_existir(unidade=unidade, user=self.usuario)
 
         response = {
             "mensagem": "Acesso desativado para unidade selecionada",
         }
 
         return response
-    
+
     def remover_grupos_acesso_apos_remocao_acesso_unidade(self, unidade, usuario):
         lista_tipos_unidades_usuario_tem_acesso = list(self.tipos_unidades_usuario_tem_acesso())
-        
-        if unidade.tipo_unidade == "DRE" and "DRE" not in lista_tipos_unidades_usuario_tem_acesso: 
-            usuario.desabilita_todos_grupos_acesso("DRE")      
+
+        if unidade == "SME":
+            usuario.desabilita_todos_grupos_acesso("SME")
+        elif unidade.tipo_unidade == "DRE" and "DRE" not in lista_tipos_unidades_usuario_tem_acesso:
+            usuario.desabilita_todos_grupos_acesso("DRE")
         elif not lista_tipos_unidades_usuario_tem_acesso or lista_tipos_unidades_usuario_tem_acesso == ["DRE"]:
             usuario.desabilita_todos_grupos_acesso("UE")
-            
+
         return
 
     def unidades_disponiveis_para_inclusao(self, search):
         unidades_do_usuario = self.unidades_do_usuario('SME', 'SME')
-        uuids_unidades_do_usuarios = [u['uuid_unidade'] for u in unidades_do_usuario]
+        uuids_unidades_do_usuarios = [u['uuid_unidade'] for u in unidades_do_usuario if u["uuid_unidade"] != 'SME']
         query = Unidade.objects.exclude(uuid__in=uuids_unidades_do_usuarios)
 
         if search is not None:
@@ -203,10 +242,10 @@ class GestaoUsuarioService:
 
     def tipos_unidades_usuario_tem_acesso(self):
         from sme_ptrf_apps.core.choices.tipos_unidade import TIPOS_CHOICE
-        
+
         unidades_usuario = self.usuario.unidades.all()
         tipos_unidades_usuario_tem_acesso = set() # DRE ou UE
-        
+
         for unidade in unidades_usuario:
             if unidade.tipo_unidade == "DRE":
                 tipos_unidades_usuario_tem_acesso.add("DRE")
@@ -215,5 +254,5 @@ class GestaoUsuarioService:
                     if unidade.tipo_unidade == tipo[0]:
                         tipos_unidades_usuario_tem_acesso.add("UE")
                         break
-                
+
         return tipos_unidades_usuario_tem_acesso

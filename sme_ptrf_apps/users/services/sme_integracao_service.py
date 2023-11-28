@@ -114,7 +114,7 @@ class SmeIntegracaoService:
             raise SmeIntegracaoException(str(err))
 
     @classmethod
-    def get_dados_unidade_eol(cls, codigo_eol):
+    def get_dados_unidade_eol(cls, codigo_eol, retorna_json=False):
         """ Consulta dados de uma unidade no EOL
 
         (get) /api/escolas/dados/{codigo_eol}
@@ -142,7 +142,7 @@ class SmeIntegracaoService:
             url = f'{settings.SME_INTEGRACAO_URL}/api/escolas/dados/{codigo_eol}'
             response = requests.get(url, headers=cls.headers)
             if response.status_code == status.HTTP_200_OK:
-                return response
+                return response.json() if retorna_json else response
             else:
                 logger.info("Falha ao tentar consultar dados da unidade no eol: %s", response)
                 raise SmeIntegracaoException('Falha ao tentar consultar dados da unidade no eol.')
