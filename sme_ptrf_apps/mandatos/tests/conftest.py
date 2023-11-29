@@ -89,6 +89,7 @@ def membro_associacao_teste_solicitacao_de_migracao_02(associacao_teste_solicita
         endereco='Rua Teste, 57'
     )
 
+
 @pytest.fixture
 def dre_teste_solicitacao_de_migracao():
     return baker.make(
@@ -121,6 +122,7 @@ def unidade_teste_solicitacao_de_migracao_02(dre_teste_solicitacao_de_migracao):
         dre=dre_teste_solicitacao_de_migracao,
     )
 
+
 @pytest.fixture
 def periodo_anterior_teste_solicitacao_de_migracao():
     return baker.make(
@@ -132,7 +134,8 @@ def periodo_anterior_teste_solicitacao_de_migracao():
 
 
 @pytest.fixture
-def associacao_teste_solicitacao_de_migracao(unidade_teste_solicitacao_de_migracao, periodo_anterior_teste_solicitacao_de_migracao):
+def associacao_teste_solicitacao_de_migracao(unidade_teste_solicitacao_de_migracao,
+                                             periodo_anterior_teste_solicitacao_de_migracao):
     return baker.make(
         'Associacao',
         nome='Associacao Teste Solicitação de Migração',
@@ -144,8 +147,10 @@ def associacao_teste_solicitacao_de_migracao(unidade_teste_solicitacao_de_migrac
         processo_regularidade='123456',
     )
 
+
 @pytest.fixture
-def associacao_teste_solicitacao_de_migracao_02(unidade_teste_solicitacao_de_migracao_02, periodo_anterior_teste_solicitacao_de_migracao):
+def associacao_teste_solicitacao_de_migracao_02(unidade_teste_solicitacao_de_migracao_02,
+                                                periodo_anterior_teste_solicitacao_de_migracao):
     return baker.make(
         'Associacao',
         nome='Associacao Teste Solicitação de Migração 02',
@@ -168,6 +173,7 @@ def solicitacao_de_migracao_eol_unidade(unidade):
         status_processamento='PENDENTE',
         log_execucao='Este é o log da execução da migração',
     )
+
 
 # FIM Testes Solicitação de Migração
 
@@ -333,3 +339,36 @@ def cargo_composicao_02(
         substituto=False,
         substituido=False,
     )
+
+
+# ***************** testes cargo composicao create e update
+@pytest.fixture
+def payload_create_cargo_composicao_01_deve_passar(
+    composicao_01_2023_a_2025,
+    ocupante_cargo_01
+):
+    payload = {
+        "composicao": f"{composicao_01_2023_a_2025.uuid}",
+        "ocupante_do_cargo": {
+            "nome": f"{ocupante_cargo_01.nome}",
+            "codigo_identificacao": f"{ocupante_cargo_01.codigo_identificacao}",
+            "cargo_educacao": f"{ocupante_cargo_01.cargo_educacao}",
+            "representacao": "SERVIDOR",
+            "representacao_label": "Servidor",
+            "email": f"{ocupante_cargo_01.email}",
+            "cpf_responsavel": f"{ocupante_cargo_01.cpf_responsavel}",
+            "telefone": f"{ocupante_cargo_01.telefone}",
+            "cep": f"{ocupante_cargo_01.cep}",
+            "bairro": f"{ocupante_cargo_01.bairro}",
+            "endereco": f"{ocupante_cargo_01.endereco}",
+        },
+
+        "cargo_associacao": "VICE_PRESIDENTE_DIRETORIA_EXECUTIVA",
+        "substituto": False,
+        "substituido": False,
+        "data_inicio_no_cargo": "2023-1-1",
+        "data_fim_no_cargo": "2025-12-31"
+    }
+    return payload
+
+# ***************** FIM testes cargo composicao create e update

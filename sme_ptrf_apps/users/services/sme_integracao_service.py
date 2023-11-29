@@ -20,6 +20,30 @@ class SmeIntegracaoService:
     timeout = 20
 
     @classmethod
+    def get_informacao_aluno(cls, codigo_eol):
+        logger.info('Buscando informações na API EOL SmeIntegração para o código eol: %s.', codigo_eol)
+        try:
+            response = requests.get(f'{settings.SME_INTEGRACAO_URL}/api/alunos/alunos?codigosAluno={codigo_eol}',
+                                    headers=cls.headers, timeout=cls.timeout)
+        except Exception as e:
+            logger.info(f'Erro ao acessar api smeintegracaoapi.sme.prefeitura.sp.gov.br: {str(e)}')
+            raise SmeIntegracaoException('Erro ao consultar EOL. Tente mais tarde.')
+
+        logger.info(response.url)
+        logger.info(response)
+
+        if response.status_code == status.HTTP_200_OK:
+            results = response.json()
+            if len(results) > 0:
+                return results[0]
+            else:
+                msg = 'Código não encontrado.'
+                logger.error(msg)
+                raise SmeIntegracaoException(msg)
+        else:
+            raise SmeIntegracaoException('Código inválido.')
+
+    @classmethod
     def redefine_senha(cls, registro_funcional, senha):
         """Se a nova senha for uma das senhas padões, a API do SME INTEGRAÇÃO
         não deixa fazer a atualização.

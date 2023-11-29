@@ -23,3 +23,23 @@ class OcupanteCargoSerializer(serializers.ModelSerializer):
             'bairro',
             'endereco',
         )
+
+
+class OcupanteCargoCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OcupanteCargo
+        fields = (
+            'id',
+            'uuid',
+            'nome',
+            'codigo_identificacao',
+            'cargo_educacao',
+            'representacao',
+            'email',
+            'cpf_responsavel',
+            'telefone',
+            'cep',
+            'bairro',
+            'endereco',
+        )
