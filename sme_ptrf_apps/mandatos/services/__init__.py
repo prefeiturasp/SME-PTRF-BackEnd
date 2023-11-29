@@ -1,4 +1,4 @@
 from .mandato_service import ServicoMandatoVigente, ServicoMandato
 from .composicao_service import ServicoComposicaoVigente, ServicoCriaComposicaoVigenteDoMandato
-from .cargo_composicao_service import ServicoCargosDaComposicao
+from .cargo_composicao_service import ServicoCargosDaComposicao, ServicoCargosDaDiretoriaExecutiva
 from .solicitacao_de_migracao_service import ServicoSolicitacaoDeMigracao
