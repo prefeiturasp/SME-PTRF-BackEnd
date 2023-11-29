@@ -15,7 +15,7 @@ class TipoReceitaForm(ModelForm):
                 'associacao').values_list('associacao__unidade', flat=True)
             unidades_selecionadas = unidades.values_list('codigo_eol', flat=True)
 
-            if not (unidades.filter(codigo_eol__in=unidades_com_receita_do_tipo).exists() and (len(unidades_selecionadas) == len(unidades_com_receita_do_tipo))):
+            if len(unidades_com_receita_do_tipo) > 0 and not (unidades.filter(codigo_eol__in=unidades_com_receita_do_tipo).exists() and (len(unidades_selecionadas) == len(unidades_com_receita_do_tipo))):
                 unidades_faltantes = Unidade.objects.filter(codigo_eol__in=unidades_com_receita_do_tipo).exclude(
                     codigo_eol__in=unidades_selecionadas).values_list('codigo_eol', flat=True)
                 raise ValidationError(
