@@ -117,7 +117,8 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
         dados_ocupante_do_cargo = validated_data.pop('ocupante_do_cargo')
 
         ocupante_do_cargo, created = OcupanteCargo.objects.update_or_create(
-            nome=dados_ocupante_do_cargo['nome'], representacao=dados_ocupante_do_cargo['representacao'],
+            codigo_identificacao=dados_ocupante_do_cargo['codigo_identificacao'],
+            cpf_responsavel=dados_ocupante_do_cargo['cpf_responsavel'],
             defaults={**dados_ocupante_do_cargo},
         )
 
