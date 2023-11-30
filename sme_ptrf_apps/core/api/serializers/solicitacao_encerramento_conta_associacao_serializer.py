@@ -32,6 +32,7 @@ class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializ
             'outros_motivos_rejeicao',
             'data_aprovacao',
             'criado_em',
+            'alterado_em',
             'msg_sucesso_ao_encerrar'
         )
         read_only_fields = ('status', )
