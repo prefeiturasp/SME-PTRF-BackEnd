@@ -5,6 +5,7 @@ from brazilnum.cpf import format_cpf
 from django.contrib.auth import get_user_model
 from sme_ptrf_apps.users.services import (
     SmeIntegracaoService,
+    SmeIntegracaoException
 )
 from django.db.models import Q
 
@@ -16,7 +17,7 @@ class GestaoUsuarioService:
     def __init__(self, usuario):
         self.usuario = usuario
 
-    def unidades_do_usuario(self, unidade_base, visao_base):
+    def unidades_do_usuario(self, unidade_base="SME", visao_base="SME"):
         if self.usuario.e_servidor:
             result = self.retorna_lista_unidades_servidor(unidade_base=unidade_base, visao_base=visao_base)
         else:
@@ -45,14 +46,19 @@ class GestaoUsuarioService:
                 codigo_identificacao=self.usuario.username, associacao__unidade=unidade).exists()
 
     def get_info_unidade(self):
-        info = SmeIntegracaoService.get_info_lotacao_e_exercicio_do_servidor(self.usuario.username)
+        try:
+            info = SmeIntegracaoService.get_info_lotacao_e_exercicio_do_servidor(self.usuario.username)
+        except SmeIntegracaoException:
+            info = None
+
         unidade_encontrada = None
 
-        if "unidadeExercicio" in info and info['unidadeExercicio'] is not None:
-            unidade_encontrada = info['unidadeExercicio']
+        if info:
+            if "unidadeExercicio" in info and info['unidadeExercicio'] is not None:
+                unidade_encontrada = info['unidadeExercicio']
 
-        elif "unidadeLotacao" in info and info['unidadeLotacao'] is not None:
-            unidade_encontrada = info['unidadeLotacao']
+            elif "unidadeLotacao" in info and info['unidadeLotacao'] is not None:
+                unidade_encontrada = info['unidadeLotacao']
 
         return unidade_encontrada
 
@@ -161,7 +167,7 @@ class GestaoUsuarioService:
             if self.permite_tipo_unidade_administrativa(unidade_encontrada_na_api['codigo']):
                 dados = {
                     'uuid_unidade': f'SME',
-                    'nome_com_tipo': f'SME Secretária Municipal de Educação',
+                    'nome_com_tipo': f'SME Secretaria Municipal de Educação',
                     'membro': False,
                     'tem_acesso': self.usuario_possui_visao("SME"),
                     'username': self.usuario.username,
@@ -208,15 +214,15 @@ class GestaoUsuarioService:
 
         return response
 
-    def remover_grupos_acesso_apos_remocao_acesso_unidade(self, unidade, usuario):
+    def remover_grupos_acesso_apos_remocao_acesso_unidade(self, unidade):
         lista_tipos_unidades_usuario_tem_acesso = list(self.tipos_unidades_usuario_tem_acesso())
 
         if unidade == "SME":
-            usuario.desabilita_todos_grupos_acesso("SME")
+            self.usuario.desabilita_todos_grupos_acesso("SME")
         elif unidade.tipo_unidade == "DRE" and "DRE" not in lista_tipos_unidades_usuario_tem_acesso:
-            usuario.desabilita_todos_grupos_acesso("DRE")
+            self.usuario.desabilita_todos_grupos_acesso("DRE")
         elif not lista_tipos_unidades_usuario_tem_acesso or lista_tipos_unidades_usuario_tem_acesso == ["DRE"]:
-            usuario.desabilita_todos_grupos_acesso("UE")
+            self.usuario.desabilita_todos_grupos_acesso("UE")
 
         return
 
