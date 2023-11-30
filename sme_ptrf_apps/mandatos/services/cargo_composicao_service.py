@@ -1,3 +1,4 @@
+from . import ServicoComposicaoVigente
 from ..models import CargoComposicao
 
 
@@ -29,6 +30,20 @@ class ServicoCargosDaComposicao:
     def cargos_list(self):
         return self.__cargos_list
 
+    def retorna_se_composicao_vigente(self):
+        mandato = self.composicao.mandato
+        associacao = self.composicao.associacao
+
+        if mandato and associacao:
+            servico_composicao_vigente = ServicoComposicaoVigente(associacao=associacao, mandato=mandato)
+            composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
+            if composicao_vigente:
+                return composicao_vigente == self.composicao
+            else:
+                return False
+        else:
+            return False
+
     def get_cargos_diretoria_executiva_da_composicao(self):
 
         for indice, valor in self.choices[:9]:
@@ -57,6 +72,7 @@ class ServicoCargosDaComposicao:
                 "cargo_associacao_label": valor.split(" ")[0],
                 "data_inicio_no_cargo": cargo.data_inicio_no_cargo if cargo else None,
                 "data_fim_no_cargo": cargo.data_fim_no_cargo if cargo else None,
+                "eh_composicao_vigente": self.retorna_se_composicao_vigente(),
                 "substituto": cargo.substituto if cargo else None,
                 "substituido": cargo.substituido if cargo else None,
                 "ocupante_editavel": True if not cargo else False,
@@ -93,6 +109,7 @@ class ServicoCargosDaComposicao:
                 "cargo_associacao_label": valor.split(" ")[0],
                 "data_inicio_no_cargo": cargo.data_inicio_no_cargo if cargo else None,
                 "data_fim_no_cargo": cargo.data_fim_no_cargo if cargo else None,
+                "eh_composicao_vigente": self.retorna_se_composicao_vigente(),
                 "substituto": cargo.substituto if cargo else None,
                 "substituido": cargo.substituido if cargo else None,
                 "ocupante_editavel": True if not cargo else False,
