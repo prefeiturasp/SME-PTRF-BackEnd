@@ -423,7 +423,7 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
 
         gestao_usuario = GestaoUsuarioService(usuario=usuario)
         response = gestao_usuario.desabilitar_acesso(unidade=unidade, acesso_concedido_sme=acesso_concedido_sme)
-        gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade=unidade, usuario=usuario)
+        gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade=unidade)
 
         return Response(response, status=status.HTTP_200_OK)
 

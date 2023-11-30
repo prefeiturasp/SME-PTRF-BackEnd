@@ -241,6 +241,25 @@ def usuario_nao_servidor_service_gestao_usuario(
 
 
 @pytest.fixture
+def usuario_nao_servidor_sem_visao_dre_service_gestao_usuario(
+    unidade_gestao_usuario_a,
+    visao_ue_gestao_usuario,
+    unidade_gestao_usuario_b
+):
+
+    senha = 'Sgp0418'
+    login = '85404143096'
+    email = 'sme@amcom.com.br'
+    User = get_user_model()
+    user = User.objects.create_user(username=login, password=senha, email=email)
+    user.unidades.add(unidade_gestao_usuario_a)
+    user.unidades.add(unidade_gestao_usuario_b)
+    user.visoes.add(visao_ue_gestao_usuario)
+    user.save()
+    return user
+
+
+@pytest.fixture
 def usuario_servidor_service_gestao_usuario(
     unidade_gestao_usuario_a,
     unidade_gestao_usuario_b,
@@ -264,7 +283,6 @@ def usuario_servidor_service_gestao_usuario(
 @pytest.fixture
 def usuario_servidor_sem_visao_sme_service_gestao_usuario(
     unidade_gestao_usuario_a,
-    unidade_gestao_usuario_b,
     visao_ue_gestao_usuario,
 ):
 
@@ -274,7 +292,15 @@ def usuario_servidor_sem_visao_sme_service_gestao_usuario(
     User = get_user_model()
     user = User.objects.create_user(username=login, password=senha, email=email, e_servidor=True)
     user.unidades.add(unidade_gestao_usuario_a)
-    user.unidades.add(unidade_gestao_usuario_b)
     user.visoes.add(visao_ue_gestao_usuario)
     user.save()
     return user
+
+
+@pytest.fixture
+def unidade_em_suporte_gestao_usuarios(unidade_gestao_usuario_b, usuario_servidor_service_gestao_usuario):
+    return baker.make(
+        'UnidadeEmSuporte',
+        unidade=unidade_gestao_usuario_b,
+        user=usuario_servidor_service_gestao_usuario,
+    )
