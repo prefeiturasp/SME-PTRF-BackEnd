@@ -377,6 +377,7 @@ def test_status_periodo_com_conta_encerrada_com_saldo(
     jwt_authenticated_client_a,
     periodo_2020_1,
     conta_associacao_encerramento_conta,
+    acao_associacao_encerramento_conta,
     solicitacao_encerramento_conta_pendente,
     receita_conta_encerrada
 ):
