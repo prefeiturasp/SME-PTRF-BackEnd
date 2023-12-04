@@ -150,7 +150,7 @@ class ContaAssociacao(ModeloBase):
         return ""
 
     @property
-    def motivo_encerramento(self):
+    def motivo_rejeicao_encerramento(self):
         motivo_string = ""
 
         if hasattr(self, "solicitacao_encerramento"):

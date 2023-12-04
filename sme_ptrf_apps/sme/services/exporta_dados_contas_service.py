@@ -5,6 +5,7 @@ from datetime import datetime
 
 from django.core.files import File
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
+from sme_ptrf_apps.core.models.ambiente import Ambiente
 from sme_ptrf_apps.core.services.arquivo_download_service import gerar_arquivo_download
 
 from sme_ptrf_apps.utils.built_in_custom import get_recursive_attr
@@ -27,7 +28,7 @@ CABECALHO_CONTA = (
         ("Status", "status"),
         ("Data do encerramento", "data_encerramento"),
         ("Status do encerramento", "status_encerramento"),
-        ("Motivo do encerramento", "motivo_encerramento"),
+        ("Motivo de rejeição do encerramento", "motivo_rejeicao_encerramento"),
     ],
 )
 
@@ -41,6 +42,12 @@ class ExportacaoDadosContasService:
         self.data_final = kwargs.get("data_final", None)
         self.nome_arquivo = kwargs.get("nome_arquivo", None)
         self.user = kwargs.get("user", None)
+        self.ambiente = self.get_ambiente
+
+    @property
+    def get_ambiente(self):
+        ambiente = Ambiente.objects.first()
+        return ambiente.prefixo if ambiente else ""
 
     def exporta_contas_principal(self):
         self.cabecalho = CABECALHO_CONTA[0]
@@ -64,9 +71,7 @@ class ExportacaoDadosContasService:
                     if campo in ["data_inicio", "criado_em", "data_encerramento"]:
                         campo = getattr(instance, campo)
                         linha.append(
-                            datetime.strftime(campo, "%d/%m/%Y")
-                            if campo
-                            else ""
+                            datetime.strftime(campo, "%d/%m/%Y") if campo else ""
                         )
 
                     elif campo == "saldo_atual":
@@ -81,6 +86,9 @@ class ExportacaoDadosContasService:
                 )
                 write.writerow(linha) if linha else None
                 linha.clear()
+
+            self.cria_rodape(write)
+
             self.envia_arquivo_central_download(tmp)
 
     def filtra_range_data(self, field):
@@ -109,6 +117,24 @@ class ExportacaoDadosContasService:
 
             self.queryset = self.queryset.filter(**{f"{field}__lt": self.data_final})
         return self.queryset
+
+    def texto_rodape(self):
+        data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
+        texto = f"Arquivo gerado pelo {self.ambiente} em {data_hora_geracao}"
+
+        return texto
+
+    def cria_rodape(self, write):
+        rodape = []
+        texto = self.texto_rodape()
+
+        rodape.append("\n")
+        write.writerow(rodape)
+        rodape.clear()
+
+        rodape.append(texto)
+        write.writerow(rodape)
+        rodape.clear()
 
     def envia_arquivo_central_download(self, tmp) -> None:
         logger.info("Gerando arquivo download...")
