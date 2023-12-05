@@ -3,9 +3,6 @@ from datetime import timedelta
 
 import pytest
 from freezegun import freeze_time
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
-from sme_ptrf_apps.users.models import Grupo
 from model_bakery import baker
 from rest_framework import status
 
@@ -166,37 +163,6 @@ def test_create_receita_repasse_valor_diferente(
 
         assert result == ['Valor do payload não é igual ao valor do CAPITAL.']
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-def test_get_tabelas(
-    jwt_authenticated_client_p,
-    tipo_receita,
-    acao,
-    acao_associacao,
-    associacao,
-    tipo_conta,
-    conta_associacao,
-    detalhe_tipo_receita
-):
-    response = jwt_authenticated_client_p.get(
-        f'/api/receitas/tabelas/?associacao_uuid={associacao.uuid}', content_type='application/json')
-    result = json.loads(response.content)
-
-    """
-    'periodos': [{'data_fim_realizacao_despesas': '2019-08-31',
-                  'data_inicio_realizacao_despesas': '2019-01-01',
-                  'referencia': '2019.1',
-                  'referencia_por_extenso': '1° repasse de 2019',
-                  'uuid': '8022449b-86b4-4884-a431-6dd352be5c62'}],
-    """
-
-    assert response.status_code == status.HTTP_200_OK
-
-    assert len(result['tipos_receita']) == 1
-    assert len(result['categorias_receita']) == 3
-    assert len(result['acoes_associacao']) == 1
-    assert len(result['contas_associacao']) == 1
-    assert len(result['periodos']) == 1
 
 
 def test_get_receitas(

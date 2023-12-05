@@ -131,6 +131,10 @@ class ContaAssociacao(ModeloBase):
         return self.status == self.STATUS_INATIVA
 
     @property
+    def saldo_atual(self):
+        return self.get_saldo_atual_conta()
+
+    @property
     def data_encerramento(self):
         data_encerramento = None
         if hasattr(self, "solicitacao_encerramento"):
@@ -138,6 +142,31 @@ class ContaAssociacao(ModeloBase):
                 self.solicitacao_encerramento.data_de_encerramento_na_agencia
             )
         return data_encerramento
+
+    @property
+    def status_encerramento(self):
+        if hasattr(self, "solicitacao_encerramento"):
+            return self.solicitacao_encerramento.status
+        return ""
+
+    @property
+    def motivo_rejeicao_encerramento(self):
+        motivo_string = ""
+
+        if hasattr(self, "solicitacao_encerramento"):
+            motivos = list(self.solicitacao_encerramento.motivos_rejeicao.all())
+            outros_motivos = self.solicitacao_encerramento.outros_motivos_rejeicao
+
+            if len(motivos):
+                motivo_string = "| ".join(str(motivo) for motivo in motivos)
+
+            if len(outros_motivos):
+                if len(motivo_string):
+                    motivo_string = motivo_string + "| " + outros_motivos
+                else:
+                    motivo_string = outros_motivos
+
+        return motivo_string
 
     def conta_encerrada_em_periodos_anteriores(self, periodo):
         from sme_ptrf_apps.core.models import Periodo
@@ -198,20 +227,24 @@ class ContaAssociacao(ModeloBase):
         return validacao.pode_encerrar
 
     def get_saldo_atual_conta(self, data=None):
-        from sme_ptrf_apps.core.services.painel_resumo_recursos_service import (
-            PainelResumoRecursosService,
+        from sme_ptrf_apps.core.services.info_por_acao_services import (
+            info_conta_associacao_no_periodo,
         )
         from sme_ptrf_apps.core.models import Periodo
 
-        saldo_atual = 0
-        periodo_saldo = Periodo.da_data(data) if data else Periodo.periodo_atual()
-        if periodo_saldo:
-            painel = PainelResumoRecursosService.painel_resumo_recursos(
-                self.associacao, periodo_saldo, self
-            )
-            saldo_atual = painel.info_conta.saldo_atual_total
+        if data is not None:
+            periodo = Periodo.da_data(data)
+        else:
+            periodo = Periodo.periodo_atual()
 
-        return saldo_atual
+        saldos_conta = info_conta_associacao_no_periodo(self, periodo=periodo)
+        saldo_conta = (
+            saldos_conta["saldo_atual_custeio"]
+            + saldos_conta["saldo_atual_capital"]
+            + saldos_conta["saldo_atual_livre"]
+        )
+
+        return saldo_conta
 
     def ativa_no_periodo(self, periodo):
         from sme_ptrf_apps.core.models import SolicitacaoEncerramentoContaAssociacao

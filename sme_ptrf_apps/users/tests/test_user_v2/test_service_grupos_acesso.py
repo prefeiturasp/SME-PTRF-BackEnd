@@ -11,26 +11,26 @@ def test_remover_grupos_acesso_apos_remocao_acesso_unidade(usuario_factory, grup
     visao_ue = visao_factory.create(nome="UE")
     visao_dre = visao_factory.create(nome="DRE")
     visao_sme = visao_factory.create(nome="SME")
-    
+
     grupo_todas_visoes = grupo_acesso_factory.create(visoes=[visao_ue, visao_dre, visao_sme])
-    
+
     grupo_visao_dre = grupo_acesso_factory.create(visoes=[visao_dre])
-    
+
     grupo_visao_ue = grupo_acesso_factory.create(visoes=[visao_ue])
-    
+
     dre = dre_factory.create()
-    
+
     usuario = usuario_factory.create()
     usuario.groups.set([grupo_todas_visoes, grupo_visao_dre, grupo_visao_ue])
     usuario.unidades.set([dre])
-    
+
     gestao_usuario = GestaoUsuarioService(usuario=usuario)
-    
+
     assert list(gestao_usuario.tipos_unidades_usuario_tem_acesso()) == ["DRE"]
     usuario.unidades.remove(dre)
-    gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(dre, usuario)
+    gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(dre)
     assert list(gestao_usuario.tipos_unidades_usuario_tem_acesso()) == []
-    
+
     assert usuario.groups.all().filter(name=grupo_visao_dre.name).exists() == False
     assert usuario.groups.all().filter(name=grupo_visao_ue.name).exists() == True
 
