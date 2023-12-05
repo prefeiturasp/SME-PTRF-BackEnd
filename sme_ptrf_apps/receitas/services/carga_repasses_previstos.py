@@ -198,6 +198,10 @@ def processa_repasse(reader, tipo_conta, arquivo):
                     if start_converted_date < conta_associacao.data_inicio:
                         msg_erro = f"O período informado de repasse é anterior ao período de criação da conta."
                         raise Exception(msg_erro)
+                    
+                    if hasattr(conta_associacao, 'solicitacao_encerramento') and conta_associacao.solicitacao_encerramento.aprovada:
+                        msg_erro = "A conta possui pedido de encerramento aprovado pela DRE."
+                        raise Exception(msg_erro)
 
                 if valor_capital > 0 or valor_custeio > 0 or valor_livre > 0:
                     Repasse.objects.create(
