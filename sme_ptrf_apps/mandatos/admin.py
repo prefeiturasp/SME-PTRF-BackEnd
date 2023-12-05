@@ -29,7 +29,7 @@ class CargoComposicaoAdmin(admin.ModelAdmin):
 
 @admin.register(OcupanteCargo)
 class OcupanteCargoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'representacao', 'cargo_educacao')
+    list_display = ('nome', 'representacao', 'cargo_educacao', 'codigo_identificacao', 'cpf_responsavel')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('nome', 'representacao', 'cargo_educacao')
 

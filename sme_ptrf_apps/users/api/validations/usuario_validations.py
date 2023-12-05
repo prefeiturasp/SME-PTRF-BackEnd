@@ -79,7 +79,7 @@ class UnidadesDoUsuarioSerializer(serializers.Serializer): # noqa
 
 class HabilitarDesabilitarAcessoSerializer(serializers.Serializer): # noqa
     username = serializers.CharField(required=True)
-    uuid_unidade = serializers.UUIDField(required=True, allow_null=False)
+    uuid_unidade = serializers.CharField(required=True, allow_null=False)
 
     def validate_username(self, value): # noqa
         try:
@@ -90,12 +90,15 @@ class HabilitarDesabilitarAcessoSerializer(serializers.Serializer): # noqa
         return value
 
     def validate_uuid_unidade(self, value): # noqa
-        try:
-            unidade = Unidade.objects.get(uuid=value)
-        except Unidade.DoesNotExist:  # noqa
-            raise serializers.ValidationError(f"Não foi encontrado um objeto para o uuid {value}.")
+        if value == 'SME':
+            return value
+        else:
+            try:
+                unidade = Unidade.objects.get(uuid=value)
+            except Unidade.DoesNotExist:  # noqa
+                raise serializers.ValidationError(f"Não foi encontrado um objeto para o uuid {value}.")
 
-        return value
+            return value
 
 
 class UnidadesDisponiveisInclusaoSerializer(serializers.Serializer): # noqa
