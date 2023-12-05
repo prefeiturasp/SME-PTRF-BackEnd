@@ -29,7 +29,7 @@ pytest==7.3.2
 mypy==1.6.1
 black==23.9.1
 coverage==5.0.3
-flake8==3.7.9
+flake8==6.1.0
 pre-commit==2.1.1
 pylint-celery==0.3
 pylint-django==2.0.14
