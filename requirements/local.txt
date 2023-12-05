@@ -32,4 +32,4 @@ coverage==5.0.3
 flake8==6.1.0
 pre-commit==2.1.1
 pylint-celery==0.3
-pylint-django==2.0.14
+pylint-django==2.5.5
