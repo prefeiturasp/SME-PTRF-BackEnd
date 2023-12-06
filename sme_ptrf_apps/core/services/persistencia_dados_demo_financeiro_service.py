@@ -57,10 +57,12 @@ class PersistenciaDadosDemoFinanceiro:
     @staticmethod
     def string_to_date(date_str):
         if date_str:
-            date_format = '%d/%m/%Y'
-            date_obj = datetime.strptime(date_str, date_format)
-            return date_obj
-
+            try:
+                date_format = '%d/%m/%Y'
+                date_obj = datetime.strptime(date_str, date_format)
+                return date_obj
+            except ValueError:
+                return None
         return None
 
     @staticmethod
