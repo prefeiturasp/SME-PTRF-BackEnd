@@ -65,12 +65,14 @@ def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, usuario, prestacao=
         # PDF
         dados_relacao_de_bens = gerar_dados_relacao_de_bens(conta_associacao=conta_associacao, periodo=periodo, rateios=rateios)
 
-        persistir_dados_relacao_bens(dados_relacao_de_bens, relacao_bens, usuario)
+        # TODO Retirar comentário em persistir_dados_relacao_bens, após implementação de feature flag
+        # persistir_dados_relacao_bens(dados_relacao_de_bens, relacao_bens, usuario)
 
-        relatorio_persistido = relacao_bens.relatoriorelacaobens_set.last()
+        # relatorio_persistido = relacao_bens.relatoriorelacaobens_set.last()
 
         if criar_arquivos:
-            gerar_arquivo_relacao_de_bens_pdf(dados_relacao_de_bens=formatar_e_retornar_dados_relatorio_relacao_bens(relatorio_persistido), relacao_bens=relacao_bens)
+            # gerar_arquivo_relacao_de_bens_pdf(dados_relacao_de_bens=formatar_e_retornar_dados_relatorio_relacao_bens(relatorio_persistido), relacao_bens=relacao_bens)
+            gerar_arquivo_relacao_de_bens_pdf(dados_relacao_de_bens=dados_relacao_de_bens, relacao_bens=relacao_bens)
 
         # TODO Remover Excel
         # Gera arquivo Excell

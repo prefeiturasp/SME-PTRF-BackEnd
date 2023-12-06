@@ -494,11 +494,12 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
                                                                prestacao, observacao_conciliacao=observacao_conciliacao,
                                                                previa=previa)
 
-    PersistenciaDadosDemoFinanceiro(dados=dados_demonstrativo, demonstrativo=demonstrativo)
-    dados_recuperados = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
+    # TODO Retirar comentário em PersistenciaDadosDemoFinanceiro, após implementação de feature flag
+    # PersistenciaDadosDemoFinanceiro(dados=dados_demonstrativo, demonstrativo=demonstrativo)
+    # dados_recuperados = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
 
     if criar_arquivos:
-        gerar_arquivo_demonstrativo_financeiro_pdf(dados_recuperados, demonstrativo)
+        gerar_arquivo_demonstrativo_financeiro_pdf(dados_demonstrativo, demonstrativo)
 
     demonstrativo.arquivo_concluido()
 
