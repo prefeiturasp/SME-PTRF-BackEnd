@@ -227,24 +227,20 @@ class ContaAssociacao(ModeloBase):
         return validacao.pode_encerrar
 
     def get_saldo_atual_conta(self, data=None):
-        from sme_ptrf_apps.core.services.info_por_acao_services import (
-            info_conta_associacao_no_periodo,
+        from sme_ptrf_apps.core.services.painel_resumo_recursos_service import (
+            PainelResumoRecursosService,
         )
         from sme_ptrf_apps.core.models import Periodo
 
-        if data is not None:
-            periodo = Periodo.da_data(data)
-        else:
-            periodo = Periodo.periodo_atual()
+        saldo_atual = 0
+        periodo_saldo = Periodo.da_data(data) if data else Periodo.periodo_atual()
+        if periodo_saldo:
+            painel = PainelResumoRecursosService.painel_resumo_recursos(
+                self.associacao, periodo_saldo, self
+            )
+            saldo_atual = painel.info_conta.saldo_atual_total
 
-        saldos_conta = info_conta_associacao_no_periodo(self, periodo=periodo)
-        saldo_conta = (
-            saldos_conta["saldo_atual_custeio"]
-            + saldos_conta["saldo_atual_capital"]
-            + saldos_conta["saldo_atual_livre"]
-        )
-
-        return saldo_conta
+        return saldo_atual
 
     def ativa_no_periodo(self, periodo):
         from sme_ptrf_apps.core.models import SolicitacaoEncerramentoContaAssociacao
