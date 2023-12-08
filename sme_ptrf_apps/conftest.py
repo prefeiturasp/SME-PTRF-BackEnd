@@ -35,6 +35,9 @@ from sme_ptrf_apps.core.fixtures.factories.acao_factory import AcaoFactory
 from sme_ptrf_apps.core.fixtures.factories.arquivo_factory import ArquivoFactory
 from sme_ptrf_apps.core.fixtures.factories.solicitacao_encerramento_conta_associacao_factory import SolicitacaoEncerramentoContaAssociacaoFactory
 from sme_ptrf_apps.core.fixtures.factories.acao_associacao_factory import AcaoAssociacaoFactory
+from sme_ptrf_apps.core.fixtures.factories.fechamento_periodo_factory import FechamentoPeriodoFactory
+from sme_ptrf_apps.despesas.fixtures.factories.despesa_factory import DespesaFactory
+from sme_ptrf_apps.despesas.fixtures.factories.rateio_despesa_factory import RateioDespesaFactory
 
 from sme_ptrf_apps.fixtures import *
 
@@ -53,6 +56,9 @@ register(SolicitacaoEncerramentoContaAssociacaoFactory)
 register(ArquivoFactory)
 register(AcaoFactory)
 register(AcaoAssociacaoFactory)
+register(FechamentoPeriodoFactory)
+register(DespesaFactory)
+register(RateioDespesaFactory)
 
 @pytest.fixture
 def fake_user(client, django_user_model, unidade):
