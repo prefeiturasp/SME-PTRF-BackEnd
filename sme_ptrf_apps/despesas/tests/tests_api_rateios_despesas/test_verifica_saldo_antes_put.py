@@ -76,6 +76,7 @@ def test_api_verifica_saldo_antes_put_sem_saldo(
             {
                 'acao': acao_associacao.acao.nome,
                 'aplicacao': 'CUSTEIO',
+                'conta': 'Cheque',
                 'saldo_disponivel': 20100.00,
                 'total_rateios': 90000.00
             }
@@ -194,6 +195,7 @@ def test_api_verifica_saldo_antes_put_saldo_insuficiente_acao_com_saldo_exato_em
             {
                 'acao': 'PTRF',
                 'aplicacao': 'CUSTEIO',
+                'conta': 'Cheque',
                 'saldo_disponivel': 100.0,
                 'total_rateios': 102.0
             }

@@ -67,6 +67,7 @@ def test_api_verifica_saldo_antes_post_sem_saldo(
             {
                 'acao': acao_associacao.acao.nome,
                 'aplicacao': 'CUSTEIO',
+                'conta': 'Cheque',
                 'saldo_disponivel': 0,
                 'total_rateios': 1000.00
             }
