@@ -9,6 +9,8 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+from drf_spectacular.utils import extend_schema
+from waffle import flag_is_active
 
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
@@ -60,6 +62,7 @@ from ..serializers import (
     AnaliseDocumentoPrestacaoContaRetrieveSerializer,
     AnalisePrestacaoContaRetrieveSerializer
 )
+from sme_ptrf_apps.core.api.serializers.validation_serializers.prestacoes_contas_concluir_validate_serializer import PrestacoesContasConcluirValidateSerializer
 
 from sme_ptrf_apps.core.tasks import gerar_previa_relatorio_acertos_async, concluir_prestacao_de_contas_async, gerar_relatorio_apos_acertos_async
 from ...services.analise_prestacao_conta_service import _criar_documento_final_relatorio_acertos
@@ -160,9 +163,49 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             self.queryset.filter(associacao__uuid=associacao_uuid).filter(
                 periodo__uuid=periodo_uuid).first(), many=False).data)
 
-    @action(detail=False, methods=['post'],
-            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
+    @extend_schema(
+        request=PrestacoesContasConcluirValidateSerializer,
+        responses={200: "Operação realizada com sucesso"},
+    )
+    @action(
+        detail=False,
+        url_path="concluir-v2",
+        methods=["post"],
+        permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao],
+    )
+    def concluir_v2(self, request):
+        from sme_ptrf_apps.core.api.serializers.validation_serializers.prestacoes_contas_concluir_validate_serializer import (
+            PrestacoesContasConcluirValidateSerializer,
+        )  # noqa
+
+        if not flag_is_active(request, "novo-processo-pc"):
+            return Response(
+                {
+                    "erro": "A feature flag 'novo-processo-pc' está desabilitada. Deve ser usada a action 'concluir'."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = PrestacoesContasConcluirValidateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        logger.info("concluir_v2")
+        return Response({"Ok": "feature_flag_habilitada"}, status=status.HTTP_200_OK)
+
+    @action(
+        detail=False,
+        methods=["post"],
+        permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao],
+    )
     def concluir(self, request):
+        if flag_is_active(request, "novo-processo-pc"):
+            return Response(
+                {
+                    "erro": "A feature flag 'novo-processo-pc' está habilitada. Deve ser usada a action 'concluir-v2'."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         associacao_uuid = request.query_params.get('associacao_uuid')
         if not associacao_uuid:
             erro = {
@@ -237,7 +280,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                         justificativa_acertos_pendentes,
                     ), countdown=1
                 )
-                
+
                 if dados["e_retorno_devolucao"]:
                     task_celery_geracao_relatorio_apos_acerto = TaskCelery.objects.create(
                         nome_task="gerar_relatorio_apos_acertos_async",
@@ -245,7 +288,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                         periodo=periodo,
                         usuario=usuario
                     )
-                    
+
                     id_task_geracao_relatorio_apos_acerto = gerar_relatorio_apos_acertos_async.apply_async(
                         (
                             task_celery_geracao_relatorio_apos_acerto.uuid,
@@ -254,10 +297,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                             request.user.name
                         ), countdown=1
                     )
-                
+
                     task_celery_geracao_relatorio_apos_acerto.id_task_assincrona = id_task_geracao_relatorio_apos_acerto
                     task_celery_geracao_relatorio_apos_acerto.save()
-                    
+
                 task_celery.id_task_assincrona = id_task
                 task_celery.save()
         except(IntegrityError):
