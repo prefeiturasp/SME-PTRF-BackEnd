@@ -1,5 +1,5 @@
 from . import ServicoComposicaoVigente
-from ..models import CargoComposicao
+from ..models import CargoComposicao, Composicao
 
 
 class ServicoCargosDaComposicao:
@@ -120,6 +120,22 @@ class ServicoCargosDaComposicao:
 
     def get_cargos_da_composicao_ordenado_por_cargo_associacao(self):
         return self.cargos_list
+
+    def membro_substituido(self, cargo_associacao):
+
+        composicao_anterior = Composicao.objects.filter(
+            associacao=self.composicao.associacao,
+            mandato=self.composicao.mandato
+        ).exclude(id=self.composicao.id).order_by('-id')
+
+        membro_substituido = CargoComposicao.objects.filter(
+            composicao=composicao_anterior.first(),
+            cargo_associacao=cargo_associacao,
+            substituido=True
+        )
+
+        return membro_substituido.exists()
+
 
 
 class ServicoCargosDaDiretoriaExecutiva:

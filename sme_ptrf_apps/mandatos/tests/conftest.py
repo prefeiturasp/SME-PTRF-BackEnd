@@ -366,8 +366,9 @@ def payload_create_cargo_composicao_01_deve_passar(
         "cargo_associacao": "VICE_PRESIDENTE_DIRETORIA_EXECUTIVA",
         "substituto": False,
         "substituido": False,
-        "data_inicio_no_cargo": "2023-1-1",
-        "data_fim_no_cargo": "2025-12-31"
+        "data_inicio_no_cargo": "2023-07-19",
+        "data_fim_no_cargo": "2023-07-20"
+
     }
     return payload
 
