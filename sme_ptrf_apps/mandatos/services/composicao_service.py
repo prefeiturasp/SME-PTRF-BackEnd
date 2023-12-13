@@ -87,13 +87,7 @@ class ServicoCriaComposicaoVigenteDoMandato(ServicoComposicaoVigente):
 
         data_atual = date.today()
 
-        composicao_encontrada = Composicao.objects.filter(
-            associacao=self.associacao,
-            mandato=self.mandato,
-            criado_em__contains=data_atual
-        )
-
-        if not composicao_encontrada.exists() and data_fim_no_cargo != self.mandato.data_final:
+        if data_fim_no_cargo != self.mandato.data_final:
             # Atualiza data da composicao atual
             minha_composicao_atual = cargo_composicao_sendo_editado.composicao
             minha_composicao_atual.data_final = data_fim_no_cargo
