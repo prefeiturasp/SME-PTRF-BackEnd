@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 class PrestacoesContasConcluirValidateSerializer(serializers.Serializer): # noqa
     associacao_uuid = serializers.UUIDField(required=True, allow_null=False)
     periodo_uuid = serializers.UUIDField(required=True, allow_null=False)
+    justificativa_acertos_pendentes = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
     def validate_associacao_uuid(self, value): # noqa
         try:

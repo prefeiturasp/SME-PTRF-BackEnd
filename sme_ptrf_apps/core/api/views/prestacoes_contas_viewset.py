@@ -177,6 +177,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         from sme_ptrf_apps.core.api.serializers.validation_serializers.prestacoes_contas_concluir_validate_serializer import (
             PrestacoesContasConcluirValidateSerializer,
         )  # noqa
+        from sme_ptrf_apps.core.services.prestacao_conta_service import PrestacaoContaService
 
         if not flag_is_active(request, "novo-processo-pc"):
             return Response(
@@ -189,8 +190,30 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         serializer = PrestacoesContasConcluirValidateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        logger.info("concluir_v2")
-        return Response({"Ok": "feature_flag_habilitada"}, status=status.HTTP_200_OK)
+        pc_service = PrestacaoContaService(
+            periodo_uuid=serializer.validated_data["periodo_uuid"],
+            associacao_uuid=serializer.validated_data["associacao_uuid"],
+        )
+
+        try:
+            pc = pc_service.concluir_pc(
+                usuario=request.user,
+                justificativa_acertos_pendentes=serializer.validated_data.get("justificativa_acertos_pendentes", "")
+            )
+        except IntegrityError:
+            erro = {
+                'erro': 'prestacao_ja_iniciada',
+                'mensagem': 'Você não pode iniciar uma prestação de contas que já foi iniciada.'
+            }
+            return Response(erro, status=status.HTTP_409_CONFLICT)
+        except Exception as e:
+            erro = {
+                'erro': 'prestacao_em_processamento',
+                'mensagem': f'{e}'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(PrestacaoContaLookUpSerializer(pc, many=False).data, status=status.HTTP_200_OK)
 
     @action(
         detail=False,
