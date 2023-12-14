@@ -26,7 +26,7 @@ class ProcessoAssociacao(ModeloBase):
     def by_associacao_periodo(cls, associacao, periodo):
         ano = periodo.referencia[0:4]
         processos = cls.objects.filter(associacao=associacao, ano=ano)
-        return processos.first().numero_processo if processos.exists() else ""
+        return processos.last().numero_processo if processos.exists() else ""
 
     @classmethod
     def ultimo_processo_do_ano_por_associacao(cls, associacao, ano):
