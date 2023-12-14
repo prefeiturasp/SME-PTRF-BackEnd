@@ -694,13 +694,15 @@ class ParametrosAdmin(admin.ModelAdmin):
     get_dias_antes_fim_prazo_ajustes_pc_para_notificacao.short_description = 'N. Fim do prazo de entrega (dias)'
 
     list_display = [
+        '__str__',
         'permite_saldo_conta_negativo',
         'get_tempo_notificar_nao_demonstrados',
         'get_dias_antes_inicio_periodo_pc_para_notificacao',
         'get_dias_antes_fim_periodo_pc_para_notificacao',
         'get_dias_antes_fim_prazo_ajustes_pc_para_notificacao',
     ]
-    list_display_links = ['permite_saldo_conta_negativo', 'get_tempo_notificar_nao_demonstrados', ]
+
+    list_display_links = ['__str__']
 
     fieldsets = (
         ('Associação', {
