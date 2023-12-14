@@ -1,4 +1,7 @@
 import pytest
+
+from model_bakery import baker
+
 from sme_ptrf_apps.core.services.relacao_bens_dados_service import persistir_dados_relacao_bens, formatar_e_retornar_dados_relatorio_relacao_bens
 from sme_ptrf_apps.core.services.relacao_bens import apagar_previas_relacao_de_bens
 from sme_ptrf_apps.core.models.relatorio_relacao_bens import RelatorioRelacaoBens
@@ -79,14 +82,47 @@ dados_relacao_bens = {
   }
 }
 
-def test_persistir_relatorio_relacao_bens(usuario):
+def test_persistir_relatorio_relacao_bens(periodo, conta_associacao, despesa, rateio_despesa_01, rateio_despesa_02, usuario):
     relacao_bens = RelacaoBensFactory()
-    persistir_dados_relacao_bens(dados_relacao_bens, relacao_bens, usuario)
+
+    persistir_dados_relacao_bens(periodo, conta_associacao, despesa.rateios.all(), relacao_bens, usuario)
     relatorio = RelatorioRelacaoBens.objects.get(relacao_bens=relacao_bens)
 
     assert relatorio
 
-def test_persistir_relatorio_final_relacao_bens_com_relatorios_anteriores(usuario):
+@pytest.fixture
+def rateio_despesa_01(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso_custeio, tipo_custeio_material, especificacao_material_eletrico, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_material,
+        especificacao_material_servico=especificacao_material_eletrico,
+        valor_rateio=200.00,
+        valor_original=200.00,
+        quantidade_itens_capital=2,
+        valor_item_capital=100.00
+    )
+
+
+@pytest.fixture
+def rateio_despesa_02(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso_custeio, tipo_custeio, tipo_custeio_material, especificacao_material_eletrico, acao_associacao):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio,
+        valor_rateio=100.00,
+        valor_original=100.00,
+    )
+
+def test_persistir_relatorio_final_relacao_bens_com_relatorios_anteriores(periodo, conta_associacao, despesa, rateio_despesa_01, rateio_despesa_02, usuario):
     relacao_bens_anterior = RelacaoBensFactory()
     relatorio_anterior = RelatorioRelacaoBensFactory(relacao_bens=relacao_bens_anterior)
     ItemRelatorioRelacaoDeBensFactory(relatorio=relatorio_anterior)
@@ -95,7 +131,7 @@ def test_persistir_relatorio_final_relacao_bens_com_relatorios_anteriores(usuari
 
     relacao_bens = RelacaoBensFactory()
 
-    persistir_dados_relacao_bens(dados_relacao_bens, relacao_bens, usuario)
+    persistir_dados_relacao_bens(periodo, conta_associacao, despesa.rateios.all(), relacao_bens, usuario)
 
     relatorio = RelatorioRelacaoBens.objects.filter(relacao_bens=relacao_bens)
 
