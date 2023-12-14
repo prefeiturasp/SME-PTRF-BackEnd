@@ -17,6 +17,9 @@ class ParametrosDre(SingletonModel, ModeloBase):
     tipo_conta_dois = models.ForeignKey('core.TipoConta', on_delete=models.CASCADE,
                                         related_name='tipo_conta_dois', null=True, blank=True, default=None)
 
+    def __str__(self):
+        return 'Parâmetros DRE do PTRF'
+
     class Meta:
         verbose_name = "Parâmetro DRE"
         verbose_name_plural = "Parâmetros DRE"

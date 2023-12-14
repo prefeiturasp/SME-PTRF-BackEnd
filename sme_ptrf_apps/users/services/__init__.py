@@ -7,3 +7,4 @@ from .encerrar_acesso_de_suporte_service import encerrar_acesso_de_suporte, Ence
 from .get_usuarios_servidores_por_visao import get_usuarios_servidores_por_visao
 from .gestao_usuario_service import GestaoUsuarioService
 from .verificar_unidades_usuarios_service import VerificaUnidadesUsuariosService
+from .login_usuario_service import LoginUsuarioService
