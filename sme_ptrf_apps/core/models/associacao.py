@@ -164,6 +164,12 @@ class Associacao(ModeloIdNome):
         self.fechamentos_associacao.filter(status='IMPLANTACAO').delete()
 
     @property
+    def primeiro_periodo_ativo(self):
+        if self.periodo_inicial:
+            return self.periodo_inicial.proximo_periodo
+        return None
+
+    @property
     def presidente_associacao(self):
         cargo = self.cargos.filter(cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
         if cargo:
