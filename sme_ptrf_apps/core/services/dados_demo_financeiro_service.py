@@ -37,6 +37,15 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
             conta_associacao=conta_associacao, periodo=periodo, conferido=False).order_by(
             'despesa__data_transacao', 'despesa__numero_documento')
 
+        if conta_associacao.associacao.primeiro_periodo_ativo == periodo:
+            rateios_conferidos_periodos_anteriores = RateioDespesa.rateios_da_conta_associacao_em_periodos_anteriores(
+                conta_associacao=conta_associacao, periodo=periodo, conferido=True)
+
+            rateios_conferidos = (rateios_conferidos | rateios_conferidos_periodos_anteriores).distinct()
+
+            rateios_conferidos = rateios_conferidos.order_by(
+            'despesa__data_transacao', 'despesa__numero_documento')
+
         receitas_demonstradas = Receita.receitas_da_conta_associacao_no_periodo(
             conta_associacao=conta_associacao, periodo=periodo, conferido=True)
 
@@ -714,7 +723,7 @@ def cria_creditos_demonstrados(receitas_demonstradas):
 
 
 def cria_despesas(rateios):
-    valor_total = sum(r.valor_rateio for r in rateios)
+    valor_total_geral = sum(r.valor_rateio for r in rateios)
 
     linhas = []
     for _, rateio in enumerate(rateios):
@@ -813,7 +822,7 @@ def cria_despesas(rateios):
 
     despesas = {
         "linhas": linhas,
-        "valor_total": valor_total
+        "valor_total": valor_total_geral
     }
     return despesas
 

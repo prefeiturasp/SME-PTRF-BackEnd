@@ -91,7 +91,6 @@ class RateioDespesa(ModeloBase):
                    self.acao_associacao and \
                    self.aplicacao_recurso and \
                    self.valor_rateio
-
         if completo and not self.saida_de_recurso_externo and not self.eh_despesa_sem_comprovacao_fiscal:
             completo = completo and self.especificacao_material_servico
 
