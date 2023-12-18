@@ -416,6 +416,7 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
         query.is_valid(raise_exception=True)
 
         # Validado no serializer
+        visao_base = request.data.get('visao_base')
         usuario = User.objects.get(username=request.data.get("username"))
         unidade_uuid = request.data.get('uuid_unidade')
         unidade = 'SME' if unidade_uuid == 'SME' else Unidade.by_uuid(unidade_uuid)
@@ -423,7 +424,8 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
 
         gestao_usuario = GestaoUsuarioService(usuario=usuario)
         response = gestao_usuario.desabilitar_acesso(unidade=unidade, acesso_concedido_sme=acesso_concedido_sme)
-        gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade=unidade)
+        
+        gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade=unidade, visao_base=visao_base)
 
         return Response(response, status=status.HTTP_200_OK)
 

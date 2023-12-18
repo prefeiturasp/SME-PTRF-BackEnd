@@ -32,14 +32,14 @@ class VerificaUnidadesUsuariosService:
 
             if not unidade_com_direito:
                 gestao_usuario.desabilitar_acesso(unidade=unidade_vinculada)
-                gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade=unidade_vinculada)
+                gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade=unidade_vinculada, visao_base="SME")
 
         if gestao_usuario.usuario_possui_visao(visao="SME"):
             sme = [u for u in unidades_que_tem_direito if "SME" == u["uuid_unidade"]]
 
             if not sme:
                 gestao_usuario.desabilitar_acesso(unidade="SME")
-                gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade="SME")
+                gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade="SME", visao_base="SME")
 
     def iniciar_processo(self):
         for usuario in self.usuarios:
