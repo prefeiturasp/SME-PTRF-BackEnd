@@ -13,6 +13,12 @@ from sme_ptrf_apps.receitas.models import Receita
 from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (APLICACAO_CAPITAL, APLICACAO_CUSTEIO,
                                                                      APLICACAO_LIVRE)
 
+from sme_ptrf_apps.mandatos.services import ServicoComposicaoVigente, ServicoMandatoVigente
+
+from sme_ptrf_apps.mandatos.models import CargoComposicao
+
+from waffle import get_waffle_flag_model
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -137,24 +143,68 @@ def cria_identificacao_apm(acoes):
     tipo_unidade = associacao.unidade.tipo_unidade
     nome_unidade = associacao.unidade.nome
     _presidente_diretoria_executiva = ''
+    presidente_conselho_fiscal = '-------'
+    cargo_substituto_presidente_ausente_value = ''
 
-    if status_presidente_associacao == 'PRESENTE':
-        _presidente_diretoria_executiva = \
-            MembroAssociacao.objects.filter(associacao=associacao,
-                                            cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
-        cargo_substituto_presidente_ausente_value = MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value
+    flags = get_waffle_flag_model()
+
+    LOGGER.info("Verificando se a flag <historico-de-membros> está ativa...")
+
+    if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+        LOGGER.info("A flag está ativa, as informações serão buscadas no Histórico de Membros")
+
+        servico_mandato_vigente = ServicoMandatoVigente()
+        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+        servico_composicao_vigente = ServicoComposicaoVigente(associacao=associacao, mandato=mandato_vigente)
+        composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
+
+        list_choices = list(CargoComposicao.CARGO_ASSOCIACAO_CHOICES)
+
+        if mandato_vigente and composicao_vigente:
+            if associacao.cargo_substituto_presidente_ausente:
+                cargo_da_composicao_presidente_diretoria_executiva = CargoComposicao.objects.filter(
+                    composicao=composicao_vigente,
+                    cargo_associacao=associacao.cargo_substituto_presidente_ausente
+                ).first()
+                cargo_substituto_presidente_ausente_value = [x[1] for x in list_choices if x[0] == associacao.cargo_substituto_presidente_ausente][0]
+            else:
+                cargo_da_composicao_presidente_diretoria_executiva = CargoComposicao.objects.filter(
+                    composicao=composicao_vigente,
+                    cargo_associacao='PRESIDENTE_DIRETORIA_EXECUTIVA'
+                ).first()
+                cargo_substituto_presidente_ausente_value = [x[1] for x in list_choices if x[0] == 'PRESIDENTE_DIRETORIA_EXECUTIVA'][0]
+
+            cargo_da_composicao_presidente_conselho_fiscal = CargoComposicao.objects.filter(
+                composicao=composicao_vigente,
+                cargo_associacao='PRESIDENTE_CONSELHO_FISCAL'
+            ).first()
+
+            presidente_diretoria_executiva = cargo_da_composicao_presidente_diretoria_executiva.ocupante_do_cargo.nome if cargo_da_composicao_presidente_diretoria_executiva and cargo_da_composicao_presidente_diretoria_executiva.ocupante_do_cargo and cargo_da_composicao_presidente_diretoria_executiva.ocupante_do_cargo.nome else '-------'
+            presidente_conselho_fiscal = cargo_da_composicao_presidente_conselho_fiscal.ocupante_do_cargo.nome if cargo_da_composicao_presidente_conselho_fiscal and cargo_da_composicao_presidente_conselho_fiscal.ocupante_do_cargo and cargo_da_composicao_presidente_conselho_fiscal.ocupante_do_cargo.nome else '-------'
+
+        else:
+            presidente_diretoria_executiva = "A flag <historico-de-membros> está ativa e não existe nenhum Mandato/Composição vigente criada"
+
     else:
-        _presidente_diretoria_executiva = \
-            MembroAssociacao.objects.filter(associacao=associacao, cargo_associacao=MembroEnum[
-                cargo_substituto_presidente_ausente_name].name).first()
-        cargo_substituto_presidente_ausente_value = MembroEnum[cargo_substituto_presidente_ausente_name].value
 
-    _presidente_conselho_fiscal = \
-        MembroAssociacao.objects.filter(associacao=associacao,
-                                        cargo_associacao=MembroEnum.PRESIDENTE_CONSELHO_FISCAL.name).first()
+        if status_presidente_associacao == 'PRESENTE':
+            _presidente_diretoria_executiva = \
+                MembroAssociacao.objects.filter(associacao=associacao,
+                                                cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
+            cargo_substituto_presidente_ausente_value = MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value
+        else:
+            _presidente_diretoria_executiva = \
+                MembroAssociacao.objects.filter(associacao=associacao, cargo_associacao=MembroEnum[
+                    cargo_substituto_presidente_ausente_name].name).first()
+            cargo_substituto_presidente_ausente_value = MembroEnum[cargo_substituto_presidente_ausente_name].value
 
-    presidente_diretoria_executiva = _presidente_diretoria_executiva.nome if _presidente_diretoria_executiva else '-------'
-    presidente_conselho_fiscal = _presidente_conselho_fiscal.nome if _presidente_conselho_fiscal else '-------'
+        _presidente_conselho_fiscal = \
+            MembroAssociacao.objects.filter(associacao=associacao,
+                                            cargo_associacao=MembroEnum.PRESIDENTE_CONSELHO_FISCAL.name).first()
+
+        presidente_diretoria_executiva = _presidente_diretoria_executiva.nome if _presidente_diretoria_executiva else '-------'
+        presidente_conselho_fiscal = _presidente_conselho_fiscal.nome if _presidente_conselho_fiscal else '-------'
 
     identificacao_apm = {
         "nome_associacao": nome_associacao,

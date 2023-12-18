@@ -27,6 +27,8 @@ class ParametrosSme(SingletonModel, ModeloBase):
         help_text='O campo deve seguir o padrão "0, 00, 00" ou ser um único dígito.'
     )
 
+    valida_unidades_login = models.BooleanField('Valida unidades ao logar', default=False)
+
     def __str__(self):
         return 'Parâmetros SME do PTRF'
 

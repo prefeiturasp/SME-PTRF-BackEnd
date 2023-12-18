@@ -1,5 +1,5 @@
 from sme_ptrf_apps.core.models import MembroAssociacao, Unidade
-from sme_ptrf_apps.users.models import AcessoConcedidoSme
+from sme_ptrf_apps.users.models import AcessoConcedidoSme, UnidadeEmSuporte
 from sme_ptrf_apps.sme.models import ParametrosSme
 from brazilnum.cpf import format_cpf
 from django.contrib.auth import get_user_model
@@ -17,11 +17,19 @@ class GestaoUsuarioService:
     def __init__(self, usuario):
         self.usuario = usuario
 
-    def unidades_do_usuario(self, unidade_base="SME", visao_base="SME"):
+    def unidades_do_usuario(self, unidade_base="SME", visao_base="SME", inclui_unidades_suporte=False):
         if self.usuario.e_servidor:
-            result = self.retorna_lista_unidades_servidor(unidade_base=unidade_base, visao_base=visao_base)
+            result = self.retorna_lista_unidades_servidor(
+                unidade_base=unidade_base,
+                visao_base=visao_base,
+                inclui_unidades_suporte=inclui_unidades_suporte
+            )
         else:
-            result = self.retorna_lista_unidades_nao_servidor(unidade_base=unidade_base, visao_base=visao_base)
+            result = self.retorna_lista_unidades_nao_servidor(
+                unidade_base=unidade_base,
+                visao_base=visao_base,
+                inclui_unidades_suporte=inclui_unidades_suporte
+            )
 
         return result
 
@@ -72,7 +80,7 @@ class GestaoUsuarioService:
 
         return False
 
-    def retorna_lista_unidades_nao_servidor(self, unidade_base, visao_base):
+    def retorna_lista_unidades_nao_servidor(self, unidade_base, visao_base, inclui_unidades_suporte=False):
         lista = []
         membro_associacoes = MembroAssociacao.objects.filter(cpf=format_cpf(self.usuario.username)).all()
         acessos_concedidos_pela_sme = AcessoConcedidoSme.objects.filter(user=self.usuario).all()
@@ -103,10 +111,23 @@ class GestaoUsuarioService:
                 'acesso_concedido_sme': True
             })
 
+        if inclui_unidades_suporte:
+            unidades_em_suporte = UnidadeEmSuporte.objects.filter(user=self.usuario).all()
+
+            for unidade_suporte in unidades_em_suporte:
+                lista.append({
+                    'uuid_unidade': f'{unidade_suporte.unidade.uuid}',
+                    'nome_com_tipo': f'{unidade_suporte.unidade.tipo_unidade} {unidade_suporte.unidade.nome}',
+                    'membro': self.usuario_membro_associacao_na_unidade(unidade_suporte.unidade),
+                    'tem_acesso': True,
+                    'username': self.usuario.username,
+                    'acesso_concedido_sme': False
+                })
+
         lista_ordenada = sorted(lista, key=lambda row: (row['tem_acesso'] is False, row['nome_com_tipo']))
         return lista_ordenada
 
-    def retorna_lista_unidades_servidor(self, unidade_base, visao_base):
+    def retorna_lista_unidades_servidor(self, unidade_base, visao_base, inclui_unidades_suporte=False):
         lista = []
         unidade_encontrada_na_api = self.get_info_unidade()
 
@@ -160,6 +181,19 @@ class GestaoUsuarioService:
                 'unidade_em_exercicio': False,
                 'acesso_concedido_sme': True
             })
+
+        if inclui_unidades_suporte:
+            unidades_em_suporte = UnidadeEmSuporte.objects.filter(user=self.usuario).all()
+
+            for unidade_suporte in unidades_em_suporte:
+                lista.append({
+                    'uuid_unidade': f'{unidade_suporte.unidade.uuid}',
+                    'nome_com_tipo': f'{unidade_suporte.unidade.tipo_unidade} {unidade_suporte.unidade.nome}',
+                    'membro': self.usuario_membro_associacao_na_unidade(unidade_suporte.unidade),
+                    'tem_acesso': True,
+                    'username': self.usuario.username,
+                    'acesso_concedido_sme': False
+                })
 
         lista_ordenada = sorted(lista, key=lambda row: (row['tem_acesso'] is False, row['nome_com_tipo']))
 

@@ -29,37 +29,36 @@ def especificacoes_despesas_acao_associacao_no_periodo(acao_associacao, periodo,
                                                                                       exclude_despesa=exclude_despesa)
 
 
-def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
-    def sumariza_rateios_por_acao(rateios):
-        totalizador_acoes = dict()
+def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):   
+    def sumariza_rateios_por_conta_acao_aplicacao(rateios):
         totalizador_contas = dict()
+        sumarizacao_conta_acao_aplicacao = dict()
+
         for rateio in rateios:
-            acao_key = rateio['acao_associacao']
             conta_key = rateio['conta_associacao']
+            acao_key = rateio['acao_associacao']
             aplicacao = rateio['aplicacao_recurso']
+            valor_rateio = Decimal(rateio['valor_rateio'])
 
-            if not acao_key or not aplicacao: continue
+            if conta_key not in sumarizacao_conta_acao_aplicacao:
+                sumarizacao_conta_acao_aplicacao[conta_key] = dict()
+            if acao_key not in sumarizacao_conta_acao_aplicacao[conta_key]:
+                sumarizacao_conta_acao_aplicacao[conta_key][acao_key] = {'CAPITAL': 0, 'CUSTEIO': 0}
 
-            if acao_key not in totalizador_acoes:
-                totalizador_acoes[acao_key] = {
-                    'CUSTEIO': Decimal(0.00),
-                    'CAPITAL': Decimal(0.00)
-                }
-
-            totalizador_acoes[acao_key][aplicacao] += Decimal(rateio['valor_rateio'])
+            sumarizacao_conta_acao_aplicacao[conta_key][acao_key][aplicacao] += valor_rateio
 
             if conta_key and conta_key not in totalizador_contas:
                 totalizador_contas[conta_key] = Decimal(0.00)
 
             if conta_key:
                 totalizador_contas[conta_key] += Decimal(rateio['valor_rateio'])
-
-        return totalizador_acoes, totalizador_contas
-
-    gastos_por_acao, gastos_por_conta = sumariza_rateios_por_acao(rateios)
-
+        
+        return sumarizacao_conta_acao_aplicacao, totalizador_contas
+    
+    gastos_por_conta_acao_aplicacao, gastos_por_conta = sumariza_rateios_por_conta_acao_aplicacao(rateios)
+    
     saldos_insuficientes = []
-
+                
     for conta_associacao_uuid, gasto_conta_associacao in gastos_por_conta.items():
         conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid)
         saldos_conta = info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=exclude_despesa)
@@ -82,23 +81,40 @@ def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
             'tipo_saldo': 'CONTA',
             'saldos_insuficientes': saldos_insuficientes
         }
-
-    for acao_associacao_uuid, gastos_acao_associacao in gastos_por_acao.items():
-        acao_associacao = AcaoAssociacao.by_uuid(acao_associacao_uuid)
-        saldos_acao = info_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=exclude_despesa)
-
-        for aplicacao, saldo_atual_key in (('CUSTEIO', 'saldo_atual_custeio'), ('CAPITAL', 'saldo_atual_capital')):
-            if not gastos_acao_associacao[aplicacao]: continue
-
-            if round(saldos_acao[saldo_atual_key] + saldos_acao['saldo_atual_livre'], 2) < round(gastos_acao_associacao[aplicacao], 2):
-                saldo_insuficiente = {
-                    'acao': acao_associacao.acao.nome,
-                    'aplicacao': aplicacao,
-                    'saldo_disponivel': saldos_acao[saldo_atual_key] + saldos_acao['saldo_atual_livre'],
-                    'total_rateios': gastos_acao_associacao[aplicacao]
-                }
-                saldos_insuficientes.append(saldo_insuficiente)
-
+        
+    for uuid_conta, gasto_por_conta_acao_aplicacao in gastos_por_conta_acao_aplicacao.items():
+        for acao in gasto_por_conta_acao_aplicacao:
+            
+            acao_associacao = AcaoAssociacao.by_uuid(acao)
+            conta = ContaAssociacao.by_uuid(uuid_conta)
+            saldos_acao = info_acao_associacao_no_periodo(acao_associacao, periodo, conta=conta, exclude_despesa=exclude_despesa)
+            
+            saldo_livre_acao = saldos_acao['saldo_atual_livre']
+            
+            for aplicacao, saldo_atual_key in (('CUSTEIO', 'saldo_atual_custeio'), ('CAPITAL', 'saldo_atual_capital')):
+                if not gasto_por_conta_acao_aplicacao[acao][aplicacao]: continue
+                
+                saldo_atual_aplicacao = saldos_acao[saldo_atual_key]
+                gasto_da_despesa_na_acao_aplicacao = round(gasto_por_conta_acao_aplicacao[acao][aplicacao], 2)
+                                         
+                if round(saldo_atual_aplicacao + saldo_livre_acao, 2) < gasto_da_despesa_na_acao_aplicacao:
+                    saldo_insuficiente = {
+                        'conta': conta,
+                        'acao': acao_associacao.acao.nome,
+                        'conta': conta_associacao.tipo_conta.nome,
+                        'aplicacao': aplicacao,
+                        'saldo_disponivel': saldo_atual_aplicacao + saldo_livre_acao,
+                        'total_rateios': gasto_por_conta_acao_aplicacao[acao][aplicacao]
+                    }
+                    
+                    saldos_insuficientes.append(saldo_insuficiente)
+                    saldo_livre_acao = 0
+                elif round(saldo_atual_aplicacao, 2) < gasto_da_despesa_na_acao_aplicacao:
+                        sobra_livre_acao = round(saldo_atual_aplicacao + saldo_livre_acao, 2) - gasto_da_despesa_na_acao_aplicacao
+                        if(sobra_livre_acao < 0):
+                            saldo_livre_acao = 0
+                        else:
+                            saldo_livre_acao = sobra_livre_acao
     return {
         'tipo_saldo': 'ACAO',
         'saldos_insuficientes': saldos_insuficientes

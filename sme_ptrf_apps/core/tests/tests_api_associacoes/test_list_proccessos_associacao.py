@@ -42,6 +42,8 @@ def test_list_processos_da_associacao(jwt_authenticated_client_a, associacao, pr
             'alterado_em': processo_associacao_123456_2019.alterado_em.isoformat("T"),
             'numero_processo': processo_associacao_123456_2019.numero_processo,
             'ano': processo_associacao_123456_2019.ano,
+            'tooltip_exclusao': '',
+            'permite_exclusao': True
         },
     ]
 
