@@ -14,15 +14,18 @@ class DemonstrativoFinanceiro(ModeloBase):
     # Status Choice
     STATUS_EM_PROCESSAMENTO = 'EM_PROCESSAMENTO'
     STATUS_CONCLUIDO = 'CONCLUIDO'
+    STATUS_A_PROCESSAR = 'A_PROCESSAR'
 
     STATUS_NOMES = {
         STATUS_EM_PROCESSAMENTO: 'Em processamento',
         STATUS_CONCLUIDO: 'Geração concluída',
+        STATUS_A_PROCESSAR: 'A processar'
     }
 
     STATUS_CHOICES = (
         (STATUS_EM_PROCESSAMENTO, STATUS_NOMES[STATUS_EM_PROCESSAMENTO]),
         (STATUS_CONCLUIDO, STATUS_NOMES[STATUS_CONCLUIDO]),
+        (STATUS_A_PROCESSAR, STATUS_NOMES[STATUS_A_PROCESSAR]),
     )
 
     # Versao Choice
@@ -81,6 +84,9 @@ class DemonstrativoFinanceiro(ModeloBase):
         self.status = self.STATUS_CONCLUIDO
         self.save()
 
+    def arquivo_a_processar(self):
+        self.status = self.STATUS_A_PROCESSAR
+        self.save()
 
 @receiver(models.signals.post_delete, sender=DemonstrativoFinanceiro)
 def auto_delete_file_on_delete(sender, instance, **kwargs):

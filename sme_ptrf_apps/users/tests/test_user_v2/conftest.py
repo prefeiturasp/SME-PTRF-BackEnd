@@ -9,6 +9,11 @@ from model_bakery import baker
 
 @pytest.fixture
 def parametros_sme():
+    return baker.make('ParametrosSme', tipos_unidade_adm_da_sme='1,2,3', valida_unidades_login=True)
+
+
+@pytest.fixture
+def parametros_sme_valida_unidades_login_falso():
     return baker.make('ParametrosSme', tipos_unidade_adm_da_sme='1,2,3')
 
 
@@ -303,4 +308,17 @@ def unidade_em_suporte_gestao_usuarios(unidade_gestao_usuario_b, usuario_servido
         'UnidadeEmSuporte',
         unidade=unidade_gestao_usuario_b,
         user=usuario_servidor_service_gestao_usuario,
+    )
+
+
+@pytest.fixture
+def tecnico_dre_gestao_usuario(
+    dre,
+    usuario_servidor_service_gestao_usuario
+):
+    return baker.make(
+        'TecnicoDre',
+        dre=dre,
+        nome='teste tecnico dre',
+        rf=usuario_servidor_service_gestao_usuario.username,
     )

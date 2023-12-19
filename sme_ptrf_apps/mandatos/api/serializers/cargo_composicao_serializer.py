@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from ...models import CargoComposicao, Composicao, OcupanteCargo
 from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
+from ...services.composicao_service import ServicoCriaComposicaoVigenteDoMandato, ServicoComposicaoVigente
+from ...services.cargo_composicao_service import ServicoCargosDaComposicao
+import datetime
 
 
 class CargoComposicaoSerializer(serializers.ModelSerializer):
@@ -56,13 +59,30 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         super().validate(data)
         composicao = data['composicao']
+        data_atual = datetime.date.today()
+
         data_inicial_composicao = composicao.data_inicial
+        data_inicial_mandato = composicao.mandato.data_inicial
+        data_final_mandato = composicao.mandato.data_final
         data_final_composicao = composicao.data_final
 
         data_inicio_no_cargo = data['data_inicio_no_cargo']
         data_fim_no_cargo = data['data_fim_no_cargo']
 
-        if data_inicio_no_cargo < data_inicial_composicao:
+        servico_cargo_composicao = ServicoCargosDaComposicao(composicao=composicao)
+        if servico_cargo_composicao.membro_substituido(cargo_associacao=data["cargo_associacao"]):
+            servico_composicao = ServicoComposicaoVigente(
+                associacao=composicao.associacao,
+                mandato=composicao.mandato
+            )
+
+            info_composicao_anterior = servico_composicao.get_info_composicao_anterior()
+
+            if data_inicio_no_cargo <= info_composicao_anterior["data_final"]:
+                raise serializers.ValidationError(
+                    "Não é permitido informar período inicial de ocupação anterior ou igual ao período final de ocupação do membro anterior do cargo.")
+
+        if data_inicio_no_cargo < data_inicial_mandato:
             raise serializers.ValidationError(
                 "Não é permitido informar período inicial de ocupação anterior ao período inicial do mandato")
 
@@ -73,6 +93,10 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
         if data_inicio_no_cargo > data_fim_no_cargo:
             raise serializers.ValidationError(
                 "Não é permitido informar período inicial de ocupação posterior ao período final de ocupação")
+
+        if data_fim_no_cargo != data_final_mandato and data_fim_no_cargo > data_atual:
+            raise serializers.ValidationError(
+                "Não é permitido informar período final de ocupação posterior a data atual e diferente do periodo final do mandato.")
 
         ocupante_do_cargo_data = data['ocupante_do_cargo']
 
@@ -135,6 +159,16 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
 
         # Atualiza os campos do CargoComposicao
         update_instance_from_dict(instance, validated_data)
+
+        servico_cria_composicao_vigente = ServicoCriaComposicaoVigenteDoMandato(
+            associacao=instance.composicao.associacao,
+            mandato=instance.composicao.mandato
+        )
+
+        servico_cria_composicao_vigente.cria_nova_composicao_atraves_de_alteracao_membro(
+            data_fim_no_cargo=validated_data.get('data_fim_no_cargo'),
+            cargo_composicao_sendo_editado=instance
+        )
 
         # Atualiza os campos do OcupanteDoCargo
         if ocupante_do_cargo_data:
