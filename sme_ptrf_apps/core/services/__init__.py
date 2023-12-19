@@ -64,3 +64,4 @@ from .solicitacao_acerto_documento_service import SolicitacaoAcertoDocumentoServ
 from .falha_geracao_pc_service import FalhaGeracaoPcService
 from .persistencia_dados_demo_financeiro_service import PersistenciaDadosDemoFinanceiro
 from .recuperacao_dados_persistindos_demo_financeiro_service import RecuperaDadosDemoFinanceiro
+from .prestacao_conta_service import PrestacaoContaService

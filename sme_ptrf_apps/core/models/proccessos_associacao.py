@@ -1,5 +1,5 @@
 from django.db import models
-
+from datetime import date
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -26,7 +26,26 @@ class ProcessoAssociacao(ModeloBase):
     def by_associacao_periodo(cls, associacao, periodo):
         ano = periodo.referencia[0:4]
         processos = cls.objects.filter(associacao=associacao, ano=ano)
-        return processos.first().numero_processo if processos.exists() else ""
+        return processos.last().numero_processo if processos.exists() else ""
 
+    @classmethod
+    def ultimo_processo_do_ano_por_associacao(cls, associacao, ano):
+        processos = cls.objects.filter(associacao=associacao, ano=ano).order_by('criado_em')
+        return processos.last()
+
+    @property
+    def prestacoes_vinculadas(self):
+        from sme_ptrf_apps.core.models import PrestacaoConta
+        inicio = date(int(self.ano), 1, 1)
+        fim = date(int(self.ano), 12, 31)
+        pcs = PrestacaoConta.objects.filter(associacao=self.associacao,
+                                            periodo__data_inicio_realizacao_despesas__range=[inicio, fim])
+        return pcs
+
+    @property
+    def e_o_ultimo_processo_do_ano_com_pcs_vinculada(self):
+        ultimo_processo = ProcessoAssociacao.ultimo_processo_do_ano_por_associacao(
+            associacao=self.associacao, ano=self.ano)
+        return (self == ultimo_processo) and self.prestacoes_vinculadas.exists()
 
 auditlog.register(ProcessoAssociacao)
