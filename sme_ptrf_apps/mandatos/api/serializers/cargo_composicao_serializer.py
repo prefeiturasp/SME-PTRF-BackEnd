@@ -56,6 +56,16 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
 
     ocupante_do_cargo = OcupanteCargoCreateSerializer()
 
+    composicao_vigente = serializers.SerializerMethodField('get_composicao_vigente')
+
+    def get_composicao_vigente(self, obj):
+        servico_composicao = ServicoComposicaoVigente(
+            associacao=obj.composicao.associacao,
+            mandato=obj.composicao.mandato
+        )
+        composicao_vigente = servico_composicao.get_composicao_vigente()
+        return None if not composicao_vigente else composicao_vigente.uuid
+
     def validate(self, data):
         super().validate(data)
         composicao = data['composicao']
@@ -180,7 +190,6 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
-
     class Meta:
         model = CargoComposicao
         fields = (
@@ -193,4 +202,5 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
             'data_fim_no_cargo',
             'substituto',
             'substituido',
+            'composicao_vigente'
         )

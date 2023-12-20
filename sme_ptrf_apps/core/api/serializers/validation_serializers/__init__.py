@@ -17,3 +17,5 @@ from .solicitacao_acerto_documento_validate_serializer import (
     EditarInformacaoConciliacaoValidateSerializer,
     DesfazerEditacaoInformacaoConciliacaoValidateSerializer
 )
+
+from . prestacoes_contas_concluir_validate_serializer import PrestacoesContasConcluirValidateSerializer
