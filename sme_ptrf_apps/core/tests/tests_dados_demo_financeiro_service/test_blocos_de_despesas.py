@@ -110,7 +110,11 @@ def test_despesas_demonstradas_primeira_pc_associacao():
     conta_associacao = ContaAssociacaoFactory(associacao=associacao)
     acao = AcaoFactory()
     acao_associacao = AcaoAssociacaoFactory(acao=acao, associacao=associacao)
-    despesa_1 = DespesaFactory(data_transacao=date(2023, 1, 1), valor_total=50)
+    despesa_1 = DespesaFactory(
+        data_transacao=date(2023, 1, 1),
+        valor_total=50,
+        associacao=associacao
+    )
     rateio_1 = RateioDespesaFactory(
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
@@ -119,9 +123,10 @@ def test_despesas_demonstradas_primeira_pc_associacao():
         valor_rateio=50,
         conferido=True,
         update_conferido=True,
-        periodo_conciliacao=periodo
+        periodo_conciliacao=periodo,
+        aplicacao_recurso='CUSTEIO'
     )
-    despesa_2 = DespesaFactory(data_transacao=date(2023, 1, 1), valor_total=100)
+    despesa_2 = DespesaFactory(data_transacao=date(2023, 1, 1), valor_total=100, associacao=associacao)
     rateio_2 = RateioDespesaFactory(
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
@@ -130,9 +135,10 @@ def test_despesas_demonstradas_primeira_pc_associacao():
         valor_rateio=100,
         conferido=True,
         update_conferido=True,
-        periodo_conciliacao=periodo
+        periodo_conciliacao=periodo,
+        aplicacao_recurso='CUSTEIO'
     )
-    despesa_3_periodo_anterior = DespesaFactory(data_transacao=date(2018, 1, 1), valor_total=100)
+    despesa_3_periodo_anterior = DespesaFactory(data_transacao=date(2018, 1, 1), valor_total=100, associacao=associacao)
     rateio_3_periodo_anterior = RateioDespesaFactory(
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
@@ -141,7 +147,8 @@ def test_despesas_demonstradas_primeira_pc_associacao():
         valor_rateio=100,
         conferido=True,
         update_conferido=True,
-        periodo_conciliacao=periodo
+        periodo_conciliacao=periodo,
+        aplicacao_recurso='CUSTEIO'
     )
     resultado = gerar_dados_demonstrativo_financeiro(
         usuario='teste',
@@ -174,7 +181,7 @@ def test_despesas_demonstradas_segunda_pc_associacao():
     acao_associacao = AcaoAssociacaoFactory(acao=acao, associacao=associacao)
 
     PrestacaoContaFactory(periodo=periodo_2023_1, associacao=associacao)
-    despesa_1 = DespesaFactory(data_transacao=date(2023, 1, 1), valor_total=50)
+    despesa_1 = DespesaFactory(data_transacao=date(2023, 1, 1), valor_total=50, associacao=associacao)
     RateioDespesaFactory(
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
@@ -183,11 +190,12 @@ def test_despesas_demonstradas_segunda_pc_associacao():
         valor_rateio=50,
         conferido=True,
         update_conferido=True,
-        periodo_conciliacao=periodo_2023_1
+        periodo_conciliacao=periodo_2023_1,
+        aplicacao_recurso='CUSTEIO'
     )
 
     pc_23_2 = PrestacaoContaFactory(periodo=periodo_2023_2, associacao=associacao)
-    despesa_1_32_2 = DespesaFactory(data_transacao=date(2023, 6, 2), valor_total=100)
+    despesa_1_32_2 = DespesaFactory(data_transacao=date(2023, 6, 2), valor_total=100, associacao=associacao)
     RateioDespesaFactory(
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
@@ -196,9 +204,10 @@ def test_despesas_demonstradas_segunda_pc_associacao():
         valor_rateio=100,
         conferido=True,
         update_conferido=True,
-        periodo_conciliacao=periodo_2023_2
+        periodo_conciliacao=periodo_2023_2,
+        aplicacao_recurso='CUSTEIO'
     )
-    despesa_2_32_2 = DespesaFactory(data_transacao=date(2023, 6, 3), valor_total=80)
+    despesa_2_32_2 = DespesaFactory(data_transacao=date(2023, 6, 3), valor_total=80, associacao=associacao)
     RateioDespesaFactory(
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
@@ -207,7 +216,8 @@ def test_despesas_demonstradas_segunda_pc_associacao():
         valor_rateio=80,
         conferido=True,
         update_conferido=True,
-        periodo_conciliacao=periodo_2023_2
+        periodo_conciliacao=periodo_2023_2,
+        aplicacao_recurso='CUSTEIO'
     )
     resultado = gerar_dados_demonstrativo_financeiro(
         usuario='teste',

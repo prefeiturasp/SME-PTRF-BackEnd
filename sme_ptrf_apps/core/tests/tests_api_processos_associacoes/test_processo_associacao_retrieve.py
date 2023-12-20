@@ -1,7 +1,8 @@
 import json
-
+from datetime import datetime
 import pytest
 from rest_framework import status
+from sme_ptrf_apps.core.fixtures.factories import PeriodoFactory, PrestacaoContaFactory, ProcessoAssociacaoFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -28,8 +29,56 @@ def test_retrieve_processo_associacao(
         'alterado_em': processo_associacao_123456_2019.alterado_em.isoformat("T"),
         'numero_processo': processo_associacao_123456_2019.numero_processo,
         'ano': processo_associacao_123456_2019.ano,
+        'tooltip_exclusao': '',
+        'permite_exclusao': True
     }
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
 
+def test_retrieve_processo_associacao_processo_sem_pc_vinculada(jwt_authenticated_client_a):
+
+    processo_sem_pc_vinculada = ProcessoAssociacaoFactory()
+    response = jwt_authenticated_client_a.get(
+    f'/api/processos-associacao/{processo_sem_pc_vinculada.uuid}/', content_type='application/json')
+    result = json.loads(response.content)
+
+    assert result['permite_exclusao'] == True
+    assert result['tooltip_exclusao'] == ''
+
+def test_retrieve_processo_associacao_processo_com_pc_vinculada(jwt_authenticated_client_a):
+
+    processo_com_pc_vinculada = ProcessoAssociacaoFactory(ano='2023')
+    periodo = PeriodoFactory(data_inicio_realizacao_despesas=datetime(2023, 1, 1))
+    PrestacaoContaFactory(periodo=periodo, associacao=processo_com_pc_vinculada.associacao)
+
+    response = jwt_authenticated_client_a.get(
+    f'/api/processos-associacao/{processo_com_pc_vinculada.uuid}/', content_type='application/json')
+    result = json.loads(response.content)
+
+    assert result['permite_exclusao'] == False
+    assert result['tooltip_exclusao'] == 'Não é possível excluir o número desse processo SEI, pois este já está vinculado a uma prestação de contas. Caso necessário, é possível editá-lo.'
+
+def test_retrieve_processo_associacao_multiplos_processos_por_ano(jwt_authenticated_client_a):
+
+    processo_1 = ProcessoAssociacaoFactory(ano='2023')
+    processo_1_2 = ProcessoAssociacaoFactory(associacao=processo_1.associacao, ano=processo_1.ano)
+
+    periodo = PeriodoFactory(data_inicio_realizacao_despesas=datetime(2023, 1, 1))
+    PrestacaoContaFactory(periodo=periodo, associacao=processo_1.associacao)
+
+    # ultimo processo não pode ser excluído
+    response = jwt_authenticated_client_a.get(
+    f'/api/processos-associacao/{processo_1_2.uuid}/', content_type='application/json')
+    result = json.loads(response.content)
+
+    assert result['permite_exclusao'] == False
+    assert result['tooltip_exclusao'] == 'Não é possível excluir o número desse processo SEI, pois este já está vinculado a uma prestação de contas. Caso necessário, é possível editá-lo.'
+
+    # processo pode ser excluído se outro for criado para substituir
+    response = jwt_authenticated_client_a.get(
+    f'/api/processos-associacao/{processo_1.uuid}/', content_type='application/json')
+    result = json.loads(response.content)
+
+    assert result['permite_exclusao'] == True
+    assert result['tooltip_exclusao'] == ''
