@@ -112,7 +112,7 @@ class LoginUsuarioService:
                 if self.deve_remover_unidades:
                     logger.info("A flag 'valida_unidades_login' está ativa, portanto as unidades serão removidas")
                     self.gestao_usuario.desabilitar_acesso(unidade=unidade_vinculada)
-                    self.gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade=unidade_vinculada)
+                    self.gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade=unidade_vinculada, visao_base="SME")
 
         if self.gestao_usuario.usuario_possui_visao(visao="SME"):
             sme = [u for u in self.unidades_que_usuario_pode_ter_acesso if "SME" == u["uuid_unidade"]]
@@ -128,7 +128,7 @@ class LoginUsuarioService:
                 if self.deve_remover_unidades:
                     logger.info("A flag 'valida_unidades_login' está ativa, portanto a visão SME sera removida")
                     self.gestao_usuario.desabilitar_acesso(unidade="SME")
-                    self.gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade="SME")
+                    self.gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade="SME", visao_base="SME")
 
     def unidade_em_suporte(self, unidade):
         return UnidadeEmSuporte.objects.filter(unidade=unidade, user=self.usuario).exists()
