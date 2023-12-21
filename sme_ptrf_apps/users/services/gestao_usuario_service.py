@@ -98,7 +98,8 @@ class GestaoUsuarioService:
                 'membro': True,
                 'tem_acesso': self.usuario_possui_acesso_a_unidade(membro.associacao.unidade),
                 'username': self.usuario.username,
-                'acesso_concedido_sme': False
+                'acesso_concedido_sme': False,
+                'tipo_unidade': membro.associacao.unidade.tipo_unidade
             })
 
         for acesso in acessos_concedidos_pela_sme.filter(unidade__codigo_eol__in=unidades).all():
@@ -108,7 +109,8 @@ class GestaoUsuarioService:
                 'membro': self.usuario_membro_associacao_na_unidade(acesso.unidade),
                 'tem_acesso': self.usuario_possui_acesso_a_unidade(acesso.unidade),
                 'username': self.usuario.username,
-                'acesso_concedido_sme': True
+                'acesso_concedido_sme': True,
+                'tipo_unidade': acesso.unidade.tipo_unidade
             })
 
         if inclui_unidades_suporte:
@@ -150,7 +152,8 @@ class GestaoUsuarioService:
                 'tem_acesso': self.usuario_possui_acesso_a_unidade(unidade_encontrada_na_base),
                 'username': self.usuario.username,
                 'unidade_em_exercicio': True,
-                'acesso_concedido_sme': False
+                'acesso_concedido_sme': False,
+                'tipo_unidade': unidade_encontrada_na_base.tipo_unidade
             })
 
         membro_associacoes = MembroAssociacao.objects.filter(codigo_identificacao=self.usuario.username).all()
@@ -167,7 +170,8 @@ class GestaoUsuarioService:
                 'tem_acesso': self.usuario_possui_acesso_a_unidade(membro.associacao.unidade),
                 'username': self.usuario.username,
                 'unidade_em_exercicio': False,
-                'acesso_concedido_sme': False
+                'acesso_concedido_sme': False,
+                'tipo_unidade': membro.associacao.unidade.tipo_unidade
             })
 
         acessos_concedidos_pela_sme = AcessoConcedidoSme.objects.filter(user=self.usuario).all()
@@ -179,7 +183,8 @@ class GestaoUsuarioService:
                 'tem_acesso': self.usuario_possui_acesso_a_unidade(acesso.unidade),
                 'username': self.usuario.username,
                 'unidade_em_exercicio': False,
-                'acesso_concedido_sme': True
+                'acesso_concedido_sme': True,
+                'tipo_unidade': acesso.unidade.tipo_unidade
             })
 
         if inclui_unidades_suporte:
@@ -206,7 +211,8 @@ class GestaoUsuarioService:
                     'tem_acesso': self.usuario_possui_visao("SME"),
                     'username': self.usuario.username,
                     'unidade_em_exercicio': False,
-                    'acesso_concedido_sme': False
+                    'acesso_concedido_sme': False,
+                    'tipo_unidade': 'SME'
                 }
 
                 lista_ordenada.insert(0, dados)
@@ -248,14 +254,14 @@ class GestaoUsuarioService:
 
         return response
 
-    def remover_grupos_acesso_apos_remocao_acesso_unidade(self, unidade):
-        lista_tipos_unidades_usuario_tem_acesso = list(self.tipos_unidades_usuario_tem_acesso())
-
+    def remover_grupos_acesso_apos_remocao_acesso_unidade(self, unidade, visao_base):
+        lista_tipos_unidades_usuario_tem_acesso = list(self.tipos_unidades_usuario_tem_acesso(unidade_base=unidade, visao_base=visao_base))
+        
         if unidade == "SME":
             self.usuario.desabilita_todos_grupos_acesso("SME")
         elif unidade.tipo_unidade == "DRE" and "DRE" not in lista_tipos_unidades_usuario_tem_acesso:
             self.usuario.desabilita_todos_grupos_acesso("DRE")
-        elif not lista_tipos_unidades_usuario_tem_acesso or lista_tipos_unidades_usuario_tem_acesso == ["DRE"]:
+        elif not lista_tipos_unidades_usuario_tem_acesso or set(lista_tipos_unidades_usuario_tem_acesso) in [{"DRE"}, {"SME"}, {"SME", "DRE"}, {"DRE", "SME"}]:
             self.usuario.desabilita_todos_grupos_acesso("UE")
 
         return
@@ -280,18 +286,20 @@ class GestaoUsuarioService:
 
         return mensagem
 
-    def tipos_unidades_usuario_tem_acesso(self):
+    def tipos_unidades_usuario_tem_acesso(self, unidade_base="SME", visao_base="SME"):
         from sme_ptrf_apps.core.choices.tipos_unidade import TIPOS_CHOICE
-
-        unidades_usuario = self.usuario.unidades.all()
-        tipos_unidades_usuario_tem_acesso = set() # DRE ou UE
-
+        
+        unidades_usuario = self.unidades_do_usuario(unidade_base, visao_base)
+        tipos_unidades_usuario_tem_acesso = set()
+         
         for unidade in unidades_usuario:
-            if unidade.tipo_unidade == "DRE":
+            if unidade['tipo_unidade'] == "DRE" and unidade['tem_acesso']:
                 tipos_unidades_usuario_tem_acesso.add("DRE")
+            elif unidade['tipo_unidade'] == "SME" and unidade['tem_acesso']:
+                tipos_unidades_usuario_tem_acesso.add("SME")
             else:
                 for tipo in TIPOS_CHOICE:
-                    if unidade.tipo_unidade == tipo[0]:
+                    if unidade['tipo_unidade'] == tipo[0] and unidade['tem_acesso']:
                         tipos_unidades_usuario_tem_acesso.add("UE")
                         break
 
