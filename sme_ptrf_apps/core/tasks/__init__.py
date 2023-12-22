@@ -17,3 +17,4 @@ from .gerar_relatorio_apos_acertos import gerar_relatorio_apos_acertos_async
 from .gerar_demonstrativo_financeiro import gerar_demonstrativo_financeiro_async
 from .gerar_relacao_de_bens import gerar_relacao_bens_async
 from .concluir_prestacao_de_contas_v2 import concluir_prestacao_de_contas_v2_async
+from .terminar_processo_pc import terminar_processo_pc_async
