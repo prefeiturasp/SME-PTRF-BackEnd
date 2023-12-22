@@ -9,7 +9,7 @@ from sme_ptrf_apps.core.services.relacao_bens_pdf_service import gerar_arquivo_r
 
 logger = logging.getLogger(__name__)
 
-MAX_RETRIES = 8
+MAX_RETRIES = 3
 
 
 @shared_task(
