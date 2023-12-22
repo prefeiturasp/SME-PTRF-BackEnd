@@ -322,6 +322,9 @@ class PrestacaoConta(ModeloBase):
         for demonstrativo in self.demonstrativos_da_prestacao.all():
             demonstrativo.delete()
 
+    def ata_do_periodo(self):
+        return self.atas_da_prestacao.filter(tipo_ata='APRESENTACAO', previa=False, periodo=self.periodo).last()
+
     def ultima_ata(self):
         return self.atas_da_prestacao.filter(tipo_ata='APRESENTACAO', previa=False).last()
 

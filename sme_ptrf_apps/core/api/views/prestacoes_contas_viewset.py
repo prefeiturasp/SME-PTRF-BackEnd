@@ -379,7 +379,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def receber(self, request, uuid):
         from sme_ptrf_apps.core.services.processos_services import trata_processo_sei_ao_receber_pc
-        
+
         prestacao_conta = self.get_object()
 
         data_recebimento = request.data.get('data_recebimento', None)
@@ -401,7 +401,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'mensagem': 'Você não pode receber uma prestação de contas com status diferente de NAO_RECEBIDA.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        
+
         processo_sei = request.data.get('processo_sei', None)
         if not processo_sei:
             response = {
@@ -411,11 +411,20 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'mensagem': 'Faltou informar o processo SEI de recebimento da Prestação de Contas.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        
+
         acao_processo_sei = request.data.get('acao_processo_sei', None)
-        
+
+        if not prestacao_conta.ata_do_periodo():
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'pendencias',
+                'operacao': 'receber',
+                'mensagem': 'É necessário gerar ata de apresentação para realizar o recebimento.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
         trata_processo_sei_ao_receber_pc(prestacao_conta=prestacao_conta, processo_sei=processo_sei, acao_processo_sei=acao_processo_sei)
-        
+
         prestacao_recebida = prestacao_conta.receber(data_recebimento=data_recebimento)
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_recebida, many=False).data,
