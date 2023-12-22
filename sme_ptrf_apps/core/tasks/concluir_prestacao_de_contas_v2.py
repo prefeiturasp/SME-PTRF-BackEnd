@@ -1,6 +1,5 @@
 import logging
-
-from django.contrib.auth import get_user_model
+import time
 
 from celery import shared_task
 
@@ -9,8 +8,11 @@ from sme_ptrf_apps.core.models import (
     Associacao,
     Periodo,
     PrestacaoConta,
-    ObservacaoConciliacao
+    ObservacaoConciliacao,
+    TaskCelery,
 )
+from sme_ptrf_apps.core.services.prestacao_conta_service import PrestacaoContaService
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +24,7 @@ logger = logging.getLogger(__name__)
     soft_time_limit=300
 )
 def concluir_prestacao_de_contas_v2_async(
+    id_task,
     periodo_uuid,
     associacao_uuid,
     username="",
@@ -31,8 +34,12 @@ def concluir_prestacao_de_contas_v2_async(
     requer_acertos_em_extrato=False,
     justificativa_acertos_pendentes='',
 ):
-    import time
-    from sme_ptrf_apps.core.services.prestacao_conta_service import PrestacaoContaService
+    from sme_ptrf_apps.core.services.prestacao_contas_services import (
+        _criar_fechamentos,
+        _apagar_previas_documentos,
+    )
+
+    task = TaskCelery.objects.get(uuid=id_task)
 
     logger.info('Iniciando a task concluir_prestacao_de_contas_async - VERSÃO 2')
 
@@ -46,24 +53,23 @@ def concluir_prestacao_de_contas_v2_async(
         username=username,
     )
 
+    task.grava_log_concatenado(f'Iniciando a task concluir_prestacao_de_contas_async - VERSÃO 2')
+
     time.sleep(10)  # Aguardar 10 segundos para iniciar a task e dar tempo de criar as tasks duplicadas
 
     tasks_ativas_dessa_pc = prestacao.tasks_celery_da_prestacao_conta.filter(
         nome_task='concluir_prestacao_de_contas_async').filter(finalizada=False).all()
 
     if tasks_ativas_dessa_pc.count() > 1:
-        for task in tasks_ativas_dessa_pc:
-            task.grava_log(
+        for task_ativa in tasks_ativas_dessa_pc:
+            task_ativa.grava_log(
                 f"Está PC possui mais de uma task de {task.nome_task} ativa no momento, "
                 f"portanto o processo de concluir PC não será executado, será aguardado a criação de Falha de Geração."
             )
 
     elif tasks_ativas_dessa_pc.count() == 1:
-        from sme_ptrf_apps.core.services.prestacao_contas_services import (_criar_documentos, _criar_fechamentos,
-                                                                           _apagar_previas_documentos)
 
-        from sme_ptrf_apps.core.services.falha_geracao_pc_service import FalhaGeracaoPcService
-
+        task.grava_log_concatenado(f'PC em processamento...')
         prestacao.em_processamento()
 
         acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
@@ -82,59 +88,53 @@ def concluir_prestacao_de_contas_v2_async(
 
         # TODO Rever e simplificar as diversas condicionais abaixo
         if e_retorno_devolucao and (requer_geracao_documentos or requer_geracao_fechamentos):
-            logging.info(f'Solicitações de ajustes Justificadas requerem apagar fechamentos pc {prestacao.uuid}.')
+            task.grava_log_concatenado(f'Solicitações de ajustes Justificadas requerem apagar fechamentos pc {prestacao.uuid}.')
             prestacao.apaga_fechamentos()
 
         if e_retorno_devolucao and requer_geracao_fechamentos and not requer_geracao_documentos:
-            logging.info(f'Solicitações de ajustes Justificadas requerem criar os fechamentos pc {prestacao.uuid}.')
+            task.grava_log_concatenado(f'Solicitações de ajustes Justificadas requerem criar os fechamentos pc {prestacao.uuid}.')
+
             _criar_fechamentos(acoes, contas, periodo, prestacao)
-            logger.info('Fechamentos criados para a prestação de contas %s.', prestacao)
+            task.grava_log_concatenado(f'Fechamentos criados para a prestação de contas {prestacao}.')
 
         if e_retorno_devolucao and (requer_geracao_documentos or requer_acertos_em_extrato):
-            logging.info(f'Solicitações de ajustes requerem apagar fechamentos e documentos da pc {prestacao.uuid}.')
+            task.grava_log_concatenado(f'Solicitações de ajustes requerem apagar fechamentos e documentos da pc {prestacao.uuid}.')
+
             # TODO: Verificar se os dados persistidos dos relatórios estão sendo apagados
             prestacao.apaga_relacao_bens()
             prestacao.apaga_demonstrativos_financeiros()
-            logging.info(f'Fechamentos e documentos da pc {prestacao.uuid} apagados.')
+            task.grava_log_concatenado(f'Fechamentos e documentos da pc {prestacao.uuid} apagados.')
 
         if e_retorno_devolucao and not requer_geracao_fechamentos and not requer_geracao_documentos and not requer_acertos_em_extrato:
-            logging.info(f'Solicitações de ajustes NÃO requerem apagar fechamentos e documentos da pc {prestacao.uuid}.')
+            task.grava_log_concatenado(f'Solicitações de ajustes NÃO requerem apagar fechamentos e documentos da pc {prestacao.uuid}.')
 
         if requer_geracao_documentos:
             _criar_fechamentos(acoes, contas, periodo, prestacao)
-            logger.info('Fechamentos criados para a prestação de contas %s.', prestacao)
+            task.grava_log_concatenado(f'Fechamentos criados para a prestação de contas {prestacao}.')
 
         if requer_geracao_documentos or requer_acertos_em_extrato:
             _apagar_previas_documentos(contas=contas, periodo=periodo, prestacao=prestacao)
-            logger.info('Prévias apagadas.')
+            task.grava_log_concatenado(f'Prévias apagadas.')
 
             pc_service.persiste_dados_docs()
-            logger.info('Documentos gerados para a prestação de contas %s.', prestacao)
+            task.grava_log_concatenado(f'Documentos gerados para a prestação de contas {prestacao}.')
         else:
-            logger.info('PC não requer geração de documentos e cálculo de fechamentos.')
+            task.grava_log_concatenado(f'PC não requer geração de documentos e cálculo de fechamentos.')
 
         try:
-            prestacao = prestacao.concluir(
+            prestacao = prestacao.concluir_v2(
                 e_retorno_devolucao=e_retorno_devolucao,
                 justificativa_acertos_pendentes=justificativa_acertos_pendentes
             )
 
-            # Aqui marcar como resolvido registro de falha
-            usuario_notificacao = get_user_model().objects.get(username=username)
-            logger.info('Iniciando a marcação como resolvido do registro de falha')
-            marcar_como_resolvido_registro_de_falha = FalhaGeracaoPcService(
-                usuario=usuario_notificacao,
-                periodo=periodo,
-                associacao=associacao
-            )
-            marcar_como_resolvido_registro_de_falha.marcar_como_resolvido()
-
-            logger.info('Concluída a prestação de contas %s.', prestacao)
+            task.grava_log_concatenado(f'Concluída a prestação de contas {prestacao}.')
 
             task = tasks_ativas_dessa_pc.first()
             task.registra_data_hora_finalizacao()
+            task.registra_data_hora_finalizacao(f'Finalizada com sucesso a geração da relação de bens.')
+
         except Exception as e:
-            logger.info('Erro ao concluir a prestação de contas %s.', prestacao)
+            task.grava_log_concatenado(f'Erro ao concluir a prestação de contas {prestacao}.')
 
             task = tasks_ativas_dessa_pc.first()
             task.registra_data_hora_finalizacao(log=e)
