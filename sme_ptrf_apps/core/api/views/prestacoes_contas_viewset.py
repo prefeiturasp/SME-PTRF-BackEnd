@@ -163,6 +163,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             self.queryset.filter(associacao__uuid=associacao_uuid).filter(
                 periodo__uuid=periodo_uuid).first(), many=False).data)
 
+    # TODO: Renomear essa action para "concluir" quando a feature flag 'novo-processo-pc' for removida
     @extend_schema(
         request=PrestacoesContasConcluirValidateSerializer,
         responses={200: "Operação realizada com sucesso"},
@@ -215,6 +216,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(PrestacaoContaLookUpSerializer(pc, many=False).data, status=status.HTTP_200_OK)
 
+    # TODO: Remover essa action quando a feature flag 'novo-processo-pc' for removida
     @action(
         detail=False,
         methods=["post"],
