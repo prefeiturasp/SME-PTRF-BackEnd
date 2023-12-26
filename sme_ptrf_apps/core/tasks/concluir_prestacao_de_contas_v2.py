@@ -1,4 +1,5 @@
 import logging
+import traceback
 import time
 
 from celery import shared_task
@@ -39,23 +40,23 @@ def concluir_prestacao_de_contas_v2_async(
         _apagar_previas_documentos,
     )
 
-    task = TaskCelery.objects.get(uuid=id_task)
+    task = None
+    try:
+        task = TaskCelery.objects.get(uuid=id_task)
 
-    logger.info('Iniciando a task concluir_prestacao_de_contas_async - VERSÃO 2')
+        periodo = Periodo.by_uuid(periodo_uuid)
+        associacao = Associacao.by_uuid(associacao_uuid)
+        prestacao = PrestacaoConta.by_periodo(associacao=associacao, periodo=periodo)
 
-    periodo = Periodo.by_uuid(periodo_uuid)
-    associacao = Associacao.by_uuid(associacao_uuid)
-    prestacao = PrestacaoConta.by_periodo(associacao=associacao, periodo=periodo)
+        pc_service = PrestacaoContaService(
+            periodo_uuid=periodo_uuid,
+            associacao_uuid=associacao_uuid,
+            username=username,
+        )
 
-    pc_service = PrestacaoContaService(
-        periodo_uuid=periodo_uuid,
-        associacao_uuid=associacao_uuid,
-        username=username,
-    )
+        task.grava_log_concatenado(f'Iniciando a task concluir_prestacao_de_contas_async - VERSÃO 2')
 
-    task.grava_log_concatenado(f'Iniciando a task concluir_prestacao_de_contas_async - VERSÃO 2')
-
-    time.sleep(10)  # Aguardar 10 segundos para iniciar a task e dar tempo de criar as tasks duplicadas
+        time.sleep(10)  # Aguardar 10 segundos para iniciar a task e dar tempo de criar as tasks duplicadas
 
     tasks_ativas_dessa_pc = prestacao.tasks_celery_da_prestacao_conta.filter(
         nome_task='concluir_prestacao_de_contas_async').filter(finalizada=False).all()
@@ -66,8 +67,6 @@ def concluir_prestacao_de_contas_v2_async(
                 f"Está PC possui mais de uma task de {task.nome_task} ativa no momento, "
                 f"portanto o processo de concluir PC não será executado, será aguardado a criação de Falha de Geração."
             )
-
-    elif tasks_ativas_dessa_pc.count() == 1:
 
         task.grava_log_concatenado(f'PC em processamento...')
         prestacao.em_processamento()
@@ -102,7 +101,11 @@ def concluir_prestacao_de_contas_v2_async(
 
             # TODO: Verificar se os dados persistidos dos relatórios estão sendo apagados
             prestacao.apaga_relacao_bens()
+            task.grava_log_concatenado(f'Relação de bens apagada.')
+
             prestacao.apaga_demonstrativos_financeiros()
+            task.grava_log_concatenado(f'Demonstrativos financeiros apagados.')
+
             task.grava_log_concatenado(f'Fechamentos e documentos da pc {prestacao.uuid} apagados.')
 
         if e_retorno_devolucao and not requer_geracao_fechamentos and not requer_geracao_documentos and not requer_acertos_em_extrato:
@@ -117,7 +120,7 @@ def concluir_prestacao_de_contas_v2_async(
             task.grava_log_concatenado(f'Prévias apagadas.')
 
             pc_service.persiste_dados_docs()
-            task.grava_log_concatenado(f'Documentos gerados para a prestação de contas {prestacao}.')
+            task.grava_log_concatenado(f'Dados dos documentos da {prestacao} persistidos para posterior geração dos PDFs.')
         else:
             task.grava_log_concatenado(f'PC não requer geração de documentos e cálculo de fechamentos.')
 
