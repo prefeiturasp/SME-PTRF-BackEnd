@@ -47,6 +47,7 @@ class PrestacaoContaService:
         self._acoes = self._associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
         self._contas = self._prestacao.contas_ativas_no_periodo() if self._prestacao else None
         self._username = username
+        self._user = get_user_model().objects.get(username=self._username) if self._username else None
 
         # Instancia do celery
         self.app = Celery("sme_ptrf_apps")
@@ -173,26 +174,34 @@ class PrestacaoContaService:
                 requer_acertos_em_extrato=self.pc_requer_acerto_em_extrato,
                 justificativa_acertos_pendentes=justificativa_acertos_pendentes,
             ),
-            chord(
-                group(
-                    gerar_demonstrativo_financeiro_async.si(
-                        task_celery_gerar_demonstrativo_financeiro.uuid,
-                        self._prestacao.uuid,
-                        self._periodo.uuid,
-                    ),
-                    gerar_relacao_bens_async.si(
-                        task_celery_gerar_relacao_bens.uuid,
-                        self._prestacao.uuid
-                    )
-                ),
-                terminar_processo_pc_async.si(
+
+            group(
+                gerar_demonstrativo_financeiro_async.si(
+                    task_celery_gerar_demonstrativo_financeiro.uuid,
+                    self._prestacao.uuid,
                     self._periodo.uuid,
-                    self._associacao.uuid,
-                    usuario.username,
-                    self.e_retorno_devolucao
+                ),
+                gerar_relacao_bens_async.si(
+                    task_celery_gerar_relacao_bens.uuid,
+                    self._prestacao.uuid
                 )
+            ),
+
+            terminar_processo_pc_async.si(
+                self._periodo.uuid,
+                self._associacao.uuid,
+                usuario.username,
+                self.e_retorno_devolucao
             )
+
         )
+
+        chain_tasks.on_error(terminar_processo_pc_async.si(
+            self._periodo.uuid,
+            self._associacao.uuid,
+            usuario.username,
+            self.e_retorno_devolucao
+        ))
 
         chain_tasks.apply_async(countdown=1)
 
@@ -317,7 +326,7 @@ class PrestacaoContaService:
             # Registrando falha de geracao de pc
             registra_falha_service = FalhaGeracaoPcService(
                 periodo=self._periodo,
-                usuario=self._username,
+                usuario=self._user,
                 associacao=self._associacao,
                 prestacao_de_contas=self._prestacao
             )
@@ -347,7 +356,7 @@ class PrestacaoContaService:
     def resolve_registros_falha(self):
         from sme_ptrf_apps.core.services import FalhaGeracaoPcService
 
-        usuario_notificacao = get_user_model().objects.get(username=self._username)
+        usuario_notificacao = self._user
         logger.info('Iniciando a marcação como resolvido do registro de falha')
         registra_falha_service = FalhaGeracaoPcService(
             usuario=usuario_notificacao,
