@@ -1735,3 +1735,14 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         contas = prestacao_conta.get_contas_com_movimento()
 
         return Response(ContaAssociacaoDadosSerializer(contas, many=True).data)
+
+    @action(detail=True, methods=['post'], url_path='notificar/pendencia_geracao_ata_apresentacao',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def notificar_pendencia_geracao_ata_apresentacao(self, request, uuid):
+        from sme_ptrf_apps.core.services.notificacao_services.notificacao_pendencia_geracao_ata import notificar_pendencia_geracao_ata_apresentacao
+        prestacao_contas = self.get_object()
+
+        if not prestacao_contas.ata_do_periodo():
+            notificar_pendencia_geracao_ata_apresentacao(prestacao_contas)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
