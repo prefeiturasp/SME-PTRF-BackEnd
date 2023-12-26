@@ -1,6 +1,7 @@
 import logging
+import traceback
 
-from celery import shared_task
+from celery import shared_task, current_task
 from celery.exceptions import MaxRetriesExceededError
 
 from sme_ptrf_apps.core.models.demonstrativo_financeiro import DemonstrativoFinanceiro
@@ -26,9 +27,12 @@ MAX_RETRIES = 3
     soft_time_limit=300
 )
 def gerar_demonstrativo_financeiro_async(id_task, prestacao_conta_uuid, periodo_uuid):
+    tentativa = current_task.request.retries + 1
+
+    task = None
     try:
         task = TaskCelery.objects.get(uuid=id_task)
-        logger.info('Iniciando task gerar_demonstrativo_financeiro_async.')
+        logger.info(f'Iniciando task gerar_demonstrativo_financeiro_async, tentativa {tentativa}.')
 
         prestacao = PrestacaoConta.objects.get(uuid=prestacao_conta_uuid)
         periodo = Periodo.objects.get(uuid=periodo_uuid)
@@ -48,7 +52,7 @@ def gerar_demonstrativo_financeiro_async(id_task, prestacao_conta_uuid, periodo_
 
             dados_recuperados = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
 
-            gerar_arquivo_demonstrativo_financeiro_pdf(dados_recuperados, demonstrativo)
+            gerar_arquivo_demonstrativo_financeiro_pdf(dados_recuperados, demonstrativo, tentativa=tentativa)
 
             demonstrativo.arquivo_concluido()
 
@@ -60,11 +64,17 @@ def gerar_demonstrativo_financeiro_async(id_task, prestacao_conta_uuid, periodo_
 
         task.registra_data_hora_finalizacao(f'Finalizada com sucesso a geração do demonstrativo financeiro.')
     except Exception as exc:
-        if gerar_demonstrativo_financeiro_async.request.retries >= MAX_RETRIES:
-            mensagem_tentativas_excedidas = 'Tentativas de reprocessamento com falha excedidas.'
-            task.registra_data_hora_finalizacao(mensagem_tentativas_excedidas)
+        if task:
+            task.grava_log_concatenado(f'A tentativa {tentativa} de gerar o swmonstrativo financeiro falhou. {exc}')
+
+        if tentativa > MAX_RETRIES:
+            traceback_info = traceback.format_exc()
+            mensagem_tentativas_excedidas = f'Tentativas de reprocessamento com falha excedidas para o demonstrativo financeiro. Detalhes do erro: {exc}\n{traceback_info}'
+            logger.error(mensagem_tentativas_excedidas)
+
+            if task:
+                task.registra_data_hora_finalizacao(mensagem_tentativas_excedidas)
+
             raise MaxRetriesExceededError(mensagem_tentativas_excedidas)
         else:
-            task.grava_log_concatenado(
-                f'A tentativa {gerar_demonstrativo_financeiro_async.request.retries} de gerar o demonstrativo financeiro falhou. {exc}')
             raise exc
