@@ -58,12 +58,10 @@ def concluir_prestacao_de_contas_v2_async(
 
         time.sleep(10)  # Aguardar 10 segundos para iniciar a task e dar tempo de criar as tasks duplicadas
 
-    tasks_ativas_dessa_pc = prestacao.tasks_celery_da_prestacao_conta.filter(
-        nome_task='concluir_prestacao_de_contas_async').filter(finalizada=False).all()
-
-    if tasks_ativas_dessa_pc.count() > 1:
-        for task_ativa in tasks_ativas_dessa_pc:
-            task_ativa.grava_log(
+        tasks_ativas_dessa_pc = prestacao.tasks_celery_da_prestacao_conta.filter(
+            nome_task='concluir_prestacao_de_contas_async').filter(finalizada=False).all()
+        if tasks_ativas_dessa_pc.count() > 1:
+            raise Exception(
                 f"Está PC possui mais de uma task de {task.nome_task} ativa no momento, "
                 f"portanto o processo de concluir PC não será executado, será aguardado a criação de Falha de Geração."
             )
@@ -124,20 +122,21 @@ def concluir_prestacao_de_contas_v2_async(
         else:
             task.grava_log_concatenado(f'PC não requer geração de documentos e cálculo de fechamentos.')
 
-        try:
-            prestacao = prestacao.concluir_v2(
-                e_retorno_devolucao=e_retorno_devolucao,
-                justificativa_acertos_pendentes=justificativa_acertos_pendentes
-            )
 
-            task.grava_log_concatenado(f'Concluída a prestação de contas {prestacao}.')
+        prestacao = prestacao.concluir_v2(
+            e_retorno_devolucao=e_retorno_devolucao,
+            justificativa_acertos_pendentes=justificativa_acertos_pendentes
+        )
 
-            task = tasks_ativas_dessa_pc.first()
-            task.registra_data_hora_finalizacao()
-            task.registra_data_hora_finalizacao(f'Finalizada com sucesso a geração da relação de bens.')
+        task.grava_log_concatenado(f'Concluída a prestação de contas {prestacao}.')
 
-        except Exception as e:
-            task.grava_log_concatenado(f'Erro ao concluir a prestação de contas {prestacao}.')
+        task.registra_data_hora_finalizacao(f'Finalizada com sucesso o cálculo da PC.')
+        logger.info(f'Finalizado com sucesso a task concluir_prestacao_de_contas_async - VERSÃO 2')
 
-            task = tasks_ativas_dessa_pc.first()
-            task.registra_data_hora_finalizacao(log=e)
+    except Exception as e:
+        traceback_info = traceback.format_exc()
+        mensagem_erro = f'Erro ao concluir a prestação de contas {prestacao}. Detalhes do erro: {e}\n{traceback_info}'
+        logger.error(mensagem_erro)
+        if task:
+            task.registra_data_hora_finalizacao(mensagem_erro)
+        raise e
