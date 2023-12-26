@@ -107,6 +107,10 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     referencia_consolidado_dre = serializers.SerializerMethodField('get_referencia_consolidado_dre')
     referencia_consolidado_dre_original = serializers.SerializerMethodField('get_referencia_consolidado_dre_original')
     devolucao_atual = serializers.SerializerMethodField('get_devolucao_atual')
+    ata_aprensentacao_gerada = serializers.SerializerMethodField('get_ata_aprensentacao_gerada')
+
+    def get_ata_aprensentacao_gerada(self, obj):
+        return False if obj.ata_do_periodo() is None else True
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
@@ -289,7 +293,8 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'justificativa_pendencia_realizacao',
             'em_retificacao',
             'devolucao_atual',
-            'periodo_referencia'
+            'periodo_referencia',
+            'ata_aprensentacao_gerada'
         )
 
 
