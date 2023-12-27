@@ -110,7 +110,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     ata_aprensentacao_gerada = serializers.SerializerMethodField('get_ata_aprensentacao_gerada')
 
     def get_ata_aprensentacao_gerada(self, obj):
-        return False if obj.ata_do_periodo() is None else True
+        return obj.ata_apresentacao_gerada()
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid

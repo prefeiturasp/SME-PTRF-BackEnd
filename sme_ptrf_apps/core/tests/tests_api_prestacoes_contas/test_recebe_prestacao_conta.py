@@ -6,7 +6,7 @@ from datetime import date, time
 from model_bakery import baker
 from rest_framework import status
 
-from ...models import PrestacaoConta
+from ...models import PrestacaoConta, Ata
 
 pytestmark = pytest.mark.django_db
 
@@ -39,7 +39,8 @@ def ata(prestacao_conta_nao_recebida):
         cargo_secretaria_reuniao='Secretaria',
         comentarios='Teste',
         parecer_conselho='APROVADA',
-        hora_reuniao=time(0, 0)
+        hora_reuniao=time(0, 0),
+        status_geracao_pdf=Ata.STATUS_CONCLUIDO
     )
 
 def test_api_recebe_prestacao_conta(jwt_authenticated_client_a, prestacao_conta_nao_recebida, ata):
@@ -226,3 +227,30 @@ def test_api_recebe_prestacao_conta_e_mantem_processo_sei(jwt_authenticated_clie
     processo_nao_editado = ProcessoAssociacao.objects.get(uuid=processo_associacao.uuid)
 
     assert processo_nao_editado.numero_processo == '1111.1111/1111111-1'
+
+
+def test_api_recebe_prestacao_conta_exige_ata_apresentacao_gerada(jwt_authenticated_client_a, prestacao_conta_nao_recebida):
+    payload = {
+        'data_recebimento': '2020-10-01',
+        'processo_sei': '2222.2222/2222111-1',
+        'acao_processo_sei': None
+    }
+
+    url = f'/api/prestacoes-contas/{prestacao_conta_nao_recebida.uuid}/receber/'
+
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        'uuid': f'{prestacao_conta_nao_recebida.uuid}',
+        'erro': 'pendencias',
+        'operacao': 'receber',
+        'mensagem': 'É necessário gerar ata de apresentação para realizar o recebimento.'
+    }
+
+    assert result == resultado_esperado
+    prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_nao_recebida.uuid)
+    assert prestacao_atualizada.status == PrestacaoConta.STATUS_NAO_RECEBIDA, 'Status não deveria ter sido alterado.'

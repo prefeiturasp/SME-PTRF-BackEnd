@@ -414,7 +414,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         acao_processo_sei = request.data.get('acao_processo_sei', None)
 
-        if not prestacao_conta.ata_do_periodo():
+        if not prestacao_conta.ata_apresentacao_gerada():
             response = {
                 'uuid': f'{uuid}',
                 'erro': 'pendencias',
