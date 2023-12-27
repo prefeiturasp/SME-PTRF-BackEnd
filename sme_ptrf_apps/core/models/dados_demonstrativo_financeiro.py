@@ -170,6 +170,7 @@ class CategoriaDespesaChoices(models.TextChoices):
     DEMONSTRADA = "DEMONSTRADA", "Demonstrada"
     NAO_DEMONSTRADA = "NAO_DEMONSTRADA", "Não Demonstrada"
     NAO_DEMONSTRADA_PERIODO_ANTERIOR = "NAO_DEMONSTRADA_PERIODO_ANTERIOR", "Não demonstrada periodo anterior"
+    NAO_DEFINIDO = "NAO_DEFINIDO", "Categoria não definida"
 
 
 class InformacaoDespesaChoices(models.TextChoices):
@@ -188,7 +189,7 @@ class ItemDespesa(ModeloBase):
         "Categoria despesa",
         max_length=50,
         choices=CategoriaDespesaChoices.choices,
-        default=CategoriaDespesaChoices.DEMONSTRADA,
+        default=CategoriaDespesaChoices.NAO_DEFINIDO,
     )
 
     info_despesa = models.CharField(
@@ -215,8 +216,10 @@ class ItemDespesa(ModeloBase):
     tipo_transacao = models.CharField('Tipo transação', max_length=200, default=None, null=True)
     data_transacao = models.DateField('Data transacao', null=True, default=None)
     valor = models.DecimalField('Valor', max_digits=12, decimal_places=2, null=True, default=0)
-    despesas_impostos = models.ManyToManyField('ItemDespesa', blank=True, related_name='despesa_geradora')
     valor_total = models.DecimalField('Valor Total', max_digits=12, decimal_places=2, null=True, default=0)
+
+    info_retencao_imposto = models.TextField('Informações que a despesa geradora utiliza no template (retenção de imposto)', blank=True, default=None, null=True, help_text="Ex: <10.00;01/01/2023> Obs: Utilize quebra de linha quando houver mais de um registro")
+    info_imposto_retido = models.TextField('Informações que o imposto gerado utiliza no template (imposto retido)', blank=True, default=None, null=True, help_text="Ex: <2222;01/09/2022;10.00>")
 
     class Meta:
         verbose_name = 'Dados Demonstrativo Financeiro Item de Despesa'
