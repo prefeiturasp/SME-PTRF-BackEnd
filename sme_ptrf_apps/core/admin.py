@@ -1739,3 +1739,11 @@ class ItemDespesaAdmin(admin.ModelAdmin):
         'dados_demonstrativo__codigo_eol_associacao',
         'dados_demonstrativo__nome_associacao',
     ]
+
+    list_filter = [
+        'dados_demonstrativo__demonstrativo__prestacao_conta__periodo',
+        'dados_demonstrativo__demonstrativo__conta_associacao__tipo_conta',
+        'categoria_despesa',
+    ]
+
+    list_display_links = ('categoria_despesa',)
