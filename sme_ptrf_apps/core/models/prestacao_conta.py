@@ -322,6 +322,12 @@ class PrestacaoConta(ModeloBase):
         for demonstrativo in self.demonstrativos_da_prestacao.all():
             demonstrativo.delete()
 
+    def ata_apresentacao_gerada(self):
+        ata = self.ata_do_periodo()
+        if ata and ata.documento_gerado:
+            return True
+        return False
+
     def ata_do_periodo(self):
         return self.atas_da_prestacao.filter(tipo_ata='APRESENTACAO', previa=False, periodo=self.periodo).last()
 
