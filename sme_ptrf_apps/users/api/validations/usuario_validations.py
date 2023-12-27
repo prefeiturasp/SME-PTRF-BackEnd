@@ -1,6 +1,7 @@
 import logging
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from sme_ptrf_apps.users.models import Visao
 from sme_ptrf_apps.users.services import SmeIntegracaoException
 from sme_ptrf_apps.core.models import Unidade
 
@@ -80,6 +81,7 @@ class UnidadesDoUsuarioSerializer(serializers.Serializer): # noqa
 class HabilitarDesabilitarAcessoSerializer(serializers.Serializer): # noqa
     username = serializers.CharField(required=True)
     uuid_unidade = serializers.CharField(required=True, allow_null=False)
+    visao_base = serializers.CharField(required=True)
 
     def validate_username(self, value): # noqa
         try:
@@ -99,6 +101,14 @@ class HabilitarDesabilitarAcessoSerializer(serializers.Serializer): # noqa
                 raise serializers.ValidationError(f"Não foi encontrado um objeto para o uuid {value}.")
 
             return value
+        
+    def validate_visao_base(self, value): # noqa
+        try:
+            visao = Visao.objects.get(nome=value)
+        except User.DoesNotExist: # noqa
+            raise serializers.ValidationError(f"Não foi encontrado um objeto para a visão {value}.")
+
+        return value
 
 
 class UnidadesDisponiveisInclusaoSerializer(serializers.Serializer): # noqa

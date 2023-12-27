@@ -10,7 +10,7 @@ from rest_framework.filters import SearchFilter
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from ..serializers import GrupoSerializer
-from ...models import Grupo, User
+from ...models import Grupo, User, Unidade
 
 class GruposViewSet(mixins.ListModelMixin, GenericViewSet):
     # TODO: Voltar a usar IsAuthenticated
@@ -69,7 +69,10 @@ class GruposViewSet(mixins.ListModelMixin, GenericViewSet):
 
         query = GruposDisponiveisPorAcessoVisaoSerializer(data=request.query_params)
         query.is_valid(raise_exception=True)
-
+        
+        unidade_uuid = request.query_params.get('uuid_unidade')
+        unidade = 'SME' if unidade_uuid == 'SME' else Unidade.objects.get(uuid=unidade_uuid)
+        
         qs = self.queryset
         qs = qs.exclude(visoes=None)
 
@@ -84,14 +87,12 @@ class GruposViewSet(mixins.ListModelMixin, GenericViewSet):
             grupos_acesso_usuario.append(group.id)
 
         gestao_usuario = GestaoUsuarioService(usuario=usuario)
-        tipos_unidades_usuario_tem_acesso = gestao_usuario.tipos_unidades_usuario_tem_acesso()
+        tipos_unidades_usuario_tem_acesso = gestao_usuario.tipos_unidades_usuario_tem_acesso(unidade_base=unidade, visao_base=visao_base)
         lista_tipos_unidades_usuario_tem_acesso = list(tipos_unidades_usuario_tem_acesso)
 
         if visao_base == 'UE':
             acessos_disponiveis = qs.filter(visoes__nome="UE").distinct()
         else:
-            if visao_base == 'SME' and gestao_usuario.usuario_possui_visao('SME'):
-                lista_tipos_unidades_usuario_tem_acesso.append("SME")
             acessos_disponiveis = qs.filter(visoes__nome__in=lista_tipos_unidades_usuario_tem_acesso).distinct()
 
 
