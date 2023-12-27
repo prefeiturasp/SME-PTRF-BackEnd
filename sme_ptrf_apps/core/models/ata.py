@@ -171,6 +171,10 @@ class Ata(ModeloBase):
         return f'Ata de {self.ATA_NOMES[self.tipo_ata]} da prestação de contas'
 
     @property
+    def documento_gerado(self):
+        return self.status_geracao_pdf == Ata.STATUS_CONCLUIDO
+
+    @property
     def completa(self):
         from sme_ptrf_apps.core.services.associacoes_service import tem_repasses_pendentes_periodos_ate_agora
 
