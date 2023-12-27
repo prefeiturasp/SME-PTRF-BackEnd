@@ -197,28 +197,40 @@ class RecuperaDadosDemoFinanceiro:
             if item.info_despesa == InformacaoDespesaChoices.GEROU_IMPOSTOS:
                 linha["despesas_impostos"] = []
 
-                for despesa_imposto in item.despesas_impostos.all():
-                    if despesa_imposto.data_transacao:
-                        data_transacao = despesa_imposto.data_transacao.strftime("%d/%m/%Y")
-                        info_pagamento = f'pago em {data_transacao}'
-                    else:
-                        info_pagamento = "pagamento ainda não realizado"
+                for i in item.info_retencao_imposto.strip().split("\r\n"):
+                    info_imposto = i.split(";")
 
-                    linha["despesas_impostos"].append({
-                        "tipo_documento": despesa_imposto.tipo_documento,
-                        "info_pagamento": info_pagamento,
-                        "valor": despesa_imposto.valor
-                    })
+                    if info_imposto and len(info_imposto) == 2:
+                        valor_info = info_imposto[0]
+                        data_transacao_info = info_imposto[1]
+
+                        if data_transacao_info:
+                            data_transacao = datetime.strptime(data_transacao_info, "%Y-%m-%d").date()
+                            data_transacao = data_transacao.strftime("%d/%m/%Y")
+                            info_pagamento = f'pago em {data_transacao}'
+                        else:
+                            info_pagamento = "pagamento ainda não realizado"
+
+                        linha["despesas_impostos"].append({
+                            "info_pagamento": info_pagamento,
+                            "valor": valor_info
+                        })
 
             if item.info_despesa == InformacaoDespesaChoices.IMPOSTO_GERADO:
-                despesa_geradora = item.despesa_geradora.first()
+                info_imposto_gerado = item.info_imposto_retido.strip().split(";")
 
-                linha["despesa_geradora"] = {
-                    "numero_documento": despesa_geradora.numero_documento if despesa_geradora.numero_documento else "",
-                    "data_transacao": despesa_geradora.data_transacao.strftime(
-                        "%d/%m/%Y") if despesa_geradora.data_transacao else "",
-                    "valor": despesa_geradora.valor_total
-                }
+                if info_imposto_gerado and len(info_imposto_gerado) == 3:
+                    numero_documento_imposto_gerado = info_imposto_gerado[0]
+                    data_transacao_imposto_gerado = info_imposto_gerado[1]
+                    data_transacao_imposto_gerado = datetime.strptime(data_transacao_imposto_gerado, "%Y-%m-%d").date()
+                    valor_imposto_gerado = info_imposto_gerado[2]
+
+                    linha["despesa_geradora"] = {
+                        "numero_documento": numero_documento_imposto_gerado if numero_documento_imposto_gerado else "",
+                        "data_transacao": data_transacao_imposto_gerado.strftime(
+                            "%d/%m/%Y") if data_transacao_imposto_gerado else "",
+                        "valor": valor_imposto_gerado
+                    }
 
             linhas.append(linha)
 
