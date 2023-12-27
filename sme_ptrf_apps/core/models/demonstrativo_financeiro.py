@@ -70,6 +70,10 @@ class DemonstrativoFinanceiro(ModeloBase):
         default=VERSAO_FINAL
     )
 
+    arquivo_pdf_substituido = models.FileField(blank=True, null=True, verbose_name='Relatório em PDF Substituido')
+
+    arquivo_pdf_regerado = models.BooleanField(default=False)
+
     class Meta:
         verbose_name = 'Demonstrativo Financeiro'
         verbose_name_plural = '09.2) Demonstrativos Financeiros'

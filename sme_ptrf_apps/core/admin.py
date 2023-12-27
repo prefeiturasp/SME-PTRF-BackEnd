@@ -1,9 +1,9 @@
 import logging
-
-from django.contrib import admin
+from django.contrib import admin, messages
 from rangefilter.filter import DateRangeFilter
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
 from sme_ptrf_apps.core.services import associacao_pode_implantar_saldo
+from sme_ptrf_apps.core.tasks.regerar_demonstrativos_financeiros import regerar_demonstrativo_financeiro_async
 from .models import (
     Acao,
     AcaoAssociacao,
@@ -60,6 +60,7 @@ from .models import (
 )
 
 from django.db.models import Count
+from django.utils.safestring import mark_safe
 
 admin.site.register(Acao)
 admin.site.register(ParametroFiqueDeOlhoPc)
@@ -757,26 +758,6 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
 
     get_nome_dre.short_description = 'DRE'
 
-    def gera_pdf(self, request, queryset):
-        from sme_ptrf_apps.core.models import AcaoAssociacao, ContaAssociacao
-        from sme_ptrf_apps.core.services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
-        from sme_ptrf_apps.core.services.demonstrativo_financeiro_pdf_service import \
-            gerar_arquivo_demonstrativo_financeiro_pdf
-
-        demonstrativo_financeiro = queryset.first()
-
-        prestacao = demonstrativo_financeiro.prestacao_conta
-        periodo = prestacao.periodo
-        acoes = prestacao.associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
-        contas = prestacao.associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
-
-        dados_demonstrativo = gerar_dados_demonstrativo_financeiro("usuarioteste", acoes, periodo, contas[0],
-                                                                   prestacao, previa=False)
-
-        gerar_arquivo_demonstrativo_financeiro_pdf(dados_demonstrativo, demonstrativo_financeiro)
-
-    gera_pdf.short_description = "Gerar PDF"
-
     def gerar_pdf_dados_persistidos(self, request, queryset):
         from .services.recuperacao_dados_persistindos_demo_financeiro_service import RecuperaDadosDemoFinanceiro
         from .services.demonstrativo_financeiro_pdf_service import gerar_arquivo_demonstrativo_financeiro_pdf
@@ -787,6 +768,33 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
                 gerar_arquivo_demonstrativo_financeiro_pdf(dados, item)
 
     gerar_pdf_dados_persistidos.short_description = "Gerar PDF Dados Persistidos"
+
+    def regerar_pdf(self, request, queryset):
+        from django.contrib.auth import get_user_model
+
+        try:
+            usuario = get_user_model().objects.get(username='usr_amcom')
+            self.message_user(request, mark_safe(
+                "<strong>Atenção! Processo de regeração iniciado. </br> "
+                "Este processo rodará em segundo plano e pode demorar! </br> "
+            ), level=messages.WARNING)
+        except Exception:
+            self.message_user(request, mark_safe(
+                "<strong>Atenção! Não foi encontrado o usuário 'usr_amcom'. </br> "
+                "Portanto não será possível iniciar o processo </br> "
+            ), level=messages.WARNING)
+
+        # Data de ocorrencia do bug 109526
+        data_inicio = '2023-11-23 00:00:00'
+        data_fim = '2023-12-14 23:59:59'
+
+        regerar_demonstrativo_financeiro_async.apply_async(
+            (
+                data_inicio,
+                data_fim,
+                'usr_amcom'
+            ), countdown=1
+        )
 
     list_display = (
         'get_nome_associacao',
@@ -805,12 +813,14 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
         'prestacao_conta__associacao__unidade__dre',
         'periodo_previa',
         'status',
-        'versao'
+        'versao',
+        ('criado_em', DateRangeFilter),
+        'arquivo_pdf_regerado'
     )
 
     list_display_links = ('get_nome_associacao',)
 
-    readonly_fields = ('uuid', 'id',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
     search_fields = (
         'prestacao_conta__associacao__unidade__codigo_eol',
@@ -820,7 +830,7 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
 
     autocomplete_fields = ['conta_associacao', 'periodo_previa', 'prestacao_conta']
 
-    actions = ['gera_pdf', 'gerar_pdf_dados_persistidos']
+    actions = ['gerar_pdf_dados_persistidos', 'regerar_pdf']
 
 
 @admin.register(RelacaoBens)
