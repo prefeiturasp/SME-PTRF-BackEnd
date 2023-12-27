@@ -126,117 +126,6 @@ class PrestacaoContaService:
 
         logger.info(f'Prestação de contas aguardando processamento {self._prestacao}.')
 
-    def concluir_pc(self, usuario, justificativa_acertos_pendentes):
-        from sme_ptrf_apps.core.tasks import (
-            concluir_prestacao_de_contas_v2_async,
-            gerar_relatorio_apos_acertos_async,
-            gerar_demonstrativo_financeiro_async,
-            gerar_relacao_bens_async,
-            terminar_processo_pc_async,
-        )
-        logger.info(f"Conclusão de PC V2. Período:{self._periodo.referencia} Associação:{self._associacao.nome}")
-
-        self._set_pc()
-
-        task_celery_concluir_pc = TaskCelery.objects.create(
-            nome_task="concluir_prestacao_de_contas_async",
-            usuario=usuario,
-            associacao=self._associacao,
-            periodo=self._periodo,
-            prestacao_conta=self._prestacao,
-        )
-
-        task_celery_gerar_demonstrativo_financeiro = TaskCelery.objects.create(
-            nome_task="gerar_demonstrativo_financeiro_async",
-            usuario=usuario,
-            associacao=self._associacao,
-            periodo=self._periodo,
-            prestacao_conta=self._prestacao,
-        )
-
-        task_celery_gerar_relacao_bens = TaskCelery.objects.create(
-            nome_task="gerar_relacao_bens_async",
-            usuario=usuario,
-            associacao=self._associacao,
-            periodo=self._periodo,
-            prestacao_conta=self._prestacao,
-        )
-
-        chain_tasks = chain(
-            concluir_prestacao_de_contas_v2_async.s(
-                task_celery_concluir_pc.uuid,
-                periodo_uuid=self._periodo.uuid,
-                associacao_uuid=self._associacao.uuid,
-                username=usuario.username,
-                e_retorno_devolucao=self.e_retorno_devolucao,
-                requer_geracao_documentos=self.pc_requer_geracao_documentos,
-                requer_geracao_fechamentos=self.pc_requer_geracao_fechamentos,
-                requer_acertos_em_extrato=self.pc_requer_acerto_em_extrato,
-                justificativa_acertos_pendentes=justificativa_acertos_pendentes,
-            ),
-
-            group(
-                gerar_demonstrativo_financeiro_async.si(
-                    task_celery_gerar_demonstrativo_financeiro.uuid,
-                    self._prestacao.uuid,
-                    self._periodo.uuid,
-                ),
-                gerar_relacao_bens_async.si(
-                    task_celery_gerar_relacao_bens.uuid,
-                    self._prestacao.uuid
-                )
-            ),
-
-            terminar_processo_pc_async.si(
-                self._periodo.uuid,
-                self._associacao.uuid,
-                usuario.username,
-                self.e_retorno_devolucao
-            )
-
-        )
-
-        chain_tasks.on_error(terminar_processo_pc_async.si(
-            self._periodo.uuid,
-            self._associacao.uuid,
-            usuario.username,
-            self.e_retorno_devolucao
-        ))
-
-        chain_tasks.apply_async(countdown=1)
-
-        if self.e_retorno_devolucao:
-            task_celery_geracao_relatorio_apos_acerto = TaskCelery.objects.create(
-                nome_task="gerar_relatorio_apos_acertos_async",
-                associacao=self._associacao,
-                periodo=self._periodo,
-                usuario=usuario
-            )
-
-            id_task_geracao_relatorio_apos_acerto = gerar_relatorio_apos_acertos_async.apply_async(
-                (
-                    task_celery_geracao_relatorio_apos_acerto.uuid,
-                    self._associacao.uuid,
-                    self._periodo.uuid,
-                    usuario.name
-                ), countdown=1
-            )
-
-            task_celery_geracao_relatorio_apos_acerto.id_task_assincrona = id_task_geracao_relatorio_apos_acerto
-            task_celery_geracao_relatorio_apos_acerto.save()
-
-        return self._prestacao
-
-    def persiste_dados_docs(self):
-        logger.info(f'Criando documentos do período {self._periodo} e prestacao {self._prestacao}...')
-
-        for conta in self._contas:
-            logger.info(f'Persistindo dados do demonstrativo financeiro da conta {conta}.')
-            self._persiste_dados_demonstrativo_financeiro(conta_associacao=conta)
-
-            logger.info(f'Persistindo dados da relação de bens da conta {conta}.')
-            self._persiste_dados_relacao_de_bens(conta_associacao=conta)
-
     def _persiste_dados_demonstrativo_financeiro(self, conta_associacao, previa=False):
         logger.info(f'Criando registro do demonstrativo financeiro da conta {conta_associacao}.')
 
@@ -402,3 +291,129 @@ class PrestacaoContaService:
         else:
             logger.info(f'Houve um problema no processo de PC do período {self._periodo} e prestacao {self._prestacao}.')
             self.registra_falha_processo_pc()
+
+    def iniciar_tasks_de_conclusao_de_pc(self, usuario, justificativa_acertos_pendentes):
+        from sme_ptrf_apps.core.tasks import (
+            calcular_prestacao_de_contas_async,
+            gerar_relatorio_apos_acertos_async,
+            gerar_demonstrativo_financeiro_async,
+            gerar_relacao_bens_async,
+            terminar_processo_pc_async,
+        )
+        logger.info(f"Conclusão de PC V2. Período:{self._periodo.referencia} Associação:{self._associacao.nome}")
+
+        self._set_pc()
+
+        task_celery_calcular_pc = TaskCelery.objects.create(
+            nome_task="calcular_prestacao_de_contas_async",
+            usuario=usuario,
+            associacao=self._associacao,
+            periodo=self._periodo,
+            prestacao_conta=self._prestacao,
+        )
+
+        task_celery_gerar_demonstrativo_financeiro = TaskCelery.objects.create(
+            nome_task="gerar_demonstrativo_financeiro_async",
+            usuario=usuario,
+            associacao=self._associacao,
+            periodo=self._periodo,
+            prestacao_conta=self._prestacao,
+        )
+
+        task_celery_gerar_relacao_bens = TaskCelery.objects.create(
+            nome_task="gerar_relacao_bens_async",
+            usuario=usuario,
+            associacao=self._associacao,
+            periodo=self._periodo,
+            prestacao_conta=self._prestacao,
+        )
+
+        chain_tasks = chain(
+            calcular_prestacao_de_contas_async.s(
+                task_celery_calcular_pc.uuid,
+                periodo_uuid=self._periodo.uuid,
+                associacao_uuid=self._associacao.uuid,
+                username=usuario.username,
+                e_retorno_devolucao=self.e_retorno_devolucao,
+                requer_geracao_documentos=self.pc_requer_geracao_documentos,
+                requer_geracao_fechamentos=self.pc_requer_geracao_fechamentos,
+                requer_acertos_em_extrato=self.pc_requer_acerto_em_extrato,
+                justificativa_acertos_pendentes=justificativa_acertos_pendentes,
+            ),
+
+            group(
+                gerar_demonstrativo_financeiro_async.si(
+                    task_celery_gerar_demonstrativo_financeiro.uuid,
+                    self._prestacao.uuid,
+                    self._periodo.uuid,
+                ),
+                gerar_relacao_bens_async.si(
+                    task_celery_gerar_relacao_bens.uuid,
+                    self._prestacao.uuid
+                )
+            ),
+
+            terminar_processo_pc_async.si(
+                self._periodo.uuid,
+                self._associacao.uuid,
+                usuario.username,
+                self.e_retorno_devolucao
+            )
+
+        )
+
+        chain_tasks.on_error(terminar_processo_pc_async.si(
+            self._periodo.uuid,
+            self._associacao.uuid,
+            usuario.username,
+            self.e_retorno_devolucao
+        ))
+
+        chain_tasks.apply_async(countdown=1)
+
+        if self.e_retorno_devolucao:
+            task_celery_geracao_relatorio_apos_acerto = TaskCelery.objects.create(
+                nome_task="gerar_relatorio_apos_acertos_async",
+                associacao=self._associacao,
+                periodo=self._periodo,
+                usuario=usuario
+            )
+
+            id_task_geracao_relatorio_apos_acerto = gerar_relatorio_apos_acertos_async.apply_async(
+                (
+                    task_celery_geracao_relatorio_apos_acerto.uuid,
+                    self._associacao.uuid,
+                    self._periodo.uuid,
+                    usuario.name
+                ), countdown=1
+            )
+
+            task_celery_geracao_relatorio_apos_acerto.id_task_assincrona = id_task_geracao_relatorio_apos_acerto
+            task_celery_geracao_relatorio_apos_acerto.save()
+
+        return self._prestacao
+
+    def persiste_dados_docs(self):
+        logger.info(f'Criando documentos do período {self._periodo} e prestacao {self._prestacao}...')
+
+        for conta in self._contas:
+            logger.info(f'Persistindo dados do demonstrativo financeiro da conta {conta}.')
+            self._persiste_dados_demonstrativo_financeiro(conta_associacao=conta)
+
+            logger.info(f'Persistindo dados da relação de bens da conta {conta}.')
+            self._persiste_dados_relacao_de_bens(conta_associacao=conta)
+
+    def atualiza_justificativa_conciliacao_original(self):
+        """ Atualiza o campo observacao.justificativa_original com observacao.texto """
+        for conta_associacao in self._contas:
+            observacao = ObservacaoConciliacao.objects.filter(
+                periodo=self._periodo,
+                associacao=self._associacao,
+                conta_associacao=conta_associacao,
+            ).first()
+            if observacao:
+                observacao.justificativa_original = observacao.texto
+                observacao.save()
+
+    def calcular_pc(self):
+        ...

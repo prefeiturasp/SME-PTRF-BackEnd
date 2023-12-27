@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
     time_limet=600,
     soft_time_limit=300
 )
-def concluir_prestacao_de_contas_v2_async(
+def calcular_prestacao_de_contas_async(
     id_task,
     periodo_uuid,
     associacao_uuid,
@@ -41,12 +41,11 @@ def concluir_prestacao_de_contas_v2_async(
     )
 
     task = None
+    prestacao = None
     try:
         task = TaskCelery.objects.get(uuid=id_task)
 
-        periodo = Periodo.by_uuid(periodo_uuid)
-        associacao = Associacao.by_uuid(associacao_uuid)
-        prestacao = PrestacaoConta.by_periodo(associacao=associacao, periodo=periodo)
+        task.grava_log_concatenado(f'Iniciando a task calcular_prestacao_de_contas_async - VERSÃO 2')
 
         pc_service = PrestacaoContaService(
             periodo_uuid=periodo_uuid,
@@ -54,7 +53,12 @@ def concluir_prestacao_de_contas_v2_async(
             username=username,
         )
 
-        task.grava_log_concatenado(f'Iniciando a task concluir_prestacao_de_contas_async - VERSÃO 2')
+        # TODO: Remover essas variáveis após passar lógica para o service
+        periodo = Periodo.by_uuid(periodo_uuid)
+        associacao = Associacao.by_uuid(associacao_uuid)
+        prestacao = PrestacaoConta.by_periodo(associacao=associacao, periodo=periodo)
+        acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
+        contas = prestacao.contas_ativas_no_periodo()
 
         time.sleep(10)  # Aguardar 10 segundos para iniciar a task e dar tempo de criar as tasks duplicadas
 
@@ -69,19 +73,7 @@ def concluir_prestacao_de_contas_v2_async(
         task.grava_log_concatenado(f'PC em processamento...')
         prestacao.em_processamento()
 
-        acoes = associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
-        contas = prestacao.contas_ativas_no_periodo()
-
-        # Aqui grava observacao da conciliacao bancaria. Grava o campo observacao.justificativa_original com observacao.texto
-        for conta_associacao in contas:
-            observacao = ObservacaoConciliacao.objects.filter(
-                periodo=periodo,
-                conta_associacao=conta_associacao,
-                associacao=associacao,
-            ).first()
-            if observacao:
-                observacao.justificativa_original = observacao.texto
-                observacao.save()
+        pc_service.atualiza_justificativa_conciliacao_original()
 
         # TODO Rever e simplificar as diversas condicionais abaixo
         if e_retorno_devolucao and (requer_geracao_documentos or requer_geracao_fechamentos):
@@ -122,7 +114,6 @@ def concluir_prestacao_de_contas_v2_async(
         else:
             task.grava_log_concatenado(f'PC não requer geração de documentos e cálculo de fechamentos.')
 
-
         prestacao = prestacao.concluir_v2(
             e_retorno_devolucao=e_retorno_devolucao,
             justificativa_acertos_pendentes=justificativa_acertos_pendentes
@@ -131,7 +122,7 @@ def concluir_prestacao_de_contas_v2_async(
         task.grava_log_concatenado(f'Concluída a prestação de contas {prestacao}.')
 
         task.registra_data_hora_finalizacao(f'Finalizada com sucesso o cálculo da PC.')
-        logger.info(f'Finalizado com sucesso a task concluir_prestacao_de_contas_async - VERSÃO 2')
+        logger.info(f'Finalizado com sucesso a task calcular_prestacao_de_contas_async - VERSÃO 2')
 
     except Exception as e:
         traceback_info = traceback.format_exc()

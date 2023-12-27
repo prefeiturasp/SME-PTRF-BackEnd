@@ -197,7 +197,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         )
 
         try:
-            pc = pc_service.concluir_pc(
+            pc = pc_service.iniciar_tasks_de_conclusao_de_pc(
                 usuario=request.user,
                 justificativa_acertos_pendentes=serializer.validated_data.get("justificativa_acertos_pendentes", "")
             )
