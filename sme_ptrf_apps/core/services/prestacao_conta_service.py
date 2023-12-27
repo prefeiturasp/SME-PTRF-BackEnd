@@ -43,6 +43,7 @@ class PrestacaoContaService:
             raise Exception(f"Associação com uuid {associacao_uuid} não encontrada")
 
         self._prestacao = PrestacaoConta.by_periodo(associacao=self._associacao, periodo=self._periodo)
+        self._e_retorno_devolucao = self._prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA if self._prestacao else False
 
         self._acoes = self._associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
         self._contas = self._prestacao.contas_ativas_no_periodo() if self._prestacao else None
@@ -113,14 +114,17 @@ class PrestacaoContaService:
 
     @property
     def e_retorno_devolucao(self):
-        return self._prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA
+        return self._e_retorno_devolucao
 
     def _set_pc(self):
+        """Define a prestação de contas para o período e associação informados."""
         self._prestacao = PrestacaoConta.abrir(periodo=self._periodo, associacao=self._associacao)
         logger.info(f'Aberta a prestação de contas {self._prestacao}.')
 
         if self._prestacao.status in (PrestacaoConta.STATUS_EM_PROCESSAMENTO, PrestacaoConta.STATUS_A_PROCESSAR):
             raise Exception(f'Prestação de contas {self._prestacao} já está em processamento.')
+
+        self._e_retorno_devolucao = self._prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA
 
         self._prestacao.a_processar()
 
@@ -328,6 +332,7 @@ class PrestacaoContaService:
             prestacao_conta=self._prestacao,
         )
 
+        logger.info(f'Inicia tasks com é retorno de devolução = {self.e_retorno_devolucao}')
         chain_tasks = chain(
             calcular_prestacao_de_contas_async.s(
                 task_celery_calcular_pc.uuid,

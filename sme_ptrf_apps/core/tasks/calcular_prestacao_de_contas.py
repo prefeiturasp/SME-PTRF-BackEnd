@@ -47,6 +47,11 @@ def calcular_prestacao_de_contas_async(
 
         task.grava_log_concatenado(f'Iniciando a task calcular_prestacao_de_contas_async - VERSÃO 2')
 
+        task.grava_log_concatenado(f'É retorno de devolução: {e_retorno_devolucao}')
+        task.grava_log_concatenado(f'Requer geração de documentos: {requer_geracao_documentos}')
+        task.grava_log_concatenado(f'Requer geração de fechamentos: {requer_geracao_fechamentos}')
+        task.grava_log_concatenado(f'Requer acertos em extrato: {requer_acertos_em_extrato}')
+
         pc_service = PrestacaoContaService(
             periodo_uuid=periodo_uuid,
             associacao_uuid=associacao_uuid,
@@ -77,11 +82,12 @@ def calcular_prestacao_de_contas_async(
 
         # TODO Rever e simplificar as diversas condicionais abaixo
         if e_retorno_devolucao and (requer_geracao_documentos or requer_geracao_fechamentos):
-            task.grava_log_concatenado(f'Solicitações de ajustes Justificadas requerem apagar fechamentos pc {prestacao.uuid}.')
+            task.grava_log_concatenado(f'Solicitações de ajustes requerem apagar fechamentos pc {prestacao.uuid}.')
             prestacao.apaga_fechamentos()
+            task.grava_log_concatenado(f'Fechamentos apagados para a prestação de contas {prestacao}.')
 
         if e_retorno_devolucao and requer_geracao_fechamentos and not requer_geracao_documentos:
-            task.grava_log_concatenado(f'Solicitações de ajustes Justificadas requerem criar os fechamentos pc {prestacao.uuid}.')
+            task.grava_log_concatenado(f'Solicitações de ajustes requerem criar os fechamentos pc {prestacao.uuid}.')
 
             _criar_fechamentos(acoes, contas, periodo, prestacao)
             task.grava_log_concatenado(f'Fechamentos criados para a prestação de contas {prestacao}.')
@@ -89,7 +95,6 @@ def calcular_prestacao_de_contas_async(
         if e_retorno_devolucao and (requer_geracao_documentos or requer_acertos_em_extrato):
             task.grava_log_concatenado(f'Solicitações de ajustes requerem apagar fechamentos e documentos da pc {prestacao.uuid}.')
 
-            # TODO: Verificar se os dados persistidos dos relatórios estão sendo apagados
             prestacao.apaga_relacao_bens()
             task.grava_log_concatenado(f'Relação de bens apagada.')
 
