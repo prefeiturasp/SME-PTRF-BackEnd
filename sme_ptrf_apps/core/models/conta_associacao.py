@@ -222,7 +222,7 @@ class ContaAssociacao(ModeloBase):
         )
 
         validacao = ValidaDataDeEncerramento(
-            associacao=self.associacao, data_de_encerramento=data_encerramento
+            associacao=self.associacao, data_de_encerramento=data_encerramento, conta=self
         )
         return validacao.pode_encerrar
 
