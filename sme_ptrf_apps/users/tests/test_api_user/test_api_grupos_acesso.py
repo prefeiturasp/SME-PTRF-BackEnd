@@ -11,7 +11,7 @@ def test_grupos_disponiveis_por_acesso_e_visao_do_usuario(jwt_authenticated_clie
     username = usuario_nao_servidor.username
 
     response = jwt_authenticated_client_u.get(
-        f'/api/grupos/grupos-disponiveis-por-acesso-visao/?username={username}&visao_base=SME')
+        f'/api/grupos/grupos-disponiveis-por-acesso-visao/?username={username}&visao_base=SME&uuid_unidade=SME')
     assert response.status_code == status.HTTP_200_OK
     
 def test_habilitar_grupo_acesso(jwt_authenticated_client_u, usuario_nao_servidor):

@@ -3,13 +3,14 @@ from ...despesas.models import Despesa
 from ...receitas.models import Receita
 
 class ValidaDataDeEncerramento():
-    def __init__(self, associacao, data_de_encerramento):
+    def __init__(self, associacao, data_de_encerramento, conta):
         self.__associacao = associacao
         self.__data_de_encerramento = data_de_encerramento
         self.despesas = None
         self.receitas = None
         self.pode_encerrar = True
-
+        self.conta = conta
+        
         self.checa_se_pode_encerrar()
 
     @property
@@ -25,14 +26,16 @@ class ValidaDataDeEncerramento():
                 Q(status="COMPLETO") &
                 Q(data_e_hora_de_inativacao__isnull=True) &
                 Q(associacao=self.associacao) &
-                Q(data_transacao__gt=self.data_de_encerramento)
+                Q(data_transacao__gt=self.data_de_encerramento) &
+                Q(rateios__conta_associacao=self.conta)
             ).exists()
 
     def retorna_se_tem_receita(self):
         return Receita.objects.filter(
                 Q(status="COMPLETO") &
                 Q(associacao=self.associacao) &
-                Q(data__gt=self.data_de_encerramento)
+                Q(data__gt=self.data_de_encerramento) &
+                Q(conta_associacao=self.conta)
             ).exists()
 
     def checa_se_pode_encerrar(self):
