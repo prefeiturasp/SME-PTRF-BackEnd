@@ -1742,7 +1742,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         from sme_ptrf_apps.core.services.notificacao_services.notificacao_pendencia_geracao_ata import notificar_pendencia_geracao_ata_apresentacao
         prestacao_contas = self.get_object()
 
-        if not prestacao_contas.ata_do_periodo():
+        if not prestacao_contas.ata_apresentacao_gerada():
             notificar_pendencia_geracao_ata_apresentacao(prestacao_contas)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
