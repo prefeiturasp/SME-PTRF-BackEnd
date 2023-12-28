@@ -43,7 +43,7 @@ class PrestacaoContaService:
             raise Exception(f"Associação com uuid {associacao_uuid} não encontrada")
 
         self._prestacao = PrestacaoConta.by_periodo(associacao=self._associacao, periodo=self._periodo)
-        self._e_retorno_devolucao = self._prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA if self._prestacao else False
+        self._e_retorno_devolucao = self._prestacao.status in (PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_DEVOLVIDA_CALCULADA) if self._prestacao else False
 
         self._acoes = self._associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
         self._contas = self._prestacao.contas_ativas_no_periodo() if self._prestacao else None
@@ -55,62 +55,52 @@ class PrestacaoContaService:
         self.app.config_from_object("django.conf:settings", namespace="CELERY")
 
     @property
-    def pc_requer_geracao_documentos(self):
-        if self._prestacao.status in (
-            PrestacaoConta.STATUS_NAO_RECEBIDA,
-            PrestacaoConta.STATUS_RECEBIDA,
-            PrestacaoConta.STATUS_EM_ANALISE,
-            PrestacaoConta.STATUS_APROVADA,
-            PrestacaoConta.STATUS_APROVADA_RESSALVA,
-            PrestacaoConta.STATUS_REPROVADA,
-            PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA,
-        ):
-            return False
-
-        if self._prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA:
-            ultima_analise = self._prestacao.analises_da_prestacao.last()
-            return ultima_analise is not None and ultima_analise.requer_alteracao_em_lancamentos
-        else:
-            return True
+    def periodo(self):
+        return self._periodo
 
     @property
-    def pc_requer_geracao_fechamentos(self):
-        if self._prestacao.status in (
-            PrestacaoConta.STATUS_NAO_RECEBIDA,
-            PrestacaoConta.STATUS_RECEBIDA,
-            PrestacaoConta.STATUS_EM_ANALISE,
-            PrestacaoConta.STATUS_APROVADA,
-            PrestacaoConta.STATUS_APROVADA_RESSALVA,
-            PrestacaoConta.STATUS_REPROVADA,
-            PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA,
-        ):
-            return False
-
-        if self._prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA:
-            ultima_analise = self._prestacao.analises_da_prestacao.last()
-            return ultima_analise is not None and ultima_analise.requer_geracao_fechamentos
-        else:
-            return True
+    def associacao(self):
+        return self._associacao
 
     @property
-    def pc_requer_acerto_em_extrato(self):
+    def prestacao(self):
+        return self._prestacao
 
-        if self._prestacao.status in (
-            PrestacaoConta.STATUS_NAO_RECEBIDA,
-            PrestacaoConta.STATUS_RECEBIDA,
-            PrestacaoConta.STATUS_EM_ANALISE,
-            PrestacaoConta.STATUS_APROVADA,
-            PrestacaoConta.STATUS_APROVADA_RESSALVA,
-            PrestacaoConta.STATUS_REPROVADA,
-            PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA,
-        ):
+    @property
+    def usuario(self):
+        return self._user
+
+    @property
+    def contas(self):
+        return self._contas
+
+    @property
+    def acoes(self):
+        return self._acoes
+
+    @property
+    def pc_e_devolucao_com_solicitacoes_mudanca(self):
+        if self._e_retorno_devolucao:
+            ultima_analise = self._prestacao.analises_da_prestacao.last()
+            return ultima_analise is not None and ultima_analise.verifica_se_requer_alteracao_em_lancamentos(considera_realizacao=False)
+        else:
             return False
 
-        if self._prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA:
+    @property
+    def pc_e_devolucao_com_solicitacoes_mudanca_realizadas(self):
+        if self._e_retorno_devolucao:
+            ultima_analise = self._prestacao.analises_da_prestacao.last()
+            return ultima_analise is not None and ultima_analise.verifica_se_requer_alteracao_em_lancamentos(considera_realizacao=True)
+        else:
+            return False
+
+    @property
+    def pc_e_devolucao_com_solicitacao_acerto_em_extrato(self):
+        if self._e_retorno_devolucao:
             ultima_analise = self._prestacao.analises_da_prestacao.last()
             return ultima_analise is not None and ultima_analise.requer_acertos_em_extrato
         else:
-            return True
+            return False
 
     @property
     def e_retorno_devolucao(self):
@@ -128,7 +118,7 @@ class PrestacaoContaService:
 
         self._prestacao.a_processar()
 
-        logger.info(f'Prestação de contas aguardando processamento {self._prestacao}.')
+        logger.info(f'PC {self._prestacao} aguardando processamento.')
 
     def _persiste_dados_demonstrativo_financeiro(self, conta_associacao, previa=False):
         logger.info(f'Criando registro do demonstrativo financeiro da conta {conta_associacao}.')
@@ -202,21 +192,22 @@ class PrestacaoContaService:
             task.registra_data_hora_finalizacao_forcada(log="Finalização forçada pela falha de PC.")
 
     def _reabrir_prestacao_de_contas(self):
-        logger.info(f'Reabrindo a prestação de contas de uuid {self._prestacao.uuid}.')
+        logger.info(f'Reabrindo a PC de uuid {self._prestacao.uuid}.')
         concluido = PrestacaoConta.reabrir(uuid=self._prestacao.uuid)
         if concluido:
             logger.info(
-                f'Prestação de contas de uuid {self._prestacao.uuid} foi reaberta. Seus registros foram apagados.')
+                f'PC de uuid {self._prestacao.uuid} foi reaberta. Seus registros foram apagados.')
         return concluido
 
-    def registra_falha_processo_pc(self):
+    def trata_falha_processo_pc(self):
         from sme_ptrf_apps.core.services import FalhaGeracaoPcService
 
         try:
 
+            logger.info(f"Revogando tasks ativas da PC {self._prestacao}.")
             self._revoke_tasks_by_id()
 
-            # Registrando falha de geracao de pc
+            logger.info(f"Criando um registro de falha de geração da PC {self._prestacao}.")
             registra_falha_service = FalhaGeracaoPcService(
                 periodo=self._periodo,
                 usuario=self._user,
@@ -228,23 +219,28 @@ class PrestacaoContaService:
             ultima_analise = self._prestacao.analises_da_prestacao.last()
 
             if ultima_analise:
+                logger.info("Retorna a PC para status DEVOLVIDA.")
                 self._prestacao.status = PrestacaoConta.STATUS_DEVOLVIDA
                 self._prestacao.save()
-                logger.info(
-                    f"Monitoramento de PC: Prestação de contas passada para status DEVOLVIDA com sucesso.")
+                logger.info(f"Alterado o status da PC {self._prestacao}.")
+
+                if ultima_analise.verifica_se_requer_alteracao_em_lancamentos(considera_realizacao=False):
+                    logging.info('A devolução de PC requer alterações e por isso deve apagar os seus fechamentos.')
+                    self._prestacao.apaga_fechamentos()
+                    logging.info('Fechamentos apagados.')
+
             else:
+                logger.info(f"Iniciando reabertura da PC {self._prestacao}.")
                 reaberta = self._reabrir_prestacao_de_contas()
 
                 if reaberta:
                     logger.info(
-                        f"Monitoramento de PC: Prestação de contas reaberta com sucesso. Todos os seus "
-                        f"registros foram apagados.")
+                        f"PC reaberta com sucesso. Todos os seus registros foram apagados.")
                 else:
-                    logger.info(
-                        f"Monitoramento de PC: Houve algum erro ao tentar reabrir a prestação de contas.")
+                    logger.info(f"Houve algum erro ao tentar reabrir a PC.")
 
         except Exception as e:
-            logger.info(f"Monitoramento de PC: Houve algum erro ao no processo de monitoramento de PC. {e}")
+            logger.info(f"Houve algum erro ao no registro de falha da PC. {e}")
 
     def resolve_registros_falha(self):
         from sme_ptrf_apps.core.services import FalhaGeracaoPcService
@@ -258,11 +254,11 @@ class PrestacaoContaService:
         )
         registra_falha_service.marcar_como_resolvido()
 
-    def terminar_processo_pc(self, e_retorno_devolucao=False):
+    def terminar_processo_pc(self):
         if not self._prestacao:
-            raise Exception(f"Não existe prestação de contas para o período {self._periodo} e associação {self._associacao}.")
+            raise Exception(f"Não existe PC para o período {self._periodo} e associação {self._associacao}.")
 
-        logger.info(f'Terminando processo de PC do período {self._periodo} e prestacao {self._prestacao}...')
+        logger.info(f'Terminando processo da PC {self._prestacao}...')
 
         calculo_concluido = self._prestacao.status in [PrestacaoConta.STATUS_CALCULADA, PrestacaoConta.STATUS_DEVOLVIDA_CALCULADA]
 
@@ -285,16 +281,17 @@ class PrestacaoContaService:
                 break
 
         if calculo_concluido and demonstrativos_concluidos and relatorios_concluidos:
-            logger.info(f'Terminando o processo de PC do período {self._periodo} e prestacao {self._prestacao}...')
-            self._prestacao.status = PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA if e_retorno_devolucao else PrestacaoConta.STATUS_NAO_RECEBIDA
+            logger.info(f'Terminando o processo da PC {self._prestacao}...')
+            self._prestacao.status = PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA if self.e_retorno_devolucao else PrestacaoConta.STATUS_NAO_RECEBIDA
             self._prestacao.save()
 
             self.resolve_registros_falha()
 
-            logger.info(f'PC do período {self._periodo} e prestacao {self._prestacao} concluída.')
+            logger.info(f'PC {self._prestacao} concluída.')
         else:
-            logger.info(f'Houve um problema no processo de PC do período {self._periodo} e prestacao {self._prestacao}.')
-            self.registra_falha_processo_pc()
+            logger.info(f'Houve um problema no processo da PC {self._prestacao}.')
+            self.trata_falha_processo_pc()
+            logger.info(f'Feito o roll back do cálculo para a situação antes do início do processo de PC.')
 
     def iniciar_tasks_de_conclusao_de_pc(self, usuario, justificativa_acertos_pendentes):
         from sme_ptrf_apps.core.tasks import (
@@ -340,9 +337,9 @@ class PrestacaoContaService:
                 associacao_uuid=self._associacao.uuid,
                 username=usuario.username,
                 e_retorno_devolucao=self.e_retorno_devolucao,
-                requer_geracao_documentos=self.pc_requer_geracao_documentos,
-                requer_geracao_fechamentos=self.pc_requer_geracao_fechamentos,
-                requer_acertos_em_extrato=self.pc_requer_acerto_em_extrato,
+                devolucao_tem_solicitacoes_mudanca=self.pc_e_devolucao_com_solicitacoes_mudanca,
+                devolucao_tem_solicitacoes_mudanca_realizadas=self.pc_e_devolucao_com_solicitacoes_mudanca_realizadas,
+                devolucao_tem_acertos_em_extrato=self.pc_e_devolucao_com_solicitacao_acerto_em_extrato,
                 justificativa_acertos_pendentes=justificativa_acertos_pendentes,
             ),
 
@@ -362,7 +359,6 @@ class PrestacaoContaService:
                 self._periodo.uuid,
                 self._associacao.uuid,
                 usuario.username,
-                self.e_retorno_devolucao
             )
 
         )
@@ -371,7 +367,6 @@ class PrestacaoContaService:
             self._periodo.uuid,
             self._associacao.uuid,
             usuario.username,
-            self.e_retorno_devolucao
         ))
 
         chain_tasks.apply_async(countdown=1)
@@ -399,7 +394,7 @@ class PrestacaoContaService:
         return self._prestacao
 
     def persiste_dados_docs(self):
-        logger.info(f'Criando documentos do período {self._periodo} e prestacao {self._prestacao}...')
+        logger.info(f'Criando documentos da PC {self._prestacao}...')
 
         for conta in self._contas:
             logger.info(f'Persistindo dados do demonstrativo financeiro da conta {conta}.')
@@ -420,5 +415,3 @@ class PrestacaoContaService:
                 observacao.justificativa_original = observacao.texto
                 observacao.save()
 
-    def calcular_pc(self):
-        ...

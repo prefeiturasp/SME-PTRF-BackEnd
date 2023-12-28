@@ -17,11 +17,10 @@ def terminar_processo_pc_async(
     periodo_uuid,
     associacao_uuid,
     username="",
-    e_retorno_devolucao=False,
 ):
     from sme_ptrf_apps.core.services.prestacao_conta_service import PrestacaoContaService
 
-    logger.info('Iniciando a task terminar_processo_pc_async')
+    logger.info(f'Iniciando a task terminar_processo_pc_async')
 
     pc_service = PrestacaoContaService(
         periodo_uuid=periodo_uuid,
@@ -29,5 +28,5 @@ def terminar_processo_pc_async(
         username=username,
     )
 
-    pc_service.terminar_processo_pc(e_retorno_devolucao=e_retorno_devolucao)
+    pc_service.terminar_processo_pc()
 
