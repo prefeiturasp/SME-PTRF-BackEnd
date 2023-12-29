@@ -8,10 +8,11 @@ from auditlog.registry import auditlog
 from django.db import models
 from .validators import cnpj_validation
 
+
 class RelatorioRelacaoBens(ModeloBase):
     history = AuditlogHistoryField()
 
-    relacao_bens = models.ForeignKey('RelacaoBens', on_delete=models.SET_NULL, null=True, blank=True)
+    relacao_bens = models.ForeignKey('RelacaoBens', on_delete=models.CASCADE, null=True, blank=True)
 
     # cabecalho
     periodo_referencia = models.CharField(verbose_name='Período referência', max_length=200)
@@ -44,10 +45,11 @@ class RelatorioRelacaoBens(ModeloBase):
     def __str__(self):
         return f"Relatório {self.nome_associacao} | {self.periodo_referencia} gerado em {self.data_geracao}"
 
+
 class ItemRelatorioRelacaoDeBens(ModeloBase):
     history = AuditlogHistoryField()
 
-    relatorio = models.ForeignKey('RelatorioRelacaoBens', on_delete=models.PROTECT,
+    relatorio = models.ForeignKey('RelatorioRelacaoBens', on_delete=models.CASCADE,
                                   related_name='bens', blank=True, null=True)
     tipo_documento = models.CharField(verbose_name='Tipo documento', max_length=200, blank=True, null=True)
     numero_documento =  models.CharField(verbose_name='Nº do documento', max_length=100, default='', blank=True)
@@ -61,6 +63,7 @@ class ItemRelatorioRelacaoDeBens(ModeloBase):
 
     def __str__(self):
         return self.numero_documento
+
 
 auditlog.register(RelatorioRelacaoBens)
 auditlog.register(ItemRelatorioRelacaoDeBens)
