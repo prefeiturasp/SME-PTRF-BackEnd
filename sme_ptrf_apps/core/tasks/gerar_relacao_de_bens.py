@@ -38,7 +38,7 @@ def gerar_relacao_bens_async(id_task, prestacao_conta_uuid):
             dados = _retornar_dados_relatorio_relacao_de_bens(relacao)
 
             if dados:
-                gerar_arquivo_relacao_de_bens_pdf(dados, relacao, tentativa=tentativa)
+                gerar_arquivo_relacao_de_bens_pdf(dados, relacao)
                 relacao.arquivo_concluido()
                 task.grava_log_concatenado(f'Arquivo relação bens PDF gerado para a conta {relacao.conta_associacao}.')
             else:

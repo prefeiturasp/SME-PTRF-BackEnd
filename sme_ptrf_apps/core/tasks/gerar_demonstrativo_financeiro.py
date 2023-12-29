@@ -52,7 +52,7 @@ def gerar_demonstrativo_financeiro_async(id_task, prestacao_conta_uuid, periodo_
 
             dados_recuperados = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
 
-            gerar_arquivo_demonstrativo_financeiro_pdf(dados_recuperados, demonstrativo, tentativa=tentativa)
+            gerar_arquivo_demonstrativo_financeiro_pdf(dados_recuperados, demonstrativo)
 
             demonstrativo.arquivo_concluido()
 
