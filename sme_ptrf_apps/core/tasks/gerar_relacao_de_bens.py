@@ -1,6 +1,7 @@
 import logging
+import traceback
 
-from celery import shared_task
+from celery import shared_task, current_task
 from celery.exceptions import MaxRetriesExceededError
 
 from sme_ptrf_apps.core.models import PrestacaoConta, RelacaoBens, TaskCelery
@@ -9,19 +10,25 @@ from sme_ptrf_apps.core.services.relacao_bens_pdf_service import gerar_arquivo_r
 
 logger = logging.getLogger(__name__)
 
-MAX_RETRIES = 8
+MAX_RETRIES = 3
 
 
 @shared_task(
-    retry_backoff=2,
-    retry_kwargs={'max_retries': 8},
-    time_limet=600,
+    autoretry_for=(Exception,),
+    retry_kwargs={'max_retries': MAX_RETRIES},
+    retry_backoff=True,
+    retry_backoff_max=600,
+    retry_jitter=True,
+    time_limit=600,
     soft_time_limit=300
 )
 def gerar_relacao_bens_async(id_task, prestacao_conta_uuid):
+    tentativa = current_task.request.retries + 1
+
+    task = None
     try:
         task = TaskCelery.objects.get(uuid=id_task)
-        logger.info('Iniciando task gerar_relacao_bens_async')
+        logger.info(f'Iniciando task gerar_relacao_bens_async, tentativa {tentativa}')
 
         prestacao = PrestacaoConta.objects.get(uuid=prestacao_conta_uuid)
 
@@ -40,11 +47,18 @@ def gerar_relacao_bens_async(id_task, prestacao_conta_uuid):
         logger.info('Task gerar_arquivo_final_relacao_bens_async finalizada')
         task.registra_data_hora_finalizacao(f'Finalizada com sucesso a geração da relação de bens.')
     except Exception as exc:
-        if gerar_relacao_bens_async.request.retries >= MAX_RETRIES:
-            mensagem_tentativas_excedidas = 'Tentativas de reprocessamento com falha excedidas.'
-            task.registra_data_hora_finalizacao(mensagem_tentativas_excedidas)
+        if task:
+            task.grava_log_concatenado(f'A tentativa {tentativa} de gerar a relação de bens falhou. {exc}')
+
+        if tentativa > MAX_RETRIES:
+            traceback_info = traceback.format_exc()
+            mensagem_tentativas_excedidas = f'Tentativas de reprocessamento com falha excedidas para a relação de bens. Detalhes do erro: {exc}\n{traceback_info}'
+            logger.error(mensagem_tentativas_excedidas)
+
+            if task:
+                task.registra_data_hora_finalizacao(mensagem_tentativas_excedidas)
+
             raise MaxRetriesExceededError(mensagem_tentativas_excedidas)
         else:
-            task.grava_log_concatenado(
-                f'A tentativa {gerar_relacao_bens_async.request.retries} de gerar a relação de bens falhou. {exc}')
             raise exc
+

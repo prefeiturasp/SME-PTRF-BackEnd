@@ -163,6 +163,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             self.queryset.filter(associacao__uuid=associacao_uuid).filter(
                 periodo__uuid=periodo_uuid).first(), many=False).data)
 
+    # TODO: Renomear essa action para "concluir" quando a feature flag 'novo-processo-pc' for removida
     @extend_schema(
         request=PrestacoesContasConcluirValidateSerializer,
         responses={200: "Operação realizada com sucesso"},
@@ -196,7 +197,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         )
 
         try:
-            pc = pc_service.concluir_pc(
+            pc = pc_service.iniciar_tasks_de_conclusao_de_pc(
                 usuario=request.user,
                 justificativa_acertos_pendentes=serializer.validated_data.get("justificativa_acertos_pendentes", "")
             )
@@ -215,6 +216,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(PrestacaoContaLookUpSerializer(pc, many=False).data, status=status.HTTP_200_OK)
 
+    # TODO: Remover essa action quando a feature flag 'novo-processo-pc' for removida
     @action(
         detail=False,
         methods=["post"],
@@ -379,7 +381,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def receber(self, request, uuid):
         from sme_ptrf_apps.core.services.processos_services import trata_processo_sei_ao_receber_pc
-        
+
         prestacao_conta = self.get_object()
 
         data_recebimento = request.data.get('data_recebimento', None)
@@ -401,7 +403,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'mensagem': 'Você não pode receber uma prestação de contas com status diferente de NAO_RECEBIDA.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        
+
         processo_sei = request.data.get('processo_sei', None)
         if not processo_sei:
             response = {
@@ -411,11 +413,20 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'mensagem': 'Faltou informar o processo SEI de recebimento da Prestação de Contas.'
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        
+
         acao_processo_sei = request.data.get('acao_processo_sei', None)
-        
+
+        if not prestacao_conta.ata_apresentacao_gerada():
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'pendencias',
+                'operacao': 'receber',
+                'mensagem': 'É necessário gerar ata de apresentação para realizar o recebimento.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
         trata_processo_sei_ao_receber_pc(prestacao_conta=prestacao_conta, processo_sei=processo_sei, acao_processo_sei=acao_processo_sei)
-        
+
         prestacao_recebida = prestacao_conta.receber(data_recebimento=data_recebimento)
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_recebida, many=False).data,
@@ -1726,3 +1737,14 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         contas = prestacao_conta.get_contas_com_movimento()
 
         return Response(ContaAssociacaoDadosSerializer(contas, many=True).data)
+
+    @action(detail=True, methods=['post'], url_path='notificar/pendencia_geracao_ata_apresentacao',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def notificar_pendencia_geracao_ata_apresentacao(self, request, uuid):
+        from sme_ptrf_apps.core.services.notificacao_services.notificacao_pendencia_geracao_ata import notificar_pendencia_geracao_ata_apresentacao
+        prestacao_contas = self.get_object()
+
+        if not prestacao_contas.ata_apresentacao_gerada():
+            notificar_pendencia_geracao_ata_apresentacao(prestacao_contas)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

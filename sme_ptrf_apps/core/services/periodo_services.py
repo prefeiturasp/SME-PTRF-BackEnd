@@ -1,6 +1,6 @@
-import logging
 from datetime import timedelta
 from ..models import Associacao, Periodo, PrestacaoConta
+
 
 def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     """
@@ -55,7 +55,9 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         PrestacaoConta.STATUS_APROVADA_RESSALVA: 'Prestação de contas aprovada com ressalvas pela DRE.',
         PrestacaoConta.STATUS_REPROVADA: 'Prestação de contas reprovada pela DRE.',
         PrestacaoConta.STATUS_EM_PROCESSAMENTO: 'Documentos em processamento.',
-        PrestacaoConta.STATUS_A_PROCESSAR: 'PC aguardando processamento.'
+        PrestacaoConta.STATUS_A_PROCESSAR: 'PC aguardando processamento.',
+        PrestacaoConta.STATUS_CALCULADA: 'PC calculada. Gerando relatórios...',
+        PrestacaoConta.STATUS_DEVOLVIDA_CALCULADA: 'PC calculada. Gerando relatórios...',
     }
 
     STATUS_PERIODO_EM_ANDAMENTO = 'PERIODO_EM_ANDAMENTO'
@@ -72,7 +74,9 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         PrestacaoConta.STATUS_APROVADA_RESSALVA: 5,
         PrestacaoConta.STATUS_REPROVADA: 3,
         PrestacaoConta.STATUS_EM_PROCESSAMENTO: 6,
-        PrestacaoConta.STATUS_A_PROCESSAR: 6
+        PrestacaoConta.STATUS_A_PROCESSAR: 6,
+        PrestacaoConta.STATUS_CALCULADA: 6,
+        PrestacaoConta.STATUS_DEVOLVIDA_CALCULADA: 6,
     }
 
     mensagem_periodo = 'Período finalizado.' if periodo.encerrado else 'Período em andamento.'
