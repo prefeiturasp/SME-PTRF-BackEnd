@@ -43,7 +43,8 @@ class ServicoComposicaoVigente:
 
         composicao_anterior = Composicao.objects.filter(
             associacao=self.associacao,
-            mandato=self.mandato
+            mandato=self.mandato,
+            data_final=composicao_vigente.data_inicial - timedelta(days=1)
         ).exclude(id=composicao_vigente.id).order_by('-id')
 
         return composicao_anterior.first() if composicao_anterior else None
