@@ -18,7 +18,7 @@ def notificar_pendencia_geracao_ata_apresentacao(prestacao_de_contas):
             categoria=Notificacao.CATEGORIA_NOTIFICACAO_GERACAO_ATA,
             remetente=Notificacao.REMETENTE_NOTIFICACAO_DRE,
             titulo=f"Geração da ata de apresentação",
-            descricao=f"A ata de apresentação da PC {prestacao_de_contas.periodo.referencia} não foi gerada e a DRE {prestacao_de_contas.associacao.unidade.dre} não pode receber a PC. Favor efetuar a geração da ata.",
+            descricao=f"A ata de apresentação da PC {prestacao_de_contas.periodo.referencia} não foi gerada e a DRE {prestacao_de_contas.associacao.unidade.formata_nome_dre()} não pode receber a PC. Favor efetuar a geração da ata.",
             usuario=usuario,
             renotificar=True,
             unidade=prestacao_de_contas.associacao.unidade,
