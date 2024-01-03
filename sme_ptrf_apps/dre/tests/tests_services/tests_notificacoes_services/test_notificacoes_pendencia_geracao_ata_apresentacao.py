@@ -35,5 +35,5 @@ def test_notifica_pendencia_geracao_ata_apresentacao():
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_GERACAO_ATA
     assert notificacao.remetente == Notificacao.REMETENTE_NOTIFICACAO_DRE
     assert notificacao.titulo == "Geração da ata de apresentação"
-    assert notificacao.descricao == f"A ata de apresentação da PC {pc} não foi gerada e a DRE {pc.associacao.unidade} não pode receber a PC. Favor efetuar a geração da ata."
+    assert notificacao.descricao == f"A ata de apresentação da PC {pc.periodo.referencia} não foi gerada e a DRE {pc.associacao.unidade.dre} não pode receber a PC. Favor efetuar a geração da ata."
     assert notificacao.usuario == usuario_a_ser_notificado
