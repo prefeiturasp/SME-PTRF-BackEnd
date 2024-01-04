@@ -138,8 +138,8 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
         despesas_impostos = validated_data.pop('despesas_impostos') if validated_data.get('despesas_impostos') else None
 
-        motivos_pagamento_antecipado = validated_data.pop('motivos_pagamento_antecipado')
-        outros_motivos_pagamento_antecipado = validated_data['outros_motivos_pagamento_antecipado']
+        motivos_pagamento_antecipado = validated_data.pop('motivos_pagamento_antecipado', None)
+        outros_motivos_pagamento_antecipado = validated_data.get('outros_motivos_pagamento_antecipado', None)
 
         data_transacao = validated_data['data_transacao']
         data_documento = validated_data['data_documento']
@@ -253,8 +253,8 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
         despesas_impostos = validated_data.pop('despesas_impostos') if 'despesas_impostos' in validated_data else []
 
-        motivos_pagamento_antecipado = validated_data.pop('motivos_pagamento_antecipado')
-        outros_motivos_pagamento_antecipado = validated_data['outros_motivos_pagamento_antecipado']
+        motivos_pagamento_antecipado = validated_data.pop('motivos_pagamento_antecipado', None)
+        outros_motivos_pagamento_antecipado = validated_data.get('outros_motivos_pagamento_antecipado', None)
 
         data_transacao = validated_data['data_transacao']
         data_documento = validated_data['data_documento']
