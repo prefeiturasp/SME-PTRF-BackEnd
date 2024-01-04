@@ -89,6 +89,18 @@ class Unidade(ModeloBase, TemNome):
         return self.associacoes.first().tooltip_data_encerramento \
             if self.associacoes.exists() and self.associacoes.first().encerrada else None
 
+    def formata_nome_dre(self):
+        if self.dre:
+            nome_dre = self.dre.nome.upper()
+            if "DIRETORIA REGIONAL DE EDUCACAO" in nome_dre:
+                nome_dre = nome_dre.replace("DIRETORIA REGIONAL DE EDUCACAO", "")
+                nome_dre = nome_dre.strip()
+                return nome_dre
+            else:
+                return nome_dre
+        else:
+            return ""
+
     class Meta:
         verbose_name = 'Unidade'
         verbose_name_plural = '06.0) Unidades'

@@ -33,6 +33,8 @@ class PrestacaoConta(ModeloBase):
     STATUS_REPROVADA = 'REPROVADA'
     STATUS_EM_PROCESSAMENTO = 'EM_PROCESSAMENTO'
     STATUS_A_PROCESSAR = 'A_PROCESSAR'
+    STATUS_CALCULADA = 'CALCULADA'
+    STATUS_DEVOLVIDA_CALCULADA = 'DEVOLVIDA_CALCULADA'
 
     STATUS_NOMES = {
         STATUS_NAO_APRESENTADA: 'Não apresentada',
@@ -46,7 +48,9 @@ class PrestacaoConta(ModeloBase):
         STATUS_APROVADA_RESSALVA: 'Aprovada com ressalvas',
         STATUS_REPROVADA: 'Reprovada',
         STATUS_EM_PROCESSAMENTO: 'Em processamento',
-        STATUS_A_PROCESSAR: 'A processar'
+        STATUS_A_PROCESSAR: 'A processar',
+        STATUS_CALCULADA: 'PC calculada. Gerando relatórios',
+        STATUS_DEVOLVIDA_CALCULADA: 'PC calculada. Gerando relatórios',
     }
 
     STATUS_CHOICES = (
@@ -62,6 +66,8 @@ class PrestacaoConta(ModeloBase):
         (STATUS_REPROVADA, STATUS_NOMES[STATUS_REPROVADA]),
         (STATUS_EM_PROCESSAMENTO, STATUS_NOMES[STATUS_EM_PROCESSAMENTO]),
         (STATUS_A_PROCESSAR, STATUS_NOMES[STATUS_A_PROCESSAR]),
+        (STATUS_CALCULADA, STATUS_NOMES[STATUS_CALCULADA]),
+        (STATUS_DEVOLVIDA_CALCULADA, STATUS_NOMES[STATUS_DEVOLVIDA_CALCULADA]),
     )
 
     periodo = models.ForeignKey('Periodo', on_delete=models.PROTECT, related_name='prestacoes_de_conta')
@@ -322,6 +328,15 @@ class PrestacaoConta(ModeloBase):
         for demonstrativo in self.demonstrativos_da_prestacao.all():
             demonstrativo.delete()
 
+    def ata_apresentacao_gerada(self):
+        ata = self.ata_do_periodo()
+        if ata and ata.documento_gerado:
+            return True
+        return False
+
+    def ata_do_periodo(self):
+        return self.atas_da_prestacao.filter(tipo_ata='APRESENTACAO', previa=False, periodo=self.periodo).last()
+
     def ultima_ata(self):
         return self.atas_da_prestacao.filter(tipo_ata='APRESENTACAO', previa=False).last()
 
@@ -333,6 +348,7 @@ class PrestacaoConta(ModeloBase):
         ultima_analise = AnalisePrestacaoConta.objects.filter(prestacao_conta=self).last()
         return ultima_analise
 
+    # TODO: Remover após conclusão do novo processo de PC
     def concluir(self, e_retorno_devolucao=False, justificativa_acertos_pendentes=''):
         from ..models import DevolucaoPrestacaoConta
         from ..services.notificacao_services import marcar_como_lidas_notificacoes_de_devolucao_da_pc
@@ -343,6 +359,26 @@ class PrestacaoConta(ModeloBase):
             ultima_devolucao.save()
         else:
             self.status = self.STATUS_NAO_RECEBIDA
+        self.justificativa_pendencia_realizacao = justificativa_acertos_pendentes
+        self.save()
+        if e_retorno_devolucao:
+            marcar_como_lidas_notificacoes_de_devolucao_da_pc(prestacao_de_contas=self)
+        return self
+
+    # TODO: Renomear para concluir após conclusão do novo processo de PC
+    def concluir_v2(self, e_retorno_devolucao=False, justificativa_acertos_pendentes=''):
+        """
+        Nova versão do método concluir PC. Usado quando a feature flag de novo processo de PC está ativa.
+        """
+        from ..models import DevolucaoPrestacaoConta
+        from ..services.notificacao_services import marcar_como_lidas_notificacoes_de_devolucao_da_pc
+        if e_retorno_devolucao:
+            self.status = self.STATUS_DEVOLVIDA_CALCULADA
+            ultima_devolucao = DevolucaoPrestacaoConta.objects.filter(prestacao_conta=self).order_by('id').last()
+            ultima_devolucao.data_retorno_ue = date.today()
+            ultima_devolucao.save()
+        else:
+            self.status = self.STATUS_CALCULADA
         self.justificativa_pendencia_realizacao = justificativa_acertos_pendentes
         self.save()
         if e_retorno_devolucao:

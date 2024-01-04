@@ -56,6 +56,18 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
 
     ocupante_do_cargo = OcupanteCargoCreateSerializer()
 
+    composicao_posterior = serializers.SerializerMethodField('get_composicao_posterior')
+
+    def get_composicao_posterior(self, obj):
+        from datetime import timedelta
+
+        composicao_posterior = Composicao.objects.filter(
+            associacao=obj.composicao.associacao,
+            mandato=obj.composicao.mandato,
+            data_inicial=obj.data_fim_no_cargo + timedelta(days=1),
+        )
+        return None if not composicao_posterior.last() else composicao_posterior.last().uuid
+
     def validate(self, data):
         super().validate(data)
         composicao = data['composicao']
@@ -77,8 +89,7 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
             )
 
             info_composicao_anterior = servico_composicao.get_info_composicao_anterior()
-
-            if data_inicio_no_cargo <= info_composicao_anterior["data_final"]:
+            if info_composicao_anterior and (data_inicio_no_cargo <= info_composicao_anterior["data_final"]):
                 raise serializers.ValidationError(
                     "Não é permitido informar período inicial de ocupação anterior ou igual ao período final de ocupação do membro anterior do cargo.")
 
@@ -180,7 +191,6 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
-
     class Meta:
         model = CargoComposicao
         fields = (
@@ -193,4 +203,5 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
             'data_fim_no_cargo',
             'substituto',
             'substituido',
+            'composicao_posterior'
         )

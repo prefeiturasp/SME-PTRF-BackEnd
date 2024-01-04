@@ -143,3 +143,4 @@ def test_retrieve_serializer(prestacao_conta, devolucao_prestacao_conta_2020_1, 
     assert serializer.data['devolucoes_ao_tesouro_da_prestacao']
     assert serializer.data['analise_atual'] is None
     assert serializer.data['justificativa_pendencia_realizacao']
+    assert serializer.data['ata_aprensentacao_gerada'] == False

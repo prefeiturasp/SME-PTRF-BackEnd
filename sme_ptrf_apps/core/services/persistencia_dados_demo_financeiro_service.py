@@ -88,16 +88,26 @@ class PersistenciaDadosDemoFinanceiro:
         return text
 
     def retorna_categoria_rateio_despesa_imposto(self, despesa_imposto):
-        uuids_rateios_despesas_demonstradas = [r["uuid_rateio"] for r in self.dados['despesas_demonstradas']['linhas']]
-        uuids_rateios_despesas_nao_demonstradas = [r["uuid_rateio"] for r in self.dados['despesas_nao_demonstradas']['linhas']]
-        uuids_rateios_despesas_nao_demonstradas_periodos_anteriores = [r["uuid_rateio"] for r in self.dados['despesas_anteriores_nao_demonstradas']['linhas']]
 
-        if despesa_imposto["uuid_rateio_imposto"] in uuids_rateios_despesas_demonstradas:
-            return CategoriaDespesaChoices.DEMONSTRADA
-        elif despesa_imposto["uuid_rateio_imposto"] in uuids_rateios_despesas_nao_demonstradas:
-            return CategoriaDespesaChoices.NAO_DEMONSTRADA
-        elif despesa_imposto["uuid_rateio_imposto"] in uuids_rateios_despesas_nao_demonstradas_periodos_anteriores:
-            return CategoriaDespesaChoices.NAO_DEMONSTRADA_PERIODO_ANTERIOR
+        if self.imposto_pertence_ao_periodo(despesa_imposto):
+            uuids_rateios_despesas_demonstradas = [r["uuid_rateio"] for r in self.dados['despesas_demonstradas']['linhas']]
+            uuids_rateios_despesas_nao_demonstradas = [r["uuid_rateio"] for r in self.dados['despesas_nao_demonstradas']['linhas']]
+            uuids_rateios_despesas_nao_demonstradas_periodos_anteriores = [r["uuid_rateio"] for r in self.dados['despesas_anteriores_nao_demonstradas']['linhas']]
+
+            if despesa_imposto["uuid_rateio_imposto"] in uuids_rateios_despesas_demonstradas:
+                return CategoriaDespesaChoices.DEMONSTRADA
+            elif despesa_imposto["uuid_rateio_imposto"] in uuids_rateios_despesas_nao_demonstradas:
+                return CategoriaDespesaChoices.NAO_DEMONSTRADA
+            elif despesa_imposto["uuid_rateio_imposto"] in uuids_rateios_despesas_nao_demonstradas_periodos_anteriores:
+                return CategoriaDespesaChoices.NAO_DEMONSTRADA_PERIODO_ANTERIOR
+        else:
+            return CategoriaDespesaChoices.NAO_DEFINIDO
+
+    def imposto_pertence_ao_periodo(self, imposto):
+        periodo = self.demonstrativo.prestacao_conta.periodo
+        data_imposto = datetime.strptime(imposto["data_transacao"], "%d/%m/%Y").date()
+
+        return periodo.data_pertence_ao_periodo(data_imposto)
 
     def exclui_registro_existente(self):
         registro_existente = DadosDemonstrativoFinanceiro.objects.filter(demonstrativo=self.demonstrativo).all()
@@ -313,62 +323,46 @@ class PersistenciaDadosDemoFinanceiro:
             valor = despesa["valor"]
             valor_total = despesa["valor_total"]
 
-            if not ItemDespesa.objects.filter(uuid_rateio_referencia=uuid_rateio_referencia).filter(categoria_despesa=categoria_despesa).exists():
-                item_criado = ItemDespesa.objects.create(
-                    dados_demonstrativo=self.registro,
-                    categoria_despesa=categoria_despesa,
-                    uuid_despesa_referencia=uuid_despesa_referencia,
-                    uuid_rateio_referencia=uuid_rateio_referencia,
-                    razao_social=razao_social,
-                    cnpj_cpf=cnpj_cpf,
-                    tipo_documento=tipo_documento,
-                    numero_documento=numero_documento,
-                    data_documento=data_documento,
-                    nome_acao_documento=nome_acao_documento,
-                    especificacao_material=especificacao_material,
-                    tipo_despesa=tipo_despesa,
-                    tipo_transacao=tipo_transacao,
-                    data_transacao=data_transacao,
-                    valor=valor,
-                    valor_total=valor_total
-                )
+            item_criado = ItemDespesa.objects.create(
+                dados_demonstrativo=self.registro,
+                categoria_despesa=categoria_despesa,
+                uuid_despesa_referencia=uuid_despesa_referencia,
+                uuid_rateio_referencia=uuid_rateio_referencia,
+                razao_social=razao_social,
+                cnpj_cpf=cnpj_cpf,
+                tipo_documento=tipo_documento,
+                numero_documento=numero_documento,
+                data_documento=data_documento,
+                nome_acao_documento=nome_acao_documento,
+                especificacao_material=especificacao_material,
+                tipo_despesa=tipo_despesa,
+                tipo_transacao=tipo_transacao,
+                data_transacao=data_transacao,
+                valor=valor,
+                valor_total=valor_total
+            )
 
-                lista_despesas_imposto = []
-                if 'despesas_impostos' in despesa:
-                    item_criado.info_despesa = InformacaoDespesaChoices.GEROU_IMPOSTOS
+            if 'despesas_impostos' in despesa:
+                info_retencao_imposto = ''
+                for imposto in despesa['despesas_impostos']:
+                    data_transacao_imposto = self.string_to_date(imposto["data_transacao"]).date()
+                    valor_imposto = imposto["valor"]
 
-                    for imposto in despesa['despesas_impostos']:
-                        uuid_despesa_imposto_referencia = imposto["uuid_despesa_imposto"]
-                        uuid_rateio_despesa_imposto_referencia = imposto["uuid_rateio_imposto"]
-                        tipo_documento_imposto = imposto["tipo_documento"]
-                        data_transacao_imposto = self.string_to_date(imposto["data_transacao"])
-                        data_documento_imposto = self.string_to_date(imposto["data_documento_imposto"])
-                        nome_acao_documento_imposto = imposto["nome_acao_documento"]
-                        especificacao_material_imposto = imposto["especificacao_material"]
-                        tipo_despesa_imposto = imposto["tipo_despesa"]
-                        tipo_transacao_imposto = imposto["tipo_transacao"]
-                        valor_imposto = imposto["valor"]
+                    info_retencao_imposto = info_retencao_imposto + f"{valor_imposto};{data_transacao_imposto}\r\n"
 
-                        despesa_imposto_criada = ItemDespesa.objects.create(
-                            dados_demonstrativo=self.registro,
-                            categoria_despesa=self.retorna_categoria_rateio_despesa_imposto(imposto),
-                            info_despesa=InformacaoDespesaChoices.IMPOSTO_GERADO,
-                            uuid_despesa_referencia=uuid_despesa_imposto_referencia,
-                            uuid_rateio_referencia=uuid_rateio_despesa_imposto_referencia,
-                            tipo_documento=tipo_documento_imposto,
-                            nome_acao_documento=nome_acao_documento_imposto,
-                            especificacao_material=especificacao_material_imposto,
-                            tipo_despesa=tipo_despesa_imposto,
-                            tipo_transacao=tipo_transacao_imposto,
-                            data_transacao=data_transacao_imposto,
-                            data_documento=data_documento_imposto,
-                            valor=valor_imposto,
-                            valor_total=valor_imposto,
-                        )
+                item_criado.info_despesa = InformacaoDespesaChoices.GEROU_IMPOSTOS
+                item_criado.info_retencao_imposto = info_retencao_imposto
+                item_criado.save()
 
-                        lista_despesas_imposto.append(despesa_imposto_criada.id)
+            if 'despesa_geradora' in despesa:
+                numero_documento_geradora = despesa["despesa_geradora"]["numero_documento"]
+                data_transacao_geradora = self.string_to_date(despesa["despesa_geradora"]["data_transacao"]).date()
+                valor_geradora = despesa["despesa_geradora"]["valor"]
 
-                item_criado.despesas_impostos.set(lista_despesas_imposto)
+                info_imposto_retido = f"{numero_documento_geradora};{data_transacao_geradora};{valor_geradora}\r\n"
+
+                item_criado.info_despesa = InformacaoDespesaChoices.IMPOSTO_GERADO
+                item_criado.info_imposto_retido = info_imposto_retido
                 item_criado.save()
 
     def cria_registros_despesas_demonstradas(self):
