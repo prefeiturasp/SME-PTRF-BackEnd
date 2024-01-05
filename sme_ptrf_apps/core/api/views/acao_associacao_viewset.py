@@ -1,5 +1,5 @@
 from django.db.models import Q
-
+from django.core.exceptions import ValidationError
 from django_filters import rest_framework as filters
 
 from rest_framework import mixins, status
@@ -157,3 +157,36 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
             }
 
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        try:
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except ValidationError as e:
+            erro = {
+                'erro': 'validation_error',
+                'mensagem': e
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance=instance, data=request.data)
+
+        try:
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except ValidationError as e:
+            erro = {
+                'erro': 'validation_error',
+                'mensagem': e
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
