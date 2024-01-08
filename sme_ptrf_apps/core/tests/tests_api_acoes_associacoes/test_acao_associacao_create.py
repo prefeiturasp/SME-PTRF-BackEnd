@@ -141,4 +141,4 @@ def test_validacao_create_acao_associacao(jwt_authenticated_client_a):
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert result == {'erro': 'validation_error', 'mensagem': ['Já existe um registro com a mesma associação e ação']}
+    assert 'Já existe um registro com a mesma associação e ação com status ativa' in str(result)

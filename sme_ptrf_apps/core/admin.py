@@ -1,5 +1,6 @@
 import logging
 from django.contrib import admin, messages
+from django.forms import ModelForm, ValidationError
 from rangefilter.filter import DateRangeFilter
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
 from sme_ptrf_apps.core.services import associacao_pode_implantar_saldo
@@ -172,8 +173,24 @@ class ContaAssociacaoAdmin(admin.ModelAdmin):
     raw_id_fields = ('associacao',)
 
 
+class AcaoAssociacaoForm(ModelForm):
+    def clean(self):
+        from .services.acoes_associacoes_service import validate_acao_associacao
+        associacao = self.cleaned_data.get('associacao')
+        acao = self.cleaned_data.get('acao')
+
+        if associacao is not None and acao is not None:
+            try:
+                validate_acao_associacao(associacao, acao, self.instance)
+            except Exception as error:
+                raise ValidationError(error)
+
+        return self.cleaned_data
+
+
 @admin.register(AcaoAssociacao)
 class AcaoAssociacaoAdmin(admin.ModelAdmin):
+    form = AcaoAssociacaoForm
     list_display = ('associacao', 'acao', 'status', 'criado_em')
     search_fields = ('uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
     list_filter = ('status', 'acao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre',)
