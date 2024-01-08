@@ -2,7 +2,6 @@ import uuid
 
 from django.db import models
 from django.db.models.deletion import ProtectedError
-from django.core.exceptions import ValidationError
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -81,16 +80,6 @@ class AcaoAssociacao(ModeloBase):
                 status="ATIVA"
             )
         return erros
-
-    def clean(self):
-        existing_records = AcaoAssociacao.objects.filter(
-            associacao=self.associacao, acao=self.acao).exclude(pk=self.pk)
-        if existing_records.exists():
-            raise ValidationError('Já existe um registro com a mesma associação e ação')
-
-    def save(self, *args, **kwargs):
-        self.clean()
-        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Ação de Associação"

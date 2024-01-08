@@ -58,6 +58,18 @@ class AcaoAssociacaoCreateSerializer(serializers.ModelSerializer):
         model = AcaoAssociacao
         fields = ('uuid', 'associacao', 'acao', 'status')
 
+    def validate(self, data):
+        from sme_ptrf_apps.core.services.acoes_associacoes_service import validate_acao_associacao
+        associacao = data['associacao'] if 'associacao' in data else None
+        acao = data['acao'] if 'acao' in data else None
+
+        if associacao and acao:
+            try:
+                validate_acao_associacao(associacao, acao, self.instance)
+            except Exception as error:
+                raise error
+        return data
+
 
 class AcaoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
     associacao = AssociacaoListSerializer()
@@ -73,4 +85,5 @@ class AcaoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AcaoAssociacao
-        fields = ('uuid', 'id', 'associacao', 'data_de_encerramento_associacao', 'tooltip_associacao_encerrada', 'acao', 'status', 'criado_em')
+        fields = ('uuid', 'id', 'associacao', 'data_de_encerramento_associacao',
+                  'tooltip_associacao_encerrada', 'acao', 'status', 'criado_em')
