@@ -39,8 +39,8 @@ class RelatorioRelacaoBens(ModeloBase):
     valor_total = models.DecimalField('Valor total', max_digits=8, decimal_places=2, default=0)
 
     class Meta:
-        verbose_name = 'Relatório Relação de bens'
-        verbose_name_plural = '09.3.1) Relatório Relações de bens'
+        verbose_name = 'Dados da Relação de bens'
+        verbose_name_plural = '09.3.1) Dados das Relações de bens'
 
     def __str__(self):
         return f"Relatório {self.nome_associacao} | {self.periodo_referencia} gerado em {self.data_geracao}"
