@@ -117,7 +117,7 @@ def verifica_se_relatorio_consolidado_deve_ser_gerado(dre, periodo, usuario):
     from .concluir_consolidado_de_publicacoes_parciais import concluir_consolidado_de_publicacoes_parciais_async
     from sme_ptrf_apps.core.models import Associacao
     qtde_unidades_na_dre = Associacao.get_associacoes_ativas_no_periodo(
-        periodo=periodo, dre=dre).exclude(associacoes__cnpj__exact='').count()
+        periodo=periodo, dre=dre).exclude(cnpj__exact='').count()
     qtde_pcs_publicadas_no_periodo_pela_dre = PrestacaoConta.objects.filter(
         periodo=periodo,
         status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
