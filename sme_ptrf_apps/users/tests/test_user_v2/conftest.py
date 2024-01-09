@@ -260,6 +260,7 @@ def usuario_nao_servidor_sem_visao_dre_service_gestao_usuario(
     user.unidades.add(unidade_gestao_usuario_a)
     user.unidades.add(unidade_gestao_usuario_b)
     user.visoes.add(visao_ue_gestao_usuario)
+    user.pode_acessar_sme = True
     user.save()
     return user
 
@@ -298,6 +299,7 @@ def usuario_servidor_sem_visao_sme_service_gestao_usuario(
     user = User.objects.create_user(username=login, password=senha, email=email, e_servidor=True)
     user.unidades.add(unidade_gestao_usuario_a)
     user.visoes.add(visao_ue_gestao_usuario)
+    user.pode_acessar_sme = True
     user.save()
     return user
 
