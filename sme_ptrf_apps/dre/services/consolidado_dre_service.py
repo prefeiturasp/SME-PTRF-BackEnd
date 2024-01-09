@@ -333,7 +333,8 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
     sequencia_de_publicacao_atual = sequencia_de_publicacao['sequencia_de_publicacao_atual']
     publicacoes_anteriores = retornar_ja_publicadas(dre, periodo)
 
-    quantidade_ues_cnpj = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').count()
+    quantidade_ues_cnpj = Associacao.get_associacoes_ativas_no_periodo(
+        periodo=periodo, dre=dre).exclude(cnpj__exact='').count()
 
     quantidade_pcs_publicadas = PrestacaoConta.objects.filter(periodo__uuid=periodo_uuid,
                                                               associacao__unidade__dre__uuid=dre_uuid,
