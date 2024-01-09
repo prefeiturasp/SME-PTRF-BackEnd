@@ -75,6 +75,8 @@ class User(AbstractUser):
 
     e_servidor = models.BooleanField("servidor?", default=False)
 
+    pode_acessar_sme = models.BooleanField("Pode acessar SME ?", default=False)
+
     def get_absolute_url(self):
         return reverse("users:detail", kwargs={"username": self.username})
 
