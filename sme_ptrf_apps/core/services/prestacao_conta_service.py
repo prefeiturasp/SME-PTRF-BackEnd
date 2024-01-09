@@ -261,24 +261,29 @@ class PrestacaoContaService:
         logger.info(f'Terminando processo da PC {self._prestacao}...')
 
         calculo_concluido = self._prestacao.status in [PrestacaoConta.STATUS_CALCULADA, PrestacaoConta.STATUS_DEVOLVIDA_CALCULADA]
+        logger.info(f'PC {self._prestacao} está calculada? {calculo_concluido}')
 
         # Verificar se todos os demonstrativos financeiros da prestacao de contas foram concluídos
-        demonstrativos_concluidos = False
+        demonstrativos_concluidos = False  # Deve ter ao menos um demonstrativo financeiro
         for demonstrativo in self._prestacao.demonstrativos_da_prestacao.all():
             if demonstrativo.status == DemonstrativoFinanceiro.STATUS_CONCLUIDO:
                 demonstrativos_concluidos = True
             else:
+                logger.info(f'Demonstrativo financeiro {demonstrativo} não está concluído.')
                 demonstrativos_concluidos = False
                 break
 
+        logger.info(f'Todos os demonstrativos financeiros da PC {self._prestacao} estão concluídos? {demonstrativos_concluidos}')
+
         # Verificar se todos os relatórios de bens da prestacao de contas foram concluídos
-        relatorios_concluidos = False
+        relatorios_concluidos = True  # Não é obrigatório ter relatórios de bens, mas se tiver, todos devem estar concluídos
         for relatorio in self._prestacao.relacoes_de_bens_da_prestacao.all():
-            if relatorio.status == RelacaoBens.STATUS_CONCLUIDO:
-                relatorios_concluidos = True
-            else:
+            if relatorio.status != RelacaoBens.STATUS_CONCLUIDO:
+                logger.info(f'Relatório de bens {relatorio} não está concluído.')
                 relatorios_concluidos = False
                 break
+
+        logger.info(f'Todos os relatórios de bens da PC {self._prestacao} estão concluídos? {relatorios_concluidos}')
 
         if calculo_concluido and demonstrativos_concluidos and relatorios_concluidos:
             logger.info(f'Terminando o processo da PC {self._prestacao}...')
