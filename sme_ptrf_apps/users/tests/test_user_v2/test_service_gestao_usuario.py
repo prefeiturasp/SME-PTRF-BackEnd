@@ -581,23 +581,34 @@ def test_retorno_get_dados_unidade_eol_sem_tipo_unidade_adm(
         assert result is False
 
 
-# TODO Débito técnico: Rever mocks da api SMEIntegração. Teste quebrando após alterações na API.
-# def test_retorna_lista_unidades_servidor_com_direito_sme(
-#     usuario_servidor_service_gestao_usuario,
-#     parametros_sme
-# ):
-#     path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
-#     with patch(path) as mock_get:
-#         data = {
-#             "tipoUnidadeAdm": "1"
-#         }
-#
-#         mock_get.return_value = data
-#
-#         gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
-#         result = gestao_usuario.retorna_lista_unidades_servidor('SME', 'SME')
-#
-#         assert len(result) == 1
+def test_retorna_lista_unidades_servidor_com_direito_sme(
+    usuario_servidor_service_gestao_usuario,
+    parametros_sme,
+    unidade_gestao_usuario_c
+):
+    path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_info_lotacao_e_exercicio_do_servidor'
+    with patch(path) as mock_get:
+        data = {
+            "unidadeExercicio": {
+                "codigo": f"{unidade_gestao_usuario_c.codigo_eol}",
+                "nomeUnidade": f"{unidade_gestao_usuario_c.nome}"
+            }
+        }
+
+        mock_get.return_value = data
+
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data_dados_unidade = {
+                "tipoUnidadeAdm": "1"
+            }
+
+            mock_get_dados_unidade.return_value = data_dados_unidade
+
+            gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+            result = gestao_usuario.retorna_lista_unidades_servidor('SME', 'SME')
+
+            assert len(result) == 2
 
 
 def test_retorna_lista_unidades_servidor_com_direito_sme_e_unidades(
