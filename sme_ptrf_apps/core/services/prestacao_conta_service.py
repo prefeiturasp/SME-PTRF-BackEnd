@@ -44,7 +44,7 @@ class PrestacaoContaService:
 
         self._prestacao = PrestacaoConta.by_periodo(associacao=self._associacao, periodo=self._periodo)
 
-        # self._e_retorno_devolucao = self._prestacao.status in (PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_DEVOLVIDA_CALCULADA) if self._prestacao else False
+        # Apenas PCs devolvidas tem o campo data_recebimento preenchido
         self._e_retorno_devolucao = self._prestacao.data_recebimento is not None if self._prestacao else False
 
         self._acoes = self._associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
