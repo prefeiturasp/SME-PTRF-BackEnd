@@ -517,17 +517,17 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
         quantidade_nao_aprovada = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'REPROVADA'][0]
 
         unidades_exclusivas = set()
-        
+
         consolidados_retificados = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, consolidado_retificado__isnull=False)
-        
+
         for consolidado_retificado in consolidados_retificados:
             unidades_retificadas = consolidado_retificado.pcs_do_consolidado.all()
             unidades_exclusivas.update(unidades_retificadas)
-            
+
         numero_de_unidades_retificadas = len(unidades_exclusivas)
 
         quantidade_retificadas = numero_de_unidades_retificadas
-        
+
     quantidade_em_analise = [c['quantidade_prestacoes'] for c in cards if c['status'] == 'EM_ANALISE'][0]
 
     if consolidado_dre and consolidado_dre.eh_retificacao:
@@ -563,7 +563,7 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
         + quantidade_em_analise \
         + quantidade_nao_apresentada \
         + quantidade_publicacoes_anteriores
-        
+
     eh_relatorio_consolidado_publicacoes_parciais = verifica_se_eh_relatorio_publicacoes_parciais(dre, periodo)
 
     execucao_fisica = {
@@ -852,7 +852,7 @@ def cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_conso
                     }
                 )
             # Ordena a lista para primeiro vir todas as contas com valores para não quebrar o layout do template e exibir a devolução ao tesouro
-            # lista_de_informacoes_por_conta = sorted(lista_de_informacoes_por_conta, key=lambda d: d['exibe_valores'], reverse=True)
+            lista_de_informacoes_por_conta = sorted(lista_de_informacoes_por_conta, key=lambda d: d['exibe_valores'], reverse=True)
 
         # TERMINA AQUI
 
