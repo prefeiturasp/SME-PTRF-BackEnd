@@ -79,10 +79,12 @@ class FalhaGeracaoPcService:
     def marcar_como_resolvido(self):
         registro_de_falha_ao_gerar_pc = self.retorna_registro_falha_geracao_pc()
 
-        if registro_de_falha_ao_gerar_pc:
+        if registro_de_falha_ao_gerar_pc and not registro_de_falha_ao_gerar_pc.resolvido:
             logger.info(f"Marcando como resolvido registro de falha {registro_de_falha_ao_gerar_pc}")
             registro_de_falha_ao_gerar_pc.resolvido = True
             registro_de_falha_ao_gerar_pc.save()
+        else:
+            logger.info(f"Não há registro de falha pendente.")
 
 
 class InfoRegistroFalhaGeracaoPc(FalhaGeracaoPcService):
