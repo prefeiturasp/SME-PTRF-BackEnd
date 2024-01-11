@@ -1,6 +1,6 @@
 from sme_ptrf_apps.core.models import MembroAssociacao, Unidade
 from sme_ptrf_apps.users.models import AcessoConcedidoSme, UnidadeEmSuporte
-from sme_ptrf_apps.sme.models import ParametrosSme
+from sme_ptrf_apps.sme.models import TipoUnidadeAdministrativa
 from brazilnum.cpf import format_cpf
 from django.contrib.auth import get_user_model
 from sme_ptrf_apps.users.services import (
@@ -75,8 +75,20 @@ class GestaoUsuarioService:
         resultado = SmeIntegracaoService.get_dados_unidade_eol(codigo_eol, retorna_json=True)
 
         if resultado and "tipoUnidadeAdm" in resultado:
-            if str(resultado["tipoUnidadeAdm"]) in ParametrosSme.get().tipos_unidade_adm_da_sme:
-                return True
+            tipo_unidade_adm = int(resultado["tipoUnidadeAdm"])
+
+            tipo_unidade_adm_encontrado_na_base = TipoUnidadeAdministrativa.objects.filter(
+                tipo_unidade_administrativa=tipo_unidade_adm
+            )
+
+            if tipo_unidade_adm_encontrado_na_base.exists():
+                tipo_unidade_adm_encontrado_na_base = tipo_unidade_adm_encontrado_na_base.first()
+
+                if not tipo_unidade_adm_encontrado_na_base.possui_codigo_eol:
+                    return True
+
+                if codigo_eol.startswith(tipo_unidade_adm_encontrado_na_base.inicio_codigo_eol):
+                    return True
 
         return False
 
