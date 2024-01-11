@@ -6,6 +6,11 @@ from datetime import date
 from sme_ptrf_apps.core.choices import MembroEnum
 
 from sme_ptrf_apps.core.models import (MembroAssociacao, RelatorioRelacaoBens, ItemRelatorioRelacaoDeBens)
+from sme_ptrf_apps.mandatos.models.cargo_composicao import CargoComposicao
+from sme_ptrf_apps.mandatos.services.composicao_service import ServicoComposicaoVigente
+from sme_ptrf_apps.mandatos.services.mandato_service import ServicoMandatoVigente
+
+from waffle import get_waffle_flag_model
 
 LOGGER = logging.getLogger(__name__)
 
@@ -55,18 +60,43 @@ def cria_identificacao_apm(conta_associacao):
     codigo_eol_associacao = associacao.unidade.codigo_eol or ""
     nome_dre_associacao = associacao.unidade.dre.nome if associacao.unidade.dre else ""
 
-    if status_presidente_associacao == 'PRESENTE':
-        _presidente_diretoria_executiva = \
-            MembroAssociacao.objects.filter(associacao=associacao,
-                                            cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
-        cargo_substituto_presidente_ausente_value = MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value
-    else:
-        _presidente_diretoria_executiva = \
-            MembroAssociacao.objects.filter(associacao=associacao, cargo_associacao=MembroEnum[
-                cargo_substituto_presidente_ausente_name].name).first()
-        cargo_substituto_presidente_ausente_value = MembroEnum[cargo_substituto_presidente_ausente_name].value
+    flags = get_waffle_flag_model()
+    if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+        servico_mandato_vigente = ServicoMandatoVigente()
+        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+        servico_composicao_vigente = ServicoComposicaoVigente(associacao=associacao, mandato=mandato_vigente)
+        composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
 
-    presidente_diretoria_executiva = _presidente_diretoria_executiva.nome if _presidente_diretoria_executiva else '-------'
+        list_choices = list(CargoComposicao.CARGO_ASSOCIACAO_CHOICES)
+
+        if mandato_vigente and composicao_vigente:
+            if associacao.cargo_substituto_presidente_ausente:
+                cargo_da_composicao_presidente_diretoria_executiva = CargoComposicao.objects.filter(
+                    composicao=composicao_vigente,
+                    cargo_associacao=associacao.cargo_substituto_presidente_ausente
+                ).first()
+                cargo_substituto_presidente_ausente_value = [x[1] for x in list_choices if x[0] == associacao.cargo_substituto_presidente_ausente][0]
+            else:
+                cargo_da_composicao_presidente_diretoria_executiva = CargoComposicao.objects.filter(
+                    composicao=composicao_vigente,
+                    cargo_associacao='PRESIDENTE_DIRETORIA_EXECUTIVA'
+                ).first()
+                cargo_substituto_presidente_ausente_value = [x[1] for x in list_choices if x[0] == 'PRESIDENTE_DIRETORIA_EXECUTIVA'][0]
+
+            presidente_diretoria_executiva = cargo_da_composicao_presidente_diretoria_executiva.ocupante_do_cargo.nome if cargo_da_composicao_presidente_diretoria_executiva and cargo_da_composicao_presidente_diretoria_executiva.ocupante_do_cargo and cargo_da_composicao_presidente_diretoria_executiva.ocupante_do_cargo.nome else '-------'
+    else:
+        if status_presidente_associacao == 'PRESENTE':
+            _presidente_diretoria_executiva = \
+                MembroAssociacao.objects.filter(associacao=associacao,
+                                                cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
+            cargo_substituto_presidente_ausente_value = MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value
+        else:
+            _presidente_diretoria_executiva = \
+                MembroAssociacao.objects.filter(associacao=associacao, cargo_associacao=MembroEnum[
+                    cargo_substituto_presidente_ausente_name].name).first()
+            cargo_substituto_presidente_ausente_value = MembroEnum[cargo_substituto_presidente_ausente_name].value
+
+        presidente_diretoria_executiva = _presidente_diretoria_executiva.nome if _presidente_diretoria_executiva else '-------'
 
     tipo_unidade = associacao.unidade.tipo_unidade
     nome_unidade = associacao.unidade.nome
@@ -158,18 +188,43 @@ def persistir_dados_relacao_bens(periodo, conta_associacao, rateios, relacao_ben
     codigo_eol_associacao = associacao.unidade.codigo_eol or ""
     nome_dre_associacao = associacao.unidade.dre.nome if associacao.unidade.dre else ""
 
-    if status_presidente_associacao == 'PRESENTE':
-        _presidente_diretoria_executiva = \
-            MembroAssociacao.objects.filter(associacao=associacao,
-                                            cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
-        cargo_substituto_presidente_ausente_value = MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value
-    else:
-        _presidente_diretoria_executiva = \
-            MembroAssociacao.objects.filter(associacao=associacao, cargo_associacao=MembroEnum[
-                cargo_substituto_presidente_ausente_name].name).first()
-        cargo_substituto_presidente_ausente_value = MembroEnum[cargo_substituto_presidente_ausente_name].value
+    flags = get_waffle_flag_model()
+    if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+        servico_mandato_vigente = ServicoMandatoVigente()
+        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+        servico_composicao_vigente = ServicoComposicaoVigente(associacao=associacao, mandato=mandato_vigente)
+        composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
 
-    presidente_diretoria_executiva = _presidente_diretoria_executiva.nome if _presidente_diretoria_executiva else '-------'
+        list_choices = list(CargoComposicao.CARGO_ASSOCIACAO_CHOICES)
+
+        if mandato_vigente and composicao_vigente:
+            if associacao.cargo_substituto_presidente_ausente:
+                cargo_da_composicao_presidente_diretoria_executiva = CargoComposicao.objects.filter(
+                    composicao=composicao_vigente,
+                    cargo_associacao=associacao.cargo_substituto_presidente_ausente
+                ).first()
+                cargo_substituto_presidente_ausente_value = [x[1] for x in list_choices if x[0] == associacao.cargo_substituto_presidente_ausente][0]
+            else:
+                cargo_da_composicao_presidente_diretoria_executiva = CargoComposicao.objects.filter(
+                    composicao=composicao_vigente,
+                    cargo_associacao='PRESIDENTE_DIRETORIA_EXECUTIVA'
+                ).first()
+                cargo_substituto_presidente_ausente_value = [x[1] for x in list_choices if x[0] == 'PRESIDENTE_DIRETORIA_EXECUTIVA'][0]
+
+            presidente_diretoria_executiva = cargo_da_composicao_presidente_diretoria_executiva.ocupante_do_cargo.nome if cargo_da_composicao_presidente_diretoria_executiva and cargo_da_composicao_presidente_diretoria_executiva.ocupante_do_cargo and cargo_da_composicao_presidente_diretoria_executiva.ocupante_do_cargo.nome else '-------'
+    else:
+        if status_presidente_associacao == 'PRESENTE':
+            _presidente_diretoria_executiva = \
+                MembroAssociacao.objects.filter(associacao=associacao,
+                                                cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
+            cargo_substituto_presidente_ausente_value = MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value
+        else:
+            _presidente_diretoria_executiva = \
+                MembroAssociacao.objects.filter(associacao=associacao, cargo_associacao=MembroEnum[
+                    cargo_substituto_presidente_ausente_name].name).first()
+            cargo_substituto_presidente_ausente_value = MembroEnum[cargo_substituto_presidente_ausente_name].value
+
+        presidente_diretoria_executiva = _presidente_diretoria_executiva.nome if _presidente_diretoria_executiva else '-------'
 
     tipo_unidade = associacao.unidade.tipo_unidade
     nome_unidade = associacao.unidade.nome
