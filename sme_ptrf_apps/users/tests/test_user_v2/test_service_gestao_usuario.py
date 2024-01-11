@@ -529,7 +529,7 @@ def test_usuario_nao_possui_visao(
 
 def test_permite_tipo_unidade_administrativa(
     usuario_servidor_service_gestao_usuario,
-    parametros_sme
+    tipo_unidade_administrativa
 ):
     path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
     with patch(path) as mock_get:
@@ -547,7 +547,7 @@ def test_permite_tipo_unidade_administrativa(
 
 def test_nao_permite_tipo_unidade_administrativa(
     usuario_servidor_service_gestao_usuario,
-    parametros_sme
+    tipo_unidade_administrativa
 ):
     path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
     with patch(path) as mock_get:
@@ -565,7 +565,7 @@ def test_nao_permite_tipo_unidade_administrativa(
 
 def test_retorno_get_dados_unidade_eol_sem_tipo_unidade_adm(
     usuario_servidor_service_gestao_usuario,
-    parametros_sme
+    tipo_unidade_administrativa
 ):
     path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
     with patch(path) as mock_get:
@@ -583,7 +583,7 @@ def test_retorno_get_dados_unidade_eol_sem_tipo_unidade_adm(
 
 def test_retorna_lista_unidades_servidor_com_direito_sme(
     usuario_servidor_service_gestao_usuario,
-    parametros_sme,
+    tipo_unidade_administrativa,
     unidade_gestao_usuario_c
 ):
     path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_info_lotacao_e_exercicio_do_servidor'
@@ -613,7 +613,7 @@ def test_retorna_lista_unidades_servidor_com_direito_sme(
 
 def test_retorna_lista_unidades_servidor_com_direito_sme_e_unidades(
     usuario_servidor_service_gestao_usuario,
-    parametros_sme,
+    tipo_unidade_administrativa,
     unidade_gestao_usuario_c
 ):
 
@@ -644,7 +644,7 @@ def test_retorna_lista_unidades_servidor_com_direito_sme_e_unidades(
 
 def test_retorna_lista_unidades_sme_no_topo(
     usuario_servidor_service_gestao_usuario,
-    parametros_sme,
+    tipo_unidade_administrativa,
     unidade_gestao_usuario_c,
     membro_associacao_servidor_a
 ):
@@ -696,7 +696,7 @@ def test_retorna_lista_unidades_nao_servidor_sem_flag_pode_acessar_sme(
 
 def test_retorna_lista_unidades_servidor_sem_direito_sme_mas_com_flag_pode_acessar_sme(
     usuario_servidor_sem_visao_sme_service_gestao_usuario,
-    parametros_sme,
+    tipo_unidade_administrativa,
     unidade_gestao_usuario_a
 ):
 
@@ -728,7 +728,7 @@ def test_retorna_lista_unidades_servidor_sem_direito_sme_mas_com_flag_pode_acess
 
 def test_retorna_lista_unidades_servidor_sem_direito_sme_e_sem_flag_pode_acessar_sme(
     usuario_servidor_service_gestao_usuario,
-    parametros_sme,
+    tipo_unidade_administrativa,
     unidade_gestao_usuario_c
 ):
 
@@ -756,3 +756,77 @@ def test_retorna_lista_unidades_servidor_sem_direito_sme_e_sem_flag_pode_acessar
 
             assert len(result) == 1
             assert result[0]["uuid_unidade"] == f'{unidade_gestao_usuario_c.uuid}'
+
+
+def test_permite_tipo_unidade_administrativa_nao_encontrado_deve_retornar_false(
+    usuario_servidor_service_gestao_usuario,
+    tipo_unidade_administrativa
+):
+    path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+    with patch(path) as mock_get:
+        data = {
+            "tipoUnidadeAdm": "65"
+        }
+
+        mock_get.return_value = data
+
+        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+        result = gestao_usuario.permite_tipo_unidade_administrativa("120000")
+
+        assert result is False
+
+
+def test_permite_tipo_unidade_administrativa_encontrado_sem_codigo_eol_deve_retornar_true(
+    usuario_servidor_service_gestao_usuario,
+    tipo_unidade_administrativa
+):
+    path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+    with patch(path) as mock_get:
+        data = {
+            "tipoUnidadeAdm": "1"
+        }
+
+        mock_get.return_value = data
+
+        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+        result = gestao_usuario.permite_tipo_unidade_administrativa("120000")
+
+        assert result is True
+
+
+def test_permite_tipo_unidade_administrativa_encontrado_com_codigo_eol_deve_retornar_true(
+    usuario_servidor_service_gestao_usuario,
+    tipo_unidade_administrativa_com_codigo_eol
+):
+    path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+    with patch(path) as mock_get:
+        data = {
+            "tipoUnidadeAdm": "2"
+        }
+
+        mock_get.return_value = data
+
+        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+        result = gestao_usuario.permite_tipo_unidade_administrativa("120000")
+
+        assert result is True
+
+
+def test_permite_tipo_unidade_administrativa_encontrado_com_codigo_eol_deve_retornar_false(
+    usuario_servidor_service_gestao_usuario,
+    tipo_unidade_administrativa_com_codigo_eol
+):
+    path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+    with patch(path) as mock_get:
+        data = {
+            "tipoUnidadeAdm": "2"
+        }
+
+        mock_get.return_value = data
+
+        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+
+        # Codigo eol informado diferente do gravado em tipo_unidade_administrativa_com_codigo_eol
+        result = gestao_usuario.permite_tipo_unidade_administrativa("130000")
+
+        assert result is False

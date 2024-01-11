@@ -9,12 +9,22 @@ from model_bakery import baker
 
 @pytest.fixture
 def parametros_sme():
-    return baker.make('ParametrosSme', tipos_unidade_adm_da_sme='1,2,3', valida_unidades_login=True)
+    return baker.make('ParametrosSme', valida_unidades_login=True)
 
 
 @pytest.fixture
 def parametros_sme_valida_unidades_login_falso():
-    return baker.make('ParametrosSme', tipos_unidade_adm_da_sme='1,2,3')
+    return baker.make('ParametrosSme', valida_unidades_login=False)
+
+
+@pytest.fixture
+def tipo_unidade_administrativa():
+    return baker.make('TipoUnidadeAdministrativa', tipo_unidade_administrativa='1')
+
+
+@pytest.fixture
+def tipo_unidade_administrativa_com_codigo_eol():
+    return baker.make('TipoUnidadeAdministrativa', tipo_unidade_administrativa='2', inicio_codigo_eol='12')
 
 
 @pytest.fixture
