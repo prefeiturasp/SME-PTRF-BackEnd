@@ -1,5 +1,6 @@
 import logging
 from django.contrib import admin, messages
+from django.forms import ModelForm, ValidationError
 from rangefilter.filter import DateRangeFilter
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
 from sme_ptrf_apps.core.services import associacao_pode_implantar_saldo
@@ -62,10 +63,14 @@ from .models import (
 from django.db.models import Count
 from django.utils.safestring import mark_safe
 
-admin.site.register(Acao)
 admin.site.register(ParametroFiqueDeOlhoPc)
 admin.site.register(ModeloCarga)
 admin.site.register(MotivoRejeicaoEncerramentoContaAssociacao)
+
+
+@admin.register(Acao)
+class AcaoAdmin(admin.ModelAdmin):
+    readonly_fields = ('uuid', 'id')
 
 
 @admin.register(SolicitacaoEncerramentoContaAssociacao)
@@ -74,7 +79,8 @@ class SolicitacaoEncerramentoContaAssociacaoAdmin(admin.ModelAdmin):
     list_filter = (
         ('data_de_encerramento_na_agencia', DateRangeFilter),
     )
-    search_fields = ('uuid', 'conta_associacao__uuid', 'conta_associacao__associacao__unidade__codigo_eol', 'conta_associacao__associacao__unidade__nome', 'conta_associacao__associacao__nome')
+    search_fields = ('uuid', 'conta_associacao__uuid', 'conta_associacao__associacao__unidade__codigo_eol',
+                     'conta_associacao__associacao__unidade__nome', 'conta_associacao__associacao__nome')
 
 
 @admin.register(Associacao)
@@ -89,7 +95,8 @@ class AssociacaoAdmin(admin.ModelAdmin):
 
     get_periodo_inicial_referencia.short_description = 'Período Inicial'
 
-    list_display = ('nome', 'cnpj', 'get_nome_escola', 'get_periodo_inicial_referencia', 'data_de_encerramento', 'migrada_para_historico_de_membros')
+    list_display = ('nome', 'cnpj', 'get_nome_escola', 'get_periodo_inicial_referencia',
+                    'data_de_encerramento', 'migrada_para_historico_de_membros')
     search_fields = ('uuid', 'nome', 'cnpj', 'unidade__nome', 'unidade__codigo_eol', )
     list_filter = (
         'unidade__dre',
@@ -160,13 +167,30 @@ class AssociacaoAdmin(admin.ModelAdmin):
 class ContaAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('associacao', 'tipo_conta', 'status', 'data_inicio')
     search_fields = ('uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
-    list_filter = ('status', 'tipo_conta', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre', ('data_inicio', DateRangeFilter),)
+    list_filter = ('status', 'tipo_conta', 'associacao__unidade__tipo_unidade',
+                   'associacao__unidade__dre', ('data_inicio', DateRangeFilter),)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     raw_id_fields = ('associacao',)
 
 
+class AcaoAssociacaoForm(ModelForm):
+    def clean(self):
+        from .services.acoes_associacoes_service import validate_acao_associacao
+        associacao = self.cleaned_data.get('associacao')
+        acao = self.cleaned_data.get('acao')
+
+        if associacao is not None and acao is not None:
+            try:
+                validate_acao_associacao(associacao, acao, self.instance)
+            except Exception as error:
+                raise ValidationError(error)
+
+        return self.cleaned_data
+
+
 @admin.register(AcaoAssociacao)
 class AcaoAssociacaoAdmin(admin.ModelAdmin):
+    form = AcaoAssociacaoForm
     list_display = ('associacao', 'acao', 'status', 'criado_em')
     search_fields = ('uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
     list_filter = ('status', 'acao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre',)
@@ -245,9 +269,11 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
 
     list_display = ('get_eol_unidade', 'periodo', 'get_nome_acao', 'get_nome_conta', 'saldo_anterior', 'total_receitas',
                     'total_despesas', 'saldo_reprogramado', 'status')
-    list_filter = ('status', 'associacao', 'acao_associacao__acao', 'periodo', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre', 'conta_associacao__tipo_conta')
+    list_filter = ('status', 'associacao', 'acao_associacao__acao', 'periodo',
+                   'associacao__unidade__tipo_unidade', 'associacao__unidade__dre', 'conta_associacao__tipo_conta')
     list_display_links = ('periodo',)
-    readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio', 'saldo_reprogramado_livre', 'uuid', 'id', 'criado_em')
+    readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio',
+                       'saldo_reprogramado_livre', 'uuid', 'id', 'criado_em')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome',)
     fieldsets = (
         (
@@ -489,7 +515,8 @@ class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
 
     get_nome_conta.short_description = 'Conta'
 
-    list_display = ('get_unidade', 'periodo', 'get_nome_conta', 'data_extrato', 'saldo_extrato', 'texto', 'justificativa_original')
+    list_display = ('get_unidade', 'periodo', 'get_nome_conta', 'data_extrato',
+                    'saldo_extrato', 'texto', 'justificativa_original')
     list_filter = (
         'associacao',
         'conta_associacao__tipo_conta',
@@ -647,6 +674,7 @@ class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
                      'prestacao_conta__associacao__nome', 'ordem', 'comentario')
     autocomplete_fields = ['prestacao_conta', ]
 
+
 @admin.register(PrevisaoRepasseSme)
 class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
     list_display = ('associacao', 'conta_associacao', 'periodo', 'valor_capital', 'valor_custeio', 'valor_livre')
@@ -707,7 +735,7 @@ class ParametrosAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Associação', {
-           'fields':
+            'fields':
                 (
                     'permite_saldo_conta_negativo',
                     'permite_saldo_acoes_negativo',
@@ -909,18 +937,18 @@ class RelatorioRelacaoBensAdmin(admin.ModelAdmin):
     inlines = [ItemRelatorioRelacaoDeBensInline]
     list_display = ('id', 'relacao_bens', 'nome_associacao', 'periodo_referencia', 'data_geracao', )
     fieldsets = [('Cabeçalho', {
-                    "fields": ["periodo_referencia", "periodo_data_inicio", "periodo_data_fim", "conta"],
-                }),
-                ('Identificação APM', {
-                    "fields": ["tipo_unidade", "nome_unidade", "nome_associacao", "cnpj_associacao", "codigo_eol_associacao", "nome_dre_associacao",
-                               "presidente_diretoria_executiva",  "cargo_substituto_presidente_ausente"],
-                }),
-                ('Valor', {
-                    "fields": ["valor_total"],
-                }),
-                ("Informações adicionais", {
-                  "fields": ['relacao_bens', 'usuario', 'data_geracao','uuid', 'id', 'criado_em', 'alterado_em']
-                }),]
+        "fields": ["periodo_referencia", "periodo_data_inicio", "periodo_data_fim", "conta"],
+    }),
+        ('Identificação APM', {
+            "fields": ["tipo_unidade", "nome_unidade", "nome_associacao", "cnpj_associacao", "codigo_eol_associacao", "nome_dre_associacao",
+                       "presidente_diretoria_executiva",  "cargo_substituto_presidente_ausente"],
+        }),
+        ('Valor', {
+            "fields": ["valor_total"],
+        }),
+        ("Informações adicionais", {
+            "fields": ['relacao_bens', 'usuario', 'data_geracao', 'uuid', 'id', 'criado_em', 'alterado_em']
+        }),]
 
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
@@ -993,7 +1021,7 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
 @admin.register(AnaliseLancamentoPrestacaoConta)
 class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
     def get_unidade(self, obj):
-        return f'{obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj  and obj.analise_prestacao_conta and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_prestacao_conta.prestacao_conta.associacao.unidade else '-'
+        return f'{obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_prestacao_conta and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_prestacao_conta.prestacao_conta.associacao.unidade else '-'
 
     get_unidade.short_description = 'Unidade'
 
@@ -1001,7 +1029,6 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
         return f'{obj.analise_prestacao_conta.prestacao_conta.periodo.referencia}' if obj and obj.analise_prestacao_conta and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.periodo else ''
 
     get_periodo.short_description = 'Período'
-
 
     def get_analise_pc(self, obj):
         return f'#{obj.analise_prestacao_conta.pk}' if obj and obj.analise_prestacao_conta else ''
@@ -1011,12 +1038,12 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_lancamento', 'resultado', 'status_realizacao',
                     'devolucao_tesouro_atualizada']
     list_filter = (
-    # 'analise_corrigida_via_admin_action', # TODO remover esse filtro quando não for mais necessário
-    'analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
-    'analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
-    'analise_prestacao_conta__prestacao_conta__periodo',
-    'tipo_lancamento',
-    'devolucao_tesouro_atualizada',
+        # 'analise_corrigida_via_admin_action', # TODO remover esse filtro quando não for mais necessário
+        'analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
+        'analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
+        'analise_prestacao_conta__prestacao_conta__periodo',
+        'tipo_lancamento',
+        'devolucao_tesouro_atualizada',
     )
 
     search_fields = (
@@ -1066,11 +1093,13 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
             for analise in todas_analises_da_despesa:
 
                 if analise == primeira_analise:
-                    logging.info(f'**************** Primeira Analise PC ID: {primeira_analise.analise_prestacao_conta_id} Despesa ID: {primeira_analise.despesa_id}  Status Realizacao: {primeira_analise.status_realizacao} | Análise Atual PC ID: {analise.analise_prestacao_conta_id} Despesa ID: {analise.despesa_id} Status Realizacao: {analise.status_realizacao}')
+                    logging.info(
+                        f'**************** Primeira Analise PC ID: {primeira_analise.analise_prestacao_conta_id} Despesa ID: {primeira_analise.despesa_id}  Status Realizacao: {primeira_analise.status_realizacao} | Análise Atual PC ID: {analise.analise_prestacao_conta_id} Despesa ID: {analise.despesa_id} Status Realizacao: {analise.status_realizacao}')
                     continue
 
                 if not analise.analise_corrigida_via_admin_action:
-                    logging.info(f"**************** Demais Analise PC ID: {analise.analise_prestacao_conta_id} Despesa ID: {analise.despesa_id} Status Realizacao: {analise.status_realizacao}")
+                    logging.info(
+                        f"**************** Demais Analise PC ID: {analise.analise_prestacao_conta_id} Despesa ID: {analise.despesa_id} Status Realizacao: {analise.status_realizacao}")
                     analise.analise_prestacao_conta_auxiliar = analise.analise_prestacao_conta
                     analise.analise_corrigida_via_admin_action = True
                     analise.analise_prestacao_conta = None
@@ -1078,10 +1107,8 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
 
                     contador += 1
 
-
         logging.info(f"**************** Total de registros: {contador}")
         self.message_user(request, f"{contador} Análise de lançamentos do tipo GASTO inativadas.")
-
 
     def reverter_inativar_analises_lancamento_prestacao_conta_duplicadas_gasto(self, request, queryset):
         contador = 0
@@ -1099,59 +1126,61 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
             analise.analise_corrigida_via_admin_action = False
             analise.save()
 
-            logging.info(f"**************** Revertendo Inativação da Analise de Lançamento Tipo Gasto: {analise} Despesa ID: {analise.despesa_id}")
+            logging.info(
+                f"**************** Revertendo Inativação da Analise de Lançamento Tipo Gasto: {analise} Despesa ID: {analise.despesa_id}")
 
             contador += 1
 
         logging.info(f"**************** Total de registros: {contador}")
         self.message_user(request, f"{contador} Inativações de Análise de lançamentos do tipo GASTO revertidas.")
 
-
     def inativar_analises_lancamento_prestacao_conta_duplicadas_receita(self, request, queryset):
-            contador = 0
+        contador = 0
 
-            result_receita = AnaliseLancamentoPrestacaoConta.objects.filter(tipo_lancamento='CREDITO')\
-                .values('analise_prestacao_conta_id', 'tipo_lancamento', 'receita_id')\
-                .annotate(dcount=Count('receita_id'))\
-                .filter(dcount__gt=1)\
-                .order_by('analise_prestacao_conta_id')
+        result_receita = AnaliseLancamentoPrestacaoConta.objects.filter(tipo_lancamento='CREDITO')\
+            .values('analise_prestacao_conta_id', 'tipo_lancamento', 'receita_id')\
+            .annotate(dcount=Count('receita_id'))\
+            .filter(dcount__gt=1)\
+            .order_by('analise_prestacao_conta_id')
 
-            for registro in result_receita:
+        for registro in result_receita:
 
+            primeira_analise = AnaliseLancamentoPrestacaoConta.objects.filter(
+                analise_prestacao_conta_id=registro['analise_prestacao_conta_id'],
+                tipo_lancamento=registro['tipo_lancamento'],
+                receita_id=registro['receita_id']
+            ).exclude(status_realizacao='PENDENTE').order_by('id').first()
+
+            if not primeira_analise:
                 primeira_analise = AnaliseLancamentoPrestacaoConta.objects.filter(
                     analise_prestacao_conta_id=registro['analise_prestacao_conta_id'],
                     tipo_lancamento=registro['tipo_lancamento'],
                     receita_id=registro['receita_id']
-                ).exclude(status_realizacao='PENDENTE').order_by('id').first()
+                ).order_by('id').first()
 
-                if not primeira_analise:
-                    primeira_analise = AnaliseLancamentoPrestacaoConta.objects.filter(
-                        analise_prestacao_conta_id=registro['analise_prestacao_conta_id'],
-                        tipo_lancamento=registro['tipo_lancamento'],
-                        receita_id=registro['receita_id']
-                    ).order_by('id').first()
+            todas_analises_da_receita = AnaliseLancamentoPrestacaoConta.objects.filter(
+                analise_prestacao_conta_id=registro['analise_prestacao_conta_id'],
+                tipo_lancamento=registro['tipo_lancamento'],
+                receita_id=registro['receita_id']
+            )
 
-                todas_analises_da_receita = AnaliseLancamentoPrestacaoConta.objects.filter(
-                    analise_prestacao_conta_id=registro['analise_prestacao_conta_id'],
-                    tipo_lancamento=registro['tipo_lancamento'],
-                    receita_id=registro['receita_id']
-                )
+            for analise in todas_analises_da_receita:
+                if analise == primeira_analise:
+                    logging.info(
+                        f'**************** Primeira Analise PC ID: {primeira_analise.analise_prestacao_conta_id} Receita ID: {primeira_analise.receita_id}  Status Realizacao: {primeira_analise.status_realizacao} | Análise Atual PC ID: {analise.analise_prestacao_conta_id} Receita ID: {analise.receita_id} Status Realizacao: {analise.status_realizacao}')
+                    continue
 
-                for analise in todas_analises_da_receita:
-                    if analise == primeira_analise:
-                        logging.info(f'**************** Primeira Analise PC ID: {primeira_analise.analise_prestacao_conta_id} Receita ID: {primeira_analise.receita_id}  Status Realizacao: {primeira_analise.status_realizacao} | Análise Atual PC ID: {analise.analise_prestacao_conta_id} Receita ID: {analise.receita_id} Status Realizacao: {analise.status_realizacao}')
-                        continue
+                if not analise.analise_corrigida_via_admin_action:
+                    logging.info(
+                        f"**************** Demais Analise PC ID: {analise.analise_prestacao_conta_id} Receita ID: {analise.receita_id} Status Realizacao: {analise.status_realizacao}")
+                    analise.analise_prestacao_conta_auxiliar = analise.analise_prestacao_conta
+                    analise.analise_corrigida_via_admin_action = True
+                    analise.analise_prestacao_conta = None
+                    analise.save()
+                    contador += 1
 
-                    if not analise.analise_corrigida_via_admin_action:
-                        logging.info(f"**************** Demais Analise PC ID: {analise.analise_prestacao_conta_id} Receita ID: {analise.receita_id} Status Realizacao: {analise.status_realizacao}")
-                        analise.analise_prestacao_conta_auxiliar = analise.analise_prestacao_conta
-                        analise.analise_corrigida_via_admin_action = True
-                        analise.analise_prestacao_conta = None
-                        analise.save()
-                        contador += 1
-
-            logging.info(f"**************** Total de registros: {contador}")
-            self.message_user(request, f"{contador} Análise de lançamentos do tipo RECEITA inativadas.")
+        logging.info(f"**************** Total de registros: {contador}")
+        self.message_user(request, f"{contador} Análise de lançamentos do tipo RECEITA inativadas.")
 
     def reverter_inativar_analises_lancamento_prestacao_conta_duplicadas_receita(self, request, queryset):
         contador = 0
@@ -1169,12 +1198,14 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
             analise.analise_corrigida_via_admin_action = False
             analise.save()
 
-            logging.info(f"**************** Revertendo Inativação da Analise de Lançamento Tipo Receita: {analise} Receita ID: {analise.receita_id}")
+            logging.info(
+                f"**************** Revertendo Inativação da Analise de Lançamento Tipo Receita: {analise} Receita ID: {analise.receita_id}")
 
             contador += 1
 
         logging.info(f"**************** Total de registros: {contador}")
         self.message_user(request, f"{contador} Inativações de Análise de lançamentos do tipo RECEITA revertidas.")
+
 
 @admin.register(TipoAcertoLancamento)
 class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
@@ -1213,7 +1244,8 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
 
     get_analise_pc.short_description = 'Análise PC'
 
-    list_display = ['analise_lancamento', 'get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_acerto', 'tipo_lancamento', 'devolucao_ao_tesouro', 'get_despesa', 'copiado']
+    list_display = ['analise_lancamento', 'get_unidade', 'get_periodo', 'get_analise_pc',
+                    'tipo_acerto', 'tipo_lancamento', 'devolucao_ao_tesouro', 'get_despesa', 'copiado']
     search_fields = [
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
@@ -1281,7 +1313,8 @@ class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
         return f'#{obj.analise_prestacao_conta.pk}' if obj and obj.analise_prestacao_conta else ''
 
     get_analise_pc.short_description = 'Análise PC'
-    list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_documento_prestacao_conta', 'resultado', 'status_realizacao']
+    list_display = ['get_unidade', 'get_periodo', 'get_analise_pc',
+                    'tipo_documento_prestacao_conta', 'resultado', 'status_realizacao']
     list_filter = [
         'analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
@@ -1528,7 +1561,8 @@ class TransferenciaEolAdmin(admin.ModelAdmin):
 
         self.message_user(request, f"Transferência concluida.")
 
-    list_display = ('eol_transferido', 'eol_historico', 'tipo_nova_unidade', 'tipo_conta_transferido', 'data_inicio_atividades', 'status_processamento')
+    list_display = ('eol_transferido', 'eol_historico', 'tipo_nova_unidade',
+                    'tipo_conta_transferido', 'data_inicio_atividades', 'status_processamento')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em', 'log_execucao')
     actions = [transfere_codigo_eol]
 

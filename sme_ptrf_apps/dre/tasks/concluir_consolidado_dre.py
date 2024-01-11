@@ -115,11 +115,9 @@ def passar_pcs_do_relatorio_para_publicadas(dre, periodo, consolidado_dre):
 
 def verifica_se_relatorio_consolidado_deve_ser_gerado(dre, periodo, usuario):
     from .concluir_consolidado_de_publicacoes_parciais import concluir_consolidado_de_publicacoes_parciais_async
-
-    qtde_unidades_na_dre = Unidade.objects.filter(
-        dre_id=dre,
-    ).exclude(associacoes__cnpj__exact='').count()
-
+    from sme_ptrf_apps.core.models import Associacao
+    qtde_unidades_na_dre = Associacao.get_associacoes_ativas_no_periodo(
+        periodo=periodo, dre=dre).exclude(cnpj__exact='').count()
     qtde_pcs_publicadas_no_periodo_pela_dre = PrestacaoConta.objects.filter(
         periodo=periodo,
         status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
