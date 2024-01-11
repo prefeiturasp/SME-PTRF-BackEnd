@@ -44,6 +44,8 @@ from sme_ptrf_apps.core.api.views import (
     SolicitacaoEncerramentoContaAssociacaoViewset,
     MotivoRejeicaoEncerramentoContaAssociacaoViewset,
     feature_flags,
+    SimuladorDeLogsView,
+    SimuladorDeLogsAsyncView,
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
@@ -89,13 +91,18 @@ from sme_ptrf_apps.users.api.views import (
 )
 
 from sme_ptrf_apps.mandatos.api.views import MandatosViewSet, ComposicoesViewSet, OcupantesCargosViewSet, CargosComposicoesViewSet
+from sme_ptrf_apps.utils.contextual_logger import ContextualLogger
 
 
 @api_view()
 def versao(request):
+    logger = ContextualLogger.get_logger(__name__, operacao='teste-api-versao')
+    logger.info('Teste de log com operação', extra={'uuid': '1234567890'})
     versao = __version__
     if waffle.flag_is_active(request, 'teste-flag'):
         versao = "teste-flag"
+    logger.info(f'Versão: {versao}', extra={'uuid': '1234567890'})
+    logger.info('Fim')
     return Response({"versao": versao})
 
 
@@ -192,4 +199,6 @@ urlpatterns += [
     path("teste-flag", teste_flag_view),
     path("login", LoginView.as_view()),
     path("feature-flags", feature_flags),
+    path("simular-logs", SimuladorDeLogsView.as_view()),
+    path("simular-logs-async", SimuladorDeLogsAsyncView.as_view()),
 ]
