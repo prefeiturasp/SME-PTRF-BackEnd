@@ -4,6 +4,7 @@ import pytest
 from rest_framework import status
 
 from sme_ptrf_apps.core.models import AcaoAssociacao
+from sme_ptrf_apps.core.fixtures.factories import AcaoFactory, AcaoAssociacaoFactory, AssociacaoFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -122,3 +123,22 @@ def test_create_acao_associacao_em_lote_uuid_associacao_invalido(
     assert response.status_code == status.HTTP_201_CREATED
     assert result == esperado
     assert AcaoAssociacao.objects.exists()
+
+
+def test_validacao_create_acao_associacao(jwt_authenticated_client_a):
+    associacao = AssociacaoFactory()
+    acao = AcaoFactory()
+    acao_associacao_existente = AcaoAssociacaoFactory(associacao=associacao, acao=acao)
+
+    payload = {
+        'acao': f"{acao.uuid}",
+        'associacao': f"{associacao.uuid}"
+    }
+
+    response = jwt_authenticated_client_a.post(
+        '/api/acoes-associacoes/', data=json.dumps(payload), content_type='application/json')
+
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Já existe um registro com a mesma associação e ação com status ativa' in str(result)
