@@ -219,9 +219,11 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
+            "()": "sme_ptrf_apps.utils.logging_custom_formater.CustomFormatter",
             "format": "%(levelname)s %(asctime)s %(module)s "
-                      "%(process)d %(thread)d %(message)s"
-        }
+                      "%(process)d %(thread)d %(message)s "
+                      "%(operacao)s %(operacao_id)s %(username)s %(observacao)s "
+        },
     },
     "handlers": {
         "console": {
@@ -229,38 +231,25 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
-        # 'elasticapm': {
-        #     'level': env('ELASTIC_APM_LOG_LEVEL', default='INFO'),
-        #     'class': 'elasticapm.contrib.django.handlers.LoggingHandler',
-        # },
     },
-    # "root": {"level": env("DJANGO_LOG_LEVEL", default="INFO"), "handlers": ["console", "elasticapm"]},
-    "root": {"level": env("DJANGO_LOG_LEVEL", default="INFO"), "handlers": ["console"]},
-    # "loggers": {
-    #     "django.db.backends": {
-    #         "level": "ERROR",
-    #         "handlers": ["console"],
-    #         "propagate": False,
-    #     },
-    #     # Errors logged by the SDK itself
-    #     "sentry_sdk": {"level": "ERROR", "handlers": ["console"], "propagate": False},
-    #     "django.security.DisallowedHost": {
-    #         "level": "ERROR",
-    #         "handlers": ["console"],
-    #         "propagate": False,
-    #     },
-    #     'django': {
-    #         'handlers': ['elasticapm'],
-    #         'level': 'WARNING',
-    #         'propagate': False,
-    #     },
-    #     'elasticapm.errors': {
-    #         'level': 'ERROR',
-    #         'handlers': ['console'],
-    #         'propagate': False,
-    #     },
-    # },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'celery': {
+            'level': 'INFO',
+            'handlers': ['console'],
+            'propagate': True,
+        },
+    },
+    "root": {
+        "level": env("DJANGO_LOG_LEVEL", default="INFO"),
+        "handlers": ["console"]
+    },
 }
+
 
 # CELERY SETTINGS
 # ------------------------------------------------------------------------------
