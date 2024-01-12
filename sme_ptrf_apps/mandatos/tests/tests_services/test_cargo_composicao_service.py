@@ -1,6 +1,7 @@
 import pytest
 
-from sme_ptrf_apps.mandatos.services import ServicoCargosDaComposicao, ServicoCargosDaDiretoriaExecutiva
+from sme_ptrf_apps.mandatos.services import ServicoCargosDaComposicao, ServicoCargosDaDiretoriaExecutiva, \
+    ServicoPendenciaCargosDaComposicaoVigenteDaAssociacao
 
 pytestmark = pytest.mark.django_db
 
@@ -62,3 +63,15 @@ def test_servico_cargos_da_diretoria_executiva():
     ]
 
     assert result == cargos_da_diretoria_executiva
+
+
+def test_pendencia_cargos_da_composicao_vigente_da_associacao(
+    associacao,
+    composicao_01_2023_a_2025_testes_servicos,
+    cargo_composicao_01_testes_services,
+    ocupante_cargo_01
+):
+    servico_pendencia = ServicoPendenciaCargosDaComposicaoVigenteDaAssociacao(associacao)
+    pendencia_membros = servico_pendencia.retorna_se_tem_pendencia()
+
+    assert pendencia_membros
