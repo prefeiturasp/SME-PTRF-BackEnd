@@ -41,7 +41,8 @@ def criar_ata_e_atribuir_ao_consolidado_dre(dre=None, periodo=None, consolidado_
 
 
 def retornar_ja_publicadas(dre, periodo):
-    consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao='FINAL').order_by('sequencia_de_publicacao', 'sequencia_de_retificacao')
+    consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao='FINAL').order_by(
+        'sequencia_de_publicacao', 'sequencia_de_retificacao')
     # Pegando o valor máximo da sequencia de publicacao para habilitar ou não o botão de remover data de publicação
     valor_maximo_sequencia_de_publicacao = consolidados_dre.aggregate(max_sequencia_de_publicacao=Coalesce(
         Max('sequencia_de_publicacao'), Value(0)))['max_sequencia_de_publicacao']
@@ -65,7 +66,7 @@ def retornar_ja_publicadas(dre, periodo):
         elif qtde_unidades > 1:
             texto_qtde_unidades = f' - {qtde_unidades} PCs'
 
-        tipo_publicacao = f"Retificação da Publicação de {consolidado_dre.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y') if consolidado_dre.consolidado_retificado and consolidado_dre.consolidado_retificado.data_publicacao else ''}"  if consolidado_dre.eh_retificacao else tipo_publicacao
+        tipo_publicacao = f"Retificação da Publicação de {consolidado_dre.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y') if consolidado_dre.consolidado_retificado and consolidado_dre.consolidado_retificado.data_publicacao else ''}" if consolidado_dre.eh_retificacao else tipo_publicacao
         if tipo_publicacao == 'Parcial':
             nome_publicacao = f'Publicação {tipo_publicacao} #{sequencia}{texto_qtde_unidades}'
         elif tipo_publicacao.startswith('Retificação'):
@@ -83,7 +84,6 @@ def retornar_ja_publicadas(dre, periodo):
         else:
             ja_publicado = True
 
-
         if consolidado_dre.eh_retificacao:
             total_pcs_retificacao = consolidado_dre.prestacoes_de_conta_do_consolidado_dre.all()
 
@@ -93,7 +93,8 @@ def retornar_ja_publicadas(dre, periodo):
                 Q(status=PrestacaoConta.STATUS_REPROVADA)
             )
 
-            todas_pcs_da_retificacao_concluidas = True if len(total_pcs_concluidas) == len(total_pcs_retificacao) else False
+            todas_pcs_da_retificacao_concluidas = True if len(
+                total_pcs_concluidas) == len(total_pcs_retificacao) else False
         else:
             todas_pcs_da_retificacao_concluidas = False
 
@@ -113,7 +114,7 @@ def retornar_ja_publicadas(dre, periodo):
             'permite_excluir_data_e_pagina_publicacao': valor_maximo_sequencia_de_publicacao == sequencia,
             'habilita_botao_gerar': consolidado_dre.habilita_geracao,
             'texto_tool_tip_botao_gerar': 'É necessário informar a data e a página da publicação anterior<br/>'
-                                        'no Diário Oficial da Cidade para gerar uma nova publicação.',
+            'no Diário Oficial da Cidade para gerar uma nova publicação.',
             'exibe_botao_retificar': consolidado_dre.exibe_botao_retificar,
             'habilita_retificar': consolidado_dre.permite_retificacao["permite"],
             'tooltip_habilita_retificar': consolidado_dre.permite_retificacao["tooltip"],
@@ -332,7 +333,8 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
     sequencia_de_publicacao_atual = sequencia_de_publicacao['sequencia_de_publicacao_atual']
     publicacoes_anteriores = retornar_ja_publicadas(dre, periodo)
 
-    quantidade_ues_cnpj = Associacao.objects.filter(unidade__dre=dre).exclude(cnpj__exact='').count()
+    quantidade_ues_cnpj = Associacao.get_associacoes_ativas_no_periodo(
+        periodo=periodo, dre=dre).exclude(cnpj__exact='').count()
 
     quantidade_pcs_publicadas = PrestacaoConta.objects.filter(periodo__uuid=periodo_uuid,
                                                               associacao__unidade__dre__uuid=dre_uuid,
@@ -345,17 +347,20 @@ def retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=None, periodo=Non
         eh_parcial=True
     ).count()
 
-    todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez = verifica_se_todas_as_pcs_foram_publicadas_pelo_menos_uma_vez(publicacoes_anteriores=publicacoes_anteriores, quantidade_ues_cnpj=quantidade_ues_cnpj)
+    todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez = verifica_se_todas_as_pcs_foram_publicadas_pelo_menos_uma_vez(
+        publicacoes_anteriores=publicacoes_anteriores, quantidade_ues_cnpj=quantidade_ues_cnpj)
 
-    numero_de_pcs_retificadas_publicadas = conta_numero_pcs_retificadas_publicadas(publicacoes_anteriores=publicacoes_anteriores)
+    numero_de_pcs_retificadas_publicadas = conta_numero_pcs_retificadas_publicadas(
+        publicacoes_anteriores=publicacoes_anteriores)
 
-    if(todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez and numero_de_pcs_retificadas_publicadas > 0):
+    if (todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez and numero_de_pcs_retificadas_publicadas > 0):
         publicacao_unica_com_retificacao_publicada = True
 
-    if(todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez and quantidade_consolidados_dre_publicados > 0):
+    if (todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez and quantidade_consolidados_dre_publicados > 0):
         publicacao_parcial_com_retificacao = True
 
-    consolidado_de_publicacoes_parciais = (quantidade_pcs_publicadas == quantidade_ues_cnpj) and quantidade_consolidados_dre_publicados > 0
+    consolidado_de_publicacoes_parciais = (quantidade_pcs_publicadas ==
+                                           quantidade_ues_cnpj) and quantidade_consolidados_dre_publicados > 0
 
     if consolidado_de_publicacoes_parciais or publicacao_unica_com_retificacao_publicada or publicacao_parcial_com_retificacao:
         proxima_publicacao = retornar_consolidado_de_publicacoes_parciais(
@@ -628,14 +633,16 @@ def status_consolidado_dre(dre, periodo):
 
     return status_list
 
+
 def conta_numero_pcs_retificadas_publicadas(publicacoes_anteriores):
     pcs_retificadas_publicadas = 0
 
     for elem in publicacoes_anteriores:
-        if(elem['eh_retificacao'] and elem['ja_publicado']):
+        if (elem['eh_retificacao'] and elem['ja_publicado']):
             pcs_retificadas_publicadas += elem['qtde_pcs']
 
     return pcs_retificadas_publicadas
+
 
 def verifica_se_todas_as_pcs_foram_publicadas_pelo_menos_uma_vez(publicacoes_anteriores, quantidade_ues_cnpj):
     todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez = False
@@ -650,13 +657,15 @@ def verifica_se_todas_as_pcs_foram_publicadas_pelo_menos_uma_vez(publicacoes_ant
 
     return todas_as_pcs_ja_foram_publicadas_pelo_menos_uma_vez
 
+
 def verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid, periodo_uuid):
     dre = Unidade.dres.get(uuid=dre_uuid)
     periodo = Periodo.by_uuid(periodo_uuid)
 
     results = retornar_trilha_de_status(dre_uuid, periodo_uuid)
 
-    total_associacoes_dre = Associacao.objects.filter(unidade__dre__uuid=dre_uuid).exclude(cnpj__exact='').count()
+    total_associacoes_dre = Associacao.get_associacoes_ativas_no_periodo(
+        periodo=periodo, dre=dre).exclude(cnpj__exact='').count()
     total_concluido = [d['quantidade_prestacoes'] for d in results if d['status'] == "CONCLUIDO"][0]
 
     eh_parcial = total_concluido < total_associacoes_dre
@@ -724,12 +733,10 @@ def gerar_previa_consolidado_dre(dre, periodo, parcial, usuario, uuid_retificaca
             sequencia_de_publicacao=sequencia_de_publicacao
         ).last()
 
-
         consolidado_dre = ConsolidadoDRE.criar_ou_retornar_consolidado_dre(dre=dre, periodo=periodo,
                                                                            sequencia_de_publicacao=sequencia_de_publicacao)
 
         consolidado_dre.atribuir_versao(previa=True)
-
 
     logger.info(f'Criado Pŕevia do Consolidado DRE  {consolidado_dre}.')
 
@@ -783,17 +790,15 @@ def concluir_consolidado_dre(dre, periodo, parcial, usuario, uuid_retificacao):
             versao=ConsolidadoDRE.VERSAO_PREVIA,
         ).delete()
 
-
     if uuid_retificacao:
         consolidado_dre = ConsolidadoDRE.by_uuid(uuid_retificacao)
 
         logger.info(f'Retornando Consolidado DRE (Retificação)  {consolidado_dre}.')
     else:
         consolidado_dre = ConsolidadoDRE.criar_ou_retornar_consolidado_dre(dre=dre, periodo=periodo,
-                                                                       sequencia_de_publicacao=sequencia_de_publicacao)
+                                                                           sequencia_de_publicacao=sequencia_de_publicacao)
 
         logger.info(f'Criado/retornando Consolidado DRE  {consolidado_dre}.')
-
 
     consolidado_dre.passar_para_status_em_processamento()
     logger.info(f'Consolidado DRE em processamento - {consolidado_dre}.')
@@ -869,7 +874,7 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, 
             consolidado_retificado=consolidado_dre,
             motivo_retificacao=motivo_retificacao,
         )
-    consolidado_dre.gerou_uma_retificacao=True
+    consolidado_dre.gerou_uma_retificacao = True
     consolidado_dre.save()
     retificacao.save()
 
@@ -885,7 +890,8 @@ def retificar_consolidado_dre(consolidado_dre, prestacoes_de_conta_a_retificar, 
 
         retificacao.pcs_do_consolidado.add(pc)
 
-        logger.info(f'Prestação de conta {pc} - {pc.associacao} passada para retificação no consolidado de retificação{retificacao}')
+        logger.info(
+            f'Prestação de conta {pc} - {pc.associacao} passada para retificação no consolidado de retificação{retificacao}')
 
     logger.info(f'Finalizada a retificação do Consolidado DRE {consolidado_dre}')
 
@@ -924,12 +930,14 @@ def desfazer_retificacao_dre(retificacao, prestacoes_de_conta_a_desfazer_retific
             retificacao.pcs_do_consolidado.remove(pc)
 
             logger.info(f'A Prestação de conta {pc} - {pc.associacao} foi removida da retificação {retificacao}')
-            logger.info(f'A Prestação de conta {pc} - {pc.associacao} foi inserida no consolidado retificado {retificacao.consolidado_retificado}')
+            logger.info(
+                f'A Prestação de conta {pc} - {pc.associacao} foi inserida no consolidado retificado {retificacao.consolidado_retificado}')
 
         logger.info(f'Finalizada a ação de desfazer a retificação das Pcs {prestacoes_de_conta_a_desfazer_retificacao}')
 
         if deve_apagar_retificacao:
-            logger.info(f'Todas as Prestações de Contas foram retiradas da retificação, portando a retificação {retificacao} será apagada')
+            logger.info(
+                f'Todas as Prestações de Contas foram retiradas da retificação, portando a retificação {retificacao} será apagada')
 
             retificacao.consolidado_retificado.gerou_uma_retificacao = False
             retificacao.consolidado_retificado.save()
@@ -962,7 +970,8 @@ def update_retificacao(retificacao, prestacoes_de_conta_a_retificar, motivo):
 
             retificacao.pcs_do_consolidado.add(pc)
 
-            logger.info(f'Prestação de conta {pc} - {pc.associacao} passada para retificação no consolidado de retificação {retificacao}')
+            logger.info(
+                f'Prestação de conta {pc} - {pc.associacao} passada para retificação no consolidado de retificação {retificacao}')
 
         logger.info(f'Finalizado o update da retificação {retificacao}')
     else:
@@ -995,6 +1004,7 @@ def atrelar_pc_ao_consolidado_dre(dre, periodo, consolidado_dre):
         logger.info(f'Atrelando Prestação ao Consolidado DRE: Prestação {prestacao}. Consolidado Dre {consolidado_dre}')
         consolidado_dre.vincular_pc_ao_consolidado(prestacao)
 
+
 def verifica_se_eh_relatorio_publicacoes_parciais(dre, periodo):
     qtde_unidades_na_dre = Unidade.objects.filter(
         dre_id=dre,
@@ -1010,6 +1020,7 @@ def verifica_se_eh_relatorio_publicacoes_parciais(dre, periodo):
     if (int(qtde_unidades_na_dre) == int(qtde_pcs_publicadas_no_periodo_pela_dre)):
         return True
     return False
+
 
 def gerar_relatorio_consolidado_dre(
     dre_uuid,
@@ -1051,7 +1062,8 @@ def gerar_relatorio_consolidado_dre(
             if consolidado_dre_uuid:
                 consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
             else:
-                consolidado_dre = ConsolidadoDRE.objects.get(dre=dre, periodo=periodo, sequencia_de_publicacao=sequencia_de_publicacao)
+                consolidado_dre = ConsolidadoDRE.objects.get(
+                    dre=dre, periodo=periodo, sequencia_de_publicacao=sequencia_de_publicacao)
 
         except ConsolidadoDRE.DoesNotExist:
             erro = {
@@ -1062,7 +1074,8 @@ def gerar_relatorio_consolidado_dre(
             raise Exception(erro)
 
     try:
-        _criar_demonstrativo_execucao_fisico_financeiro(dre, periodo, usuario, parcial, consolidado_dre, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais)
+        _criar_demonstrativo_execucao_fisico_financeiro(
+            dre, periodo, usuario, parcial, consolidado_dre, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais)
     except Exception as err:
         erro = {
             'erro': 'problema_geracao_relatorio',
@@ -1171,7 +1184,8 @@ class ListagemPorStatusComFiltros(AcompanhamentoDeRelatoriosConsolidados):
         listagem = []
 
         for dre in dres:
-            consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=self.periodo, versao=self.versao_relatorio)
+            consolidados_dre = ConsolidadoDRE.objects.filter(
+                dre=dre, periodo=self.periodo, versao=self.versao_relatorio)
 
             tipo_de_relatorio = '-'
             total_unidades_no_relatorio = '-'

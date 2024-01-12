@@ -4,6 +4,7 @@ import pytest
 from rest_framework import status
 
 from sme_ptrf_apps.core.models import AcaoAssociacao
+from sme_ptrf_apps.core.fixtures.factories import AcaoFactory, AcaoAssociacaoFactory, AssociacaoFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -39,3 +40,24 @@ def test_update_acao_associacao(
 
     assert acao_associacao.acao == acao_y, "Deve atualizar a ação."
     assert acao_associacao.status == AcaoAssociacao.STATUS_INATIVA, "Deve atualizar o status."
+
+
+def test_validacao_update_acao_associacao(jwt_authenticated_client_a):
+    associacao = AssociacaoFactory()
+    acao = AcaoFactory()
+    outra_acao = AcaoFactory()
+
+    acao_associacao_existente = AcaoAssociacaoFactory(associacao=associacao, acao=acao)
+
+    payload = {
+        'acao': f"{outra_acao.uuid}",
+        'associacao': f"{associacao.uuid}"
+    }
+
+    response = jwt_authenticated_client_a.put(
+        f'/api/acoes-associacoes/{acao_associacao_existente.uuid}/', data=json.dumps(payload), content_type='application/json')
+
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['acao'] == f"{outra_acao.uuid}"
