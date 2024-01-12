@@ -1,3 +1,4 @@
+import logging
 import datetime
 from django.db import models
 from sme_ptrf_apps.core.models.conta_associacao import ContaAssociacao
@@ -14,6 +15,11 @@ from .periodo import Periodo
 
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+
+from waffle import get_waffle_flag_model
+
+LOGGER = logging.getLogger(__name__)
+
 
 class AssociacoesAtivasManager(models.Manager):
     def get_queryset(self):
@@ -332,8 +338,17 @@ class Associacao(ModeloIdNome):
         return True
 
     def pendencias_dados_da_associacao_para_geracao_de_documentos(self):
+        from ...mandatos.services import ServicoPendenciaCargosDaComposicaoVigenteDaAssociacao
+        flags = get_waffle_flag_model()
+        LOGGER.info("Verificando se a flag <historico-de-membros> está ativa...")
+        if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+            LOGGER.info("A flag está ativa, as informações serão buscadas no Histórico de Membros")
+            servico_pendencia = ServicoPendenciaCargosDaComposicaoVigenteDaAssociacao(self)
+            pendencia_membros = servico_pendencia.retorna_se_tem_pendencia()
+        else:
+            pendencia_membros = not self.membros_diretoria_executiva_e_conselho_fiscal_cadastrados
+
         pendencia_cadastro = not self.nome or not self.ccm
-        pendencia_membros = not self.membros_diretoria_executiva_e_conselho_fiscal_cadastrados
         pendencia_contas =  self.contas.filter(Q(banco_nome__exact='') | Q(agencia__exact='') | Q(numero_conta__exact='',
                                                status=ContaAssociacao.STATUS_ATIVA)).exists()
         if pendencia_cadastro or pendencia_membros or pendencia_contas:
