@@ -26,7 +26,7 @@ class DadosDemonstrativoFinanceiro(ModeloBase):
 
     # bloco 1
     nome_associacao = models.CharField('Nome da associação', max_length=160, default='')
-    cnpj_associacao = models.CharField('Nome da associação', max_length=20, default='')
+    cnpj_associacao = models.CharField('CNPJ da associação', max_length=20, default='')
     nome_dre_associacao = models.CharField('Nome da dre', max_length=160, default='')
     codigo_eol_associacao = models.CharField('Codigo eol', max_length=6, validators=[MinLengthValidator(6)], default='000000')
 
@@ -75,7 +75,7 @@ class DadosDemonstrativoFinanceiro(ModeloBase):
 
     class Meta:
         verbose_name = 'Dados Demonstrativo Financeiro'
-        verbose_name_plural = '20.0) Dados dos Demonstrativos Financeiros'
+        verbose_name_plural = '09.2.1) Dados dos Demonstrativos Financeiros'
 
     def __str__(self):
         return f"Relatório {self.nome_associacao} | {self.periodo_referencia} | {self.conta_associacao}"
@@ -134,7 +134,7 @@ class ItemResumoPorAcao(ModeloBase):
 
     class Meta:
         verbose_name = 'Dados Demonstrativo Financeiro Item Resumo por Ação'
-        verbose_name_plural = '20.1) Dados dos Demonstrativos Financeiros Itens Resumo por Ação'
+        verbose_name_plural = 'Dados dos Demonstrativos Financeiros Itens Resumo por Ação'
 
     def __str__(self):
         return self.acao_associacao
@@ -160,7 +160,7 @@ class ItemCredito(ModeloBase):
 
     class Meta:
         verbose_name = 'Dados Demonstrativo Financeiro Item de Crédito'
-        verbose_name_plural = '20.2) Dados dos Demonstrativos Financeiros Itens de Créditos'
+        verbose_name_plural = 'Dados dos Demonstrativos Financeiros Itens de Créditos'
 
     def __str__(self):
         return self.nome_acao
@@ -223,7 +223,7 @@ class ItemDespesa(ModeloBase):
 
     class Meta:
         verbose_name = 'Dados Demonstrativo Financeiro Item de Despesa'
-        verbose_name_plural = '20.3) Dados dos Demonstrativos Financeiros Itens de Despesas'
+        verbose_name_plural = 'Dados dos Demonstrativos Financeiros Itens de Despesas'
 
     def __str__(self):
         return f"{self.dados_demonstrativo}"

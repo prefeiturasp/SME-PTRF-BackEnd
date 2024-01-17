@@ -75,14 +75,40 @@ def test_carga_com_erro_formatacao(arquivo_carga):
     assert arquivo_carga.log == msg
     assert arquivo_carga.status == ERRO
 
-# TODO Débito técnico: Mocar api SMEIntegração. Teste quebrando após alteração na API no retorno ao EOL 999999
-# def test_carga_com_erro_associacao_encerrada(arquivo_carga_associacao_encerrada, associacao_encerrada_2020_2):
-#     CargaAssociacoesService().carrega_associacoes(arquivo_carga_associacao_encerrada)
-#     msg = """\nLinha:1 A associação foi encerrada em 31/12/2020.
-# 0 linha(s) importada(s) com sucesso. 1 erro(s) reportado(s)."""
-#     print(arquivo_carga_associacao_encerrada.log)
-#     assert arquivo_carga_associacao_encerrada.log == msg
-#     assert arquivo_carga_associacao_encerrada.status == ERRO
+def test_carga_com_erro_associacao_encerrada(arquivo_carga_associacao_encerrada, associacao_encerrada_2020_2):
+    
+    dados = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+    with patch(dados) as mock_get_dados_unidade:
+        
+        unidade = associacao_encerrada_2020_2.unidade
+        dre = associacao_encerrada_2020_2.unidade.dre
+        
+        mock_response = mock_get_dados_unidade.return_value
+        mock_response.json.return_value = {
+            "nomeDRE": dre.nome,
+            "siglaDRE": dre.sigla,
+            "codigoDRE": dre.codigo_eol,
+            "siglaTipoEscola": unidade.sigla,
+            "nome": unidade.nome,
+            'codigo': unidade.codigo_eol,
+            "tipoUnidade": unidade.tipo_unidade,
+            "email": unidade.email,
+            "telefone": unidade.telefone,
+            "tipoLogradouro": unidade.tipo_logradouro,
+            "logradouro": unidade.logradouro,
+            "numero": unidade.numero,
+            "bairro": unidade.bairro,
+            "cep": unidade.cep,
+        }
+        
+        CargaAssociacoesService().carrega_associacoes(arquivo_carga_associacao_encerrada)
+
+        msg = """\nLinha:1 A associação foi encerrada em 31/12/2020.
+0 linha(s) importada(s) com sucesso. 1 erro(s) reportado(s)."""
+        print(arquivo_carga_associacao_encerrada.log)
+        
+        assert arquivo_carga_associacao_encerrada.log == msg
+        assert arquivo_carga_associacao_encerrada.status == ERRO
 
 
 def __test_carga_processada_com_erro(arquivo_carga_ponto_virgula):
