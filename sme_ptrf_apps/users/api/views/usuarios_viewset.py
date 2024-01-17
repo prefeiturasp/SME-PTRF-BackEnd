@@ -28,6 +28,8 @@ from sme_ptrf_apps.users.api.serializers import (
 from sme_ptrf_apps.users.services import (
     SmeIntegracaoException,
     SmeIntegracaoService,
+    criar_acesso_de_suporte_v2,
+    CriaAcessoSuporteException
 )
 from sme_ptrf_apps.users.services.validacao_username_service import validar_username
 from sme_ptrf_apps.core.models import Unidade, MembroAssociacao
@@ -168,8 +170,9 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
                 return qs.filter(unidades__uuid=uuid_unidade_base)
 
             if visao_consulta == 'DRE':
-                unidades_da_dre = Unidade.dres.get(uuid=uuid_unidade_base).unidades_da_dre.values_list("uuid", flat=True)
-                return qs.filter(Q(unidades__uuid=uuid_unidade_base) | Q(unidades__uuid__in=unidades_da_dre) ).distinct('name', 'id')
+                unidades_da_dre = Unidade.dres.get(
+                    uuid=uuid_unidade_base).unidades_da_dre.values_list("uuid", flat=True)
+                return qs.filter(Q(unidades__uuid=uuid_unidade_base) | Q(unidades__uuid__in=unidades_da_dre)).distinct('name', 'id')
 
     @extend_schema(parameters=[
         OpenApiParameter(
@@ -308,7 +311,8 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
         #     if visao_base == 'SME':
         #         pode_acessar_unidade =
 
-        pode_acessar, mensagem_pode_acessar, info_exercicio = pode_acessar_unidade(username, e_servidor, visao_base, unidade)
+        pode_acessar, mensagem_pode_acessar, info_exercicio = pode_acessar_unidade(
+            username, e_servidor, visao_base, unidade)
 
         info_membro_nao_servidor = ""
         if not e_servidor:
@@ -371,6 +375,51 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
                 logger.error('Erro ao remover acessos: %r', e)
                 return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=True, url_path="unidades-em-suporte", methods=['get'])
+    def unidades_em_suporte(self, request, id):
+        from sme_ptrf_apps.core.api.serializers.unidade_serializer import UnidadeListSerializer
+        from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
+
+        usuario = User.objects.get(username=id)
+        queryset = Unidade.objects.filter(acessos_de_suporte__isnull=False, acessos_de_suporte__user=usuario)
+
+        custom_pagination = CustomPagination()
+        paginated_data = custom_pagination.paginate_queryset(queryset, request)
+
+        serializer = UnidadeListSerializer(paginated_data, many=True)
+
+        paginated_response = custom_pagination.get_paginated_response(serializer.data)
+        return paginated_response
+
+    @action(detail=True, methods=['post'], url_path='viabilizar-acesso-suporte')
+    def viabilizar_acesso_suporte_usuario_unidade(self, request, id):
+        """ (post) /usuarios/{usuario.username}/viabilizar-acesso-suporte/  """
+        usuario = User.objects.get(username=id)
+        codigo_eol = request.data.get('codigo_eol')
+        if not codigo_eol:
+            return Response("Campo 'codigo_eol' não encontrado no payload.", status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            unidade = Unidade.objects.get(codigo_eol=codigo_eol)
+        except Unidade.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto Unidade para o código EOL {codigo_eol} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            criar_acesso_de_suporte_v2(unidade_do_suporte=unidade, usuario_do_suporte=usuario)
+        except CriaAcessoSuporteException as err:
+            erro = {
+                'erro': 'Erro de validação',
+                'mensagem': str(err)
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"mensagem": "Acesso de suporte viabilizado."}, status=status.HTTP_201_CREATED)
+
     @action(detail=False, methods=['get'], url_path='unidades-do-usuario')
     def unidades_do_usuario(self, request):
         from ....core.models import Unidade
@@ -424,7 +473,7 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
 
         gestao_usuario = GestaoUsuarioService(usuario=usuario)
         response = gestao_usuario.desabilitar_acesso(unidade=unidade, acesso_concedido_sme=acesso_concedido_sme)
-        
+
         gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade=unidade, visao_base=visao_base)
 
         return Response(response, status=status.HTTP_200_OK)
@@ -466,7 +515,6 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
         return Response(response, status=status.HTTP_201_CREATED)
 
 
-
 # TODO Mover para um service
 # TODO Criar testes unitários
 def pode_acessar_unidade(username, e_servidor, visao_base, unidade):
@@ -482,8 +530,8 @@ def pode_acessar_unidade(username, e_servidor, visao_base, unidade):
 
         unidade_exercicio = info_exercicio['unidadeExercicio']['codigo'] if info_exercicio['unidadeExercicio'] else None
         unidade_lotacao = info_exercicio['unidadeLotacao']['codigo'] if info_exercicio['unidadeLotacao'] else None
-        logger.info(f'EOL da unidade_exercicio: {unidade_exercicio}' )
-        logger.info(f'EOL da unidade_lotacao: {unidade_lotacao}' )
+        logger.info(f'EOL da unidade_exercicio: {unidade_exercicio}')
+        logger.info(f'EOL da unidade_lotacao: {unidade_lotacao}')
 
         unidade_servidor = unidade_exercicio if unidade_exercicio else unidade_lotacao
 
@@ -496,7 +544,8 @@ def pode_acessar_unidade(username, e_servidor, visao_base, unidade):
                 return False, 'Servidor em exercício em outra unidade.', info_exercicio
 
         if visao_base == 'UE':
-            e_membro_associacao = MembroAssociacao.objects.filter(codigo_identificacao=username, associacao__unidade__codigo_eol=unidade.codigo_eol).exists()
+            e_membro_associacao = MembroAssociacao.objects.filter(
+                codigo_identificacao=username, associacao__unidade__codigo_eol=unidade.codigo_eol).exists()
             em_exercicio_na_unidade = unidade_servidor == unidade.codigo_eol
 
             if not em_exercicio_na_unidade and e_membro_associacao:
@@ -550,7 +599,8 @@ def remover_acessos_a_unidade_e_subordinadas(usuario, unidade_base):
         return
 
     if visao_base == 'DRE':
-        logger.info(f'Unidade base é uma DRE. Removendo acessos à unidade {unidade_base} e subordinadas para o usuário {usuario}.')
+        logger.info(
+            f'Unidade base é uma DRE. Removendo acessos à unidade {unidade_base} e subordinadas para o usuário {usuario}.')
         usuario.remove_unidade_se_existir(unidade_base.codigo_eol)
         unidades_subordinadas = unidade_base.unidades_da_dre.values_list("codigo_eol", flat=True)
         for unidade in usuario.unidades.filter(codigo_eol__in=unidades_subordinadas):
