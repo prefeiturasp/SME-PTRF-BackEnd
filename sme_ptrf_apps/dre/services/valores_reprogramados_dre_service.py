@@ -332,7 +332,9 @@ def lista_valores_reprogramados(associacoes_dre):
                 "referencia_por_extenso": associacao.periodo_inicial.referencia_por_extenso
             },
             "total_conta_um": total_conta_um,
-            "total_conta_dois": total_conta_dois
+            "nome_conta_um": nome_conta("conta_um"),
+            "total_conta_dois": total_conta_dois,
+            "nome_conta_dois": nome_conta("conta_dois"),
         }
 
         valores_reprogramados.append(dados)
@@ -392,3 +394,17 @@ def calcula_total_conta_dois(associacao):
 
     else:
         return "-"
+
+
+def nome_conta(conta):
+    if conta == "conta_um":
+        if ParametrosDre.objects.all():
+            if ParametrosDre.get().tipo_conta_um:
+                return ParametrosDre.get().tipo_conta_um.nome
+
+    elif conta == "conta_dois":
+        if ParametrosDre.objects.all():
+            if ParametrosDre.get().tipo_conta_dois:
+                return ParametrosDre.get().tipo_conta_dois.nome
+
+    return None

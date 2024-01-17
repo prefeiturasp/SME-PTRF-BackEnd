@@ -263,6 +263,8 @@ def test_api_valores_reprogramados_lista_associacoes_filtro_nome_unidade(
                 },
                 'uuid': f'{associacao_2.uuid}',
             },
+            'nome_conta_dois': 'Cartão',
+            'nome_conta_um': 'Cheque',
             'periodo': {
                 'data_fim_realizacao_despesas': f'{periodo_anterior.data_fim_realizacao_despesas}',
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
@@ -311,6 +313,8 @@ def test_api_valores_reprogramados_lista_associacoes_filtro_nome_associacao(
                 },
                 'uuid': f'{associacao_2.uuid}',
             },
+            'nome_conta_dois': 'Cartão',
+            'nome_conta_um': 'Cheque',
             'periodo': {
                 'data_fim_realizacao_despesas': f'{periodo_anterior.data_fim_realizacao_despesas}',
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
@@ -358,6 +362,8 @@ def test_api_valores_reprogramados_lista_associacoes_filtro_codigo_eol(
                 },
                 'uuid': f'{associacao_2.uuid}',
             },
+            'nome_conta_dois': 'Cartão',
+            'nome_conta_um': 'Cheque',
             'periodo': {
                 'data_fim_realizacao_despesas': f'{periodo_anterior.data_fim_realizacao_despesas}',
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
@@ -406,6 +412,8 @@ def test_api_valores_reprogramados_lista_associacoes_filtro_tipo_unidade(
                 },
                 'uuid': f'{associacao_2.uuid}',
             },
+            'nome_conta_dois': 'Cartão',
+            'nome_conta_um': 'Cheque',
             'periodo': {
                 'data_fim_realizacao_despesas': f'{periodo_anterior.data_fim_realizacao_despesas}',
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
