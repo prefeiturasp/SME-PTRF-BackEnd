@@ -1,6 +1,6 @@
 from sme_ptrf_apps.core.models import MembroAssociacao, Unidade
 from sme_ptrf_apps.users.models import AcessoConcedidoSme, UnidadeEmSuporte
-from sme_ptrf_apps.sme.models import ParametrosSme
+from sme_ptrf_apps.sme.models import TipoUnidadeAdministrativa
 from brazilnum.cpf import format_cpf
 from django.contrib.auth import get_user_model
 from sme_ptrf_apps.users.services import (
@@ -75,8 +75,20 @@ class GestaoUsuarioService:
         resultado = SmeIntegracaoService.get_dados_unidade_eol(codigo_eol, retorna_json=True)
 
         if resultado and "tipoUnidadeAdm" in resultado:
-            if str(resultado["tipoUnidadeAdm"]) in ParametrosSme.get().tipos_unidade_adm_da_sme:
-                return True
+            tipo_unidade_adm = int(resultado["tipoUnidadeAdm"])
+
+            tipo_unidade_adm_encontrado_na_base = TipoUnidadeAdministrativa.objects.filter(
+                tipo_unidade_administrativa=tipo_unidade_adm
+            )
+
+            if tipo_unidade_adm_encontrado_na_base.exists():
+                tipo_unidade_adm_encontrado_na_base = tipo_unidade_adm_encontrado_na_base.first()
+
+                if not tipo_unidade_adm_encontrado_na_base.possui_codigo_eol:
+                    return True
+
+                if codigo_eol.startswith(tipo_unidade_adm_encontrado_na_base.inicio_codigo_eol):
+                    return True
 
         return False
 
@@ -127,6 +139,21 @@ class GestaoUsuarioService:
                 })
 
         lista_ordenada = sorted(lista, key=lambda row: (row['tem_acesso'] is False, row['nome_com_tipo']))
+
+        if self.usuario.pode_acessar_sme and visao_base == 'SME':
+            dados = {
+                'uuid_unidade': f'SME',
+                'nome_com_tipo': f'SME Secretaria Municipal de Educação',
+                'membro': False,
+                'tem_acesso': self.usuario_possui_visao("SME"),
+                'username': self.usuario.username,
+                'unidade_em_exercicio': False,
+                'acesso_concedido_sme': False,
+                'tipo_unidade': 'SME'
+            }
+
+            lista_ordenada.insert(0, dados)
+
         return lista_ordenada
 
     def retorna_lista_unidades_servidor(self, unidade_base, visao_base, inclui_unidades_suporte=False):
@@ -203,7 +230,10 @@ class GestaoUsuarioService:
         lista_ordenada = sorted(lista, key=lambda row: (row['tem_acesso'] is False, row['nome_com_tipo']))
 
         if unidade_encontrada_na_api and visao_base == 'SME':
-            if self.permite_tipo_unidade_administrativa(unidade_encontrada_na_api['codigo']):
+
+            permite_administrativa = self.permite_tipo_unidade_administrativa(unidade_encontrada_na_api['codigo'])
+
+            if permite_administrativa or self.usuario.pode_acessar_sme:
                 dados = {
                     'uuid_unidade': f'SME',
                     'nome_com_tipo': f'SME Secretaria Municipal de Educação',
@@ -256,7 +286,7 @@ class GestaoUsuarioService:
 
     def remover_grupos_acesso_apos_remocao_acesso_unidade(self, unidade, visao_base):
         lista_tipos_unidades_usuario_tem_acesso = list(self.tipos_unidades_usuario_tem_acesso(unidade_base=unidade, visao_base=visao_base))
-        
+
         if unidade == "SME":
             self.usuario.desabilita_todos_grupos_acesso("SME")
         elif unidade.tipo_unidade == "DRE" and "DRE" not in lista_tipos_unidades_usuario_tem_acesso:
@@ -288,10 +318,10 @@ class GestaoUsuarioService:
 
     def tipos_unidades_usuario_tem_acesso(self, unidade_base="SME", visao_base="SME"):
         from sme_ptrf_apps.core.choices.tipos_unidade import TIPOS_CHOICE
-        
+
         unidades_usuario = self.unidades_do_usuario(unidade_base, visao_base)
         tipos_unidades_usuario_tem_acesso = set()
-         
+
         for unidade in unidades_usuario:
             if unidade['tipo_unidade'] == "DRE" and unidade['tem_acesso']:
                 tipos_unidades_usuario_tem_acesso.add("DRE")

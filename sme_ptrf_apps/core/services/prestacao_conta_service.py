@@ -43,7 +43,9 @@ class PrestacaoContaService:
             raise Exception(f"Associação com uuid {associacao_uuid} não encontrada")
 
         self._prestacao = PrestacaoConta.by_periodo(associacao=self._associacao, periodo=self._periodo)
-        self._e_retorno_devolucao = self._prestacao.status in (PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_DEVOLVIDA_CALCULADA) if self._prestacao else False
+
+        # Apenas PCs devolvidas tem o campo data_recebimento preenchido
+        self._e_retorno_devolucao = self._prestacao.data_recebimento is not None if self._prestacao else False
 
         self._acoes = self._associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
         self._contas = self._prestacao.contas_ativas_no_periodo() if self._prestacao else None
@@ -105,6 +107,59 @@ class PrestacaoContaService:
     @property
     def e_retorno_devolucao(self):
         return self._e_retorno_devolucao
+
+    @property
+    def requer_apagar_fechamentos(self):
+        """
+        Na verdade, não deveria haver fechamentos para a PC nesse caso, já que eles são apagados no ato da
+        devolução quanto as solicitações de ajuste demandam alteração de lançamentos.
+        Mas, por segurança, devem ser apagados casos existam nessas condições.
+        """
+        return self.e_retorno_devolucao and self.pc_e_devolucao_com_solicitacoes_mudanca
+
+    @property
+    def requer_apagar_documentos(self):
+        """
+        No caso de devoluções de PC os documentos são regerados apenas se:
+            - Houver solicitações de ajustes REALIZADAS e que demandem alteração de lançamentos,
+            - Houver solicitações de ajustes nas informações de extrato.
+        Nesses casos, os originais precisam ser apagados para que os novos sejam gerados.
+        """
+        return self.e_retorno_devolucao and (
+                self.pc_e_devolucao_com_solicitacoes_mudanca_realizadas or self.pc_e_devolucao_com_solicitacao_acerto_em_extrato)
+
+    @property
+    def requer_criar_fechamentos(self):
+        """
+        Fechamentos devem ser criados nas seguintes situações:
+            - Na primeira geração de uma PC (quando não é uma devolução)
+            - Devoluções com solicitações de ajustes que demandem alteração de lançamentos, realizadas ou não
+        """
+        return (not self.e_retorno_devolucao) or self.pc_e_devolucao_com_solicitacoes_mudanca
+
+    @property
+    def requer_gerar_documentos(self):
+        """
+        Os dados para os documentos da PC precisam ser calculados e persistidos nas seguintes situações:
+            - Na primeira geração de uma PC (quando não é uma devolução)
+            - Houver solicitações de ajustes REALIZADAS e que demandem alteração de lançamentos,
+            - Houver solicitações de ajustes nas informações de extrato.
+        Além disso, qualquer prévia de documento deve ser apagada, nas mesmas situações.
+        """
+        return (not self.e_retorno_devolucao) or (
+                self.pc_e_devolucao_com_solicitacoes_mudanca_realizadas or self.pc_e_devolucao_com_solicitacao_acerto_em_extrato)
+
+    @classmethod
+    def from_prestacao_conta_uuid(cls, prestacao_conta_uuid):
+        try:
+            prestacao = PrestacaoConta.by_uuid(uuid=prestacao_conta_uuid)
+        except PrestacaoConta.DoesNotExist:
+            raise Exception(f"Prestação de Conta com uuid {prestacao_conta_uuid} não encontrada")
+
+        periodo_uuid = prestacao.periodo.uuid
+        associacao_uuid = prestacao.associacao.uuid
+
+        return cls(periodo_uuid, associacao_uuid)
 
     def _set_pc(self):
         """Define a prestação de contas para o período e associação informados."""
@@ -246,7 +301,7 @@ class PrestacaoContaService:
         from sme_ptrf_apps.core.services import FalhaGeracaoPcService
 
         usuario_notificacao = self._user
-        logger.info('Iniciando a marcação como resolvido do registro de falha')
+        logger.info('Verificando se há registro de falha para marcar como resolvido...')
         registra_falha_service = FalhaGeracaoPcService(
             usuario=usuario_notificacao,
             periodo=self._periodo,
@@ -261,24 +316,29 @@ class PrestacaoContaService:
         logger.info(f'Terminando processo da PC {self._prestacao}...')
 
         calculo_concluido = self._prestacao.status in [PrestacaoConta.STATUS_CALCULADA, PrestacaoConta.STATUS_DEVOLVIDA_CALCULADA]
+        logger.info(f'PC {self._prestacao} está calculada? {calculo_concluido}')
 
         # Verificar se todos os demonstrativos financeiros da prestacao de contas foram concluídos
-        demonstrativos_concluidos = False
+        demonstrativos_concluidos = False  # Deve ter ao menos um demonstrativo financeiro
         for demonstrativo in self._prestacao.demonstrativos_da_prestacao.all():
             if demonstrativo.status == DemonstrativoFinanceiro.STATUS_CONCLUIDO:
                 demonstrativos_concluidos = True
             else:
+                logger.info(f'Demonstrativo financeiro {demonstrativo} não está concluído.')
                 demonstrativos_concluidos = False
                 break
 
+        logger.info(f'Todos os demonstrativos financeiros da PC {self._prestacao} estão concluídos? {demonstrativos_concluidos}')
+
         # Verificar se todos os relatórios de bens da prestacao de contas foram concluídos
-        relatorios_concluidos = False
+        relatorios_concluidos = True  # Não é obrigatório ter relatórios de bens, mas se tiver, todos devem estar concluídos
         for relatorio in self._prestacao.relacoes_de_bens_da_prestacao.all():
-            if relatorio.status == RelacaoBens.STATUS_CONCLUIDO:
-                relatorios_concluidos = True
-            else:
+            if relatorio.status != RelacaoBens.STATUS_CONCLUIDO:
+                logger.info(f'Relatório de bens {relatorio} não está concluído.')
                 relatorios_concluidos = False
                 break
+
+        logger.info(f'Todos os relatórios de bens da PC {self._prestacao} estão concluídos? {relatorios_concluidos}')
 
         if calculo_concluido and demonstrativos_concluidos and relatorios_concluidos:
             logger.info(f'Terminando o processo da PC {self._prestacao}...')
@@ -336,10 +396,6 @@ class PrestacaoContaService:
                 periodo_uuid=self._periodo.uuid,
                 associacao_uuid=self._associacao.uuid,
                 username=usuario.username,
-                e_retorno_devolucao=self.e_retorno_devolucao,
-                devolucao_tem_solicitacoes_mudanca=self.pc_e_devolucao_com_solicitacoes_mudanca,
-                devolucao_tem_solicitacoes_mudanca_realizadas=self.pc_e_devolucao_com_solicitacoes_mudanca_realizadas,
-                devolucao_tem_acertos_em_extrato=self.pc_e_devolucao_com_solicitacao_acerto_em_extrato,
                 justificativa_acertos_pendentes=justificativa_acertos_pendentes,
             ),
 
@@ -347,7 +403,6 @@ class PrestacaoContaService:
                 gerar_demonstrativo_financeiro_async.si(
                     task_celery_gerar_demonstrativo_financeiro.uuid,
                     self._prestacao.uuid,
-                    self._periodo.uuid,
                 ),
                 gerar_relacao_bens_async.si(
                     task_celery_gerar_relacao_bens.uuid,

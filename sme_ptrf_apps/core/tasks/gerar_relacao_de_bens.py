@@ -7,6 +7,7 @@ from celery.exceptions import MaxRetriesExceededError
 from sme_ptrf_apps.core.models import PrestacaoConta, RelacaoBens, TaskCelery
 from sme_ptrf_apps.core.services.relacao_bens import _retornar_dados_relatorio_relacao_de_bens
 from sme_ptrf_apps.core.services.relacao_bens_pdf_service import gerar_arquivo_relacao_de_bens_pdf
+from sme_ptrf_apps.core.services.prestacao_conta_service import PrestacaoContaService
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,13 @@ def gerar_relacao_bens_async(id_task, prestacao_conta_uuid):
         task = TaskCelery.objects.get(uuid=id_task)
         logger.info(f'Iniciando task gerar_relacao_bens_async, tentativa {tentativa}')
 
-        prestacao = PrestacaoConta.objects.get(uuid=prestacao_conta_uuid)
+        pc_service = PrestacaoContaService.from_prestacao_conta_uuid(prestacao_conta_uuid)
+
+        if not pc_service.requer_gerar_documentos:
+            logger.info(f'Prestação de conta {pc_service.prestacao.uuid} não requer geração de documentos. Relação de bens não será gerada.')
+            return
+
+        prestacao = pc_service.prestacao
 
         relacao_bens = prestacao.relacoes_de_bens_da_prestacao.filter(versao=RelacaoBens.VERSAO_FINAL)
 

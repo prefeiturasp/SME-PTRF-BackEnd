@@ -1,4 +1,4 @@
-from . import ServicoComposicaoVigente
+from . import ServicoComposicaoVigente, ServicoMandatoVigente
 from ..models import CargoComposicao, Composicao
 
 
@@ -137,7 +137,6 @@ class ServicoCargosDaComposicao:
         return membro_substituido.exists()
 
 
-
 class ServicoCargosDaDiretoriaExecutiva:
     def __init__(self):
         self.__choices = CargoComposicao.CARGO_ASSOCIACAO_CHOICES
@@ -148,3 +147,36 @@ class ServicoCargosDaDiretoriaExecutiva:
 
     def get_cargos_diretoria_executiva(self):
         return [{'id': choice[0], 'nome': choice[1]} for choice in self.choices[:9]]
+
+
+class ServicoPendenciaCargosDaComposicaoVigenteDaAssociacao:
+    def __init__(self, associacao):
+        self.__choices = CargoComposicao.CARGO_ASSOCIACAO_CHOICES
+        self.__associacao = associacao
+
+    @property
+    def choices(self):
+        return self.__choices
+
+    @property
+    def associacao(self):
+        return self.__associacao
+
+    def retorna_se_tem_pendencia(self):
+        servico_mandato_vigente = ServicoMandatoVigente()
+        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+        servico_composicao_vigente = ServicoComposicaoVigente(associacao=self.associacao, mandato=mandato_vigente)
+        composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
+
+        if mandato_vigente and composicao_vigente:
+            cargos_da_composicao = CargoComposicao.objects.filter(composicao=composicao_vigente)
+            for indice, valor in self.choices:
+                cargo = cargos_da_composicao.filter(cargo_associacao=indice)
+                if not cargo.exists():
+                    return True
+
+            return False
+        else:
+            return True
+

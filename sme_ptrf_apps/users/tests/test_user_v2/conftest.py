@@ -9,12 +9,22 @@ from model_bakery import baker
 
 @pytest.fixture
 def parametros_sme():
-    return baker.make('ParametrosSme', tipos_unidade_adm_da_sme='1,2,3', valida_unidades_login=True)
+    return baker.make('ParametrosSme', valida_unidades_login=True)
 
 
 @pytest.fixture
 def parametros_sme_valida_unidades_login_falso():
-    return baker.make('ParametrosSme', tipos_unidade_adm_da_sme='1,2,3')
+    return baker.make('ParametrosSme', valida_unidades_login=False)
+
+
+@pytest.fixture
+def tipo_unidade_administrativa():
+    return baker.make('TipoUnidadeAdministrativa', tipo_unidade_administrativa='1')
+
+
+@pytest.fixture
+def tipo_unidade_administrativa_com_codigo_eol():
+    return baker.make('TipoUnidadeAdministrativa', tipo_unidade_administrativa='2', inicio_codigo_eol='12')
 
 
 @pytest.fixture
@@ -260,6 +270,7 @@ def usuario_nao_servidor_sem_visao_dre_service_gestao_usuario(
     user.unidades.add(unidade_gestao_usuario_a)
     user.unidades.add(unidade_gestao_usuario_b)
     user.visoes.add(visao_ue_gestao_usuario)
+    user.pode_acessar_sme = True
     user.save()
     return user
 
@@ -298,6 +309,7 @@ def usuario_servidor_sem_visao_sme_service_gestao_usuario(
     user = User.objects.create_user(username=login, password=senha, email=email, e_servidor=True)
     user.unidades.add(unidade_gestao_usuario_a)
     user.visoes.add(visao_ue_gestao_usuario)
+    user.pode_acessar_sme = True
     user.save()
     return user
 
