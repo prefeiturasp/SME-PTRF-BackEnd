@@ -5,12 +5,11 @@ from celery import shared_task, current_task
 from celery.exceptions import MaxRetriesExceededError
 
 from sme_ptrf_apps.core.models.demonstrativo_financeiro import DemonstrativoFinanceiro
-from sme_ptrf_apps.core.models.periodo import Periodo
-from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
 from sme_ptrf_apps.core.services.demonstrativo_financeiro_pdf_service import gerar_arquivo_demonstrativo_financeiro_pdf
 from sme_ptrf_apps.core.services.recuperacao_dados_persistindos_demo_financeiro_service import \
     RecuperaDadosDemoFinanceiro
 from sme_ptrf_apps.core.models.tasks_celery import TaskCelery
+from sme_ptrf_apps.core.services.prestacao_conta_service import PrestacaoContaService
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +25,7 @@ MAX_RETRIES = 3
     time_limit=600,
     soft_time_limit=300
 )
-def gerar_demonstrativo_financeiro_async(id_task, prestacao_conta_uuid, periodo_uuid):
+def gerar_demonstrativo_financeiro_async(id_task, prestacao_conta_uuid):
     tentativa = current_task.request.retries + 1
 
     task = None
@@ -34,8 +33,14 @@ def gerar_demonstrativo_financeiro_async(id_task, prestacao_conta_uuid, periodo_
         task = TaskCelery.objects.get(uuid=id_task)
         logger.info(f'Iniciando task gerar_demonstrativo_financeiro_async, tentativa {tentativa}.')
 
-        prestacao = PrestacaoConta.objects.get(uuid=prestacao_conta_uuid)
-        periodo = Periodo.objects.get(uuid=periodo_uuid)
+        pc_service = PrestacaoContaService.from_prestacao_conta_uuid(prestacao_conta_uuid)
+
+        if not pc_service.requer_gerar_documentos:
+            logger.info(f'Prestação de conta {pc_service.prestacao.uuid} não requer geração de documentos. Demonstrativo financeiro não gerado.')
+            return
+
+        prestacao = pc_service.prestacao
+        periodo = prestacao.periodo
         contas = prestacao.contas_ativas_no_periodo()
 
         task.grava_log_concatenado(

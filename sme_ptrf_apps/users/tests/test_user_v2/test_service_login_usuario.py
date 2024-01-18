@@ -51,7 +51,7 @@ def test_get_unidades_que_usuario_tem_acesso_servidor(
 
 def test_get_unidades_que_usuario_tem_acesso_servidor_com_sme(
     usuario_servidor_service_gestao_usuario,
-    parametros_sme,
+    tipo_unidade_administrativa,
     unidade_gestao_usuario_c,
     membro_associacao_servidor_a
 ):
