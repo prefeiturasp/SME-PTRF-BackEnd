@@ -28,8 +28,6 @@ from sme_ptrf_apps.users.api.serializers import (
 from sme_ptrf_apps.users.services import (
     SmeIntegracaoException,
     SmeIntegracaoService,
-    criar_acesso_de_suporte_v2,
-    CriaAcessoSuporteException
 )
 from sme_ptrf_apps.users.services.validacao_username_service import validar_username
 from sme_ptrf_apps.core.models import Unidade, MembroAssociacao
@@ -374,51 +372,6 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
             except Exception as e:
                 logger.error('Erro ao remover acessos: %r', e)
                 return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    @action(detail=True, url_path="unidades-em-suporte", methods=['get'])
-    def unidades_em_suporte(self, request, id):
-        from sme_ptrf_apps.core.api.serializers.unidade_serializer import UnidadeListSerializer
-        from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
-
-        usuario = User.objects.get(username=id)
-        queryset = Unidade.objects.filter(acessos_de_suporte__isnull=False, acessos_de_suporte__user=usuario)
-
-        custom_pagination = CustomPagination()
-        paginated_data = custom_pagination.paginate_queryset(queryset, request)
-
-        serializer = UnidadeListSerializer(paginated_data, many=True)
-
-        paginated_response = custom_pagination.get_paginated_response(serializer.data)
-        return paginated_response
-
-    @action(detail=True, methods=['post'], url_path='viabilizar-acesso-suporte')
-    def viabilizar_acesso_suporte_usuario_unidade(self, request, id):
-        """ (post) /usuarios/{usuario.username}/viabilizar-acesso-suporte/  """
-        usuario = User.objects.get(username=id)
-        codigo_eol = request.data.get('codigo_eol')
-        if not codigo_eol:
-            return Response("Campo 'codigo_eol' não encontrado no payload.", status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            unidade = Unidade.objects.get(codigo_eol=codigo_eol)
-        except Unidade.DoesNotExist:
-            erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto Unidade para o código EOL {codigo_eol} não foi encontrado na base."
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            criar_acesso_de_suporte_v2(unidade_do_suporte=unidade, usuario_do_suporte=usuario)
-        except CriaAcessoSuporteException as err:
-            erro = {
-                'erro': 'Erro de validação',
-                'mensagem': str(err)
-            }
-            logger.info('Erro: %r', erro)
-            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response({"mensagem": "Acesso de suporte viabilizado."}, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['get'], url_path='unidades-do-usuario')
     def unidades_do_usuario(self, request):
