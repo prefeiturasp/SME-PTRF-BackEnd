@@ -18,5 +18,5 @@ from .gerar_demonstrativo_financeiro import gerar_demonstrativo_financeiro_async
 from .gerar_relacao_de_bens import gerar_relacao_bens_async
 from .calcular_prestacao_de_contas import calcular_prestacao_de_contas_async
 from .terminar_processo_pc import terminar_processo_pc_async
-from .simular_logs import simular_logs_async
+from .simular_logs_task import simular_logs_async
 
