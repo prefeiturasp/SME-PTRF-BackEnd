@@ -3,7 +3,7 @@ import waffle
 from waffle.decorators import waffle_flag
 
 from django.conf import settings
-from django.urls import path, include
+from django.urls import path
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter, SimpleRouter
@@ -91,18 +91,13 @@ from sme_ptrf_apps.users.api.views import (
 )
 
 from sme_ptrf_apps.mandatos.api.views import MandatosViewSet, ComposicoesViewSet, OcupantesCargosViewSet, CargosComposicoesViewSet
-from sme_ptrf_apps.utils.contextual_logger import ContextualLogger
 
 
 @api_view()
 def versao(request):
-    logger = ContextualLogger.get_logger(__name__, operacao='teste-api-versao')
-    logger.info('Teste de log com operação', extra={'uuid': '1234567890'})
     versao = __version__
     if waffle.flag_is_active(request, 'teste-flag'):
         versao = "teste-flag"
-    logger.info(f'Versão: {versao}', extra={'uuid': '1234567890'})
-    logger.info('Fim')
     return Response({"versao": versao})
 
 
