@@ -214,28 +214,46 @@ MANAGERS = ADMINS
 
 # LOGGING CONFIGURATION
 # ------------------------------------------------------------------------------
+
+# Verifica se o logging para o RabbitMQ está habilitado
+enable_rabbitmq_logging = env.bool("ENABLE_RABBITMQ_LOGGING", default=False)
+
+# Handlers
+LOGGING_HANDLERS = {
+    "console": {
+        "level": env("DJANGO_LOG_LEVEL", default="INFO"),
+        "class": "logging.StreamHandler",
+        "formatter": "verbose",
+    }
+}
+
+if enable_rabbitmq_logging:
+    LOGGING_HANDLERS["rabbitmq"] = {
+        "level": env("RABBITMQ_LOG_LEVEL", default="INFO"),
+        "class": "sme_ptrf_apps.logging.handlers.RabbitMQHandler",
+        "host": env("RABBITMQ_HOST"),
+        "virtual_host": env("RABBITMQ_VIRTUAL_HOST"),
+        "queue": env("RABBITMQ_LOG_QUEUE"),
+        "username": env("RABBITMQ_USERNAME"),
+        "password": env("RABBITMQ_PASSWORD"),
+    }
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "()": "sme_ptrf_apps.utils.logging_custom_formater.CustomFormatter",
+            "()": "sme_ptrf_apps.logging.formaters.CustomFormatter",
             "format": "%(levelname)s %(asctime)s %(module)s "
                       "%(process)d %(thread)d %(message)s "
                       "%(operacao)s %(operacao_id)s %(username)s %(observacao)s "
         },
     },
-    "handlers": {
-        "console": {
-            "level": env("DJANGO_LOG_LEVEL", default="INFO"),
-            "class": "logging.StreamHandler",
-            "formatter": "verbose",
-        },
-    },
+    "handlers": LOGGING_HANDLERS,
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'WARNING',
             'propagate': True,
         },
         'celery': {
@@ -243,10 +261,21 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': True,
         },
+        'api_sme_ptrf_apps': {
+            'handlers': ['console'] + (['rabbitmq'] if enable_rabbitmq_logging else []),
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'task_sme_ptrf_apps': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+
     },
     "root": {
         "level": env("DJANGO_LOG_LEVEL", default="INFO"),
-        "handlers": ["console"]
+        "handlers": ["console"],
     },
 }
 
