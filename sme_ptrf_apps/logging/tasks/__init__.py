@@ -1,0 +1,2 @@
+from .simular_logs_task import simular_logs_async
+from .simular_logs_secundario_task import simular_logs_secundario_async

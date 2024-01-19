@@ -32,7 +32,3 @@ from .falhas_geracao_pc_viewset import FalhaGeracaoPcViewSet
 from .solicitacao_encerramento_conta_associacao_viewset import SolicitacaoEncerramentoContaAssociacaoViewset
 from .motivo_rejeicao_encerramento_conta_associacao_viewset import MotivoRejeicaoEncerramentoContaAssociacaoViewset
 from .feature_flags_view import feature_flags
-from .simulador_de_logs_view import SimuladorDeLogsView
-from .simulador_de_logs_view import SimuladorDeLogsAsyncView
-
-

@@ -44,8 +44,6 @@ from sme_ptrf_apps.core.api.views import (
     SolicitacaoEncerramentoContaAssociacaoViewset,
     MotivoRejeicaoEncerramentoContaAssociacaoViewset,
     feature_flags,
-    SimuladorDeLogsView,
-    SimuladorDeLogsAsyncView,
 )
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
@@ -92,6 +90,12 @@ from sme_ptrf_apps.users.api.views import (
 
 from sme_ptrf_apps.mandatos.api.views import MandatosViewSet, ComposicoesViewSet, OcupantesCargosViewSet, CargosComposicoesViewSet
 
+from sme_ptrf_apps.logging.simulador_de_logs.simulador_de_logs_view import (
+    SimuladorDeLogsView,
+    SimuladorDeLogsAsyncView,
+    SimuladorDeLogsSecudarioView,
+    SimuladorDeLogsSecundarioAsyncView,
+)
 
 @api_view()
 def versao(request):
@@ -195,5 +199,7 @@ urlpatterns += [
     path("login", LoginView.as_view()),
     path("feature-flags", feature_flags),
     path("simular-logs", SimuladorDeLogsView.as_view()),
+    path("simular-logs-sec", SimuladorDeLogsSecudarioView.as_view()),
     path("simular-logs-async", SimuladorDeLogsAsyncView.as_view()),
+    path("simular-logs-sec-async", SimuladorDeLogsSecundarioAsyncView.as_view()),
 ]
