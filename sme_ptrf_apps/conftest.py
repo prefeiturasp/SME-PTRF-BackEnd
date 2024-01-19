@@ -29,6 +29,7 @@ from sme_ptrf_apps.core.fixtures.factories.tipo_conta_factory import TipoContaFa
 from sme_ptrf_apps.core.fixtures.factories.observacao_conciliacao_factory import ObservacaoConciliacaoFactory
 from sme_ptrf_apps.core.fixtures.factories.prestacao_conta_factory import PrestacaoContaFactory
 from sme_ptrf_apps.users.fixtures.factories.usuario_factory import UsuarioFactory
+from sme_ptrf_apps.users.fixtures.factories.unidade_em_suporte_factory import UnidadeEmSuporteFactory
 from sme_ptrf_apps.users.fixtures.factories.grupo_acesso_factory import GrupoAcessoFactory
 from sme_ptrf_apps.users.fixtures.factories.visao_factory import VisaoFactory
 from sme_ptrf_apps.core.fixtures.factories.acao_factory import AcaoFactory
@@ -52,6 +53,7 @@ register(TipoContaFactory)
 register(ObservacaoConciliacaoFactory)
 register(PrestacaoContaFactory)
 register(UsuarioFactory)
+register(UnidadeEmSuporteFactory)
 register(GrupoAcessoFactory)
 register(VisaoFactory)
 register(SolicitacaoEncerramentoContaAssociacaoFactory)
@@ -63,6 +65,7 @@ register(DespesaFactory)
 register(RateioDespesaFactory)
 register(MembroAssociacaoFactory)
 register(AcessoConcedidoSmeFactory)
+
 
 @pytest.fixture
 def fake_user(client, django_user_model, unidade):
@@ -142,9 +145,11 @@ def tipo_conta_cheque(tipo_conta):
 def tipo_conta_cartao():
     return baker.make('TipoConta', nome='Cartão')
 
+
 @pytest.fixture
 def tipo_conta_teste():
     return baker.make('TipoConta', nome='Teste')
+
 
 @pytest.fixture
 def acao():
@@ -180,9 +185,11 @@ def acao_role_cultural():
 def dre():
     return baker.make('Unidade', codigo_eol='99999', tipo_unidade='DRE', nome='DRE teste', sigla='TT')
 
+
 @pytest.fixture
 def dre_ipiranga():
     return baker.make('Unidade', codigo_eol='108600', tipo_unidade='DRE', nome='DRE IPIRANGA', sigla='IP')
+
 
 @pytest.fixture
 def valores_reprogramados_nao_finalizado(associacao_status_nao_finalizado, conta_associacao, acao_associacao):
@@ -268,7 +275,6 @@ def valores_reprogramados_valores_corretos(associacao, conta_associacao, acao_as
     )
 
 
-
 @pytest.fixture
 def valores_reprogramados_valores_corretos_com_valores_iguais(associacao, conta_associacao, acao_associacao):
     return baker.make(
@@ -322,6 +328,7 @@ def unidade(dre):
         dre_designacao_ano='2017',
     )
 
+
 @pytest.fixture
 def outra_unidade(dre):
     return baker.make(
@@ -331,6 +338,7 @@ def outra_unidade(dre):
         codigo_eol='777777',
         dre=dre,
     )
+
 
 @pytest.fixture
 def terceira_unidade(dre):
@@ -342,6 +350,7 @@ def terceira_unidade(dre):
         dre=dre,
     )
 
+
 @pytest.fixture
 def quarta_unidade(dre):
     return baker.make(
@@ -351,6 +360,7 @@ def quarta_unidade(dre):
         codigo_eol='999999',
         dre=dre,
     )
+
 
 @pytest.fixture
 def associacao_com_data_de_encerramento(unidade, periodo_anterior):
@@ -380,6 +390,7 @@ def associacao(unidade, periodo_anterior):
         processo_regularidade='123456'
     )
 
+
 @pytest.fixture
 def associacao_iniciada_2020_1(periodo_2020_1, unidade):
     return baker.make(
@@ -390,6 +401,7 @@ def associacao_iniciada_2020_1(periodo_2020_1, unidade):
         periodo_inicial=periodo_2020_1,
     )
 
+
 @pytest.fixture
 def associacao_iniciada_2020_2(periodo_2020_2, outra_unidade):
     return baker.make(
@@ -399,6 +411,7 @@ def associacao_iniciada_2020_2(periodo_2020_2, outra_unidade):
         unidade=outra_unidade,
         periodo_inicial=periodo_2020_2,
     )
+
 
 @pytest.fixture
 def associacao_encerrada_2020_1(periodo_2019_2, periodo_2020_1, unidade):
@@ -411,6 +424,7 @@ def associacao_encerrada_2020_1(periodo_2019_2, periodo_2020_1, unidade):
         data_de_encerramento=periodo_2020_1.data_fim_realizacao_despesas,
     )
 
+
 @pytest.fixture
 def associacao_encerrada_2020_2(periodo_2019_2, periodo_2020_2, quarta_unidade):
     return baker.make(
@@ -419,8 +433,9 @@ def associacao_encerrada_2020_2(periodo_2019_2, periodo_2020_2, quarta_unidade):
         cnpj='23.500.058/0001-08',
         unidade=quarta_unidade,
         periodo_inicial=periodo_2019_2,
-        data_de_encerramento = periodo_2020_2.data_fim_realizacao_despesas,
+        data_de_encerramento=periodo_2020_2.data_fim_realizacao_despesas,
     )
+
 
 @pytest.fixture
 def associacao_encerrada_2021_2(periodo_2019_2, outra_unidade):
@@ -432,6 +447,7 @@ def associacao_encerrada_2021_2(periodo_2019_2, outra_unidade):
         periodo_inicial=periodo_2019_2,
         data_de_encerramento=date(2021, 12, 10),
     )
+
 
 @pytest.fixture
 def associacao_status_nao_finalizado(unidade, periodo_anterior):
@@ -493,6 +509,7 @@ def associacao_com_presidente_ausente(unidade, periodo_anterior):
         cargo_substituto_presidente_ausente=MembroEnum.VICE_PRESIDENTE_DIRETORIA_EXECUTIVA.name
     )
 
+
 @pytest.fixture
 def associacao_cadastro_incompleto(unidade, periodo_anterior):
     return baker.make(
@@ -530,6 +547,7 @@ def associacao_sem_periodo_inicial(unidade):
         periodo_inicial=None,
     )
 
+
 @pytest.fixture
 def outra_associacao_sem_periodo_inicial(terceira_unidade):
     return baker.make(
@@ -554,6 +572,7 @@ def conta_associacao(associacao, tipo_conta):
         data_inicio=date(2019, 1, 1)
     )
 
+
 @pytest.fixture
 def conta_associacao_tipo_cheque(associacao, tipo_conta_cheque):
     return baker.make(
@@ -565,6 +584,8 @@ def conta_associacao_tipo_cheque(associacao, tipo_conta_cheque):
         numero_conta='123456-x',
         numero_cartao='534653264523'
     )
+
+
 @pytest.fixture
 def conta_associacao_tipo_teste(associacao, tipo_conta_teste, periodo_2020_1):
     return baker.make(
@@ -578,6 +599,7 @@ def conta_associacao_tipo_teste(associacao, tipo_conta_teste, periodo_2020_1):
         data_inicio=periodo_2020_1.data_inicio_realizacao_despesas
     )
 
+
 @pytest.fixture
 def conta_associacao_incompleta(associacao_cadastro_incompleto, tipo_conta_cartao):
     return baker.make(
@@ -586,6 +608,7 @@ def conta_associacao_incompleta(associacao_cadastro_incompleto, tipo_conta_carta
         tipo_conta=tipo_conta_cartao,
     )
 
+
 @pytest.fixture
 def conta_associacao_incompleta_002(associacao, tipo_conta_cartao):
     return baker.make(
@@ -593,6 +616,7 @@ def conta_associacao_incompleta_002(associacao, tipo_conta_cartao):
         associacao=associacao,
         tipo_conta=tipo_conta_cartao,
     )
+
 
 @pytest.fixture
 def conta_associacao_cheque(associacao, tipo_conta_cheque):
@@ -624,6 +648,7 @@ def conta_associacao_inativa(associacao, tipo_conta):
         data_inicio=date(2019, 1, 1)
     )
 
+
 @pytest.fixture
 def conta_associacao_inativa_x(associacao, tipo_conta):
     return baker.make(
@@ -635,6 +660,7 @@ def conta_associacao_inativa_x(associacao, tipo_conta):
         data_inicio=date(2019, 1, 1)
     )
 
+
 @pytest.fixture
 def solicitacao_encerramento_conta_associacao(conta_associacao_inativa):
     return baker.make(
@@ -643,6 +669,8 @@ def solicitacao_encerramento_conta_associacao(conta_associacao_inativa):
         data_de_encerramento_na_agencia='2019-09-02',
         status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA
     )
+
+
 @pytest.fixture
 def solicitacao_encerramento_conta_associacao_no_periodo_2020_1(conta_associacao_inativa_x, periodo_2020_1):
     return baker.make(
@@ -768,6 +796,7 @@ def periodo_2020_1(periodo):
         periodo_anterior=periodo
     )
 
+
 @pytest.fixture
 def periodo_2020_2(periodo_2020_1):
     return baker.make(
@@ -777,6 +806,7 @@ def periodo_2020_2(periodo_2020_1):
         data_fim_realizacao_despesas=date(2020, 12, 31),
         periodo_anterior=periodo_2020_1,
     )
+
 
 @pytest.fixture
 def periodo_2021_1(periodo_2020_2):
@@ -788,6 +818,7 @@ def periodo_2021_1(periodo_2020_2):
         periodo_anterior=periodo_2020_2,
     )
 
+
 @pytest.fixture
 def periodo_2021_2(periodo_2021_1):
     return baker.make(
@@ -797,6 +828,7 @@ def periodo_2021_2(periodo_2021_1):
         data_fim_realizacao_despesas=None,
         periodo_anterior=periodo_2021_1,
     )
+
 
 @pytest.fixture
 def periodo_2019_2(periodo):
@@ -862,12 +894,14 @@ def prestacao_conta_anterior(periodo_anterior, associacao):
         associacao=associacao,
     )
 
+
 @pytest.fixture
 def motivo_aprovacao_ressalva_x():
     return baker.make(
         'dre.MotivoAprovacaoRessalva',
         motivo='X'
     )
+
 
 @pytest.fixture
 def motivo_reprovacao_x():
@@ -876,12 +910,14 @@ def motivo_reprovacao_x():
         motivo='X'
     )
 
+
 @pytest.fixture
 def motivo_reprovacao_y():
     return baker.make(
         'dre.MotivoReprovacao',
         motivo='Y'
     )
+
 
 @pytest.fixture
 def prestacao_conta(periodo, associacao, motivo_aprovacao_ressalva_x, motivo_reprovacao_x):
@@ -911,6 +947,7 @@ def prestacao_conta_iniciada(periodo_2020_1, associacao):
         associacao=associacao,
     )
 
+
 @pytest.fixture
 def prestacao_conta_2020_1_devolvida(periodo_2020_1, associacao):
     return baker.make(
@@ -919,6 +956,7 @@ def prestacao_conta_2020_1_devolvida(periodo_2020_1, associacao):
         associacao=associacao,
         status=PrestacaoConta.STATUS_DEVOLVIDA
     )
+
 
 @pytest.fixture
 def prestacao_conta_devolvida(periodo, associacao):
@@ -1054,6 +1092,7 @@ def prestacao_conta_2020_1_conciliada_outra_conta(periodo_2020_1, associacao):
         status=STATUS_ABERTO,
     )
 
+
 @pytest.fixture
 def prestacao_conta_2021_1_aprovada_associacao_encerrada(periodo_2021_1, associacao_encerrada_2021_2):
     return baker.make(
@@ -1062,6 +1101,7 @@ def prestacao_conta_2021_1_aprovada_associacao_encerrada(periodo_2021_1, associa
         associacao=associacao_encerrada_2021_2,
         status=PrestacaoConta.STATUS_APROVADA
     )
+
 
 @pytest.fixture
 def prestacao_conta_2021_2_aprovada_associacao_encerrada(periodo_2021_2, associacao_encerrada_2021_2):
@@ -1376,24 +1416,26 @@ def receita_teste_valida_data_de_encerramento(associacao, conta_associacao, acao
     return baker.make(
         'Receita',
         associacao=associacao,
-        data=date(2023,4,20),
+        data=date(2023, 4, 20),
         valor=100.00,
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
     )
 
+
 @pytest.fixture
 def receita_teste_valida_data_de_encerramento_associacao_02(associacao_02, conta_associacao, acao_associacao, tipo_receita, periodo):
     return baker.make(
         'Receita',
         associacao=associacao_02,
-        data=date(2023,4,20),
+        data=date(2023, 4, 20),
         valor=100.00,
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
     )
+
 
 @pytest.fixture
 def receita_100_no_periodo(associacao, conta_associacao, acao_associacao, tipo_receita, periodo):
@@ -1836,6 +1878,7 @@ def parametros():
         texto_pagina_valores_reprogramados_dre='Teste DRE'
     )
 
+
 @pytest.fixture
 def parametros_desconsidera_nao_iniciadas():
     return baker.make(
@@ -1843,12 +1886,14 @@ def parametros_desconsidera_nao_iniciadas():
         desconsiderar_associacoes_nao_iniciadas=True,
     )
 
+
 @pytest.fixture
 def parametros_nao_desconsidera_nao_iniciadas():
     return baker.make(
         'Parametros',
         desconsiderar_associacoes_nao_iniciadas=False,
     )
+
 
 @pytest.fixture
 def parametro_fique_de_olho_pc():
@@ -1920,6 +1965,7 @@ def ata_2020_1_cheque_aprovada(prestacao_conta_2020_1_conciliada):
         parecer_conselho='APROVADA',
     )
 
+
 @pytest.fixture
 def presente_ata_membro(ata_2020_1_cheque_aprovada):
     return baker.make(
@@ -1931,6 +1977,7 @@ def presente_ata_membro(ata_2020_1_cheque_aprovada):
         membro=True,
         conselho_fiscal=False
     )
+
 
 @pytest.fixture
 def membro_associacao_presidente_conselho_01(associacao):
@@ -1945,6 +1992,7 @@ def membro_associacao_presidente_conselho_01(associacao):
         email='ollyverottoboni@gmail.com'
     )
 
+
 @pytest.fixture
 def presente_ata_membro_e_conselho_fiscal(ata_2020_1_cheque_aprovada):
     return baker.make(
@@ -1957,6 +2005,7 @@ def presente_ata_membro_e_conselho_fiscal(ata_2020_1_cheque_aprovada):
         conselho_fiscal=True
     )
 
+
 @pytest.fixture
 def presente_ata_nao_membro(ata_2020_1_cheque_aprovada):
     return baker.make(
@@ -1968,6 +2017,7 @@ def presente_ata_nao_membro(ata_2020_1_cheque_aprovada):
         membro=False,
         conselho_fiscal=False
     )
+
 
 @pytest.fixture
 def ata_2020_1_retificacao(prestacao_conta_2020_1_conciliada):
@@ -2170,9 +2220,10 @@ def observacao_conciliacao(periodo, conta_associacao):
         associacao=conta_associacao.associacao,
         conta_associacao=conta_associacao,
         texto="Uma bela observação.",
-        data_extrato = date(2020, 7, 1),
-        saldo_extrato = 1000
+        data_extrato=date(2020, 7, 1),
+        saldo_extrato=1000
     )
+
 
 @pytest.fixture
 def observacao_conciliacao_campos_nao_preenchidos(periodo_2020_1, conta_associacao):
@@ -2184,6 +2235,7 @@ def observacao_conciliacao_campos_nao_preenchidos(periodo_2020_1, conta_associac
         texto="Observação com campos não preenchidos.",
     )
 
+
 @pytest.fixture
 def observacao_conciliacao_com_saldo_zero(periodo_2020_1, conta_associacao):
     return baker.make(
@@ -2191,10 +2243,11 @@ def observacao_conciliacao_com_saldo_zero(periodo_2020_1, conta_associacao):
         periodo=periodo_2020_1,
         associacao=conta_associacao.associacao,
         conta_associacao=conta_associacao,
-        data_extrato = date(2020, 7, 1),
-        saldo_extrato = 0,
+        data_extrato=date(2020, 7, 1),
+        saldo_extrato=0,
         texto="Observação com saldo zero."
     )
+
 
 @pytest.fixture
 def observacao_conciliacao_campos_nao_preenchidos_002(periodo_2020_1, conta_associacao_tipo_cheque):
@@ -2206,6 +2259,7 @@ def observacao_conciliacao_campos_nao_preenchidos_002(periodo_2020_1, conta_asso
         texto="Observação com campos não preenchidos 002.",
     )
 
+
 @pytest.fixture
 def observacao_conciliacao_campos_preenchidos(periodo_2020_1, conta_associacao):
     return baker.make(
@@ -2214,10 +2268,11 @@ def observacao_conciliacao_campos_preenchidos(periodo_2020_1, conta_associacao):
         associacao=conta_associacao.associacao,
         conta_associacao=conta_associacao,
         texto="Observação com campos não preenchidos.",
-        data_extrato = date(2020, 7, 1),
-        saldo_extrato = 1000,
+        data_extrato=date(2020, 7, 1),
+        saldo_extrato=1000,
         comprovante_extrato=None
     )
+
 
 @pytest.fixture
 def devolucao_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada):
@@ -2252,6 +2307,7 @@ def analise_conta_prestacao_conta_2020_1_solicitar_envio_do_comprovante_do_saldo
         solicitar_envio_do_comprovante_do_saldo_da_conta=True,
         observacao_solicitar_envio_do_comprovante_do_saldo_da_conta='Observação de solicitação de envio de comprovante de saldo conta cheque',
     )
+
 
 @pytest.fixture
 def analise_conta_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, conta_associacao_cheque):
@@ -2305,7 +2361,6 @@ def analise_prestacao_conta_2020_1_2(prestacao_conta_2020_1_conciliada, devoluca
         prestacao_conta=prestacao_conta_2020_1_conciliada,
         devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1
     )
-
 
 
 @pytest.fixture
@@ -2420,6 +2475,7 @@ def solicitacao_devolucao_ao_tesouro(
         valor=100.00,
         motivo='teste',
     )
+
 
 @pytest.fixture
 def tipo_acerto_edicao_de_lancamento():
@@ -2846,7 +2902,6 @@ def solicitacao_acerto_documento_status_justificado_02(
         detalhamento="Detalhamento motivo acerto no documento",
         status_realizacao="JUSTIFICADO"
     )
-
 
 
 @pytest.fixture
