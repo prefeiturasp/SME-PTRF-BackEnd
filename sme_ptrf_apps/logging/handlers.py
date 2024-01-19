@@ -21,8 +21,6 @@ class RabbitMQHandler(logging.Handler):
         self.max_retries = max_retries
         self.retry_delay = retry_delay
 
-        self._establish_connection()
-
     def _establish_connection(self):
         for _ in range(self.max_retries):
             print(f"Tentando conectar ao RabbitMQ: {self.host} - {self.virtual_host} - {self.queue}. Tentativa {_ + 1}")
@@ -33,7 +31,7 @@ class RabbitMQHandler(logging.Handler):
                 self.connection = pika.BlockingConnection(parameters)
                 self.channel = self.connection.channel()
                 self.channel.queue_declare(queue=self.queue, durable=True)
-                print(f"Conectado ao RabbitMQ: {self.host} - {self.virtual_host} - {self.queue}")
+                print(f"Conectado ao RabbitMQ xx: {self.host} - {self.virtual_host} - {self.queue}")
                 return
             except pika.exceptions.AMQPConnectionError:
                 print(f"Não foi possível estabelecer conexão com o RabbitMQ. Tentando novamente em {self.retry_delay} segundos.")
@@ -44,6 +42,9 @@ class RabbitMQHandler(logging.Handler):
 
     def emit(self, record):
         try:
+            if not hasattr(self, 'connection') or self.connection.is_closed:
+                self._establish_connection()
+
             if record.exc_info:
                 exc_type, exc_value, exc_traceback = record.exc_info
                 exc_info_str = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
@@ -82,5 +83,7 @@ class RabbitMQHandler(logging.Handler):
             self.emit(record)  # Tentar reenviar o log
 
     def close(self):
-        self.connection.close()
+        if hasattr(self, 'connection'):
+            print(f"Fechando conexão com RabbitMQ: {self.host} - {self.virtual_host} - {self.queue}")
+            self.connection.close()
         super().close()
