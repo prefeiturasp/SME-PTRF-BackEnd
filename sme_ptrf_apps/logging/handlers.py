@@ -31,7 +31,7 @@ class RabbitMQHandler(logging.Handler):
                 self.connection = pika.BlockingConnection(parameters)
                 self.channel = self.connection.channel()
                 self.channel.queue_declare(queue=self.queue, durable=True)
-                print(f"Conectado ao RabbitMQ xx: {self.host} - {self.virtual_host} - {self.queue}")
+                print(f"Conectado ao RabbitMQ: {self.host} - {self.virtual_host} - {self.queue}")
                 return
             except pika.exceptions.AMQPConnectionError:
                 print(f"Não foi possível estabelecer conexão com o RabbitMQ. Tentando novamente em {self.retry_delay} segundos.")

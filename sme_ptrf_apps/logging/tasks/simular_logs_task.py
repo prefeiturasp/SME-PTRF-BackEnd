@@ -9,6 +9,6 @@ from sme_ptrf_apps.logging.simulador_de_logs.simulador_de_logs import simular_lo
     soft_time_limit=120
 )
 def simular_logs_async():
-    logger = ContextualLogger.get_logger(__name__, task_logger=True, operacao='Simulação de logs async')
+    logger = ContextualLogger.get_logger(__name__, operacao='Simulação de logs async')
 
     simular_logs(custom_logger=logger)

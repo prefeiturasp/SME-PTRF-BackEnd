@@ -261,17 +261,12 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': True,
         },
+        # api_sme_ptrf_apps identifica os logs definidos por um ContextualLogger
         'api_sme_ptrf_apps': {
             'handlers': ['console'] + (['rabbitmq'] if enable_rabbitmq_logging else []),
             'level': 'INFO',
             'propagate': False,
         },
-        'task_sme_ptrf_apps': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-
     },
     "root": {
         "level": env("DJANGO_LOG_LEVEL", default="INFO"),
