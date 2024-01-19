@@ -11,4 +11,4 @@ from sme_ptrf_apps.logging.simulador_de_logs.simulador_de_logs import simular_lo
 def simular_logs_async():
     logger = ContextualLogger.get_logger(__name__, operacao='Simulação de logs async')
 
-    simular_logs(custom_logger=logger)
+    simular_logs(logger=logger)

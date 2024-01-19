@@ -2,19 +2,13 @@ import logging
 import random
 import time
 
-from sme_ptrf_apps.logging.loggers import ContextualLogger
+from sme_ptrf_apps.logging.decorators import with_contextual_logger
 
 TEMPO = 30  # segundos
 
 
-def simular_logs(segundos=TEMPO, custom_logger=None):
-    if not custom_logger:
-        logger = ContextualLogger.get_logger(__name__, operacao='operação simulação de logs',
-                                                    username='usertest', aplicacao='SigEscola.API',
-                                                    observacao='observação teste')
-    else:
-        logger = custom_logger
-
+@with_contextual_logger(operacao='Simulação de logs', aplicacao='SigEscola.API', username='usertest', observacao='obs')
+def simular_logs(segundos=TEMPO, logger=None):
     end_time = time.time() + TEMPO  # Tempo de execução da task
 
     logger.info(f'Iniciando o simulador de logs. Irá rodar por {segundos} segundos.', extra={'operacao_id': '1234567890'})
