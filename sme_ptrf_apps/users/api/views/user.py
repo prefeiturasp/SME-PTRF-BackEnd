@@ -399,6 +399,26 @@ class UserViewSet(ModelViewSet):
 
         return Response({"mensagem": "Acesso de suporte encerrado."}, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['post'], url_path='encerrar-acesso-suporte-em-lote')
+    def encerrar_acesso_suporte_usuario_unidade_em_lote(self, request, id):
+        usuario = User.objects.get(username=id)
+
+        unidade_suporte_uuids = request.data.get('unidade_suporte_uuids')
+
+        if not unidade_suporte_uuids:
+            return Response("Campo 'unidade_suporte_uuids' não encontrado no payload.", status=status.HTTP_400_BAD_REQUEST)
+
+        for unidade_uuid in unidade_suporte_uuids:
+            try:
+                unidade = Unidade.objects.get(uuid=unidade_uuid)
+            except Unidade.DoesNotExist:
+                unidade = None
+
+            if unidade:
+                encerrar_acesso_de_suporte(unidade_do_suporte=unidade, usuario_do_suporte=usuario)
+
+        return Response({"mensagem": "Acesso de suporte encerrado para as unidades selecionadas."}, status=status.HTTP_200_OK)
+
     @action(detail=False, url_path="usuarios-servidores-por-visao", methods=['get'])
     def usuarios_servidores_por_visao(self, request):
         from ...services.get_usuarios_servidores_por_visao import get_usuarios_servidores_por_visao
