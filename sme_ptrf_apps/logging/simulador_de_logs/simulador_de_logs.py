@@ -7,17 +7,30 @@ from sme_ptrf_apps.logging.decorators import with_contextual_logger
 TEMPO = 30  # segundos
 
 
-@with_contextual_logger(operacao='Simulação de logs', aplicacao='SigEscola.API', username='usertest', observacao='obs')
+@with_contextual_logger(
+    operacao='Simulação de logs',
+    operacao_id='logs_sync',
+    aplicacao='SigEscola.API',
+    username='joselito',
+    observacao='obs geral do logger.'
+)
 def simular_logs(segundos=TEMPO, logger=None):
     end_time = time.time() + TEMPO  # Tempo de execução da task
+    qtd_logs = 0
 
-    logger.info(f'Iniciando o simulador de logs. Irá rodar por {segundos} segundos.', extra={'operacao_id': '1234567890'})
+    logger.info(f'Iniciando o simulador de logs. Irá rodar por {segundos} segundos.', extra={'observacao': 'teste definição da obs no log.'})
+    qtd_logs += 1
 
     while time.time() < end_time:
         generate_random_log(logger)
-        time.sleep(random.uniform(0.5, 2))  # Espera um tempo aleatório entre 0.5 e 2 segundos
+        qtd_logs += 1
 
+    # Em logs de erro, é possível passar o traceback para o logger
     # logger.exception(f'Erro simulado', exc_info=True, stack_info=True)
+
+    print(f'Quantidade de logs gerados: {qtd_logs}')
+    print(f'Quantidade de logs por segundo: {qtd_logs/TEMPO}')
+    print(f'Tempo médio de geração de logs: {TEMPO/qtd_logs}')
 
 
 def generate_random_log(logger):
