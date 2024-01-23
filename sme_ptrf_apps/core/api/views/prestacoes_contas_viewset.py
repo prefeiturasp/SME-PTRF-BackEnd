@@ -328,7 +328,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
                 task_celery.id_task_assincrona = id_task
                 task_celery.save()
-        except(IntegrityError):
+        except (IntegrityError):
             erro = {
                 'erro': 'prestacao_ja_iniciada',
                 'mensagem': 'Você não pode iniciar uma prestação de contas que já foi iniciada.'
@@ -352,7 +352,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         if prestacao_de_contas:
             associacao = prestacao_de_contas.associacao
-            prestacao_de_contas_posteriores = PrestacaoConta.objects.filter(associacao=associacao, id__gt=prestacao_de_contas.id)
+            prestacao_de_contas_posteriores = PrestacaoConta.objects.filter(
+                associacao=associacao, id__gt=prestacao_de_contas.id)
 
             if prestacao_de_contas_posteriores:
                 response = {
@@ -425,7 +426,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        trata_processo_sei_ao_receber_pc(prestacao_conta=prestacao_conta, processo_sei=processo_sei, acao_processo_sei=acao_processo_sei)
+        trata_processo_sei_ao_receber_pc(prestacao_conta=prestacao_conta,
+                                         processo_sei=processo_sei, acao_processo_sei=acao_processo_sei)
 
         prestacao_recebida = prestacao_conta.receber(data_recebimento=data_recebimento)
 
@@ -644,7 +646,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        motivos_reprovacao=[]
+        motivos_reprovacao = []
 
         for motivo_uuid in motivos_reprovacao_uuid:
             try:
@@ -876,6 +878,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def tabelas(self, _):
         result = {
             'status': PrestacaoConta.status_to_json(),
+            'status_de_conclusao_de_pc': PrestacaoConta.status_conclusao_pc_to_json()
         }
         return Response(result)
 
@@ -1031,7 +1034,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def dashboard_sme(self, request):
         # Determina o período
         periodo_uuid = self.request.query_params.get('periodo')
-        unificar_pcs_apresentadas_nao_recebidas = self.request.query_params.get('unificar_pcs_apresentadas_nao_recebidas')
+        unificar_pcs_apresentadas_nao_recebidas = self.request.query_params.get(
+            'unificar_pcs_apresentadas_nao_recebidas')
 
         if not periodo_uuid:
             erro = {
@@ -1052,7 +1056,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        dashboard = dashboard_sme(periodo=periodo, unificar_pcs_apresentadas_nao_recebidas=unificar_pcs_apresentadas_nao_recebidas)
+        dashboard = dashboard_sme(
+            periodo=periodo, unificar_pcs_apresentadas_nao_recebidas=unificar_pcs_apresentadas_nao_recebidas)
 
         return Response(dashboard)
 
@@ -1068,18 +1073,22 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         filtro_conferencia = self.request.query_params.get('filtrar_por_conferencia')
         filtro_conferencia_list = filtro_conferencia.split(',') if filtro_conferencia else []
 
-        query = PrestacoesContasLancamentosValidateSerializer(data=self.request.query_params, context={'prestacao_conta': prestacao_conta})
+        query = PrestacoesContasLancamentosValidateSerializer(data=self.request.query_params, context={
+                                                              'prestacao_conta': prestacao_conta})
         query.is_valid(raise_exception=True)
 
         lancamentos = lancamentos_da_prestacao(
             analise_prestacao_conta=AnalisePrestacaoConta.by_uuid(self.request.query_params.get('analise_prestacao')),
             conta_associacao=ContaAssociacao.by_uuid(self.request.query_params.get('conta_associacao')),
-            acao_associacao=AcaoAssociacao.by_uuid(request.query_params.get('acao_associacao')) if request.query_params.get('acao_associacao') else None,
+            acao_associacao=AcaoAssociacao.by_uuid(request.query_params.get(
+                'acao_associacao')) if request.query_params.get('acao_associacao') else None,
             tipo_transacao=request.query_params.get('tipo'),
             ordenar_por_imposto=request.query_params.get('ordenar_por_imposto'),
             numero_de_documento=request.query_params.get('filtrar_por_numero_de_documento'),
-            tipo_de_documento=TipoDocumento.by_id(request.query_params.get('filtrar_por_tipo_de_documento')) if request.query_params.get('filtrar_por_tipo_de_documento') else None,
-            tipo_de_pagamento=TipoTransacao.by_id(request.query_params.get('filtrar_por_tipo_de_pagamento')) if request.query_params.get('filtrar_por_tipo_de_pagamento') else None,
+            tipo_de_documento=TipoDocumento.by_id(request.query_params.get(
+                'filtrar_por_tipo_de_documento')) if request.query_params.get('filtrar_por_tipo_de_documento') else None,
+            tipo_de_pagamento=TipoTransacao.by_id(request.query_params.get(
+                'filtrar_por_tipo_de_pagamento')) if request.query_params.get('filtrar_por_tipo_de_pagamento') else None,
             filtrar_por_data_inicio=request.query_params.get('filtrar_por_data_inicio'),
             filtrar_por_data_fim=request.query_params.get('filtrar_por_data_fim'),
             filtrar_por_nome_fornecedor=request.query_params.get('filtrar_por_nome_fornecedor'),
