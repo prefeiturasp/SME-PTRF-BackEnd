@@ -15,7 +15,7 @@ from waffle import get_waffle_flag_model
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_dados_relacao_de_bens(conta_associacao=None, periodo=None, rateios=None):
+def gerar_dados_relacao_de_bens(conta_associacao=None, periodo=None, rateios=None, usuario=None):
 
     try:
         LOGGER.info("GERANDO DADOS RELAÇÃO DE BENS...")
@@ -23,11 +23,13 @@ def gerar_dados_relacao_de_bens(conta_associacao=None, periodo=None, rateios=Non
         cabecalho = cria_cabecalho(periodo, conta_associacao)
         identificacao_apm = cria_identificacao_apm(conta_associacao)
         relacao_de_bens_adquiridos_ou_produzidos = cria_relacao_de_bens_adquiridos_ou_produzidos(rateios)
+        data_geracao_documento = cria_data_geracao_documento(usuario=usuario)
 
         dados_relacao_de_bens = {
             "cabecalho": cabecalho,
             "identificacao_apm": identificacao_apm,
-            "relacao_de_bens_adquiridos_ou_produzidos": relacao_de_bens_adquiridos_ou_produzidos
+            "relacao_de_bens_adquiridos_ou_produzidos": relacao_de_bens_adquiridos_ou_produzidos,
+            "data_geracao_documento": data_geracao_documento
         }
     finally:
         LOGGER.info("DADOS RELAÇÃO DE BENS GERADO")
@@ -40,8 +42,8 @@ def cria_cabecalho(periodo, conta_associacao):
 
     cabecalho = {
         "periodo_referencia": periodo.referencia,
-        "periodo_data_inicio": periodo.data_inicio_realizacao_despesas,
-        "periodo_data_fim": periodo.data_fim_realizacao_despesas,
+        "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas),
+        "periodo_data_fim": formata_data(periodo.data_fim_realizacao_despesas),
         "conta": conta_associacao.tipo_conta.nome,
     }
 
@@ -140,7 +142,7 @@ def cria_relacao_de_bens_adquiridos_ou_produzidos(rateios):
             "especificacao_material": especificacao_material,
             "numero_documento_incorporacao": numero_documento_incorporacao,
             "quantidade": quantidade,
-            "data_documento": data_documento,
+            "data_documento": formata_data(data_documento),
             "valor_item": valor_item,
             "valor_rateio": valor_rateio
         }
@@ -153,8 +155,12 @@ def cria_relacao_de_bens_adquiridos_ou_produzidos(rateios):
     return despesas
 
 
-def cria_data_geracao_documento(data_geracao, usuario, previa):
-    data_geracao = data_geracao.strftime("%d/%m/%Y %H:%M:%S")
+def cria_data_geracao_documento(usuario, previa=True, data=None):
+    if data is None:
+        data_geracao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    else:
+        data_geracao = data.strftime("%d/%m/%Y %H:%M:%S")
+
     tipo_texto = "parcial" if previa else "final"
     quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}, "
     texto = f"Documento {tipo_texto} gerado {quem_gerou}via SIG - Escola, em: {data_geracao}"
@@ -317,7 +323,7 @@ def formatar_e_retornar_dados_relatorio_relacao_bens(relatorio):
             "valor_total": formata_valor(relatorio.valor_total),
             "linhas": linhas
         },
-        "data_geracao_documento": cria_data_geracao_documento(relatorio.data_geracao, relatorio.usuario, relatorio.relacao_bens.previa),
+        "data_geracao_documento": cria_data_geracao_documento(relatorio.usuario, relatorio.relacao_bens.previa, relatorio.data_geracao),
         "previa": relatorio.relacao_bens.previa
     }
 
