@@ -34,7 +34,7 @@ def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, usuario, prestacao=
             status=RelacaoBens.STATUS_EM_PROCESSAMENTO,
         )
         # PDF
-        dados_relacao_de_bens = gerar_dados_relacao_de_bens(conta_associacao=conta_associacao, periodo=periodo, rateios=rateios, usuario=usuario)
+        dados_relacao_de_bens = gerar_dados_relacao_de_bens(conta_associacao=conta_associacao, periodo=periodo, rateios=rateios, usuario=usuario, previa=previa)
 
         if criar_arquivos:
             # gerar_arquivo_relacao_de_bens_pdf(dados_relacao_de_bens=formatar_e_retornar_dados_relatorio_relacao_bens(relatorio_persistido), relacao_bens=relacao_bens)

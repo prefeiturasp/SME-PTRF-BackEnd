@@ -15,7 +15,7 @@ from waffle import get_waffle_flag_model
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_dados_relacao_de_bens(conta_associacao=None, periodo=None, rateios=None, usuario=None):
+def gerar_dados_relacao_de_bens(conta_associacao=None, periodo=None, rateios=None, usuario=None, previa=False):
 
     try:
         LOGGER.info("GERANDO DADOS RELAÇÃO DE BENS...")
@@ -23,13 +23,16 @@ def gerar_dados_relacao_de_bens(conta_associacao=None, periodo=None, rateios=Non
         cabecalho = cria_cabecalho(periodo, conta_associacao)
         identificacao_apm = cria_identificacao_apm(conta_associacao)
         relacao_de_bens_adquiridos_ou_produzidos = cria_relacao_de_bens_adquiridos_ou_produzidos(rateios)
-        data_geracao_documento = cria_data_geracao_documento(usuario=usuario)
+        data_geracao_documento = cria_data_geracao_documento(previa=previa, usuario=usuario)
+        data_geracao = date.today().strftime("%d/%m/%Y")
 
         dados_relacao_de_bens = {
             "cabecalho": cabecalho,
             "identificacao_apm": identificacao_apm,
             "relacao_de_bens_adquiridos_ou_produzidos": relacao_de_bens_adquiridos_ou_produzidos,
-            "data_geracao_documento": data_geracao_documento
+            "data_geracao_documento": data_geracao_documento,
+            "previa": previa,
+            "data_geracao": data_geracao
         }
     finally:
         LOGGER.info("DADOS RELAÇÃO DE BENS GERADO")
@@ -155,7 +158,7 @@ def cria_relacao_de_bens_adquiridos_ou_produzidos(rateios):
     return despesas
 
 
-def cria_data_geracao_documento(usuario, previa=True, data=None):
+def cria_data_geracao_documento(usuario, previa, data=None):
     if data is None:
         data_geracao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     else:
