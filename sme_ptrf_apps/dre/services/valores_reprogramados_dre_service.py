@@ -205,7 +205,8 @@ def monta_estrutura_valores_reprogramados(associacao):
             "conta": {
                 "uuid": f"{conta_associacao.uuid}",
                 "tipo_conta": conta_associacao.tipo_conta.nome,
-                "acoes": acoes
+                "acoes": acoes,
+                "bloquear_campos_valor": True if conta_associacao.data_encerramento and not valores_reprogramados.exists() else False
             }
         }
 

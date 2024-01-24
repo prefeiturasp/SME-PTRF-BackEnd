@@ -8,7 +8,7 @@ from .....dre.services.valores_reprogramados_dre_service import (
     barra_status
 )
 from decimal import Decimal
-
+from sme_ptrf_apps.core.fixtures.factories.solicitacao_encerramento_conta_associacao_factory import SolicitacaoEncerramentoContaAssociacaoFactory
 pytestmark = pytest.mark.django_db
 
 
@@ -359,6 +359,7 @@ def test_monta_estrutura_valores_reprogramados(
         "conta": {
             "uuid": f"{conta_associacao.uuid}",
             "tipo_conta": conta_associacao.tipo_conta.nome,
+            "bloquear_campos_valor": False,
             "acoes": [{
                 "nome": acao_associacao_aceita_custeio.acao.nome,
                 "uuid": f"{acao_associacao_aceita_custeio.uuid}",
@@ -374,6 +375,36 @@ def test_monta_estrutura_valores_reprogramados(
 
     resultado = monta_estrutura_valores_reprogramados(associacao)
 
+    assert resultado == esperado
+
+
+def test_monta_estrutura_valores_reprogramados_com_solicitacao_encerramento_de_conta(
+    associacao,
+    conta_associacao,
+    acao_associacao_aceita_custeio,
+):
+    SolicitacaoEncerramentoContaAssociacaoFactory(conta_associacao=conta_associacao)
+
+    esperado = [{
+        "conta": {
+            "uuid": f"{conta_associacao.uuid}",
+            "tipo_conta": conta_associacao.tipo_conta.nome,
+            "bloquear_campos_valor": True,
+            "acoes": [{
+                "nome": acao_associacao_aceita_custeio.acao.nome,
+                "uuid": f"{acao_associacao_aceita_custeio.uuid}",
+                "custeio": {
+                    "nome": "custeio",
+                    "valor_ue": None,
+                    "valor_dre": None,
+                    "status_conferencia": None
+                }
+            }]
+        }
+    }]
+
+    resultado = monta_estrutura_valores_reprogramados(associacao)
+    print('resultado', resultado)
     assert resultado == esperado
 
 
