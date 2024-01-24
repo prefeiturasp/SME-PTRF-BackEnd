@@ -17,7 +17,7 @@ class ContextualLogger(logging.LoggerAdapter):
         if extra is None:
             extra = {}
         elif not isinstance(extra, dict):
-            raise ValueError("Extra context must be a dictionary")
+            raise ValueError("Extra precisa ser um dicionário")
         super().__init__(logger, extra)
 
     def process(self, msg, kwargs):

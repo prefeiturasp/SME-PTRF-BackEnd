@@ -69,6 +69,7 @@ class RabbitMQHandler(logging.Handler):
                 'thread_name': record.threadName,
                 'exc_info': exc_info_str,
                 'stack_info': stack_info_str,
+                'task_id': record.task_id if hasattr(record, 'task_id') else None,
                 'ambiente': env('LOG_ENVIRONMENT', default='NAO_INFORMADO'),
                 'operacao_id': record.operacao_id if hasattr(record, 'operacao_id') else None,
                 'operacao': record.operacao if hasattr(record, 'operacao') else None,
