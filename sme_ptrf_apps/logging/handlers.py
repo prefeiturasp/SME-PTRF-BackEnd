@@ -69,11 +69,12 @@ class RabbitMQHandler(logging.Handler):
                 'thread_name': record.threadName,
                 'exc_info': exc_info_str,
                 'stack_info': stack_info_str,
+                'aplicacao': record.aplicacao if hasattr(record, 'aplicacao') else 'SigEscola.API',
+                'task_id': record.task_id if hasattr(record, 'task_id') else None,
                 'ambiente': env('LOG_ENVIRONMENT', default='NAO_INFORMADO'),
                 'operacao_id': record.operacao_id if hasattr(record, 'operacao_id') else None,
                 'operacao': record.operacao if hasattr(record, 'operacao') else None,
                 'username': record.username if hasattr(record, 'username') else None,
-                'aplicacao': record.aplicacao if hasattr(record, 'aplicacao') else None,
                 'observacao': record.observacao if hasattr(record, 'observacao') else None,
             })
             self.channel.basic_publish(exchange='', routing_key=self.queue, body=body)

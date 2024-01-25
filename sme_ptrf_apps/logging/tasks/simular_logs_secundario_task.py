@@ -9,6 +9,15 @@ from sme_ptrf_apps.logging.simulador_de_logs.simulador_de_logs_secundario import
     soft_time_limit=120
 )
 def simular_logs_secundario_async():
-    logger = ContextualLogger.get_logger(__name__, operacao='simulação de logs secundários async')
+    task_id = simular_logs_secundario_async.request.id
+    logger = ContextualLogger.get_logger(
+        __name__,
+        operacao='Simulação de logs secundários async',
+        operacao_id='logs_async',
+        aplicacao='SigEscola.tasks',
+        username='pedro',
+        observacao='obs geral do logger task secundaria.',
+        task_id=task_id,
+    )
 
     simular_logs_secundario(logger=logger)
