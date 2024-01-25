@@ -403,8 +403,7 @@ def test_monta_estrutura_valores_reprogramados_com_solicitacao_encerramento_de_c
         }
     }]
 
-    resultado = monta_estrutura_valores_reprogramados(associacao)
-    print('resultado', resultado)
+    resultado = monta_estrutura_valores_reprogramados(associacao)print('resultado', resultado)
     assert resultado == esperado
 
 
