@@ -3,7 +3,7 @@ import waffle
 from waffle.decorators import waffle_flag
 
 from django.conf import settings
-from django.urls import path, include
+from django.urls import path
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter, SimpleRouter
@@ -90,6 +90,12 @@ from sme_ptrf_apps.users.api.views import (
 
 from sme_ptrf_apps.mandatos.api.views import MandatosViewSet, ComposicoesViewSet, OcupantesCargosViewSet, CargosComposicoesViewSet
 
+from sme_ptrf_apps.logging.simulador_de_logs.simulador_de_logs_view import (
+    SimuladorDeLogsView,
+    SimuladorDeLogsAsyncView,
+    SimuladorDeLogsSecudarioView,
+    SimuladorDeLogsSecundarioAsyncView,
+)
 
 @api_view()
 def versao(request):
@@ -192,4 +198,8 @@ urlpatterns += [
     path("teste-flag", teste_flag_view),
     path("login", LoginView.as_view()),
     path("feature-flags", feature_flags),
+    path("simular-logs", SimuladorDeLogsView.as_view()),
+    path("simular-logs-sec", SimuladorDeLogsSecudarioView.as_view()),
+    path("simular-logs-async", SimuladorDeLogsAsyncView.as_view()),
+    path("simular-logs-sec-async", SimuladorDeLogsSecundarioAsyncView.as_view()),
 ]

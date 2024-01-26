@@ -261,6 +261,16 @@ def composicao_02_2023_a_2025(mandato_2023_a_2025, associacao):
         data_final=date(2025, 12, 31),
     )
 
+@pytest.fixture
+def composicao_01_2023_a_2025_testes_tags(mandato_2023_a_2025_testes_servicos_01, associacao):
+    return baker.make(
+        'Composicao',
+        associacao=associacao,
+        mandato=mandato_2023_a_2025_testes_servicos_01,
+        data_inicial=date(2023, 1, 1),
+        data_final=date(2025, 12, 31),
+    )
+
 
 @pytest.fixture
 def ocupante_cargo_01():
@@ -295,6 +305,38 @@ def ocupante_cargo_02():
         endereco='Rua do ocupante, 212',
     )
 
+
+@pytest.fixture
+def ocupante_cargo_01_teste_tags():
+    return baker.make(
+        'OcupanteCargo',
+        nome="Ollyver Ottoboni",
+        codigo_identificacao='7654321',
+        cargo_educacao="Diretor de Escola",
+        representacao='Servidor',
+        email='ottoboniollyver@gmail.com',
+        cpf_responsavel='907.536.560-86',
+        telefone='11976643126',
+        cep='02847070',
+        bairro='Jd. Aeroporto',
+        endereco='Rua do ocupante, 212',
+    )
+
+@pytest.fixture
+def ocupante_cargo_02_teste_tags():
+    return baker.make(
+        'OcupanteCargo',
+        nome="Ollyver Ottoboni",
+        codigo_identificacao='1523587',
+        cargo_educacao="Diretor de Escola",
+        representacao='Servidor',
+        email='ottoboniollyver@gmail.com',
+        cpf_responsavel='907.536.560-86',
+        telefone='11976643126',
+        cep='02847070',
+        bairro='Jd. Aeroporto',
+        endereco='Rua do ocupante, 212',
+    )
 
 @pytest.fixture
 def cargo_composicao_01(
@@ -337,6 +379,35 @@ def cargo_composicao_02(
         ocupante_do_cargo=ocupante_cargo_02,
         cargo_associacao='Vice Presidente da diretoria executiva',
         substituto=False,
+        substituido=False,
+    )
+
+@pytest.fixture
+def cargo_composicao_01_teste_tags(
+    composicao_01_2023_a_2025_testes_tags,
+    ocupante_cargo_01_teste_tags,
+):
+    return baker.make(
+        'CargoComposicao',
+        composicao=composicao_01_2023_a_2025_testes_tags,
+        ocupante_do_cargo=ocupante_cargo_01_teste_tags,
+        cargo_associacao='PRESIDENTE_DIRETORIA_EXECUTIVA',
+        substituto=False,
+        substituido=True,
+    )
+
+@pytest.fixture
+def cargo_composicao_02_teste_tags(
+    composicao_01_2023_a_2025_testes_tags,
+    ocupante_cargo_02_teste_tags,
+):
+    return baker.make(
+        'CargoComposicao',
+        composicao=composicao_01_2023_a_2025_testes_tags,
+        ocupante_do_cargo=ocupante_cargo_02_teste_tags,
+        cargo_associacao='PRESIDENTE_DIRETORIA_EXECUTIVA',
+        data_inicio_no_cargo=date(2024, 1, 1),
+        substituto=True,
         substituido=False,
     )
 

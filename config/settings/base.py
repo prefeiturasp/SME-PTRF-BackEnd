@@ -214,53 +214,66 @@ MANAGERS = ADMINS
 
 # LOGGING CONFIGURATION
 # ------------------------------------------------------------------------------
+
+# Verifica se o logging para o RabbitMQ está habilitado
+enable_rabbitmq_logging = env.bool("ENABLE_RABBITMQ_LOGGING", default=False)
+
+# Handlers
+LOGGING_HANDLERS = {
+    "console": {
+        "level": env("DJANGO_LOG_LEVEL", default="INFO"),
+        "class": "logging.StreamHandler",
+        "formatter": "verbose",
+    }
+}
+
+if enable_rabbitmq_logging:
+    LOGGING_HANDLERS["rabbitmq"] = {
+        "level": env("RABBITMQ_LOG_LEVEL", default="INFO"),
+        "class": "sme_ptrf_apps.logging.handlers.RabbitMQHandler",
+        "host": env("RABBITMQ_HOST"),
+        "virtual_host": env("RABBITMQ_VIRTUAL_HOST"),
+        "queue": env("RABBITMQ_LOG_QUEUE"),
+        "username": env("RABBITMQ_USERNAME"),
+        "password": env("RABBITMQ_PASSWORD"),
+    }
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
+            "()": "sme_ptrf_apps.logging.formaters.CustomFormatter",
             "format": "%(levelname)s %(asctime)s %(module)s "
-                      "%(process)d %(thread)d %(message)s"
-        }
-    },
-    "handlers": {
-        "console": {
-            "level": env("DJANGO_LOG_LEVEL", default="INFO"),
-            "class": "logging.StreamHandler",
-            "formatter": "verbose",
+                      "%(process)d %(thread)d %(message)s "
+                      "%(operacao)s %(operacao_id)s %(username)s %(observacao)s "
         },
-        # 'elasticapm': {
-        #     'level': env('ELASTIC_APM_LOG_LEVEL', default='INFO'),
-        #     'class': 'elasticapm.contrib.django.handlers.LoggingHandler',
-        # },
     },
-    # "root": {"level": env("DJANGO_LOG_LEVEL", default="INFO"), "handlers": ["console", "elasticapm"]},
-    "root": {"level": env("DJANGO_LOG_LEVEL", default="INFO"), "handlers": ["console"]},
-    # "loggers": {
-    #     "django.db.backends": {
-    #         "level": "ERROR",
-    #         "handlers": ["console"],
-    #         "propagate": False,
-    #     },
-    #     # Errors logged by the SDK itself
-    #     "sentry_sdk": {"level": "ERROR", "handlers": ["console"], "propagate": False},
-    #     "django.security.DisallowedHost": {
-    #         "level": "ERROR",
-    #         "handlers": ["console"],
-    #         "propagate": False,
-    #     },
-    #     'django': {
-    #         'handlers': ['elasticapm'],
-    #         'level': 'WARNING',
-    #         'propagate': False,
-    #     },
-    #     'elasticapm.errors': {
-    #         'level': 'ERROR',
-    #         'handlers': ['console'],
-    #         'propagate': False,
-    #     },
-    # },
+    "handlers": LOGGING_HANDLERS,
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'celery': {
+            'level': 'INFO',
+            'handlers': ['console'],
+            'propagate': True,
+        },
+        # api_sme_ptrf_apps identifica os logs definidos por um ContextualLogger
+        'api_sme_ptrf_apps': {
+            'handlers': ['console'] + (['rabbitmq'] if enable_rabbitmq_logging else []),
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+    "root": {
+        "level": env("DJANGO_LOG_LEVEL", default="INFO"),
+        "handlers": ["console"],
+    },
 }
+
 
 # CELERY SETTINGS
 # ------------------------------------------------------------------------------
