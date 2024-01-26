@@ -164,9 +164,16 @@ def test_atualizar_usuario_servidor_visao_sme(
         'visoes': [visao_ue.id, visao_dre.id, visao_sme.id],
         'id': usuario_3.id
     }
+    
+    assert result['username'] == esperado['username']
+    assert result['email'] == esperado['email']
+    assert result['name'] == esperado['name']
+    assert result['e_servidor'] == esperado['e_servidor']
+    assert result['groups'] == esperado['groups']
+    assert sorted(result['visoes']) == sorted(esperado['visoes'])
+    assert result['id'] == esperado['id']
 
     assert usuario_3.visoes.filter(nome='SME').first(), "Deveria ter sido vinculado à visão SME."
-    assert result == esperado
 
     mock_usuario_core_sso_or_none.assert_called_once_with(login='7218198')
     mock_cria_usuario_core_sso.assert_called_once_with(

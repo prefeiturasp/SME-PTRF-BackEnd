@@ -40,6 +40,7 @@ class Grupo(Group):
     descricao = models.TextField(blank=True, default='')
     visoes_log = models.TextField(blank=True, help_text='Visões do grupo (audtilog)')
     visoes = models.ManyToManyField(Visao, blank=True)
+    suporte = models.BooleanField(default=False, help_text="Grupo usado para acessos de suporte?")
 
     @classmethod
     def grupo_por_nome(cls, nome):
