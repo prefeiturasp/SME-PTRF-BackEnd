@@ -78,11 +78,12 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
         )
 
     def get_mostrar_alerta_valores_reprogramados_ao_solicitar(self, obj):
-        pc_do_primeiro_periodo_de_uso_do_sistema = obj.associacao.prestacoes_de_conta_da_associacao.filter(
-            periodo=obj.associacao.periodo_inicial)
+        if obj.associacao.periodo_inicial and obj.associacao.periodo_inicial.proximo_periodo:
+            pc_do_primeiro_periodo_de_uso_do_sistema = obj.associacao.prestacoes_de_conta_da_associacao.filter(
+                periodo=obj.associacao.periodo_inicial.proximo_periodo)
 
-        if pc_do_primeiro_periodo_de_uso_do_sistema.exists():
-            return False
+            if pc_do_primeiro_periodo_de_uso_do_sistema.exists():
+                return False
 
         if obj.associacao.valores_reprogramados_associacao.exists():
             return False
