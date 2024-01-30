@@ -147,7 +147,6 @@ def test_deve_retornar_info_registro_falha_geracao_pc_nao_excede_tentativas(
         {
             "exibe_modal": True,
             "excede_tentativas": False,
-            "texto": f"Houve um problema na conclusão do período/acerto 2022.1. Favor concluir novamente.",
             "periodo_referencia": '2022.1',
             "periodo_uuid": periodo_teste_falha_geracao_pc_service.uuid,
             "periodo_data_final": periodo_teste_falha_geracao_pc_service.data_fim_realizacao_despesas,
@@ -158,7 +157,6 @@ def test_deve_retornar_info_registro_falha_geracao_pc_nao_excede_tentativas(
         {
             "exibe_modal": True,
             "excede_tentativas": False,
-            "texto": f"Houve um problema na conclusão do período/acerto 2022.2. Favor concluir novamente.",
             "periodo_referencia": '2022.2',
             "periodo_uuid": periodo_teste_falha_geracao_pc_service_02.uuid,
             "periodo_data_final": periodo_teste_falha_geracao_pc_service_02.data_fim_realizacao_despesas,
@@ -188,7 +186,6 @@ def test_deve_retornar_info_registro_falha_geracao_pc_excede_tentativas(
     esperado = [{
         "exibe_modal": True,
         "excede_tentativas": True,
-        "texto": f"Infelizmente um problema impediu a conclusão do período/acerto 2022.1",
         "periodo_referencia": '2022.1',
         "periodo_uuid": periodo_teste_falha_geracao_pc_service.uuid,
         "periodo_data_final": periodo_teste_falha_geracao_pc_service.data_fim_realizacao_despesas,
