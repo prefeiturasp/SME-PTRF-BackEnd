@@ -192,7 +192,11 @@ class Despesa(ModeloBase):
     @property
     def periodo_da_despesa(self):
         from sme_ptrf_apps.core.models import Periodo
-        return Periodo.da_data(self.data_transacao)
+
+        if self.data_transacao:
+            return Periodo.da_data(self.data_transacao)
+
+        return None
 
     @property
     def prestacao_conta(self):
