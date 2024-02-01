@@ -23,7 +23,7 @@ from sme_ptrf_apps.core.services.persistencia_dados_demo_financeiro_service impo
 from sme_ptrf_apps.core.services.relacao_bens import _persistir_arquivo_relacao_de_bens
 
 
-logger = logging.getLogger(__name__)
+logger_modulo = logging.getLogger(__name__)
 
 
 class PrestacaoContaService:
@@ -31,7 +31,7 @@ class PrestacaoContaService:
     Classe responsável pelo novo processo de prestação de contas.
     Por hora executado apenas quando a feature flag "novo-processo-pc" está ativa.
     """
-    def __init__(self, periodo_uuid, associacao_uuid, username=""):
+    def __init__(self, periodo_uuid, associacao_uuid, username="", logger=None):
         try:
             self._periodo = Periodo.by_uuid(uuid=periodo_uuid)
         except Periodo.DoesNotExist:
@@ -52,9 +52,26 @@ class PrestacaoContaService:
         self._username = username
         self._user = get_user_model().objects.get(username=self._username) if self._username else None
 
+        # Define o logger
+        self.logger = logger if logger else logger_modulo
+        self._identifica_operacao_no_logger()
+
         # Instancia do celery
         self.app = Celery("sme_ptrf_apps")
         self.app.config_from_object("django.conf:settings", namespace="CELERY")
+
+    def _identifica_operacao_no_logger(self):
+        # Se o logger é um ContextualLogger atualiza o contexto com os dados da PC
+        if hasattr(self.logger, 'update_context'):
+            identificacao_unidade = f'U:{self._associacao.unidade.codigo_eol}' if self._associacao.unidade else ''
+            identificacao_periodo = f'P:{self._periodo.referencia}' if self._periodo else ''
+            identificacao_prestacao = f'ID:{self._prestacao.id}' if self._prestacao else ''
+            identificacao_analise_pc = f'AN:{self._prestacao.analise_atual.id if self._prestacao.analise_atual else "0"}' if self._prestacao else ''
+            self.logger.update_context(
+                operacao='Prestação de Contas',
+                operacao_id=f'{identificacao_unidade}_{identificacao_periodo}_{identificacao_prestacao}_{identificacao_analise_pc}',
+                username=self._username,
+            )
 
     @property
     def periodo(self):
@@ -164,7 +181,9 @@ class PrestacaoContaService:
     def _set_pc(self):
         """Define a prestação de contas para o período e associação informados."""
         self._prestacao = PrestacaoConta.abrir(periodo=self._periodo, associacao=self._associacao)
-        logger.info(f'Aberta a prestação de contas {self._prestacao}.')
+        self._identifica_operacao_no_logger()
+
+        self.logger.info(f'Aberta a prestação de contas {self._prestacao}.')
 
         if self._prestacao.status in (PrestacaoConta.STATUS_EM_PROCESSAMENTO, PrestacaoConta.STATUS_A_PROCESSAR):
             raise Exception(f'Prestação de contas {self._prestacao} já está em processamento.')
@@ -173,10 +192,10 @@ class PrestacaoContaService:
 
         self._prestacao.a_processar()
 
-        logger.info(f'PC {self._prestacao} aguardando processamento.')
+        self.logger.info(f'PC {self._prestacao} aguardando processamento.')
 
     def _persiste_dados_demonstrativo_financeiro(self, conta_associacao, previa=False):
-        logger.info(f'Criando registro do demonstrativo financeiro da conta {conta_associacao}.')
+        logger_modulo.info(f'Criando registro do demonstrativo financeiro da conta {conta_associacao}.')
 
         demonstrativo, _ = DemonstrativoFinanceiro.objects.update_or_create(
             conta_associacao=conta_associacao,
@@ -194,7 +213,7 @@ class PrestacaoContaService:
         except Exception:
             observacao_conciliacao = None
 
-        logger.info(f'Persistindo dados do demonstrativo financeiro da conta {conta_associacao}.')
+        logger_modulo.info(f'Persistindo dados do demonstrativo financeiro da conta {conta_associacao}.')
 
         dados_demonstrativo = gerar_dados_demonstrativo_financeiro(
             usuario=self._username,
@@ -242,15 +261,15 @@ class PrestacaoContaService:
         tasks_ativas_da_pc = self._prestacao.tasks_celery_da_prestacao_conta.filter(
             nome_task='concluir_prestacao_de_contas_async').filter(finalizada=False).all()
         for task in tasks_ativas_da_pc:
-            logger.info(f'Revoking: {task}')
+            logger_modulo.info(f'Revoking: {task}')
             self.app.control.revoke(task_id=task.id_task_assincrona, terminate=True)
             task.registra_data_hora_finalizacao_forcada(log="Finalização forçada pela falha de PC.")
 
     def _reabrir_prestacao_de_contas(self):
-        logger.info(f'Reabrindo a PC de uuid {self._prestacao.uuid}.')
+        logger_modulo.info(f'Reabrindo a PC de uuid {self._prestacao.uuid}.')
         concluido = PrestacaoConta.reabrir(uuid=self._prestacao.uuid)
         if concluido:
-            logger.info(
+            logger_modulo.info(
                 f'PC de uuid {self._prestacao.uuid} foi reaberta. Seus registros foram apagados.')
         return concluido
 
@@ -259,10 +278,10 @@ class PrestacaoContaService:
 
         try:
 
-            logger.info(f"Revogando tasks ativas da PC {self._prestacao}.")
+            logger_modulo.info(f"Revogando tasks ativas da PC {self._prestacao}.")
             self._revoke_tasks_by_id()
 
-            logger.info(f"Criando um registro de falha de geração da PC {self._prestacao}.")
+            logger_modulo.info(f"Criando um registro de falha de geração da PC {self._prestacao}.")
             registra_falha_service = FalhaGeracaoPcService(
                 periodo=self._periodo,
                 usuario=self._user,
@@ -274,10 +293,10 @@ class PrestacaoContaService:
             ultima_analise = self._prestacao.analises_da_prestacao.last()
 
             if ultima_analise:
-                logger.info("Retorna a PC para status DEVOLVIDA.")
+                logger_modulo.info("Retorna a PC para status DEVOLVIDA.")
                 self._prestacao.status = PrestacaoConta.STATUS_DEVOLVIDA
                 self._prestacao.save()
-                logger.info(f"Alterado o status da PC {self._prestacao}.")
+                logger_modulo.info(f"Alterado o status da PC {self._prestacao}.")
 
                 if ultima_analise.verifica_se_requer_alteracao_em_lancamentos(considera_realizacao=False):
                     logging.info('A devolução de PC requer alterações e por isso deve apagar os seus fechamentos.')
@@ -285,23 +304,23 @@ class PrestacaoContaService:
                     logging.info('Fechamentos apagados.')
 
             else:
-                logger.info(f"Iniciando reabertura da PC {self._prestacao}.")
+                logger_modulo.info(f"Iniciando reabertura da PC {self._prestacao}.")
                 reaberta = self._reabrir_prestacao_de_contas()
 
                 if reaberta:
-                    logger.info(
+                    logger_modulo.info(
                         f"PC reaberta com sucesso. Todos os seus registros foram apagados.")
                 else:
-                    logger.info(f"Houve algum erro ao tentar reabrir a PC.")
+                    logger_modulo.info(f"Houve algum erro ao tentar reabrir a PC.")
 
         except Exception as e:
-            logger.info(f"Houve algum erro ao no registro de falha da PC. {e}")
+            logger_modulo.info(f"Houve algum erro ao no registro de falha da PC. {e}")
 
     def resolve_registros_falha(self):
         from sme_ptrf_apps.core.services import FalhaGeracaoPcService
 
         usuario_notificacao = self._user
-        logger.info('Verificando se há registro de falha para marcar como resolvido...')
+        logger_modulo.info('Verificando se há registro de falha para marcar como resolvido...')
         registra_falha_service = FalhaGeracaoPcService(
             usuario=usuario_notificacao,
             periodo=self._periodo,
@@ -313,10 +332,10 @@ class PrestacaoContaService:
         if not self._prestacao:
             raise Exception(f"Não existe PC para o período {self._periodo} e associação {self._associacao}.")
 
-        logger.info(f'Terminando processo da PC {self._prestacao}...')
+        logger_modulo.info(f'Terminando processo da PC {self._prestacao}...')
 
         calculo_concluido = self._prestacao.status in [PrestacaoConta.STATUS_CALCULADA, PrestacaoConta.STATUS_DEVOLVIDA_CALCULADA]
-        logger.info(f'PC {self._prestacao} está calculada? {calculo_concluido}')
+        logger_modulo.info(f'PC {self._prestacao} está calculada? {calculo_concluido}')
 
         # Verificar se todos os demonstrativos financeiros da prestacao de contas foram concluídos
         demonstrativos_concluidos = False  # Deve ter ao menos um demonstrativo financeiro
@@ -324,34 +343,34 @@ class PrestacaoContaService:
             if demonstrativo.status == DemonstrativoFinanceiro.STATUS_CONCLUIDO:
                 demonstrativos_concluidos = True
             else:
-                logger.info(f'Demonstrativo financeiro {demonstrativo} não está concluído.')
+                logger_modulo.info(f'Demonstrativo financeiro {demonstrativo} não está concluído.')
                 demonstrativos_concluidos = False
                 break
 
-        logger.info(f'Todos os demonstrativos financeiros da PC {self._prestacao} estão concluídos? {demonstrativos_concluidos}')
+        logger_modulo.info(f'Todos os demonstrativos financeiros da PC {self._prestacao} estão concluídos? {demonstrativos_concluidos}')
 
         # Verificar se todos os relatórios de bens da prestacao de contas foram concluídos
         relatorios_concluidos = True  # Não é obrigatório ter relatórios de bens, mas se tiver, todos devem estar concluídos
         for relatorio in self._prestacao.relacoes_de_bens_da_prestacao.all():
             if relatorio.status != RelacaoBens.STATUS_CONCLUIDO:
-                logger.info(f'Relatório de bens {relatorio} não está concluído.')
+                logger_modulo.info(f'Relatório de bens {relatorio} não está concluído.')
                 relatorios_concluidos = False
                 break
 
-        logger.info(f'Todos os relatórios de bens da PC {self._prestacao} estão concluídos? {relatorios_concluidos}')
+        logger_modulo.info(f'Todos os relatórios de bens da PC {self._prestacao} estão concluídos? {relatorios_concluidos}')
 
         if calculo_concluido and demonstrativos_concluidos and relatorios_concluidos:
-            logger.info(f'Terminando o processo da PC {self._prestacao}...')
+            logger_modulo.info(f'Terminando o processo da PC {self._prestacao}...')
             self._prestacao.status = PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA if self.e_retorno_devolucao else PrestacaoConta.STATUS_NAO_RECEBIDA
             self._prestacao.save()
 
             self.resolve_registros_falha()
 
-            logger.info(f'PC {self._prestacao} concluída.')
+            logger_modulo.info(f'PC {self._prestacao} concluída.')
         else:
-            logger.info(f'Houve um problema no processo da PC {self._prestacao}.')
+            logger_modulo.info(f'Houve um problema no processo da PC {self._prestacao}.')
             self.trata_falha_processo_pc()
-            logger.info(f'Feito o roll back do cálculo para a situação antes do início do processo de PC.')
+            logger_modulo.info(f'Feito o roll back do cálculo para a situação antes do início do processo de PC.')
 
     def iniciar_tasks_de_conclusao_de_pc(self, usuario, justificativa_acertos_pendentes):
         from sme_ptrf_apps.core.tasks import (
@@ -361,9 +380,10 @@ class PrestacaoContaService:
             gerar_relacao_bens_async,
             terminar_processo_pc_async,
         )
-        logger.info(f"Conclusão de PC V2. Período:{self._periodo.referencia} Associação:{self._associacao.nome}")
 
         self._set_pc()
+
+        self.logger.info(f"Conclusão de PC V2. Período:{self._periodo.referencia} Associação:{self._associacao.nome}")
 
         task_celery_calcular_pc = TaskCelery.objects.create(
             nome_task="calcular_prestacao_de_contas_async",
@@ -389,7 +409,7 @@ class PrestacaoContaService:
             prestacao_conta=self._prestacao,
         )
 
-        logger.info(f'Inicia tasks com é retorno de devolução = {self.e_retorno_devolucao}')
+        self.logger.info(f'Criando Celery Chain.', extra={'observacao': f'Parâmetro retorno de devolução = {self.e_retorno_devolucao}'})
         chain_tasks = chain(
             calcular_prestacao_de_contas_async.s(
                 task_celery_calcular_pc.uuid,
@@ -446,16 +466,18 @@ class PrestacaoContaService:
             task_celery_geracao_relatorio_apos_acerto.id_task_assincrona = id_task_geracao_relatorio_apos_acerto
             task_celery_geracao_relatorio_apos_acerto.save()
 
+            self.logger.info('Celery chain criada com sucesso.')
+
         return self._prestacao
 
     def persiste_dados_docs(self):
-        logger.info(f'Criando documentos da PC {self._prestacao}...')
+        logger_modulo.info(f'Criando documentos da PC {self._prestacao}...')
 
         for conta in self._contas:
-            logger.info(f'Persistindo dados do demonstrativo financeiro da conta {conta}.')
+            logger_modulo.info(f'Persistindo dados do demonstrativo financeiro da conta {conta}.')
             self._persiste_dados_demonstrativo_financeiro(conta_associacao=conta)
 
-            logger.info(f'Persistindo dados da relação de bens da conta {conta}.')
+            logger_modulo.info(f'Persistindo dados da relação de bens da conta {conta}.')
             self._persiste_dados_relacao_de_bens(conta_associacao=conta)
 
     def atualiza_justificativa_conciliacao_original(self):
