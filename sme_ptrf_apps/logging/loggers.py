@@ -33,6 +33,16 @@ class ContextualLogger(logging.LoggerAdapter):
 
         return msg, kwargs
 
+    def update_context(self, **new_context):
+        """
+        Atualiza o contexto do logger com novas ou modificadas propriedades.
+        """
+        self.extra.update(new_context)
+
+        for key in list(self.extra.keys()):
+            if not isinstance(key, str):
+                raise ValueError("Todas as chaves do contexto devem ser strings")
+
     @classmethod
     def _get_logger(cls, name, **kwargs):
         """
