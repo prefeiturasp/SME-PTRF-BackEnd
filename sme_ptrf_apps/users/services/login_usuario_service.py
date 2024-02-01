@@ -4,26 +4,31 @@ from sme_ptrf_apps.dre.models import TecnicoDre
 from sme_ptrf_apps.sme.models import ParametrosSme
 import logging
 
+from waffle import get_waffle_flag_model
 
 logger = logging.getLogger(__name__)
 
 
 class LoginUsuarioService:
 
-    def __init__(self, usuario, gestao_usuario):
+    def __init__(self, usuario, gestao_usuario, suporte=False):
         self.usuario = usuario
         self.gestao_usuario = gestao_usuario
         self.deve_remover_unidades = ParametrosSme.get().valida_unidades_login
 
         self.unidades_que_usuario_pode_ter_acesso = gestao_usuario.unidades_do_usuario(inclui_unidades_suporte=True)
-        self.unidades_que_usuario_tem_acesso = self.get_unidades_que_usuario_tem_acesso()
+        self.unidades_que_usuario_tem_acesso = self.get_unidades_que_usuario_tem_acesso(suporte=suporte)
         self.unidades_que_perdeu_acesso = []
 
         self.valida_unidades_usuario()
 
         self.mensagem_perca_acesso = self.get_mensagem_perca_acesso()
 
-    def get_unidades_que_usuario_tem_acesso(self):
+    def get_unidades_que_usuario_tem_acesso(self, suporte):
+        flags = get_waffle_flag_model()
+        
+        novo_suporte_unidade = flags.objects.filter(name='novo-suporte-unidades', everyone=True).exists()
+        
         unidades_que_tem_acesso = []
         for u in self.unidades_que_usuario_pode_ter_acesso:
             if u["tem_acesso"]:
@@ -53,7 +58,9 @@ class LoginUsuarioService:
                 unidade = Unidade.by_uuid(unidade_com_acesso["uuid_unidade"])
 
                 associacao = Associacao.objects.filter(unidade__uuid=unidade.uuid).first()
-
+                
+                acesso_de_suporte = UnidadeEmSuporte.objects.filter(unidade=unidade, user=self.usuario).exists()
+                
                 notificao_devolucao_pc = Notificacao.objects.filter(
                     usuario=self.usuario,
                     categoria=Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_PC,
@@ -69,23 +76,43 @@ class LoginUsuarioService:
                     notificar_devolucao_referencia = None
                     notificacao_uuid = None
                     notificar_devolucao_pc_uuid = None
+                
+                if novo_suporte_unidade:
+                    if suporte and acesso_de_suporte or not suporte and not acesso_de_suporte:
+                        info_unidades.append({
+                            'uuid': unidade.uuid,
+                            'nome': unidade.nome,
+                            'tipo_unidade': unidade.tipo_unidade,
+                            'associacao': {
+                                'uuid': associacao.uuid if associacao else '',
+                                'nome': associacao.nome if associacao else ''
+                            },
+                            'notificar_devolucao_referencia': notificar_devolucao_referencia,
+                            'notificar_devolucao_pc_uuid': notificar_devolucao_pc_uuid,
+                            'notificacao_uuid': notificacao_uuid,
+                            'acesso_de_suporte': acesso_de_suporte
+                        })
+                else:
+                    info_unidades.append({
+                        'uuid': unidade.uuid,
+                        'nome': unidade.nome,
+                        'tipo_unidade': unidade.tipo_unidade,
+                        'associacao': {
+                            'uuid': associacao.uuid if associacao else '',
+                            'nome': associacao.nome if associacao else ''
+                        },
+                        'notificar_devolucao_referencia': notificar_devolucao_referencia,
+                        'notificar_devolucao_pc_uuid': notificar_devolucao_pc_uuid,
+                        'notificacao_uuid': notificacao_uuid,
+                        'acesso_de_suporte': acesso_de_suporte
+                    })
 
-                info_unidades.append({
-                    'uuid': unidade.uuid,
-                    'nome': unidade.nome,
-                    'tipo_unidade': unidade.tipo_unidade,
-                    'associacao': {
-                        'uuid': associacao.uuid if associacao else '',
-                        'nome': associacao.nome if associacao else ''
-                    },
-                    'notificar_devolucao_referencia': notificar_devolucao_referencia,
-                    'notificar_devolucao_pc_uuid': notificar_devolucao_pc_uuid,
-                    'notificacao_uuid': notificacao_uuid,
-                    'acesso_de_suporte': UnidadeEmSuporte.objects.filter(unidade=unidade, user=self.usuario).exists()
-                })
-
-        if tem_acesso_sme:
-            info_unidades.append(info_sme)
+        if novo_suporte_unidade:
+            if tem_acesso_sme and not suporte:
+                info_unidades.append(info_sme)
+        else:
+            if tem_acesso_sme:
+                info_unidades.append(info_sme)
 
         return info_unidades
 

@@ -411,8 +411,8 @@ class PrestacaoConta(ModeloBase):
 
     def atualizar_comentarios_de_analise_sem_pc(self):
         from sme_ptrf_apps.core.models import ComentarioAnalisePrestacao
-        comentarios_de_analise_relacionados_sem_pc = ComentarioAnalisePrestacao.objects.filter(Q(associacao=self.associacao) & \
-                                                                                               Q(periodo=self.periodo) & \
+        comentarios_de_analise_relacionados_sem_pc = ComentarioAnalisePrestacao.objects.filter(Q(associacao=self.associacao) &
+                                                                                               Q(periodo=self.periodo) &
                                                                                                Q(prestacao_conta__isnull=True))
         print('comentarios_de_analise_relacionados_sem_pc', comentarios_de_analise_relacionados_sem_pc)
         comentarios_de_analise_relacionados_sem_pc.update(prestacao_conta=self, associacao=None, periodo=None)
@@ -581,7 +581,8 @@ class PrestacaoConta(ModeloBase):
         devolucao_requer_alteracoes = False
 
         if self.analise_atual:
-            devolucao_requer_alteracoes = self.analise_atual.verifica_se_requer_alteracao_em_lancamentos(considera_realizacao=False)
+            devolucao_requer_alteracoes = self.analise_atual.verifica_se_requer_alteracao_em_lancamentos(
+                considera_realizacao=False)
             self.analise_atual.devolucao_prestacao_conta = devolucao
             self.analise_atual.status = self.STATUS_DEVOLVIDA
             self.analise_atual.save()
@@ -834,7 +835,6 @@ class PrestacaoConta(ModeloBase):
 
         qs = cls.objects.filter(periodo__uuid=periodo.uuid)
 
-
         quantidade_pcs_apresentadas = 0
         qtd_por_status['TOTAL_UNIDADES'] = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo).count()
 
@@ -875,7 +875,8 @@ class PrestacaoConta(ModeloBase):
             qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre.uuid)
 
             quantidade_pcs_apresentadas = 0
-            qtd_por_status['TOTAL_UNIDADES'] = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo, dre=dre).count()
+            qtd_por_status['TOTAL_UNIDADES'] = Associacao.get_associacoes_ativas_no_periodo(
+                periodo=periodo, dre=dre).count()
 
             for status in qtd_por_status.keys():
                 if status == 'TOTAL_UNIDADES' or status == cls.STATUS_NAO_APRESENTADA:
@@ -925,9 +926,25 @@ class PrestacaoConta(ModeloBase):
 
         return result
 
+    @classmethod
+    def status_conclusao_pc_to_json(cls):
+        selecionaveis = [
+            cls.STATUS_APROVADA,
+            cls.STATUS_APROVADA_RESSALVA,
+            cls.STATUS_REPROVADA
+        ]
+
+        result = [{
+            'id': choice[0],
+            'nome': choice[1]
+        } for choice in cls.STATUS_CHOICES if choice[0] in selecionaveis]
+
+        return result
+
     class Meta:
         verbose_name = "Prestação de conta"
         verbose_name_plural = "09.0) Prestações de contas"
         unique_together = ['associacao', 'periodo']
+
 
 auditlog.register(PrestacaoConta)

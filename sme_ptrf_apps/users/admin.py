@@ -77,12 +77,18 @@ class GrupoAdmin(admin.ModelAdmin):
     Versão estendida dos grupos de acesso, queinclui as visões e descrição. As permissões continuam a ser inseridas
     na versão padrão de Group.
     """
-    list_display = ["name"]
+    list_display = ["name", "suporte", "get_visoes_nomes"]
+    list_filter = ('suporte',)
 
     fieldsets = (
         ('', {'fields': ('name', )},),
-        ('Extras', {'fields': ('descricao', 'visoes')}),
+        ('Extras', {'fields': ('suporte', 'descricao', 'visoes')}),
     )
+
+    def get_visoes_nomes(self, obj):
+        return ", ".join(visao.nome for visao in obj.visoes.all())
+    
+    get_visoes_nomes.short_description = 'visoes'
 
 
 @admin.register(UnidadeEmSuporte)
