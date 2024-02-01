@@ -89,6 +89,8 @@ class LoginView(TokenObtainPairView):
 
     def post(self, request, *args, **kwargs):
         flags = get_waffle_flag_model()
+        novo_suporte_unidades = flags.objects.filter(name='novo-suporte-unidades', everyone=True).exists()
+        suporte = request.data.get("suporte", False)
 
         logger.info("Verificando se a flag <gestao-usuarios> está ativa...")
 
@@ -124,7 +126,14 @@ class LoginView(TokenObtainPairView):
                         resp = super().post(request, *args, **kwargs)
 
                         gestao_usuario = GestaoUsuarioService(usuario=user)
-                        login_service = LoginUsuarioService(usuario=user, gestao_usuario=gestao_usuario)
+                        
+                        if novo_suporte_unidades:
+                            login_service = LoginUsuarioService(usuario=user, gestao_usuario=gestao_usuario, suporte=suporte)
+                            
+                            if suporte:
+                                user_dict['visoes'].remove('SME')
+                        else:
+                            login_service = LoginUsuarioService(usuario=user, gestao_usuario=gestao_usuario)
 
                         unidades = login_service.unidades_que_usuario_tem_acesso
 
@@ -151,8 +160,12 @@ class LoginView(TokenObtainPairView):
                             'tipo_escola': ''}
                         user_dict['associacao'] = associacao_dict
                         user_dict['unidades'] = unidades
-                        user_dict['permissoes'] = self.get_user_permissions(user)
                         user_dict['feature_flags'] = feature_flags
+                        
+                        if novo_suporte_unidades:
+                            user_dict['permissoes'] = self.get_user_permissions(user, suporte)
+                        else:
+                            user_dict['permissoes'] = self.get_user_permissions(user)
 
                         perdeu_acesso_dict = {
                             "unidades_que_perdeu_acesso": login_service.unidades_que_perdeu_acesso,
@@ -200,7 +213,11 @@ class LoginView(TokenObtainPairView):
 
                         request._full_data = {'username': user_dict['login'], 'password': senha}
                         resp = super().post(request, *args, **kwargs)
-                        unidades = get_unidades_do_usuario(user)
+                        
+                        if novo_suporte_unidades:
+                            unidades = get_unidades_do_usuario(user, suporte)
+                        else:
+                            unidades = get_unidades_do_usuario(user)
 
                         if not unidades:
                             associacao = Associacao.objects.first()
@@ -223,8 +240,12 @@ class LoginView(TokenObtainPairView):
                             'tipo_escola': ''}
                         user_dict['associacao'] = associacao_dict
                         user_dict['unidades'] = unidades
-                        user_dict['permissoes'] = self.get_user_permissions(user)
                         user_dict['feature_flags'] = feature_flags
+                        
+                        if novo_suporte_unidades:
+                            user_dict['permissoes'] = self.get_user_permissions(user, suporte)
+                        else:
+                            user_dict['permissoes'] = self.get_user_permissions(user)
 
                         # Para manter compatibilidade com o front que espera o token no campo token
                         user_dict['token'] = resp.data['access']
@@ -234,13 +255,31 @@ class LoginView(TokenObtainPairView):
                 return Response(response.json(), response.status_code)
             except Exception as e:
                 return Response({'data': {'detail': f'ERROR - {e}'}}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def get_user_permissions(self, user):
-        perms = []
-        for group in user.groups.all():
-            for permission in group.permissions.all():
-                perms.append(permission.codename)
-
+  
+    def get_user_permissions(self, user, suporte=False):
+        flags = get_waffle_flag_model()
+        
+        novo_suporte_unidades = flags.objects.filter(name='novo-suporte-unidades', everyone=True).exists()
+        
+        if novo_suporte_unidades:
+            perms = []
+            
+            if suporte:
+                groups_suporte = user.groups.filter(grupo__suporte=True)
+                for group in groups_suporte:
+                    for permission in group.permissions.all():
+                        perms.append(permission.codename)
+            else:
+                groups = user.groups.filter(grupo__suporte=False)
+                for group in groups:
+                    for permission in group.permissions.all():
+                        perms.append(permission.codename)
+        else:
+            perms = []
+            for group in user.groups.all():
+                for permission in group.permissions.all():
+                    perms.append(permission.codename)
+                    
         return perms
 
     def get_feature_flags_ativas(self, user):

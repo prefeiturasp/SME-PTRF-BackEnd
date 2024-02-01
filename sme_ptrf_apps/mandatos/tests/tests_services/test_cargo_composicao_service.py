@@ -75,3 +75,29 @@ def test_pendencia_cargos_da_composicao_vigente_da_associacao(
     pendencia_membros = servico_pendencia.retorna_se_tem_pendencia()
 
     assert pendencia_membros
+
+
+def test_servico_cargos_da_composicao_retorna_tags_substituto_substituido__substituido(
+    composicao_01_2023_a_2025_testes_tags,
+    cargo_composicao_01_teste_tags,
+    ocupante_cargo_01_teste_tags
+):
+    servico_cargos_da_composicao = ServicoCargosDaComposicao(composicao=composicao_01_2023_a_2025_testes_tags)
+    cargos_da_composicao = servico_cargos_da_composicao.get_cargos_da_composicao_ordenado_por_cargo_associacao()
+
+    assert cargos_da_composicao['diretoria_executiva'][0]['substituido']
+    assert cargos_da_composicao['diretoria_executiva'][0]['tag_substituido'] == "Substituído em 31/12/2025"
+    assert not cargos_da_composicao['diretoria_executiva'][0]['substituto']
+
+
+def test_servico_cargos_da_composicao_retorna_tags_substituto_substituido__substituto(
+    composicao_01_2023_a_2025_testes_tags,
+    cargo_composicao_02_teste_tags,
+    ocupante_cargo_02_teste_tags
+):
+    servico_cargos_da_composicao = ServicoCargosDaComposicao(composicao=composicao_01_2023_a_2025_testes_tags)
+    cargos_da_composicao = servico_cargos_da_composicao.get_cargos_da_composicao_ordenado_por_cargo_associacao()
+
+    assert not cargos_da_composicao['diretoria_executiva'][0]['substituido']
+    assert cargos_da_composicao['diretoria_executiva'][0]['substituto']
+    assert cargos_da_composicao['diretoria_executiva'][0]['tag_substituto'] == "Novo membro em 01/01/2024"

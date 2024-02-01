@@ -109,7 +109,6 @@ class InfoRegistroFalhaGeracaoPc(FalhaGeracaoPcService):
                 info = {
                     "exibe_modal": True,
                     "excede_tentativas": True,
-                    "texto": f"Infelizmente um problema impediu a conclusão do período/acerto {periodo_referencia}",
                     "periodo_referencia": periodo_referencia,
                     "periodo_uuid": registro.periodo.uuid,
                     "periodo_data_final": registro.periodo.data_fim_realizacao_despesas,
@@ -122,7 +121,6 @@ class InfoRegistroFalhaGeracaoPc(FalhaGeracaoPcService):
                 info = {
                     "exibe_modal": True,
                     "excede_tentativas": False,
-                    "texto": f"Houve um problema na conclusão do período/acerto {periodo_referencia}. Favor concluir novamente.",
                     "periodo_referencia": periodo_referencia,
                     "periodo_uuid": registro.periodo.uuid,
                     "periodo_data_final": registro.periodo.data_fim_realizacao_despesas,

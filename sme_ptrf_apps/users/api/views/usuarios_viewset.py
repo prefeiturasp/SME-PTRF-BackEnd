@@ -168,8 +168,9 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
                 return qs.filter(unidades__uuid=uuid_unidade_base)
 
             if visao_consulta == 'DRE':
-                unidades_da_dre = Unidade.dres.get(uuid=uuid_unidade_base).unidades_da_dre.values_list("uuid", flat=True)
-                return qs.filter(Q(unidades__uuid=uuid_unidade_base) | Q(unidades__uuid__in=unidades_da_dre) ).distinct('name', 'id')
+                unidades_da_dre = Unidade.dres.get(
+                    uuid=uuid_unidade_base).unidades_da_dre.values_list("uuid", flat=True)
+                return qs.filter(Q(unidades__uuid=uuid_unidade_base) | Q(unidades__uuid__in=unidades_da_dre)).distinct('name', 'id')
 
     @extend_schema(parameters=[
         OpenApiParameter(
@@ -308,7 +309,8 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
         #     if visao_base == 'SME':
         #         pode_acessar_unidade =
 
-        pode_acessar, mensagem_pode_acessar, info_exercicio = pode_acessar_unidade(username, e_servidor, visao_base, unidade)
+        pode_acessar, mensagem_pode_acessar, info_exercicio = pode_acessar_unidade(
+            username, e_servidor, visao_base, unidade)
 
         info_membro_nao_servidor = ""
         if not e_servidor:
@@ -424,7 +426,7 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
 
         gestao_usuario = GestaoUsuarioService(usuario=usuario)
         response = gestao_usuario.desabilitar_acesso(unidade=unidade, acesso_concedido_sme=acesso_concedido_sme)
-        
+
         gestao_usuario.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade=unidade, visao_base=visao_base)
 
         return Response(response, status=status.HTTP_200_OK)
@@ -466,7 +468,6 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
         return Response(response, status=status.HTTP_201_CREATED)
 
 
-
 # TODO Mover para um service
 # TODO Criar testes unitários
 def pode_acessar_unidade(username, e_servidor, visao_base, unidade):
@@ -482,8 +483,8 @@ def pode_acessar_unidade(username, e_servidor, visao_base, unidade):
 
         unidade_exercicio = info_exercicio['unidadeExercicio']['codigo'] if info_exercicio['unidadeExercicio'] else None
         unidade_lotacao = info_exercicio['unidadeLotacao']['codigo'] if info_exercicio['unidadeLotacao'] else None
-        logger.info(f'EOL da unidade_exercicio: {unidade_exercicio}' )
-        logger.info(f'EOL da unidade_lotacao: {unidade_lotacao}' )
+        logger.info(f'EOL da unidade_exercicio: {unidade_exercicio}')
+        logger.info(f'EOL da unidade_lotacao: {unidade_lotacao}')
 
         unidade_servidor = unidade_exercicio if unidade_exercicio else unidade_lotacao
 
@@ -496,7 +497,8 @@ def pode_acessar_unidade(username, e_servidor, visao_base, unidade):
                 return False, 'Servidor em exercício em outra unidade.', info_exercicio
 
         if visao_base == 'UE':
-            e_membro_associacao = MembroAssociacao.objects.filter(codigo_identificacao=username, associacao__unidade__codigo_eol=unidade.codigo_eol).exists()
+            e_membro_associacao = MembroAssociacao.objects.filter(
+                codigo_identificacao=username, associacao__unidade__codigo_eol=unidade.codigo_eol).exists()
             em_exercicio_na_unidade = unidade_servidor == unidade.codigo_eol
 
             if not em_exercicio_na_unidade and e_membro_associacao:
@@ -550,7 +552,8 @@ def remover_acessos_a_unidade_e_subordinadas(usuario, unidade_base):
         return
 
     if visao_base == 'DRE':
-        logger.info(f'Unidade base é uma DRE. Removendo acessos à unidade {unidade_base} e subordinadas para o usuário {usuario}.')
+        logger.info(
+            f'Unidade base é uma DRE. Removendo acessos à unidade {unidade_base} e subordinadas para o usuário {usuario}.')
         usuario.remove_unidade_se_existir(unidade_base.codigo_eol)
         unidades_subordinadas = unidade_base.unidades_da_dre.values_list("codigo_eol", flat=True)
         for unidade in usuario.unidades.filter(codigo_eol__in=unidades_subordinadas):
