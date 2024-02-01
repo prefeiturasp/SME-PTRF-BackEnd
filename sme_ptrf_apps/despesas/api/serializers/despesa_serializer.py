@@ -83,13 +83,15 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                 if periodo.referencia != self.instance.prestacao_conta.periodo.referencia:
                     raise serializers.ValidationError({"mensagem": "Permitido apenas datas dentro do período referente à devolução."})
 
-        for rateio in rateios:
-            data_transacao = data['data_transacao']
-            conta_associacao = rateio['conta_associacao']
-            if conta_associacao and (conta_associacao.data_inicio > data_transacao):
-                raise serializers.ValidationError({"mensagem": "Um ou mais rateios possuem conta com data de início posterior a data de transação."})
-            if conta_associacao and (conta_associacao.data_encerramento and conta_associacao.data_encerramento < data_transacao):
-                raise serializers.ValidationError({"mensagem": "Um ou mais rateios possuem conta com data de encerramento anterior a data de transação."})
+        if data['data_transacao']:
+            for rateio in rateios:
+                data_transacao = data['data_transacao']
+                conta_associacao = rateio['conta_associacao']
+
+                if conta_associacao and (conta_associacao.data_inicio > data_transacao):
+                    raise serializers.ValidationError({"mensagem": "Um ou mais rateios possuem conta com data de início posterior a data de transação."})
+                if conta_associacao and (conta_associacao.data_encerramento and conta_associacao.data_encerramento < data_transacao):
+                    raise serializers.ValidationError({"mensagem": "Um ou mais rateios possuem conta com data de encerramento anterior a data de transação."})
 
         for imposto in despesas_impostos:
             data_transacao = imposto['data_transacao']
