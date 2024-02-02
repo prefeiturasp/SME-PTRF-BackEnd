@@ -22,7 +22,8 @@ from sme_ptrf_apps.users.services import (
     SmeIntegracaoException,
     SmeIntegracaoService,
     criar_acesso_de_suporte,
-    encerrar_acesso_de_suporte
+    encerrar_acesso_de_suporte,
+    CriaAcessoSuporteException
 )
 from sme_ptrf_apps.users.services.unidades_e_permissoes_service import unidades_do_usuario_e_permissoes_na_visao
 from sme_ptrf_apps.users.services.validacao_username_service import validar_username
@@ -40,7 +41,7 @@ class UserViewSet(ModelViewSet):
     lookup_field = "id"
     serializer_class = UserSerializer
     queryset = User.objects.all().order_by("name", "id")
-    permission_classes = [IsAuthenticated ]
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -70,7 +71,8 @@ class UserViewSet(ModelViewSet):
             qs = qs.filter(unidades__uuid=unidade_uuid)
         elif visao == 'DRE':
             unidades_da_dre = Unidade.dres.get(uuid=unidade_uuid).unidades_da_dre.values_list("uuid", flat=True)
-            qs = qs.filter(Q(unidades__uuid=unidade_uuid) | Q(unidades__uuid__in=unidades_da_dre) ).distinct('name', 'id')
+            qs = qs.filter(Q(unidades__uuid=unidade_uuid) | Q(
+                unidades__uuid__in=unidades_da_dre)).distinct('name', 'id')
 
         groups__id = self.request.query_params.get('groups__id')
         if groups__id:
@@ -137,9 +139,9 @@ class UserViewSet(ModelViewSet):
 
         if visao not in ["SME", "DRE", "UE"]:
             erro = {
-                    'erro': 'erro_ao_consultar_grupos',
-                    'mensagem': f'Visao {visao} nao foi encontrada. Os valores permitidos sao SME, DRE ou UE'
-                }
+                'erro': 'erro_ao_consultar_grupos',
+                'mensagem': f'Visao {visao} nao foi encontrada. Os valores permitidos sao SME, DRE ou UE'
+            }
             logging.info("Erro ao buscar grupos do usuário %s", erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -160,7 +162,7 @@ class UserViewSet(ModelViewSet):
             try:
                 grupos = Grupo.objects.filter(Q(visoes__nome="DRE") | Q(visoes__nome="UE")).order_by('name')
                 return Response(
-                         [{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao, "visao": visao} for grupo in grupos])
+                    [{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao, "visao": visao} for grupo in grupos])
             except Exception as err:
                 erro = {
                     'erro': 'erro_ao_consultar_grupos',
@@ -172,7 +174,7 @@ class UserViewSet(ModelViewSet):
             try:
                 grupos = Grupo.objects.filter(visoes__nome="UE").order_by('name')
                 return Response(
-                         [{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao, "visao": visao} for grupo in grupos])
+                    [{'id': str(grupo.id), "nome": grupo.name, "descricao": grupo.descricao, "visao": visao} for grupo in grupos])
             except Exception as err:
                 erro = {
                     'erro': 'erro_ao_consultar_grupos',
@@ -363,7 +365,15 @@ class UserViewSet(ModelViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        criar_acesso_de_suporte(unidade_do_suporte=unidade, usuario_do_suporte=usuario)
+        try:
+            criar_acesso_de_suporte(unidade_do_suporte=unidade, usuario_do_suporte=usuario)
+        except CriaAcessoSuporteException as err:
+            erro = {
+                'erro': 'Erro de validação',
+                'mensagem': str(err)
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"mensagem": "Acesso de suporte viabilizado."}, status=status.HTTP_201_CREATED)
 
@@ -388,6 +398,26 @@ class UserViewSet(ModelViewSet):
         encerrar_acesso_de_suporte(unidade_do_suporte=unidade, usuario_do_suporte=usuario)
 
         return Response({"mensagem": "Acesso de suporte encerrado."}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='encerrar-acesso-suporte-em-lote')
+    def encerrar_acesso_suporte_usuario_unidade_em_lote(self, request, id):
+        usuario = User.objects.get(username=id)
+
+        unidade_suporte_uuids = request.data.get('unidade_suporte_uuids')
+
+        if not unidade_suporte_uuids:
+            return Response("Campo 'unidade_suporte_uuids' não encontrado no payload.", status=status.HTTP_400_BAD_REQUEST)
+
+        for unidade_uuid in unidade_suporte_uuids:
+            try:
+                unidade = Unidade.objects.get(uuid=unidade_uuid)
+            except Unidade.DoesNotExist:
+                unidade = None
+
+            if unidade:
+                encerrar_acesso_de_suporte(unidade_do_suporte=unidade, usuario_do_suporte=usuario)
+
+        return Response({"mensagem": "Acesso de suporte encerrado para as unidades selecionadas."}, status=status.HTTP_200_OK)
 
     @action(detail=False, url_path="usuarios-servidores-por-visao", methods=['get'])
     def usuarios_servidores_por_visao(self, request):
@@ -429,3 +459,23 @@ class UserViewSet(ModelViewSet):
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, url_path="unidades-em-suporte", methods=['get'])
+    def unidades_em_suporte(self, request, id):
+        from sme_ptrf_apps.core.api.serializers.unidade_serializer import UnidadeListSerializer
+        from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
+
+        try:
+            usuario = User.objects.get(username=id)
+        except User.DoesNotExist as err:
+            return Response({'detail': str(err)}, status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = Unidade.objects.filter(acessos_de_suporte__isnull=False, acessos_de_suporte__user=usuario)
+
+        custom_pagination = CustomPagination()
+        paginated_data = custom_pagination.paginate_queryset(queryset, request)
+
+        serializer = UnidadeListSerializer(paginated_data, many=True)
+
+        paginated_response = custom_pagination.get_paginated_response(serializer.data)
+        return paginated_response

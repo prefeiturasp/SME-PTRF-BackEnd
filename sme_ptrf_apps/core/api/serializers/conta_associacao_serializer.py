@@ -45,6 +45,8 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
     habilitar_solicitar_encerramento = serializers.SerializerMethodField()
     nome = serializers.SerializerMethodField('get_nome_conta')
     periodo_encerramento_conta = serializers.SerializerMethodField('get_periodo_encerramento_conta')
+    mostrar_alerta_valores_reprogramados_ao_solicitar = serializers.SerializerMethodField(
+        'get_mostrar_alerta_valores_reprogramados_ao_solicitar')
 
     def get_nome_conta(self, obj):
         return obj.tipo_conta.nome
@@ -57,8 +59,6 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
             if periodo:
                 return periodo.referencia
         return None
-
-
 
     class Meta:
         model = ContaAssociacao
@@ -73,8 +73,22 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
             'habilitar_solicitar_encerramento',
             'nome',
             'status',
-            'periodo_encerramento_conta'
+            'periodo_encerramento_conta',
+            'mostrar_alerta_valores_reprogramados_ao_solicitar'
         )
+
+    def get_mostrar_alerta_valores_reprogramados_ao_solicitar(self, obj):
+        if obj.associacao.periodo_inicial and obj.associacao.periodo_inicial.proximo_periodo:
+            pc_do_primeiro_periodo_de_uso_do_sistema = obj.associacao.prestacoes_de_conta_da_associacao.filter(
+                periodo=obj.associacao.periodo_inicial.proximo_periodo)
+
+            if pc_do_primeiro_periodo_de_uso_do_sistema.exists():
+                return False
+
+        if obj.associacao.valores_reprogramados_associacao.exists():
+            return False
+
+        return True
 
     def get_habilitar_solicitar_encerramento(self, obj):
         saldo_atual = self.get_saldo_atual_conta(obj)
@@ -91,6 +105,7 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
 
     def get_saldo_atual_conta(self, obj):
         return obj.get_saldo_atual_conta()
+
 
 class ContaAssociacaoCreateSerializer(serializers.ModelSerializer):
     class Meta:

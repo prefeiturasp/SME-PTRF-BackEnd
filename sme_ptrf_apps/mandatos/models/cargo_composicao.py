@@ -69,9 +69,9 @@ class CargoComposicao(ModeloBase):
         default=CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA,
     )
 
-    substituto = models.BooleanField("Substituto", default=False)
+    substituto = models.BooleanField("Substituto", default=False, blank=True, null=True)
 
-    substituido = models.BooleanField("Substituido", default=False)
+    substituido = models.BooleanField("Substituido", default=False, blank=True, null=True)
 
     data_inicio_no_cargo = models.DateField(verbose_name='Data de início no cargo', blank=True, null=True)
 

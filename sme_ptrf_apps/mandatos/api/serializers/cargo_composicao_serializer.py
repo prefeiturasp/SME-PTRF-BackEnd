@@ -149,6 +149,9 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+
+        from ...services.composicao_service import ServicoComposicaoVigente
+
         dados_ocupante_do_cargo = validated_data.pop('ocupante_do_cargo')
 
         ocupante_do_cargo, created = OcupanteCargo.objects.update_or_create(
@@ -158,6 +161,25 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
         )
 
         validated_data['ocupante_do_cargo'] = ocupante_do_cargo
+
+        # Verificando se o membro foi substituido na composição anterior
+        if not validated_data['substituto']:
+            composicao = validated_data['composicao']
+
+            servico_composicao_vigente = ServicoComposicaoVigente(
+                associacao=composicao.associacao,
+                mandato=composicao.mandato
+            )
+            composicao_anterior = servico_composicao_vigente.get_composicao_anterior()
+
+            if composicao_anterior:
+                cargo_substituido = composicao_anterior.cargos_da_composicao_da_composicao.filter(
+                    cargo_associacao=validated_data['cargo_associacao'],
+                    substituido=True
+                )
+
+                if cargo_substituido:
+                    validated_data['substituto'] = True
 
         cargo = CargoComposicao.objects.create(**validated_data)
 
