@@ -84,12 +84,11 @@ def gerar_demonstrativo_financeiro_async(self, id_task, prestacao_conta_uuid, us
 
         task.registra_data_hora_finalizacao(f'Finalizada com sucesso a geração do demonstrativo financeiro.')
     except Exception as exc:
-        if task:
-            dem_financ_logger.error(
-                f'A tentativa {tentativa} de gerar o demonstrativo financeiro falhou.',
-                exc_info=True,
-                stack_info=True
-            )
+        dem_financ_logger.error(
+            f'A tentativa {tentativa} de gerar o demonstrativo financeiro falhou.',
+            exc_info=True,
+            stack_info=True
+        )
 
         if tentativa > MAX_RETRIES:
             mensagem_tentativas_excedidas = f'Tentativas de reprocessamento com falha excedidas para o demonstrativo financeiro.'
