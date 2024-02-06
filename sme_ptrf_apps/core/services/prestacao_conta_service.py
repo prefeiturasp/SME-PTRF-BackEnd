@@ -372,7 +372,7 @@ class PrestacaoContaService:
     def iniciar_tasks_de_conclusao_de_pc(self, usuario, justificativa_acertos_pendentes):
         from sme_ptrf_apps.core.tasks import (
             calcular_prestacao_de_contas_async,
-            gerar_relatorio_apos_acertos_async,
+            gerar_relatorio_apos_acertos_v2_async,
             gerar_demonstrativo_financeiro_async,
             gerar_relacao_bens_async,
             terminar_processo_pc_async,
@@ -457,23 +457,20 @@ class PrestacaoContaService:
 
         if self.e_retorno_devolucao:
             task_celery_geracao_relatorio_apos_acerto = TaskCelery.objects.create(
-                nome_task="gerar_relatorio_apos_acertos_async",
+                nome_task="gerar_relatorio_apos_acertos_v2_async",
                 associacao=self._associacao,
                 periodo=self._periodo,
                 usuario=usuario
             )
 
-            id_task_geracao_relatorio_apos_acerto = gerar_relatorio_apos_acertos_async.apply_async(
+            gerar_relatorio_apos_acertos_v2_async.apply_async(
                 (
                     task_celery_geracao_relatorio_apos_acerto.uuid,
                     self._associacao.uuid,
                     self._periodo.uuid,
-                    usuario.name
+                    usuario.username
                 ), countdown=1
             )
-
-            task_celery_geracao_relatorio_apos_acerto.id_task_assincrona = id_task_geracao_relatorio_apos_acerto
-            task_celery_geracao_relatorio_apos_acerto.save()
 
             self.logger.info('Celery chain criada com sucesso.')
 
