@@ -49,7 +49,7 @@ def gerar_relacao_bens_async(self, id_task, prestacao_conta_uuid, username=""):
         rel_bens_logger.info(f'Iniciando task gerar_relacao_bens_async, tentativa {tentativa}.')
 
         if not pc_service.requer_gerar_documentos:
-            rel_bens_logger.info(f'Prestação de conta não requer geração de documentos. Relação de bens não será gerada.')
+            rel_bens_logger.info(f'PC não requer geração de documentos. Relação de bens não gerada.')
             return
 
         prestacao = pc_service.prestacao
