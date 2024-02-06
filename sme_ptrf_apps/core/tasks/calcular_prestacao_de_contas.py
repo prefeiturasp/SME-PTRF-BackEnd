@@ -22,11 +22,6 @@ def calcular_prestacao_de_contas_async(
     username="",
     justificativa_acertos_pendentes='',
 ):
-    from sme_ptrf_apps.core.services.prestacao_contas_services import (
-        _criar_fechamentos,
-        _apagar_previas_documentos,
-    )
-
     calcular_pc_logger = ContextualLogger.get_logger(
         __name__,
         operacao='Prestação de Contas',
@@ -58,15 +53,13 @@ def calcular_prestacao_de_contas_async(
         calcular_pc_logger.info(f'Tem solicitações de mudança realizadas: {pc_service.pc_e_devolucao_com_solicitacoes_mudanca_realizadas}')
         calcular_pc_logger.info(f'Tem acertos em extrato: {pc_service.pc_e_devolucao_com_solicitacao_acerto_em_extrato}')
 
-        periodo = pc_service.periodo
         prestacao = pc_service.prestacao
-        acoes = pc_service.acoes
-        contas = pc_service.contas
 
         time.sleep(10)  # Aguardar 10 segundos para iniciar a task e dar tempo de criar as tasks duplicadas
 
         tasks_ativas_dessa_pc = prestacao.tasks_celery_da_prestacao_conta.filter(
             nome_task='concluir_prestacao_de_contas_async').filter(finalizada=False).all()
+
         if tasks_ativas_dessa_pc.count() > 1:
             raise Exception(
                 f"Está PC possui mais de uma task de {task.nome_task} ativa no momento, "
@@ -87,30 +80,24 @@ def calcular_prestacao_de_contas_async(
             calcular_pc_logger.info(
                 f'Solicitações de ajustes requerem regerar os documentos da PC. Eles serão apagados para nova geração posterior.')
 
+            calcular_pc_logger.info(f'Apagando relações de bens da PC.')
             prestacao.apaga_relacao_bens()
             calcular_pc_logger.info(f'Relações de bens apagadas.')
 
+            calcular_pc_logger.info(f'Apagando demonstrativos financeiros da PC.')
             prestacao.apaga_demonstrativos_financeiros()
             calcular_pc_logger.info(f'Demonstrativos financeiros apagados.')
 
             calcular_pc_logger.info(f'Documentos da PC apagados.')
 
         if pc_service.requer_criar_fechamentos:
-            calcular_pc_logger.info(f'Criando os fechamentos para PC.')
-            _criar_fechamentos(acoes, contas, periodo, prestacao)
-            calcular_pc_logger.info(f'Fechamentos criados para a PC {prestacao}.')
+            pc_service.criar_fechamentos()
         else:
             calcular_pc_logger.info(f'Solicitações de ajustes NÃO requerem recalcular os fechamentos.')
 
         if pc_service.requer_gerar_documentos:
-            calcular_pc_logger.info(f'Apagando prévias de documentos da PC.')
-            _apagar_previas_documentos(contas=contas, periodo=periodo, prestacao=prestacao)
-            calcular_pc_logger.info(f'Prévias apagadas.')
-
-            calcular_pc_logger.info(f'Persistindo dados dos documentos da PC.')
+            pc_service.apagar_previas_documentos()
             pc_service.persiste_dados_docs()
-            calcular_pc_logger.info(f'Dados dos documentos da {prestacao} persistidos para posterior geração dos PDFs.')
-
         else:
             calcular_pc_logger.info(f'Solicitações de ajustes NÃO requerem gerar novamente os documentos da PC.')
 

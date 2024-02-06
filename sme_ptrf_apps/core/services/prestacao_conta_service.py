@@ -12,7 +12,7 @@ from sme_ptrf_apps.core.models import (
     ObservacaoConciliacao,
     PrestacaoConta,
     DemonstrativoFinanceiro,
-    RelacaoBens,
+    RelacaoBens, FechamentoPeriodo,
 )
 
 from sme_ptrf_apps.despesas.models import RateioDespesa
@@ -21,6 +21,7 @@ from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL
 from sme_ptrf_apps.core.services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
 from sme_ptrf_apps.core.services.persistencia_dados_demo_financeiro_service import PersistenciaDadosDemoFinanceiro
 from sme_ptrf_apps.core.services.relacao_bens import _persistir_arquivo_relacao_de_bens
+from sme_ptrf_apps.receitas.models import Receita
 
 
 class PrestacaoContaService:
@@ -63,7 +64,7 @@ class PrestacaoContaService:
         identificacao_unidade = f'U:{self._associacao.unidade.codigo_eol}' if self._associacao.unidade else ''
         identificacao_periodo = f'P:{self._periodo.referencia}' if self._periodo else ''
         identificacao_prestacao = f'ID:{self._prestacao.id}' if self._prestacao else ''
-        identificacao_analise_pc = f'AN:{self._prestacao.analise_atual.id if self._prestacao.analise_atual else "0"}' if self._prestacao else ''
+        identificacao_analise_pc = f'AN:{self.analise_atual_id}'
         self.logger.update_context(
             operacao='Prestação de Contas',
             operacao_id=f'{identificacao_unidade}-{identificacao_periodo}-{identificacao_prestacao}-{identificacao_analise_pc}',
@@ -162,6 +163,13 @@ class PrestacaoContaService:
         """
         return (not self.e_retorno_devolucao) or (
                 self.pc_e_devolucao_com_solicitacoes_mudanca_realizadas or self.pc_e_devolucao_com_solicitacao_acerto_em_extrato)
+
+    @property
+    def analise_atual_id(self):
+        ultima_analise = None
+        if self._e_retorno_devolucao:
+            ultima_analise = self._prestacao.analises_da_prestacao.last()
+        return ultima_analise.id if ultima_analise else 0
 
     @classmethod
     def from_prestacao_conta_uuid(cls, prestacao_conta_uuid, username="", logger=None):
@@ -477,7 +485,7 @@ class PrestacaoContaService:
         return self._prestacao
 
     def persiste_dados_docs(self):
-        self.logger.info(f'Criando documentos da PC {self._prestacao}...')
+        self.logger.info(f'Persistindo dados dos documentos da PC {self.prestacao}...')
 
         for conta in self._contas:
             self.logger.info(f'Persistindo dados do demonstrativo financeiro da conta {conta}.')
@@ -485,6 +493,7 @@ class PrestacaoContaService:
 
             self.logger.info(f'Persistindo dados da relação de bens da conta {conta}.')
             self._persiste_dados_relacao_de_bens(conta_associacao=conta)
+            self.logger.info(f'Dados dos documentos da {self.prestacao} persistidos para posterior geração dos PDFs.')
 
     def atualiza_justificativa_conciliacao_original(self):
         """ Atualiza o campo observacao.justificativa_original com observacao.texto """
@@ -498,3 +507,57 @@ class PrestacaoContaService:
                 observacao.justificativa_original = observacao.texto
                 observacao.save()
 
+    def criar_fechamentos(self):
+        self.logger.info(f'Criando fechamentos.')
+        for conta in self.contas:
+            self.logger.info(f'Criando fechamentos da conta {conta}.')
+            for acao in self.acoes:
+                self.logger.info(f'Criando fechamentos da ação {acao}.')
+                totais_receitas = Receita.totais_por_acao_associacao_no_periodo(
+                    acao_associacao=acao,
+                    periodo=self.periodo,
+                    conta=conta
+                )
+                totais_despesas = RateioDespesa.totais_por_acao_associacao_no_periodo(
+                    acao_associacao=acao,
+                    periodo=self.periodo,
+                    conta=conta
+                )
+                especificacoes_despesas = RateioDespesa.especificacoes_dos_rateios_da_acao_associacao_no_periodo(
+                    acao_associacao=acao,
+                    periodo=self.periodo
+                )
+                FechamentoPeriodo.criar(
+                    prestacao_conta=self.prestacao,
+                    acao_associacao=acao,
+                    conta_associacao=conta,
+                    total_receitas_capital=totais_receitas['total_receitas_capital'],
+                    total_receitas_devolucao_capital=totais_receitas['total_receitas_devolucao_capital'],
+                    total_repasses_capital=totais_receitas['total_repasses_capital'],
+                    total_receitas_custeio=totais_receitas['total_receitas_custeio'],
+                    total_receitas_devolucao_custeio=totais_receitas['total_receitas_devolucao_custeio'],
+                    total_receitas_devolucao_livre=totais_receitas['total_receitas_devolucao_livre'],
+                    total_repasses_custeio=totais_receitas['total_repasses_custeio'],
+                    total_despesas_capital=totais_despesas['total_despesas_capital'],
+                    total_despesas_custeio=totais_despesas['total_despesas_custeio'],
+                    total_receitas_livre=totais_receitas['total_receitas_livre'],
+                    total_repasses_livre=totais_receitas['total_repasses_livre'],
+                    total_receitas_nao_conciliadas_capital=totais_receitas['total_receitas_nao_conciliadas_capital'],
+                    total_receitas_nao_conciliadas_custeio=totais_receitas['total_receitas_nao_conciliadas_custeio'],
+                    total_receitas_nao_conciliadas_livre=totais_receitas['total_receitas_nao_conciliadas_livre'],
+                    total_despesas_nao_conciliadas_capital=totais_despesas['total_despesas_nao_conciliadas_capital'],
+                    total_despesas_nao_conciliadas_custeio=totais_despesas['total_despesas_nao_conciliadas_custeio'],
+                    especificacoes_despesas=especificacoes_despesas
+                )
+        self.logger.info(f'Fechamentos criados para a PC {self.prestacao}.')
+
+    def apagar_previas_documentos(self):
+        from ..services.relacao_bens import apagar_previas_relacao_de_bens
+        self.logger.info(f'Apagando prévias de documentos...')
+        for conta in self.contas:
+            self.logger.info(f'Apagando prévias de relações de bens da conta {conta}.')
+            apagar_previas_relacao_de_bens(periodo=self.periodo, conta_associacao=conta)
+
+            self.logger.info(f'Apagando prévias demonstrativo financeiro da conta {conta}.')
+            DemonstrativoFinanceiro.objects.filter(periodo_previa=self.periodo, conta_associacao=conta).delete()
+        self.logger.info(f'Prévias de documentos apagadas.')
