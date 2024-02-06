@@ -72,8 +72,7 @@ def gerar_relacao_bens_async(self, id_task, prestacao_conta_uuid, username=""):
         rel_bens_logger.info('Task gerar_arquivo_final_relacao_bens_async finalizada')
         task.registra_data_hora_finalizacao(f'Finalizada com sucesso a geração da relação de bens.')
     except Exception as exc:
-        if task:
-            rel_bens_logger.error(f'A tentativa {tentativa} de gerar a relação de bens falhou.', exc_info=True, stack_info=True)
+        rel_bens_logger.error(f'A tentativa {tentativa} de gerar a relação de bens falhou.', exc_info=True, stack_info=True)
 
         if tentativa > MAX_RETRIES:
             mensagem_tentativas_excedidas = f'Tentativas de reprocessamento com falha excedidas para a relação de bens.'
