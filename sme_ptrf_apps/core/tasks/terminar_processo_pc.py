@@ -5,12 +5,14 @@ from sme_ptrf_apps.logging.loggers import ContextualLogger
 
 
 @shared_task(
+    bind=True,
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
     time_limet=600,
     soft_time_limit=300
 )
 def terminar_processo_pc_async(
+    self,
     periodo_uuid,
     associacao_uuid,
     username="",
@@ -26,6 +28,8 @@ def terminar_processo_pc_async(
     )
 
     task = TaskCelery.objects.get(uuid=id_task)
+
+    task.registra_task_assincrona(self.request.id)
 
     # Apenas para informar que os logs não mais ficarão registrados na task.
     task.grava_log_concatenado('Iniciando a task terminar_processo_pc_async. Logs registrados apenas no Kibana.')

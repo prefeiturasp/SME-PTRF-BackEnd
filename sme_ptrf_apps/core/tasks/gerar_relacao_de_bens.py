@@ -12,6 +12,7 @@ MAX_RETRIES = 3
 
 
 @shared_task(
+    bind=True,
     autoretry_for=(Exception,),
     retry_kwargs={'max_retries': MAX_RETRIES},
     retry_backoff=True,
@@ -20,7 +21,7 @@ MAX_RETRIES = 3
     time_limit=600,
     soft_time_limit=300
 )
-def gerar_relacao_bens_async(id_task, prestacao_conta_uuid, username=""):
+def gerar_relacao_bens_async(self, id_task, prestacao_conta_uuid, username=""):
     rel_bens_logger = ContextualLogger.get_logger(
         __name__,
         operacao='Prestação de Contas',
@@ -32,6 +33,8 @@ def gerar_relacao_bens_async(id_task, prestacao_conta_uuid, username=""):
     task = None
     try:
         task = TaskCelery.objects.get(uuid=id_task)
+
+        task.registra_task_assincrona(self.request.id)
 
         # Apenas para informar que os logs não mais ficarão registrados na task.
         task.grava_log_concatenado(

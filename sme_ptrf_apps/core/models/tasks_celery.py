@@ -73,10 +73,14 @@ class TaskCelery(ModeloBase):
         logger.info(f"{log}")
         self.log = log
         self.save()
-        
+
     def grava_log_concatenado(self, log):
         logger.info(f"{log}")
         self.log = self.log + f"\n{log}"
+        self.save()
+
+    def registra_task_assincrona(self, id_task_assincrona):
+        self.id_task_assincrona = id_task_assincrona
         self.save()
 
 
