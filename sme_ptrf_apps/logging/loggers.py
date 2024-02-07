@@ -1,8 +1,6 @@
 import logging
 import environ
 
-from sme_ptrf_apps.logging.handlers import RabbitMQHandler
-
 env = environ.Env()
 
 enable_rabbitmq_logging = env.bool("ENABLE_RABBITMQ_LOGGING", default=False)
@@ -57,7 +55,6 @@ class ContextualLogger(logging.LoggerAdapter):
         """
         Retorna um logger com contexto adicional. Acrescenta o prefixo 'api_' para identificar que é um ContextualLogger
         """
-        print('Getting logger')
         logger_name = f'api_{name}'
         logger = cls._get_logger(logger_name, **kwargs)
 
