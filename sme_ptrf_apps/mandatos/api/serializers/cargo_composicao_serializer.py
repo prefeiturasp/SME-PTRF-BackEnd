@@ -58,6 +58,8 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
 
     composicao_posterior = serializers.SerializerMethodField('get_composicao_posterior')
 
+    data_saida_do_cargo = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+
     def get_composicao_posterior(self, obj):
         from datetime import timedelta
 
@@ -108,6 +110,32 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
         if data_fim_no_cargo != data_final_mandato and data_fim_no_cargo > data_atual:
             raise serializers.ValidationError(
                 "Não é permitido informar período final de ocupação posterior a data atual e diferente do periodo final do mandato.")
+
+        # Alterações provenientes da história 112659 - Sprint 83
+        # Dados da Associação: Histórico de membros: Informar saída do membro no cargo
+        data_saida_do_cargo = data.get('data_saida_do_cargo', None)
+
+        if data_saida_do_cargo and self.instance:
+            data_atual = datetime.date.today()
+            data_saida_do_cargo = datetime.datetime.strptime(data_saida_do_cargo, '%Y-%m-%d').date()
+
+            if data_saida_do_cargo > data_atual:
+                raise serializers.ValidationError(
+                    "Não é permitido informar a data de saída do cargo posterior a data atual")
+
+            if data_saida_do_cargo >= data_final_mandato:
+                raise serializers.ValidationError(
+                    "A data de saída do cargo deve ser anterior a data final do mandato.")
+
+            servico_composicao = ServicoComposicaoVigente(
+                associacao=composicao.associacao,
+                mandato=composicao.mandato
+            )
+            info_composicao_anterior = servico_composicao.get_info_composicao_anterior()
+            if info_composicao_anterior and (data_saida_do_cargo < info_composicao_anterior["data_final"]):
+                raise serializers.ValidationError(
+                    "Não é permitido informar a data de saída do cargo anterior a data final da composição anterior")
+
 
         ocupante_do_cargo_data = data['ocupante_do_cargo']
 
@@ -181,6 +209,12 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
                 if cargo_substituido:
                     validated_data['substituto'] = True
 
+        # Remove campo extra passado data_saida_do_cargo
+        data_saida_do_cargo = validated_data.get('data_saida_do_cargo', None)
+
+        if data_saida_do_cargo or data_saida_do_cargo == '':
+            validated_data.pop('data_saida_do_cargo')
+
         cargo = CargoComposicao.objects.create(**validated_data)
 
         return cargo
@@ -190,18 +224,14 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
         validated_data.get('ocupante_do_cargo')
         ocupante_do_cargo_data = validated_data.pop('ocupante_do_cargo')
 
+        # Remove campo extra passado data_saida_do_cargo
+        data_saida_do_cargo = validated_data.get('data_saida_do_cargo', None)
+
+        if data_saida_do_cargo:
+            data_saida_do_cargo = validated_data.pop('data_saida_do_cargo')
+
         # Atualiza os campos do CargoComposicao
         update_instance_from_dict(instance, validated_data)
-
-        servico_cria_composicao_vigente = ServicoCriaComposicaoVigenteDoMandato(
-            associacao=instance.composicao.associacao,
-            mandato=instance.composicao.mandato
-        )
-
-        servico_cria_composicao_vigente.cria_nova_composicao_atraves_de_alteracao_membro(
-            data_fim_no_cargo=validated_data.get('data_fim_no_cargo'),
-            cargo_composicao_sendo_editado=instance
-        )
 
         # Atualiza os campos do OcupanteDoCargo
         if ocupante_do_cargo_data:
@@ -212,7 +242,18 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
 
         instance.save()
 
+        if data_saida_do_cargo:
+            servico_cria_composicao_vigente = ServicoCriaComposicaoVigenteDoMandato(
+                associacao=instance.composicao.associacao,
+                mandato=instance.composicao.mandato
+            )
+
+            servico_cria_composicao_vigente.cria_nova_composicao_atraves_de_alteracao_membro(
+                data_fim_no_cargo=data_saida_do_cargo,
+                cargo_composicao_sendo_editado=instance
+            )
         return instance
+
     class Meta:
         model = CargoComposicao
         fields = (
@@ -225,5 +266,6 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
             'data_fim_no_cargo',
             'substituto',
             'substituido',
-            'composicao_posterior'
+            'composicao_posterior',
+            'data_saida_do_cargo',
         )

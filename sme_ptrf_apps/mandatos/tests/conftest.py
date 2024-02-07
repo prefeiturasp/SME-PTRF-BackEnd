@@ -261,6 +261,7 @@ def composicao_02_2023_a_2025(mandato_2023_a_2025, associacao):
         data_final=date(2025, 12, 31),
     )
 
+
 @pytest.fixture
 def composicao_01_2023_a_2025_testes_tags(mandato_2023_a_2025_testes_servicos_01, associacao):
     return baker.make(
@@ -322,6 +323,7 @@ def ocupante_cargo_01_teste_tags():
         endereco='Rua do ocupante, 212',
     )
 
+
 @pytest.fixture
 def ocupante_cargo_02_teste_tags():
     return baker.make(
@@ -337,6 +339,7 @@ def ocupante_cargo_02_teste_tags():
         bairro='Jd. Aeroporto',
         endereco='Rua do ocupante, 212',
     )
+
 
 @pytest.fixture
 def cargo_composicao_01(
@@ -382,6 +385,7 @@ def cargo_composicao_02(
         substituido=False,
     )
 
+
 @pytest.fixture
 def cargo_composicao_01_teste_tags(
     composicao_01_2023_a_2025_testes_tags,
@@ -395,6 +399,7 @@ def cargo_composicao_01_teste_tags(
         substituto=False,
         substituido=True,
     )
+
 
 @pytest.fixture
 def cargo_composicao_02_teste_tags(
@@ -413,6 +418,53 @@ def cargo_composicao_02_teste_tags(
 
 
 # ***************** testes cargo composicao create e update
+@pytest.fixture
+def mandato_2023_a_2025_testes_data_saida_do_cargo():
+    return baker.make(
+        'Mandato',
+        referencia_mandato='2023 a 2025',
+        data_inicial=date(2023, 1, 1),
+        data_final=date(2025, 12, 31),
+    )
+
+
+@pytest.fixture
+def cargo_composicao_01_testes_data_saida_do_cargo(
+    composicao_02_testes_data_saida_do_cargo,
+    ocupante_cargo_01,
+):
+    return baker.make(
+        'CargoComposicao',
+        composicao=composicao_02_testes_data_saida_do_cargo,
+        ocupante_do_cargo=ocupante_cargo_01,
+        cargo_associacao='Presidente da diretoria executiva',
+        substituto=False,
+        substituido=False,
+    )
+
+
+@pytest.fixture
+def composicao_01_testes_data_saida_do_cargo(mandato_2023_a_2025_testes_data_saida_do_cargo, associacao):
+    return baker.make(
+        'Composicao',
+        associacao=associacao,
+        mandato=mandato_2023_a_2025_testes_data_saida_do_cargo,
+        data_inicial=date(2023, 1, 1),
+        data_final=date(2023, 1, 10),
+    )
+
+
+@pytest.fixture
+def composicao_02_testes_data_saida_do_cargo(mandato_2023_a_2025_testes_data_saida_do_cargo, associacao):
+    return baker.make(
+        'Composicao',
+        associacao=associacao,
+        mandato=mandato_2023_a_2025_testes_data_saida_do_cargo,
+        data_inicial=date(2023, 1, 11),
+        data_final=date(2025, 12, 31),
+    )
+
+
 @pytest.fixture
 def payload_create_cargo_composicao_01_deve_passar(
     composicao_01_2023_a_2025,
@@ -439,8 +491,182 @@ def payload_create_cargo_composicao_01_deve_passar(
         "substituido": False,
         "data_inicio_no_cargo": "2023-07-19",
         "data_fim_no_cargo": "2023-07-20"
+    }
 
+    return payload
+
+
+@pytest.fixture
+def payload_update_cargo_composicao_data_saida_do_cargo_maior_que_data_atual(
+    composicao_01_2023_a_2025,
+    ocupante_cargo_01
+):
+    payload = {
+        "composicao": f"{composicao_01_2023_a_2025.uuid}",
+        "ocupante_do_cargo": {
+            "nome": f"{ocupante_cargo_01.nome}",
+            "codigo_identificacao": f"{ocupante_cargo_01.codigo_identificacao}",
+            "cargo_educacao": f"{ocupante_cargo_01.cargo_educacao}",
+            "representacao": "SERVIDOR",
+            "representacao_label": "Servidor",
+            "email": f"{ocupante_cargo_01.email}",
+            "cpf_responsavel": f"{ocupante_cargo_01.cpf_responsavel}",
+            "telefone": f"{ocupante_cargo_01.telefone}",
+            "cep": f"{ocupante_cargo_01.cep}",
+            "bairro": f"{ocupante_cargo_01.bairro}",
+            "endereco": f"{ocupante_cargo_01.endereco}",
+        },
+
+        "cargo_associacao": "VICE_PRESIDENTE_DIRETORIA_EXECUTIVA",
+        "substituto": False,
+        "substituido": False,
+        "data_inicio_no_cargo": "2023-07-19",
+        "data_fim_no_cargo": "2023-07-20",
+        "data_saida_do_cargo": "2024-02-07",
+    }
+
+    return payload
+
+
+@pytest.fixture
+def payload_update_cargo_composicao_data_saida_do_cargo_maior_ou_igual_que_data_final_mandato(
+    composicao_01_2023_a_2025,
+    ocupante_cargo_01
+):
+    payload = {
+        "composicao": f"{composicao_01_2023_a_2025.uuid}",
+        "ocupante_do_cargo": {
+            "nome": f"{ocupante_cargo_01.nome}",
+            "codigo_identificacao": f"{ocupante_cargo_01.codigo_identificacao}",
+            "cargo_educacao": f"{ocupante_cargo_01.cargo_educacao}",
+            "representacao": "SERVIDOR",
+            "representacao_label": "Servidor",
+            "email": f"{ocupante_cargo_01.email}",
+            "cpf_responsavel": f"{ocupante_cargo_01.cpf_responsavel}",
+            "telefone": f"{ocupante_cargo_01.telefone}",
+            "cep": f"{ocupante_cargo_01.cep}",
+            "bairro": f"{ocupante_cargo_01.bairro}",
+            "endereco": f"{ocupante_cargo_01.endereco}",
+        },
+
+        "cargo_associacao": "VICE_PRESIDENTE_DIRETORIA_EXECUTIVA",
+        "substituto": False,
+        "substituido": False,
+        "data_inicio_no_cargo": "2023-07-19",
+        "data_fim_no_cargo": "2023-07-20",
+        "data_saida_do_cargo": "2023-07-20",
     }
     return payload
 
+
+@pytest.fixture
+def payload_update_cargo_composicao_data_saida_do_cargo_anterior_data_final_da_composicao_anterior(
+    composicao_02_testes_data_saida_do_cargo,
+    ocupante_cargo_01
+):
+    payload = {
+        "composicao": f"{composicao_02_testes_data_saida_do_cargo.uuid}",
+        "ocupante_do_cargo": {
+            "nome": f"{ocupante_cargo_01.nome}",
+            "codigo_identificacao": f"{ocupante_cargo_01.codigo_identificacao}",
+            "cargo_educacao": f"{ocupante_cargo_01.cargo_educacao}",
+            "representacao": "SERVIDOR",
+            "representacao_label": "Servidor",
+            "email": f"{ocupante_cargo_01.email}",
+            "cpf_responsavel": f"{ocupante_cargo_01.cpf_responsavel}",
+            "telefone": f"{ocupante_cargo_01.telefone}",
+            "cep": f"{ocupante_cargo_01.cep}",
+            "bairro": f"{ocupante_cargo_01.bairro}",
+            "endereco": f"{ocupante_cargo_01.endereco}",
+        },
+
+        "cargo_associacao": "VICE_PRESIDENTE_DIRETORIA_EXECUTIVA",
+        "substituto": False,
+        "substituido": False,
+        "data_inicio_no_cargo": "2023-01-11",
+        "data_fim_no_cargo": "2025-12-31",
+        "data_saida_do_cargo": "2023-01-09",
+    }
+    return payload
+
+
 # ***************** FIM testes cargo composicao create e update
+
+# ***************** testes SERVICE cria_nova_composicao_atraves_de_alteracao_membro
+
+@pytest.fixture
+def mandato_2023_a_2025_testes_service_data_saida_do_cargo():
+    return baker.make(
+        'Mandato',
+        referencia_mandato='2023 a 2025',
+        data_inicial=date(2023, 1, 1),
+        data_final=date(2025, 12, 31),
+    )
+
+
+@pytest.fixture
+def composicao_01_testes_service_data_saida_do_cargo(mandato_2023_a_2025_testes_service_data_saida_do_cargo,
+                                                     associacao):
+    return baker.make(
+        'Composicao',
+        associacao=associacao,
+        mandato=mandato_2023_a_2025_testes_service_data_saida_do_cargo,
+        data_inicial=date(2023, 1, 1),
+        data_final=date(2025, 12, 31),
+    )
+
+
+@pytest.fixture
+def composicao_02_testes_service_data_saida_do_cargo_nao_deve_criar_nova_composicao(
+    mandato_2023_a_2025_testes_service_data_saida_do_cargo, associacao):
+    return baker.make(
+        'Composicao',
+        associacao=associacao,
+        mandato=mandato_2023_a_2025_testes_service_data_saida_do_cargo,
+        data_inicial=date(2023, 1, 1),
+        data_final=date(2023, 1, 10),
+    )
+
+
+@pytest.fixture
+def composicao_03_testes_service_data_saida_do_cargo_nao_deve_criar_nova_composicao(
+    mandato_2023_a_2025_testes_service_data_saida_do_cargo, associacao):
+    return baker.make(
+        'Composicao',
+        associacao=associacao,
+        mandato=mandato_2023_a_2025_testes_service_data_saida_do_cargo,
+        data_inicial=date(2023, 1, 11),
+        data_final=date(2025, 12, 31),
+    )
+
+
+@pytest.fixture
+def cargo_composicao_01_testes_service_data_saida_do_cargo(
+    composicao_01_testes_service_data_saida_do_cargo,
+    ocupante_cargo_01,
+):
+    return baker.make(
+        'CargoComposicao',
+        composicao=composicao_01_testes_service_data_saida_do_cargo,
+        ocupante_do_cargo=ocupante_cargo_01,
+        cargo_associacao='Presidente da diretoria executiva',
+        substituto=False,
+        substituido=False,
+    )
+
+
+@pytest.fixture
+def cargo_composicao_02_testes_service_data_saida_do_cargo_nao_deve_criar_nova_composicao(
+    composicao_03_testes_service_data_saida_do_cargo_nao_deve_criar_nova_composicao,
+    ocupante_cargo_01,
+):
+    return baker.make(
+        'CargoComposicao',
+        composicao=composicao_03_testes_service_data_saida_do_cargo_nao_deve_criar_nova_composicao,
+        ocupante_do_cargo=ocupante_cargo_01,
+        cargo_associacao='Presidente da diretoria executiva',
+        substituto=False,
+        substituido=False,
+    )
+
+# ***************** FIM testes SERVICE cria_nova_composicao_atraves_de_alteracao_membro
