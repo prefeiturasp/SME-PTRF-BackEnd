@@ -17,7 +17,7 @@ def simular_logs_async():
         aplicacao='SigEscola.tasks',
         username='mariazinha',
         observacao='obs geral do logger task.',
-        task_id=task_id,
+        task_id=str(task_id),
     )
 
     simular_logs(logger=logger)
