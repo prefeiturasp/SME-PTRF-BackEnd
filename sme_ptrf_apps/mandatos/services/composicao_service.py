@@ -38,14 +38,31 @@ class ServicoComposicaoVigente:
 
         return composicao_vigente
 
-    def get_composicao_anterior(self):
-        composicao_vigente = self.get_composicao_vigente()
+    # def get_composicao_anterior(self):
+    #     composicao_vigente = self.get_composicao_vigente()
+    #
+    #     composicao_anterior = Composicao.objects.filter(
+    #         associacao=self.associacao,
+    #         mandato=self.mandato,
+    #         data_final=composicao_vigente.data_inicial - timedelta(days=1)
+    #     ).exclude(id=composicao_vigente.id).order_by('-id')
+    #
+    #     return composicao_anterior.first() if composicao_anterior else None
 
-        composicao_anterior = Composicao.objects.filter(
-            associacao=self.associacao,
-            mandato=self.mandato,
-            data_final=composicao_vigente.data_inicial - timedelta(days=1)
-        ).exclude(id=composicao_vigente.id).order_by('-id')
+    def get_composicao_anterior(self, data_inicial=None):
+        if data_inicial:
+            composicao_anterior = Composicao.objects.filter(
+                associacao=self.associacao,
+                mandato=self.mandato,
+                data_final=data_inicial - timedelta(days=1)
+            )
+        else:
+            composicao_vigente = self.get_composicao_vigente()
+            composicao_anterior = Composicao.objects.filter(
+                associacao=self.associacao,
+                mandato=self.mandato,
+                data_final=composicao_vigente.data_inicial - timedelta(days=1)
+            ).exclude(id=composicao_vigente.id).order_by('-id')
 
         return composicao_anterior.first() if composicao_anterior else None
 
@@ -109,6 +126,16 @@ class ServicoCriaComposicaoVigenteDoMandato(ServicoComposicaoVigente):
                     cargo_outra_composicao_com_a_data_fim_no_cargo.substituido = True
                     cargo_outra_composicao_com_a_data_fim_no_cargo.data_fim_no_cargo = data_fim_no_cargo
                     cargo_outra_composicao_com_a_data_fim_no_cargo.save()
+                else:
+                    CargoComposicao.objects.create(
+                        composicao=outra_composicao_com_a_data_fim_no_cargo,
+                        ocupante_do_cargo=cargo_composicao_sendo_editado.ocupante_do_cargo,
+                        cargo_associacao=cargo_composicao_sendo_editado,
+                        substituto=False,
+                        substituido=True,
+                        data_inicio_no_cargo=outra_composicao_com_a_data_fim_no_cargo.data_inicial,
+                        data_fim_no_cargo=outra_composicao_com_a_data_fim_no_cargo.data_final
+                    )
 
                 minha_composicao_atual.cargos_da_composicao_da_composicao.get(uuid=cargo_composicao_sendo_editado.uuid).delete()
             else:
