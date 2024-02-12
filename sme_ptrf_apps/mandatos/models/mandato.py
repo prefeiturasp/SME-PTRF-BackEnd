@@ -3,6 +3,7 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.core.exceptions import ValidationError
+from datetime import date
 
 
 class Mandato(ModeloBase):
@@ -39,6 +40,56 @@ class Mandato(ModeloBase):
     def save(self, *args, **kwargs):
         self.clean()
         return super().save(*args, **kwargs)
+
+    def eh_mandato_vigente(self):
+        from ..services import ServicoMandatoVigente
+        servico_mandato_vigente = ServicoMandatoVigente()
+        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+        return self == mandato_vigente
+
+    def eh_mandato_futuro(self):
+        from ..services import ServicoMandatoVigente
+        servico_mandato_vigente = ServicoMandatoVigente()
+        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+        if mandato_vigente:
+            return self.data_inicial > mandato_vigente.data_final
+        else:
+            data_atual = date.today()
+            return self.data_inicial > data_atual
+
+    def possui_composicoes(self):
+        return self.composicoes_do_mandato.exists()
+
+    def possui_composicoes_com_data_final_maior_que_a_informada(self, data):
+        if self.possui_composicoes():
+            composicoes_encontradas = self.composicoes_do_mandato.filter(data_final__gt=data)
+
+            return composicoes_encontradas.exists()
+
+        return False
+
+    def att_data_inicio_composicoes_e_cargos_composicoes(self, data_inicial, nova_data):
+        for composicao in self.composicoes_do_mandato.filter(data_inicial=data_inicial):
+            composicao.data_inicial = nova_data
+            composicao.save()
+
+            for cargo_composicao in composicao.cargos_da_composicao_da_composicao.all():
+                if cargo_composicao.data_inicio_posterior_a_data_informada(nova_data):
+                    continue
+
+                cargo_composicao.data_inicio_no_cargo = nova_data
+                cargo_composicao.save()
+
+    def att_data_fim_composicoes_e_cargos_composicoes(self, data_final, nova_data):
+        for composicao in self.composicoes_do_mandato.filter(data_final=data_final):
+            composicao.data_final = nova_data
+            composicao.save()
+
+            for cargo_composicao in composicao.cargos_da_composicao_da_composicao.all():
+                cargo_composicao.data_fim_no_cargo = nova_data
+                cargo_composicao.save()
 
 
 auditlog.register(Mandato)
