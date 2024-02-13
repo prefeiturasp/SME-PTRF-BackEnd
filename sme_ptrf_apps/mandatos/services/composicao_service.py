@@ -58,11 +58,14 @@ class ServicoComposicaoVigente:
             )
         else:
             composicao_vigente = self.get_composicao_vigente()
-            composicao_anterior = Composicao.objects.filter(
-                associacao=self.associacao,
-                mandato=self.mandato,
-                data_final=composicao_vigente.data_inicial - timedelta(days=1)
-            ).exclude(id=composicao_vigente.id).order_by('-id')
+            if composicao_vigente:
+                composicao_anterior = Composicao.objects.filter(
+                    associacao=self.associacao,
+                    mandato=self.mandato,
+                    data_final=composicao_vigente.data_inicial - timedelta(days=1)
+                ).exclude(id=composicao_vigente.id).order_by('-id')
+            else:
+                composicao_anterior = None
 
         return composicao_anterior.first() if composicao_anterior else None
 
@@ -104,62 +107,31 @@ class ServicoCriaComposicaoVigenteDoMandato(ServicoComposicaoVigente):
     ):
 
         if data_fim_no_cargo != self.mandato.data_final:
-            # Atualiza data da composicao atual
-
             data_fim_no_cargo = datetime.strptime(data_fim_no_cargo, '%Y-%m-%d').date()
+
             minha_composicao_atual = cargo_composicao_sendo_editado.composicao
 
-            outra_composicao_com_a_data_fim_no_cargo = Composicao.objects.filter(
+            composicao, created = Composicao.objects.get_or_create(
                 associacao=self.associacao,
                 mandato=self.mandato,
-                data_final=data_fim_no_cargo,
-            ).exclude(uuid=minha_composicao_atual.uuid).last()
+                data_inicial=data_fim_no_cargo + timedelta(days=1),
+                data_final=self.mandato.data_final
+            )
 
-            if outra_composicao_com_a_data_fim_no_cargo:
-                cargo_outra_composicao_com_a_data_fim_no_cargo = outra_composicao_com_a_data_fim_no_cargo.cargos_da_composicao_da_composicao.filter(
-                    cargo_associacao=cargo_composicao_sendo_editado
-                ).last()
-
-                if cargo_outra_composicao_com_a_data_fim_no_cargo:
-                    altera_ocupante_do_cargo = cargo_composicao_sendo_editado.ocupante_do_cargo
-                    cargo_outra_composicao_com_a_data_fim_no_cargo.ocupante_do_cargo = altera_ocupante_do_cargo
-                    cargo_outra_composicao_com_a_data_fim_no_cargo.substituido = True
-                    cargo_outra_composicao_com_a_data_fim_no_cargo.data_fim_no_cargo = data_fim_no_cargo
-                    cargo_outra_composicao_com_a_data_fim_no_cargo.save()
-                else:
-                    CargoComposicao.objects.create(
-                        composicao=outra_composicao_com_a_data_fim_no_cargo,
-                        ocupante_do_cargo=cargo_composicao_sendo_editado.ocupante_do_cargo,
-                        cargo_associacao=cargo_composicao_sendo_editado,
-                        substituto=False,
-                        substituido=True,
-                        data_inicio_no_cargo=outra_composicao_com_a_data_fim_no_cargo.data_inicial,
-                        data_fim_no_cargo=outra_composicao_com_a_data_fim_no_cargo.data_final
-                    )
-
-                minha_composicao_atual.cargos_da_composicao_da_composicao.get(uuid=cargo_composicao_sendo_editado.uuid).delete()
-            else:
-
+            if created:
                 minha_composicao_atual.data_final = data_fim_no_cargo
                 minha_composicao_atual.save()
 
-                # Calcula data inicial nova composicao
-                data_inicial = data_fim_no_cargo + timedelta(days=1)
+            cargos_da_nova_composicao = minha_composicao_atual.cargos_da_composicao_da_composicao.exclude(
+                ocupante_do_cargo=cargo_composicao_sendo_editado.ocupante_do_cargo
+            )
 
-                nova_composicao = Composicao.objects.create(
-                    associacao=self.associacao,
-                    mandato=self.mandato,
-                    data_inicial=data_inicial,
-                    data_final=self.mandato.data_final
-                )
+            cargo_composicao_sendo_editado.set_encerrar_e_substituir(data_fim_no_cargo)
 
-                cargos_da_nova_composicao = minha_composicao_atual.cargos_da_composicao_da_composicao.exclude(
-                    ocupante_do_cargo=cargo_composicao_sendo_editado.ocupante_do_cargo
-                )
-
+            if created:
                 for cargo in cargos_da_nova_composicao:
                     CargoComposicao.objects.create(
-                        composicao=nova_composicao,
+                        composicao=composicao,
                         ocupante_do_cargo=cargo.ocupante_do_cargo,
                         cargo_associacao=cargo.cargo_associacao,
                         substituto=cargo.substituto,
@@ -167,9 +139,23 @@ class ServicoCriaComposicaoVigenteDoMandato(ServicoComposicaoVigente):
                         data_inicio_no_cargo=cargo.data_inicio_no_cargo,
                         data_fim_no_cargo=cargo.data_fim_no_cargo
                     )
+            else:
+                composicao.cargos_da_composicao_da_composicao.filter(ocupante_do_cargo=cargo_composicao_sendo_editado.ocupante_do_cargo).delete()
 
-                # Setando flag de substituido ao cargo composicao editado
-                cargo_composicao_sendo_editado.substituido = True
-                cargo_composicao_sendo_editado.data_fim_no_cargo = data_fim_no_cargo
-                cargo_composicao_sendo_editado.save()
+                try:
+                    composicao_anterior = Composicao.objects.get(
+                        associacao=self.associacao,
+                        mandato=self.mandato,
+                        data_final=composicao.data_inicial - timedelta(days=1)
+                    )
+                except Composicao.DoesNotExist:
+                    composicao_anterior = None
+
+                if composicao_anterior:
+                    composicao_anterior.cargos_da_composicao_da_composicao.filter(
+                        cargo_associacao=cargo_composicao_sendo_editado.cargo_associacao
+                    ).update(substituido=True)
+
+
+
 

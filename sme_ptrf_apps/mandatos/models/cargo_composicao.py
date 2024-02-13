@@ -84,5 +84,9 @@ class CargoComposicao(ModeloBase):
     def __str__(self):
         return f"{self.cargo_associacao}"
 
+    def set_encerrar_e_substituir(self, data_fim_no_cargo):
+        self.substituido = True
+        self.data_fim_no_cargo = data_fim_no_cargo
+        self.save()
 
 auditlog.register(CargoComposicao)
