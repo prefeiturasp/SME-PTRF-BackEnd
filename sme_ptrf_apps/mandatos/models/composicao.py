@@ -21,5 +21,25 @@ class Composicao(ModeloBase):
         associacao_nome = self.associacao.nome if self.associacao and self.associacao.nome else ""
         return f"{associacao_nome} Período {data_inicial} até {data_final}"
 
+    def eh_primeira_composicao(self):
+        composicoes_da_associacao = Composicao.objects.filter(
+            associacao=self.associacao,
+            mandato=self.mandato
+        ).all().order_by('-id')
+
+        primeira_composicao = composicoes_da_associacao.last()
+
+        return self == primeira_composicao
+
+    def eh_ultima_composicao(self):
+        composicoes_da_associacao = Composicao.objects.filter(
+            associacao=self.associacao,
+            mandato=self.mandato
+        ).all().order_by('-id')
+
+        ultima_composicao = composicoes_da_associacao.first()
+
+        return self == ultima_composicao
+
 
 auditlog.register(Composicao)

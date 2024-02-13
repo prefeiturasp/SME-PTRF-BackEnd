@@ -89,4 +89,8 @@ class CargoComposicao(ModeloBase):
         self.data_fim_no_cargo = data_fim_no_cargo
         self.save()
 
+    def data_inicio_posterior_a_data_informada(self, data):
+        return self.data_inicio_no_cargo > data
+
+
 auditlog.register(CargoComposicao)
