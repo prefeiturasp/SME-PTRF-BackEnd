@@ -198,7 +198,7 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
                 associacao=composicao.associacao,
                 mandato=composicao.mandato
             )
-            composicao_anterior = servico_composicao_vigente.get_composicao_anterior()
+            composicao_anterior = servico_composicao_vigente.get_composicao_anterior(validated_data['data_inicio_no_cargo'])
 
             if composicao_anterior:
                 cargo_substituido = composicao_anterior.cargos_da_composicao_da_composicao.filter(
