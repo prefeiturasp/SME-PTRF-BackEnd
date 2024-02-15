@@ -1,6 +1,6 @@
 # Django
 # ------------------------------------------------------------------------------
-django==4.2.9
+django==4.2.10
 django-admin-interface==0.26.1
 django-admin-rangefilter==0.5.4
 django-allauth==0.56.1
