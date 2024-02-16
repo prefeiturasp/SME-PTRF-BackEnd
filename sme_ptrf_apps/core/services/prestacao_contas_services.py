@@ -365,8 +365,11 @@ def lista_prestacoes_de_conta_nao_recebidas(
         'unidade__tipo_unidade', 'unidade__nome')
 
     if filtro_nome is not None:
-        associacoes_da_dre = associacoes_da_dre.filter(Q(nome__unaccent__icontains=filtro_nome) | Q(
-            unidade__nome__unaccent__icontains=filtro_nome))
+        associacoes_da_dre = associacoes_da_dre.filter(
+            Q(unidade__codigo_eol=filtro_nome) |
+            Q(nome__unaccent__icontains=filtro_nome) |
+            Q(unidade__nome__unaccent__icontains=filtro_nome)
+        )
 
     if filtro_tipo_unidade is not None:
         associacoes_da_dre = associacoes_da_dre.filter(unidade__tipo_unidade=filtro_tipo_unidade)
@@ -426,8 +429,11 @@ def lista_prestacoes_de_conta_todos_os_status(
     associacoes_da_dre = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo, dre=dre).order_by('unidade__tipo_unidade', 'unidade__nome')
 
     if filtro_nome is not None:
-        associacoes_da_dre = associacoes_da_dre.filter(Q(nome__unaccent__icontains=filtro_nome) | Q(
-            unidade__nome__unaccent__icontains=filtro_nome))
+        associacoes_da_dre = associacoes_da_dre.filter(
+            Q(unidade__codigo_eol=filtro_nome) |
+            Q(nome__unaccent__icontains=filtro_nome) |
+            Q(unidade__nome__unaccent__icontains=filtro_nome)
+        )
 
     if filtro_tipo_unidade is not None:
         associacoes_da_dre = associacoes_da_dre.filter(unidade__tipo_unidade=filtro_tipo_unidade)
