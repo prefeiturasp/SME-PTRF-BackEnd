@@ -1,20 +1,18 @@
-import logging
-import traceback
-
 from celery import shared_task, current_task
 from celery.exceptions import MaxRetriesExceededError
 
-from sme_ptrf_apps.core.models import PrestacaoConta, RelacaoBens, TaskCelery
+from sme_ptrf_apps.core.models import  RelacaoBens, TaskCelery
 from sme_ptrf_apps.core.services.relacao_bens import _retornar_dados_relatorio_relacao_de_bens
 from sme_ptrf_apps.core.services.relacao_bens_pdf_service import gerar_arquivo_relacao_de_bens_pdf
 from sme_ptrf_apps.core.services.prestacao_conta_service import PrestacaoContaService
+from sme_ptrf_apps.logging.loggers import ContextualLogger
 
-logger = logging.getLogger(__name__)
 
 MAX_RETRIES = 3
 
 
 @shared_task(
+    bind=True,
     autoretry_for=(Exception,),
     retry_kwargs={'max_retries': MAX_RETRIES},
     retry_backoff=True,
@@ -23,18 +21,35 @@ MAX_RETRIES = 3
     time_limit=600,
     soft_time_limit=300
 )
-def gerar_relacao_bens_async(id_task, prestacao_conta_uuid):
+def gerar_relacao_bens_async(self, id_task, prestacao_conta_uuid, username=""):
+    rel_bens_logger = ContextualLogger.get_logger(
+        __name__,
+        operacao='Prestação de Contas',
+        username=username,
+        task_id=str(id_task),
+    )
     tentativa = current_task.request.retries + 1
 
     task = None
     try:
         task = TaskCelery.objects.get(uuid=id_task)
-        logger.info(f'Iniciando task gerar_relacao_bens_async, tentativa {tentativa}')
 
-        pc_service = PrestacaoContaService.from_prestacao_conta_uuid(prestacao_conta_uuid)
+        task.registra_task_assincrona(self.request.id)
+
+        # Apenas para informar que os logs não mais ficarão registrados na task.
+        task.grava_log_concatenado(
+            f'Iniciando task gerar_relacao_bens_async, tentativa {tentativa} da pc {prestacao_conta_uuid}. Logs registrados apenas no Kibana.')
+
+        pc_service = PrestacaoContaService.from_prestacao_conta_uuid(
+            prestacao_conta_uuid,
+            username,
+            rel_bens_logger
+        )
+
+        rel_bens_logger.info(f'Iniciando task gerar_relacao_bens_async, tentativa {tentativa}.')
 
         if not pc_service.requer_gerar_documentos:
-            logger.info(f'Prestação de conta {pc_service.prestacao.uuid} não requer geração de documentos. Relação de bens não será gerada.')
+            rel_bens_logger.info(f'PC não requer geração de documentos. Relação de bens não gerada.')
             return
 
         prestacao = pc_service.prestacao
@@ -47,20 +62,21 @@ def gerar_relacao_bens_async(id_task, prestacao_conta_uuid):
             if dados:
                 gerar_arquivo_relacao_de_bens_pdf(dados, relacao)
                 relacao.arquivo_concluido()
-                task.grava_log_concatenado(f'Arquivo relação bens PDF gerado para a conta {relacao.conta_associacao}.')
+                rel_bens_logger.info(f'Arquivo relação bens PDF gerado para a conta {relacao.conta_associacao}.')
             else:
-                task.grava_log_concatenado(f'Dados persistidos da relação de bens {relacao} não encontrados.')
+                rel_bens_logger.warning(
+                    f'Dados persistidos da relação de bens não encontrados.',
+                    extra={'observacao': f'relacao: {relacao}'}
+                )
 
-        logger.info('Task gerar_arquivo_final_relacao_bens_async finalizada')
+        rel_bens_logger.info('Task gerar_arquivo_final_relacao_bens_async finalizada')
         task.registra_data_hora_finalizacao(f'Finalizada com sucesso a geração da relação de bens.')
     except Exception as exc:
-        if task:
-            task.grava_log_concatenado(f'A tentativa {tentativa} de gerar a relação de bens falhou. {exc}')
+        rel_bens_logger.error(f'A tentativa {tentativa} de gerar a relação de bens falhou.', exc_info=True, stack_info=True)
 
         if tentativa > MAX_RETRIES:
-            traceback_info = traceback.format_exc()
-            mensagem_tentativas_excedidas = f'Tentativas de reprocessamento com falha excedidas para a relação de bens. Detalhes do erro: {exc}\n{traceback_info}'
-            logger.error(mensagem_tentativas_excedidas)
+            mensagem_tentativas_excedidas = f'Tentativas de reprocessamento com falha excedidas para a relação de bens.'
+            rel_bens_logger.error(mensagem_tentativas_excedidas, exc_info=True, stack_info=True)
 
             if task:
                 task.registra_data_hora_finalizacao(mensagem_tentativas_excedidas)
@@ -68,4 +84,3 @@ def gerar_relacao_bens_async(id_task, prestacao_conta_uuid):
             raise MaxRetriesExceededError(mensagem_tentativas_excedidas)
         else:
             raise exc
-

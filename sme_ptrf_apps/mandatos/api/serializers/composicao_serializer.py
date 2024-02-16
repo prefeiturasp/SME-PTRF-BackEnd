@@ -16,8 +16,9 @@ class ComposicaoSerializer(serializers.ModelSerializer):
     def get_info_composicao_anterior(self, obj):
         if obj.mandato and obj.associacao:
             servico = ServicoComposicaoVigente(associacao=obj.associacao, mandato=obj.mandato)
+            info_composicao_anterior = servico.get_info_composicao_anterior()
 
-            return servico.get_info_composicao_anterior() if servico.get_info_composicao_anterior() else None
+            return info_composicao_anterior if info_composicao_anterior else None
 
         return None
 

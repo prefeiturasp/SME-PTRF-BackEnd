@@ -22,11 +22,10 @@ class MandatoSerializer(serializers.ModelSerializer):
     editavel = serializers.SerializerMethodField('get_editavel')
     data_inicial_proximo_mandato = serializers.SerializerMethodField('get_data_inicial_proximo_mandato')
     data_final_mandato_anterior_ao_mais_recente = serializers.SerializerMethodField('get_data_final_mandato_anterior_ao_mais_recente')
+    limite_min_data_inicial = serializers.SerializerMethodField('get_limite_min_data_inicial')
 
     def get_editavel(self, obj):
-        servico_mandato = ServicoMandato()
-        mandato_mais_recente = servico_mandato.get_mandato_mais_recente()
-        return obj == mandato_mais_recente
+        return obj.eh_mandato_vigente() or obj.eh_mandato_futuro()
 
     def get_data_inicial_proximo_mandato(self, obj):
         servico_mandato = ServicoMandato()
@@ -44,29 +43,54 @@ class MandatoSerializer(serializers.ModelSerializer):
             result = mandato_anterior_ao_mais_recente.data_final + timedelta(days=1)
         return result
 
+    def get_limite_min_data_inicial(self, obj):
+
+        mandato_anterior = Mandato.objects.filter(data_final__lt=obj.data_inicial).order_by('id').last()
+
+        result = None
+        if mandato_anterior:
+            result = mandato_anterior.data_final + timedelta(days=1)
+
+        return result
+
+    def update(self, instance, validated_data):
+        data_inicial = validated_data["data_inicial"]
+        data_final = validated_data["data_final"]
+        referencia_mandato = validated_data["referencia_mandato"]
+
+        if instance.data_inicial != data_inicial:
+            instance.att_data_inicio_composicoes_e_cargos_composicoes(
+                data_inicial=instance.data_inicial,
+                nova_data=data_inicial
+            )
+
+        if instance.data_final != data_final:
+            instance.att_data_fim_composicoes_e_cargos_composicoes(
+                data_final=instance.data_final,
+                nova_data=data_final
+            )
+
+        instance.data_inicial = data_inicial
+        instance.data_final = data_final
+        instance.referencia_mandato = referencia_mandato
+        instance.save()
+
+        return instance
+
     class Meta:
         model = Mandato
-        fields = ('id', 'uuid', 'referencia_mandato', 'data_inicial', 'data_final', 'editavel', 'data_inicial_proximo_mandato', 'data_final_mandato_anterior_ao_mais_recente')
+        fields = ('id', 'uuid', 'referencia_mandato', 'data_inicial', 'data_final', 'editavel', 'data_inicial_proximo_mandato', 'data_final_mandato_anterior_ao_mais_recente', 'limite_min_data_inicial')
 
     def validate(self, data):
-
         data_inicial = data.get('data_inicial')
         data_final = data.get('data_final')
 
         servico_mandato = ServicoMandato()
         mandato_mais_recente = servico_mandato.get_mandato_mais_recente()
 
-        # Verificar se está sendo atualizado o mandato mais recente
-        if self.instance and mandato_mais_recente:
-            if self.instance != mandato_mais_recente:
-                raise CustomError({"detail": "Somente o mandato mais recente pode ser editado"})
-
-            # Verificar se a data inicial é maior que a data final do mandato anterior no caso de uma edição
-            mandato_anterior_ao_mais_recente = servico_mandato.get_mandato_anterior_ao_mais_recente()
-            if mandato_anterior_ao_mais_recente:
-                data_final_mandato_anterior_ao_mais_recente = mandato_anterior_ao_mais_recente.data_final
-                if data_inicial <= data_final_mandato_anterior_ao_mais_recente:
-                    raise CustomError({"detail": "A data inicial do período de mandato deve ser maior que a data final do mandato anterior"})
+        if self.instance:
+            if self.instance.possui_composicoes_com_data_final_maior_que_a_informada(data=data_final):
+                raise CustomError({"detail": "Não é possível editar a data final do mandato pois existe composição de membros registrada."})
 
         # Verificar se a data inicial é maior que a data final do mandato mais recente no caso de uma inclusão
         if data_inicial and not self.instance and mandato_mais_recente:
