@@ -1,5 +1,6 @@
 from . import ServicoComposicaoVigente, ServicoMandatoVigente
 from ..models import CargoComposicao, Composicao
+import re
 
 
 class ServicoCargosDaComposicao:
@@ -66,6 +67,7 @@ class ServicoCargosDaComposicao:
             },
             "cargo_associacao": cargo.cargo_associacao if cargo else indice,
             "cargo_associacao_label": valor.split(" ")[0],
+            "cargo_associacao_label_completa": re.sub(r'\d+', '', valor).strip(),
             "data_inicio_no_cargo": cargo.data_inicio_no_cargo if cargo else None,
             "data_fim_no_cargo": cargo.data_fim_no_cargo if cargo else None,
             "eh_composicao_vigente": self.retorna_se_composicao_vigente(),

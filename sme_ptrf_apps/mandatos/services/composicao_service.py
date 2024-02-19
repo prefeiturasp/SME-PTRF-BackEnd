@@ -146,3 +146,15 @@ class ServicoCriaComposicaoVigenteDoMandato(ServicoComposicaoVigente):
                 cargo_composicao_sendo_editado.data_fim_no_cargo = data_fim_no_cargo
                 cargo_composicao_sendo_editado.save()
 
+class ServicoRecuperaComposicaoPorData:
+    @staticmethod
+    def get_composicao_por_data_e_associacao(data, associacao_id):
+        try:
+            composicao = Composicao.objects.get(
+                associacao_id=associacao_id,
+                data_inicial__lte=data,
+                data_final__gte=data
+            )
+            return composicao
+        except Composicao.DoesNotExist:
+            return None
