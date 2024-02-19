@@ -8,7 +8,7 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework.exceptions import ValidationError
 
 from sme_ptrf_apps.users.services import cria_ou_atualiza_usuario_core_sso
-from sme_ptrf_apps.users.models import Grupo, Visao, UnidadeEmSuporte
+from sme_ptrf_apps.users.models import Grupo, Visao, UnidadeEmSuporte, AcessoConcedidoSme
 
 from ....core.models import Unidade
 
@@ -38,14 +38,19 @@ class GrupoComVisaoSerializer(serializers.ModelSerializer):
 
 class UnidadeSerializer(serializers.ModelSerializer):
     acesso_de_suporte = SerializerMethodField()
+    acesso_concedido_sme = SerializerMethodField()
 
     class Meta:
         model = Unidade
-        fields = ['uuid', 'nome', 'codigo_eol', 'tipo_unidade', 'acesso_de_suporte']
+        fields = ['uuid', 'nome', 'codigo_eol', 'tipo_unidade', 'acesso_de_suporte', 'acesso_concedido_sme']
 
     def get_acesso_de_suporte(self, instance):
         user = self.context["user"]
         return UnidadeEmSuporte.objects.filter(unidade=instance, user=user).exists()
+
+    def get_acesso_concedido_sme(self, instance):
+        user = self.context["user"]
+        return AcessoConcedidoSme.objects.filter(unidade=instance, user=user).exists()
 
 
 class UsuarioSerializer(serializers.ModelSerializer):

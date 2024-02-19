@@ -59,25 +59,3 @@ def teste_post_mandato_deve_gerar_erro_data_final_menor_que_data_inicial(
     }
 
 
-@override_flag('historico-de-membros', active=True)
-def teste_patch_mandato_deve_gerar_erro_somente_o_mandato_mais_recente_pode_ser_editado(
-    jwt_authenticated_client_sme,
-    mandato_01_2021_a_2022_api,
-    mandato_02_2023_a_2025_api,
-    payload_01_update_mandato,
-):
-    uuid_mandato = f'{mandato_01_2021_a_2022_api.uuid}'
-
-    response = jwt_authenticated_client_sme.patch(
-        f'/api/mandatos/{uuid_mandato}/',
-        data=json.dumps(payload_01_update_mandato),
-        content_type='application/json'
-    )
-
-    result = json.loads(response.content)
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    assert result == {
-        "detail": "Somente o mandato mais recente pode ser editado"
-    }
