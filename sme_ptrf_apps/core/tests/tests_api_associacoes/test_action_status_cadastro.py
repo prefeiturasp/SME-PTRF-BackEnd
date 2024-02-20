@@ -1,8 +1,10 @@
 import json
 import pytest
-
+from waffle.testutils import override_flag
 from freezegun import freeze_time
 from rest_framework import status
+from sme_ptrf_apps.core.fixtures.factories import AssociacaoFactory
+from sme_ptrf_apps.mandatos.fixtures.factories import MandatoFactory, ComposicaoFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -32,7 +34,8 @@ def test_status_cadastro_somente_pendencia_cadastro(
     status_cadastro_esperado = {
         'pendencia_cadastro': True,
         'pendencia_contas': False,
-        'pendencia_membros': False
+        'pendencia_membros': False,
+        'pendencia_novo_mandato': False
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -64,7 +67,8 @@ def test_status_cadastro_somente_pendencia_contas(
     status_cadastro_esperado = {
         'pendencia_cadastro': False,
         'pendencia_contas': True,
-        'pendencia_membros': False
+        'pendencia_membros': False,
+        'pendencia_novo_mandato': False
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -82,11 +86,36 @@ def test_status_cadastro_somente_pendencia_membros(
     status_cadastro_esperado = {
         'pendencia_cadastro': False,
         'pendencia_contas': False,
-        'pendencia_membros': True
+        'pendencia_membros': True,
+        'pendencia_novo_mandato': False
     }
 
     assert response.status_code == status.HTTP_200_OK
     assert result == status_cadastro_esperado
+
+
+@override_flag('historico-de-membros', active=True)
+def test_status_cadastro_somente_pendencia_novo_mandato(
+    jwt_authenticated_client_a,
+):
+    associacao = AssociacaoFactory()
+    mandato = MandatoFactory()
+    ComposicaoFactory(mandato=mandato)
+
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-cadastro/',
+                          content_type='application/json')
+    result = json.loads(response.content)
+
+    status_cadastro_esperado = {
+        'pendencia_cadastro': False,
+        'pendencia_contas': False,
+        'pendencia_membros': True,
+        'pendencia_novo_mandato': True
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == status_cadastro_esperado
+
 
 @freeze_time('2020-07-10 10:20:00')
 def test_status_cadastro_todas_as_pendencias(
@@ -100,7 +129,8 @@ def test_status_cadastro_todas_as_pendencias(
     status_cadastro_esperado = {
         'pendencia_cadastro': True,
         'pendencia_contas': True,
-        'pendencia_membros': True
+        'pendencia_membros': True,
+        'pendencia_novo_mandato': False
     }
 
     assert response.status_code == status.HTTP_200_OK

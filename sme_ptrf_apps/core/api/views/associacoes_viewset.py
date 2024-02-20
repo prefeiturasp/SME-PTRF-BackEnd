@@ -243,7 +243,7 @@ class AssociacoesViewSet(ModelViewSet):
 
         # TODO código comentado propositalmente em função da história 102412 - Sprint 73 (Conciliação Bancária: Retirar validação e obrigatoriedade de preenchimento dos campos do Saldo bancário da conta ao concluir acerto/período) - que entrou como Hotfix
         # TODO Remover quando implementado solução definitiva
-        pendencias_dados = associacao.pendencias_dados_da_associacao_para_geracao_de_documentos()
+        pendencias_dados = associacao.pendencias_dados_da_associacao()
         pendencias_conciliacao = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(
             periodo)
 
@@ -801,7 +801,7 @@ class AssociacoesViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def status_cadastro(self, request, uuid=None):
         associacao = self.get_object()
-        response = associacao.pendencias_dados_da_associacao_para_geracao_de_documentos()
+        response = associacao.pendencias_dados_da_associacao()
         return Response(response)
 
     @action(detail=True, url_path='contas-do-periodo', methods=['get'],

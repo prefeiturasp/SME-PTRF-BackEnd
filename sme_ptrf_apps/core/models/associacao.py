@@ -337,25 +337,29 @@ class Associacao(ModeloIdNome):
                 return False
         return True
 
-    def pendencias_dados_da_associacao_para_geracao_de_documentos(self):
-        from ...mandatos.services import ServicoPendenciaCargosDaComposicaoVigenteDaAssociacao
+    def pendencias_dados_da_associacao(self):
+        from ...mandatos.services import ServicoPendenciaCargosDaComposicaoVigenteDaAssociacao, ServicoMandato
         flags = get_waffle_flag_model()
         LOGGER.info("Verificando se a flag <historico-de-membros> está ativa...")
         if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
             LOGGER.info("A flag está ativa, as informações serão buscadas no Histórico de Membros")
             servico_pendencia = ServicoPendenciaCargosDaComposicaoVigenteDaAssociacao(self)
             pendencia_membros = servico_pendencia.retorna_se_tem_pendencia()
+            service_mandato = ServicoMandato()
+            pendencia_novo_mandato = service_mandato.retorna_se_mandato_vigente_tem_pendencia()
         else:
             pendencia_membros = not self.membros_diretoria_executiva_e_conselho_fiscal_cadastrados
+            pendencia_novo_mandato = False
 
         pendencia_cadastro = not self.nome or not self.ccm
         pendencia_contas =  self.contas.filter(Q(banco_nome__exact='') | Q(agencia__exact='') | Q(numero_conta__exact='',
                                                status=ContaAssociacao.STATUS_ATIVA)).exists()
-        if pendencia_cadastro or pendencia_membros or pendencia_contas:
+        if pendencia_cadastro or pendencia_membros or pendencia_contas or pendencia_novo_mandato:
             pendencias = {
                 'pendencia_cadastro': pendencia_cadastro,
                 'pendencia_membros': pendencia_membros,
-                'pendencia_contas': pendencia_contas
+                'pendencia_contas': pendencia_contas,
+                'pendencia_novo_mandato': pendencia_novo_mandato
             }
         else:
             pendencias = None
