@@ -14,18 +14,19 @@ from tempfile import NamedTemporaryFile
 logger = logging.getLogger(__name__)
 
 CABECALHO = [
-        ('Código EOL', 'associacao__unidade__codigo_eol'),
-        ('Nome Unidade', 'associacao__unidade__nome'),
-        ('Nome Associação', 'associacao__nome'),
-        ('Referência do Período da PC', 'periodo__referencia'),
-        ('Status da PC', 'status'),
-        ('Descrição do motivo aprovação com ressalvas', 'motivos_aprovacao_ressalva'),
-        ('Recomendações da aprovação com resalvas', 'recomendacoes'),
-        ('Descrição do motivo de reprovação', 'motivos_reprovacao'),
-    ],
+    ('Código EOL', 'associacao__unidade__codigo_eol'),
+    ('Nome Unidade', 'associacao__unidade__nome'),
+    ('Nome Associação', 'associacao__nome'),
+    ('Referência do Período da PC', 'periodo__referencia'),
+    ('Status da PC', 'status'),
+    ('Descrição do motivo aprovação com ressalvas', 'motivos_aprovacao_ressalva'),
+    ('Recomendações da aprovação com resalvas', 'recomendacoes'),
+    ('Descrição do motivo de reprovação', 'motivos_reprovacao'),
+],
+
 
 class ExportacoesStatusPrestacoesContaService:
-    
+
     def __init__(self, **kwargs):
         self.queryset = kwargs.get('queryset', None)
         self.data_inicio = kwargs.get('data_inicio', None)
@@ -35,9 +36,9 @@ class ExportacoesStatusPrestacoesContaService:
         self.cabecalho = CABECALHO[0]
         self.ambiente = self.get_ambiente
 
-    @property 
-    def get_ambiente(self): 
-        ambiente = Ambiente.objects.first() 
+    @property
+    def get_ambiente(self):
+        ambiente = Ambiente.objects.first()
         return ambiente.prefixo if ambiente else ""
 
     def exporta_status_prestacoes_conta(self):
@@ -56,10 +57,10 @@ class ExportacoesStatusPrestacoesContaService:
         ) as tmp:
             write = csv.writer(tmp.file, delimiter=";")
             write.writerow([cabecalho[0] for cabecalho in self.cabecalho])
-            
+
             for linha in dados:
                 write.writerow(linha) if linha else None
-                        
+
             self.cria_rodape(write)
             self.envia_arquivo_central_download(tmp)
 
@@ -67,10 +68,11 @@ class ExportacoesStatusPrestacoesContaService:
         linhas_vertical = []
 
         for instance in self.queryset:
-            
+
             linha_horizontal = []
-            
+
             for _, campo in self.cabecalho:
+                motivos_concatenados = ""
 
                 if campo != 'motivos_reprovacao' and campo != 'motivos_aprovacao_ressalva':
                     campo = get_recursive_attr(instance, campo)
@@ -80,31 +82,30 @@ class ExportacoesStatusPrestacoesContaService:
 
                 if campo == 'motivos_aprovacao_ressalva' and getattr(instance, 'status') == 'APROVADA_RESSALVA':
                     motivosAprovacaoRessalva = instance.motivos_aprovacao_ressalva.values_list('motivo', flat=True)
-                    
+
                     if len(motivosAprovacaoRessalva) > 0:
                         motivos_concatenados = '; '.join(motivosAprovacaoRessalva)
-                        
+
                     outros_motivos = getattr(instance, 'outros_motivos_aprovacao_ressalva')
                     if outros_motivos.strip():
                         motivos_concatenados += "; " + outros_motivos
-                        
+
                     linha_horizontal[5] = motivos_concatenados
 
                 if campo == 'motivos_reprovacao' and getattr(instance, 'status') == 'REPROVADA':
                     motivosReprovacao = instance.motivos_reprovacao.values_list('motivo', flat=True)
-                    
-                    motivos_concatenados = ""
-                    
+
                     if len(motivosReprovacao) > 0:
                         motivos_concatenados = '; '.join(motivosReprovacao)
 
                     outros_motivos = getattr(instance, 'outros_motivos_reprovacao')
                     if outros_motivos.strip():
                         motivos_concatenados += "; " + outros_motivos
-                        
+
                     linha_horizontal[7] = motivos_concatenados
-                    
-            logger.info(f"Escrevendo linha {linha_horizontal} de status de prestação de conta de custeio {instance.id}.")
+
+            logger.info(
+                f"Escrevendo linha {linha_horizontal} de status de prestação de conta de custeio {instance.id}.")
             linhas_vertical.append(linha_horizontal)
 
         return linhas_vertical
@@ -131,7 +132,7 @@ class ExportacoesStatusPrestacoesContaService:
                 **{f'{field}__lt': self.data_final}
             )
         return self.queryset
-    
+
     def envia_arquivo_central_download(self, tmp):
         logger.info("Gerando arquivo download...")
         obj_arquivo_download = gerar_arquivo_download(
@@ -169,4 +170,3 @@ class ExportacoesStatusPrestacoesContaService:
         rodape.append(texto)
         write.writerow(rodape)
         rodape.clear()
-        
