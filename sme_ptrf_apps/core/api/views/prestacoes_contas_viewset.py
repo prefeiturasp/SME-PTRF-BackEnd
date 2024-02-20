@@ -69,6 +69,8 @@ from ...services.analise_prestacao_conta_service import _criar_documento_final_r
 
 from django.core.exceptions import ValidationError
 
+from ....logging.loggers import ContextualLogger
+
 logger = logging.getLogger(__name__)
 
 
@@ -191,9 +193,13 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         serializer = PrestacoesContasConcluirValidateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        logger_pc = ContextualLogger.get_logger(__name__)
+
         pc_service = PrestacaoContaService(
             periodo_uuid=serializer.validated_data["periodo_uuid"],
             associacao_uuid=serializer.validated_data["associacao_uuid"],
+            username=request.user.username,
+            logger=logger_pc,
         )
 
         try:
@@ -206,12 +212,14 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'erro': 'prestacao_ja_iniciada',
                 'mensagem': 'Você não pode iniciar uma prestação de contas que já foi iniciada.'
             }
+            logger_pc.error('Prestação de contas já iniciada', stack_info=True, exc_info=True)
             return Response(erro, status=status.HTTP_409_CONFLICT)
         except Exception as e:
             erro = {
                 'erro': 'prestacao_em_processamento',
                 'mensagem': f'{e}'
             }
+            logger_pc.error('Erro ao iniciar prestação de contas', stack_info=True, exc_info=True)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(PrestacaoContaLookUpSerializer(pc, many=False).data, status=status.HTTP_200_OK)

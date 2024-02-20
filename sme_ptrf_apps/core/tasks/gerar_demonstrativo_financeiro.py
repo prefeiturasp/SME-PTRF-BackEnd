@@ -1,6 +1,3 @@
-import logging
-import traceback
-
 from celery import shared_task, current_task
 from celery.exceptions import MaxRetriesExceededError
 
@@ -10,13 +7,13 @@ from sme_ptrf_apps.core.services.recuperacao_dados_persistindos_demo_financeiro_
     RecuperaDadosDemoFinanceiro
 from sme_ptrf_apps.core.models.tasks_celery import TaskCelery
 from sme_ptrf_apps.core.services.prestacao_conta_service import PrestacaoContaService
-
-logger = logging.getLogger(__name__)
+from sme_ptrf_apps.logging.loggers import ContextualLogger
 
 MAX_RETRIES = 3
 
 
 @shared_task(
+    bind=True,
     autoretry_for=(Exception,),
     retry_kwargs={'max_retries': MAX_RETRIES},
     retry_backoff=True,
@@ -25,30 +22,45 @@ MAX_RETRIES = 3
     time_limit=600,
     soft_time_limit=300
 )
-def gerar_demonstrativo_financeiro_async(id_task, prestacao_conta_uuid):
+def gerar_demonstrativo_financeiro_async(self, id_task, prestacao_conta_uuid, username=""):
+    dem_financ_logger = ContextualLogger.get_logger(
+        __name__,
+        operacao='Prestação de Contas',
+        username=username,
+        task_id=str(id_task),
+    )
     tentativa = current_task.request.retries + 1
 
     task = None
     try:
         task = TaskCelery.objects.get(uuid=id_task)
-        logger.info(f'Iniciando task gerar_demonstrativo_financeiro_async, tentativa {tentativa}.')
 
-        pc_service = PrestacaoContaService.from_prestacao_conta_uuid(prestacao_conta_uuid)
+        task.registra_task_assincrona(self.request.id)
+
+        # Apenas para informar que os logs não mais ficarão registrados na task.
+        task.grava_log_concatenado(
+            f'Iniciando task gerar_demonstrativo_financeiro_async, tentativa {tentativa} da pc {prestacao_conta_uuid}. Logs registrados apenas no Kibana.')
+
+        pc_service = PrestacaoContaService.from_prestacao_conta_uuid(
+            prestacao_conta_uuid,
+            username,
+            dem_financ_logger
+        )
+
+        dem_financ_logger.info(f'Iniciando task gerar_demonstrativo_financeiro_async, tentativa {tentativa}.')
 
         if not pc_service.requer_gerar_documentos:
-            logger.info(f'Prestação de conta {pc_service.prestacao.uuid} não requer geração de documentos. Demonstrativo financeiro não gerado.')
+            dem_financ_logger.info(f'PC não requer geração de documentos. Demonstrativo financeiro não gerado.')
             return
 
         prestacao = pc_service.prestacao
-        periodo = prestacao.periodo
         contas = prestacao.contas_ativas_no_periodo()
 
-        task.grava_log_concatenado(
-            f'Iniciando a geração do demonstrativo financeiro da pc de uuid {prestacao_conta_uuid} e do periodo {periodo}.')
-
         for conta_associacao in contas:
-            task.grava_log_concatenado(
-                f'Iniciando criação do demonstrativo financeiro para a conta {conta_associacao} - {conta_associacao.uuid} e o período {periodo}.')
+            dem_financ_logger.info(
+                f'Iniciando criação do demonstrativo financeiro para a conta {conta_associacao}.',
+                extra={'observacao': f'uuid da conta: {conta_associacao.uuid}'}
+            )
 
             demonstrativo = DemonstrativoFinanceiro.objects.get(
                 conta_associacao_id=conta_associacao.id,
@@ -61,21 +73,30 @@ def gerar_demonstrativo_financeiro_async(id_task, prestacao_conta_uuid):
 
             demonstrativo.arquivo_concluido()
 
-            task.grava_log_concatenado(
-                f'Demonstrativo financeiro criado para a conta {conta_associacao} - {conta_associacao.uuid}.')
-            task.grava_log_concatenado(f'Demonstrativo financeiro arquivo {demonstrativo.uuid}.')
+            dem_financ_logger.info(
+                f'Demonstrativo financeiro criado para a conta {conta_associacao}',
+                extra={'observacao': f'uuid da conta: {conta_associacao.uuid}'}
+            )
 
-        logger.info('Task gerar_demonstrativo_financeiro_async finalizada.')
+            dem_financ_logger.info(f'Demonstrativo financeiro arquivo {demonstrativo.uuid}.')
+
+        dem_financ_logger.info('Task gerar_demonstrativo_financeiro_async finalizada.')
 
         task.registra_data_hora_finalizacao(f'Finalizada com sucesso a geração do demonstrativo financeiro.')
     except Exception as exc:
-        if task:
-            task.grava_log_concatenado(f'A tentativa {tentativa} de gerar o swmonstrativo financeiro falhou. {exc}')
+        dem_financ_logger.error(
+            f'A tentativa {tentativa} de gerar o demonstrativo financeiro falhou.',
+            exc_info=True,
+            stack_info=True
+        )
 
         if tentativa > MAX_RETRIES:
-            traceback_info = traceback.format_exc()
-            mensagem_tentativas_excedidas = f'Tentativas de reprocessamento com falha excedidas para o demonstrativo financeiro. Detalhes do erro: {exc}\n{traceback_info}'
-            logger.error(mensagem_tentativas_excedidas)
+            mensagem_tentativas_excedidas = f'Tentativas de reprocessamento com falha excedidas para o demonstrativo financeiro.'
+            dem_financ_logger.error(
+                mensagem_tentativas_excedidas,
+                exc_info=True,
+                stack_info=True
+            )
 
             if task:
                 task.registra_data_hora_finalizacao(mensagem_tentativas_excedidas)

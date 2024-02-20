@@ -1,5 +1,5 @@
 from ..models import Composicao, CargoComposicao
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from django.db.models import Q
 
 
@@ -38,14 +38,34 @@ class ServicoComposicaoVigente:
 
         return composicao_vigente
 
-    def get_composicao_anterior(self):
-        composicao_vigente = self.get_composicao_vigente()
+    # def get_composicao_anterior(self):
+    #     composicao_vigente = self.get_composicao_vigente()
+    #
+    #     composicao_anterior = Composicao.objects.filter(
+    #         associacao=self.associacao,
+    #         mandato=self.mandato,
+    #         data_final=composicao_vigente.data_inicial - timedelta(days=1)
+    #     ).exclude(id=composicao_vigente.id).order_by('-id')
+    #
+    #     return composicao_anterior.first() if composicao_anterior else None
 
-        composicao_anterior = Composicao.objects.filter(
-            associacao=self.associacao,
-            mandato=self.mandato,
-            data_final=composicao_vigente.data_inicial - timedelta(days=1)
-        ).exclude(id=composicao_vigente.id).order_by('-id')
+    def get_composicao_anterior(self, data_inicial=None):
+        if data_inicial:
+            composicao_anterior = Composicao.objects.filter(
+                associacao=self.associacao,
+                mandato=self.mandato,
+                data_final=data_inicial - timedelta(days=1)
+            )
+        else:
+            composicao_vigente = self.get_composicao_vigente()
+            if composicao_vigente:
+                composicao_anterior = Composicao.objects.filter(
+                    associacao=self.associacao,
+                    mandato=self.mandato,
+                    data_final=composicao_vigente.data_inicial - timedelta(days=1)
+                ).exclude(id=composicao_vigente.id).order_by('-id')
+            else:
+                composicao_anterior = None
 
         return composicao_anterior.first() if composicao_anterior else None
 
@@ -86,40 +106,56 @@ class ServicoCriaComposicaoVigenteDoMandato(ServicoComposicaoVigente):
         cargo_composicao_sendo_editado
     ):
 
-        data_atual = date.today()
-
         if data_fim_no_cargo != self.mandato.data_final:
-            # Atualiza data da composicao atual
+            data_fim_no_cargo = datetime.strptime(data_fim_no_cargo, '%Y-%m-%d').date()
+
             minha_composicao_atual = cargo_composicao_sendo_editado.composicao
-            minha_composicao_atual.data_final = data_fim_no_cargo
-            minha_composicao_atual.save()
 
-            # Calcula data inicial nova composicao
-            data_inicial = data_fim_no_cargo + timedelta(days=1)
-
-            nova_composicao = Composicao.objects.create(
+            composicao, created = Composicao.objects.get_or_create(
                 associacao=self.associacao,
                 mandato=self.mandato,
-                data_inicial=data_inicial,
+                data_inicial=data_fim_no_cargo + timedelta(days=1),
                 data_final=self.mandato.data_final
             )
+
+            if created:
+                minha_composicao_atual.data_final = data_fim_no_cargo
+                minha_composicao_atual.save()
 
             cargos_da_nova_composicao = minha_composicao_atual.cargos_da_composicao_da_composicao.exclude(
                 ocupante_do_cargo=cargo_composicao_sendo_editado.ocupante_do_cargo
             )
 
-            for cargo in cargos_da_nova_composicao:
-                CargoComposicao.objects.create(
-                    composicao=nova_composicao,
-                    ocupante_do_cargo=cargo.ocupante_do_cargo,
-                    cargo_associacao=cargo.cargo_associacao,
-                    substituto=cargo.substituto,
-                    substituido=cargo.substituido,
-                    data_inicio_no_cargo=cargo.data_inicio_no_cargo,
-                    data_fim_no_cargo=cargo.data_fim_no_cargo
-                )
+            cargo_composicao_sendo_editado.set_encerrar_e_substituir(data_fim_no_cargo)
 
-            # Setando flag de substituido ao cargo composicao editado
-            cargo_composicao_sendo_editado.substituido = True
-            cargo_composicao_sendo_editado.save()
+            if created:
+                for cargo in cargos_da_nova_composicao:
+                    CargoComposicao.objects.create(
+                        composicao=composicao,
+                        ocupante_do_cargo=cargo.ocupante_do_cargo,
+                        cargo_associacao=cargo.cargo_associacao,
+                        substituto=cargo.substituto,
+                        substituido=cargo.substituido,
+                        data_inicio_no_cargo=cargo.data_inicio_no_cargo,
+                        data_fim_no_cargo=cargo.data_fim_no_cargo
+                    )
+            else:
+                composicao.cargos_da_composicao_da_composicao.filter(ocupante_do_cargo=cargo_composicao_sendo_editado.ocupante_do_cargo).delete()
+
+                try:
+                    composicao_anterior = Composicao.objects.get(
+                        associacao=self.associacao,
+                        mandato=self.mandato,
+                        data_final=composicao.data_inicial - timedelta(days=1)
+                    )
+                except Composicao.DoesNotExist:
+                    composicao_anterior = None
+
+                if composicao_anterior:
+                    composicao_anterior.cargos_da_composicao_da_composicao.filter(
+                        cargo_associacao=cargo_composicao_sendo_editado.cargo_associacao
+                    ).update(substituido=True)
+
+
+
 
