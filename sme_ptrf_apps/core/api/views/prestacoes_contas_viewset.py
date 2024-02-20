@@ -95,8 +95,11 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         nome = self.request.query_params.get('nome')
         if nome is not None:
-            qs = qs.filter(Q(associacao__nome__unaccent__icontains=nome) | Q(
-                associacao__unidade__nome__unaccent__icontains=nome))
+            qs = qs.filter(
+                Q(associacao__unidade__codigo_eol=nome) |
+                Q(associacao__nome__unaccent__icontains=nome) |
+                Q(associacao__unidade__nome__unaccent__icontains=nome)
+            )
 
         dre_uuid = self.request.query_params.get('associacao__unidade__dre__uuid')
         periodo_uuid = self.request.query_params.get('periodo__uuid')
