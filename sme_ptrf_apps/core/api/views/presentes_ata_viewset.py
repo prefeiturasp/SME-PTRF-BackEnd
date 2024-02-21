@@ -1,6 +1,10 @@
+import re
 from rest_framework import mixins
 from django_filters import rest_framework as filters
 from rest_framework.viewsets import GenericViewSet
+from sme_ptrf_apps.mandatos.models.cargo_composicao import CargoComposicao
+from sme_ptrf_apps.mandatos.models.ocupante_cargo import OcupanteCargo
+from sme_ptrf_apps.mandatos.services.composicao_service import ServicoRecuperaComposicaoPorData
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe
 )
@@ -223,24 +227,57 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        ata = Ata.objects.filter(uuid=ata_uuid).first()
-        membros_associacao = MembroAssociacao.objects.filter(associacao=ata.associacao)
+        flags = get_waffle_flag_model()
+        if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+            data = request.query_params.get('data')
+            
+            if data and valida_ata and valida_ata.associacao and valida_ata.associacao.id:
 
-        membro = membros_associacao.filter(
-            Q(codigo_identificacao=identificador) |
-            Q(cpf=identificador)
-        ).first()
-
-        if membro:
-            result = {
-                "mensagem": "membro-encontrado",
-                "nome": membro.nome,
-                "cargo": MembroEnum[membro.cargo_associacao].value
-            }
+                servico_composicao = ServicoRecuperaComposicaoPorData()
+                composicao = servico_composicao.get_composicao_por_data_e_associacao(data, valida_ata.associacao.id)
+  
+                try:
+                    ocupante_existe = OcupanteCargo.objects.filter(
+                        Q(codigo_identificacao=identificador) | Q(cpf_responsavel=identificador)
+                    ).get()
+                
+                    if composicao.cargos_da_composicao_da_composicao.filter(ocupante_do_cargo__codigo_identificacao=identificador).exists() or composicao.cargos_da_composicao_da_composicao.filter(ocupante_do_cargo__cpf_responsavel=identificador).exists():
+                        # Ocupante encontrado na composição
+                        cargo = CargoComposicao.objects.get(composicao=composicao, ocupante_do_cargo=ocupante_existe)
+                        
+                        result = {
+                            "mensagem": "membro-encontrado",
+                            "nome": ocupante_existe.nome,
+                            "cargo": re.sub(r'\d+', '', MembroEnum[cargo.cargo_associacao].value).strip()
+                        }
+                    else:
+                        result = Participante.get_informacao_servidor(identificador)
+                    return Response(result)
+                except:
+                    result = Participante.get_informacao_servidor(identificador)
+                    return Response(result) 
+            else:
+                result = Participante.get_informacao_servidor(identificador)
+                return Response(result)  
         else:
-            result = Participante.get_informacao_servidor(identificador)
+            ata = Ata.objects.filter(uuid=ata_uuid).first()
+            membros_associacao = MembroAssociacao.objects.filter(associacao=ata.associacao)
 
-        return Response(result)
+            membro = membros_associacao.filter(
+                Q(codigo_identificacao=identificador) |
+                Q(cpf=identificador)
+            ).first()
+
+            if membro:
+                result = {
+                    "mensagem": "membro-encontrado",
+                    "nome": membro.nome,
+                    "cargo": MembroEnum[membro.cargo_associacao].value
+                }
+            else:
+                result = Participante.get_informacao_servidor(identificador)
+
+            return Response(result)
 
 
     @action(detail=False, url_path='get-participantes-ordenados-por-cargo', permission_classes=[IsAuthenticated & PermissaoApiUe])
