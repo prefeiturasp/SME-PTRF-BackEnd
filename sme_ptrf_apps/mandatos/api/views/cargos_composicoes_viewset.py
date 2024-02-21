@@ -14,7 +14,7 @@ from ..serializers import CargoComposicaoSerializer, CargoComposicaoCreateSerial
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ...services.cargo_composicao_service import ServicoCargosDaComposicao, ServicoCargosDaDiretoriaExecutiva
+from ...services.cargo_composicao_service import ServicoCargosDaComposicao, ServicoCargosDaDiretoriaExecutiva, ServicoCargosOcupantesComposicao
 
 
 class CargosComposicoesViewSet(
@@ -65,7 +65,7 @@ class CargosComposicoesViewSet(
 
     @action(detail=False, methods=['get'], url_path='composicao-por-data',
                 permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def cargos_da_composicao_por_data(self, request):
+    def ocupantes_e_cargos_da_composicao_por_data(self, request):  
         associacao_uuid = request.query_params.get('associacao_uuid')
         data = request.query_params.get('data')
 
@@ -83,19 +83,9 @@ class CargosComposicoesViewSet(
         except ValueError:
             return Response("Composição não encontrada.", status=status.HTTP_400_BAD_REQUEST)
         
-        ocupantes = OcupanteCargo.objects.filter(
-                cargos_da_composicao_do_ocupante__composicao=composicao
-            )
+        servico_cargos_da_composicao = ServicoCargosOcupantesComposicao()
         
-        if not ocupantes:
-            # A composição não está preenchida
-            return Response([], status=status.HTTP_200_OK)
+        ocupantes = servico_cargos_da_composicao.get_ocupantes_ordenados_por_cargo(composicao=composicao)
         
-        servico_cargos_da_composicao = ServicoCargosDaComposicao(composicao=composicao)
-        
-        cargos_da_composicao = servico_cargos_da_composicao.get_cargos_da_composicao_ordenado_por_cargo_associacao()
 
-        if composicao:
-            return Response(cargos_da_composicao, status=status.HTTP_200_OK)
-        else:
-            return Response("Composição não encontrada", status=status.HTTP_404_NOT_FOUND)
+        return Response(ocupantes, status=status.HTTP_200_OK)

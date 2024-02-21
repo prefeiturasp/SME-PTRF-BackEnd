@@ -1,5 +1,5 @@
 from . import ServicoComposicaoVigente, ServicoMandatoVigente
-from ..models import CargoComposicao, Composicao
+from ..models import CargoComposicao, Composicao, OcupanteCargo
 import re
 
 
@@ -67,7 +67,6 @@ class ServicoCargosDaComposicao:
             },
             "cargo_associacao": cargo.cargo_associacao if cargo else indice,
             "cargo_associacao_label": valor.split(" ")[0],
-            "cargo_associacao_label_completa": re.sub(r'\d+', '', valor).strip(),
             "data_inicio_no_cargo": cargo.data_inicio_no_cargo if cargo else None,
             "data_fim_no_cargo": cargo.data_fim_no_cargo if cargo else None,
             "eh_composicao_vigente": self.retorna_se_composicao_vigente(),
@@ -163,3 +162,75 @@ class ServicoPendenciaCargosDaComposicaoVigenteDaAssociacao:
         else:
             return True
 
+
+class ServicoCargosOcupantesComposicao:
+    def get_ocupantes_ordenados_por_cargo(self, composicao):
+        ocupantes = OcupanteCargo.objects.filter(
+                cargos_da_composicao_do_ocupante__composicao=composicao
+            )
+        
+        if not ocupantes:
+            # Nao existem ocupantes na composicao
+            return []
+        
+        temp_diretoria_executiva = {}
+        temp_conselho_fiscal = {}
+
+        for ocupante in ocupantes:
+            cargo_composicao = CargoComposicao.objects.get(
+                composicao=composicao,
+                ocupante_do_cargo=ocupante
+            )
+            cargo_associacao = cargo_composicao.cargo_associacao
+            cargo_nome = CargoComposicao.CARGO_ASSOCIACAO_NOMES[cargo_associacao]
+
+            if cargo_associacao in [choice[0] for choice in CargoComposicao.CARGO_ASSOCIACAO_CHOICES[:9]]:
+                if cargo_associacao in temp_diretoria_executiva:
+                    temp_diretoria_executiva[cargo_associacao].append({
+                        'id': ocupante.id,
+                        'cargo': re.sub(r'\d+', '', cargo_nome).strip() if cargo_nome else None,
+                        'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else None,
+                        'nome': ocupante.nome,
+                    })
+                else:
+                    temp_diretoria_executiva[cargo_associacao] = [{
+                        'id': ocupante.id,
+                        'cargo': re.sub(r'\d+', '', cargo_nome).strip() if cargo_nome else None,
+                        'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else None,
+                        'nome': ocupante.nome,
+                    }]
+            else:
+                if cargo_associacao in temp_conselho_fiscal:
+                    temp_conselho_fiscal[cargo_associacao].append({
+                        'id': ocupante.id,
+                        'cargo': re.sub(r'\d+', '', cargo_nome).strip() if cargo_nome else None,
+                        'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else None,
+                        'nome': ocupante.nome,
+                    })
+                else:
+                    temp_conselho_fiscal[cargo_associacao] = [{
+                        'id': ocupante.id,
+                        'cargo': re.sub(r'\d+', '', cargo_nome).strip() if cargo_nome else None,
+                        'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else None,
+                        'nome': ocupante.nome,
+                    }]
+
+        diretoria_executiva = []
+        conselho_fiscal = []
+
+        for choice in CargoComposicao.CARGO_ASSOCIACAO_CHOICES[:9]:
+            cargo_associacao = choice[0]
+            if cargo_associacao in temp_diretoria_executiva:
+                diretoria_executiva.extend(temp_diretoria_executiva[cargo_associacao])
+
+        for choice in CargoComposicao.CARGO_ASSOCIACAO_CHOICES[9:]:
+            cargo_associacao = choice[0]
+            if cargo_associacao in temp_conselho_fiscal:
+                conselho_fiscal.extend(temp_conselho_fiscal[cargo_associacao])
+
+        objeto = {
+            'diretoria_executiva': diretoria_executiva,
+            'conselho_fiscal': conselho_fiscal
+        }
+        
+        return objeto
