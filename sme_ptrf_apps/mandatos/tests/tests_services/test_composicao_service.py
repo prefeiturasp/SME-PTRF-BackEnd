@@ -1,9 +1,10 @@
 import pytest
+from waffle.testutils import override_flag
 from freezegun import freeze_time
 from datetime import date
 
 from sme_ptrf_apps.mandatos.models import Composicao
-from sme_ptrf_apps.mandatos.services import ServicoComposicaoVigente, ServicoCriaComposicaoVigenteDoMandato
+from sme_ptrf_apps.mandatos.services import ServicoComposicaoVigente, ServicoCriaComposicaoVigenteDoMandato, ServicoRecuperaComposicaoPorData
 
 pytestmark = pytest.mark.django_db
 
@@ -22,6 +23,13 @@ def test_servico_composicao_vigente(
     composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
 
     assert composicao_vigente.data_inicial == date(2023, 1, 1)
+
+@override_flag('historico-de-membros', active=True)
+def test_servico_get_composicao_por_data_e_associacao(composicao_factory):
+    composicao = composicao_factory.create(data_inicial=date(2020,8,8), data_final=date(2022,8,8))
+    servico = ServicoRecuperaComposicaoPorData()
+    result = servico.get_composicao_por_data_e_associacao(data=date(2021,8,8), associacao_id=composicao.associacao.id)
+    assert composicao == result
 
 
 @freeze_time('2023-08-08 13:59:00')

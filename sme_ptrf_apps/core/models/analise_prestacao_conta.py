@@ -60,17 +60,20 @@ class AnalisePrestacaoConta(ModeloBase):
     # Status Choice
     STATUS_NAO_GERADO = 'NAO_GERADO'
     STATUS_EM_PROCESSAMENTO = 'EM_PROCESSAMENTO'
+    STATUS_FALHA_AO_GERAR = 'FALHA_AO_GERAR'
     STATUS_CONCLUIDO = 'CONCLUIDO'
 
     STATUS_NOMES_CHOICES = {
         STATUS_NAO_GERADO: 'Não gerado',
         STATUS_EM_PROCESSAMENTO: 'Em processamento',
+        STATUS_FALHA_AO_GERAR: 'Falha ao gerar',
         STATUS_CONCLUIDO: 'Geração concluída',
     }
 
     STATUS_CHOICES_VERSAO = (
         (STATUS_NAO_GERADO, STATUS_NOMES_CHOICES[STATUS_NAO_GERADO]),
         (STATUS_EM_PROCESSAMENTO, STATUS_NOMES_CHOICES[STATUS_EM_PROCESSAMENTO]),
+        (STATUS_FALHA_AO_GERAR, STATUS_NOMES_CHOICES[STATUS_FALHA_AO_GERAR]),
         (STATUS_CONCLUIDO, STATUS_NOMES_CHOICES[STATUS_CONCLUIDO]),
     )
 
@@ -218,6 +221,8 @@ class AnalisePrestacaoConta(ModeloBase):
                     return "Nenhuma prévia gerada."
             elif self.status_versao_apresentacao_apos_acertos == self.STATUS_EM_PROCESSAMENTO:
                 return f"Relatório sendo gerado..."
+            elif self.status_versao_apresentacao_apos_acertos == self.STATUS_FALHA_AO_GERAR:
+                return f"Erro na geração do PDF"
             elif self.status_versao_apresentacao_apos_acertos == self.STATUS_CONCLUIDO:
                 if self.VERSAO_NOMES[self.versao_pdf_apresentacao_apos_acertos] == 'rascunho':
                     return "Nenhuma prévia gerada."
@@ -231,6 +236,8 @@ class AnalisePrestacaoConta(ModeloBase):
                     return f"Documento gerado em {self.arquivo_pdf_apresentacao_apos_acertos_criado_em.strftime('%d/%m/%Y às %H:%M')}"
             elif self.status_versao_apresentacao_apos_acertos == self.STATUS_EM_PROCESSAMENTO:
                 return f"Relatório sendo gerado..."
+            elif self.status_versao_apresentacao_apos_acertos == self.STATUS_FALHA_AO_GERAR:
+                return f"Erro na geração do PDF"
             elif self.status_versao_apresentacao_apos_acertos == self.STATUS_NAO_GERADO:
                 if self.VERSAO_NOMES[self.versao_pdf_apresentacao_apos_acertos] == 'rascunho':
                     return "Nenhuma prévia gerada."
@@ -287,7 +294,7 @@ class AnalisePrestacaoConta(ModeloBase):
         self.arquivo_pdf_apresentacao_apos_acertos = None
         self.arquivo_pdf_apresentacao_apos_acertos_criado_em = None
         self.versao_pdf_apresentacao_apos_acertos = self.VERSAO_NAO_GERADO
-        self.status_versao_apresentacao_apos_acertos = self.STATUS_NAO_GERADO
+        self.status_versao_apresentacao_apos_acertos = self.STATUS_FALHA_AO_GERAR
         self.save()
         logging.info(f'Geração de arquivo pdf do relatorio após acertos {self.pk} cancelada')
 

@@ -24,6 +24,16 @@ class PresentesAtaCreateSerializer(serializers.ModelSerializer):
         queryset=Ata.objects.all()
     )
 
+class PresentesAtaCreateSerializer(serializers.ModelSerializer):
+    ata = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Ata.objects.all()
+    )
+    
+    presidente_da_reuniao = serializers.BooleanField(required=False, allow_null=True)
+    secretario_da_reuniao = serializers.BooleanField(required=False, allow_null=True)
+
     class Meta:
         model = Participante
-        fields = ('ata', 'identificacao', 'nome', 'cargo', 'membro', 'presente')
+        fields = ('ata', 'identificacao', 'nome', 'cargo', 'membro', 'presente', 'presidente_da_reuniao', 'secretario_da_reuniao')
