@@ -667,6 +667,19 @@ def analise_prestacao_conta_2020_1_teste_analises(
         devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1_teste_analises
     )
 
+
+@pytest.fixture
+def analise_prestacao_conta_2020_1_teste_analises_com_falha_geracao_doc_apos_acertos(
+    prestacao_conta_2020_1_teste_analises,
+    devolucao_prestacao_conta_2020_1_teste_analises
+):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_2020_1_teste_analises,
+        devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1_teste_analises,
+        status_versao_apresentacao_apos_acertos='FALHA_AO_GERAR'
+    )
+
 @pytest.fixture
 def analise_prestacao_conta_2020_1_teste_inativa_analises(
     prestacao_conta_2020_1_teste_inativa_analises,
