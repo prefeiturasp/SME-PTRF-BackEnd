@@ -189,14 +189,14 @@ class ServicoCargosOcupantesComposicao:
                     temp_diretoria_executiva[cargo_associacao].append({
                         'id': ocupante.id,
                         'cargo': re.sub(r'\d+', '', cargo_nome).strip() if cargo_nome else None,
-                        'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else None,
+                        'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else ocupante.cpf_responsavel,
                         'nome': ocupante.nome,
                     })
                 else:
                     temp_diretoria_executiva[cargo_associacao] = [{
                         'id': ocupante.id,
                         'cargo': re.sub(r'\d+', '', cargo_nome).strip() if cargo_nome else None,
-                        'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else None,
+                        'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else ocupante.cpf_responsavel,
                         'nome': ocupante.nome,
                     }]
             else:
@@ -204,14 +204,14 @@ class ServicoCargosOcupantesComposicao:
                     temp_conselho_fiscal[cargo_associacao].append({
                         'id': ocupante.id,
                         'cargo': re.sub(r'\d+', '', cargo_nome).strip() if cargo_nome else None,
-                        'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else None,
+                        'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else ocupante.cpf_responsavel,
                         'nome': ocupante.nome,
                     })
                 else:
                     temp_conselho_fiscal[cargo_associacao] = [{
                         'id': ocupante.id,
                         'cargo': re.sub(r'\d+', '', cargo_nome).strip() if cargo_nome else None,
-                        'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else None,
+                        'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else ocupante.cpf_responsavel,
                         'nome': ocupante.nome,
                     }]
 
