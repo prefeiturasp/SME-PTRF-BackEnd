@@ -51,29 +51,63 @@
   </table>
   <br>
 
-    <table>
-      <thead>
-        <tr>
-          <th><h2>Bloco 2 - Dados do Presidente da Associação</h2></th>
-        </tr>
-      </thead>
-      <tbody>
-      <tr><td>
-        <table class="tablebloco"><tr>
-          <td class="tdbloco"><strong>Nome:</strong><br> {{ associacao.presidente_associacao.nome }}</td><td class="tdbloco"><strong>Cargo ou função:</strong><br> {{ associacao.presidente_associacao.cargo_educacao }}</td>
-        </tr></table>
-        <table class="tablebloco"><tr>
-          <td class="tdbloco"><strong>Telefone:</strong><br> {{ associacao.presidente_associacao.telefone }}</td><td class="tdbloco"><strong>E-mail:</strong><br> {% if associacao.presidente_associacao.email %} {{ associacao.presidente_associacao.email }} {% else %} '' {% endif %}</td>
-        </tr></table>
-        <table class="tablebloco"><tr>
-          <td class="tdbloco"><strong>Endereço:</strong><br> {{ associacao.presidente_associacao.endereco }}</td><td class="tdbloco"><strong>Complemento:</strong><br> &nbsp;</td><td class="tdblocofim"><strong>Bairro:</strong><br> {{ associacao.presidente_associacao.bairro }}</td>
-        </tr></table>
-        <table class="tablebloco"><tr>
-          <td class="tdbloco"><strong>CEP:</strong><br> {{ associacao.presidente_associacao.cep }}</td><td class="tdbloco"><strong>Município:</strong><br> &nbsp;</td><td class="tdblocofim"><strong>UF:</strong><br> &nbsp;</td>
-        </tr></table>
-      </td></tr>
-    </tbody>
-  </table>
+    {% flag "historico-de-membros" %}
+      <table>
+        <thead>
+          <tr>
+            <th><h2>Bloco 2 - Dados do Presidente da Associação</h2></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <table class="tablebloco">
+                <tr>
+                  <td class="tdbloco"><strong>Nome:</strong><br> {{ dados_presidente.nome }}</td><td class="tdbloco"><strong>Cargo ou função:</strong><br> {{ dados_presidente.cargo_educacao }}</td>
+                </tr>
+              </table>
+              <table class="tablebloco"><tr>
+                <td class="tdbloco"><strong>Telefone:</strong><br> {{ dados_presidente.telefone }}</td><td class="tdbloco"><strong>E-mail:</strong><br> {% if dados_presidente.email %} {{ dados_presidente.email }} {% else %} '' {% endif %}</td>
+                </tr>
+              </table>
+              <table class="tablebloco"><tr>
+                <td class="tdbloco"><strong>Endereço:</strong><br> {{ dados_presidente.endereco }}</td><td class="tdbloco"><strong>Complemento:</strong><br> &nbsp;</td><td class="tdblocofim"><strong>Bairro:</strong><br> {{ dados_presidente.bairro }}</td>
+                </tr>
+              </table>
+              <table class="tablebloco"><tr>
+                <td class="tdbloco"><strong>CEP:</strong><br> {{ dados_presidente.cep }}</td><td class="tdbloco"><strong>Município:</strong><br> &nbsp;</td><td class="tdblocofim"><strong>UF:</strong><br> &nbsp;</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    {% else %}
+      <table>
+        <thead>
+          <tr>
+            <th><h2>Bloco 2 - Dados do Presidente da Associação</h2></th>
+          </tr>
+        </thead>
+        <tbody>
+        <tr><td>
+          <table class="tablebloco"><tr>
+            <td class="tdbloco"><strong>Nome:</strong><br> {{ associacao.presidente_associacao.nome }}</td><td class="tdbloco"><strong>Cargo ou função:</strong><br> {{ associacao.presidente_associacao.cargo_educacao }}</td>
+          </tr></table>
+          <table class="tablebloco"><tr>
+            <td class="tdbloco"><strong>Telefone:</strong><br> {{ associacao.presidente_associacao.telefone }}</td><td class="tdbloco"><strong>E-mail:</strong><br> {% if associacao.presidente_associacao.email %} {{ associacao.presidente_associacao.email }} {% else %} '' {% endif %}</td>
+          </tr></table>
+          <table class="tablebloco"><tr>
+            <td class="tdbloco"><strong>Endereço:</strong><br> {{ associacao.presidente_associacao.endereco }}</td><td class="tdbloco"><strong>Complemento:</strong><br> &nbsp;</td><td class="tdblocofim"><strong>Bairro:</strong><br> {{ associacao.presidente_associacao.bairro }}</td>
+          </tr></table>
+          <table class="tablebloco"><tr>
+            <td class="tdbloco"><strong>CEP:</strong><br> {{ associacao.presidente_associacao.cep }}</td><td class="tdbloco"><strong>Município:</strong><br> &nbsp;</td><td class="tdblocofim"><strong>UF:</strong><br> &nbsp;</td>
+          </tr></table>
+        </td></tr>
+        </tbody>
+      </table>
+    {% endflag %}
+
     {% if contas %}
     <table>
       <thead>

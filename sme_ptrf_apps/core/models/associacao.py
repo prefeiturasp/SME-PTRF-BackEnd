@@ -401,6 +401,47 @@ class Associacao(ModeloIdNome):
 
         return contas_a_retornar
 
+    def dados_presidente_composicao_vigente(self):
+        from sme_ptrf_apps.mandatos.services import ServicoMandatoVigente
+        from sme_ptrf_apps.mandatos.services import ServicoComposicaoVigente
+        from sme_ptrf_apps.mandatos.models import CargoComposicao
+
+        dados_presidente = {
+            "nome": "",
+            "cargo_educacao": "",
+            "telefone": "",
+            "email": "",
+            "endereco": "",
+            "complemento": "",
+            "bairro": "",
+            "cep": "",
+            "municipio": "",
+            "uf": ""
+        }
+
+        servico_mandato_vigente = ServicoMandatoVigente()
+        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+        servico_composicao_vigente = ServicoComposicaoVigente(associacao=self, mandato=mandato_vigente)
+        composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
+
+        if composicao_vigente:
+            presidente_composicao_vigente = CargoComposicao.objects.filter(
+                composicao=composicao_vigente,
+                cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA
+            ).first()
+
+            if presidente_composicao_vigente:
+                dados_presidente["nome"] = presidente_composicao_vigente.ocupante_do_cargo.nome
+                dados_presidente["cargo_educacao"] = presidente_composicao_vigente.ocupante_do_cargo.cargo_educacao
+                dados_presidente["telefone"] = presidente_composicao_vigente.ocupante_do_cargo.telefone
+                dados_presidente["email"] = presidente_composicao_vigente.ocupante_do_cargo.email
+                dados_presidente["endereco"] = presidente_composicao_vigente.ocupante_do_cargo.endereco
+                dados_presidente["bairro"] = presidente_composicao_vigente.ocupante_do_cargo.bairro
+                dados_presidente["cep"] = presidente_composicao_vigente.ocupante_do_cargo.cep
+
+        return dados_presidente
+
     objects = models.Manager()  # Manager Padrão
     ativas = AssociacoesAtivasManager()
 
