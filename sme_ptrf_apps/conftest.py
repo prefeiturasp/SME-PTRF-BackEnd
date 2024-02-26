@@ -1874,22 +1874,6 @@ def parametros():
 
 
 @pytest.fixture
-def parametros_desconsidera_nao_iniciadas():
-    return baker.make(
-        'Parametros',
-        desconsiderar_associacoes_nao_iniciadas=True,
-    )
-
-
-@pytest.fixture
-def parametros_nao_desconsidera_nao_iniciadas():
-    return baker.make(
-        'Parametros',
-        desconsiderar_associacoes_nao_iniciadas=False,
-    )
-
-
-@pytest.fixture
 def parametro_fique_de_olho_pc():
     return baker.make(
         'ParametroFiqueDeOlhoPc',
