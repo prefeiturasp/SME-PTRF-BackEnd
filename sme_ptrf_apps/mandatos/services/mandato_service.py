@@ -34,7 +34,7 @@ class ServicoMandato:
             except Mandato.DoesNotExist:
                 return None
 
-    def retorna_se_mandato_vigente_tem_pendencia(self):
+    def retorna_se_mandato_vigente_tem_pendencia(self, associacao):
         from ..models import CargoComposicao
 
         servico_mandato_vigente = ServicoMandatoVigente()
@@ -43,7 +43,8 @@ class ServicoMandato:
         if not mandato_vigente:
             return False
 
-        cargos = CargoComposicao.objects.filter(composicao__mandato=mandato_vigente)
+        cargos = CargoComposicao.objects.filter(composicao__mandato=mandato_vigente,
+                                                composicao__associacao=associacao)
         if cargos.exists():
             return False
 

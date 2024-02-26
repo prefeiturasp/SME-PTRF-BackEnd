@@ -346,7 +346,7 @@ class Associacao(ModeloIdNome):
             servico_pendencia = ServicoPendenciaCargosDaComposicaoVigenteDaAssociacao(self)
             pendencia_membros = servico_pendencia.retorna_se_tem_pendencia()
             service_mandato = ServicoMandato()
-            pendencia_novo_mandato = service_mandato.retorna_se_mandato_vigente_tem_pendencia()
+            pendencia_novo_mandato = service_mandato.retorna_se_mandato_vigente_tem_pendencia(associacao=self)
         else:
             pendencia_membros = not self.membros_diretoria_executiva_e_conselho_fiscal_cadastrados
             pendencia_novo_mandato = False
