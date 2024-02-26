@@ -739,7 +739,6 @@ class ParametrosAdmin(admin.ModelAdmin):
                 (
                     'permite_saldo_conta_negativo',
                     'permite_saldo_acoes_negativo',
-                    'desconsiderar_associacoes_nao_iniciadas',
                     'tempo_aguardar_conclusao_pc',
                     'quantidade_tentativas_concluir_pc',
                     'periodo_de_tempo_tentativas_concluir_pc',

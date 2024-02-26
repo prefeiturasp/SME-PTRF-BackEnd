@@ -63,13 +63,14 @@ def unidade_teste_api_consolidado_dre_02(dre_teste_api_consolidado_dre):
     )
 
 @pytest.fixture
-def associacao_teste_api_consolidado_dre_01(unidade_teste_api_consolidado_dre_01, periodo_teste_api_consolidado_dre):
+def associacao_teste_api_consolidado_dre_01(unidade_teste_api_consolidado_dre_01, periodo_teste_api_consolidado_dre, periodo_anterior_teste_api_consolidado_dre):
+    
     return baker.make(
         'Associacao',
         nome='Escola Teste',
         cnpj='23.809.310/0001-57',
         unidade=unidade_teste_api_consolidado_dre_01,
-        periodo_inicial=periodo_teste_api_consolidado_dre,
+        periodo_inicial=periodo_anterior_teste_api_consolidado_dre,
         ccm='0.000.00-0',
         email="ollyverottoboni@gmail.com",
         processo_regularidade='123456'

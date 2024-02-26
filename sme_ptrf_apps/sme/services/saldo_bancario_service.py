@@ -34,21 +34,14 @@ def filtrar_associacoes_por_conta_data_inicio_e_data_encerramento(queryset, peri
     return Associacao.objects.filter(id__in=query_result.values_list('id', flat=True).distinct('id'))
 
 def saldo_por_tipo_de_unidade(queryset, periodo, conta):
-
-    if Parametros.get().desconsiderar_associacoes_nao_iniciadas:
-        saldo_por_tipo_unidade = queryset.filter(
-            Q(associacao__periodo_inicial__isnull=False) &
-            Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
-                Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
-            ),
-            periodo__uuid=periodo.uuid,
-            conta_associacao__tipo_conta__uuid=conta
-        )
-    else:
-        saldo_por_tipo_unidade = queryset.filter(
-            periodo__uuid=periodo.uuid,
-            conta_associacao__tipo_conta__uuid=conta
-        )
+    saldo_por_tipo_unidade = queryset.filter(
+        Q(associacao__periodo_inicial__isnull=False) &
+        Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
+            Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
+        ),
+        periodo__uuid=periodo.uuid,
+        conta_associacao__tipo_conta__uuid=conta
+    )
 
     saldo_por_tipo_unidade = filtrar_por_data_inicio_e_data_encerramento_conta(saldo_por_tipo_unidade, periodo)
 
@@ -89,20 +82,14 @@ def saldo_por_tipo_de_unidade(queryset, periodo, conta):
 
 def saldo_por_dre(queryset, periodo, conta):
 
-    if Parametros.get().desconsiderar_associacoes_nao_iniciadas:
-        saldo_por_dre = queryset.filter(
-            Q(associacao__periodo_inicial__isnull=False) &
-            Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
-                Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
-            ),
-            periodo__uuid=periodo.uuid,
-            conta_associacao__tipo_conta__uuid=conta
-        )
-    else:
-        saldo_por_dre = queryset.filter(
-            periodo__uuid=periodo.uuid,
-            conta_associacao__tipo_conta__uuid=conta
-        )
+    saldo_por_dre = queryset.filter(
+        Q(associacao__periodo_inicial__isnull=False) &
+        Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
+            Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
+        ),
+        periodo__uuid=periodo.uuid,
+        conta_associacao__tipo_conta__uuid=conta
+    )
 
     saldo_por_dre = filtrar_por_data_inicio_e_data_encerramento_conta(saldo_por_dre, periodo)
 
@@ -162,22 +149,15 @@ def saldo_por_ue_dre(queryset, periodo, conta):
             choices.append(choice[0])
 
     for dre in dres:
-        if Parametros.get().desconsiderar_associacoes_nao_iniciadas:
-            saldo_por_tipo_da_dre = queryset.filter(
-                Q(associacao__periodo_inicial__isnull=False) &
-                Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
-                    Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
-                ),
-                periodo__uuid=periodo.uuid,
-                conta_associacao__tipo_conta__uuid=conta,
-                associacao__unidade__dre=dre
-            )
-        else:
-            saldo_por_tipo_da_dre = queryset.filter(
-                periodo__uuid=periodo.uuid,
-                conta_associacao__tipo_conta__uuid=conta,
-                associacao__unidade__dre=dre
-            )
+        saldo_por_tipo_da_dre = queryset.filter(
+            Q(associacao__periodo_inicial__isnull=False) &
+            Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
+                Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
+            ),
+            periodo__uuid=periodo.uuid,
+            conta_associacao__tipo_conta__uuid=conta,
+            associacao__unidade__dre=dre
+        )
 
         saldo_por_tipo_da_dre = filtrar_por_data_inicio_e_data_encerramento_conta(saldo_por_tipo_da_dre, periodo)
 

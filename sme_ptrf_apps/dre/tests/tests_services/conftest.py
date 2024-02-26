@@ -345,13 +345,14 @@ def unidade_teste_service_02(dre_teste_service_consolidado_dre):
 
 
 @pytest.fixture
-def associacao_teste_service(unidade_teste_service, periodo_teste_service_consolidado_dre):
+def associacao_teste_service(unidade_teste_service, periodo_anterior_teste_service_consolidado_dre):
+    
     return baker.make(
         'Associacao',
         nome='Escola Teste',
         cnpj='52.302.275/0001-83',
         unidade=unidade_teste_service,
-        periodo_inicial=periodo_teste_service_consolidado_dre,
+        periodo_inicial=periodo_anterior_teste_service_consolidado_dre,
         ccm='0.000.00-0',
         email="ollyverottoboni@gmail.com",
         processo_regularidade='123456'
