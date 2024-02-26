@@ -313,7 +313,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
                 ata_parecer_tecnico = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo,
                                                                        consolidado_dre=retificacao).first()
             else:
-                sequencia_de_publicacao_atual = parcial['sequencia_de_publicacao_atual']
+                sequencia_de_publicacao_atual = parcial['sequencia_de_publicacao_atual']            
                 ata_parecer_tecnico = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo,
                                                                     sequencia_de_publicacao=sequencia_de_publicacao_atual).last()
 
