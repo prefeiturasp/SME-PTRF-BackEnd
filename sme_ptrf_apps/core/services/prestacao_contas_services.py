@@ -56,6 +56,7 @@ def pc_requer_geracao_fechamentos(prestacao):
     else:
         return True
 
+
 def pc_requer_geracao_documentos(prestacao):
     if prestacao.status in (
         PrestacaoConta.STATUS_NAO_RECEBIDA,
@@ -426,7 +427,8 @@ def lista_prestacoes_de_conta_todos_os_status(
     filtro_por_devolucao_tesouro=None,
     filtro_por_status=[]
 ):
-    associacoes_da_dre = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo, dre=dre).order_by('unidade__tipo_unidade', 'unidade__nome')
+    associacoes_da_dre = Associacao.get_associacoes_ativas_no_periodo(
+        periodo=periodo, dre=dre).order_by('unidade__tipo_unidade', 'unidade__nome')
 
     if filtro_nome is not None:
         associacoes_da_dre = associacoes_da_dre.filter(
@@ -491,7 +493,8 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
     )
 
     try:
-        observacao_conciliacao = ObservacaoConciliacao.objects.filter(periodo__uuid=periodo.uuid, conta_associacao__uuid=conta_associacao.uuid).first()
+        observacao_conciliacao = ObservacaoConciliacao.objects.filter(
+            periodo__uuid=periodo.uuid, conta_associacao__uuid=conta_associacao.uuid).first()
     except Exception:
         observacao_conciliacao = None
 
@@ -607,7 +610,7 @@ def retorna_lancamentos_despesas_ordenadas_por_imposto(despesas, conta_associaca
 
                 for rateio in rateios:
                     if rateio.conta_associacao == conta_associacao and str(
-                        despesa_imposto.uuid) not in existe_em_lancamentos and despesa_imposto.cadastro_completo():
+                            despesa_imposto.uuid) not in existe_em_lancamentos and despesa_imposto.cadastro_completo():
 
                         lancamento = {
                             'periodo': f'{prestacao_conta.periodo.uuid}',
@@ -671,7 +674,8 @@ def lancamentos_da_prestacao(
     filtro_informacoes_list=None,
     filtro_conferencia_list=None,
     inclui_inativas=False,
-    agrupa_solicitacoes=True
+    agrupa_solicitacoes=True,
+    apenas_despesas_de_periodos_anteriores=False
 ):
     from sme_ptrf_apps.despesas.api.serializers.despesa_serializer import DespesaDocumentoMestreSerializer, \
         DespesaImpostoSerializer
@@ -695,12 +699,23 @@ def lancamentos_da_prestacao(
         filtro_conferencia_list=None,
         inclui_inativas=False,
     ):
-        rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
-            conta_associacao=conta_associacao,
-            acao_associacao=acao_associacao,
-            periodo=periodo,
-            incluir_inativas=True,
-        )
+
+        if apenas_despesas_de_periodos_anteriores:
+            rateios = RateioDespesa.rateios_da_conta_associacao_em_periodos_anteriores(
+                conta_associacao=conta_associacao,
+                acao_associacao=acao_associacao,
+                periodo=periodo,
+                incluir_inativas=True,
+                conferido=False
+            )
+        else:
+            rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
+                conta_associacao=conta_associacao,
+                acao_associacao=acao_associacao,
+                periodo=periodo,
+                incluir_inativas=True,
+            )
+
         despesas_com_rateios = rateios.values_list('despesa__id', flat=True).distinct()
 
         if inclui_inativas:
@@ -1151,9 +1166,9 @@ def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atual
                         uuid=solicitacao_acerto['devolucao_tesouro']['tipo'])
                     solicitacao_encontrada.solicitacao_devolucao_ao_tesouro.tipo = tipo_devolucao_ao_tesouro
                     solicitacao_encontrada.solicitacao_devolucao_ao_tesouro.devolucao_total = \
-                    solicitacao_acerto['devolucao_tesouro']['devolucao_total']
+                        solicitacao_acerto['devolucao_tesouro']['devolucao_total']
                     solicitacao_encontrada.solicitacao_devolucao_ao_tesouro.valor = \
-                    solicitacao_acerto['devolucao_tesouro']['valor']
+                        solicitacao_acerto['devolucao_tesouro']['valor']
                     solicitacao_encontrada.solicitacao_devolucao_ao_tesouro.motivo = solicitacao_acerto['detalhamento']
 
                     solicitacao_encontrada.solicitacao_devolucao_ao_tesouro.save()
@@ -1293,7 +1308,7 @@ def documentos_da_prestacao(analise_prestacao_conta):
                 add_sem_movimento_com_saldo=True)
             for conta in contas_com_movimento:
                 if documento.e_relacao_bens and not analise_prestacao_conta.prestacao_conta.relacoes_de_bens_da_prestacao.filter(
-                    conta_associacao=conta).exists():
+                        conta_associacao=conta).exists():
                     continue
                 documentos.append(result_documento(documento, conta))
         else:
@@ -1548,7 +1563,8 @@ def previa_informacoes_financeiras_para_atas(associacao, periodo):
         # Faz a verificação se a conta deve ser exibida em função da sua data de inicio
         if conta_associacao.conta_criada_no_periodo_ou_periodo_anteriores(periodo=periodo):
 
-            logger.info(f'Get prévia info financeiras por conta para a ata. Associacao:{associacao.uuid} Conta:{conta_associacao}')
+            logger.info(
+                f'Get prévia info financeiras por conta para a ata. Associacao:{associacao.uuid} Conta:{conta_associacao}')
             info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=associacao.uuid,
                                                           periodo=periodo,
                                                           conta=conta_associacao,
@@ -1647,7 +1663,8 @@ class MonitoraPC:
                         )
 
                         # Registrando falha de geracao de pc
-                        registra_falha = FalhaGeracaoPcService(periodo=periodo, usuario=self.usuario, associacao=self.associacao, prestacao_de_contas=pc)
+                        registra_falha = FalhaGeracaoPcService(
+                            periodo=periodo, usuario=self.usuario, associacao=self.associacao, prestacao_de_contas=pc)
                         registra_falha.registra_falha_geracao_pc()
 
                         ultima_analise = pc.analises_da_prestacao.last()
