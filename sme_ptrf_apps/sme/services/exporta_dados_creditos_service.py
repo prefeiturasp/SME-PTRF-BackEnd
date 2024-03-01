@@ -66,13 +66,16 @@ class ExportacoesDadosCreditosService:
         self.data_final = kwargs.get('data_final', None)
         self.nome_arquivo = kwargs.get('nome_arquivo', None)
         self.user = kwargs.get('user', None)
+        self.objeto_arquivo_download = None
 
     def exporta_creditos_principal(self):
+        self.cria_registro_central_download()
         self.cabecalho = CABECALHO_RECEITA[0]
         self.filtra_range_data('data')
         self.exporta_credito_csv()
 
     def exporta_creditos_motivos_estorno(self):
+        self.cria_registro_central_download()
         self.cabecalho = CABECALHO_MOTIVOS_ESTORNO[0]
         self.filtra_range_data('data')
         self.exporta_credito_csv()
@@ -144,26 +147,28 @@ class ExportacoesDadosCreditosService:
                 **{f'{field}__lt': self.data_final}
             )
         return self.queryset
+    
+    def cria_registro_central_download(self): 
+        logger.info(f"Criando registro na central de download")
+        
+        obj = gerar_arquivo_download( 
+            self.user, 
+            self.nome_arquivo ) 
+        self.objeto_arquivo_download = obj
 
     def envia_arquivo_central_download(self, tmp) -> None:
-        logger.info("Gerando arquivo download...")
-        obj_arquivo_download = gerar_arquivo_download(
-            self.user,
-            self.nome_arquivo
-        )
-
         try:
             logger.info("Salvando arquivo download...")
-            obj_arquivo_download.arquivo.save(
-                name=obj_arquivo_download.identificador,
+            self.objeto_arquivo_download.arquivo.save(
+                name=self.objeto_arquivo_download.identificador,
                 content=File(tmp)
             )
-            obj_arquivo_download.status = ArquivoDownload.STATUS_CONCLUIDO
-            obj_arquivo_download.save()
+            self.objeto_arquivo_download.status = ArquivoDownload.STATUS_CONCLUIDO
+            self.objeto_arquivo_download.save()
             logger.info("Arquivo salvo com sucesso...")
 
         except Exception as e:
-            obj_arquivo_download.status = ArquivoDownload.STATUS_ERRO
-            obj_arquivo_download.msg_erro = str(e)
-            obj_arquivo_download.save()
+            self.objeto_arquivo_download.status = ArquivoDownload.STATUS_ERRO
+            self.objeto_arquivo_download.msg_erro = str(e)
+            self.objeto_arquivo_download.save()
             logger.error("Erro arquivo download...")
