@@ -38,7 +38,6 @@ class SaldosBancariosSmeDetalhesAsocciacoesViewSet(mixins.ListModelMixin,
         dre_uuid = request.query_params.get('dre')
         unidade = request.query_params.get('unidade')
         tipo_ue = request.query_params.get('tipo_ue')
-
         if not periodo_uuid:
             erro = {
                 'erro': 'falta_de_informacoes',

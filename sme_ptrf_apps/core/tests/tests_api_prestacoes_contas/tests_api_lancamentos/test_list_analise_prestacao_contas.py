@@ -71,6 +71,7 @@ def test_api_analise_prestacao_contas_list_devolucoes(
                                           'prestacao_conta': f'{analise_prestacao.prestacao_conta.uuid}',
                                           'uuid': f'{analise_prestacao.devolucao_prestacao_conta.uuid}'},
             'id': analise_prestacao.id,
+            'pode_reprocessar_relatorio_apos_acertos': False,
             'prestacao_conta': f'{prestacao_conta.uuid}',
             'status': 'DEVOLVIDA',
             'uuid': f'{analise_prestacao.uuid}',

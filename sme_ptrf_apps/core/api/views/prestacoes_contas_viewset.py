@@ -95,8 +95,11 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         nome = self.request.query_params.get('nome')
         if nome is not None:
-            qs = qs.filter(Q(associacao__nome__unaccent__icontains=nome) | Q(
-                associacao__unidade__nome__unaccent__icontains=nome))
+            qs = qs.filter(
+                Q(associacao__unidade__codigo_eol=nome) |
+                Q(associacao__nome__unaccent__icontains=nome) |
+                Q(associacao__unidade__nome__unaccent__icontains=nome)
+            )
 
         dre_uuid = self.request.query_params.get('associacao__unidade__dre__uuid')
         periodo_uuid = self.request.query_params.get('periodo__uuid')
@@ -1755,6 +1758,16 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(ContaAssociacaoDadosSerializer(contas, many=True).data)
 
+    @action(detail=True, methods=['get'], url_path='contas-com-movimento-despesas-periodos-anteriores',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    def contas_com_movimento_despesas_periodos_anteriores(self, request, uuid):
+        from ..serializers.conta_associacao_serializer import ContaAssociacaoDadosSerializer
+
+        prestacao_conta: PrestacaoConta = self.get_object()
+        contas = prestacao_conta.get_contas_com_movimento_em_periodos_anteriores()
+
+        return Response(ContaAssociacaoDadosSerializer(contas, many=True).data)
+
     @action(detail=True, methods=['post'], url_path='notificar/pendencia_geracao_ata_apresentacao',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def notificar_pendencia_geracao_ata_apresentacao(self, request, uuid):
@@ -1765,3 +1778,41 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             notificar_pendencia_geracao_ata_apresentacao(prestacao_contas)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['get'], url_path="despesas-periodos-anteriores",
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def despesas_periodos_anteriores(self, request, uuid):
+        from sme_ptrf_apps.core.api.serializers.validation_serializers.prestacoes_contas_lancamentos_validate_serializer import PrestacoesContasLancamentosValidateSerializer
+        prestacao_conta = PrestacaoConta.by_uuid(uuid)
+
+        filtro_informacoes = self.request.query_params.get('filtrar_por_informacoes')
+        filtro_informacoes_list = filtro_informacoes.split(',') if filtro_informacoes else []
+
+        filtro_conferencia = self.request.query_params.get('filtrar_por_conferencia')
+        filtro_conferencia_list = filtro_conferencia.split(',') if filtro_conferencia else []
+
+        query = PrestacoesContasLancamentosValidateSerializer(data=self.request.query_params, context={
+                                                              'prestacao_conta': prestacao_conta})
+        query.is_valid(raise_exception=True)
+
+        lancamentos = lancamentos_da_prestacao(
+            analise_prestacao_conta=AnalisePrestacaoConta.by_uuid(self.request.query_params.get('analise_prestacao')),
+            conta_associacao=ContaAssociacao.by_uuid(self.request.query_params.get('conta_associacao')),
+            acao_associacao=AcaoAssociacao.by_uuid(request.query_params.get(
+                'acao_associacao')) if request.query_params.get('acao_associacao') else None,
+            tipo_transacao="GASTOS",
+            apenas_despesas_de_periodos_anteriores=True,
+            ordenar_por_imposto=request.query_params.get('ordenar_por_imposto'),
+            numero_de_documento=request.query_params.get('filtrar_por_numero_de_documento'),
+            tipo_de_documento=TipoDocumento.by_id(request.query_params.get(
+                'filtrar_por_tipo_de_documento')) if request.query_params.get('filtrar_por_tipo_de_documento') else None,
+            tipo_de_pagamento=TipoTransacao.by_id(request.query_params.get(
+                'filtrar_por_tipo_de_pagamento')) if request.query_params.get('filtrar_por_tipo_de_pagamento') else None,
+            filtrar_por_data_inicio=request.query_params.get('filtrar_por_data_inicio'),
+            filtrar_por_data_fim=request.query_params.get('filtrar_por_data_fim'),
+            filtrar_por_nome_fornecedor=request.query_params.get('filtrar_por_nome_fornecedor'),
+            filtro_informacoes_list=filtro_informacoes_list,
+            filtro_conferencia_list=filtro_conferencia_list,
+        )
+
+        return Response(lancamentos, status=status.HTTP_200_OK)

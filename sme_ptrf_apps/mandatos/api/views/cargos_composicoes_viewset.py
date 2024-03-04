@@ -1,5 +1,9 @@
+from datetime import date
 from rest_framework import mixins, status
 from rest_framework.viewsets import GenericViewSet
+from sme_ptrf_apps.core.models.associacao import Associacao
+from sme_ptrf_apps.mandatos.api.serializers.validation_serializers.cargo_composicao_serializer import CargosComposicaoPorDataValidateSerializer
+from sme_ptrf_apps.mandatos.models.ocupante_cargo import OcupanteCargo
 from waffle.mixins import WaffleFlagMixin
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
@@ -10,7 +14,7 @@ from ..serializers import CargoComposicaoSerializer, CargoComposicaoCreateSerial
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ...services.cargo_composicao_service import ServicoCargosDaComposicao, ServicoCargosDaDiretoriaExecutiva
+from ...services.cargo_composicao_service import ServicoCargosDaComposicao, ServicoCargosDaDiretoriaExecutiva, ServicoCargosOcupantesComposicao
 
 
 class CargosComposicoesViewSet(
@@ -59,3 +63,29 @@ class CargosComposicoesViewSet(
 
         return Response(cargos_da_diretoria_executiva, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['get'], url_path='composicao-por-data',
+                permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def ocupantes_e_cargos_da_composicao_por_data(self, request):  
+        associacao_uuid = request.query_params.get('associacao_uuid')
+        data = request.query_params.get('data')
+
+        query = CargosComposicaoPorDataValidateSerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+        
+        associacao = Associacao.objects.get(uuid=associacao_uuid)
+        
+        try:
+            composicao = Composicao.objects.get(
+                associacao=associacao,
+                data_inicial__lte=data,
+                data_final__gte=data
+            )
+        except ValueError:
+            return Response("Composição não encontrada.", status=status.HTTP_400_BAD_REQUEST)
+        
+        servico_cargos_da_composicao = ServicoCargosOcupantesComposicao()
+        
+        ocupantes = servico_cargos_da_composicao.get_ocupantes_ordenados_por_cargo(composicao=composicao)
+        
+
+        return Response(ocupantes, status=status.HTTP_200_OK)

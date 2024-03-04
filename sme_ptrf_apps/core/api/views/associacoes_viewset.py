@@ -62,6 +62,7 @@ from ..serializers.ata_serializer import AtaLookUpSerializer
 from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_geracao_documentos, lancamentos_da_prestacao
 from ....receitas.models import Receita
 from ...choices import FiltroInformacoesAssociacao
+from waffle import flag_is_active
 
 logger = logging.getLogger(__name__)
 
@@ -243,7 +244,7 @@ class AssociacoesViewSet(ModelViewSet):
 
         # TODO código comentado propositalmente em função da história 102412 - Sprint 73 (Conciliação Bancária: Retirar validação e obrigatoriedade de preenchimento dos campos do Saldo bancário da conta ao concluir acerto/período) - que entrou como Hotfix
         # TODO Remover quando implementado solução definitiva
-        pendencias_dados = associacao.pendencias_dados_da_associacao_para_geracao_de_documentos()
+        pendencias_dados = associacao.pendencias_dados_da_associacao()
         pendencias_conciliacao = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(
             periodo)
 
@@ -516,14 +517,19 @@ class AssociacoesViewSet(ModelViewSet):
         contas = list(ContaAssociacao.objects.filter(associacao=associacao).all())
         atualiza_dados_unidade(associacao)
 
+        dados_template = {
+            'associacao': associacao,
+            'contas': contas,
+            'dataAtual': data_atual,
+            'usuarioLogado': usuario_logado
+        }
+
+        if flag_is_active(self.request, "historico-de-membros"):
+            dados_template['dados_presidente'] = associacao.dados_presidente_composicao_vigente()
+
         html_string = render_to_string(
             'pdf/associacoes/exportarpdf/pdf.html',
-            {
-                'associacao': associacao,
-                'contas': contas,
-                'dataAtual': data_atual,
-                'usuarioLogado': usuario_logado
-            },
+            dados_template,
             request=self.request  # Inclua o request aqui
         ).encode(encoding="UTF-8")
 
@@ -801,7 +807,7 @@ class AssociacoesViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def status_cadastro(self, request, uuid=None):
         associacao = self.get_object()
-        response = associacao.pendencias_dados_da_associacao_para_geracao_de_documentos()
+        response = associacao.pendencias_dados_da_associacao()
         return Response(response)
 
     @action(detail=True, url_path='contas-do-periodo', methods=['get'],
