@@ -49,7 +49,7 @@ def test_exporta_credito_csv(receita_queryset, usuario_para_teste):
         nome_arquivo='creditos_motivos_estorno.csv',
         queryset=receita_queryset,
         data_inicio=None,
-        data_fim=None,
+        data_final=None,
         user=usuario_para_teste.username,
     )
     service.cabecalho = [
@@ -58,11 +58,10 @@ def test_exporta_credito_csv(receita_queryset, usuario_para_teste):
         ('Descrição do motivo de estorno', 'motivo')
     ],
     service.cabecalho = service.cabecalho[0]
-    service.exporta_credito_csv()
+    service.exporta_creditos_principal()
 
     assert ArquivoDownload.objects.first().arquivo.name == 'creditos_motivos_estorno.csv'
     assert ArquivoDownload.objects.count() == 1
-
 
 def test_envia_arquivo_central_download(usuario_para_teste):
     with NamedTemporaryFile(
@@ -73,10 +72,12 @@ def test_envia_arquivo_central_download(usuario_para_teste):
         suffix='.txt'
     ) as file:
         file.write("testando central de download")
-    ExportacoesDadosCreditosService(
+    service = ExportacoesDadosCreditosService(
         nome_arquivo='usuario_para_test.txt',
         user=usuario_para_teste.username
-    ).envia_arquivo_central_download(file)
+    )
+    service.cria_registro_central_download()
+    service.envia_arquivo_central_download(file)
 
     assert ArquivoDownload.objects.count() == 1
 
