@@ -418,19 +418,15 @@ class PrestacaoConta(ModeloBase):
         comentarios_de_analise_relacionados_sem_pc.update(prestacao_conta=self, associacao=None, periodo=None)
 
     def get_contas_com_movimento(self, add_sem_movimento_com_saldo=False):
-        from sme_ptrf_apps.core.models import ContaAssociacao, SolicitacaoEncerramentoContaAssociacao
+        from sme_ptrf_apps.core.models import ContaAssociacao
         from sme_ptrf_apps.receitas.models import Receita
         from sme_ptrf_apps.despesas.models import RateioDespesa
         contas = ContaAssociacao.objects.filter(associacao=self.associacao).order_by('id')
 
         contas_com_movimento = []
         for conta in contas:
-            if hasattr(conta, 'solicitacao_encerramento'):
-                if conta.solicitacao_encerramento.status != SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA:
-                    data_encerramento = conta.solicitacao_encerramento.data_de_encerramento_na_agencia
-
-                    if data_encerramento < self.periodo.data_inicio_realizacao_despesas:
-                        continue
+            if conta.data_encerramento and (conta.data_encerramento < self.periodo.data_inicio_realizacao_despesas):
+                continue
 
             tem_receitas_no_periodo = Receita.receitas_da_conta_associacao_no_periodo(
                 conta_associacao=conta,
@@ -452,6 +448,29 @@ class PrestacaoConta(ModeloBase):
                 tem_saldo_no_periodo = False
 
             if tem_receitas_no_periodo or tem_gastos_no_periodo or tem_saldo_no_periodo:
+                contas_com_movimento.append(conta)
+
+        return contas_com_movimento
+
+    def get_contas_com_movimento_em_periodos_anteriores(self):
+        from sme_ptrf_apps.core.models import ContaAssociacao
+        from sme_ptrf_apps.despesas.models import RateioDespesa
+
+        contas = ContaAssociacao.objects.filter(associacao=self.associacao).order_by('id')
+
+        contas_com_movimento = []
+        for conta in contas:
+            if conta.data_encerramento and (conta.data_encerramento < self.periodo.data_inicio_realizacao_despesas):
+                continue
+
+            tem_gastos_periodos_anteriores = RateioDespesa.rateios_da_conta_associacao_em_periodos_anteriores(
+                conta_associacao=conta,
+                periodo=self.periodo,
+                incluir_inativas=True,
+                conferido=False
+            )
+
+            if tem_gastos_periodos_anteriores:
                 contas_com_movimento.append(conta)
 
         return contas_com_movimento

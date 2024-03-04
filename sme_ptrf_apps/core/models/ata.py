@@ -11,6 +11,7 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+from waffle import get_waffle_flag_model
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +105,19 @@ class Ata(ModeloBase):
     periodo = models.ForeignKey('Periodo', on_delete=models.PROTECT, related_name='+')
 
     associacao = models.ForeignKey('Associacao', on_delete=models.PROTECT, related_name='atas_da_associacao')
+    
+    composicao = models.ForeignKey(
+        'mandatos.Composicao',
+        on_delete=models.PROTECT,
+        verbose_name="Composição utilizada",
+        related_name='atas_da_composicao',
+        blank=True,
+        null=True
+    )
+    
+    presidente_da_reuniao = models.ForeignKey('Participante', on_delete=models.SET_NULL, related_name='presidente_participante_ata', blank=True, null=True)
+    
+    secretario_da_reuniao = models.ForeignKey('Participante', on_delete=models.SET_NULL, related_name='secretario_participante_ata', blank=True, null=True)
 
     tipo_ata = models.CharField(
         'tipo de ata',
@@ -177,30 +191,48 @@ class Ata(ModeloBase):
     @property
     def completa(self):
         from sme_ptrf_apps.core.services.associacoes_service import tem_repasses_pendentes_periodos_ate_agora
+        
+        flags = get_waffle_flag_model()
+        if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+            esta_completa = (
+                self.tipo_ata and
+                self.tipo_reuniao and
+                self.convocacao and
+                self.data_reuniao and
+                self.local_reuniao and
+                self.presidente_da_reuniao and
+                self.secretario_da_reuniao and
+                self.hora_reuniao
+            )
 
-        esta_completa = (
-            self.tipo_ata and
-            self.tipo_reuniao and
-            self.convocacao and
-            self.data_reuniao and
-            self.local_reuniao and
-            self.presidente_reuniao and
-            self.cargo_presidente_reuniao and
-            self.secretario_reuniao and
-            self.cargo_secretaria_reuniao and
-            self.hora_reuniao
-        )
+            if tem_repasses_pendentes_periodos_ate_agora(associacao=self.associacao, periodo=self.periodo):
+                esta_completa = esta_completa and self.justificativa_repasses_pendentes
 
-        if tem_repasses_pendentes_periodos_ate_agora(associacao=self.associacao, periodo=self.periodo):
-            esta_completa = esta_completa and self.justificativa_repasses_pendentes
+            return esta_completa
+        else:
+            esta_completa = (
+                self.tipo_ata and
+                self.tipo_reuniao and
+                self.convocacao and
+                self.data_reuniao and
+                self.local_reuniao and
+                self.presidente_reuniao and
+                self.cargo_presidente_reuniao and
+                self.secretario_reuniao and
+                self.cargo_secretaria_reuniao and
+                self.hora_reuniao
+            )
 
-        presidente_presente = self.presentes_na_ata.filter(nome=self.presidente_reuniao).exists()
-        esta_completa = esta_completa and presidente_presente
+            if tem_repasses_pendentes_periodos_ate_agora(associacao=self.associacao, periodo=self.periodo):
+                esta_completa = esta_completa and self.justificativa_repasses_pendentes
 
-        secretario_presente = self.presentes_na_ata.filter(nome=self.secretario_reuniao).exists()
-        esta_completa = esta_completa and secretario_presente
+            presidente_presente = self.presentes_na_ata.filter(nome=self.presidente_reuniao).exists()
+            esta_completa = esta_completa and presidente_presente
 
-        return esta_completa
+            secretario_presente = self.presentes_na_ata.filter(nome=self.secretario_reuniao).exists()
+            esta_completa = esta_completa and secretario_presente
+    
+            return esta_completa
 
     @classmethod
     def iniciar(cls, prestacao_conta, retificacao=False):

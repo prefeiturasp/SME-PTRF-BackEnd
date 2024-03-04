@@ -42,7 +42,8 @@ def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, per
             'dados_associacao': {
                 'pendencia_cadastro': False,
                 'pendencia_contas': False,
-                'pendencia_membros': True
+                'pendencia_membros': True,
+                'pendencia_novo_mandato': False
             }
         },
         'tem_conta_encerrada_com_saldo': False,
@@ -83,7 +84,8 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
             'dados_associacao': {
                 'pendencia_cadastro': False,
                 'pendencia_contas': False,
-                'pendencia_membros': True
+                'pendencia_membros': True,
+                'pendencia_novo_mandato': False
             }
         },
         'tem_conta_encerrada_com_saldo': False,
@@ -127,7 +129,8 @@ def test_chamada_data_sem_periodo(jwt_authenticated_client_a, associacao, period
             'dados_associacao': {
                 'pendencia_cadastro': False,
                 'pendencia_contas': False,
-                'pendencia_membros': True
+                'pendencia_membros': True,
+                'pendencia_novo_mandato': False
             }
         },
         'tem_conta_encerrada_com_saldo': False,
@@ -170,7 +173,8 @@ def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prest
             'dados_associacao': {
                 'pendencia_cadastro': False,
                 'pendencia_contas': False,
-                'pendencia_membros': True
+                'pendencia_membros': True,
+                'pendencia_novo_mandato': False
             }
         },
         'tem_conta_encerrada_com_saldo': False,
@@ -227,7 +231,8 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
             'dados_associacao': {
                 'pendencia_cadastro': False,
                 'pendencia_contas': False,
-                'pendencia_membros': True
+                'pendencia_membros': True,
+                'pendencia_novo_mandato': False
             }
         },
         'tem_conta_encerrada_com_saldo': False,
@@ -259,7 +264,8 @@ def test_status_periodo_pendencias_cadastrais_com_contas_pendentes(
         'dados_associacao': {
             'pendencia_cadastro': False,
             'pendencia_contas': False,
-            'pendencia_membros': True
+            'pendencia_membros': True,
+            'pendencia_novo_mandato': False
         }
     }
 
@@ -289,7 +295,8 @@ def test_status_periodo_pendencias_cadastrais_somente_uma_conta_pendente(
         'dados_associacao': {
             'pendencia_cadastro': False,
             'pendencia_contas': False,
-            'pendencia_membros': True
+            'pendencia_membros': True,
+            'pendencia_novo_mandato': False
         }
     }
 
@@ -312,7 +319,8 @@ def test_status_periodo_pendencias_cadastrais_sem_contas_pendentes(
         'dados_associacao': {
             'pendencia_cadastro': False,
             'pendencia_contas': False,
-            'pendencia_membros': True
+            'pendencia_membros': True,
+            'pendencia_novo_mandato': False
         }
     }
 
@@ -335,7 +343,8 @@ def test_status_periodo_pendencias_cadastrais_somente_dados_associacao_com_pende
         'dados_associacao': {
             'pendencia_cadastro': True,
             'pendencia_contas': False,
-            'pendencia_membros': True
+            'pendencia_membros': True,
+            'pendencia_novo_mandato': False
         }
     }
 
@@ -361,6 +370,7 @@ def test_status_periodo_todas_as_pendencias_cadastrais(
             'pendencia_cadastro': True,
             'pendencia_membros': True,
             'pendencia_contas': True,
+            'pendencia_novo_mandato': False
         },
         'conciliacao_bancaria': None,
         # 'conciliacao_bancaria': {

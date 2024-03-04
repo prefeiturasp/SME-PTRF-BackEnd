@@ -92,11 +92,10 @@ def test_dash_board(prestacao_conta1, prestacao_conta2, periodo, dre):
     assert esperado == prestacao_conta1.dashboard(periodo.uuid, dre.uuid)
 
 
-def test_dashboard_deve_desconsiderar_associacoes_nao_iniciadas_parametro_ativo(
+def test_dashboard_deve_desconsiderar_associacoes_nao_iniciadas(
     associacao_iniciada_2020_1,
     associacao_iniciada_2020_2,
     periodo_2020_2,
-    parametros_desconsidera_nao_iniciadas,
 ):
     result = PrestacaoConta.dashboard(
         periodo_2020_2.uuid,
@@ -106,23 +105,6 @@ def test_dashboard_deve_desconsiderar_associacoes_nao_iniciadas_parametro_ativo(
     # Quantidade de prestações deve ser 1, pois a associacao iniciada em 2020_2 nao deve ser considerada
     assert result[0]['titulo'] == 'Prestações de contas não recebidas'
     assert result[0]['quantidade_prestacoes'] == 1
-
-
-def test_dashboard_deve_desconsiderar_associacoes_nao_iniciadas_parametro_inativo(
-    associacao_iniciada_2020_1,
-    associacao_iniciada_2020_2,
-    periodo_2020_2,
-    parametros_nao_desconsidera_nao_iniciadas,
-):
-    result = PrestacaoConta.dashboard(
-        periodo_2020_2.uuid,
-        associacao_iniciada_2020_1.unidade.dre.uuid,
-    )
-
-    # Quantidade de prestações deve ser 2, pois o parâmetro de desconsiderar associacoes nao iniciadas esta inativo
-    assert result[0]['titulo'] == 'Prestações de contas não recebidas'
-    assert result[0]['quantidade_prestacoes'] == 2
-
 
 
 def test_dashboard_deve_desconsiderar_associacoes_encerradas(
