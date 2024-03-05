@@ -88,9 +88,9 @@ class RateioDespesa(ModeloBase):
 
     def cadastro_completo(self):
         completo = self.conta_associacao and \
-                   self.acao_associacao and \
-                   self.aplicacao_recurso and \
-                   self.valor_rateio
+            self.acao_associacao and \
+            self.aplicacao_recurso and \
+            self.valor_rateio
         if completo and not self.saida_de_recurso_externo and not self.eh_despesa_sem_comprovacao_fiscal:
             completo = completo and self.especificacao_material_servico
 
@@ -101,12 +101,12 @@ class RateioDespesa(ModeloBase):
         elif completo and self.aplicacao_recurso == APLICACAO_CAPITAL:
             if not self.eh_despesa_sem_comprovacao_fiscal:
                 completo = completo and \
-                           self.quantidade_itens_capital > 0 and \
-                           self.valor_item_capital > 0 and self.numero_processo_incorporacao_capital
+                    self.quantidade_itens_capital > 0 and \
+                    self.valor_item_capital > 0 and self.numero_processo_incorporacao_capital
             else:
                 completo = completo and \
-                           self.quantidade_itens_capital > 0 and \
-                           self.valor_item_capital > 0
+                    self.quantidade_itens_capital > 0 and \
+                    self.valor_item_capital > 0
 
         return completo
 
@@ -250,10 +250,11 @@ class RateioDespesa(ModeloBase):
 
     @classmethod
     def rateios_da_conta_associacao_em_periodos_anteriores(cls, conta_associacao, periodo, conferido=None,
-                                                           exclude_despesa=None, aplicacao_recurso=None):
+                                                           exclude_despesa=None, aplicacao_recurso=None, acao_associacao=None, incluir_inativas=False):
 
-        dataset = cls.completos.filter(conta_associacao=conta_associacao).filter(
-            despesa__data_transacao__lte=periodo.data_inicio_realizacao_despesas)
+        dataset = cls.objects.exclude(status=STATUS_INCOMPLETO) if incluir_inativas else cls.completos
+
+        dataset = dataset.filter(despesa__data_transacao__lte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
             if conferido:
@@ -266,6 +267,12 @@ class RateioDespesa(ModeloBase):
 
         if aplicacao_recurso:
             dataset = dataset.filter(aplicacao_recurso=aplicacao_recurso)
+
+        if acao_associacao:
+            dataset = dataset.filter(acao_associacao=acao_associacao)
+
+        if conta_associacao:
+            dataset = dataset.filter(conta_associacao=conta_associacao)
 
         return dataset.all()
 

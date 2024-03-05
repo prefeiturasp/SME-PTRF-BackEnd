@@ -5,6 +5,7 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 from openpyxl import load_workbook
 
 from ..choices.membro_associacao import RepresentacaoCargo
+from waffle import get_waffle_flag_model
 
 LOGGER = logging.getLogger(__name__)
 
@@ -61,8 +62,15 @@ def gerar_planilha(associacao):
     nome_arquivo = os.path.join(path, 'modelo_exportacao_associacao.xlsx')
     workbook = load_workbook(nome_arquivo)
 
+    flags = get_waffle_flag_model()
+
     dados_basicos(workbook, associacao)
-    membros(workbook, associacao)
+
+    if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+        membros_v2(workbook, associacao)
+    else:
+        membros(workbook, associacao)
+
     contas(workbook, associacao)
 
     return workbook
@@ -90,6 +98,52 @@ def membros(workbook, associacao):
         rows[linha][RF_EOL].value = membro.codigo_identificacao
         rows[linha][CARGO_EDUCACAO].value = membro.cargo_educacao
         rows[linha][EMAIL_MEMBRO].value = membro.email
+
+
+def membros_v2(workbook, associacao):
+    from sme_ptrf_apps.mandatos.services import ServicoMandatoVigente
+    from sme_ptrf_apps.mandatos.services import ServicoComposicaoVigente, ServicoCargosDaComposicao
+
+    servico_mandato_vigente = ServicoMandatoVigente()
+    mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+    servico_composicao_vigente = ServicoComposicaoVigente(associacao=associacao, mandato=mandato_vigente)
+    composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
+
+    servico_cargos_da_composicao = ServicoCargosDaComposicao(composicao=composicao_vigente)
+    cargos_da_composicao = servico_cargos_da_composicao.get_cargos_da_composicao_ordenado_por_cargo_associacao()
+
+    membros_da_composicao = []
+
+    for cargo in cargos_da_composicao['diretoria_executiva']:
+        membros_da_composicao.append({
+            "cargo_associacao": cargo['cargo_associacao'],
+            "nome": cargo["ocupante_do_cargo"]["nome"],
+            "representacao": cargo["ocupante_do_cargo"]["representacao"],
+            "codigo_identificacao": cargo["ocupante_do_cargo"]["codigo_identificacao"],
+            "cargo_educacao": cargo["ocupante_do_cargo"]["cargo_educacao"],
+            "email": cargo["ocupante_do_cargo"]["email"]
+        })
+
+    for cargo in cargos_da_composicao['conselho_fiscal']:
+        membros_da_composicao.append({
+            "cargo_associacao": cargo['cargo_associacao'],
+            "nome": cargo["ocupante_do_cargo"]["nome"],
+            "representacao": cargo["ocupante_do_cargo"]["representacao"],
+            "codigo_identificacao": cargo["ocupante_do_cargo"]["codigo_identificacao"],
+            "cargo_educacao": cargo["ocupante_do_cargo"]["cargo_educacao"],
+            "email": cargo["ocupante_do_cargo"]["email"]
+        })
+
+    worksheet = workbook.worksheets[MEMBROS]
+    rows = list(worksheet.rows)
+    for membro_composicao in membros_da_composicao:
+        linha = CARGOS[membro_composicao["cargo_associacao"]]
+        rows[linha][NOME_MEMBRO].value = membro_composicao["nome"]
+        rows[linha][REPRESENTACAO].value = RepresentacaoCargo[membro_composicao["representacao"]].value if membro_composicao["representacao"] else ''
+        rows[linha][RF_EOL].value = membro_composicao["codigo_identificacao"]
+        rows[linha][CARGO_EDUCACAO].value = membro_composicao["cargo_educacao"]
+        rows[linha][EMAIL_MEMBRO].value = membro_composicao["email"]
 
 
 def contas(workbook, associacao):
