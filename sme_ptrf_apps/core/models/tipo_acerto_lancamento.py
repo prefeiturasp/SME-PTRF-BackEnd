@@ -47,9 +47,16 @@ class TipoAcertoLancamento(ModeloIdNome):
     ativo = models.BooleanField('Ativo', default=True)
 
     @classmethod
-    def agrupado_por_categoria(cls):
+    def agrupado_por_categoria(cls, aplicavel_despesas_periodos_anteriores=False):
         from sme_ptrf_apps.core.services import TipoAcertoLancamentoService
-        return TipoAcertoLancamentoService.agrupado_por_categoria(cls.CATEGORIA_CHOICES)
+        if aplicavel_despesas_periodos_anteriores:
+            FILTERED_CATEGORIA_CHOICES = (
+                (cls.CATEGORIA_CONCILIACAO_LANCAMENTO, cls.CATEGORIA_NOMES[cls.CATEGORIA_CONCILIACAO_LANCAMENTO]),
+                (cls.CATEGORIA_DESCONCILIACAO_LANCAMENTO, cls.CATEGORIA_NOMES[cls.CATEGORIA_DESCONCILIACAO_LANCAMENTO]),
+            )
+            return TipoAcertoLancamentoService.agrupado_por_categoria(FILTERED_CATEGORIA_CHOICES)
+        else:
+            return TipoAcertoLancamentoService.agrupado_por_categoria(cls.CATEGORIA_CHOICES)
 
     @classmethod
     def categorias(cls):
