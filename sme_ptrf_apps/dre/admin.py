@@ -167,7 +167,9 @@ class ListaFaq(admin.ModelAdmin):
 @admin.register(Atribuicao)
 class AtribuicaoAdmin(admin.ModelAdmin):
     list_display = ('codigo_eol_unidade', 'nome_unidade', 'nome_tecnico', 'periodo')
-
+    list_filter = ('unidade__dre', 'periodo')
+    search_fields = ('unidade__codigo_eol','unidade__nome', 'tecnico__nome', 'tecnico__rf')
+    raw_id_fields = ('tecnico', 'unidade')
     def nome_tecnico(self, obj):
         return obj.tecnico.nome if obj.tecnico else ''
 
@@ -351,6 +353,9 @@ class AtaParecerTecnicoAdmin(admin.ModelAdmin):
 @admin.register(PresenteAtaDre)
 class PresentesAtaDreAdmin(admin.ModelAdmin):
     list_display = ('rf', 'nome', 'cargo', 'ata')
+    list_filter = ['ata__dre', 'ata__periodo']
+    search_fields = ['rf', 'nome', 'ata__dre__nome']
+    raw_id_fields = ['ata']
     readonly_fields = ('uuid', 'id')
 
 
