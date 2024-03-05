@@ -146,6 +146,10 @@ def get_id_linha(str_id_linha):
         raise ValueError(f"Não foi possível converter '{str_id}' em um valor inteiro.")
 
 
+def associacao_periodo_tem_pc(associacao, periodo):
+    return associacao.prestacoes_de_conta_da_associacao.filter(periodo=periodo).exists()
+
+
 def processa_repasse(reader, tipo_conta, arquivo):
     logs = ""
     importados = 0
@@ -184,6 +188,10 @@ def processa_repasse(reader, tipo_conta, arquivo):
                 msg_erro = f'O período informado é anterior ao período inicial da associação. Linha ID:{id_linha}'
                 raise Exception(msg_erro)
 
+            if associacao_periodo_tem_pc(associacao, periodo):
+                msg_erro = f'A associação {associacao.unidade.codigo_eol} já possui PC gerada no período {periodo.referencia}.'
+                raise Exception(msg_erro)
+
             valor_capital = get_valor(row[VALOR_CAPITAL])
             valor_custeio = get_valor(row[VALOR_CUSTEIO])
             valor_livre = get_valor(row[VALOR_LIVRE])
@@ -213,11 +221,11 @@ def processa_repasse(reader, tipo_conta, arquivo):
                 if start < conta_associacao.data_inicio:
                     msg_erro = f"O período informado de repasse é anterior ao período de criação da conta."
                     raise Exception(msg_erro)
-                
+
                 if hasattr(conta_associacao, 'solicitacao_encerramento') and conta_associacao.solicitacao_encerramento.aprovada:
                     msg_erro = "A conta possui pedido de encerramento aprovado pela DRE."
                     raise Exception(msg_erro)
-                
+
             if valor_capital > 0 or valor_custeio > 0 or valor_livre > 0:
                 repasse = Repasse.objects.create(
                     associacao=associacao,
@@ -305,8 +313,8 @@ def processa_repasse(reader, tipo_conta, arquivo):
     else:
         arquivo.status = SUCESSO
 
-    logs = f"{logs}\nForam criados {importados} repasses. Erro na importação de {erros} repasses."
-    logger.info(f'Foram criados {importados} repasses. Erro na importação de {erros} repasses.')
+    logs = f"{logs}\nForam criados {importados} repasses. Erro na importação de {erros} repasse(s)."
+    logger.info(f'Foram criados {importados} repasses. Erro na importação de {erros} repasse(s).')
 
     arquivo.log = logs
     arquivo.save()
