@@ -353,6 +353,9 @@ class AtaParecerTecnicoAdmin(admin.ModelAdmin):
 @admin.register(PresenteAtaDre)
 class PresentesAtaDreAdmin(admin.ModelAdmin):
     list_display = ('rf', 'nome', 'cargo', 'ata')
+    list_filter = ['ata__dre', 'ata__periodo']
+    search_fields = ['rf', 'nome', 'ata__dre__nome']
+    raw_id_fields = ['ata']
     readonly_fields = ('uuid', 'id')
 
 
