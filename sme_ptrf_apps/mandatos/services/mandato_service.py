@@ -33,3 +33,19 @@ class ServicoMandato:
                 return Mandato.objects.all().exclude(uuid=mandato_mais_recente.uuid).latest('data_inicial')
             except Mandato.DoesNotExist:
                 return None
+
+    def retorna_se_mandato_vigente_tem_pendencia(self, associacao):
+        from ..models import CargoComposicao
+
+        servico_mandato_vigente = ServicoMandatoVigente()
+        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+        if not mandato_vigente:
+            return False
+
+        cargos = CargoComposicao.objects.filter(composicao__mandato=mandato_vigente,
+                                                composicao__associacao=associacao)
+        if cargos.exists():
+            return False
+
+        return True

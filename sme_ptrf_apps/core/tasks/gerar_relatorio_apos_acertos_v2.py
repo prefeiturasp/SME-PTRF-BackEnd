@@ -2,6 +2,7 @@ from celery import shared_task, current_task
 from celery.exceptions import MaxRetriesExceededError
 
 from sme_ptrf_apps.core.models.tasks_celery import TaskCelery
+from sme_ptrf_apps.core.models.analise_prestacao_conta import AnalisePrestacaoConta
 from sme_ptrf_apps.core.services.prestacao_conta_service import PrestacaoContaService
 from sme_ptrf_apps.logging.loggers import ContextualLogger
 
@@ -18,7 +19,14 @@ MAX_RETRIES = 3
     time_limit=600,
     soft_time_limit=300
 )
-def gerar_relatorio_apos_acertos_v2_async(self, id_task, associacao_uuid, periodo_uuid, username=""):
+def gerar_relatorio_apos_acertos_v2_async(
+    self,
+    id_task,
+    associacao_uuid,
+    periodo_uuid,
+    username="",
+    analise_pc_uuid=None
+):
     """
     Task para gerar o relatório após acertos da prestação de contas.
     Versão 2: Para rodar com o novo processo de PC.
@@ -52,14 +60,29 @@ def gerar_relatorio_apos_acertos_v2_async(self, id_task, associacao_uuid, period
 
         logger_rel_pos_acerto.info(f'Iniciando a geração relatório após acertos da associacao.')
 
-        ultima_analise_pc = pc_service.prestacao.analises_da_prestacao.order_by('id').last()
-        if not ultima_analise_pc:
-            raise Exception('Não foi possível encontrar a última análise da prestação de conta.')
+        if analise_pc_uuid:
+            """
+                Em casos de regeração do PDF, a analise pc uuid sera passada como parametro
+            """
 
-        logger_rel_pos_acerto.info(f'Análise da prestação de conta: {ultima_analise_pc}')
+            analise_prestacao_conta = AnalisePrestacaoConta.by_uuid(uuid=analise_pc_uuid)
+        else:
+            """
+                Em casos de geração do PDF pelo fluxo normal, sera pego a ultima analise da PC
+            """
+
+            analise_prestacao_conta = pc_service.prestacao.analises_da_prestacao.order_by('id').last()
+
+        if not analise_prestacao_conta:
+            raise Exception('Não foi possível encontrar a análise da prestação de conta.')
+
+        logger_rel_pos_acerto.info(f'Análise da prestação de conta: {analise_prestacao_conta}')
 
         logger_rel_pos_acerto.info(f'Criando o relatório após acertos.')
-        criar_relatorio_apos_acertos_final(analise_prestacao_conta=ultima_analise_pc, usuario=pc_service.usuario.name)
+        criar_relatorio_apos_acertos_final(
+            analise_prestacao_conta=analise_prestacao_conta,
+            usuario=pc_service.usuario.name
+        )
         logger_rel_pos_acerto.info(f'Relatório após acertos criado com sucesso.')
 
         task.registra_data_hora_finalizacao(f'Finalizada com sucesso a geração do relatório após acertos.')

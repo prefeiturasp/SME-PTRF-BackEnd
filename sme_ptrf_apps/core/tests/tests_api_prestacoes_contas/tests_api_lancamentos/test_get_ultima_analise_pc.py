@@ -56,6 +56,7 @@ def test_get_ultima_analise_pc(jwt_authenticated_client_a, analise_prestacao_con
     result_esperado = {
             'uuid': f'{result["uuid"]}',
             'id': result["id"],
+            'pode_reprocessar_relatorio_apos_acertos': False,
             'prestacao_conta': f'{prestacao_conta.uuid}',
             'devolucao_prestacao_conta': {
                 'uuid': f'{analise_prestacao.devolucao_prestacao_conta.uuid}',

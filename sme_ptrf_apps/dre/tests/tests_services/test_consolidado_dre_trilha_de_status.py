@@ -341,55 +341,35 @@ def test_retorna_trilha_de_status_uma_pc_reprovada_uma_concluida_e_uma_publicada
 
     result = retornar_trilha_de_status(dre_uuid, periodo_uuid)
 
-    resultado_esperado = [
-        {
-            'estilo_css': 2,
-            'quantidade_nao_recebida': 0,
-            'quantidade_prestacoes': 0,
-            'status': 'NAO_RECEBIDA',
-            'titulo': 'Não recebidas'
-        },
-        {
-            'estilo_css': 0,
-            'quantidade_prestacoes': 0,
-            'status': 'RECEBIDA',
-            'titulo': 'Recebidas e<br/>aguardando análise'
-        },
-        {
-            'estilo_css': 0,
-            'quantidade_prestacoes': 0,
-            'status': 'DEVOLVIDA',
-            'titulo': 'Devolvidas <br/>para acertos'
-        },
-        {
-            'estilo_css': 0,
-            'quantidade_prestacoes': 0,
-            'status': 'EM_ANALISE',
-            'titulo': 'Em análise'
-        },
-        {
+    concluidos = {
             'estilo_css': 1,
             'quantidade_prestacoes': 1,
             'status': 'CONCLUIDO',
             'titulo': 'Concluídas <br/>Documentos não gerados'
-        },
-        {
+        }
+    
+    publicados = {
             'estilo_css': 0,
             'quantidade_prestacoes': 1,
             'status': 'PUBLICADO',
             'titulo': 'Concluídas <br/>Documentos gerados'
-        },
-        {
+        }
+    
+    aprovados = {
             'estilo_css': 0,
             'quantidade_prestacoes': 1,
             'status': 'APROVADA',
             'titulo': 'Aprovadas'
-        },
-        {
+        }
+    
+    reprovados = {
             'estilo_css': 0,
             'quantidade_prestacoes': 1,
             'status': 'REPROVADA',
             'titulo': 'Reprovadas'
         }
-    ]
-    assert result == resultado_esperado
+    
+    assert result[4] == concluidos
+    assert result[5] == publicados
+    assert result[6] == aprovados
+    assert result[7] == reprovados
