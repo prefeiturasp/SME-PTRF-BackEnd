@@ -69,10 +69,10 @@ class GruposViewSet(mixins.ListModelMixin, GenericViewSet):
 
         query = GruposDisponiveisPorAcessoVisaoSerializer(data=request.query_params)
         query.is_valid(raise_exception=True)
-        
+
         unidade_uuid = request.query_params.get('uuid_unidade')
         unidade = 'SME' if unidade_uuid == 'SME' else Unidade.objects.get(uuid=unidade_uuid)
-        
+
         qs = self.queryset
         qs = qs.exclude(visoes=None)
 
@@ -120,7 +120,7 @@ class GruposViewSet(mixins.ListModelMixin, GenericViewSet):
         usuario.habilita_grupo_acesso(group_id=grupo.id)
 
         response = {
-            "mensagem": "Grupo de acesso habilitado para o usuario."
+            "mensagem": "Grupo de acesso habilitado para o usuário."
         }
 
         return Response(response, status=status.HTTP_200_OK)
@@ -138,7 +138,7 @@ class GruposViewSet(mixins.ListModelMixin, GenericViewSet):
         usuario.desabilita_grupo_acesso(group_id=grupo.id)
 
         response = {
-            "mensagem": "Grupo de acesso desabiltiado para o usuario."
+            "mensagem": "Grupo de acesso desabilitado para o usuário."
         }
 
         return Response(response, status=status.HTTP_200_OK)
