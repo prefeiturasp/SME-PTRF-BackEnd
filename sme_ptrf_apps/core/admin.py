@@ -57,7 +57,8 @@ from .models import (
     DadosDemonstrativoFinanceiro,
     ItemResumoPorAcao,
     ItemCredito,
-    ItemDespesa
+    ItemDespesa,
+    PrestacaoContaReprovadaNaoApresentacao
 )
 
 from django.db.models import Count
@@ -75,10 +76,17 @@ class AcaoAdmin(admin.ModelAdmin):
 
 @admin.register(SolicitacaoEncerramentoContaAssociacao)
 class SolicitacaoEncerramentoContaAssociacaoAdmin(admin.ModelAdmin):
+    def get_codigo_eol(self, obj):
+        return obj.conta_associacao.associacao.unidade.codigo_eol if obj and obj.conta_associacao and obj.conta_associacao.associacao and obj.conta_associacao.associacao.unidade else ''
+
+    get_codigo_eol.short_description = 'EOL'
+    
     raw_id_fields = ('conta_associacao',)
     list_filter = (
         ('data_de_encerramento_na_agencia', DateRangeFilter),
+        ('conta_associacao__associacao__unidade__dre'),
     )
+    list_display = ('__str__', 'get_codigo_eol')
     search_fields = ('uuid', 'conta_associacao__uuid', 'conta_associacao__associacao__unidade__codigo_eol',
                      'conta_associacao__associacao__unidade__nome', 'conta_associacao__associacao__nome')
 
@@ -1633,7 +1641,8 @@ class DadosDemonstrativoFinanceiroAdmin(admin.ModelAdmin):
     list_filter = (
         'demonstrativo__conta_associacao__tipo_conta',
         'demonstrativo__prestacao_conta__periodo',
-        'demonstrativo__periodo_previa'
+        'demonstrativo__periodo_previa',
+        'demonstrativo__conta_associacao__associacao__unidade__dre'
     )
 
     search_fields = [
@@ -1710,3 +1719,42 @@ class DadosDemonstrativoFinanceiroAdmin(admin.ModelAdmin):
     inlines = [ItemResumoPorAcaoInLine, ItemCreditoInLine, ItemDespesaInLine]
     raw_id_fields = ('demonstrativo', )
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+
+@admin.register(PrestacaoContaReprovadaNaoApresentacao)
+class PrestacaoContaReprovadaNaoApresentacaoAdmin(admin.ModelAdmin):
+
+    def get_eol_unidade(self, obj):
+        return obj.associacao.unidade.codigo_eol if obj and obj.associacao and obj.associacao.unidade else ''
+
+    get_eol_unidade.short_description = 'EOL'
+
+    def get_nome_unidade(self, obj):
+        return obj.associacao.unidade.nome if obj and obj.associacao and obj.associacao.unidade else ''
+
+    get_nome_unidade.short_description = 'Unidade Educacional'
+
+    def get_periodo_referencia(self, obj):
+        return obj.periodo.referencia if obj.periodo else ""
+
+    get_periodo_referencia.short_description = 'Período'
+
+    list_display = (
+        'get_eol_unidade',
+        'get_nome_unidade',
+        'associacao',
+        'get_periodo_referencia',
+        'data_de_reprovacao',
+    )
+
+    list_filter = (
+        'associacao__unidade__dre',
+        'associacao',
+        'periodo',
+        'associacao__unidade__tipo_unidade'
+    )
+
+    list_display_links = ('get_nome_unidade',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
+    raw_id_fields = ('periodo', 'associacao',)

@@ -43,6 +43,7 @@ from sme_ptrf_apps.core.fixtures.factories.membro_associacao_factory import Memb
 from sme_ptrf_apps.users.fixtures.factories.acesso_concedido_sme_factory import AcessoConcedidoSmeFactory
 from sme_ptrf_apps.mandatos.fixtures.factories.mandato_factory import MandatoFactory
 from sme_ptrf_apps.mandatos.fixtures.factories.composicao_factory import ComposicaoFactory
+from sme_ptrf_apps.core.fixtures.factories.prestacao_conta_reprovada_nao_apresentacao_factory import PrestacaoContaReprovadaNaoApresentacaoFactory
 from sme_ptrf_apps.core.fixtures.factories.tipo_acerto_lancamento_factory import TipoAcertoLancamentoFactory
 
 from sme_ptrf_apps.fixtures import *
@@ -70,6 +71,7 @@ register(MembroAssociacaoFactory)
 register(AcessoConcedidoSmeFactory)
 register(MandatoFactory)
 register(ComposicaoFactory)
+register(PrestacaoContaReprovadaNaoApresentacaoFactory)
 register(TipoAcertoLancamentoFactory)
 
 
