@@ -76,10 +76,17 @@ class AcaoAdmin(admin.ModelAdmin):
 
 @admin.register(SolicitacaoEncerramentoContaAssociacao)
 class SolicitacaoEncerramentoContaAssociacaoAdmin(admin.ModelAdmin):
+    def get_codigo_eol(self, obj):
+        return obj.conta_associacao.associacao.unidade.codigo_eol if obj and obj.conta_associacao and obj.conta_associacao.associacao and obj.conta_associacao.associacao.unidade else ''
+
+    get_codigo_eol.short_description = 'EOL'
+    
     raw_id_fields = ('conta_associacao',)
     list_filter = (
         ('data_de_encerramento_na_agencia', DateRangeFilter),
+        ('conta_associacao__associacao__unidade__dre'),
     )
+    list_display = ('__str__', 'get_codigo_eol')
     search_fields = ('uuid', 'conta_associacao__uuid', 'conta_associacao__associacao__unidade__codigo_eol',
                      'conta_associacao__associacao__unidade__nome', 'conta_associacao__associacao__nome')
 
@@ -1634,7 +1641,8 @@ class DadosDemonstrativoFinanceiroAdmin(admin.ModelAdmin):
     list_filter = (
         'demonstrativo__conta_associacao__tipo_conta',
         'demonstrativo__prestacao_conta__periodo',
-        'demonstrativo__periodo_previa'
+        'demonstrativo__periodo_previa',
+        'demonstrativo__conta_associacao__associacao__unidade__dre'
     )
 
     search_fields = [

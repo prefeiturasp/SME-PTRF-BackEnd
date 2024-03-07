@@ -44,6 +44,7 @@ from sme_ptrf_apps.users.fixtures.factories.acesso_concedido_sme_factory import 
 from sme_ptrf_apps.mandatos.fixtures.factories.mandato_factory import MandatoFactory
 from sme_ptrf_apps.mandatos.fixtures.factories.composicao_factory import ComposicaoFactory
 from sme_ptrf_apps.core.fixtures.factories.prestacao_conta_reprovada_nao_apresentacao_factory import PrestacaoContaReprovadaNaoApresentacaoFactory
+from sme_ptrf_apps.core.fixtures.factories.tipo_acerto_lancamento_factory import TipoAcertoLancamentoFactory
 
 from sme_ptrf_apps.fixtures import *
 
@@ -71,6 +72,8 @@ register(AcessoConcedidoSmeFactory)
 register(MandatoFactory)
 register(ComposicaoFactory)
 register(PrestacaoContaReprovadaNaoApresentacaoFactory)
+register(TipoAcertoLancamentoFactory)
+
 
 @pytest.fixture
 def fake_user(client, django_user_model, unidade):

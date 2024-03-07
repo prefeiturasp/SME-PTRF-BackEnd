@@ -196,9 +196,10 @@ Foram criados 0 repasses. Erro na importação de 1 repasse(s)."""
     assert arquivo_carga_cartao_deve_criar_conta.log == msg
     assert arquivo_carga_cartao_deve_criar_conta.status == ERRO
 
+
 def test_carga_em_conta_encerrada_deve_gerar_erro(periodos_de_2019_ate_2023, acao_factory, acao_associacao_factory, associacao_factory, arquivo_factory, unidade_factory, tipo_conta_factory, conta_associacao_factory, solicitacao_encerramento_conta_associacao_factory):
     from sme_ptrf_apps.core.models.solicitacao_encerramento_conta_associacao import SolicitacaoEncerramentoContaAssociacao
-    
+
     unidade = unidade_factory(codigo_eol='666666')
     associacao = associacao_factory(unidade=unidade)
     acao = acao_factory(nome='Acao teste', aceita_capital=True, aceita_custeio=True)
@@ -206,17 +207,71 @@ def test_carga_em_conta_encerrada_deve_gerar_erro(periodos_de_2019_ate_2023, aca
     tipo_conta = tipo_conta_factory.create(nome='Cheque')
     conta = conta_associacao_factory.create(associacao=associacao, data_inicio='2018-10-20', tipo_conta=tipo_conta)
     solicitacao_encerramento_conta_associacao_factory.create(conta_associacao=conta, status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA)
-    
-    print("CONTAS: ", ContaAssociacao.objects.all())
 
     conteudo_arquivo = SimpleUploadedFile(f'2020_01_01_a_2020_06_30_cheque.csv',
         bytes(f"""Linha_ID,Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao\n10,666666,200,200,,Acao teste""", encoding="utf-8"))
-    
+
     arquivo = arquivo_factory.create(identificador='2020_01_01_a_2020_06_30_cheque', conteudo=conteudo_arquivo, tipo_carga=CARGA_REPASSE_PREVISTO, tipo_delimitador=DELIMITADOR_VIRGULA)
-    
+
     carrega_repasses_previstos(arquivo)
-    
+
     msg= """Erro na linha 1: A conta possui pedido de encerramento aprovado pela DRE.\nForam criados 0 repasses. Erro na importação de 1 repasse(s)."""
-    
+
     assert arquivo.log == msg
     assert arquivo.status == ERRO
+
+
+@pytest.fixture
+def arquivo_associacao_periodo_com_pc():
+    return SimpleUploadedFile(
+        f'carga_repasse_cheque_2.csv',
+        bytes(
+            f"""Id_Linha,Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao\n10,123456,99000.98,99000.98,,PTRF Básico""",
+            encoding="utf-8"))
+
+
+@pytest.fixture
+def arquivo_carga_associacao_periodo_com_pc(arquivo_associacao_periodo_com_pc):
+    return baker.make(
+        'Arquivo',
+        identificador='2019_01_01_a_2019_11_30_cheque_2',
+        conteudo=arquivo_associacao_periodo_com_pc,
+        tipo_carga=CARGA_REPASSE_PREVISTO,
+        tipo_delimitador=DELIMITADOR_VIRGULA
+    )
+
+
+@pytest.fixture
+def periodo_pc():
+    return baker.make(
+        'Periodo',
+        referencia='2019.1',
+        data_inicio_realizacao_despesas=datetime.date(2019, 1, 1),
+        data_fim_realizacao_despesas=datetime.date(2019, 11, 30),
+    )
+
+
+@pytest.fixture
+def pc_teste(periodo_pc, associacao):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_pc,
+        associacao=associacao,
+        data_recebimento=datetime.date(2020, 1, 1),
+        status='APROVADA'
+    )
+
+
+def test_carga_processado_com_erro_associacao_periodo_com_pc(
+    arquivo_carga_associacao_periodo_com_pc,
+    periodo_pc,
+    associacao,
+    pc_teste,
+    tipo_receita_repasse,
+    tipo_conta_cheque,
+    acao_ptrf_basico
+):
+    carrega_repasses_previstos(arquivo_carga_associacao_periodo_com_pc)
+    msg = """Erro na linha 1: A associação 123456 já possui PC gerada no período 2019.1.\nForam criados 0 repasses. Erro na importação de 1 repasse(s)."""
+    assert arquivo_carga_associacao_periodo_com_pc.log == msg
+    assert arquivo_carga_associacao_periodo_com_pc.status == ERRO
