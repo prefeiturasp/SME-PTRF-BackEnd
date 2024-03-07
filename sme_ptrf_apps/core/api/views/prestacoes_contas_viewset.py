@@ -871,11 +871,16 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         par_add_aprovados_ressalva = request.query_params.get('add_aprovadas_ressalva')
         add_aprovados_ressalva = par_add_aprovados_ressalva == 'SIM'
+
+        par_add_reprovadas_nao_apresentacao = request.query_params.get('add_reprovadas_nao_apresentacao')
+        add_reprovadas_nao_apresentacao = par_add_reprovadas_nao_apresentacao == 'SIM'
+
         cards = PrestacaoConta.dashboard(
             periodo_uuid,
             dre_uuid,
             add_aprovado_ressalva=add_aprovados_ressalva,
             add_info_devolvidas_retornadas=True,
+            add_reprovadas_nao_apresentacao=add_reprovadas_nao_apresentacao,
         )
         dashboard = {
             "total_associacoes_dre": total_associacoes_dre,
