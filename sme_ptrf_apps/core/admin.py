@@ -88,7 +88,8 @@ class SolicitacaoEncerramentoContaAssociacaoAdmin(admin.ModelAdmin):
     )
     list_display = ('__str__', 'get_codigo_eol')
     search_fields = ('uuid', 'conta_associacao__uuid', 'conta_associacao__associacao__unidade__codigo_eol',
-                     'conta_associacao__associacao__unidade__nome', 'conta_associacao__associacao__nome')
+                     'conta_associacao__associacao__unidade__nome', 'conta_associacao__associacao__nome', 
+                     'conta_associacao__associacao__unidade__dre__codigo_eol')
 
 
 @admin.register(Associacao)
@@ -459,6 +460,8 @@ class AtaAdmin(admin.ModelAdmin):
         return obj.periodo.referencia if obj and obj.periodo else ''
 
     get_referencia_periodo.short_description = 'Período'
+    
+    raw_id_fields = ('prestacao_conta', 'associacao', 'composicao', 'presidente_da_reuniao', 'secretario_da_reuniao')
 
     list_display = (
         'get_eol_unidade',
@@ -474,10 +477,11 @@ class AtaAdmin(admin.ModelAdmin):
         'tipo_ata',
         'previa',
         'parecer_conselho',
+        'associacao__unidade__dre'
     )
     list_display_links = ('get_eol_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
-    search_fields = ('associacao__unidade__codigo_eol', 'associacao__unidade__nome')
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__unidade__dre__codigo_eol')
 
 
 @admin.register(Arquivo)
@@ -1648,6 +1652,7 @@ class DadosDemonstrativoFinanceiroAdmin(admin.ModelAdmin):
     search_fields = [
         'nome_associacao',
         'codigo_eol_associacao',
+        'demonstrativo__conta_associacao__associacao__unidade__dre__codigo_eol'
     ]
 
     fieldsets = [
