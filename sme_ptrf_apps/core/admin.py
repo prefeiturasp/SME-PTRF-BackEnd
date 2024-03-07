@@ -1633,7 +1633,8 @@ class DadosDemonstrativoFinanceiroAdmin(admin.ModelAdmin):
     list_filter = (
         'demonstrativo__conta_associacao__tipo_conta',
         'demonstrativo__prestacao_conta__periodo',
-        'demonstrativo__periodo_previa'
+        'demonstrativo__periodo_previa',
+        'demonstrativo__conta_associacao__associacao__unidade__dre'
     )
 
     search_fields = [
