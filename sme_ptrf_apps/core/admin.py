@@ -604,6 +604,11 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
         return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''
 
     get_associacao.short_description = 'Associação'
+    
+    def get_unidade_codigo_eol(self, obj):
+        return obj.prestacao_conta.associacao.unidade.codigo_eol if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade else ''
+    
+    get_unidade_codigo_eol.short_description = 'EOL'
 
     def get_referencia_periodo(self, obj):
         return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
@@ -616,12 +621,12 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
     get_id_analise_prestacao_contas.short_description = 'Análise de Prestação de contas'
 
     list_display = (
-        'get_associacao', 'get_referencia_periodo', 'data_extrato', 'saldo_extrato', 'get_id_analise_prestacao_contas')
-    list_filter = ('prestacao_conta__periodo',)
+        'get_unidade_codigo_eol', 'get_associacao',  'get_referencia_periodo', 'data_extrato', 'saldo_extrato', 'get_id_analise_prestacao_contas')
+    list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao__unidade__dre')
     list_display_links = ('get_associacao',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
-                     'prestacao_conta__associacao__nome')
+                     'prestacao_conta__associacao__nome', 'prestacao_conta__associacao__unidade__dre__codigo_eol')
 
     raw_id_fields = ['prestacao_conta', 'analise_prestacao_conta', 'conta_associacao']
 
