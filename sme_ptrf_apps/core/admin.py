@@ -57,7 +57,8 @@ from .models import (
     DadosDemonstrativoFinanceiro,
     ItemResumoPorAcao,
     ItemCredito,
-    ItemDespesa
+    ItemDespesa,
+    PrestacaoContaReprovadaNaoApresentacao
 )
 
 from django.db.models import Count
@@ -1718,3 +1719,42 @@ class DadosDemonstrativoFinanceiroAdmin(admin.ModelAdmin):
     inlines = [ItemResumoPorAcaoInLine, ItemCreditoInLine, ItemDespesaInLine]
     raw_id_fields = ('demonstrativo', )
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+
+@admin.register(PrestacaoContaReprovadaNaoApresentacao)
+class PrestacaoContaReprovadaNaoApresentacaoAdmin(admin.ModelAdmin):
+
+    def get_eol_unidade(self, obj):
+        return obj.associacao.unidade.codigo_eol if obj and obj.associacao and obj.associacao.unidade else ''
+
+    get_eol_unidade.short_description = 'EOL'
+
+    def get_nome_unidade(self, obj):
+        return obj.associacao.unidade.nome if obj and obj.associacao and obj.associacao.unidade else ''
+
+    get_nome_unidade.short_description = 'Unidade Educacional'
+
+    def get_periodo_referencia(self, obj):
+        return obj.periodo.referencia if obj.periodo else ""
+
+    get_periodo_referencia.short_description = 'Período'
+
+    list_display = (
+        'get_eol_unidade',
+        'get_nome_unidade',
+        'associacao',
+        'get_periodo_referencia',
+        'data_de_reprovacao',
+    )
+
+    list_filter = (
+        'associacao__unidade__dre',
+        'associacao',
+        'periodo',
+        'associacao__unidade__tipo_unidade'
+    )
+
+    list_display_links = ('get_nome_unidade',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
+    raw_id_fields = ('periodo', 'associacao',)
