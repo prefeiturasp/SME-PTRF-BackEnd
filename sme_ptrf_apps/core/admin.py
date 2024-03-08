@@ -88,7 +88,8 @@ class SolicitacaoEncerramentoContaAssociacaoAdmin(admin.ModelAdmin):
     )
     list_display = ('__str__', 'get_codigo_eol')
     search_fields = ('uuid', 'conta_associacao__uuid', 'conta_associacao__associacao__unidade__codigo_eol',
-                     'conta_associacao__associacao__unidade__nome', 'conta_associacao__associacao__nome')
+                     'conta_associacao__associacao__unidade__nome', 'conta_associacao__associacao__nome', 
+                     'conta_associacao__associacao__unidade__dre__codigo_eol')
 
 
 @admin.register(Associacao)
@@ -459,6 +460,8 @@ class AtaAdmin(admin.ModelAdmin):
         return obj.periodo.referencia if obj and obj.periodo else ''
 
     get_referencia_periodo.short_description = 'Período'
+    
+    raw_id_fields = ('prestacao_conta', 'associacao', 'composicao', 'presidente_da_reuniao', 'secretario_da_reuniao')
 
     list_display = (
         'get_eol_unidade',
@@ -474,10 +477,11 @@ class AtaAdmin(admin.ModelAdmin):
         'tipo_ata',
         'previa',
         'parecer_conselho',
+        'associacao__unidade__dre'
     )
     list_display_links = ('get_eol_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
-    search_fields = ('associacao__unidade__codigo_eol', 'associacao__unidade__nome')
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__unidade__dre__codigo_eol')
 
 
 @admin.register(Arquivo)
@@ -604,6 +608,11 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
         return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''
 
     get_associacao.short_description = 'Associação'
+    
+    def get_unidade_codigo_eol(self, obj):
+        return obj.prestacao_conta.associacao.unidade.codigo_eol if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade else ''
+    
+    get_unidade_codigo_eol.short_description = 'EOL'
 
     def get_referencia_periodo(self, obj):
         return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
@@ -616,12 +625,12 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
     get_id_analise_prestacao_contas.short_description = 'Análise de Prestação de contas'
 
     list_display = (
-        'get_associacao', 'get_referencia_periodo', 'data_extrato', 'saldo_extrato', 'get_id_analise_prestacao_contas')
-    list_filter = ('prestacao_conta__periodo',)
+        'get_unidade_codigo_eol', 'get_associacao',  'get_referencia_periodo', 'data_extrato', 'saldo_extrato', 'get_id_analise_prestacao_contas')
+    list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao__unidade__dre')
     list_display_links = ('get_associacao',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
-                     'prestacao_conta__associacao__nome')
+                     'prestacao_conta__associacao__nome', 'prestacao_conta__associacao__unidade__dre__codigo_eol')
 
     raw_id_fields = ['prestacao_conta', 'analise_prestacao_conta', 'conta_associacao']
 
@@ -650,9 +659,36 @@ class TipoDevolucaoTesouroAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', id)
 
 
+class DreListFilter(admin.SimpleListFilter):
+    from django.utils.translation import gettext_lazy
+    
+    title = gettext_lazy('DRE')
+    parameter_name = 'dre'
+
+    def lookups(self, request, model_admin):
+        dre_set = set()
+        for obj in model_admin.get_queryset(request):
+            prestacao_conta = obj.prestacao_conta
+            associacao = obj.associacao
+
+            if prestacao_conta:
+                dre_set.add(prestacao_conta.associacao.unidade.dre)
+            elif associacao:
+                dre_set.add(associacao.unidade.dre)
+
+        return [(dre.codigo_eol, dre.nome) for dre in dre_set]
+
+    def queryset(self, request, queryset):
+        from django.db import models
+        
+        if self.value():
+            return queryset.filter(
+                models.Q(prestacao_conta__associacao__unidade__dre__codigo_eol=self.value()) |
+                models.Q(associacao__unidade__dre__codigo_eol=self.value())
+            )
+
 @admin.register(ComentarioAnalisePrestacao)
 class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
-
     def get_associacao(self, obj):
         if obj.prestacao_conta:
             return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta.associacao else ''
@@ -673,23 +709,39 @@ class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
 
     get_referencia_periodo.short_description = 'Período'
 
+    def get_codigo_eol_unidade(self, obj):
+        if obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade:
+            return obj.prestacao_conta.associacao.unidade.codigo_eol
+        elif obj.associacao and obj.associacao.unidade:
+            return obj.associacao.unidade.codigo_eol
+        else:
+            return ''
+        
+    get_codigo_eol_unidade.short_description = 'EOL'
+
     list_display = (
-        'get_associacao', 'get_referencia_periodo', 'ordem', 'comentario', 'notificado_em')
-    list_filter = ('prestacao_conta__periodo', )
+        'get_codigo_eol_unidade', 'get_associacao', 'get_referencia_periodo', 'ordem', 'comentario', 'notificado_em')
+    list_filter = ('prestacao_conta__periodo', DreListFilter,)
     list_display_links = ('get_associacao',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
-                     'prestacao_conta__associacao__nome', 'ordem', 'comentario')
-    autocomplete_fields = ['prestacao_conta', ]
+                     'prestacao_conta__associacao__nome', 'ordem', 'comentario', 'prestacao_conta__associacao__unidade__dre__codigo_eol', 'associacao__unidade__dre__codigo_eol', )
+    raw_id_fields = ['prestacao_conta', 'associacao', ]
 
 
 @admin.register(PrevisaoRepasseSme)
 class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
-    list_display = ('associacao', 'conta_associacao', 'periodo', 'valor_capital', 'valor_custeio', 'valor_livre')
-    list_filter = ('associacao', 'periodo', 'conta_associacao')
+    def get_codigo_eol(self, obj):
+        return obj.associacao.unidade.codigo_eol if obj and obj.associacao and obj.associacao.unidade else ''
+
+    get_codigo_eol.short_description = 'EOL'
+    
+    list_display = ('get_codigo_eol','associacao', 'conta_associacao', 'periodo', 'valor_capital', 'valor_custeio', 'valor_livre')
+    list_filter = ('associacao', 'periodo', 'conta_associacao', 'associacao__unidade__dre')
     list_display_links = ('associacao',)
     readonly_fields = ('uuid', 'id')
-    search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome')
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__dre__codigo_eol')
+    raw_id_fields = ['periodo', 'associacao', 'conta_associacao',]
 
 
 @admin.register(TipoConta)
@@ -1269,7 +1321,7 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
         'detalhamento',
     ]
     list_filter = [
-        'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo__referencia',
+        'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'analise_lancamento__tipo_lancamento',
@@ -1377,7 +1429,7 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
     ]
     list_filter = [
-        'analise_documento__analise_prestacao_conta__prestacao_conta__periodo__referencia',
+        'analise_documento__analise_prestacao_conta__prestacao_conta__periodo',
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'tipo_acerto',
@@ -1385,7 +1437,7 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
     ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
 
-    autocomplete_fields = ['analise_documento', 'despesa_incluida', 'receita_incluida']
+    raw_id_fields = ['analise_documento', 'despesa_incluida', 'receita_incluida']
 
 
 @admin.register(Participante)
@@ -1409,7 +1461,7 @@ class PresenteAtaAdmin(admin.ModelAdmin):
         'ata__associacao__unidade__nome',
     ]
     list_filter = [
-        'ata__periodo__referencia',
+        'ata__periodo',
         'ata__associacao__unidade__tipo_unidade',
         'ata__associacao__unidade__dre',
         'cargo',
@@ -1418,6 +1470,7 @@ class PresenteAtaAdmin(admin.ModelAdmin):
         ('alterado_em', DateRangeFilter),
     ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    raw_id_fields = ('ata',)
 
 
 @admin.register(ValoresReprogramados)
@@ -1648,6 +1701,7 @@ class DadosDemonstrativoFinanceiroAdmin(admin.ModelAdmin):
     search_fields = [
         'nome_associacao',
         'codigo_eol_associacao',
+        'demonstrativo__conta_associacao__associacao__unidade__dre__codigo_eol'
     ]
 
     fieldsets = [
