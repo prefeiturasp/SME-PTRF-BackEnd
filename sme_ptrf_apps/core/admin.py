@@ -659,9 +659,36 @@ class TipoDevolucaoTesouroAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', id)
 
 
+class DreListFilter(admin.SimpleListFilter):
+    from django.utils.translation import gettext_lazy
+    
+    title = gettext_lazy('DRE')
+    parameter_name = 'dre'
+
+    def lookups(self, request, model_admin):
+        dre_set = set()
+        for obj in model_admin.get_queryset(request):
+            prestacao_conta = obj.prestacao_conta
+            associacao = obj.associacao
+
+            if prestacao_conta:
+                dre_set.add(prestacao_conta.associacao.unidade.dre)
+            elif associacao:
+                dre_set.add(associacao.unidade.dre)
+
+        return [(dre.codigo_eol, dre.nome) for dre in dre_set]
+
+    def queryset(self, request, queryset):
+        from django.db import models
+        
+        if self.value():
+            return queryset.filter(
+                models.Q(prestacao_conta__associacao__unidade__dre__codigo_eol=self.value()) |
+                models.Q(associacao__unidade__dre__codigo_eol=self.value())
+            )
+
 @admin.register(ComentarioAnalisePrestacao)
 class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
-
     def get_associacao(self, obj):
         if obj.prestacao_conta:
             return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta.associacao else ''
@@ -682,14 +709,24 @@ class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
 
     get_referencia_periodo.short_description = 'Período'
 
+    def get_codigo_eol_unidade(self, obj):
+        if obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade:
+            return obj.prestacao_conta.associacao.unidade.codigo_eol
+        elif obj.associacao and obj.associacao.unidade:
+            return obj.associacao.unidade.codigo_eol
+        else:
+            return ''
+        
+    get_codigo_eol_unidade.short_description = 'EOL'
+
     list_display = (
-        'get_associacao', 'get_referencia_periodo', 'ordem', 'comentario', 'notificado_em')
-    list_filter = ('prestacao_conta__periodo', )
+        'get_codigo_eol_unidade', 'get_associacao', 'get_referencia_periodo', 'ordem', 'comentario', 'notificado_em')
+    list_filter = ('prestacao_conta__periodo', DreListFilter,)
     list_display_links = ('get_associacao',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
-                     'prestacao_conta__associacao__nome', 'ordem', 'comentario')
-    autocomplete_fields = ['prestacao_conta', ]
+                     'prestacao_conta__associacao__nome', 'ordem', 'comentario', 'prestacao_conta__associacao__unidade__dre__codigo_eol', 'associacao__unidade__dre__codigo_eol', )
+    raw_id_fields = ['prestacao_conta', 'associacao', ]
 
 
 @admin.register(PrevisaoRepasseSme)
