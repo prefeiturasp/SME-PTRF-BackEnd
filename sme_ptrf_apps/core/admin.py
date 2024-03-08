@@ -1423,7 +1423,7 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
     ]
     list_filter = [
-        'analise_documento__analise_prestacao_conta__prestacao_conta__periodo__referencia',
+        'analise_documento__analise_prestacao_conta__prestacao_conta__periodo',
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'tipo_acerto',
@@ -1431,7 +1431,7 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
     ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
 
-    autocomplete_fields = ['analise_documento', 'despesa_incluida', 'receita_incluida']
+    raw_id_fields = ['analise_documento', 'despesa_incluida', 'receita_incluida']
 
 
 @admin.register(Participante)
