@@ -114,10 +114,18 @@ def test_retorna_lista_unidades_servidor_sem_membro_associacao_visao_sme(
 
         mock_get.return_value = data
 
-        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
-        result = gestao_usuario.retorna_lista_unidades_servidor('SME', 'SME')
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        assert len(result) == 1
+            mock_get_dados_unidade.return_value = data
+
+            gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+            result = gestao_usuario.retorna_lista_unidades_servidor('SME', 'SME')
+
+            assert len(result) == 1
 
 
 def test_retorna_lista_unidades_servidor_sem_membro_associacao_e_unidade_exercicio_nao_pertence_a_dre_visao_sme(
@@ -136,10 +144,18 @@ def test_retorna_lista_unidades_servidor_sem_membro_associacao_e_unidade_exercic
 
         mock_get.return_value = data
 
-        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
-        result = gestao_usuario.retorna_lista_unidades_servidor('SME', 'SME')
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        assert len(result) == 1
+            mock_get_dados_unidade.return_value = data
+
+            gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+            result = gestao_usuario.retorna_lista_unidades_servidor('SME', 'SME')
+
+            assert len(result) == 1
 
 
 def test_retorna_lista_unidades_servidor_sem_membro_associacao_visao_dre(
@@ -202,10 +218,18 @@ def test_retorna_lista_unidades_servidor_com_membro_associacao_visao_sme(
 
         mock_get.return_value = data
 
-        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
-        result = gestao_usuario.retorna_lista_unidades_servidor('SME', 'SME')
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        assert len(result) == 2
+            mock_get_dados_unidade.return_value = data
+
+            gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+            result = gestao_usuario.retorna_lista_unidades_servidor('SME', 'SME')
+
+            assert len(result) == 2
 
 
 def test_retorna_lista_unidades_servidor_apenas_com_membro_associacao_visao_sme(
@@ -479,10 +503,18 @@ def test_unidades_do_usuario_do_servidor(
 
         mock_get.return_value = data
 
-        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
-        result = gestao_usuario.unidades_do_usuario(dre, 'SME')
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        assert len(result) == 2
+            mock_get_dados_unidade.return_value = data
+
+            gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+            result = gestao_usuario.unidades_do_usuario(dre, 'SME')
+
+            assert len(result) == 2
 
 
 def test_unidades_do_usuario_do_nao_servidor(
