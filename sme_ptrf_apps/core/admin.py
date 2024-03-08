@@ -1418,7 +1418,7 @@ class PresenteAtaAdmin(admin.ModelAdmin):
         'ata__associacao__unidade__nome',
     ]
     list_filter = [
-        'ata__periodo__referencia',
+        'ata__periodo',
         'ata__associacao__unidade__tipo_unidade',
         'ata__associacao__unidade__dre',
         'cargo',
@@ -1427,6 +1427,7 @@ class PresenteAtaAdmin(admin.ModelAdmin):
         ('alterado_em', DateRangeFilter),
     ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    raw_id_fields = ('ata',)
 
 
 @admin.register(ValoresReprogramados)
