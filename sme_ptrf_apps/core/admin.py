@@ -731,11 +731,17 @@ class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
 
 @admin.register(PrevisaoRepasseSme)
 class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
-    list_display = ('associacao', 'conta_associacao', 'periodo', 'valor_capital', 'valor_custeio', 'valor_livre')
-    list_filter = ('associacao', 'periodo', 'conta_associacao')
+    def get_codigo_eol(self, obj):
+        return obj.associacao.unidade.codigo_eol if obj and obj.associacao and obj.associacao.unidade else ''
+
+    get_codigo_eol.short_description = 'EOL'
+    
+    list_display = ('get_codigo_eol','associacao', 'conta_associacao', 'periodo', 'valor_capital', 'valor_custeio', 'valor_livre')
+    list_filter = ('associacao', 'periodo', 'conta_associacao', 'associacao__unidade__dre')
     list_display_links = ('associacao',)
     readonly_fields = ('uuid', 'id')
-    search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome')
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__dre__codigo_eol')
+    raw_id_fields = ['periodo', 'associacao', 'conta_associacao',]
 
 
 @admin.register(TipoConta)
