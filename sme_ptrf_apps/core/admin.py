@@ -1273,7 +1273,7 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
         'detalhamento',
     ]
     list_filter = [
-        'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo__referencia',
+        'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'analise_lancamento__tipo_lancamento',
