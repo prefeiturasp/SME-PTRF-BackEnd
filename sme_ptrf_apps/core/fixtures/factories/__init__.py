@@ -6,3 +6,5 @@ from .associacao_factory import *
 from .acao_associacao_factory import *
 from .acao_factory import *
 from .tipo_acerto_lancamento_factory import *
+from .analise_prestacao_conta_factory import *
+from .analise_lancamento_prestacao_conta_factory import *
