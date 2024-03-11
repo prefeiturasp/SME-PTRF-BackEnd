@@ -78,6 +78,8 @@ class RateioDespesa(ModeloBase):
 
     eh_despesa_sem_comprovacao_fiscal = models.BooleanField('É despesa sem comprovação fiscal?', default=False)
 
+    nao_exibir_em_rel_bens = models.BooleanField('Não exibir na relação de bens', default=False)
+
     objects = models.Manager()  # Manager Padrão
     completos = RateiosCompletosManager()
 
@@ -99,14 +101,14 @@ class RateioDespesa(ModeloBase):
                 completo = completo and self.tipo_custeio
 
         elif completo and self.aplicacao_recurso == APLICACAO_CAPITAL:
-            if not self.eh_despesa_sem_comprovacao_fiscal:
-                completo = completo and \
-                    self.quantidade_itens_capital > 0 and \
-                    self.valor_item_capital > 0 and self.numero_processo_incorporacao_capital
-            else:
-                completo = completo and \
-                    self.quantidade_itens_capital > 0 and \
-                    self.valor_item_capital > 0
+            completo = completo and \
+                       self.quantidade_itens_capital > 0 and \
+                       self.valor_item_capital > 0
+
+            if not (self.eh_despesa_sem_comprovacao_fiscal or self.nao_exibir_em_rel_bens):
+                # O número do processo de incorporação é obrigatório nas despesas de capital
+                # Exceto para despesas sem comprovação fiscal ou que não devem ser exibidas na relação de bens
+                completo = completo and self.numero_processo_incorporacao_capital
 
         return completo
 

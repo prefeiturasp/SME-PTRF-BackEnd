@@ -63,6 +63,7 @@ def rateio_despesa_capital_completo(associacao, despesa, conta_associacao, acao,
     )
 
 
+
 @pytest.fixture
 def rateio_despesa_capital_incompleto(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso_capital,
                                       especificacao_material_servico, acao_associacao):
@@ -240,3 +241,40 @@ def test_rateio_despesa_inativos(rateio_despesa_capital_completo):
     despesa.save()
     assert despesa.status == STATUS_INATIVO
 
+
+
+@pytest.fixture
+def rateio_despesa_capital_nao_exibido_em_rel_bens_completo_sem_processo(
+    associacao,
+    despesa,
+    conta_associacao,
+    acao,
+    tipo_aplicacao_recurso_capital,
+    especificacao_material_servico,
+    acao_associacao
+):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso=tipo_aplicacao_recurso_capital,
+        tipo_custeio=None,
+        especificacao_material_servico=especificacao_material_servico,
+        valor_rateio=10.00,
+        quantidade_itens_capital=1,
+        valor_item_capital=10.00,
+        nao_exibir_em_rel_bens=True,
+        numero_processo_incorporacao_capital=''
+    )
+
+
+def test_rateio_despesa_capital_nao_exibido_em_rel_bens(
+    rateio_despesa_capital_nao_exibido_em_rel_bens_completo_sem_processo,
+):
+    rateio = rateio_despesa_capital_nao_exibido_em_rel_bens_completo_sem_processo
+
+    assert rateio.status == STATUS_COMPLETO
+    despesa = Despesa.objects.get(uuid=rateio.despesa.uuid)
+    assert despesa.status == STATUS_COMPLETO
