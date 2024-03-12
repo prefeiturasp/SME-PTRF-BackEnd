@@ -265,6 +265,7 @@ def monta_result_esperado(
                     'criado_em': rateio_despesa_despesa_imposto.criado_em.strftime("%Y-%m-%dT%H:%M:%S.%f"),
                     'eh_despesa_sem_comprovacao_fiscal': False,
                     'especificacao_material_servico': rateio_despesa_despesa_imposto.especificacao_material_servico.id,
+                    'nao_exibir_em_rel_bens': False,
                     'numero_processo_incorporacao_capital': '',
                     'periodo_conciliacao': None,
                     'quantidade_itens_capital': 0,
@@ -349,6 +350,7 @@ def monta_result_esperado(
                     'valor': None
                 },
                 'id': rateio_despesa_com_imposto.id,
+                'nao_exibir_em_rel_bens': False,
                 'numero_processo_incorporacao_capital': '',
                 'periodo_conciliacao': None,
                 'quantidade_itens_capital': 0,
