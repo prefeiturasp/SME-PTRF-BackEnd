@@ -45,17 +45,15 @@ class RateioDespesaAdmin(admin.ModelAdmin):
     list_filter = (
         ('conferido', customTitledFilter('Conferido')),
         ('tag', customTitledFilter('Tag')),
-        ('associacao__nome', customTitledFilter('Associação')),
         ('associacao__unidade__dre', customTitledFilter('DRE')),
         ('acao_associacao__acao__nome', customTitledFilter('Ação')),
         ('conta_associacao__tipo_conta__nome', customTitledFilter('Tipo Conta')),
         ('aplicacao_recurso', customTitledFilter('Tipo Despesa')),
-        ('despesa__numero_documento', customTitledFilter('Número documento')),
         ('tipo_custeio', customTitledFilter('Tipo Custeio')),
         ('despesa__tipo_documento', customTitledFilter('Tipo Documento')),
         ('despesa__tipo_transacao', customTitledFilter('Tipo Transacao')),
-        ('despesa__nome_fornecedor', customTitledFilter('Nome Fornecedor')),
-        ('especificacao_material_servico__descricao', customTitledFilter('Especificação Material/Serviço')),)
+    )
+    raw_id_fields = ('despesa', 'associacao', 'acao_associacao', 'conta_associacao', 'especificacao_material_servico')
 
     def numero_documento(self, obj):
         return obj.despesa.numero_documento if obj and obj.despesa and obj.despesa.numero_documento else ""
@@ -66,7 +64,7 @@ class RateioDespesaAdmin(admin.ModelAdmin):
     def acao(self, obj):
         return obj.acao_associacao.acao.nome if obj.acao_associacao else ''
 
-    autocomplete_fields = ['associacao', 'despesa', 'conta_associacao', 'acao_associacao']
+    # autocomplete_fields = ['associacao', 'despesa', 'conta_associacao', 'acao_associacao']
     readonly_fields = ('uuid', 'id')
 
 
