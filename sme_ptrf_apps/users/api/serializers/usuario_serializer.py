@@ -128,13 +128,15 @@ class UsuarioCreateSerializer(serializers.ModelSerializer):
         }
 
         if "unidade" in validated_data:
-            unidade_obj = Unidade.objects.filter(uuid=validated_data["unidade"]).first()
-            dados_usuario["eol_unidade"] = unidade_obj.codigo_eol if unidade_obj else None
-            logger.info(f'Unidade de EOL {dados_usuario["eol_unidade"] } será vinculada ao usuário {validated_data["username"]}.')
+            if validated_data['unidade'] is not None:
+                unidade_obj = Unidade.objects.filter(uuid=validated_data["unidade"]).first()
+                dados_usuario["eol_unidade"] = unidade_obj.codigo_eol if unidade_obj else None
+                logger.info(f'Unidade de EOL {dados_usuario["eol_unidade"] } será vinculada ao usuário {validated_data["username"]}.')
 
         if "visao" in validated_data:
-            dados_usuario["visao"] = validated_data["visao"]
-            logger.info(f'Visão {dados_usuario["visao"] } será vinculada ao usuário {validated_data["username"]}.')
+            if validated_data['visao'] is not None:
+                dados_usuario["visao"] = validated_data["visao"]
+                logger.info(f'Visão {dados_usuario["visao"] } será vinculada ao usuário {validated_data["username"]}.')
 
         try:
             cria_ou_atualiza_usuario_core_sso(
@@ -171,7 +173,7 @@ class UsuarioCreateSerializer(serializers.ModelSerializer):
         except Exception as e:
             logger.error(f'Erro ao tentar cria/atualizar usuário {validated_data["username"]} no CoreSSO: {str(e)}')
 
-        if "unidade" in validated_data and validated_data["unidade"] != "SME":
+        if "unidade" in validated_data and validated_data["unidade"] != "SME" and validated_data["unidade"] is not None:
             unidade_obj = Unidade.objects.filter(uuid=validated_data["unidade"]).first()
             try:
                 instance.add_unidade_se_nao_existir(unidade_obj.codigo_eol)
@@ -180,10 +182,11 @@ class UsuarioCreateSerializer(serializers.ModelSerializer):
                 logger.error(f'Erro ao tentar vincular unidade de EOL {validated_data["unidade"] } ao usuário {validated_data["username"]}: {str(e)}')
 
         if "visao" in validated_data:
-            try:
-                instance.add_visao_se_nao_existir(validated_data["visao"])
-                logger.info(f'Visão {validated_data["visao"] } vinculada ao usuário {validated_data["username"]}.')
-            except Exception as e:
-                logger.error(f'Erro ao tentar vincular visão {validated_data["visao"] } ao usuário {validated_data["username"]}: {str(e)}')
+            if validated_data['visao'] is not None:
+                try:
+                    instance.add_visao_se_nao_existir(validated_data["visao"])
+                    logger.info(f'Visão {validated_data["visao"] } vinculada ao usuário {validated_data["username"]}.')
+                except Exception as e:
+                    logger.error(f'Erro ao tentar vincular visão {validated_data["visao"] } ao usuário {validated_data["username"]}: {str(e)}')
 
         return super().update(instance, validated_data)
