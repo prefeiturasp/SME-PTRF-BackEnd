@@ -737,7 +737,7 @@ class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
     get_codigo_eol.short_description = 'EOL'
     
     list_display = ('get_codigo_eol','associacao', 'conta_associacao', 'periodo', 'valor_capital', 'valor_custeio', 'valor_livre')
-    list_filter = ('associacao', 'periodo', 'conta_associacao', 'associacao__unidade__dre')
+    list_filter = ('associacao', 'periodo', 'conta_associacao__tipo_conta', 'associacao__unidade__dre')
     list_display_links = ('associacao',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__dre__codigo_eol')
