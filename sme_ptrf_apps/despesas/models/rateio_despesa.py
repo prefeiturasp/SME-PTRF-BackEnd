@@ -250,7 +250,8 @@ class RateioDespesa(ModeloBase):
 
     @classmethod
     def rateios_da_conta_associacao_em_periodos_anteriores(cls, conta_associacao, periodo, conferido=None,
-                                                           exclude_despesa=None, aplicacao_recurso=None, acao_associacao=None, incluir_inativas=False):
+                                                           exclude_despesa=None, aplicacao_recurso=None, acao_associacao=None, incluir_inativas=False,
+                                                           nao_conciliadas_ou_conciliadas_no_periodo=False):
 
         dataset = cls.objects.exclude(status=STATUS_INCOMPLETO) if incluir_inativas else cls.completos
 
@@ -261,6 +262,9 @@ class RateioDespesa(ModeloBase):
                 dataset = dataset.filter(conferido=True, periodo_conciliacao__referencia__lte=periodo.referencia)
             else:
                 dataset = dataset.filter(Q(conferido=False) | Q(periodo_conciliacao__referencia__gt=periodo.referencia))
+
+        if nao_conciliadas_ou_conciliadas_no_periodo:
+            dataset = dataset.filter(Q(conferido=False) | Q(periodo_conciliacao__referencia=periodo.referencia))
 
         if exclude_despesa:
             dataset = dataset.exclude(despesa__uuid=exclude_despesa)
