@@ -18,3 +18,4 @@ from .notificacao_solicitacao_encerramento_conta_bancaria_service import notific
 from .notificacao_resultado_solicitacao_encerramento_conta_bancaria_service import (
     notificar_resultado_solicitacao_encerramento_conta_bancaria
 )
+from .notificacao_prestacao_de_contas_reprovada_nao_apresentacao import notificar_prestacao_de_contas_reprovada_nao_apresentacao

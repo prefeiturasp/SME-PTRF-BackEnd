@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from sme_ptrf_apps.core.api.serializers import NotificacaoSerializer
 
-from sme_ptrf_apps.core.models import Notificacao, Unidade, Periodo
+from sme_ptrf_apps.core.models import Notificacao, Unidade, Periodo, PrestacaoContaReprovadaNaoApresentacao
 from sme_ptrf_apps.core.services.notificacao_services import formata_data, notificar_comentario_pc
 from django.core.exceptions import ValidationError
 
@@ -234,5 +234,45 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
                 'mensagem': "Erro no processo de notificacao"
             }
             return Response(resultado, status=status.HTTP_400_BAD_REQUEST)
-        
+
         return Response({"mensagem": "Processo de notificação finalizado.", "enviada": notificacao_enviada}, status=status.HTTP_200_OK)
+
+    @action(detail=False, url_path="notificar-prestacao-conta-reprovada-nao-apresentacao", methods=['post'])
+    def notificar_prestacao_conta_reprovada_nao_apresentacao(self, request):
+
+        from ...services.notificacao_services.notificacao_prestacao_de_contas_reprovada_nao_apresentacao import notificar_prestacao_de_contas_reprovada_nao_apresentacao
+
+        dado = self.request.data
+
+        if not dado.get('prestacao_conta_reprovada_nao_apresentacao'):
+            resultado = {
+                'erro': 'Dados incompletos',
+                'mensagem': 'uuid da prestacao_conta_reprovada_nao_apresentacao é obrigatório'
+            }
+
+            status_code = status.HTTP_400_BAD_REQUEST
+            logger.info('Erro: %r', resultado)
+            return Response(resultado, status=status_code)
+
+        try:
+            prestacao_conta_reprovada_nao_apresentacao = PrestacaoContaReprovadaNaoApresentacao.by_uuid(dado['prestacao_conta_reprovada_nao_apresentacao'])
+        except (PrestacaoContaReprovadaNaoApresentacao.DoesNotExist, ValidationError):
+            resultado = {
+                'erro': 'objeto_nao_encontrado',
+                'mensagem': f"O objeto PrestacaoContaReprovadaNaoApresentacao para o uuid {dado.get('prestacao_conta_reprovada_nao_apresentacao')} não foi encontrado na base"
+            }
+            status_code = status.HTTP_400_BAD_REQUEST
+            logger.info('Erro: %r', resultado)
+            return Response(resultado, status=status_code)
+
+        try:
+            notificar_prestacao_de_contas_reprovada_nao_apresentacao(prestacao_conta_reprovada_nao_apresentacao)
+        except Exception as err:
+            logger.info("Erro no processo de notificação: %s", str(err))
+            resultado = {
+                'erro': 'Problema no processo de notificar usuário',
+                'mensagem': "Erro no processo de notificacao"
+            }
+            return Response(resultado, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"mensagem": "Processo de notificação enviado com sucesso."})
