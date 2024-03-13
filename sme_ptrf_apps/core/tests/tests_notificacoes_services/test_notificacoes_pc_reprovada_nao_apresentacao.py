@@ -4,7 +4,7 @@ from datetime import date
 from django.contrib.auth.models import Permission
 
 from ....core.models import Notificacao
-from ....core.services.notificacao_services import notificar_prestacao_de_contas_reprovada_nao_apresentacao
+from ....core.services.notificacao_services.notificacao_prestacao_de_contas_reprovada_nao_apresentacao import notificar_prestacao_de_contas_reprovada_nao_apresentacao
 
 pytestmark = pytest.mark.django_db
 
