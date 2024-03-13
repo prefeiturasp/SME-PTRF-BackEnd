@@ -196,8 +196,7 @@ class DadosRelatorioAposAcertos:
             'dados_documentos': self.dados_documentos,
             'blocos': self.blocos,
             'rodape': self.rodape,
-            'previa': self.previa,
-            'flag_ajustes_despesas_anteriores_ativa': self.flag_ajustes_despesas_anteriores_ativa
+            'previa': self.previa
         }
 
 

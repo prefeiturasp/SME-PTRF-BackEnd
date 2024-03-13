@@ -3,6 +3,7 @@
 {% load static %}
 {% load formata_valores %}
 {% load formata_string %}
+{% load waffle_tags %}
 
 <head>
   <!-- Required meta tags -->
@@ -156,10 +157,10 @@
   {% comment %} Tabela Acertos em Lançamentos {% endcomment %}
   {% include "./partials/tabela-acertos-em-lancamentos.html" with dados=dados %}
 
-  {% if dados.flag_ajustes_despesas_anteriores_ativa %}
+  {% flag "ajustes-despesas-anteriores" %}
     {% comment %} Tabela Acertos em Despesas de Períodos Anteriores {% endcomment %}
     {% include "./partials/tabela-acertos-em-despesas-periodos-anteriores.html" with dados=dados %}
-  {% endif %}
+  {% endflag %}
 
   {% comment %} Tabela Acertos em Documentos {% endcomment %}
   {% include "./partials/tabela-acertos-em-documentos.html" with dados=dados %}
