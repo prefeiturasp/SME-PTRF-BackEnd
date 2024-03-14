@@ -80,7 +80,7 @@ class SolicitacaoEncerramentoContaAssociacaoAdmin(admin.ModelAdmin):
         return obj.conta_associacao.associacao.unidade.codigo_eol if obj and obj.conta_associacao and obj.conta_associacao.associacao and obj.conta_associacao.associacao.unidade else ''
 
     get_codigo_eol.short_description = 'EOL'
-    
+
     raw_id_fields = ('conta_associacao',)
     list_filter = (
         ('data_de_encerramento_na_agencia', DateRangeFilter),
@@ -88,7 +88,7 @@ class SolicitacaoEncerramentoContaAssociacaoAdmin(admin.ModelAdmin):
     )
     list_display = ('__str__', 'get_codigo_eol')
     search_fields = ('uuid', 'conta_associacao__uuid', 'conta_associacao__associacao__unidade__codigo_eol',
-                     'conta_associacao__associacao__unidade__nome', 'conta_associacao__associacao__nome', 
+                     'conta_associacao__associacao__unidade__nome', 'conta_associacao__associacao__nome',
                      'conta_associacao__associacao__unidade__dre__codigo_eol')
 
 
@@ -460,7 +460,7 @@ class AtaAdmin(admin.ModelAdmin):
         return obj.periodo.referencia if obj and obj.periodo else ''
 
     get_referencia_periodo.short_description = 'Período'
-    
+
     raw_id_fields = ('prestacao_conta', 'associacao', 'composicao', 'presidente_da_reuniao', 'secretario_da_reuniao')
 
     list_display = (
@@ -481,7 +481,8 @@ class AtaAdmin(admin.ModelAdmin):
     )
     list_display_links = ('get_eol_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
-    search_fields = ('associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__unidade__dre__codigo_eol')
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__unidade__nome',
+                     'associacao__unidade__dre__codigo_eol')
 
 
 @admin.register(Arquivo)
@@ -608,10 +609,10 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
         return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''
 
     get_associacao.short_description = 'Associação'
-    
+
     def get_unidade_codigo_eol(self, obj):
         return obj.prestacao_conta.associacao.unidade.codigo_eol if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade else ''
-    
+
     get_unidade_codigo_eol.short_description = 'EOL'
 
     def get_referencia_periodo(self, obj):
@@ -661,7 +662,7 @@ class TipoDevolucaoTesouroAdmin(admin.ModelAdmin):
 
 class DreListFilter(admin.SimpleListFilter):
     from django.utils.translation import gettext_lazy
-    
+
     title = gettext_lazy('DRE')
     parameter_name = 'dre'
 
@@ -680,12 +681,13 @@ class DreListFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         from django.db import models
-        
+
         if self.value():
             return queryset.filter(
                 models.Q(prestacao_conta__associacao__unidade__dre__codigo_eol=self.value()) |
                 models.Q(associacao__unidade__dre__codigo_eol=self.value())
             )
+
 
 @admin.register(ComentarioAnalisePrestacao)
 class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
@@ -716,7 +718,7 @@ class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
             return obj.associacao.unidade.codigo_eol
         else:
             return ''
-        
+
     get_codigo_eol_unidade.short_description = 'EOL'
 
     list_display = (
@@ -735,8 +737,9 @@ class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
         return obj.associacao.unidade.codigo_eol if obj and obj.associacao and obj.associacao.unidade else ''
 
     get_codigo_eol.short_description = 'EOL'
-    
-    list_display = ('get_codigo_eol','associacao', 'conta_associacao', 'periodo', 'valor_capital', 'valor_custeio', 'valor_livre')
+
+    list_display = ('get_codigo_eol', 'associacao', 'conta_associacao',
+                    'periodo', 'valor_capital', 'valor_custeio', 'valor_livre')
     list_filter = ('associacao', 'periodo', 'conta_associacao__tipo_conta', 'associacao__unidade__dre')
     list_display_links = ('associacao',)
     readonly_fields = ('uuid', 'id')
@@ -1022,6 +1025,7 @@ class RelatorioRelacaoBensAdmin(admin.ModelAdmin):
         'relacao_bens__periodo_previa'
     )
 
+
 @admin.register(MembroAssociacao)
 class MembroAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'cargo_associacao', 'associacao')
@@ -1119,6 +1123,7 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
         'analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
         'analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
         'analise_prestacao_conta__prestacao_conta__associacao__nome',
+        'analise_prestacao_conta__uuid'
     )
 
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
