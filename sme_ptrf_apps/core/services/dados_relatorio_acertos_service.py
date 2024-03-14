@@ -3,6 +3,8 @@ from ..api.serializers.analise_documento_prestacao_conta_serializer import Anali
 from datetime import datetime
 from ...utils.numero_ordinal import formata_numero_ordinal
 
+from waffle import get_waffle_flag_model
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -55,6 +57,27 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
             }
 
             dados_lancamentos.append(dados)
+            
+    dados_despesas_periodos_anteriores = []
+    
+    flags = get_waffle_flag_model()
+    if flags.objects.filter(name='ajustes-despesas-anteriores', everyone=True).exists():
+        for conta in analise_prestacao_conta.prestacao_conta.associacao.contas.all():
+            despesas_periodos_anteriores = lancamentos_da_prestacao(
+                analise_prestacao_conta=analise_prestacao_conta,
+                conta_associacao=conta,
+                com_ajustes=True,
+                tipo_transacao="GASTOS",
+                apenas_despesas_de_periodos_anteriores=True,
+            )
+            
+            if despesas_periodos_anteriores:
+                dados = {
+                    'nome_conta': conta.tipo_conta.nome,
+                    'lancamentos': despesas_periodos_anteriores
+                }
+                
+                dados_despesas_periodos_anteriores.append(dados)
 
     dados_tecnico = {
         "responsavel": formata_tecnico_dre(analise_prestacao_conta),
@@ -74,17 +97,18 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
         'versao_devolucao': "Rascunho" if previa else verifica_versao_devolucao(analise_prestacao_conta),
         'dados_ajustes_contas': dados_ajustes_contas,
         'dados_lancamentos': dados_lancamentos,
+        'dados_despesas_periodos_anteriores': dados_despesas_periodos_anteriores,
         'dados_documentos': dados_documentos,
         'dados_tecnico': dados_tecnico,
         'data_geracao_documento': data_geracao_documento,
-        'blocos': nome_blocos(dados_ajustes_contas, dados_lancamentos, dados_documentos, dados_tecnico, previa),
+        'blocos': nome_blocos(dados_ajustes_contas, dados_lancamentos, dados_documentos, dados_tecnico, previa, dados_despesas_periodos_anteriores),
         'previa': previa
     }
 
     return dados
 
 
-def nome_blocos(dados_ajustes_contas, dados_lancamentos, dados_documentos, dados_tecnico, previa):
+def nome_blocos(dados_ajustes_contas, dados_lancamentos, dados_documentos, dados_tecnico, previa, dados_despesas_periodos_anteriores):
     dados = {}
     numero_bloco = 1
 
@@ -97,6 +121,10 @@ def nome_blocos(dados_ajustes_contas, dados_lancamentos, dados_documentos, dados
     if dados_lancamentos:
         numero_bloco = numero_bloco + 1
         dados[f'acertos_lancamentos'] = f'Bloco {numero_bloco} - Acertos nos lançamentos'
+        
+    if dados_despesas_periodos_anteriores:
+        numero_bloco = numero_bloco + 1
+        dados[f'despesas_periodos_anteriores'] = f'Bloco {numero_bloco} - Acertos nas despesas de períodos anteriores'
 
     if dados_documentos:
         numero_bloco = numero_bloco + 1
