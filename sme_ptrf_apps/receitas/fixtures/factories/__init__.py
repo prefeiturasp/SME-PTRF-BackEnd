@@ -1,0 +1,1 @@
+from .tipo_receita_factory import *

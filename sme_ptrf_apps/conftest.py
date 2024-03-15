@@ -21,66 +21,54 @@ from sme_ptrf_apps.dre.models import ConsolidadoDRE
 import datetime
 
 from pytest_factoryboy import register
-from sme_ptrf_apps.core.fixtures.factories.unidade_factory import DreFactory, UnidadeFactory
-from sme_ptrf_apps.core.fixtures.factories.associacao_factory import AssociacaoFactory
-from sme_ptrf_apps.core.fixtures.factories.conta_associacao_factory import ContaAssociacaoFactory
-from sme_ptrf_apps.core.fixtures.factories.periodo_factory import PeriodoFactory
-from sme_ptrf_apps.core.fixtures.factories.tipo_conta_factory import TipoContaFactory
-from sme_ptrf_apps.core.fixtures.factories.observacao_conciliacao_factory import ObservacaoConciliacaoFactory
-from sme_ptrf_apps.core.fixtures.factories.prestacao_conta_factory import PrestacaoContaFactory
-from sme_ptrf_apps.users.fixtures.factories.usuario_factory import UsuarioFactory
-from sme_ptrf_apps.users.fixtures.factories.unidade_em_suporte_factory import UnidadeEmSuporteFactory
-from sme_ptrf_apps.users.fixtures.factories.grupo_acesso_factory import GrupoAcessoFactory
-from sme_ptrf_apps.users.fixtures.factories.visao_factory import VisaoFactory
-from sme_ptrf_apps.core.fixtures.factories.acao_factory import AcaoFactory
-from sme_ptrf_apps.core.fixtures.factories.arquivo_factory import ArquivoFactory
-from sme_ptrf_apps.core.fixtures.factories.solicitacao_encerramento_conta_associacao_factory import SolicitacaoEncerramentoContaAssociacaoFactory
-from sme_ptrf_apps.core.fixtures.factories.acao_associacao_factory import AcaoAssociacaoFactory
-from sme_ptrf_apps.core.fixtures.factories.fechamento_periodo_factory import FechamentoPeriodoFactory
-from sme_ptrf_apps.despesas.fixtures.factories.despesa_factory import DespesaFactory
-from sme_ptrf_apps.despesas.fixtures.factories.rateio_despesa_factory import RateioDespesaFactory
-from sme_ptrf_apps.core.fixtures.factories.membro_associacao_factory import MembroAssociacaoFactory
-from sme_ptrf_apps.users.fixtures.factories.acesso_concedido_sme_factory import AcessoConcedidoSmeFactory
-from sme_ptrf_apps.mandatos.fixtures.factories.mandato_factory import MandatoFactory
-from sme_ptrf_apps.mandatos.fixtures.factories.composicao_factory import ComposicaoFactory
-from sme_ptrf_apps.core.fixtures.factories.prestacao_conta_reprovada_nao_apresentacao_factory import PrestacaoContaReprovadaNaoApresentacaoFactory
-from sme_ptrf_apps.core.fixtures.factories.tipo_acerto_lancamento_factory import TipoAcertoLancamentoFactory
-from sme_ptrf_apps.core.fixtures.factories.analise_prestacao_conta_factory import AnalisePrestacaoContaFactory
-from sme_ptrf_apps.core.fixtures.factories.analise_lancamento_prestacao_conta_factory import AnaliseLancamentoPrestacaoContaFactory
-from sme_ptrf_apps.core.fixtures.factories.solicitacao_acerto_lancamento_factory import SolicitacaoAcertoLancamentoFactory
-from sme_ptrf_apps.despesas.fixtures.factories.tipo_transacao_factory import TipoTransacaoFactory
 
 from sme_ptrf_apps.fixtures import *
 
-register(DreFactory)
-register(UnidadeFactory)
-register(AssociacaoFactory)
-register(ContaAssociacaoFactory)
-register(PeriodoFactory)
-register(TipoContaFactory)
-register(ObservacaoConciliacaoFactory)
-register(PrestacaoContaFactory)
-register(UsuarioFactory)
-register(UnidadeEmSuporteFactory)
-register(GrupoAcessoFactory)
-register(VisaoFactory)
-register(SolicitacaoEncerramentoContaAssociacaoFactory)
-register(ArquivoFactory)
-register(AcaoFactory)
-register(AcaoAssociacaoFactory)
-register(FechamentoPeriodoFactory)
-register(DespesaFactory)
-register(RateioDespesaFactory)
-register(MembroAssociacaoFactory)
-register(AcessoConcedidoSmeFactory)
-register(MandatoFactory)
-register(ComposicaoFactory)
-register(PrestacaoContaReprovadaNaoApresentacaoFactory)
-register(TipoAcertoLancamentoFactory)
-register(AnalisePrestacaoContaFactory)
-register(AnaliseLancamentoPrestacaoContaFactory)
-register(SolicitacaoAcertoLancamentoFactory)
-register(TipoTransacaoFactory)
+from sme_ptrf_apps.core.fixtures.factories import (
+    DreFactory, UnidadeFactory, AssociacaoFactory, ContaAssociacaoFactory,
+    PeriodoFactory, TipoContaFactory, ObservacaoConciliacaoFactory,
+    PrestacaoContaFactory, ArquivoFactory, AcaoFactory, AcaoAssociacaoFactory,
+    FechamentoPeriodoFactory, MembroAssociacaoFactory, RelacaoBensFactory,
+    RelatorioRelacaoBensFactory, ItemRelatorioRelacaoDeBensFactory,
+    SolicitacaoEncerramentoContaAssociacaoFactory, TipoAcertoLancamentoFactory,
+    AnalisePrestacaoContaFactory, AnaliseLancamentoPrestacaoContaFactory,
+    SolicitacaoAcertoLancamentoFactory, ProcessoAssociacaoFactory,
+    PrestacaoContaReprovadaNaoApresentacaoFactory, DemonstrativoFinanceiroFactory,
+    ItemResumoPorAcaoFactory, ItemDespesaFactory, ItemCreditoFactory, 
+)
+from sme_ptrf_apps.users.fixtures.factories import (
+    UsuarioFactory, UnidadeEmSuporteFactory, GrupoAcessoFactory, VisaoFactory,
+    AcessoConcedidoSmeFactory
+)
+from sme_ptrf_apps.mandatos.fixtures.factories import (
+    MandatoFactory, ComposicaoFactory, OcupanteCargoFactory, CargoComposicaoFactory
+)
+from sme_ptrf_apps.despesas.fixtures.factories import (
+    DespesaFactory, RateioDespesaFactory, TipoTransacaoFactory
+)
+from sme_ptrf_apps.receitas.fixtures.factories import (
+    TipoReceitaFactory
+)
+
+factories_to_register = [
+    DreFactory, UnidadeFactory, AssociacaoFactory, ContaAssociacaoFactory,
+    PeriodoFactory, TipoContaFactory, ObservacaoConciliacaoFactory,
+    PrestacaoContaFactory, UsuarioFactory, UnidadeEmSuporteFactory,
+    GrupoAcessoFactory, VisaoFactory, ArquivoFactory, AcaoFactory,
+    AcaoAssociacaoFactory, FechamentoPeriodoFactory, DespesaFactory,
+    RateioDespesaFactory, MembroAssociacaoFactory, AcessoConcedidoSmeFactory,
+    MandatoFactory, ComposicaoFactory, PrestacaoContaReprovadaNaoApresentacaoFactory,
+    TipoAcertoLancamentoFactory, AnalisePrestacaoContaFactory,
+    AnaliseLancamentoPrestacaoContaFactory, SolicitacaoAcertoLancamentoFactory,
+    TipoTransacaoFactory, ProcessoAssociacaoFactory, OcupanteCargoFactory,
+    CargoComposicaoFactory, DemonstrativoFinanceiroFactory, ItemResumoPorAcaoFactory,
+    ItemDespesaFactory, ItemCreditoFactory, TipoReceitaFactory, RelacaoBensFactory,
+    RelatorioRelacaoBensFactory, ItemRelatorioRelacaoDeBensFactory, 
+    SolicitacaoEncerramentoContaAssociacaoFactory
+]
+
+for factory in factories_to_register:
+    register(factory)
 
 
 @pytest.fixture
